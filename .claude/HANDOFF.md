@@ -1,7 +1,7 @@
-# Session Handoff — graph-system Planning Sprint (post-v0.2 plan pause)
+# Session Handoff — graph-system Planning Sprint (post-Tier-1-half + v0.3-cascade-unblocked pause)
 
-> **Refreshed:** 2026-04-29 (this version supersedes the 2026-04-28 mid-description-sweep handoff at commit `27adc2e`)
-> **Purpose:** Comprehensive continuation context for the next session resuming graph-system planning work, after the second pause point (v0.1 + v0.2 plans signed off).
+> **Refreshed:** 2026-04-29 (later in day) (this version supersedes the post-v0.2-plan refresh at commit `ee1cfac`)
+> **Purpose:** Comprehensive continuation context for the next session, after the third pause point. Since the prior refresh, this session shipped: Phase 0 spike brief (`docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md`), user-facing PHASE-0-ACTION-PLAN.md, **`properties-form` v0.1 plan signed off**, **`detail-panel` v0.1 plan signed off** — and **the `force-graph` v0.3 plan-lock cascade is now FULLY UNBLOCKED.**
 > **First read:** This is the third doc to read in a fresh session. Read [.claude/CLAUDE.md](CLAUDE.md) (auto-loaded; project conventions) and [.claude/STATUS.md](STATUS.md) (auto-loaded; live state) FIRST. Then this doc — orient via §1–§3, then jump to §5 for concrete next-step options.
 
 If you're a fresh Claude session: don't try to derive what's been done — it's all here. Trust this document plus STATUS.md plus CLAUDE.md.
@@ -69,12 +69,12 @@ The 6 description sign-offs spanned 12 commits (one draft + one sign-off per pro
 |---|---|---|
 | [`force-graph-v0.1-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md) | ✓ signed off 2026-04-28 (1040 lines) | Phase 0 risk spike (§3) before implementation |
 | [`force-graph-v0.2-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.2-plan.md) | ✓ signed off 2026-04-29 (879 lines) | v0.1 implementation lands first |
+| **[`force-graph-v0.3-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.3-plan.md)** | **plan-lock cascade now FULLY UNBLOCKED** (this is new in this session) | Independent; can author anytime |
 | `force-graph-v0.6-plan.md` | not started | Independent; can author anytime |
-| `force-graph-v0.3-plan.md` | not started | Gated on `properties-form` + `detail-panel` plans |
 | `force-graph-v0.4-plan.md` | not started | Gated on `filter-stack` plan |
 | `force-graph-v0.5-plan.md` | not started | Gated on `markdown-editor` plan |
-| `properties-form-procomp-plan.md` | not started | Independent (decision #35) |
-| `detail-panel-procomp-plan.md` | not started | Independent |
+| **[`properties-form-procomp-plan.md`](../docs/procomps/properties-form-procomp/properties-form-procomp-plan.md)** | **✓ signed off 2026-04-29 (~620 lines)** | Implementation pre-flight is `pnpm dlx shadcn@latest add input select switch textarea tooltip` |
+| **[`detail-panel-procomp-plan.md`](../docs/procomps/detail-panel-procomp/detail-panel-procomp-plan.md)** | **✓ signed off 2026-04-29 (~600 lines)** | Implementation pre-flight is `pnpm dlx shadcn@latest add skeleton` |
 | `filter-stack-procomp-plan.md` | not started | Independent |
 | `entity-picker-procomp-plan.md` | not started | Independent |
 | `markdown-editor-procomp-plan.md` | not started | Independent |
@@ -168,26 +168,30 @@ Run the 2-day GPU benchmarking work outside any Claude session. Document the res
 - [PHASE-0-ACTION-PLAN.md](PHASE-0-ACTION-PLAN.md) — user-facing action plan (who runs the spike: user / teammate / contractor; parallel work options; post-spike protocol). Surface this to the user FIRST when they pick Option A.
 - [docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md) — technical brief for the spike author (locked program contract, 4-step approach, benchmark methodology + test conditions, 4-tier contingency tree).
 
-### Option B — `properties-form` plan (recommended for continued planning)
-First Tier 1 plan. **Deepest dependency in the cascade** — gates `force-graph` v0.3 alongside `detail-panel` plan. The mixed-permission §6.2 showcase (system-origin canonical fields read-only sitting alongside user-owned annotations editable) is the architectural anchor for all editing surfaces.
+### Option B — `force-graph` v0.3 plan (highest leverage; newly unblocked)
+**Newly available in this pause point.** v0.3 is the editing-layer phase (CRUD with permissions); the plan-lock cascade unblocked when [`properties-form`](../docs/procomps/properties-form-procomp/properties-form-procomp-plan.md) and [`detail-panel`](../docs/procomps/detail-panel-procomp/detail-panel-procomp-plan.md) plans both signed off this session. v0.3 cascades the locked Tier 1 decisions into force-graph's editing surface — biggest planning leverage of the remaining options.
 
-- Description: [properties-form-procomp-description.md](../docs/procomps/properties-form-procomp/properties-form-procomp-description.md)
-- 8 plan-stage tightenings already surfaced in description §8.5
-- ~600–800 lines; ~2–3 weeks of implementation work
-- Independent of force-graph plans per decision #35
+- Description scope: [force-graph-procomp-description.md §2.3](../docs/procomps/force-graph-procomp/force-graph-procomp-description.md#23-v03--editing-layer-2-weeks)
+- Composes `properties-form` + `detail-panel` at host level (decision #35 unchanged — force-graph never imports either; composition is host/Tier 3)
+- 2 weeks focused per system §10.3
+- Implementation gated on Phase 0 spike (same as v0.1 / v0.2)
 
-### Option C — `force-graph` v0.6 plan
-Last independent force-graph plan. Closes the "all force-graph plans not gated on Tier 1" milestone before the Tier 1 cascade.
+### Option C — Remaining Tier 1 plans (filter-stack / entity-picker / markdown-editor)
+3 of 5 Tier 1 plans not yet authored. Mutually independent per decision #35; any order.
+- **`filter-stack`** plan — gates `force-graph` v0.4 (groups + filter integration); ~1.5 weeks implementation
+- **`markdown-editor`** plan — gates `force-graph` v0.5 (doc nodes + wikilink reconciliation); ~3 weeks implementation; heaviest pro-component
+- **`entity-picker`** plan — utility throughout; doesn't gate any specific force-graph phase but composed inside Tier 3 in v0.3 / v0.4; ~1 week implementation
 
-- Phase: perf hardening + multi-edge expansion + advanced settings
+### Option D — `force-graph` v0.6 plan (independent of Tier 1)
+Last force-graph plan with zero Tier 1 dependencies. Perf hardening + multi-edge expansion + advanced settings.
 - 2 weeks focused
 - Composes zero Tier 1 components per [system §10.3](../docs/systems/graph-system/graph-system-description.md)
 - Speculative until full system stood up (SVG-ceiling check needs everything else in place); authoring against the locked architecture is fine.
 
-### Option D — Pause longer
-The sprint has shipped 6 description sign-offs + 2 plan sign-offs + a system-description consistency pass. STATUS.md is current. No urgent issues. A longer pause is reasonable — Phase 0 spike is the actual gate.
+### Option E — Pause longer
+The sprint has shipped 6 description sign-offs + 4 plan sign-offs (force-graph v0.1 + v0.2; properties-form; detail-panel) + Phase 0 spike brief + a system-description consistency pass. STATUS.md is current. No urgent issues. A longer pause is reasonable — Phase 0 spike is the actual gate, and force-graph v0.3 plan is the biggest unblock waiting.
 
-**Tier 1 plans (B + the other 4)** are mutually independent per decision #35; can author in any order, in parallel across sessions. force-graph v0.3+ plans are gated on specific Tier 1 plans (v0.3 → properties-form + detail-panel; v0.4 → filter-stack; v0.5 → markdown-editor); deferring them is correct until Tier 1 plans land.
+**Tier 1 plans (Option C)** are mutually independent per decision #35; can author in any order, in parallel across sessions.
 
 ---
 
@@ -243,6 +247,14 @@ After all that you'll have the full picture. Then pick from §5.
 Most recent first; full history via `git log`:
 
 ```
+68b25ba docs(procomps/detail-panel): sign off v0.1 plan; apply 7 refinements
+3ebe709 docs(procomps/detail-panel): draft v0.1 plan (Stage 2)
+05387a8 docs(procomps/properties-form): sign off v0.1 plan; apply 9 refinements
+31c34a3 docs(procomps/properties-form): draft v0.1 plan (Stage 2)
+85826b6 docs(claude): add user-facing PHASE-0-ACTION-PLAN; link from HANDOFF §5A
+69163d8 docs(procomps/force-graph): sign off phase-0 spike brief; apply 7 refinements
+895786d docs(claude): add STARTER-PROMPT.md for fresh-session boot
+ee1cfac docs(status, handoff): refresh for post-v0.2-plan pause point  ← the previous (now-superseded) handoff
 2d5fac3 docs(procomps/force-graph): sign off v0.2 plan; refine Q-P3 + Q-P10
 2aa993b docs(procomps/force-graph): draft v0.2 plan (Stage 2, Phase 2 of 6)
 8cb70f7 docs(systems/graph-system): consistency pass; footnote decision #11
@@ -250,15 +262,9 @@ Most recent first; full history via `git log`:
 a9d4eac docs(procomps/force-graph): draft v0.1 plan (Stage 2, Phase 1 of 6)
 ed3740c docs(status): description sweep complete; trim recent-decisions log
 e8df9d0 docs(procomps/force-graph): sign off description; refine Q5 + Q8 + Q10
-c27b78f docs(procomps/force-graph): draft v0.1 description
-79d9b53 docs(procomps/markdown-editor): sign off description; reverse Q1, refine Q4 + Q8
-6a48b69 docs(procomps/markdown-editor): draft v0.1 description
-27adc2e docs(handoff): comprehensive session handoff for fresh-session resumption  ← the previous (now-superseded) handoff
-47869dc docs(procomps/entity-picker): sign off description
-d376f03 docs(procomps/entity-picker): draft v0.1 description
 ```
 
-The previous handoff (commit `27adc2e`) is preserved in git history; the file content has been replaced by this version.
+The previous handoff (commit `ee1cfac`) is preserved in git history; the file content has been replaced by this version.
 
 ---
 
