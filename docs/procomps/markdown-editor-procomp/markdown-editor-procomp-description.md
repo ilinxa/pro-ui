@@ -1,10 +1,10 @@
 # `markdown-editor` — Pro-component Description
 
-> **Status:** **draft v0.1 — pending validation + sign-off.** Stage 2 (`markdown-editor-procomp-plan.md`) authoring is blocked until this signs off.
+> **Status:** **signed off 2026-04-28.** Stage 2 (`markdown-editor-procomp-plan.md`) authoring may begin.
 > **Slug:** `markdown-editor`
 > **Category:** `forms`
 > **Created:** 2026-04-28
-> **Last updated:** 2026-04-28 (initial draft; 10 open questions surfaced with recommendations)
+> **Last updated:** 2026-04-28 (signed off; Q1 reversed and Q4 + Q8 refined on re-validation; §6.1 + §5 corrected per [original spec §3.10](../../../graph-visualizer-old.md); all 10 open questions resolved)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (generic; no graph dependency at the registry level)
 
@@ -39,6 +39,7 @@ Per [decision #30](../../systems/graph-system/graph-system-description.md): v0.1
 - **CodeMirror 6 substrate** ([decision #19](../../systems/graph-system/graph-system-description.md)). The editor wraps a CM6 instance configured with the markdown language package, the autocomplete extension, the search extension, and a project-specific theme. No "build from scratch" markdown editor.
 - **Pure controlled `value` / `onChange`** — host owns the markdown string. Same pattern as `properties-form`, `filter-stack`, `entity-picker`.
 - **`readOnly` mode** — when `true`, the editor is non-editable but still renders markdown syntax highlighting (CM6 read-only mode, NOT preview mode). Distinct from preview mode.
+- **`origin`-agnostic.** The component does NOT inspect node `origin` ([system §4.1](../../systems/graph-system/graph-system-description.md#41-the-origin-field)). The host computes `readOnly` via its permission resolver ([decision #25](../../systems/graph-system/graph-system-description.md)) — typically `origin === "system" && !canAnnotate` resolves to `readOnly = true`. This keeps markdown-editor reusable outside the graph-system entirely.
 - **Preview toggle** — the editor renders three view modes: `"edit"`, `"preview"`, `"split"`. Toggle controlled by host (`view` + `onViewChange`) or uncontrolled (`initialView` + internal state). Preview is rendered markdown HTML; edit is the CM6 instance.
 - **Default toolbar** ([decision #20](../../systems/graph-system/graph-system-description.md)) with: bold, italic, code, link, unordered list, ordered list, blockquote, heading-cycle. Each toolbar action wraps/unwraps the current selection or inserts a snippet.
 - **Slot-able toolbar** ([decision #20](../../systems/graph-system/graph-system-description.md)). The `toolbar` prop accepts: (a) `false` (hide), (b) `ToolbarItem[]` (replace items, layout chrome stays), (c) render fn (full custom). Default = built-in toolbar.
@@ -62,6 +63,8 @@ Locked by [decision #30](../../systems/graph-system/graph-system-description.md)
 
 - **Slash commands** (`/heading`, `/code`, etc.). Useful pattern but explicitly out of v0.1 per decision #30. v0.2 lands a slash-command extension.
 - **Drag-and-drop image / file insertion.** v0.1 has no image affordance. Hosts wanting images use a custom toolbar item that calls `insertText` with the markdown image syntax. v0.2 adds drop-handler hook.
+- **Image embeds (`![[image.png]]`).** Per [original spec §3.10](../../../graph-visualizer-old.md), image embeds are NOT parsed in v0.1. The preview renderer treats them as literal text; the editor decoration treats them like any other markdown text. v0.2 may add image-embed support if hosts demand it.
+- **GFM task-list interactivity.** Task-list checkboxes (`- [ ] todo`) render as static checkboxes in preview; clicking does NOT toggle the source. Toggling requires write-back to the markdown source — deferred to v0.2.
 - **Live wikilink hover preview** (hover a `[[link]]` in edit mode → popup with the linked node's summary). Requires the host to resolve the target and supply preview content; non-trivial. Deferred to v0.2 ([decision #30](../../systems/graph-system/graph-system-description.md)).
 - **Auto-save / debounced background save.** v0.1 fires `onSave` on Cmd+S only. Hosts wanting auto-save implement it externally: receive `onChange`, debounce, call their own save. v0.2 adds opt-in `autoSave: { debounceMs }`.
 - **Async wikilink candidate resolver** (`loadCandidates(query) => Promise<...>`). v0.1 expects a static array. v0.2 ships async — same deferral pattern as `entity-picker` Q (async loading deferred).
@@ -83,6 +86,7 @@ In dependency order:
 3. **Tier 3 graph-system page** — composes the above; supplies `wikilinkCandidates` from the graph snapshot; routes `onWikilinkClick` to focus-and-select the target node.
 4. **Standalone notes / wiki surfaces** — any future Tier 3 page or app surface needing markdown authoring with wikilinks (a personal notes app, a developer wiki, the docs site's own README/changelog editor).
 5. **Generic markdown editing surfaces** outside the graph system — README editor, changelog editor, post composer. Wikilinks just stay disabled (no `wikilinkCandidates` provided → autocomplete trigger is inert; `[[...]]` tokens still render but no popup appears).
+6. **`force-graph` v0.1–v0.4 doc-node preview** (Tier 2, secondary use) — markdown-editor in `view="preview"` + `readOnly={true}` could render the read-only doc body before the v0.5 editor lands. This keeps a single markdown-rendering path across the registry. Plan stage decides whether to lazy-load CM6 (mounting only when `view !== "preview"`) so the v0.1–v0.4 preview path doesn't drag in the full editor weight; the alternative is force-graph shipping a separate lighter preview, which fragments markdown rendering.
 
 markdown-editor has zero graph dependency at the registry level. This is per [system decision #35](../../systems/graph-system/graph-system-description.md): Tier 1 components are independent — none imports another. force-graph and the Tier 3 page would each *consume* markdown-editor without markdown-editor importing them.
 
@@ -96,9 +100,10 @@ import type { EditorView } from "@codemirror/view";
 
 interface WikilinkCandidate {
   id: string;
-  label: string;
+  label: string;         // resolution target; the part BEFORE `|` per original spec §3.10
   kind?: string;
-  linkText?: string;     // text inserted between [[ ]]; defaults to label
+  alias?: string;        // when set, autocomplete inserts [[label|alias]] (display text only;
+                         // resolution still uses `label`). Omitting yields plain [[label]].
 }
 
 interface KindMeta {
@@ -125,7 +130,7 @@ interface ToolbarCtx {
   toggleLinePrefix: (prefix: string) => void;
 }
 
-interface MarkdownEditorProps {
+interface MarkdownEditorProps<TCandidate extends WikilinkCandidate = WikilinkCandidate> {
   // Document
   value: string;
   onChange: (value: string) => void;
@@ -135,16 +140,16 @@ interface MarkdownEditorProps {
   view?: ViewMode;                             // controlled
   onViewChange?: (view: ViewMode) => void;
   initialView?: ViewMode;                      // uncontrolled default; default "edit"
-  showPreviewToggle?: boolean;                 // default true; if false, view is locked to "edit" (or readOnly's read view)
+  showPreviewToggle?: boolean;                 // default true; if false, view is locked to initialView
 
   // Wikilinks
-  wikilinkCandidates?: ReadonlyArray<WikilinkCandidate>;
-  onWikilinkClick?: (target: string) => void;  // fires from preview-mode wikilink span clicks
-  kinds?: Record<string, KindMeta>;            // for kind badges in the autocomplete popup + preview rendering
+  wikilinkCandidates?: ReadonlyArray<TCandidate>;
+  onWikilinkClick?: (target: string) => void;  // target = part BEFORE `|`; omitted callback = inert spans
+  kinds?: Record<string, KindMeta>;            // kind badges in the autocomplete popup + preview rendering
 
   // Toolbar
-  toolbar?: false | ReadonlyArray<ToolbarItem> | ((ctx: ToolbarCtx) => ReactNode);
-  // false = hide; array = replace items (default chrome stays); fn = full custom
+  toolbar?: false | ReadonlyArray<ToolbarItem>;
+  // false = hide; array = replace items (default chrome stays). Render-fn escape hatch deferred to v0.2.
 
   // CM6 extension point
   extensions?: ReadonlyArray<Extension>;       // appended to the component's own extension stack
@@ -180,9 +185,14 @@ Built-in toolbar items (default set, in display order): `bold`, `italic`, `code`
 ### 6.1 force-graph v0.5 doc-node editor (showcase — graph-system primary driver)
 
 ```tsx
+// Wikilinks resolve to nodes OR groups per [original spec §3.10](../../../graph-visualizer-old.md);
+// candidates are heterogeneous, mirroring entity-picker §6.1 linking-mode.
 const wikilinkCandidates = useMemo(
-  () => graph.nodes.map((n) => ({ id: n.id, label: n.label, kind: n.kind })),
-  [graph.nodes]
+  () => [
+    ...graph.nodes.map((n) => ({ id: n.id, label: n.label, kind: n.kind ?? "node" })),
+    ...graph.groups.map((g) => ({ id: g.id, label: g.name, kind: "group" as const })),
+  ],
+  [graph.nodes, graph.groups]
 );
 
 <MarkdownEditor
@@ -272,188 +282,101 @@ The component is "done" for v0.1 when:
 1. **Used by `force-graph` v0.5 doc-node editing flow** (§6.1) with no API additions or workarounds. Wikilink autocomplete fires correctly, kind badges render in the popup, save triggers reconciliation per decision #36.
 2. **`detail-panel` body-slot integration tested** (§6.2). The host wires `<MarkdownEditor>` into `<DetailPanel.Body>` cleanly with an additive toolbar item and `canEdit`-driven `readOnly`.
 3. **Cmd/Ctrl+S triggers `onSave`** consistently across browsers (Chrome, Firefox, Safari) without conflicting with the browser's native save dialog (`preventDefault` correctly).
-4. **Wikilink autocomplete UX**: typing `[[` opens the popup, filtering by label substring; ↑/↓/Enter/Esc work; selection inserts `[[label]]` (or `linkText` if provided); popup positions correctly near the caret.
-5. **Wikilink rendering in preview**: `[[...]]` tokens in preview mode render as clickable spans calling `onWikilinkClick`. Unresolved wikilinks (target not in `wikilinkCandidates`) render with a distinct "broken link" style.
-6. **Toolbar slot** accepts all three forms — `false` (hidden), array (replace items), render fn (custom chrome) — and round-trips a host-built save button (§6.2).
-7. **All three view modes** (edit, preview, split) render correctly. Split-view shows editor + preview side-by-side at desktop widths.
+4. **Wikilink autocomplete UX**: typing `[[` opens the popup, filtering by label substring (case-insensitive); ↑/↓/Enter/Esc work; selection inserts `[[label]]` (or `[[label|alias]]` when `alias` is provided); popup positions correctly near the caret.
+5. **Wikilink rendering in preview**: `[[...]]` and `[[Target|alias]]` tokens render as clickable spans; `onWikilinkClick(target)` receives the part before `|`. Unresolved wikilinks (target not matched in `wikilinkCandidates` by case-insensitive + whitespace-trimmed + exact label) render with a distinct "broken link" style. Image embeds (`![[...]]`) render as literal text.
+6. **Toolbar slot** accepts both forms — `false` (hidden) and `ToolbarItem[]` (replace items, default chrome stays) — and round-trips a host-built save button (§6.2).
+7. **All three view modes** (edit, preview, split) render correctly. Split-view shows editor + preview side-by-side; stacks vertically when the editor's CONTAINER is narrow (container queries, not viewport).
 8. **Theming follows globals.css**: switching dark/light updates editor colors without remount; signal-lime accent visible on focus ring; Onest font for prose, JetBrains Mono for code blocks (decision #37).
-9. **Bundle weight ≤ 180KB** (minified + gzipped) — decision #26 budgets ~150KB; we permit some headroom for the wikilink extension + theme. Plan stage locks the exact dep manifest.
+9. **Bundle weight ≤ 180KB total** (minified + gzipped). [Decision #26](../../systems/graph-system/graph-system-description.md) accepts ~150KB for the CodeMirror 6 substrate; the additional ~30KB headroom covers our theme + wikilink extension + toolbar + preview parser (~14KB `marked` + ~16KB custom). Plan stage adds a per-import bundle audit and locks the budget breakdown.
 10. **A11y audit passes**: editor surface has appropriate `role="textbox"` + `aria-multiline="true"`, toolbar buttons carry `aria-label` and `aria-pressed` where relevant, view-mode toggle is a `role="tablist"`, screen-reader announces autocomplete results.
 11. **`tsc + lint + build` clean** with no React Compiler warnings. The CM6 lifecycle is wrapped in a single effect with proper cleanup.
 12. **Demo at `/components/markdown-editor`** demonstrates: edit / preview / split modes, wikilink autocomplete with kind badges, custom toolbar, hidden toolbar, readOnly mode, save callback, and the imperative handle (focus / insertText buttons).
 
 ---
 
-## 8. Open questions (10)
+## 8. Resolved questions (locked on sign-off 2026-04-28)
 
-Each question carries a recommendation. Recommendations are subject to validation; locks happen at sign-off and may shift then. Mark high-impact questions explicitly so they get focused review.
+All 10 questions resolved at sign-off. The recommendations below are the locked decisions for v0.1; Stage 2 (plan) builds against these. Q1 was reversed and Q4 + Q8 refined on re-validation. New questions surfacing during plan authoring land in a fresh `## 8.6 New open questions` section as needed.
 
-| # | Question | Recommendation | Impact |
-|---|---|---|---|
-| 1 | Toolbar slot shape | `false \| ToolbarItem[] \| (ctx) => ReactNode` | **High** — affects every host that customizes |
-| 2 | Default keymap | Fixed set: B/I/code/link/list/blockquote + CM6 defaults; no disable prop | Medium |
-| 3 | View modes & split-view sizing | Three modes (edit/preview/split); split is fixed 50/50; stacks vertically <640px; no resizable splitter | Medium |
-| 4 | Wikilink rendering in preview | Clickable `<span>`s; `onWikilinkClick(target)`; unresolved wikilinks styled "broken" | **High** — affects host wiring |
-| 5 | CM6 theming approach | Thin CM6 theme mapping to CSS variables from globals.css; flips with class | Medium |
-| 6 | Bundle weight discipline | Explicit dep manifest (no `codemirror` mega-bundle); plan locks deps + audit | Medium |
-| 7 | Save semantics | Cmd/Ctrl+S only in v0.1; auto-save deferred to v0.2 | Medium |
-| 8 | `wikilinkCandidates` shape | Static array in v0.1; async resolver deferred to v0.2 | Medium |
-| 9 | Imperative handle surface | `focus / undo / redo / insertText / getSelection / getValue / getView` | Medium |
-| 10 | Markdown flavor | GFM by default (CommonMark + tables, strikethrough, task lists, autolink) | **High** — affects parser + reconciler |
+1. **Toolbar slot shape — locked: `toolbar?: false | ReadonlyArray<ToolbarItem>`.** **Reversed from the original render-fn-inclusive recommendation on re-validation.** Reasoning: no other Tier 1 component takes "false | array | fn" — `properties-form`, `filter-stack`, `entity-picker` all use single render-fn slots, and `detail-panel` uses compound parts. The "all three forms" approach was unprecedented in the registry. The 95% case ("defaults + 1 button") is solved cleanly by `ToolbarItem[]` plus an exported `defaultMarkdownToolbar` constant (§6.2). The 5% case ("fully custom layout") works fine with `toolbar: false` plus rendering externally; `getView()` gives the host CM6 access for shortcut wiring. Render-fn escape hatch is **additive in v0.2** — non-breaking.
 
-### 8.1 Toolbar slot shape (Q1, high impact)
+2. **Default keymap — locked: fixed set + CM6 defaults; no disable prop.** Cmd+B (bold), Cmd+I (italic), Cmd+E (inline code), Cmd+K (link wrap as `[sel](url)`), Cmd+Shift+. (blockquote) layered on top of CM6's built-in keymap (undo/redo, search, line manipulation). Hosts wanting overrides use the `extensions` slot with `Prec.high(keymap.of([...]))` — clean industrial mechanism. Adding a configurable keymap prop later is additive.
 
-**Recommendation:** `toolbar?: false | ReadonlyArray<ToolbarItem> | ((ctx: ToolbarCtx) => ReactNode)`. Default = built-in toolbar.
+3. **View modes & split-view sizing — locked: 3 modes (`edit` / `preview` / `split`); fixed 50/50 split; stacks vertically on narrow containers; no resizable splitter.** Toggle is controlled (`view` + `onViewChange`) or uncontrolled (`initialView`, default `"edit"`). `showPreviewToggle?: boolean` (default `true`). Hosts wanting resize wrap the editor in `workspace`. Adding `resizable?: boolean` in v0.2 is additive.
 
-- `false` → hide chrome entirely (CM6 surface only).
-- `ToolbarItem[]` → replace items, layout chrome stays. Hosts spread `defaultMarkdownToolbar` and add their own (§6.2).
-- Render fn → full custom chrome; host owns layout, styling, ordering. Receives `ToolbarCtx` with `view`, `value`, `insertText`, `wrapSelection`, `toggleLinePrefix`.
+4. **Wikilink rendering in preview — locked: clickable spans + `onWikilinkClick(target)`; "broken-link" style for unresolved; image embeds NOT parsed.** Refined on re-validation per [original spec §3.10](../../../graph-visualizer-old.md):
+   - `target` passed to `onWikilinkClick` is the part **before** `|` (the resolution target). Alias (after `|`) renders as link text but does NOT affect resolution.
+   - "Broken-link" detection uses the same matching rules as reconciliation: case-insensitive + whitespace-trimmed + **exact** label match (NOT substring). This keeps the editor's UX consistent with force-graph v0.5+ save-time reconciliation outcome ([decision #36](../../systems/graph-system/graph-system-description.md)).
+   - **Image embeds (`![[image.png]]`) are NOT parsed**; render as literal text (§3 out-of-scope). Matches original spec §3.10.
+   - When `onWikilinkClick` is omitted, spans render styled but inert (no click handler). Hosts opt into navigation by supplying the callback.
 
-**Trade-off:** A render-fn-only API is more flexible but forces every host to reimplement layout. An array-only API can't express custom dividers / dropdown groups / non-button elements. Both is the entity-picker / properties-form pattern (slot ladder) and produces minimal call-site code for the common case.
+   A `renderWikilink?: (ctx) => ReactNode` slot is **additive in v0.2** if hosts need richer rendering.
 
-**Downstream change cost if revised:** Switching to render-fn-only later is a breaking change; switching from render-fn-only to "both" later is additive. Picking "both" up front is the safer default.
+5. **CM6 theming — locked: thin CM6 theme mapping to CSS variables from [globals.css](../../../src/app/globals.css).** Editor surface, cursor, selection, active line, and syntax tokens (heading, link, code, quote, emphasis) all map to `var(--*)`. Dark/light flip via Tailwind's `dark:` class works automatically with no remount because variables resolve at the document level. Plan stage locks the exact mapping table and adds a smoke test for the no-remount flip.
 
-### 8.2 Default keymap (Q2)
+6. **Bundle weight discipline — locked: explicit dependency manifest; no `codemirror` umbrella.** Required deps (subject to plan-stage finalization): `@codemirror/state`, `@codemirror/view`, `@codemirror/commands`, `@codemirror/language`, `@codemirror/lang-markdown`, `@codemirror/autocomplete`, `@codemirror/search`, `@lezer/markdown`, `@lezer/highlight`, plus a markdown preview parser (most likely `marked` for bundle reasons). Forbidden: the `codemirror` umbrella package (~80KB of unused legacy modes). Plan stage adds `size-limit` (or equivalent) and locks the per-import budget breakdown.
 
-**Recommendation:** Ship a fixed default markdown keymap layered ON TOP of CM6's built-in keymap. Keys: Cmd+B (bold), Cmd+I (italic), Cmd+E (code span), Cmd+K (link prompt), Cmd+Shift+. (blockquote). CM6 defaults handle undo/redo (Cmd+Z / Cmd+Shift+Z), search (Cmd+F), line manipulation, etc. No prop to disable individual shortcuts in v0.1; hosts wanting to override use the `extensions` slot with `Prec.high(keymap.of([...]))`.
+7. **Save semantics — locked: Cmd/Ctrl+S explicit only in v0.1; auto-save deferred to v0.2.** `onSave(value)` fires on Cmd+S; browser default suppressed via `preventDefault`. Hosts wanting auto-save TODAY implement it externally via `onChange`. Force-graph v0.5 is fine with explicit save (Obsidian / VS Code precedent); explicit save also matches the "reconciliation runs on save" mental model from decision #36. Adding `autoSave: { debounceMs }` in v0.2 is additive.
 
-**Trade-off:** A configurable keymap prop is bikeshed-prone (every host wants slightly different shortcuts). The CM6 `extensions` escape hatch is a clean industrial mechanism for power users.
+8. **`wikilinkCandidates` shape — locked: static array + parameterized typing in v0.1; async resolver deferred.** Refined on re-validation: parameterize the component over `TCandidate extends WikilinkCandidate = WikilinkCandidate`. Mirrors `entity-picker` Q9, `properties-form` Q2, `filter-stack` Q5 locks — same "cheap one-time win, no migration cost" reasoning. `loadCandidates(query) => Promise<...>` deferred to v0.2 (additive; either source can be supplied, with `loadCandidates` taking precedence when both are present). For `force-graph` v0.5, the candidate set is "all nodes + all groups" — derivable from the snapshot, fine for graphs up to ~10k entities (the v0.1 force-graph target).
 
-**Downstream change cost if revised:** Adding a configurable keymap prop later is additive (non-breaking).
+9. **Imperative handle surface — locked: `focus / undo / redo / insertText / getSelection / getValue / getView`.**
+   - `focus()` — focus the CM6 editor surface
+   - `undo()` / `redo()` — proxy to CM6 history
+   - `insertText(text)` — replace selection if non-empty; insert at caret if empty
+   - `getSelection()` → `{ from, to, text }` — caret offsets and selected text
+   - `getValue()` — current CM6 doc (may be marginally fresher than the React `value` prop)
+   - `getView()` → CM6 `EditorView` — escape hatch for power users
 
-### 8.3 View modes & split-view sizing (Q3)
+   `getView()` leaks the CM6 abstraction; that's the right tradeoff because [decision #19](../../systems/graph-system/graph-system-description.md) locks CM6 long-term. If substrate ever swaps, removing `getView` is a major-version bump (acknowledged risk).
 
-**Recommendation:** Three view modes — `"edit" | "preview" | "split"`. Toggle is controlled (`view` + `onViewChange`) or uncontrolled (`initialView`, defaulting to `"edit"`). `showPreviewToggle?: boolean` (default `true`) toggles the visibility of the mode-switcher chrome. Split-view is a **fixed 50/50** in v0.1; stacks editor-on-top + preview-below at viewport widths under 640px. **No resizable splitter** in v0.1 — hosts wanting resize wrap the editor in `workspace`.
+10. **Markdown flavor — locked: GitHub-Flavored Markdown by default.** CommonMark base + GFM extensions: tables, strikethrough, task lists, autolink. Configured via `@codemirror/lang-markdown`'s GFM option for editor highlighting; preview-mode rendering uses a GFM-capable parser (likely `marked`; plan-stage final). **GFM task list checkboxes are non-interactive in v0.1 preview** — toggling requires write-back to markdown source, deferred to v0.2 (§3 out-of-scope). Wikilink parsing is a separate custom extension layered on top of GFM in BOTH the CM6 highlighter and the preview parser; plan stage locks the symmetric grammar so both sides agree on token boundaries. Other flavors (MyST, Obsidian `==highlight==`, embedded math) are out of v0.1 scope; v0.2 can add via a `flavor` prop or extension.
 
-**Trade-off:** A resizable splitter would be nicer UX but adds drag-handle complexity, persistence, and a non-trivial test surface. The `workspace` component already exists for resizable layouts; users who need it compose. Fixed 50/50 covers the common case.
+## 8.5 Plan-stage tightenings (surfaced during description review + re-validation)
 
-**Downstream change cost if revised:** Adding a `resizable?: boolean` prop in v0.2 is additive. Hosts that wrap in `workspace` today won't break.
+These are NOT description-blocking, but plan authoring must address them:
 
-### 8.4 Wikilink rendering in preview (Q4, high impact)
-
-**Recommendation:** Preview-mode renderer recognizes `[[token]]` and renders as `<span class="wikilink">` (or `wikilink--unresolved` when `token` doesn't resolve to any candidate by label). Click fires `onWikilinkClick(target: string)` with the bracketed label. Unresolved wikilinks remain clickable (host can use the click to trigger creation), just visually distinct.
-
-Alternative considered: render as plain `<a href="#">` — rejected because the URL semantics don't match (wikilinks aren't URLs, they're entity references; the host resolves the meaning).
-
-**Trade-off:** A `renderWikilink` slot would be ultra-flexible but invites every host to reimplement; a fixed rendering with `onWikilinkClick` covers ≥95% of cases. v0.2 can add `renderWikilink?: (ctx) => ReactNode` if real demand surfaces.
-
-**Downstream change cost if revised:** Adding `renderWikilink` later is additive. Removing it later would break consumers.
-
-### 8.5 CM6 theming approach (Q5)
-
-**Recommendation:** A thin CM6 theme that maps CM6 token classes to CSS variables from [globals.css](../../../src/app/globals.css). Specifically:
-
-- `.cm-editor` → `var(--background)` background, `var(--foreground)` text
-- `.cm-content` → `font-family: var(--font-sans)`
-- `.cm-content` (code blocks / inline code) → `font-family: var(--font-mono)`
-- `.cm-cursor` → `var(--foreground)`
-- `.cm-selectionBackground` → `var(--accent)` with reduced alpha
-- `.cm-activeLine` → `var(--muted)` background
-- syntax tokens (heading, link, code, quote, emphasis) → mapped to `var(--chart-1..5)` and weight/style adjustments
-
-This means dark/light theme switching via Tailwind's `dark:` class flips the editor automatically with no remount.
-
-**Trade-off:** CM6's theme API uses inline styles (high specificity) — fighting it with Tailwind classes is fragile. Mapping at the CM6 theme layer (which IS the recommended approach) keeps the design tokens flowing through cleanly.
-
-**Downstream change cost if revised:** Theme rewrites are local to one file; non-breaking for consumers.
-
-### 8.6 Bundle weight discipline (Q6)
-
-**Recommendation:** Lock an explicit dependency list at plan stage. Likely:
-
-- `@codemirror/state`
-- `@codemirror/view`
-- `@codemirror/commands`
-- `@codemirror/language`
-- `@codemirror/lang-markdown`
-- `@codemirror/autocomplete`
-- `@codemirror/search`
-- `@lezer/markdown` (and `@lezer/highlight` for syntax classes)
-
-**Forbidden**: the `codemirror` umbrella package (drags in unused legacy modes). Plan stage adds a bundle-size check (e.g., `size-limit` or manual `pnpm build --analyze`) with the 180KB target from §7. Decision #26 caps acceptance at ~150KB; the 30KB headroom is for the wikilink extension + theme + toolbar.
-
-**Trade-off:** The umbrella package is convenient but pulls in ~80KB of unused content. The explicit list is more verbose but auditable.
-
-**Downstream change cost if revised:** Adding/removing CM6 packages is a plan-level concern; consumers don't care.
-
-### 8.7 Save semantics (Q7)
-
-**Recommendation:** Cmd/Ctrl+S explicit only in v0.1. Fires `onSave(value)` with the current document. Browser default (`preventDefault`) suppressed. Auto-save / debounced background save deferred to v0.2 (`autoSave?: { debounceMs: number }`).
-
-Hosts wanting auto-save TODAY implement it externally:
-
-```tsx
-<MarkdownEditor
-  value={value}
-  onChange={(v) => { setValue(v); scheduleAutoSave(v); }}
-  onSave={save}
-/>
-```
-
-**Trade-off:** Auto-save is a feature consumers will want; deferring asks force-graph v0.5 to either run with explicit-save UX or implement auto-save host-side. Force-graph v0.5 is fine with explicit save (Obsidian / VS Code precedent); explicit save also matches the "reconciliation runs on save" mental model from decision #36.
-
-**Downstream change cost if revised:** Adding `autoSave` in v0.2 is additive (non-breaking). Consumers using explicit save continue working.
-
-### 8.8 `wikilinkCandidates` shape (Q8)
-
-**Recommendation:** Static array in v0.1: `wikilinkCandidates?: ReadonlyArray<WikilinkCandidate>`. Async resolver (`loadCandidates(query) => Promise<...>`) deferred to v0.2.
-
-For force-graph v0.5, the candidate set is "all node labels" — derivable from the snapshot in O(N), fine for graphs up to ~10k nodes (the v0.1 force-graph target). Larger graphs and async-fetch surfaces wait for v0.2.
-
-**Trade-off:** Async resolver is more flexible but introduces loading states, race conditions, and a more complex testing surface. Same deferral pattern as `entity-picker` async loading (Q3 of that procomp).
-
-**Downstream change cost if revised:** Adding `loadCandidates` in v0.2 is additive (non-breaking; either can be supplied, with `loadCandidates` taking precedence when both are present).
-
-### 8.9 Imperative handle surface (Q9)
-
-**Recommendation:** `MarkdownEditorHandle` exposes:
-
-- `focus()` — focus the CM6 editor surface
-- `undo()` / `redo()` — proxy to CM6 history
-- `insertText(text)` — insert at current selection / caret
-- `getSelection()` → `{ from, to, text }` — caret offsets and selected text
-- `getValue()` — current document (same as `value` prop, but useful when consumer doesn't memoize)
-- `getView()` → CM6 `EditorView` — escape hatch for power users (custom commands, dispatch direct transactions)
-
-**Trade-off:** Exposing `getView()` leaks the CM6 abstraction; consumers can do anything (including dangerous things like swapping extensions at runtime). It's the right escape hatch — without it, consumers needing CM6-specific behavior either fork the component or lobby for new prop surfaces.
-
-**Downstream change cost if revised:** Adding handle methods is additive. Removing `getView` later would break power consumers — but we're confident in keeping it long-term (CM6 is the substrate per decision #19).
-
-### 8.10 Markdown flavor (Q10, high impact)
-
-**Recommendation:** Ship **GitHub-Flavored Markdown** by default — CommonMark base + GFM extensions: tables, strikethrough, task lists, autolink. Configured via `@codemirror/lang-markdown`'s GFM option for editor highlighting; preview-mode rendering uses a GFM-capable parser (likely `marked` or `markdown-it` with the GFM plugin — final pick locked at plan stage based on bundle and security audit).
-
-**Trade-off:** Pure CommonMark is simpler but "no tables" feels archaic in 2026; users will assume tables work. GFM is the de facto industry expectation. Other flavors (MyST, Obsidian-flavored markdown with `==highlight==`, embedded math) are out of scope for v0.1; v0.2 can add via a `flavor` prop or extension.
-
-**Downstream change cost if revised:** Switching from GFM to pure CommonMark later is breaking (tables would stop rendering). Sticking with GFM up front is the safer default.
-
-### 8.11 Cross-cutting concerns surfaced by the questions above
-
-These aren't open questions per se but are downstream consequences worth noting for the plan stage:
-
-- **Wikilink token grammar.** Q4 + Q10 + Q1 all touch on it. Plan stage locks: `[[label]]` and `[[label|alias]]` (Obsidian-compatible). `[[label#anchor]]` deferred. Square-bracket inside the label not supported (no nesting).
-- **Reconciliation contract.** Decision #36 says force-graph v0.5 reconciles on save. The markdown editor's contract is just "call `onSave` on Cmd+S"; reconciliation logic lives in force-graph. This doc does NOT specify the reconciliation algorithm.
-- **CM6 lifecycle in React 19 + React Compiler.** The editor mounts a CM6 `EditorView` in `useEffect` and disposes on unmount. The compiler should leave this alone (effect with cleanup, stable refs). Plan stage validates with the compiler enabled.
+1. **Cmd+K behavior.** Wraps the current selection as `[sel](url)` with the cursor positioned inside the `url` slot. No popup/dialog chrome.
+2. **Split-view stacking breakpoint.** Use container queries (Tailwind v4 supports them natively), NOT viewport breakpoints. So a markdown-editor in a 320px sidebar stacks vertically regardless of overall viewport width.
+3. **`readOnly={true}` × view-mode interaction.** Spelled out:
+   - `readOnly + view="edit"` → CM6 editor in read-only mode (syntax highlighted, non-editable).
+   - `readOnly + view="preview"` → standard rendered preview.
+   - `readOnly + view="split"` → read-only CM6 + preview side-by-side.
+4. **Cmd+S interception scope.** Cmd+S only intercepts when `onSave` is supplied; otherwise browser default save dialog fires unimpeded. Hosts that don't handle save get no surprise behavior.
+5. **`onSave` payload freshness.** Receives the current CM6 doc value at the moment of save, not the React `value` prop (may be marginally fresher under React batching).
+6. **`getView()` substrate-leak risk.** Document the long-term coupling: if substrate ever swaps (decision #19 locks CM6, but locks aren't immortal), removing `getView` is a major-version bump.
+7. **`insertText(text)` selection semantics.** Replaces the current selection if non-empty; inserts at caret if empty. Lock the exact CM6 dispatch transaction.
+8. **`setSelection(from, to)` on the handle.** Consider adding for "scroll-and-select-N" use cases (e.g., Tier 3 page jumping to a wikilink target's caret position). Not in v0.1 unless real consumers need it.
+9. **Preview parser choice.** `marked` (~14KB minified+gzipped) vs `markdown-it` (~40KB with default plugins). Bundle weight is the tiebreaker; `marked` is the default lean. Plan stage validates that wikilink tokenization + image-embed-as-literal-text post-processing work cleanly with the chosen parser.
+10. **CSS-variable theming smoke test.** Confirm dark/light flip updates editor colors without remount — a real risk if CM6 inlines computed styles at theme-registration time (it shouldn't with `var(--*)` references, but verify).
+11. **Per-import bundle audit.** `size-limit` or equivalent with explicit weight breakdown: CM6 substrate (~150KB), preview renderer (~14KB `marked`), our theme + wikilink + toolbar (~16KB), total target ≤180KB.
+12. **Symmetric wikilink grammar.** Wikilinks are NOT in GFM. The CM6 highlighter and the preview parser BOTH need a wikilink extension producing the same token boundaries. Plan stage locks the regex / grammar definition once, references it from both extensions.
+13. **Origin-agnosticism recipe.** The component does NOT inspect `origin`. Host computes `readOnly` via its permission resolver ([decision #25](../../systems/graph-system/graph-system-description.md)) — typically `origin === "system" && !canAnnotate` → `readOnly = true`. Document the recipe in the procomp guide alongside the force-graph integration example.
+14. **`getValue()` vs `value` prop guidance.** Plan documents when each is appropriate: `value` for render-time / state ownership; `getValue()` for save handlers / freshest snapshot before persisting.
+15. **Wikilink autocomplete debounce.** Local filtering on host-supplied static array — recommendation: no debounce in v0.1 (matches `entity-picker` Q7 lock).
+16. **Wikilink autocomplete result limit.** If `wikilinkCandidates` is large (10k entities), the autocomplete popup must virtualize OR cap visible results to (e.g.) 50. Plan stage decides; recommendation lean: cap to 50 with "+ N more" affordance.
+17. **CM6 lifecycle in React 19 + React Compiler.** The editor mounts a CM6 `EditorView` in `useEffect` and disposes on unmount. The compiler should leave this alone (effect with cleanup, stable refs). Plan stage validates with the compiler enabled.
+18. **Wikilink token grammar.** Plan locks: `[[label]]` and `[[label|alias]]` (Obsidian-compatible). `[[label#anchor]]` deferred. Square-bracket inside the label not supported (no nesting). Consistent across CM6 highlighter, autocomplete trigger, and preview parser.
+19. **Reconciliation contract boundary.** Reconciliation logic lives in `force-graph` v0.5+ ([decision #36](../../systems/graph-system/graph-system-description.md)), NOT in markdown-editor. The editor's contract is just "call `onSave(value)` on Cmd+S"; force-graph parses, resolves, and reconciles.
+20. **Default toolbar export.** Plan locks the form: `defaultMarkdownToolbar: ReadonlyArray<ToolbarItem>` exported alongside the component, so hosts can spread + extend (§6.2).
 
 ---
 
 ## 9. Sign-off checklist
 
-Each item must be checked before this doc is considered signed off and Stage 2 (`markdown-editor-procomp-plan.md`) authoring may begin.
+- [x] Problem framing correct (§1)
+- [x] Scope boundaries defensible (§2 in / §3 out) and consistent with [decision #30](../../systems/graph-system/graph-system-description.md)
+- [x] CodeMirror 6 substrate ([decision #19](../../systems/graph-system/graph-system-description.md)) confirmed; no "build from scratch" temptation
+- [x] Slot-able toolbar ([decision #20](../../systems/graph-system/graph-system-description.md)) shape (Q1) confirmed — render-fn form dropped from v0.1
+- [x] Target consumers complete (force-graph v0.5 primary; detail-panel body slot; force-graph v0.1–v0.4 preview-only secondary; standalone surfaces)
+- [x] API sketch covers the three example use cases (§6)
+- [x] Wikilink rendering + click contract (Q4) confirmed; alias resolution + image-embed-as-literal-text + matching rules locked
+- [x] Markdown flavor (Q10) confirmed (GFM)
+- [x] Bundle weight target (~180KB total; decision #26 ~150KB CM6 acceptance) confirmed
+- [x] Imperative handle surface (Q9) confirmed
+- [x] Success criteria (§7) measurable
+- [x] Open questions §8 — all 10 resolved on sign-off (Q1 reversed; Q4 + Q8 refined on re-validation)
 
-- [ ] Problem framing correct (§1)
-- [ ] Scope boundaries defensible (§2 in / §3 out) and consistent with [decision #30](../../systems/graph-system/graph-system-description.md)
-- [ ] CodeMirror 6 substrate ([decision #19](../../systems/graph-system/graph-system-description.md)) confirmed; no "build from scratch" temptation
-- [ ] Slot-able toolbar ([decision #20](../../systems/graph-system/graph-system-description.md)) shape (Q1) confirmed
-- [ ] Target consumers complete (force-graph v0.5 primary; detail-panel body slot; standalone surfaces)
-- [ ] API sketch covers the three example use cases (§6)
-- [ ] Wikilink rendering + click contract (Q4) confirmed
-- [ ] Markdown flavor (Q10) confirmed
-- [ ] Bundle weight target (~180KB ceiling, decision #26 ~150KB acceptance) confirmed
-- [ ] Imperative handle surface (Q9) confirmed
-- [ ] Success criteria (§7) measurable
-- [ ] Open questions §8 — all 10 resolved on sign-off
+**Signed off 2026-04-28.** Stage 2 (`markdown-editor-procomp-plan.md`) authoring may begin. Plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
 
-**On sign-off**, this header's status flips to "signed off YYYY-MM-DD"; §8 reformats to "Resolved questions (locked on sign-off YYYY-MM-DD)" with each Q rewritten as **Locked: X.** + reasoning; a `## 8.5 Plan-stage tightenings` section captures issues caught during review that the plan must address; and the §9 sub-doc map in [graph-system-description.md](../../systems/graph-system/graph-system-description.md#L425) is updated to point at this signed-off doc.
-
-After this signs off, **all five Tier 1 procomp descriptions are locked** and the `force-graph` (Tier 2) description is unblocked per the [system §9 authoring order](../../systems/graph-system/graph-system-description.md#L437).
+With this sign-off, **all five Tier 1 procomp descriptions are locked** (`properties-form`, `detail-panel`, `filter-stack`, `entity-picker`, `markdown-editor`). The `force-graph` (Tier 2) description is now unblocked per the [system §9 authoring order](../../systems/graph-system/graph-system-description.md#L437).
