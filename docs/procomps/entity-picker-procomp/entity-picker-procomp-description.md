@@ -1,9 +1,10 @@
 # `entity-picker` — Pro-component Description
 
-> **Status:** draft v0.1 — pending sign-off
+> **Status:** **signed off 2026-04-28.** Stage 2 (`entity-picker-procomp-plan.md`) authoring may begin.
 > **Slug:** `entity-picker`
 > **Category:** `forms`
 > **Created:** 2026-04-28
+> **Last updated:** 2026-04-28 (signed off; all 10 open questions resolved as recommended; no refinements on re-validation)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (generic; no graph dependency)
 
@@ -226,40 +227,51 @@ The component is "done" for v0.1 when:
 
 ---
 
-## 8. Open questions
+## 8. Resolved questions (locked on sign-off 2026-04-28)
 
-These need answers before Stage 2 (plan) authoring begins:
+All 10 questions resolved at sign-off. The recommendations below are the locked decisions for v0.1; Stage 2 (plan) builds against these. No refinements on re-validation. New questions surfacing during plan authoring land in a fresh `## 8.6 New open questions` section as needed.
 
-1. **Single vs multi: one component with `mode` prop, or two components.** Spec proposes one with `mode`. Alternative: `<SingleEntityPicker>` and `<MultiEntityPicker>` as separate exports. Recommendation: **one component with `mode` prop**, defaulting to `"single"`. The internal implementation differs (selection storage shape: `T | null` vs `T[]`), but the UX shell is shared. Two components would duplicate the trigger / dropdown / search / keyboard-nav code. The `mode` discriminator is small.
+1. **Single vs multi — locked: one component with `mode: "single" | "multi"` prop**, defaulting to `"single"`. Two components would duplicate trigger/dropdown/search/keyboard-nav code. Plan stage decides whether to use TypeScript discriminated union or function overloads for strict mode-aware value typing.
 
-2. **`kind` field shape: optional discriminator vs required for heterogeneous lists.** Spec makes it optional. Alternative: require `kind` always (forcing single-kind lists to use a placeholder kind). Recommendation: **optional**. Single-kind lists (group-membership editor) shouldn't be forced to invent a kind; the badge visibility is auto-determined by `showKindBadges?: boolean` (default true if any item has a kind, false otherwise).
+2. **`kind` field — locked: optional.** `showKindBadges?: boolean` defaults to `true` when any item has a kind, `false` otherwise. Hosts can override.
 
-3. **Match function: case-insensitive substring vs fuzzy.** Spec ships substring as default; host can override via `match` slot. Alternative: ship fuzzy by default (better UX for typos but slower for large lists). Recommendation: **substring default + `match` slot.** Substring is fast, predictable, and works for the graph-system's labels. Hosts wanting fuzzy can plug in `fuse.js` or similar via the slot. Adding fuzzy as a built-in adds dep weight.
+3. **Default match — locked: case-insensitive substring + `match` slot.** Plan stage specifies the locale-handling (no accent folding by default). Hosts wanting fuzzy plug in `fuse.js` via the slot.
 
-4. **Open/close: controlled vs uncontrolled.** Spec proposes both (props optional → uncontrolled internal state; supplied → controlled). Same pattern as Radix Popover. Recommendation: **support both, default uncontrolled** when neither prop is supplied. Standard React pattern.
+4. **Open/close — locked: support both controlled and uncontrolled.** Default uncontrolled when neither `open` nor `onOpenChange` is supplied. Same precedence pattern as Radix Popover.
 
-5. **Trigger UI default: button vs input.** Spec proposes a button-shaped trigger that, when clicked, opens a dropdown with a search-input inside. Alternative: combobox pattern where the trigger IS the search input (typing opens the dropdown automatically). Recommendation: **button-shaped trigger** — clearer affordance for "click me to pick"; the search input lives inside the dropdown. Consistent with shadcn Combobox conventions. Hosts wanting input-as-trigger can use `renderTrigger`.
+5. **Trigger UI default — locked: button-shaped trigger.** Search input lives inside the dropdown. Hosts wanting combobox-input pattern (typing opens dropdown) use `renderTrigger`.
 
-6. **Multi-mode chip overflow handling.** With many selected items, chips overflow. How to handle? (a) wrap to multiple lines, (b) horizontal scroll, (c) "+N more" collapsed indicator past N items. Recommendation: **wrap to multiple lines** in v0.1 (simplest, works for up to ~10-15 chips). v0.2 can add an `overflowMode: "wrap" | "scroll" | "collapse"` prop if real consumers want it.
+6. **Multi-mode chip overflow — locked: wrap to multiple lines** in v0.1. `overflowMode: "wrap" | "scroll" | "collapse"` is an additive v0.2 prop if real consumers need it.
 
-7. **Search debounce.** Should search filter on every keystroke or debounce? With local items (no async fetch), filtering is fast — no debounce needed. With huge lists (>1000), filtering on every keystroke might lag. Recommendation: **no debounce in v0.1.** Local filtering is cheap; if perf becomes an issue at scale, plan-stage adds optional `searchDebounceMs` prop. v0.2 async loading would handle the large-list case differently.
+7. **Search debounce — locked: none in v0.1.** Local filtering on host-supplied `items` is cheap. Async fetch (v0.2) and virtualization (v0.2) handle large-list case differently.
 
-8. **`value` shape in multi mode: array of `T` or array of IDs.** Spec proposes `value: T | T[] | null`. Alternative: `value: string | string[] | null` (just IDs; component looks up `T` from `items`). Recommendation: **array of `T`**. Hosts almost always have the `T` already (they constructed `items`); using IDs forces the component to look up entities, which fails if `items` is async. Storing `T` is more robust.
+8. **`value` shape — locked: full `T` (or `T[]` in multi).** Storing IDs would require lookup against `items`, which breaks for async sources. Storing entities is robust.
 
-9. **Generic typing strictness.** Same as properties-form Q2 / filter-stack Q5. Recommendation: **parameterized generic from v0.1** — `EntityPicker<T extends EntityLike = EntityLike>`. Same answer.
+9. **Generic typing — locked: parameterized from v0.1**, defaulting to `T extends EntityLike = EntityLike`. Same answer as `properties-form` Q2 and `filter-stack` Q5.
 
-10. **Render-trigger slot signature.** Spec proposes `renderTrigger(ctx)`. The `ctx` should include: current `value`, current `open` state, ref to forward (so the trigger can be focused). Recommendation: **include `ref`-forwarding in the ctx** so custom triggers can be focused via `EntityPickerHandle.focus()`. Plan locks the ref-forwarding mechanism (`forwardRef` vs callback ref).
+10. **Render-trigger slot — locked: ctx includes `value`, `open`, and a forwarded ref.** Plan stage locks the ref-forwarding mechanism (`forwardRef` vs callback ref via ctx).
+
+## 8.5 Plan-stage tightenings (surfaced during description review + re-validation)
+
+These are NOT description-blocking, but plan authoring must address them:
+
+1. **Mode-aware value typing mechanism (Q1).** Choose between: (a) discriminated union of `Props<T>` (verbose at call site, strict types); (b) function overloads for `EntityPicker` (compact at call site, strict types); (c) loose union `value: T | T[] | null` with consumer-side casting (simple but unsafe). Recommendation lean: function overloads.
+2. **Default match locale handling (Q3).** Plan picks: case-insensitive via `String.toLowerCase()` (English-biased) vs `Intl.Collator` with `sensitivity: "accent"` (locale-aware, slower). Recommendation lean: `toLowerCase()` for v0.1; `Intl.Collator` upgrade is non-breaking.
+3. **Multi-mode keyboard chip removal.** Plan locks: when input is empty and Backspace is pressed, the LAST chip is removed (not all). When input has text, Backspace edits text normally.
+4. **Selection equality for change detection.** Plan locks: equality is by `item.id` (referential identity may differ for the "same" entity across renders if items are re-derived). `onChange` only fires when the id-set changes.
+5. **Default empty-state copy.** Plan picks specific text: "No matches for '{query}'" vs "No matches found" (less i18n-fragile). Recommendation lean: parameterized via `renderEmpty` slot ctx; default copy is "No results."
+6. **Trigger ref forwarding mechanism.** Plan picks: `forwardRef` (standard React; couples render-trigger to React 18+) vs callback ref via ctx (`(node: HTMLElement | null) => void`). Recommendation lean: callback ref via ctx — more flexible for custom triggers that aren't a single DOM node.
 
 ---
 
 ## 9. Sign-off checklist
 
-- [ ] Problem framing correct?
-- [ ] Scope boundaries defensible (in / out)?
-- [ ] Target consumers complete?
-- [ ] API sketch covers the three example use cases?
-- [ ] Single component with `mode` prop (Q1) — right call?
-- [ ] Success criteria measurable?
-- [ ] Open questions §8 — recommendations acceptable, or any need re-discussion?
+- [x] Problem framing correct
+- [x] Scope boundaries defensible (in / out)
+- [x] Target consumers complete (force-graph linking-mode + group-membership editor + creation flow; properties-form custom field; generic reference fields)
+- [x] API sketch covers the three example use cases
+- [x] Single component with `mode` prop (Q1) confirmed
+- [x] Success criteria measurable
+- [x] Open questions §8 — all 10 resolved on sign-off; no refinements on re-validation
 
-Sign-off enables Stage 2 (`entity-picker-procomp-plan.md`) authoring and unblocks the final Tier 1 description (`markdown-editor`). Plan must lock the open questions and define the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
+**Signed off 2026-04-28.** Stage 2 (`entity-picker-procomp-plan.md`) authoring may begin. The final Tier 1 description (`markdown-editor`) is now unblocked. Plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
