@@ -1,9 +1,9 @@
 # Graph System — System Description
 
-> **Status:** **signed off 2026-04-28.** Stage 2 (system plan) blocked on per-procomp Stage 1 descriptions; Tier 1 description authoring may begin per §9 ordering.
+> **Status:** **signed off 2026-04-28.** All Tier 1 + Tier 2 procomp Stage 1 descriptions are signed off (see [§9](#9-sub-document-map)). System Stage 2 plan (`graph-system-plan.md`) is blocked on per-procomp Stage 2 plans; per-phase plan authoring is underway (`force-graph` v0.1 plan signed off 2026-04-28).
 > **Working title:** `graph-system` (locked, decision #28; rename only at NPM extraction)
 > **Created:** 2026-04-28
-> **Last updated:** 2026-04-28 (signed off; backlog committed per decision #34; codegen fix landed per decision #31)
+> **Last updated:** 2026-04-29 (consistency pass: decision #11 footnoted per [force-graph v0.1 plan Q-P3](../../procomps/force-graph-procomp/force-graph-v0.1-plan.md); §8 introduces per-phase plan mapping note; §3.1 + §7.2 + §11.5 references aligned with per-phase plan structure; §9 sub-doc map records v0.1 plan sign-off)
 > **Owner:** ilinxa team
 
 This document is the integration contract for a multi-component product surface that visualizes, edits, and adapts knowledge graphs. It composes five generic pro-components and one graph-specific pro-component into three usage modes (DB visualizer / personal knowledge graph / hybrid documenter).
@@ -98,13 +98,13 @@ This matches the phased shipability in §10.3 — `force-graph` v0.1 ships befor
 
 | # | Slug | Category | Role in graph-system | Procomp doc |
 |---|---|---|---|---|
-| 1 | `properties-form` | forms (new) | Schema-driven entity editor — used inside `detail-panel` for editable system / user nodes and edges, and inside the creation flow. **Mirrors rich-card's typed flat-field approach.** | [→ procomp folder](../../procomps/properties-form-procomp/) (TBA) |
+| 1 | `properties-form` | forms | Schema-driven entity editor — used inside `detail-panel` for editable system / user nodes and edges, and inside the creation flow. **Mirrors rich-card's typed flat-field approach.** | [→ procomp folder](../../procomps/properties-form-procomp/) (TBA) |
 | 2 | `detail-panel` | feedback | Selection-aware multi-state container (empty / one-of-N typed-content states). Slot-based: host provides per-entity-type read/edit renderers. | [→ procomp folder](../../procomps/detail-panel-procomp/) (TBA) |
-| 3 | `filter-stack` | forms (new) | Composable filter UI with **AND-across-categories / OR-within-category** semantics. Generic over the filter category type. | [→ procomp folder](../../procomps/filter-stack-procomp/) (TBA) |
-| 4 | `entity-picker` | forms (new) | Searchable picker with kind badges; single or multi select. Used by linking-mode UI, creation flows, group-membership editors. | [→ procomp folder](../../procomps/entity-picker-procomp/) (TBA) |
-| 5 | `markdown-editor` | forms (new) | CodeMirror 6 wrapper with markdown mode + wikilink autocomplete + slot-able toolbar + preview toggle. **Heaviest pro-component by bundle (~150KB).** | [→ procomp folder](../../procomps/markdown-editor-procomp/) (TBA) |
+| 3 | `filter-stack` | forms | Composable filter UI with **AND-across-categories / OR-within-category** semantics. Generic over the filter category type. | [→ procomp folder](../../procomps/filter-stack-procomp/) (TBA) |
+| 4 | `entity-picker` | forms | Searchable picker with kind badges; single or multi select. Used by linking-mode UI, creation flows, group-membership editors. | [→ procomp folder](../../procomps/entity-picker-procomp/) (TBA) |
+| 5 | `markdown-editor` | forms | CodeMirror 6 wrapper with markdown mode + wikilink autocomplete + slot-able toolbar + preview toggle. **Heaviest pro-component by bundle (~150KB).** | [→ procomp folder](../../procomps/markdown-editor-procomp/) (TBA) |
 
-**New category required:** `forms`. Update [src/registry/categories.ts](../../../src/registry/categories.ts), [src/registry/types.ts](../../../src/registry/types.ts), and [scripts/new-component.mjs](../../../scripts/new-component.mjs) (per [STATUS.md duplicate-source-of-truth issue](../../../.claude/STATUS.md)).
+**`forms` category** is in place. Added pre-session per [decision #31](#8-locked-decisions-index) (✓ done); the duplicate-source-of-truth issue across [src/registry/categories.ts](../../../src/registry/categories.ts), [src/registry/types.ts](../../../src/registry/types.ts), and [scripts/new-component.mjs](../../../scripts/new-component.mjs) was resolved by deriving `VALID_CATEGORIES` from the type union at runtime (commit `260d035`).
 
 ### 3.2 Tier 2 — Graph pro-component
 
@@ -361,13 +361,13 @@ The Tier 1 panels are **dumb** — they don't know about graph state. The host t
 
 | Contract | Owner doc |
 |---|---|
-| Graph snapshot / delta shapes | This doc, §4 + §6, with detail in `force-graph-procomp-plan.md` |
+| Graph snapshot / delta shapes | This doc, §4 + §6, with detail in `force-graph-v0.1-plan.md` |
 | `properties-form` schema → entity render | `properties-form-procomp-plan.md` |
 | `detail-panel` slot signatures | `detail-panel-procomp-plan.md` |
 | `filter-stack` filter category interface | `filter-stack-procomp-plan.md` |
 | `entity-picker` entity shape | `entity-picker-procomp-plan.md` |
 | `markdown-editor` value/onChange + wikilink candidate provider | `markdown-editor-procomp-plan.md` |
-| `force-graph` actions / selectors / events | `force-graph-procomp-plan.md` |
+| `force-graph` actions / selectors / events | per-phase plans (`force-graph-v0.{N}-plan.md`); v0.1 plan covers props + ~6 actions + ~5 selectors |
 | Tier 3 wiring | `graph-system-plan.md` (this folder, Stage 2) |
 
 ---
@@ -375,6 +375,8 @@ The Tier 1 panels are **dumb** — they don't know about graph state. The host t
 ## 8. Locked decisions index
 
 Decisions made during the design discussion, locked at the system level so every constituent procomp inherits them as constraints.
+
+> **Note on plan references:** rows referencing `force-graph-procomp-plan.md` in the "Where it's enforced" column below mean the relevant per-phase plan (`force-graph-v0.{N}-plan.md` per the [§9 cascade](#9-sub-document-map)). The original column wording predates the per-phase decomposition; specific phase mapping is locked in each per-phase plan's §17 (or equivalent). Some rows below have been updated to point at the specific phase (e.g., decision #11 → v0.5; decision #36 → v0.5); others retain the umbrella term.
 
 | # | Decision | Where it's enforced |
 |---|---|---|
@@ -388,7 +390,7 @@ Decisions made during the design discussion, locked at the system level so every
 | 8 | **Custom theme missing keys fall back to dark-theme defaults** regardless of system theme. | `force-graph-procomp-plan.md` §theming |
 | 9 | **Deleting a `derivedFromWikilink: true` edge is refused in the UI** with a tooltip ("Edit the source doc to remove this link"). Programmatic `deleteEdge` accepts but logs a warning. | `force-graph-procomp-plan.md` §edge-actions |
 | 10 | **Phase budgets recalibrated** to ~13.5 weeks focused / ~18–22 weeks calendar. Phase 0 (custom edge program risk spike) precedes v0.1. | This doc §10 |
-| 11 | **Lucide icon atlas** ships with a **fixed sub-atlas of ~64 first-class icons** in v0.1. `iconAtlas: 'dynamic'` opt-in for runtime atlas rebuilding lands later. | `force-graph-procomp-plan.md` §node-program |
+| 11 | **Lucide icon atlas** ships with a **fixed sub-atlas of ~64 first-class icons**. `iconAtlas: 'dynamic'` opt-in for runtime atlas rebuilding lands later. **Footnote (2026-04-28, per [force-graph-v0.1-plan.md Q-P3](../../procomps/force-graph-procomp/force-graph-v0.1-plan.md#17-resolved-plan-stage-questions-locked-on-sign-off-2026-04-28)):** the original wording said "in v0.1," authored before the procomp decomposition. In the phased plan, the icon atlas is paired with the custom `IconNodeProgram` and ships in `force-graph` **v0.5**, not v0.1. v0.1–v0.4 render plain disc nodes via Sigma's stock `NodeCircleProgram`; icons + glyphs land with the custom node program in v0.5 per [spec §11.5 build-order note](../../../graph-visualizer-old.md). | `force-graph-v0.5-plan.md` §node-program |
 | 12 | **Search overrides filters.** Matched nodes always visible + glow, regardless of group/type filters. | `force-graph-procomp-plan.md` §filtering |
 | 13 | **Single-member group click target is the group**, not the contained node. SVG halo hit takes priority. | `force-graph-procomp-plan.md` §interaction |
 | 14 | **Edge labels are viewport-culled by default** + `edgeLabelZoomThreshold` (default 0.7). | `force-graph-procomp-plan.md` §performance |
@@ -429,7 +431,7 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 | `filter-stack` | [signed off 2026-04-28](../../procomps/filter-stack-procomp/filter-stack-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `entity-picker` | [signed off 2026-04-28](../../procomps/entity-picker-procomp/entity-picker-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `markdown-editor` | [signed off 2026-04-28](../../procomps/markdown-editor-procomp/markdown-editor-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
-| `force-graph` (v0.1–v0.6) | [signed off 2026-04-28](../../procomps/force-graph-procomp/force-graph-procomp-description.md) | TBA | TBA | description signed off; per-phase plan authoring may begin |
+| `force-graph` (v0.1–v0.6) | [signed off 2026-04-28](../../procomps/force-graph-procomp/force-graph-procomp-description.md) | [v0.1 signed off 2026-04-28](../../procomps/force-graph-procomp/force-graph-v0.1-plan.md); v0.2 / v0.3 / v0.4 / v0.5 / v0.6 TBA | TBA | description signed off; **v0.1 plan signed off** (Stage 3 unlocks once Phase 0 risk-spike completes per STATUS.md); v0.2 + v0.6 plans unblocked; v0.3 / v0.4 / v0.5 plans gated on Tier 1 plans |
 | **System-level** | this doc | `graph-system-plan.md` (TBA) | `graph-system-guide.md` (TBA) | **description signed off 2026-04-28** |
 
 Each procomp folder lives at `docs/procomps/<slug>-procomp/` per the existing convention.
@@ -534,7 +536,7 @@ Explicit non-goals or v2 candidates:
 
 This document **supersedes** the original spec for cross-cutting decisions. The original 21 confirmed v1 decisions in its §13.1 are mapped here:
 
-**Inherited verbatim** (carried into `force-graph-procomp-plan.md` without restating):
+**Inherited verbatim** (carried into the relevant per-phase plan without restating):
 
 - Original #6 — Layout toggle ON/OFF semantics
 - Original #7 — Smoothed convex hull style
