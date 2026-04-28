@@ -1,9 +1,10 @@
 # `filter-stack` — Pro-component Description
 
-> **Status:** draft v0.1 — pending sign-off
+> **Status:** **signed off 2026-04-28.** Stage 2 (`filter-stack-procomp-plan.md`) authoring may begin.
 > **Slug:** `filter-stack`
 > **Category:** `forms`
 > **Created:** 2026-04-28
+> **Last updated:** 2026-04-28 (signed off; Q2 reversed and Q7 refined on re-validation; all 10 open questions resolved)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (generic; no graph dependency)
 
@@ -44,6 +45,7 @@ In the graph-system specifically, the filters panel ([original spec §6.4](../..
 - **Global clear-all** in the footer; disabled when all categories are empty.
 - **Empty-detection per category** via a mandatory `isEmpty(value)` method on each category definition. filter-stack uses this to gate per-category clear visibility and global clear-all enable state.
 - **Mode toggle on `checkbox-list`** when `modeToggle: true` — renders a union/intersection switch. Default mode: `"union"`.
+- **Per-option solo buttons on `checkbox-list`** when `showSoloButtons: true` (opt-in, default `false`). Each option gets a small "solo" affordance — clicking it sets the category's value to that single option. Useful for "only show this group" shortcuts in graph filter panels. (Added on Q2 re-validation; original recommendation was to defer solo to v0.2, reversed because host-side implementation without API support is awkward and force-graph v0.4 explicitly wants it.)
 - **`onFilteredChange` convenience callback** — receives the filtered items array. Host can use this directly OR derive their own filtered list by reading `values` and applying predicates manually.
 - **Generic typing**: `FilterStack<T>` parameterized over the item type, defaulting to `unknown`. Predicates take `(item: T, value: FilterValue) => boolean`.
 - **Vertical stack layout** with consistent spacing between sections (no collapsibles in v0.1).
@@ -54,7 +56,6 @@ In the graph-system specifically, the filters panel ([original spec §6.4](../..
 
 ## 3. Out of scope (deferred)
 
-- **Solo buttons** ("only show this one" shorthand for clear + add). Useful in graph-system but omitted from v0.1 to keep the surface tight; v0.2 adds `<FilterStack.SoloButton>` or a per-option `solo: true` flag.
 - **Built-in `range` filter** (dual-slider) and **`date-range` filter**. v0.1 punts to `custom` slot. v0.2 ships these as built-ins if real demand surfaces.
 - **Section collapsing / expand-collapse UI.** v0.1 ships flat. Worth considering when the graph-system's filter panel grows past 5 sections, but deferred for now.
 - **Horizontal / compact layout** (top-bar style filters). v0.1 vertical only. Adding horizontal is an additive layout-direction prop in v0.2.
@@ -99,8 +100,10 @@ interface CheckboxListFilter<T> extends BaseFilterCategory<T> {
   options: ReadonlyArray<{ value: string; label: string }>;
   modeToggle?: boolean;          // show union/intersection switch; default false (union only)
   defaultMode?: "union" | "intersection";  // when modeToggle is true; default "union"
+  showSoloButtons?: boolean;     // per-option "only this one" affordance; default false
   // value shape: string[] (selected option values)
-  // mode shape: stored separately at category-id-level (e.g., values["groups"] = string[]; values["groups__mode"] = "union" | "intersection")
+  // mode shape: stored as separate flat key (e.g., values["groups"] = string[]; values["groups__mode"] = "union" | "intersection")
+  // schema validation rejects category ids ending in "__mode" to avoid collision
 }
 
 interface ToggleFilter<T> extends BaseFilterCategory<T> {
@@ -303,41 +306,57 @@ The component is "done" for v0.1 when:
 
 ---
 
-## 8. Open questions
+## 8. Resolved questions (locked on sign-off 2026-04-28)
 
-These need answers before Stage 2 (plan) authoring begins:
+All 10 questions resolved at sign-off. The recommendations below are the locked decisions for v0.1; Stage 2 (plan) builds against these. New questions surfacing during plan authoring land in a fresh `## 8.6 New open questions` section as needed.
 
-1. **Built-in filter types — which 4?** Spec proposes `checkbox-list`, `toggle`, `text`, `custom`. Alternatives: also include `range` (dual-slider) and `date-range` as built-ins; or trim further (drop `toggle`, since it's `checkbox-list` with one option). Recommendation: **the proposed 4.** `range` and `date-range` deferred to v0.2 (custom slot covers them in v0.1). `toggle` stays separate from `checkbox-list` because the UI is fundamentally different (single switch vs. list).
+1. **Built-in filter types — locked: 4 types** (`checkbox-list`, `toggle`, `text`, `custom`). `range` and `date-range` deferred to v0.2 (custom slot covers them in v0.1). `toggle` stays separate from `checkbox-list` because the UI idiom differs (switch vs. list).
 
-2. **Solo buttons in v0.1 or v0.2?** Original spec (graph-visualizer-old.md §6.4) wanted per-item solo buttons in checkbox-list ("only show this one" shortcut). Recommendation: **defer to v0.2.** Solo is shorthand for "clear category + add one value" — host can wire it via `onChange` calls. Adding solo as a built-in adds API surface without enabling anything new. v0.2 can add `<FilterStack.SoloButton>` as a slot if real demand surfaces.
+2. **Solo buttons — locked: ship in v0.1 as opt-in `showSoloButtons?: boolean` flag on `checkbox-list`** (default `false`). **Reversed from the original "defer to v0.2" recommendation on re-validation.** Reasoning: host-side implementation without API support is awkward (checkbox options have no per-option click hook in the schema); force-graph v0.4 explicitly wants solo per the original spec; the implementation cost is small (~50 LOC) and entirely opt-in (zero impact for hosts who don't enable). Adding later as a non-breaking flag is technically possible but means force-graph v0.4 either delays or re-implements solo at host level.
 
-3. **Section collapsibles in v0.1 or v0.2?** Long filter panels (5+ sections) benefit from collapse/expand. Recommendation: **defer to v0.2.** v0.1 ships flat layout. If real consumers complain at 5+ sections, add `collapsible: boolean` per category in v0.2 (additive, non-breaking).
+3. **Section collapsibles — locked: defer to v0.2.** v0.1 ships flat layout. `collapsible: boolean` per category lands in v0.2 if real consumers complain at 5+ sections (additive, non-breaking).
 
-4. **`onFilteredChange` convenience vs host-derives.** Should filter-stack provide the filtered items list, or should hosts derive it from `values` + predicates? Spec proposes both: `onFilteredChange` callback for ergonomics, while `onChange(values)` is mandatory. Recommendation: **ship both.** The convenience callback is cheap and removes boilerplate from 90% of hosts. Hosts who need raw `values` for memoization or external state still get them via `onChange`. No conflict.
+4. **`onFilteredChange` convenience callback — locked: ship alongside `onChange`.** Both callbacks: `onChange(values)` is mandatory (state ownership); `onFilteredChange(filtered)` is optional convenience. Hosts wanting filter-stack to do composition once (efficient) use the convenience callback; hosts wanting raw `values` for external state get them via `onChange`. No conflict.
 
-5. **Generic typing strictness** (same question as `properties-form` Q2). Recommendation: **ship parameterized generic from v0.1**, defaulting to `T = unknown`. Same answer as properties-form — cheap one-time win.
+5. **Generic typing — locked: parameterized from v0.1**, defaulting to `T = unknown`. Same answer as `properties-form` Q2 (decision #2 in that procomp). Cheap one-time win; no migration cost.
 
-6. **Mode-storage shape: separate key vs. nested object.** Spec proposes `values["groups"] = string[]` and `values["groups__mode"] = "union" | "intersection"` as two flat keys. Alternative: `values["groups"] = { selection: string[]; mode: "union" }` (nested). The flat version keeps `values` shape simple (Record<string, FilterValue>); the nested version is type-safer. Recommendation: **flat with `__mode` suffix.** filter-stack's contract is "values is a flat Record"; nested objects complicate the type. Document the convention.
+6. **Mode-storage shape — locked: flat with `__mode` suffix.** `values["groups"] = string[]; values["groups__mode"] = "union" | "intersection"`. Simpler `FilterValue` type and easier URL serialization than the nested alternative. Plan stage MUST include schema validation that rejects category ids ending in `__mode` (or any reserved suffix used internally) to prevent collisions.
 
-7. **`isEmpty` mandatory on every category.** Spec makes it mandatory. Alternative: filter-stack has built-in defaults per filter type (e.g., `checkbox-list` is empty when `value` is empty array; `text` is empty when string is empty). Recommendation: **mandatory but provide defaults that hosts can override.** filter-stack ships per-type default `isEmpty` checkers; if the category's `isEmpty` is omitted, the default applies. For `custom`, host MUST supply `isEmpty`. Cleaner default ergonomics.
+7. **`isEmpty` defaults — locked with refinement:** filter-stack ships per-type default `isEmpty` checkers for `checkbox-list` (empty when value is empty array) and `text` (empty when string is empty). **`toggle` and `custom` REQUIRE explicit `isEmpty`** — for `toggle`, "empty" depends on host intent (`true` could mean "show all" OR "filter to true-only"); for `custom`, only the host knows the value shape. Refined from the original "defaults for all built-in types" recommendation on re-validation.
 
-8. **Debounce default for `text` type.** Spec proposes 250ms. Alternatives: 150ms (snappier), 400ms (less work for slower filter predicates). Recommendation: **250ms.** Standard for search inputs; balances responsiveness with avoiding wasted re-filters. Per-category override available via `debounceMs`.
+8. **Debounce default — locked: 250ms** for `text` type. Standard for search inputs; per-category override via `debounceMs`.
 
-9. **Footer placement and styling: sticky vs static.** Should the "Clear all" footer stick to the bottom of the filter-stack container, or scroll with the content? Recommendation: **static (scrolls with content).** Filter-stack itself is typically inside a scrollable container; sticky-within-stack is unusual. Host can wrap in a sticky container if desired. Simpler default.
+9. **Footer placement — locked: static** (scrolls with content). Filter-stack typically lives inside a scrollable container; sticky-within-stack is unusual. Host wraps in a sticky container if desired.
 
-10. **Layout direction in v0.1.** Vertical only, or also support horizontal? Recommendation: **vertical only.** Horizontal compact-bar filters are a different visual idiom (would need overflow handling, drawer for hidden filters, etc.). Add `direction?: "vertical" | "horizontal"` in v0.2 if a real consumer needs it (likely none for graph-system).
+10. **Layout direction — locked: vertical only** in v0.1. Horizontal compact-bar filters are a different visual idiom (overflow handling, drawer for hidden filters). `direction?: "vertical" | "horizontal"` is an additive v0.2 prop if a real consumer needs it (likely none for graph-system).
+
+## 8.5 Plan-stage tightenings (surfaced during description review + re-validation)
+
+These are NOT description-blocking, but plan authoring must address them:
+
+1. **Schema validation for reserved suffixes.** Per Q6: reject category ids ending in `__mode` at schema load time (dev-error in development; runtime check). If the project later adds more reserved suffixes (e.g., `__solo` for some future feature), the validation logic must be extensible.
+2. **`isEmpty` enforcement at the type level.** Per Q7: `BaseFilterCategory` has `isEmpty?: ...` (optional with defaults available). The discriminated union refines:
+   - `CheckboxListFilter`: `isEmpty?` (optional; default applies)
+   - `TextFilter`: `isEmpty?` (optional; default applies)
+   - `ToggleFilter`: `isEmpty: ...` (required)
+   - `CustomFilter`: `isEmpty: ...` (required)
+   Plan locks this discriminated typing.
+3. **Solo button placement and ARIA.** Per Q2 refinement: solo button renders next to each option (right-aligned within the option row). ARIA: `aria-label` of "Show only {label}". Click sets `values[id] = [optionValue]`. Plan locks the visual + a11y treatment.
+4. **`FilterValue` discriminated union typing.** Plan must specify whether `FilterValue` is the loose `string[] | boolean | string | unknown` (current sketch) or strictly per-category-type discriminated. Recommendation: loose union — strict per-category typing is verbose and the predicate-side cast pattern works fine.
+5. **`onFilteredChange` change-detection semantics.** Per Q4: the callback fires only when the filtered set changes — not on every value change if the filtered output is identical. Plan locks the equality check (referential? shallow? by-id-set?).
+6. **Mode toggle UI placement within the section.** Plan decides: mode toggle inline next to the section label, or below the options? Recommendation lean: inline next to label (compact + obvious binding).
 
 ---
 
 ## 9. Sign-off checklist
 
-- [ ] Problem framing correct?
-- [ ] Scope boundaries defensible (in / out)?
-- [ ] Target consumers complete?
-- [ ] API sketch covers the three example use cases?
-- [ ] Built-in types (Q1) are the right 4?
-- [ ] Mode-storage shape (Q6) acceptable as flat with `__mode` suffix?
-- [ ] Success criteria measurable?
-- [ ] Open questions §8 — recommendations acceptable, or any need re-discussion?
+- [x] Problem framing correct
+- [x] Scope boundaries defensible (in / out)
+- [x] Target consumers complete (force-graph v0.4 primary; data-table column filters secondary)
+- [x] API sketch covers the three example use cases
+- [x] Built-in types (Q1) confirmed as 4
+- [x] Mode-storage shape (Q6) confirmed flat with `__mode` suffix
+- [x] Success criteria measurable
+- [x] Open questions §8 — all 10 resolved on sign-off (Q2 reversed, Q7 refined on re-validation)
 
-Sign-off enables Stage 2 (`filter-stack-procomp-plan.md`) authoring and unblocks parallel description authoring for `entity-picker` and `markdown-editor`. Plan must lock the open questions and define the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
+**Signed off 2026-04-28.** Stage 2 (`filter-stack-procomp-plan.md`) authoring may begin. Parallel description authoring for `entity-picker` and `markdown-editor` is now unblocked. Plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
