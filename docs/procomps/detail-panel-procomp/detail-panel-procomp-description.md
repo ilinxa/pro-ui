@@ -1,9 +1,10 @@
 # `detail-panel` — Pro-component Description
 
-> **Status:** draft v0.1 — pending sign-off
+> **Status:** **signed off 2026-04-28.** Stage 2 (`detail-panel-procomp-plan.md`) authoring may begin.
 > **Slug:** `detail-panel`
 > **Category:** `feedback`
 > **Created:** 2026-04-28
+> **Last updated:** 2026-04-28 (signed off; Q6 refined on re-validation; all 10 open questions resolved)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (generic; no graph dependency)
 
@@ -259,40 +260,53 @@ The component is "done" for v0.1 when:
 
 ---
 
-## 8. Open questions
+## 8. Resolved questions (locked on sign-off 2026-04-28)
 
-These need answers before Stage 2 (plan) authoring begins:
+All 10 questions resolved at sign-off. The recommendations below are the locked decisions for v0.1; Stage 2 (plan) builds against these. New questions surfacing during plan authoring land in a fresh `## 8.6 New open questions` section as needed.
 
-1. **Composition pattern: compound subcomponents vs. render-prop vs. renderer-record.** The proposed shape is compound (`<DetailPanel.Header>`, etc.). Alternatives: (a) single `renderContent={(selection) => ...}` render-prop — terser but sacrifices the layout enforcement; (b) renderer-record `renderers={{ node: { read, edit, header, actions }, edge: {...} }}` keyed by `selection.type` — most structured but verbose for hosts. Recommendation: **compound subcomponents** — best balance of structure and host flexibility; matches shadcn primitive conventions (e.g., `<Card.Header>`); discoverable via TypeScript autocomplete.
+1. **Composition pattern — locked: compound subcomponents** (`<DetailPanel.Header>`, `<DetailPanel.Body>`, `<DetailPanel.Actions>`). Best balance of structure and host flexibility; matches shadcn primitive conventions (e.g., `<Card.Header>`); discoverable via TypeScript autocomplete; allows conditional rendering per entity-type cleanly (see §6.1 example pattern). Alternatives rejected: render-prop sacrifices layout enforcement; renderer-record is verbose and forces hosts to declare every entity type up front.
 
-2. **Mode reset on selection change: auto-reset vs. preserve.** Spec proposes auto-reset to "read" on `selection.id` change. Alternative: preserve mode (i.e., if user was editing node A and clicks node B, keep editing). Auto-reset is the safer default (prevents accidental cross-entity edit bleed); preserve-mode would surprise users. Recommendation: **auto-reset on selection.id change.** A `preserveModeAcrossSelections?: boolean` opt-in could land in v0.2 if real demand surfaces.
+2. **Mode reset — locked: auto-reset to `"read"` on `selection.id` change.** Prevents cross-entity edit bleed (user editing node A clicks node B → mode auto-resets, no stale form). A `preserveModeAcrossSelections?: boolean` opt-in lands in v0.2 only if real demand surfaces.
 
-3. **Default position for `<DetailPanel.Actions>`: footer vs. header.** Spec proposes footer (persistent action surface, conventional). Alternative: header (terse, single-icon-button rows feel natural in the header). Recommendation: **footer default, with `position="header"` opt-in.** Most consumers will have multiple actions (Edit / Delete / Duplicate); footer scales better.
+3. **Actions default position — locked: `"footer"`** with `<DetailPanel.Actions position="header">` opt-in. Footer is the convention for sidebar/inspector panels; scales to multi-action sets (Edit / Delete / Duplicate); sticky footer keeps actions visible while body scrolls.
 
-4. **Empty state: opinionated default copy vs. generic placeholder.** Spec proposes "Nothing selected" + generic icon. Alternative: completely empty default, forcing every consumer to supply `emptyState`. Recommendation: **opinionated default** — most consumers don't customize, so the out-of-box experience should be sensible. Custom override remains available.
+4. **Empty state — locked: opinionated default** ("Nothing selected" + lucide info icon + descriptive subtitle). Override via `emptyState` prop. Out-of-box experience must be sensible without configuration.
 
-5. **Loading state UI: skeleton vs. spinner.** Spec proposes skeleton (placeholder boxes that mimic layout). Alternative: centered spinner. Skeleton preserves layout (less jarring) but is more code. Recommendation: **skeleton.** Industry-standard for explorer panes. Plan stage may ship both with a `loadingStyle` prop — or punt to v0.2 if there's no real demand.
+5. **Loading UI — locked: skeleton placeholders** that mimic the layout (header shape + body shape + actions shape). Industry standard for explorer panes; preserves layout (less jarring than centered spinner). Plan stage decides exact skeleton shapes.
 
-6. **Permission gating on the default Edit button.** When the panel renders the default Action set (Edit in read mode, Save/Cancel in edit mode), should it gate on a `canEdit` prop? E.g., `canEdit?: boolean | ((selection) => boolean)`. Without this, hosts must always provide custom Actions to hide the Edit button on un-editable entities. Recommendation: **add `canEdit?: boolean` prop on `<DetailPanel>`.** Default `true`. When `false`, the default Edit button is hidden; hosts can still supply their own Actions content. Simpler than a predicate for v0.1.
+6. **Permission gating — locked: `canEdit?: boolean` prop** (default `true`). When `false`, the default Edit button is hidden. **Refinement on re-validation: `canEdit` is also exposed in the `<DetailPanel.Actions>` render-fn context** — `({ mode, setMode, canEdit }) => ...` — so host-supplied custom action sets can also respect it without re-deriving the value.
 
-7. **Sticky header behavior with body scroll.** Spec proposes sticky header. Alternatives: (a) panel-level scroll (whole panel scrolls, header scrolls away); (b) configurable. Recommendation: **sticky by default; `<DetailPanel.Header sticky={false}>` opt-out.** Sticky is the right default for explorer panes — selected-entity title should always be visible while scrolling its details.
+7. **Sticky header — locked: sticky by default**, with `<DetailPanel.Header sticky={false}>` opt-out. Selected-entity title should remain visible while scrolling its details — the canonical explorer-pane behavior.
 
-8. **Re-keying on `selection.id` change: opaque or composite.** Spec re-keys content tree on `selection.id` change. But what if two entity types share IDs (e.g., a node and a group both have id `"abc"`)? Composite key `${type}:${id}` is safer. Recommendation: **composite key `${type}:${id}`** for re-keying. Document.
+8. **Re-key on selection change — locked: composite key `${selection.type}:${selection.id}`.** Prevents subtle state-bleed bugs when two entity types share an ID (rare but plausible — and detail-panel cannot assume system-level ID-disjointness invariants since it is a generic Tier 1 component used outside the graph-system).
 
-9. **Imperative handle scope.** `DetailPanelHandle` exposes `focusBody()` and `resetMode()`. Should it also expose `getMode()`, `getSelection()` (for hosts that want to pull state imperatively)? Probably not — those are props, hosts already have them. Recommendation: **keep handle minimal: `focusBody()` and `resetMode()` only.** Add more if real consumers need them.
+9. **Imperative handle — locked: minimal scope.** `focusBody()` (move focus into the body zone, e.g., for deep-link landings) and `resetMode()` (force back to read mode without changing selection, e.g., after a save error). Other methods (`getMode()`, `getSelection()`) are redundant with props — hosts already own those. Add more only if real consumers need them.
 
-10. **Error state retry button — built-in or host-only.** Spec proposes the panel renders a "Retry" button when `error.retry` is supplied. Alternative: panel only shows the message; host renders retry however it wants. Recommendation: **built-in retry button when `error.retry` is supplied.** Standard error-state pattern; host can omit retry by passing `error: { message, retry: undefined }`.
+10. **Error state retry button — locked: built-in when `error.retry` is supplied.** Standard error-state pattern; host can omit retry by passing `error: { message, retry: undefined }` or `null`.
+
+## 8.5 Plan-stage tightenings (surfaced during description review + re-validation)
+
+These are NOT description-blocking, but plan authoring must address them:
+
+1. **`mode` controlled vs uncontrolled vs locked matrix.** With `mode` and `onModeChange` both optional, the panel supports three configurations:
+   - Controlled (both supplied): panel calls `onModeChange("read")` on `selection.id` change for auto-reset
+   - Uncontrolled (neither supplied): panel manages internal mode state; resets internal state on selection change
+   - **Locked** (`mode` supplied without `onModeChange`): panel cannot reset; mode stays as host set it. Plan must document this as anti-pattern for selection-driven UIs and either dev-warn or accept the user-shoots-foot trade-off.
+2. **Host-side dirty-state handling on selection change.** Auto-reset (Q2) drops any in-progress edit content. The host (not the panel) is responsible for intercepting selection changes when its slotted form is dirty — typically via `formRef.current?.isDirty()` from the slotted `properties-form` and a confirmation dialog before propagating the new selection. Plan documents this as a host responsibility, with a recipe in the procomp guide.
+3. **`setMode` fallback in the Actions render-fn context.** When the parent has no `onModeChange` prop (uncontrolled mode), the `setMode` exposed to the render-fn must still work — it falls back to the panel's internal state setter. Plan locks this glue.
+4. **Skeleton shape specifics.** Plan decides exact skeleton placeholders: header shape (one wide bar + a smaller bar for subtitle?), body shape (3 rectangular blocks?), actions shape (two button-shaped placeholders?).
+5. **A11y focus-trap consideration.** When the panel is in edit mode with a slotted form, should focus be trapped within the panel until exit-edit? Standard form-modal pattern is yes; explorer-pane edit-in-place pattern is usually no (user can click the canvas mid-edit; that's a feature, not a bug). Plan-stage call.
 
 ---
 
 ## 9. Sign-off checklist
 
-- [ ] Problem framing correct?
-- [ ] Scope boundaries defensible (in / out)?
-- [ ] Target consumers complete?
-- [ ] API sketch covers the three example use cases?
-- [ ] Compound API choice (Q1) is the right default?
-- [ ] Success criteria measurable?
-- [ ] Open questions §8 — recommendations acceptable, or any need re-discussion?
+- [x] Problem framing correct
+- [x] Scope boundaries defensible (in / out)
+- [x] Target consumers complete
+- [x] API sketch covers the three example use cases
+- [x] Compound API choice (Q1) confirmed
+- [x] Success criteria measurable
+- [x] Open questions §8 — all 10 resolved on sign-off (Q6 refined on re-validation)
 
-Sign-off enables Stage 2 (`detail-panel-procomp-plan.md`) authoring and unblocks parallel description authoring for `filter-stack`, `entity-picker`, `markdown-editor`. Plan must lock the open questions and define the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
+**Signed off 2026-04-28.** Stage 2 (`detail-panel-procomp-plan.md`) authoring may begin. Parallel description authoring for `filter-stack`, `entity-picker`, `markdown-editor` is now unblocked per [graph-system §9 ordering](../../systems/graph-system/graph-system-description.md). Plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
