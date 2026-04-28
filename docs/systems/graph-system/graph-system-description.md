@@ -424,7 +424,7 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 
 | Pro-component | Description | Plan | Guide | Status |
 |---|---|---|---|---|
-| `properties-form` | [draft v0.1](../../procomps/properties-form-procomp/properties-form-procomp-description.md) | TBA | TBA | description in draft, pending sign-off |
+| `properties-form` | [signed off 2026-04-28](../../procomps/properties-form-procomp/properties-form-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `detail-panel` | TBA | TBA | TBA | not started |
 | `filter-stack` | TBA | TBA | TBA | not started |
 | `entity-picker` | TBA | TBA | TBA | not started |
