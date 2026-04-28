@@ -9,7 +9,9 @@
  *   pnpm new:component data/stat-card
  *   pnpm new:component forms/wizard --name="Step Wizard"
  *
- * Categories mirror src/registry/categories.ts — keep in sync if that list changes.
+ * Categories are derived at runtime from src/registry/types.ts (single source of truth).
+ * To add a category, update ComponentCategorySlug in types.ts and add the matching
+ * entry to CATEGORIES in categories.ts — this script picks it up automatically.
  */
 
 import fs from "node:fs";
@@ -24,17 +26,9 @@ const TEMPLATE_DIR = path.join(
   "src/registry/components/_template/_template",
 );
 
-const VALID_CATEGORIES = [
-  "data",
-  "forms",
-  "navigation",
-  "feedback",
-  "overlays",
-  "marketing",
-  "layout",
-  "media",
-  "auth",
-];
+// VALID_CATEGORIES is derived from src/registry/types.ts — see top comment
+// and loadValidCategories() below. The const is assigned after fail() is
+// defined so the loader can use fail() for malformed-type errors.
 
 const RED = "[31m";
 const GREEN = "[32m";
@@ -45,6 +39,29 @@ function fail(msg) {
   console.error(`${RED}error${RESET} ${msg}`);
   process.exit(1);
 }
+
+// Parses the ComponentCategorySlug union out of src/registry/types.ts.
+// Assumes the type is a flat union of string literals — bracketed/conditional
+// types would need a real TS parser, which is overkill for this scaffolder.
+function loadValidCategories() {
+  const typesPath = path.join(ROOT, "src/registry/types.ts");
+  const text = fs.readFileSync(typesPath, "utf8");
+  const match = text.match(/export type ComponentCategorySlug\s*=([^;]+);/);
+  if (!match) {
+    fail(
+      `could not find ComponentCategorySlug union in ${path
+        .relative(ROOT, typesPath)
+        .replaceAll(path.sep, "/")}`,
+    );
+  }
+  const slugs = [...match[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  if (slugs.length === 0) {
+    fail("ComponentCategorySlug union in types.ts appears empty");
+  }
+  return slugs;
+}
+
+const VALID_CATEGORIES = loadValidCategories();
 
 function parseArgs(argv) {
   const args = argv.slice(2);
