@@ -24,19 +24,24 @@ Before doing anything else, orient yourself in this project. Read these docs IN 
 5. `docs/procomps/force-graph-procomp/force-graph-procomp-description.md` — the Tier 2 component, phased v0.1–v0.6.
 6. `docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md` — viewer-core foundation plan (signed off).
 7. `docs/procomps/force-graph-procomp/force-graph-v0.2-plan.md` — interaction infrastructure plan (signed off).
+8. `docs/procomps/properties-form-procomp/properties-form-procomp-plan.md` — first Tier 1 plan (signed off; pairs with detail-panel to fully unblock force-graph v0.3 plan-lock).
+9. `docs/procomps/detail-panel-procomp/detail-panel-procomp-plan.md` — second Tier 1 plan (signed off; pairs with properties-form to fully unblock force-graph v0.3 plan-lock).
 
 **Skim afterward (lower priority but useful):**
 
 - The five signed-off Tier 1 procomp descriptions in `docs/procomps/<slug>-procomp/<slug>-procomp-description.md`: `properties-form`, `detail-panel`, `filter-stack`, `entity-picker`, `markdown-editor`.
+- `docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md` — Phase 0 spike brief (Day-1-ready instructions for the GPU benchmark; spike itself is NOT a Claude task).
+- `.claude/PHASE-0-ACTION-PLAN.md` — user-facing action plan for the Phase 0 spike (who runs it; parallel work options).
 - `graph-visualizer-old.md` (repo root) — original v4 spec; authoritative for `force-graph` internals; system description supersedes it for cross-cutting only.
 - `docs/component-guide.md` — long-form pro-component build reference.
 
 **After reading, summarize back to me:**
 
 1. The big picture — what `graph-system` is, the three usage modes, why it's decomposed into Tier 1 / Tier 2 / Tier 3.
-2. What's signed off vs pending — at minimum: the 6 procomp descriptions, the force-graph v0.1 + v0.2 plans, and what's still TBA (force-graph v0.3–v0.6 plans, Tier 1 plans, system Stage 2 plan).
-3. The Phase 0 risk-spike bottleneck — what it is, why it gates `force-graph` v0.1 implementation, and what happens if it fails.
-4. The three concrete next-step options from `HANDOFF.md` §5 (Phase 0 spike / properties-form plan / force-graph v0.6 plan) plus the pause-longer option.
+2. What's signed off vs pending — at minimum: the 6 procomp descriptions, the 4 signed-off plans (force-graph v0.1 + v0.2; properties-form; detail-panel), the Phase 0 spike brief, and what's still TBA (force-graph v0.3 / v0.4 / v0.5 / v0.6 plans; 3 remaining Tier 1 plans — filter-stack / entity-picker / markdown-editor; system Stage 2 plan).
+3. The Phase 0 risk-spike bottleneck — what it is, why it gates `force-graph` v0.1 implementation, and what happens if it fails. The spike brief + action plan provide ready-to-execute material; the spike itself is human work outside any Claude session.
+4. The cascade state: **`force-graph` v0.3 plan-lock now FULLY UNBLOCKED** (properties-form + detail-panel plans both signed off); v0.4 / v0.5 still gated on remaining Tier 1 plans (filter-stack / markdown-editor); v0.6 always independent.
+5. The five concrete next-step options from `HANDOFF.md` §5 (A: Phase 0 spike / B: force-graph v0.3 plan — newly unblocked / C: remaining Tier 1 plans / D: force-graph v0.6 plan / E: pause longer).
 
 Then **wait for me to pick a direction**. Do NOT author plans, draft new docs, or modify code until I explicitly say which option to pursue.
 
