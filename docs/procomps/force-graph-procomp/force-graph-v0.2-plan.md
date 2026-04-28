@@ -1,7 +1,8 @@
 # `force-graph` v0.2 — Pro-component Plan (Stage 2, Phase 2 of 6)
 
-> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** Draft — awaiting sign-off
+> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** **signed off 2026-04-29.** Stage 3 (v0.2 implementation) unlocks once v0.1 implementation lands.
 > **Slug:** `force-graph` · **Category:** `data` · **Phase:** **v0.2 — Interaction infrastructure (2 weeks focused)**
+> **Last updated:** 2026-04-29 (signed off; Q-P3 revised + Q-P10 wording fixed on re-validation; §16.5 expanded with 6 new refinements covering pinned-state permissions, context memoization, ref delegation, stale-history-on-delta-delete, onSelectionChange initial-fire suppression, and history capture timing)
 > **Inputs:**
 > - Description signed off ([force-graph-procomp-description.md](force-graph-procomp-description.md), 2026-04-28). All 10 §8 locked decisions are inherited as fixed inputs.
 > - **v0.1 plan signed off** ([force-graph-v0.1-plan.md](force-graph-v0.1-plan.md), 2026-04-28). All 11 v0.1 Q-P locks are inherited; v0.2 builds on v0.1's two-layer state, custom edge program, source-adapter contract, and validateSnapshot foundation.
@@ -823,28 +824,45 @@ Inherits v0.1 a11y baseline (`role="application"`, `tabIndex={0}`, `aria-label`)
 
 ---
 
-## 16. Plan-stage open questions (Q-P series, v0.2)
+## 16. Resolved plan-stage questions (locked on sign-off 2026-04-29)
 
-The description sealed the *what*. v0.1 plan locked the foundation. These are *how* questions specific to v0.2.
+All 10 questions resolved at sign-off. **Q-P3 revised** on re-validation (Zustand v5 API correction); **Q-P10 wording fixed** (clarifying the React `key` direction). The locks below are the v0.2 plan decisions; implementation builds against them.
 
-| # | Question | Recommendation | Why |
-|---|---|---|---|
-| Q-P1 | **Compound API export shape.** `<ForceGraph.Provider>` + `<ForceGraph.Canvas>` (compound subcomponents) OR `<ForceGraphProvider>` + `<ForceGraphCanvas>` (separate named exports)? | **Compound subcomponents.** | Matches `<DetailPanel.Header>` / `<DetailPanel.Body>` / `<DetailPanel.Actions>` precedent in [detail-panel](../detail-panel-procomp/detail-panel-procomp-description.md). Discoverable via TypeScript autocomplete; namespaced under one import. |
-| Q-P2 | **`<ForceGraph>` single component fate.** Continues working in v0.2 (wraps Provider+Canvas internally) OR deprecated with a v0.2 console warning encouraging compound-form migration? | **Continues working — no deprecation warning.** | v0.1 hosts shouldn't see warnings just for upgrading to v0.2. Both forms are first-class. |
-| Q-P3 | **`useGraphSelector` shallow-equality guard.** Use Zustand's default `Object.is` OR custom shallow-equality for object selectors? | **Custom shallow-equality** (re-export `shallow` from Zustand). | Object selectors (e.g., `(s) => ({ selection: s.ui.selection, hovered: s.ui.hovered })`) need shallow comparison or they re-fire every render. Pattern is well-known; documenting in usage.tsx. |
-| Q-P4 | **Hover lead-in delay value.** 100ms (subtle) vs 50ms (snappier) vs no delay? | **100ms.** | Matches industry convention (Obsidian, Figma); prevents flicker on rapid mouse traversal. Tunable via `settings.hoverDelayMs` if real consumers want to override (v0.6 setting if demanded; not in v0.2 surface). |
-| Q-P5 | **`canUndo` / `canRedo` API.** Methods on `actions` (one-shot) AND selector slice (reactive)? Or only one? | **Both.** | Methods on `actions` are convenient for one-shot reads (e.g., conditional dispatch). Selectors are required for reactive UI buttons. Both forms align with established React patterns; minor surface bloat is worth it. |
-| Q-P6 | **Composite history entry — store both forward + inverse, OR derive forward at undo time?** | **Store BOTH.** Each `HistoryEntry` carries `inverses: PrimitiveInverse[]` (for undo) AND `forwards: PrimitiveInverse[]` (for redo). | Deriving forward from current state at undo time is fragile (state may have changed unexpectedly). Storing both doubles entry size from ~50 bytes to ~100 bytes — still trivial at 100-entry capacity. Predictability wins over space efficiency. |
-| Q-P7 | **`enterLinkingMode(source)` edge case — source is invalid endpoint kind (e.g., kind: "edge").** Reject? Auto-fallback? | **Reject** — `EndpointRef = { kind: "node" \| "group"; id: string }` excludes edge endpoint at the type level. Runtime validation throws. | Edges cannot be edge endpoints. Type system catches most violations; runtime check covers casts/dynamic data. |
-| Q-P8 | **Drag during layout (toggle ON, FA2 actively running).** Nodes are moving while user drags one. Pin the dragged node temporarily? | **Yes — `graph.setNodeAttribute(id, "fixed", true)` on `downNode`; restore on `pointerup` with `pinned: true` (auto-pin per spec §10).** | FA2's `fixed` flag prevents the worker from moving the node during drag. On commit, `pinned: true` makes it permanent (until unpin). Already covered in §7.1; locking here. |
-| Q-P9 | **Sigma event payload + viewport coordinates.** Sigma exposes `event` with screen coords; `graph` stores world coords. Each pointer event needs `sigma.viewportToGraph(screen)` conversion. Cache the conversion function? | **Direct call per event** — `viewportToGraph` is a synchronous arithmetic transform; ~1μs per call. Caching a closure helps marginally. | Premature optimization; `viewportToGraph` is cheap. Plan-stage profiling can revisit if hot. |
-| Q-P10 | **`<ForceGraph.Provider>` data-prop changes mid-life.** When `data` changes (e.g., host swaps `kuzuSource` for `neo4jSource`), what happens? | **Tear down + remount internally.** Old store discarded; new Provider state with fresh store. Selection / hover / history all reset. Hosts opt out by keying the Provider externally (`<ForceGraph.Provider key={sourceId} ...>`). | Mid-life data swap is rare; full reset is the safe default. Hosts wanting cross-source state migration would need explicit serialization (out of v0.2 scope). |
+**Q-P1: Compound API export shape — locked: compound subcomponents `<ForceGraph.Provider>` + `<ForceGraph.Canvas>`.** Matches `<DetailPanel.Header>` / `<DetailPanel.Body>` / `<DetailPanel.Actions>` precedent in [detail-panel](../detail-panel-procomp/detail-panel-procomp-description.md), and Radix's Provider+Consumer pattern (TooltipProvider + Tooltip + TooltipContent). Discoverable via TypeScript autocomplete; namespaced under one import.
+
+**Q-P2: `<ForceGraph>` single component fate — locked: continues working; no deprecation warning.** v0.1 hosts upgrade to v0.2 transparently. Internally restructured: `<ForceGraph data={...}>` renders `<ForceGraph.Provider data={...}><ForceGraph.Canvas /></ForceGraph.Provider>`. Both forms are first-class. Ref forwarded to Provider; Provider exposes the full handle (state methods direct; render methods delegate to internal Canvas ref) per [§16.5 refinement #10](#165-plan-stage-refinements-surfaced-during-draft--re-validation).
+
+**Q-P3: `useGraphSelector` shallow-equality — locked: re-export `useShallow` from Zustand for object selectors.** **Refined on re-validation:** Zustand v5 removed the equality-fn parameter from `useStore`; the v5 idiom is the `useShallow` wrapper. Default `useGraphSelector` uses Zustand's `Object.is` equality (per Zustand v5 default); consumers wrap with `useShallow` for object selectors that destructure multiple slices:
+
+```ts
+import { useShallow } from "zustand/react/shallow";
+
+const { selection, hovered } = useGraphSelector(
+  useShallow((s) => ({ selection: s.ui.selection, hovered: s.ui.hovered })),
+);
+```
+
+Pattern documented in `usage.tsx` with example.
+
+**Q-P4: Hover lead-in delay value — locked: 100ms.** Industry convention (Obsidian / Figma); prevents flicker on rapid mouse traversal without feeling sluggish. `hover(null)` (mouse leave) is immediate — only acquisition is debounced. `settings.hoverDelayMs` is a v0.6 setting if real consumers want override; not in v0.2 surface.
+
+**Q-P5: `canUndo` / `canRedo` API — locked: both methods AND selectors.** Methods on `actions` (one-shot reads; e.g., conditional dispatch). Selectors via `useGraphSelector((s) => s.history.canUndo)` for reactive UI buttons (Tier 3 page's undo/redo toolbar re-renders on flip). Minor surface bloat is worth the ergonomic; both are first-class.
+
+**Q-P6: Composite history entry shape — locked: store BOTH `forwards` and `inverses` per entry.** Each `HistoryEntry` carries `inverses: PrimitiveInverse[]` (applied in reverse order on undo) AND `forwards: PrimitiveInverse[]` (applied in order on redo). Doubles entry size (~50 → ~100 bytes; ~10KB at 100-entry default capacity — trivial). Predictability over space efficiency. Per [§16.5 refinement #13](#165-plan-stage-refinements-surfaced-during-draft--re-validation): at action-dispatch time, capture BEFORE-state (becomes inverses) and AFTER-state (becomes forwards) via pure-function helpers in `lib/history/composite.ts`.
+
+**Q-P7: `enterLinkingMode(source)` invalid kind — locked: reject at type level + runtime check.** `EndpointRef = { kind: "node" | "group"; id: string }` excludes edge endpoints at the type level. Runtime validation in the action handler covers casts and dynamic data. Edges cannot be edge endpoints by [spec §3.3](../../../graph-visualizer-old.md).
+
+**Q-P8: Drag during active layout — locked: pin via `graph.setNodeAttribute(id, "fixed", true)` on `downNode`.** FA2 worker honors `fixed: true` (skips that node's position update). On `pointerup`, set `pinned: true` ([spec §10](../../../graph-visualizer-old.md): drag auto-pins) for permanent user-intent pin. The `fixed` attribute is FA2-specific; `pinned` is the visualizer's user-facing concept. Plan locks: `fixed` is computed as `pinned === true || dragState.activeNodeId === id` (kept in sync by the drag handler + pin action). They coincide most of the time.
+
+**Q-P9: Sigma `viewportToGraph` call pattern — locked: per-event call (no caching).** `viewportToGraph` is a synchronous arithmetic transform (~1μs). Caching helps marginally; premature optimization. Plan-stage profiling can revisit if hot.
+
+**Q-P10: `data` prop swap mid-life — locked: full reset on `data` reference change.** When `data` changes (rare; e.g., kuzuSource → neo4jSource), Provider tears down internally: old store + graphology + worker disposed; new initialization runs against the new `data`. Selection / hover / history / linkingMode all clear. **Wording fix on re-validation:** to PREVENT this reset, hosts stabilize the `data` prop reference via `useMemo` or component-level state — the typical pattern, since sources are usually created once per lifetime. React `key={sourceId}` is for the OPPOSITE case — forcing a fresh remount of Provider state. Cross-source state migration is out of v0.2 scope; hosts wanting it serialize manually (read state via `getSnapshot()` before swap; restore via `importSnapshot()` post-swap).
 
 ---
 
-## 16.5 Plan-stage refinements (surfaced during draft)
+## 16.5 Plan-stage refinements (surfaced during draft + re-validation)
 
-Baked into implementation but worth flagging:
+Baked into implementation:
 
 1. **`bumpGraphVersion` on drag commit, NOT per-frame.** Drag mutates `graph.setNodeAttribute` per pointer-move (Sigma re-renders directly); Zustand `graphVersion` bumps once on `pointerup`. Selectors observing graphVersion (e.g., neighbor counts, visible-set derivations) don't re-fire 60×/sec.
 2. **Provider cleanup on unmount.** Worker killed; Sigma killed; graphology garbage-collected. Verify no listener leaks via React DevTools at v0.2 implementation completion.
@@ -852,16 +870,22 @@ Baked into implementation but worth flagging:
 4. **`onSelectionChange` debouncing.** Selection changes are user-driven (1 click = 1 change); no debounce needed. Hover changes ARE debounced internally (Q-P4) but `onHoverChange` is NOT exposed in v0.2 (hover is too noisy for host callbacks; if a real use case surfaces, add `onHoverChange` in v0.3+).
 5. **Test-debt continuation.** Same posture as v0.1 + workspace + rich-card. Pure modules in `lib/history/` + `lib/store/cascade.ts` + `lib/history/recording-rules.ts` are pure functions; obvious Vitest targets when test runner lands. Specifically: drag-coalesced entry construction round-trip, recording-rules predicates, ring-buffer wrap-around, undo→redo→state-equivalence property test.
 6. **React.StrictMode double-mount handling.** Provider creates store via `useRef(create(...))`; idempotent. Sigma + worker creation guarded by `if (!sigmaRef.current)`. Verified by running v0.1 patterns through the same StrictMode harness.
-7. **Sigma nodeReducer / edgeReducer compose with theme.** Hover dim reducer wraps the theme-resolved color (doesn't replace it). Theme switch + hover compose correctly: dim is applied to whatever color the theme resolved.
+7. **Sigma `nodeReducer` / `edgeReducer` compose with theme.** Hover dim reducer wraps the theme-resolved color (doesn't replace it). Theme switch + hover compose correctly: dim is applied to whatever color the theme resolved.
+8. **`pinned` state is layout-local, NOT subject to canonical-field permission.** System-origin nodes CAN be pinned by the user — `pinned` is a visualizer-local layout preference, not a canonical-field mutation. [Decision #23](../../systems/graph-system/graph-system-description.md) (canonical fields read-only on system nodes) does NOT block drag-to-pin. Plan locks: drag-to-pin and the `pinNode` action both bypass the permission resolver because `position` and `pinned` are not canonical fields. Same logic applies to `setNodePositions` (silent or recorded) — layout positions are local data.
+9. **Provider context value stability via `useMemo`.** `ForceGraphContextValue = { store, graph, sigma, worker }` — all stable refs (`useRef`), but the containing object must be memoized. Without `useMemo`, every Provider render produces a new context object, causing all consumers to re-render unnecessarily. Implementation: `const ctx = useMemo(() => ({ store, graph, sigma, worker }), [store, graph, sigma, worker])`.
+10. **Single-component ref delegation through Provider.** `<ForceGraph ref={ref}>` forwards `ref` to `<ForceGraph.Provider>` internally. Provider holds an internal `useRef` to its child Canvas's Sigma instance. Provider's `useImperativeHandle` exposes the full handle: state methods (`getSnapshot`, `importSnapshot`, `setNodePositions`, `getGraphologyInstance`) call store / graph directly; render methods (`focusNode`, `focusGroup`, `resetCamera`, `getSigmaInstance`) delegate via the Canvas-ref. v0.1 single-component handle surface intact across the v0.2 restructuring.
+11. **History entries with stale references after delta-driven deletes.** v0.2 cascade fires on source-adapter delta deletions. History entries may reference deleted entities (e.g., `setNodePosition(deletedNodeX, ...)`). Plan locks: cascade scans history for entries with inverses OR forwards referencing the deleted ID; replaces those primitives with `{ type: "noop" }` (preserves cursor positions; safer than pruning entries — pruning would shift indices and break in-flight undo/redo). v0.3 expands the cleanup with full CRUD-driven deletes.
+12. **`onSelectionChange` initial fire suppression.** Don't fire `onSelectionChange(null)` on mount. Subscribe with prev=current bookmarked at mount; first dispatch only fires when prev !== current. Standard subscriber pattern; matches Zustand's `subscribe(selector, callback, { fireImmediately: false })` default.
+13. **History entry capture at action-dispatch time** (per Q-P6 lock). Action handlers read CURRENT state (BEFORE), apply the change, then construct `HistoryEntry` with `inverses` derived from BEFORE and `forwards` derived from AFTER. Pure-function helpers in `lib/history/composite.ts` (`buildInverses(before, op)` + `buildForwards(after, op)`). Bulk operations (drag) compose multiple primitives into one entry per the drag-coalesce pattern (§7).
 
 ---
 
 ## 17. Definition of "done" for THIS document (stage gate)
 
-- [ ] User reads §1–§15 (the locked plan) and §16 (Q-P questions) + §16.5 (refinements).
-- [ ] **v0.1 plan signed off** (✓ done 2026-04-28; pre-condition for v0.2 plan sign-off).
-- [ ] Each Q-P1 through Q-P10 has either an "agreed" or override answer.
-- [ ] User explicitly says **"plan approved"** — Stage 3 (v0.2 implementation) unlocks once **Phase 0 risk spike** completes and **v0.1 implementation** lands. v0.2 is implemented sequentially after v0.1, not in parallel (depends on v0.1's foundations).
+- [x] User reviewed §1–§15 (the locked plan) and §16 (resolved Q-Ps + §16.5 refinements).
+- [x] **v0.1 plan signed off** (✓ done 2026-04-28; pre-condition for v0.2 plan sign-off).
+- [x] All 10 plan-stage questions resolved (Q-P3 + Q-P10 refined on re-validation).
+- [x] User said **"plan approved"** — Stage 3 (v0.2 implementation) unlocks once **Phase 0 risk spike** completes (per [v0.1 plan §18](force-graph-v0.1-plan.md#18-definition-of-done-for-this-document-stage-gate) pre-condition) and **v0.1 implementation** lands. v0.2 is implemented sequentially after v0.1 — depends on v0.1's foundations (data model, store, Sigma container, source-adapter contract).
 
 After sign-off, the next session starts with:
 
