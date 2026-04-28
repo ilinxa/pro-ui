@@ -8,7 +8,7 @@
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 2 (graph-specific; the WebGL canvas + state store)
 
-This is Stage 1 of the [procomp gate](../README.md). It answers *should we build this at all, and what shape should it be?* It does NOT specify implementation — that's Stage 2 (`force-graph-procomp-plan.md`).
+This is Stage 1 of the [procomp gate](../README.md). It answers *should we build this at all, and what shape should it be?* It does NOT specify implementation — that's Stage 2 (per-phase plans `force-graph-v0.1-plan.md` through `force-graph-v0.6-plan.md`; v0.1 plan signed off 2026-04-28).
 
 The system-level constraints in [graph-system-description.md §8](../../systems/graph-system/graph-system-description.md) (decisions #1–#5, #7–#15, #17–#18, #21–#27, #32–#33, #35–#37) are inherited as constraints; this doc does not re-litigate them. Internal mechanics — data structures, custom WebGL programs, FA2 worker integration, hull anchoring, multi-edge expansion — remain anchored to [graph-visualizer-old.md](../../../graph-visualizer-old.md) as the authoritative source. The system description supersedes it for cross-cutting only.
 
