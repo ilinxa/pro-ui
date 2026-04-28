@@ -1,6 +1,6 @@
 # `detail-panel` — v0.1 Plan (Stage 2)
 
-> **Status:** **DRAFT 2026-04-29.** Awaiting user validate pass. Per the project working pattern: draft → validate → re-validate → sign-off. Q-Ps below are in **Recommendation:** form; convert to **Locked:** on sign-off.
+> **Status:** **signed off 2026-04-29.** Validate-pass refinements applied (7 fixes: dropped `defaultMode` prop §3.1/§4.1/§4.2/§10/Q-P1 (description Q2 lock spirit + 3-way internal inconsistency); §4.2 terminology fix; §7 ARIA generic announcement instead of raw `selection.id`; §6.4 + §10 error-precedence-vs-null-selection completion; §11.1 sticky-under-display:contents verification risk; Q-P10 wording aligned to §4.4 implementation; Q-P9 header-position actions clarification). All 10 Q-Ps locked.
 > **Slug:** `detail-panel` · **Category:** `feedback` · **Tier:** 1 (generic; no graph dependency)
 > **Parent description:** [detail-panel-procomp-description.md](detail-panel-procomp-description.md) (signed off 2026-04-28)
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (independent at the registry level per [decision #35](../../systems/graph-system/graph-system-description.md))
@@ -59,7 +59,6 @@ interface DetailPanelProps {
   // Mode (controlled / uncontrolled / locked — see §4.1 matrix)
   mode?: DetailPanelMode;
   onModeChange?: (mode: DetailPanelMode) => void;
-  defaultMode?: DetailPanelMode;                         // default "read" (uncontrolled init)
 
   // Permission gate
   canEdit?: boolean;                                     // default true per Q6
@@ -131,7 +130,7 @@ Per [Q9 lock](detail-panel-procomp-description.md#8-resolved-questions-locked-on
 | Configuration | `mode` prop | `onModeChange` prop | Behavior |
 |---|---|---|---|
 | **Controlled** | supplied | supplied | Host owns mode; panel calls `onModeChange("read")` on selection.id change. setMode in Actions ctx delegates to `onModeChange`. |
-| **Uncontrolled** | NOT supplied | NOT supplied | Panel manages internal mode state; resets internal state to `defaultMode` (or `"read"`) on selection.id change. setMode in Actions ctx mutates internal state. |
+| **Uncontrolled** | NOT supplied | NOT supplied | Panel manages internal mode state (initial value `"read"`); resets internal state to `"read"` on selection.id change per [description Q2](detail-panel-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28). setMode in Actions ctx mutates internal state. Hosts wanting a non-`"read"` initial mode use the controlled configuration. |
 | **Locked (anti-pattern)** | supplied | NOT supplied | Panel cannot reset mode (no callback to invoke); mode stays as host set it. **Dev-only `console.warn` on mount + on selection.id change** flagging the anti-pattern. setMode in Actions ctx is a no-op + dev-only `console.warn` per call. Production builds suppress warnings; no runtime cost. |
 
 The "locked" configuration is supported but warned-against because it's a semantic mismatch: the panel can't honor the auto-reset contract (Q2) without `onModeChange`. The dev-warn signals the misconfiguration loudly without forcing a runtime crash.
@@ -139,9 +138,9 @@ The "locked" configuration is supported but warned-against because it's a semant
 ### 4.2 Internal state shape
 
 ```ts
-// Only used in the uncontrolled / locked-with-internal-mode configurations
+// Only used in the uncontrolled configuration; locked reads `mode` directly from props
 interface DetailPanelState {
-  internalMode: DetailPanelMode;
+  internalMode: DetailPanelMode;                          // initial "read"
 }
 ```
 
@@ -307,11 +306,15 @@ function DetailPanelError({ error }: { error: { message: string; retry?: () => v
 
 Retry button only renders when `error.retry` is supplied per Q10. The `role="alert"` ensures screen readers announce the error on appearance.
 
-### 6.4 Loading + error precedence
+### 6.4 Loading / error / empty precedence
 
 When both `loading: true` AND `error` are set: error wins. Loading-then-error is the standard async lifecycle; rendering both simultaneously is incoherent.
 
 When `selection: null` AND `loading: true`: loading wins (host is fetching the new selection; show skeleton, not empty state).
+
+When `selection: null` AND `error` is set: error wins (the loud-signal rule applies regardless of selection state — host fetched, fetch failed, then cleared selection; the failure should still surface).
+
+**Full precedence chain: error > loading > content > empty.**
 
 ---
 
@@ -326,7 +329,7 @@ When `selection: null` AND `loading: true`: loading wins (host is fetching the n
 | Empty state | `role="status"` + descriptive copy |
 | Loading skeleton | `aria-busy="true"` on root (already covered); `aria-hidden="true"` on individual `<Skeleton>` elements |
 | Error state | `role="alert"` (announced on appearance); retry button is just a regular `<Button>` |
-| Selection change announcement | `aria-live="polite"` region updates with "Showing details for {selection.id}" — implementation lives in `parts/selection-announcer.tsx` |
+| Selection change announcement | `aria-live="polite"` region updates with generic copy `"Selection changed"` — `selection.id` is a stable identifier (often UUID/hash), not human-readable, so it is NOT included in the announcement. v0.2 may add a `selectionLabel?: string` prop for richer host-supplied announcements (additive, non-breaking). Implementation lives in `parts/selection-announcer.tsx`. |
 
 Focus management:
 - **Selection change**: focus moves to panel root (`tabIndex={-1}` programmatically focused via `useEffect` keyed on selectionKey).
@@ -413,7 +416,7 @@ Three internal phases, each ~3-4 days:
 | `selection.type` changes but `selection.id` is the same | Composite key changes → re-mount. Prevents state-bleed between entity types. |
 | Same selection object reference passed twice | selectionKey is computed as a string; stable across same-shape inputs. No spurious re-mount. |
 | `mode` supplied without `onModeChange` (locked anti-pattern) | Panel cannot auto-reset. Dev-only `console.warn` on mount + on selection.id change. setMode in Actions ctx is a no-op with dev-only `console.warn` per call. Production builds: silent. |
-| `defaultMode: "edit"` in uncontrolled mode | Honored on mount; subsequent selection changes still auto-reset to `"read"` (description Q2 isn't conditional on initial mode). |
+| `selection: null` AND `error` set | Error wins per §6.4 precedence chain. Empty state suppressed; error UI renders. Retry button surfaces if `error.retry` supplied; clicking retry is the host's signal — they typically also restore selection or trigger a fetch. |
 | `<DetailPanel.Actions>` render-fn called when `mode` is undefined | Cannot happen — mode always resolves to either prop value, internal state, or `"read"` default. |
 | `<DetailPanel.Header sticky={false}>` | Header renders inline (non-sticky); scrolls with body. |
 | `<DetailPanel.Actions position="header">` | Actions render in the header zone, AFTER any `<DetailPanel.Header>` children. Both appear in the same sticky-header band. |
@@ -467,6 +470,7 @@ Wired via `size-limit` (or equivalent) at v0.1 implementation start — same pos
 | Auto-reset effect fires on initial mount for "read" → "read" | Effect's deps are `[selectionKey]`; on mount it fires once but the body checks `if (mode !== "read")` before calling onModeChange — no spurious initial invocation. |
 | Focus-restore breaks when triggering element is removed from DOM (e.g., Save button unmounts on mode change) | Capture `activeElement` BEFORE the click handler runs; restore by `id` lookup, not direct ref. If the id is gone, fall back to focusing the panel root. |
 | Skeleton layout drifts from real layout when consumer customizes | Skeleton intentionally mirrors a "default" panel shape. Heavy customization (e.g., 5-button action bar) will create visual jump skeleton → loaded. Documented; v0.2 may add `<DetailPanel.Skeleton>` as a custom slot. |
+| Sticky positioning under `display: contents` re-key wrapper | Verify at end of Phase B with a long-content body fixture: confirm sticky-header (top:0) and sticky-footer-actions (bottom:0) both behave correctly relative to body scroll. `display: contents` is well-supported in modern engines (Safari 11.1+, Chrome 65+, FF 37+) and children inherit the grandparent's containing block, so sticky should resolve to the panel root's scroll context — but the interaction is less battle-tested than each feature in isolation. If broken, fall back to keying the panel root directly OR restructure to put the scroll container outside the contents wrapper. |
 
 ### 11.2 Alternatives considered, rejected
 
@@ -478,57 +482,57 @@ Wired via `size-limit` (or equivalent) at v0.1 implementation start — same pos
 
 ---
 
-## 12. Resolved plan-stage questions (recommendations; lock on sign-off)
+## 12. Resolved plan-stage questions (locked on sign-off 2026-04-29)
 
-10 Q-Ps. **High-impact:** Q-P1 (mode matrix), Q-P6 (compound API impl), Q-P7 (re-key impl). **Medium:** Q-P2 (host dirty-handling cross-ref), Q-P3 (setMode fallback), Q-P4 (skeleton shapes), Q-P9 (sticky positioning impl), Q-P10 (controlled-mode racing auto-reset). **Low:** Q-P5 (no focus trap), Q-P8 (empty state sibling export).
+All 10 questions resolved at sign-off. **Q-P1 + Q-P9 + Q-P10 refined on validate pass** (Q-P1: dropped `defaultMode` per description Q2 lock spirit; Q-P9: added header-position actions clarification; Q-P10: wording aligned to §4.4 implementation). **High-impact:** Q-P1 (mode matrix), Q-P6 (compound API impl), Q-P7 (re-key impl). **Medium:** Q-P2 (host dirty-handling cross-ref), Q-P3 (setMode fallback), Q-P4 (skeleton shapes), Q-P9 (sticky positioning impl), Q-P10 (controlled-mode racing auto-reset). **Low:** Q-P5 (no focus trap), Q-P8 (empty state sibling export).
 
-### Q-P1 (from description §8.5 #1) — Mode controlled / uncontrolled / locked matrix
-**Recommendation: matrix in [§4.1](#41-mode-controlled--uncontrolled--locked-matrix-q-p1-per-description-851).** Three configurations supported; locked anti-pattern dev-warned (mount + selection.id change + per-setMode-call). Production builds suppress warnings.
+### Q-P1 (from description §8.5 #1; refined on validate pass) — Mode controlled / uncontrolled / locked matrix
+**Locked: matrix in [§4.1](#41-mode-controlled--uncontrolled--locked-matrix-q-p1-per-description-851).** Three configurations supported; locked anti-pattern dev-warned (mount + selection.id change + per-setMode-call). Production builds suppress warnings. **Refined on validate pass:** dropped `defaultMode` prop entirely. Description [Q2](detail-panel-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) locks "auto-reset to `'read'` on selection.id change" without a host-configurable initial-state caveat; introducing `defaultMode` would have been a quiet expansion of the lock and created a 3-way internal inconsistency. Hosts wanting a non-`"read"` initial mode use the controlled configuration.
 **Impact:** high — defines the API's primary configuration shape.
-**Trade-off:** "locked" is supported instead of forbidden so hosts that *intentionally* want a non-resetting mode (rare; possibly a pinned-detail-view case) aren't blocked. The dev-warn signals the misconfiguration without crashing.
+**Trade-off:** "locked" is supported instead of forbidden so hosts that *intentionally* want a non-resetting mode (rare; possibly a pinned-detail-view case) aren't blocked. The dev-warn signals the misconfiguration without crashing. Hosts who wanted "uncontrolled but starts in edit" must now use controlled mode — uncommon use case; controlled mode is the right tool when the host has opinions about initial mode.
 
 ### Q-P2 (from description §8.5 #2) — Host-side dirty-state handling
-**Recommendation: cross-ref [`properties-form` plan §4.5](../properties-form-procomp/properties-form-procomp-plan.md#45-composition-with-detail-panel-the-showcase-integration) + recipe in `usage.tsx`.** Detail-panel doesn't know about form state; host intercepts selection-change, reads `formRef.current?.isDirty()` BEFORE updating selection, optionally shows confirmation, then either propagates or aborts.
+**Locked: cross-ref [`properties-form` plan §4.5](../properties-form-procomp/properties-form-procomp-plan.md#45-composition-with-detail-panel-the-showcase-integration) + recipe in `usage.tsx`.** Detail-panel doesn't know about form state; host intercepts selection-change, reads `formRef.current?.isDirty()` BEFORE updating selection, optionally shows confirmation, then either propagates or aborts.
 **Impact:** medium — the showcase composition's correctness depends on hosts honoring this.
 **Trade-off:** none; alternative ("detail-panel offers a dirty-confirm hook") couples Tier 1 components, violating decision #35.
 
 ### Q-P3 (from description §8.5 #3) — `setMode` fallback in Actions render-fn context
-**Recommendation: provided unconditionally; dispatches per the §4.1 matrix.** In controlled mode, calls `onModeChange`. In uncontrolled, mutates internal state. In locked, no-op + dev-warn. Render-fn always receives a callable `setMode`.
+**Locked: provided unconditionally; dispatches per the §4.1 matrix.** In controlled mode, calls `onModeChange`. In uncontrolled, mutates internal state. In locked, no-op + dev-warn. Render-fn always receives a callable `setMode`.
 **Impact:** medium — implementation glue but visible in API contract.
 **Trade-off:** none; alternative (`setMode` typed as `setMode?: ...`) forces every render-fn to null-check, hurts ergonomics.
 
 ### Q-P4 (from description §8.5 #4) — Skeleton shape specifics
-**Recommendation: layout-mirroring shape per [§6.2](#62-loading-skeleton-shapes-q5--q-p4-per-description-854).** Header band (title + subtitle bars) + 3 body blocks + 2 actions buttons. Mirrors the "default" populated panel structure.
+**Locked: layout-mirroring shape per [§6.2](#62-loading-skeleton-shapes-q5--q-p4-per-description-854).** Header band (title + subtitle bars) + 3 body blocks + 2 actions buttons. Mirrors the "default" populated panel structure.
 **Impact:** medium — affects perceived load time UX and skeleton→loaded transition smoothness.
 **Trade-off:** opinionated default may not match every consumer's real layout. v0.2 considers a `<DetailPanel.Skeleton>` custom slot for radical layouts (large-textarea bodies, multi-section bodies, etc.).
 
 ### Q-P5 (from description §8.5 #5) — Focus trap in edit mode
-**Recommendation: NO focus trap in edit mode.** Explorer-pane edit-in-place pattern: user must be able to click canvas / other surfaces mid-edit. Standard form-modal trap-focus pattern is rejected as a category mismatch.
+**Locked: NO focus trap in edit mode.** Explorer-pane edit-in-place pattern: user must be able to click canvas / other surfaces mid-edit. Standard form-modal trap-focus pattern is rejected as a category mismatch.
 **Impact:** low — primarily an a11y posture decision.
 **Trade-off:** users editing inside the panel can Tab their way out into outer page chrome. For most hosts this is fine. Hosts wanting modal-style trap wrap their slotted form in a focus-trap library themselves.
 
 ### Q-P6 (NEW) — Compound API implementation: React Context vs cloneElement vs displayName
-**Recommendation: React Context (§4.3).** Single `DetailPanelContext` Provider wraps content; subcomponents consume via `useDetailPanel()` hook. Standard shadcn-radix pattern; works under any rendering structure (conditional fragments, third-party wrappers, etc.).
+**Locked: React Context (§4.3).** Single `DetailPanelContext` Provider wraps content; subcomponents consume via `useDetailPanel()` hook. Standard shadcn-radix pattern; works under any rendering structure (conditional fragments, third-party wrappers, etc.).
 **Impact:** high — touches the core implementation shape.
 **Trade-off:** consumers writing `<DetailPanel.Header>` outside `<DetailPanel>` get a runtime error from the hook. Acceptable; shadcn primitives behave the same way. Alternatives (cloneElement, displayName-slot) are more fragile.
 
 ### Q-P7 (NEW) — Re-key implementation: where does the `key` go?
-**Recommendation: invisible `<div className="contents">` wrapper around children with `key={selectionKey}` (§5).** `display: contents` keeps the wrapper out of the box-model so it can't influence layout. The wrapper's only job is to hold the React key.
+**Locked: invisible `<div className="contents">` wrapper around children with `key={selectionKey}` (§5).** `display: contents` keeps the wrapper out of the box-model so it can't influence layout. The wrapper's only job is to hold the React key.
 **Impact:** high — defines remount semantics for slotted forms.
-**Trade-off:** `display: contents` has minor a11y implications in older browsers (some assistive tech ignored the wrapper for a while). Modern browsers (Chrome 65+, FF 37+, Safari 11.1+) handle it correctly. Documented; if real consumers report issues, switch to `<React.Fragment key={...}>` (which has the same effect with no DOM node) — but Fragments don't accept className, so the layered approach via `<div className="contents">` is incrementally more flexible.
+**Trade-off:** `display: contents` has minor a11y implications in older browsers (some assistive tech ignored the wrapper for a while). Modern browsers (Chrome 65+, FF 37+, Safari 11.1+) handle it correctly. Documented; if real consumers report issues, switch to `<React.Fragment key={...}>` (which has the same effect with no DOM node) — but Fragments don't accept className, so the layered approach via `<div className="contents">` is incrementally more flexible. Sticky-positioning interaction with this wrapper is verified at end of Phase B per [§11.1 risk row](#111-risks).
 
 ### Q-P8 (NEW) — Empty state component sibling export
-**Recommendation: export `<DetailPanelEmptyState>` as a sibling from `index.ts`.** Hosts that want to extend the default (description §6.2 — quick-stats variant) can compose `<DetailPanelEmptyState>` plus their own additions inside `emptyState` prop. Without the export, hosts reinvent the icon + copy + spacing.
+**Locked: export `<DetailPanelEmptyState>` as a sibling from `index.ts`.** Hosts that want to extend the default (description §6.2 — quick-stats variant) can compose `<DetailPanelEmptyState>` plus their own additions inside `emptyState` prop. Without the export, hosts reinvent the icon + copy + spacing.
 **Impact:** low.
 **Trade-off:** minor API surface bloat (one additional named export). Worth it for the composition ergonomic.
 
-### Q-P9 (NEW) — Sticky positioning implementation
-**Recommendation: CSS `position: sticky` on Header (top: 0) and Actions when `position="footer"` (bottom: 0). Background uses `--background` token; subtle border via `--border`.** Sticky-header-only is the default Q7; sticky-footer activates with `position="footer"` Actions (default).
+### Q-P9 (NEW; refined on validate pass) — Sticky positioning implementation
+**Locked: CSS `position: sticky` on Header (top: 0) and Actions when `position="footer"` (bottom: 0). Background uses `--background` token; subtle border via `--border`.** Sticky-header-only is the default Q7; sticky-footer activates with `position="footer"` Actions (default). **Refined on validate pass:** Actions when `position="header"` ride the Header's sticky-top band — they render inline inside the same wrapper as `<DetailPanel.Header>`, after the Header's children, with NO separate `position: sticky` (avoids double-stacking).
 **Impact:** medium — visible in every showcase; failure modes are layout-jank.
 **Trade-off:** `position: sticky` requires the panel's outer container to have a constrained height (host responsibility). Documented in usage as a host requirement: "wrap `<DetailPanel>` in a height-constrained container (e.g., `h-full` inside a flex parent) — without that, sticky positioning collapses to static."
 
-### Q-P10 (NEW) — Controlled-mode change racing with selection-change auto-reset
-**Recommendation: auto-reset takes precedence (selection change wins).** When both happen in the same render (host updated mode AND selection in one batch), React batches: auto-reset effect runs after both prop changes settle. Effect always calls `onModeChange("read")` regardless of incoming `mode`. Last-write-wins is the auto-reset.
+### Q-P10 (NEW; refined on validate pass) — Controlled-mode change racing with selection-change auto-reset
+**Locked: auto-reset takes precedence (selection change wins).** When both happen in the same render (host updated mode AND selection in one batch), React batches: auto-reset effect runs after both prop changes settle. Effect calls `onModeChange("read")` when `mode !== "read"`; no-op when already `"read"` (avoids needless host re-render — matches §4.4 implementation).
 **Impact:** medium — defines the corner-case semantics of simultaneous prop updates.
 **Trade-off:** alternative ("preserve incoming mode if selection.id is also new") is more nuanced but rarely useful. Current rule is simpler and matches the spirit of Q2 (auto-reset is sacrosanct on selection change).
 
@@ -548,10 +552,10 @@ These bake into implementation but worth flagging:
 
 ## 13. Definition of "done" for THIS document (stage gate)
 
-- [ ] User reviewed §1–§11 (the locked plan body) and §12 (resolved Q-Ps + §12.5 refinements).
-- [ ] All 10 plan-stage questions resolved (Q-P1 to Q-P10).
-- [ ] User said **"plan approved"** (or equivalent) — Stage 3 (implementation) unlocks: run §8.2 Phase A pre-flight (`pnpm dlx shadcn@latest add skeleton`) FIRST, then `pnpm new:component feedback/detail-panel`.
-- [ ] On sign-off: convert `Recommendation:` → `**Locked: X.**`; flip status header; update [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) to mark `detail-panel` plan ✓ signed off; commit per project pattern (`docs(procomps/detail-panel): sign off v0.1 plan; <refinements>`).
+- [x] User reviewed §1–§11 (the locked plan body) and §12 (resolved Q-Ps + §12.5 refinements).
+- [x] All 10 plan-stage questions resolved (Q-P1 to Q-P10); Q-P1 + Q-P9 + Q-P10 refined on validate pass.
+- [x] User said **"go ahead"** — sign-off applied. Stage 3 (implementation) unlocks: run §8.2 Phase A pre-flight (`pnpm dlx shadcn@latest add skeleton`) FIRST, then `pnpm new:component feedback/detail-panel`.
+- [x] `Recommendation:` form converted to `**Locked: X.**`; status header flipped; [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) updated to mark `detail-panel` plan ✓ signed off.
 
 The plan is signed off when both (a) v0.1 implementation can begin AND (b) the `force-graph` v0.3 plan-lock cascade fully unlocks — the [`properties-form` plan](../properties-form-procomp/properties-form-procomp-plan.md) signed off 2026-04-29 is the other half; this plan completes the gate.
 
