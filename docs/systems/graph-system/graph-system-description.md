@@ -429,7 +429,7 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 | `filter-stack` | [signed off 2026-04-28](../../procomps/filter-stack-procomp/filter-stack-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `entity-picker` | [signed off 2026-04-28](../../procomps/entity-picker-procomp/entity-picker-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `markdown-editor` | [signed off 2026-04-28](../../procomps/markdown-editor-procomp/markdown-editor-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
-| `force-graph` (v0.1–v0.6) | [draft v0.1 2026-04-28](../../procomps/force-graph-procomp/force-graph-procomp-description.md) | TBA | TBA | description drafted; pending validation + sign-off |
+| `force-graph` (v0.1–v0.6) | [signed off 2026-04-28](../../procomps/force-graph-procomp/force-graph-procomp-description.md) | TBA | TBA | description signed off; per-phase plan authoring may begin |
 | **System-level** | this doc | `graph-system-plan.md` (TBA) | `graph-system-guide.md` (TBA) | **description signed off 2026-04-28** |
 
 Each procomp folder lives at `docs/procomps/<slug>-procomp/` per the existing convention.
