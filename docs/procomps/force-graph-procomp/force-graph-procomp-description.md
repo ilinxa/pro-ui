@@ -1,10 +1,10 @@
 # `force-graph` — Pro-component Description
 
-> **Status:** **draft v0.1 — pending validation + sign-off.** Stage 2 (`force-graph-procomp-plan.md`) authoring is blocked until this signs off.
+> **Status:** **signed off 2026-04-28.** Per-phase plan authoring (`force-graph-v0.1-plan.md` through `force-graph-v0.6-plan.md`) may begin per the [§9 cascade](#9-sign-off-checklist).
 > **Slug:** `force-graph`
 > **Category:** `data`
 > **Created:** 2026-04-28
-> **Last updated:** 2026-04-28 (initial draft; phased v0.1–v0.6 surface; 10 open questions surfaced with recommendations)
+> **Last updated:** 2026-04-28 (signed off; Q5 + Q8 + Q10 refined on re-validation; §7 #10 corrected; all 10 open questions resolved)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 2 (graph-specific; the WebGL canvas + state store)
 
@@ -560,7 +560,7 @@ The component is "done" for v0.1–v0.6 when each phase passes its gate AND the 
 7. **Tier 1 panels compose without `force-graph` importing them** ([decision #35](../../systems/graph-system/graph-system-description.md)) — the Tier 3 page (§6.3) wires all five with no `force-graph` → Tier 1 imports.
 8. **Source-adapter pattern works for all three usage modes** — DB visualizer (live source), personal KG (static snapshot), hybrid documenter (live source + user annotations + doc nodes). Same code path; different data distributions.
 9. **Origin model is mandatory and validated** ([decision #17](../../systems/graph-system/graph-system-description.md)) — snapshots missing `origin` are rejected with structured errors; system entities missing `systemRef` are rejected.
-10. **Bundle weight ≤ 350KB total** (minified + gzipped) — the heaviest component in the registry. Per-import breakdown locked in plan stage; primary contributors: `sigma` (~80KB), `graphology` (~25KB), `graphology-layout-forceatlas2` (~15KB), `d3-polygon` (~5KB), `lucide-react` (~10KB tree-shaken to atlas), Zustand (~3KB), our store + custom programs + overlays (~80–100KB), plus Tier 1 dependencies pulled in through composition (markdown-editor adds ~180KB at v0.5).
+10. **Bundle weight ≤ 300KB component-alone** (minified + gzipped). Per [decision #35](../../systems/graph-system/graph-system-description.md), Tier 1 deps composed at the host level are NOT part of `force-graph`'s bundle. Realistic breakdown: third-party ~138KB (sigma 80, graphology 25, FA2 15, d3-polygon 5, lucide-react tree-shaken 10, Zustand 3) + our code ~80KB (custom WebGL programs, store + slices, hull computation, source-adapter integration, permission resolver, misc) = **~218KB realistic**, with 300KB ceiling providing ~37% headroom for v0.6 hardening + dev-tooling overhead. The Tier 3 page total bundle (force-graph + 5 Tier 1) is a separate concern, not bounded by this description.
 11. **A11y audit passes**: canvas has `role="application"` + `aria-label`; `tabIndex={0}` for keyboard focus per [spec §6.1](../../../graph-visualizer-old.md); keyboard shortcuts canvas-focus only; screen-reader announcements on selection change.
 12. **Theming follows globals.css** ([decision #37](../../systems/graph-system/graph-system-description.md)) — OKLCH tokens; signal-lime accent on selection ring; Onest + JetBrains Mono fonts; switching dark/light flips canvas + overlays without remount.
 13. **`tsc + lint + build` clean** with no React Compiler warnings — Sigma + graphology effects properly cleaned up.
@@ -568,130 +568,86 @@ The component is "done" for v0.1–v0.6 when each phase passes its gate AND the 
 
 ---
 
-## 8. Open questions (10)
+## 8. Resolved questions (locked on sign-off 2026-04-28)
 
-Each carries a recommendation. Recommendations are subject to validation; locks happen at sign-off.
+All 10 questions resolved at sign-off. The recommendations below are the locked decisions for v0.1–v0.6; per-phase Stage 2 plans build against these. Q5 + Q8 + Q10 refined on re-validation. New questions surfacing during plan authoring land in a fresh `## 8.6 New open questions` section as needed.
 
-| # | Question | Recommendation | Impact |
-|---|---|---|---|
-| 1 | Phasing structure | Keep 6 phases v0.1–v0.6 (matches system #10) | **High** |
-| 2 | Renderer substrate | Sigma + graphology + FA2 in worker (per spec §2) | **High** |
-| 3 | Source-adapter timing | Ship full `GraphInput` in v0.1 (snapshot AND live source) | **High** |
-| 4 | Phase 0 risk-spike timing | 2 days BEFORE v0.1; SVG fallback documented | Medium |
-| 5 | State store architecture | Zustand with logical slices (graph data / UI / history / settings) | Medium |
-| 6 | Permission resolver location | Own resolver inside force-graph; lands in v0.3 | Medium |
-| 7 | Mixed-permission editing | Host computes per-field permissions; force-graph exposes origin/systemRef only | **High** |
-| 8 | Hull overlay rendering | SVG in v0.4; v0.6 canvas-migration gate per ceiling check | Medium |
-| 9 | Public action/selector surface | ~30 actions + ~10 selectors; plan locks exact list | Medium |
-| 10 | Bundle weight ceiling | 350KB total (component + first-party Tier 1 deps composed at v0.5) | Medium |
+1. **Phasing structure — locked: keep 6 phases v0.1–v0.6** ([system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing)). Each phase produces an independently shippable deliverable; Tier 1 plan-lock dependencies cleanly map to phase boundaries (v0.3 → properties-form + detail-panel; v0.4 → filter-stack; v0.5 → markdown-editor); the dedicated v0.6 perf phase produces measurable benchmarks rather than scattering perf work across all phases. Folding v0.6 into earlier phases would lose the SVG-ceiling gate ([spec §11.2](../../../graph-visualizer-old.md)) which needs the full system stood up.
 
-### 8.1 Phasing structure (Q1, high impact)
+2. **Renderer substrate — locked: Sigma + graphology MultiGraph + ForceAtlas2 in Web Worker** ([original spec §2](../../../graph-visualizer-old.md)). Already evaluated and locked in the v4 spec; this description re-confirms given the evolved system architecture (origin model, source-adapter pattern). Alternatives considered + rejected: react-force-graph (no native MultiGraph, no clean custom-program API, layout not in worker); Cytoscape.js (design philosophy mismatch — graph editor vs viz at scale; WebGL renderer is add-on); regl-graph / custom WebGL (massive build cost); ngraph family (no built-in canvas).
 
-**Recommendation:** Keep the 6-phase plan v0.1–v0.6 as locked in [system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing). Reasoning: matches the rich-card phased shipping precedent that's already worked; each phase produces a usable deliverable; Tier 1 plan-lock dependencies cleanly map to phase boundaries (v0.3 → properties-form + detail-panel; v0.4 → filter-stack; v0.5 → markdown-editor); the dedicated v0.6 perf phase produces measurable benchmarks rather than scattering perf work across all phases.
+3. **Source-adapter timing — locked: full `GraphInput = GraphSnapshot | GraphSource` in v0.1.** `loadInitial` required; `subscribe` + `applyMutation` optional. v0.1 type-supports `applyMutation` but doesn't exercise it (component is read-only); v0.3 starts dispatching mutations when editing arrives. The architecture is core, not optional; live source mode is just snapshot + subscribe — small upfront cost vs a v0.1→v0.2 refactor of every action handler. Hosts in v0.1 can omit `applyMutation` entirely; hosts supplying it have it sit unused until v0.3.
 
-**Trade-off considered:** Folding v0.6 perf into earlier phases distributes the work but loses the dedicated benchmarking session and the SVG-ceiling gate ([spec §11.2](../../../graph-visualizer-old.md)) that needs the full system stood up. The hull overlay can't be properly stress-tested until groups + group-involving edges + multi-edge expansion are all in.
+4. **Phase 0 risk-spike timing — locked: 2 days BEFORE v0.1 implementation begins** ([system §10.1](../../systems/graph-system/graph-system-description.md)). Prototype `DashedDirectedEdgeProgram`; benchmark at 100k edges on integrated and discrete GPUs; gate ≥30 fps on integrated GPU. This description writes against "spike succeeds." If the spike fails, intermediate fallbacks exist (split edge programs — separate dashed-only and directed-only programs switching per edge — and custom shader optimizations) BEFORE going full SVG-overlay; the SVG-overlay path is the worst-case contingency, not the only fallback. Plan stage locks the contingency tree.
 
-**Downstream change cost if revised:** Re-numbering phases breaks Tier 1 plan-lock cross-references (system §3.1, §10.2, §10.3); doable but mechanical churn.
+5. **State store architecture — locked: two-layer state per [spec §5.1](../../../graph-visualizer-old.md).** Refined on re-validation:
+   - **Outside Zustand:** graphology MultiGraph (imperative; node↔node edges; Sigma reads directly from it)
+   - **Zustand slices:** `groupEdges` (group-involving edges' parallel storage per [spec §3.4](../../../graph-visualizer-old.md)), `ui` (selection / hover / filters / linking mode / multiEdgeExpanded), `history` (undo ring buffer per [spec §5.5](../../../graph-visualizer-old.md)), `settings` (theme + force config), `derived` (memoized selectors observing `graphVersion`)
 
-### 8.2 Renderer substrate (Q2, high impact)
+   `graphologyAdapter` wraps node↔node mutations and bumps `graphVersion` in Zustand on every graphology mutation, so selectors observing `graphVersion` (via [`useGraphSelector`](#52-graph-data-shapes), decision #4) re-fire. Alternatives considered (Jotai, Valtio, Redux Toolkit) rejected per [spec §5.4](../../../graph-visualizer-old.md): Zustand's selector-based subscriptions fit the panel-density use case; whole-tree re-renders would dominate at this panel count.
 
-**Recommendation:** Sigma + graphology MultiGraph + ForceAtlas2 in Web Worker, per [original spec §2](../../../graph-visualizer-old.md). This was already evaluated and locked in the v4 spec; we don't re-litigate.
+6. **Permission resolver location — locked: own resolver inside `force-graph`; lands in v0.3.** Per [decision #25](../../systems/graph-system/graph-system-description.md): per-component in v1; shared `src/lib/permissions/` extracted only after `rich-card` and `force-graph` both ship resolvers. Premature abstraction is the bigger risk.
 
-**Alternatives considered:**
+7. **Mixed-permission editing — locked: host computes per-field permissions; `force-graph` exposes only `origin` + `systemRef` on entities.** The host's permission resolver decides which fields are canonical-read-only vs annotation-writable and feeds them to `<PropertiesForm>`'s `resolvePermission` per the [properties-form §6.2 showcase](../properties-form-procomp/properties-form-procomp-description.md). `force-graph` stays out of the schema-building business; the host owns it. Alternative ("force-graph derives schema-with-permissions automatically from origin") rejected on coupling grounds — would couple `force-graph` to a specific schema convention and break generic-schema use cases. Plan-stage tightening: `NodeType.schema?: PropertiesFormField[]` could give hosts a natural carrier (force-graph never inspects the field; it just flows through).
 
-- **react-force-graph** (D3 + Three.js) — lower learning curve, bigger community. Rejected: no native MultiGraph (parallel edges between nodes), no clean custom-program API for the dashed-directed combination, layout not in worker.
-- **Cytoscape.js** — feature-rich, mature. Rejected: design philosophy differs (more "graph editor" than "visualization at scale"); WebGL renderer is a separate add-on; bundle weight similar to Sigma but covers more than we need.
-- **regl-graph / custom-rolled WebGL** — maximum control. Rejected: massive build cost; Sigma's Program API is exactly what we need.
-- **ngraph** family — fast, but no built-in canvas; we'd be building Sigma equivalents on top.
+8. **Hull overlay rendering — locked: SVG hull overlay in v0.4; v0.6 perf gate for migration of group-involving edge layer.** Refined on re-validation:
+   - **Hulls** (group hulls + labels) — SVG, ~200 DOM nodes expected, no ceiling concern. Group count is bounded; hull DOM scales with group count (~200 expected).
+   - **Group-involving edges** (node↔group, group↔group) — SVG `<line>` per edge, ceiling at ~3k visible per [spec §11.2](../../../graph-visualizer-old.md). v0.6 migration to canvas (or a second Sigma instance) IF profiling shows ceiling hit.
 
-**Trade-off:** Sigma has a smaller community than D3-based libs; the custom edge/node program development is real risk (mitigated by Phase 0 spike). Plan stage validates with a focused prototype.
+   The hull layer itself does NOT migrate (it's not the bottleneck). Only the group-involving edge SVG layer migrates if the ceiling check fails. Plan stage locks the migration path conditionally.
 
-### 8.3 Source-adapter timing (Q3, high impact)
+9. **Public action/selector surface — locked: ~30 actions + ~10 selectors.** Categorized in §5.3 / §5.4. Plan stage locks the exact list per phase, validated against [spec §5.3](../../../graph-visualizer-old.md). Selectors gate through `useGraphSelector(fn)` per [decision #4](../../systems/graph-system/graph-system-description.md), which observes `graphVersion` so consumers can't forget the dependency. Hosts wire Tier 1 panels through this surface; the surface is the contract for Tier 3 composition.
 
-**Recommendation:** Ship the full `GraphInput = GraphSnapshot | GraphSource` in v0.1, with `loadInitial` + `subscribe` + `applyMutation` all supported (`subscribe` and `applyMutation` are optional). The architecture is core, not optional; live source mode is just "snapshot + subscribe" — the cost of supporting it from day one is small.
+10. **Bundle weight ceiling — locked: ≤300KB component-alone** (minified + gzipped). Refined on re-validation. Per [decision #35](../../systems/graph-system/graph-system-description.md), Tier 1 deps composed at the host level are NOT part of `force-graph`'s bundle. Realistic breakdown:
 
-**Alternative considered:** Static snapshot only in v0.1; live source mode arrives in v0.2 alongside interaction infrastructure. Rejected: the source-adapter pattern shapes the entire data flow (deltas, real-time UI-state preservation per [decision #22](../../systems/graph-system/graph-system-description.md), `applyMutation` round-tripping per [decision #33](../../systems/graph-system/graph-system-description.md)). Bolting on live source post-hoc means a v0.1→v0.2 refactor of every action handler.
+    | Item | Size |
+    |---|---|
+    | Third-party deps (sigma 80, graphology 25, FA2 15, d3-polygon 5, lucide-react tree-shaken 10, Zustand 3) | **~138KB** |
+    | Our code (custom WebGL programs, store + slices, hull computation, source-adapter integration, permission resolver, misc) | **~80KB** |
+    | **Component-alone realistic total** | **~218KB** |
+    | Ceiling | **300KB** (~37% headroom) |
 
-**Trade-off:** Slightly more upfront complexity in v0.1; offset by avoiding a refactor in v0.2 and cleaner mental model from the start.
+    The Tier 3 page total bundle (force-graph + 5 Tier 1 components) is a separate concern, not bounded by this description. Risk-mitigation options if ceiling threatens: (a) lazy-load the FA2 worker (only when layout is enabled), (b) split `force-graph` itself into smaller chunks at module boundaries (e.g., editing layer in v0.3 lazy-loads on first edit). Plan stage decides if any of these are needed.
 
-**Downstream change cost if revised:** Backing this out means stripping `GraphSource` from the v0.1 type and re-introducing it in v0.2 — every action that calls `applyMutation` adapts. Doable but churn.
+## 8.5 Plan-stage tightenings (surfaced during description review + re-validation)
 
-### 8.4 Phase 0 risk-spike timing (Q4)
+These are NOT description-blocking, but per-phase plan authoring must address them:
 
-**Recommendation:** 2 days BEFORE v0.1 implementation begins ([system §10.1](../../systems/graph-system/graph-system-description.md)). Prototype `DashedDirectedEdgeProgram`; benchmark at 100k edges on integrated and discrete GPUs; gate ≥30 fps on integrated GPU. **This description writes against "spike succeeds."** The SVG-overlay fallback path (caps at ~5k visible edges) is documented in §3 out-of-scope refinements as the contingency; if the spike fails, the entire system replans (force-graph-procomp-plan.md and onwards).
-
-**Trade-off:** Could embed the spike inside v0.1 (saves 2 days of explicit dedicated time). Rejected: if the spike fails, v0.1 is rewritten substantially — better to know upfront. The system description explicitly carves the spike out as independent of the procomp gate.
-
-**Downstream impact:** None to this description if the spike succeeds. Substantial replan if it fails (Tier 1 unaffected; force-graph rewritten with SVG-overlay rendering as primary).
-
-### 8.5 State store architecture (Q5)
-
-**Recommendation:** Zustand with logical slices ([spec §5](../../../graph-visualizer-old.md)). Slices: graph data (graphology adapter + group-edge slice), UI state (selection / hover / filters / linking mode / multiEdgeExpanded), history (undo/redo ring buffer), settings (theme + force config), derived (memoized selectors).
-
-**Alternative considered:** Jotai (atom-based) — finer-grained subscriptions but doesn't compose well with the imperative graphology + Sigma lifecycle. Valtio (proxy-based) — similar concern. Redux Toolkit — too heavy + ceremonious for the state shape. Rejected.
-
-**Trade-off:** Zustand's selector-based subscriptions work well for the panel-density use case; whole-tree re-renders would dominate at the panel count this system supports per [spec §5.4](../../../graph-visualizer-old.md). Slices keep the store readable.
-
-### 8.6 Permission resolver location (Q6)
-
-**Recommendation:** Own resolver inside `force-graph`, lands in v0.3 when editing arrives. Per [decision #25](../../systems/graph-system/graph-system-description.md): each component owns its own resolver in v1; shared `src/lib/permissions/` extracted only after `rich-card` and `force-graph` both ship resolvers. Premature abstraction is the bigger risk.
-
-**Trade-off:** Some logic duplication with rich-card's resolver. Acceptable for v1; extraction informed by lessons from both.
-
-### 8.7 Mixed-permission editing integration (Q7, high impact)
-
-**Recommendation:** Host computes per-field permissions; `force-graph` exposes only `origin` and `systemRef` on entities. The host's permission resolver decides which fields are canonical-read-only vs annotation-writable and feeds them to `<PropertiesForm>`'s `resolvePermission` per the [properties-form §6.2 showcase](../properties-form-procomp/properties-form-procomp-description.md).
-
-**Alternative considered:** `force-graph` derives the schema-with-permissions automatically from `origin`. Rejected: requires `force-graph` to know which fields are "canonical" (a schema concern, not a graph-state concern); couples it to a specific schema convention; breaks generic-schema use cases.
-
-**Trade-off:** More host code in the Tier 3 page. Correct separation of concerns: `force-graph` owns graph state; the host owns schema-to-form mapping.
-
-**Downstream change cost if revised:** `force-graph` would need to ship a "default schema deriver" with override hooks — non-breaking to add later if real demand surfaces.
-
-### 8.8 Hull overlay rendering (Q8)
-
-**Recommendation:** SVG overlay in v0.4 (when groups land), per [spec §7.1](../../../graph-visualizer-old.md). v0.6 perf phase includes the SVG-ceiling gate ([spec §11.2](../../../graph-visualizer-old.md)): if visible group-involving edges exceed ~3k OR hull DOM nodes exceed ~5k, migrate the hull layer to canvas (or a second Sigma instance).
-
-**Trade-off:** SVG gives full styling control + easy theming through CSS variables (decision #37 alignment); canvas migration loses some of that ergonomic. The migration gate exists because at expected scale (≤200 groups, ≤50 members/group) SVG is comfortable; only pathological cases hit the ceiling.
-
-### 8.9 Public action/selector surface (Q9)
-
-**Recommendation:** ~30 actions + ~10 selectors. Categorized in §5.3 / §5.4. Plan stage locks the exact list. Hosts wire Tier 1 panels through this surface; the surface is the contract for Tier 3 composition.
-
-**Trade-off:** Larger surface than typical pro-components, but each action/selector is justified by a specific Tier 1 wiring need. Plan stage should review for redundancy + group cohesion.
-
-### 8.10 Bundle weight ceiling (Q10)
-
-**Recommendation:** ≤350KB total (minified + gzipped) — the heaviest component in the registry. Breakdown in §7.2 #10. Plan stage adds `size-limit` (or equivalent) with per-phase budget enforcement.
-
-**Trade-off:** Heavier than `markdown-editor` (180KB) — but force-graph is genuinely larger in scope (rendering pipeline + state store + multiple custom WebGL programs + FA2 worker). The 350KB ceiling assumes Tier 1 deps composed in (markdown-editor at v0.5 adds its 180KB). Without composition, force-graph itself is closer to 200KB.
-
-**Risk:** If the bundle exceeds the ceiling, options include: (a) lazy-loading the markdown-editor subtree (only when a doc node is selected in v0.5+), (b) lazy-loading the FA2 worker (only when layout is enabled), (c) splitting `force-graph` itself into smaller chunks at module boundaries. Plan stage decides if any of these are needed.
+1. **UI-state cascade plumbing in v0.1 is foundational scaffolding.** Per [spec Phase 1](../../../graph-visualizer-old.md): cascade rules wired into the store BEFORE selection/hover/etc. exist; activated in v0.2+ when those land. v0.1 itself doesn't exercise the cascade. v0.1 plan documents this as foundational-now-active-later wiring.
+2. **Phase 0 risk-spike intermediate fallbacks.** "Spike fails → SVG-overlay rendering" is the worst case, not the only path. Intermediate options: split edge programs (separate dashed-only and directed-only WebGL programs, switching per edge); custom shader optimizations; reduced quality at scale. Plan stage locks the contingency tree as a decision tree, not a binary.
+3. **`NodeType.schema?: PropertiesFormField[]` as optional carrier.** Gives hosts a natural place to attach per-NodeType schemas without `force-graph` knowing about it (force-graph never inspects the field; it just flows through). Additive, non-breaking. Plan stage decides v0.1 type extension vs v0.3 introduction (when editing arrives).
+4. **Typed escape hatches on the imperative handle.** `getSigmaInstance(): Sigma` (NOT `unknown`) and `getGraphologyInstance(): MultiGraph` (NOT `unknown`). Substrate-leak documented as major-version-bump risk if either substrate ever swaps. Two substrates leak (vs markdown-editor's one with `getView()`); the doubled risk is acknowledged.
+5. **Demo structure for `/components/force-graph`.** Plan stage decides: single page with phase tabs (one demo route, internal switching) vs six sub-demos (separate routes per phase). Recommendation lean: single page with phase tabs (cohesive overview) + a "full feature" demo as the v0.6 showcase.
+6. **Action list per phase audit.** §5.3 is illustrative (~30 actions). Plan stage produces the exact list per phase, validating against [spec §5.3](../../../graph-visualizer-old.md). Several exact assignments need confirming: `setNodePositions(silent: true)` is foundational for layout-load and could land in v0.1 even though §2.2 lists it under v0.2; `pinAllPositions` is in v0.1 layout but spec Phase 2; etc.
+7. **v0.1 `applyMutation` type-supported but not exercised.** v0.1 ships the `GraphSource` type with `applyMutation` optional but doesn't dispatch any mutations (read-only). v0.3 starts exercising it when editing lands. v0.1 plan documents this lifecycle so adapter authors know `applyMutation` is reserved-but-unused in v0.1.
+8. **Direction visuals (undirected/directed/reverse/bidirectional) — v0.1 plan locks the rendering rules.** Per [spec §9.1](../../../graph-visualizer-old.md): `undirected` (no arrowheads), `directed` (arrowhead at target), `reverse` (arrowhead at source — rare), `bidirectional` (arrowheads at both ends). v0.1 ships all four through `DashedDirectedEdgeProgram`'s arrow uniform.
+9. **Wikilink reconciliation algorithm locked in v0.5 plan.** Per [decision #36](../../systems/graph-system/graph-system-description.md) and [spec §3.10 + §8.1](../../../graph-visualizer-old.md): runs on `importSnapshot` (all phases) AND on doc-node save (v0.5+). v0.5 plan locks the algorithm: build label index → parse content → resolve per matching rules → reconcile edges (idempotent sweep). Markdown-editor's contract is just "call `onSave` on Cmd+S"; reconciliation lives in force-graph.
+10. **Origin glyph fragment-shader rules locked in v0.5 plan.** Per [decision #18](../../systems/graph-system/graph-system-description.md) (system glyph bottom-right) + [spec §8.2](../../../graph-visualizer-old.md) (doc glyph top-right): `IconNodeProgram` fragment shader masks two corner regions independently. System nodes never have `kind === "doc"` per [§4.3 of system description](../../systems/graph-system/graph-system-description.md), so a node has at most one origin/kind glyph — the shader handles both corners but only one fires per node.
 
 ---
 
 ## 9. Sign-off checklist
 
-Each item must be checked before this doc is considered signed off and Stage 2 (`force-graph-procomp-plan.md`) authoring may begin.
+- [x] Problem framing correct (§1) — the gap force-graph closes
+- [x] Phased delivery (§2) consistent with [system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing): six phases, ~13.5 weeks focused, Tier 1 plan-lock dependencies aligned
+- [x] Per-phase scope (§2.1–§2.6) defensible — each phase independently shippable
+- [x] Out-of-scope (§3) consistent with [system §11](../../systems/graph-system/graph-system-description.md#11-out-of-scope--deferred); SVG fallback path documented
+- [x] Target consumers (§4) complete — Tier 3 page + 3 usage modes + speculative
+- [x] API sketch (§5) covers GraphInput, props, actions, selectors, ref handle
+- [x] Example usages (§6) cover all 3 system usage modes including the full Tier 3 wiring (§6.3)
+- [x] Per-phase gates + cross-cutting criteria (§7) measurable
+- [x] Renderer substrate (Q2) confirmed — Sigma + graphology + FA2
+- [x] Source-adapter timing (Q3) confirmed — full `GraphInput` in v0.1
+- [x] State store architecture (Q5) confirmed — two-layer model per spec §5.1 (graphology imperative + Zustand reactive)
+- [x] Mixed-permission editing (Q7) confirmed — host computes per-field permissions
+- [x] Hull overlay (Q8) confirmed — SVG hulls (no ceiling); group-involving edge SVG migrates conditionally in v0.6
+- [x] Bundle weight ceiling (Q10) confirmed — 300KB component-alone (Tier 1 deps NOT included per decision #35)
+- [x] Phase 0 risk-spike (Q4) timing confirmed — 2 days BEFORE v0.1; intermediate fallbacks before SVG-overlay
+- [x] Open questions §8 — all 10 resolved on sign-off (Q5 + Q8 + Q10 refined on re-validation)
 
-- [ ] Problem framing correct (§1) — the gap force-graph closes
-- [ ] Phased delivery (§2) consistent with [system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing): six phases, ~13.5 weeks focused, Tier 1 plan-lock dependencies aligned
-- [ ] Per-phase scope (§2.1–§2.6) defensible — each phase independently shippable
-- [ ] Out-of-scope (§3) consistent with [system §11](../../systems/graph-system/graph-system-description.md#11-out-of-scope--deferred); SVG fallback path documented
-- [ ] Target consumers (§4) complete — Tier 3 page + 3 usage modes + speculative
-- [ ] API sketch (§5) covers GraphInput, props, actions, selectors, ref handle
-- [ ] Example usages (§6) cover all 3 system usage modes including the full Tier 3 wiring (§6.3)
-- [ ] Per-phase gates + cross-cutting criteria (§7) measurable
-- [ ] Renderer substrate (Q2) confirmed — Sigma + graphology + FA2
-- [ ] Source-adapter timing (Q3) confirmed — full `GraphInput` in v0.1
-- [ ] Mixed-permission editing (Q7) confirmed — host computes per-field permissions
-- [ ] Bundle weight ceiling (Q10) confirmed — 350KB total
-- [ ] Phase 0 risk-spike (Q4) timing confirmed — 2 days BEFORE v0.1
-- [ ] Open questions §8 — all 10 resolved on sign-off
+**Signed off 2026-04-28.** Per-phase Stage 2 plan authoring may begin per the cascade below. Each plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
 
-**On sign-off**, this header's status flips to "signed off YYYY-MM-DD"; §8 reformats to "Resolved questions (locked on sign-off YYYY-MM-DD)" with each Q rewritten as **Locked: X.** + reasoning; a `## 8.5 Plan-stage tightenings` section captures issues caught during review that the plan must address; the §9 sub-doc map in [graph-system-description.md](../../systems/graph-system/graph-system-description.md#L425) is updated to point at this signed-off doc.
-
-After this signs off, **the per-phase plan-lock cascade unlocks**:
+**The per-phase plan-lock cascade unlocks**:
 
 - `force-graph-v0.1-plan.md` (and v0.2, v0.6) can author independently — they compose zero Tier 1 components
 - `force-graph-v0.3-plan.md` is gated on `properties-form-procomp-plan.md` + `detail-panel-procomp-plan.md` (both Tier 1 plans signed off)
