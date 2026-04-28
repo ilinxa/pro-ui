@@ -1,9 +1,9 @@
 # Graph System — System Description
 
-> **Status:** draft v0.2 — initial sign-off questions resolved (see §12); pending overall description sign-off
+> **Status:** **signed off 2026-04-28.** Stage 2 (system plan) blocked on per-procomp Stage 1 descriptions; Tier 1 description authoring may begin per §9 ordering.
 > **Working title:** `graph-system` (locked, decision #28; rename only at NPM extraction)
 > **Created:** 2026-04-28
-> **Last updated:** 2026-04-28 (resolved Q1–Q8; added §11.5 alignment with original spec; locked decisions #28–#37)
+> **Last updated:** 2026-04-28 (signed off; backlog committed per decision #34; codegen fix landed per decision #31)
 > **Owner:** ilinxa team
 
 This document is the integration contract for a multi-component product surface that visualizes, edits, and adapts knowledge graphs. It composes five generic pro-components and one graph-specific pro-component into three usage modes (DB visualizer / personal knowledge graph / hybrid documenter).
@@ -408,10 +408,10 @@ Decisions made during the design discussion, locked at the system level so every
 | 28 | **System name `graph-system` (working title) locked.** Rename only if/when the system extracts to its own NPM package. | This doc §2 |
 | 29 | **Tier 3 page lives at `src/app/systems/graph-system/page.tsx`.** Add "Systems" as a top-nav peer of "Components" in [site-header.tsx](../../../src/components/site/site-header.tsx). | This doc §3.3 |
 | 30 | **Markdown editor v0.1 strict scope:** CodeMirror 6 + standard toolbar + wikilink autocomplete + preview toggle. Slash commands, drag-drop image insertion, live wikilink hover preview deferred to v0.2+. | `markdown-editor-procomp-plan.md` |
-| 31 | **`forms` category added immediately as one-off plumbing PR**, before any form-category procomp doc starts. Includes codegen-from-type fix for `VALID_CATEGORIES` to eliminate duplicate-source-of-truth. | [src/registry/types.ts](../../../src/registry/types.ts), [src/registry/categories.ts](../../../src/registry/categories.ts), [scripts/new-component.mjs](../../../scripts/new-component.mjs) |
+| 31 | **`forms` category added immediately as one-off plumbing PR**, before any form-category procomp doc starts. **✓ done** — `forms` was already present in `types.ts`/`categories.ts`/`new-component.mjs` pre-session; codegen fix for `VALID_CATEGORIES` (deriving from the type union at script startup) landed in commit `260d035`, eliminating the duplicate-source-of-truth issue. | [src/registry/types.ts](../../../src/registry/types.ts), [src/registry/categories.ts](../../../src/registry/categories.ts), [scripts/new-component.mjs](../../../scripts/new-component.mjs) |
 | 32 | **Stale-write conflict policy: last-write-wins + warning banner for v0.1.** Optimistic concurrency tokens are an additive upgrade only if real-world conflicts surface. | This doc §6.3, `force-graph-procomp-plan.md` §source-adapter |
 | 33 | **Annotations route through `applyMutation`** with a `setAnnotation` variant — single GraphSource method, not two. | This doc §6.4 |
-| 34 | **Existing backlog committed in 6 logical chunks before any new procomp folders open.** Chunks: (1) design-system rebrand, (2) procomp gate + component-guide + STATUS.md restructure, (3-6) rich-card v0.1–v0.4. | git history (prerequisite) |
+| 34 | **Existing backlog committed before any new procomp folders open. ✓ done** as 2 commits (revised 2026-04-28 from the original 6-chunk plan): `cc44b55` rich-card v0.3+v0.4; `c2cfef6` system planning docs. Reduced from 6 because chunks 1+2 and rich-card v0.1+v0.2 were already in commit `000169c` (the workspace-shipping commit), and v0.3/v0.4 lacked clean working-tree separation — STATUS.md and per-version plan docs preserve the version granularity independently. | git history |
 | 35 | **Tier 1 components are independent at the component level** — none of them imports another at the registry level. Composition (panels embedding forms) happens only at the host/Tier 3 level via slot props. | All Tier 1 procomp plans |
 | 36 | **Wikilink reconciliation runs on doc save in `force-graph` v0.5+** (in addition to `importSnapshot`). v0.1–v0.4 docs are read-only because the markdown editor isn't mounted; import-only reconciliation suffices for those phases. This is a deliberate scope expansion vs. the original spec, which deferred all reconciliation triggers other than import to v2. | `force-graph-procomp-plan.md` v0.5 |
 | 37 | **All constituent pro-components honor the design-system mandate** from [.claude/CLAUDE.md](../../../.claude/CLAUDE.md): Onest + JetBrains Mono fonts, signal-lime accent (`oklch(0.80 0.20 132)` light / `oklch(0.86 0.18 132)` dark), cool off-white light bg, graphite-cool dark bg, `reveal-up` keyframe for orchestrated reveals, OKLCH colors only, no `tailwind.config.*`. Components MUST use the CSS variables defined in [globals.css](../../../src/app/globals.css), never hard-code colors. | All component plans |
@@ -430,7 +430,7 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 | `entity-picker` | TBA | TBA | TBA | not started |
 | `markdown-editor` | TBA | TBA | TBA | not started |
 | `force-graph` (v0.1) | TBA | TBA | TBA | not started |
-| **System-level** | this doc | `graph-system-plan.md` (TBA) | `graph-system-guide.md` (TBA) | description in draft |
+| **System-level** | this doc | `graph-system-plan.md` (TBA) | `graph-system-guide.md` (TBA) | **description signed off 2026-04-28** |
 
 Each procomp folder lives at `docs/procomps/<slug>-procomp/` per the existing convention.
 
