@@ -1,10 +1,12 @@
 import { Check, Minus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { FlatFieldValue } from "../types";
+import type { FlatFieldValue, SearchMatch } from "../types";
 import type { FlatFieldType } from "../lib/infer-type";
 import type { EditMode } from "../hooks/use-edit-mode";
 import type { EditDispatchers, EditValidators } from "./card";
 import { FieldKeyEdit, FieldValueEdit } from "./field-edit";
+import { MatchHighlight } from "./match-highlight";
+import { rangesFor } from "../lib/search";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -16,7 +18,7 @@ function formatDate(iso: string): string {
   }).format(d);
 }
 
-function renderValue(value: FlatFieldValue, type: FlatFieldType) {
+function renderTypedValue(value: FlatFieldValue, type: FlatFieldType, ranges: Array<{ start: number; length: number }>) {
   switch (type) {
     case "null":
       return <span className="text-muted-foreground">—</span>;
@@ -26,10 +28,7 @@ function renderValue(value: FlatFieldValue, type: FlatFieldType) {
           {value === true ? (
             <Check className="size-3.5 text-primary" aria-hidden="true" />
           ) : (
-            <Minus
-              className="size-3.5 text-muted-foreground"
-              aria-hidden="true"
-            />
+            <Minus className="size-3.5 text-muted-foreground" aria-hidden="true" />
           )}
           <span className="sr-only">{String(value)}</span>
         </span>
@@ -37,18 +36,22 @@ function renderValue(value: FlatFieldValue, type: FlatFieldType) {
     case "number":
       return (
         <span className="font-mono tabular-nums text-foreground/90">
-          {String(value)}
+          <MatchHighlight text={String(value)} ranges={ranges} />
         </span>
       );
     case "date":
       return (
         <span title={String(value)} className="text-foreground/90">
-          {formatDate(String(value))}
+          <MatchHighlight text={formatDate(String(value))} ranges={[]} />
         </span>
       );
     case "string":
     default:
-      return <span>{String(value)}</span>;
+      return (
+        <span>
+          <MatchHighlight text={String(value)} ranges={ranges} />
+        </span>
+      );
   }
 }
 
@@ -58,44 +61,61 @@ export function FieldRow({
   value,
   type,
   editable,
+  canEdit,
+  canEditKey,
+  canRemove,
   editMode,
   setEditMode,
   validators,
   dispatchers,
+  searchMatches,
+  searchQuery,
+  searchCaseSensitive,
 }: {
   cardId: string;
   fieldKey: string;
   value: FlatFieldValue;
   type: FlatFieldType;
   editable: boolean;
+  canEdit: boolean;
+  canEditKey: boolean;
+  canRemove: boolean;
   editMode: EditMode | null;
   setEditMode: (m: EditMode | null) => void;
   validators: EditValidators;
   dispatchers: EditDispatchers;
+  searchMatches: readonly SearchMatch[];
+  searchQuery: string;
+  searchCaseSensitive: boolean;
 }) {
   const isEditingValue =
     editable &&
+    canEdit &&
     editMode?.kind === "field-value" &&
     editMode.cardId === cardId &&
     editMode.key === fieldKey;
   const isEditingKey =
     editable &&
+    canEditKey &&
     editMode?.kind === "field-key" &&
     editMode.cardId === cardId &&
     editMode.key === fieldKey;
 
-  const canEditValue = editable && type !== "null";
+  const canEditValue = editable && canEdit && type !== "null";
+
+  const keyRanges = rangesFor(searchMatches, fieldKey, cardId, "field-key", fieldKey, searchQuery, searchCaseSensitive);
+  const valueText = value === null ? "" : String(value);
+  const valueRanges = rangesFor(searchMatches, valueText, cardId, "field-value", fieldKey, searchQuery, searchCaseSensitive);
 
   return (
     <div className="group grid grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-0.5">
       <dt
         className={cn(
           "truncate font-mono text-[11px] text-muted-foreground",
-          editable && "cursor-text rounded-sm hover:bg-muted px-1 -mx-1",
+          editable && canEditKey && "cursor-text rounded-sm hover:bg-muted px-1 -mx-1",
         )}
-        aria-readonly={editable ? undefined : true}
         onClick={() => {
-          if (!editable) return;
+          if (!editable || !canEditKey) return;
           if (isEditingKey) return;
           setEditMode({ kind: "field-key", cardId, key: fieldKey });
         }}
@@ -103,21 +123,16 @@ export function FieldRow({
         {isEditingKey ? (
           <FieldKeyEdit
             initialKey={fieldKey}
-            validate={(newKey) =>
-              validators.fieldEditKey(cardId, fieldKey, newKey)
-            }
-            onCommit={(newKey) =>
-              dispatchers.fieldEditKey(cardId, fieldKey, newKey)
-            }
+            validate={(newKey) => validators.fieldEditKey(cardId, fieldKey, newKey)}
+            onCommit={(newKey) => dispatchers.fieldEditKey(cardId, fieldKey, newKey)}
             onCancel={() => setEditMode(null)}
           />
         ) : (
-          fieldKey
+          <MatchHighlight text={fieldKey} ranges={keyRanges} />
         )}
       </dt>
       <dd
         className="min-w-0 wrap-break-word text-sm text-foreground"
-        aria-readonly={!canEditValue}
         onClick={() => {
           if (!canEditValue) return;
           if (isEditingValue) return;
@@ -139,15 +154,14 @@ export function FieldRow({
         ) : (
           <span
             className={cn(
-              canEditValue &&
-                "cursor-text rounded-sm hover:bg-muted px-1 -mx-1",
+              canEditValue && "cursor-text rounded-sm hover:bg-muted px-1 -mx-1",
             )}
           >
-            {renderValue(value, type)}
+            {renderTypedValue(value, type, valueRanges)}
           </span>
         )}
       </dd>
-      {editable ? (
+      {editable && canRemove ? (
         <button
           type="button"
           onClick={(e) => {

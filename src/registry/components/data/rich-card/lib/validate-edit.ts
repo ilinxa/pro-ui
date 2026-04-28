@@ -15,7 +15,12 @@ import {
   type FlatFieldValue,
   type PredefinedKey,
 } from "../types";
-import { findCard, type RichCardState } from "./reducer";
+import {
+  findAncestorIds,
+  findCard,
+  findParentId,
+  type RichCardState,
+} from "./reducer";
 import type { FlatFieldType } from "./infer-type";
 
 /* ───────── result + error types ───────── */
@@ -367,4 +372,107 @@ export function validatePredefinedShape(
       });
     }
   }
+}
+
+/* ───────── v0.3: meta validators ───────── */
+
+export function validateMetaEdit(
+  state: RichCardState,
+  cardId: string,
+  key: string,
+  value: FlatFieldValue,
+): ValidationResult {
+  const card = findCard(state.tree, cardId);
+  if (!card) return fail({ code: "no-card", message: "Card not found." });
+  if (!card.meta || !(key in card.meta)) {
+    return fail({ code: "no-meta-key", message: `Meta key "${key}" not found.` });
+  }
+  if (
+    value !== null &&
+    typeof value !== "string" &&
+    typeof value !== "number" &&
+    typeof value !== "boolean"
+  ) {
+    return fail({
+      code: "invalid-meta-value",
+      message: "Meta values must be scalars (string / number / boolean / null).",
+    });
+  }
+  return ok;
+}
+
+export function validateMetaAdd(
+  state: RichCardState,
+  cardId: string,
+  key: string,
+  value: FlatFieldValue,
+): ValidationResult {
+  if (!key || key.trim().length === 0) {
+    return fail({ code: "empty-key", message: "Meta key cannot be empty." });
+  }
+  if (isReservedKey(key)) {
+    return fail({
+      code: "reserved-key",
+      message: `"${key}" is a reserved key.`,
+    });
+  }
+  const card = findCard(state.tree, cardId);
+  if (!card) return fail({ code: "no-card", message: "Card not found." });
+  if (card.meta && key in card.meta) {
+    return fail({
+      code: "meta-key-collision",
+      message: `Meta key "${key}" already exists on this card.`,
+    });
+  }
+  if (
+    value !== null &&
+    typeof value !== "string" &&
+    typeof value !== "number" &&
+    typeof value !== "boolean"
+  ) {
+    return fail({
+      code: "invalid-meta-value",
+      message: "Meta values must be scalars.",
+    });
+  }
+  return ok;
+}
+
+/* ───────── v0.3: card-move validator ───────── */
+
+export function validateCardMove(
+  state: RichCardState,
+  cardId: string,
+  newParentId: string,
+): ValidationResult {
+  if (cardId === newParentId) {
+    return fail({
+      code: "self-parent",
+      message: "Cannot drop a card onto itself.",
+    });
+  }
+  if (!findCard(state.tree, cardId)) {
+    return fail({ code: "no-card", message: "Card not found." });
+  }
+  if (!findCard(state.tree, newParentId)) {
+    return fail({ code: "no-parent", message: "Target parent not found." });
+  }
+  // Cycle detection: target cannot be a descendant of source
+  const targetAncestors = findAncestorIds(state.tree, newParentId);
+  if (targetAncestors.includes(cardId)) {
+    return fail({
+      code: "cycle",
+      message: "Cannot drop a card into its own descendant (would create a cycle).",
+    });
+  }
+  // Prevent moving root
+  if (state.tree.id === cardId) {
+    return fail({
+      code: "no-root-move",
+      message: "Cannot move the root card.",
+    });
+  }
+  // Suppress unused parent-id helper warning
+  void findParentId;
+  return ok;
 }

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { FlatFieldValue } from "../types";
+import type { FlatFieldValue, MetaRenderer } from "../types";
 
 function format(v: FlatFieldValue) {
   if (v === null) return "—";
@@ -8,9 +8,11 @@ function format(v: FlatFieldValue) {
 
 export function MetaInline({
   meta,
+  metaRenderers,
   className,
 }: {
   meta: Record<string, FlatFieldValue>;
+  metaRenderers?: Record<string, MetaRenderer>;
   className?: string;
 }) {
   const entries = Object.entries(meta);
@@ -23,17 +25,20 @@ export function MetaInline({
         className,
       )}
     >
-      {entries.map(([k, v], i) => (
-        <span key={k} className="inline-flex items-center gap-1">
-          {i > 0 ? (
-            <span aria-hidden="true" className="opacity-60">
-              ·
-            </span>
-          ) : null}
-          <span className="text-foreground/50">{k}</span>
-          <span>{format(v)}</span>
-        </span>
-      ))}
+      {entries.map(([k, v], i) => {
+        const renderer = metaRenderers?.[k];
+        return (
+          <span key={k} className="inline-flex items-center gap-1">
+            {i > 0 ? (
+              <span aria-hidden="true" className="opacity-60">
+                ·
+              </span>
+            ) : null}
+            <span className="text-foreground/50">{k}</span>
+            {renderer ? renderer(v, { cardId: "", metaKey: k }) : <span>{format(v)}</span>}
+          </span>
+        );
+      })}
     </div>
   );
 }
