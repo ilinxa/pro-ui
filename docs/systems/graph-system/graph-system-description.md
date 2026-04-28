@@ -426,7 +426,7 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 |---|---|---|---|---|
 | `properties-form` | [signed off 2026-04-28](../../procomps/properties-form-procomp/properties-form-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `detail-panel` | [signed off 2026-04-28](../../procomps/detail-panel-procomp/detail-panel-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
-| `filter-stack` | [draft v0.1](../../procomps/filter-stack-procomp/filter-stack-procomp-description.md) | TBA | TBA | description in draft, pending sign-off |
+| `filter-stack` | [signed off 2026-04-28](../../procomps/filter-stack-procomp/filter-stack-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `entity-picker` | TBA | TBA | TBA | not started |
 | `markdown-editor` | TBA | TBA | TBA | not started |
 | `force-graph` (v0.1) | TBA | TBA | TBA | not started |
