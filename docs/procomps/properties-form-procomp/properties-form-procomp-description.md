@@ -1,9 +1,10 @@
 # `properties-form` — Pro-component Description
 
-> **Status:** draft v0.1 — pending sign-off
+> **Status:** **signed off 2026-04-28.** Stage 2 (`properties-form-procomp-plan.md`) authoring may begin.
 > **Slug:** `properties-form`
 > **Category:** `forms`
 > **Created:** 2026-04-28
+> **Last updated:** 2026-04-28 (signed off; Q2 + Q5 revised on review; all 10 open questions resolved)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (generic; no graph dependency)
 
@@ -226,39 +227,48 @@ The component is "done" for v0.1 when:
 
 ---
 
-## 8. Open questions
+## 8. Resolved questions (locked on sign-off 2026-04-28)
 
-These need answers before Stage 2 (plan) authoring begins:
+All 10 questions resolved at sign-off. The recommendations below are now the locked decisions for v0.1; Stage 2 (plan) builds against these. New questions surfacing during plan authoring land in a fresh `## 8.5 New open questions` section as needed.
 
-1. **Date picker library.** No date input component exists in the project today. Options: (a) wrap shadcn's `Calendar` primitive; (b) native `<input type="date">` for v0.1 with shadcn calendar in v0.2; (c) ship calendar from the start. Recommendation: native `<input type="date">` for v0.1 (zero cost, accessible by default), upgrade to shadcn `Calendar` in v0.2 once we ship a date-related demo. Confirm.
+1. **Date picker library — locked: native `<input type="date">` v0.1.** Zero cost, accessible by default. Visual inconsistency with shadcn-styled adjacent fields is real but acceptable for v0.1. v0.2 upgrades to shadcn `Calendar` (~17KB via `react-day-picker`) without API change.
 
-2. **Generic typing strictness.** `T extends Record<string, unknown>` is loose; per-schema generic typing (`T = InferFromSchema<typeof schema>`) is precise but requires `as const` schema declarations and adds API friction. Recommendation: `Record<string, unknown>` for v0.1, narrow generic in v0.2 if real consumers benefit. The detail-panel slot receives `unknown` from the panel anyway, so strict typing buys little immediately.
+2. **Generic typing — locked: parameterized generic from v0.1, defaulting to loose record.** API: `function PropertiesForm<T extends Record<string, unknown> = Record<string, unknown>>(props: PropertiesFormProps<T>)`. Loose default works for casual consumers; opt-in narrow `<PropertiesForm<MyEntity>>` gives type safety. Revised from the original "loose now, narrow later" recommendation because deferring would force every consumer to opt in later — shipping the generic from v0.1 is a cheap one-time win with zero migration cost.
 
-3. **Nested-key handling for annotations.** §6.2 uses `annotations.priority` as a flat key string. Two options: (a) host flattens / unflattens keys on the boundary (proposed); (b) properties-form natively supports nested keys via dot notation. Option (b) is more ergonomic but adds parsing surface. Recommendation: option (a) — host owns the boundary; properties-form treats keys as opaque strings. Confirm.
+3. **Nested-key handling — locked: opaque keys; host flattens/unflattens at the boundary.** properties-form treats keys as strings, no path resolution. Plan stage may ship a `flattenObject(o, depth)` utility helper alongside the component. If two source fields collapse to the same flat key, host must rename — document this constraint.
 
-4. **Hidden vs read-only DOM treatment.** "Hidden" omits the field entirely (no DOM, no a11y impact). "Read-only" renders with disabled visual + tooltip. Confirm this distinction is what we want — some hosts may want a "render but visually de-emphasize" middle ground.
+4. **Hidden vs read-only — locked: 3-state model.** `hidden` omits the field from DOM entirely; `read-only` renders with disabled visual + tooltip from `permissionReason` + `aria-readonly`. No "muted but interactive" middle state; custom `renderer` slot covers edge cases.
 
-5. **Form-level error rendering.** Inline only (per field), summary only (top of form), or both? Recommendation: both. Inline errors stay close to the field (helps mid-form scanning); a summary at the top with anchor-links to each error helps long forms. Confirm.
+5. **Form-level error rendering — locked: inline + summary, hardcoded, no opt-out prop in v0.1.** Inline errors next to fields (a11y best practice); summary at top with anchor links (helps long forms). Revised from the original "configurable prop" recommendation — YAGNI for v0.1; add the prop in v0.2 if real complaints surface (additive, non-breaking).
 
-6. **`onChange` vs `values` controlled-vs-uncontrolled.** Pure controlled (host owns `values`, `onChange` mandatory) is simplest but forces every consumer to manage state. Uncontrolled-with-defaultValues is friendlier but introduces ref-based gets. Recommendation: pure controlled in v0.1 — matches React's modern preference and the host (detail-panel, force-graph) already owns the entity state. Confirm.
+6. **Controlled vs uncontrolled — locked: pure controlled.** Host owns `values`; `onChange` is required when `mode === "edit"`. **Enforcement is a runtime dev-only `console.error`, not a compile-time discriminated union** — type pain isn't worth it. Future uncontrolled support is additive (`defaultValues` prop) if ever needed.
 
-7. **Submission feedback UX.** During async `onSubmit`: do we (a) disable the entire form, (b) show a spinner over the submit button only, or (c) both? Recommendation: both — fields disabled (so user can't double-edit) + spinner on Save button (clear visual cue).
+7. **Submission feedback — locked: disable fields + Save spinner during pending.** `aria-busy="true"` on the form during async `onSubmit`. Plan stage adds a 200ms delay before showing the spinner to avoid flicker on fast submissions.
 
-8. **`reset()` behavior.** Should `reset()` clear `values` to initial OR call `onChange` with initial? In a controlled component, the latter is correct (host updates state, component re-renders cleanly). Confirm.
+8. **`reset()` behavior — locked: calls `onChange(cleanSnapshot)`, clears all errors, dirty resets to false.** `cleanSnapshot` is the values at last `markClean()` (or mount-time if never called). If `onChange` is omitted (read mode), `reset()` is a no-op.
 
-9. **Default `mode`.** `"read"` means consumers explicitly opt into edit mode (safer, less accidental). `"edit"` means consumers explicitly opt into read mode (faster for "always editable" consumers like the creation flow). Recommendation: `"read"` default. Confirm.
+9. **Default `mode` — locked: `"read"`.** Reasoning: edit mode requires `onChange` to be useful, so a consumer writing `<PropertiesForm schema values />` without `onChange` should NOT get a broken edit-mode form. Read mode is the "useful with minimum config" default. Edit mode requires deliberate setup (`mode="edit"` + `onChange` together).
 
-10. **React Hook Form integration.** Internally use react-hook-form, build from scratch, or wrap radix `<Form>`? Recommendation: **build from scratch** for v0.1. Form state is simple (flat values + per-field errors + dirty bit); RHF would add ~10KB and a dep we don't otherwise need. Radix `<Form>` is too primitive (not a value manager, just a wrapper). Confirm.
+10. **State management library — locked: build from scratch.** Form state surface is genuinely simple (flat values + per-field errors + dirty version counter) — ~200-400 LoC. RHF (~10KB) would make properties-form unnecessarily heavy; `markdown-editor` (~150KB CodeMirror) is already the heaviest pro-component. We own a11y wiring directly. Re-evaluation trigger: if v0.2+ pushes the from-scratch implementation past ~800 LoC, reconsider RHF migration.
+
+## 8.5 Plan-stage tightenings (surfaced during description review)
+
+These are NOT description-blocking, but plan authoring must address them:
+
+1. **`PropertiesFormHandle.submit()` return type** — should mirror `onSubmit`'s `Promise<{ ok, errors? }>`, not `Promise<void>`. The imperative submit must give hosts the same result shape they'd get from the default Save action.
+2. **`FieldRendererProps` shape** — referenced in §5 but not defined; predictable: `{ value, onChange, field, allValues, mode, error, disabled }`. Plan locks the exact shape.
+3. **Array / multiselect fields** — not in the 6 built-in types in v0.1. Hosts use the `renderer` slot (e.g., for tags input, multi-entity-picker). Plan must explicitly call this out with an example.
+4. **`focusField(key)` on hidden/read-only field** — behavior currently undefined. Plan picks: (a) no-op, (b) focus the read-only display, (c) throw a dev warning. Recommendation lean: (a) silent no-op for hidden, (b) focus the read-display for read-only.
 
 ---
 
 ## 9. Sign-off checklist
 
-- [ ] Problem framing correct?
-- [ ] Scope boundaries defensible (in / out)?
-- [ ] Target consumers complete?
-- [ ] API sketch covers the three example use cases?
-- [ ] Success criteria measurable?
-- [ ] Open questions §8 — recommendations acceptable, or any need re-discussion?
+- [x] Problem framing correct
+- [x] Scope boundaries defensible (in / out)
+- [x] Target consumers complete
+- [x] API sketch covers the three example use cases
+- [x] Success criteria measurable
+- [x] Open questions §8 — all 10 resolved on sign-off (Q2 + Q5 revised on review)
 
-Sign-off enables Stage 2 (`properties-form-procomp-plan.md`) authoring. Plan must lock the open questions and define the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
+**Signed off 2026-04-28.** Stage 2 (`properties-form-procomp-plan.md`) authoring may begin. Plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).
