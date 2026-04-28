@@ -164,7 +164,9 @@ The user's pattern this sprint has been: short messages, decisive ("go ahead", "
 When the next session begins, three reasonable directions:
 
 ### Option A — Phase 0 risk spike (NOT a Claude task)
-Run the 2-day GPU benchmarking work outside any Claude session. Document the result in STATUS.md. **This is the real next-action** for unblocking force-graph implementation; everything else is more planning.
+Run the 2-day GPU benchmarking work outside any Claude session. Document the result in STATUS.md. **This is the real next-action** for unblocking force-graph implementation; everything else is more planning. **Two docs cover this:**
+- [PHASE-0-ACTION-PLAN.md](PHASE-0-ACTION-PLAN.md) — user-facing action plan (who runs the spike: user / teammate / contractor; parallel work options; post-spike protocol). Surface this to the user FIRST when they pick Option A.
+- [docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md) — technical brief for the spike author (locked program contract, 4-step approach, benchmark methodology + test conditions, 4-tier contingency tree).
 
 ### Option B — `properties-form` plan (recommended for continued planning)
 First Tier 1 plan. **Deepest dependency in the cascade** — gates `force-graph` v0.3 alongside `detail-panel` plan. The mixed-permission §6.2 showcase (system-origin canonical fields read-only sitting alongside user-owned annotations editable) is the architectural anchor for all editing surfaces.
