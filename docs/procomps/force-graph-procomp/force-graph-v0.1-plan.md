@@ -1,7 +1,8 @@
 # `force-graph` v0.1 — Pro-component Plan (Stage 2, Phase 1 of 6)
 
-> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** Draft — awaiting sign-off
+> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** **signed off 2026-04-28.** Stage 3 (implementation) may begin after Phase 0 risk-spike completes and is documented in STATUS.md.
 > **Slug:** `force-graph` · **Category:** `data` · **Phase:** **v0.1 — Viewer core (3 weeks focused)**
+> **Last updated:** 2026-04-28 (signed off; Q-P0 surfaced + resolved on re-validation; Q-P5 + Q-P9 refined; Q-P3 deviation from decision #11 noted for system-description amendment)
 > **Inputs:**
 > - Description signed off ([force-graph-procomp-description.md](force-graph-procomp-description.md), 2026-04-28). All 10 §8 locked decisions are inherited as fixed inputs.
 > - System description signed off ([../../systems/graph-system/graph-system-description.md](../../systems/graph-system/graph-system-description.md), 2026-04-28). 37 cross-cutting decisions inherited.
@@ -994,33 +995,63 @@ In v0.1, no interactive elements — selection, hover, drag, keyboard nav all la
 
 ---
 
-## 17. Plan-stage open questions (Q-P series)
+## 17. Resolved plan-stage questions (locked on sign-off 2026-04-28)
 
-The description sealed the *what*. These are *how* questions the v0.1 plan needs your call on before scaffolding.
+All 11 questions resolved at sign-off. **Q-P0 surfaced during re-validation** (compound API need exposed by description §6.3 sibling-hook pattern); **Q-P5 + Q-P9 refined**; **Q-P3 documents a deviation from system [decision #11](../../systems/graph-system/graph-system-description.md)** which receives a footnote on next system-description revision (per §17.5 #5 below).
 
-| # | Question | Recommendation | Why |
-|---|---|---|---|
-| Q-P1 | **graphology MultiGraph instance ownership.** Where does the graph instance live — `useRef` inside the component, OR Zustand store as a non-reactive ref slice? | **`useRef` inside the component**; pass ref into Zustand store at init via slice action. | Non-reactive imperative state inside Zustand fights the reactive paradigm; `useRef` is the React-idiomatic way to hold imperative instances. The store calls into `graphologyAdapter` which holds a closure over the ref. |
-| Q-P2 | **Custom edge program `curveOffset` attribute in v0.1.** Phase 0 spike will deliver the program; `curveOffset` is unused until v0.6 multi-edge expansion. Ship the attribute now or add in v0.6? | **Ship in v0.1.** | Adding shader attributes later requires a program rebuild + re-test cycle. Including the attribute now (always 0 in v0.1) means v0.6 just sets it; no shader rewrites. |
-| Q-P3 | **Lucide icon atlas in v0.1.** Decision #11 says 64-icon sub-atlas in v0.1; but icons aren't rendered until v0.5 (`IconNodeProgram` lands then). Build the atlas in v0.1 (texture upload only) or defer entirely to v0.5? | **Defer to v0.5.** | The atlas is paired with `IconNodeProgram`; building it before the program is wasted scaffolding. Decision #11 said "v0.1" because in the original 9-week monolith, all node visuals shipped together. Our v0.1/v0.5 split means icons ship with v0.5. |
-| Q-P4 | **`validateSnapshot` warning surface.** Graceful-degradation cases (unknown system schemaType per decision #24) should fire `onError`? Or a separate `onWarning`? | **`onError` with `severity: "warning"` field on the error.** | Single error channel keeps the API surface tight. Hosts filter by severity to decide UI treatment. Adding `onWarning` later is non-breaking if real demand surfaces. |
-| Q-P5 | **Delta queueing during initial load.** If a live source's `subscribe` fires deltas before `loadInitial()` resolves, what happens? Drop them? Queue and apply after? | **Queue + apply after `loadInitial` settles.** | Dropping is a footgun (race conditions cause silent data loss). Queue size is bounded in practice; if buffer grows unbounded (rare, indicates a malformed source), surface a warning. Plan-stage detail: ring buffer with high-water mark, log if exceeded. |
-| Q-P6 | **`pinAllPositions` undo recording.** Spec §5.5 explicitly excludes `pinAllPositions` from undo (mode-of-operation, not data intent). v0.1 has no undo yet (lands v0.2). Lock this for v0.2 plan to honor? | **Yes — lock now.** Document in §3 v0.1 scope as "pinAllPositions does not record into undo, ever." | Prevents v0.2 plan from re-litigating; simpler reasoning. |
-| Q-P7 | **`exportSnapshot` settings inclusion.** Should `exportSnapshot` always include the current `settings`? Or only when the settings differ from defaults? | **Always include.** | Round-trip predictability: `import(export(s))` should produce an equivalent snapshot. Diffing settings is brittle. Settings are small; cost is negligible. |
-| Q-P8 | **Test-runner stance** for v0.1. No test runner is wired yet. Same posture as workspace + rich-card (demo-driven, test debt note in STATUS)? | **Same posture: ship with test debt note.** Pure `lib/` modules will be test-ready when Vitest lands. v0.1 verification is demo-driven. | Blocking on a Vitest decision (separate STATUS conversation) would delay v0.1 indefinitely. The high-leverage tests (validate-snapshot round-trip, store mutation correctness) are obvious targets. |
-| Q-P9 | **Theme dark-fallback for `customColors`** per decision #8. "Custom theme missing keys fall back to dark-theme defaults regardless of system theme." Implementation: read `.dark` class CSS variable values explicitly, OR read current-theme resolved values and document the deviation? | **Read `.dark` class values explicitly.** | The decision text is unambiguous — fallback is dark-theme defaults, regardless of current theme. Implementation: temporarily apply `.dark` class to a hidden helper element to read computed values; cache the result. |
-| Q-P10 | **Sigma `defaultEdgeType` fallback.** When an edge has an `edgeTypeId` that doesn't resolve (graceful degradation per decision #24 only applies to nodeTypes; edges currently strict-reject)... should we soften and graceful-degrade for edges too? | **No — keep strict for edges.** | Spec §6 #6 enforces strict rejection for unknown EdgeType. Unlike nodeTypes (where systems may add columns at runtime), edge types are typically static schema. Graceful-degrading edge types invites silent broken data. Document the asymmetry in usage. |
+**Q-P0 (NEW): Component shape — single `<ForceGraph>` vs compound `<ForceGraph.Provider>` + `<ForceGraph.Canvas>`?**
+**Locked: single `<ForceGraph>` component in v0.1; compound API ships in v0.2 plan when sibling-hook access becomes useful.** Surfaced during re-validation: description's [§6.3 Tier 3 wiring example](force-graph-procomp-description.md#63-tier-3-graph-system-page-full-panel-composition--the-integration-test) calls `useGraphSelector` and `useGraphActions` from sibling components (FilterStack, DetailPanel) — standalone hooks need a Provider context to know which ForceGraph instance to subscribe to. **v0.1 is read-only**, so siblings have minimal hook needs (no selection/hover/mutation state to subscribe to). **v0.2 plan introduces** `ForceGraph.Provider` (creates per-instance store, supplies React context) + `ForceGraph.Canvas` (renders WebGL surface against context store) along with the selection/hover state that creates the real sibling-access demand. Both APIs coexist non-breakingly: v0.1's single `<ForceGraph>` continues working; v0.2 adds compound exports. Description §5.1 single-component definition stays correct for v0.1.
+
+**Q-P1: graphology MultiGraph instance ownership.**
+**Locked: `useRef` inside the component**; `graphologyAdapter` (a hook) closes over the ref. Non-reactive imperative state inside Zustand fights the reactive paradigm; `useRef` is the React-idiomatic way to hold imperative instances. Same pattern for Sigma instance and FA2 worker — all three imperative things live in `useRef`s.
+
+**Q-P2: Custom edge program `curveOffset` attribute.**
+**Locked: ship `curveOffset` attribute in v0.1's `DashedDirectedEdgeProgram`** (always 0 in v0.1; used in v0.6 multi-edge expansion). Adding shader attributes later requires program rebuild + re-test cycle. Cost is one float per edge in vertex buffer. Including now means v0.6 just sets it.
+
+**Q-P3: Lucide icon atlas timing — DEVIATES from system [decision #11](../../systems/graph-system/graph-system-description.md).**
+**Locked: defer atlas construction to v0.5** alongside `IconNodeProgram` (the program that consumes the atlas). System decision #11's "v0.1" wording was authored for the original 9-week monolith where all node visuals shipped together. The phased plan's v0.5 ships `IconNodeProgram` + atlas together; building the atlas in v0.1 is wasted scaffolding without the program. **System description amendment proposed** (§17.5 #5): footnote decision #11 on next description revision noting the phased-plan reinterpretation.
+
+**Q-P4: `validateSnapshot` warning surface.**
+**Locked: single `onError` channel with `severity: "warning" | "error"` field on the error.** Single channel keeps API surface tight; hosts filter by severity for UI treatment. Adding a separate `onWarning` later is non-breaking if real demand surfaces.
+
+**Q-P5: Delta queueing during initial load — REFINED on re-validation.**
+**Locked: queue + apply after `loadInitial` settles; ring buffer with cap 1000.** If buffer exceeds cap (rare; indicates malformed source over-firing), surface `onError({ severity: "error", code: "DELTA_BUFFER_OVERFLOW", count: 1000 })` and abort import; host handles. Without the cap, a runaway source could OOM. Cap value (1000) is plan-stage tightening detail; raise via `GraphSettings` if real consumers hit it.
+
+**Q-P6: `pinAllPositions` undo recording.**
+**Locked: never recorded into undo, ever.** Mode-of-operation per [spec §5.5](../../../graph-visualizer-old.md). v0.2 plan honors when undo lands. Documented here so v0.2 plan author doesn't re-litigate.
+
+**Q-P7: `exportSnapshot` settings inclusion.**
+**Locked: always include current `settings`.** Round-trip predictability — `import(export(s))` produces an equivalent snapshot. Diffing settings against defaults would be brittle; cost is negligible.
+
+**Q-P8: Test-runner stance for v0.1.**
+**Locked: ship with test-debt note.** Same posture as `workspace` + `rich-card`. Pure `lib/` modules (`validate-snapshot`, `store/*`, `theme`, `permissions/resolver`, `source-adapter/*`) are written to be testable in isolation when Vitest lands. v0.1 verification is demo-driven via `dummy-data.ts` fixtures. **Bundle-weight audit IS wired in v0.1** via `size-limit` (or equivalent) — bundle audit is independent of test-runner status (§17.5 #3).
+
+**Q-P9: Theme dark-fallback implementation — REFINED on re-validation.**
+**Locked: capture dark-theme defaults once at module init via temporary `.dark` element; cache as `DARK_THEME_FALLBACKS` constant.** Refined approach: at module load, create hidden helper element, apply `.dark` class, read `getComputedStyle` for each ThemeKey, store result as constants, remove element. One-time cost; no ongoing DOM manipulation per call. Decision #8's literal interpretation (fallback to dark-theme regardless of current theme) is preserved.
+
+**Q-P10: Edge type strict vs graceful-degradation parity with node types.**
+**Locked: edges strict-reject on unknown `edgeTypeId`** (asymmetric with node-type graceful degradation per [decision #24](../../systems/graph-system/graph-system-description.md)). System nodes evolve at runtime via DB schema additions (the graceful degradation use case); edge types are typically static config supplied by the host. Asymmetry is justified; usage docs note it explicitly.
+
+## 17.5 Plan-stage refinements (surfaced during re-validation)
+
+These are baked into implementation but worth flagging explicitly:
+
+1. **`subscribeWithSelector` middleware rationale.** Zustand's default `subscribe` fires on entire state changes; we need slice-level subscriptions for the panel-density use case (per [spec §5.4](../../../graph-visualizer-old.md)). Implementation note for `hooks/use-graph-store.ts`: wrap the store creator with `subscribeWithSelector(...)`.
+2. **React.StrictMode + double-mount handling.** Next 16 dev mode runs effects twice. Sigma + FA2 worker lifecycles must handle double-mount cleanly: store creation idempotent (`if (!storeRef.current)` pattern in `useRef`); Sigma `kill()` callable in cleanup without throwing on second invocation; FA2 worker disposal idempotent (`worker.kill()` is no-op if already killed).
+3. **Bundle audit wired in v0.1.** Per Q-P8, set up `size-limit` (or `pnpm build --analyze`) at v0.1 implementation start with budget = 300KB component-alone; per-import breakdown in CI. Not gated on Vitest landing.
+4. **Compound API evolution path** (per Q-P0). v0.1 ships single `<ForceGraph>`. v0.2 plan introduces `ForceGraph.Provider` + `ForceGraph.Canvas` with React context for sibling-hook access. Both forms exported from `index.ts` from v0.2 onward; usage docs cover both. v0.1 README / `usage.tsx` notes the future evolution.
+5. **System description footnote on decision #11** (per Q-P3). On next system-description revision, decision #11 receives a footnote: "Phased-plan reinterpretation: atlas + `IconNodeProgram` ship together in `force-graph` v0.5, not v0.1. Wording predates the procomp decomposition."
+6. **Worker-failure overlay copy.** Edge case #10 (FA2 worker fails to start) needs concrete error overlay text. Plan-stage tightening: "Layout disabled: this browser blocked the layout worker. Drag nodes manually or refresh and try again." Hosts override via `onError` callback.
+7. **`exportSnapshot` round-trip property.** Plan should include a self-test on first import: `import(export(import(snapshot)))` produces structurally equivalent state. Demo-driven validation in v0.1; first Vitest target when test runner lands.
 
 ---
 
 ## 18. Definition of "done" for THIS document (stage gate)
 
-Before any scaffolding or code:
-
-- [ ] User reads §1–§16 (the locked plan) and §17 (Q-P questions).
-- [ ] **Phase 0 risk spike has completed** (DashedDirectedEdgeProgram benchmarks at ≥30 fps on integrated GPU at 100k edges). Result documented in STATUS.md. **If spike failed, this plan is invalidated and must be rewritten with the contingency tree.**
-- [ ] Each Q-P1 through Q-P10 has either an "agreed" or override answer.
-- [ ] User explicitly says **"plan approved"** (or equivalent) — this unlocks Stage 3 (implementation).
+- [x] User reviewed §1–§16 (the locked plan) and §17 (resolved Q-Ps + §17.5 refinements).
+- [ ] **Phase 0 risk spike PENDING.** Plan is signed off against the assumption that the spike succeeds (≥30 fps on integrated GPU at 100k edges with `DashedDirectedEdgeProgram`). **Before implementation begins, the spike must actually run and the result documented in STATUS.md.** If the spike fails, this plan is invalidated and rewritten with the contingency tree (intermediate fallbacks → SVG-overlay worst case).
+- [x] All 11 plan-stage questions resolved (Q-P0 surfaced + locked on re-validation; Q-P5, Q-P9 refined; Q-P3 deviates from decision #11 with system-description footnote pending per §17.5 #5).
+- [x] User said **"plan approved"** — Stage 3 (implementation) unlocks once the Phase 0 spike completes.
 
 After sign-off, the next session starts with:
 
