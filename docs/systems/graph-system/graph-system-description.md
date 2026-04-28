@@ -1,6 +1,6 @@
 # Graph System — System Description
 
-> **Status:** **signed off 2026-04-28.** All Tier 1 + Tier 2 procomp Stage 1 descriptions are signed off (see [§9](#9-sub-document-map)). System Stage 2 plan (`graph-system-plan.md`) is blocked on per-procomp Stage 2 plans; per-phase plan authoring is underway (`force-graph` v0.1 plan signed off 2026-04-28).
+> **Status:** **signed off 2026-04-28.** All Tier 1 + Tier 2 procomp Stage 1 descriptions are signed off (see [§9](#9-sub-document-map)). System Stage 2 plan (`graph-system-plan.md`) is blocked on per-procomp Stage 2 plans; per-phase plan authoring is underway (`force-graph` v0.1 + v0.2 plans + `properties-form` plan all signed off 2026-04-28 to 2026-04-29).
 > **Working title:** `graph-system` (locked, decision #28; rename only at NPM extraction)
 > **Created:** 2026-04-28
 > **Last updated:** 2026-04-29 (consistency pass: decision #11 footnoted per [force-graph v0.1 plan Q-P3](../../procomps/force-graph-procomp/force-graph-v0.1-plan.md); §8 introduces per-phase plan mapping note; §3.1 + §7.2 + §11.5 references aligned with per-phase plan structure; §9 sub-doc map records v0.1 plan sign-off)
@@ -426,7 +426,7 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 
 | Pro-component | Description | Plan | Guide | Status |
 |---|---|---|---|---|
-| `properties-form` | [signed off 2026-04-28](../../procomps/properties-form-procomp/properties-form-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
+| `properties-form` | [signed off 2026-04-28](../../procomps/properties-form-procomp/properties-form-procomp-description.md) | [signed off 2026-04-29](../../procomps/properties-form-procomp/properties-form-procomp-plan.md) | TBA | description + plan signed off; force-graph v0.3 plan-lock half-unblocked (still gated on detail-panel plan); implementation pre-flight is `pnpm dlx shadcn@latest add input select switch textarea tooltip` |
 | `detail-panel` | [signed off 2026-04-28](../../procomps/detail-panel-procomp/detail-panel-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `filter-stack` | [signed off 2026-04-28](../../procomps/filter-stack-procomp/filter-stack-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |
 | `entity-picker` | [signed off 2026-04-28](../../procomps/entity-picker-procomp/entity-picker-procomp-description.md) | TBA | TBA | description signed off; plan authoring may begin |

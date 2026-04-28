@@ -1,6 +1,6 @@
 # `properties-form` — v0.1 Plan (Stage 2)
 
-> **Status:** **DRAFT 2026-04-29.** Awaiting user validate pass. Per the project working pattern: draft → validate → re-validate → sign-off. Q-Ps below are in **Recommendation:** form; convert to **Locked:** on sign-off.
+> **Status:** **signed off 2026-04-29.** Validate-pass refinements applied (9 fixes: bundle audit reframe + install pre-flight §11.2/§8.2/§13.5; detail-panel composition new §4.5; Q-P8 split by error scope; React 19 ref-as-prop §13.5; schema reference stability promoted to §11.1.1; onChange-error timing precision §10; validation-debouncing guidance §13.5; submit-id cross-ref §10; renderer+type advisory §10). All 10 Q-Ps locked.
 > **Slug:** `properties-form` · **Category:** `forms` · **Tier:** 1 (generic; no graph dependency)
 > **Parent description:** [properties-form-procomp-description.md](properties-form-procomp-description.md) (signed off 2026-04-28)
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (independent at the registry level per [decision #35](../../systems/graph-system/graph-system-description.md))
@@ -191,6 +191,16 @@ type FormAction =
 
 Cancel-driven and Save-driven transitions run cleanup; host-driven transitions don't (host owns the policy).
 
+### 4.5 Composition with detail-panel (the showcase integration)
+
+[detail-panel description Q8](../detail-panel-procomp/detail-panel-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) locks composite re-key on `${selection.type}:${selection.id}` change — detail-panel's children are **unmounted and remounted** on selection change, not just toggled. When properties-form is slotted in `<DetailPanel.Body>` (the §6.1 / §6.2 showcase from the description), this means:
+
+- **Q-P7 matrix applies to mode toggles within a stable mount only.** Selection changes wipe properties-form's internal state (errors, dirty, version, cleanVersion, formError) — they go to zero on the remount. The "edit → read | host externally → preserved/preserved" row never fires in the detail-panel scenario.
+- **Dirty-confirmation must intercept BEFORE selection propagates.** A host wanting "warn before discarding dirty edits" reads `formRef.current?.isDirty()` in its own selection-change handler — *before* it updates the selection prop fed into detail-panel. Once detail-panel sees the new selection, the panel re-keys, properties-form remounts, and `isDirty()` is `false` — too late. Matches [detail-panel description §8.5 #2](../detail-panel-procomp/detail-panel-procomp-description.md#85-plan-stage-tightenings-surfaced-during-description-review--re-validation) lock.
+- **`showSubmitActions: false` is the showcase setting.** Detail-panel's render-fn Actions own the chrome; host calls `formRef.current?.submit()` from a parent-rendered Save button. Q-P10's `submitLabel`/`cancelLabel` are unused in this composition.
+
+For non-detail-panel hosts (settings forms, file inspectors, future surfaces), the Q-P7 matrix applies normally — properties-form's mount is stable across mode flips.
+
 ---
 
 ## 5. Permission resolver (own implementation per [decision #25](../../systems/graph-system/graph-system-description.md))
@@ -349,6 +359,7 @@ src/registry/components/forms/properties-form/
 Three internal phases, each ~3–5 days:
 
 **Phase A — types + state + resolver (foundational; ~3 days):**
+- **Pre-flight (must precede everything else):** install missing shadcn primitives — `pnpm dlx shadcn@latest add input select switch textarea tooltip` (5 primitives; `button` already in repo per §11.2 verification). This is a registry-level prerequisite, not properties-form code; commit separately so the install diff doesn't blur the component-add diff.
 - `types.ts` — full type surface
 - `lib/resolve-permission.ts` + `lib/validate.ts` + `lib/format-value.ts`
 - `hooks/use-form-reducer.ts` — reducer + actions
@@ -395,10 +406,11 @@ Focus management on submit failure: first invalid field receives focus via `focu
 | Field declared as `select` without `options` | Dev-only `console.error` on first render; renders empty `<Select>` to avoid crash. |
 | Field declared as `date` with a non-ISO `value` | Read mode renders the raw string; edit mode shows browser's "invalid date" UX. Document in usage. |
 | Renderer throws | React error boundary in `field-row.tsx` catches; renders `<FieldError>` with "Custom renderer crashed — see console"; field becomes interactive in next render. |
-| `onChange` missing in edit mode | Dev-only `console.error` per Q6; values are read but commits become no-ops (host can't react, so the form effectively becomes read-only-with-typing-allowed). |
+| Renderer present + `field.type` mismatches `value` shape | properties-form does NOT validate (advisory only when renderer is set per §13.5 #2); host owns value↔type compatibility for renderer-overridden fields. Documented in usage. |
+| `onChange` missing in edit mode | Dev-only `console.error` per Q6 — fires once per mount-into-edit-mode-without-onChange transition (NOT per-keystroke; tracked via a `useEffect` keyed on `[mode, !!onChange]`). Values are read but commits become no-ops. |
 | Submit promise rejects (not just `{ ok: false }`) | Caught at the dispatch site; converted to `submit-failed` with `formError: "Submit failed: " + err.message`. Logs to console in dev. |
 | `submit()` called while `pending: true` | Returns the in-flight promise (no new submit). Prevents double-submit. |
-| `reset()` called while `pending: true` | Cancels spinner timer; dispatches `reset` (errors cleared, values reset to cleanSnapshot via `onChange`). The in-flight `onSubmit` promise still resolves; result is ignored. |
+| `reset()` called while `pending: true` | Cancels spinner timer; dispatches `reset` (errors cleared, values reset to cleanSnapshot via `onChange`). The in-flight `onSubmit` promise still resolves; submit-id token (§13.5 #4) suppresses the stale `submit-succeeded` / `submit-failed` dispatch. |
 | `markClean()` called with errors present | Snapshots current values as cleanSnapshot; errors are NOT cleared (intentional — markClean is a dirty-tracking op, not an error-clearing op). |
 | `focusField(key)` for hidden field | No-op per Q-P4; dev-only `console.warn` in dev. |
 | `focusField(key)` for read-only field | Focuses the read-display wrapper (`tabIndex={0}` added on read-only wrapper for this case) per Q-P4. |
@@ -419,15 +431,48 @@ The form is small by design (typically 5-30 fields). Optimizations:
 
 No virtualization; not needed at form scale. If real consumers push past 100 fields, revisit in v0.2.
 
+#### 11.1.1 Schema reference stability (host responsibility)
+
+The most common performance footgun for properties-form is unstable `schema` references. Hosts that pass an inline JSX literal:
+
+```tsx
+<PropertiesForm schema={[
+  { key: "label", type: "string", label: "Label" },
+  { key: "type", type: "select", options: [...], label: "Type" },
+]} ... />
+```
+
+create new `field` objects on every parent render. Without reference stability, all of properties-form's memoization breaks at once: `field-row` React.memo's `field` prop changes → every field-row re-renders; `useMemo` permission resolver keyed on `field` invalidates every render; validation closures captured by `useMemo` invalidate every render. For forms ≥10 fields this is visible jank.
+
+**In-repo mitigation:** the project enables React Compiler ([CLAUDE.md tech stack](../../../CLAUDE.md)) which auto-memoizes JSX-literal arrays at the call site. Inline `schema={[...]}` is fine for in-repo consumers.
+
+**NPM-extraction concern:** properties-form is intended for the eventual NPM publish target ([CLAUDE.md](../../../CLAUDE.md)). Consumers without React Compiler must memoize manually. Two patterns documented in `usage.tsx`:
+
+1. **Module-scope schema** (preferred for static schemas):
+   ```tsx
+   const SCHEMA = [/* ... */] satisfies PropertiesFormField[];
+   <PropertiesForm schema={SCHEMA} ... />
+   ```
+2. **`useMemo` schema** (for schemas derived from props/state):
+   ```tsx
+   const schema = useMemo(() => buildSchema(node), [node]);
+   <PropertiesForm schema={schema} ... />
+   ```
+
+A dev-only runtime warning fires when the `schema` reference changes between consecutive renders more than 5 times in succession (avoiding false positives on first-mount churn) — same pattern as the controlled-form `onChange` warning (Q6).
+
 ### 11.2 Bundle audit
 
 Budget: **≤ 30KB minified + gzipped** per description success #7.
 
-Realistic breakdown:
+**State of `src/components/ui/` at plan-write time** (verified 2026-04-29): contains `badge`, `button`, `card`, `dropdown-menu`, `popover`, `scroll-area`, `separator`, `table`, `tabs`. **Of the 6 shadcn primitives properties-form needs, only `Button` exists.** Five must be installed via `pnpm dlx shadcn@latest add` before implementation begins (see [§8.2 Phase A pre-flight](#82-build-order-within-v01)): `Input`, `Select`, `Switch`, `Textarea`, `Tooltip`.
+
+Realistic breakdown — properties-form's *own* code:
 - Component code: ~12-18KB (200-400 LoC state + 6 field types + parts + lib + hooks)
-- shadcn primitives consumed: `Input`, `Select`, `Switch`, `Textarea`, `Tooltip`, `Button` — all already in the registry's `src/components/ui/`; counted as zero (shared by every component).
 - `lucide-react` icons: tree-shaken; ~2KB for `Check` + `X` + `AlertCircle` (error icon).
-- Total realistic: **~14-20KB**, ceiling 30KB providing comfortable headroom.
+- **Properties-form-attributable total: ~14-20KB**, ceiling 30KB providing comfortable headroom.
+
+Newly-installed shadcn primitives (`Input`, `Select`, `Switch`, `Textarea`, `Tooltip`) add to the registry's overall bundle but are **shared infrastructure**, amortized across all current and future consumers — they are NOT properties-form-attributable cost. Realistic per-primitive minified+gzipped weight is 1–3KB each; the primitives bring in `@radix-ui` peer deps that are also shared. Total one-time install cost to the registry: ~10–15KB raw, distributed via tree-shaking + sharing.
 
 Wired via `size-limit` (or equivalent) at v0.1 implementation start — same posture as force-graph v0.1 plan §17.5 #3.
 
@@ -455,51 +500,58 @@ Wired via `size-limit` (or equivalent) at v0.1 implementation start — same pos
 
 ---
 
-## 13. Resolved plan-stage questions (recommendations; lock on sign-off)
+## 13. Resolved plan-stage questions (locked on sign-off 2026-04-29)
 
-10 Q-Ps. **High-impact:** Q-P5 (state implementation), Q-P7 (mode-toggle matrix), Q-P9 (resolver re-evaluation). **Medium:** Q-P1 (handle.submit return), Q-P2 (FieldRendererProps), Q-P6 (spinner timing), Q-P8 (error focus). **Low:** Q-P3 (array via renderer), Q-P4 (focusField edge cases), Q-P10 (action labels).
+All 10 questions resolved at sign-off. **Q-P8 refined on validate pass** (split by error scope — field-level vs form-level). **High-impact:** Q-P5 (state implementation), Q-P7 (mode-toggle matrix), Q-P9 (resolver re-evaluation). **Medium:** Q-P1 (handle.submit return), Q-P2 (FieldRendererProps), Q-P6 (spinner timing), Q-P8 (error scope visibility). **Low:** Q-P3 (array via renderer), Q-P4 (focusField edge cases), Q-P10 (action labels).
 
 ### Q-P1 (from description §8.5 #1) — `PropertiesFormHandle.submit()` return type
-**Recommendation: mirror `onSubmit`'s `Promise<{ ok, errors? }>`.** Imperative submitters need the result to act on it (toast on fail, navigate on success). Returning `Promise<void>` would force them to subscribe to side channels.
+**Locked: mirror `onSubmit`'s `Promise<{ ok, errors? }>`.** Imperative submitters need the result to act on it (toast on fail, navigate on success). Returning `Promise<void>` would force them to subscribe to side channels.
 **Impact:** medium. **Trade-off:** none — strictly an API tightening.
 
 ### Q-P2 (from description §8.5 #2) — `FieldRendererProps` shape
-**Recommendation: lock as in [§3.2](#32-fieldrendererprops-q-p2):** `{ value, onChange, field, allValues, mode, error, disabled, fieldId, errorId }`. The two id fields are added beyond description §8.5's predicted shape so custom renderers can participate in a11y consistently with built-ins.
+**Locked: shape per [§3.2](#32-fieldrendererprops-q-p2):** `{ value, onChange, field, allValues, mode, error, disabled, fieldId, errorId }`. The two id fields are added beyond description §8.5's predicted shape so custom renderers can participate in a11y consistently with built-ins.
 **Impact:** medium. **Trade-off:** slightly larger props object; worth it for a11y.
 
 ### Q-P3 (from description §8.5 #3) — Array / multiselect via renderer
-**Recommendation: explicit usage-docs example (tags-input).** No new built-in type in v0.1. Document in `usage.tsx` that `field.type` is advisory when `renderer` is set; properties-form doesn't validate value↔type compatibility for renderer fields.
+**Locked: explicit usage-docs example (tags-input).** No new built-in type in v0.1. Document in `usage.tsx` that `field.type` is advisory when `renderer` is set; properties-form doesn't validate value↔type compatibility for renderer fields. Edge case row in §10 makes the same point.
 **Impact:** low. **Trade-off:** none.
 
 ### Q-P4 (from description §8.5 #4) — `focusField(key)` on hidden / read-only / unknown
-**Recommendation: hidden = silent no-op (dev-only `console.warn`); read-only = focus the read-display wrapper (`tabIndex={0}` added); unknown key = `console.error` no-op.**
+**Locked: hidden = silent no-op (dev-only `console.warn`); read-only = focus the read-display wrapper (`tabIndex={0}` added); unknown key = `console.error` no-op.**
 **Impact:** low. **Trade-off:** read-only focus requires adding `tabIndex={0}` on read-only wrapper — minor a11y win (keyboard users can land on it via Tab anyway).
 
 ### Q-P5 (NEW) — Internal state: single useReducer vs split useStates
-**Recommendation: single `useReducer` (§4.2 actions).** Mirrors rich-card's pattern; single source of truth; reducer is unit-testable in isolation when Vitest lands; explicit actions are easier to reason about than a web of useState setters cross-coupling.
+**Locked: single `useReducer` (§4.2 actions).** Mirrors rich-card's pattern; single source of truth; reducer is unit-testable in isolation when Vitest lands; explicit actions are easier to reason about than a web of useState setters cross-coupling.
 **Impact:** high — touches the core implementation shape.
 **Trade-off:** slightly more boilerplate up front than 3-4 useStates; pays back at the first non-trivial action (submit-flow with multiple state transitions). Alternatives considered: split `useState` (rejected — mode + dirty + errors + pending interact too much), Zustand (rejected — overkill for component-local state, adds dep).
 
 ### Q-P6 (NEW) — 200ms spinner-show timing
-**Recommendation: `setTimeout` in a `useEffect` keyed on `pending` transition; clear on unmount or when `pending` flips to false.** When the timer fires, dispatch `submit-spinner-show`. If `onSubmit` resolves before 200ms, the timer is cleared and the spinner never renders — fast submits don't flicker.
+**Locked: `setTimeout` in a `useEffect` keyed on `pending` transition; clear on unmount or when `pending` flips to false.** When the timer fires, dispatch `submit-spinner-show`. If `onSubmit` resolves before 200ms, the timer is cleared and the spinner never renders — fast submits don't flicker.
 **Impact:** medium. **Trade-off:** none; this is the standard "delay-show" pattern.
 
 ### Q-P7 (NEW) — Mode-toggle dirty-state behavior
-**Recommendation: matrix in [§4.4](#44-mode-toggle-behavior-matrix-q-p7).** Cancel runs `reset()`; Save success runs `markClean()`; host-driven mode flips do nothing (host owns policy). read→edit preserves errors + dirty so the user picks up where they left off.
+**Locked: matrix in [§4.4](#44-mode-toggle-behavior-matrix-q-p7).** Cancel runs `reset()`; Save success runs `markClean()`; host-driven mode flips do nothing (host owns policy). read→edit preserves errors + dirty so the user picks up where they left off. **Caveat: matrix applies to mode toggles within a stable mount only — see [§4.5](#45-composition-with-detail-panel-the-showcase-integration).** In the detail-panel showcase, properties-form is remounted on selection change, not toggled; the matrix is bypassed entirely.
 **Impact:** high — affects every editing surface in the system (force-graph v0.3, future rich-card refactor).
 **Trade-off:** locking the matrix means hosts can't customize per-transition. If real consumers want, a `onModeChange(mode, defaultBehavior) => Promise` hook is additive in v0.2.
 
-### Q-P8 (NEW) — Error visibility + first-error focus
-**Recommendation: errors render only after `submitAttempted: true` OR after a field has been blurred-with-error.** Pre-submit typing doesn't surface errors mid-keystroke. On submit failure, focus moves to first error via `focusField(firstErrorKey)` after the `submit-failed` dispatch.
-**Impact:** medium. **Trade-off:** the alternative (errors surface on every keystroke) is more "responsive" but is widely considered noisy a11y practice. Industry default is post-submit + on-blur.
+### Q-P8 (NEW; refined on validate pass) — Error visibility + first-error focus
+**Locked: split by error scope.**
+
+- **Field-level errors** (from `field.validate`) render in inline `<FieldError>` only after `submitAttempted: true` OR after that field has been blurred-with-error. Pre-submit, pre-blur typing does NOT surface errors mid-keystroke.
+- **Form-level errors** (from prop `validate(values)`) only ever exist post-submit (form-level validation runs only on submit per §6.2), so visibility is trivially post-submit. Render in `<ErrorSummary>` at form top.
+- **Key collision** (form-level error and field-level error on the same key): per-field error takes precedence inline; form-level entry still appears in the summary (per §6.2).
+
+On submit failure, focus moves to first error via `focusField(firstErrorKey)` after the `submit-failed` dispatch — first-field-with-error wins regardless of scope.
+
+**Impact:** medium. **Trade-off:** split rule is more nuanced than "render errors when needed," but the pre-submit/pre-blur quiet zone is industry-standard a11y practice (Stripe, Material UI, RHF default). The alternative (errors on every keystroke) is widely considered noisy.
 
 ### Q-P9 (NEW) — Permission resolver re-evaluation
-**Recommendation: per-render at the field-row level, memoized via `useMemo` on `field + values`.** Permission can react to value changes (`resolvePermission(field, values)` is the signature). Mid-edit permission flip from `editable` to `read-only` preserves the in-flight value in props but disables the input — no auto-revert. Host owns data.
+**Locked: per-render at the field-row level, memoized via `useMemo` on `field + values`.** Permission can react to value changes (`resolvePermission(field, values)` is the signature). Mid-edit permission flip from `editable` to `read-only` preserves the in-flight value in props but disables the input — no auto-revert. Host owns data.
 **Impact:** high — defines mid-edit semantics for the mixed-permission showcase (§6.2 of description).
 **Trade-off:** users could theoretically see their typing "frozen" as read-only display if permission flips while typing. Acceptable for v0.1; rare in practice (host typically computes permission from origin which doesn't change mid-session).
 
 ### Q-P10 (NEW) — Default action button labels + slot
-**Recommendation: hardcoded `"Save"` / `"Cancel"` in v0.1 with `submitLabel` / `cancelLabel` props for override.** Localization is a v0.2+ concern via slot-able `submitActions` prop (host renders own action bar via `showSubmitActions: false`).
+**Locked: hardcoded `"Save"` / `"Cancel"` in v0.1 with `submitLabel` / `cancelLabel` props for override.** Localization is a v0.2+ concern via slot-able `submitActions` prop (host renders own action bar via `showSubmitActions: false`).
 **Impact:** low. **Trade-off:** non-English consumers must override per-instance; acceptable for v0.1 since `showSubmitActions: false` already covers full custom action bars.
 
 ## 13.5 Plan-stage refinements (surfaced during draft)
@@ -510,18 +562,20 @@ These bake into implementation but worth flagging:
 2. **`field.type` advisory under `renderer`.** When `renderer` is set, properties-form does NOT validate that `value` matches `type`. Documented in usage; `field.type` is metadata for the host's introspection, not a runtime contract.
 3. **Submit-pending double-submit guard.** `submit()` while `pending: true` returns the in-flight promise (edge case in §10). Prevents Save-button-mash from queuing duplicate `onSubmit` invocations.
 4. **`reset()` cancels in-flight submit.** If submit is pending and `reset()` is called, the spinner timer cancels and the reset dispatch fires immediately. The in-flight `onSubmit` promise still resolves; the `submit-succeeded`/`submit-failed` dispatch is suppressed (reducer guards on a `submit-id` token to prevent stale dispatch from a cancelled submit). Plan locks the token mechanism in implementation.
-5. **`useMemo` keyed on `(field, values)` for permission resolution.** `field` reference stability is the host's responsibility (memoize or define schema at module scope). If schema is recreated every render, memoization breaks — document in usage.
-6. **shadcn primitives consumed list locked.** `Input`, `Select`, `Switch`, `Textarea`, `Tooltip`, `Button`. If any are missing from `src/components/ui/`, run `pnpm dlx shadcn@latest add <name>` at implementation start before scaffolding the component.
+5. **Schema reference stability** — promoted to [§11.1.1](#1111-schema-reference-stability-host-responsibility) on validate pass; was originally a refinement-list item but elevated because it's a real performance footgun outside React-Compiler-enabled environments (relevant for the eventual NPM extraction). Two patterns documented in usage; dev-only runtime warning fires on >5 consecutive unequal-schema renders.
+6. **shadcn primitives prerequisite (verified 2026-04-29):** of the 6 consumed primitives (`Input`, `Select`, `Switch`, `Textarea`, `Tooltip`, `Button`), only `Button` is in `src/components/ui/` today. The other 5 install via `pnpm dlx shadcn@latest add input select switch textarea tooltip` as Phase A pre-flight ([§8.2](#82-build-order-within-v01)). Bundle audit ([§11.2](#112-bundle-audit)) treats newly-installed shared primitives as registry-level shared infrastructure, not properties-form-attributable cost.
 7. **`error-summary.tsx` anchor link uses `fieldId` from id-factory.** Clicking a summary entry calls `focusField(key)` (which resolves to the `fieldId` element); does NOT use anchor URLs (avoids history pollution).
+8. **React 19 ref-as-prop pattern (NOT `forwardRef`).** [Q2 lock](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) makes properties-form generic: `<PropertiesForm<T>>`. `forwardRef` strips generics unless cast-tricks are used; React 19's first-class `ref` prop preserves them cleanly. Implementation: `function PropertiesForm<T>({ ref, ...props }: PropertiesFormProps<T> & { ref?: Ref<PropertiesFormHandle> }) {...}`. Imperative handle attached via `useImperativeHandle(ref, ...)`. React Compiler handles ref-as-prop correctly per the React 19 + Compiler stable spec.
+9. **Validation cost is host responsibility.** Per-field `validate` runs on every `field-changed` dispatch (every keystroke for text inputs). Cheap validators (regex, range checks) are fine; expensive validators (large lookup tables, regex on long strings) jank text inputs. Usage docs note: wrap expensive validators in `useMemo` or a debounce utility. v0.2 may add `validateOn?: "change" | "blur"` opt-in if real consumers hit this.
 
 ---
 
 ## 14. Definition of "done" for THIS document (stage gate)
 
-- [ ] User reviewed §1–§12 (the locked plan body) and §13 (resolved Q-Ps + §13.5 refinements).
-- [ ] All 10 plan-stage questions resolved (Q-P1 to Q-P10).
-- [ ] User said **"plan approved"** (or equivalent) — Stage 3 (implementation via `pnpm new:component forms/properties-form`) unlocks.
-- [ ] On sign-off, convert `Recommendation:` → `**Locked: X.**`; flip status header; update [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) to mark `properties-form` plan ✓ signed off; commit per project pattern (`docs(procomps/properties-form): sign off v0.1 plan; <refinements>`).
+- [x] User reviewed §1–§12 (the locked plan body) and §13 (resolved Q-Ps + §13.5 refinements).
+- [x] All 10 plan-stage questions resolved (Q-P1 to Q-P10); Q-P8 refined on validate pass.
+- [x] User said **"go ahead"** — sign-off applied. Stage 3 (implementation) unlocks: run §8.2 Phase A pre-flight (`pnpm dlx shadcn@latest add input select switch textarea tooltip`) FIRST, then `pnpm new:component forms/properties-form`.
+- [x] `Recommendation:` form converted to `**Locked: X.**`; status header flipped; [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) updated to mark `properties-form` plan ✓ signed off.
 
 The plan is signed off when both v0.1 implementation can begin AND the `force-graph` v0.3 plan-lock cascade unlocks (it's the first of the two plans gating v0.3 — `detail-panel` is the other; `force-graph` v0.3 plan can author once both Tier 1 plans lock).
 
