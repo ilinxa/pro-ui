@@ -1,18 +1,18 @@
-import { ChevronRight } from "lucide-react";
+import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { FlatFieldValue } from "../types";
+import type { FlatFieldValue, MetaRenderer, SearchMatch } from "../types";
 import type { RichCardTree } from "../lib/parse";
 import type { EditMode } from "../hooks/use-edit-mode";
+import { rangesFor } from "../lib/search";
+import { ChevronRight } from "lucide-react";
 import { MetaInline } from "./meta-inline";
 import { MetaPopover } from "./meta-popover";
 import { CardTitleEdit } from "./card-title-edit";
 import { CardActionsMenu } from "./card-actions";
+import { DragHandle } from "./drag-handle";
+import { MatchHighlight } from "./match-highlight";
 import type { EditDispatchers, EditValidators } from "./card";
 
-/**
- * Card header. View mode: chevron + title + meta affordance.
- * Edit mode: title click → inline rename; "..." actions menu visible.
- */
 export function CardHeader({
   tree,
   title,
@@ -21,14 +21,29 @@ export function CardHeader({
   canCollapse,
   meta,
   metaPresentation,
+  metaRenderers,
   onToggleCollapse,
   onSelect,
   editable,
+  canEdit,
+  canRemove,
+  canDuplicate,
+  canDrag,
+  isLocked,
+  isRoot,
+  allowRootRemoval,
+  hasChildren,
+  defaultDeletePolicy,
   editMode,
   setEditMode,
   validators,
   dispatchers,
   tentativeCardId,
+  dragHandleListeners,
+  dragHandleAttributes,
+  searchMatches,
+  searchQuery,
+  searchCaseSensitive,
   className,
 }: {
   tree: RichCardTree;
@@ -38,14 +53,29 @@ export function CardHeader({
   canCollapse: boolean;
   meta?: Record<string, FlatFieldValue>;
   metaPresentation: "hidden" | "inline" | "popover";
+  metaRenderers?: Record<string, MetaRenderer>;
   onToggleCollapse: () => void;
-  onSelect: () => void;
+  onSelect: (event: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean }) => void;
   editable: boolean;
+  canEdit: boolean;
+  canRemove: boolean;
+  canDuplicate: boolean;
+  canDrag: boolean;
+  isLocked: boolean;
+  isRoot: boolean;
+  allowRootRemoval: boolean;
+  hasChildren: boolean;
+  defaultDeletePolicy: "cascade" | "promote";
   editMode: EditMode | null;
   setEditMode: (m: EditMode | null) => void;
   validators: EditValidators;
   dispatchers: EditDispatchers;
   tentativeCardId: string | null;
+  dragHandleListeners?: Record<string, (event: unknown) => void>;
+  dragHandleAttributes?: Record<string, unknown>;
+  searchMatches: readonly SearchMatch[];
+  searchQuery: string;
+  searchCaseSensitive: boolean;
   className?: string;
 }) {
   const showInlineMeta =
@@ -53,24 +83,33 @@ export function CardHeader({
   const hasMeta = meta && Object.keys(meta).length > 0;
   const isEditingTitle =
     editable &&
+    canEdit &&
     editMode?.kind === "card-title" &&
     editMode.cardId === tree.id;
 
-  // Root card has no parentKey; can't be renamed via card-title edit
-  const isRoot = tree.level === 1;
-  const canRenameTitle = editable && !isRoot;
+  const canRenameTitle = editable && canEdit && !isRoot;
+  const titleRanges = title
+    ? rangesFor(searchMatches, title, tree.id, "title", undefined, searchQuery, searchCaseSensitive)
+    : [];
 
   return (
     <div
       className={cn("flex items-center gap-1.5", className)}
       onClick={(e) => {
-        // Click on header chrome → select; but not when clicking on the chevron
-        // (which has its own onClick and stops propagation via the button event)
         if (e.target === e.currentTarget) {
-          onSelect();
+          onSelect({ shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
         }
       }}
     >
+      {/* Drag handle (edit mode only) */}
+      {editable && canDrag ? (
+        <DragHandle
+          listeners={dragHandleListeners}
+          attributes={dragHandleAttributes}
+          disabled={!canDrag}
+        />
+      ) : null}
+
       {canCollapse ? (
         <button
           type="button"
@@ -93,6 +132,13 @@ export function CardHeader({
         <span aria-hidden="true" className="inline-block size-5 shrink-0" />
       )}
 
+      {isLocked ? (
+        <Lock
+          className="size-3 shrink-0 text-muted-foreground/70"
+          aria-label="Locked"
+        />
+      ) : null}
+
       {isEditingTitle ? (
         <CardTitleEdit
           initialTitle={title ?? ""}
@@ -111,13 +157,15 @@ export function CardHeader({
           )}
           onClick={(e) => {
             e.stopPropagation();
-            onSelect();
+            onSelect({ shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
             if (canRenameTitle) {
               setEditMode({ kind: "card-title", cardId: tree.id });
             }
           }}
         >
-          {title ?? (
+          {title ? (
+            <MatchHighlight text={title} ranges={titleRanges} />
+          ) : (
             <span className="text-muted-foreground italic font-normal">
               Untitled
             </span>
@@ -125,16 +173,37 @@ export function CardHeader({
         </h3>
       )}
 
-      {showInlineMeta && meta ? <MetaInline meta={meta} /> : null}
+      {showInlineMeta && meta ? (
+        <MetaInline meta={meta} metaRenderers={metaRenderers} />
+      ) : null}
 
       {metaPresentation === "popover" && hasMeta && meta ? (
-        <MetaPopover meta={meta} />
+        <MetaPopover
+          meta={meta}
+          cardId={tree.id}
+          editable={editable && canEdit}
+          metaRenderers={metaRenderers}
+          dispatchers={dispatchers}
+          validators={validators}
+        />
       ) : null}
 
       {editable ? (
         <CardActionsMenu
-          onRemove={() => dispatchers.cardRemove(tree.id)}
-          canRemove={!isRoot}
+          onRemoveCascade={() => dispatchers.cardRemove(tree.id, "cascade")}
+          onRemovePromote={
+            defaultDeletePolicy === "promote" || hasChildren
+              ? () => dispatchers.cardRemove(tree.id, "promote")
+              : undefined
+          }
+          onDuplicate={
+            !isRoot ? () => dispatchers.cardDuplicate(tree.id) : undefined
+          }
+          canRemove={canRemove}
+          canDuplicate={canDuplicate}
+          isRoot={isRoot}
+          allowRootRemoval={allowRootRemoval}
+          hasChildren={hasChildren}
         />
       ) : null}
     </div>
