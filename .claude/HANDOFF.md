@@ -1,8 +1,8 @@
-# Session Handoff — graph-system Planning Sprint (post-Tier-1-cascade-COMPLETE + force-graph-v0.3-locked + ready-to-implement pause)
+# Session Handoff — post-Tier-1 cascade COMPLETE + decision #38 cascade applied (force-graph v0.1 unblocked)
 
-> **Refreshed:** 2026-04-29 (later still — this version supersedes the post-Tier-1-half refresh at commit `b1f3bf9`)
-> **Purpose:** Comprehensive continuation context for the next session. Since the prior refresh, this session block shipped: **3 Tier 1 plans (filter-stack + entity-picker + markdown-editor)** completing the Tier 1 cascade, **`force-graph` v0.3 plan** locking the editing layer, and a strategic pivot signal — **the next session should start implementing**, not author more plans.
-> **First read:** This is the third doc to read in a fresh session. Read [.claude/CLAUDE.md](CLAUDE.md) (auto-loaded) and [.claude/STATUS.md](STATUS.md) (auto-loaded) FIRST. Then this doc — orient via §1–§3, then jump to §5 for concrete next-step options.
+> **Refreshed:** 2026-04-30 (supersedes the 2026-04-29 post-4-of-5-shipped refresh)
+> **Purpose:** Comprehensive continuation context for the next session. **Tier 1 implementation cascade is COMPLETE** (5 of 5 shipped 2026-04-29: `properties-form`, `detail-panel`, `filter-stack`, `entity-picker`, `markdown-editor`). Build / typecheck / lint clean across all five; SSR + `/components` index render verified. **Browser interactivity is NOT verified** (no test runner wired). **System decision #38 signed off + cascade applied 2026-04-30** — dashed-edge feature REMOVED, Phase 0 risk spike CANCELLED, replaced with stock Sigma `EdgeRectangleProgram` + `@sigma/edge-arrow` and per-edge color/size differentiation. **Force-graph v0.1 implementation gate is NOW UNBLOCKED at the planning level** (no Phase 0 prerequisite remains).
+> **First read:** This is the third doc to read in a fresh session. Read [.claude/CLAUDE.md](CLAUDE.md) (auto-loaded) and [.claude/STATUS.md](STATUS.md) (auto-loaded) FIRST. Then this doc — orient via §1–§4, then jump to §6 for concrete next-step options.
 
 If you're a fresh Claude session: don't try to derive what's been done — it's all here. Trust this document plus STATUS.md plus CLAUDE.md.
 
@@ -12,7 +12,7 @@ If you're a fresh Claude session: don't try to derive what's been done — it's 
 
 **Project:** [ilinxa-ui-pro](../) — a private high-level component library. Pro-components built on top of shadcn/ui. Single Next.js 16 app for development; eventual NPM / shadcn-registry publish target.
 
-**Tech stack:** Next 16.2, React 19.2, Tailwind 4 (OKLCH, CSS variables), shadcn v4, TypeScript 5, pnpm 10. `babel-plugin-react-compiler` enabled.
+**Tech stack:** Next 16.2, React 19.2, Tailwind 4 (OKLCH, CSS variables), shadcn v4, TypeScript 5, pnpm 10. `babel-plugin-react-compiler` enabled. **The React Compiler-aware ESLint plugin is strict** — see §5 for patterns learned the hard way during this implementation sprint.
 
 **Critical conventions:**
 - **Procomp gate** ([CLAUDE.md](CLAUDE.md) §Workflow): description → plan → guide. Stages 1+2 are signed-off gates.
@@ -27,14 +27,21 @@ If you're a fresh Claude session: don't try to derive what's been done — it's 
 - `docs/procomps/<slug>-procomp/` — per-component planning docs
 - `docs/systems/<slug>-system/` — system-level planning docs
 
-**Existing components in registry** (3, all in [src/registry/manifest.ts](../src/registry/manifest.ts)):
-- `data/data-table` (alpha v0.1.0) — canonical template
-- `data/rich-card` (beta v0.4.0) — JSON-driven recursive card-tree viewer + editor + safety net
-- `layout/workspace` (alpha v0.1.0) — splittable canvas
+**Components currently in registry** (7, all in [src/registry/manifest.ts](../src/registry/manifest.ts)):
+
+| Slug | Category | Status | Notes |
+|---|---|---|---|
+| `data-table` | data | alpha 0.1.0 | Canonical template |
+| `rich-card` | data | beta 0.4.0 | JSON-driven recursive card-tree viewer + editor |
+| `workspace` | layout | alpha 0.1.0 | Splittable canvas |
+| `properties-form` | forms | alpha 0.1.0 | **Shipped 2026-04-29** — Tier 1 #1; schema-driven controlled read/edit form |
+| `detail-panel` | feedback | alpha 0.1.0 | **Shipped 2026-04-29** — Tier 1 #2; selection-aware compound container |
+| `filter-stack` | forms | alpha 0.1.0 | **Shipped 2026-04-29** — Tier 1 #3; schema-driven filter panel |
+| `entity-picker` | forms | alpha 0.1.0 | **Shipped 2026-04-29** — Tier 1 #4; searchable typed picker |
 
 ---
 
-## 2. What the planning sprint has produced (current state, 2026-04-29)
+## 2. Planning state (unchanged since prior pause)
 
 The original v4 spec ([graph-visualizer-old.md](../graph-visualizer-old.md)) was a single 9-week monolithic component. The planning sprint decomposed it into 5 Tier 1 pro-components + 1 Tier 2 pro-component (`force-graph`; phased v0.1–v0.6) + 1 Tier 3 assembled-experience page.
 
@@ -46,22 +53,20 @@ All 6 descriptions signed off 2026-04-28: `properties-form`, `detail-panel`, `fi
 
 ### 2.2 Plans (Stage 2) — 8 of 12 done
 
-| Plan | Status | Refinements applied on validate pass |
-|---|---|---|
-| [`force-graph-v0.1-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md) | ✓ signed off 2026-04-28 (1040 lines) | Q-P0 added; Q-P5 + Q-P9 refined |
-| [`force-graph-v0.2-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.2-plan.md) | ✓ signed off 2026-04-29 (879 lines) | Q-P3 + Q-P10 refined |
-| [`force-graph-v0.3-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.3-plan.md) | ✓ signed off 2026-04-29 (~720 lines) | 5 substantive + 2 minor (group CRUD scope-creep removed; annotation routing rewrite; PermissionAction enum cleanup; CrudResult consolidation; NodeType.schema typed as `ReadonlyArray<unknown>`) |
-| [`properties-form-procomp-plan.md`](../docs/procomps/properties-form-procomp/properties-form-procomp-plan.md) | ✓ signed off 2026-04-29 (~620 lines) | 9 fixes |
-| [`detail-panel-procomp-plan.md`](../docs/procomps/detail-panel-procomp/detail-panel-procomp-plan.md) | ✓ signed off 2026-04-29 (~600 lines) | 7 fixes |
-| [`filter-stack-procomp-plan.md`](../docs/procomps/filter-stack-procomp/filter-stack-procomp-plan.md) | ✓ signed off 2026-04-29 (~640 lines) | 9 fixes (5 substantive + 4 minor) |
-| [`entity-picker-procomp-plan.md`](../docs/procomps/entity-picker-procomp/entity-picker-procomp-plan.md) | ✓ signed off 2026-04-29 (~720 lines) | 6 fixes (3 substantive + 3 minor) |
-| [`markdown-editor-procomp-plan.md`](../docs/procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md) | ✓ signed off 2026-04-29 (~960 lines) | 10 fixes (4 substantive + 6 minor — `new Marked()`, CM6 StateField for runtime candidates, Q-P8 reasoning fix, wikilink keyboard a11y) |
-| `force-graph-v0.4-plan.md` | TBA | Independent; can author anytime |
-| `force-graph-v0.5-plan.md` | TBA | Independent; can author anytime |
-| `force-graph-v0.6-plan.md` | TBA | Independent (perf hardening; speculative without full system stood up) |
-| `graph-system-plan.md` (system Stage 2) | TBA | **Now authorable for the first time** (all per-procomp plans signed off) |
-
-**Cumulative plan stats:** 8 plans signed off; ~6,180 lines; ~64 plan-stage Q-Ps locked; ~58 substantive refinements + ~37 minor refinements caught on validate passes (~3-5 substantive per Stage 2 plan; ~2-3 substantive per description). Total commits across the sprint: ~32 (one draft + one sign-off per signed-off doc).
+| Plan | Status |
+|---|---|
+| [`force-graph-v0.1-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md) | ✓ signed off 2026-04-28 |
+| [`force-graph-v0.2-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.2-plan.md) | ✓ signed off 2026-04-29 |
+| [`force-graph-v0.3-plan.md`](../docs/procomps/force-graph-procomp/force-graph-v0.3-plan.md) | ✓ signed off 2026-04-29 |
+| [`properties-form-procomp-plan.md`](../docs/procomps/properties-form-procomp/properties-form-procomp-plan.md) | ✓ signed off 2026-04-29 |
+| [`detail-panel-procomp-plan.md`](../docs/procomps/detail-panel-procomp/detail-panel-procomp-plan.md) | ✓ signed off 2026-04-29 |
+| [`filter-stack-procomp-plan.md`](../docs/procomps/filter-stack-procomp/filter-stack-procomp-plan.md) | ✓ signed off 2026-04-29 |
+| [`entity-picker-procomp-plan.md`](../docs/procomps/entity-picker-procomp/entity-picker-procomp-plan.md) | ✓ signed off 2026-04-29 |
+| [`markdown-editor-procomp-plan.md`](../docs/procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md) | ✓ signed off 2026-04-29 |
+| `force-graph-v0.4-plan.md` | TBA — independent; can author anytime, but more useful AFTER markdown-editor implementation |
+| `force-graph-v0.5-plan.md` | TBA — same |
+| `force-graph-v0.6-plan.md` | TBA — speculative without full system stood up |
+| `graph-system-plan.md` (system Stage 2) | TBA — authorable; better after Tier 1 implementations validate the assumptions |
 
 ### 2.3 Cross-cutting state — locked decisions
 
@@ -79,111 +84,261 @@ System §8 has a "Note on plan references": legacy `force-graph-procomp-plan.md`
 
 ---
 
-## 3. The Phase 0 bottleneck (still the real implementation gate)
+## 3. Implementation state (NEW — this is what's changed)
 
-`force-graph` v0.1 implementation is gated on a **Phase 0 risk spike**. Per [system §10.1](../docs/systems/graph-system/graph-system-description.md#101-phase-0--risk-spike-2-days):
+### 3.1 Tier 1 implementation cascade — 4 of 5 done
 
-- **Budget:** 2 dev days
-- **Task:** Build a prototype `DashedDirectedEdgeProgram` (custom Sigma WebGL edge program; start from `@sigma/edge-arrow` source per v0.1 plan §8.2).
-- **Test:** Render 100k edges on both integrated and discrete GPUs.
-- **Gate:** **≥30 fps on integrated GPU.**
+| # | Component | Files | Demo sub-tabs | Pre-flight install commit | Implementation commit | Force-graph gate impact |
+|---|---|---|---|---|---|---|
+| 1 | `properties-form` | 25 | 5 | `aacabcb` (input/select/switch/textarea/tooltip) | `1d719a6` | Half-unblocks v0.3 |
+| 2 | `detail-panel` | 18 | 7 | `82e091f` (skeleton) | `bf59073` | **Fully unblocks v0.3** (paired with properties-form) |
+| 3 | `filter-stack` | 21 | 5 | `003af2e` (checkbox/toggle/toggle-group) | `6a4d02e` | **Unblocks v0.4** |
+| 4 | `entity-picker` | 18 | 8 | `3401af6` (command/dialog/input-group + cmdk peer dep) | `5f7951b` | Composed in v0.3+ host code; doesn't gate a phase |
+| 5 | `markdown-editor` | TBA | TBA | `pnpm add @codemirror/state @codemirror/view @codemirror/commands @codemirror/language @codemirror/lang-markdown @codemirror/autocomplete @codemirror/search @lezer/markdown @lezer/highlight marked` (10 npm packages; no shadcn) | TBA | **Will unblock v0.5** |
 
-**If spike succeeds:** v0.1 + v0.2 + v0.3 plans are valid; force-graph implementation can begin (sequential v0.1 → v0.2 → v0.3 → v0.4/v0.5/v0.6 in any order).
+**Cumulative: 82 files of registry code shipped.** Plus 5 pre-flight commits adding 13 shadcn primitives + cmdk peer dep to `src/components/ui/`.
 
-**If spike fails:** plans are invalidated. 4-tier contingency tree per [v0.3 plan §12.1](../docs/procomps/force-graph-procomp/force-graph-v0.3-plan.md) + [spike brief §9](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md).
+### 3.2 What "shipped" means — and what it doesn't
 
-**The spike is independent of the procomp gate** — it doesn't block plan authoring or Tier 1 implementation. Tier 1 implementation can begin right now without waiting on the spike.
+For all four shipped components:
 
-**Documentation:** when the spike runs, log results in [.claude/STATUS.md](STATUS.md) "Recent decisions" with a 2026-MM-DD date stamp.
+✓ **Validated (programmatic):**
+- `pnpm tsc --noEmit` — clean (function overloads + generics narrow correctly where applicable, e.g., entity-picker)
+- `pnpm lint` — clean except 1 pre-existing warning in rich-card's `use-virtualizer.ts` (TanStack Virtual lint exception; not new)
+- `pnpm build` — production build succeeds; all routes prerendered
+- SSR — `/components/<slug>` returns HTTP 200 with expected demo content
+- Index page — `/components` lists every shipped entry with name + description
+
+✗ **NOT validated (browser-only; deferred to manual testing):**
+- Client-side hydration (any console errors during hydrate)
+- Tab switching across demo sub-pages
+- Form interactivity (typing, blur, Esc, debounce timing)
+- Popover open/close + keyboard nav (cmdk ↑/↓/Enter/Esc, Backspace-on-empty-search chip removal, ToggleGroup arrow-key cycling)
+- Focus management (mode-toggle into edit body in detail-panel, focus-restore by id, panel-root focus on selection change)
+- Sticky positioning under `<div className="contents">` re-key wrapper (detail-panel §11.1 risk row flagged this for Phase B verification)
+- aria-live announcements (selection changes in detail-panel)
+- Dev-only console warnings firing as documented (locked-mode in detail-panel; reserved suffix in filter-stack; duplicate ids in entity-picker; unstable schema/categories/items >5 successive renders)
+- Custom render slot error boundaries
+- Imperative handle methods (no demo currently exercises them all — entity-picker's "Imperative handle" tab covers focus/open/close/clear; the other three components' handles are not demo-driven)
+
+**No test runner is wired in this repo** (consistent with rich-card and workspace test-debt posture). Verification is demo-driven manual browser testing. **The pause point is exactly here:** the user steps away to do that browser testing before continuing implementation.
+
+### 3.3 Plan deviations applied across the 4 implementations
+
+These showed up repeatedly under the React Compiler-aware lint and are documented in commit messages + STATUS.md "Recent decisions". A future session implementing markdown-editor should expect to hit similar patterns — see §5 for the lint rules to anticipate.
+
+**properties-form (`1d719a6`):**
+1. field-row React.memo dropped (closure-staleness bug in plan §11.1's memo-on-value-only spec)
+2. ID factory cache Map dropped (mutating render-time Map flagged by React Compiler-aware lint)
+3. submit-id token kept at dispatch site, not in reducer (cleaner pure-reducer)
+4. `mode-changed` reducer action dropped as dead code (Q-P7 matrix is enforced by dispatcher firing reset/submit-succeeded directly)
+5. Auto-commit branch in field-row for Select + Switch (avoid props-propagation race in same React event tick)
+
+**detail-panel (`bf59073`):**
+1. Auto-reset implemented via key-paired derived state, not setInternalMode-in-effect (lint forbids setState in useEffect for derivable state)
+2. Selection announcer simplified to key-based remount (same lint rule)
+3. Demo imports `useDetailPanel` directly from `parts/detail-panel-context` (acceptable since demo.tsx is co-located)
+
+**filter-stack (`6a4d02e`):**
+1. `useDebouncedCallback` hook deleted as dead code (per-id different `debounceMs` doesn't fit a fixed-ms hook signature; useTextBuffer rolled raw setTimeout per-id)
+2. Demos use predicate-as-useCallback with explicit `tagMode` dep instead of `valuesRef` closure (predicate runs during render via `applyFilters` in `useMemo`; ref-during-render lint failure)
+3. `filter-stack.tsx` computes `allEmpty` inline from props, not via the imperative handle (same lint rule)
+4. `commitText` callback uses a values ref-mirror updated in useEffect (write happens in useEffect, read happens in debounced timer — both post-render, lint-safe)
+
+**entity-picker (`5f7951b`):**
+1. Trigger node tracked via `useState<HTMLElement>` instead of `useRef<HTMLElement>` (state setter is React's own `Dispatch<SetStateAction>`, passes the ref-during-render lint when passed to `renderTrigger` slot)
+2. Query reset moved out of `useEffect-on-open` and into a `setOpen` wrapper (setState-in-effect-for-derivable-state lint)
+3. `hooks/use-imperative-handle.ts` deleted as dead code (inlined into main component; ~12 lines)
+
+The pattern across all four: **React Compiler-aware lint pushed us toward simpler, more derived shapes**. The plans were written conservatively (state-and-effect heavy); the lint forced us to derive instead.
 
 ---
 
-## 4. The pattern that worked (replicate for next plans / verify on validate)
+## 4. ~~The Phase 0 bottleneck~~ — RESOLVED 2026-04-30 per decision #38
 
-Across this sprint:
+**Section was: "The Phase 0 bottleneck (still the real implementation gate for force-graph)" — superseded.**
 
-- **8 of 8 plans had refinements caught on the re-validation pass** (1-2 substantive per description; 3-5 substantive per Stage 2 plan).
-- **The widening of the substantive count for Stage 2 plans** is documented in `feedback_re_validation_pass_catches_real_issues.md` auto-memory. Stage 2 plans surface more refinements because they cover more concrete API surface (CrudResult shape, CM6 StateField vs bake-in, marked global mutation, etc.) — issues invisible at description stage.
-- v0.3 plan (the most recent) caught a major scope creep: **group CRUD was authored a phase early** (description §2.4 locks group CRUD as v0.4 work; my draft moved 5 actions to v0.3). Validate pass caught this via cross-check against description ships list. **This is the kind of issue the validate pass exists to catch.**
+`force-graph` v0.1 implementation is **NO LONGER GATED** on a Phase 0 risk spike. Per [system decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index) (signed off 2026-04-29; cascade applied 2026-04-30):
 
-**The pattern, one more time:**
+- The custom `DashedDirectedEdgeProgram` is **removed** from the v0.1 plan
+- The dashed-edge feature is **dropped** at the description level
+- v0.1 substrate is **stock Sigma** — `EdgeRectangleProgram` + `@sigma/edge-arrow`
+- Visual differentiation between "soft" (doc-involving or per-type-flagged) and "default" edges via per-edge `color` + `size` attributes
+- The 2-day spike budget reverts to v0.1 implementation (saves ~3-4.5 days vs custom shader development per v0.1 plan §12.1 #7)
 
-1. **Draft the plan** — read all dependencies first (locked decisions; signed-off siblings; original spec). Aim for ~600–1000 lines depending on phase scope. Surface 8–10 plan-stage Q-Ps with recommendations + impact ratings.
-2. **Brief the user** — table form is good for Q-P scanning. Mark high-impact Qs explicitly.
-3. **Wait for "validate" / "review"** — user reads the draft, asks for re-validation.
-4. **Re-validation pass** — go through each Q against locked decisions, original spec, signed-off siblings, and the actual library APIs (CM6 ecosystem, Radix, cmdk, etc.). Surface refinements. **NEVER rubber-stamp.** 3-5 substantive per Stage 2 plan is normal.
-5. **Wait for "go ahead"** — user reviews findings; says go-ahead means "apply revisions + sign off."
-6. **Sign-off pass** — convert §X "Recommendation:" form to "**Locked: X.**"; add §X.5 plan-stage tightenings; flip status header; flip checkbox in definition-of-done; update system description §9 sub-doc map.
-7. **Commit** with message format `docs(procomps/<slug>): sign off <plan>; apply N refinements`.
+**Force-graph v0.1 implementation gate is now UNBLOCKED at the planning level.** Sequential implementation order remains v0.1 → v0.2 → v0.3 → v0.4/v0.5/v0.6 in any order.
 
-The user's pattern this sprint: short messages, decisive ("go ahead", "validate", "draft"). **Brevity preference confirmed in this session block** ("you messages are getting messy each time, be short and clear"). Trust the pattern; respond tersely.
+**The original [spike brief](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md)** is preserved with a SUPERSEDED banner; methodology sections may be reused if real-world performance regression surfaces in v0.6 perf-hardening. The original [PHASE-0-ACTION-PLAN.md](PHASE-0-ACTION-PLAN.md) (if it exists) is similarly historical-only.
+
+**Tier 1 implementation continued in parallel and is now COMPLETE** (5 of 5 shipped — see §3). The decision-#38 amendment closes the only remaining force-graph implementation prerequisite that wasn't a Tier 1 ship.
 
 ---
 
-## 5. Concrete next-step options (the strategic pivot)
+## 5. Implementation patterns learned (must read before implementing markdown-editor)
 
-**Last session-end recommendation (from the assistant): switch from planning to implementation.** All 5 Tier 1 plans + 3 force-graph plans are signed off. Force-graph implementation is gated on Phase 0 spike (NOT a Claude task). v0.4/v0.5/v0.6 plans + system Stage 2 are best authored AFTER Tier 1 components implement (real APIs surface issues that planning misses). Tier 1 implementation is unblocked.
+The React Compiler-aware ESLint plugin (`react-hooks/refs`, `react-hooks/set-state-in-effect`, `react-hooks/immutability`) is stricter than React itself. Same code that would have run fine in React 18 throws lint errors here. Future implementation sessions WILL hit these. Patterns to anticipate:
 
-Five reasonable directions for the next session:
+### 5.1 Don't put setState in useEffect for derivable state
 
-### Option A — Implement a Tier 1 component (RECOMMENDED)
+❌ **Flagged:**
+```tsx
+const [internalMode, setInternalMode] = useState("read");
+useEffect(() => {
+  if (selectionKey changed) setInternalMode("read");  // FAILS react-hooks/set-state-in-effect
+}, [selectionKey]);
+```
 
-All 5 Tier 1 plans signed off; Phase A pre-flight install sets queued. Tier 1 components are mutually independent per decision #35; any order.
+✓ **Pattern:** derive from a key-paired snapshot.
+```tsx
+const [snapshot, setSnapshot] = useState({ mode: "read", key: selectionKey });
+const mode = snapshot.key === selectionKey ? snapshot.mode : "read";
+const setMode = (next) => setSnapshot({ mode: next, key: selectionKey });
+```
 
-| Component | Budget | Phase A pre-flight | Why first? |
+❌ **Also flagged:** `useEffect(() => { if (!open) setQuery(""); }, [open])` — query reset on close.
+
+✓ **Pattern:** wrap setState in a setter that resets correlated state inline.
+```tsx
+const setOpen = useCallback((next) => {
+  if (!next) setQuery("");
+  rawSetOpen(next);
+}, [rawSetOpen]);
+```
+
+### 5.2 Don't access refs during render (especially through callbacks passed to user code)
+
+❌ **Flagged:**
+```tsx
+const valuesRef = useRef(values);
+useEffect(() => { valuesRef.current = values; });
+const predicate = useCallback((item, value) => {
+  const mode = valuesRef.current["mode"];  // FAILS react-hooks/refs when predicate runs in useMemo during render
+}, []);
+```
+
+✓ **Pattern:** derive observable inputs first, useCallback the consumer with derived value as dep.
+```tsx
+const tagMode = values["tags__mode"] === "intersection" ? "intersection" : "union";
+const predicate = useCallback((item, value) => {
+  if (tagMode === "intersection") return ...;
+}, [tagMode]);
+```
+
+### 5.3 Don't pass ref-accessor functions to user-rendered slots
+
+❌ **Flagged:**
+```tsx
+const triggerRef = useRef(null);
+const customTriggerRef = useCallback((node) => { triggerRef.current = node; }, []);
+return renderTrigger({ value, open, triggerRef: customTriggerRef });  // FAILS react-hooks/refs
+```
+
+✓ **Pattern:** use `useState<HTMLElement | null>(null)` to track the DOM node. The setter is React's own `Dispatch<SetStateAction>`, which passes the lint.
+```tsx
+const [triggerNode, setTriggerNode] = useState<HTMLElement | null>(null);
+return renderTrigger({ value, open, triggerRef: setTriggerNode });
+```
+
+One state mount on first attach, no other re-render impact. Same pattern works for forwardRef-style refs (Radix Slot composition handles the dual-ref case automatically — see entity-picker §6.3 deviations).
+
+### 5.4 Don't mutate Map/object created during render
+
+❌ **Flagged:**
+```tsx
+return useMemo(() => {
+  const cache = new Map();
+  return (key) => {
+    if (cache.has(key)) return cache.get(key);  // FAILS react-hooks/immutability
+    cache.set(key, makeIds(key));
+    return cache.get(key);
+  };
+}, [formId]);
+```
+
+✓ **Pattern:** drop the cache. Recompute fresh per call. Object identity rarely matters when callers don't memo on it.
+```tsx
+return (key) => ({
+  fieldId: `${formId}-field-${safeKey}`,
+  errorId: `${formId}-error-${safeKey}`,
+});
+```
+
+### 5.5 Verify with `pnpm lint` early — Phase A end-gate
+
+Plans always specified Phase A end-gate verification. The Phase A end-gate must include `pnpm lint` (not just `pnpm tsc --noEmit`). Each Tier 1 component shipped this session hit ≥1 of the above lint failures during Phase B or Phase C; cheaper to catch them at Phase A.
+
+**For markdown-editor specifically** (per [its plan §13.5 Q-P5/Q-P9](../docs/procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md)): the CM6 StateField + StateEffect + ViewPlugin pattern for runtime-updatable wikilink candidates uses `useEffect` to dispatch state effects. The lint may flag dispatch-from-effect; pre-emptive workaround: gate with a ref-comparison guard inside the effect body, OR use `useEffect` with the dispatch wrapped in a `requestIdleCallback` (defers to post-commit). Verify at Phase A.
+
+---
+
+## 6. Concrete next-step options
+
+The user is pausing to **manually browser-test the four shipped components** before continuing. When they return, the natural next steps are below in priority order.
+
+### Option A — Browser-verify shipped Tier 1 components (NEW; user-driven)
+
+This is what the pause is for. The user opens the dev server (or production build), clicks through:
+
+| Component | URL | Tabs | Manual checks per plan §X.5 + §10 edge cases |
 |---|---|---|---|
-| **`properties-form`** | ~2-3 weeks | `pnpm dlx shadcn@latest add input select switch textarea tooltip` | **Highest unlock** — needed by force-graph v0.3, rich-card refactor benefits, standalone form surfaces benefit. Recommended first. |
-| `detail-panel` | ~1.5 weeks | `pnpm dlx shadcn@latest add skeleton` | Lightest of the panel-shaped components; a good fast win after properties-form. |
-| `filter-stack` | ~1.5 weeks | `pnpm dlx shadcn@latest add checkbox input switch tooltip toggle-group` | Generic facets surface; fits data-table column-filter feature too. |
-| `entity-picker` | ~1 week | `pnpm dlx shadcn@latest add command` | Smallest install set; quick win. |
-| `markdown-editor` | ~3 weeks | `pnpm add @codemirror/state @codemirror/view @codemirror/commands @codemirror/language @codemirror/lang-markdown @codemirror/autocomplete @codemirror/search @lezer/markdown @lezer/highlight marked` | Heaviest by bundle (~180KB ceiling) and complexity (CM6 substrate); save for last. |
+| properties-form | `/components/properties-form` | 5 | Tab switching, blur-driven error visibility, 200ms spinner timing on submit, permission tooltip hover/focus, custom tags renderer keyboard (Enter/comma/Backspace), validation errors after blur, mixed-permissions read-only display |
+| detail-panel | `/components/detail-panel` | 7 | Tab switching, mode toggle into edit, focus moves into Body (mode-toggle demo), focus restore by id on exit edit, sticky header + sticky footer Actions during body scroll, error retry click, selection switcher re-key (slotted form state wipes), aria-live announcements via screen reader |
+| filter-stack | `/components/filter-stack` | 5 | Tab switching, Checkbox/Switch/ToggleGroup keyboard (Tab/arrow/Space/Enter), 250ms text debounce, ESC clears text field, solo-button hover-reveal + Tooltip, schema-instability dev-warn after 6 successive `categories` reference changes (open DevTools console; watch for `[filter-stack]` warn), error boundary on a custom render that throws |
+| entity-picker | `/components/entity-picker` | 8 | Tab switching, popover open/close, cmdk keyboard nav (↑/↓/Enter/Esc), chip remove buttons + Backspace-on-empty-search chip removal, custom-trigger demo focus via imperative handle, dev-warn for duplicate ids (open DevTools), all imperative handle methods (focus/open/close/clear) |
 
-Each plan includes: file-by-file file plan; build phases (typically A=types+lib+hooks, B=rendering, C=demos+integration); ARIA contract; edge cases; performance + bundle audit; Q-P locks; §X.5 plan-stage refinements that bake into implementation.
+Outcome of this pass: a list of any client-side bugs that need fixing before markdown-editor lands. If everything works, the user proceeds to Option B.
 
-After picking, follow the plan's §8.2 (or equivalent) Build order. Phase A end-gate smoke-tests the foundational pieces; Phase B end-gate runs `axe-core` + visual checks; Phase C end-gate verifies all success criteria from the description.
+### Option B — Implement `markdown-editor` (last Tier 1; ~3 weeks focused)
 
-### Option B — Author `force-graph` v0.4 plan (groups + filter-stack)
+Heaviest pro-component by bundle (~180KB ceiling) and complexity (CodeMirror 6 substrate). Plan: [docs/procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md](../docs/procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md) (~960 lines).
 
-Editing layer extension. Composes `filter-stack` at host level. ~2.5w impl per system §10.3. Plan authoring ~600-800 lines + 10 Q-Ps; ~1 session block.
+**Phase A pre-flight:** `pnpm add @codemirror/state @codemirror/view @codemirror/commands @codemirror/language @codemirror/lang-markdown @codemirror/autocomplete @codemirror/search @lezer/markdown @lezer/highlight marked` (10 npm packages; no shadcn install needed — Tabs/Button/Badge already in repo, Tooltip queued by properties-form Phase A).
 
-Risk: v0.4 plan may need revisions after Tier 1 components implement and surface real API issues. Safer to author after at least properties-form + detail-panel implement.
+**Implementation expectations:** the heaviest plan in the sprint by file count (28 files projected). 10 plan-stage Q-Ps. Per-instance `new Marked()` (not global `marked.use()`). CM6 StateField + StateEffect + ViewPlugin for runtime-updatable wikilink candidates. CM6 keymap composition with user extensions LAST. SyncAnnotation echo guard for the 4 sync effects. **Read §5 of this handoff before starting** — the React Compiler-aware lint will likely flag CM6 effect-dispatch patterns.
 
-### Option C — Author `force-graph` v0.5 plan (doc nodes + wikilink reconciliation + markdown-editor)
+**After markdown-editor ships, force-graph v0.5 implementation gate is fully unblocked.**
 
-The wikilink-reconciliation phase. Composes `markdown-editor` at host level. ~2w impl. Same risk as Option B — markdown-editor is the heaviest pro-component; better to implement first to surface CM6 lifecycle quirks.
+### Option C — Author `force-graph` v0.4 / v0.5 / v0.6 plans
 
-### Option D — Author `force-graph` v0.6 plan (perf hardening; multi-edge; advanced settings)
+All three plans are unblocked, but **v0.4 and v0.5 plans benefit from validating against the shipped Tier 1 implementations first**. Real APIs surface plan-time blind spots. Wait until at least markdown-editor implements before authoring v0.5 plan.
 
-**Speculative until full system stood up.** v0.6 includes the SVG ceiling check (description §2.6) which needs everything else in place. Authoring against the locked architecture is fine but plan will likely revise after v0.1-v0.5 implement.
+`v0.6` (perf hardening + multi-edge expansion + advanced settings) is speculative without the full system stood up. Author last.
 
-### Option E — Run Phase 0 risk spike (NOT a Claude task)
+### Option D — Author `graph-system-plan.md` (system Stage 2)
 
-The 2-day GPU benchmarking is human work. Surface [PHASE-0-ACTION-PLAN.md](PHASE-0-ACTION-PLAN.md) + [spike brief](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md) to whoever runs it. Document result in STATUS.md per spike brief §10. Unblocks force-graph v0.1 implementation.
+Authorable. Tier 3 wiring; integration test patterns; handoff conventions between Tier 1 and Tier 2 components. Same caveat as v0.4/v0.5 plans: most beneficial after Tier 1 implementations validate the assumptions.
 
-### Option F — Author `graph-system-plan.md` (system Stage 2)
+### ~~Option E — Run Phase 0 risk spike (NOT a Claude task)~~
 
-Newly authorable now that all per-procomp plans are signed off. Tier 3 wiring; integration test patterns; handoff conventions between Tier 1 and Tier 2 components. ~600-800 lines.
+**REMOVED 2026-04-30 per [decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index).** Phase 0 risk spike CANCELLED; no longer a next-step option. v0.1 substrate is stock Sigma — see §4 above.
 
-Same speculative risk as v0.6 — much of it benefits from real component implementations to validate against.
+### Option E (replacement) — Implement `force-graph` v0.1 (3 weeks focused)
 
-### Option G — Pause longer
+Now that Phase 0 is removed, force-graph v0.1 is the natural next implementation candidate. Plan: [docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md](../docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md) (~1090 lines post-amendment).
 
-The sprint has shipped 6 description sign-offs + 8 plan sign-offs + Phase 0 spike brief + system description consistency pass. STATUS.md is current. No urgent issues. A longer pause is reasonable.
+**Phase A pre-flight:** scaffold via `pnpm new:component data/force-graph`; install Sigma deps (`pnpm add sigma graphology graphology-types graphology-layout-forceatlas2 @sigma/edge-arrow`). No Tier 1 dependencies in v0.1 (per [decision #35](../docs/systems/graph-system/graph-system-description.md)) — composes happen at host/Tier 3 only.
 
-**Recommendation rank:** A (implement) > E (Phase 0 spike — outside Claude) > B (v0.4 plan) > C (v0.5 plan) > F (system Stage 2 plan) > D (v0.6 plan) > G (pause).
+**Implementation expectations:** ~32 files (the file tree at v0.1 plan §11.x; `parts/programs/` subdir DROPPED per #38). 11 plan-stage Q-Ps. Stock Sigma rendering via `EdgeRectangleProgram` + `@sigma/edge-arrow`; soft/default edge attributes via pure `softEdgeAttributes()` function in `lib/edge-attributes.ts`. Two-layer storage (graphology MultiGraph + Zustand `groupEdges` slice). FA2 layout in Web Worker. Read §5 of this handoff before starting — the React Compiler-aware lint will likely flag effects in the Sigma container lifecycle, store creation patterns, and graphology-adapter ref handling.
+
+### Option F — Pause longer
+
+The sprint has shipped 6 description sign-offs + 8 plan sign-offs + 5 of 5 Tier 1 component implementations + decision #38 cascade. STATUS.md is current. No urgent issues. A longer pause is reasonable.
+
+**Recommendation rank:** A (browser-verify — required before more code) > E (implement force-graph v0.1 — heaviest impact, gates everything downstream) > C (v0.4 plan — useful after browser verification) > D (system Stage 2 plan) > F (pause).
 
 ---
 
-## 6. Conventions to honor (must)
+## 7. Conventions to honor (must)
 
-These are anchored at the system-description level and carry into all per-component plans:
+Anchored at the system-description level and bake into all per-component plans:
 
-- **[Decision #35](../docs/systems/graph-system/graph-system-description.md):** Tier 1 components are independent at the registry level. `force-graph` does NOT import any Tier 1 component. Composition is host/Tier 3 only. **Single most violated rule.** v0.3 plan caught a near-miss (typing `NodeType.schema?:` as `PropertiesFormField[]` would have imported properties-form types — flipped to `ReadonlyArray<unknown>` opaque carrier on validate pass).
+- **[Decision #35](../docs/systems/graph-system/graph-system-description.md):** Tier 1 components are independent at the registry level. `force-graph` does NOT import any Tier 1 component. Composition is host/Tier 3 only. **Single most violated rule.** None of the 4 shipped Tier 1 components imports another at the registry level — verified.
 - **[Decision #11 footnote](../docs/systems/graph-system/graph-system-description.md):** Lucide icon atlas ships in `force-graph` v0.5 (not v0.1). v0.1–v0.4 use Sigma's stock `NodeCircleProgram` (plain disc nodes).
 - **[Decision #17](../docs/systems/graph-system/graph-system-description.md):** Origin field mandatory.
 - **Per-phase plan reference convention:** legacy `force-graph-procomp-plan.md` citations in system §8 mean per-phase plans.
-- **Phase 0 risk-spike pre-condition:** force-graph v0.1 implementation cannot begin until the spike completes.
+- ~~**Phase 0 risk-spike pre-condition:** force-graph v0.1 implementation cannot begin until the spike completes.~~ **REMOVED 2026-04-30 per [decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index)** — Phase 0 cancelled; v0.1 implementation can begin immediately.
 - **CrudResult discriminated return shape** (v0.3 plan lock): all force-graph CRUD actions return `{ ok: true, ...payload } | { ok: false, code, reason?, entityIds? }`. Hosts always check `result.ok`.
+- **React Compiler-aware lint patterns** (§5 of this handoff): derive instead of useState-in-effect; track DOM nodes via useState; wrap state-correlated cleanup in setOpen-style wrappers.
 
 ### Things to never do
 
@@ -194,79 +349,59 @@ These are anchored at the system-description level and carry into all per-compon
 - **Never skip hooks** (`--no-verify`).
 - **Never amend commits** — create new ones.
 - **Never push to remote** without explicit user request.
-- **Never run a Phase 0 risk spike in a single Claude session** — it's 2 days of GPU benchmarking.
+- ~~**Never run a Phase 0 risk spike in a single Claude session** — it's 2 days of GPU benchmarking.~~ **N/A 2026-04-30** — Phase 0 cancelled per [decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index).
 - **Never let a Tier 1 plan reference another Tier 1 component's types directly** — opaque carriers (`unknown`, `Record<string, unknown>`) only.
-- **Never author plans further than necessary** — v0.4/v0.5/v0.6/system Stage 2 are speculative until Tier 1 components ship.
+- **Never claim browser-side validation succeeded without a real browser session** — programmatic checks (typecheck/lint/build/SSR/index render) are NOT a substitute for hydration + interactivity testing. Be explicit about this in commit messages and STATUS.md entries.
 
 ---
 
-## 7. Files to read at session start, in order
+## 8. Files to read at session start, in order
 
-For sessions resuming planning work or implementing a Tier 1 component, the full reading list. For sessions just continuing from this pause point, [.claude/CLAUDE.md](CLAUDE.md) + [.claude/STATUS.md](STATUS.md) + this file usually suffice.
+For sessions continuing implementation OR reviewing prior implementations.
 
 1. [.claude/CLAUDE.md](CLAUDE.md) (auto-loaded)
 2. [.claude/STATUS.md](STATUS.md) (auto-loaded)
 3. **This file** ([.claude/HANDOFF.md](HANDOFF.md))
-4. [docs/systems/graph-system/graph-system-description.md](../docs/systems/graph-system/graph-system-description.md) — 37 locked decisions
-5. [docs/procomps/force-graph-procomp/force-graph-procomp-description.md](../docs/procomps/force-graph-procomp/force-graph-procomp-description.md) — phased v0.1–v0.6
-6. [docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md](../docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md) (signed off)
-7. [docs/procomps/force-graph-procomp/force-graph-v0.2-plan.md](../docs/procomps/force-graph-procomp/force-graph-v0.2-plan.md) (signed off)
-8. [docs/procomps/force-graph-procomp/force-graph-v0.3-plan.md](../docs/procomps/force-graph-procomp/force-graph-v0.3-plan.md) (signed off — newly added)
-9. The 5 Tier 1 procomp plans (in any order; pick the one you're implementing or referencing):
-   - [properties-form](../docs/procomps/properties-form-procomp/properties-form-procomp-plan.md)
-   - [detail-panel](../docs/procomps/detail-panel-procomp/detail-panel-procomp-plan.md)
-   - [filter-stack](../docs/procomps/filter-stack-procomp/filter-stack-procomp-plan.md)
-   - [entity-picker](../docs/procomps/entity-picker-procomp/entity-picker-procomp-plan.md)
-   - [markdown-editor](../docs/procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md)
-10. (Skim) The 5 Tier 1 procomp descriptions — usually the plan suffices but description has the original Q-locks.
-11. [docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md) (if running the spike or referring to its outcome)
-12. [docs/component-guide.md](../docs/component-guide.md) — long-form component-build reference (Stage 3 implementation patterns)
-13. (Skim) [graph-visualizer-old.md](../graph-visualizer-old.md) — original v4 spec; authoritative for `force-graph` internals only
+4. **§5 of this file specifically** — React Compiler-aware lint patterns. Required before implementing markdown-editor.
+5. [docs/systems/graph-system/graph-system-description.md](../docs/systems/graph-system/graph-system-description.md) — 37 locked decisions
+6. The plan for the component you're working with: `docs/procomps/<slug>-procomp/<slug>-procomp-plan.md`
+7. The shipped implementations under `src/registry/components/<category>/<slug>/` — read at least one (e.g., `forms/properties-form/`) end-to-end as the reference for the cadence.
+8. (Skim) [docs/component-guide.md](../docs/component-guide.md) — long-form pro-component build reference.
+9. (Skim) [graph-visualizer-old.md](../graph-visualizer-old.md) — original v4 spec; authoritative for `force-graph` internals **except where superseded by [decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index) 2026-04-29** (custom `DashedDirectedEdgeProgram` in §11.3 / dashed-edge rule in §3.5 are no longer in scope; v0.1 plan §8.2 has the current rendering substrate).
 
 ---
 
-## 8. Recent commits (for git-log orientation)
+## 9. Recent commits (for git-log orientation)
 
-Most recent first:
+Most recent first. Implementation cascade visible as 4 paired (`chore(ui)` → `feat(<category>/<slug>)`) commits:
 
 ```
+5f7951b feat(forms/entity-picker): ship v0.1 — searchable typed picker
+3401af6 chore(ui): add command, dialog, input-group shadcn primitives
+6a4d02e feat(forms/filter-stack): ship v0.1 — schema-driven filter panel
+003af2e chore(ui): add checkbox, toggle, toggle-group shadcn primitives
+bf59073 feat(feedback/detail-panel): ship v0.1 — selection-aware compound container
+82e091f chore(ui): add skeleton shadcn primitive
+1d719a6 feat(forms/properties-form): ship v0.1 — schema-driven controlled read/edit form
+aacabcb chore(ui): add input, select, switch, textarea, tooltip shadcn primitives
+ee3b514 docs(handoff, starter-prompt): refresh for post-Tier-1-cascade-COMPLETE pause  ← PRIOR (now-superseded) handoff
 62a5bb7 docs(procomps/force-graph): sign off v0.3 plan; apply 7 refinements
-11118c7 docs(procomps/force-graph): draft v0.3 plan (Stage 2, Phase 3 of 6)
-a26fbcc docs(procomps/markdown-editor): sign off v0.1 plan; apply 10 refinements
-68f38bf docs(procomps/markdown-editor): draft v0.1 plan (Stage 2)
-666fcd8 docs(procomps/entity-picker): sign off v0.1 plan; apply 6 refinements
-0c67a3f docs(procomps/entity-picker): draft v0.1 plan (Stage 2)
-334c717 docs(procomps/filter-stack): sign off v0.1 plan; apply 9 refinements
-3ca80a9 docs(procomps/filter-stack): draft v0.1 plan (Stage 2)
-b1f3bf9 docs(handoff, starter-prompt): refresh for post-Tier-1-half + v0.3-cascade pause  ← PRIOR (now-superseded) handoff
-68b25ba docs(procomps/detail-panel): sign off v0.1 plan; apply 7 refinements
-3ebe709 docs(procomps/detail-panel): draft v0.1 plan (Stage 2)
-05387a8 docs(procomps/properties-form): sign off v0.1 plan; apply 9 refinements
-31c34a3 docs(procomps/properties-form): draft v0.1 plan (Stage 2)
-85826b6 docs(claude): add user-facing PHASE-0-ACTION-PLAN; link from HANDOFF §5A
-69163d8 docs(procomps/force-graph): sign off phase-0 spike brief; apply 7 refinements
-895786d docs(claude): add STARTER-PROMPT.md for fresh-session boot
-2d5fac3 docs(procomps/force-graph): sign off v0.2 plan; refine Q-P3 + Q-P10
-2aa993b docs(procomps/force-graph): draft v0.2 plan (Stage 2, Phase 2 of 6)
-089955f docs(procomps/force-graph): sign off v0.1 plan; add Q-P0, refine Q-P5 + Q-P9
-a9d4eac docs(procomps/force-graph): draft v0.1 plan (Stage 2, Phase 1 of 6)
 ```
 
-The previous handoff (commit `b1f3bf9`) is preserved in git history; the file content has been replaced by this version.
+Eight implementation commits in one session block (4 components × 2 commits each: pre-flight + ship). The previous handoff (commit `ee3b514`) is preserved in git history; this file's content has been replaced.
 
 ---
 
-## 9. User pacing notes (from the sprint experience)
+## 10. User pacing notes (carried forward + augmented)
 
-- **Decisive** — short messages, direct decisions ("go ahead", "validate", "what is next?", numeric / letter picks from option lists).
-- **Iterative** — comfortable with draft → review → revise → sign off cycles. Doesn't try to lock everything up front.
-- **Detail-tolerant for the right reasons** — willing to read 1000+-line docs if they're well-structured and decisional.
-- **Brevity preference** — explicitly told the assistant "be short and clear" mid-session. Long preambles, restated framing, and section-heavy summaries are unwelcome. Match the question length: short question gets short answer; planning-task gets a structured plan body but the *response chrome* around it stays terse.
-- **Trusts the pattern** — once a pattern (draft → validate → re-validate → sign-off) was demonstrated to consistently catch real issues, the user delegates by saying "go ahead" without re-prosecuting it.
-- **Schedule-respecting** — explicitly asks for handoffs before pausing the session. Treats long sessions as work blocks; expects clean continuation.
+- **Decisive** — short messages, direct decisions ("go ahead", "validate", "what is next?", numeric / letter picks from option lists). During implementation: terser still ("ok", "yes go ahead", "lets build this: <slug>").
+- **Brevity preference** — explicitly told the assistant "be short and clear" mid-session. Long preambles, restated framing, and section-heavy summaries are unwelcome. Match question length.
+- **Trusts the pattern** — the implementation cadence (pre-flight install → scaffold → Phase A → Phase B → Phase C → STATUS + system §9 + commit) was followed cleanly across all 4 ships. User said "go ahead" / "yes go ahead" at each commit gate; expected the pattern to hold.
+- **Acknowledges plan-vs-reality friction** — when implementation deviated from the plan due to lint constraints, user accepted the deviation summaries in commit messages without re-prosecuting. Expected pattern: surface the deviation prominently, explain why, ship.
+- **Schedule-respecting** — explicitly asked for full handoff refresh before pausing. Treats long sessions as work blocks; expects clean continuation. Returns after browser testing as a fresh session.
 
 When in doubt, **be decisive with reasoning, in brief**. Pick a default; one sentence on why; one sentence on the trade-off. Don't surface every possible option.
 
 ---
 
-*End of refreshed handoff. Pause here. Resume per §5 (next-step options) when continuing — recommendation: Option A (implement a Tier 1 component, starting with properties-form).*
+*End of refreshed handoff. Pause here for browser testing of the 4 shipped Tier 1 components. Resume per §6 (next-step options) when continuing — recommendation: Option A (browser-verify; required) → Option B (implement markdown-editor as the final Tier 1).*

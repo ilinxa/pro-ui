@@ -1,13 +1,13 @@
 # `force-graph` v0.1 — Pro-component Plan (Stage 2, Phase 1 of 6)
 
-> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** **signed off 2026-04-28.** Stage 3 (implementation) may begin after Phase 0 risk-spike completes and is documented in STATUS.md.
+> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** **signed off 2026-04-28** (with [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) amendment signed off 2026-04-29 — Phase 0 risk spike CANCELLED; custom `DashedDirectedEdgeProgram` REPLACED with stock Sigma `EdgeRectangleProgram` + `EdgeArrowProgram` (both from `sigma/rendering` in Sigma 3.x — `@sigma/edge-arrow` is NOT a separate npm package; verified at install 2026-04-30); soft/default visual differentiation via per-edge `color` + `size` attributes; strikethroughs throughout preserve historical record). **Stage 3 (implementation) gate now UNBLOCKED at the planning level** — no Phase 0 prerequisite remains.
 > **Slug:** `force-graph` · **Category:** `data` · **Phase:** **v0.1 — Viewer core (3 weeks focused)**
-> **Last updated:** 2026-04-28 (signed off; Q-P0 surfaced + resolved on re-validation; Q-P5 + Q-P9 refined; Q-P3 deviation from decision #11 noted for system-description amendment)
+> **Last updated:** 2026-04-29 (amendment #38 cascade applied: §2 Phase 0 pre-condition superseded; §8.2 rewritten as stock-Sigma rendering rules; §3/§5/§8.1/§12.1/§15/§16/§17 Q-P2/§18 strikethroughs + replacements applied; was 2026-04-28: Q-P0 surfaced + resolved on re-validation; Q-P5 + Q-P9 refined; Q-P3 deviation from decision #11 noted for system-description amendment)
 > **Inputs:**
-> - Description signed off ([force-graph-procomp-description.md](force-graph-procomp-description.md), 2026-04-28). All 10 §8 locked decisions are inherited as fixed inputs.
-> - System description signed off ([../../systems/graph-system/graph-system-description.md](../../systems/graph-system/graph-system-description.md), 2026-04-28). 37 cross-cutting decisions inherited.
-> - Original v4 spec ([../../../graph-visualizer-old.md](../../../graph-visualizer-old.md)) is the authoritative source for `force-graph` internals (data shapes, custom WebGL programs, FA2 worker integration, hull anchoring, multi-edge mechanics).
-> - Phase 0 risk spike (DashedDirectedEdgeProgram, ≥30 fps gate at 100k edges on integrated GPU) **must complete before this plan signs off.** This plan writes against "spike succeeded."
+> - Description signed off ([force-graph-procomp-description.md](force-graph-procomp-description.md), 2026-04-28; amended 2026-04-29 per #38). All 10 §8 locked decisions are inherited as fixed inputs.
+> - System description signed off ([../../systems/graph-system/graph-system-description.md](../../systems/graph-system/graph-system-description.md), 2026-04-28). 37 cross-cutting decisions inherited; **#38 amendment 2026-04-29 supersedes #1 dashed-edge rule + #10 Phase 0 clause**.
+> - Original v4 spec ([../../../graph-visualizer-old.md](../../../graph-visualizer-old.md)) is the authoritative source for `force-graph` internals (data shapes, ~~custom WebGL programs~~ stock-Sigma rendering with selective custom programs in v0.5+, FA2 worker integration, hull anchoring, multi-edge mechanics).
+> - ~~Phase 0 risk spike (DashedDirectedEdgeProgram, ≥30 fps gate at 100k edges on integrated GPU) **must complete before this plan signs off.** This plan writes against "spike succeeded."~~ **Phase 0 SUPERSEDED by [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index)** — no spike prerequisite; v0.1 substrate is stock Sigma.
 
 This doc locks **how** v0.1 is built — file-by-file structure, exact API surface, data shapes, validation algorithm, two-layer state architecture, custom WebGL program, worker integration, source-adapter contract. v0.2–v0.6 plans (separate files) build on the foundations locked here.
 
@@ -17,19 +17,30 @@ After sign-off, no scaffolding-time second-guessing — implementation follows t
 
 ## 1. Inherited inputs (one paragraph)
 
-`force-graph` v0.1 is the **viewer core** for the [graph-system](../../systems/graph-system/graph-system-description.md): a `<ForceGraph>` component that accepts `GraphInput = GraphSnapshot | GraphSource`, renders an interactive WebGL canvas at up to 100k node scale via Sigma + graphology MultiGraph + ForceAtlas2 (Web Worker), and exposes the actions/selectors API that Tier 1 panels wire through at the host level. v0.1 is **read-only at the user level** — no editing affordances; the layout runs and the user can pan/zoom but not select, hover, drag, or mutate. v0.1 ships the **origin-aware data model** ([decision #17](../../systems/graph-system/graph-system-description.md): every node + edge carries `origin: "system" | "user"`; `systemRef` mandatory when system-origin), **two-layer storage** ([spec §3.4](../../../graph-visualizer-old.md): node↔node edges in graphology native, group-involving edges in a Zustand slice — externally one `edges[]` array, internally partitioned), the **source-adapter contract** (`loadInitial` required; `subscribe` + `applyMutation` optional, with `applyMutation` type-supported-but-not-exercised until v0.3), the **custom `DashedDirectedEdgeProgram`** (Phase 0 spike outcome lands here), and **foundational scaffolding** for selection/hover/cascade/permission-resolver that activate in later phases. Per [decision #35](../../systems/graph-system/graph-system-description.md), `force-graph` does NOT import any Tier 1 component; composition happens at host/Tier 3 only.
+`force-graph` v0.1 is the **viewer core** for the [graph-system](../../systems/graph-system/graph-system-description.md): a `<ForceGraph>` component that accepts `GraphInput = GraphSnapshot | GraphSource`, renders an interactive WebGL canvas at up to 100k node scale via Sigma + graphology MultiGraph + ForceAtlas2 (Web Worker), and exposes the actions/selectors API that Tier 1 panels wire through at the host level. v0.1 is **read-only at the user level** — no editing affordances; the layout runs and the user can pan/zoom but not select, hover, drag, or mutate. v0.1 ships the **origin-aware data model** ([decision #17](../../systems/graph-system/graph-system-description.md): every node + edge carries `origin: "system" | "user"`; `systemRef` mandatory when system-origin), **two-layer storage** ([spec §3.4](../../../graph-visualizer-old.md): node↔node edges in graphology native, group-involving edges in a Zustand slice — externally one `edges[]` array, internally partitioned), the **source-adapter contract** (`loadInitial` required; `subscribe` + `applyMutation` optional, with `applyMutation` type-supported-but-not-exercised until v0.3), **stock-Sigma edge rendering** (per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): `EdgeRectangleProgram` + `EdgeArrowProgram` (both from `sigma/rendering` in Sigma 3.x — `@sigma/edge-arrow` is NOT a separate npm package; verified at install 2026-04-30); soft/default differentiation via per-edge `color` + `size` attributes; supersedes ~~the custom `DashedDirectedEdgeProgram` Phase 0 spike outcome~~), and **foundational scaffolding** for selection/hover/cascade/permission-resolver that activate in later phases. Per [decision #35](../../systems/graph-system/graph-system-description.md), `force-graph` does NOT import any Tier 1 component; composition happens at host/Tier 3 only.
 
 ---
 
-## 2. Phase 0 pre-condition (must complete before this plan signs off)
+## 2. Edge rendering substrate (per amendment [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index), 2026-04-29)
 
-Per [system §10.1](../../systems/graph-system/graph-system-description.md#101-phase-0--risk-spike-2-days) and [description Q4](force-graph-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28):
+**Section title was: "Phase 0 pre-condition (must complete before this plan signs off)" — superseded.**
 
-- **Spike outcome assumed:** custom `DashedDirectedEdgeProgram` (solid+dashed × arrows × straight+curved, all uniform-driven) renders 100k edges at **≥30 fps on integrated GPU**.
-- **If spike succeeds:** this plan locks the WebGL pipeline as primary; §8 specifies the program structure.
-- **If spike fails:** this plan is replanned — primary fallback is the contingency tree from description §8.5 #2 (intermediate options before full SVG-overlay): split edge programs, custom shader optimizations. SVG-overlay is the worst-case fallback (~5k visible edge ceiling). Replan path is documented but NOT implemented in this plan.
+Per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): the v0.1 edge rendering substrate is **stock Sigma**, not a custom WebGL program. No Phase 0 risk spike, no GPU benchmark prerequisite, no replan contingency tree.
 
-**Pre-condition gate:** Phase 0 spike must be complete and the result documented in STATUS.md before this plan signs off. Implementation can begin immediately after sign-off.
+**v0.1 ships:**
+- **`EdgeRectangleProgram`** — Sigma's stock straight-line edge program. Default `defaultEdgeType` for v0.1.
+- **`@sigma/edge-arrow`** — Sigma's stock arrow program for `direction: "directed" | "reverse" | "bidirectional"` edges. Wired as a secondary `edgeProgramClasses` entry; per-edge `type` attribute selects the program.
+- **Per-edge `color` + `size` attributes** — computed at edge-add time by the rendering layer (a small pure function `softEdgeAttributes(edge, nodes, edgeType, theme)` in `lib/edge-attributes.ts`) and re-applied on theme/edgetype/schema update via the existing `graphVersion` bump pathway.
+- **Soft/default visual rule** — per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): "soft" edges (at least one `kind === "doc"` endpoint OR `edgeType.softVisual === true`) render `color: --muted-foreground`, `size: 1`. "Default" edges render `color: --foreground`, `size: 1.5`. Group endpoints do NOT transit doc-ness.
+
+**v0.6 may add (deferred):**
+- **`@sigma/edge-curve`** — for multi-edge expansion (parallel edges curved away from straight line). Not in v0.1 since multi-edge expansion is a v0.6 phase per description §2.6. Adding `@sigma/edge-curve` later is non-breaking — register a new edge type, set per-edge `type: "curve"` for the parallel set.
+
+~~**Spike outcome assumed:** custom `DashedDirectedEdgeProgram` (solid+dashed × arrows × straight+curved, all uniform-driven) renders 100k edges at **≥30 fps on integrated GPU**.~~ ~~**If spike succeeds:** this plan locks the WebGL pipeline as primary; §8 specifies the program structure.~~ ~~**If spike fails:** this plan is replanned — primary fallback is the contingency tree from description §8.5 #2 (intermediate options before full SVG-overlay): split edge programs, custom shader optimizations. SVG-overlay is the worst-case fallback (~5k visible edge ceiling). Replan path is documented but NOT implemented in this plan.~~
+
+**Pre-condition gate REMOVED.** Implementation can begin immediately after sign-off; no Phase 0 prerequisite.
+
+**Performance posture:** stock `EdgeRectangleProgram` is well-proven at the 100k-edge target on integrated GPUs (Sigma's reference benchmarks). If real-world performance falls short post-implementation, optimization happens in v0.6 perf-hardening — not as a system-replan contingency.
 
 ---
 
@@ -43,7 +54,7 @@ What ships (read-only viewer with full data-model foundation):
 - `importSnapshot` + `validateSnapshot` (structured error returns; rejects malformed snapshots)
 - `exportSnapshot` (walks `state.edgeOrder` preserving insertion order across both storage layers)
 - `GraphSource` integration (`loadInitial` + optional `subscribe` + optional `applyMutation`)
-- Custom `DashedDirectedEdgeProgram` (WebGL; supports solid+dashed × arrows × straight+curved)
+- ~~Custom `DashedDirectedEdgeProgram` (WebGL; supports solid+dashed × arrows × straight+curved)~~ Stock-Sigma edge rendering per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): `EdgeRectangleProgram` + `EdgeArrowProgram` (both from `sigma/rendering` in Sigma 3.x — `@sigma/edge-arrow` is NOT a separate npm package; verified at install 2026-04-30); soft/default differentiation via per-edge `color` + `size`
 - Plain-disc node rendering via Sigma's stock `NodeCircleProgram` (icons + doc-glyph land in v0.5)
 - ForceAtlas2 layout in Web Worker (`graphology-layout-forceatlas2/worker`)
 - Layout toggle ON/OFF + kicks of `layoutSettleDuration` on mutation + `pinAllPositions`
@@ -293,7 +304,7 @@ export interface EdgeType {
   id: string;
   name: string;
   color: string;
-  dashed?: boolean;                                   // honored only when no doc node is involved per decision #1
+  softVisual?: boolean;                               // renamed from `dashed` per #38; honored only when no doc node is involved (doc-endpoint already triggers soft via #38 rule)
   width?: number;
   description?: string;
 }
@@ -622,8 +633,12 @@ function SigmaContainer({ graph, settings, theme }: { graph: MultiGraph; setting
   useEffect(() => {
     if (!containerRef.current) return;
     const sigma = new Sigma(graph, containerRef.current, {
-      defaultEdgeType: "dashedDirected",
-      edgeProgramClasses: { dashedDirected: DashedDirectedEdgeProgram },
+      // Per #38: stock-Sigma rendering. Default = straight; arrow program registered as secondary.
+      defaultEdgeType: "rectangle",
+      edgeProgramClasses: {
+        rectangle: EdgeRectangleProgram,           // sigma/rendering: straight, no arrow
+        arrow: EdgeArrowProgram,                   // sigma/rendering: arrow at target (used for direction !== "undirected")
+      },
       // node program stays Sigma's stock NodeCircleProgram in v0.1; IconNodeProgram lands in v0.5
       ...sigmaSettingsFromTheme(theme, settings),
     });
@@ -640,28 +655,51 @@ function SigmaContainer({ graph, settings, theme }: { graph: MultiGraph; setting
 
 `tabIndex={0}` is added in v0.1 even though keyboard shortcuts don't activate until v0.2 — sets up the focus model. The `role="application"` is appropriate for a canvas-as-UI surface.
 
-### 8.2 Custom `DashedDirectedEdgeProgram`
+### 8.2 Stock-Sigma edge rendering (per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index))
 
-Phase 0 spike outcome lives here. Source structure:
+**Section was: "Custom `DashedDirectedEdgeProgram`" — superseded.** No custom WebGL program; no GLSL shaders; no `parts/programs/` subdirectory.
 
+**Programs used:**
+- `EdgeRectangleProgram` — stock Sigma straight-line program (re-exported as `import { EdgeRectangleProgram } from "sigma/rendering"`). Default for v0.1.
+- `createEdgeArrowProgram()` — from `@sigma/edge-arrow`; arrow at target. Used for any edge with `direction !== "undirected"`.
+- (`@sigma/edge-curve` deferred to v0.6 multi-edge expansion — non-breaking add.)
+
+**Per-edge attributes** (set on graphology edge attributes; Sigma reads them via the program's attribute mapping):
+- `color: string` — CSS color string. Resolved at edge-add time per the soft/default rule below.
+- `size: number` — edge width in pixels. `1` for soft, `1.5` for default.
+- `type: "rectangle" | "arrow"` — selects the program. `"rectangle"` for `direction: "undirected"`; `"arrow"` for directed/reverse/bidirectional. Reverse achieved by source/target swap at attribute-write time; bidirectional renders two arrow programs (deferred to v0.6 if performance warrants — v0.1 ships single-arrow with bidirectional flagged in `direction` attribute and visualization simplification noted in usage docs).
+- `label?: string` — Sigma stock label rendering; viewport-culled in v0.6 per [decision #14](../../systems/graph-system/graph-system-description.md).
+
+**Soft/default attribute resolution** (per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index)):
+
+```ts
+// lib/edge-attributes.ts (pure function)
+function softEdgeAttributes(
+  edge: Edge,
+  sourceNode: Node,
+  targetNode: Node,
+  edgeType: EdgeType | undefined,
+  theme: ResolvedTheme,
+): { color: string; size: number } {
+  const isDocInvolved = sourceNode.kind === "doc" || targetNode.kind === "doc";
+  const isPerTypeSoft = !isDocInvolved && edgeType?.softVisual === true;
+  const isSoft = isDocInvolved || isPerTypeSoft;
+
+  return isSoft
+    ? { color: theme.edgeMuted, size: 1 }     // theme.edgeMuted = --muted-foreground
+    : { color: edgeType?.color ?? theme.edgeDefault, size: 1.5 };
+}
 ```
-parts/programs/
-├── dashed-directed-edge-program.ts    # the WebGL Program class
-├── shaders/
-│   ├── edge-vertex.glsl                # vertex shader (computes line endpoints + curve offset)
-│   └── edge-fragment.glsl              # fragment shader (handles dashing, arrow heads, color blending)
-```
 
-**Per-edge attributes:** `dashed: 0|1`, `arrowSource: 0|1`, `arrowTarget: 0|1`, `curveOffset: float`, `color: vec4`, `width: float`.
+**Group-endpoint scoping** (preserved verbatim from #1 → #38): group↔group edges and group↔node edges where the node is NOT `kind === "doc"` follow `edgeType.softVisual` regardless of any doc-node elsewhere in the system. Group endpoints don't transit doc-ness.
 
-**Uniforms:** none — all variation per-edge.
+**Recompute triggers** (the attributes are NOT computed every frame — Sigma reads them from graphology):
+- On edge add: compute once, write to attributes.
+- On edgetype config change (`registerEdgeType` / `updateEdgeType` actions, lands in v0.3): walk edges of that type, recompute, write.
+- On node `kind` change (lands in v0.3 once node updates exist): walk incident edges, recompute, write.
+- On theme change: walk all edges, recompute color (size unaffected), write. `useThemeResolution` hook subscribes; Sigma re-renders on attribute mutation via `graph.setEdgeAttribute` triggering Sigma's diff loop.
 
-**Approach:** start from `@sigma/edge-arrow`'s source (per spec §11.3 plan), add:
-1. `dashed` attribute → vertex shader computes stroke length; fragment shader uses `mod(strokeLength, dashCycle)` to discard pixels in gap regions.
-2. `arrowSource` / `arrowTarget` attributes → vertex shader extends the line ends with arrow tip geometry conditionally.
-3. `curveOffset` attribute → vertex shader displaces midpoint along the perpendicular to source→target for parallel-edge curving (used by v0.6 multi-edge expansion; in v0.1 always 0).
-
-**Q-P4** below decides whether we ship the program in v0.1 already or wait until v0.6 for the curveOffset surface (since multi-edge isn't in v0.1, curveOffset is unused).
+**Q-P2** (see §17, refined under #38): `curveOffset` is no longer a custom-program attribute; v0.6 multi-edge curving uses `@sigma/edge-curve`'s built-in offset attribute. v0.1 doesn't ship anything for v0.6 in advance — the v0.6 plan registers the curve program when multi-edge expansion lands.
 
 ### 8.3 Stock NodeCircleProgram (v0.1)
 
@@ -854,14 +892,9 @@ src/registry/components/data/force-graph/
 ├── index.ts                                   # barrel
 │
 ├── parts/
-│   ├── sigma-container.tsx                    # Sigma instance lifecycle (mount/unmount)
-│   ├── svg-overlay.tsx                        # empty in v0.1; mount point for v0.4 hulls + v0.6 multi-edge badges
-│   └── programs/
-│       ├── dashed-directed-edge-program.ts    # custom WebGL edge program (Phase 0 spike outcome)
-│       ├── README.md                          # GLSL source map + uniform/attribute reference
-│       └── shaders/
-│           ├── edge-vertex.glsl
-│           └── edge-fragment.glsl
+│   ├── sigma-container.tsx                    # Sigma instance lifecycle (mount/unmount); registers stock EdgeRectangleProgram + @sigma/edge-arrow per #38
+│   └── svg-overlay.tsx                        # empty in v0.1; mount point for v0.4 hulls + v0.6 multi-edge badges
+│   # parts/programs/ subdir DROPPED per #38 — no custom WebGL programs in v0.1; v0.5 adds parts/programs/icon-node-program.ts when IconNodeProgram lands
 │
 ├── hooks/
 │   ├── use-graph-store.ts                     # Zustand store creator; returns useGraphStore + useGraphSelector
@@ -900,7 +933,7 @@ src/registry/components/data/force-graph/
 - `lib/store/`: Zustand store + slices + derived selectors are pure non-React code; `lib/` is the right home (mirrors rich-card and workspace).
 - `lib/permissions/`: per [decision #25](../../systems/graph-system/graph-system-description.md), per-component resolver in v1; this folder will move to `src/lib/permissions/` only after rich-card + force-graph both ship resolvers.
 - `lib/source-adapter/`: bootstrap helpers (loadInitial wrapper, delta dispatch loop, type helpers). Adapters themselves live OUTSIDE the registry per [decision #27](../../systems/graph-system/graph-system-description.md).
-- `parts/programs/`: custom WebGL program(s). v0.1 has just `DashedDirectedEdgeProgram`; v0.5 adds `IconNodeProgram` here.
+- ~~`parts/programs/`: custom WebGL program(s). v0.1 has just `DashedDirectedEdgeProgram`; v0.5 adds `IconNodeProgram` here.~~ **Per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): no `parts/programs/` subdir in v0.1.** Stock-Sigma programs are imported directly in `parts/sigma-container.tsx` (`EdgeRectangleProgram` from `sigma/rendering`; arrow program from `@sigma/edge-arrow`). v0.5 plan creates `parts/programs/` when `IconNodeProgram` lands as the first genuine custom program.
 
 ### 12.1 Build order within v0.1
 
@@ -910,7 +943,7 @@ src/registry/components/data/force-graph/
 4. `hooks/use-graphology-adapter.ts` + `hooks/use-graph-store.ts` + `hooks/use-graph-selector.ts` (1 day).
 5. `lib/source-adapter/` — snapshot-mode + live-mode bootstrap (1 day).
 6. `lib/theme.ts` + `hooks/use-theme-resolution.ts` (0.5 day).
-7. `parts/programs/dashed-directed-edge-program.ts` + shaders (3–5 days; Phase 0 spike outcome refined into production code).
+7. `lib/edge-attributes.ts` (the pure `softEdgeAttributes` function from §8.2) + register stock `EdgeRectangleProgram` + `EdgeArrowProgram` (both from `sigma/rendering` in Sigma 3.x — `@sigma/edge-arrow` is NOT a separate npm package; verified at install 2026-04-30) in `parts/sigma-container.tsx` (~~3–5 days; Phase 0 spike outcome refined into production code~~ **0.5 day per #38** — stock programs are imports + config; the pure function is ~30 LoC). The 3–4.5 days saved revert to the v0.1 budget per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index).
 8. `parts/sigma-container.tsx` (1 day).
 9. `parts/svg-overlay.tsx` (0.5 day; mount point only).
 10. `hooks/use-fa2-worker.ts` (1 day).
@@ -927,7 +960,7 @@ src/registry/components/data/force-graph/
 | # | Edge case | Resolution |
 |---|---|---|
 | 1 | Empty snapshot (zero nodes / zero edges / zero groups) | Validates fine; renders empty canvas with "no data" overlay; FA2 worker starts but has nothing to layout |
-| 2 | Snapshot with 100k+ nodes | Validates (cheap); imports (might block briefly); FA2 worker handles layout off-thread; render at ≥30 fps target (Phase 0 gate) |
+| 2 | Snapshot with 100k+ nodes | Validates (cheap); imports (might block briefly); FA2 worker handles layout off-thread; render at ≥30 fps target via stock `EdgeRectangleProgram` (per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index); was: ~~Phase 0 gate via custom WebGL program~~) |
 | 3 | Live source `loadInitial()` rejects | `onError({ code: "LOAD_INITIAL_FAILED", message })` fires; component renders empty canvas with error overlay |
 | 4 | Live source `subscribe` callback fires before `loadInitial` resolves | Queue deltas; apply after import settles. Plan-stage tightening for delta queueing semantics |
 | 5 | Delta references entity that doesn't exist locally | `onError({ code: "STALE_DELTA_REFERENCE", message })`; delta dropped; cascade NOT run (nothing to cascade) |
@@ -961,7 +994,7 @@ In v0.1, no interactive elements — selection, hover, drag, keyboard nav all la
 
 | Concern | v0.1 strategy |
 |---|---|
-| Initial render at 100k nodes | Sigma + WebGL handles natively; gate at ≥30 fps from Phase 0 spike |
+| Initial render at 100k nodes | Sigma + WebGL handles natively via stock `EdgeRectangleProgram`; ≥30 fps target (per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index); was: ~~from Phase 0 spike~~). If real-world performance falls short, optimization is a v0.6 perf-hardening item, not a system replan |
 | Layout blocking UI | FA2 in Web Worker (`graphology-layout-forceatlas2/worker`) |
 | Pan/zoom FPS | `hideEdgesOnMove: true` setting drops edge rendering during interaction |
 | React re-renders | Zustand selectors via `useGraphSelector`; only panels reading changed slices re-render |
@@ -979,7 +1012,7 @@ In v0.1, no interactive elements — selection, hover, drag, keyboard nav all la
 
 | Risk | v0.1 mitigation |
 |---|---|
-| Phase 0 spike fails | Pre-condition gate (§2); plan replans with intermediate fallbacks (split edge programs) before SVG-overlay |
+| ~~Phase 0 spike fails~~ Stock-Sigma performance falls short at scale | ~~Pre-condition gate (§2); plan replans with intermediate fallbacks (split edge programs) before SVG-overlay~~ **Per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index):** stock `EdgeRectangleProgram` is well-proven at 100k-edge scale; risk-tier downgraded. If real-world performance regresses post-implementation, optimization is a v0.6 perf-hardening item (label culling tuning, `hideEdgesOnMove` enforcement, per-edge attribute write batching); not a system replan |
 | Bundle weight ceiling | 300KB ceiling; v0.1 is the ground floor (~218KB realistic with sigma + graphology + FA2 + d3-polygon + lucide tree-shaken + Zustand + our code); plan-stage `size-limit` audit |
 | FA2 worker browser compatibility | Worker is mainstream; `OffscreenCanvas` is NOT used (Sigma stays on main thread). If a host blocks workers, error path activates (edge case #10) |
 | graphology MultiGraph mutation patterns | Stable API; `subscribe` middleware in Zustand catches changes the imperative layer didn't bump (defensive) |
@@ -1005,8 +1038,8 @@ All 11 questions resolved at sign-off. **Q-P0 surfaced during re-validation** (c
 **Q-P1: graphology MultiGraph instance ownership.**
 **Locked: `useRef` inside the component**; `graphologyAdapter` (a hook) closes over the ref. Non-reactive imperative state inside Zustand fights the reactive paradigm; `useRef` is the React-idiomatic way to hold imperative instances. Same pattern for Sigma instance and FA2 worker — all three imperative things live in `useRef`s.
 
-**Q-P2: Custom edge program `curveOffset` attribute.**
-**Locked: ship `curveOffset` attribute in v0.1's `DashedDirectedEdgeProgram`** (always 0 in v0.1; used in v0.6 multi-edge expansion). Adding shader attributes later requires program rebuild + re-test cycle. Cost is one float per edge in vertex buffer. Including now means v0.6 just sets it.
+**Q-P2: ~~Custom edge program `curveOffset` attribute~~ Multi-edge curving substrate.**
+**~~Locked: ship `curveOffset` attribute in v0.1's `DashedDirectedEdgeProgram`~~** (~~always 0 in v0.1; used in v0.6 multi-edge expansion~~). **REFINED under [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29):** v0.1 ships zero curving infrastructure. v0.6 multi-edge expansion uses **`@sigma/edge-curve`** (stock Sigma program with built-in offset attribute) registered as a third `edgeProgramClasses` entry alongside `EdgeRectangleProgram` + `EdgeArrowProgram` (both from `sigma/rendering` in Sigma 3.x — `@sigma/edge-arrow` is NOT a separate npm package; verified at install 2026-04-30). Adding the program later is non-breaking — register the program, set per-edge `type: "curve"` for the parallel set, multi-edge UI flips them on. v0.1 is deliberately curve-free; the rationale "shader attributes are expensive to add later" no longer applies because we're not building shaders.
 
 **Q-P3: Lucide icon atlas timing — DEVIATES from system [decision #11](../../systems/graph-system/graph-system-description.md).**
 **Locked: defer atlas construction to v0.5** alongside `IconNodeProgram` (the program that consumes the atlas). System decision #11's "v0.1" wording was authored for the original 9-week monolith where all node visuals shipped together. The phased plan's v0.5 ships `IconNodeProgram` + atlas together; building the atlas in v0.1 is wasted scaffolding without the program. **System description amendment proposed** (§17.5 #5): footnote decision #11 on next description revision noting the phased-plan reinterpretation.
@@ -1049,13 +1082,13 @@ These are baked into implementation but worth flagging explicitly:
 ## 18. Definition of "done" for THIS document (stage gate)
 
 - [x] User reviewed §1–§16 (the locked plan) and §17 (resolved Q-Ps + §17.5 refinements).
-- [ ] **Phase 0 risk spike PENDING.** Plan is signed off against the assumption that the spike succeeds (≥30 fps on integrated GPU at 100k edges with `DashedDirectedEdgeProgram`). **Before implementation begins, the spike must actually run and the result documented in STATUS.md.** If the spike fails, this plan is invalidated and rewritten with the contingency tree (intermediate fallbacks → SVG-overlay worst case).
-- [x] All 11 plan-stage questions resolved (Q-P0 surfaced + locked on re-validation; Q-P5, Q-P9 refined; Q-P3 deviates from decision #11 with system-description footnote pending per §17.5 #5).
-- [x] User said **"plan approved"** — Stage 3 (implementation) unlocks once the Phase 0 spike completes.
+- [x] ~~**Phase 0 risk spike PENDING.** Plan is signed off against the assumption that the spike succeeds (≥30 fps on integrated GPU at 100k edges with `DashedDirectedEdgeProgram`). **Before implementation begins, the spike must actually run and the result documented in STATUS.md.** If the spike fails, this plan is invalidated and rewritten with the contingency tree (intermediate fallbacks → SVG-overlay worst case).~~ **Phase 0 risk spike CANCELLED** per [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29) — stock-Sigma rendering replaces custom WebGL; no spike prerequisite; Q-P2 refined accordingly.
+- [x] All 11 plan-stage questions resolved (Q-P0 surfaced + locked on re-validation; Q-P5, Q-P9 refined; Q-P3 deviates from decision #11 with system-description footnote pending per §17.5 #5; **Q-P2 refined under #38** — multi-edge curving deferred to `@sigma/edge-curve` in v0.6).
+- [x] User said **"plan approved"** — Stage 3 (implementation) unlocks immediately (no Phase 0 prerequisite per #38).
 
 After sign-off, the next session starts with:
 
-1. Confirm Phase 0 spike result in STATUS.md (already documented per pre-condition gate above).
+1. ~~Confirm Phase 0 spike result in STATUS.md (already documented per pre-condition gate above).~~ Per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index), no Phase 0 prerequisite — proceed directly to step 2.
 2. `pnpm dlx shadcn@latest add <any-missing-primitives>` — likely none in v0.1 since force-graph doesn't compose Tier 1 components.
 3. `pnpm new:component data/force-graph` — runs the scaffolder.
 4. Implement against this plan, file-by-file in the §12.1 build order.
