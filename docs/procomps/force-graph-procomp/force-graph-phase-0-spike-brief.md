@@ -1,8 +1,22 @@
 # `force-graph` Phase 0 — Risk Spike Brief
 
-> **Status:** **signed off 2026-04-29.** Refinements from validate pass applied (7 fixes: gate-condition wording §1+§8, fabricated dash specifics §3, Bezier over-spec §3, mix arithmetic §4, test-condition discipline §4, Tier B subset handling §9, Tier D scope §9).
-> **Purpose:** Day-1 ready-to-execute brief consolidating already-locked context for the 2-day GPU benchmark spike. Not a planning artifact (Stage 1 description and v0.1 / v0.2 plans are already signed off); this is a focused execution brief so the spike author starts at "build the program" instead of "re-read the spec."
-> **Scope:** This is **NOT a Claude session task.** The spike runs as 2 days of human GPU benchmarking work outside any agent session. Result is logged in [.claude/STATUS.md](../../../.claude/STATUS.md).
+> # ⚠️ SUPERSEDED 2026-04-30
+>
+> **This entire document is SUPERSEDED by [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index)** (signed off 2026-04-29). The Phase 0 risk spike has been **CANCELLED**. The custom `DashedDirectedEdgeProgram` is removed; `force-graph` v0.1 uses **stock Sigma `EdgeRectangleProgram` + `@sigma/edge-arrow`** with soft/default visual differentiation via per-edge `color` + `size` attributes.
+>
+> **Why:** the 2-day GPU benchmark + custom shader development was high-effort, high-risk for a feature that can be approximated with stock Sigma capabilities at acceptable visual fidelity. Pre-implementation, no consumers depend on literal dashed edges.
+>
+> **What replaced it:** see [force-graph-v0.1-plan.md §2 + §8.2](force-graph-v0.1-plan.md#2-edge-rendering-substrate-per-amendment-38-2026-04-29) — stock-Sigma rendering substrate; no Phase 0 prerequisite; v0.1 implementation gate is now unblocked at the planning level.
+>
+> **Where this doc still has value:** the methodology sections (§4 test conditions, §6–§7 measurement protocol) remain useful reference if real-world performance regression ever surfaces post-implementation and a focused benchmarking pass is needed in v0.6 perf-hardening. Otherwise, this doc is preserved for historical record only.
+>
+> **Do not execute this brief.** The 2-day budget reverts to v0.1 implementation per #38.
+
+---
+
+> **Status:** ~~**signed off 2026-04-29.**~~ **SUPERSEDED 2026-04-30** per [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index). Original sign-off preserved below for historical reference. ~~Refinements from validate pass applied (7 fixes: gate-condition wording §1+§8, fabricated dash specifics §3, Bezier over-spec §3, mix arithmetic §4, test-condition discipline §4, Tier B subset handling §9, Tier D scope §9).~~
+> **Purpose:** ~~Day-1 ready-to-execute brief consolidating already-locked context for the 2-day GPU benchmark spike. Not a planning artifact (Stage 1 description and v0.1 / v0.2 plans are already signed off); this is a focused execution brief so the spike author starts at "build the program" instead of "re-read the spec."~~ **Doc no longer ready-to-execute.**
+> **Scope:** ~~This is **NOT a Claude session task.** The spike runs as 2 days of human GPU benchmarking work outside any agent session. Result is logged in [.claude/STATUS.md](../../../.claude/STATUS.md).~~ **Spike cancelled; no execution.**
 
 ---
 

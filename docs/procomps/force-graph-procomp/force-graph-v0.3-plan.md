@@ -1,6 +1,6 @@
 # `force-graph` v0.3 Plan (Stage 2, Phase 3 of 6) — Editing Layer
 
-> **Status:** **signed off 2026-04-29.** Validate-pass refinements applied (7 fixes: 5 substantive + 2 minor — **group CRUD scope creep removed** (deferred to v0.4 per description §2.4 lock); **annotation routing rewrite** for full applyMutation matrix (user-origin updateNode + system-origin setAnnotation paths); **PermissionAction enum cleanup** (added `edit-pinned` + `edit-direction`; dropped unused `edit-group-membership`; addNode/addEdge don't gate); **CRUD return shape consolidation** (all actions return discriminated `CrudResult`); **NodeType.schema typing as `ReadonlyArray<unknown>`** to honor decision #35 (no PropertiesFormField import); composite atomicity §4.1 covers all deletes; Q-P10 divergence detection locked at field-level pre-mutation snapshot). All 10 Q-Ps locked.
+> **Status:** **signed off 2026-04-29** (with [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) amendment 2026-04-29 cascade applied: editorial-only — Phase 0 risk spike CANCELLED, so the "gated on Phase 0 risk spike" pre-condition no longer applies; v0.3 doesn't touch edge rendering substrate). Validate-pass refinements applied (7 fixes: 5 substantive + 2 minor — **group CRUD scope creep removed** (deferred to v0.4 per description §2.4 lock); **annotation routing rewrite** for full applyMutation matrix (user-origin updateNode + system-origin setAnnotation paths); **PermissionAction enum cleanup** (added `edit-pinned` + `edit-direction`; dropped unused `edit-group-membership`; addNode/addEdge don't gate); **CRUD return shape consolidation** (all actions return discriminated `CrudResult`); **NodeType.schema typing as `ReadonlyArray<unknown>`** to honor decision #35 (no PropertiesFormField import); composite atomicity §4.1 covers all deletes; Q-P10 divergence detection locked at field-level pre-mutation snapshot). All 10 Q-Ps locked.
 > **Phase:** v0.3 — Editing layer (CRUD with permissions); 2 weeks focused per [system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing).
 > **Parent description:** [force-graph-procomp-description.md §2.3](force-graph-procomp-description.md#23-v03--editing-layer-2-weeks) (signed off 2026-04-28).
 > **Predecessors:** [v0.1 plan](force-graph-v0.1-plan.md) (viewer core; signed off 2026-04-28) + [v0.2 plan](force-graph-v0.2-plan.md) (interaction infrastructure; signed off 2026-04-29).
@@ -36,7 +36,7 @@ The v0.3 deliverable is the **editing layer** activated on top of v0.2's interac
 
 **Doesn't ship in v0.3** (per description §2.4–§2.6): **group CRUD** (v0.4 — `addGroup`/`updateGroup`/`deleteGroup`/`addNodeToGroup`/`removeNodeFromGroup`); group hull rendering (v0.4); filter-stack composition (v0.4); doc-node visuals (v0.5); markdown-editor integration (v0.5); search (v0.6); advanced settings UI (v0.6).
 
-**Implementation budget:** ~2 weeks focused (per system §10.3). Sequential after v0.2 implementation lands; gated on Phase 0 risk spike like v0.1 + v0.2.
+**Implementation budget:** ~2 weeks focused (per system §10.3). Sequential after v0.2 implementation lands; ~~gated on Phase 0 risk spike like v0.1 + v0.2~~ Phase 0 risk spike CANCELLED per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29) — no spike prerequisite for v0.1/v0.2/v0.3.
 
 ---
 
@@ -706,9 +706,9 @@ These bake into implementation but worth flagging:
 
 - [x] User reviewed §1–§9 (the plan body) and §10 (Q-Ps + §10.5 refinements).
 - [x] All 10 plan-stage questions resolved (Q-P1 to Q-P10); Q-P3 + Q-P4 + Q-P7 + Q-P10 refined on validate pass; group CRUD removed from v0.3 per validate-pass refinement #1.
-- [x] User said **"go ahead"** — sign-off applied. Stage 3 (implementation) unlocks: v0.3 implementation runs sequentially after v0.2 lands; gated on Phase 0 risk spike like v0.1 + v0.2.
+- [x] User said **"go ahead"** — sign-off applied. Stage 3 (implementation) unlocks: v0.3 implementation runs sequentially after v0.2 lands. ~~gated on Phase 0 risk spike like v0.1 + v0.2~~ Phase 0 risk spike CANCELLED per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29).
 - [x] `Recommendation:` form converted to `**Locked: X.**`; status header flipped; [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) updated to mark `force-graph` v0.3 plan ✓ signed off.
 
 ---
 
-*End of v0.3 plan. Stage 3 (implementation) is unlocked subject to v0.2 implementation landing + Phase 0 risk spike completion.*
+*End of v0.3 plan. Stage 3 (implementation) is unlocked subject to v0.2 implementation landing (~~+ Phase 0 risk spike completion~~ — Phase 0 cancelled per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) 2026-04-29).*

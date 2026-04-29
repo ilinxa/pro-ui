@@ -1,16 +1,31 @@
 # Phase 0 Risk Spike — Your Action Plan
 
-> **Audience:** you (Hessam, the project lead).
-> **Purpose:** plain-language action plan you can come back to weeks from now and immediately know what to do.
-> **NOT this doc:** the technical brief at [docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md). That's for the developer who actually runs the benchmark. This doc is for *you*, deciding how to make that happen.
+> # ⚠️ SUPERSEDED 2026-04-30
+>
+> **This entire document is SUPERSEDED by [system decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index)** (signed off 2026-04-29). The Phase 0 risk spike has been **CANCELLED**.
+>
+> **What changed:** the dashed-edge feature was dropped. `force-graph` v0.1 now uses **stock Sigma `EdgeRectangleProgram` + `@sigma/edge-arrow`** with soft/default visual differentiation via per-edge `color` + `size` attributes. No custom WebGL development; no GPU benchmark prerequisite.
+>
+> **What this means for you:**
+> - **No need to find a developer to run the spike.** Skip steps 1–3 below.
+> - **Force-graph v0.1 implementation gate is unblocked at the planning level.** The original 2-day spike budget reverts to v0.1 implementation.
+> - The technical [spike brief](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md) is also marked SUPERSEDED.
+>
+> **This doc is preserved for historical record only. Do not act on the steps below.**
 
 ---
 
-## 30-second summary
+> **Audience:** you (Hessam, the project lead).
+> **Purpose:** ~~plain-language action plan you can come back to weeks from now and immediately know what to do.~~ **Superseded — see banner above.**
+> **NOT this doc:** the technical brief at [docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md](../docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md). ~~That's for the developer who actually runs the benchmark. This doc is for *you*, deciding how to make that happen.~~ Both docs are now superseded per #38.
 
-- **What's needed:** ~2 days of WebGL/GLSL dev work on a laptop with an integrated GPU. Build a custom Sigma edge program, render 100k edges, measure fps.
-- **Why:** until somebody runs this benchmark, `force-graph` v0.1 is blocked. The whole graph-system architecture assumes the custom WebGL pipeline can hit ≥30 fps on integrated GPU. Right now that's an unverified assumption.
-- **Why Claude can't do it:** it's a fps measurement on real graphics hardware. Claude has no GPU and no browser. It's manual human work.
+---
+
+## ~~30-second summary~~ Superseded
+
+- ~~**What's needed:** ~2 days of WebGL/GLSL dev work on a laptop with an integrated GPU. Build a custom Sigma edge program, render 100k edges, measure fps.~~
+- ~~**Why:** until somebody runs this benchmark, `force-graph` v0.1 is blocked. The whole graph-system architecture assumes the custom WebGL pipeline can hit ≥30 fps on integrated GPU. Right now that's an unverified assumption.~~
+- ~~**Why Claude can't do it:** it's a fps measurement on real graphics hardware. Claude has no GPU and no browser. It's manual human work.~~
 
 ---
 

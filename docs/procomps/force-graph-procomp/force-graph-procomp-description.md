@@ -1,10 +1,10 @@
 # `force-graph` — Pro-component Description
 
-> **Status:** **signed off 2026-04-28.** Per-phase plan authoring (`force-graph-v0.1-plan.md` through `force-graph-v0.6-plan.md`) may begin per the [§9 cascade](#9-sign-off-checklist).
+> **Status:** **signed off 2026-04-28** (with amendment per [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) signed off 2026-04-29 — dashed-edge feature removed + Phase 0 risk spike cancelled; replaced with stock-Sigma color/size differentiation. Strikethroughs throughout this doc preserve historical record). Per-phase plan authoring (`force-graph-v0.1-plan.md` through `force-graph-v0.6-plan.md`) may begin per the [§9 cascade](#9-sign-off-checklist).
 > **Slug:** `force-graph`
 > **Category:** `data`
 > **Created:** 2026-04-28
-> **Last updated:** 2026-04-28 (signed off; Q5 + Q8 + Q10 refined on re-validation; §7 #10 corrected; all 10 open questions resolved)
+> **Last updated:** 2026-04-29 (amendment #38 cascade applied: dashed→soft visual rule throughout §2.1/§2.5/§3/§7.1/§8.5; "Phase 0 dep" column dropped from §2 table; SVG fallback path superseded; checklist items 4 + 15 superseded)
 > **Owner:** ilinxa team
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 2 (graph-specific; the WebGL canvas + state store)
 
@@ -41,18 +41,22 @@ It does NOT own panel composition, source adapters (decision #27 — those live 
 
 Per [decision #10](../../systems/graph-system/graph-system-description.md) and [system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing): six phases, ~13.5 weeks focused. Each phase is independently shippable. **Tier 1 dependencies gate per-phase plan-locks**, not per-phase implementation — `force-graph` v0.1 + v0.2 + v0.6 compose zero Tier 1 components and can implement before any Tier 1 lands.
 
-| Phase | Focus | Budget | Composes Tier 1 | Phase 0 dep |
-|---|---|---|---|---|
-| **v0.1** | Viewer core + origin-aware data model + source adapter + custom programs | 3w | none | yes |
-| **v0.2** | Selection / hover / drag / undo / linking-mode infrastructure | 2w | none | no |
-| **v0.3** | Editing layer (CRUD with permissions) | 2w | `properties-form`, `detail-panel` | no |
-| **v0.4** | Groups (hulls, gravity, group-involving edges, filters) | 2.5w | `filter-stack` | no |
-| **v0.5** | Doc nodes + wikilink reconciliation + markdown editor | 2w | `markdown-editor` | no |
-| **v0.6** | Perf hardening + multi-edge expansion + advanced settings | 2w | none | no |
+| Phase | Focus | Budget | Composes Tier 1 |
+|---|---|---|---|
+| **v0.1** | Viewer core + origin-aware data model + source adapter + stock-Sigma rendering | 3w | none |
+| **v0.2** | Selection / hover / drag / undo / linking-mode infrastructure | 2w | none |
+| **v0.3** | Editing layer (CRUD with permissions) | 2w | `properties-form`, `detail-panel` |
+| **v0.4** | Groups (hulls, gravity, group-involving edges, filters) | 2.5w | `filter-stack` |
+| **v0.5** | Doc nodes + wikilink reconciliation + markdown editor | 2w | `markdown-editor` |
+| **v0.6** | Perf hardening + multi-edge expansion + advanced settings | 2w | none |
+
+> "Phase 0 dep" column removed per [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29) — Phase 0 risk spike cancelled; v0.1 substrate is stock Sigma, no GPU benchmark prerequisite. v0.1 focus updated from "custom programs" to "stock-Sigma rendering."
 
 [`entity-picker`](../entity-picker-procomp/entity-picker-procomp-description.md) is composed inside Tier 3 (linking-mode UI in v0.3, group-membership editor in v0.4) but does NOT appear in `force-graph` itself per [decision #35](../../systems/graph-system/graph-system-description.md). The host wires it; `force-graph` exposes the actions it needs (`enterLinkingMode`, `addNodeToGroup`, etc.).
 
-**Phase 0 risk spike** (2 days, independent of procomp gate, [system §10.1](../../systems/graph-system/graph-system-description.md#101-phase-0--risk-spike-2-days)): prototype `DashedDirectedEdgeProgram` (custom Sigma WebGL edge program supporting solid+dashed × arrows × straight+curved) and benchmark at 100k edge scale. **Gate: ≥30 fps on integrated GPU.** If this fails, the entire system replans — `force-graph` falls back to SVG-overlay rendering with a practical edge ceiling of ~5k visible. Tier 1 components are unaffected. This description writes against the assumption that the spike succeeds; the SVG fallback path is documented in §3 (out of scope refinements) and §8.5 plan-stage tightenings.
+~~**Phase 0 risk spike** (2 days, independent of procomp gate, [system §10.1](../../systems/graph-system/graph-system-description.md#101-phase-0--risk-spike-2-days)): prototype `DashedDirectedEdgeProgram` (custom Sigma WebGL edge program supporting solid+dashed × arrows × straight+curved) and benchmark at 100k edge scale. **Gate: ≥30 fps on integrated GPU.** If this fails, the entire system replans — `force-graph` falls back to SVG-overlay rendering with a practical edge ceiling of ~5k visible. Tier 1 components are unaffected. This description writes against the assumption that the spike succeeds; the SVG fallback path is documented in §3 (out of scope refinements) and §8.5 plan-stage tightenings.~~
+
+**Edge rendering substrate** (per [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index), 2026-04-29 amendment): stock Sigma `EdgeRectangleProgram` for straight + `@sigma/edge-curve` for curved + `@sigma/edge-arrow` for directed. No custom WebGL edge program; no Phase 0 prerequisite. Visual differentiation between "soft" (doc-involving or per-type-flagged) and "default" edges via per-edge `color` + `size` attributes — see §2.5 for the soft-edge rule and [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) for the full contract.
 
 ### 2.1 v0.1 — Viewer core (3 weeks)
 
@@ -66,7 +70,7 @@ The minimum useful viewer. Read-only. Plain disc nodes (no icons yet — `IconNo
 - **`importSnapshot` + `validateSnapshot`** ([decision #5](../../systems/graph-system/graph-system-description.md)) — checks ID uniqueness within nodes/groups + cross-disjointness, edge endpoint resolution, `memberNodeIds`/`groupIds` agreement (with `memberNodeIds` canonical per [decision #2](../../systems/graph-system/graph-system-description.md)), no self-loops, **`origin` present on every node and edge**, **`systemRef` well-formed when system-origin**. Structured error returns; rejects malformed snapshots.
 - **`exportSnapshot`** — walks the single `state.edgeOrder: string[]` array ([decision #3](../../systems/graph-system/graph-system-description.md)) preserving insertion order across both storage layers.
 - **`GraphSource` integration** — `loadInitial`, optional `subscribe`, optional `applyMutation`. Real-time deltas preserve UI state ([decision #22](../../systems/graph-system/graph-system-description.md)) and don't enter the undo stack.
-- **Custom `DashedDirectedEdgeProgram`** (Phase 0 risk spike outcome lands here) — supports solid+dashed × arrows × straight+curved, all uniform-driven.
+- **Stock-Sigma edge rendering** (per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index), 2026-04-29 amendment; supersedes ~~`DashedDirectedEdgeProgram`~~) — `EdgeRectangleProgram` for straight + `@sigma/edge-arrow` for directed (`@sigma/edge-curve` deferred to v0.6 multi-edge expansion). Visual differentiation between "soft" and "default" edges via per-edge `color` + `size` attributes computed at edge-add time. No custom WebGL development; no Phase 0 prerequisite.
 - **Plain-disc node rendering** — Sigma's stock `NodeCircleProgram`. Icons + doc-glyph come in v0.5.
 - **ForceAtlas2 layout** in Web Worker (`graphology-layout-forceatlas2/worker`); group gravity is NOT yet wired (lands in v0.4).
 - **Layout toggle ON/OFF** ([spec §10](../../../graph-visualizer-old.md)) — kicks of `layoutSettleDuration` on mutation; bulk pinning via `pinAllPositions`.
@@ -150,11 +154,11 @@ Doc-node visuals, the markdown editor, and reconciliation. Plan-locks `markdown-
 - **Tiebreaking**: lex-smallest `id` wins for case-collision; **node beats group**; warnings surface in detail panel.
 - **Self-referential wikilinks skipped** (no self-loops, [spec §3.10 #2](../../../graph-visualizer-old.md)).
 - **Image embeds (`![[...]]`) NOT parsed** ([spec §3.10](../../../graph-visualizer-old.md), [decision #30](../../systems/graph-system/graph-system-description.md), [system §11 #7](../../systems/graph-system/graph-system-description.md)) — render as literal text in preview; editor decoration treats them as plain text.
-- **Derived edges**: each resolved wikilink produces a `derivedFromWikilink: true, origin: "user", direction: "directed"` edge; auto-dashed (rule 1 of [decision #1](../../systems/graph-system/graph-system-description.md) since the source is a doc node).
+- **Derived edges**: each resolved wikilink produces a `derivedFromWikilink: true, origin: "user", direction: "directed"` edge; auto-rendered as **soft** per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (the source is a doc node, satisfying the soft-edge predicate).
 - **Reconciliation sweep on save**: removes stale `derivedFromWikilink: true` edges whose source doc no longer contains the matching wikilink; idempotent across re-imports.
 - **Deleting a `derivedFromWikilink: true` edge is refused in the UI** ([decision #9](../../systems/graph-system/graph-system-description.md)) — tooltip "Edit the source doc to remove this link." Programmatic `deleteEdge` accepts but logs a warning.
 - **`unresolvedWikilinks: string[]`** as a first-class field on doc nodes ([decision #15](../../systems/graph-system/graph-system-description.md)) — NOT stored in `metadata.unresolvedLinks`. Detail panel surfaces unresolved + self-link + tiebreaking warnings.
-- **Dashed-edge rule finalized** ([decision #1](../../systems/graph-system/graph-system-description.md)) — dashed iff at least one endpoint is a node of `kind === "doc"`, OR (no doc-node endpoint AND `edgeType.dashed === true`). Group endpoints do NOT transit doc-ness.
+- **Soft-edge rule finalized** ([decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index), supersedes ~~#1~~) — an edge renders **soft** (`color: --muted-foreground`, `size: 1`) iff at least one endpoint is a node of `kind === "doc"`, OR (no doc-node endpoint AND `edgeType.softVisual === true`). Otherwise renders **default** (`color: --foreground`, `size: 1.5`). Group endpoints do NOT transit doc-ness — group↔group edges follow the per-edgetype `softVisual` flag regardless. Implementation via stock Sigma per-edge `color` + `size` attributes; no custom WebGL.
 
 ### 2.6 v0.6 — Perf hardening + multi-edge + advanced settings (2 weeks)
 
@@ -192,7 +196,9 @@ Locked at the system level (most), or scoped down by this Tier 2 description (so
 - **Permission-resolver shared library** — extracted only after `rich-card` and `force-graph` both ship resolvers ([decision #25](../../systems/graph-system/graph-system-description.md)).
 - **Cross-Tier-1 imports** ([decision #35](../../systems/graph-system/graph-system-description.md)) — `force-graph` does not import any Tier 1 component at registry level; composition happens at host/Tier 3 only.
 
-**SVG fallback path** (Phase 0 risk-spike contingency): if `DashedDirectedEdgeProgram` fails the ≥30 fps gate at 100k edges on integrated GPU, the entire system replans. `force-graph` falls back to SVG-overlay rendering for all edges; practical edge ceiling drops to ~5k visible. Tier 1 components are unaffected. This description writes against the WebGL-pipeline-succeeds assumption; the SVG fallback is a contingency, not v0.1 scope.
+~~**SVG fallback path** (Phase 0 risk-spike contingency): if `DashedDirectedEdgeProgram` fails the ≥30 fps gate at 100k edges on integrated GPU, the entire system replans. `force-graph` falls back to SVG-overlay rendering for all edges; practical edge ceiling drops to ~5k visible. Tier 1 components are unaffected. This description writes against the WebGL-pipeline-succeeds assumption; the SVG fallback is a contingency, not v0.1 scope.~~
+
+**SVG fallback path SUPERSEDED** by [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): with stock-Sigma rendering as the v0.1 substrate, there is no custom-WebGL gate that could fail and trigger the fallback. Stock `EdgeRectangleProgram` is well-proven at the 100k-edge target on integrated GPUs; if real-world performance falls short post-implementation, optimization happens in v0.6 perf-hardening — not as a system-replan contingency.
 
 ---
 
@@ -548,7 +554,7 @@ The component is "done" for v0.1–v0.6 when each phase passes its gate AND the 
 
 ### 7.1 Per-phase gates
 
-1. **v0.1 ships**: snapshot import + validation + export round-trips a 10k-node graph; live source mode subscribes and applies deltas without UI flicker; layout runs at ≥30 fps on integrated GPU at 100k edges (Phase 0 spike outcome); origin field rejected when missing.
+1. **v0.1 ships**: snapshot import + validation + export round-trips a 10k-node graph; live source mode subscribes and applies deltas without UI flicker; layout runs at ≥30 fps on integrated GPU at 100k edges via stock Sigma `EdgeRectangleProgram` (per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index); was: Phase 0 spike outcome via custom `DashedDirectedEdgeProgram`); origin field rejected when missing; soft/default edge differentiation via per-edge `color` + `size` attributes.
 2. **v0.2 ships**: selection/hover/drag/undo work end-to-end; canvas-focus keyboard shortcuts fire correctly; UI-state cascade on delete prevents stale-reference crashes (verified by deleting a selected/hovered/multi-edge-expanded entity).
 3. **v0.3 ships**: mixed-permission editing showcase (system node with read-only canonical + writable annotations) works end-to-end through host-slotted `<PropertiesForm>` per [§6.2 of properties-form](../properties-form-procomp/properties-form-procomp-description.md); permission tooltips render on disabled actions; stale-write banner surfaces on conflict.
 4. **v0.4 ships**: 4-category filter panel via host-slotted `<FilterStack>` per [§6.1 of filter-stack](../filter-stack-procomp/filter-stack-procomp-description.md) drives `visibleNodeIds`/`visibleEdgeIds`/`visibleGroupIds`; group hulls render correctly for single-member, two-member, and N-member cases; group gravity composes with FA2 forces; group-involving edges anchor to hull boundary smoothly.
@@ -614,13 +620,13 @@ All 10 questions resolved at sign-off. The recommendations below are the locked 
 These are NOT description-blocking, but per-phase plan authoring must address them:
 
 1. **UI-state cascade plumbing in v0.1 is foundational scaffolding.** Per [spec Phase 1](../../../graph-visualizer-old.md): cascade rules wired into the store BEFORE selection/hover/etc. exist; activated in v0.2+ when those land. v0.1 itself doesn't exercise the cascade. v0.1 plan documents this as foundational-now-active-later wiring.
-2. **Phase 0 risk-spike intermediate fallbacks.** "Spike fails → SVG-overlay rendering" is the worst case, not the only path. Intermediate options: split edge programs (separate dashed-only and directed-only WebGL programs, switching per edge); custom shader optimizations; reduced quality at scale. Plan stage locks the contingency tree as a decision tree, not a binary.
+2. ~~**Phase 0 risk-spike intermediate fallbacks.** "Spike fails → SVG-overlay rendering" is the worst case, not the only path. Intermediate options: split edge programs (separate dashed-only and directed-only WebGL programs, switching per edge); custom shader optimizations; reduced quality at scale. Plan stage locks the contingency tree as a decision tree, not a binary.~~ **SUPERSEDED by [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index)** — Phase 0 spike cancelled; stock-Sigma rendering replaces the custom WebGL pipeline. No contingency tree needed.
 3. **`NodeType.schema?: PropertiesFormField[]` as optional carrier.** Gives hosts a natural place to attach per-NodeType schemas without `force-graph` knowing about it (force-graph never inspects the field; it just flows through). Additive, non-breaking. Plan stage decides v0.1 type extension vs v0.3 introduction (when editing arrives).
 4. **Typed escape hatches on the imperative handle.** `getSigmaInstance(): Sigma` (NOT `unknown`) and `getGraphologyInstance(): MultiGraph` (NOT `unknown`). Substrate-leak documented as major-version-bump risk if either substrate ever swaps. Two substrates leak (vs markdown-editor's one with `getView()`); the doubled risk is acknowledged.
 5. **Demo structure for `/components/force-graph`.** Plan stage decides: single page with phase tabs (one demo route, internal switching) vs six sub-demos (separate routes per phase). Recommendation lean: single page with phase tabs (cohesive overview) + a "full feature" demo as the v0.6 showcase.
 6. **Action list per phase audit.** §5.3 is illustrative (~30 actions). Plan stage produces the exact list per phase, validating against [spec §5.3](../../../graph-visualizer-old.md). Several exact assignments need confirming: `setNodePositions(silent: true)` is foundational for layout-load and could land in v0.1 even though §2.2 lists it under v0.2; `pinAllPositions` is in v0.1 layout but spec Phase 2; etc.
 7. **v0.1 `applyMutation` type-supported but not exercised.** v0.1 ships the `GraphSource` type with `applyMutation` optional but doesn't dispatch any mutations (read-only). v0.3 starts exercising it when editing lands. v0.1 plan documents this lifecycle so adapter authors know `applyMutation` is reserved-but-unused in v0.1.
-8. **Direction visuals (undirected/directed/reverse/bidirectional) — v0.1 plan locks the rendering rules.** Per [spec §9.1](../../../graph-visualizer-old.md): `undirected` (no arrowheads), `directed` (arrowhead at target), `reverse` (arrowhead at source — rare), `bidirectional` (arrowheads at both ends). v0.1 ships all four through `DashedDirectedEdgeProgram`'s arrow uniform.
+8. **Direction visuals (undirected/directed/reverse/bidirectional) — v0.1 plan locks the rendering rules.** Per [spec §9.1](../../../graph-visualizer-old.md): `undirected` (no arrowheads), `directed` (arrowhead at target), `reverse` (arrowhead at source — rare), `bidirectional` (arrowheads at both ends). Per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): v0.1 ships all four via stock Sigma — undirected uses `EdgeRectangleProgram` directly; directed/reverse/bidirectional layer `@sigma/edge-arrow` (with reverse achieved by source/target swap or arrow-at-source variant; bidirectional via dual-arrow program). Was: ~~all four through `DashedDirectedEdgeProgram`'s arrow uniform~~.
 9. **Wikilink reconciliation algorithm locked in v0.5 plan.** Per [decision #36](../../systems/graph-system/graph-system-description.md) and [spec §3.10 + §8.1](../../../graph-visualizer-old.md): runs on `importSnapshot` (all phases) AND on doc-node save (v0.5+). v0.5 plan locks the algorithm: build label index → parse content → resolve per matching rules → reconcile edges (idempotent sweep). Markdown-editor's contract is just "call `onSave` on Cmd+S"; reconciliation lives in force-graph.
 10. **Origin glyph fragment-shader rules locked in v0.5 plan.** Per [decision #18](../../systems/graph-system/graph-system-description.md) (system glyph bottom-right) + [spec §8.2](../../../graph-visualizer-old.md) (doc glyph top-right): `IconNodeProgram` fragment shader masks two corner regions independently. System nodes never have `kind === "doc"` per [§4.3 of system description](../../systems/graph-system/graph-system-description.md), so a node has at most one origin/kind glyph — the shader handles both corners but only one fires per node.
 
@@ -631,7 +637,7 @@ These are NOT description-blocking, but per-phase plan authoring must address th
 - [x] Problem framing correct (§1) — the gap force-graph closes
 - [x] Phased delivery (§2) consistent with [system §10.3](../../systems/graph-system/graph-system-description.md#103-tier-2-force-graph-phasing): six phases, ~13.5 weeks focused, Tier 1 plan-lock dependencies aligned
 - [x] Per-phase scope (§2.1–§2.6) defensible — each phase independently shippable
-- [x] Out-of-scope (§3) consistent with [system §11](../../systems/graph-system/graph-system-description.md#11-out-of-scope--deferred); SVG fallback path documented
+- [x] Out-of-scope (§3) consistent with [system §11](../../systems/graph-system/graph-system-description.md#11-out-of-scope--deferred); ~~SVG fallback path documented~~ SVG fallback superseded by [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29)
 - [x] Target consumers (§4) complete — Tier 3 page + 3 usage modes + speculative
 - [x] API sketch (§5) covers GraphInput, props, actions, selectors, ref handle
 - [x] Example usages (§6) cover all 3 system usage modes including the full Tier 3 wiring (§6.3)
@@ -642,7 +648,7 @@ These are NOT description-blocking, but per-phase plan authoring must address th
 - [x] Mixed-permission editing (Q7) confirmed — host computes per-field permissions
 - [x] Hull overlay (Q8) confirmed — SVG hulls (no ceiling); group-involving edge SVG migrates conditionally in v0.6
 - [x] Bundle weight ceiling (Q10) confirmed — 300KB component-alone (Tier 1 deps NOT included per decision #35)
-- [x] Phase 0 risk-spike (Q4) timing confirmed — 2 days BEFORE v0.1; intermediate fallbacks before SVG-overlay
+- [x] ~~Phase 0 risk-spike (Q4) timing confirmed — 2 days BEFORE v0.1; intermediate fallbacks before SVG-overlay~~ Phase 0 risk spike CANCELLED per [decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29) — replaced with stock-Sigma rendering; no prerequisite
 - [x] Open questions §8 — all 10 resolved on sign-off (Q5 + Q8 + Q10 refined on re-validation)
 
 **Signed off 2026-04-28.** Per-phase Stage 2 plan authoring may begin per the cascade below. Each plan must build against the §8 locked decisions and address the §8.5 plan-stage tightenings, defining the file-by-file structure per the [component-guide.md anatomy](../../component-guide.md#5-anatomy-of-a-component-folder).

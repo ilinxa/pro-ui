@@ -1,17 +1,17 @@
 # `force-graph` v0.2 — Pro-component Plan (Stage 2, Phase 2 of 6)
 
-> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** **signed off 2026-04-29.** Stage 3 (v0.2 implementation) unlocks once v0.1 implementation lands.
+> **Stage:** 2 of 3 (per-phase plan; one of v0.1–v0.6) · **Status:** **signed off 2026-04-29** (with [system decision #38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) amendment 2026-04-29 cascade applied: references to "custom WebGL edge program" / "DashedDirectedEdgeProgram" / "Phase 0 spike" updated to reflect the stock-Sigma substrate; v0.2 itself adds NO new programs so the impact is editorial). Stage 3 (v0.2 implementation) unlocks once v0.1 implementation lands.
 > **Slug:** `force-graph` · **Category:** `data` · **Phase:** **v0.2 — Interaction infrastructure (2 weeks focused)**
-> **Last updated:** 2026-04-29 (signed off; Q-P3 revised + Q-P10 wording fixed on re-validation; §16.5 expanded with 6 new refinements covering pinned-state permissions, context memoization, ref delegation, stale-history-on-delta-delete, onSelectionChange initial-fire suppression, and history capture timing)
+> **Last updated:** 2026-04-30 (amendment #38 cascade applied — editorial-only updates: §1 inputs, §10 selection ring reference, §15 file tree comment, §18 sign-off pre-condition; was 2026-04-29: signed off; Q-P3 revised + Q-P10 wording fixed on re-validation; §16.5 expanded with 6 new refinements)
 > **Inputs:**
-> - Description signed off ([force-graph-procomp-description.md](force-graph-procomp-description.md), 2026-04-28). All 10 §8 locked decisions are inherited as fixed inputs.
-> - **v0.1 plan signed off** ([force-graph-v0.1-plan.md](force-graph-v0.1-plan.md), 2026-04-28). All 11 v0.1 Q-P locks are inherited; v0.2 builds on v0.1's two-layer state, custom edge program, source-adapter contract, and validateSnapshot foundation.
-> - System description ([../../systems/graph-system/graph-system-description.md](../../systems/graph-system/graph-system-description.md)) — 37 cross-cutting decisions inherited (decision #11 footnoted per v0.1 plan Q-P3; rest unchanged).
+> - Description signed off ([force-graph-procomp-description.md](force-graph-procomp-description.md), 2026-04-28; amended 2026-04-29 per #38). All 10 §8 locked decisions are inherited as fixed inputs.
+> - **v0.1 plan signed off** ([force-graph-v0.1-plan.md](force-graph-v0.1-plan.md), 2026-04-28; amended 2026-04-29 per #38). All 11 v0.1 Q-P locks are inherited; v0.2 builds on v0.1's two-layer state, ~~custom edge program~~ stock-Sigma edge rendering substrate (`EdgeRectangleProgram` + `@sigma/edge-arrow` per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index)), source-adapter contract, and validateSnapshot foundation.
+> - System description ([../../systems/graph-system/graph-system-description.md](../../systems/graph-system/graph-system-description.md)) — 37 cross-cutting decisions inherited (decision #11 footnoted per v0.1 plan Q-P3; **#38 amendment 2026-04-29 supersedes #1 dashed-edge rule + #10 Phase 0 clause**).
 > - Original v4 spec ([../../../graph-visualizer-old.md](../../../graph-visualizer-old.md)) — authoritative for force-graph internals; v0.2 maps to spec Phase 2 (core interactivity, 1w in spec → 2w focused here including the compound API + foundation activation).
 > - **No Tier 1 dependencies.** v0.2 composes zero Tier 1 components per [decision #35](../../systems/graph-system/graph-system-description.md); plan can author independently of any Tier 1 plan.
-> - **No Phase 0 dependency.** Phase 0 spike is a v0.1 pre-condition; v0.2 doesn't add new WebGL programs.
+> - ~~**No Phase 0 dependency.** Phase 0 spike is a v0.1 pre-condition; v0.2 doesn't add new WebGL programs.~~ **Phase 0 dependency irrelevant** — Phase 0 spike CANCELLED per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index); v0.2 still adds no new programs.
 
-This doc locks **how** v0.2 is built. Where v0.1 laid the foundation (data model, source adapter, custom WebGL edge program, FA2 worker, theming, store scaffolding), v0.2 **activates** the user-facing interaction layer: selection, hover, drag, undo/redo, linking-mode. v0.2 also introduces the **compound API** (`<ForceGraph.Provider>` + `<ForceGraph.Canvas>`) that v0.1 plan Q-P0 locked, since selection/hover state creates the first real demand for sibling-hook access.
+This doc locks **how** v0.2 is built. Where v0.1 laid the foundation (data model, source adapter, ~~custom WebGL edge program~~ stock-Sigma edge rendering per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index), FA2 worker, theming, store scaffolding), v0.2 **activates** the user-facing interaction layer: selection, hover, drag, undo/redo, linking-mode. v0.2 also introduces the **compound API** (`<ForceGraph.Provider>` + `<ForceGraph.Canvas>`) that v0.1 plan Q-P0 locked, since selection/hover state creates the first real demand for sibling-hook access.
 
 After sign-off, no scaffolding-time second-guessing — implementation follows the plan; deviations are loud and require an explicit STATUS.md note.
 
@@ -520,7 +520,7 @@ Effect on state:
 
 When `linkingMode.active === true`:
 - Canvas root gets `cursor: crosshair` (CSS).
-- Source endpoint highlights with a "selected as source" ring (visual cue; reuses the selection-ring rendering from `DashedDirectedEdgeProgram` — actually that's edges; nodes use Sigma's stock circle with an additional outer ring rendered by a small SVG overlay).
+- Source endpoint highlights with a "selected as source" ring (visual cue; nodes use Sigma's stock circle with an additional outer ring rendered by a small SVG overlay — was: ~~reuses the selection-ring rendering from `DashedDirectedEdgeProgram`~~ which is moot per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index): the custom program is removed, but the SVG-overlay ring approach is unchanged).
 
 **Scope refinement:** v0.1 ships plain disc nodes (no custom node program). The source-endpoint highlight in v0.2 uses an SVG overlay ring drawn at the source node's screen position, sized to the node's display size. This overlay layer is separate from the v0.4 hull SVG layer.
 
@@ -684,7 +684,7 @@ src/registry/components/data/force-graph/
 │   ├── provider.tsx                           # NEW — <ForceGraph.Provider>; creates store + graph + worker; supplies context
 │   ├── interaction-layer.tsx                  # NEW — Sigma event handlers (click/hover/drag); keyboard shortcuts; linking-mode click precedence
 │   ├── linking-source-overlay.tsx             # NEW — small SVG ring around source endpoint when linking-mode active
-│   └── programs/                              # unchanged from v0.1 (DashedDirectedEdgeProgram + shaders)
+│   # programs/ subdir DROPPED in v0.1 per #38 — stock-Sigma EdgeRectangleProgram + @sigma/edge-arrow registered directly in parts/sigma-container.tsx; v0.5 plan creates parts/programs/ when IconNodeProgram lands
 │
 ├── hooks/
 │   ├── use-graph-store.ts                     # MODIFIED — store creator; subscribeWithSelector middleware; expose context provider
@@ -885,7 +885,7 @@ Baked into implementation:
 - [x] User reviewed §1–§15 (the locked plan) and §16 (resolved Q-Ps + §16.5 refinements).
 - [x] **v0.1 plan signed off** (✓ done 2026-04-28; pre-condition for v0.2 plan sign-off).
 - [x] All 10 plan-stage questions resolved (Q-P3 + Q-P10 refined on re-validation).
-- [x] User said **"plan approved"** — Stage 3 (v0.2 implementation) unlocks once **Phase 0 risk spike** completes (per [v0.1 plan §18](force-graph-v0.1-plan.md#18-definition-of-done-for-this-document-stage-gate) pre-condition) and **v0.1 implementation** lands. v0.2 is implemented sequentially after v0.1 — depends on v0.1's foundations (data model, store, Sigma container, source-adapter contract).
+- [x] User said **"plan approved"** — Stage 3 (v0.2 implementation) unlocks once ~~**Phase 0 risk spike** completes (per [v0.1 plan §18](force-graph-v0.1-plan.md#18-definition-of-done-for-this-document-stage-gate) pre-condition) and~~ **v0.1 implementation** lands. v0.2 is implemented sequentially after v0.1 — depends on v0.1's foundations (data model, store, Sigma container, source-adapter contract). **Phase 0 prerequisite removed per [#38](../../systems/graph-system/graph-system-description.md#8-locked-decisions-index) (2026-04-29).**
 
 After sign-off, the next session starts with:
 
