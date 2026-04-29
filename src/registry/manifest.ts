@@ -14,6 +14,10 @@ import PropertiesFormDemo from "./components/forms/properties-form/demo";
 import PropertiesFormUsage from "./components/forms/properties-form/usage";
 import { meta as propertiesFormMeta } from "./components/forms/properties-form/meta";
 
+import DetailPanelDemo from "./components/feedback/detail-panel/demo";
+import DetailPanelUsage from "./components/feedback/detail-panel/usage";
+import { meta as detailPanelMeta } from "./components/feedback/detail-panel/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -42,6 +46,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: propertiesFormMeta,
     Demo: PropertiesFormDemo,
     Usage: PropertiesFormUsage,
+  },
+  {
+    meta: detailPanelMeta,
+    Demo: DetailPanelDemo,
+    Usage: DetailPanelUsage,
   },
 ];
 
