@@ -18,6 +18,10 @@ import DetailPanelDemo from "./components/feedback/detail-panel/demo";
 import DetailPanelUsage from "./components/feedback/detail-panel/usage";
 import { meta as detailPanelMeta } from "./components/feedback/detail-panel/meta";
 
+import FilterStackDemo from "./components/forms/filter-stack/demo";
+import FilterStackUsage from "./components/forms/filter-stack/usage";
+import { meta as filterStackMeta } from "./components/forms/filter-stack/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -51,6 +55,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: detailPanelMeta,
     Demo: DetailPanelDemo,
     Usage: DetailPanelUsage,
+  },
+  {
+    meta: filterStackMeta,
+    Demo: FilterStackDemo,
+    Usage: FilterStackUsage,
   },
 ];
 
