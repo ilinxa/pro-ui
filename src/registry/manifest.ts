@@ -26,6 +26,10 @@ import EntityPickerDemo from "./components/forms/entity-picker/demo";
 import EntityPickerUsage from "./components/forms/entity-picker/usage";
 import { meta as entityPickerMeta } from "./components/forms/entity-picker/meta";
 
+import MarkdownEditorDemo from "./components/forms/markdown-editor/demo";
+import MarkdownEditorUsage from "./components/forms/markdown-editor/usage";
+import { meta as markdownEditorMeta } from "./components/forms/markdown-editor/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -69,6 +73,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: entityPickerMeta,
     Demo: EntityPickerDemo,
     Usage: EntityPickerUsage,
+  },
+  {
+    meta: markdownEditorMeta,
+    Demo: MarkdownEditorDemo,
+    Usage: MarkdownEditorUsage,
   },
 ];
 
