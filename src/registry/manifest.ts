@@ -10,6 +10,10 @@ import WorkspaceDemo from "./components/layout/workspace/demo";
 import WorkspaceUsage from "./components/layout/workspace/usage";
 import { meta as workspaceMeta } from "./components/layout/workspace/meta";
 
+import PropertiesFormDemo from "./components/forms/properties-form/demo";
+import PropertiesFormUsage from "./components/forms/properties-form/usage";
+import { meta as propertiesFormMeta } from "./components/forms/properties-form/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -33,6 +37,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: workspaceMeta,
     Demo: WorkspaceDemo,
     Usage: WorkspaceUsage,
+  },
+  {
+    meta: propertiesFormMeta,
+    Demo: PropertiesFormDemo,
+    Usage: PropertiesFormUsage,
   },
 ];
 
