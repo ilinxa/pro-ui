@@ -1,10 +1,10 @@
 # `filter-stack` — v0.1 Plan (Stage 2)
 
-> **Status:** **DRAFT 2026-04-29.** Pending user validate pass per project cadence (draft → validate → re-validate → sign off → commit). Recommendations below convert to `**Locked: X.**` form on sign-off.
+> **Status:** **signed off 2026-04-29.** Validate-pass refinements applied (9 fixes: 5 substantive + 4 minor — Q-P4 typing collapse fix; **Q-P7 reversed: install shadcn `ToggleGroup` instead of rolling our own 2-button radiogroup**; Q-P3 solo-click branch by `modeToggle`; §6 + §7.1 schema-validation wiring lock (`useEffect` in `filter-stack.tsx`, no separate hook); §4.2 + §7.1 stateful `useTextBuffer` hook ownership lock; §3.1 stale comment dropped; §9 unstable-`predicate` row added; §9 `onFilteredChange`-throws row added; §6 plan-stage extensions (duplicate-id + missing-options) flagged as scope-tagged). All 10 Q-Ps locked.
 > **Slug:** `filter-stack` · **Category:** `forms` · **Tier:** 1 (generic; no graph dependency)
 > **Parent description:** [filter-stack-procomp-description.md](filter-stack-procomp-description.md) (signed off 2026-04-28)
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (independent at the registry level per [decision #35](../../systems/graph-system/graph-system-description.md))
-> **Sibling completion:** unblocks the [`force-graph` v0.4 plan-lock](../force-graph-procomp/force-graph-procomp-description.md#23-v04--editing-layer-2-weeks). Tier 1 plan-lock cascade after this: 3 of 5 done (with [`properties-form`](../properties-form-procomp/properties-form-procomp-plan.md) + [`detail-panel`](../detail-panel-procomp/detail-panel-procomp-plan.md) signed off 2026-04-29).
+> **Sibling completion:** unblocks the [`force-graph` v0.4 plan-lock](../force-graph-procomp/force-graph-procomp-description.md) (Groups phase; 2.5w focused). Tier 1 plan-lock cascade after this: 3 of 5 done (with [`properties-form`](../properties-form-procomp/properties-form-procomp-plan.md) + [`detail-panel`](../detail-panel-procomp/detail-panel-procomp-plan.md) signed off 2026-04-29).
 
 ---
 
@@ -23,18 +23,18 @@ The deliverable is a single Tier 1 pro-component at `src/registry/components/for
 - **AND-across composition** — every active category's `predicate(item, value)` is `&&`'d to produce the filtered list. Within a category, the host's predicate decides "OR vs AND" semantics (mode flag is a hint stored on the side).
 - **Per-category state** — flat `Record<string, FilterValue>` keyed by `category.id`. Mode for `checkbox-list` stored at `${id}__mode` per [Q6 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28).
 - **Pure controlled** — `values` is a prop; `onChange` is mandatory. No `defaultValues`; no internal value state. (Mirrors properties-form Q6.)
-- **`onFilteredChange` convenience callback** — fires only when filtered set actually changes per Q-P5 below.
+- **`onFilteredChange` convenience callback** — fires only when filtered set actually changes per Q-P5.
 - **Per-category clear button** rendered next to the section label when `isEmpty(value)` returns false.
 - **Global clear-all** in the footer; disabled when ALL categories are empty.
 - **Empty-detection per category** via `isEmpty(value)` — defaults supplied for `checkbox-list` and `text`; required for `toggle` and `custom` per [Q7 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28).
-- **Mode toggle on `checkbox-list`** when `modeToggle: true` — renders union/intersection control. Default mode: `"union"`.
-- **Per-option solo buttons on `checkbox-list`** when `showSoloButtons: true` (opt-in) per [Q2 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28). Click sets value to `[optionValue]`.
+- **Mode toggle on `checkbox-list`** when `modeToggle: true` — renders union/intersection control via shadcn `ToggleGroup` (Q-P7 lock; reversed from "roll our own" on validate pass). Default mode: `"union"`.
+- **Per-option solo buttons on `checkbox-list`** when `showSoloButtons: true` (opt-in) per [Q2 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28). Click sets value to `[optionValue]`; `__mode` key is written only when `modeToggle: true` (Q-P3 refinement on validate pass).
 - **Debounced text input** — `debounceMs` per category (default 250 per Q8).
 - **Generic typing** — `<FilterStack<T>>` parameterized over item type; default `T = unknown` per [Q5 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28).
 - **Imperative ref handle** — `clearAll`, `clear(categoryId)`, `isEmpty()`.
 - **Vertical layout only** — no collapsibles in v0.1; `direction` is a v0.2 additive prop per [Q10 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28).
-- **Schema validation** — dev-only check rejects category ids ending in `__mode` (or any reserved suffix) per [Q6 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28).
-- **ARIA contract** — `<fieldset>` + `<legend>` per section; `aria-pressed` on mode toggle; debounced inputs respect normal text-input ARIA.
+- **Schema validation** — dev-only check rejects category ids ending in `__mode` (or any reserved suffix) per [Q6 lock](filter-stack-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28); plan-stage extensions also flag duplicate ids and `checkbox-list` with empty/missing options.
+- **ARIA contract** — `<fieldset>` + `<legend>` per section; ToggleGroup carries proper radiogroup semantics; debounced inputs respect normal text-input ARIA.
 - **Bundle ≤ 12KB** (per description success #9); zero heavy deps.
 
 **Doesn't ship in v0.1** (per description §3): built-in `range` / `date-range`, section collapsibles, horizontal layout, persistent state, presets/saved sets, search-override semantics (host concern), async predicates, drag-to-reorder. All v0.2+ are designed as additive — none change the v0.1 API.
@@ -43,14 +43,16 @@ The deliverable is a single Tier 1 pro-component at `src/registry/components/for
 
 ---
 
-## 3. Final v0.1 API (recommended)
+## 3. Final v0.1 API (locked)
 
 Builds out [description §5](filter-stack-procomp-description.md#5-rough-api-sketch) into final shapes.
 
 ### 3.1 Filter category schema (discriminated)
 
 ```ts
-type FilterValue = string[] | boolean | string | unknown;          // loose union per Q-P4
+// FilterValue is `unknown` per Q-P4 lock — no compile-time type help on values[id];
+// per-built-in-type conventional shapes are documented inline in the discriminated subtypes below.
+type FilterValue = unknown;
 type FilterMode = "union" | "intersection";
 
 interface BaseFilterCategory<T> {
@@ -58,7 +60,7 @@ interface BaseFilterCategory<T> {
   label: string;
   description?: string;                                              // helper text under label
   predicate: (item: T, value: FilterValue) => boolean;
-  // isEmpty signature per §3.2
+  // isEmpty is required or optional per the discriminated subtypes below (Q-P2 lock)
 }
 
 interface CheckboxListFilter<T> extends BaseFilterCategory<T> {
@@ -69,7 +71,7 @@ interface CheckboxListFilter<T> extends BaseFilterCategory<T> {
   showSoloButtons?: boolean;                                         // default false
   isEmpty?: (value: FilterValue) => boolean;                         // optional; default checks for empty array
   // value shape: string[] (selected option values)
-  // mode shape: separate flat key — values["${id}__mode"] is FilterMode
+  // mode shape: separate flat key — values["${id}__mode"] is FilterMode (only when modeToggle true)
 }
 
 interface ToggleFilter<T> extends BaseFilterCategory<T> {
@@ -135,13 +137,13 @@ interface FilterStackProps<T = unknown> {
 
 ```ts
 interface FilterStackHandle {
-  clearAll(): void;                                                  // dispatches per-category clears via onChange
-  clear(categoryId: string): void;                                   // single-category clear via onChange
+  clearAll(): void;                                                  // dispatches per-category clears via onChange + cancels all pending text debounces
+  clear(categoryId: string): void;                                   // single-category clear via onChange + cancels that text debounce if applicable
   isEmpty(): boolean;                                                // true iff every category is empty
 }
 ```
 
-Per Q-P10 below: minimal scope. `getActiveCategories()` / `setValue(id, v)` are redundant with `values` / `onChange`.
+Per Q-P10: minimal scope. `getActiveCategories()` / `setValue(id, v)` are redundant with `values` / `onChange`.
 
 ### 3.4 What's NOT on the API
 
@@ -167,20 +169,22 @@ interface FilterStackInternalState {
 }
 ```
 
-Implementation: single `useState<Record<string, string>>` for `textBuffer`. No reducer is needed — the action surface is small enough that a 2-3-handler hook is clearer than a reducer (Q-P8 below).
+Implementation per Q-P8: a stateful `useTextBuffer()` hook owns the buffer plus per-id debounced commits (see §4.2 ownership lock). No reducer is needed — the action surface is small enough that a 5-method hook surface is clearer than a reducer.
 
 ### 4.2 The flow per type
 
 | Type | Edit event | Buffer? | Commit timing |
 |---|---|---|---|
 | `checkbox-list` (option toggle) | `onCheckedChange(value, checked)` | no | immediate `onChange` |
-| `checkbox-list` (mode toggle) | mode-toggle click | no | immediate `onChange` (writes `${id}__mode` key) |
-| `checkbox-list` (solo) | solo button click | no | immediate `onChange` (sets `[optionValue]`) |
+| `checkbox-list` (mode toggle) | `ToggleGroup onValueChange` | no | immediate `onChange` (writes `${id}__mode` key) |
+| `checkbox-list` (solo) | solo button click | no | immediate `onChange` (sets `[optionValue]`; mode key conditional per Q-P3) |
 | `toggle` | `onCheckedChange(checked)` | no | immediate `onChange` |
 | `text` | `onChange(string)` keystroke | yes (textBuffer) | debounced `onChange` after `debounceMs` (default 250) |
 | `custom` | host's render's `onChange(unknown)` | no | immediate `onChange` (host owns debounce inside render) |
 
 Text is the only buffered case. The buffer + commit pattern is the standard "debounce-controlled-input" idiom: input element is bound to `textBuffer[id] ?? values[id]`; keystrokes update buffer immediately; commit fires `onChange` with the buffered value `debounceMs` after the last keystroke. On unmount or category-clear, pending commits are flushed/cancelled.
+
+**Ownership (Q-P8 lock):** the textBuffer state and per-id debounced commits live inside a stateful `useTextBuffer()` hook (file `hooks/use-text-buffer.ts`), called once from `filter-stack.tsx`. The hook returns `{ buffer, setBuffer(id, value), flush(id), cancel(id), flushAll(), cancelAll() }`. Internally uses `useState<Record<string, string>>` for the buffer plus `useDebouncedCallback` (Q-P9) per-id. `clear(id)` ref method invokes `cancel(id)` then dispatches `onChange` with the cleared key; `clearAll()` invokes `cancelAll()` then dispatches the cleared values object. Each `<filter-text>` consumes a slice via prop drilling: its `value` is `buffer[id] ?? values[id]`; its `onChange` calls `setBuffer(id, v)` which internally schedules a debounced commit via the parent-supplied `commitText(id, value)` callback.
 
 ### 4.3 Composition pipeline (`apply-filters.ts`)
 
@@ -195,6 +199,8 @@ Text is the only buffered case. The buffer + commit pattern is the standard "deb
 3. memoize on (items, categories, values) — referential equality on items + categories;
    shallow equality on values keyed by category.id (per Q-P5)
 ```
+
+Early-bail: when `activePredicates` is empty (all categories pass-through), return `items` unchanged (referential identity); skips the `.filter()` allocation. Common case for first-mount.
 
 This is wrapped in a custom hook so consumers can tap it for testability when Vitest lands.
 
@@ -220,12 +226,12 @@ Each built-in renders via a small `parts/filter-<type>.tsx` component. Solo butt
 |---|---|---|
 | `checkbox-list` | shadcn `Checkbox` (NEW install) | `<ul>` of options; each row = `<Checkbox>` + label + optional solo button (right-aligned) |
 | `toggle` | shadcn `Switch` (NEW install — also queued by properties-form Phase A) | section-label-row aligned; switch right-aligned next to label |
-| `text` | shadcn `Input` (NEW install — also queued by properties-form Phase A) | full-width input below label; debounced |
+| `text` | shadcn `Input` (NEW install — also queued by properties-form Phase A) | full-width input below label; debounced via `useTextBuffer` |
 | `custom` | host's `render(props)` | full-width container; host owns layout |
 
 Common chrome rendered by `parts/filter-section.tsx`:
 - Section label + description (if supplied)
-- Per-category clear button (small `X` icon button) — visible when `!isEmpty(values[id])` per [Q-P3](#q-p3-from-description-855-3--solo-button-placement-and-aria) below
+- Per-category clear button (small `X` icon button) — visible when `!isEmpty(values[id])` per [Q-P3](#q-p3-from-description-855-3-refined-on-validate-pass--solo-button-placement-and-aria) below
 - Mode toggle for `checkbox-list` with `modeToggle: true` — see Q-P6 / Q-P7 below for placement + implementation
 - The body — the type-specific renderer
 
@@ -233,13 +239,16 @@ Common chrome rendered by `parts/filter-section.tsx`:
 
 Solo button placement: **right-aligned within each option row**, next to the label, when `showSoloButtons: true`. Visual: small ghost button with a "target" lucide icon (`Target` or `Crosshair`); roughly 24×24px.
 
-ARIA: `aria-label="Show only {optionLabel}"`. Click handler: `onChange({ ...values, [id]: [optionValue], "${id}__mode": values["${id}__mode"] ?? defaultMode })` — solo replaces the value with a single-option array; mode is preserved (or initialized to defaultMode if not yet set).
+ARIA: `aria-label="Show only {optionLabel}"`. **Click handler branches by `category.modeToggle`** (refined on validate pass; original sketch always wrote the `__mode` key, polluting categories that have no mode toggle):
+
+- `modeToggle: false`: `onChange({ ...values, [id]: [optionValue] })` — no mode key written.
+- `modeToggle: true`: `onChange({ ...values, [id]: [optionValue], [`${id}__mode`]: values[`${id}__mode`] ?? category.defaultMode ?? "union" })` — preserve existing mode, fall back to `defaultMode`, fall back to `"union"`.
 
 Tooltip on hover/focus uses shadcn `Tooltip` (NEW install — also queued by properties-form Phase A). Without tooltip the bare icon button reads ambiguously.
 
-### 5.3 Mode toggle (Q-P6 + Q-P7 below)
+### 5.3 Mode toggle (Q-P6 + Q-P7)
 
-Renders only when `modeToggle: true` on a `checkbox-list` category. **Placement: inline next to the section label** (Q-P6 recommendation), using a 2-button group:
+Renders only when `modeToggle: true` on a `checkbox-list` category. **Placement: inline next to the section label** (Q-P6 lock); **implementation: shadcn `ToggleGroup`** (Q-P7 lock — reversed from "roll our own" on validate pass; install via Phase A pre-flight).
 
 ```
 By group [Union | Intersection]                              [×]
@@ -249,7 +258,21 @@ By group [Union | Intersection]                              [×]
 □ Project C
 ```
 
-Implementation: roll-our-own 2-button group using existing `Button` primitive (Q-P7 recommendation). Two `Button variant="ghost" size="sm"` elements with `data-state="active|inactive"` styling; container is `role="radiogroup"`; each button is `role="radio" aria-checked`. Active state uses the signal-lime accent. Click on Union: `onChange({ ...values, "${id}__mode": "union" })`; symmetric for Intersection.
+```tsx
+<ToggleGroup
+  type="single"
+  value={(values[`${id}__mode`] as FilterMode | undefined) ?? category.defaultMode ?? "union"}
+  onValueChange={(next) => {
+    if (next) onChange({ ...values, [`${id}__mode`]: next });
+  }}
+  aria-label={`${category.label} mode`}
+>
+  <ToggleGroupItem value="union">Union</ToggleGroupItem>
+  <ToggleGroupItem value="intersection">Intersection</ToggleGroupItem>
+</ToggleGroup>
+```
+
+The `if (next) onChange(...)` guard — `ToggleGroup type="single"` allows full deselection (returning empty string); suppress that to keep mode always defined. Active-state styling, roving tabindex, arrow-key focus+select, Home/End, Space/Enter activation are all provided correctly by Radix `react-toggle-group`.
 
 ### 5.4 Per-category clear button
 
@@ -279,7 +302,7 @@ function validateCategorySchema(categories: ReadonlyArray<FilterCategory<unknown
 
   const seen = new Set<string>();
   for (const cat of categories) {
-    // 1. Reserved suffix
+    // 1. Reserved suffix (Q6-mandated)
     for (const suffix of RESERVED_SUFFIXES) {
       if (cat.id.endsWith(suffix)) {
         console.error(
@@ -288,12 +311,12 @@ function validateCategorySchema(categories: ReadonlyArray<FilterCategory<unknown
         );
       }
     }
-    // 2. Duplicate id
+    // 2. Duplicate id (plan-stage extension)
     if (seen.has(cat.id)) {
       console.error(`[filter-stack] duplicate category id "${cat.id}".`);
     }
     seen.add(cat.id);
-    // 3. Type-shape sanity (e.g., checkbox-list missing options)
+    // 3. Type-shape sanity (plan-stage extension)
     if (cat.type === "checkbox-list" && (!cat.options || cat.options.length === 0)) {
       console.warn(`[filter-stack] checkbox-list category "${cat.id}" has no options.`);
     }
@@ -301,7 +324,11 @@ function validateCategorySchema(categories: ReadonlyArray<FilterCategory<unknown
 }
 ```
 
-Called from `useFilterStack` setup hook on schema changes (memoized to avoid re-running on every render). Production builds strip the function body via `process.env.NODE_ENV` guard + tree-shaking. Reserved suffix list is exported so future internal suffixes (e.g., a hypothetical `__solo`) extend cleanly.
+**Wiring (validate-pass lock):** called from `filter-stack.tsx` directly via a `useEffect` keyed on `[categories]` — runs once per `categories` reference change, NOT on every render. No dedicated hook; the `validate-schema.ts` module exports the function and is imported into `filter-stack.tsx`. Production builds strip the function body via `process.env.NODE_ENV` guard + tree-shaking.
+
+Reserved suffix list (`RESERVED_SUFFIXES`) is exported so future internal suffixes (e.g., a hypothetical `__solo`) extend cleanly.
+
+**Plan-stage extensions** (NOT inherited from description Q6): the validation pass also flags duplicate category ids and `checkbox-list` categories with empty/missing `options`. Description Q6 only mandates the reserved-suffix check; these extensions are reasonable host-bug catchers but are scope-tagged here in case a future bundle cut needs them gone — the Q6-mandated suffix check stays unconditionally.
 
 ---
 
@@ -311,23 +338,26 @@ Called from `useFilterStack` setup hook on schema changes (memoized to avoid re-
 
 ```
 src/registry/components/forms/filter-stack/
-├── filter-stack.tsx                  # main component (controlled wrapper; ref handle; section iterator)
+├── filter-stack.tsx                  # main component (controlled wrapper; ref handle; section iterator;
+│                                      #   schema-validation useEffect; useTextBuffer hook call)
 ├── types.ts                          # FilterValue, FilterMode, FilterCategory union, props, handle
 ├── parts/
 │   ├── filter-section.tsx            # per-category container — label, description, clear button,
 │   │                                  #   mode toggle, body slot
 │   ├── filter-checkbox-list.tsx      # checkbox list body + solo buttons
 │   ├── filter-toggle.tsx             # switch row body
-│   ├── filter-text.tsx               # debounced input body
-│   ├── filter-custom.tsx             # thin wrapper that calls host's render(props)
-│   ├── mode-toggle.tsx               # union/intersection 2-button radiogroup
+│   ├── filter-text.tsx               # debounced input body (consumes useTextBuffer slice)
+│   ├── filter-custom.tsx             # thin wrapper that calls host's render(props); error boundary
+│   ├── mode-toggle.tsx               # ToggleGroup union/intersection (Q-P7 lock)
 │   ├── solo-button.tsx               # per-option solo affordance with Tooltip
 │   ├── clear-button.tsx              # shared per-category + global clear
 │   └── filter-stack-footer.tsx       # global clear-all button (uses clear-button.tsx)
 ├── hooks/
-│   ├── use-debounced-callback.ts     # text-input debounce primitive
+│   ├── use-debounced-callback.ts     # debounce primitive (returned fn has flush + cancel methods)
 │   ├── use-filtered-items.ts         # memoized filter pipeline + onFilteredChange wiring
-│   └── use-text-buffer.ts            # textBuffer state + commit/flush helpers
+│   └── use-text-buffer.ts            # stateful: owns textBuffer state + per-id debounced commits;
+│                                      #   exposes { buffer, setBuffer, flush(id), cancel(id),
+│                                      #   flushAll, cancelAll } — Q-P8 lock
 ├── lib/
 │   ├── default-is-empty.ts           # per-type defaults for checkbox-list + text
 │   ├── validate-schema.ts            # dev-only schema validation (§6)
@@ -346,7 +376,7 @@ src/registry/components/forms/filter-stack/
 Three internal phases, each ~2-3 days:
 
 **Phase A — types + state + lib (foundational; ~2 days):**
-- **Pre-flight (must precede everything else):** install missing shadcn primitives — `pnpm dlx shadcn@latest add checkbox input switch tooltip` (4 primitives; `Button` already in repo). **State of `src/components/ui/` verified at plan-write time (2026-04-29):** contains `badge`, `button`, `card`, `dropdown-menu`, `popover`, `scroll-area`, `separator`, `table`, `tabs`. None of `Checkbox` / `Input` / `Switch` / `Tooltip` are present. Note: `Input` / `Switch` / `Tooltip` are also queued by [`properties-form` plan §8.2 Phase A](../properties-form-procomp/properties-form-procomp-plan.md#82-build-order-within-v01); whichever component implements first runs the install. Plan locks the pre-flight as part of filter-stack's gate so a parallel-implementing developer doesn't trip over the missing primitive. Commit separately so the install diff stays distinct.
+- **Pre-flight (must precede everything else):** install missing shadcn primitives — `pnpm dlx shadcn@latest add checkbox input switch tooltip toggle-group` (5 primitives; `Button` already in repo). **State of `src/components/ui/` verified at plan-write time (2026-04-29):** contains `badge`, `button`, `card`, `dropdown-menu`, `popover`, `scroll-area`, `separator`, `table`, `tabs`. None of `Checkbox` / `Input` / `Switch` / `Tooltip` / `ToggleGroup` are present. Note: `Input` / `Switch` / `Tooltip` are also queued by [`properties-form` plan §8.2 Phase A](../properties-form-procomp/properties-form-procomp-plan.md#82-build-order-within-v01); `Checkbox` and `ToggleGroup` are filter-stack-specific. Plan locks the pre-flight as part of filter-stack's gate so a parallel-implementing developer doesn't trip over the missing primitives. Commit separately so the install diff stays distinct.
 - `types.ts` — full type surface (discriminated `FilterCategory` with isEmpty per §3.1)
 - `lib/default-is-empty.ts` — per-type defaults
 - `lib/validate-schema.ts` — dev-only validation
@@ -359,6 +389,7 @@ Three internal phases, each ~2-3 days:
 - 4 body parts: `filter-checkbox-list.tsx`, `filter-toggle.tsx`, `filter-text.tsx`, `filter-custom.tsx`
 - Shared parts: `mode-toggle.tsx`, `solo-button.tsx`, `clear-button.tsx`, `filter-stack-footer.tsx`
 - `filter-stack.tsx` — main component wiring everything
+- Phase B end: `axe-core` smoke run for ToggleGroup keyboard-navigation a11y (expected pass — Radix handles it).
 
 **Phase C — demos + integration (~2 days):**
 - `demo.tsx` (5 sub-demos covering success #11), `dummy-data.ts`, `usage.tsx`, `meta.ts`, `index.ts`
@@ -377,7 +408,7 @@ Per description success #8.
 | Each section | `<fieldset>` + `<legend>` (legend contains category label) |
 | Section description | `<p>` after legend with `id={descriptionId}`; section's body inputs reference via `aria-describedby` |
 | Checkbox option | shadcn `Checkbox` provides correct `role="checkbox"` + `aria-checked`; label association via wrapping `<label>` |
-| Mode toggle (radiogroup) | container `role="radiogroup" aria-label="{categoryLabel} mode"`; each button `role="radio" aria-checked` |
+| Mode toggle | shadcn `ToggleGroup type="single"` provides `role="radiogroup"` + `role="radio" aria-checked` per item + roving tabindex + arrow-key navigation + Home/End + Space/Enter; container `aria-label={`${category.label} mode`}` |
 | Solo button | `<Button>` with `aria-label="Show only {optionLabel}"`; tooltip via shadcn `Tooltip` |
 | Per-category clear button | `<Button>` with `aria-label="Clear {categoryLabel}"`; visible only when `!isEmpty(value)` |
 | Toggle filter | shadcn `Switch` provides `role="switch"` + `aria-checked`; label via wrapping `<label>` |
@@ -402,13 +433,15 @@ ESC behavior: pressing ESC inside a focused text filter clears that field (per d
 | `text` debounce in flight when component unmounts | Pending commit is cancelled in `useEffect` cleanup. No `onChange` fires after unmount. |
 | `text` debounce in flight when category is cleared programmatically | `clear(id)` cancels the pending commit and dispatches `onChange({ ...values, [id]: "" })` immediately. Buffer is reset to empty. |
 | `text` debounce in flight when input is blurred | Pending commit fires immediately on blur (flushes buffer); `onChange` dispatches with the current buffer value. |
-| `clearAll()` called via ref | Single `onChange` dispatch with all categories cleared (per `default-is-empty.ts` rules + `__mode` keys preserved). One render cycle. |
+| `clearAll()` called via ref | `cancelAll()` runs first, then a single `onChange` dispatch with all categories cleared (per `default-is-empty.ts` rules + `__mode` keys preserved). One render cycle. |
 | `clear(id)` called via ref for unknown id | Dev-only `console.warn`; no-op. |
 | `isEmpty(value)` throws | Caught at the call site (`filter-section.tsx`); treated as "not empty" (clear button shows); dev-only `console.error` with category id. Mirrors properties-form's `safeCall` pattern. |
 | `predicate(item, value)` throws | Caught at the call site (`apply-filters.ts`); treated as `false` for that item (filtered out); dev-only `console.error` with category id and item. |
 | Custom render throws | React error boundary at `filter-custom.tsx` catches; renders `<FilterError>` placeholder ("Custom filter crashed — see console"); filter-stack remains interactive. |
 | `onFilteredChange` not supplied but filtered changes | No-op (no callback to invoke). The hook still computes `filtered` because `filter-stack` itself doesn't render filtered items — it's pure convenience. |
+| `onFilteredChange` callback throws | Caught at the dispatch site; converted to dev-only `console.error("[filter-stack] onFilteredChange threw:", err)`. Downstream filtering is unaffected. Production builds let it propagate per standard React error-boundary expectations. |
 | Inline-array `items` prop with massive size (10k+) | `useFilteredItems` memoizes on `items` reference; if host passes inline `items={[...]}` without memoizing, every render re-computes. Documented in usage; React Compiler covers most in-repo cases. |
+| Inline-arrow `predicate` per category (host passes new function each render) | Same footgun as inline `categories` literal (§10.1.1). Each render produces new category objects via inline construction; `useFilteredItems` re-computes. Mitigated by React Compiler in-repo; documented as host responsibility for NPM consumers; same dev-warn machinery surfaces it via the `categories` reference instability counter. |
 | `values` references that are stable but `categories` changes mid-life (e.g., category removed) | Stale `values["removedId"]` keys are silently ignored — no category renders for them; pipeline skips them. Host can prune via `onChange`. |
 | `defaultMode` change mid-life | Honored only when the category's mode key is absent from `values`. Once `values["${id}__mode"]` is set, `defaultMode` is ignored (host owns persistent value). |
 | `showSoloButtons: true` but `options` is empty | No solo buttons render (no rows). |
@@ -425,6 +458,7 @@ The component is layout + state-thin by design. Optimizations:
 - **Filter sections do NOT need `React.memo`** — typical filter panels have 3-6 sections; per-keystroke re-render of all sections is cheap. (Not the field-row-density problem properties-form has.)
 - **Text-input buffer is local state** — keystrokes don't trigger filtered-pipeline computation until the debounce flushes.
 - **`onFilteredChange` change-detection** is purely referential per §4.4 — no array-walking diff.
+- **Early-bail on empty active-predicate set** in `apply-filters.ts` — when all categories are empty, returns `items` unchanged (referential identity); skips the `.filter()` allocation.
 
 No virtualization; not needed at filter-section count (3-6 typical, 10-15 extreme).
 
@@ -447,20 +481,20 @@ Same footgun as [properties-form's `schema`](../properties-form-procomp/properti
    <FilterStack categories={categories} ... />
    ```
 
-Same dev-only runtime warning posture as properties-form: fires when `categories` reference changes more than 5 times in succession (avoiding false positives on first-mount churn).
+Same dev-only runtime warning posture as properties-form: fires when `categories` reference changes more than 5 times in succession (avoiding false positives on first-mount churn). The same warning surfaces unstable inline-arrow `predicate` references (each new category-object literal carries new function references).
 
 ### 10.2 Bundle audit
 
 Budget: **≤ 12KB minified + gzipped** per description success #9.
 
-**State of `src/components/ui/` at plan-write time** (verified 2026-04-29): `badge`, `button`, `card`, `dropdown-menu`, `popover`, `scroll-area`, `separator`, `table`, `tabs`. **Of the 5 shadcn primitives filter-stack uses (`Checkbox`, `Input`, `Switch`, `Tooltip`, `Button`), only `Button` exists.** Four must be installed via `pnpm dlx shadcn@latest add` before implementation begins (see [§7.2 Phase A pre-flight](#72-build-order-within-v01)). `Input` / `Switch` / `Tooltip` are already queued by [properties-form plan §8.2](../properties-form-procomp/properties-form-procomp-plan.md#82-build-order-within-v01); `Checkbox` is filter-stack-specific.
+**State of `src/components/ui/` at plan-write time** (verified 2026-04-29): `badge`, `button`, `card`, `dropdown-menu`, `popover`, `scroll-area`, `separator`, `table`, `tabs`. **Of the 6 shadcn primitives filter-stack uses (`Checkbox`, `Input`, `Switch`, `Tooltip`, `ToggleGroup`, `Button`), only `Button` exists.** Five must be installed via `pnpm dlx shadcn@latest add` before implementation begins (see [§7.2 Phase A pre-flight](#72-build-order-within-v01)). `Input` / `Switch` / `Tooltip` are already queued by [properties-form plan §8.2](../properties-form-procomp/properties-form-procomp-plan.md#82-build-order-within-v01); `Checkbox` and `ToggleGroup` are filter-stack-specific.
 
 Realistic breakdown — filter-stack's *own* code:
 - Component code: ~6-9KB (17 files; mostly thin parts; no heavy logic outside `apply-filters.ts` + 3 hooks)
 - `lucide-react` icons: tree-shaken; ~1KB for `X` (clear) + `Target` (solo) + maybe one more.
 - **Filter-stack-attributable total: ~7-10KB**, ceiling 12KB with ~2-5KB headroom.
 
-Newly-installed shadcn primitives (`Checkbox`, `Input`, `Switch`, `Tooltip`) add to the registry's overall bundle but are **shared infrastructure**, amortized across all current and future consumers — they are NOT filter-stack-attributable cost. Per-primitive minified+gzipped: ~1-3KB each plus shared `@radix-ui` deps.
+Newly-installed shadcn primitives (`Checkbox`, `Input`, `Switch`, `Tooltip`, `ToggleGroup`) add to the registry's overall bundle but are **shared infrastructure**, amortized across all current and future consumers — they are NOT filter-stack-attributable cost. Per-primitive minified+gzipped: ~1-3KB each plus shared `@radix-ui` deps. The Radix peer dep is amortized across all 5 newly-installed primitives.
 
 Wired via `size-limit` (or equivalent) at v0.1 implementation start — same posture as properties-form §11.2 + detail-panel §10.2 + force-graph v0.1 plan §17.5 #3.
 
@@ -475,88 +509,113 @@ Wired via `size-limit` (or equivalent) at v0.1 implementation start — same pos
 | Inline `categories` literal causes per-render re-compute | React Compiler covers in-repo; usage docs flag for NPM consumers; dev-warn after 5+ unstable renders. |
 | Debounce timer interactions with React Compiler / strict mode | `useDebouncedCallback` uses a ref-stored timeout id; safe under strict-mode double-invocation. Smoke test in Phase B. |
 | Custom render's `onChange` fires synchronously inside its own commit (loops) | filter-stack treats every `onChange` symmetrically — host's render must not fire `onChange` from its own value commit. Documented; same posture as React's controlled-input contract. |
-| Mode-toggle 2-button radiogroup misses keyboard-arrow navigation | Plan-stage refinement: arrow-left/right cycles between Union/Intersection; Home/End jump to ends. Standard radiogroup pattern. Tested in Phase B with `axe-core`. |
 | `__mode` key collisions if a host genuinely needs `someId__mode` as a category id | Schema validation rejects it; host renames. If a real consumer needs the suffix as data, plan-stage adds an `escapeReservedSuffixes?: boolean` opt-out — but defaulting to safe rejection is the right v0.1 posture. |
-| Bundle exceeds 12KB | Audit at end of Phase B. If over: candidates for cut are the schema-validation module (~0.3KB; gated to dev anyway) or the dev-warn telemetry. Prefer keeping. Cut tooltip text strings or merge tiny parts before cutting safety. |
+| Bundle exceeds 12KB | Audit at end of Phase B. Specific cut candidates in priority order: (1) drop the duplicate-id and missing-options checks from `validate-schema.ts` (~0.3KB; plan-stage extensions per §6, NOT Q6-mandated); (2) drop the `defaultIsEmpty` re-export (~0.1KB; private-use only); (3) collapse `solo-button.tsx` into `filter-checkbox-list.tsx` (~0.3KB structural cost). Don't cut a11y machinery (ESC handler, ARIA wiring, ToggleGroup, Tooltip). |
 | `onFilteredChange` reference-only equality misleads consumers | Documented in usage as "may have changed" semantics; consumers needing strict change-detection dedupe on their side. |
 
 ### 11.2 Alternatives considered, rejected
 
-- **Reducer-based internal state.** Rejected per Q-P8 — the action surface (text buffer commits + cancellation) is small; a 2-handler hook is clearer than a reducer for this scale.
-- **Tabs primitive for mode toggle.** Rejected per Q-P7 — Tabs is heavier (designed for content panels), introduces unnecessary container chrome. 2-button radiogroup is purpose-fit.
-- **Install shadcn `ToggleGroup`** for mode toggle. Considered; rejected for v0.1. ToggleGroup is the radix-correct primitive but adds another shadcn install for one consumer at one location. Roll-our-own 2-button group reuses existing `Button` and saves the install. If a real second consumer surfaces (e.g., entity-picker uses one), revisit and install ToggleGroup as v0.2 refactor.
+- **Reducer-based internal state.** Rejected per Q-P8 — the action surface (text buffer commits + cancellation) is small; a 5-method hook surface is clearer than a reducer for this scale.
+- **Tabs primitive for mode toggle.** Rejected per Q-P7 — Tabs is heavier (designed for content panels), introduces unnecessary container chrome. ToggleGroup is purpose-fit.
+- **Roll-our-own 2-button radiogroup using existing `Button`** — initially recommended; **rejected on validate pass** in favor of installing shadcn `ToggleGroup`. The WAI-ARIA radiogroup-pattern implementation cost (~150 LOC + Phase B audit risk) outweighs the ~2KB shared bundle of installing ToggleGroup, especially since the Radix peer dep is already shared via the queued `Tooltip` / `Switch` / `Checkbox` installs. Q-P7 lock.
 - **Async predicate support.** Rejected per description §3 — explicit out of scope; v0.2+.
 - **Built-in `range` / `date-range` types.** Rejected per description §3 + Q1 lock — `custom` slot covers them in v0.1.
 - **Internal search-override (system #12).** Rejected per description §3 — host concern; filter-stack returns who passes filters and the host unions with search-matched items independently.
-- **Strict per-category-type discriminated `FilterValue`.** Considered (per description §8.5 #4); rejected per Q-P4 below — verbose with little ergonomic gain at the predicate boundary, where casts are unavoidable anyway.
+- **Strict per-category-type discriminated `FilterValue`.** Considered (per description §8.5 #4); rejected per Q-P4 — verbose with little ergonomic gain at the predicate boundary, where casts are unavoidable anyway.
 
 ---
 
-## 12. Resolved plan-stage questions (recommendations; convert on sign-off)
+## 12. Resolved plan-stage questions (locked on sign-off 2026-04-29)
 
-10 questions. **High-impact:** Q-P2 (isEmpty discriminated typing), Q-P5 (onFilteredChange semantics), Q-P7 (mode-toggle implementation). **Medium:** Q-P1 (reserved-suffix validation), Q-P3 (solo button placement), Q-P8 (state architecture), Q-P9 (debounce impl). **Low:** Q-P4 (FilterValue typing), Q-P6 (mode-toggle placement), Q-P10 (handle scope).
+All 10 questions resolved at sign-off. **Q-P3 + Q-P4 + Q-P7 + Q-P8 refined on validate pass** (Q-P3: solo-click branching by `modeToggle`; Q-P4: union ceremony dropped, type collapses to `unknown` directly; Q-P7: roll-our-own reversed → install ToggleGroup; Q-P8: textBuffer ownership lock — stateful `useTextBuffer` hook). **High-impact:** Q-P2 (isEmpty discriminated typing), Q-P5 (onFilteredChange semantics), Q-P7 (mode-toggle implementation). **Medium:** Q-P1 (reserved-suffix validation), Q-P3 (solo button placement), Q-P4 (FilterValue typing — promoted from low on validate pass), Q-P8 (state architecture), Q-P9 (debounce impl). **Low:** Q-P6 (mode-toggle placement), Q-P10 (handle scope).
 
 ### Q-P1 (from description §8.5 #1) — Reserved-suffix schema validation
 
-**Recommendation: dev-only validation pass per §6.** `RESERVED_SUFFIXES = ["__mode"]` exported as an extensible constant. Validation runs once per `categories` reference change (memoized inside the setup hook). Production builds strip via `process.env.NODE_ENV` guard.
+**Locked: dev-only validation pass per §6.** `RESERVED_SUFFIXES = ["__mode"]` exported as an extensible constant. Validation runs once per `categories` reference change (`useEffect` in `filter-stack.tsx`; not memoized — wired via effect dependency, not `useMemo`). Production builds strip via `process.env.NODE_ENV` guard.
 **Impact:** medium. **Trade-off:** none — dev-only safety net with zero production cost.
 
 ### Q-P2 (from description §8.5 #2) — `isEmpty` enforcement at the type level
 
-**Recommendation: discriminated typing per §3.1.** `CheckboxListFilter` + `TextFilter` have `isEmpty?` (optional with default applied); `ToggleFilter` + `CustomFilter` have `isEmpty` (required). TS rejects schemas that omit `isEmpty` on the required cases at compile time — no runtime check needed for enforcement.
+**Locked: discriminated typing per §3.1.** `CheckboxListFilter` + `TextFilter` have `isEmpty?` (optional with default applied); `ToggleFilter` + `CustomFilter` have `isEmpty` (required). TS rejects schemas that omit `isEmpty` on the required cases at compile time — no runtime check needed for enforcement.
 **Impact:** high — defines the schema contract.
-**Trade-off:** loose-typed schemas (the `as any` escape hatch) bypass enforcement; the runtime fallback for missing `isEmpty` is a "always not-empty" return (clear button always shows). Documented as host bug.
+**Trade-off:** loose-typed schemas (the `as any` escape hatch) bypass enforcement; the runtime fallback for missing `isEmpty` on `toggle` / `custom` is a "always not-empty" return (clear button always shows). Documented as host bug.
 
-### Q-P3 (from description §8.5 #3) — Solo button placement and ARIA
+### Q-P3 (from description §8.5 #3; refined on validate pass) — Solo button placement and ARIA
 
-**Recommendation: right-aligned inside each option row when `showSoloButtons: true`** per §5.2. Small ghost button, lucide `Target` icon, ~24×24px. ARIA `aria-label="Show only {optionLabel}"` + tooltip via shadcn `Tooltip`. Click: `onChange({ ...values, [id]: [optionValue], "${id}__mode": values["${id}__mode"] ?? defaultMode })` — solo replaces value with single-element array; mode is preserved or initialized.
+**Locked: right-aligned inside each option row when `showSoloButtons: true`** per §5.2. Small ghost button, lucide `Target` icon, ~24×24px. ARIA `aria-label="Show only {optionLabel}"` + tooltip via shadcn `Tooltip`. **Click handler branches by `category.modeToggle`** (refined on validate pass — original sketch always wrote the `__mode` key, polluting categories that have no mode toggle):
+
+- `modeToggle: false`: `onChange({ ...values, [id]: [optionValue] })` — no mode key written.
+- `modeToggle: true`: `onChange({ ...values, [id]: [optionValue], [`${id}__mode`]: values[`${id}__mode`] ?? category.defaultMode ?? "union" })` — preserve existing mode, fall back to `defaultMode`, fall back to `"union"`.
+
 **Impact:** medium — visible in the graph filter panel's primary use case.
 **Trade-off:** placement-inside-row competes with long option labels for horizontal space; if labels are long the solo button can wrap. Acceptable; alternative (separate solo column right of all options) is more visually heavy. Documented in usage.
 
-### Q-P4 (from description §8.5 #4) — `FilterValue` discriminated union typing
+### Q-P4 (from description §8.5 #4; refined on validate pass) — `FilterValue` typing
 
-**Recommendation: loose `FilterValue = string[] | boolean | string | unknown` union** per §3.1. Predicate-side casts (`(value as string[])`, `(value as boolean)`, etc.) are the established pattern in description §6.1's example. Strict per-category typing would require generic threading through `FilterCategory<T, V>`, doubling the type parameter count for marginal gain since the predicate boundary always involves a cast either way.
-**Impact:** low — primarily a typing posture.
-**Trade-off:** hosts can pass `42` as a value to a `text` category and TS won't catch it; the predicate cast catches at runtime via `predicate(item, value)` returning false (string ops on a number return undefined). In practice, hosts construct values from controls that produce the right shape. v0.2 may add stricter typing if real bugs surface.
+**Locked: `type FilterValue = unknown`** per §3.1. **Refined on validate pass:** the description §5 sketch's `string[] | boolean | string | unknown` collapses to just `unknown` in TypeScript (the `unknown` arm absorbs the others — `unknown` is the top type), so the union ceremony adds zero type information while suggesting illusory safety. Locking as `unknown` directly makes the looseness explicit. Per-built-in-type conventional shapes are documented inline in the discriminated category subtypes (§3.1 comments). Predicate-side casts are unchanged.
+**Impact:** medium — promoted from low on validate pass; the typing was actively misleading, not just verbose.
+**Trade-off:** hosts get no compile-time type help on `values[id]` assignments — same as before, but now with no fake hint of safety. Strict per-category typing (`FilterCategory<T, V>` generic) was rejected: doubles the type parameter count for marginal gain since the predicate boundary always involves a cast either way; deferred to v0.2 if real bugs surface.
 
 ### Q-P5 (from description §8.5 #5) — `onFilteredChange` change-detection semantics
 
-**Recommendation: referential-equality-on-memoized-output** per §4.4. The convenience callback fires when `useFilteredItems`'s memoized array reference changes. Inputs feed memoization by reference: items + categories + values. Same inputs → same reference → no fire. Different inputs → new reference → fire (even if the resulting set is element-wise identical, which is rare).
+**Locked: referential-equality-on-memoized-output** per §4.4. The convenience callback fires when `useFilteredItems`'s memoized array reference changes. Inputs feed memoization by reference: items + categories + values. Same inputs → same reference → no fire. Different inputs → new reference → fire (even if the resulting set is element-wise identical, which is rare).
 **Impact:** high — affects the hot path for consumers reading filtered output.
 **Trade-off:** the callback is "may have changed," not "definitely differs." Consumers needing strict change detection dedupe via shallow-equal-by-id on their side; documented in usage. Alternative ("by-id-set comparison inside filter-stack") walks the array on every input change, defeating the point of the callback. Alternative ("shallow-equal item arrays") risks false negatives if items reorder. Reference-equality is the right v0.1 posture; stricter modes are an opt-in v0.2 prop if a real consumer needs them.
 
 ### Q-P6 (from description §8.5 #6) — Mode toggle UI placement
 
-**Recommendation: inline next to the section label** per §5.3. Compact, visually binds the mode to its section, leaves vertical space for options. Visual: `[Section label] [Union | Intersection]   [×]`.
+**Locked: inline next to the section label** per §5.3. Compact, visually binds the mode to its section, leaves vertical space for options. Visual: `[Section label] [Union | Intersection]   [×]`.
 **Impact:** low — visual polish.
 **Trade-off:** narrow panels (<280px) might wrap the toggle below the label. Acceptable; flex-wrap behaves correctly. Alternative (below options, above the first option) is more visually heavy and pushes options down. Plan locks inline placement; v0.2 may add a `modeTogglePosition: "inline" | "below"` if real consumers need.
 
-### Q-P7 (NEW) — Mode toggle implementation
+### Q-P7 (NEW; reversed on validate pass) — Mode toggle implementation
 
-**Recommendation: roll-our-own 2-button radiogroup using existing `Button`** per §5.3. No new shadcn install. Two `<Button variant="ghost" size="sm" data-state="active|inactive">` elements wrapped in a container with `role="radiogroup"`; each button has `role="radio" aria-checked`. Active state uses signal-lime accent.
+**Locked: install shadcn `ToggleGroup` (Radix `react-toggle-group`) as Phase A pre-flight; consume in `parts/mode-toggle.tsx`** per §5.3. **Reversed on validate pass:** the original "roll our own 2-button radiogroup using existing Button" recommendation undersold the WAI-ARIA radiogroup-pattern implementation cost — roving tabindex, atomic arrow-key focus+select, Home/End, Space/Enter activation, disabled handling. ~80–150 LOC owned by us plus a Phase B audit risk. ToggleGroup ships all of this correct out of the box; the Radix peer dep is **already shared** via the other queued installs (`Tooltip`, `Switch`, `Checkbox`).
 
-Alternatives considered:
-- **shadcn `ToggleGroup`** (radix `react-toggle-group`) — purpose-built primitive; correct ARIA out of the box. Rejected for v0.1: adds a shadcn install for one consumer at one location. Revisit if entity-picker or another future component needs ToggleGroup.
-- **shadcn `Tabs`** (already in repo) — designed for content panels; introduces unnecessary container chrome (TabsList, TabsTrigger, TabsContent). Wrong tool.
-- **shadcn `Switch`** (Phase A pre-flight) — binary on/off, wrong semantics (Union/Intersection are peer values, not on/off).
+Trade-off math reversed on validate pass: ~2KB shared bundle vs ~150 LOC owned + audit risk + maintenance. ToggleGroup wins.
 
-**Impact:** high — affects bundle, a11y, and the implementation pattern for future similar toggles.
-**Trade-off:** rolling our own means we own the ARIA + keyboard-navigation pattern (arrow keys, Home/End). Not free; well-defined though. Plan-stage refinement #2 below locks the keyboard pattern. If implementation surfaces a11y issues at audit time, swap to ToggleGroup install.
+Implementation per §5.3:
 
-### Q-P8 (NEW) — Internal state architecture: useState vs useReducer
+```tsx
+<ToggleGroup
+  type="single"
+  value={(values[`${id}__mode`] as FilterMode | undefined) ?? category.defaultMode ?? "union"}
+  onValueChange={(next) => {
+    if (next) onChange({ ...values, [`${id}__mode`]: next });
+  }}
+  aria-label={`${category.label} mode`}
+>
+  <ToggleGroupItem value="union">Union</ToggleGroupItem>
+  <ToggleGroupItem value="intersection">Intersection</ToggleGroupItem>
+</ToggleGroup>
+```
 
-**Recommendation: single `useState<Record<string, string>>` for `textBuffer` + small handler hooks** per §4.1. The action surface is small: text-buffer commit, text-buffer cancel, text-buffer flush-on-blur. A reducer is clearer once cross-action invariants exist (rich-card's case); here, three independent handlers are simpler.
+The `if (next) onChange(...)` guard — `ToggleGroup type="single"` allows full deselection (returning empty string); suppress that to keep mode always defined.
+
+Alternatives considered (rejected):
+- **Roll-our-own 2-button radiogroup using existing `Button`** — rejected on validate pass per above. ~150 LOC + ongoing a11y maintenance for the registry's first consumer-site use; not worth it.
+- **shadcn `Tabs`** (already in repo) — designed for content panels; introduces unnecessary container chrome. Wrong tool.
+- **shadcn `Switch`** — binary on/off, wrong semantics (Union/Intersection are peer values, not on/off).
+
+**Impact:** high — affects bundle, a11y, install set, and pattern for future similar toggles in entity-picker or other Tier 1 components.
+**Trade-off:** one additional shadcn primitive in the registry's shared infrastructure (~2KB). Phase A pre-flight install list grows to 5: `checkbox input switch tooltip toggle-group`.
+
+### Q-P8 (NEW; refined on validate pass) — Internal state architecture: useState vs useReducer; ownership
+
+**Locked: stateful `useTextBuffer()` hook owning the textBuffer state + per-id debounced commits** per §4.1 + §4.2. The hook is called once from `filter-stack.tsx` and exposes `{ buffer, setBuffer(id, value), flush(id), cancel(id), flushAll(), cancelAll() }`. Internally uses `useState<Record<string, string>>` for the buffer plus `useDebouncedCallback` (Q-P9) for per-id timing. **Refined on validate pass:** the original sketch was ambiguous about whether textBuffer state lived in `filter-stack.tsx` directly or inside the `use-text-buffer.ts` hook; locked as the latter (cleaner encapsulation; exposes flush/cancel surface that `clear(id)` / `clearAll()` ref methods invoke directly).
+
+The action surface remains small enough to skip a reducer: setBuffer, flush, cancel, flushAll, cancelAll are independent. A reducer would be clearer once cross-action invariants exist (rich-card's case); here, hook-encapsulated useState is simpler.
 
 Alternatives considered:
 - **`useReducer`** — overhead exceeds benefit at this action count. Mirrors detail-panel's choice (also `useState`-based; properties-form's reducer was justified by 9 actions with cross-coupled invariants).
 - **No internal state at all** (push debounce buffer to host) — would require hosts to manage debounced input themselves; defeats the convenience callback's purpose.
 
-**Impact:** medium — defines the implementation shape.
+**Impact:** medium — defines the implementation shape AND the textBuffer ownership boundary.
 **Trade-off:** if v0.2 adds more buffered/transient state (animation flags, transient validation indicators), revisit and migrate to a reducer then.
 
 ### Q-P9 (NEW) — Debounce implementation
 
-**Recommendation: custom `useDebouncedCallback(fn, ms)` hook** at `hooks/use-debounced-callback.ts`. Implementation pattern: ref-stored timeout id; cleanup on unmount; flush + cancel methods exposed. Returns a stable function reference (memoized) so React Compiler / dependent effects don't churn.
+**Locked: custom `useDebouncedCallback(fn, ms)` hook** at `hooks/use-debounced-callback.ts`. Implementation pattern: ref-stored timeout id + ref-stored latest fn (so closures don't capture stale values); cleanup on unmount; flush + cancel methods exposed via `Object.assign` on the returned function. Used internally by `useTextBuffer` (Q-P8) per-id.
 
 ```ts
 // signature sketch
@@ -566,49 +625,49 @@ function useDebouncedCallback<T extends (...args: any[]) => void>(
 ): T & { flush: () => void; cancel: () => void };
 ```
 
-Alternatives considered:
+Alternatives considered (rejected):
 - **Inline `setTimeout` in the input's onChange** — works but verbose at every text-filter site; no flush/cancel surface for the clearAll / unmount cases.
-- **Third-party (`use-debounce`, `lodash.debounce`)** — adds a dep for ~30 LOC of logic. Rejected.
+- **Third-party (`use-debounce`, `lodash.debounce`)** — adds a dep for ~50 LOC of logic.
 
 **Impact:** medium — defines text-filter behavior precisely.
 **Trade-off:** owning the implementation means we own bug-fixes; the logic is small (~50 LOC) and well-tested when Vitest lands.
 
 ### Q-P10 (NEW) — Imperative ref handle scope
 
-**Recommendation: minimal — `clearAll`, `clear(id)`, `isEmpty()`** per §3.3. Other candidates rejected:
+**Locked: minimal — `clearAll`, `clear(id)`, `isEmpty()`** per §3.3. Other candidates rejected:
 - `getActiveCategories()` — redundant with `values` + `isEmpty` check; hosts compute from props.
 - `setValue(id, v)` — redundant with `onChange` (host already controls values).
-- `flushDebounce()` — internal concern; surfaces only if a real consumer needs it (probably not in v0.1).
+- `flushDebounce()` — internal concern; surfaces only if a real consumer needs it (probably not in v0.1; filters are eventual-consistency surfaces, not save-form surfaces).
 
 **Impact:** low — primarily an API tightening.
 **Trade-off:** none — small surface is easier to evolve. Additive in v0.2 if needed.
 
-## 12.5 Plan-stage refinements (surfaced during draft)
+## 12.5 Plan-stage refinements (surfaced during draft + validate pass)
 
 These bake into implementation but worth flagging:
 
 1. **`default-is-empty.ts` is opt-in re-export.** `index.ts` re-exports `defaultIsEmpty` as a named utility for hosts that want to reuse the built-in checks (e.g., a custom filter that wraps a checkbox-list-shaped value). Importing is opt-in; tree-shaking prevents bloat for hosts that don't.
-2. **Mode-toggle keyboard navigation.** 2-button radiogroup honors arrow-left/right (cycle within the group) and Home/End (first/last). Standard radiogroup pattern. Implementation: `onKeyDown` on the container; tested in Phase B with `axe-core` smoke run.
+2. **Mode-toggle keyboard navigation handled by Radix.** Q-P7 lock → ToggleGroup install means roving tabindex, arrow-key focus+select, Home/End, Space/Enter activation are all provided correctly by Radix `react-toggle-group`. No custom keyboard handling needed in `mode-toggle.tsx`. Phase B smoke test verifies via `axe-core` — pass expected.
 3. **`__mode` key cleanup on category removal.** When a host removes a `checkbox-list` category from `categories`, `values["${id}__mode"]` becomes orphaned — same as `values[id]`. Filter-stack does NOT prune; host owns shape. Documented in usage.
 4. **`React 19 ref-as-prop` for `FilterStackHandle`.** Same pattern as [properties-form plan §13.5 #8](../properties-form-procomp/properties-form-procomp-plan.md#135-plan-stage-refinements-surfaced-during-draft). Filter-stack is generic (`<FilterStack<T>>`); `forwardRef` strips generics. React 19's first-class `ref` prop preserves them.
-5. **Production-build warning suppression.** Dev-only `console.warn` / `console.error` calls (schema validation, predicate throws, isEmpty throws, custom-render error boundary fallback) are gated by `process.env.NODE_ENV !== "production"`. Bundlers strip the dead code in production.
+5. **Production-build warning suppression.** Dev-only `console.warn` / `console.error` calls (schema validation, predicate throws, isEmpty throws, `onFilteredChange` throws, custom-render error boundary fallback) are gated by `process.env.NODE_ENV !== "production"`. Bundlers strip the dead code in production.
 6. **Custom-renderer error boundary scope.** `<filter-custom>` wraps the host's `render(props)` in a small React error boundary (`<FilterErrorBoundary>` part). Catches throws from the render pass; renders a fallback message. Other filter types don't need a boundary — built-ins don't throw under normal conditions.
 7. **Solo button + Tooltip mounting cost.** Each option row instantiates a Tooltip when `showSoloButtons: true`. For checkbox-lists with 100+ options this is real cost. Plan-stage refinement: if a real consumer hits N>50 options with solo enabled, consider lazy-mounting tooltips on hover (additive, non-breaking). v0.1 ships eager tooltips; defer optimization.
-8. **`apply-filters.ts` early-bail on empty active-predicate set.** When all categories are empty, return `items` unchanged (referential identity); skips the `.filter()` allocation. Common case for first-mount; cheap optimization.
-9. **`onFilteredChange` first-fire on mount.** Recommendation: yes — fires on mount with the initial filtered set. Hosts wanting to skip the first fire can guard via a ref. Mirrors properties-form's `onChange` posture.
+8. **`apply-filters.ts` early-bail on empty active-predicate set.** When all categories are empty, return `items` unchanged (referential identity); skips the `.filter()` allocation. Common case for first-mount; cheap optimization. Locked in §4.3 + §10.1.
+9. **`onFilteredChange` first-fire on mount.** Yes — fires on mount with the initial filtered set. Hosts wanting to skip the first fire can guard via a ref. Mirrors properties-form's `onChange` posture.
 10. **ESC-clears-text behavior boundary.** ESC in a text input clears that field only and stops propagation. Outer ESC handlers (e.g., closing a sidebar panel that contains the filter-stack) won't fire. Documented; if a real consumer wants outer-ESC priority, they can bind `keyDown` higher in the tree with capture.
 
 ---
 
 ## 13. Definition of "done" for THIS document (stage gate)
 
-- [ ] User reviewed §1–§11 (the plan body) and §12 (Q-Ps + §12.5 refinements).
-- [ ] All 10 plan-stage questions resolved (Q-P1 to Q-P10).
-- [ ] User said **"go ahead"** — sign-off applied. Stage 3 (implementation) unlocks: run §7.2 Phase A pre-flight (`pnpm dlx shadcn@latest add checkbox input switch tooltip`) FIRST, then `pnpm new:component forms/filter-stack`.
-- [ ] `Recommendation:` form converted to `**Locked: X.**`; status header flipped; [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) updated to mark `filter-stack` plan ✓ signed off.
+- [x] User reviewed §1–§11 (the locked plan body) and §12 (resolved Q-Ps + §12.5 refinements).
+- [x] All 10 plan-stage questions resolved (Q-P1 to Q-P10); Q-P3 + Q-P4 + Q-P7 + Q-P8 refined on validate pass.
+- [x] User said **"go ahead"** — sign-off applied. Stage 3 (implementation) unlocks: run §7.2 Phase A pre-flight (`pnpm dlx shadcn@latest add checkbox input switch tooltip toggle-group`) FIRST, then `pnpm new:component forms/filter-stack`.
+- [x] `Recommendation:` form converted to `**Locked: X.**`; status header flipped; [system §9 sub-doc map](../../systems/graph-system/graph-system-description.md#9-sub-document-map) updated to mark `filter-stack` plan ✓ signed off.
 
 The plan is signed off when both (a) v0.1 implementation can begin AND (b) the `force-graph` v0.4 plan-lock cascade unlocks.
 
 ---
 
-*End of v0.1 plan draft. Pause for user validate pass per project cadence (draft → validate → re-validate → sign off → commit).*
+*End of v0.1 plan. Stage 3 (implementation) is unlocked subject to Phase A pre-flight.*
