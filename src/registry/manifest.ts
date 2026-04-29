@@ -22,6 +22,10 @@ import FilterStackDemo from "./components/forms/filter-stack/demo";
 import FilterStackUsage from "./components/forms/filter-stack/usage";
 import { meta as filterStackMeta } from "./components/forms/filter-stack/meta";
 
+import EntityPickerDemo from "./components/forms/entity-picker/demo";
+import EntityPickerUsage from "./components/forms/entity-picker/usage";
+import { meta as entityPickerMeta } from "./components/forms/entity-picker/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -60,6 +64,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: filterStackMeta,
     Demo: FilterStackDemo,
     Usage: FilterStackUsage,
+  },
+  {
+    meta: entityPickerMeta,
+    Demo: EntityPickerDemo,
+    Usage: EntityPickerUsage,
   },
 ];
 
