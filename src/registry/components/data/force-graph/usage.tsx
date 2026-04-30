@@ -4,9 +4,10 @@ export default function ForceGraphUsage() {
       <h3 className="mb-2 mt-0 text-base font-semibold">When to use</h3>
       <p className="text-muted-foreground">
         Reach for <code>ForceGraph</code> when you need to render a knowledge
-        graph as a force-directed canvas — panning, zooming, and a running
-        layout out of the box. v0.1 is read-only; selection / hover / drag /
-        editing land in v0.2 and v0.3.
+        graph as a force-directed canvas — panning, zooming, a running
+        layout, click-to-select, hover focus, and drag-to-pin out of the
+        box. Editing (full CRUD) lands in v0.3; groups + filters in v0.4;
+        doc-node visuals + wikilink reconciliation in v0.5.
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Static snapshot</h3>
@@ -70,12 +71,86 @@ export function Example() {
         doc node elsewhere in the graph.
       </p>
 
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Compound API (v0.2)
+      </h3>
+      <p className="text-muted-foreground">
+        For sibling-hook composition — Tier 1 panels reading the same
+        graph state as the canvas — render the Provider yourself and
+        place the Canvas alongside your panels:
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<ForceGraph.Provider data={graph} onSelectionChange={setSel}>
+  <FilterStackPanel />              // calls useGraphSelector
+  <ForceGraph.Canvas />
+  <DetailPanelForCurrentSelection />// calls useGraphSelector + useGraphActions
+</ForceGraph.Provider>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        <code>&lt;ForceGraph data={"{...}"} /&gt;</code> still works — it
+        renders <code>&lt;Provider&gt;&lt;Canvas/&gt;&lt;/Provider&gt;</code>{" "}
+        internally. Per <a href="#" className="underline">decision #35</a>,
+        Tier 1 components are NOT imported by force-graph itself; the host
+        composes them as Provider children.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Selection / hover / drag (v0.2)
+      </h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`const sel = useGraphSelector((s) => s.ui.selection)
+const actions = useGraphActions()
+
+actions.select({ kind: "node", id })
+actions.clearSelection()
+actions.pinNode(id, true)            // recorded in history
+actions.undo() / actions.redo()`}</code>
+      </pre>
+      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <li>
+          Click a node or edge to select; click empty stage to clear.
+          Selection changes don&apos;t bump <code>graphVersion</code> per
+          spec §5.2.
+        </li>
+        <li>
+          Hover a node → 1-hop neighbors stay full-color, others dim to
+          ~35% via Sigma reducers. 100ms lead-in delay; immediate exit.
+        </li>
+        <li>
+          Drag a node → live position update + auto-pin on drop. The
+          drag fires ONE history entry coalescing position + (optional)
+          new-pin into a single undo step.
+        </li>
+        <li>
+          Cmd/Ctrl+Z undoes; Cmd/Ctrl+Shift+Z (or Cmd/Ctrl+Y) redoes;
+          Esc cancels linking-mode. Canvas-focus only — click inside
+          first; panel inputs handle their own undo.
+        </li>
+      </ul>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Linking mode (v0.2)
+      </h3>
+      <p className="text-muted-foreground">
+        <code>actions.enterLinkingMode({"{ kind: \"node\", id }"})</code>{" "}
+        flips a flag in the UI slice, swaps the canvas cursor to
+        crosshair, and overlays a dashed selection-ring on the source
+        node. Subsequent canvas clicks set the would-be edge target
+        instead of changing selection. v0.2 only ships the
+        infrastructure (state + click precedence + visual cue); the
+        picker chrome (entity-picker for valid targets, edge-type
+        dropdown, direction toggle) lives at Tier 3 per decision #35.
+        v0.3 wires the actual <code>addEdge</code> dispatch.
+      </p>
+
       <h3 className="mb-2 mt-6 text-base font-semibold">Imperative handle</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`const ref = useRef<ForceGraphHandle>(null)
 
 ref.current?.setLayoutEnabled(false)
 ref.current?.pinAllPositions()
+ref.current?.focusNode(id, { animate: true, zoom: 0.6 })  // v0.2
+ref.current?.select({ kind: "edge", id })                 // v0.2
 const snap = ref.current?.getSnapshot()
 const sigma = ref.current?.getSigmaInstance()  // substrate escape hatch`}</code>
       </pre>
@@ -90,47 +165,40 @@ const sigma = ref.current?.getSigmaInstance()  // substrate escape hatch`}</code
       <h3 className="mb-2 mt-6 text-base font-semibold">Theming</h3>
       <p className="text-muted-foreground">
         Colors come from CSS variables in{" "}
-        <code>src/app/globals.css</code> per decision #37 — Sigma resolves
-        them at mount time. Pass <code>theme=&quot;custom&quot;</code> +{" "}
+        <code>src/app/globals.css</code> per decision #37 — the graph
+        captures both palettes (with and without <code>.dark</code>) at
+        mount time so its visual identity stays decoupled from the host
+        document&apos;s theme. The <code>theme</code> prop picks which
+        palette to apply (default <code>&quot;dark&quot;</code>); pass{" "}
+        <code>theme=&quot;custom&quot;</code> +{" "}
         <code>customColors</code> to override. Missing keys fall back to
-        dark-theme defaults regardless of the document theme (decision #8).
+        dark-theme defaults regardless of the requested theme (decision
+        #8). OKLCH / lab values returned by{" "}
+        <code>getComputedStyle</code> are normalized to{" "}
+        <code>rgb()</code> via a 1×1 canvas so Sigma&apos;s WebGL parser
+        can render them.
       </p>
 
-      <h3 className="mb-2 mt-6 text-base font-semibold">v0.1 limitations</h3>
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Current limitations
+      </h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>
-          Read-only — no selection, hover, drag, click handlers, or
-          editing affordances. Activate in v0.2 (selection + hover +
-          drag) and v0.3 (full CRUD).
-        </li>
-        <li>
-          Theme flip mid-session doesn&apos;t recolor existing edges. Re-
-          import the snapshot to refresh; v0.6 perf hardening adds
-          walk-and-recompute.
+          Editing affordances (full CRUD) land in v0.3; v0.2 only
+          records position + pin changes.
         </li>
         <li>
           Group hulls + group-involving edge rendering land in v0.4.
         </li>
         <li>
-          Bidirectional edges render with a single arrow in v0.1; dual-
-          arrow visual deferred to v0.6 multi-edge work.
+          Bidirectional edges render with a single arrow; dual-arrow
+          visual deferred to v0.6 multi-edge work.
         </li>
         <li>
           Lucide icon atlas + doc-glyph + system-origin glyph land in
           v0.5 with the custom <code>IconNodeProgram</code>.
         </li>
       </ul>
-
-      <h3 className="mb-2 mt-6 text-base font-semibold">Composition</h3>
-      <p className="text-muted-foreground">
-        Per decision #35, <code>ForceGraph</code> does NOT import any Tier
-        1 pro-component (<code>properties-form</code>,{" "}
-        <code>detail-panel</code>, etc.) at the registry level. Composition
-        with side panels happens at host or Tier 3 level. Read snapshots
-        with <code>useGraphSelector</code>; mutate via{" "}
-        <code>useGraphActions</code>. v0.3 wires per-component permission
-        resolution + CRUD actions.
-      </p>
     </div>
   );
 }

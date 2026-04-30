@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference / example files shipped alongside procomp docs are
+    // not part of the registry codebase.
+    "docs/**",
   ]),
 ]);
 

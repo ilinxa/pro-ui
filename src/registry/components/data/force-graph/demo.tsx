@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ForceGraph } from "./force-graph";
 import { SMALL_GRAPH, SMALL_GRAPH_STATIC } from "./dummy-data";
+import { useGraphActions } from "./hooks/use-graph-actions";
+import { useGraphSelector } from "./hooks/use-graph-selector";
 import type {
   ForceGraphHandle,
   GraphInput,
   GraphSource,
+  Selection,
   ThemeKey,
 } from "./types";
 
@@ -170,6 +173,75 @@ function CustomThemeDemo() {
   );
 }
 
+function InteractionsDemo() {
+  const [latest, setLatest] = useState<Selection>(null);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        v0.2 interactions over the compound API. Click a node or edge to
+        select; hover a node to focus + dim non-neighbors; mouse-down on a
+        node and drag to reposition (auto-pins on drop). Cmd/Ctrl+Z undoes,
+        Cmd/Ctrl+Shift+Z redoes (canvas must be focused — click inside it
+        first). The undo bar + selection readout below are separate React
+        components that share state with the canvas via{" "}
+        <code>useGraphActions</code> + <code>useGraphSelector</code>{" "}
+        sibling-hook composition.
+      </p>
+      <ForceGraph.Provider data={SMALL_GRAPH} onSelectionChange={setLatest}>
+        <UndoRedoBar />
+        <DemoFrame>
+          <ForceGraph.Canvas ariaLabel="v0.2 interactions demo" />
+        </DemoFrame>
+        <SelectionReadout selection={latest} />
+      </ForceGraph.Provider>
+    </div>
+  );
+}
+
+function UndoRedoBar() {
+  const actions = useGraphActions();
+  const canUndo = useGraphSelector((s) => s.history.canUndo);
+  const canRedo = useGraphSelector((s) => s.history.canRedo);
+  const cursor = useGraphSelector((s) => s.history.cursor);
+  const total = useGraphSelector((s) => s.history.entries.length);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!canUndo}
+        onClick={() => actions.undo()}
+      >
+        Undo
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!canRedo}
+        onClick={() => actions.redo()}
+      >
+        Redo
+      </Button>
+      <span className="font-mono text-xs text-muted-foreground">
+        history: {cursor} / {total}
+      </span>
+    </div>
+  );
+}
+
+function SelectionReadout({ selection }: { selection: Selection }) {
+  return (
+    <p className="font-mono text-xs text-muted-foreground">
+      selection:{" "}
+      {selection
+        ? `${selection.kind}:${selection.id}`
+        : "(none — click a node or edge)"}
+    </p>
+  );
+}
+
 function LiveSourceDemo() {
   const source = useMemo<GraphInput>(() => {
     const s: GraphSource = {
@@ -203,6 +275,7 @@ export default function ForceGraphDemo() {
     <Tabs defaultValue="basic" className="flex flex-col gap-4">
       <TabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
+        <TabsTrigger value="interactions">Interactions (v0.2)</TabsTrigger>
         <TabsTrigger value="static">Static positions</TabsTrigger>
         <TabsTrigger value="handle">Imperative handle</TabsTrigger>
         <TabsTrigger value="theme">Custom theme</TabsTrigger>
@@ -210,6 +283,9 @@ export default function ForceGraphDemo() {
       </TabsList>
       <TabsContent value="basic">
         <BasicDemo />
+      </TabsContent>
+      <TabsContent value="interactions">
+        <InteractionsDemo />
       </TabsContent>
       <TabsContent value="static">
         <StaticPositionsDemo />
