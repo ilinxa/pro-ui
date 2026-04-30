@@ -451,6 +451,13 @@ export interface ForceGraphHandle {
     options?: { silent?: boolean },
   ): void;
   getNodePositions(): ReadonlyArray<{ id: string; x: number; y: number }>;
+
+  // v0.2 additions per plan §3.4
+  focusNode(id: string, options?: { animate?: boolean; zoom?: number }): void;
+  focusGroup(id: string, options?: { animate?: boolean; zoom?: number }): void;
+  select(target: Selection): void;
+  getSelection(): Selection;
+
   // Substrate-leak escape hatches (typed, not unknown — risk acknowledged
   // per description §8.5 #4; major-version bump if substrates ever swap).
   getSigmaInstance(): Sigma;
@@ -465,6 +472,11 @@ export interface ForceGraphProps {
   data: GraphInput;
   onChange?: (snapshot: GraphSnapshot) => void;
   onError?: (error: ValidationError | { code: string; message: string }) => void;
+  /**
+   * Per v0.2 plan §3.5: fires whenever `ui.selection` changes. Wired
+   * via a Zustand subscribe in the Provider; no graphVersion bump.
+   */
+  onSelectionChange?: (selection: Selection) => void;
   theme?: "dark" | "light" | "custom";
   customColors?: Partial<Record<ThemeKey, string>>;
   ariaLabel?: string;
@@ -482,6 +494,7 @@ export interface ForceGraphProviderProps {
   data: GraphInput;
   onChange?: (snapshot: GraphSnapshot) => void;
   onError?: (error: ValidationError | { code: string; message: string }) => void;
+  onSelectionChange?: (selection: Selection) => void;
   theme?: "dark" | "light" | "custom";
   customColors?: Partial<Record<ThemeKey, string>>;
   children: import("react").ReactNode;

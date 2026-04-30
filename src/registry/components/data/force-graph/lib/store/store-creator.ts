@@ -1,4 +1,9 @@
-import { create, type StoreApi, type UseBoundStore } from "zustand";
+import {
+  create,
+  type Mutate,
+  type StoreApi,
+  type UseBoundStore,
+} from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import type {
   Edge,
@@ -68,7 +73,18 @@ export interface GraphStoreState
   resetGraph(): void;
 }
 
-export type GraphStore = UseBoundStore<StoreApi<GraphStoreState>>;
+/**
+ * Per v0.2 plan §4.2: the store type carries the
+ * `subscribeWithSelector` middleware extension so consumers (interaction
+ * layer, Provider's onSelectionChange wiring) get the
+ * `store.subscribe(selector, listener)` overload from TypeScript.
+ */
+export type GraphStore = UseBoundStore<
+  Mutate<
+    StoreApi<GraphStoreState>,
+    [["zustand/subscribeWithSelector", never]]
+  >
+>;
 
 export function createGraphStore(): GraphStore {
   return create<GraphStoreState>()(

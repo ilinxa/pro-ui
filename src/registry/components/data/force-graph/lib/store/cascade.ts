@@ -23,52 +23,59 @@ export type CascadeTarget =
   | EndpointRef
   | { kind: "edge"; id: string };
 
-export type CascadeUiUpdate = Pick<GraphStoreState["ui"], "selection" | "hovered" | "linkingMode" | "multiEdgeExpanded">;
-
+/**
+ * Returns the FULL new `ui` slice (with the matching pieces cleared) so
+ * the caller can `setStore(() => ({ ui: cascadeResult.ui, ... }))`
+ * without losing `dragState` or other untouched fields. Returns `null`
+ * if no UI state references the deleted target.
+ */
 export function cascadeOnDelete(
   state: Pick<GraphStoreState, "ui">,
   target: CascadeTarget,
-): { ui: CascadeUiUpdate } | null {
+): { ui: GraphStoreState["ui"] } | null {
   const ui = state.ui;
   let changed = false;
+  const next = { ...ui };
 
-  let selection = ui.selection;
-  if (selection && selection.kind === target.kind && selection.id === target.id) {
-    selection = null;
-    changed = true;
-  }
-
-  let hovered = ui.hovered;
-  if (hovered && hovered.kind === target.kind && hovered.id === target.id) {
-    hovered = null;
-    changed = true;
-  }
-
-  let linkingMode = ui.linkingMode;
   if (
-    linkingMode.active &&
-    linkingMode.source &&
-    linkingMode.source.kind === target.kind &&
-    linkingMode.source.id === target.id
+    next.selection &&
+    next.selection.kind === target.kind &&
+    next.selection.id === target.id
   ) {
-    linkingMode = { active: false, source: null };
+    next.selection = null;
     changed = true;
   }
 
-  let multiEdgeExpanded = ui.multiEdgeExpanded;
-  if (multiEdgeExpanded) {
-    const { a, b } = multiEdgeExpanded;
+  if (
+    next.hovered &&
+    next.hovered.kind === target.kind &&
+    next.hovered.id === target.id
+  ) {
+    next.hovered = null;
+    changed = true;
+  }
+
+  if (
+    next.linkingMode.active &&
+    next.linkingMode.source &&
+    next.linkingMode.source.kind === target.kind &&
+    next.linkingMode.source.id === target.id
+  ) {
+    next.linkingMode = { active: false, source: null };
+    changed = true;
+  }
+
+  if (next.multiEdgeExpanded) {
+    const { a, b } = next.multiEdgeExpanded;
     if (
       (a.kind === target.kind && a.id === target.id) ||
       (b.kind === target.kind && b.id === target.id)
     ) {
-      multiEdgeExpanded = null;
+      next.multiEdgeExpanded = null;
       changed = true;
     }
   }
 
   if (!changed) return null;
-  return {
-    ui: { selection, hovered, linkingMode, multiEdgeExpanded },
-  };
+  return { ui: next };
 }

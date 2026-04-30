@@ -98,7 +98,8 @@ export function SigmaContainer({
         if (cancelled) return;
 
         const SigmaClass = sigmaMod.default;
-        const { EdgeRectangleProgram, EdgeArrowProgram } = renderingMod;
+        const { EdgeRectangleProgram, EdgeArrowProgram, NodeCircleProgram } =
+          renderingMod;
 
         const initialTheme = themeRef.current;
         const initialSettings = settingsRef.current;
@@ -120,6 +121,14 @@ export function SigmaContainer({
               16,
           hideEdgesOnMove: initialSettings.hideEdgesOnMove,
           renderEdgeLabels: initialSettings.renderEdgeLabels,
+          // Default node type is "circle" (Sigma's default). When we
+          // override `edgeProgramClasses`, the bundled node-program
+          // registry doesn't auto-populate, so we have to register
+          // NodeCircleProgram explicitly. v0.5 swaps in IconNodeProgram.
+          defaultNodeType: "circle",
+          nodeProgramClasses: {
+            circle: NodeCircleProgram,
+          },
           edgeProgramClasses: {
             rectangle: EdgeRectangleProgram,
             arrow: EdgeArrowProgram,
