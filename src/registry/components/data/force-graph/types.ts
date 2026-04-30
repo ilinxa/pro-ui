@@ -187,7 +187,7 @@ export const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
   groupHullOpacity: 0.15,
   groupBorderWidth: 1.5,
 
-  hideEdgesOnMove: true,
+  hideEdgesOnMove: false,
   renderEdgeLabels: false,
   edgeLabelZoomThreshold: 0.7,
 

@@ -1,5 +1,13 @@
 import type { MultiGraph } from "graphology";
-import type { Edge, GraphDelta, Node } from "../../types";
+import type {
+  Edge,
+  GraphDelta,
+  Node,
+  NodeType,
+  ResolvedTheme,
+} from "../../types";
+import { softEdgeAttributes } from "../edge-attributes";
+import { sigmaNodeAttributes } from "../node-attributes";
 import { isGroupInvolvingEdge } from "./slices/group-edges-slice";
 import type { GraphStoreState } from "./store-creator";
 
@@ -8,6 +16,12 @@ import type { GraphStoreState } from "./store-creator";
  * state. Per decision #22: real-time deltas preserve UI state and do
  * NOT enter the undo stack.
  *
+ * Per [#38][1]: edge add/update computes per-edge `color` + `size` +
+ * `type` attributes via `softEdgeAttributes()` so Sigma's stock
+ * `EdgeRectangleProgram` + `EdgeArrowProgram` render the right visual
+ * variant. Node add/update assigns Sigma's required `x`/`y`/`size`/
+ * `color`/`label` top-level attributes.
+ *
  * Routes by delta.type:
  *   - node deltas → graphology MultiGraph + bump graphVersion
  *   - edge deltas (node↔node) → graphology MultiGraph + bump graphVersion
@@ -15,6 +29,8 @@ import type { GraphStoreState } from "./store-creator";
  *   - group deltas → groups Map + bump
  *   - membership deltas (addNodeToGroup / removeNodeFromGroup) → group +
  *     derived node.groupIds + bump
+ *
+ * [1]: ../../../../../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index
  */
 export function applyDelta(
   graph: MultiGraph,
@@ -23,10 +39,11 @@ export function applyDelta(
     updater: (state: GraphStoreState) => Partial<GraphStoreState>,
   ) => void,
   delta: GraphDelta,
+  theme: ResolvedTheme,
 ): void {
   switch (delta.type) {
     case "addNode": {
-      addNodeToGraph(graph, delta.node);
+      addNodeToGraph(graph, delta.node, store.nodeTypes, theme);
       const nextNodes = new Map(store.nodes);
       nextNodes.set(delta.node.id, delta.node);
       setStore(() => ({ nodes: nextNodes }));
@@ -36,9 +53,22 @@ export function applyDelta(
       const existing = store.nodes.get(delta.id);
       if (!existing) return;
       const next = { ...existing, ...delta.patch } as Node;
-      Object.entries(delta.patch).forEach(([k, v]) =>
-        graph.setNodeAttribute(delta.id, k, v),
-      );
+      // Recompute Sigma rendering attributes from the merged node so
+      // position / pin / label / kind changes propagate to the canvas.
+      // Other patch keys (metadata, annotations, etc.) just overwrite.
+      if (graph.hasNode(delta.id)) {
+        const attrs = sigmaNodeAttributes(next, store.nodeTypes, theme);
+        graph.setNodeAttribute(delta.id, "x", attrs.x);
+        graph.setNodeAttribute(delta.id, "y", attrs.y);
+        graph.setNodeAttribute(delta.id, "size", attrs.size);
+        graph.setNodeAttribute(delta.id, "color", attrs.color);
+        graph.setNodeAttribute(delta.id, "label", attrs.label);
+        graph.setNodeAttribute(delta.id, "fixed", attrs.fixed);
+        for (const [k, v] of Object.entries(delta.patch)) {
+          if (k === "position" || k === "pinned" || k === "label") continue;
+          graph.setNodeAttribute(delta.id, k, v);
+        }
+      }
       const nextNodes = new Map(store.nodes);
       nextNodes.set(delta.id, next);
       setStore(() => ({ nodes: nextNodes }));
@@ -55,9 +85,18 @@ export function applyDelta(
       if (isGroupInvolvingEdge(delta.edge)) {
         const next = new Map(store.groupEdges);
         next.set(delta.edge.id, delta.edge);
-        setStore(() => ({ groupEdges: next, edges: mergedEdges(store.edges, delta.edge) }));
+        setStore(() => ({
+          groupEdges: next,
+          edges: mergedEdges(store.edges, delta.edge),
+        }));
       } else {
-        addEdgeToGraph(graph, delta.edge);
+        addEdgeToGraph(
+          graph,
+          delta.edge,
+          store.nodes,
+          store.edgeTypes,
+          theme,
+        );
         setStore(() => ({ edges: mergedEdges(store.edges, delta.edge) }));
       }
       break;
@@ -73,9 +112,21 @@ export function applyDelta(
         nextGroupEdges.set(delta.id, next);
         setStore(() => ({ edges: nextEdges, groupEdges: nextGroupEdges }));
       } else if (graph.hasEdge(delta.id)) {
-        Object.entries(delta.patch).forEach(([k, v]) =>
-          graph.setEdgeAttribute(delta.id, k, v),
-        );
+        // Recompute Sigma rendering attributes from the merged edge so
+        // edgeTypeId / direction / endpoint-kind changes propagate.
+        const attrs = softEdgeAttributes(next, {
+          nodes: store.nodes,
+          groups: store.groups,
+          edgeTypes: store.edgeTypes,
+          theme,
+        });
+        graph.setEdgeAttribute(delta.id, "color", attrs.color);
+        graph.setEdgeAttribute(delta.id, "size", attrs.size);
+        graph.setEdgeAttribute(delta.id, "type", attrs.type);
+        for (const [k, v] of Object.entries(delta.patch)) {
+          if (k === "edgeTypeId" || k === "direction") continue;
+          graph.setEdgeAttribute(delta.id, k, v);
+        }
         setStore(() => ({ edges: nextEdges }));
       }
       break;
@@ -138,13 +189,34 @@ export function applyDelta(
   }
 }
 
-function addNodeToGraph(graph: MultiGraph, node: Node): void {
-  graph.addNode(node.id, { ...node });
+function addNodeToGraph(
+  graph: MultiGraph,
+  node: Node,
+  nodeTypes: ReadonlyMap<string, NodeType>,
+  theme: ResolvedTheme,
+): void {
+  const attrs = sigmaNodeAttributes(node, nodeTypes, theme);
+  graph.addNode(node.id, { ...node, ...attrs });
 }
 
-function addEdgeToGraph(graph: MultiGraph, edge: Edge): void {
+function addEdgeToGraph(
+  graph: MultiGraph,
+  edge: Edge,
+  nodes: ReadonlyMap<string, Node>,
+  edgeTypes: ReadonlyMap<string, import("../../types").EdgeType>,
+  theme: ResolvedTheme,
+): void {
   if (edge.source.kind !== "node" || edge.target.kind !== "node") return;
-  graph.addEdgeWithKey(edge.id, edge.source.id, edge.target.id, { ...edge });
+  const attrs = softEdgeAttributes(edge, {
+    nodes,
+    groups: new Map(),
+    edgeTypes,
+    theme,
+  });
+  graph.addEdgeWithKey(edge.id, edge.source.id, edge.target.id, {
+    ...edge,
+    ...attrs,
+  });
 }
 
 function mergedEdges(
