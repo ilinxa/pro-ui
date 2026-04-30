@@ -5,6 +5,7 @@ import type {
   Node,
   ResolvedTheme,
 } from "../types";
+import { toRenderableColor } from "./theme";
 
 /**
  * Per system decision #38 (2026-04-29): visual differentiation between
@@ -56,12 +57,12 @@ export function softEdgeAttributes(
     edge.direction === "undirected" ? "rectangle" : "arrow";
 
   if (isSoft) {
-    return { color: ctx.theme.edgeMuted, size: 1, type };
+    return { color: toRenderableColor(ctx.theme.edgeMuted), size: 1, type };
   }
 
   return {
-    color: edgeType?.color ?? ctx.theme.edgeDefault,
-    size: 1.5,
+    color: toRenderableColor(edgeType?.color ?? ctx.theme.edgeDefault),
+    size: 2.5,
     type,
   };
 }

@@ -1,3 +1,32 @@
 export { ForceGraph } from "./force-graph";
-export type { ForceGraphProps } from "./types";
+export type {
+  ActionsV01,
+  Edge,
+  EdgeDirection,
+  EdgeType,
+  EndpointKind,
+  EndpointRef,
+  ForceGraphHandle,
+  ForceGraphProps,
+  ForceGraphState,
+  GraphDelta,
+  GraphInput,
+  GraphSettings,
+  GraphSnapshot,
+  GraphSource,
+  Group,
+  MutationResult,
+  Node,
+  NodeType,
+  Origin,
+  ResolvedTheme,
+  SystemRef,
+  ThemeKey,
+  UserMutation,
+  ValidationError,
+  ValidationResult,
+} from "./types";
+export { DEFAULT_GRAPH_SETTINGS, isGraphSource } from "./types";
+export { useGraphSelector } from "./hooks/use-graph-selector";
+export { useGraphActions } from "./hooks/use-graph-actions";
 export { meta } from "./meta";

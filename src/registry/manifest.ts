@@ -30,6 +30,10 @@ import MarkdownEditorDemo from "./components/forms/markdown-editor/demo";
 import MarkdownEditorUsage from "./components/forms/markdown-editor/usage";
 import { meta as markdownEditorMeta } from "./components/forms/markdown-editor/meta";
 
+import ForceGraphDemo from "./components/data/force-graph/demo";
+import ForceGraphUsage from "./components/data/force-graph/usage";
+import { meta as forceGraphMeta } from "./components/data/force-graph/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -78,6 +82,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: markdownEditorMeta,
     Demo: MarkdownEditorDemo,
     Usage: MarkdownEditorUsage,
+  },
+  {
+    meta: forceGraphMeta,
+    Demo: ForceGraphDemo,
+    Usage: ForceGraphUsage,
   },
 ];
 

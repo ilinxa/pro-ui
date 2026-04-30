@@ -22,11 +22,16 @@ export type CascadeTarget =
   | { kind: "edge"; id: string };
 
 export function cascadeOnDelete(
-  _state: { ui: { selection: null; hovered: null } },
-  _target: CascadeTarget,
+  state: { ui: { selection: null; hovered: null } },
+  target: CascadeTarget,
 ): { ui: { selection: null; hovered: null } } {
   // v0.1: no-op (UI slice has no live state to clear yet).
   // v0.2 plan amends this to clear selection / hovered / multiEdgeExpanded /
-  // linking.source per spec §5.2.
+  // linking.source per spec §5.2. The params are kept on the v0.1
+  // signature so the v0.2 expansion is a body-only change, not an API
+  // break for any v0.1 caller. Reads here are intentional and pass the
+  // unused-vars lint.
+  void state;
+  void target;
   return { ui: { selection: null, hovered: null } };
 }

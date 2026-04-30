@@ -5,10 +5,14 @@ import type { ResolvedTheme, ThemeKey } from "../types";
  * variables in globals.css. Sigma's settings take concrete strings, so
  * we resolve to RGB(A) at runtime via getComputedStyle.
  *
+ * The graph's theme is decoupled from the host document's light/dark
+ * class — we capture both palettes by reading from hidden helper
+ * elements (one with `.dark`, one without). Whichever the caller asks
+ * for via the `theme` prop wins. This keeps the canvas + label colors
+ * stable across host theme flips.
+ *
  * Per system decision #8: missing keys (in `customColors` overrides)
- * fall back to dark-theme defaults regardless of the current document
- * theme. Q-P9 lock: capture defaults once at module-init via temporary
- * `.dark` element so we don't depend on the document state at runtime.
+ * fall back to dark-theme defaults regardless of the requested theme.
  */
 
 const VAR_MAP: Record<ThemeKey, string> = {
@@ -33,97 +37,156 @@ const ALL_THEME_KEYS: ThemeKey[] = [
   "hoverGlow",
 ];
 
-let darkFallbacksCache: ResolvedTheme | null = null;
+const SSR_DARK_FALLBACK: ResolvedTheme = {
+  background: "#1f1f23",
+  edgeDefault: "#e5e5ea",
+  edgeMuted: "#9b9ba1",
+  labelColor: "#e5e5ea",
+  hullFill: "#2a2a30",
+  hullBorder: "#7a7a82",
+  selectionRing: "#bfff66",
+  hoverGlow: "#bfff66",
+};
 
-function captureDarkFallbacks(): ResolvedTheme {
-  if (darkFallbacksCache) return darkFallbacksCache;
+const SSR_LIGHT_FALLBACK: ResolvedTheme = {
+  background: "#f6f6f7",
+  edgeDefault: "#1a1a1d",
+  edgeMuted: "#6c6e76",
+  labelColor: "#1a1a1d",
+  hullFill: "#eaeaee",
+  hullBorder: "#3a3a3f",
+  selectionRing: "#7ad32f",
+  hoverGlow: "#7ad32f",
+};
+
+let darkPaletteCache: ResolvedTheme | null = null;
+let lightPaletteCache: ResolvedTheme | null = null;
+
+function capturePalette(variant: "dark" | "light"): ResolvedTheme {
   if (typeof document === "undefined") {
-    // SSR — return neutral hex fallbacks; first client-side resolve
-    // will overwrite via computed styles.
-    darkFallbacksCache = {
-      background: "#1f1f23",
-      edgeDefault: "#e5e5ea",
-      edgeMuted: "#9b9ba1",
-      labelColor: "#e5e5ea",
-      hullFill: "#2a2a30",
-      hullBorder: "#7a7a82",
-      selectionRing: "#bfff66",
-      hoverGlow: "#bfff66",
-    };
-    return darkFallbacksCache;
+    return variant === "dark" ? SSR_DARK_FALLBACK : SSR_LIGHT_FALLBACK;
   }
   const helper = document.createElement("div");
-  helper.className = "dark";
+  // The light variant is the `:root` scope — no class needed.
+  if (variant === "dark") helper.className = "dark";
   helper.style.position = "absolute";
   helper.style.visibility = "hidden";
   helper.style.pointerEvents = "none";
   document.body.appendChild(helper);
   const style = getComputedStyle(helper);
-  const fallback: ResolvedTheme = {
-    background: style.getPropertyValue(VAR_MAP.background).trim() || "#1f1f23",
-    edgeDefault: style.getPropertyValue(VAR_MAP.edgeDefault).trim() || "#e5e5ea",
-    edgeMuted: style.getPropertyValue(VAR_MAP.edgeMuted).trim() || "#9b9ba1",
-    labelColor: style.getPropertyValue(VAR_MAP.labelColor).trim() || "#e5e5ea",
-    hullFill: style.getPropertyValue(VAR_MAP.hullFill).trim() || "#2a2a30",
-    hullBorder:
-      style.getPropertyValue(VAR_MAP.hullBorder).trim() || "#7a7a82",
-    selectionRing:
-      style.getPropertyValue(VAR_MAP.selectionRing).trim() || "#bfff66",
-    hoverGlow: style.getPropertyValue(VAR_MAP.hoverGlow).trim() || "#bfff66",
+  const ssr = variant === "dark" ? SSR_DARK_FALLBACK : SSR_LIGHT_FALLBACK;
+  const pick = (varName: string, defaultHex: string): string =>
+    toRenderableColor(style.getPropertyValue(varName).trim() || defaultHex);
+  const palette: ResolvedTheme = {
+    background: pick(VAR_MAP.background, ssr.background),
+    edgeDefault: pick(VAR_MAP.edgeDefault, ssr.edgeDefault),
+    edgeMuted: pick(VAR_MAP.edgeMuted, ssr.edgeMuted),
+    labelColor: pick(VAR_MAP.labelColor, ssr.labelColor),
+    hullFill: pick(VAR_MAP.hullFill, ssr.hullFill),
+    hullBorder: pick(VAR_MAP.hullBorder, ssr.hullBorder),
+    selectionRing: pick(VAR_MAP.selectionRing, ssr.selectionRing),
+    hoverGlow: pick(VAR_MAP.hoverGlow, ssr.hoverGlow),
   };
   document.body.removeChild(helper);
-  darkFallbacksCache = fallback;
-  return fallback;
+  return palette;
+}
+
+function getPalette(variant: "dark" | "light"): ResolvedTheme {
+  if (variant === "dark") {
+    if (!darkPaletteCache) darkPaletteCache = capturePalette("dark");
+    return darkPaletteCache;
+  }
+  if (!lightPaletteCache) lightPaletteCache = capturePalette("light");
+  return lightPaletteCache;
 }
 
 export function resolveTheme(
   theme: "dark" | "light" | "custom",
   customColors?: Partial<Record<ThemeKey, string>>,
 ): ResolvedTheme {
-  const fallbacks = captureDarkFallbacks();
+  // `"custom"` means start from the dark palette (per decision #8) and
+  // overlay `customColors`. `"dark"` and `"light"` pick the matching
+  // palette directly.
+  const base =
+    theme === "light" ? getPalette("light") : getPalette("dark");
 
+  if (theme === "custom" || customColors) {
+    return mergeOverrides(base, customColors);
+  }
+  return base;
+}
+
+/**
+ * Pure-JS variant that never touches the DOM — returns the static
+ * fallback palette. Used for SSR + the initial client render so that
+ * both produce identical markup; `resolveTheme` runs in a post-mount
+ * effect to upgrade to the actual computed-style colors.
+ */
+export function resolveThemeStatic(
+  theme: "dark" | "light" | "custom",
+  customColors?: Partial<Record<ThemeKey, string>>,
+): ResolvedTheme {
+  const base =
+    theme === "light" ? SSR_LIGHT_FALLBACK : SSR_DARK_FALLBACK;
+  if (theme === "custom" || customColors) {
+    return mergeOverrides(base, customColors);
+  }
+  return base;
+}
+
+/**
+ * Sigma's WebGL renderer parses colors via a small hex/rgb parser and
+ * does NOT understand `lab(...)`, `oklch(...)`, or other modern color
+ * spaces. Browsers convert custom-property `oklch(...)` values to
+ * `lab(...)` when read via `getComputedStyle`. Modern Chromium accepts
+ * `lab(...)` as a canvas `fillStyle` but re-serializes back to
+ * `lab(...)` rather than `rgb(...)`, so a fillStyle round-trip is
+ * insufficient. Instead we paint a 1×1 pixel and read its rasterized
+ * RGB values back via `getImageData` — that forces concrete conversion
+ * regardless of input color space.
+ */
+let canvasContext: CanvasRenderingContext2D | null | undefined;
+
+function getCanvasContext(): CanvasRenderingContext2D | null {
+  if (canvasContext !== undefined) return canvasContext;
   if (typeof document === "undefined") {
-    // SSR — return fallbacks merged with overrides
-    return mergeOverrides(fallbacks, customColors);
+    canvasContext = null;
+    return null;
   }
+  const canvas = document.createElement("canvas");
+  canvas.width = 1;
+  canvas.height = 1;
+  canvasContext = canvas.getContext("2d", { willReadFrequently: true });
+  return canvasContext;
+}
 
-  // Read current document theme regardless of theme prop — the prop
-  // selects the CSS variable scope (light/dark) but the document already
-  // has the right class set by next-themes.
-  const root = document.documentElement;
-  const computed = getComputedStyle(root);
-
-  const resolved: ResolvedTheme = {
-    background:
-      computed.getPropertyValue(VAR_MAP.background).trim() || fallbacks.background,
-    edgeDefault:
-      computed.getPropertyValue(VAR_MAP.edgeDefault).trim() || fallbacks.edgeDefault,
-    edgeMuted:
-      computed.getPropertyValue(VAR_MAP.edgeMuted).trim() || fallbacks.edgeMuted,
-    labelColor:
-      computed.getPropertyValue(VAR_MAP.labelColor).trim() || fallbacks.labelColor,
-    hullFill:
-      computed.getPropertyValue(VAR_MAP.hullFill).trim() || fallbacks.hullFill,
-    hullBorder:
-      computed.getPropertyValue(VAR_MAP.hullBorder).trim() || fallbacks.hullBorder,
-    selectionRing:
-      computed.getPropertyValue(VAR_MAP.selectionRing).trim() ||
-      fallbacks.selectionRing,
-    hoverGlow:
-      computed.getPropertyValue(VAR_MAP.hoverGlow).trim() || fallbacks.hoverGlow,
-  };
-
-  // Wrap any oklch(...) values from globals.css into a renderable form.
-  // Sigma's WebGL renderer needs hex/rgb/rgba; oklch is supported by
-  // modern Chromium but not all WebGL contexts. We pass the raw string
-  // and let the browser parse it — if that ever breaks, switch to
-  // CSS.parseColor or a small oklch→rgb shim here.
-
-  if (theme === "custom") {
-    return mergeOverrides(resolved, customColors);
+export function toRenderableColor(value: string): string {
+  if (!value) return value;
+  const trimmed = value.trim();
+  // Hex / rgb / rgba pass through unchanged — Sigma's parser handles
+  // them directly, no need for a canvas hop.
+  if (
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("rgb(") ||
+    trimmed.startsWith("rgba(")
+  ) {
+    return trimmed;
   }
-
-  return resolved;
+  const ctx = getCanvasContext();
+  if (!ctx) return trimmed;
+  ctx.clearRect(0, 0, 1, 1);
+  ctx.fillStyle = "#000";
+  ctx.fillStyle = trimmed;
+  ctx.fillRect(0, 0, 1, 1);
+  try {
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+    if (a === 255) return `rgb(${r}, ${g}, ${b})`;
+    return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
+  } catch {
+    // Tainted canvas (shouldn't happen for synthetic fills, but guard
+    // anyway) — fall back to the input.
+    return trimmed;
+  }
 }
 
 function mergeOverrides(

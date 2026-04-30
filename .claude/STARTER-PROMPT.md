@@ -1,10 +1,12 @@
 # Starter Prompt — Fresh Session Boot
 
-> **What this is:** a copy-pasteable prompt to drop into the start of a new Claude Code session so the assistant orients itself in this project's planning state without re-deriving everything.
+> **What this is:** a copy-pasteable prompt to drop into the start of a new Claude Code session so the assistant orients itself in this project's state without re-deriving everything.
 >
 > **How to use:** copy everything between the `--- COPY BELOW ---` and `--- COPY ABOVE ---` markers and paste it as your first message in a fresh session. The new session will read the right docs, summarize the state back to you, and then wait for direction.
 >
-> **Variants:** §1 is the full primer (recommended for sessions resuming planning OR starting Tier 1 implementation). §2 is the short version for quick resumption. §3 is implementation-specific (skip the planning context).
+> **Variants:** §1 is the full primer (recommended for fresh sessions or long pauses). §2 is the short version for quick same-week resumption. §3 is force-graph-v0.1 continuation (the current active work).
+>
+> **Last refreshed:** 2026-04-30 — post-Tier-1 cascade COMPLETE, post-decision-#38 cascade, force-graph v0.1 mid-Phase-A.
 
 ---
 
@@ -19,44 +21,43 @@ Before doing anything else, orient yourself in this project. Read these docs IN 
 
 1. `.claude/CLAUDE.md` — project conventions (likely auto-loaded; verify it's in context)
 2. `.claude/STATUS.md` — live project state (likely auto-loaded; verify it's in context)
-3. `.claude/HANDOFF.md` — session continuation context for the current pause point. **Read §5 carefully** — it documents React Compiler-aware lint patterns learned during the implementation sprint. Required if you're about to implement code.
-4. `docs/systems/graph-system/graph-system-description.md` — the master cross-cutting contract. 37 locked decisions; §8 is the decision index; §9 is the sub-doc map (which marks 4 Tier 1 components as IMPLEMENTED).
-5. The plan for whatever component you're working with: `docs/procomps/<slug>-procomp/<slug>-procomp-plan.md` (8 plans signed off — all 5 Tier 1 plans + force-graph v0.1/v0.2/v0.3).
-6. **At least one shipped Tier 1 implementation** under `src/registry/components/<category>/<slug>/` — read it end-to-end as the reference for the cadence + the React Compiler-aware patterns. `forms/properties-form/` is the most state-heavy; `forms/entity-picker/` exercises function overloads + cmdk; `feedback/detail-panel/` shows the compound-API + Context pattern.
+3. `.claude/HANDOFF.md` — session continuation context. **Read §5 carefully** — React Compiler-aware lint patterns learned during the Tier 1 sprint. Required if you're about to implement code.
+4. `docs/systems/graph-system/graph-system-description.md` — master cross-cutting contract. 38 locked decisions; §8 is the index; §9 is the sub-doc map (5/5 Tier 1 ✓ implemented).
+5. The plan for whatever component you're working with: `docs/procomps/<slug>-procomp/<slug>-procomp-plan.md`. 8 plans signed off (5 Tier 1 + force-graph v0.1/v0.2/v0.3).
+6. **At least one shipped Tier 1 implementation** under `src/registry/components/<category>/<slug>/` as the cadence + lint reference. `forms/properties-form/` is state-heavy; `forms/entity-picker/` exercises function overloads + cmdk; `feedback/detail-panel/` shows compound API + Context.
 
-**Skim afterward (lower priority but useful):**
+**Skim afterward (lower priority):**
 
-- The 5 Tier 1 procomp descriptions (Stage 1) at `docs/procomps/<slug>-procomp/<slug>-procomp-description.md` — usually plans suffice; descriptions have the original Q-locks.
-- `docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md` — Phase 0 spike brief (Day-1-ready GPU benchmark instructions; spike is NOT a Claude task).
-- `.claude/PHASE-0-ACTION-PLAN.md` — user-facing action plan for the Phase 0 spike.
-- `graph-visualizer-old.md` (repo root) — original v4 spec; authoritative for `force-graph` internals.
-- `docs/component-guide.md` — long-form pro-component build reference (helpful for Stage 3 implementation patterns).
+- The 5 Tier 1 procomp descriptions at `docs/procomps/<slug>-procomp/<slug>-procomp-description.md` — plans usually suffice.
+- `docs/procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md` — SUPERSEDED 2026-04-30 per #38; preserved for historical reference only.
+- `.claude/PHASE-0-ACTION-PLAN.md` — also SUPERSEDED per #38.
+- `graph-visualizer-old.md` (repo root) — original v4 spec; authoritative for force-graph internals **except** §3.5 dashed-edge rule + §11.3 custom edge program (both superseded by #38).
+- `docs/component-guide.md` — long-form pro-component build reference.
 
 **After reading, summarize back to me:**
 
-1. The big picture — what `graph-system` is, the three usage modes, why decomposed into Tier 1 / Tier 2 / Tier 3.
-2. What's signed off + what's IMPLEMENTED — 6 procomp descriptions signed off; 8 plans signed off (all 5 Tier 1 + force-graph v0.1/v0.2/v0.3); Phase 0 spike brief signed off; **4 of 5 Tier 1 components IMPLEMENTED** at alpha 0.1.0 in registry (`properties-form`, `detail-panel`, `filter-stack`, `entity-picker`); only `markdown-editor` remains.
-3. What "shipped" means in this project — typecheck + lint + build + SSR + /components index render all clean. **NOT validated:** browser-side hydration + interactivity (no test runner wired). User does manual browser testing between sessions.
-4. What's TBA — markdown-editor implementation (last Tier 1; ~3w focused; CodeMirror 6 substrate); force-graph v0.4 / v0.5 / v0.6 plans (best authored AFTER markdown-editor implements); system Stage 2 plan; all force-graph implementation (gated on Phase 0 spike).
-5. The Phase 0 risk-spike bottleneck — gates `force-graph` v0.1 implementation only. Independent of Tier 1 implementation. NOT a Claude task.
-6. **Cascade state: 5 of 5 Tier 1 plans signed off (cascade COMPLETE); 4 of 5 implemented; force-graph v0.3 + v0.4 implementation gates UNBLOCKED via the implementations themselves; v0.5 still gated on markdown-editor implementation.**
-7. The next-step options from `HANDOFF.md` §6 (A: browser-verify shipped components / B: implement markdown-editor / C: author force-graph v0.4-v0.6 plans / D: system Stage 2 plan / E: Phase 0 spike (not Claude) / F: pause).
+1. **Big picture** — graph-system, 3 usage modes (DB visualizer / Obsidian-like KG / hybrid documenter), why decomposed into Tier 1 / Tier 2 / Tier 3.
+2. **What's done** — 6 procomp descriptions signed off; 8 plans signed off (5 Tier 1 + force-graph v0.1/v0.2/v0.3); decision #38 amendment applied 2026-04-30; **Tier 1 cascade COMPLETE — 5/5 components implemented at alpha 0.1.0** (`properties-form`, `detail-panel`, `filter-stack`, `entity-picker`, `markdown-editor`).
+3. **What "shipped" means** — typecheck + lint + build + SSR + /components index render all clean. **NOT validated:** browser-side hydration + interactivity (no test runner wired). User does manual browser testing between sessions.
+4. **Decision #38 (CRITICAL — recent change)** — dashed-edge feature dropped, Phase 0 spike CANCELLED, replaced with stock Sigma `EdgeRectangleProgram` + `EdgeArrowProgram` (both inside main `sigma` package via `sigma/rendering` in Sigma 3.x). Soft/default visual differentiation via per-edge `color` + `size`: soft = `--muted-foreground` + size 1; default = `--foreground` + size 1.5. API rename `edgeType.dashed` → `edgeType.softVisual`. **Force-graph v0.1 implementation gate is UNBLOCKED at the planning level.**
+5. **Force-graph v0.1 IN PROGRESS** — Phase A lib/ done (14 files committed in `35753df`, typecheck clean). Remaining: source-adapter lib (3 files) + hooks (7 files) + Phase A end-gate + Phase B (3 files) + Phase C (5 files + manifest entry + STATUS update).
+6. **What's TBA** — force-graph v0.1 continuation (immediate next work); v0.2/v0.3 implementations (sequential); v0.4/v0.5/v0.6 plans (best authored after force-graph implementations validate assumptions); system Stage 2 plan; Tier 3 page (not really a component).
+7. **Next-step options** from `HANDOFF.md` §6.
 
-Then **wait for me to pick a direction**. Do NOT author plans, draft new docs, or modify code until I explicitly say which option to pursue.
+Then **wait for me to pick a direction**. Do NOT author plans, draft new docs, or modify code until I explicitly say which option.
 
 **Working pattern in this project (must follow):**
 
-- **For planning docs (descriptions, plans):** Draft → validate → re-validate → sign-off cadence. I'll say "draft", you draft. I'll say "validate", you do a re-validation pass against locked decisions, signed-off siblings, the original spec, and current library APIs — surface findings as a structured report. I'll say "go ahead", you apply revisions, convert §X "Recommendation:" form to "**Locked: X.**" form, add §X.5 plan-stage tightenings, flip status header, update the system description's §9 sub-doc map, and commit.
-- **For implementation:** pre-flight install (commit separately) → scaffold via `pnpm new:component` → Phase A (types + lib + hooks) → Phase B (parts + main) → Phase C (dummy-data + demo + usage + meta + index + manifest + STATUS.md update + system §9 map update + ship commit). Each phase is one commit gate; pause for review at the user's request.
-- **NEVER rubber-stamp the re-validation pass.** Project auto-memory documents that this cadence consistently catches refinements per planning artifact (1-3 substantive per Stage 1 description; 3-5 substantive per Stage 2 plan).
-- **Decisive recommendations + impact analysis preferred** over option lists. Pick a default, explain why, surface the main trade-off — in brief.
-- **Brevity preference confirmed** — keep responses short and clear; avoid long preambles, restated framing, and excessive section structure unless the task itself requires it. Match question length.
-- **Per-phase plan reference convention:** legacy `force-graph-procomp-plan.md` citations in system §8 mean per-phase plans (`force-graph-v0.{N}-plan.md`).
-- **Decision #35 (Tier 1 independence)** is the single most violated rule — `force-graph` does NOT import any Tier 1 component at the registry level; composition is host/Tier 3 only.
+- **For planning docs:** Draft → validate → re-validate → sign-off cadence. NEVER rubber-stamp the re-validation pass — it consistently catches refinements (1–3 substantive per Stage 1 description; 3–5 per Stage 2 plan).
+- **For implementation:** pre-flight install (commit separately) → scaffold via `pnpm new:component` → Phase A (types + lib + hooks) → Phase B (parts + main) → Phase C (demo + integration). Each phase is a commit gate; pause for review at the user's request.
+- **Decisive recommendations + impact analysis preferred** over option lists. Pick a default; explain why; surface main trade-off — in brief.
+- **Brevity preference** — keep responses short and clear; match question length; drop preambles.
+- **Decision #35 (Tier 1 independence)** — `force-graph` does NOT import any Tier 1 component at the registry level; composition is host/Tier 3 only. SINGLE MOST VIOLATED RULE.
 - **Decision #11 footnote** — Lucide icon atlas ships in `force-graph` v0.5, not v0.1.
-- ~~**Phase 0 risk spike pre-condition** — `force-graph` v0.1 implementation cannot begin until the spike completes (≥30 fps on integrated GPU at 100k edges). NOT a Claude task.~~ **REMOVED 2026-04-30 per [system decision #38](../docs/systems/graph-system/graph-system-description.md#8-locked-decisions-index)** — Phase 0 risk spike CANCELLED; v0.1 substrate is stock Sigma `EdgeRectangleProgram` + `@sigma/edge-arrow`; soft/default visual differentiation via per-edge `color` + `size` attributes. v0.1 implementation gate is unblocked.
+- **Decision #38 (current)** — stock-Sigma rendering substrate; no custom WebGL in v0.1.
 - **CrudResult discriminated return** (force-graph v0.3 lock): all CRUD actions return `{ ok: true, ...payload } | { ok: false, code, reason?, entityIds? }`.
-- **React Compiler-aware lint** is strict (HANDOFF §5): no setState-in-effect for derivable state; no ref reads during render; track DOM nodes via `useState<HTMLElement>` instead of `useRef`; verify with `pnpm lint` at every Phase end-gate, not just at Phase C.
+- **React Compiler-aware lint** is strict (HANDOFF §5): no setState-in-effect for derivable state; no ref reads during render; track DOM nodes via `useState<HTMLElement>` instead of `useRef`; verify with `pnpm lint` at every Phase end-gate.
+- **Per-phase plan refs** — legacy `force-graph-procomp-plan.md` citations in system §8 mean per-phase plans (`force-graph-v0.{N}-plan.md`).
 - **Never claim browser validation succeeded without a real browser session.** Programmatic checks (typecheck/lint/build/SSR) are NOT a substitute for hydration + interactivity testing.
 
 Ready to receive your summary, then wait for direction.
@@ -66,61 +67,76 @@ Ready to receive your summary, then wait for direction.
 
 ---
 
-## 2. Short variant (quick resumption)
-
-Use this when you've already chosen what to do and just need the assistant oriented enough to execute. Skip the full primer.
+## 2. Short variant (quick same-week resumption)
 
 ```
 --- COPY BELOW ---
 
-Read in order: `.claude/CLAUDE.md`, `.claude/STATUS.md`, `.claude/HANDOFF.md`. Then pick from HANDOFF §5 next-step options or wait for my specific request.
+Read in order: `.claude/CLAUDE.md`, `.claude/STATUS.md`, `.claude/HANDOFF.md`. Then wait for my direction.
 
 Critical reminders:
-- Decision #35 — Tier 1 components are independent; force-graph does NOT import Tier 1 at registry level (use opaque carriers like `unknown` or `Record<string, unknown>` for cross-tier data).
-- Decision #11 footnote — Lucide icon atlas ships in v0.5, not v0.1.
-- Per-phase plan refs — `force-graph-procomp-plan.md` legacy citations mean per-phase plans (`force-graph-v0.{N}-plan.md`).
-- Working pattern — draft → validate → re-validate → sign-off; never rubber-stamp the re-validation pass.
-- Brevity preference — keep responses short and clear; match question length.
-- 5 of 5 Tier 1 plans + force-graph v0.1/v0.2/v0.3 plans signed off; recommendation is to implement next, not author more plans.
+- **Tier 1 cascade COMPLETE** (5/5 implemented). Force-graph v0.1 mid-Phase-A — lib/ done at `35753df`; hooks + parts pending.
+- **Decision #38** — stock Sigma `EdgeRectangleProgram` + `EdgeArrowProgram` (both in main `sigma` package); soft edges = `--muted-foreground` + size 1; default = `--foreground` + size 1.5; `edgeType.softVisual` (renamed from `dashed`). Phase 0 spike CANCELLED.
+- **Decision #35** — Tier 1 independence; force-graph never imports Tier 1.
+- **React Compiler-aware lint is strict** (HANDOFF §5).
+- **Brevity preference** — keep responses short; match question length.
+- **Working pattern** — draft → validate → re-validate → sign-off; never rubber-stamp.
 
-I'll tell you what to do next once you've confirmed orientation.
+I'll tell you what to do once you've confirmed orientation.
 
 --- COPY ABOVE ---
 ```
 
 ---
 
-## 3. Implementation-specific variant
+## 3. Force-graph v0.1 continuation (current active work)
 
-Use this when you're starting Tier 1 component implementation. Skips the force-graph plan readings (not needed for Tier 1 implementation per decision #35).
+Use this when resuming the force-graph v0.1 implementation specifically — skips general Tier 1 context.
 
 ```
 --- COPY BELOW ---
 
-I'm starting implementation of a Tier 1 component. Read these docs in order:
+Resuming force-graph v0.1 implementation — Phase A lib/ done; continuing with source-adapter lib + hooks.
+
+Read in order:
 
 1. `.claude/CLAUDE.md` (project conventions)
 2. `.claude/STATUS.md` (live state)
-3. `.claude/HANDOFF.md` (current pause point)
-4. `docs/component-guide.md` (Stage 3 implementation patterns; Anatomy of a component folder)
-5. The plan for the component I'm implementing: `docs/procomps/<slug>-procomp/<slug>-procomp-plan.md`
-6. `src/registry/components/data/data-table/` (canonical template — read its file structure to mirror)
-7. `src/registry/components/data/rich-card/` (more complex example — useful for state-heavy components)
+3. `.claude/HANDOFF.md` — **§5 React Compiler-aware lint patterns is REQUIRED** (the hooks layer about to land will hit this)
+4. `docs/procomps/force-graph-procomp/force-graph-v0.1-plan.md` — full plan; §2 is the stock-Sigma substrate (post-#38); §7 the two-layer state model; §8.1+ the file-by-file plan; §17 the Q-P locks; §18 the gate
+5. `src/registry/components/data/force-graph/` — what's already shipped (Phase A lib/; 14 files in commit `35753df`)
+6. **At least one shipped Tier 1 implementation** for the React-Compiler-aware patterns reference — `forms/entity-picker/` is the closest fit (function overloads, useState-instead-of-useRef pattern, controlled-or-uncontrolled config)
 
-I'll tell you which Tier 1 component to start with. Run the Phase A pre-flight install from the plan's §X.2 (or equivalent) BEFORE anything else, then `pnpm new:component <category>/<slug>` to scaffold from the template.
+**Current state:**
+- Phase A lib/ ✓ — types.ts, edge-attributes.ts (#38 contract), validate-snapshot.ts, theme.ts, permissions/resolver.ts, store/* (creator + 4 slices + 2 derived + cascade + apply-delta) all typecheck clean
+- Phase A continuation ⨯ — source-adapter lib (3 files) → hooks (7 files) → Phase A end-gate (`pnpm tsc --noEmit` + `pnpm lint` clean)
+- Phase B ⨯ — parts/sigma-container, parts/svg-overlay, force-graph.tsx (still scaffolder stub)
+- Phase C ⨯ — dummy-data, demo, usage, meta, index, manifest entry
+- Final ⨯ — STATUS.md update + system §9 sub-doc map update + ship commit
 
-Working pattern:
-- Phase A — types + lib + hooks (foundational; smoke-test at end)
-- Phase B — rendering parts + main component (axe-core smoke at end)
-- Phase C — demos + integration verification (verify all success criteria from the description)
+**Next concrete files (Phase A continuation):**
 
-After each Phase, commit and pause for review. Don't push to remote.
+`lib/source-adapter/`:
+- `source-types.ts` — typed delta dispatch helpers
+- `snapshot-mode.ts` — static snapshot bootstrap
+- `live-mode.ts` — subscribe + delta loop
 
-Critical reminders:
-- Use existing shadcn primitives where they're in the repo; install missing ones via `pnpm dlx shadcn@latest add <name>` BEFORE Phase A starts.
-- Decision #37 — design tokens (Onest + JetBrains Mono, signal-lime, OKLCH only, NO hard-coded colors).
-- React 19 ref-as-prop (no forwardRef) — preserves generic inference; the pattern across all 5 Tier 1 plans.
-- Decision #35 — Tier 1 components are independent; never import another Tier 1 component.
+`hooks/`:
+- `use-graph-store.ts` — Zustand store ref + lifecycle (idempotent re-mount per StrictMode double-mount; Q-P1)
+- `use-graphology-adapter.ts` — wraps mutations + bumps graphVersion
+- `use-graph-selector.ts` — observes graphVersion (decision #4)
+- `use-fa2-worker.ts` — FA2 worker lifecycle (start/stop/kick; idempotent disposal)
+- `use-theme-resolution.ts` — CSS variable resolution + MutationObserver on `.dark` class
+- `use-source-adapter.ts` — loadInitial + subscribe orchestration (delta queue with cap 1000 per Q-P5)
+- `use-graph-actions.ts` — exposes ActionsV01
+
+**Critical reminders for hooks layer:**
+- React Compiler-aware lint patterns from HANDOFF §5 will surface — derive instead of useState-in-effect; no ref reads during render; useState<HTMLElement> for DOM nodes
+- React.StrictMode double-mount handling per plan §17.5 #2 — Sigma + FA2 worker + store creation must be idempotent (`if (!storeRef.current)` pattern)
+- Q-P1 lock — graphology MultiGraph + Sigma + FA2 worker all live in `useRef`s inside the component
+- `useGraphSelector` MUST observe `graphVersion` (decision #4) — bake the touch into the hook so consumers can't forget
+
+After Phase A end-gate passes (typecheck + lint), pause for review before Phase B.
 
 --- COPY ABOVE ---
 ```
@@ -132,16 +148,19 @@ Critical reminders:
 | Scenario | Use |
 |---|---|
 | Fresh session, weeks since last work, want full re-orient | §1 full primer |
-| Same week, you remember the broad strokes, want to dive in | §2 short variant |
-| Starting Tier 1 implementation specifically | §3 implementation variant |
-| Mid-sprint pause within the same day | Just say "continue from HANDOFF" — auto-memory + auto-loaded STATUS usually suffice |
+| Same week, you remember the broad strokes | §2 short variant |
+| Continuing force-graph v0.1 implementation | §3 force-graph continuation |
+| Mid-sprint pause within the same day | Just say "continue from HANDOFF" — auto-memory + auto-loaded STATUS suffice |
+
+---
 
 ## 5. Maintenance
 
-When the planning state changes meaningfully:
+When the project state changes meaningfully:
 
-- If `HANDOFF.md` is refreshed (new pause point), this file's references stay accurate — no edit needed.
-- If the file paths in §1 change (new per-phase plan signed off worth highlighting at session start), update §1's "Required reading" list.
-- If a new mandatory convention lands, add it to the "Working pattern" / "Critical reminders" sections in §1, §2, and §3.
+- If `HANDOFF.md` is refreshed, the references here stay accurate — no edit needed.
+- If a new top-level decision lands (like #38 in 2026-04-30), update §1 "Decision #X" reminders + §2 critical reminders.
+- If force-graph v0.1 ships, retire §3 (or repurpose for v0.2 continuation).
+- If a new mandatory convention lands, add it to "Working pattern" in §1, and "Critical reminders" in §2 + §3.
 
 The starter prompt is meant to be stable across pauses; per-pause specifics live in `HANDOFF.md`. If you find yourself updating this file every pause, the content probably belongs in `HANDOFF.md` instead.
