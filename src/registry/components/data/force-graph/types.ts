@@ -380,3 +380,24 @@ export interface ForceGraphProps {
   className?: string;
   ref?: Ref<ForceGraphHandle>;
 }
+
+/**
+ * Per v0.2 plan §3.1 + §4.1: the Provider/Canvas split. `<ForceGraph>`
+ * remains the convenience wrapper; hosts that need sibling-hook access
+ * to graph state from Tier 1 panels render `<ForceGraph.Provider>`
+ * around `<ForceGraph.Canvas>` plus their own panels.
+ */
+export interface ForceGraphProviderProps {
+  data: GraphInput;
+  onChange?: (snapshot: GraphSnapshot) => void;
+  onError?: (error: ValidationError | { code: string; message: string }) => void;
+  theme?: "dark" | "light" | "custom";
+  customColors?: Partial<Record<ThemeKey, string>>;
+  children: import("react").ReactNode;
+}
+
+export interface ForceGraphCanvasProps {
+  ariaLabel?: string;
+  className?: string;
+  ref?: Ref<ForceGraphHandle>;
+}
