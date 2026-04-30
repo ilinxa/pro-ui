@@ -1,38 +1,59 @@
 "use client";
 
 import { useMemo } from "react";
-import type { ActionsV01, Edge, GraphSnapshot, Node } from "../types";
+import type {
+  ActionsV02,
+  Edge,
+  EndpointRef,
+  GraphSnapshot,
+  HistoryEntry,
+  HoverState,
+  Node,
+  PrimitiveInverse,
+  Selection,
+} from "../types";
+import { applyPrimitiveInverse } from "../lib/history/inverses";
+import { buildHistoryEntry } from "../lib/history/composite";
 import { useGraphologyAdapter } from "./use-graphology-adapter";
 import { useGraphStoreContext } from "./use-graph-store";
 
 /**
- * Per plan §4.3: v0.1 actions surface (~6 actions). Selection / hover /
- * undo / redo land in v0.2; CRUD lands in v0.3; group + filter actions
- * land in v0.4; search + multi-edge in v0.6.
+ * Per v0.2 plan §3.3: the action surface expands from V01 to V02 with
+ * selection / hover / linking-mode / single-node-pin / undo / redo.
  *
- * The hook composes the adapter + store + FA2 worker controls into a
- * single stable object. Memoized on the underlying handles so inline
- * destructuring (`const { importSnapshot } = useGraphActions()`) doesn't
- * trigger re-renders on unrelated state changes.
+ * Drag is INTERNAL: the interaction layer (A3) dispatches drag-coalesced
+ * `HistoryEntry` pushes through `pushHistoryEntry` directly; there is
+ * no public `drag` action.
  *
- * Per plan §7.4: position commits + pin changes bump graphVersion in
- * v0.1 (the action exists for ref-based deep-link landings). Layout
- * toggle + rerun do NOT bump (geometry-irrelevant per §7.4).
+ * Per plan §9.1: only `setNodePositions(non-silent)` and `pinNode` push
+ * history entries from this surface; selection / hover / linking are
+ * "mode of operation" and intentionally NOT recorded.
+ *
+ * Per plan §9.4: `importSnapshot` clears history (replaces world). The
+ * adapter does the data import; this wrapper appends the history reset.
  */
-export function useGraphActions(): ActionsV01 {
+export function useGraphActions(): ActionsV02 {
   const adapter = useGraphologyAdapter();
   const { store, graph, worker } = useGraphStoreContext();
 
-  return useMemo<ActionsV01>(
+  return useMemo<ActionsV02>(
     () => ({
+      // ── v0.1 actions (unchanged behavior except setNodePositions now records)
       importSnapshot(snapshot) {
         adapter.importSnapshot(snapshot);
+        // v0.2: snapshot import clears both undo and redo stacks.
+        store.setState({
+          history: {
+            entries: [],
+            cursor: 0,
+            canUndo: false,
+            canRedo: false,
+          },
+        });
       },
 
       exportSnapshot(): GraphSnapshot {
         const state = store.getState();
-        // Read fresh positions from graphology — FA2 worker mutates x/y
-        // directly without going through the store mirror Map.
         const nodes: Node[] = Array.from(state.nodes.values()).map((n) => {
           if (!graph.hasNode(n.id)) return n;
           const x = graph.getNodeAttribute(n.id, "x");
@@ -43,8 +64,6 @@ export function useGraphActions(): ActionsV01 {
           return n;
         });
 
-        // Walk edgeOrder per decision #3 — preserves insertion order
-        // across both storage layers (graphology native + groupEdges).
         const edges: Edge[] = [];
         for (const id of state.edgeOrder) {
           const edge = state.edges.get(id);
@@ -74,12 +93,12 @@ export function useGraphActions(): ActionsV01 {
       },
 
       pinAllPositions() {
+        // Bulk pin is mode-of-operation (per Q-P6 + plan §9.1) — NOT
+        // recorded.
         const state = store.getState();
         const nextNodes = new Map(state.nodes);
         for (const node of state.nodes.values()) {
-          // Mirror in the store Map.
           nextNodes.set(node.id, { ...node, pinned: true } as Node);
-          // Honor pin in graphology so FA2 skips the position update.
           if (graph.hasNode(node.id)) {
             graph.setNodeAttribute(node.id, "fixed", true);
             graph.setNodeAttribute(node.id, "pinned", true);
@@ -92,15 +111,21 @@ export function useGraphActions(): ActionsV01 {
       },
 
       setNodePositions(batch, options) {
-        // `options.silent` reserved for v0.2 undo-stack control per
-        // decision #7; v0.1 has no undo so the flag is read-but-no-op.
-        void options?.silent;
-
+        const silent = options?.silent ?? false;
         const state = store.getState();
         const nextNodes = new Map(state.nodes);
 
+        const inverses: PrimitiveInverse[] = [];
+        const forwards: PrimitiveInverse[] = [];
+
         for (const { id, x, y } of batch) {
           if (!graph.hasNode(id)) continue;
+          if (!silent) {
+            const beforeX = numberOr(graph.getNodeAttribute(id, "x"), 0);
+            const beforeY = numberOr(graph.getNodeAttribute(id, "y"), 0);
+            inverses.push({ type: "setNodePosition", id, x: beforeX, y: beforeY });
+            forwards.push({ type: "setNodePosition", id, x, y });
+          }
           graph.setNodeAttribute(id, "x", x);
           graph.setNodeAttribute(id, "y", y);
           const existing = state.nodes.get(id);
@@ -113,8 +138,170 @@ export function useGraphActions(): ActionsV01 {
           nodes: nextNodes,
           graphVersion: s.graphVersion + 1,
         }));
+
+        if (!silent && inverses.length > 0) {
+          pushHistoryEntry(store, {
+            label:
+              batch.length === 1
+                ? `Move node`
+                : `Move ${batch.length} nodes`,
+            inverses,
+            forwards,
+          });
+        }
+      },
+
+      // ── v0.2 selection / hover (no graphVersion bump — plan §5.3)
+      select(target: Selection) {
+        store.setState((s) => ({ ui: { ...s.ui, selection: target } }));
+      },
+
+      clearSelection() {
+        store.setState((s) => ({ ui: { ...s.ui, selection: null } }));
+      },
+
+      hover(target: HoverState) {
+        store.setState((s) => ({ ui: { ...s.ui, hovered: target } }));
+      },
+
+      // ── v0.2 linking mode (no graphVersion bump — mode of operation)
+      enterLinkingMode(source: EndpointRef) {
+        store.setState((s) => ({
+          ui: { ...s.ui, linkingMode: { active: true, source } },
+        }));
+      },
+
+      exitLinkingMode() {
+        store.setState((s) => ({
+          ui: { ...s.ui, linkingMode: { active: false, source: null } },
+        }));
+      },
+
+      // ── v0.2 single-node pin (recorded per plan §9.1)
+      pinNode(id, pinned) {
+        if (!graph.hasNode(id)) return;
+        const before = graph.getNodeAttribute(id, "pinned") === true;
+        if (before === pinned) return;
+
+        graph.setNodeAttribute(id, "fixed", pinned);
+        graph.setNodeAttribute(id, "pinned", pinned);
+
+        const state = store.getState();
+        const node = state.nodes.get(id);
+        const nextNodes = new Map(state.nodes);
+        if (node) {
+          nextNodes.set(id, { ...node, pinned } as Node);
+        }
+        store.setState((s) => ({
+          nodes: nextNodes,
+          graphVersion: s.graphVersion + 1,
+        }));
+
+        const label = node?.label ?? id;
+        pushHistoryEntry(
+          store,
+          buildHistoryEntry(`${pinned ? "Pin" : "Unpin"} ${label}`, [
+            { type: "pinNode", id, before, after: pinned },
+          ]),
+        );
+      },
+
+      // ── v0.2 undo / redo
+      undo() {
+        const state = store.getState();
+        if (state.history.cursor === 0) return;
+        const entry = state.history.entries[state.history.cursor - 1];
+        // Apply inverses in REVERSE order — per plan §9.2.
+        for (let i = entry.inverses.length - 1; i >= 0; i--) {
+          applyPrimitiveInverse(entry.inverses[i], { store, graph });
+        }
+        store.setState((s) => {
+          const nextCursor = s.history.cursor - 1;
+          return {
+            history: {
+              ...s.history,
+              cursor: nextCursor,
+              canUndo: nextCursor > 0,
+              canRedo: nextCursor < s.history.entries.length,
+            },
+            graphVersion: s.graphVersion + 1,
+          };
+        });
+      },
+
+      redo() {
+        const state = store.getState();
+        if (state.history.cursor === state.history.entries.length) return;
+        const entry = state.history.entries[state.history.cursor];
+        // Apply forwards in FORWARD order — per plan §9.2 + Q-P6.
+        for (const fwd of entry.forwards) {
+          applyPrimitiveInverse(fwd, { store, graph });
+        }
+        store.setState((s) => {
+          const nextCursor = s.history.cursor + 1;
+          return {
+            history: {
+              ...s.history,
+              cursor: nextCursor,
+              canUndo: nextCursor > 0,
+              canRedo: nextCursor < s.history.entries.length,
+            },
+            graphVersion: s.graphVersion + 1,
+          };
+        });
+      },
+
+      canUndo() {
+        return store.getState().history.canUndo;
+      },
+
+      canRedo() {
+        return store.getState().history.canRedo;
       },
     }),
     [adapter, store, graph, worker],
   );
+}
+
+/**
+ * Per v0.2 plan §4.4: `push` truncates the redo stack if mid-history,
+ * appends, and trims the oldest entry if at capacity. Internal helper —
+ * the interaction layer (drag handler) calls this directly to commit
+ * drag-coalesced entries; the action layer above goes through it for
+ * `pinNode` and `setNodePositions`.
+ */
+export function pushHistoryEntry(
+  store: ReturnType<typeof useGraphStoreContext>["store"],
+  entry: HistoryEntry,
+): void {
+  store.setState((s) => {
+    const capacity = s.settings.undoBufferSize;
+    let entries = s.history.entries;
+
+    // Truncate redo stack if pushing mid-history.
+    if (s.history.cursor < entries.length) {
+      entries = entries.slice(0, s.history.cursor);
+    }
+
+    entries = [...entries, entry];
+
+    // Ring-buffer trim: drop the OLDEST entry when over capacity.
+    if (entries.length > capacity) {
+      entries = entries.slice(entries.length - capacity);
+    }
+
+    const cursor = entries.length;
+    return {
+      history: {
+        entries,
+        cursor,
+        canUndo: cursor > 0,
+        canRedo: false,
+      },
+    };
+  });
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }

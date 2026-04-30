@@ -316,6 +316,27 @@ export interface ForceGraphState {
   settings: GraphSettings;
   graphVersion: number;
 
+  /**
+   * v0.2 UI slice — selection / hover / linking-mode / multi-edge-expand
+   * slot. `dragState` is internal and intentionally NOT exposed here.
+   */
+  ui: {
+    selection: Selection;
+    hovered: HoverState;
+    linkingMode: LinkingMode;
+    multiEdgeExpanded: { a: EndpointRef; b: EndpointRef } | null;
+  };
+
+  /**
+   * v0.2 history slice — ring-buffer entries, cursor, derived flags.
+   */
+  history: {
+    entries: ReadonlyArray<HistoryEntry>;
+    cursor: number;
+    canUndo: boolean;
+    canRedo: boolean;
+  };
+
   derived: {
     visibleNodeIds: ReadonlySet<string>;
     visibleEdgeIds: ReadonlySet<string>;
@@ -329,7 +350,50 @@ export interface ForceGraphState {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 9. Public actions API (v0.1 subset)
+// 8b. v0.2 selection / hover / linking
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type Selection =
+  | { kind: "node"; id: string }
+  | { kind: "group"; id: string }
+  | { kind: "edge"; id: string }
+  | null;
+
+export type HoverState = Selection;
+
+export interface LinkingMode {
+  active: boolean;
+  source: EndpointRef | null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8c. v0.2 history primitives + entries (per plan §4.4 + Q-P6 lock)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Per Q-P6 + plan §4.4: the smallest unit of state change that history
+ * can replay. Each `HistoryEntry` carries forward + inverse arrays of
+ * primitives. v0.2 ships only `setNodePosition` and `pinNode`; v0.3
+ * expands the union with full CRUD primitives.
+ *
+ * `noop` is the cascade placeholder per plan §16.5 #11: when a
+ * delta-driven delete invalidates an entry's referenced entity, the
+ * primitive is replaced with `noop` so cursor positions stay stable
+ * without breaking in-flight undo/redo.
+ */
+export type PrimitiveInverse =
+  | { type: "setNodePosition"; id: string; x: number; y: number }
+  | { type: "pinNode"; id: string; pinned: boolean }
+  | { type: "noop" };
+
+export interface HistoryEntry {
+  label: string;
+  inverses: ReadonlyArray<PrimitiveInverse>;
+  forwards: ReadonlyArray<PrimitiveInverse>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. Public actions API
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface ActionsV01 {
@@ -342,6 +406,33 @@ export interface ActionsV01 {
     batch: ReadonlyArray<{ id: string; x: number; y: number }>,
     options?: { silent?: boolean },
   ): void;
+}
+
+/**
+ * Per v0.2 plan §3.3: ActionsV02 extends V01 with selection / hover /
+ * linking / pin-single / undo-redo. Drag is INTERNAL (handled by the
+ * canvas's pointer handler in A3, not part of the public surface).
+ */
+export interface ActionsV02 extends ActionsV01 {
+  // Selection
+  select(target: Selection): void;
+  clearSelection(): void;
+
+  // Hover
+  hover(target: HoverState): void;
+
+  // Linking mode
+  enterLinkingMode(source: EndpointRef): void;
+  exitLinkingMode(): void;
+
+  // Single-node pin (recorded per spec §5.5)
+  pinNode(id: string, pinned: boolean): void;
+
+  // Undo / redo
+  undo(): void;
+  redo(): void;
+  canUndo(): boolean;
+  canRedo(): boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

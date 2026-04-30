@@ -49,6 +49,21 @@ function buildStateView(raw: GraphStoreState): ForceGraphState {
     edgeTypes: raw.edgeTypes,
     settings: raw.settings,
     graphVersion: raw.graphVersion,
+    // Per v0.2 plan §3.2: ui + history slices are part of the public
+    // read view. dragState is intentionally NOT exposed (internal to
+    // the interaction layer; consumers don't subscribe to it).
+    ui: {
+      selection: raw.ui.selection,
+      hovered: raw.ui.hovered,
+      linkingMode: raw.ui.linkingMode,
+      multiEdgeExpanded: raw.ui.multiEdgeExpanded,
+    },
+    history: {
+      entries: raw.history.entries,
+      cursor: raw.history.cursor,
+      canUndo: raw.history.canUndo,
+      canRedo: raw.history.canRedo,
+    },
     derived: {
       visibleNodeIds: deriveVisibleNodeIds(raw),
       visibleEdgeIds: deriveVisibleEdgeIds(raw),

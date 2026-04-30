@@ -1,21 +1,32 @@
 import type { StateCreator } from "zustand";
+import type {
+  EndpointRef,
+  HoverState,
+  LinkingMode,
+  Selection,
+} from "../../../types";
 
 /**
- * Per plan §3 + §7.2: UI slice is SCAFFOLDED in v0.1 with minimal shape;
- * full selection / hover / linking / multi-edge state lands in v0.2.
+ * Per v0.2 plan §4.3: UI slice fully activated.
  *
- * The slice exists in v0.1 so the UI-state cascade-on-delete plumbing
- * (foundational scaffolding per plan §3) has somewhere to write to.
- * v0.1 has no editing, so cascade is wired but never fires.
+ *   - `selection`, `hovered`: discriminated unions per plan §3.3.
+ *   - `linkingMode`: { active, source } for the linking-mode workflow.
+ *   - `multiEdgeExpanded`: slot exists in v0.2 but only consumed by the
+ *     v0.6 multi-edge-expansion UI.
+ *   - `dragState`: INTERNAL — populated by the pointer handler in the
+ *     interaction layer (A3) to coalesce drag-end commits. Not exposed
+ *     via `useGraphSelector`.
+ *
+ * Per plan §5.3: selection / hover changes do NOT bump `graphVersion`;
+ * consumers subscribe to the specific slice key they care about.
  */
-
 export interface UiSlice {
   ui: {
-    selection: null;
-    hovered: null;
-    // v0.2 expands: { selection: Selection | null; hovered: EndpointRef | null;
-    //   linking: { active: boolean; source?: EndpointRef } | null;
-    //   multiEdgeExpanded: ReadonlySet<string> }
+    selection: Selection;
+    hovered: HoverState;
+    linkingMode: LinkingMode;
+    multiEdgeExpanded: { a: EndpointRef; b: EndpointRef } | null;
+    dragState: { activeNodeId: string; startX: number; startY: number } | null;
   };
 }
 
@@ -23,5 +34,8 @@ export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = () => ({
   ui: {
     selection: null,
     hovered: null,
+    linkingMode: { active: false, source: null },
+    multiEdgeExpanded: null,
+    dragState: null,
   },
 });
