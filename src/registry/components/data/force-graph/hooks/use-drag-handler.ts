@@ -1,0 +1,166 @@
+"use client";
+
+import { useEffect } from "react";
+import type Sigma from "sigma";
+import type { MultiGraph } from "graphology";
+import type { Node, PrimitiveInverse } from "../types";
+import type { GraphStore } from "../lib/store/store-creator";
+import { pushHistoryEntry } from "../lib/history/push";
+
+/**
+ * Per v0.2 plan §7: drag-to-pin with drag-coalesced history.
+ *
+ * Lifecycle:
+ *   1. `downNode` → capture start position; mark graphology `fixed:
+ *      true` so FA2 stops fighting the cursor; record `dragState` in
+ *      the UI slice; call `event.preventSigmaDefault()` so Sigma's
+ *      stage-pan doesn't engage simultaneously.
+ *   2. `moveBody` → translate the cursor to graph coords and update
+ *      the dragged node's x/y. No graphVersion bump during the drag —
+ *      Sigma re-renders via its own subscription to graphology events;
+ *      React panels stay quiet.
+ *   3. `getMouseCaptor() mouseup` → auto-pin on drop, push ONE history
+ *      entry coalescing position + (optional) pin change, bump
+ *      graphVersion once, clear dragState.
+ *
+ * Per plan §7.3: the drag flow uses `graph.setNodeAttribute` directly
+ * — it does NOT route through the `setNodePositions` action (which is
+ * for procedural placement). The action / history surfaces stay
+ * decoupled.
+ *
+ * Coordinate note: `event.x` / `event.y` from Sigma's mouse captor are
+ * already CONTAINER-relative (Sigma applies `getBoundingClientRect()`
+ * in `getMouseCoords`). Passing them straight to `viewportToGraph`
+ * gives the right graph-space position. Using raw `clientX/Y` from
+ * window pointer events would teleport the node by the container's
+ * offset.
+ */
+export function useDragHandler(
+  sigma: Sigma | null,
+  graph: MultiGraph,
+  store: GraphStore,
+): void {
+  useEffect(() => {
+    if (!sigma) return;
+
+    interface SigmaMouseCoords {
+      x: number;
+      y: number;
+      preventSigmaDefault: () => void;
+      original: Event;
+    }
+    interface SigmaNodeEvent {
+      node: string;
+      event: SigmaMouseCoords;
+      preventSigmaDefault: () => void;
+    }
+    interface SigmaMoveBodyEvent {
+      event: SigmaMouseCoords;
+      preventSigmaDefault: () => void;
+    }
+
+    const onDownNode = (payload: SigmaNodeEvent): void => {
+      const node = payload.node;
+      const startX = numberOr(graph.getNodeAttribute(node, "x"), 0);
+      const startY = numberOr(graph.getNodeAttribute(node, "y"), 0);
+      // Suppress FA2 layout for the dragged node during drag.
+      graph.setNodeAttribute(node, "fixed", true);
+      store.setState((s) => ({
+        ui: { ...s.ui, dragState: { activeNodeId: node, startX, startY } },
+      }));
+      // Suppress Sigma's stage panning for the duration of the drag.
+      payload.event.preventSigmaDefault();
+      payload.event.original.preventDefault?.();
+    };
+
+    const onMoveBody = (payload: SigmaMoveBodyEvent): void => {
+      const dragState = store.getState().ui.dragState;
+      if (!dragState) return;
+      // event.x / event.y are container-relative — pass directly.
+      const pos = sigma.viewportToGraph({
+        x: payload.event.x,
+        y: payload.event.y,
+      });
+      graph.setNodeAttribute(dragState.activeNodeId, "x", pos.x);
+      graph.setNodeAttribute(dragState.activeNodeId, "y", pos.y);
+      payload.event.preventSigmaDefault();
+    };
+
+    const captor = sigma.getMouseCaptor();
+    const onMouseUp = (): void => {
+      const state = store.getState();
+      const dragState = state.ui.dragState;
+      if (!dragState) return;
+      const { activeNodeId, startX, startY } = dragState;
+      const endX = numberOr(graph.getNodeAttribute(activeNodeId, "x"), 0);
+      const endY = numberOr(graph.getNodeAttribute(activeNodeId, "y"), 0);
+      const wasPinned = graph.getNodeAttribute(activeNodeId, "pinned") === true;
+      const moved =
+        Math.abs(endX - startX) > 0.0001 || Math.abs(endY - startY) > 0.0001;
+
+      if (!moved) {
+        // Pure click on a node — restore `fixed` to mirror `pinned` (we
+        // forced fixed:true at downNode for the drag suppression) and
+        // clear dragState. No history entry, no auto-pin.
+        graph.setNodeAttribute(activeNodeId, "fixed", wasPinned);
+        store.setState((s) => ({
+          ui: { ...s.ui, dragState: null },
+        }));
+        return;
+      }
+
+      // Auto-pin on drop (per plan §7.1). graphology `fixed` stays true
+      // since pinned nodes are fixed.
+      graph.setNodeAttribute(activeNodeId, "pinned", true);
+
+      // Mirror final position + pin into the store's nodes Map.
+      const node = state.nodes.get(activeNodeId);
+      const nextNodes = new Map(state.nodes);
+      if (node) {
+        nextNodes.set(activeNodeId, {
+          ...node,
+          position: { x: endX, y: endY },
+          pinned: true,
+        } as Node);
+      }
+
+      const inverses: PrimitiveInverse[] = [
+        { type: "setNodePosition", id: activeNodeId, x: startX, y: startY },
+      ];
+      const forwards: PrimitiveInverse[] = [
+        { type: "setNodePosition", id: activeNodeId, x: endX, y: endY },
+      ];
+      if (!wasPinned) {
+        inverses.push({ type: "pinNode", id: activeNodeId, pinned: false });
+        forwards.push({ type: "pinNode", id: activeNodeId, pinned: true });
+      }
+
+      const label = node?.label ?? activeNodeId;
+      pushHistoryEntry(store, {
+        label: `Drag ${label}`,
+        inverses,
+        forwards,
+      });
+
+      store.setState((s) => ({
+        nodes: nextNodes,
+        ui: { ...s.ui, dragState: null },
+        graphVersion: s.graphVersion + 1,
+      }));
+    };
+
+    sigma.on("downNode", onDownNode);
+    sigma.on("moveBody", onMoveBody);
+    captor.on("mouseup", onMouseUp);
+
+    return () => {
+      sigma.off("downNode", onDownNode);
+      sigma.off("moveBody", onMoveBody);
+      captor.off("mouseup", onMouseUp);
+    };
+  }, [sigma, graph, store]);
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}

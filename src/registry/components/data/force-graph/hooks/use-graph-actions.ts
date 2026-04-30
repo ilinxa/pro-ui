@@ -6,7 +6,6 @@ import type {
   Edge,
   EndpointRef,
   GraphSnapshot,
-  HistoryEntry,
   HoverState,
   Node,
   PrimitiveInverse,
@@ -14,6 +13,7 @@ import type {
 } from "../types";
 import { applyPrimitiveInverse } from "../lib/history/inverses";
 import { buildHistoryEntry } from "../lib/history/composite";
+import { pushHistoryEntry } from "../lib/history/push";
 import { useGraphologyAdapter } from "./use-graphology-adapter";
 import { useGraphStoreContext } from "./use-graph-store";
 
@@ -261,45 +261,6 @@ export function useGraphActions(): ActionsV02 {
     }),
     [adapter, store, graph, worker],
   );
-}
-
-/**
- * Per v0.2 plan §4.4: `push` truncates the redo stack if mid-history,
- * appends, and trims the oldest entry if at capacity. Internal helper —
- * the interaction layer (drag handler) calls this directly to commit
- * drag-coalesced entries; the action layer above goes through it for
- * `pinNode` and `setNodePositions`.
- */
-export function pushHistoryEntry(
-  store: ReturnType<typeof useGraphStoreContext>["store"],
-  entry: HistoryEntry,
-): void {
-  store.setState((s) => {
-    const capacity = s.settings.undoBufferSize;
-    let entries = s.history.entries;
-
-    // Truncate redo stack if pushing mid-history.
-    if (s.history.cursor < entries.length) {
-      entries = entries.slice(0, s.history.cursor);
-    }
-
-    entries = [...entries, entry];
-
-    // Ring-buffer trim: drop the OLDEST entry when over capacity.
-    if (entries.length > capacity) {
-      entries = entries.slice(entries.length - capacity);
-    }
-
-    const cursor = entries.length;
-    return {
-      history: {
-        entries,
-        cursor,
-        canUndo: cursor > 0,
-        canRedo: false,
-      },
-    };
-  });
 }
 
 function numberOr(value: unknown, fallback: number): number {

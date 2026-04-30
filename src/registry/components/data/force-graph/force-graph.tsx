@@ -27,6 +27,7 @@ function ForceGraphRoot({
   data,
   onChange,
   onError,
+  onSelectionChange,
   theme = "dark",
   customColors,
   ariaLabel = "Knowledge graph",
@@ -38,6 +39,7 @@ function ForceGraphRoot({
       data={data}
       onChange={onChange}
       onError={onError}
+      onSelectionChange={onSelectionChange}
       theme={theme}
       customColors={customColors}
     >

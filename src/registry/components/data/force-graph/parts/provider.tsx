@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MultiGraphCtor from "graphology";
 import type { MultiGraph } from "graphology";
 import { useStore } from "zustand";
@@ -35,6 +35,7 @@ export function Provider({
   data,
   onChange,
   onError,
+  onSelectionChange,
   theme = "dark",
   customColors,
   children,
@@ -55,6 +56,22 @@ export function Provider({
   const resolvedTheme = useThemeResolution(theme, customColors);
 
   const worker = useFA2Worker(graph, settings, settings.layoutEnabled);
+
+  // Per v0.2 plan §3.5 + §5.4: fire the host's onSelectionChange callback
+  // whenever ui.selection changes. Mirror through a ref so re-creating
+  // the callback doesn't tear down + re-bind the subscription.
+  const onSelectionChangeRef = useRef(onSelectionChange);
+  useEffect(() => {
+    onSelectionChangeRef.current = onSelectionChange;
+  }, [onSelectionChange]);
+  useEffect(() => {
+    return store.subscribe(
+      (s) => s.ui.selection,
+      (selection) => {
+        onSelectionChangeRef.current?.(selection);
+      },
+    );
+  }, [store]);
 
   const ctxValue = useMemo<GraphStoreContextValue>(
     () => ({ store, graph, worker, theme: resolvedTheme }),

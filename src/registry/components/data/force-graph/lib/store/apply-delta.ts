@@ -9,6 +9,7 @@ import type {
 import { softEdgeAttributes } from "../edge-attributes";
 import { sigmaNodeAttributes } from "../node-attributes";
 import { isGroupInvolvingEdge } from "./slices/group-edges-slice";
+import { cascadeOnDelete } from "./cascade";
 import type { GraphStoreState } from "./store-creator";
 
 /**
@@ -78,7 +79,11 @@ export function applyDelta(
       if (graph.hasNode(delta.id)) graph.dropNode(delta.id);
       const nextNodes = new Map(store.nodes);
       nextNodes.delete(delta.id);
-      setStore(() => ({ nodes: nextNodes }));
+      const cascade = cascadeOnDelete(store, { kind: "node", id: delta.id });
+      setStore(() => ({
+        nodes: nextNodes,
+        ...(cascade ?? {}),
+      }));
       break;
     }
     case "addEdge": {
@@ -137,7 +142,12 @@ export function applyDelta(
       const nextGroupEdges = new Map(store.groupEdges);
       const wasGroup = nextGroupEdges.delete(delta.id);
       if (!wasGroup && graph.hasEdge(delta.id)) graph.dropEdge(delta.id);
-      setStore(() => ({ edges: nextEdges, groupEdges: nextGroupEdges }));
+      const cascade = cascadeOnDelete(store, { kind: "edge", id: delta.id });
+      setStore(() => ({
+        edges: nextEdges,
+        groupEdges: nextGroupEdges,
+        ...(cascade ?? {}),
+      }));
       break;
     }
     case "addGroup": {
@@ -157,7 +167,11 @@ export function applyDelta(
     case "deleteGroup": {
       const next = new Map(store.groups);
       next.delete(delta.id);
-      setStore(() => ({ groups: next }));
+      const cascade = cascadeOnDelete(store, { kind: "group", id: delta.id });
+      setStore(() => ({
+        groups: next,
+        ...(cascade ?? {}),
+      }));
       break;
     }
     case "addNodeToGroup":
