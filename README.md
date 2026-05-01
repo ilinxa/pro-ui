@@ -20,13 +20,11 @@ This seeds `lib/utils.ts` (the `cn` helper that all primitives import) and `comp
 
 ### Register the namespace
 
-In your project's `components.json`:
+Add the namespace to your project's `components.json` (merge with your existing config):
 
 ```json
-{
-  "registries": {
-    "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
-  }
+"registries": {
+  "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
 }
 ```
 
@@ -89,7 +87,9 @@ Eight components, each with an optional `-fixtures` sibling for example data:
 | `detail-panel` | feedback | Selection-aware compound container — Header / Body / Actions slots, lifecycle precedence |
 | `filter-stack` | forms | Schema-driven filter panel — checkbox-list / toggle / text / custom, AND-across-categories |
 | `entity-picker` | forms | Searchable typed picker — single or multi mode, kind badges, custom render slots |
-| `markdown-editor` | forms | CodeMirror 6 + GFM + `[[wikilink]]` autocomplete + decoration |
+| `markdown-editor` | forms | CodeMirror 6 + GFM + [[wikilink]] autocomplete + decoration |
+
+> **Note:** `force-graph` is in alpha/preview on the [demo site](https://ilinxa-proui.vercel.app/components/force-graph) but not yet shipped via the registry. It will be added once stabilized — see [.claude/STATUS.md](.claude/STATUS.md).
 
 ---
 
@@ -107,6 +107,19 @@ Eight components, each with an optional `-fixtures` sibling for example data:
 A concise, AI-friendly registry reference is at [/llms.txt](https://ilinxa-proui.vercel.app/llms.txt).
 
 Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when working on a project that consumes the registry. It contains install steps, the full component list, common gotchas, and the namespace snippet — everything an AI needs to install components correctly without guessing.
+
+---
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `Cannot find module '@/lib/utils'` after install | Run `pnpm dlx shadcn@latest init` in the consumer project. `shadcn add` doesn't seed the `cn` helper — `init` does. |
+| Files landed at `./<slug>/...` instead of `./components/<slug>/...` | Your `components.json` has a non-default `aliases.components` (e.g. `@/src/components`). Either move the installed files post-install or adjust the alias. |
+| `npm ERESOLVE` on React 19 peer deps | Use `npm install --legacy-peer-deps`, or switch to pnpm/bun which resolve cleanly. |
+| Stale install after upstream registry update | The CLI doesn't cache; the CDN does. Wait out the 5-minute TTL or append `?v=<hash>` to the registry URL once. |
+
+Longer-form troubleshooting + context: [/docs#troubleshooting](https://ilinxa-proui.vercel.app/docs#troubleshooting).
 
 ---
 

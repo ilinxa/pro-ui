@@ -50,12 +50,10 @@ export default function DocsPage() {
       <Section anchor="setup" title="One-time setup" delay={240}>
         <p>
           Add the <Code>@ilinxa</Code> namespace to your project&rsquo;s{" "}
-          <Code>components.json</Code>:
+          <Code>components.json</Code> (merge with your existing config):
         </p>
-        <Pre>{`{
-  "registries": {
-    "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
-  }
+        <Pre>{`"registries": {
+  "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
 }`}</Pre>
         <p className="text-sm">
           The <Code>{"{name}"}</Code> placeholder is mandatory — the CLI rejects
@@ -134,6 +132,11 @@ export function TaskEditor() {
             desc="CodeMirror 6 + GFM + [[wikilink]] autocomplete + decoration"
           />
         </ul>
+        <p className="mt-4 text-sm">
+          <strong className="text-foreground">Note:</strong>{" "}
+          <Code>force-graph</Code> is in alpha/preview on the demo site but
+          not yet shipped via the registry. It will be added once stabilized.
+        </p>
         <p className="mt-6">
           See per-component docs:{" "}
           <Link
