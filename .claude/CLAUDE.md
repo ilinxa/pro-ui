@@ -34,16 +34,20 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 - `meta.ts` must populate every required `ComponentMeta` field. The scaffolder generates a stub with today's date.
 - Categories live in `src/registry/categories.ts`. Adding one requires updating `ComponentCategorySlug` and `CATEGORIES`.
 - Adding a component to the docs site requires a 3-line edit to `src/registry/manifest.ts` — the scaffolder prints the exact lines.
+- **Registry distribution:** [`registry.json`](../registry.json) at repo root is the source of truth for `https://ilinxa-proui.vercel.app/r/<slug>.json` artifacts. Each shipped component is TWO items: base (`<slug>`) + fixtures (`<slug>-fixtures`, depends on the base, adds `dummy-data.ts`). Locked target convention: every file `type: "registry:component"`, `target: "components/<slug>/<sub-path>"`. Never include `demo.tsx`, `usage.tsx`, or `meta.ts` — docs-site only. `pnpm vercel-build` chains `shadcn build && next build` so production artifacts auto-regenerate on each deploy. Producer-side reference: [.claude/skills/shadcn-registry-pro/](skills/shadcn-registry-pro/).
 
 ## Workflow
 0. **(Required gate — must)** Before any code, author the procomp planning docs at `docs/procomps/<slug>-procomp/`. Two documents must exist and be signed off by the user, in order: `<slug>-procomp-description.md` (what & why), then `<slug>-procomp-plan.md` (how). The third doc, `<slug>-procomp-guide.md` (consumer-facing usage notes), is authored alongside the implementation. **Do not run `pnpm new:component` until the description AND plan are confirmed.** If the user asks for a new component without these docs, your first move is to draft the description and pause for their sign-off — not to scaffold. See [docs/procomps/README.md](../docs/procomps/README.md) and [docs/component-guide.md §2](../docs/component-guide.md#2-before-you-start).
 1. `pnpm new:component <category>/<slug>` generates the folder from `_template/`.
 2. Implement the component, fill `meta.ts`, write the demo and usage.
-3. Paste the printed 3 lines into `src/registry/manifest.ts`.
+3. Paste the printed 3 lines into `src/registry/manifest.ts` (registers it in the docs site).
 4. Verify the docs render at `/components` and `/components/<slug>`.
-5. Update `.claude/STATUS.md` with the new entry and any decisions worth keeping.
+5. **Add the component to [`registry.json`](../registry.json)** — one base item (sealed-folder source files) + one `<slug>-fixtures` sibling item (just `dummy-data.ts`). Locked convention: every file uses `type: "registry:component"` and `target: "components/<slug>/<sub-path>"`. **Never ship `demo.tsx`, `usage.tsx`, or `meta.ts`** — those are docs-site only. Pattern in [docs/component-guide.md §11.5](../docs/component-guide.md#115-shipping-via-the-registry); skill at [.claude/skills/shadcn-registry-pro/](skills/shadcn-registry-pro/).
+6. `pnpm registry:build` to regenerate `public/r/*.json` locally; spot-check the new `<slug>.json` artifact. Optional but recommended on first ship: smoke-test from a tmp consumer (see §11.5).
+7. Update `.claude/STATUS.md` with the new entry and any decisions worth keeping.
+8. Commit + push to `master`. Vercel auto-runs `pnpm vercel-build` on each deploy, regenerating the catalog from `registry.json`. Once deployed, the component is installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>` from any consumer app.
 
-For human-readable rules and a worked end-to-end example, see [docs/component-guide.md](../docs/component-guide.md). This `CLAUDE.md` stays terse; the guide is the long-form reference.
+For human-readable rules and a worked end-to-end example, see [docs/component-guide.md](../docs/component-guide.md). This `CLAUDE.md` stays terse; the guide is the long-form reference. The `shadcn-registry-pro` skill at `.claude/skills/shadcn-registry-pro/` covers registry-side work in detail.
 
 ## Gotchas
 - Root `CLAUDE.md` chains to `AGENTS.md` — Next.js 16 has breaking changes from training data. Read `node_modules/next/dist/docs/` before writing route code.

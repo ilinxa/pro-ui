@@ -235,6 +235,22 @@ function main() {
   console.log(
     `  { meta: ${camel}Meta, Demo: ${pascal}Demo, Usage: ${pascal}Usage },`,
   );
+  console.log("");
+  console.log(
+    `${DIM}AND, after implementing, add to registry.json (base + ${slug}-fixtures items):${RESET}`,
+  );
+  console.log(
+    `  See docs/component-guide.md §11.5 — "Shipping via the registry".`,
+  );
+  console.log(
+    `  Locked convention: every file type "registry:component", target "components/${slug}/<sub-path>".`,
+  );
+  console.log(
+    `  Don't ship demo.tsx / usage.tsx / meta.ts in the base item.`,
+  );
+  console.log(
+    `  Ship dummy-data.ts via the ${slug}-fixtures sibling only.`,
+  );
 }
 
 main();

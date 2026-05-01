@@ -107,6 +107,8 @@ pnpm dev
 # 5. verify the docs auto-render
 # open http://localhost:3000/components
 # open http://localhost:3000/components/<slug>
+
+# 6. (separately) ship to consumers via the registry — see §11.5
 ```
 
 The scaffolder ([scripts/new-component.mjs](../scripts/new-component.mjs)) prints exactly what to paste:
@@ -985,7 +987,157 @@ pnpm dev
 # open http://localhost:3000/components/stat-card
 ```
 
-~30 minutes start to finish if you know the API ahead of time.
+~30 minutes start to finish if you know the API ahead of time. The component is now visible in the docs site. To make it installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>` from consumer apps, continue to §11.5.
+
+---
+
+## 11.5. Shipping via the registry
+
+§11 above gets the component into the docs site. Shipping via the registry — so consumers can `pnpm dlx shadcn@latest add @ilinxa/<slug>` from any of their apps — is a separate set of edits to [`registry.json`](../registry.json) at the repo root.
+
+Producer-side depth reference: [`.claude/skills/shadcn-registry-pro/`](../.claude/skills/shadcn-registry-pro/) — auto-loaded skill with full schema, target semantics, hosting setup, and 15 documented pitfalls. This section is the workflow; the skill is the depth.
+
+### The two-item pattern
+
+Each component ships as two registry items:
+
+- **Base item** (`<slug>`) — every shipped source file (`<slug>.tsx`, `index.ts`, `types.ts`, `parts/*`, `hooks/*`, `lib/*`).
+- **Fixtures item** (`<slug>-fixtures`) — declares `registryDependencies: ["<slug>"]` and adds only `dummy-data.ts`. Gives consumers an opt-in for example data; installing it auto-pulls the base.
+
+Why two items: shadcn's CLI has no per-file install flag. The dual-item pattern is how you give consumers a "with-fixtures" UX without a CLI flag.
+
+### What ships and what doesn't
+
+Ship via the **base** item:
+- `<slug>.tsx`, `index.ts`, `types.ts`
+- `parts/*.tsx`, `hooks/*.ts`, `lib/*.ts`
+
+Ship via the **fixtures** item:
+- `dummy-data.ts` only.
+
+NEVER ship via the registry:
+- `demo.tsx` — docs-site only; references `@/registry/...` paths the consumer doesn't have.
+- `usage.tsx` — docs-site only; same problem.
+- `meta.ts` — docs-site only; references registry types.
+
+If a `usage.tsx`-style file slips through, the consumer's build breaks immediately on `Cannot resolve "@/registry/...`. Enumerate `files[]` explicitly — never glob.
+
+### The locked target convention
+
+Smoke-test verified on 2026-05-01. Every file uses:
+
+```jsonc
+{
+  "path": "src/registry/components/<category>/<slug>/<sub-path>",
+  "type": "registry:component",
+  "target": "components/<slug>/<sub-path>"
+}
+```
+
+Two non-obvious points:
+
+1. **Homogeneous `type: "registry:component"`** — even for hooks, lib, types. Default-destination behavior stays uniform regardless of file kind when `target` is set.
+2. **`target` is project-root-relative**, prefixed with `components/`. Without the `components/` prefix, files land at `<project>/<slug>/...` (outside the consumer's components alias). The skill's earlier recipe was wrong; the smoke test caught it. Don't drop the prefix.
+
+### Worked example: shipping `stat-card`
+
+Picking up after §11's worked example (component implemented + manifest registered + docs preview verified). Add to `registry.json`, alongside other `data` items:
+
+```jsonc
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "stat-card",
+  "type": "registry:block",
+  "title": "Stat Card",
+  "description": "Value + label + delta + sparkline. Universal in dashboards.",
+  "author": "ilinxa",
+  "categories": ["data"],
+  "registryDependencies": ["card"],
+  "dependencies": ["lucide-react"],
+  "files": [
+    { "path": "src/registry/components/data/stat-card/stat-card.tsx", "type": "registry:component", "target": "components/stat-card/stat-card.tsx" },
+    { "path": "src/registry/components/data/stat-card/index.ts",      "type": "registry:component", "target": "components/stat-card/index.ts" },
+    { "path": "src/registry/components/data/stat-card/types.ts",      "type": "registry:component", "target": "components/stat-card/types.ts" }
+  ]
+},
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "stat-card-fixtures",
+  "type": "registry:block",
+  "title": "Stat Card (with fixtures)",
+  "description": "Stat Card bundle including the dummy-data fixtures used by the docs-site demo.",
+  "author": "ilinxa",
+  "categories": ["data", "fixtures"],
+  "registryDependencies": ["stat-card"],
+  "files": [
+    { "path": "src/registry/components/data/stat-card/dummy-data.ts", "type": "registry:component", "target": "components/stat-card/dummy-data.ts" }
+  ]
+}
+```
+
+### Determining `registryDependencies` and `dependencies`
+
+Re-derive from actual imports in shipped files (NOT from `meta.ts`, which may list demo-only primitives):
+
+```bash
+# shadcn primitives the SHIPPED files import (excludes demo/usage/meta)
+grep -rln "from ['\"]@/components/ui/" src/registry/components/<category>/<slug>/ \
+  --include='*.ts' --include='*.tsx' \
+  | grep -v -E '(demo|usage|meta)\.tsx?$' \
+  | xargs grep -h "from ['\"]@/components/ui/" \
+  | sed -E "s|.*from ['\"]@/components/ui/([^'\"/]+).*|\1|" \
+  | sort -u
+
+# npm peer deps (lucide-react, @dnd-kit/*, @codemirror/*, marked, etc.)
+grep -rln "from ['\"]\(lucide-react\|@dnd-kit\|@codemirror\|@lezer\|@tanstack\|cmdk\|marked\)" \
+  src/registry/components/<category>/<slug>/ \
+  --include='*.ts' --include='*.tsx' \
+  | grep -v -E '(demo|usage|meta)\.tsx?$'
+```
+
+`meta.ts`'s `dependencies.shadcn` typically lists demo-only primitives (`tabs`, `badge` for the per-component preview Tabs). Don't copy those into `registry.json` — the consumer doesn't need them.
+
+### Build + smoke test
+
+```bash
+# 1. Regenerate the catalog locally
+pnpm registry:build
+# emits public/r/<slug>.json + public/r/<slug>-fixtures.json + public/r/registry.json
+
+# 2. Inspect the per-item JSON briefly
+cat public/r/<slug>.json | head -30
+# files[] should match what you authored; content[] should be inlined source
+
+# 3. Smoke test from a fresh tmp consumer (recommended for first ship)
+#    — assumes the consumer has run `pnpm dlx shadcn@latest init` already
+pnpm dev   # serves http://localhost:3000/r/<slug>.json
+# in another shell, from a tmp Next + shadcn consumer dir:
+pnpm dlx shadcn@latest add http://localhost:3000/r/<slug>.json
+# inspect: files at components/<slug>/, primitives auto-installed, deps in package.json
+```
+
+### Commit + push → Vercel auto-deploys
+
+```bash
+git add registry.json src/registry/manifest.ts src/registry/components/<category>/<slug>/ public/r/ .claude/STATUS.md
+git commit -m "feat(<category>/<slug>): ship v0.1"
+git push
+```
+
+Vercel detects the push, runs `pnpm vercel-build` (which chains `shadcn build && next build`), and the catalog at `https://ilinxa-proui.vercel.app/r/registry.json` updates automatically. Consumers can install with:
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/<slug>           # lean
+pnpm dlx shadcn@latest add @ilinxa/<slug>-fixtures  # +dummy-data
+```
+
+### What if you forget the registry step
+
+Symptoms:
+- Component renders fine on `https://ilinxa-proui.vercel.app/components/<slug>` (docs preview works because manifest.ts was edited).
+- But `pnpm dlx shadcn@latest add @ilinxa/<slug>` returns 404 from Vercel (because `registry.json` doesn't list it).
+
+This is exactly the gap `force-graph` sits in deliberately (frozen at v0.2; not yet shipped via registry). For any other component, this is a bug — it's "implemented but not shipped". Step 5 of the workflow exists specifically to prevent this.
 
 ---
 
@@ -1105,6 +1257,9 @@ Copy-paste into your PR description. All 16 must be `[x]` before merge.
 - [ ] Did you toggle the theme via the dev site's theme toggle and verify both light and dark look right?
 - [ ] Did you update [.claude/STATUS.md](../.claude/STATUS.md) (Components table + Recent decisions entry)?
 - [ ] Is the manifest entry placed with its category siblings, not appended to the bottom?
+- [ ] Did you add the component to [`registry.json`](../registry.json) with **both** base + `<slug>-fixtures` items, every file `type: "registry:component"`, every target prefixed with `components/<slug>/`?
+- [ ] Did you cross-check `registryDependencies` and `dependencies` against actual imports in shipped files (excluding `demo.tsx` / `usage.tsx` / `meta.ts`) — not blindly copied from `meta.ts`?
+- [ ] Did `pnpm registry:build` complete cleanly with `public/r/<slug>.json` and `public/r/<slug>-fixtures.json` emitted?
 
 ---
 
