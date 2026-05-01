@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "detail-panel-fixtures",
+  "title": "Detail Panel (with fixtures)",
+  "author": "ilinxa",
+  "description": "Detail Panel bundle including the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "detail-panel"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/feedback/detail-panel/dummy-data.ts",
+      "content": "export type DemoEntityKind = \"node\" | \"edge\" | \"group\" | \"file\";\n\nexport interface DemoNode {\n  id: string;\n  kind: \"node\";\n  label: string;\n  nodeType: string;\n  pinned: boolean;\n  description: string;\n  createdAt: string;\n}\n\nexport interface DemoEdge {\n  id: string;\n  kind: \"edge\";\n  label: string;\n  source: string;\n  target: string;\n  weight: number;\n}\n\nexport interface DemoGroup {\n  id: string;\n  kind: \"group\";\n  label: string;\n  memberCount: number;\n  color: string;\n}\n\nexport interface DemoFile {\n  id: string;\n  kind: \"file\";\n  label: string;\n  size: number;\n  mime: string;\n  uploadedBy: string;\n}\n\nexport type DemoEntity = DemoNode | DemoEdge | DemoGroup | DemoFile;\n\nexport const DEMO_ENTITIES: DemoEntity[] = [\n  {\n    id: \"node-rina\",\n    kind: \"node\",\n    label: \"Rina Okafor\",\n    nodeType: \"Person\",\n    pinned: true,\n    description:\n      \"Engineering lead for the auth-v2 migration. Owns the security-team review queue.\",\n    createdAt: \"2025-11-12\",\n  },\n  {\n    id: \"node-acme-corp\",\n    kind: \"node\",\n    label: \"Acme Corp\",\n    nodeType: \"Organization\",\n    pinned: false,\n    description: \"Pilot customer for the v2 rollout. Multiple feature flags gated on their tenant.\",\n    createdAt: \"2025-09-03\",\n  },\n  {\n    id: \"edge-rina-acme\",\n    kind: \"edge\",\n    label: \"WORKS_WITH\",\n    source: \"node-rina\",\n    target: \"node-acme-corp\",\n    weight: 0.82,\n  },\n  {\n    id: \"group-security\",\n    kind: \"group\",\n    label: \"Security Team\",\n    memberCount: 7,\n    color: \"lime\",\n  },\n  {\n    id: \"file-runbook\",\n    kind: \"file\",\n    label: \"auth-v2-runbook.md\",\n    size: 18420,\n    mime: \"text/markdown\",\n    uploadedBy: \"rina@ilinxa.dev\",\n  },\n];\n\nexport function findEntity(id: string): DemoEntity | undefined {\n  return DEMO_ENTITIES.find((e) => e.id === id);\n}\n",
+      "type": "registry:component",
+      "target": "components/detail-panel/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "feedback",
+    "graph-system",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "entity-picker-fixtures",
+  "title": "Entity Picker (with fixtures)",
+  "author": "ilinxa",
+  "description": "Entity Picker bundle including the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "entity-picker"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/entity-picker/dummy-data.ts",
+      "content": "import type { KindMeta } from \"./types\";\n\nexport interface GraphNode {\n  id: string;\n  label: string;\n  kind: \"person\" | \"org\" | \"project\" | \"doc\" | \"tag\";\n  pinned?: boolean;\n  description?: string;\n}\n\nexport interface User {\n  id: string;\n  label: string;\n  email: string;\n  avatar: string;\n}\n\nexport const NODE_KINDS: Record<string, KindMeta> = {\n  person: { label: \"Person\", color: \"oklch(0.78 0.14 220)\" },\n  org: { label: \"Org\", color: \"oklch(0.74 0.16 280)\" },\n  project: { label: \"Project\", color: \"oklch(0.80 0.20 132)\" },\n  doc: { label: \"Doc\", color: \"oklch(0.74 0.13 50)\" },\n  tag: { label: \"Tag\", color: \"oklch(0.70 0.04 250)\" },\n};\n\nexport const GRAPH_NODES: GraphNode[] = [\n  { id: \"n-rina\", label: \"Rina Okafor\", kind: \"person\", pinned: true, description: \"Engineering lead — auth-v2 migration.\" },\n  { id: \"n-marc\", label: \"Marc Bernal\", kind: \"person\", description: \"Frontend platform; component library.\" },\n  { id: \"n-jules\", label: \"Jules Aalto\", kind: \"person\", description: \"Design systems; type & motion.\" },\n  { id: \"n-tomi\", label: \"Tomi Aida\", kind: \"person\", description: \"Backend — auth + permissions.\" },\n  { id: \"n-acme\", label: \"Acme Corp\", kind: \"org\", pinned: true, description: \"Pilot customer for v2 rollout.\" },\n  { id: \"n-verda\", label: \"Verda Holdings\", kind: \"org\", description: \"Customer in the prosperity tier.\" },\n  { id: \"n-helio\", label: \"Helio Labs\", kind: \"org\", description: \"Research partner; experimental graph workloads.\" },\n  { id: \"n-auth-v2\", label: \"auth-v2 migration\", kind: \"project\", pinned: true, description: \"Cross-team migration tracking work.\" },\n  { id: \"n-registry\", label: \"registry publish\", kind: \"project\", description: \"Cut the v0.1 NPM publish.\" },\n  { id: \"n-graph-sys\", label: \"graph-system Tier 3\", kind: \"project\", description: \"Tier 3 host page for the graph product.\" },\n  { id: \"n-runbook\", label: \"v2-runbook.md\", kind: \"doc\", description: \"Runbook for the security-team review queue.\" },\n  { id: \"n-tokens\", label: \"design-tokens.md\", kind: \"doc\", description: \"Lime accent + Onest font lock.\" },\n  { id: \"n-handoff\", label: \"session-handoff.md\", kind: \"doc\", description: \"Pause-point continuation context.\" },\n  { id: \"n-tag-sec\", label: \"security\", kind: \"tag\" },\n  { id: \"n-tag-auth\", label: \"auth\", kind: \"tag\" },\n  { id: \"n-tag-ui\", label: \"frontend\", kind: \"tag\" },\n  { id: \"n-tag-ops\", label: \"ops\", kind: \"tag\" },\n  { id: \"n-tag-tier1\", label: \"tier-1\", kind: \"tag\" },\n];\n\nexport const USERS: User[] = [\n  { id: \"u-rina\", label: \"Rina Okafor\", email: \"rina@ilinxa.dev\", avatar: \"RO\" },\n  { id: \"u-marc\", label: \"Marc Bernal\", email: \"marc@ilinxa.dev\", avatar: \"MB\" },\n  { id: \"u-jules\", label: \"Jules Aalto\", email: \"jules@ilinxa.dev\", avatar: \"JA\" },\n  { id: \"u-tomi\", label: \"Tomi Aida\", email: \"tomi@ilinxa.dev\", avatar: \"TA\" },\n  { id: \"u-petra\", label: \"Petra Schwarz\", email: \"petra@ilinxa.dev\", avatar: \"PS\" },\n  { id: \"u-luis\", label: \"Luis Terán\", email: \"luis@ilinxa.dev\", avatar: \"LT\" },\n  { id: \"u-anh\", label: \"Anh Le\", email: \"anh@ilinxa.dev\", avatar: \"AL\" },\n  { id: \"u-benji\", label: \"Benji Halloran\", email: \"benji@ilinxa.dev\", avatar: \"BH\" },\n];\n",
+      "type": "registry:component",
+      "target": "components/entity-picker/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "forms",
+    "graph-system",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

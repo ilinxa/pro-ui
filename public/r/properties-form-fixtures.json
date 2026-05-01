@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "properties-form-fixtures",
+  "title": "Properties Form (with fixtures)",
+  "author": "ilinxa",
+  "description": "Properties Form bundle including the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "properties-form"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/properties-form/dummy-data.ts",
+      "content": "import type { PropertiesFormField } from \"./types\";\n\nexport interface TaskValues extends Record<string, unknown> {\n  title: string;\n  description: string;\n  status: string;\n  priority: string;\n  estimatedHours: number;\n  assignee: string;\n  dueDate: string;\n  completed: boolean;\n}\n\nexport const TASK_BASELINE: TaskValues = {\n  title: \"Migrate auth middleware to v2 API\",\n  description:\n    \"Compatible with both providers; needs review by the security team before rollout.\\n\\nFollow the migration checklist in the runbook.\",\n  status: \"in-progress\",\n  priority: \"high\",\n  estimatedHours: 6,\n  assignee: \"rina@ilinxa.dev\",\n  dueDate: \"2026-05-12\",\n  completed: false,\n};\n\nexport const STATUS_OPTIONS = [\n  { value: \"todo\", label: \"To do\" },\n  { value: \"in-progress\", label: \"In progress\" },\n  { value: \"blocked\", label: \"Blocked\" },\n  { value: \"done\", label: \"Done\" },\n] as const;\n\nexport const PRIORITY_OPTIONS = [\n  { value: \"low\", label: \"Low\" },\n  { value: \"medium\", label: \"Medium\" },\n  { value: \"high\", label: \"High\" },\n  { value: \"urgent\", label: \"Urgent\" },\n] as const;\n\nexport const TASK_SCHEMA: ReadonlyArray<PropertiesFormField> = [\n  {\n    key: \"title\",\n    type: \"string\",\n    label: \"Title\",\n    description: \"Short description visible in lists.\",\n    required: true,\n    placeholder: \"Migrate the…\",\n  },\n  {\n    key: \"status\",\n    type: \"select\",\n    label: \"Status\",\n    options: STATUS_OPTIONS,\n    required: true,\n  },\n  {\n    key: \"priority\",\n    type: \"select\",\n    label: \"Priority\",\n    options: PRIORITY_OPTIONS,\n  },\n  {\n    key: \"assignee\",\n    type: \"string\",\n    label: \"Assignee\",\n    placeholder: \"user@team.dev\",\n  },\n  {\n    key: \"estimatedHours\",\n    type: \"number\",\n    label: \"Estimated hours\",\n    placeholder: \"0\",\n  },\n  {\n    key: \"dueDate\",\n    type: \"date\",\n    label: \"Due date\",\n  },\n  {\n    key: \"completed\",\n    type: \"boolean\",\n    label: \"Completed\",\n    description: \"Marks the task closed once done.\",\n  },\n  {\n    key: \"description\",\n    type: \"textarea\",\n    label: \"Description\",\n    placeholder: \"Add context, links, anything else…\",\n  },\n];\n\nexport const TASK_SCHEMA_VALIDATED: ReadonlyArray<PropertiesFormField> =\n  TASK_SCHEMA.map((f) => {\n    if (f.key === \"title\") {\n      return {\n        ...f,\n        validate: (v) => {\n          if (typeof v !== \"string\") return undefined;\n          if (v.trim().length < 6) return \"At least 6 characters.\";\n          if (v.length > 120) return \"120 characters or fewer.\";\n          return undefined;\n        },\n      };\n    }\n    if (f.key === \"estimatedHours\") {\n      return {\n        ...f,\n        validate: (v) => {\n          if (v === undefined || v === null || v === \"\") return undefined;\n          if (typeof v !== \"number\" || Number.isNaN(v)) return \"Must be a number.\";\n          if (v < 0) return \"Must be non-negative.\";\n          if (v > 80) return \"Sanity-check: more than 80h?\";\n          return undefined;\n        },\n      };\n    }\n    if (f.key === \"assignee\") {\n      return {\n        ...f,\n        validate: (v) => {\n          if (typeof v !== \"string\" || v.length === 0) return undefined;\n          if (!v.includes(\"@\")) return \"Use an email-shaped handle.\";\n          return undefined;\n        },\n      };\n    }\n    return f;\n  });\n\nexport const TASK_SCHEMA_MIXED: ReadonlyArray<PropertiesFormField> =\n  TASK_SCHEMA.map((f) => {\n    if (f.key === \"status\") {\n      return {\n        ...f,\n        permission: \"read-only\",\n        permissionReason:\n          \"Status is owned by the workflow engine. Use the Status menu to transition.\",\n      };\n    }\n    if (f.key === \"assignee\") {\n      return {\n        ...f,\n        permission: \"read-only\",\n        permissionReason: \"Set by the team's auto-rotation rule.\",\n      };\n    }\n    if (f.key === \"completed\") {\n      return { ...f, permission: \"hidden\" };\n    }\n    return f;\n  });\n",
+      "type": "registry:component",
+      "target": "components/properties-form/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "forms",
+    "graph-system",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

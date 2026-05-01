@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "filter-stack-fixtures",
+  "title": "Filter Stack (with fixtures)",
+  "author": "ilinxa",
+  "description": "Filter Stack bundle including the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "filter-stack"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/filter-stack/dummy-data.ts",
+      "content": "export type GraphNodeKind = \"person\" | \"org\" | \"project\" | \"doc\";\n\nexport interface GraphNodeFixture {\n  id: string;\n  label: string;\n  kind: GraphNodeKind;\n  tags: string[];\n  pinned: boolean;\n  members: number;\n  description: string;\n}\n\nexport const NODE_FIXTURES: GraphNodeFixture[] = [\n  {\n    id: \"n1\",\n    label: \"Rina Okafor\",\n    kind: \"person\",\n    tags: [\"security\", \"auth\"],\n    pinned: true,\n    members: 1,\n    description: \"Engineering lead — owns the auth-v2 migration.\",\n  },\n  {\n    id: \"n2\",\n    label: \"Marc Bernal\",\n    kind: \"person\",\n    tags: [\"frontend\"],\n    pinned: false,\n    members: 1,\n    description: \"Frontend platform; component library maintainer.\",\n  },\n  {\n    id: \"n3\",\n    label: \"Acme Corp\",\n    kind: \"org\",\n    tags: [\"customer\", \"tier-1\"],\n    pinned: true,\n    members: 240,\n    description: \"Pilot customer for the v2 rollout.\",\n  },\n  {\n    id: \"n4\",\n    label: \"Verda Holdings\",\n    kind: \"org\",\n    tags: [\"customer\"],\n    pinned: false,\n    members: 88,\n    description: \"Customer in the prosperity tier.\",\n  },\n  {\n    id: \"n5\",\n    label: \"auth-v2 migration\",\n    kind: \"project\",\n    tags: [\"security\", \"auth\", \"tier-1\"],\n    pinned: true,\n    members: 7,\n    description: \"Cross-team migration tracking work.\",\n  },\n  {\n    id: \"n6\",\n    label: \"registry publish\",\n    kind: \"project\",\n    tags: [\"frontend\", \"ops\"],\n    pinned: false,\n    members: 3,\n    description: \"Cut the v0.1 NPM publish.\",\n  },\n  {\n    id: \"n7\",\n    label: \"v2-runbook.md\",\n    kind: \"doc\",\n    tags: [\"security\", \"auth\"],\n    pinned: false,\n    members: 1,\n    description: \"Runbook for the security-team review queue.\",\n  },\n  {\n    id: \"n8\",\n    label: \"design-tokens.md\",\n    kind: \"doc\",\n    tags: [\"frontend\"],\n    pinned: false,\n    members: 1,\n    description: \"Lime accent + Onest font lock.\",\n  },\n];\n\nexport const KIND_OPTIONS = [\n  { value: \"person\", label: \"People\" },\n  { value: \"org\", label: \"Organizations\" },\n  { value: \"project\", label: \"Projects\" },\n  { value: \"doc\", label: \"Docs\" },\n] as const;\n\nexport const TAG_OPTIONS = [\n  { value: \"security\", label: \"security\" },\n  { value: \"auth\", label: \"auth\" },\n  { value: \"frontend\", label: \"frontend\" },\n  { value: \"tier-1\", label: \"tier-1\" },\n  { value: \"customer\", label: \"customer\" },\n  { value: \"ops\", label: \"ops\" },\n] as const;\n",
+      "type": "registry:component",
+      "target": "components/filter-stack/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "forms",
+    "graph-system",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

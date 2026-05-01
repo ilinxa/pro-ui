@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "shadcn build && next build",
     "start": "next start",
     "lint": "eslint",
-    "new:component": "node scripts/new-component.mjs"
+    "new:component": "node scripts/new-component.mjs",
+    "registry:build": "shadcn build"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

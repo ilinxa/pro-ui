@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "markdown-editor-fixtures",
+  "title": "Markdown Editor (with fixtures)",
+  "author": "ilinxa",
+  "description": "Markdown Editor bundle including the dummy-data fixtures (12-node graph fixture for wikilink demos).",
+  "registryDependencies": [
+    "markdown-editor"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/markdown-editor/dummy-data.ts",
+      "content": "import type { KindMeta, WikilinkCandidate } from \"./types\";\n\nexport interface GraphNode extends WikilinkCandidate {\n  id: string;\n  label: string;\n  kind: \"person\" | \"project\" | \"doc\" | \"tag\";\n  alias?: string;\n}\n\n// Resembles the force-graph fixture used elsewhere in the registry. Wikilinks in the\n// sample documents reference these labels — case-insensitively + trimmed (Q4 lock).\nexport const GRAPH_NODES: GraphNode[] = [\n  { id: \"n1\", label: \"Rina Okafor\", kind: \"person\", alias: \"Rina\" },\n  { id: \"n2\", label: \"Mateo Alvarez\", kind: \"person\", alias: \"Mateo\" },\n  { id: \"n3\", label: \"Yuki Tanaka\", kind: \"person\" },\n  { id: \"n4\", label: \"Ada Park\", kind: \"person\" },\n  { id: \"n5\", label: \"Lighthouse rollout\", kind: \"project\" },\n  { id: \"n6\", label: \"Dataset migration\", kind: \"project\" },\n  { id: \"n7\", label: \"Q3 strategy\", kind: \"doc\" },\n  { id: \"n8\", label: \"Onboarding playbook\", kind: \"doc\" },\n  { id: \"n9\", label: \"Roadmap snapshot\", kind: \"doc\" },\n  { id: \"n10\", label: \"research\", kind: \"tag\" },\n  { id: \"n11\", label: \"infrastructure\", kind: \"tag\" },\n  { id: \"n12\", label: \"design-system\", kind: \"tag\" },\n];\n\nexport const NODE_KINDS: Record<string, KindMeta> = {\n  person: { label: \"Person\", color: \"oklch(0.62 0.18 250)\" },\n  project: { label: \"Project\", color: \"oklch(0.62 0.18 162)\" },\n  doc: { label: \"Doc\", color: \"oklch(0.62 0.18 60)\" },\n  tag: { label: \"Tag\", color: \"oklch(0.55 0.05 280)\" },\n};\n\nexport const SAMPLE_DOC = `# Q3 strategy notes\n\nWe're rolling out a new dashboard that touches three teams. Owner is [[Rina Okafor|Rina]] with [[Mateo Alvarez]] driving the design review.\n\n## Open questions\n\n- Will [[Lighthouse rollout]] block the [[Dataset migration]]?\n- What does the [[Roadmap snapshot]] say about Q4 scope?\n- Where does [[unknown reference]] fit? *broken link example*\n\n## Action items\n\n1. Sync with [[Yuki Tanaka]] on the API contract.\n2. Update [[Onboarding playbook]] with the new flow.\n3. File the bug under #infrastructure.\n\n## Code\n\n> A markdown editor should feel like writing in a notes app, not a form field.\n\nInline \\`code\\`, **bold**, and *italic* all work. Tables too:\n\n| Surface | Status |\n| --- | --- |\n| Editor | shipped |\n| Preview | shipped |\n| Wikilinks | shipped |\n\n- [ ] Static GFM checkbox (non-interactive in v0.1)\n- [x] Static checked checkbox\n`;\n\nexport const SHORT_DOC = `## Welcome\n\nType **bold**, *italic*, or \\`inline code\\`. Try \\`[[\\` to open the wikilink picker.\n\nTagged with [[research]] and [[design-system]].\n`;\n\nexport const READ_ONLY_DOC = `# Onboarding playbook\n\nThis document is rendered as read-only. Toolbar and keymaps are disabled,\nbut syntax highlighting + preview still work.\n\n- See [[Q3 strategy]] for context.\n- Owner: [[Ada Park]]\n`;\n",
+      "type": "registry:component",
+      "target": "components/markdown-editor/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "forms",
+    "graph-system",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

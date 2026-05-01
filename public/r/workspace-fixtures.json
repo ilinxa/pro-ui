@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "workspace-fixtures",
+  "title": "Workspace (with fixtures)",
+  "author": "ilinxa",
+  "description": "Workspace bundle including the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "workspace"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/layout/workspace/dummy-data.ts",
+      "content": "import type { AreaTree, WorkspacePreset } from \"./types\";\n\nexport type DemoTableRow = {\n  id: string;\n  task: string;\n  status: \"Done\" | \"In progress\" | \"Blocked\";\n  owner: string;\n};\n\nexport const DEMO_TABLE_ROWS: DemoTableRow[] = [\n  { id: \"t_01\", task: \"Onboarding flow\", status: \"Done\", owner: \"Aria\" },\n  { id: \"t_02\", task: \"Pricing page rewrite\", status: \"In progress\", owner: \"Bilal\" },\n  { id: \"t_03\", task: \"API rate-limit policy\", status: \"Blocked\", owner: \"Camille\" },\n  { id: \"t_04\", task: \"Mobile menu polish\", status: \"In progress\", owner: \"Dimitri\" },\n  { id: \"t_05\", task: \"Audit log retention\", status: \"Done\", owner: \"Esme\" },\n];\n\nexport const DEMO_INITIAL_LAYOUT: AreaTree = {\n  kind: \"split\",\n  orientation: \"vertical\",\n  ratio: 0.45,\n  a: { kind: \"leaf\", id: \"demo-left\", componentId: \"notes\" },\n  b: {\n    kind: \"split\",\n    orientation: \"horizontal\",\n    ratio: 0.5,\n    a: { kind: \"leaf\", id: \"demo-tr\", componentId: \"clock\" },\n    b: { kind: \"leaf\", id: \"demo-br\", componentId: \"counter\" },\n  },\n};\n\nexport const DEMO_PRESETS_LAYOUTS: Record<string, AreaTree> = {\n  focus: { kind: \"leaf\", id: \"preset-focus-1\", componentId: \"notes\" },\n  split: {\n    kind: \"split\",\n    orientation: \"vertical\",\n    ratio: 0.5,\n    a: { kind: \"leaf\", id: \"preset-split-l\", componentId: \"notes\" },\n    b: { kind: \"leaf\", id: \"preset-split-r\", componentId: \"data-table\" },\n  },\n  grid: {\n    kind: \"split\",\n    orientation: \"horizontal\",\n    ratio: 0.5,\n    a: {\n      kind: \"split\",\n      orientation: \"vertical\",\n      ratio: 0.5,\n      a: { kind: \"leaf\", id: \"preset-grid-tl\", componentId: \"clock\" },\n      b: { kind: \"leaf\", id: \"preset-grid-tr\", componentId: \"counter\" },\n    },\n    b: {\n      kind: \"split\",\n      orientation: \"vertical\",\n      ratio: 0.5,\n      a: { kind: \"leaf\", id: \"preset-grid-bl\", componentId: \"notes\" },\n      b: { kind: \"leaf\", id: \"preset-grid-br\", componentId: \"data-table\" },\n    },\n  },\n};\n\nexport const DEMO_PRESETS: WorkspacePreset[] = [\n  { id: \"focus\", name: \"Focus\", layout: DEMO_PRESETS_LAYOUTS.focus! },\n  { id: \"split\", name: \"Split\", layout: DEMO_PRESETS_LAYOUTS.split! },\n  { id: \"grid\", name: \"Grid\", layout: DEMO_PRESETS_LAYOUTS.grid! },\n];\n",
+      "type": "registry:component",
+      "target": "components/workspace/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "layout",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
