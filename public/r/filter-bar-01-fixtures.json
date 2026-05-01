@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "filter-bar-01-fixtures",
+  "title": "Filter Bar 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Filter Bar 01 bundle including the dummy-data fixtures (Turkish labels + Turkish-locale date-range formatter).",
+  "registryDependencies": [
+    "filter-bar-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/filter-bar-01/dummy-data.ts",
+      "content": "import type {\n  FilterBarCategoryItem,\n  FilterBarLabels,\n} from \"./types\";\n\nexport const DUMMY_CATEGORIES_EN: FilterBarCategoryItem[] = [\n  { value: \"urban-development\", label: \"Urban Development\" },\n  { value: \"sustainability\", label: \"Sustainability\" },\n  { value: \"technology\", label: \"Technology\" },\n  { value: \"events\", label: \"Events\" },\n  { value: \"announcement\", label: \"Announcement\" },\n  { value: \"research\", label: \"Research\" },\n];\n\nexport const DUMMY_LABELS_TR: FilterBarLabels = {\n  searchPlaceholder: \"Haber ara...\",\n  searchAriaLabel: \"Haber arama\",\n  allLabel: \"Tümü\",\n  dateButtonText: \"Tarih Filtrele\",\n  clearDateLabel: \"Tarihi temizle\",\n  clearDateText: \"Tarihi Temizle\",\n  resultsCountText: (count) => `${count} haber bulundu`,\n  categoriesAriaLabel: \"Kategori filtresi\",\n};\n\n/** Custom Turkish-locale date-range formatter via `Intl.DateTimeFormat`. */\nconst TR_SHORT = new Intl.DateTimeFormat(\"tr-TR\", {\n  day: \"numeric\",\n  month: \"short\",\n});\n\nexport const formatDateRangeTR = ({\n  from,\n  to,\n}: {\n  from: Date;\n  to: Date;\n}): string => `${TR_SHORT.format(from)} - ${TR_SHORT.format(to)}`;\n",
+      "type": "registry:component",
+      "target": "components/filter-bar-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "forms",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

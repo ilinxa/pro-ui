@@ -1,0 +1,41 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "category-cloud-01",
+  "title": "Category Cloud 01",
+  "author": "ilinxa",
+  "description": "Always-visible flex-wrap of clickable category chips with optional inline counts. Single-select, controlled-or-uncontrolled, toggleable, native button semantics with aria-pressed.",
+  "dependencies": [],
+  "registryDependencies": [
+    "badge"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/category-cloud-01/category-cloud-01.tsx",
+      "content": "\"use client\";\n\nimport { memo, useCallback, useMemo, useState } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport { CategoryChip } from \"./parts/category-chip\";\nimport type {\n  CategoryCloudItem,\n  CategoryCloudProps,\n  NormalizedItem,\n} from \"./types\";\n\nconst defaultFormatCount = (count: number): string => ` (${count})`;\n\nconst normalizeItems = (\n  items: CategoryCloudItem[] | string[],\n): NormalizedItem[] =>\n  items.map((entry) => {\n    if (typeof entry === \"string\") {\n      return { value: entry, label: entry, count: undefined };\n    }\n    return {\n      value: entry.value,\n      label: entry.label ?? entry.value,\n      count: entry.count,\n    };\n  });\n\n/**\n * CategoryCloud01 — always-visible flex-wrap of clickable category chips\n * with optional counts. Single-select, controlled-or-uncontrolled.\n *\n * Pass `string[]` as shorthand for items without counts:\n *   <CategoryCloud01 items={[\"All\", \"Tech\", \"Design\"]} />\n *\n * Or full form for counts + display labels:\n *   <CategoryCloud01 items={[{ value: \"tech\", label: \"Technology\", count: 12 }]} />\n */\nfunction CategoryCloud01Impl(props: CategoryCloudProps) {\n  const {\n    items,\n    value: controlledValue,\n    defaultValue = null,\n    onChange,\n    toggleable = true,\n    title,\n    headingAs = \"h3\",\n    formatCount = defaultFormatCount,\n    ariaLabel,\n    className,\n    titleClassName,\n  } = props;\n\n  const [internalValue, setInternalValue] = useState<string | null>(defaultValue);\n  const isControlled = controlledValue !== undefined;\n  const value = isControlled ? controlledValue : internalValue;\n\n  const normalized = useMemo(() => normalizeItems(items), [items]);\n\n  const handleClick = useCallback(\n    (next: string) => {\n      const resolved =\n        toggleable && value === next ? null : next;\n      if (!isControlled) setInternalValue(resolved);\n      onChange?.(resolved);\n    },\n    [isControlled, onChange, toggleable, value],\n  );\n\n  const HeadingTag = headingAs;\n  const groupLabel = ariaLabel ?? title ?? \"Categories\";\n\n  return (\n    <div className={className}>\n      {title ? (\n        <HeadingTag\n          className={cn(\n            \"mb-4 border-b border-border pb-2 font-serif text-lg font-bold text-foreground\",\n            titleClassName,\n          )}\n        >\n          {title}\n        </HeadingTag>\n      ) : null}\n      <div\n        role=\"group\"\n        aria-label={groupLabel}\n        className=\"flex flex-wrap gap-2\"\n      >\n        {normalized.map((item) => (\n          <CategoryChip\n            key={item.value}\n            item={item}\n            isActive={value === item.value}\n            countLabel={item.count !== undefined ? formatCount(item.count) : \"\"}\n            onClick={() => handleClick(item.value)}\n          />\n        ))}\n      </div>\n    </div>\n  );\n}\n\nexport const CategoryCloud01 = memo(CategoryCloud01Impl);\nCategoryCloud01.displayName = \"CategoryCloud01\";\n\nexport default CategoryCloud01;\n",
+      "type": "registry:component",
+      "target": "components/category-cloud-01/category-cloud-01.tsx"
+    },
+    {
+      "path": "src/registry/components/forms/category-cloud-01/index.ts",
+      "content": "export { CategoryCloud01, default } from \"./category-cloud-01\";\nexport type {\n  CategoryCloudHeadingLevel,\n  CategoryCloudItem,\n  CategoryCloudProps,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "type": "registry:component",
+      "target": "components/category-cloud-01/index.ts"
+    },
+    {
+      "path": "src/registry/components/forms/category-cloud-01/types.ts",
+      "content": "export type CategoryCloudHeadingLevel = \"h2\" | \"h3\" | \"h4\";\n\nexport interface CategoryCloudItem {\n  /** Stable identifier, used as the selection value. */\n  value: string;\n  /** Display text. Defaults to `value` if not provided. */\n  label?: string;\n  /** Optional count rendered after the label. */\n  count?: number;\n}\n\nexport interface CategoryCloudProps {\n  /** Categories to render. Pass `string[]` as shorthand for `[{value,label}]`. */\n  items: CategoryCloudItem[] | string[];\n\n  /** Controlled selection value. Pass null to clear. */\n  value?: string | null;\n  /** Uncontrolled initial selection. Default: null. */\n  defaultValue?: string | null;\n  /** Selection change callback. Fires with null when re-clicking active (if toggleable). */\n  onChange?: (value: string | null) => void;\n\n  /** Whether re-clicking the active chip clears the selection. Default: true. */\n  toggleable?: boolean;\n\n  /** Optional title rendered above the cloud. */\n  title?: string;\n  /** Heading semantic level. Default: 'h3'. */\n  headingAs?: CategoryCloudHeadingLevel;\n\n  /** Custom count formatter. Default: `(count) => \\` (\\${count})\\``. */\n  formatCount?: (count: number) => string;\n\n  /** ARIA group label. Defaults to `title` if provided, else 'Categories'. */\n  ariaLabel?: string;\n\n  /** Override classes for the root container. */\n  className?: string;\n  /** Override classes for the title heading. */\n  titleClassName?: string;\n}\n\n/** Internal normalized item shape — both `string[]` and `CategoryCloudItem[]` flatten to this. */\nexport interface NormalizedItem {\n  value: string;\n  label: string;\n  count: number | undefined;\n}\n",
+      "type": "registry:component",
+      "target": "components/category-cloud-01/types.ts"
+    },
+    {
+      "path": "src/registry/components/forms/category-cloud-01/parts/category-chip.tsx",
+      "content": "import { Badge } from \"@/components/ui/badge\";\nimport { cn } from \"@/lib/utils\";\nimport type { NormalizedItem } from \"../types\";\n\n/**\n * One chip in the cloud. Native `<button>` for keyboard semantics +\n * `<Badge>` inside for visual.\n */\nexport function CategoryChip({\n  item,\n  isActive,\n  countLabel,\n  onClick,\n}: {\n  item: NormalizedItem;\n  isActive: boolean;\n  countLabel: string;\n  onClick: () => void;\n}) {\n  return (\n    <button\n      type=\"button\"\n      aria-pressed={isActive}\n      onClick={onClick}\n      className=\"rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\"\n    >\n      <Badge\n        variant={isActive ? \"default\" : \"secondary\"}\n        className={cn(\"cursor-pointer\", isActive ? \"\" : \"hover:bg-secondary/80\")}\n      >\n        {item.label}\n        {countLabel}\n      </Badge>\n    </button>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/category-cloud-01/parts/category-chip.tsx"
+    }
+  ],
+  "categories": [
+    "forms"
+  ],
+  "type": "registry:block"
+}

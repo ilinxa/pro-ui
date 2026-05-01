@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "category-cloud-01-fixtures",
+  "title": "Category Cloud 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Category Cloud 01 bundle including the dummy-data fixtures (Turkish + English category samples with counts).",
+  "registryDependencies": [
+    "category-cloud-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/forms/category-cloud-01/dummy-data.ts",
+      "content": "import type { CategoryCloudItem } from \"./types\";\n\nexport const DUMMY_CATEGORIES_TR: CategoryCloudItem[] = [\n  { value: \"urban-development\", label: \"Kentsel Dönüşüm\", count: 2 },\n  { value: \"sustainability\", label: \"Sürdürülebilirlik\", count: 2 },\n  { value: \"technology\", label: \"Teknoloji\", count: 2 },\n  { value: \"events\", label: \"Etkinlik\", count: 2 },\n  { value: \"announcement\", label: \"Duyuru\", count: 2 },\n  { value: \"research\", label: \"Araştırma\", count: 2 },\n];\n\nexport const DUMMY_CATEGORIES_EN: CategoryCloudItem[] = [\n  { value: \"urban-development\", label: \"Urban Development\", count: 12 },\n  { value: \"sustainability\", label: \"Sustainability\", count: 8 },\n  { value: \"technology\", label: \"Technology\", count: 5 },\n  { value: \"events\", label: \"Events\", count: 3 },\n  { value: \"announcement\", label: \"Announcement\", count: 4 },\n  { value: \"research\", label: \"Research\", count: 7 },\n];\n",
+      "type": "registry:component",
+      "target": "components/category-cloud-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "forms",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
