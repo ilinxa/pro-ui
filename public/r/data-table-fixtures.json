@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "data-table-fixtures",
+  "title": "Data Table (with fixtures)",
+  "author": "ilinxa",
+  "description": "Data Table bundle including the dummy-data fixtures used by the docs-site demo. Resolves the base data-table item automatically.",
+  "registryDependencies": [
+    "data-table"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/data-table/dummy-data.ts",
+      "content": "export type DemoUser = {\n  id: string;\n  name: string;\n  email: string;\n  role: \"Owner\" | \"Admin\" | \"Member\" | \"Viewer\";\n  status: \"Active\" | \"Invited\" | \"Suspended\";\n  lastSeen: string;\n};\n\nexport const DEMO_USERS: DemoUser[] = [\n  {\n    id: \"u_01\",\n    name: \"Aria Montgomery\",\n    email: \"aria@ilinxa.dev\",\n    role: \"Owner\",\n    status: \"Active\",\n    lastSeen: \"2 minutes ago\",\n  },\n  {\n    id: \"u_02\",\n    name: \"Bilal Hashemi\",\n    email: \"bilal@ilinxa.dev\",\n    role: \"Admin\",\n    status: \"Active\",\n    lastSeen: \"1 hour ago\",\n  },\n  {\n    id: \"u_03\",\n    name: \"Camille Okafor\",\n    email: \"camille@ilinxa.dev\",\n    role: \"Member\",\n    status: \"Invited\",\n    lastSeen: \"—\",\n  },\n  {\n    id: \"u_04\",\n    name: \"Dimitri Volkov\",\n    email: \"dimitri@ilinxa.dev\",\n    role: \"Member\",\n    status: \"Active\",\n    lastSeen: \"Yesterday\",\n  },\n  {\n    id: \"u_05\",\n    name: \"Esme Tanaka\",\n    email: \"esme@ilinxa.dev\",\n    role: \"Viewer\",\n    status: \"Suspended\",\n    lastSeen: \"3 weeks ago\",\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/data-table/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
