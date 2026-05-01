@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "grid-layout-news-01-fixtures",
+  "title": "Grid Layout (News 01) — fixtures",
+  "author": "ilinxa",
+  "description": "Grid Layout (News 01) bundle including the dummy-data fixtures (14 demo articles for the magazine tower + featured demo).",
+  "registryDependencies": [
+    "grid-layout-news-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/layout/grid-layout-news-01/dummy-data.ts",
+      "content": "export interface DemoArticle {\n  id: string;\n  title: string;\n  excerpt: string;\n  category: string;\n  date: string;\n  featured?: boolean;\n}\n\nexport const DEMO_ARTICLES: DemoArticle[] = Array.from({ length: 14 }).map(\n  (_, i) => ({\n    id: String(i + 1),\n    title:\n      i === 0\n        ? \"Featured: Editorial team announces 2026 redesign\"\n        : `Article ${i + 1}: ${\n            [\n              \"Urban planning trends shaping the year ahead\",\n              \"Sustainability moves to center stage\",\n              \"Smart city tech rolls out across metros\",\n              \"Public transit goes electric\",\n              \"Permitting goes digital, finally\",\n              \"Award-winning planners share their process\",\n              \"AI buildings cut energy use\",\n              \"Restoration goes 3D\",\n              \"Mobility summit dates announced\",\n              \"Heat island strategies tested\",\n              \"Walkability guide published\",\n              \"Bike lane investments accelerate\",\n              \"Year-end community report\",\n            ][i - 1] ?? \"Latest from the editorial team\"\n          }`,\n    excerpt:\n      \"A short summary of the article — used to give the reader a taste of the content before they click through to the full piece.\",\n    category: [\"Urban\", \"Sustainability\", \"Tech\", \"Events\", \"Research\"][i % 5],\n    date: new Date(Date.now() - i * 86400000).toLocaleDateString(undefined, {\n      day: \"numeric\",\n      month: \"short\",\n      year: \"numeric\",\n    }),\n    featured: i === 0,\n  }),\n);\n",
+      "type": "registry:component",
+      "target": "components/grid-layout-news-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "layout",
+    "news",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
