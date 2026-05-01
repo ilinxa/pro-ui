@@ -66,6 +66,14 @@ import ThumbList01Demo from "./components/data/thumb-list-01/demo";
 import ThumbList01Usage from "./components/data/thumb-list-01/usage";
 import { meta as thumbList01Meta } from "./components/data/thumb-list-01/meta";
 
+import ArticleMeta01Demo from "./components/data/article-meta-01/demo";
+import ArticleMeta01Usage from "./components/data/article-meta-01/usage";
+import { meta as articleMeta01Meta } from "./components/data/article-meta-01/meta";
+
+import ShareBar01Demo from "./components/marketing/share-bar-01/demo";
+import ShareBar01Usage from "./components/marketing/share-bar-01/usage";
+import { meta as shareBar01Meta } from "./components/marketing/share-bar-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -159,6 +167,16 @@ export const REGISTRY: RegistryEntry[] = [
     meta: thumbList01Meta,
     Demo: ThumbList01Demo,
     Usage: ThumbList01Usage,
+  },
+  {
+    meta: articleMeta01Meta,
+    Demo: ArticleMeta01Demo,
+    Usage: ArticleMeta01Usage,
+  },
+  {
+    meta: shareBar01Meta,
+    Demo: ShareBar01Demo,
+    Usage: ShareBar01Usage,
   },
 ];
 

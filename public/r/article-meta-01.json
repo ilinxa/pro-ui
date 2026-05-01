@@ -1,0 +1,41 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "article-meta-01",
+  "title": "Article Meta 01",
+  "author": "ilinxa",
+  "description": "Horizontal strip of icon + value pairs surfacing key metadata (author / date / read-time / view-count) under an article title. Data-driven items, optional per-item link, optional bottom divider, 3 alignments.",
+  "dependencies": [
+    "lucide-react"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "src/registry/components/data/article-meta-01/article-meta-01.tsx",
+      "content": "import { memo } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport { MetaItem } from \"./parts/meta-item\";\nimport type { ArticleMeta01Props } from \"./types\";\n\nconst ALIGN_CLASS = {\n  start: \"justify-start\",\n  center: \"justify-center\",\n  end: \"justify-end\",\n} as const;\n\nfunction ArticleMeta01Inner(props: ArticleMeta01Props) {\n  const {\n    items,\n    linkComponent = \"a\",\n    divider = false,\n    align = \"start\",\n    gapClass = \"gap-6\",\n    className,\n    itemClassName,\n    iconClassName,\n  } = props;\n\n  return (\n    <ul\n      role=\"list\"\n      className={cn(\n        \"flex flex-wrap items-center text-muted-foreground list-none\",\n        gapClass,\n        ALIGN_CLASS[align],\n        divider && \"pb-8 border-b border-border\",\n        className\n      )}\n    >\n      {items.map((item) => (\n        <MetaItem\n          key={item.id}\n          item={item}\n          linkComponent={linkComponent}\n          itemClassName={itemClassName}\n          iconClassName={iconClassName}\n        />\n      ))}\n    </ul>\n  );\n}\n\nexport const ArticleMeta01 = memo(ArticleMeta01Inner);\nArticleMeta01.displayName = \"ArticleMeta01\";\n",
+      "type": "registry:component",
+      "target": "components/article-meta-01/article-meta-01.tsx"
+    },
+    {
+      "path": "src/registry/components/data/article-meta-01/index.ts",
+      "content": "export { ArticleMeta01 } from \"./article-meta-01\";\nexport type {\n  ArticleMeta01Props,\n  ArticleMetaItem,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "type": "registry:component",
+      "target": "components/article-meta-01/index.ts"
+    },
+    {
+      "path": "src/registry/components/data/article-meta-01/types.ts",
+      "content": "import type { ComponentType, ElementType, ReactNode } from \"react\";\n\nexport interface ArticleMetaItem {\n  id: string;\n  icon?: ComponentType<{ className?: string }>;\n  value: ReactNode;\n  href?: string;\n  ariaLabel?: string;\n}\n\nexport interface ArticleMeta01Props {\n  items: ReadonlyArray<ArticleMetaItem>;\n  linkComponent?: ElementType;\n  divider?: boolean;\n  align?: \"start\" | \"center\" | \"end\";\n  gapClass?: string;\n  className?: string;\n  itemClassName?: string;\n  iconClassName?: string;\n}\n",
+      "type": "registry:component",
+      "target": "components/article-meta-01/types.ts"
+    },
+    {
+      "path": "src/registry/components/data/article-meta-01/parts/meta-item.tsx",
+      "content": "import type { ElementType } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport type { ArticleMetaItem } from \"../types\";\n\ninterface MetaItemProps {\n  item: ArticleMetaItem;\n  linkComponent: ElementType;\n  itemClassName?: string;\n  iconClassName?: string;\n}\n\nexport function MetaItem({\n  item,\n  linkComponent: LinkEl,\n  itemClassName,\n  iconClassName,\n}: MetaItemProps) {\n  const Icon = item.icon;\n\n  const inner = (\n    <>\n      {Icon ? (\n        <Icon className={cn(\"w-4 h-4\", iconClassName)} aria-hidden=\"true\" />\n      ) : null}\n      <span>{item.value}</span>\n    </>\n  );\n\n  return (\n    <li className={cn(\"flex items-center gap-2\", itemClassName)}>\n      {item.href ? (\n        <LinkEl\n          href={item.href}\n          aria-label={item.ariaLabel}\n          className=\"inline-flex items-center gap-2 hover:text-foreground transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\"\n        >\n          {inner}\n        </LinkEl>\n      ) : item.ariaLabel ? (\n        <span aria-label={item.ariaLabel} className=\"inline-flex items-center gap-2\">\n          {inner}\n        </span>\n      ) : (\n        <span className=\"inline-flex items-center gap-2\">{inner}</span>\n      )}\n    </li>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/article-meta-01/parts/meta-item.tsx"
+    }
+  ],
+  "categories": [
+    "data"
+  ],
+  "type": "registry:block"
+}

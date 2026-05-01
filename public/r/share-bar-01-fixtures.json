@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "share-bar-01-fixtures",
+  "title": "Share Bar 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Share Bar 01 bundle including the dummy-data fixtures (4 sample target sets — default / full 9-platform / compact 2-target / Turkish).",
+  "registryDependencies": [
+    "share-bar-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/share-bar-01/dummy-data.ts",
+      "content": "import type { ShareTarget } from \"./types\";\n\nexport const SHARE_BAR_01_DUMMY_DEFAULT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_01_DUMMY_FULL: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"reddit\" },\n  { kind: \"whatsapp\" },\n  { kind: \"telegram\" },\n  { kind: \"threads\" },\n  { kind: \"bluesky\" },\n  { kind: \"email\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_01_DUMMY_COMPACT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_01_DUMMY_TR: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_01_DUMMY_URL =\n  \"https://ilinxa-proui.vercel.app/components/share-bar-01\";\nexport const SHARE_BAR_01_DUMMY_TITLE =\n  \"ShareBar01 — pro-ui share strip with 9 built-in platforms\";\n",
+      "type": "registry:component",
+      "target": "components/share-bar-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "marketing",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
