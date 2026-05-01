@@ -140,6 +140,12 @@ export function SigmaContainer({
           // ref-attach and CSS layout settling. Without this, Sigma may
           // throw on a 0-size container on the first render frame.
           allowInvalidContainer: true,
+          // Camera zoom limits: keep the user inside a sensible range.
+          // 0.05 (very zoomed out) to 10 (very zoomed in). Without these
+          // a trackpad pinch can zoom past the graph entirely or down
+          // into single-pixel territory.
+          minCameraRatio: 0.05,
+          maxCameraRatio: 10,
         });
 
         sigmaRef.current = instance;

@@ -6,6 +6,7 @@ import type { MultiGraph } from "graphology";
 import type { Node, PrimitiveInverse } from "../types";
 import type { GraphStore } from "../lib/store/store-creator";
 import { pushHistoryEntry } from "../lib/history/push";
+import { useGraphStoreContext } from "./use-graph-store";
 
 /**
  * Per v0.2 plan §7: drag-to-pin with drag-coalesced history.
@@ -34,14 +35,27 @@ import { pushHistoryEntry } from "../lib/history/push";
  * gives the right graph-space position. Using raw `clientX/Y` from
  * window pointer events would teleport the node by the container's
  * offset.
+ *
+ * FA2 suspension: `graphology-layout-forceatlas2/worker` builds its
+ * position matrix once at `start()` and only re-reads the graph on
+ * add/drop events — `nodeAttributesUpdated` is NOT observed. Setting
+ * `fixed: true` mid-flight is therefore invisible to the worker, and
+ * its `assignLayoutChanges` writes the matrix's stale position back to
+ * the dragged node every iteration, fighting the cursor (visible flicker
+ * during drag; node "snaps back" on release because FA2 keeps writing
+ * its pre-drag position). We pause the worker on `downNode` and resume
+ * on `mouseup` — `setEnabled(true)` triggers `start()` which rebuilds
+ * the matrix and picks up the new `fixed`/`pinned` state.
  */
 export function useDragHandler(
   sigma: Sigma | null,
   graph: MultiGraph,
   store: GraphStore,
 ): void {
+  const { worker } = useGraphStoreContext();
   useEffect(() => {
     if (!sigma) return;
+    let suspended = false;
 
     interface SigmaMouseCoords {
       x: number;
@@ -63,8 +77,16 @@ export function useDragHandler(
       const node = payload.node;
       const startX = numberOr(graph.getNodeAttribute(node, "x"), 0);
       const startY = numberOr(graph.getNodeAttribute(node, "y"), 0);
-      // Suppress FA2 layout for the dragged node during drag.
+      // Suppress FA2 layout for the dragged node during drag. The
+      // graphology attribute is the persistent record (used by
+      // `sigmaNodeAttributes` and the worker's matrix on next `start()`);
+      // pausing the worker is what actually stops it from overwriting
+      // the cursor position this gesture.
       graph.setNodeAttribute(node, "fixed", true);
+      if (store.getState().settings.layoutEnabled) {
+        worker.setEnabled(false);
+        suspended = true;
+      }
       store.setState((s) => ({
         ui: { ...s.ui, dragState: { activeNodeId: node, startX, startY } },
       }));
@@ -106,6 +128,31 @@ export function useDragHandler(
         store.setState((s) => ({
           ui: { ...s.ui, dragState: null },
         }));
+        if (suspended) {
+          worker.setEnabled(true);
+          suspended = false;
+        }
+        return;
+      }
+
+      // Snap-back path: when the host has set `pinnedDragMode: "snap-back"`
+      // AND the node was already pinned at drag-start, dragging is a
+      // preview gesture only — we revert graphology's x/y to the start
+      // position, leave pin/store/history untouched, and clear dragState.
+      // No FA2 resume (this mode is typically used with layoutEnabled:
+      // false, so the worker isn't even running).
+      const pinnedDragMode = state.settings.pinnedDragMode;
+      if (wasPinned && pinnedDragMode === "snap-back") {
+        graph.setNodeAttribute(activeNodeId, "x", startX);
+        graph.setNodeAttribute(activeNodeId, "y", startY);
+        graph.setNodeAttribute(activeNodeId, "fixed", true);
+        store.setState((s) => ({
+          ui: { ...s.ui, dragState: null },
+        }));
+        if (suspended) {
+          worker.setEnabled(true);
+          suspended = false;
+        }
         return;
       }
 
@@ -147,6 +194,20 @@ export function useDragHandler(
         ui: { ...s.ui, dragState: null },
         graphVersion: s.graphVersion + 1,
       }));
+
+      if (suspended) {
+        // Drag is purely manual: the dragged node is now pinned at the
+        // drop position, and we deliberately do NOT resume FA2. Resuming
+        // (even via bounded `kick()`) would force every other non-fixed
+        // node to re-equilibrate around the new pin during the settle
+        // window — visible as a "whole graph re-arranges" cascade,
+        // which is not what users expect from a drag gesture.
+        //
+        // After this point the worker stays paused. To force a re-flow
+        // call `rerunLayout()` on the imperative handle, or toggle
+        // `setLayoutEnabled` off → on.
+        suspended = false;
+      }
     };
 
     sigma.on("downNode", onDownNode);
@@ -157,8 +218,15 @@ export function useDragHandler(
       sigma.off("downNode", onDownNode);
       sigma.off("moveBody", onMoveBody);
       captor.off("mouseup", onMouseUp);
+      // Defensive: if the component unmounts mid-drag (e.g., tab switch
+      // before mouseup), restore FA2 so it doesn't stay paused on a
+      // dangling reference. setEnabled is a no-op if the worker is null
+      // (already torn down by useFA2Worker's cleanup running in parallel).
+      if (suspended) {
+        worker.setEnabled(true);
+      }
     };
-  }, [sigma, graph, store]);
+  }, [sigma, graph, store, worker]);
 }
 
 function numberOr(value: unknown, fallback: number): number {
