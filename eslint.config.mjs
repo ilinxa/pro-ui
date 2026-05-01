@@ -16,6 +16,15 @@ const eslintConfig = defineConfig([
     // not part of the registry codebase.
     "docs/**",
   ]),
+  {
+    // Registry code is framework-agnostic by mandate (no next/*).
+    // Native <img> is the correct choice; consumers wrap in next/image
+    // via the imageClassName slot if they want CDN optimization.
+    files: ["src/registry/components/**"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
