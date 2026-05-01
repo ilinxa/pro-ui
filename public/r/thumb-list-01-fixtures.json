@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "thumb-list-01-fixtures",
+  "title": "Thumb List 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Thumb List 01 bundle including the dummy-data fixtures (3 sets — default / Turkish / dated for renderMeta example).",
+  "registryDependencies": [
+    "thumb-list-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/thumb-list-01/dummy-data.ts",
+      "content": "import type { ThumbListItem } from \"./types\";\n\nexport const THUMB_LIST_01_DUMMY: ReadonlyArray<ThumbListItem> = [\n  {\n    id: \"1\",\n    title: \"How sustainable cities are rethinking density\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1480714378408-67cf0d13bc1f?w=400&h=300&fit=crop&auto=format\",\n    imageAlt: \"City skyline at dusk\",\n    meta: \"5 min read\",\n    href: \"/news/sustainable-density\",\n  },\n  {\n    id: \"2\",\n    title: \"Public transit on the rebound\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=400&h=300&fit=crop&auto=format\",\n    imageAlt: \"Bus station at night\",\n    meta: \"3 min read\",\n    href: \"/news/public-transit\",\n  },\n  {\n    id: \"3\",\n    title: \"What e-bikes are doing to city centers\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&h=300&fit=crop&auto=format\",\n    imageAlt: \"E-bikes in a row\",\n    meta: \"8 min read\",\n    href: \"/news/ebikes\",\n  },\n  {\n    id: \"4\",\n    title: \"Mapping the unmapped — community-led OSM\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=400&h=300&fit=crop&auto=format\",\n    imageAlt: \"Hands pointing at a paper map\",\n    meta: \"6 min read\",\n    href: \"/news/community-osm\",\n  },\n];\n\nexport const THUMB_LIST_01_DUMMY_TR: ReadonlyArray<ThumbListItem> = [\n  {\n    id: \"1\",\n    title: \"Sürdürülebilir şehirler nasıl yeniden tasarlanıyor\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1480714378408-67cf0d13bc1f?w=400&h=300&fit=crop&auto=format\",\n    meta: \"5 dk okuma\",\n    href: \"/haberler/1\",\n  },\n  {\n    id: \"2\",\n    title: \"Toplu taşımanın geri dönüşü\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=400&h=300&fit=crop&auto=format\",\n    meta: \"3 dk okuma\",\n    href: \"/haberler/2\",\n  },\n  {\n    id: \"3\",\n    title: \"E-bisikletler şehir merkezlerini nasıl değiştiriyor\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&h=300&fit=crop&auto=format\",\n    meta: \"8 dk okuma\",\n    href: \"/haberler/3\",\n  },\n];\n\nexport interface DatedThumbListItem extends ThumbListItem {\n  publishedAt: string;\n}\n\nexport const THUMB_LIST_01_DUMMY_DATED: ReadonlyArray<DatedThumbListItem> = [\n  {\n    id: \"a\",\n    title: \"What we got wrong about remote-first\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop&auto=format\",\n    href: \"/posts/a\",\n    publishedAt: \"2026-04-15\",\n  },\n  {\n    id: \"b\",\n    title: \"Five tools we replaced this quarter\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=400&h=300&fit=crop&auto=format\",\n    href: \"/posts/b\",\n    publishedAt: \"2026-04-08\",\n  },\n  {\n    id: \"c\",\n    title: \"Why we deleted half our docs\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop&auto=format\",\n    href: \"/posts/c\",\n    publishedAt: \"2026-03-22\",\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/thumb-list-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

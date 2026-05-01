@@ -1,0 +1,47 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "author-card-01",
+  "title": "Author Card 01",
+  "author": "ilinxa",
+  "description": "Card-framed person identity block — avatar (image OR icon fallback), name, role, optional bio. Optionally clickable as a whole via polymorphic root + href. 3 tones, custom fallback icon, configurable heading level, i18n via labels.",
+  "dependencies": [
+    "lucide-react"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/author-card-01/author-card-01.tsx",
+      "content": "import { memo, useId } from \"react\";\nimport { User } from \"lucide-react\";\nimport { cn } from \"@/lib/utils\";\nimport { AuthorAvatar } from \"./parts/avatar\";\nimport { resolveTone } from \"./parts/tone-resolver\";\nimport { AUTHOR_CARD_DEFAULT_LABELS, type AuthorCard01Props } from \"./types\";\n\nfunction AuthorCard01Inner(props: AuthorCard01Props) {\n  const {\n    name,\n    role,\n    bio,\n    imageSrc,\n    imageAlt,\n    fallbackIcon = User,\n    href,\n    linkComponent,\n    tone = \"primary\",\n    headingAs: HeadingTag = \"h3\",\n    labels,\n    className,\n    headingClassName,\n    nameClassName,\n    bioClassName,\n  } = props;\n\n  const nameId = useId();\n  const toneClasses = resolveTone(tone);\n  const resolvedLabels = { ...AUTHOR_CARD_DEFAULT_LABELS, ...labels };\n  const resolvedAlt = imageAlt ?? name;\n\n  const isClickable = Boolean(href);\n  const RootEl = isClickable ? linkComponent ?? \"a\" : \"div\";\n\n  const rootClass = cn(\n    \"block bg-card rounded-2xl p-6 border border-border/50 transition-colors\",\n    isClickable &&\n      \"hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\",\n    className\n  );\n\n  const linkProps = isClickable\n    ? { href, \"aria-labelledby\": nameId }\n    : {};\n\n  return (\n    <RootEl className={rootClass} {...linkProps}>\n      <HeadingTag\n        className={cn(\n          \"text-lg font-serif font-bold text-foreground mb-4\",\n          headingClassName\n        )}\n      >\n        {resolvedLabels.heading}\n      </HeadingTag>\n\n      <div className=\"flex items-center gap-4\">\n        <AuthorAvatar\n          imageSrc={imageSrc}\n          imageAlt={resolvedAlt}\n          fallbackIcon={fallbackIcon}\n          toneClasses={toneClasses}\n        />\n        <div>\n          <p\n            id={nameId}\n            className={cn(\"font-semibold text-foreground\", nameClassName)}\n          >\n            {name}\n          </p>\n          <p className=\"text-sm text-muted-foreground\">{role}</p>\n        </div>\n      </div>\n\n      {bio ? (\n        <p className={cn(\"text-sm text-muted-foreground mt-4\", bioClassName)}>\n          {bio}\n        </p>\n      ) : null}\n    </RootEl>\n  );\n}\n\nexport const AuthorCard01 = memo(AuthorCard01Inner);\nAuthorCard01.displayName = \"AuthorCard01\";\n",
+      "type": "registry:component",
+      "target": "components/author-card-01/author-card-01.tsx"
+    },
+    {
+      "path": "src/registry/components/marketing/author-card-01/index.ts",
+      "content": "export { AuthorCard01 } from \"./author-card-01\";\nexport {\n  AUTHOR_CARD_DEFAULT_LABELS,\n  type AuthorCard01Labels,\n  type AuthorCard01Props,\n  type AuthorCardTone,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "type": "registry:component",
+      "target": "components/author-card-01/index.ts"
+    },
+    {
+      "path": "src/registry/components/marketing/author-card-01/types.ts",
+      "content": "import type { ComponentType, ElementType } from \"react\";\n\nexport type AuthorCardTone = \"primary\" | \"accent\" | \"muted\";\n\nexport interface AuthorCard01Labels {\n  heading?: string;\n}\n\nexport interface AuthorCard01Props {\n  name: string;\n  role: string;\n  bio?: string;\n  imageSrc?: string;\n  imageAlt?: string;\n  fallbackIcon?: ComponentType<{ className?: string }>;\n  href?: string;\n  linkComponent?: ElementType;\n  tone?: AuthorCardTone;\n  headingAs?: \"h2\" | \"h3\" | \"h4\";\n  labels?: AuthorCard01Labels;\n  className?: string;\n  headingClassName?: string;\n  nameClassName?: string;\n  bioClassName?: string;\n}\n\nexport const AUTHOR_CARD_DEFAULT_LABELS: Required<AuthorCard01Labels> = {\n  heading: \"About the author\",\n};\n",
+      "type": "registry:component",
+      "target": "components/author-card-01/types.ts"
+    },
+    {
+      "path": "src/registry/components/marketing/author-card-01/parts/avatar.tsx",
+      "content": "import type { ComponentType } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport type { ToneClasses } from \"./tone-resolver\";\n\ninterface AuthorAvatarProps {\n  imageSrc?: string;\n  imageAlt: string;\n  fallbackIcon: ComponentType<{ className?: string }>;\n  toneClasses: ToneClasses;\n}\n\nexport function AuthorAvatar({\n  imageSrc,\n  imageAlt,\n  fallbackIcon: Icon,\n  toneClasses,\n}: AuthorAvatarProps) {\n  if (imageSrc) {\n    return (\n      <img\n        src={imageSrc}\n        alt={imageAlt}\n        loading=\"lazy\"\n        className=\"w-16 h-16 rounded-full object-cover shrink-0\"\n      />\n    );\n  }\n  return (\n    <div\n      className={cn(\n        \"w-16 h-16 rounded-full flex items-center justify-center shrink-0\",\n        toneClasses.avatarBg\n      )}\n      aria-hidden=\"true\"\n    >\n      <Icon className={cn(\"w-8 h-8\", toneClasses.avatarIcon)} />\n    </div>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/author-card-01/parts/avatar.tsx"
+    },
+    {
+      "path": "src/registry/components/marketing/author-card-01/parts/tone-resolver.ts",
+      "content": "import type { AuthorCardTone } from \"../types\";\n\nexport interface ToneClasses {\n  avatarBg: string;\n  avatarIcon: string;\n}\n\nconst TONE_MAP: Record<AuthorCardTone, ToneClasses> = {\n  primary: { avatarBg: \"bg-primary/10\", avatarIcon: \"text-primary\" },\n  accent: { avatarBg: \"bg-accent\", avatarIcon: \"text-accent-foreground\" },\n  muted: { avatarBg: \"bg-muted\", avatarIcon: \"text-muted-foreground\" },\n};\n\nexport function resolveTone(tone: AuthorCardTone): ToneClasses {\n  return TONE_MAP[tone];\n}\n",
+      "type": "registry:component",
+      "target": "components/author-card-01/parts/tone-resolver.ts"
+    }
+  ],
+  "categories": [
+    "marketing"
+  ],
+  "type": "registry:block"
+}

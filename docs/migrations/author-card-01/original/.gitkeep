@@ -1,0 +1,3 @@
+# Drop original source files here — any structure, any number of files.
+# This .gitkeep exists so the empty original/ folder survives `git add`.
+# Delete it once real source files land.
