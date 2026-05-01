@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { version as siteVersion } from "../../../package.json";
 
 export function SiteFooter() {
   return (
@@ -19,7 +20,7 @@ export function SiteFooter() {
           </span>
           <span aria-hidden className="ml-1 h-3 w-px bg-border/80" />
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            v0.1.0 · alpha
+            v{siteVersion} · alpha
           </span>
         </div>
 
