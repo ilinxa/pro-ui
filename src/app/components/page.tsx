@@ -79,7 +79,9 @@ export default function ComponentsIndexPage() {
                                 ? "default"
                                 : meta.status === "deprecated"
                                   ? "destructive"
-                                  : "secondary"
+                                  : meta.status === "beta"
+                                    ? "secondary"
+                                    : "outline"
                             }
                             className="capitalize"
                           >
