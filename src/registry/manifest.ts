@@ -58,6 +58,14 @@ import GridLayoutNews01Demo from "./components/layout/grid-layout-news-01/demo";
 import GridLayoutNews01Usage from "./components/layout/grid-layout-news-01/usage";
 import { meta as gridLayoutNews01Meta } from "./components/layout/grid-layout-news-01/meta";
 
+import AuthorCard01Demo from "./components/marketing/author-card-01/demo";
+import AuthorCard01Usage from "./components/marketing/author-card-01/usage";
+import { meta as authorCard01Meta } from "./components/marketing/author-card-01/meta";
+
+import ThumbList01Demo from "./components/data/thumb-list-01/demo";
+import ThumbList01Usage from "./components/data/thumb-list-01/usage";
+import { meta as thumbList01Meta } from "./components/data/thumb-list-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -141,6 +149,16 @@ export const REGISTRY: RegistryEntry[] = [
     meta: gridLayoutNews01Meta,
     Demo: GridLayoutNews01Demo,
     Usage: GridLayoutNews01Usage,
+  },
+  {
+    meta: authorCard01Meta,
+    Demo: AuthorCard01Demo,
+    Usage: AuthorCard01Usage,
+  },
+  {
+    meta: thumbList01Meta,
+    Demo: ThumbList01Demo,
+    Usage: ThumbList01Usage,
   },
 ];
 

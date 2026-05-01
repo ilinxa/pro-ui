@@ -1,0 +1,47 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "thumb-list-01",
+  "title": "Thumb List 01",
+  "author": "ilinxa",
+  "description": "Linked thumbnail-list block — small image + title + meta line per row, each row a single link target. Frame toggle, polymorphic link, custom render-meta slot, empty state, i18n via labels.",
+  "dependencies": [
+    "lucide-react"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "src/registry/components/data/thumb-list-01/thumb-list-01.tsx",
+      "content": "import { memo } from \"react\";\nimport { BookOpen } from \"lucide-react\";\nimport { cn } from \"@/lib/utils\";\nimport { ThumbRow } from \"./parts/thumb-row\";\nimport { ThumbListEmpty } from \"./parts/empty-state\";\nimport { THUMB_LIST_DEFAULT_LABELS, type ThumbList01Props } from \"./types\";\n\nfunction ThumbList01Inner(props: ThumbList01Props) {\n  const {\n    items,\n    framed = true,\n    headingAs: HeadingTag = \"h3\",\n    headerIcon = BookOpen,\n    linkComponent = \"a\",\n    renderMeta,\n    emptyState,\n    labels,\n    className,\n    headerClassName,\n    itemClassName,\n    imageClassName,\n    titleClassName,\n    metaClassName,\n  } = props;\n\n  const resolvedLabels = { ...THUMB_LIST_DEFAULT_LABELS, ...labels };\n  const HeaderIcon = headerIcon;\n  const isEmpty = items.length === 0;\n\n  return (\n    <section\n      className={cn(\n        framed && \"bg-card rounded-2xl p-6 border border-border/50\",\n        className\n      )}\n    >\n      <HeadingTag\n        className={cn(\n          \"text-lg font-serif font-bold text-foreground mb-4 flex items-center gap-2\",\n          headerClassName\n        )}\n      >\n        {HeaderIcon ? (\n          <HeaderIcon className=\"w-5 h-5 text-primary\" aria-hidden=\"true\" />\n        ) : null}\n        {resolvedLabels.heading}\n      </HeadingTag>\n\n      {isEmpty ? (\n        <ThumbListEmpty\n          custom={emptyState}\n          message={resolvedLabels.emptyText}\n        />\n      ) : (\n        <ul className=\"space-y-4\">\n          {items.map((item) => (\n            <ThumbRow\n              key={item.id}\n              item={item}\n              linkComponent={linkComponent}\n              renderMeta={renderMeta}\n              itemClassName={itemClassName}\n              imageClassName={imageClassName}\n              titleClassName={titleClassName}\n              metaClassName={metaClassName}\n            />\n          ))}\n        </ul>\n      )}\n    </section>\n  );\n}\n\nexport const ThumbList01 = memo(ThumbList01Inner);\nThumbList01.displayName = \"ThumbList01\";\n",
+      "type": "registry:component",
+      "target": "components/thumb-list-01/thumb-list-01.tsx"
+    },
+    {
+      "path": "src/registry/components/data/thumb-list-01/index.ts",
+      "content": "export { ThumbList01 } from \"./thumb-list-01\";\nexport {\n  THUMB_LIST_DEFAULT_LABELS,\n  type ThumbListItem,\n  type ThumbList01Labels,\n  type ThumbList01Props,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "type": "registry:component",
+      "target": "components/thumb-list-01/index.ts"
+    },
+    {
+      "path": "src/registry/components/data/thumb-list-01/types.ts",
+      "content": "import type { ComponentType, ElementType, ReactNode } from \"react\";\n\nexport interface ThumbListItem {\n  id: string;\n  title: string;\n  imageSrc: string;\n  imageAlt?: string;\n  meta?: string;\n  href?: string;\n}\n\nexport interface ThumbList01Labels {\n  heading?: string;\n  emptyText?: string;\n}\n\nexport interface ThumbList01Props {\n  items: ReadonlyArray<ThumbListItem>;\n  framed?: boolean;\n  headingAs?: \"h2\" | \"h3\" | \"h4\";\n  headerIcon?: ComponentType<{ className?: string }> | null;\n  linkComponent?: ElementType;\n  renderMeta?: (item: ThumbListItem) => ReactNode;\n  emptyState?: ReactNode;\n  labels?: ThumbList01Labels;\n  className?: string;\n  headerClassName?: string;\n  itemClassName?: string;\n  imageClassName?: string;\n  titleClassName?: string;\n  metaClassName?: string;\n}\n\nexport const THUMB_LIST_DEFAULT_LABELS: Required<ThumbList01Labels> = {\n  heading: \"Related\",\n  emptyText: \"Nothing here yet.\",\n};\n",
+      "type": "registry:component",
+      "target": "components/thumb-list-01/types.ts"
+    },
+    {
+      "path": "src/registry/components/data/thumb-list-01/parts/thumb-row.tsx",
+      "content": "import type { ElementType, ReactNode } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport type { ThumbListItem } from \"../types\";\n\ninterface ThumbRowProps {\n  item: ThumbListItem;\n  linkComponent: ElementType;\n  renderMeta?: (item: ThumbListItem) => ReactNode;\n  itemClassName?: string;\n  imageClassName?: string;\n  titleClassName?: string;\n  metaClassName?: string;\n}\n\nexport function ThumbRow({\n  item,\n  linkComponent: LinkEl,\n  renderMeta,\n  itemClassName,\n  imageClassName,\n  titleClassName,\n  metaClassName,\n}: ThumbRowProps) {\n  const meta = renderMeta\n    ? renderMeta(item)\n    : item.meta\n      ? (\n        <p className={cn(\"text-xs text-muted-foreground mt-1\", metaClassName)}>\n          {item.meta}\n        </p>\n      )\n      : null;\n\n  const inner = (\n    <>\n      <img\n        src={item.imageSrc}\n        alt={item.imageAlt ?? item.title}\n        loading=\"lazy\"\n        className={cn(\n          \"w-20 h-16 rounded-lg object-cover shrink-0\",\n          imageClassName\n        )}\n      />\n      <div className=\"min-w-0\">\n        <p\n          className={cn(\n            \"text-sm font-medium text-foreground line-clamp-2\",\n            \"group-hover:text-primary group-focus-visible:text-primary transition-colors\",\n            titleClassName\n          )}\n        >\n          {item.title}\n        </p>\n        {meta}\n      </div>\n    </>\n  );\n\n  return (\n    <li className={cn(\"group\", itemClassName)}>\n      {item.href ? (\n        <LinkEl\n          href={item.href}\n          className=\"flex gap-3 items-start rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2\"\n        >\n          {inner}\n        </LinkEl>\n      ) : (\n        <div className=\"flex gap-3 items-start\">{inner}</div>\n      )}\n    </li>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/thumb-list-01/parts/thumb-row.tsx"
+    },
+    {
+      "path": "src/registry/components/data/thumb-list-01/parts/empty-state.tsx",
+      "content": "import type { ReactNode } from \"react\";\n\ninterface ThumbListEmptyProps {\n  custom?: ReactNode;\n  message: string;\n}\n\nexport function ThumbListEmpty({ custom, message }: ThumbListEmptyProps) {\n  if (custom !== undefined && custom !== null) {\n    return <>{custom}</>;\n  }\n  return (\n    <p\n      className=\"text-sm text-muted-foreground\"\n      role=\"status\"\n      aria-live=\"polite\"\n    >\n      {message}\n    </p>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/thumb-list-01/parts/empty-state.tsx"
+    }
+  ],
+  "categories": [
+    "data"
+  ],
+  "type": "registry:block"
+}

@@ -589,6 +589,68 @@
       "files": [
         { "path": "src/registry/components/layout/grid-layout-news-01/dummy-data.ts", "type": "registry:component", "target": "components/grid-layout-news-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "author-card-01",
+      "type": "registry:block",
+      "title": "Author Card 01",
+      "description": "Card-framed person identity block — avatar (image OR icon fallback), name, role, optional bio. Optionally clickable as a whole via polymorphic root + href. 3 tones, custom fallback icon, configurable heading level, i18n via labels.",
+      "author": "ilinxa",
+      "categories": ["marketing"],
+      "registryDependencies": [],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/marketing/author-card-01/author-card-01.tsx", "type": "registry:component", "target": "components/author-card-01/author-card-01.tsx" },
+        { "path": "src/registry/components/marketing/author-card-01/index.ts", "type": "registry:component", "target": "components/author-card-01/index.ts" },
+        { "path": "src/registry/components/marketing/author-card-01/types.ts", "type": "registry:component", "target": "components/author-card-01/types.ts" },
+        { "path": "src/registry/components/marketing/author-card-01/parts/avatar.tsx", "type": "registry:component", "target": "components/author-card-01/parts/avatar.tsx" },
+        { "path": "src/registry/components/marketing/author-card-01/parts/tone-resolver.ts", "type": "registry:component", "target": "components/author-card-01/parts/tone-resolver.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "author-card-01-fixtures",
+      "type": "registry:block",
+      "title": "Author Card 01 — fixtures",
+      "description": "Author Card 01 bundle including the dummy-data fixtures (5 sample authors covering image / no-image / collective / clickable / Turkish).",
+      "author": "ilinxa",
+      "categories": ["marketing", "fixtures"],
+      "registryDependencies": ["author-card-01"],
+      "files": [
+        { "path": "src/registry/components/marketing/author-card-01/dummy-data.ts", "type": "registry:component", "target": "components/author-card-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "thumb-list-01",
+      "type": "registry:block",
+      "title": "Thumb List 01",
+      "description": "Linked thumbnail-list block — small image + title + meta line per row, each row a single link target. Frame toggle, polymorphic link, custom render-meta slot, empty state, i18n via labels.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/thumb-list-01/thumb-list-01.tsx", "type": "registry:component", "target": "components/thumb-list-01/thumb-list-01.tsx" },
+        { "path": "src/registry/components/data/thumb-list-01/index.ts", "type": "registry:component", "target": "components/thumb-list-01/index.ts" },
+        { "path": "src/registry/components/data/thumb-list-01/types.ts", "type": "registry:component", "target": "components/thumb-list-01/types.ts" },
+        { "path": "src/registry/components/data/thumb-list-01/parts/thumb-row.tsx", "type": "registry:component", "target": "components/thumb-list-01/parts/thumb-row.tsx" },
+        { "path": "src/registry/components/data/thumb-list-01/parts/empty-state.tsx", "type": "registry:component", "target": "components/thumb-list-01/parts/empty-state.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "thumb-list-01-fixtures",
+      "type": "registry:block",
+      "title": "Thumb List 01 — fixtures",
+      "description": "Thumb List 01 bundle including the dummy-data fixtures (3 sets — default / Turkish / dated for renderMeta example).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["thumb-list-01"],
+      "files": [
+        { "path": "src/registry/components/data/thumb-list-01/dummy-data.ts", "type": "registry:component", "target": "components/thumb-list-01/dummy-data.ts" }
+      ]
     }
   ]
 }

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "author-card-01-fixtures",
+  "title": "Author Card 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Author Card 01 bundle including the dummy-data fixtures (5 sample authors covering image / no-image / collective / clickable / Turkish).",
+  "registryDependencies": [
+    "author-card-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/author-card-01/dummy-data.ts",
+      "content": "import type { AuthorCard01Props } from \"./types\";\n\nexport const AUTHOR_CARD_01_DUMMY: Record<string, AuthorCard01Props> = {\n  withImage: {\n    name: \"Maya Chen\",\n    role: \"Senior Editor\",\n    bio: \"Specializes in sustainable urbanism and environmental journalism. Previously at Vox and The Atlantic.\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&h=128&fit=crop&auto=format\",\n    imageAlt: \"Maya Chen\",\n  },\n  withoutImage: {\n    name: \"Anonymous Contributor\",\n    role: \"Guest Writer\",\n    bio: \"Writes occasionally about local environmental stories.\",\n  },\n  collective: {\n    name: \"The Editorial Team\",\n    role: \"Collective\",\n    bio: \"Reporting and analysis from across the newsroom — covering policy, climate, and community.\",\n  },\n  clickable: {\n    name: \"Daniel Park\",\n    role: \"Product Designer\",\n    bio: \"Currently designing onboarding flows; previously at Atlassian and Notion.\",\n    imageSrc:\n      \"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&auto=format\",\n    href: \"/team/daniel-park\",\n  },\n  turkish: {\n    name: \"Aylin Demir\",\n    role: \"Kıdemli Editör\",\n    bio: \"Sürdürülebilir şehircilik ve çevre konularında uzmanlaşmış gazetecilik deneyimine sahip.\",\n    labels: { heading: \"Yazar Hakkında\" },\n  },\n};\n",
+      "type": "registry:component",
+      "target": "components/author-card-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "marketing",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
