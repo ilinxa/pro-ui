@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "new:component": "node scripts/new-component.mjs",
+    "new:migration": "node scripts/new-migration.mjs",
     "registry:build": "shadcn build"
   },
   "dependencies": {
