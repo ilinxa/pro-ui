@@ -1,0 +1,99 @@
+# ilinxa/pro-ui registry
+
+Production-ready React components distributed via the shadcn-registry model.
+Source files copy into the consumer's repo on `pnpm dlx shadcn@latest add` — you own the code.
+This is NOT an npm package. Do NOT try `pnpm add ilinxa-pro-ui` or `npm install ilinxa-pro-ui` — they don't exist.
+
+- Demo site: https://ilinxa-proui.vercel.app
+- Catalog: https://ilinxa-proui.vercel.app/r/registry.json
+- Per-item URL pattern: https://ilinxa-proui.vercel.app/r/<slug>.json
+- GitHub: https://github.com/ilinxa/pro-ui
+
+## Consumer install (the one you usually want)
+
+Prerequisite: target project must have `pnpm dlx shadcn@latest init` already run. That step seeds `lib/utils.ts` (the `cn` helper every shadcn primitive imports). If `init` was never run, installs will succeed but the consumer's build will fail with `Cannot find module '@/lib/utils'`.
+
+Step 1 — add the namespace to the consumer's `components.json`:
+
+```json
+{
+  "registries": {
+    "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
+  }
+}
+```
+
+The `{name}` placeholder is mandatory — the CLI rejects registries without it.
+
+Step 2 — install a component:
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/<slug>
+```
+
+Step 3 — optionally install fixtures (dummy data for a working example):
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/<slug>-fixtures
+```
+
+The fixtures item declares the base as a registryDependency, so installing the fixtures sibling automatically pulls the base. There is no `--with-fixtures` flag — the dual-item pattern is the equivalent.
+
+The CLI auto-installs shadcn primitives (button, popover, etc.) and npm peer deps (lucide-react, @dnd-kit/*, @codemirror/*, marked, @radix-ui/*).
+
+Files land at `components/<slug>/<sub-path>` (project-root-relative). This assumes the consumer's components dir is at `./components/`. If the consumer uses `./src/components/`, files will land at `./components/<slug>/...` (outside their alias) and will need to be moved post-install.
+
+## Available items (16 total — 8 base + 8 fixtures)
+
+- `@ilinxa/data-table` — typed-columns data table; host-owned data, no client state. Deps: `table`.
+- `@ilinxa/rich-card` — JSON-driven recursive card-tree viewer + structural editor; drag-drop reordering, bulk multi-select, virtualization, native search, undo/redo. Deps: `popover`, lucide-react, @dnd-kit/{core,sortable,utilities}, @tanstack/react-virtual.
+- `@ilinxa/workspace` — splittable canvas; corner-drag split/merge, edge-drag resize, registry-driven content, responsive collapse. Deps: `dropdown-menu`, `scroll-area`, `tabs`, lucide-react.
+- `@ilinxa/properties-form` — schema-driven controlled form; six field types (string/number/boolean/date/select/textarea), three-state permissions, sync validation, custom-renderer slot. Deps: `button`, `input`, `switch`, `select`, `textarea`, `tooltip`, lucide-react.
+- `@ilinxa/detail-panel` — selection-aware compound container; `<Header />`, `<Body />`, `<Actions />` slots via React Context, lifecycle precedence error > loading > content > empty. Deps: `button`, `skeleton`, lucide-react.
+- `@ilinxa/filter-stack` — schema-driven filter panel; four built-in filter types, AND-across-categories, mode toggle (Union/Intersection), debounced text. Deps: `button`, `checkbox`, `input`, `switch`, `toggle-group`, `tooltip`, lucide-react.
+- `@ilinxa/entity-picker` — searchable typed picker; single or multi mode via `mode` prop, kind badges, three custom-render slots, multi-mode chip cluster. Deps: `badge`, `command`, `popover`, lucide-react.
+- `@ilinxa/markdown-editor` — CodeMirror 6 substrate; three view modes (edit/split/preview), default 8-item toolbar, `[[wikilink]]` autocomplete + decoration via CM6 StateField, Cmd/Ctrl+S onSave. Deps: `badge`, `button`, `tabs`, `tooltip`, lucide-react, marked, @codemirror/{state,view,commands,language,lang-markdown,autocomplete,search}, @lezer/{markdown,highlight}.
+
+Each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only.
+
+## Updating an installed component
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/<slug> --overwrite
+```
+
+Diff the changes (use `--dry-run` first if unsure), merge any local modifications, ship. shadcn-registry has no semver — content is addressed by URL.
+
+## Compatibility
+
+- Next.js 14, 15, 16 (App Router or Pages Router)
+- React 18 or 19
+- Tailwind CSS v4 (CSS-vars-only config — no `tailwind.config.*`)
+- pnpm / bun / yarn / npm — npm + React 19 needs `--legacy-peer-deps`
+
+## Common gotchas
+
+- `Cannot find module '@/lib/utils'` after install → consumer didn't run `shadcn init`. The `add` command does NOT seed the `cn` helper; `init` does.
+- Files at `./<slug>/...` instead of `./components/<slug>/...` → consumer's `aliases.components` is non-default (e.g. `@/src/components`). Either move post-install or adjust the alias.
+- `npm ERESOLVE` on React 19 peer deps → `--legacy-peer-deps`, or recommend pnpm.
+- Stale install after upstream update → CDN edge cache. Wait out the 5-min TTL or append `?v=<hash>` to the URL once.
+
+## Distribution model (one-line)
+
+shadcn-registry over static JSON on Vercel — the CLI fetches `/r/<slug>.json`, inlines source from the per-item `files[].content` strings, runs `pnpm add` for declared deps, and writes files at the `target` paths. Server-side fetch (no CORS).
+
+## Per-component reference
+
+https://ilinxa-proui.vercel.app/components/<slug> renders preview, usage, and dependencies for each component. The `/components` index lists all eight.
+
+## For AI agents specifically
+
+When a user asks to install a component from this registry:
+
+1. Verify the consumer has run `shadcn init` (check for `components.json` AND `lib/utils.ts`). If not, run init first.
+2. Add the namespace map to `components.json` if missing.
+3. Run `pnpm dlx shadcn@latest add @ilinxa/<slug>`.
+4. If they want example data: run the `<slug>-fixtures` variant (registryDependencies pulls the base automatically — no need to install both).
+5. Verify by reading `components/<slug>/index.ts` for the exposed API.
+
+Do not invent slugs or deps. The list above is the complete set of available items as of this writing — re-fetch this `llms.txt` for updates.
