@@ -50,6 +50,14 @@ import FilterBar01Demo from "./components/forms/filter-bar-01/demo";
 import FilterBar01Usage from "./components/forms/filter-bar-01/usage";
 import { meta as filterBar01Meta } from "./components/forms/filter-bar-01/meta";
 
+import PageHeroNews01Demo from "./components/marketing/page-hero-news-01/demo";
+import PageHeroNews01Usage from "./components/marketing/page-hero-news-01/usage";
+import { meta as pageHeroNews01Meta } from "./components/marketing/page-hero-news-01/meta";
+
+import GridLayoutNews01Demo from "./components/layout/grid-layout-news-01/demo";
+import GridLayoutNews01Usage from "./components/layout/grid-layout-news-01/usage";
+import { meta as gridLayoutNews01Meta } from "./components/layout/grid-layout-news-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -123,6 +131,16 @@ export const REGISTRY: RegistryEntry[] = [
     meta: filterBar01Meta,
     Demo: FilterBar01Demo,
     Usage: FilterBar01Usage,
+  },
+  {
+    meta: pageHeroNews01Meta,
+    Demo: PageHeroNews01Demo,
+    Usage: PageHeroNews01Usage,
+  },
+  {
+    meta: gridLayoutNews01Meta,
+    Demo: GridLayoutNews01Demo,
+    Usage: GridLayoutNews01Usage,
   },
 ];
 

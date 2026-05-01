@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "page-hero-news-01-fixtures",
+  "title": "Page Hero (News 01) — fixtures",
+  "author": "ilinxa",
+  "description": "Page Hero (News 01) bundle including the dummy-data fixtures (English + Turkish defaults + 3-stat row content).",
+  "registryDependencies": [
+    "page-hero-news-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/page-hero-news-01/dummy-data.ts",
+      "content": "import { Clock, Newspaper, TrendingUp } from \"lucide-react\";\nimport type { HeroStat } from \"./types\";\n\nexport const NEWS_HERO_DEFAULTS = {\n  badge: \"News & Updates\",\n  badgeIcon: Newspaper,\n  title: \"Latest Stories\",\n  titleHighlight: \"From Our Team\",\n  description:\n    \"Insights, announcements, and behind-the-scenes from our editorial team.\",\n};\n\nexport const NEWS_HERO_STATS_EN: HeroStat[] = [\n  { icon: Newspaper, value: \"500+\", label: \"Articles\" },\n  { icon: TrendingUp, value: \"10K+\", label: \"Readers\" },\n  { icon: Clock, value: \"Daily\", label: \"Updates\" },\n];\n\n/** Turkish-flavored content for the localized demo, matching the kasder source. */\nexport const NEWS_HERO_DEFAULTS_TR = {\n  badge: \"Haberler & Duyurular\",\n  badgeIcon: Newspaper,\n  title: \"Güncel Haberler\",\n  titleHighlight: \"Son Gelişmeler\",\n  description:\n    \"Kentsel gelişim, şehir planlama ve sürdürülebilirlik alanındaki en son gelişmeleri ve duyuruları takip edin.\",\n};\n\nexport const NEWS_HERO_STATS_TR: HeroStat[] = [\n  { icon: Newspaper, value: \"500+\", label: \"Makale\" },\n  { icon: TrendingUp, value: \"10K+\", label: \"Okuyucu\" },\n  { icon: Clock, value: \"Günlük\", label: \"Güncelleme\" },\n];\n",
+      "type": "registry:component",
+      "target": "components/page-hero-news-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "marketing",
+    "news",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

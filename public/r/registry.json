@@ -526,6 +526,69 @@
       "files": [
         { "path": "src/registry/components/forms/filter-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/filter-bar-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "page-hero-news-01",
+      "type": "registry:block",
+      "title": "Page Hero (News 01)",
+      "description": "Full-bleed gradient hero band with badge / title / highlight / description / children slot. Reveal-on-mount via the project's CSS keyframe (no framer-motion). Includes a HeroStats sub-component for the icon-value-label triplet.",
+      "author": "ilinxa",
+      "categories": ["marketing", "news"],
+      "registryDependencies": [],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/marketing/page-hero-news-01/page-hero-news-01.tsx", "type": "registry:component", "target": "components/page-hero-news-01/page-hero-news-01.tsx" },
+        { "path": "src/registry/components/marketing/page-hero-news-01/index.ts", "type": "registry:component", "target": "components/page-hero-news-01/index.ts" },
+        { "path": "src/registry/components/marketing/page-hero-news-01/types.ts", "type": "registry:component", "target": "components/page-hero-news-01/types.ts" },
+        { "path": "src/registry/components/marketing/page-hero-news-01/parts/hero-stats.tsx", "type": "registry:component", "target": "components/page-hero-news-01/parts/hero-stats.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "page-hero-news-01-fixtures",
+      "type": "registry:block",
+      "title": "Page Hero (News 01) — fixtures",
+      "description": "Page Hero (News 01) bundle including the dummy-data fixtures (English + Turkish defaults + 3-stat row content).",
+      "author": "ilinxa",
+      "categories": ["marketing", "news", "fixtures"],
+      "registryDependencies": ["page-hero-news-01"],
+      "files": [
+        { "path": "src/registry/components/marketing/page-hero-news-01/dummy-data.ts", "type": "registry:component", "target": "components/page-hero-news-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "grid-layout-news-01",
+      "type": "registry:block",
+      "title": "Grid Layout (News 01)",
+      "description": "Slot-based magazine layout — optional hero / filter bar / sidebar + a generic main-column tower (1 large + 2-up + N-up medium grid) + IntersectionObserver-driven infinite scroll. Generic over item type. Companion useMagazineFilter hook for in-memory filter + page state.",
+      "author": "ilinxa",
+      "categories": ["layout", "news"],
+      "registryDependencies": [],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/layout/grid-layout-news-01/grid-layout-news-01.tsx", "type": "registry:component", "target": "components/grid-layout-news-01/grid-layout-news-01.tsx" },
+        { "path": "src/registry/components/layout/grid-layout-news-01/index.ts", "type": "registry:component", "target": "components/grid-layout-news-01/index.ts" },
+        { "path": "src/registry/components/layout/grid-layout-news-01/types.ts", "type": "registry:component", "target": "components/grid-layout-news-01/types.ts" },
+        { "path": "src/registry/components/layout/grid-layout-news-01/parts/magazine-tower.tsx", "type": "registry:component", "target": "components/grid-layout-news-01/parts/magazine-tower.tsx" },
+        { "path": "src/registry/components/layout/grid-layout-news-01/parts/infinite-loader.tsx", "type": "registry:component", "target": "components/grid-layout-news-01/parts/infinite-loader.tsx" },
+        { "path": "src/registry/components/layout/grid-layout-news-01/hooks/use-infinite-scroll.ts", "type": "registry:component", "target": "components/grid-layout-news-01/hooks/use-infinite-scroll.ts" },
+        { "path": "src/registry/components/layout/grid-layout-news-01/hooks/use-magazine-filter.ts", "type": "registry:component", "target": "components/grid-layout-news-01/hooks/use-magazine-filter.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "grid-layout-news-01-fixtures",
+      "type": "registry:block",
+      "title": "Grid Layout (News 01) — fixtures",
+      "description": "Grid Layout (News 01) bundle including the dummy-data fixtures (14 demo articles for the magazine tower + featured demo).",
+      "author": "ilinxa",
+      "categories": ["layout", "news", "fixtures"],
+      "registryDependencies": ["grid-layout-news-01"],
+      "files": [
+        { "path": "src/registry/components/layout/grid-layout-news-01/dummy-data.ts", "type": "registry:component", "target": "components/grid-layout-news-01/dummy-data.ts" }
+      ]
     }
   ]
 }
