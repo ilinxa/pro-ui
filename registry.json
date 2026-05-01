@@ -430,6 +430,102 @@
       "files": [
         { "path": "src/registry/components/data/content-card-news-01/dummy-data.ts", "type": "registry:component", "target": "components/content-card-news-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "newsletter-card-01",
+      "type": "registry:block",
+      "title": "Newsletter Card 01",
+      "description": "Brand-tinted CTA card with email signup. Two variants (inline-form / cta-only), three tones, controlled-or-uncontrolled email value, async-aware status auto-tracking, full i18n via labels prop.",
+      "author": "ilinxa",
+      "categories": ["marketing"],
+      "registryDependencies": ["button", "input"],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/marketing/newsletter-card-01/newsletter-card-01.tsx", "type": "registry:component", "target": "components/newsletter-card-01/newsletter-card-01.tsx" },
+        { "path": "src/registry/components/marketing/newsletter-card-01/index.ts", "type": "registry:component", "target": "components/newsletter-card-01/index.ts" },
+        { "path": "src/registry/components/marketing/newsletter-card-01/types.ts", "type": "registry:component", "target": "components/newsletter-card-01/types.ts" },
+        { "path": "src/registry/components/marketing/newsletter-card-01/parts/inline-form.tsx", "type": "registry:component", "target": "components/newsletter-card-01/parts/inline-form.tsx" },
+        { "path": "src/registry/components/marketing/newsletter-card-01/parts/cta-only.tsx", "type": "registry:component", "target": "components/newsletter-card-01/parts/cta-only.tsx" },
+        { "path": "src/registry/components/marketing/newsletter-card-01/parts/status-message.tsx", "type": "registry:component", "target": "components/newsletter-card-01/parts/status-message.tsx" },
+        { "path": "src/registry/components/marketing/newsletter-card-01/parts/tone.ts", "type": "registry:component", "target": "components/newsletter-card-01/parts/tone.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "newsletter-card-01-fixtures",
+      "type": "registry:block",
+      "title": "Newsletter Card 01 — fixtures",
+      "description": "Newsletter Card 01 bundle including the dummy-data fixtures (Turkish labels + fake submit handlers for demo).",
+      "author": "ilinxa",
+      "categories": ["marketing", "fixtures"],
+      "registryDependencies": ["newsletter-card-01"],
+      "files": [
+        { "path": "src/registry/components/marketing/newsletter-card-01/dummy-data.ts", "type": "registry:component", "target": "components/newsletter-card-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "category-cloud-01",
+      "type": "registry:block",
+      "title": "Category Cloud 01",
+      "description": "Always-visible flex-wrap of clickable category chips with optional inline counts. Single-select, controlled-or-uncontrolled, toggleable, native button semantics with aria-pressed.",
+      "author": "ilinxa",
+      "categories": ["forms"],
+      "registryDependencies": ["badge"],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/forms/category-cloud-01/category-cloud-01.tsx", "type": "registry:component", "target": "components/category-cloud-01/category-cloud-01.tsx" },
+        { "path": "src/registry/components/forms/category-cloud-01/index.ts", "type": "registry:component", "target": "components/category-cloud-01/index.ts" },
+        { "path": "src/registry/components/forms/category-cloud-01/types.ts", "type": "registry:component", "target": "components/category-cloud-01/types.ts" },
+        { "path": "src/registry/components/forms/category-cloud-01/parts/category-chip.tsx", "type": "registry:component", "target": "components/category-cloud-01/parts/category-chip.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "category-cloud-01-fixtures",
+      "type": "registry:block",
+      "title": "Category Cloud 01 — fixtures",
+      "description": "Category Cloud 01 bundle including the dummy-data fixtures (Turkish + English category samples with counts).",
+      "author": "ilinxa",
+      "categories": ["forms", "fixtures"],
+      "registryDependencies": ["category-cloud-01"],
+      "files": [
+        { "path": "src/registry/components/forms/category-cloud-01/dummy-data.ts", "type": "registry:component", "target": "components/category-cloud-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "filter-bar-01",
+      "type": "registry:block",
+      "title": "Filter Bar 01",
+      "description": "Composite filter bar with centered search + category pill row + date-range Popover + optional results count. Each sub-control independently controlled-or-uncontrolled. Sub-control hide flags for partial usage.",
+      "author": "ilinxa",
+      "categories": ["forms"],
+      "registryDependencies": ["input", "button", "popover", "calendar"],
+      "dependencies": ["lucide-react", "react-day-picker", "date-fns"],
+      "files": [
+        { "path": "src/registry/components/forms/filter-bar-01/filter-bar-01.tsx", "type": "registry:component", "target": "components/filter-bar-01/filter-bar-01.tsx" },
+        { "path": "src/registry/components/forms/filter-bar-01/index.ts", "type": "registry:component", "target": "components/filter-bar-01/index.ts" },
+        { "path": "src/registry/components/forms/filter-bar-01/types.ts", "type": "registry:component", "target": "components/filter-bar-01/types.ts" },
+        { "path": "src/registry/components/forms/filter-bar-01/lib/format-default.ts", "type": "registry:component", "target": "components/filter-bar-01/lib/format-default.ts" },
+        { "path": "src/registry/components/forms/filter-bar-01/parts/search-input.tsx", "type": "registry:component", "target": "components/filter-bar-01/parts/search-input.tsx" },
+        { "path": "src/registry/components/forms/filter-bar-01/parts/chip-row.tsx", "type": "registry:component", "target": "components/filter-bar-01/parts/chip-row.tsx" },
+        { "path": "src/registry/components/forms/filter-bar-01/parts/date-range-picker.tsx", "type": "registry:component", "target": "components/filter-bar-01/parts/date-range-picker.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "filter-bar-01-fixtures",
+      "type": "registry:block",
+      "title": "Filter Bar 01 — fixtures",
+      "description": "Filter Bar 01 bundle including the dummy-data fixtures (Turkish labels + Turkish-locale date-range formatter).",
+      "author": "ilinxa",
+      "categories": ["forms", "fixtures"],
+      "registryDependencies": ["filter-bar-01"],
+      "files": [
+        { "path": "src/registry/components/forms/filter-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/filter-bar-01/dummy-data.ts" }
+      ]
     }
   ]
 }

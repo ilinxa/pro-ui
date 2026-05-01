@@ -38,6 +38,18 @@ import ContentCardNews01Demo from "./components/data/content-card-news-01/demo";
 import ContentCardNews01Usage from "./components/data/content-card-news-01/usage";
 import { meta as contentCardNews01Meta } from "./components/data/content-card-news-01/meta";
 
+import NewsletterCard01Demo from "./components/marketing/newsletter-card-01/demo";
+import NewsletterCard01Usage from "./components/marketing/newsletter-card-01/usage";
+import { meta as newsletterCard01Meta } from "./components/marketing/newsletter-card-01/meta";
+
+import CategoryCloud01Demo from "./components/forms/category-cloud-01/demo";
+import CategoryCloud01Usage from "./components/forms/category-cloud-01/usage";
+import { meta as categoryCloud01Meta } from "./components/forms/category-cloud-01/meta";
+
+import FilterBar01Demo from "./components/forms/filter-bar-01/demo";
+import FilterBar01Usage from "./components/forms/filter-bar-01/usage";
+import { meta as filterBar01Meta } from "./components/forms/filter-bar-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -96,6 +108,21 @@ export const REGISTRY: RegistryEntry[] = [
     meta: contentCardNews01Meta,
     Demo: ContentCardNews01Demo,
     Usage: ContentCardNews01Usage,
+  },
+  {
+    meta: newsletterCard01Meta,
+    Demo: NewsletterCard01Demo,
+    Usage: NewsletterCard01Usage,
+  },
+  {
+    meta: categoryCloud01Meta,
+    Demo: CategoryCloud01Demo,
+    Usage: CategoryCloud01Usage,
+  },
+  {
+    meta: filterBar01Meta,
+    Demo: FilterBar01Demo,
+    Usage: FilterBar01Usage,
   },
 ];
 

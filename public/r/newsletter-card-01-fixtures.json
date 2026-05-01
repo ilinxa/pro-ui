@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "newsletter-card-01-fixtures",
+  "title": "Newsletter Card 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Newsletter Card 01 bundle including the dummy-data fixtures (Turkish labels + fake submit handlers for demo).",
+  "registryDependencies": [
+    "newsletter-card-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/newsletter-card-01/dummy-data.ts",
+      "content": "import type { NewsletterCardLabels } from \"./types\";\n\n/**\n * Turkish labels — used by the \"Custom labels\" demo tab to validate the\n * full i18n surface of the component (including success / error messages).\n */\nexport const NEWSLETTER_CARD_LABELS_TR: NewsletterCardLabels = {\n  title: \"Bültenimize Katılın\",\n  body: \"En güncel haberleri e-posta ile alın.\",\n  placeholder: \"E-posta adresiniz\",\n  emailLabel: \"E-posta adresiniz\",\n  button: \"Abone Ol\",\n  successMessage: \"Teşekkürler! Aboneliğiniz tamamlandı.\",\n  errorMessage: \"Bir şeyler ters gitti. Lütfen tekrar deneyin.\",\n};\n\n/** Fake submit handler that resolves after 1s — used by demo tabs. */\nexport const fakeSubmitSuccess = (): Promise<void> =>\n  new Promise((resolve) => {\n    setTimeout(resolve, 1000);\n  });\n\n/** Fake submit handler that rejects after 800ms — used by error-state demo. */\nexport const fakeSubmitError = (): Promise<void> =>\n  new Promise((_resolve, reject) => {\n    setTimeout(() => reject(new Error(\"network\")), 800);\n  });\n",
+      "type": "registry:component",
+      "target": "components/newsletter-card-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "marketing",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
