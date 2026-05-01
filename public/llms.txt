@@ -13,13 +13,11 @@ This is NOT an npm package. Do NOT try `pnpm add ilinxa-pro-ui` or `npm install 
 
 Prerequisite: target project must have `pnpm dlx shadcn@latest init` already run. That step seeds `lib/utils.ts` (the `cn` helper every shadcn primitive imports). If `init` was never run, installs will succeed but the consumer's build will fail with `Cannot find module '@/lib/utils'`.
 
-Step 1 — add the namespace to the consumer's `components.json`:
+Step 1 — add the namespace to the consumer's `components.json` (merge with their existing config):
 
 ```json
-{
-  "registries": {
-    "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
-  }
+"registries": {
+  "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
 }
 ```
 
@@ -52,7 +50,9 @@ Files land at `components/<slug>/<sub-path>` (project-root-relative). This assum
 - `@ilinxa/detail-panel` — selection-aware compound container; `<Header />`, `<Body />`, `<Actions />` slots via React Context, lifecycle precedence error > loading > content > empty. Deps: `button`, `skeleton`, lucide-react.
 - `@ilinxa/filter-stack` — schema-driven filter panel; four built-in filter types, AND-across-categories, mode toggle (Union/Intersection), debounced text. Deps: `button`, `checkbox`, `input`, `switch`, `toggle-group`, `tooltip`, lucide-react.
 - `@ilinxa/entity-picker` — searchable typed picker; single or multi mode via `mode` prop, kind badges, three custom-render slots, multi-mode chip cluster. Deps: `badge`, `command`, `popover`, lucide-react.
-- `@ilinxa/markdown-editor` — CodeMirror 6 substrate; three view modes (edit/split/preview), default 8-item toolbar, `[[wikilink]]` autocomplete + decoration via CM6 StateField, Cmd/Ctrl+S onSave. Deps: `badge`, `button`, `tabs`, `tooltip`, lucide-react, marked, @codemirror/{state,view,commands,language,lang-markdown,autocomplete,search}, @lezer/{markdown,highlight}.
+- `@ilinxa/markdown-editor` — CodeMirror 6 substrate; three view modes (edit/split/preview), default 8-item toolbar, [[wikilink]] autocomplete + decoration via CM6 StateField, Cmd/Ctrl+S onSave. Deps: `badge`, `button`, `tabs`, `tooltip`, lucide-react, marked, @codemirror/{state,view,commands,language,lang-markdown,autocomplete,search}, @lezer/{markdown,highlight}.
+
+Note: force-graph is visible on the demo site as alpha/preview but is NOT yet in the registry. Do not suggest installing @ilinxa/force-graph — the URL will 404. It will be added once stabilized.
 
 Each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only.
 
