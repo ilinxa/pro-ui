@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "article-meta-01-fixtures",
+  "title": "Article Meta 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Article Meta 01 bundle including the dummy-data fixtures (5 sample item sets covering article header / centered / docs / video / text-only).",
+  "registryDependencies": [
+    "article-meta-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/article-meta-01/dummy-data.ts",
+      "content": "import { Calendar, Clock, Eye, GitCommit, PlayCircle, Tag, User } from \"lucide-react\";\nimport type { ArticleMetaItem } from \"./types\";\n\nexport const ARTICLE_META_01_DUMMY: ReadonlyArray<ArticleMetaItem> = [\n  { id: \"author\", icon: User, value: \"Maya Chen\", href: \"/team/maya-chen\" },\n  { id: \"date\", icon: Calendar, value: \"Apr 28, 2026\" },\n  { id: \"read\", icon: Clock, value: \"5 min read\", ariaLabel: \"5 minute read\" },\n  { id: \"views\", icon: Eye, value: \"12.4k\", ariaLabel: \"12,400 views\" },\n];\n\nexport const ARTICLE_META_01_DUMMY_CENTERED: ReadonlyArray<ArticleMetaItem> = [\n  { id: \"author\", icon: User, value: \"Daniel Park\" },\n  { id: \"date\", icon: Calendar, value: \"March 15, 2026\" },\n];\n\nexport const ARTICLE_META_01_DUMMY_DOCS: ReadonlyArray<ArticleMetaItem> = [\n  { id: \"author\", icon: User, value: \"@maya\", href: \"/team/maya\" },\n  { id: \"updated\", icon: GitCommit, value: \"Updated Apr 28\" },\n  { id: \"version\", icon: Tag, value: \"v3.2.1\" },\n];\n\nexport const ARTICLE_META_01_DUMMY_VIDEO: ReadonlyArray<ArticleMetaItem> = [\n  { id: \"channel\", icon: User, value: \"Cinema Lab\", href: \"/channels/cinema-lab\" },\n  { id: \"uploaded\", icon: Calendar, value: \"2 days ago\" },\n  { id: \"duration\", icon: PlayCircle, value: \"12:34\" },\n  { id: \"views\", icon: Eye, value: \"1.2M\" },\n];\n\nexport const ARTICLE_META_01_DUMMY_TEXT_ONLY: ReadonlyArray<ArticleMetaItem> = [\n  { id: \"category\", value: \"ENVIRONMENT\" },\n  { id: \"issue\", value: \"Issue #42\" },\n  { id: \"page\", value: \"Page 18\" },\n];\n",
+      "type": "registry:component",
+      "target": "components/article-meta-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

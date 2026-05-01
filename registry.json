@@ -651,6 +651,69 @@
       "files": [
         { "path": "src/registry/components/data/thumb-list-01/dummy-data.ts", "type": "registry:component", "target": "components/thumb-list-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "article-meta-01",
+      "type": "registry:block",
+      "title": "Article Meta 01",
+      "description": "Horizontal strip of icon + value pairs surfacing key metadata (author / date / read-time / view-count) under an article title. Data-driven items, optional per-item link, optional bottom divider, 3 alignments.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/article-meta-01/article-meta-01.tsx", "type": "registry:component", "target": "components/article-meta-01/article-meta-01.tsx" },
+        { "path": "src/registry/components/data/article-meta-01/index.ts", "type": "registry:component", "target": "components/article-meta-01/index.ts" },
+        { "path": "src/registry/components/data/article-meta-01/types.ts", "type": "registry:component", "target": "components/article-meta-01/types.ts" },
+        { "path": "src/registry/components/data/article-meta-01/parts/meta-item.tsx", "type": "registry:component", "target": "components/article-meta-01/parts/meta-item.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "article-meta-01-fixtures",
+      "type": "registry:block",
+      "title": "Article Meta 01 — fixtures",
+      "description": "Article Meta 01 bundle including the dummy-data fixtures (5 sample item sets covering article header / centered / docs / video / text-only).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["article-meta-01"],
+      "files": [
+        { "path": "src/registry/components/data/article-meta-01/dummy-data.ts", "type": "registry:component", "target": "components/article-meta-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "share-bar-01",
+      "type": "registry:block",
+      "title": "Share Bar 01",
+      "description": "Horizontal cluster of social-share buttons + copy-link with success-state feedback. 9 built-in platforms (Twitter / Facebook / LinkedIn / Reddit / WhatsApp / Telegram / Email / Threads / Bluesky), custom targets, analytics hook.",
+      "author": "ilinxa",
+      "categories": ["marketing"],
+      "registryDependencies": ["button"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/marketing/share-bar-01/share-bar-01.tsx", "type": "registry:component", "target": "components/share-bar-01/share-bar-01.tsx" },
+        { "path": "src/registry/components/marketing/share-bar-01/index.ts", "type": "registry:component", "target": "components/share-bar-01/index.ts" },
+        { "path": "src/registry/components/marketing/share-bar-01/types.ts", "type": "registry:component", "target": "components/share-bar-01/types.ts" },
+        { "path": "src/registry/components/marketing/share-bar-01/parts/share-button.tsx", "type": "registry:component", "target": "components/share-bar-01/parts/share-button.tsx" },
+        { "path": "src/registry/components/marketing/share-bar-01/parts/templates.ts", "type": "registry:component", "target": "components/share-bar-01/parts/templates.ts" },
+        { "path": "src/registry/components/marketing/share-bar-01/parts/icons.ts", "type": "registry:component", "target": "components/share-bar-01/parts/icons.ts" },
+        { "path": "src/registry/components/marketing/share-bar-01/parts/brand-icons.tsx", "type": "registry:component", "target": "components/share-bar-01/parts/brand-icons.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "share-bar-01-fixtures",
+      "type": "registry:block",
+      "title": "Share Bar 01 — fixtures",
+      "description": "Share Bar 01 bundle including the dummy-data fixtures (4 sample target sets — default / full 9-platform / compact 2-target / Turkish).",
+      "author": "ilinxa",
+      "categories": ["marketing", "fixtures"],
+      "registryDependencies": ["share-bar-01"],
+      "files": [
+        { "path": "src/registry/components/marketing/share-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/share-bar-01/dummy-data.ts" }
+      ]
     }
   ]
 }
