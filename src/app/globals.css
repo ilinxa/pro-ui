@@ -10,6 +10,7 @@
   --font-sans: var(--font-onest);
   --font-mono: var(--font-jetbrains-mono);
   --font-heading: var(--font-onest);
+  --font-serif: var(--font-playfair-display), "Lora", ui-serif, Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

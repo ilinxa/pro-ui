@@ -394,6 +394,42 @@
       "files": [
         { "path": "src/registry/components/forms/markdown-editor/dummy-data.ts", "type": "registry:component", "target": "components/markdown-editor/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "content-card-news-01",
+      "type": "registry:block",
+      "title": "Content Card (News 01)",
+      "description": "Magazine-style content card with 5 visual variants (featured / large / medium / small / list). Polymorphic root, soft-fail item shape, overlay-link pattern with optional actions slot, fully customizable formatting and theming. Default serif via the pro-ui --font-serif token (Playfair Display).",
+      "author": "ilinxa",
+      "categories": ["data", "news"],
+      "registryDependencies": ["badge"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/content-card-news-01/content-card-news-01.tsx", "type": "registry:component", "target": "components/content-card-news-01/content-card-news-01.tsx" },
+        { "path": "src/registry/components/data/content-card-news-01/index.ts", "type": "registry:component", "target": "components/content-card-news-01/index.ts" },
+        { "path": "src/registry/components/data/content-card-news-01/types.ts", "type": "registry:component", "target": "components/content-card-news-01/types.ts" },
+        { "path": "src/registry/components/data/content-card-news-01/hooks/use-relative-time.ts", "type": "registry:component", "target": "components/content-card-news-01/hooks/use-relative-time.ts" },
+        { "path": "src/registry/components/data/content-card-news-01/lib/format-default.ts", "type": "registry:component", "target": "components/content-card-news-01/lib/format-default.ts" },
+        { "path": "src/registry/components/data/content-card-news-01/parts/featured.tsx", "type": "registry:component", "target": "components/content-card-news-01/parts/featured.tsx" },
+        { "path": "src/registry/components/data/content-card-news-01/parts/large.tsx", "type": "registry:component", "target": "components/content-card-news-01/parts/large.tsx" },
+        { "path": "src/registry/components/data/content-card-news-01/parts/medium.tsx", "type": "registry:component", "target": "components/content-card-news-01/parts/medium.tsx" },
+        { "path": "src/registry/components/data/content-card-news-01/parts/small.tsx", "type": "registry:component", "target": "components/content-card-news-01/parts/small.tsx" },
+        { "path": "src/registry/components/data/content-card-news-01/parts/list.tsx", "type": "registry:component", "target": "components/content-card-news-01/parts/list.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "content-card-news-01-fixtures",
+      "type": "registry:block",
+      "title": "Content Card (News 01) — fixtures",
+      "description": "Content Card (News 01) bundle including the dummy-data fixtures (8 demo articles + sample categoryStyles map).",
+      "author": "ilinxa",
+      "categories": ["data", "news", "fixtures"],
+      "registryDependencies": ["content-card-news-01"],
+      "files": [
+        { "path": "src/registry/components/data/content-card-news-01/dummy-data.ts", "type": "registry:component", "target": "components/content-card-news-01/dummy-data.ts" }
+      ]
     }
   ]
 }

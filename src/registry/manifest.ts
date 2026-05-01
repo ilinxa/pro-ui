@@ -34,6 +34,10 @@ import ForceGraphDemo from "./components/data/force-graph/demo";
 import ForceGraphUsage from "./components/data/force-graph/usage";
 import { meta as forceGraphMeta } from "./components/data/force-graph/meta";
 
+import ContentCardNews01Demo from "./components/data/content-card-news-01/demo";
+import ContentCardNews01Usage from "./components/data/content-card-news-01/usage";
+import { meta as contentCardNews01Meta } from "./components/data/content-card-news-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -87,6 +91,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: forceGraphMeta,
     Demo: ForceGraphDemo,
     Usage: ForceGraphUsage,
+  },
+  {
+    meta: contentCardNews01Meta,
+    Demo: ContentCardNews01Demo,
+    Usage: ContentCardNews01Usage,
   },
 ];
 
