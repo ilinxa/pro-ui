@@ -163,6 +163,17 @@ export interface GraphSettings {
   renderEdgeLabels: boolean;
   edgeLabelZoomThreshold: number;
 
+  /**
+   * How to treat dragging a node that is already `pinned: true`.
+   * - `"commit"` (default) — drop position becomes the node's new pinned
+   *   position. Standard manual-layout UX.
+   * - `"snap-back"` — drag previews on the canvas, but on release the
+   *   node returns to its prior position. Useful for read-only canonical
+   *   layouts (e.g. the "Static positions" demo) where positions are
+   *   curated and dragging is exploration, not editing.
+   */
+  pinnedDragMode: "commit" | "snap-back";
+
   undoBufferSize: number;
 }
 
@@ -190,6 +201,8 @@ export const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
   hideEdgesOnMove: false,
   renderEdgeLabels: false,
   edgeLabelZoomThreshold: 0.7,
+
+  pinnedDragMode: "commit",
 
   undoBufferSize: 100,
 };

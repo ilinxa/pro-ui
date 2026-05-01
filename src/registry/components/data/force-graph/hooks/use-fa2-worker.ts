@@ -69,9 +69,13 @@ export function useFA2Worker(
         workerRef.current = null;
       }
     };
+    // Note: `settings.forces.linkDistance` is host-side metadata only —
+    // FA2 has no `linkDistance` setting (verified in
+    // graphology-layout-forceatlas2/defaults.js). Don't list it as a dep
+    // or every linkDistance nudge would tear down + rebuild the worker
+    // for nothing.
   }, [
     graph,
-    settings.forces.linkDistance,
     settings.forces.repulsion,
     settings.forces.centerGravity,
     enabled,

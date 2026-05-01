@@ -354,5 +354,9 @@ export const SMALL_GRAPH_STATIC: GraphSnapshot = {
   settings: {
     ...DEFAULT_GRAPH_SETTINGS,
     layoutEnabled: false,
+    // Drag previews on the canvas, then snaps the node back to its
+    // snapshot position on release. The static layout is canonical;
+    // dragging is exploration, not editing.
+    pinnedDragMode: "snap-back",
   },
 };

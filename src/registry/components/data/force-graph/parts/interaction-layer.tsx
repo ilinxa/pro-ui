@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type Sigma from "sigma";
 import type { MultiGraph } from "graphology";
 import type { ResolvedTheme } from "../types";
@@ -126,44 +126,58 @@ export function InteractionLayer({
   }, [sigma, store]);
 
   // Per plan §6.2: focus-and-neighbors highlight via Sigma reducers.
-  // The reducers re-read store state on each render call; no need to
-  // re-register them on hover changes. We DO re-register on theme
-  // change (so dim color tracks the current palette).
+  // The reducers run for every visible element on every render, so we
+  // pre-compute neighbors + incident-edges sets in refs on hover-change
+  // and let the reducers do O(1) Set lookups. Avoids the O(n²)
+  // `graph.areNeighbors()` / `graph.extremities()` calls per render that
+  // the previous implementation incurred at scale.
+  const hoveredKindRef = useRef<"node" | "edge" | "group" | null>(null);
+  const hoveredIdRef = useRef<string | null>(null);
+  const neighborsRef = useRef<Set<string>>(new Set());
+  const incidentEdgesRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const dim = withAlpha(theme.edgeMuted, 0.35);
 
     sigma.setSetting("nodeReducer", (nodeKey, attrs) => {
-      const ui = store.getState().ui;
-      if (!ui.hovered) return attrs;
-      if (ui.hovered.kind === "node") {
-        if (ui.hovered.id === nodeKey) return attrs;
-        if (graph.areNeighbors(ui.hovered.id, nodeKey)) return attrs;
-      }
+      const kind = hoveredKindRef.current;
+      if (kind === null) return attrs;
+      if (kind === "node" && neighborsRef.current.has(nodeKey)) return attrs;
       return { ...attrs, color: dim, label: null };
     });
 
     sigma.setSetting("edgeReducer", (edgeKey, attrs) => {
-      const ui = store.getState().ui;
-      if (!ui.hovered) return attrs;
-      if (ui.hovered.kind === "edge" && ui.hovered.id === edgeKey) {
-        return attrs;
-      }
-      if (ui.hovered.kind === "node") {
-        const [src, tgt] = graph.extremities(edgeKey);
-        if (src === ui.hovered.id || tgt === ui.hovered.id) return attrs;
-      }
+      const kind = hoveredKindRef.current;
+      if (kind === null) return attrs;
+      if (kind === "edge" && hoveredIdRef.current === edgeKey) return attrs;
+      if (kind === "node" && incidentEdgesRef.current.has(edgeKey)) return attrs;
       return { ...attrs, color: dim };
     });
 
     // Re-render so reducers apply to currently visible items.
     sigma.scheduleRefresh();
 
-    // Reducers re-read store state per call, but Sigma needs a render
-    // request to re-apply on hover changes — `scheduleRefresh` debounces
-    // to the next animation frame so rapid hover movement doesn't stall.
+    // On hover change: rebuild neighbor + incident-edge sets, then ask
+    // Sigma to re-paint. `scheduleRefresh` debounces to the next animation
+    // frame so rapid hover movement doesn't stall.
     const unsubscribe = store.subscribe(
       (s) => s.ui.hovered,
-      () => {
+      (hovered) => {
+        hoveredKindRef.current = hovered?.kind ?? null;
+        hoveredIdRef.current = hovered?.id ?? null;
+        const ns = new Set<string>();
+        const es = new Set<string>();
+        if (hovered?.kind === "node" && graph.hasNode(hovered.id)) {
+          ns.add(hovered.id);
+          graph.forEachNeighbor(hovered.id, (n) => {
+            ns.add(n);
+          });
+          graph.forEachEdge(hovered.id, (edgeKey) => {
+            es.add(edgeKey);
+          });
+        }
+        neighborsRef.current = ns;
+        incidentEdgesRef.current = es;
         sigma.scheduleRefresh();
       },
     );

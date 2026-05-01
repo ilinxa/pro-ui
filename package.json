@@ -22,6 +22,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.6.3",
+    "@react-sigma/core": "5.0.6",
+    "@react-sigma/layout-forceatlas2": "5.0.6",
     "@tanstack/react-virtual": "^3.13.24",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
