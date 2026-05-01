@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "ilinxa",
-  "homepage": "https://github.com/HessamHezaveh/ilinxa-ui-pro",
+  "homepage": "https://github.com/ilinxa/pro-ui",
   "items": [
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
