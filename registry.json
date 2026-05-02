@@ -714,6 +714,53 @@
       "files": [
         { "path": "src/registry/components/marketing/share-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/share-bar-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "article-body-01",
+      "type": "registry:block",
+      "title": "Article Body 01",
+      "description": "Plate-based WYSIWYG rich-text editor + RSC-friendly read-only viewer for long-form article bodies. Two exports from one folder: ArticleBodyEditor (~150KB, client) + ArticleBodyViewer (~30KB, server-renderable). JSON-as-storage. Full toolbar (marks, headings, lists, blockquote, link, image, table, code-block, font-family, font-size, color).",
+      "author": "ilinxa",
+      "categories": ["data", "richtext"],
+      "registryDependencies": ["button"],
+      "dependencies": [
+        "platejs",
+        "@platejs/basic-nodes",
+        "@platejs/basic-styles",
+        "@platejs/code-block",
+        "@platejs/indent",
+        "@platejs/link",
+        "@platejs/list",
+        "@platejs/media",
+        "@platejs/table",
+        "lucide-react"
+      ],
+      "files": [
+        { "path": "src/registry/components/data/article-body-01/article-body-01.tsx", "type": "registry:component", "target": "components/article-body-01/article-body-01.tsx" },
+        { "path": "src/registry/components/data/article-body-01/article-body-viewer.tsx", "type": "registry:component", "target": "components/article-body-01/article-body-viewer.tsx" },
+        { "path": "src/registry/components/data/article-body-01/index.ts", "type": "registry:component", "target": "components/article-body-01/index.ts" },
+        { "path": "src/registry/components/data/article-body-01/types.ts", "type": "registry:component", "target": "components/article-body-01/types.ts" },
+        { "path": "src/registry/components/data/article-body-01/plugins/editor-kit.ts", "type": "registry:component", "target": "components/article-body-01/plugins/editor-kit.ts" },
+        { "path": "src/registry/components/data/article-body-01/plugins/viewer-kit.ts", "type": "registry:component", "target": "components/article-body-01/plugins/viewer-kit.ts" },
+        { "path": "src/registry/components/data/article-body-01/parts/editor-toolbar.tsx", "type": "registry:component", "target": "components/article-body-01/parts/editor-toolbar.tsx" },
+        { "path": "src/registry/components/data/article-body-01/parts/element-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/parts/element-renderers.tsx" },
+        { "path": "src/registry/components/data/article-body-01/parts/leaf-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/parts/leaf-renderers.tsx" },
+        { "path": "src/registry/components/data/article-body-01/static-elements/static-element-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/static-elements/static-element-renderers.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "article-body-01-fixtures",
+      "type": "registry:block",
+      "title": "Article Body 01 — fixtures",
+      "description": "Article Body 01 bundle including the dummy-data fixtures (5 sample article values — rich / simple / empty / table / code-block).",
+      "author": "ilinxa",
+      "categories": ["data", "richtext", "fixtures"],
+      "registryDependencies": ["article-body-01"],
+      "files": [
+        { "path": "src/registry/components/data/article-body-01/dummy-data.ts", "type": "registry:component", "target": "components/article-body-01/dummy-data.ts" }
+      ]
     }
   ]
 }

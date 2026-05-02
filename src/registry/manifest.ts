@@ -74,6 +74,10 @@ import ShareBar01Demo from "./components/marketing/share-bar-01/demo";
 import ShareBar01Usage from "./components/marketing/share-bar-01/usage";
 import { meta as shareBar01Meta } from "./components/marketing/share-bar-01/meta";
 
+import ArticleBody01Demo from "./components/data/article-body-01/demo";
+import ArticleBody01Usage from "./components/data/article-body-01/usage";
+import { meta as articleBody01Meta } from "./components/data/article-body-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -177,6 +181,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: shareBar01Meta,
     Demo: ShareBar01Demo,
     Usage: ShareBar01Usage,
+  },
+  {
+    meta: articleBody01Meta,
+    Demo: ArticleBody01Demo,
+    Usage: ArticleBody01Usage,
   },
 ];
 
