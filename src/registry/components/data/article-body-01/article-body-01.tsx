@@ -5,6 +5,7 @@ import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 import { cn } from "@/lib/utils";
 import { articleBodyPlugins } from "./plugins/editor-kit";
 import { EditorToolbar } from "./parts/editor-toolbar";
+import { FloatingToolbar } from "./parts/floating-toolbar";
 import {
   ARTICLE_BODY_DEFAULT_PLACEHOLDER,
   ARTICLE_BODY_EMPTY_VALUE,
@@ -109,6 +110,8 @@ export function ArticleBodyEditor(props: ArticleBodyEditorProps) {
             spellCheck
           />
         </div>
+
+        {!readOnly ? <FloatingToolbar /> : null}
 
         {!readOnly && onSave ? (
           <div className="border-t border-border bg-muted/30 px-4 py-1.5 text-xs text-muted-foreground">

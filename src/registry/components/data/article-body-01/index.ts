@@ -9,4 +9,8 @@ export {
   type ImageUploadResult,
   type ImageUploader,
 } from "./types";
+export {
+  serializeArticleBodyToHtml,
+  type SerializeHtmlOptions,
+} from "./lib/serialize-html";
 export { meta } from "./meta";

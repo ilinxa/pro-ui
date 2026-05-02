@@ -25,6 +25,8 @@ import { CodeBlockPlugin, CodeLinePlugin, CodeSyntaxPlugin } from "@platejs/code
 import { LinkPlugin } from "@platejs/link/react";
 import { ListPlugin } from "@platejs/list/react";
 import { ImagePlugin, MediaEmbedPlugin } from "@platejs/media/react";
+
+import { lowlight } from "../lib/lowlight-instance";
 import {
   TableCellHeaderPlugin,
   TableCellPlugin,
@@ -74,8 +76,11 @@ export const articleBodyViewerPlugins = [
   // Lists
   ListPlugin.withComponent(StaticList),
 
-  // Code blocks
-  CodeBlockPlugin.withComponent(StaticCodeBlock),
+  // Code blocks (with lowlight syntax highlighting)
+  CodeBlockPlugin.configure({
+    options: { lowlight },
+    node: { component: StaticCodeBlock },
+  }),
   CodeLinePlugin.withComponent(StaticCodeLine),
   CodeSyntaxPlugin,
 

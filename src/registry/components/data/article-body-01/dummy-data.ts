@@ -144,6 +144,7 @@ export const ARTICLE_BODY_01_DUMMY_CODE: ArticleBodyValue = [
   { type: "h3", children: [{ text: "Sample function" }] },
   {
     type: "code_block",
+    lang: "javascript",
     children: [
       {
         type: "code_line",
@@ -156,6 +157,88 @@ export const ARTICLE_BODY_01_DUMMY_CODE: ArticleBodyValue = [
       {
         type: "code_line",
         children: [{ text: "}" }],
+      },
+    ],
+  },
+  { type: "p", children: [{ text: "" }] },
+  { type: "h3", children: [{ text: "TypeScript with syntax colors" }] },
+  {
+    type: "code_block",
+    lang: "typescript",
+    children: [
+      {
+        type: "code_line",
+        children: [
+          { text: "interface User { id: string; name: string; admin?: boolean }" },
+        ],
+      },
+      {
+        type: "code_line",
+        children: [{ text: "" }],
+      },
+      {
+        type: "code_line",
+        children: [
+          { text: "function greet(user: User): string {" },
+        ],
+      },
+      {
+        type: "code_line",
+        children: [
+          { text: "  return `Hello, ${user.name}` + (user.admin ? ' (admin)' : '');" },
+        ],
+      },
+      {
+        type: "code_line",
+        children: [{ text: "}" }],
+      },
+    ],
+  },
+  { type: "p", children: [{ text: "" }] },
+  { type: "h3", children: [{ text: "Bash" }] },
+  {
+    type: "code_block",
+    lang: "bash",
+    children: [
+      {
+        type: "code_line",
+        children: [{ text: "# Install + start" }],
+      },
+      {
+        type: "code_line",
+        children: [{ text: "pnpm install" }],
+      },
+      {
+        type: "code_line",
+        children: [{ text: "pnpm dev --port 3010" }],
+      },
+    ],
+  },
+];
+
+export const ARTICLE_BODY_01_DUMMY_IMAGE: ArticleBodyValue = [
+  { type: "h2", children: [{ text: "Resizable image with caption" }] },
+  {
+    type: "p",
+    children: [
+      {
+        text: "Hover over the image to reveal the right-edge resize handle. Drag to resize. Click the caption to edit it.",
+      },
+    ],
+  },
+  {
+    type: "img",
+    url: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1f?w=1200&h=800&fit=crop&auto=format",
+    alt: "City skyline at dusk",
+    caption: "Sustainable urbanism in practice — the Helsinki waterfront, 2024.",
+    width: "75%",
+    children: [{ text: "" }],
+  },
+  {
+    type: "p",
+    children: [
+      {
+        text: "Width is stored as a percentage on the node; the static viewer reads it for fidelity.",
       },
     ],
   },

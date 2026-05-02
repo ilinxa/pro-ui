@@ -185,20 +185,35 @@ export function StaticTableCellHeader(props: StaticElementProps) {
 }
 
 export function StaticImage(props: StaticElementProps) {
-  const element = props.element as { url?: string; alt?: string; caption?: string };
+  const element = props.element as {
+    url?: string;
+    alt?: string;
+    caption?: string;
+    width?: string | number;
+  };
+  // Width comes through as a percentage string (e.g. "75%") set by the editor.
+  // Numbers are interpreted as pixels for backward compatibility.
+  const widthStyle =
+    element.width !== undefined
+      ? typeof element.width === "number"
+        ? `${element.width}px`
+        : element.width
+      : undefined;
+
   return (
     <div {...spreadAttrs(props.attributes)} className={cn("my-6", props.className)}>
-      <figure>
+      <figure className="flex flex-col items-center">
         {element.url ? (
           <img
             src={element.url}
             alt={element.alt ?? ""}
             loading="lazy"
-            className="w-full rounded-md border border-border"
+            className="rounded-md border border-border"
+            style={widthStyle ? { width: widthStyle } : undefined}
           />
         ) : null}
         {element.caption ? (
-          <figcaption className="mt-2 text-center text-xs text-muted-foreground">
+          <figcaption className="mt-2 max-w-[80%] text-center text-xs text-muted-foreground">
             {element.caption}
           </figcaption>
         ) : null}

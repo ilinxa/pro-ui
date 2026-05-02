@@ -720,7 +720,7 @@
       "name": "article-body-01",
       "type": "registry:block",
       "title": "Article Body 01",
-      "description": "Plate-based WYSIWYG rich-text editor + RSC-friendly read-only viewer for long-form article bodies. Two exports from one folder: ArticleBodyEditor (~150KB, client) + ArticleBodyViewer (~30KB, server-renderable). JSON-as-storage. Full toolbar (marks, headings, lists, blockquote, link, image, table, code-block, font-family, font-size, color).",
+      "description": "Plate-based WYSIWYG rich-text editor + RSC-friendly read-only viewer. Fixed + floating toolbars, syntax-highlighted code blocks (lowlight), resizable images with inline captions, HTML export. Two exports from one folder: ArticleBodyEditor (~165KB, client) + ArticleBodyViewer (~32KB, server-renderable). JSON-as-storage.",
       "author": "ilinxa",
       "categories": ["data", "richtext"],
       "registryDependencies": ["button"],
@@ -728,12 +728,17 @@
         "platejs",
         "@platejs/basic-nodes",
         "@platejs/basic-styles",
+        "@platejs/caption",
         "@platejs/code-block",
         "@platejs/indent",
         "@platejs/link",
         "@platejs/list",
         "@platejs/media",
+        "@platejs/resizable",
         "@platejs/table",
+        "@floating-ui/react",
+        "lowlight",
+        "highlight.js",
         "lucide-react"
       ],
       "files": [
@@ -744,9 +749,14 @@
         { "path": "src/registry/components/data/article-body-01/plugins/editor-kit.ts", "type": "registry:component", "target": "components/article-body-01/plugins/editor-kit.ts" },
         { "path": "src/registry/components/data/article-body-01/plugins/viewer-kit.ts", "type": "registry:component", "target": "components/article-body-01/plugins/viewer-kit.ts" },
         { "path": "src/registry/components/data/article-body-01/parts/editor-toolbar.tsx", "type": "registry:component", "target": "components/article-body-01/parts/editor-toolbar.tsx" },
+        { "path": "src/registry/components/data/article-body-01/parts/floating-toolbar.tsx", "type": "registry:component", "target": "components/article-body-01/parts/floating-toolbar.tsx" },
+        { "path": "src/registry/components/data/article-body-01/parts/toolbar-buttons.tsx", "type": "registry:component", "target": "components/article-body-01/parts/toolbar-buttons.tsx" },
         { "path": "src/registry/components/data/article-body-01/parts/element-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/parts/element-renderers.tsx" },
+        { "path": "src/registry/components/data/article-body-01/parts/image-element.tsx", "type": "registry:component", "target": "components/article-body-01/parts/image-element.tsx" },
         { "path": "src/registry/components/data/article-body-01/parts/leaf-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/parts/leaf-renderers.tsx" },
-        { "path": "src/registry/components/data/article-body-01/static-elements/static-element-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/static-elements/static-element-renderers.tsx" }
+        { "path": "src/registry/components/data/article-body-01/static-elements/static-element-renderers.tsx", "type": "registry:component", "target": "components/article-body-01/static-elements/static-element-renderers.tsx" },
+        { "path": "src/registry/components/data/article-body-01/lib/lowlight-instance.ts", "type": "registry:component", "target": "components/article-body-01/lib/lowlight-instance.ts" },
+        { "path": "src/registry/components/data/article-body-01/lib/serialize-html.ts", "type": "registry:component", "target": "components/article-body-01/lib/serialize-html.ts" }
       ]
     },
     {

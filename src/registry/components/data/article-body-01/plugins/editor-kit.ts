@@ -23,11 +23,15 @@ import {
   FontFamilyPlugin,
   FontSizePlugin,
 } from "@platejs/basic-styles/react";
+import { CaptionPlugin } from "@platejs/caption/react";
 import { CodeBlockPlugin, CodeLinePlugin, CodeSyntaxPlugin } from "@platejs/code-block/react";
 import { IndentPlugin } from "@platejs/indent/react";
 import { LinkPlugin } from "@platejs/link/react";
 import { ListPlugin } from "@platejs/list/react";
 import { ImagePlugin, MediaEmbedPlugin } from "@platejs/media/react";
+import { KEYS } from "platejs";
+
+import { lowlight } from "../lib/lowlight-instance";
 import {
   TableCellHeaderPlugin,
   TableCellPlugin,
@@ -79,8 +83,11 @@ export const articleBodyPlugins = [
   // Lists
   ListPlugin.withComponent(ListElement),
 
-  // Code blocks
-  CodeBlockPlugin.withComponent(CodeBlockElement),
+  // Code blocks (with lowlight syntax highlighting)
+  CodeBlockPlugin.configure({
+    options: { lowlight },
+    node: { component: CodeBlockElement },
+  }),
   CodeLinePlugin.withComponent(CodeLineElement),
   CodeSyntaxPlugin,
 
@@ -90,9 +97,16 @@ export const articleBodyPlugins = [
   TableCellPlugin.withComponent(TableCellElement),
   TableCellHeaderPlugin.withComponent(TableCellHeaderElement),
 
-  // Media
+  // Media + captions (caption applies to image/video/audio/file/embed)
   ImagePlugin.withComponent(ImageElement),
   MediaEmbedPlugin.withComponent(MediaEmbedElement),
+  CaptionPlugin.configure({
+    options: {
+      query: {
+        allow: [KEYS.img, KEYS.video, KEYS.audio, KEYS.file, KEYS.mediaEmbed],
+      },
+    },
+  }),
 
   // Inline
   LinkPlugin.withComponent(LinkElement),

@@ -156,3 +156,63 @@
     animation: none;
   }
 }
+
+/* highlight.js token classes — used by lowlight (article-body-01).
+ * Mapped to pro-ui tokens so syntax colors match the design system.
+ * Classes follow highlight.js convention (hljs-*). Comment / muted is
+ * --muted-foreground; punctuation is the body --foreground; the accent
+ * triplet (keyword / function / string) lifts via the chart palette. */
+.hljs-comment,
+.hljs-quote {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-name,
+.hljs-tag {
+  color: var(--chart-1);
+  font-weight: 600;
+}
+
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-addition {
+  color: var(--chart-3);
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--chart-4);
+}
+
+.hljs-function .hljs-title,
+.hljs-function-name,
+.hljs-attr {
+  color: var(--chart-5);
+}
+
+.hljs-deletion {
+  color: var(--destructive);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}

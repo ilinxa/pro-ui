@@ -35,104 +35,16 @@ import {
   SuperscriptPlugin,
   UnderlinePlugin,
 } from "@platejs/basic-nodes/react";
-import {
-  type ComponentType,
-  type MouseEvent,
-  type ReactNode,
-  useCallback,
-} from "react";
+import { type ComponentType, type ReactNode, useCallback } from "react";
 import { CodeBlockPlugin } from "@platejs/code-block/react";
 import { LinkPlugin } from "@platejs/link/react";
 import { ListPlugin } from "@platejs/list/react";
 import { ImagePlugin } from "@platejs/media/react";
 import { TablePlugin } from "@platejs/table/react";
-import {
-  ParagraphPlugin,
-  useEditorRef,
-  useEditorSelector,
-  useMarkToolbarButton,
-  useMarkToolbarButtonState,
-} from "platejs/react";
-import { Button } from "@/components/ui/button";
+import { ParagraphPlugin, useEditorRef } from "platejs/react";
 import { cn } from "@/lib/utils";
 import type { ImageUploader } from "../types";
-
-interface MarkButtonProps {
-  nodeType: string;
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-}
-
-function MarkButton({ nodeType, icon: Icon, label }: MarkButtonProps) {
-  const state = useMarkToolbarButtonState({ nodeType });
-  const { props } = useMarkToolbarButton(state);
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className={cn(
-        "h-8 w-8",
-        state.pressed && "bg-muted text-foreground"
-      )}
-      title={label}
-      aria-label={label}
-      aria-pressed={state.pressed}
-      onMouseDown={props.onMouseDown}
-      onClick={props.onClick}
-    >
-      <Icon className="h-4 w-4" />
-    </Button>
-  );
-}
-
-interface BlockButtonProps {
-  isActive: boolean;
-  onActivate: () => void;
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-}
-
-function BlockButton({ isActive, onActivate, icon: Icon, label }: BlockButtonProps) {
-  const handleMouseDown = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-  }, []);
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className={cn(
-        "h-8 w-8",
-        isActive && "bg-muted text-foreground"
-      )}
-      title={label}
-      aria-label={label}
-      aria-pressed={isActive}
-      onMouseDown={handleMouseDown}
-      onClick={onActivate}
-    >
-      <Icon className="h-4 w-4" />
-    </Button>
-  );
-}
-
-function useBlockToggle(blockType: string) {
-  const editor = useEditorRef();
-  const isActive = useEditorSelector(
-    (e) => {
-      const entry = e.api.block();
-      return entry?.[0]?.type === blockType;
-    },
-    [blockType]
-  );
-  const toggle = useCallback(() => {
-    editor.tf.toggleBlock(blockType);
-    editor.tf.focus();
-  }, [editor, blockType]);
-  return { isActive, toggle };
-}
+import { BlockButton, MarkButton, useBlockToggle } from "./toolbar-buttons";
 
 function HeadingButton({
   blockType,
