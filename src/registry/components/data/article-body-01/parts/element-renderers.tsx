@@ -183,41 +183,10 @@ export function TableCellHeaderElement(props: ElementProps) {
   );
 }
 
-export function ImageElement(props: ElementProps) {
-  const { element } = props as PlateElementProps;
-  const url = (element as { url?: string }).url;
-  const alt = (element as { caption?: string; alt?: string }).alt ?? "";
-  const caption = (element as { caption?: string }).caption;
-
-  return (
-    <PlateElement
-      {...props}
-      className={cn("my-6", props.className)}
-      attributes={{ ...(props.attributes as Record<string, unknown>), contentEditable: false } as never}
-    >
-      <figure>
-        {url ? (
-          <img
-            src={url}
-            alt={alt}
-            loading="lazy"
-            className="w-full rounded-md border border-border"
-          />
-        ) : (
-          <div className="flex items-center justify-center rounded-md border border-dashed border-border bg-muted/30 p-12 text-sm text-muted-foreground">
-            (image)
-          </div>
-        )}
-        {caption ? (
-          <figcaption className="mt-2 text-center text-xs text-muted-foreground">
-            {caption}
-          </figcaption>
-        ) : null}
-      </figure>
-      {props.children}
-    </PlateElement>
-  );
-}
+// ImageElement is sealed in its own file (parts/image-element.tsx) — handles
+// resize handle + caption editing. Re-exported here for downstream barrel-import
+// continuity (editor-kit.ts imports it from this module).
+export { ImageElement } from "./image-element";
 
 export function MediaEmbedElement(props: ElementProps) {
   const { element } = props as PlateElementProps;

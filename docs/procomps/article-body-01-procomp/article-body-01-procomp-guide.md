@@ -6,6 +6,13 @@
 >
 > First Plate-based pro-comp in pro-ui. Pairs with `markdown-editor` (CodeMirror — source-text editor) but is a different paradigm: WYSIWYG rich text with JSON-as-storage.
 
+## What's new in v0.2 (2026-05-02)
+
+- **Syntax-highlighted code blocks** via lowlight — 15 languages registered (bash / css / diff / go / html / java / javascript / json / markdown / python / rust / shell / sql / typescript / xml / yaml). Token colors map to the chart-1..5 palette in `globals.css` so they integrate with the design system. To highlight a block, set `lang` on the code_block node: `{ type: "code_block", lang: "typescript", children: [...] }`.
+- **HTML serialization escape hatch** — call `serializeArticleBodyToHtml(value)` (async, server-only) for export boundaries (RSS, email, OG tags). JSON stays canonical for storage.
+- **Image resize + inline caption** — hover any image to reveal a right-edge resize handle; drag to resize (width persists as a percentage on the node). Click below the image to edit the caption inline.
+- **Floating toolbar** — selecting text inside the editor surfaces a compact floating toolbar (bold / italic / underline / strikethrough / inline-code / highlight / link). Anchored to the selection rect via `@floating-ui/react`. Coexists with the fixed top toolbar.
+
 ## Install
 
 ```bash
@@ -244,20 +251,21 @@ The Plate `Value` type is an array of element nodes:
 - Plate uses React Compiler-aware patterns; the toolbar's mark buttons are first-party hooks (`useMarkToolbarButton` / `useMarkToolbarButtonState`) which Plate optimizes internally.
 - The 2s save-success affordance is locked at 2000ms; the platform-aware key descriptor (`Cmd+S` on Mac, `Ctrl+S` elsewhere) is computed once at module load.
 
-## Known limits / v0.2 candidates
+## Known limits / v0.3 candidates
 
-- **Code block syntax highlighting not wired.** Code blocks render as unstyled `<pre><code>`. v0.2: wire `lowlight` + a syntax theme.
-- **Heading-3 is the deepest toolbar heading.** Plugin set supports H1–H4; toolbar exposes H1–H3 only.
-- **No floating toolbar.** Selection-anchored mark toolbar deferred to v0.2.
-- **No slash command menu** (`/heading`, `/quote`, etc).
-- **No image resizing or caption editing.** Insert-only in v0.1.
-- **No drag-and-drop block reordering.** v0.2 if real demand.
-- **No mention autocomplete.**
-- **No math blocks.**
-- **No comments / suggestions.**
-- **No collaborative editing** (Yjs / Liveblocks). Different architecture.
-- **No HTML serialization escape hatch** in the public API. Consumers can call `serializeHtml` from `platejs/static` directly.
-- **Selectors are native HTML** (`<select>` + `<input type="color">`). v0.2: shadcn DropdownMenu wrappers.
+**Closed in v0.2:** ✅ syntax highlighting (lowlight) · ✅ floating toolbar · ✅ image resizing + captions · ✅ HTML serialization escape hatch.
+
+**Still parked for future versions:**
+- **Heading-4 in toolbar.** Plugin set supports H1–H4; toolbar exposes H1–H3 only.
+- **Slash command menu** (`/heading`, `/quote`, etc) — `@platejs/slash-command` available but not wired.
+- **DnD block reordering** — `@platejs/dnd` available.
+- **Mention autocomplete** — `@platejs/mention`.
+- **Math blocks** — `@platejs/math`.
+- **Comments / suggestions** — `@platejs/comment` + `@platejs/suggestion`.
+- **Collaborative editing** (Yjs / Liveblocks) — different architecture.
+- **Markdown autoformat** (typing `# ` → H1, `> ` → blockquote) — `@platejs/autoformat`.
+- **Selectors are native HTML** (`<select>` + `<input type="color">`). Future: shadcn DropdownMenu wrappers.
+- **AI features** (smart suggestions, autocomplete from LLM) — different paradigm.
 
 ## Tailwind v4 + theme tokens
 

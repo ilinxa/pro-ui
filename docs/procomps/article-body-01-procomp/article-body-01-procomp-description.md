@@ -5,6 +5,8 @@
 > **Greenfield component** — no migration origin. The kasder source has a markdown-text-renderer (line-by-line regex parser); article-body-01 is a separate paradigm (WYSIWYG editor + JSON viewer) and a multi-year architectural commitment.
 >
 > **Architectural decision:** Plate (`platejs` v53) adopted as pro-ui's WYSIWYG substrate. See [project_richtext_substrate.md](../../../C:\Users\AsiaData\.claude\projects\e--2026-ilinxaDOC-ilinxa-ui-pro\memory\project_richtext_substrate.md) memory note. Future rich-content components compose on Plate.
+>
+> **v0.2 changelog (2026-05-02):** Added 4 features from the parked candidate list — (1) lowlight syntax highlighting on code blocks (15 languages registered, tokens themed via pro-ui chart palette in globals.css); (2) HTML serialization escape hatch via `serializeArticleBodyToHtml(value)` for export boundaries; (3) per-image resize handle + inline caption editor (width stored as percentage, caption stored on the node); (4) selection-anchored floating toolbar (marks + link insertion, anchored via `@floating-ui/react` virtual element). Editor bundle estimate: ~150KB → ~165KB gzip after additions; viewer: ~30KB → ~32KB. v0.1 description below describes the v0.1 surface; v0.2 additions are layered on top of it.
 
 ## Problem
 
