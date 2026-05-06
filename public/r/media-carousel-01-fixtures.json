@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "media-carousel-01-fixtures",
+  "title": "Media Carousel 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Media Carousel 01 bundle including the dummy-data fixtures (mixed image+video set for kasder gallery demo, photos-only product gallery set, and single-item samples).",
+  "registryDependencies": [
+    "media-carousel-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/media-carousel-01/dummy-data.ts",
+      "content": "import type { MediaItem } from \"./types\";\n\n/** Mixed image + video — kasder gallery demo (5 slides, video at index 2). */\nexport const DUMMY_MIXED_MEDIA: MediaItem[] = [\n  {\n    id: \"1\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/1738986/pexels-photo-1738986.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Mountain at sunrise\",\n  },\n  {\n    id: \"2\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Forest path with morning light\",\n  },\n  {\n    id: \"3\",\n    type: \"video\",\n    url: \"https://videos.pexels.com/video-files/856005/856005-hd_1280_720_30fps.mp4\",\n    poster:\n      \"https://images.pexels.com/videos/856005/free-video-856005.jpg?auto=compress&cs=tinysrgb&w=1280\",\n  },\n  {\n    id: \"4\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/1366919/pexels-photo-1366919.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"City skyline at dusk\",\n  },\n  {\n    id: \"5\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/1366913/pexels-photo-1366913.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Evening lights downtown\",\n  },\n];\n\n/** Photos-only — product gallery demo. */\nexport const DUMMY_PRODUCT_PHOTOS: MediaItem[] = [\n  {\n    id: \"p1\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Sneaker side view\",\n  },\n  {\n    id: \"p2\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/1456706/pexels-photo-1456706.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Sneaker top view\",\n  },\n  {\n    id: \"p3\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Sneaker detail\",\n  },\n  {\n    id: \"p4\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Sneaker on display\",\n  },\n];\n\n/** Single image — proves single-item shortcut. */\nexport const DUMMY_SINGLE_IMAGE: MediaItem[] = [\n  {\n    id: \"s1\",\n    type: \"image\",\n    url: \"https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?auto=compress&cs=tinysrgb&w=1280\",\n    alt: \"Forest path\",\n  },\n];\n\n/** Single video — proves single-item shortcut + video. */\nexport const DUMMY_SINGLE_VIDEO: MediaItem[] = [\n  {\n    id: \"sv1\",\n    type: \"video\",\n    url: \"https://videos.pexels.com/video-files/856005/856005-hd_1280_720_30fps.mp4\",\n    poster:\n      \"https://images.pexels.com/videos/856005/free-video-856005.jpg?auto=compress&cs=tinysrgb&w=1280\",\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/media-carousel-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

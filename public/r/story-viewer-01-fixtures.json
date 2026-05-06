@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "story-viewer-01-fixtures",
+  "title": "Story Viewer 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Story Viewer 01 bundle including dummy-data fixtures (3 mock stories with mixed image+video items; w3schools video URLs matching kasder verbatim).",
+  "registryDependencies": [
+    "story-viewer-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/story-viewer-01/dummy-data.ts",
+      "content": "import type { Story } from \"./types\";\n\nconst NOW = new Date(\"2026-05-03T14:00:00Z\");\n\nfunction isoMinusMin(min: number): string {\n  return new Date(NOW.getTime() - min * 60_000).toISOString();\n}\n\n/**\n * 3 mock stories with mixed image + video content.\n * Video URLs match kasder's locked test set (w3schools).\n */\nexport const STORY_VIEWER_01_DUMMY: Story[] = [\n  {\n    id: \"story-1\",\n    userId: \"user-1\",\n    username: \"ayse_yilmaz\",\n    avatar: \"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop\",\n    hasUnread: true,\n    createdAt: isoMinusMin(15),\n    items: [\n      {\n        id: \"story-1-item-1\",\n        type: \"image\",\n        src: \"https://images.unsplash.com/photo-1517842645767-c639042777db?w=900&h=1600&fit=crop\",\n        duration: 5,\n      },\n      {\n        id: \"story-1-item-2\",\n        type: \"image\",\n        src: \"https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=900&h=1600&fit=crop\",\n        duration: 5,\n      },\n      {\n        id: \"story-1-item-3\",\n        type: \"image\",\n        src: \"https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=900&h=1600&fit=crop\",\n        duration: 5,\n      },\n    ],\n  },\n  {\n    id: \"story-2\",\n    userId: \"user-2\",\n    username: \"mehmet_demir\",\n    avatar: \"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop\",\n    hasUnread: true,\n    createdAt: isoMinusMin(45),\n    items: [\n      {\n        id: \"story-2-item-1\",\n        type: \"video\",\n        src: \"https://www.w3schools.com/html/mov_bbb.mp4\",\n      },\n      {\n        id: \"story-2-item-2\",\n        type: \"video\",\n        src: \"https://www.w3schools.com/html/movie.mp4\",\n      },\n    ],\n  },\n  {\n    id: \"story-3\",\n    userId: \"user-3\",\n    username: \"zeynep_kaya\",\n    avatar: \"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop\",\n    hasUnread: false,\n    createdAt: isoMinusMin(180),\n    items: [\n      {\n        id: \"story-3-item-1\",\n        type: \"image\",\n        src: \"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=900&h=1600&fit=crop\",\n        duration: 5,\n      },\n      {\n        id: \"story-3-item-2\",\n        type: \"video\",\n        src: \"https://www.w3schools.com/html/mov_bbb.mp4\",\n      },\n    ],\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/story-viewer-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

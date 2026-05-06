@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Scope Tailwind class detection to actual source files. Without this, prose
+   in `docs/` (procomp planning docs) leaks literal class snippets — including
+   template-literal placeholders like `var(--{cssVar})` — into the generated
+   stylesheet, producing invalid CSS at build time. */
+@source not "../../docs";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -28,6 +34,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -65,6 +73,8 @@
   --accent: oklch(0.96 0.002 250);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --warning: oklch(0.78 0.16 75); /* amber — semantic warning, hue between yellow and orange */
+  --warning-foreground: oklch(0.18 0 0); /* near-black on amber (parallels primary-foreground) */
   --border: oklch(0.91 0.003 250);
   --input: oklch(0.91 0.003 250);
   --ring: oklch(0.8 0.2 132); /* signal-lime */
@@ -103,6 +113,8 @@
   --accent: oklch(0.22 0.005 250);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --warning: oklch(0.82 0.15 75); /* lifted L for graphite background */
+  --warning-foreground: oklch(0.13 0 0); /* near-black on amber */
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.86 0.18 132); /* signal-lime */
@@ -155,6 +167,37 @@
   .reveal-up {
     animation: none;
   }
+}
+
+/* xyflow / @xyflow/react theming.
+ *
+ * xyflow's bundled style.css scopes its dark palette under `.react-flow.dark`,
+ * but this app uses class-based dark mode on a parent (`.dark .react-flow`).
+ * The variants below set the non-default CSS variables xyflow checks first
+ * (vs the `-default` suffix it uses internally), so they win without
+ * `!important` and adapt automatically to our token-based theme.
+ *
+ * This is a slice of the comprehensive M7 theming pass for `flow-canvas-01`. */
+.react-flow {
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-background-color-hover: var(--accent);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-color-hover: var(--foreground);
+  --xy-controls-button-border-color: var(--border);
+  --xy-edge-stroke: var(--border);
+  --xy-edge-stroke-selected: var(--ring);
+  --xy-handle-background-color: var(--background);
+  --xy-handle-border-color: var(--border);
+  --xy-attribution-background-color: transparent;
+}
+/* Make selected edges visually prominent so click-to-select-then-Delete is
+ * a discoverable affordance. xyflow's default stroke-width is 1 selected /
+ * unselected; bumping the selected variant gives the click feedback that
+ * was missing in M2. (Slice of M3 / M7 theming.) */
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge.selectable:focus .react-flow__edge-path,
+.react-flow__edge.selectable:focus-visible .react-flow__edge-path {
+  stroke-width: 2.5;
 }
 
 /* highlight.js token classes — used by lowlight (article-body-01).

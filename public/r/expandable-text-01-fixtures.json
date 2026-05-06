@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "expandable-text-01-fixtures",
+  "title": "Expandable Text 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Expandable Text 01 bundle including the dummy-data fixtures (4 sample strings — short EN, long EN, short TR, long TR — for demo and smoke-test scenarios).",
+  "registryDependencies": [
+    "expandable-text-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/expandable-text-01/dummy-data.ts",
+      "content": "export const SHORT_EN =\n  \"Just shipped a small update. Quick fix for the auth flow.\";\n\nexport const LONG_EN =\n  \"Spent the afternoon walking through the new market by the harbor. The vendors had set up under bright canopies, and the smell of grilled fish and fresh bread filled the air. I bought a small jar of olive paste from a woman who told me her family has been making it the same way for four generations. The texture was somewhere between butter and tapenade — earthy, salty, with a faint heat at the finish. I'll pick up another jar before we leave.\";\n\nexport const SHORT_TR =\n  \"Küçük bir güncelleme yayınladım. Hızlı bir düzeltme.\";\n\nexport const LONG_TR =\n  \"Bugün limanın yanındaki yeni pazarda dolaştım. Satıcılar parlak tentelerin altına tezgâhlarını kurmuştu ve havada ızgara balık ile taze ekmek kokusu vardı. Dört nesildir aynı şekilde zeytin ezmesi yaptığını söyleyen bir kadından küçük bir kavanoz aldım. Doku tereyağı ile tapenad arasında bir yerde — toprağımsı, tuzlu, sonunda hafif bir acılıkla. Ayrılmadan bir kavanoz daha alacağım.\";\n",
+      "type": "registry:component",
+      "target": "components/expandable-text-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

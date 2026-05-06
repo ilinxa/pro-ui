@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "info-list-01-fixtures",
+  "title": "Info List 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Info List 01 bundle including the dummy-data fixtures (English + Turkish parallel arrays for Event Details + Contact patterns).",
+  "registryDependencies": [
+    "info-list-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/info-list-01/dummy-data.tsx",
+      "content": "import {\n  Building,\n  Calendar,\n  ExternalLink,\n  Mail,\n  MapPin,\n  Phone,\n  Users,\n} from \"lucide-react\";\nimport type { InfoListItem } from \"./types\";\n\nconst MapLinkAction = (\n  <span className=\"inline-flex items-center gap-1 text-sm text-primary mt-1 hover:underline cursor-pointer\">\n    View on map <ExternalLink aria-hidden=\"true\" className=\"w-3 h-3\" />\n  </span>\n);\n\nconst MapLinkActionTr = (\n  <span className=\"inline-flex items-center gap-1 text-sm text-primary mt-1 hover:underline cursor-pointer\">\n    Haritada Gör <ExternalLink aria-hidden=\"true\" className=\"w-3 h-3\" />\n  </span>\n);\n\nexport const dummyEventDetails: InfoListItem[] = [\n  {\n    id: \"date\",\n    icon: Calendar,\n    primary: \"May 31, 2026 — Sunday\",\n    secondary: \"09:00 - 18:00\",\n  },\n  {\n    id: \"location\",\n    icon: MapPin,\n    primary: \"Istanbul Conference Center\",\n    secondary: \"Darülbedai Caddesi No:3, Şişli/Istanbul\",\n    action: MapLinkAction,\n  },\n  {\n    id: \"capacity\",\n    icon: Users,\n    primary: \"500-person capacity\",\n    secondary: \"423 registered\",\n  },\n];\n\nexport const dummyEventDetailsTr: InfoListItem[] = [\n  {\n    id: \"date\",\n    icon: Calendar,\n    primary: \"31 Mayıs 2026 Pazar\",\n    secondary: \"09:00 - 18:00\",\n  },\n  {\n    id: \"location\",\n    icon: MapPin,\n    primary: \"İstanbul Kongre Merkezi\",\n    secondary: \"Darülbedai Caddesi No:3, 34367 Harbiye/Şişli/İstanbul\",\n    action: MapLinkActionTr,\n  },\n  {\n    id: \"capacity\",\n    icon: Users,\n    primary: \"500 Kişilik Kapasite\",\n    secondary: \"423 kişi kayıtlı\",\n  },\n];\n\nexport const dummyContactItems: InfoListItem[] = [\n  {\n    id: \"org\",\n    icon: Building,\n    primary: \"Sustainability Foundation\",\n  },\n  {\n    id: \"phone\",\n    icon: Phone,\n    primary: \"+90 (212) 555 0123\",\n    href: \"tel:+902125550123\",\n  },\n  {\n    id: \"email\",\n    icon: Mail,\n    primary: \"info@example.com\",\n    href: \"mailto:info@example.com\",\n  },\n];\n\nexport const dummyContactItemsTr: InfoListItem[] = [\n  {\n    id: \"org\",\n    icon: Building,\n    primary: \"Sürdürülebilir Şehircilik Derneği\",\n  },\n  {\n    id: \"phone\",\n    icon: Phone,\n    primary: \"+90 (212) 555 0123\",\n    href: \"tel:+902125550123\",\n  },\n  {\n    id: \"email\",\n    icon: Mail,\n    primary: \"iletisim@dernek.org\",\n    href: \"mailto:iletisim@dernek.org\",\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/info-list-01/dummy-data.tsx"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

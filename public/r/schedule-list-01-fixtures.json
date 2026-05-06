@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "schedule-list-01-fixtures",
+  "title": "Schedule List 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Schedule List 01 bundle including the dummy-data fixtures (English + Turkish parallel 6-item schedules with icon / time-range / href samples).",
+  "registryDependencies": [
+    "schedule-list-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/schedule-list-01/dummy-data.ts",
+      "content": "import { Coffee, Users, Utensils } from \"lucide-react\";\nimport type { ScheduleListItem } from \"./types\";\n\nexport const dummySchedule: ScheduleListItem[] = [\n  {\n    id: \"1\",\n    time: \"09:00\",\n    title: \"Registration & Welcome Coffee\",\n    description: \"Check-in and networking\",\n    icon: Coffee,\n  },\n  {\n    id: \"2\",\n    time: \"10:00\",\n    endTime: \"10:30\",\n    title: \"Opening Keynote\",\n    description: \"Annual address by the Board\",\n  },\n  {\n    id: \"3\",\n    time: \"11:00\",\n    title: \"Panel: Future Cities\",\n    description: \"Interactive discussion with experts\",\n    icon: Users,\n  },\n  {\n    id: \"4\",\n    time: \"13:00\",\n    title: \"Lunch\",\n    icon: Utensils,\n  },\n  {\n    id: \"5\",\n    time: \"14:30\",\n    endTime: \"16:30\",\n    title: \"Workshops\",\n    description: \"Parallel breakout sessions\",\n    href: \"#workshops\",\n  },\n  {\n    id: \"6\",\n    time: \"17:00\",\n    title: \"Closing & Networking\",\n    description: \"Wrap-up and cocktail reception\",\n  },\n];\n\nexport const dummyScheduleTr: ScheduleListItem[] = [\n  {\n    id: \"1\",\n    time: \"09:00\",\n    title: \"Kayıt ve Karşılama Kahvaltısı\",\n    description: \"Katılımcı kayıtları ve networking\",\n  },\n  {\n    id: \"2\",\n    time: \"10:00\",\n    title: \"Açılış Konuşması\",\n    description: \"Dernek Başkanı tarafından açılış\",\n  },\n  {\n    id: \"3\",\n    time: \"11:00\",\n    title: \"Panel: Geleceğin Şehirleri\",\n    description: \"Uzman panelimizle interaktif tartışma\",\n  },\n  {\n    id: \"4\",\n    time: \"13:00\",\n    title: \"Öğle Yemeği\",\n    description: \"Networking lunch\",\n  },\n  {\n    id: \"5\",\n    time: \"14:30\",\n    title: \"Çalıştaylar\",\n    description: \"Paralel çalıştay oturumları\",\n  },\n  {\n    id: \"6\",\n    time: \"17:00\",\n    title: \"Kapanış ve Networking\",\n    description: \"Sonuç bildirisi ve kokteyl\",\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/schedule-list-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "events",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

@@ -771,6 +771,605 @@
       "files": [
         { "path": "src/registry/components/data/article-body-01/dummy-data.ts", "type": "registry:component", "target": "components/article-body-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "event-card-01",
+      "type": "registry:block",
+      "title": "Event Card 01",
+      "description": "Event preview card with a 6-state status state machine (open / upcoming / lastSpots / ongoing / full / expired) and 4 visual variants (grid / feed / list / compact). Polymorphic root, soft-failure item shape, overlay-link pattern, fully customizable. Public helper kernel exports for status / formatting reuse outside the card.",
+      "author": "ilinxa",
+      "categories": ["data", "events"],
+      "registryDependencies": ["button", "progress"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/event-card-01/event-card-01.tsx", "type": "registry:component", "target": "components/event-card-01/event-card-01.tsx" },
+        { "path": "src/registry/components/data/event-card-01/index.ts", "type": "registry:component", "target": "components/event-card-01/index.ts" },
+        { "path": "src/registry/components/data/event-card-01/types.ts", "type": "registry:component", "target": "components/event-card-01/types.ts" },
+        { "path": "src/registry/components/data/event-card-01/parts/grid.tsx", "type": "registry:component", "target": "components/event-card-01/parts/grid.tsx" },
+        { "path": "src/registry/components/data/event-card-01/parts/feed.tsx", "type": "registry:component", "target": "components/event-card-01/parts/feed.tsx" },
+        { "path": "src/registry/components/data/event-card-01/parts/list.tsx", "type": "registry:component", "target": "components/event-card-01/parts/list.tsx" },
+        { "path": "src/registry/components/data/event-card-01/parts/compact.tsx", "type": "registry:component", "target": "components/event-card-01/parts/compact.tsx" },
+        { "path": "src/registry/components/data/event-card-01/lib/event-status.ts", "type": "registry:component", "target": "components/event-card-01/lib/event-status.ts" },
+        { "path": "src/registry/components/data/event-card-01/lib/format-default.ts", "type": "registry:component", "target": "components/event-card-01/lib/format-default.ts" },
+        { "path": "src/registry/components/data/event-card-01/lib/image-fallback.tsx", "type": "registry:component", "target": "components/event-card-01/lib/image-fallback.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "schedule-list-01",
+      "type": "registry:block",
+      "title": "Schedule List 01",
+      "description": "Vertical time-anchored agenda — time + title + optional description rows. Polymorphic per-row link, optional icons, time-range support, framed/bare toggle, custom renderItem slot.",
+      "author": "ilinxa",
+      "categories": ["data", "events"],
+      "registryDependencies": [],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/schedule-list-01/schedule-list-01.tsx", "type": "registry:component", "target": "components/schedule-list-01/schedule-list-01.tsx" },
+        { "path": "src/registry/components/data/schedule-list-01/index.ts", "type": "registry:component", "target": "components/schedule-list-01/index.ts" },
+        { "path": "src/registry/components/data/schedule-list-01/types.ts", "type": "registry:component", "target": "components/schedule-list-01/types.ts" },
+        { "path": "src/registry/components/data/schedule-list-01/parts/schedule-row.tsx", "type": "registry:component", "target": "components/schedule-list-01/parts/schedule-row.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "progress-timeline-01",
+      "type": "registry:block",
+      "title": "Progress Timeline 01",
+      "description": "Horizontal progress bar with marker dot at current % + 3-caption row (start / dynamic state-aware center / end). Auto-derives 3-state machine (before/active/after) from start + end + now. Public helper kernel for state reuse outside the card.",
+      "author": "ilinxa",
+      "categories": ["data", "events"],
+      "registryDependencies": ["progress"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/progress-timeline-01/progress-timeline-01.tsx", "type": "registry:component", "target": "components/progress-timeline-01/progress-timeline-01.tsx" },
+        { "path": "src/registry/components/data/progress-timeline-01/index.ts", "type": "registry:component", "target": "components/progress-timeline-01/index.ts" },
+        { "path": "src/registry/components/data/progress-timeline-01/types.ts", "type": "registry:component", "target": "components/progress-timeline-01/types.ts" },
+        { "path": "src/registry/components/data/progress-timeline-01/lib/timeline-state.ts", "type": "registry:component", "target": "components/progress-timeline-01/lib/timeline-state.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "info-list-01",
+      "type": "registry:block",
+      "title": "Info List 01",
+      "description": "Card-framed icon-prefixed details list — vertical rows of icon + primary + optional secondary + optional action. Two variants (comfortable / compact), polymorphic per-row link, frame toggle, separator toggle, custom renderItem slot.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/info-list-01/info-list-01.tsx", "type": "registry:component", "target": "components/info-list-01/info-list-01.tsx" },
+        { "path": "src/registry/components/data/info-list-01/index.ts", "type": "registry:component", "target": "components/info-list-01/index.ts" },
+        { "path": "src/registry/components/data/info-list-01/types.ts", "type": "registry:component", "target": "components/info-list-01/types.ts" },
+        { "path": "src/registry/components/data/info-list-01/parts/info-row.tsx", "type": "registry:component", "target": "components/info-list-01/parts/info-row.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "people-grid-01",
+      "type": "registry:block",
+      "title": "People Grid 01",
+      "description": "Section heading + responsive N-column grid of person cards (round avatar + name + title). Initials fallback when image is missing. Polymorphic per-card link, configurable columns / avatar size / alignment, custom renderItem slot. Public getInitials helper kernel.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/data/people-grid-01/people-grid-01.tsx", "type": "registry:component", "target": "components/people-grid-01/people-grid-01.tsx" },
+        { "path": "src/registry/components/data/people-grid-01/index.ts", "type": "registry:component", "target": "components/people-grid-01/index.ts" },
+        { "path": "src/registry/components/data/people-grid-01/types.ts", "type": "registry:component", "target": "components/people-grid-01/types.ts" },
+        { "path": "src/registry/components/data/people-grid-01/parts/person-card.tsx", "type": "registry:component", "target": "components/people-grid-01/parts/person-card.tsx" },
+        { "path": "src/registry/components/data/people-grid-01/lib/get-initials.ts", "type": "registry:component", "target": "components/people-grid-01/lib/get-initials.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "registration-card-01",
+      "type": "registry:block",
+      "title": "Registration Card 01",
+      "description": "Card-framed registration status display — capacity progress + spots-left counter + status-aware primary CTA + optional share / actions slot. 4-state state machine (open / lastSpots / full / closed). Public helper kernel for status reuse outside the card.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": ["progress", "button"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/registration-card-01/registration-card-01.tsx", "type": "registry:component", "target": "components/registration-card-01/registration-card-01.tsx" },
+        { "path": "src/registry/components/data/registration-card-01/index.ts", "type": "registry:component", "target": "components/registration-card-01/index.ts" },
+        { "path": "src/registry/components/data/registration-card-01/types.ts", "type": "registry:component", "target": "components/registration-card-01/types.ts" },
+        { "path": "src/registry/components/data/registration-card-01/lib/registration-status.ts", "type": "registry:component", "target": "components/registration-card-01/lib/registration-status.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "expandable-text-01",
+      "type": "registry:block",
+      "title": "Expandable Text 01",
+      "description": "Truncate-and-expand plain-text block — measure-based detection (toggle only renders when truncation actually occurs), configurable maxLines, controlled-or-uncontrolled expand state, custom toggle slot, public useLineClampDetect hook. First ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/data/expandable-text-01/expandable-text-01.tsx", "type": "registry:component", "target": "components/expandable-text-01/expandable-text-01.tsx" },
+        { "path": "src/registry/components/data/expandable-text-01/index.ts", "type": "registry:component", "target": "components/expandable-text-01/index.ts" },
+        { "path": "src/registry/components/data/expandable-text-01/types.ts", "type": "registry:component", "target": "components/expandable-text-01/types.ts" },
+        { "path": "src/registry/components/data/expandable-text-01/hooks/use-line-clamp-detect.ts", "type": "registry:component", "target": "components/expandable-text-01/hooks/use-line-clamp-detect.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "expandable-text-01-fixtures",
+      "type": "registry:block",
+      "title": "Expandable Text 01 — fixtures",
+      "description": "Expandable Text 01 bundle including the dummy-data fixtures (4 sample strings — short EN, long EN, short TR, long TR — for demo and smoke-test scenarios).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["expandable-text-01"],
+      "files": [
+        { "path": "src/registry/components/data/expandable-text-01/dummy-data.ts", "type": "registry:component", "target": "components/expandable-text-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "video-player-01",
+      "type": "registry:block",
+      "title": "Video Player 01",
+      "description": "<video> wrapper with muted-autoplay-friendly defaults, slot-based controls via renderControls(state), isActive auto-pause for carousel coordination, double-tap callback, caption tracks, rAF-throttled onTimeUpdate, full lifecycle callbacks, and a public useDoubleTap hook export. Second ship in the social-posts-system arc; first occupant of the media category.",
+      "author": "ilinxa",
+      "categories": ["media"],
+      "registryDependencies": ["button"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/media/video-player-01/video-player-01.tsx", "type": "registry:component", "target": "components/video-player-01/video-player-01.tsx" },
+        { "path": "src/registry/components/media/video-player-01/index.ts", "type": "registry:component", "target": "components/video-player-01/index.ts" },
+        { "path": "src/registry/components/media/video-player-01/types.ts", "type": "registry:component", "target": "components/video-player-01/types.ts" },
+        { "path": "src/registry/components/media/video-player-01/parts/video-element.tsx", "type": "registry:component", "target": "components/video-player-01/parts/video-element.tsx" },
+        { "path": "src/registry/components/media/video-player-01/parts/default-controls.tsx", "type": "registry:component", "target": "components/video-player-01/parts/default-controls.tsx" },
+        { "path": "src/registry/components/media/video-player-01/hooks/use-video-state.ts", "type": "registry:component", "target": "components/video-player-01/hooks/use-video-state.ts" },
+        { "path": "src/registry/components/media/video-player-01/hooks/use-double-tap.ts", "type": "registry:component", "target": "components/video-player-01/hooks/use-double-tap.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "video-player-01-fixtures",
+      "type": "registry:block",
+      "title": "Video Player 01 — fixtures",
+      "description": "Video Player 01 bundle including the dummy-data fixtures (5 royalty-free Pexels video URLs + a sample WebVTT track entry for caption demos).",
+      "author": "ilinxa",
+      "categories": ["media", "fixtures"],
+      "registryDependencies": ["video-player-01"],
+      "files": [
+        { "path": "src/registry/components/media/video-player-01/dummy-data.ts", "type": "registry:component", "target": "components/video-player-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-carousel-01",
+      "type": "registry:block",
+      "title": "Media Carousel 01",
+      "description": "Embla-driven image+video carousel with two variants (gallery peek-scale / linear snap). Composes video-player-01 for video items via the isActive contract — first cross-folder import in the registry; videos in inactive slides pause cleanly. Single-item shortcut bypasses Embla. Built-in image + video handlers + renderItem slot. Imperative ref handle. Third ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["media"],
+      "registryDependencies": ["video-player-01", "button"],
+      "dependencies": ["embla-carousel-react", "embla-carousel", "lucide-react"],
+      "files": [
+        { "path": "src/registry/components/media/media-carousel-01/media-carousel-01.tsx", "type": "registry:component", "target": "components/media-carousel-01/media-carousel-01.tsx" },
+        { "path": "src/registry/components/media/media-carousel-01/index.ts", "type": "registry:component", "target": "components/media-carousel-01/index.ts" },
+        { "path": "src/registry/components/media/media-carousel-01/types.ts", "type": "registry:component", "target": "components/media-carousel-01/types.ts" },
+        { "path": "src/registry/components/media/media-carousel-01/parts/single-item.tsx", "type": "registry:component", "target": "components/media-carousel-01/parts/single-item.tsx" },
+        { "path": "src/registry/components/media/media-carousel-01/parts/carousel-track.tsx", "type": "registry:component", "target": "components/media-carousel-01/parts/carousel-track.tsx" },
+        { "path": "src/registry/components/media/media-carousel-01/parts/slide-renderer.tsx", "type": "registry:component", "target": "components/media-carousel-01/parts/slide-renderer.tsx" },
+        { "path": "src/registry/components/media/media-carousel-01/parts/nav-buttons.tsx", "type": "registry:component", "target": "components/media-carousel-01/parts/nav-buttons.tsx" },
+        { "path": "src/registry/components/media/media-carousel-01/parts/indicator-dots.tsx", "type": "registry:component", "target": "components/media-carousel-01/parts/indicator-dots.tsx" },
+        { "path": "src/registry/components/media/media-carousel-01/hooks/use-embla-with-state.ts", "type": "registry:component", "target": "components/media-carousel-01/hooks/use-embla-with-state.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-carousel-01-fixtures",
+      "type": "registry:block",
+      "title": "Media Carousel 01 — fixtures",
+      "description": "Media Carousel 01 bundle including the dummy-data fixtures (mixed image+video set for kasder gallery demo, photos-only product gallery set, and single-item samples).",
+      "author": "ilinxa",
+      "categories": ["media", "fixtures"],
+      "registryDependencies": ["media-carousel-01"],
+      "files": [
+        { "path": "src/registry/components/media/media-carousel-01/dummy-data.ts", "type": "registry:component", "target": "components/media-carousel-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "engagement-bar-01",
+      "type": "registry:block",
+      "title": "Engagement Bar 01",
+      "description": "Discriminated-union action row (like / comment / share / bookmark / view-count / custom) with realtime subscribe contract, sibling RSC heart-burst sub-export (CSS-keyframe driven via registry:file), per-action controlled vs uncontrolled mode, slot-based likers preview, and three variants (default / compact / stacked). No framer-motion. Highest-leverage primitive in the social-posts-system arc; retrofits cleanly into news-card-01 + event-card-01 actions slots. Fourth ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": ["button", "avatar"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/engagement-bar-01/engagement-bar-01.tsx", "type": "registry:component", "target": "components/engagement-bar-01/engagement-bar-01.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/index.ts", "type": "registry:component", "target": "components/engagement-bar-01/index.ts" },
+        { "path": "src/registry/components/data/engagement-bar-01/types.ts", "type": "registry:component", "target": "components/engagement-bar-01/types.ts" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/action-button.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/action-button.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/like-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/like-action.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/comment-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/comment-action.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/share-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/share-action.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/bookmark-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/bookmark-action.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/view-count-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/view-count-action.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/custom-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/custom-action.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/engagement-heart-burst.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.css", "type": "registry:file", "target": "components/engagement-bar-01/parts/engagement-heart-burst.css" },
+        { "path": "src/registry/components/data/engagement-bar-01/hooks/use-engagement-state.ts", "type": "registry:component", "target": "components/engagement-bar-01/hooks/use-engagement-state.ts" },
+        { "path": "src/registry/components/data/engagement-bar-01/utils/format-count.ts", "type": "registry:component", "target": "components/engagement-bar-01/utils/format-count.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "engagement-bar-01-fixtures",
+      "type": "registry:block",
+      "title": "Engagement Bar 01 — fixtures",
+      "description": "Engagement Bar 01 bundle including the dummy-data fixtures (post / news-card / video-overlay action sets, sample like users, and a synthetic createDummySubscribe for sandbox realtime demos).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["engagement-bar-01"],
+      "files": [
+        { "path": "src/registry/components/data/engagement-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/engagement-bar-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "comment-thread-01",
+      "type": "registry:block",
+      "title": "Comment Thread 01",
+      "description": "Recursive comment tree with composer + realtime. Composes expandable-text-01 (long bodies) + engagement-bar-01 compact (per-row like). Inline-expand past maxDepth, optimistic add/like/delete, autosize composer with Enter-submit / Shift+Enter newline / Escape cancel keyboard ergonomics, Subscribe<CommentDelta> realtime contract, kebab with own-only Delete + Report defaults (commentActions slot for full takeover), renderNode / renderViewReplies / renderComposer slots, imperative reset() / dispatch() escape hatches for external state sync. No framer-motion, no react-textarea-autosize peer dep, no date-fns peer dep. Fifth ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [
+        "expandable-text-01",
+        "engagement-bar-01",
+        "avatar",
+        "button",
+        "dropdown-menu",
+        "textarea"
+      ],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/comment-thread-01/comment-thread-01.tsx", "type": "registry:component", "target": "components/comment-thread-01/comment-thread-01.tsx" },
+        { "path": "src/registry/components/data/comment-thread-01/index.ts", "type": "registry:component", "target": "components/comment-thread-01/index.ts" },
+        { "path": "src/registry/components/data/comment-thread-01/types.ts", "type": "registry:component", "target": "components/comment-thread-01/types.ts" },
+        { "path": "src/registry/components/data/comment-thread-01/parts/comment-node.tsx", "type": "registry:component", "target": "components/comment-thread-01/parts/comment-node.tsx" },
+        { "path": "src/registry/components/data/comment-thread-01/parts/comment-composer.tsx", "type": "registry:component", "target": "components/comment-thread-01/parts/comment-composer.tsx" },
+        { "path": "src/registry/components/data/comment-thread-01/parts/comment-kebab.tsx", "type": "registry:component", "target": "components/comment-thread-01/parts/comment-kebab.tsx" },
+        { "path": "src/registry/components/data/comment-thread-01/parts/view-replies-link.tsx", "type": "registry:component", "target": "components/comment-thread-01/parts/view-replies-link.tsx" },
+        { "path": "src/registry/components/data/comment-thread-01/parts/comment-empty-state.tsx", "type": "registry:component", "target": "components/comment-thread-01/parts/comment-empty-state.tsx" },
+        { "path": "src/registry/components/data/comment-thread-01/hooks/use-comment-state.ts", "type": "registry:component", "target": "components/comment-thread-01/hooks/use-comment-state.ts" },
+        { "path": "src/registry/components/data/comment-thread-01/hooks/use-autosize-textarea.ts", "type": "registry:component", "target": "components/comment-thread-01/hooks/use-autosize-textarea.ts" },
+        { "path": "src/registry/components/data/comment-thread-01/lib/format-time.ts", "type": "registry:component", "target": "components/comment-thread-01/lib/format-time.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "comment-thread-01-fixtures",
+      "type": "registry:block",
+      "title": "Comment Thread 01 — fixtures",
+      "description": "Comment Thread 01 bundle including dummy-data fixtures (flat / nested-depth-2 / nested-depth-3 / large-paginated comment trees, viewer fixture, page generator, and a synthetic createDummySubscribe for sandbox realtime demos).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["comment-thread-01"],
+      "files": [
+        { "path": "src/registry/components/data/comment-thread-01/dummy-data.ts", "type": "registry:component", "target": "components/comment-thread-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "post-card-01",
+      "type": "registry:block",
+      "title": "Post Card 01",
+      "description": "Tier-2 social-post composite — composes expandable-text-01 + media-carousel-01 + engagement-bar-01 + comment-thread-01 (detail) + video-player-01 (transitive). 4 variants (feed / compact / list / detail), auto-wired heart-burst on double-tap, default engagement actions + kebab builders, slot-based render escape hatches at every connective seam, optional overlay-link via getHref. Always-uncontrolled with reset() imperative escape hatch. No framer-motion. Sixth ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [
+        "expandable-text-01",
+        "video-player-01",
+        "media-carousel-01",
+        "engagement-bar-01",
+        "comment-thread-01",
+        "https://ui.shadcn.com/r/styles/new-york/avatar.json",
+        "https://ui.shadcn.com/r/styles/new-york/button.json",
+        "https://ui.shadcn.com/r/styles/new-york/card.json",
+        "https://ui.shadcn.com/r/styles/new-york/dropdown-menu.json"
+      ],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/post-card-01/post-card-01.tsx", "type": "registry:component", "target": "components/post-card-01/post-card-01.tsx" },
+        { "path": "src/registry/components/data/post-card-01/index.ts", "type": "registry:component", "target": "components/post-card-01/index.ts" },
+        { "path": "src/registry/components/data/post-card-01/types.ts", "type": "registry:component", "target": "components/post-card-01/types.ts" },
+        { "path": "src/registry/components/data/post-card-01/parts/feed-variant.tsx", "type": "registry:component", "target": "components/post-card-01/parts/feed-variant.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/compact-variant.tsx", "type": "registry:component", "target": "components/post-card-01/parts/compact-variant.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/list-variant.tsx", "type": "registry:component", "target": "components/post-card-01/parts/list-variant.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/detail-variant.tsx", "type": "registry:component", "target": "components/post-card-01/parts/detail-variant.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/post-header.tsx", "type": "registry:component", "target": "components/post-card-01/parts/post-header.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/verified-badge.tsx", "type": "registry:component", "target": "components/post-card-01/parts/verified-badge.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/likers-strip.tsx", "type": "registry:component", "target": "components/post-card-01/parts/likers-strip.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/share-menu.tsx", "type": "registry:component", "target": "components/post-card-01/parts/share-menu.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/variant-shared.ts", "type": "registry:component", "target": "components/post-card-01/parts/variant-shared.ts" },
+        { "path": "src/registry/components/data/post-card-01/lib/defaults.tsx", "type": "registry:component", "target": "components/post-card-01/lib/defaults.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "post-card-01-fixtures",
+      "type": "registry:block",
+      "title": "Post Card 01 — fixtures",
+      "description": "Post Card 01 bundle including dummy-data fixtures (text-only / single-image / multi-image / video / mixed-media / featured / long-text posts, detail-mode comment thread, viewer, and synthetic engagement + comment subscribe factories for sandbox realtime demos).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["post-card-01"],
+      "files": [
+        { "path": "src/registry/components/data/post-card-01/dummy-data.ts", "type": "registry:component", "target": "components/post-card-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "story-rail-01",
+      "type": "registry:block",
+      "title": "Story Rail 01",
+      "description": "Horizontal stories rail (kasder-exact) — gradient ring on unread, muted ring on read; AddStoryThumbnail standalone export + leading slot; Embla used inline (drag-free skim-scroll, no indicator dots); mode-aware edge-fade gradients (framed vs bare); realtime via Subscribe<StoryRailDelta>. Always-uncontrolled with reset() + dispatch() + markViewed() imperative escape hatches. Click does NOT auto-mark-viewed (matches Instagram). Decoupled from the viewer — onItemClick hands off to host. Seventh ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [
+        "https://ui.shadcn.com/r/styles/new-york/avatar.json"
+      ],
+      "dependencies": ["lucide-react", "embla-carousel-react"],
+      "files": [
+        { "path": "src/registry/components/data/story-rail-01/story-rail-01.tsx", "type": "registry:component", "target": "components/story-rail-01/story-rail-01.tsx" },
+        { "path": "src/registry/components/data/story-rail-01/index.ts", "type": "registry:component", "target": "components/story-rail-01/index.ts" },
+        { "path": "src/registry/components/data/story-rail-01/types.ts", "type": "registry:component", "target": "components/story-rail-01/types.ts" },
+        { "path": "src/registry/components/data/story-rail-01/parts/story-thumbnail.tsx", "type": "registry:component", "target": "components/story-rail-01/parts/story-thumbnail.tsx" },
+        { "path": "src/registry/components/data/story-rail-01/parts/add-story-thumbnail.tsx", "type": "registry:component", "target": "components/story-rail-01/parts/add-story-thumbnail.tsx" },
+        { "path": "src/registry/components/data/story-rail-01/hooks/use-story-rail-state.ts", "type": "registry:component", "target": "components/story-rail-01/hooks/use-story-rail-state.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "story-rail-01-fixtures",
+      "type": "registry:block",
+      "title": "Story Rail 01 — fixtures",
+      "description": "Story Rail 01 bundle including dummy-data fixtures (7 mock users matching kasder verbatim, viewer-avatar fixture, and a synthetic createDummyStoryRailSubscribe for sandbox realtime demos).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["story-rail-01"],
+      "files": [
+        { "path": "src/registry/components/data/story-rail-01/dummy-data.ts", "type": "registry:component", "target": "components/story-rail-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "story-viewer-01",
+      "type": "registry:block",
+      "title": "Story Viewer 01",
+      "description": "Full-screen sequential story viewer — Radix Dialog modal with segmented progress, tap zones, multi-story nav arrows, keyboard nav, accumulator-based pause-preserving timer (fixes kasder's pause drift), ID-anchored cursor (insertion-stable), Subscribe<StoryViewerDelta> realtime contract, video-player-01 composition for video items, renderItem slot. Forward-only onStoryViewed semantics (matches Instagram). Always-uncontrolled with reset() + dispatch() + goToStory/goToItem/setPaused imperative escape hatches. v0.1 ships pure CSS animations; framer-motion swipe-to-dismiss is the locked v0.2 adoption gate. Eighth (and final) ship in the social-posts-system arc.",
+      "author": "ilinxa",
+      "categories": ["media"],
+      "registryDependencies": [
+        "video-player-01",
+        "https://ui.shadcn.com/r/styles/new-york/dialog.json",
+        "https://ui.shadcn.com/r/styles/new-york/avatar.json",
+        "https://ui.shadcn.com/r/styles/new-york/button.json"
+      ],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/media/story-viewer-01/story-viewer-01.tsx", "type": "registry:component", "target": "components/story-viewer-01/story-viewer-01.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/index.ts", "type": "registry:component", "target": "components/story-viewer-01/index.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/types.ts", "type": "registry:component", "target": "components/story-viewer-01/types.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/viewer-shell.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/viewer-shell.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/progress-bars.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/progress-bars.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/viewer-header.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/viewer-header.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/tap-zones.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/tap-zones.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/nav-arrows.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/nav-arrows.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/item-view.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/item-view.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-viewer-state.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-viewer-state.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-progress.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-progress.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-keyboard-nav.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-keyboard-nav.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/lib/format-time.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/format-time.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "story-viewer-01-fixtures",
+      "type": "registry:block",
+      "title": "Story Viewer 01 — fixtures",
+      "description": "Story Viewer 01 bundle including dummy-data fixtures (3 mock stories with mixed image+video items; w3schools video URLs matching kasder verbatim).",
+      "author": "ilinxa",
+      "categories": ["media", "fixtures"],
+      "registryDependencies": ["story-viewer-01"],
+      "files": [
+        { "path": "src/registry/components/media/story-viewer-01/dummy-data.ts", "type": "registry:component", "target": "components/story-viewer-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "registration-card-01-fixtures",
+      "type": "registry:block",
+      "title": "Registration Card 01 — fixtures",
+      "description": "Registration Card 01 bundle including the dummy-data fixtures (5 capacity-state samples + Turkish + fundraising relabels).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["registration-card-01"],
+      "files": [
+        { "path": "src/registry/components/data/registration-card-01/dummy-data.ts", "type": "registry:component", "target": "components/registration-card-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "people-grid-01-fixtures",
+      "type": "registry:block",
+      "title": "People Grid 01 — fixtures",
+      "description": "People Grid 01 bundle including the dummy-data fixtures (3 kasder speakers + 6-person team + 5-person initials-only board).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["people-grid-01"],
+      "files": [
+        { "path": "src/registry/components/data/people-grid-01/dummy-data.ts", "type": "registry:component", "target": "components/people-grid-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "info-list-01-fixtures",
+      "type": "registry:block",
+      "title": "Info List 01 — fixtures",
+      "description": "Info List 01 bundle including the dummy-data fixtures (English + Turkish parallel arrays for Event Details + Contact patterns).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["info-list-01"],
+      "files": [
+        { "path": "src/registry/components/data/info-list-01/dummy-data.tsx", "type": "registry:component", "target": "components/info-list-01/dummy-data.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "progress-timeline-01-fixtures",
+      "type": "registry:block",
+      "title": "Progress Timeline 01 — fixtures",
+      "description": "Progress Timeline 01 bundle including the dummy-data fixtures (3 timeline shapes — before / active / after — plus a fixed dummyNow reference for deterministic SSR).",
+      "author": "ilinxa",
+      "categories": ["data", "events", "fixtures"],
+      "registryDependencies": ["progress-timeline-01"],
+      "files": [
+        { "path": "src/registry/components/data/progress-timeline-01/dummy-data.ts", "type": "registry:component", "target": "components/progress-timeline-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "schedule-list-01-fixtures",
+      "type": "registry:block",
+      "title": "Schedule List 01 — fixtures",
+      "description": "Schedule List 01 bundle including the dummy-data fixtures (English + Turkish parallel 6-item schedules with icon / time-range / href samples).",
+      "author": "ilinxa",
+      "categories": ["data", "events", "fixtures"],
+      "registryDependencies": ["schedule-list-01"],
+      "files": [
+        { "path": "src/registry/components/data/schedule-list-01/dummy-data.ts", "type": "registry:component", "target": "components/schedule-list-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "event-card-01-fixtures",
+      "type": "registry:block",
+      "title": "Event Card 01 — fixtures",
+      "description": "Event Card 01 bundle including the dummy-data fixtures (8 events covering all 6 statuses + Turkish-localized parallel array + 4 type-style maps + dummyNow reference date).",
+      "author": "ilinxa",
+      "categories": ["data", "events", "fixtures"],
+      "registryDependencies": ["event-card-01"],
+      "files": [
+        { "path": "src/registry/components/data/event-card-01/dummy-data.ts", "type": "registry:component", "target": "components/event-card-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "project-card-01",
+      "type": "registry:block",
+      "title": "Project Card 01",
+      "description": "Project / case-study preview card with 3-state editorial status (completed / ongoing / planned) and 2 visual variants (grid / feature). Polymorphic root, soft-failure item shape, overlay-link pattern, fully customizable. Public PROJECT_STATUS_CONFIG export for status-color / label reuse outside the card.",
+      "author": "ilinxa",
+      "categories": ["data", "projects"],
+      "registryDependencies": ["button"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/project-card-01/project-card-01.tsx", "type": "registry:component", "target": "components/project-card-01/project-card-01.tsx" },
+        { "path": "src/registry/components/data/project-card-01/index.ts", "type": "registry:component", "target": "components/project-card-01/index.ts" },
+        { "path": "src/registry/components/data/project-card-01/types.ts", "type": "registry:component", "target": "components/project-card-01/types.ts" },
+        { "path": "src/registry/components/data/project-card-01/parts/grid.tsx", "type": "registry:component", "target": "components/project-card-01/parts/grid.tsx" },
+        { "path": "src/registry/components/data/project-card-01/parts/feature.tsx", "type": "registry:component", "target": "components/project-card-01/parts/feature.tsx" },
+        { "path": "src/registry/components/data/project-card-01/lib/project-status.ts", "type": "registry:component", "target": "components/project-card-01/lib/project-status.ts" },
+        { "path": "src/registry/components/data/project-card-01/lib/image-fallback.tsx", "type": "registry:component", "target": "components/project-card-01/lib/image-fallback.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "project-card-01-fixtures",
+      "type": "registry:block",
+      "title": "Project Card 01 — fixtures",
+      "description": "Project Card 01 bundle including the dummy-data fixtures (6 projects covering all 3 statuses + featured + image-fallback edge + Turkish-localized parallel array + 2 category-style maps + Turkish labels).",
+      "author": "ilinxa",
+      "categories": ["data", "projects", "fixtures"],
+      "registryDependencies": ["project-card-01"],
+      "files": [
+        { "path": "src/registry/components/data/project-card-01/dummy-data.ts", "type": "registry:component", "target": "components/project-card-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "kanban-board-01",
+      "type": "registry:block",
+      "title": "Kanban Board 01",
+      "description": "Column-based board with drag-and-drop, swimlanes, color-tinted columns, and a pluggable renderer registry that hosts any card kind as a first-class item. Items are pure JSON; built-in renderers ship for kanban-card and kanban-note, and any sibling rich component (e.g. rich-card) can be registered as a third renderer with full feature passthrough via the dragHandle=\"header\" pattern. Per-column movement controls, per-item lock, optional CRUD, collapsible columns, soft maxItems cap, native column scroll.",
+      "author": "ilinxa",
+      "categories": ["data", "kanban", "drag-and-drop"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "button",
+        "dropdown-menu",
+        "input",
+        "popover",
+        "textarea",
+        "tooltip"
+      ],
+      "dependencies": [
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities",
+        "lucide-react"
+      ],
+      "files": [
+        { "path": "src/registry/components/data/kanban-board-01/kanban-board-01.tsx", "type": "registry:component", "target": "components/kanban-board-01/kanban-board-01.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/index.ts", "type": "registry:component", "target": "components/kanban-board-01/index.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/types.ts", "type": "registry:component", "target": "components/kanban-board-01/types.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/lib/data.ts", "type": "registry:component", "target": "components/kanban-board-01/lib/data.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/lib/reducer.ts", "type": "registry:component", "target": "components/kanban-board-01/lib/reducer.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/lib/permissions.ts", "type": "registry:component", "target": "components/kanban-board-01/lib/permissions.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/lib/ids.ts", "type": "registry:component", "target": "components/kanban-board-01/lib/ids.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/lib/palette.ts", "type": "registry:component", "target": "components/kanban-board-01/lib/palette.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/hooks/use-kanban-state.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-kanban-state.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/hooks/use-renderer-map.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-renderer-map.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/hooks/use-drag-handlers.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-drag-handlers.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/hooks/use-keyboard-actions.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-keyboard-actions.ts" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/board.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/board.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/column.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/column-header.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column-header.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/column-body.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column-body.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/column-collapsed.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column-collapsed.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/column-footer.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column-footer.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/add-column-button.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/add-column-button.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/swimlane-row.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/swimlane-row.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/swimlane-cell.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/swimlane-cell.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/item-shell.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/item-shell.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/item-renderer.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/item-renderer.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/missing-renderer.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/missing-renderer.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/inline-create-editor.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/inline-create-editor.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/inline-edit-editor.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/inline-edit-editor.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/color-picker.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/color-picker.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/drag-overlay.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/drag-overlay.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/kanban-card.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/kanban-card.tsx" },
+        { "path": "src/registry/components/data/kanban-board-01/parts/kanban-note.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/kanban-note.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "kanban-board-01-fixtures",
+      "type": "registry:block",
+      "title": "Kanban Board 01 — fixtures",
+      "description": "Kanban Board 01 bundle including the dummy-data fixtures used by the docs-site demo (4 columns covering todo / doing / blocked / done, 2 swimlanes, mixed card + note items, 1 locked item, color-coded columns, soft maxItems cap, acceptsRendererIds restriction).",
+      "author": "ilinxa",
+      "categories": ["data", "kanban", "fixtures"],
+      "registryDependencies": ["kanban-board-01"],
+      "files": [
+        { "path": "src/registry/components/data/kanban-board-01/dummy-data.ts", "type": "registry:component", "target": "components/kanban-board-01/dummy-data.ts" }
+      ]
     }
   ]
 }

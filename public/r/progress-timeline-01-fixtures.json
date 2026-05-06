@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "progress-timeline-01-fixtures",
+  "title": "Progress Timeline 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Progress Timeline 01 bundle including the dummy-data fixtures (3 timeline shapes — before / active / after — plus a fixed dummyNow reference for deterministic SSR).",
+  "registryDependencies": [
+    "progress-timeline-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/progress-timeline-01/dummy-data.ts",
+      "content": "/**\n * Fixed reference date used by every demo card via the `now` prop.\n * Without this, demo states depend on the real wall clock and silently drift.\n */\nexport const dummyNow = new Date(\"2026-06-01T12:00:00Z\");\n\n/** A timeline currently in progress — dummyNow is between start and end. */\nexport const dummyTimelineActive = {\n  start: \"2026-04-01\",\n  end: \"2026-06-30\",\n} as const;\n\n/** A timeline that hasn't started yet. */\nexport const dummyTimelineBefore = {\n  start: \"2026-08-01\",\n  end: \"2026-09-15\",\n} as const;\n\n/** A timeline that has already ended. */\nexport const dummyTimelineAfter = {\n  start: \"2026-03-01\",\n  end: \"2026-05-15\",\n} as const;\n",
+      "type": "registry:component",
+      "target": "components/progress-timeline-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "events",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

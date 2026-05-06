@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "registration-card-01-fixtures",
+  "title": "Registration Card 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Registration Card 01 bundle including the dummy-data fixtures (5 capacity-state samples + Turkish + fundraising relabels).",
+  "registryDependencies": [
+    "registration-card-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/registration-card-01/dummy-data.ts",
+      "content": "import type { RegistrationCard01Labels } from \"./types\";\n\nexport const dummyRegistrationOpen = {\n  capacity: 500,\n  registered: 142,\n};\n\nexport const dummyRegistrationLastSpots = {\n  capacity: 500,\n  registered: 423, // 84.6% — triggers lastSpots state\n};\n\nexport const dummyRegistrationUrgent = {\n  capacity: 100,\n  registered: 95, // 5 spots left — triggers urgent (destructive color)\n};\n\nexport const dummyRegistrationFull = {\n  capacity: 50,\n  registered: 50,\n};\n\nexport const dummyRegistrationClosed = {\n  capacity: 200,\n  registered: 87,\n  closed: true,\n};\n\n/** No capacity / no registered — open mode without a quota bar. */\nexport const dummyRegistrationNoQuota = {\n  // intentionally empty\n};\n\nexport const trLabels: RegistrationCard01Labels = {\n  capacityLabel: \"Kontenjan\",\n  spotsLeftSuffix: \"yer kaldı\",\n  spotsLeftFull: \"Dolu\",\n  registeredSuffix: \"kayıtlı\",\n  capacitySuffix: \"kapasite\",\n  ctaRegister: \"Hemen Kayıt Ol\",\n  ctaSoldOut: \"Kontenjan Dolu\",\n  ctaClosed: \"Etkinlik Sona Erdi\",\n  ctaUnavailable: \"Kayıt yapılamıyor\",\n  ctaShare: \"Paylaş\",\n  ariaLabel: \"Kayıt kontenjanı\",\n};\n\nexport const fundraisingLabels: RegistrationCard01Labels = {\n  capacityLabel: \"Goal\",\n  spotsLeftSuffix: \"remaining\",\n  spotsLeftFull: \"Goal reached!\",\n  registeredSuffix: \"raised\",\n  capacitySuffix: \"goal\",\n  ctaRegister: \"Donate now\",\n  ctaSoldOut: \"Goal reached\",\n  ctaClosed: \"Campaign ended\",\n  ctaUnavailable: \"Donations unavailable\",\n  ctaShare: \"Share\",\n  ariaLabel: \"Fundraising progress\",\n};\n",
+      "type": "registry:component",
+      "target": "components/registration-card-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
