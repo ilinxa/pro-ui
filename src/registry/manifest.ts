@@ -78,6 +78,74 @@ import ArticleBody01Demo from "./components/data/article-body-01/demo";
 import ArticleBody01Usage from "./components/data/article-body-01/usage";
 import { meta as articleBody01Meta } from "./components/data/article-body-01/meta";
 
+import EventCard01Demo from "./components/data/event-card-01/demo";
+import EventCard01Usage from "./components/data/event-card-01/usage";
+import { meta as eventCard01Meta } from "./components/data/event-card-01/meta";
+
+import ScheduleList01Demo from "./components/data/schedule-list-01/demo";
+import ScheduleList01Usage from "./components/data/schedule-list-01/usage";
+import { meta as scheduleList01Meta } from "./components/data/schedule-list-01/meta";
+
+import ProgressTimeline01Demo from "./components/data/progress-timeline-01/demo";
+import ProgressTimeline01Usage from "./components/data/progress-timeline-01/usage";
+import { meta as progressTimeline01Meta } from "./components/data/progress-timeline-01/meta";
+
+import InfoList01Demo from "./components/data/info-list-01/demo";
+import InfoList01Usage from "./components/data/info-list-01/usage";
+import { meta as infoList01Meta } from "./components/data/info-list-01/meta";
+
+import PeopleGrid01Demo from "./components/data/people-grid-01/demo";
+import PeopleGrid01Usage from "./components/data/people-grid-01/usage";
+import { meta as peopleGrid01Meta } from "./components/data/people-grid-01/meta";
+
+import RegistrationCard01Demo from "./components/data/registration-card-01/demo";
+import RegistrationCard01Usage from "./components/data/registration-card-01/usage";
+import { meta as registrationCard01Meta } from "./components/data/registration-card-01/meta";
+
+import ExpandableText01Demo from "./components/data/expandable-text-01/demo";
+import ExpandableText01Usage from "./components/data/expandable-text-01/usage";
+import { meta as expandableText01Meta } from "./components/data/expandable-text-01/meta";
+
+import VideoPlayer01Demo from "./components/media/video-player-01/demo";
+import VideoPlayer01Usage from "./components/media/video-player-01/usage";
+import { meta as videoPlayer01Meta } from "./components/media/video-player-01/meta";
+
+import MediaCarousel01Demo from "./components/media/media-carousel-01/demo";
+import MediaCarousel01Usage from "./components/media/media-carousel-01/usage";
+import { meta as mediaCarousel01Meta } from "./components/media/media-carousel-01/meta";
+
+import EngagementBar01Demo from "./components/data/engagement-bar-01/demo";
+import EngagementBar01Usage from "./components/data/engagement-bar-01/usage";
+import { meta as engagementBar01Meta } from "./components/data/engagement-bar-01/meta";
+
+import CommentThread01Demo from "./components/data/comment-thread-01/demo";
+import CommentThread01Usage from "./components/data/comment-thread-01/usage";
+import { meta as commentThread01Meta } from "./components/data/comment-thread-01/meta";
+
+import PostCard01Demo from "./components/data/post-card-01/demo";
+import PostCard01Usage from "./components/data/post-card-01/usage";
+import { meta as postCard01Meta } from "./components/data/post-card-01/meta";
+
+import StoryRail01Demo from "./components/data/story-rail-01/demo";
+import StoryRail01Usage from "./components/data/story-rail-01/usage";
+import { meta as storyRail01Meta } from "./components/data/story-rail-01/meta";
+
+import StoryViewer01Demo from "./components/media/story-viewer-01/demo";
+import StoryViewer01Usage from "./components/media/story-viewer-01/usage";
+import { meta as storyViewer01Meta } from "./components/media/story-viewer-01/meta";
+
+import ProjectCard01Demo from "./components/data/project-card-01/demo";
+import ProjectCard01Usage from "./components/data/project-card-01/usage";
+import { meta as projectCard01Meta } from "./components/data/project-card-01/meta";
+
+import KanbanBoard01Demo from "./components/data/kanban-board-01/demo";
+import KanbanBoard01Usage from "./components/data/kanban-board-01/usage";
+import { meta as kanbanBoard01Meta } from "./components/data/kanban-board-01/meta";
+
+import FlowCanvas01Demo from "./components/data/flow-canvas-01/demo";
+import FlowCanvas01Usage from "./components/data/flow-canvas-01/usage";
+import { meta as flowCanvas01Meta } from "./components/data/flow-canvas-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -186,6 +254,91 @@ export const REGISTRY: RegistryEntry[] = [
     meta: articleBody01Meta,
     Demo: ArticleBody01Demo,
     Usage: ArticleBody01Usage,
+  },
+  {
+    meta: eventCard01Meta,
+    Demo: EventCard01Demo,
+    Usage: EventCard01Usage,
+  },
+  {
+    meta: scheduleList01Meta,
+    Demo: ScheduleList01Demo,
+    Usage: ScheduleList01Usage,
+  },
+  {
+    meta: progressTimeline01Meta,
+    Demo: ProgressTimeline01Demo,
+    Usage: ProgressTimeline01Usage,
+  },
+  {
+    meta: infoList01Meta,
+    Demo: InfoList01Demo,
+    Usage: InfoList01Usage,
+  },
+  {
+    meta: peopleGrid01Meta,
+    Demo: PeopleGrid01Demo,
+    Usage: PeopleGrid01Usage,
+  },
+  {
+    meta: registrationCard01Meta,
+    Demo: RegistrationCard01Demo,
+    Usage: RegistrationCard01Usage,
+  },
+  {
+    meta: expandableText01Meta,
+    Demo: ExpandableText01Demo,
+    Usage: ExpandableText01Usage,
+  },
+  {
+    meta: videoPlayer01Meta,
+    Demo: VideoPlayer01Demo,
+    Usage: VideoPlayer01Usage,
+  },
+  {
+    meta: mediaCarousel01Meta,
+    Demo: MediaCarousel01Demo,
+    Usage: MediaCarousel01Usage,
+  },
+  {
+    meta: engagementBar01Meta,
+    Demo: EngagementBar01Demo,
+    Usage: EngagementBar01Usage,
+  },
+  {
+    meta: commentThread01Meta,
+    Demo: CommentThread01Demo,
+    Usage: CommentThread01Usage,
+  },
+  {
+    meta: postCard01Meta,
+    Demo: PostCard01Demo,
+    Usage: PostCard01Usage,
+  },
+  {
+    meta: storyRail01Meta,
+    Demo: StoryRail01Demo,
+    Usage: StoryRail01Usage,
+  },
+  {
+    meta: storyViewer01Meta,
+    Demo: StoryViewer01Demo,
+    Usage: StoryViewer01Usage,
+  },
+  {
+    meta: projectCard01Meta,
+    Demo: ProjectCard01Demo,
+    Usage: ProjectCard01Usage,
+  },
+  {
+    meta: kanbanBoard01Meta,
+    Demo: KanbanBoard01Demo,
+    Usage: KanbanBoard01Usage,
+  },
+  {
+    meta: flowCanvas01Meta,
+    Demo: FlowCanvas01Demo,
+    Usage: FlowCanvas01Usage,
   },
 ];
 

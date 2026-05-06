@@ -71,6 +71,7 @@ Hold the line on tokens defined in [src/app/globals.css](src/app/globals.css):
 - **IMPORTANT:** Use the `configuring-project-memory` skill when editing this `CLAUDE.md`, `.claude/STATUS.md`, `.claude/rules/`, or auto-memory.
 - **IMPORTANT:** Use the `skill-creator-pro` skill to author or restructure any skill in `.claude/skills/`.
 - **IMPORTANT:** Use the `shadcn-registry-pro` skill when authoring `registry.json`, running `shadcn build`, hosting/configuring the shadcn registry, setting up namespaced installs, or shipping components via the `pnpm dlx shadcn add` flow.
+- **IMPORTANT:** Use the `xyflow-react-pro` skill when working with `@xyflow/react` (React Flow / ReactFlow) — building flow editors, node graphs, workflow canvases, port-and-edge UIs, custom node/edge types — or whenever a file imports from `@xyflow/react`. Required for the in-flight `flow-canvas-01` procomp.
 
 ## Progress tracking
 Read [.claude/STATUS.md](.claude/STATUS.md) at session start to see where the project is. Update it whenever you ship a component, change a component's status, or make a non-obvious decision worth keeping. STATUS.md is the current snapshot — not a changelog. Trim the "Recent decisions" log to the most recent ~10 entries.

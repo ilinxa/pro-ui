@@ -1,0 +1,73 @@
+"use client";
+
+import type {
+  AnyKanbanCardRenderer,
+  KanbanColumn,
+  KanbanItem,
+  KanbanSwimlane,
+} from "../types";
+import { SwimlaneCell } from "./swimlane-cell";
+
+export function ColumnBody({
+  column,
+  swimlanes,
+  rendererMap,
+  readOnly,
+  activeRendererId,
+  onItemClick,
+  onItemDelete,
+  onItemEdit,
+}: {
+  column: KanbanColumn;
+  swimlanes: KanbanSwimlane[] | undefined;
+  rendererMap: Map<string, AnyKanbanCardRenderer>;
+  readOnly: boolean;
+  activeRendererId: string | undefined;
+  onItemClick?: (item: KanbanItem) => void;
+  onItemDelete?: (itemId: string) => void;
+  onItemEdit?: (item: KanbanItem) => void;
+}) {
+  // A drop is rejected if there's an active drag and this column doesn't accept that renderer.
+  const rejectDrop =
+    activeRendererId !== undefined &&
+    column.acceptsRendererIds !== undefined &&
+    !column.acceptsRendererIds.includes(activeRendererId);
+
+  const lanes: (KanbanSwimlane | undefined)[] = swimlanes && swimlanes.length > 0 ? swimlanes : [undefined];
+
+  return (
+    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5">
+      <div className="flex flex-col gap-2 py-1.5">
+        {lanes.map((lane) => {
+          const items = column.items.filter((it) => {
+            if (!swimlanes || swimlanes.length === 0) return true;
+            // If item's swimlaneId is missing or unknown, it lands in the first lane.
+            const known = swimlanes.some((l) => l.id === it.swimlaneId);
+            if (!known) return lane?.id === swimlanes[0].id;
+            return it.swimlaneId === lane?.id;
+          });
+          return (
+            <div key={lane?.id ?? "_"} className="flex flex-col gap-1">
+              {lane ? (
+                <span className="px-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                  {lane.title}
+                </span>
+              ) : null}
+              <SwimlaneCell
+                column={column}
+                swimlaneId={lane?.id}
+                items={items}
+                rendererMap={rendererMap}
+                readOnly={readOnly}
+                rejectDrop={rejectDrop}
+                onItemClick={onItemClick}
+                onItemDelete={onItemDelete}
+                onItemEdit={onItemEdit}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

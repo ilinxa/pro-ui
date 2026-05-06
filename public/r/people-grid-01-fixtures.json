@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "people-grid-01-fixtures",
+  "title": "People Grid 01 — fixtures",
+  "author": "ilinxa",
+  "description": "People Grid 01 bundle including the dummy-data fixtures (3 kasder speakers + 6-person team + 5-person initials-only board).",
+  "registryDependencies": [
+    "people-grid-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/people-grid-01/dummy-data.ts",
+      "content": "import type { PeopleGridItem } from \"./types\";\n\n/** 3 speakers from the kasder Konuşmacılar block. */\nexport const dummySpeakers: PeopleGridItem[] = [\n  {\n    id: \"s1\",\n    name: \"Prof. Dr. Ahmet Yılmaz\",\n    title: \"Şehir Plancısı\",\n    image:\n      \"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces\",\n  },\n  {\n    id: \"s2\",\n    name: \"Dr. Elif Kaya\",\n    title: \"Çevre Mühendisi\",\n    image:\n      \"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces\",\n  },\n  {\n    id: \"s3\",\n    name: \"Mehmet Demir\",\n    title: \"Akıllı Şehir Uzmanı\",\n    image:\n      \"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces\",\n  },\n];\n\n/** 6-person team set — mix of with-image + without-image to demo initials fallback. */\nexport const dummyTeam: PeopleGridItem[] = [\n  {\n    id: \"t1\",\n    name: \"Ada Lovelace\",\n    title: \"Chief Scientist\",\n    image:\n      \"https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=faces\",\n  },\n  {\n    id: \"t2\",\n    name: \"Grace Hopper\",\n    title: \"Compiler Lead\",\n  },\n  {\n    id: \"t3\",\n    name: \"Alan Turing\",\n    title: \"Cryptography\",\n    image:\n      \"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=faces\",\n  },\n  {\n    id: \"t4\",\n    name: \"Katherine Johnson\",\n    title: \"Numerical Analyst\",\n  },\n  {\n    id: \"t5\",\n    name: \"Linus Torvalds\",\n    title: \"Kernel Maintainer\",\n    image:\n      \"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces\",\n  },\n  {\n    id: \"t6\",\n    name: \"Madonna\",\n    title: \"Designer\",\n  },\n];\n\n/** 5-person initials-only set — proves the fallback path. */\nexport const dummyBoard: PeopleGridItem[] = [\n  { id: \"b1\", name: \"Dr. Sara Ahmed\", title: \"Chair\" },\n  { id: \"b2\", name: \"Prof. James O'Neill\", title: \"Vice-Chair\" },\n  { id: \"b3\", name: \"Mr. Carlos Ruiz\", title: \"Treasurer\" },\n  { id: \"b4\", name: \"Şükrü Çelik\", title: \"Secretary\" },\n  { id: \"b5\", name: \"Ms. Priya Sharma\", title: \"Director\" },\n];\n",
+      "type": "registry:component",
+      "target": "components/people-grid-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

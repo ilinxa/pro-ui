@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "kanban-board-01-fixtures",
+  "title": "Kanban Board 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Kanban Board 01 bundle including the dummy-data fixtures used by the docs-site demo (4 columns covering todo / doing / blocked / done, 2 swimlanes, mixed card + note items, 1 locked item, color-coded columns, soft maxItems cap, acceptsRendererIds restriction).",
+  "registryDependencies": [
+    "kanban-board-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/kanban-board-01/dummy-data.ts",
+      "content": "import type { KanbanData } from \"./types\";\n\nexport const KANBAN_BOARD_01_DUMMY: KanbanData = {\n  swimlanes: [\n    { id: \"lane-platform\", title: \"Platform\" },\n    { id: \"lane-product\", title: \"Product\" },\n  ],\n  columns: [\n    {\n      id: \"col-todo\",\n      title: \"To do\",\n      color: \"slate\",\n      items: [\n        {\n          id: \"item-1\",\n          rendererId: \"kanban-card\",\n          swimlaneId: \"lane-platform\",\n          data: {\n            title: \"Wire OAuth flow for new SDK\",\n            description: \"Validate against the staging IDP; fall back to existing token endpoint.\",\n            tags: [{ label: \"auth\" }, { label: \"platform\" }],\n            assignees: [\n              { id: \"u-ada\", name: \"Ada Lovelace\" },\n              { id: \"u-bo\", name: \"Bo Yang\" },\n            ],\n            meta: [{ key: \"due\", label: \"due\", value: \"May 12\" }],\n          },\n        },\n        {\n          id: \"item-2\",\n          rendererId: \"kanban-note\",\n          swimlaneId: \"lane-platform\",\n          data: {\n            title: \"Reminder\",\n            body: \"Coordinate with the auth team on the new session shape before merging.\",\n          },\n        },\n        {\n          id: \"item-3\",\n          rendererId: \"kanban-card\",\n          swimlaneId: \"lane-product\",\n          data: {\n            title: \"Settings page polish\",\n            description: \"Tighten spacing on the notifications panel.\",\n            tags: [{ label: \"design\" }],\n          },\n        },\n      ],\n    },\n    {\n      id: \"col-doing\",\n      title: \"In progress\",\n      color: \"lime\",\n      maxItems: 3,\n      items: [\n        {\n          id: \"item-4\",\n          rendererId: \"kanban-card\",\n          swimlaneId: \"lane-product\",\n          data: {\n            title: \"Onboarding flow v2\",\n            description: \"Replace the splash modal with an inline tour.\",\n            tags: [{ label: \"growth\" }],\n            assignees: [{ id: \"u-cn\", name: \"Cy Nguyen\" }],\n            meta: [{ key: \"due\", label: \"due\", value: \"May 8\" }],\n          },\n        },\n      ],\n    },\n    {\n      id: \"col-blocked\",\n      title: \"Blocked\",\n      color: \"rose\",\n      acceptsRendererIds: [\"kanban-card\"],\n      items: [\n        {\n          id: \"item-5\",\n          rendererId: \"kanban-card\",\n          swimlaneId: \"lane-platform\",\n          locked: true,\n          data: {\n            title: \"Migration: legacy session store\",\n            description: \"Pinned — waiting on infra approval.\",\n            tags: [{ label: \"infra\" }, { label: \"blocked\" }],\n          },\n        },\n      ],\n    },\n    {\n      id: \"col-done\",\n      title: \"Done\",\n      color: \"emerald\",\n      allowReorder: false,\n      items: [\n        {\n          id: \"item-6\",\n          rendererId: \"kanban-card\",\n          swimlaneId: \"lane-product\",\n          data: {\n            title: \"Empty-state illustrations\",\n            tags: [{ label: \"design\" }],\n            assignees: [{ id: \"u-fe\", name: \"Farah Eid\" }],\n          },\n        },\n      ],\n    },\n  ],\n};\n",
+      "type": "registry:component",
+      "target": "components/kanban-board-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "kanban",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

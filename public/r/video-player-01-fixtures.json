@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "video-player-01-fixtures",
+  "title": "Video Player 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Video Player 01 bundle including the dummy-data fixtures (5 royalty-free Pexels video URLs + a sample WebVTT track entry for caption demos).",
+  "registryDependencies": [
+    "video-player-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/video-player-01/dummy-data.ts",
+      "content": "import type { VideoTrack } from \"./types\";\n\n/** Royalty-free landscape clip (~6s). Pexels. */\nexport const SAMPLE_VIDEO_URL =\n  \"https://videos.pexels.com/video-files/856005/856005-hd_1280_720_30fps.mp4\";\n\nexport const SAMPLE_POSTER_URL =\n  \"https://images.pexels.com/videos/856005/free-video-856005.jpg?auto=compress&cs=tinysrgb&w=1280\";\n\n/** Vertical clip for story-like demos. */\nexport const SAMPLE_VERTICAL_VIDEO_URL =\n  \"https://videos.pexels.com/video-files/2098989/2098989-uhd_2160_4096_25fps.mp4\";\n\n/** Shorter loopable clip for autoplay-loop scenarios. */\nexport const SAMPLE_LOOP_VIDEO_URL =\n  \"https://videos.pexels.com/video-files/2491284/2491284-uhd_2560_1440_25fps.mp4\";\n\n/** Second landscape clip (different colors) — used for the isActive carousel demo. */\nexport const SAMPLE_VIDEO_URL_B =\n  \"https://videos.pexels.com/video-files/3163534/3163534-uhd_2560_1440_30fps.mp4\";\n\n/** Third landscape clip — used for the isActive carousel demo. */\nexport const SAMPLE_VIDEO_URL_C =\n  \"https://videos.pexels.com/video-files/2871916/2871916-uhd_2560_1440_25fps.mp4\";\n\n/** Sample English captions track. URL is a placeholder — verifies that <track> renders. */\nexport const SAMPLE_TRACKS_EN: VideoTrack[] = [\n  {\n    kind: \"captions\",\n    src: \"https://example.com/captions/sample-en.vtt\",\n    srcLang: \"en\",\n    label: \"English\",\n    default: true,\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/video-player-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

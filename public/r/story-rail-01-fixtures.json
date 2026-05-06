@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "story-rail-01-fixtures",
+  "title": "Story Rail 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Story Rail 01 bundle including dummy-data fixtures (7 mock users matching kasder verbatim, viewer-avatar fixture, and a synthetic createDummyStoryRailSubscribe for sandbox realtime demos).",
+  "registryDependencies": [
+    "story-rail-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/story-rail-01/dummy-data.ts",
+      "content": "import type { StoryRailDelta, StoryRailItem, Subscribe } from \"./types\";\n\n/** 7 mock users — kasder's `mockStories` array, mapped to the rail's preview shape. */\nexport const DUMMY_STORIES: StoryRailItem[] = [\n  {\n    id: \"1\",\n    userId: \"u1\",\n    username: \"mehmet\",\n    avatar: \"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800\",\n    hasUnread: true,\n  },\n  {\n    id: \"2\",\n    userId: \"u2\",\n    username: \"ayse\",\n    avatar: \"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800\",\n    hasUnread: true,\n  },\n  {\n    id: \"3\",\n    userId: \"u3\",\n    username: \"ali\",\n    avatar: \"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800\",\n    hasUnread: true,\n  },\n  {\n    id: \"4\",\n    userId: \"u4\",\n    username: \"fatma\",\n    avatar: \"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800\",\n    hasUnread: false,\n  },\n  {\n    id: \"5\",\n    userId: \"u5\",\n    username: \"mustafa\",\n    avatar: \"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800\",\n    hasUnread: true,\n  },\n  {\n    id: \"6\",\n    userId: \"u6\",\n    username: \"zeynep\",\n    avatar: \"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800\",\n    hasUnread: false,\n  },\n  {\n    id: \"7\",\n    userId: \"u7\",\n    username: \"emre\",\n    avatar: \"https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=100\",\n    previewImage:\n      \"https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800\",\n    hasUnread: true,\n  },\n];\n\n/** Viewer fixture for the AddStoryThumbnail demo. */\nexport const DUMMY_VIEWER_AVATAR =\n  \"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100\";\n\n/** Sandbox-only fake subscribe — synthetic deltas every 5s. */\nexport function createDummyStoryRailSubscribe(): Subscribe<StoryRailDelta> {\n  return (handler) => {\n    let tick = 0;\n    const id = setInterval(() => {\n      tick++;\n      const variant = tick % 3;\n      if (variant === 0) {\n        handler({\n          kind: \"added\",\n          item: {\n            id: `live-${Date.now()}`,\n            userId: `live-u-${tick}`,\n            username: `live${tick}`,\n            avatar: `https://i.pravatar.cc/100?img=${(tick % 70) + 1}`,\n            previewImage: `https://picsum.photos/seed/live-${tick}/400/600`,\n            hasUnread: true,\n          },\n          position: \"start\",\n        });\n      } else if (variant === 1) {\n        handler({ kind: \"viewed\", itemId: \"1\" });\n      } else {\n        handler({\n          kind: \"updated\",\n          itemId: \"2\",\n          partial: { hasUnread: true },\n        });\n      }\n    }, 5000);\n    return () => clearInterval(id);\n  };\n}\n",
+      "type": "registry:component",
+      "target": "components/story-rail-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
