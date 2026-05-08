@@ -75,4 +75,10 @@ Hold the line on tokens defined in [src/app/globals.css](src/app/globals.css):
 - **IMPORTANT:** Use the `xyflow-react-pro` skill when working with `@xyflow/react` (React Flow / ReactFlow) — building flow editors, node graphs, workflow canvases, port-and-edge UIs, custom node/edge types — or whenever a file imports from `@xyflow/react`. Required for the in-flight `flow-canvas-01` procomp.
 
 ## Progress tracking
-Read [.claude/STATUS.md](.claude/STATUS.md) at session start to see where the project is. Update it whenever you ship a component, change a component's status, or make a non-obvious decision worth keeping. STATUS.md is the current snapshot — not a changelog. Trim the "Recent decisions" log to the most recent ~10 entries.
+Read [.claude/STATUS.md](.claude/STATUS.md) at session start to see where the project is. STATUS.md is the current snapshot — not a changelog. When you ship a component / change a status / make a non-obvious decision worth keeping:
+
+- **Update STATUS.md** for state changes (Components table row, version bump, Open decisions/TODOs).
+- **Author a per-decision file** at [.claude/decisions/](decisions/)`<YYYY-MM-DD>-<slug>.md` with YAML frontmatter (`date / session / phase / type / commits / components / findings / status`) — convention at [.claude/decisions/README.md](decisions/README.md).
+- **Update the "Recent activity" pointer list** at the bottom of STATUS.md to surface the new decision file (keep ~5 most-recent).
+
+Pre-2026-05-09 history is in [.claude/STATUS-archive.md](.claude/STATUS-archive.md) (frozen; do not extend). The split was option (b3) hybrid per F-cross-02 closure — see [.claude/decisions/2026-05-09-session-7d-phase-6.md](decisions/2026-05-09-session-7d-phase-6.md).

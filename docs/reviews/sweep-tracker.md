@@ -42,13 +42,12 @@
 
 ## Tier 2 — Spot-check + CLI smoke (27 components)
 
-### data (16)
+### data (15)
 
 | # | Slug | Version | Status | Verdict | Review file | Smoke | Reviewed | Notes |
 |---|------|---------|--------|---------|-------------|-------|----------|-------|
 | 11 | `engagement-bar-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 |
-| 12 | `media-carousel-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 |
-| 13 | `post-card-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 |
+| 12 | `post-card-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 |
 | 14 | `article-meta-01` | 0.1.0 | ⚪ | — | — | — | — | Session 10 |
 | 15 | `comment-thread-01` | 0.1.0 | ⚪ | — | — | — | — | Session 10 |
 | 16 | `content-card-news-01` | 0.1.0 | ⚪ | — | — | — | — | Session 10 |
@@ -86,10 +85,11 @@
 | 33 | `page-hero-news-01` | 0.1.0 | ⚪ | — | — | — | — | Session 9 |
 | 34 | `share-bar-01` | 0.1.0 | ⚪ | — | — | — | — | Session 9 |
 
-### media (2)
+### media (3)
 
 | # | Slug | Version | Status | Verdict | Review file | Smoke | Reviewed | Notes |
 |---|------|---------|--------|---------|-------------|-------|----------|-------|
+| 12b | `media-carousel-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 (re-categorized from data → media in 7d Phase 6 self-review; filesystem path is `src/registry/components/media/media-carousel-01/`) |
 | 35 | `story-viewer-01` | 0.1.0 | ⚪ | — | — | — | — | Session 9 |
 | 36 | `video-player-01` | 0.1.0 | ⚪ | — | — | — | — | Session 9 |
 

@@ -12,46 +12,46 @@
 
 ## Components
 
-36 components across 6 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot table: [`docs/component-versions.md`](../docs/component-versions.md).
+36 components across 6 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 
-| Slug | Category | Status | Version | Procomp docs |
-|------|----------|--------|---------|---|
-| `data-table` | data | alpha | 0.1.1 | description + plan + guide |
-| `rich-card` | data | **beta** | 0.4.1 | description + plan-v0.1/v0.2/v0.3/v0.4 + guide |
-| `kanban-board-01` | data | alpha | 0.2.1 | description + plan + guide |
-| `flow-canvas-01` | data | alpha | 0.1.1 | description + plan + guide |
-| `article-body-01` | data | alpha | 0.2.0 | description + plan + guide |
-| `engagement-bar-01` | data | alpha | 0.1.1 | — |
-| `post-card-01` | data | alpha | 0.1.1 | — |
-| `media-carousel-01` | media | alpha | 0.1.1 | — |
-| `comment-thread-01` | data | alpha | 0.1.0 | — |
-| `article-meta-01` | data | alpha | 0.1.0 | — |
-| `content-card-news-01` | data | alpha | 0.1.0 | — |
-| `event-card-01` | data | alpha | 0.1.0 | — |
-| `expandable-text-01` | data | alpha | 0.1.0 | — |
-| `info-list-01` | data | alpha | 0.1.0 | — |
-| `people-grid-01` | data | alpha | 0.1.0 | — |
-| `progress-timeline-01` | data | alpha | 0.1.0 | — |
-| `project-card-01` | data | alpha | 0.1.0 | — |
-| `registration-card-01` | data | alpha | 0.1.0 | — |
-| `schedule-list-01` | data | alpha | 0.1.0 | — |
-| `story-rail-01` | data | alpha | 0.1.0 | — |
-| `thumb-list-01` | data | alpha | 0.1.0 | — |
-| `workspace` | layout | alpha | 0.1.1 | description + plan + guide |
-| `grid-layout-news-01` | layout | alpha | 0.1.0 | — |
-| `markdown-editor` | forms | alpha | 0.1.1 | description + plan + guide |
-| `properties-form` | forms | alpha | 0.1.1 | description + plan + guide |
-| `entity-picker` | forms | alpha | 0.1.1 | description + plan + guide |
-| `category-cloud-01` | forms | alpha | 0.1.0 | — |
-| `filter-bar-01` | forms | alpha | 0.1.0 | — |
-| `filter-stack` | forms | alpha | 0.1.0 | — *(Tier 2 review session 8 will author guide)* |
-| `author-card-01` | marketing | alpha | 0.1.0 | — |
-| `newsletter-card-01` | marketing | alpha | 0.1.0 | — |
-| `page-hero-news-01` | marketing | alpha | 0.1.0 | — |
-| `share-bar-01` | marketing | alpha | 0.1.0 | — |
-| `story-viewer-01` | media | alpha | 0.1.0 | — |
-| `video-player-01` | media | alpha | 0.1.0 | — |
-| `detail-panel` | feedback | alpha | 0.1.0 | — *(Tier 2 review session 12 will author guide)* |
+| Slug | Category | Status | Version |
+|------|----------|--------|---------|
+| `data-table` | data | alpha | 0.1.1 |
+| `rich-card` | data | **beta** | 0.4.1 |
+| `kanban-board-01` | data | alpha | 0.2.1 |
+| `flow-canvas-01` | data | alpha | 0.1.1 |
+| `article-body-01` | data | alpha | 0.2.0 |
+| `engagement-bar-01` | data | alpha | 0.1.1 |
+| `post-card-01` | data | alpha | 0.1.1 |
+| `comment-thread-01` | data | alpha | 0.1.0 |
+| `article-meta-01` | data | alpha | 0.1.0 |
+| `content-card-news-01` | data | alpha | 0.1.0 |
+| `event-card-01` | data | alpha | 0.1.0 |
+| `expandable-text-01` | data | alpha | 0.1.0 |
+| `info-list-01` | data | alpha | 0.1.0 |
+| `people-grid-01` | data | alpha | 0.1.0 |
+| `progress-timeline-01` | data | alpha | 0.1.0 |
+| `project-card-01` | data | alpha | 0.1.0 |
+| `registration-card-01` | data | alpha | 0.1.0 |
+| `schedule-list-01` | data | alpha | 0.1.0 |
+| `story-rail-01` | data | alpha | 0.1.0 |
+| `thumb-list-01` | data | alpha | 0.1.0 |
+| `workspace` | layout | alpha | 0.1.1 |
+| `grid-layout-news-01` | layout | alpha | 0.1.0 |
+| `markdown-editor` | forms | alpha | 0.1.1 |
+| `properties-form` | forms | alpha | 0.1.1 |
+| `entity-picker` | forms | alpha | 0.1.1 |
+| `category-cloud-01` | forms | alpha | 0.1.0 |
+| `filter-bar-01` | forms | alpha | 0.1.0 |
+| `filter-stack` | forms | alpha | 0.1.0 |
+| `author-card-01` | marketing | alpha | 0.1.0 |
+| `newsletter-card-01` | marketing | alpha | 0.1.0 |
+| `page-hero-news-01` | marketing | alpha | 0.1.0 |
+| `share-bar-01` | marketing | alpha | 0.1.0 |
+| `media-carousel-01` | media | alpha | 0.1.1 |
+| `story-viewer-01` | media | alpha | 0.1.0 |
+| `video-player-01` | media | alpha | 0.1.0 |
+| `detail-panel` | feedback | alpha | 0.1.0 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.
 
@@ -89,8 +89,9 @@ For the historical "Open decisions / TODOs" entries that are now closed (Phase 0
 
 ## Recent activity
 
-The 4 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
+The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — session 7d Phase 6: F-cross-02 closed via b3 hybrid](decisions/2026-05-09-session-7d-phase-6.md) (STATUS.md split + decisions/ convention established)
 - [2026-05-09 — session 7c Phase 4: 6 missing procomp docs authored](decisions/2026-05-09-session-7c-phase-4.md) (closes F-cross-01 Tier 1)
 - [2026-05-09 — session 7b Phase 5: 8 Tier 1 v0.1.1 patches](decisions/2026-05-09-session-7b-phase-5.md) (workspace adaptive-flatten + rich-card v0.4.1 + kanban F-01 amber + plan-doc nits)
 - [2026-05-09 — session 7b Phase 3: F-cross-07 + F-cross-10 closure](decisions/2026-05-09-session-7b-phase-3.md) (validate-meta-deps lint + smoke-verify F-cross-03/05 + harness baseline)
