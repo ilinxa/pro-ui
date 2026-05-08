@@ -50,7 +50,6 @@ export const meta: ComponentMeta = {
       "@lezer/highlight": "^1.2.3",
       marked: "^18.0.2",
       "lucide-react": "^1.11.0",
-      "radix-ui": "^1.4.3",
     },
     internal: [],
   },

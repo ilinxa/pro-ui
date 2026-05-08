@@ -31,7 +31,7 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["badge", "tabs"],
+    shadcn: ["badge"],
     npm: {},
     internal: [],
   },

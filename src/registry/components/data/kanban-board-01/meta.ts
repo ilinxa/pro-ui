@@ -46,7 +46,7 @@ export const meta: ComponentMeta = {
       "input",
       "popover",
       "textarea",
-      "tooltip",
+      
     ],
     npm: {
       "@dnd-kit/core": "^6.3.1",

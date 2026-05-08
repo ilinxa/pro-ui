@@ -53,7 +53,7 @@ export const meta: ComponentMeta = {
   dependencies: {
     shadcn: ["avatar", "button", "dropdown-menu", "textarea"],
     npm: {
-      "lucide-react": "^0.x",
+      "lucide-react": "^1.11.0",
     },
     internal: ["expandable-text-01", "engagement-bar-01"],
   },

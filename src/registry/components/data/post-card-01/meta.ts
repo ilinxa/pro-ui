@@ -59,9 +59,9 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["avatar", "button", "card", "dropdown-menu", "input", "popover"],
+    shadcn: ["avatar", "button", "dropdown-menu", "input"],
     npm: {
-      "lucide-react": "^0.x",
+      "lucide-react": "^1.11.0",
     },
     internal: [
       "expandable-text-01",

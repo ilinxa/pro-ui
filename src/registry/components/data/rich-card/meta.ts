@@ -50,13 +50,13 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["popover", "separator"],
+    shadcn: ["popover"],
     npm: {
       "lucide-react": "^1.11.0",
-      "@dnd-kit/core": "^6.x",
-      "@dnd-kit/sortable": "^11.x",
-      "@dnd-kit/utilities": "^3.x",
-      "@tanstack/react-virtual": "^3.x",
+      "@dnd-kit/core": "^6.3.1",
+      "@dnd-kit/sortable": "^10.0.0",
+      "@dnd-kit/utilities": "^3.2.2",
+      "@tanstack/react-virtual": "^3.13.24",
     },
     internal: [],
   },
