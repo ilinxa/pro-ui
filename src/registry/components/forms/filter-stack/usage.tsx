@@ -16,7 +16,7 @@ export default function FilterStackUsage() {
         <code>{`import {
   FilterStack,
   type FilterCategory,
-} from "@/registry/components/forms/filter-stack";
+} from "@/components/filter-stack";
 
 interface Project {
   id: string;

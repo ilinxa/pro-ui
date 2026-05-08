@@ -37,9 +37,9 @@ export default function KanbanBoard01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { KanbanBoard } from "@/registry/components/data/kanban-board-01";
-import { kanbanCardRenderer } from "@/registry/components/data/kanban-board-01/parts/kanban-card";
-import { kanbanNoteRenderer } from "@/registry/components/data/kanban-board-01/parts/kanban-note";
+        <code>{`import { KanbanBoard } from "@/components/kanban-board-01";
+import { kanbanCardRenderer } from "@/components/kanban-board-01/parts/kanban-card";
+import { kanbanNoteRenderer } from "@/components/kanban-board-01/parts/kanban-note";
 
 export function Example() {
   return (

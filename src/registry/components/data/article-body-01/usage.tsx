@@ -29,7 +29,7 @@ export default function ArticleBody01Usage() {
 import {
   ArticleBodyEditor,
   type ArticleBodyValue,
-} from "@/registry/components/data/article-body-01"
+} from "@/components/article-body-01"
 
 export function ArticleEditPage({ initial }: { initial: ArticleBodyValue }) {
   const [value, setValue] = useState(initial)
@@ -59,7 +59,7 @@ export function ArticleEditPage({ initial }: { initial: ArticleBodyValue }) {
         without instantiating an editor.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ArticleBodyViewer } from "@/registry/components/data/article-body-01"
+        <code>{`import { ArticleBodyViewer } from "@/components/article-body-01"
 
 export default async function NewsArticle({ params }: { params: { id: string } }) {
   const article = await fetchArticle(params.id)

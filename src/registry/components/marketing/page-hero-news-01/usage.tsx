@@ -12,7 +12,7 @@ export default function PageHeroNews01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { PageHeroNews01 } from "@/registry/components/marketing/page-hero-news-01";
+        <code>{`import { PageHeroNews01 } from "@/components/page-hero-news-01";
 
 <PageHeroNews01
   badge="News & Updates"
@@ -29,7 +29,7 @@ export default function PageHeroNews01Usage() {
         contrast inside the hero.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { HeroStats, PageHeroNews01 } from "@/registry/components/marketing/page-hero-news-01";
+        <code>{`import { HeroStats, PageHeroNews01 } from "@/components/page-hero-news-01";
 import { Newspaper, TrendingUp, Clock } from "lucide-react";
 
 <PageHeroNews01 badge="News" title="Stories" description="Stay informed.">

@@ -11,7 +11,7 @@ export default function NewsletterCard01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { NewsletterCard01 } from "@/registry/components/marketing/newsletter-card-01";
+        <code>{`import { NewsletterCard01 } from "@/components/newsletter-card-01";
 
 <NewsletterCard01
   onSubmit={async (email) => {

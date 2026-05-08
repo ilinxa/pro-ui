@@ -13,7 +13,7 @@ export default function ContentCardNews01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ContentCardNews01 } from "@/registry/components/data/content-card-news-01";
+        <code>{`import { ContentCardNews01 } from "@/components/content-card-news-01";
 
 <ContentCardNews01
   item={{

@@ -15,7 +15,7 @@ export default function MediaCarousel01Usage() {
 
       <h3 className="mt-6 mb-2 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { MediaCarousel01 } from "@/registry/components/media/media-carousel-01";
+        <code>{`import { MediaCarousel01 } from "@/components/media-carousel-01";
 
 export function PostMedia({ post }: { post: Post }) {
   return <MediaCarousel01 items={post.media} variant="gallery" />;

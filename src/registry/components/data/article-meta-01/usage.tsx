@@ -13,7 +13,7 @@ export default function ArticleMeta01Usage() {
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`import { Calendar, Clock, Eye, User } from "lucide-react"
-import { ArticleMeta01 } from "@/registry/components/data/article-meta-01"
+import { ArticleMeta01 } from "@/components/article-meta-01"
 
 export function ArticleHeader() {
   return (

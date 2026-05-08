@@ -16,7 +16,7 @@ export default function ExpandableText01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ExpandableText01 } from "@/registry/components/data/expandable-text-01";
+        <code>{`import { ExpandableText01 } from "@/components/expandable-text-01";
 
 export function Example() {
   return <ExpandableText01 content={post.body} />;
@@ -96,7 +96,7 @@ export function Example() {
         changes when re-measurement is needed.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { useLineClampDetect } from "@/registry/components/data/expandable-text-01";
+        <code>{`import { useLineClampDetect } from "@/components/expandable-text-01";
 
 function MyTextBlock({ text }: { text: string }) {
   const { ref, isTruncated } = useLineClampDetect({

@@ -18,7 +18,7 @@ export default function EventCard01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { EventCard01 } from "@/registry/components/data/event-card-01";
+        <code>{`import { EventCard01 } from "@/components/event-card-01";
 
 <EventCard01
   event={{
@@ -116,7 +116,7 @@ export default function EventCard01Usage() {
   formatEventDate,
   getDaysUntilEvent,
   type EventStatus,
-} from "@/registry/components/data/event-card-01";
+} from "@/components/event-card-01";
 
 // Header counter
 const liveCount = events.filter(

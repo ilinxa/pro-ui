@@ -14,7 +14,7 @@ export default function EntityPickerUsage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic single</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { EntityPicker } from "@/registry/components/forms/entity-picker";
+        <code>{`import { EntityPicker } from "@/components/entity-picker";
 
 interface Node {
   id: string;

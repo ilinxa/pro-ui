@@ -11,7 +11,7 @@ export default function EngagementBar01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal usage</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { EngagementBar01 } from "@/registry/components/data/engagement-bar-01"
+        <code>{`import { EngagementBar01 } from "@/components/engagement-bar-01"
 
 <EngagementBar01
   actions={[
@@ -104,7 +104,7 @@ const [liked, setLiked] = useState(false)
         remounts the burst, restarting the animation.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { EngagementBar01, EngagementHeartBurst } from "@/registry/components/data/engagement-bar-01"
+        <code>{`import { EngagementBar01, EngagementHeartBurst } from "@/components/engagement-bar-01"
 
 const barRef = useRef<EngagementBar01Handle>(null)
 const [burstKey, setBurstKey] = useState(0)

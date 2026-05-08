@@ -12,7 +12,7 @@ export default function FilterBar01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { FilterBar01 } from "@/registry/components/forms/filter-bar-01";
+        <code>{`import { FilterBar01 } from "@/components/filter-bar-01";
 
 <FilterBar01
   categories={[

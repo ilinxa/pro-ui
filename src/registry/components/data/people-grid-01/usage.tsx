@@ -13,7 +13,7 @@ export default function PeopleGrid01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { PeopleGrid01 } from "@/registry/components/data/people-grid-01";
+        <code>{`import { PeopleGrid01 } from "@/components/people-grid-01";
 
 <PeopleGrid01
   heading="Konuşmacılar"
@@ -35,7 +35,7 @@ export default function PeopleGrid01Usage() {
         mention chips, comment headers, contact rows, presence badges:
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { getInitials } from "@/registry/components/data/people-grid-01";
+        <code>{`import { getInitials } from "@/components/people-grid-01";
 
 getInitials("Dr. Ahmet Yılmaz")    // → "AY"
 getInitials("Prof. Dr. Elif Kaya") // → "EK"

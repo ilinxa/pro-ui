@@ -13,7 +13,7 @@ export default function InfoList01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { InfoList01 } from "@/registry/components/data/info-list-01";
+        <code>{`import { InfoList01 } from "@/components/info-list-01";
 import { Calendar, MapPin, Users } from "lucide-react";
 
 <InfoList01

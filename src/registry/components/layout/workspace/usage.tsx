@@ -13,7 +13,7 @@ export default function WorkspaceUsage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { Workspace, type WorkspaceComponent } from "@/registry/components/layout/workspace"
+        <code>{`import { Workspace, type WorkspaceComponent } from "@/components/workspace"
 
 const components: WorkspaceComponent[] = [
   { id: "chart",  name: "Chart",  category: "Data",  render: () => <ChartPanel /> },
@@ -40,7 +40,7 @@ export function Example() {
         the area&apos;s id, and whether it currently holds focus.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { useAreaContext } from "@/registry/components/layout/workspace"
+        <code>{`import { useAreaContext } from "@/components/workspace"
 
 function ChartPanel() {
   const { width, height, isFocused } = useAreaContext()

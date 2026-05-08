@@ -20,7 +20,7 @@ export default function RichCardUsage() {
       <section>
         <h3 className="mb-2 text-base font-semibold">Basic example</h3>
         <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-          <code>{`import { RichCard } from "@/registry/components/data/rich-card";
+          <code>{`import { RichCard } from "@/components/rich-card";
 
 export function Example() {
   return (

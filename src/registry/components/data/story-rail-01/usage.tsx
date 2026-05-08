@@ -25,7 +25,7 @@ export default function StoryRail01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal usage</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { StoryRail01 } from "@/registry/components/data/story-rail-01";
+        <code>{`import { StoryRail01 } from "@/components/story-rail-01";
 
 <StoryRail01
   items={stories}
@@ -40,7 +40,7 @@ export default function StoryRail01Usage() {
         <code>{`import {
   StoryRail01,
   AddStoryThumbnail,
-} from "@/registry/components/data/story-rail-01";
+} from "@/components/story-rail-01";
 
 <StoryRail01
   items={stories}
@@ -59,7 +59,7 @@ export default function StoryRail01Usage() {
         <code>{`import type {
   Subscribe,
   StoryRailDelta,
-} from "@/registry/components/data/story-rail-01";
+} from "@/components/story-rail-01";
 
 const subscribe = useCallback<Subscribe<StoryRailDelta>>(
   (handler) => channel.on("stories", handler),
