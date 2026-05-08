@@ -2,7 +2,7 @@
 
 > **Date paused:** 2026-05-08
 > **Reason for handoff:** clean session boundary mid-Phase-2-checkpoint; user wants to continue in a fresh session as session 7b
-> **Last commit:** `829863f` — "review(sweep): close F-cross-09; spin out F-cross-10; session-7 row"
+> **Last commit:** `edecbc3` — "chore(reviews): handoff doc for sweep-session-7 pause" (this doc + tracker Phase-2 row)
 > **Branch:** `master` (all session-7 commits PUSHED to `origin/master`; nothing in-flight locally)
 > **Working tree:** clean except `.claude/settings.local.json` (intentionally untracked)
 
@@ -12,7 +12,7 @@
 
 We're now **7 sessions** into a 13-session **procomp review sweep**. **Tier 1 is COMPLETE (9/9)** and **session 7 Phases 1+2 are CLOSED** — 4 of the 9 cross-cutting findings resolved this session, 5 commits pushed to `master`.
 
-**Total findings to date:** 53 component-level findings + **5 of 9** cross-cutting findings now CLOSED:
+**Total findings to date:** 53 component-level findings + 10 cross-cutting findings (the original 9 plus F-cross-10 spun out this session). **5 closed in session 7:**
 - ✅ F-cross-03 closed (flow-canvas-01 shipped)
 - ✅ F-cross-05 closed (44 bare-name refs namespaced; scope expanded)
 - ✅ F-cross-06 closed (37 usage.tsx files normalized)
@@ -53,10 +53,11 @@ The master plan and live state live in:
 - `feedback_dynamicity_reusability_primacy.md` — open API surfaces; "add it later" is breaking
 - `feedback_no_schedule_offers.md` — DO NOT offer `/schedule`
 - `feedback_dont_clear_turbopack_cache_live.md` — never clear turbopack cache while dev server is running
+- `feedback_audit_systematic_scope_before_committing.md` — **NEW (session 7)**: when an F-cross finding says "fix N carriers," programmatically scan for the same shape across the entire surface BEFORE committing; expand-in-same-commit when additional sites are mechanically identical (s7 F-cross-05 went 4 carriers → 44 sites this way)
 - `project_force_graph_frozen.md` — force-graph removed 2026-05-08; don't propose v3 work
 - `project_renderer_registry_pattern.md` — host-pattern confirmed across 3 host components
 - `project_richtext_substrate.md` — Plate + CodeMirror substrates
-- `project_registry_live.md` — registry distribution conventions
+- `project_registry_live.md` — registry distribution conventions (component count drifts; read `registry.json` for current shape — updated session 7)
 
 ---
 
@@ -305,7 +306,7 @@ b5ad5d6 review(sweep): session 5 consistency fixes
 f4fbf3f review(workspace + markdown-editor): v0.1 + v0.1 sweep session 5
 ```
 
-All 14 sweep commits since `7263286` pushed to `origin/master` 2026-05-08.
+All 15 sweep commits since `7263286` pushed to `origin/master` 2026-05-08.
 
 ---
 
