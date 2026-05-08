@@ -41,10 +41,10 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.4.0",
+  version: "0.4.1",
   status: "beta",
   createdAt: "2026-04-28",
-  updatedAt: "2026-04-28",
+  updatedAt: "2026-05-09",
 
   author: { name: "ilinxa" },
 

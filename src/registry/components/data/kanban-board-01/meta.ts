@@ -30,10 +30,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["kanban", "board", "drag-and-drop", "dnd-kit", "swimlanes", "columns", "tasks", "rich-card"],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-05-05",
-  updatedAt: "2026-05-06",
+  updatedAt: "2026-05-09",
 
   author: { name: "ilinxa" },
 
@@ -46,7 +46,6 @@ export const meta: ComponentMeta = {
       "input",
       "popover",
       "textarea",
-      
     ],
     npm: {
       "@dnd-kit/core": "^6.3.1",

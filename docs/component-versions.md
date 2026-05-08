@@ -2,7 +2,7 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-08** (refreshed after force-graph removal)
+> Snapshot date: **2026-05-09** (refreshed after Phase 5 v0.1.1 patches across 8 Tier 1 components)
 > Total: **36 components** across 6 categories
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
@@ -31,18 +31,18 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 | Slug                    | Name                       | Version | Status |
 |-------------------------|----------------------------|---------|--------|
-| `rich-card`             | Rich Card                  | 0.4.0   | beta   |
+| `rich-card`             | Rich Card                  | 0.4.1   | beta   |
 | `article-body-01`       | Article Body 01            | 0.2.0   | alpha  |
-| `kanban-board-01`       | Kanban Board 01            | 0.2.0   | alpha  |
+| `kanban-board-01`       | Kanban Board 01            | 0.2.1   | alpha  |
 | `engagement-bar-01`     | Engagement Bar 01          | 0.1.1   | alpha  |
 | `post-card-01`          | Post Card 01               | 0.1.1   | alpha  |
 | `article-meta-01`       | Article Meta 01            | 0.1.0   | alpha  |
 | `comment-thread-01`     | Comment Thread 01          | 0.1.0   | alpha  |
 | `content-card-news-01`  | Content Card (News 01)     | 0.1.0   | alpha  |
-| `data-table`            | Data Table                 | 0.1.0   | alpha  |
+| `data-table`            | Data Table                 | 0.1.1   | alpha  |
 | `event-card-01`         | Event Card 01              | 0.1.0   | alpha  |
 | `expandable-text-01`    | Expandable Text 01         | 0.1.0   | alpha  |
-| `flow-canvas-01`        | Flow Canvas                | 0.1.0   | alpha  |
+| `flow-canvas-01`        | Flow Canvas                | 0.1.1   | alpha  |
 | `info-list-01`          | Info List 01               | 0.1.0   | alpha  |
 | `people-grid-01`        | People Grid 01             | 0.1.0   | alpha  |
 | `progress-timeline-01`  | Progress Timeline 01       | 0.1.0   | alpha  |
@@ -57,18 +57,18 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | Slug                | Name              | Version | Status |
 |---------------------|-------------------|---------|--------|
 | `category-cloud-01` | Category Cloud 01 | 0.1.0   | alpha  |
-| `entity-picker`     | Entity Picker     | 0.1.0   | alpha  |
+| `entity-picker`     | Entity Picker     | 0.1.1   | alpha  |
 | `filter-bar-01`     | Filter Bar 01     | 0.1.0   | alpha  |
 | `filter-stack`      | Filter Stack      | 0.1.0   | alpha  |
-| `markdown-editor`   | Markdown Editor   | 0.1.0   | alpha  |
-| `properties-form`   | Properties Form   | 0.1.0   | alpha  |
+| `markdown-editor`   | Markdown Editor   | 0.1.1   | alpha  |
+| `properties-form`   | Properties Form   | 0.1.1   | alpha  |
 
 ## layout (2)
 
 | Slug                  | Name                    | Version | Status |
 |-----------------------|-------------------------|---------|--------|
 | `grid-layout-news-01` | Grid Layout (News 01)   | 0.1.0   | alpha  |
-| `workspace`           | Workspace               | 0.1.0   | alpha  |
+| `workspace`           | Workspace               | 0.1.1   | alpha  |
 
 ## marketing (4)
 
