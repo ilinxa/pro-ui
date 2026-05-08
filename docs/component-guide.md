@@ -562,9 +562,16 @@ import { something } from "@/app/...";
 
 // ❌ Environment access
 const token = process.env.API_TOKEN;       // → take config as a prop
+
+// ✅ Allowed exception: dev-warn gates compile-stripped from production
+if (process.env.NODE_ENV !== "production") {
+  console.warn("Component received an invalid prop");
+}
 ```
 
 > If you reach for a `next/*` import, the component is in the wrong folder.
+
+> **`process.env.NODE_ENV` dev-warn gates are explicitly allowed.** Webpack, Rollup, Turbopack, esbuild, and Vite all compile-out the gated branch in production builds, so the runtime cost in a published package is zero. Use this for dev-only `console.warn` / `console.error` calls or invariant assertions. Anything else (`process.env.API_TOKEN`, `process.env.NEXT_PUBLIC_*`, etc.) remains banned. Precedent: [`docs/procomps/entity-picker-procomp/entity-picker-procomp-plan.md`](procomps/entity-picker-procomp/entity-picker-procomp-plan.md) §12.5 #5 was the first procomp plan to lock this gate as a deliberate design choice; the rule was relaxed in the session-7 mid-sweep checkpoint to align with that precedent (F-cross-08).
 
 ### How to dodge each ban
 
@@ -573,7 +580,7 @@ const token = process.env.API_TOKEN;       // → take config as a prop
 | Navigation link | `next/link` | `href: string` prop, render `<a>` |
 | Images | `next/image` | `src: string` prop, render `<img>` |
 | Routing actions | `next/navigation` `useRouter` | `onSelect` / `onClick` callback prop |
-| Server-only data | `process.env`, `next/headers` | Pass config via props |
+| Server-only data | `process.env.X` (except `NODE_ENV`), `next/headers` | Pass config via props. `NODE_ENV` dev-warn gates are allowed (see note above). |
 | Browser APIs | `window`, `document` at module scope | `useEffect` inside, with `"use client"` |
 
 ---
@@ -1153,7 +1160,7 @@ Five families of violations. Each as **violation → why it breaks → what to d
 | `import Image from "next/image"` | Same | Take `src: string` as prop, render `<img>`; consumer wraps |
 | `import { useRouter } from "next/navigation"` | Server/client coupling, won't work outside Next | Expose `onSelect` / `onClick` callback; consumer wires routing |
 | `import { ... } from "@/components/site/*"` | App-chrome leak — those are intentionally app-specific | Don't. Those are off-limits to registry code |
-| `process.env.X` | Won't work in a published package | Take config as a prop |
+| `process.env.X` (except `NODE_ENV`) | Won't work in a published package | Take config as a prop. `process.env.NODE_ENV` dev-warn gates are allowed — bundlers compile-strip the gated branch in production. See §7 portability rules. |
 
 ### Design system violations
 
