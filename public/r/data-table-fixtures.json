@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Data Table bundle including the dummy-data fixtures used by the docs-site demo. Resolves the base data-table item automatically.",
   "registryDependencies": [
-    "data-table"
+    "@ilinxa/data-table"
   ],
   "files": [
     {

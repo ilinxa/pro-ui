@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Registration Card 01 bundle including the dummy-data fixtures (5 capacity-state samples + Turkish + fundraising relabels).",
   "registryDependencies": [
-    "registration-card-01"
+    "@ilinxa/registration-card-01"
   ],
   "files": [
     {

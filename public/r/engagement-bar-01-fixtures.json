@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Engagement Bar 01 bundle including the dummy-data fixtures (post / news-card / video-overlay action sets, sample like users, and a synthetic createDummySubscribe for sandbox realtime demos).",
   "registryDependencies": [
-    "engagement-bar-01"
+    "@ilinxa/engagement-bar-01"
   ],
   "files": [
     {

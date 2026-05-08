@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Rich Card bundle including the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
-    "rich-card"
+    "@ilinxa/rich-card"
   ],
   "files": [
     {

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Kanban Board 01 bundle including the dummy-data fixtures used by the docs-site demo (4 columns covering todo / doing / blocked / done, 2 swimlanes, mixed card + note items, 1 locked item, color-coded columns, soft maxItems cap, acceptsRendererIds restriction).",
   "registryDependencies": [
-    "kanban-board-01"
+    "@ilinxa/kanban-board-01"
   ],
   "files": [
     {

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Article Meta 01 bundle including the dummy-data fixtures (5 sample item sets covering article header / centered / docs / video / text-only).",
   "registryDependencies": [
-    "article-meta-01"
+    "@ilinxa/article-meta-01"
   ],
   "files": [
     {

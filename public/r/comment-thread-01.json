@@ -8,8 +8,8 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "expandable-text-01",
-    "engagement-bar-01",
+    "@ilinxa/expandable-text-01",
+    "@ilinxa/engagement-bar-01",
     "avatar",
     "button",
     "dropdown-menu",

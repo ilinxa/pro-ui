@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Article Body 01 bundle including the dummy-data fixtures (5 sample article values — rich / simple / empty / table / code-block).",
   "registryDependencies": [
-    "article-body-01"
+    "@ilinxa/article-body-01"
   ],
   "files": [
     {

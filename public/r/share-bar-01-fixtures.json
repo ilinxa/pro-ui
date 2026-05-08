@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Share Bar 01 bundle including the dummy-data fixtures (4 sample target sets — default / full 9-platform / compact 2-target / Turkish).",
   "registryDependencies": [
-    "share-bar-01"
+    "@ilinxa/share-bar-01"
   ],
   "files": [
     {

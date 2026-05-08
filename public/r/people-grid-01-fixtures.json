@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "People Grid 01 bundle including the dummy-data fixtures (3 kasder speakers + 6-person team + 5-person initials-only board).",
   "registryDependencies": [
-    "people-grid-01"
+    "@ilinxa/people-grid-01"
   ],
   "files": [
     {

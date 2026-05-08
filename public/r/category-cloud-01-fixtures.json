@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Category Cloud 01 bundle including the dummy-data fixtures (Turkish + English category samples with counts).",
   "registryDependencies": [
-    "category-cloud-01"
+    "@ilinxa/category-cloud-01"
   ],
   "files": [
     {

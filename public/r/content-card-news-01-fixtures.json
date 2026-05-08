@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Content Card (News 01) bundle including the dummy-data fixtures (8 demo articles + sample categoryStyles map).",
   "registryDependencies": [
-    "content-card-news-01"
+    "@ilinxa/content-card-news-01"
   ],
   "files": [
     {

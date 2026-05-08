@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Expandable Text 01 bundle including the dummy-data fixtures (4 sample strings — short EN, long EN, short TR, long TR — for demo and smoke-test scenarios).",
   "registryDependencies": [
-    "expandable-text-01"
+    "@ilinxa/expandable-text-01"
   ],
   "files": [
     {

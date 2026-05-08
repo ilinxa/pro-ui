@@ -26,7 +26,7 @@
       "description": "Data Table bundle including the dummy-data fixtures used by the docs-site demo. Resolves the base data-table item automatically.",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["data-table"],
+      "registryDependencies": ["@ilinxa/data-table"],
       "files": [
         { "path": "src/registry/components/data/data-table/dummy-data.ts", "type": "registry:component", "target": "components/data-table/dummy-data.ts" }
       ]
@@ -110,7 +110,7 @@
       "description": "Rich Card bundle including the dummy-data fixtures used by the docs-site demo.",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["rich-card"],
+      "registryDependencies": ["@ilinxa/rich-card"],
       "files": [
         { "path": "src/registry/components/data/rich-card/dummy-data.ts", "type": "registry:component", "target": "components/rich-card/dummy-data.ts" }
       ]
@@ -158,7 +158,7 @@
       "description": "Workspace bundle including the dummy-data fixtures used by the docs-site demo.",
       "author": "ilinxa",
       "categories": ["layout", "fixtures"],
-      "registryDependencies": ["workspace"],
+      "registryDependencies": ["@ilinxa/workspace"],
       "files": [
         { "path": "src/registry/components/layout/workspace/dummy-data.ts", "type": "registry:component", "target": "components/workspace/dummy-data.ts" }
       ]
@@ -205,7 +205,7 @@
       "description": "Properties Form bundle including the dummy-data fixtures used by the docs-site demo.",
       "author": "ilinxa",
       "categories": ["forms", "graph-system", "fixtures"],
-      "registryDependencies": ["properties-form"],
+      "registryDependencies": ["@ilinxa/properties-form"],
       "files": [
         { "path": "src/registry/components/forms/properties-form/dummy-data.ts", "type": "registry:component", "target": "components/properties-form/dummy-data.ts" }
       ]
@@ -245,7 +245,7 @@
       "description": "Detail Panel bundle including the dummy-data fixtures used by the docs-site demo.",
       "author": "ilinxa",
       "categories": ["feedback", "graph-system", "fixtures"],
-      "registryDependencies": ["detail-panel"],
+      "registryDependencies": ["@ilinxa/detail-panel"],
       "files": [
         { "path": "src/registry/components/feedback/detail-panel/dummy-data.ts", "type": "registry:component", "target": "components/detail-panel/dummy-data.ts" }
       ]
@@ -288,7 +288,7 @@
       "description": "Filter Stack bundle including the dummy-data fixtures used by the docs-site demo.",
       "author": "ilinxa",
       "categories": ["forms", "graph-system", "fixtures"],
-      "registryDependencies": ["filter-stack"],
+      "registryDependencies": ["@ilinxa/filter-stack"],
       "files": [
         { "path": "src/registry/components/forms/filter-stack/dummy-data.ts", "type": "registry:component", "target": "components/filter-stack/dummy-data.ts" }
       ]
@@ -328,7 +328,7 @@
       "description": "Entity Picker bundle including the dummy-data fixtures used by the docs-site demo.",
       "author": "ilinxa",
       "categories": ["forms", "graph-system", "fixtures"],
-      "registryDependencies": ["entity-picker"],
+      "registryDependencies": ["@ilinxa/entity-picker"],
       "files": [
         { "path": "src/registry/components/forms/entity-picker/dummy-data.ts", "type": "registry:component", "target": "components/entity-picker/dummy-data.ts" }
       ]
@@ -390,7 +390,7 @@
       "description": "Markdown Editor bundle including the dummy-data fixtures (12-node graph fixture for wikilink demos).",
       "author": "ilinxa",
       "categories": ["forms", "graph-system", "fixtures"],
-      "registryDependencies": ["markdown-editor"],
+      "registryDependencies": ["@ilinxa/markdown-editor"],
       "files": [
         { "path": "src/registry/components/forms/markdown-editor/dummy-data.ts", "type": "registry:component", "target": "components/markdown-editor/dummy-data.ts" }
       ]
@@ -426,7 +426,7 @@
       "description": "Content Card (News 01) bundle including the dummy-data fixtures (8 demo articles + sample categoryStyles map).",
       "author": "ilinxa",
       "categories": ["data", "news", "fixtures"],
-      "registryDependencies": ["content-card-news-01"],
+      "registryDependencies": ["@ilinxa/content-card-news-01"],
       "files": [
         { "path": "src/registry/components/data/content-card-news-01/dummy-data.ts", "type": "registry:component", "target": "components/content-card-news-01/dummy-data.ts" }
       ]
@@ -459,7 +459,7 @@
       "description": "Newsletter Card 01 bundle including the dummy-data fixtures (Turkish labels + fake submit handlers for demo).",
       "author": "ilinxa",
       "categories": ["marketing", "fixtures"],
-      "registryDependencies": ["newsletter-card-01"],
+      "registryDependencies": ["@ilinxa/newsletter-card-01"],
       "files": [
         { "path": "src/registry/components/marketing/newsletter-card-01/dummy-data.ts", "type": "registry:component", "target": "components/newsletter-card-01/dummy-data.ts" }
       ]
@@ -489,7 +489,7 @@
       "description": "Category Cloud 01 bundle including the dummy-data fixtures (Turkish + English category samples with counts).",
       "author": "ilinxa",
       "categories": ["forms", "fixtures"],
-      "registryDependencies": ["category-cloud-01"],
+      "registryDependencies": ["@ilinxa/category-cloud-01"],
       "files": [
         { "path": "src/registry/components/forms/category-cloud-01/dummy-data.ts", "type": "registry:component", "target": "components/category-cloud-01/dummy-data.ts" }
       ]
@@ -522,7 +522,7 @@
       "description": "Filter Bar 01 bundle including the dummy-data fixtures (Turkish labels + Turkish-locale date-range formatter).",
       "author": "ilinxa",
       "categories": ["forms", "fixtures"],
-      "registryDependencies": ["filter-bar-01"],
+      "registryDependencies": ["@ilinxa/filter-bar-01"],
       "files": [
         { "path": "src/registry/components/forms/filter-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/filter-bar-01/dummy-data.ts" }
       ]
@@ -552,7 +552,7 @@
       "description": "Page Hero (News 01) bundle including the dummy-data fixtures (English + Turkish defaults + 3-stat row content).",
       "author": "ilinxa",
       "categories": ["marketing", "news", "fixtures"],
-      "registryDependencies": ["page-hero-news-01"],
+      "registryDependencies": ["@ilinxa/page-hero-news-01"],
       "files": [
         { "path": "src/registry/components/marketing/page-hero-news-01/dummy-data.ts", "type": "registry:component", "target": "components/page-hero-news-01/dummy-data.ts" }
       ]
@@ -585,7 +585,7 @@
       "description": "Grid Layout (News 01) bundle including the dummy-data fixtures (14 demo articles for the magazine tower + featured demo).",
       "author": "ilinxa",
       "categories": ["layout", "news", "fixtures"],
-      "registryDependencies": ["grid-layout-news-01"],
+      "registryDependencies": ["@ilinxa/grid-layout-news-01"],
       "files": [
         { "path": "src/registry/components/layout/grid-layout-news-01/dummy-data.ts", "type": "registry:component", "target": "components/grid-layout-news-01/dummy-data.ts" }
       ]
@@ -616,7 +616,7 @@
       "description": "Author Card 01 bundle including the dummy-data fixtures (5 sample authors covering image / no-image / collective / clickable / Turkish).",
       "author": "ilinxa",
       "categories": ["marketing", "fixtures"],
-      "registryDependencies": ["author-card-01"],
+      "registryDependencies": ["@ilinxa/author-card-01"],
       "files": [
         { "path": "src/registry/components/marketing/author-card-01/dummy-data.ts", "type": "registry:component", "target": "components/author-card-01/dummy-data.ts" }
       ]
@@ -647,7 +647,7 @@
       "description": "Thumb List 01 bundle including the dummy-data fixtures (3 sets — default / Turkish / dated for renderMeta example).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["thumb-list-01"],
+      "registryDependencies": ["@ilinxa/thumb-list-01"],
       "files": [
         { "path": "src/registry/components/data/thumb-list-01/dummy-data.ts", "type": "registry:component", "target": "components/thumb-list-01/dummy-data.ts" }
       ]
@@ -677,7 +677,7 @@
       "description": "Article Meta 01 bundle including the dummy-data fixtures (5 sample item sets covering article header / centered / docs / video / text-only).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["article-meta-01"],
+      "registryDependencies": ["@ilinxa/article-meta-01"],
       "files": [
         { "path": "src/registry/components/data/article-meta-01/dummy-data.ts", "type": "registry:component", "target": "components/article-meta-01/dummy-data.ts" }
       ]
@@ -710,7 +710,7 @@
       "description": "Share Bar 01 bundle including the dummy-data fixtures (4 sample target sets — default / full 9-platform / compact 2-target / Turkish).",
       "author": "ilinxa",
       "categories": ["marketing", "fixtures"],
-      "registryDependencies": ["share-bar-01"],
+      "registryDependencies": ["@ilinxa/share-bar-01"],
       "files": [
         { "path": "src/registry/components/marketing/share-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/share-bar-01/dummy-data.ts" }
       ]
@@ -767,7 +767,7 @@
       "description": "Article Body 01 bundle including the dummy-data fixtures (5 sample article values — rich / simple / empty / table / code-block).",
       "author": "ilinxa",
       "categories": ["data", "richtext", "fixtures"],
-      "registryDependencies": ["article-body-01"],
+      "registryDependencies": ["@ilinxa/article-body-01"],
       "files": [
         { "path": "src/registry/components/data/article-body-01/dummy-data.ts", "type": "registry:component", "target": "components/article-body-01/dummy-data.ts" }
       ]
@@ -906,7 +906,7 @@
       "description": "Expandable Text 01 bundle including the dummy-data fixtures (4 sample strings — short EN, long EN, short TR, long TR — for demo and smoke-test scenarios).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["expandable-text-01"],
+      "registryDependencies": ["@ilinxa/expandable-text-01"],
       "files": [
         { "path": "src/registry/components/data/expandable-text-01/dummy-data.ts", "type": "registry:component", "target": "components/expandable-text-01/dummy-data.ts" }
       ]
@@ -939,7 +939,7 @@
       "description": "Video Player 01 bundle including the dummy-data fixtures (5 royalty-free Pexels video URLs + a sample WebVTT track entry for caption demos).",
       "author": "ilinxa",
       "categories": ["media", "fixtures"],
-      "registryDependencies": ["video-player-01"],
+      "registryDependencies": ["@ilinxa/video-player-01"],
       "files": [
         { "path": "src/registry/components/media/video-player-01/dummy-data.ts", "type": "registry:component", "target": "components/video-player-01/dummy-data.ts" }
       ]
@@ -952,7 +952,7 @@
       "description": "Embla-driven image+video carousel with two variants (gallery peek-scale / linear snap). Composes video-player-01 for video items via the isActive contract — first cross-folder import in the registry; videos in inactive slides pause cleanly. Single-item shortcut bypasses Embla. Built-in image + video handlers + renderItem slot. Imperative ref handle. Third ship in the social-posts-system arc.",
       "author": "ilinxa",
       "categories": ["media"],
-      "registryDependencies": ["video-player-01", "button"],
+      "registryDependencies": ["@ilinxa/video-player-01", "button"],
       "dependencies": ["embla-carousel-react", "embla-carousel", "lucide-react"],
       "files": [
         { "path": "src/registry/components/media/media-carousel-01/media-carousel-01.tsx", "type": "registry:component", "target": "components/media-carousel-01/media-carousel-01.tsx" },
@@ -974,7 +974,7 @@
       "description": "Media Carousel 01 bundle including the dummy-data fixtures (mixed image+video set for kasder gallery demo, photos-only product gallery set, and single-item samples).",
       "author": "ilinxa",
       "categories": ["media", "fixtures"],
-      "registryDependencies": ["media-carousel-01"],
+      "registryDependencies": ["@ilinxa/media-carousel-01"],
       "files": [
         { "path": "src/registry/components/media/media-carousel-01/dummy-data.ts", "type": "registry:component", "target": "components/media-carousel-01/dummy-data.ts" }
       ]
@@ -1014,7 +1014,7 @@
       "description": "Engagement Bar 01 bundle including the dummy-data fixtures (post / news-card / video-overlay action sets, sample like users, and a synthetic createDummySubscribe for sandbox realtime demos).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["engagement-bar-01"],
+      "registryDependencies": ["@ilinxa/engagement-bar-01"],
       "files": [
         { "path": "src/registry/components/data/engagement-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/engagement-bar-01/dummy-data.ts" }
       ]
@@ -1028,8 +1028,8 @@
       "author": "ilinxa",
       "categories": ["data"],
       "registryDependencies": [
-        "expandable-text-01",
-        "engagement-bar-01",
+        "@ilinxa/expandable-text-01",
+        "@ilinxa/engagement-bar-01",
         "avatar",
         "button",
         "dropdown-menu",
@@ -1058,7 +1058,7 @@
       "description": "Comment Thread 01 bundle including dummy-data fixtures (flat / nested-depth-2 / nested-depth-3 / large-paginated comment trees, viewer fixture, page generator, and a synthetic createDummySubscribe for sandbox realtime demos).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["comment-thread-01"],
+      "registryDependencies": ["@ilinxa/comment-thread-01"],
       "files": [
         { "path": "src/registry/components/data/comment-thread-01/dummy-data.ts", "type": "registry:component", "target": "components/comment-thread-01/dummy-data.ts" }
       ]
@@ -1072,11 +1072,11 @@
       "author": "ilinxa",
       "categories": ["data"],
       "registryDependencies": [
-        "expandable-text-01",
-        "video-player-01",
-        "media-carousel-01",
-        "engagement-bar-01",
-        "comment-thread-01",
+        "@ilinxa/expandable-text-01",
+        "@ilinxa/video-player-01",
+        "@ilinxa/media-carousel-01",
+        "@ilinxa/engagement-bar-01",
+        "@ilinxa/comment-thread-01",
         "https://ui.shadcn.com/r/styles/new-york/avatar.json",
         "https://ui.shadcn.com/r/styles/new-york/button.json",
         "https://ui.shadcn.com/r/styles/new-york/card.json",
@@ -1107,7 +1107,7 @@
       "description": "Post Card 01 bundle including dummy-data fixtures (text-only / single-image / multi-image / video / mixed-media / featured / long-text posts, detail-mode comment thread, viewer, and synthetic engagement + comment subscribe factories for sandbox realtime demos).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["post-card-01"],
+      "registryDependencies": ["@ilinxa/post-card-01"],
       "files": [
         { "path": "src/registry/components/data/post-card-01/dummy-data.ts", "type": "registry:component", "target": "components/post-card-01/dummy-data.ts" }
       ]
@@ -1141,7 +1141,7 @@
       "description": "Story Rail 01 bundle including dummy-data fixtures (7 mock users matching kasder verbatim, viewer-avatar fixture, and a synthetic createDummyStoryRailSubscribe for sandbox realtime demos).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["story-rail-01"],
+      "registryDependencies": ["@ilinxa/story-rail-01"],
       "files": [
         { "path": "src/registry/components/data/story-rail-01/dummy-data.ts", "type": "registry:component", "target": "components/story-rail-01/dummy-data.ts" }
       ]
@@ -1155,7 +1155,7 @@
       "author": "ilinxa",
       "categories": ["media"],
       "registryDependencies": [
-        "video-player-01",
+        "@ilinxa/video-player-01",
         "https://ui.shadcn.com/r/styles/new-york/dialog.json",
         "https://ui.shadcn.com/r/styles/new-york/avatar.json",
         "https://ui.shadcn.com/r/styles/new-york/button.json"
@@ -1185,7 +1185,7 @@
       "description": "Story Viewer 01 bundle including dummy-data fixtures (3 mock stories with mixed image+video items; w3schools video URLs matching kasder verbatim).",
       "author": "ilinxa",
       "categories": ["media", "fixtures"],
-      "registryDependencies": ["story-viewer-01"],
+      "registryDependencies": ["@ilinxa/story-viewer-01"],
       "files": [
         { "path": "src/registry/components/media/story-viewer-01/dummy-data.ts", "type": "registry:component", "target": "components/story-viewer-01/dummy-data.ts" }
       ]
@@ -1198,7 +1198,7 @@
       "description": "Registration Card 01 bundle including the dummy-data fixtures (5 capacity-state samples + Turkish + fundraising relabels).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["registration-card-01"],
+      "registryDependencies": ["@ilinxa/registration-card-01"],
       "files": [
         { "path": "src/registry/components/data/registration-card-01/dummy-data.ts", "type": "registry:component", "target": "components/registration-card-01/dummy-data.ts" }
       ]
@@ -1211,7 +1211,7 @@
       "description": "People Grid 01 bundle including the dummy-data fixtures (3 kasder speakers + 6-person team + 5-person initials-only board).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["people-grid-01"],
+      "registryDependencies": ["@ilinxa/people-grid-01"],
       "files": [
         { "path": "src/registry/components/data/people-grid-01/dummy-data.ts", "type": "registry:component", "target": "components/people-grid-01/dummy-data.ts" }
       ]
@@ -1224,7 +1224,7 @@
       "description": "Info List 01 bundle including the dummy-data fixtures (English + Turkish parallel arrays for Event Details + Contact patterns).",
       "author": "ilinxa",
       "categories": ["data", "fixtures"],
-      "registryDependencies": ["info-list-01"],
+      "registryDependencies": ["@ilinxa/info-list-01"],
       "files": [
         { "path": "src/registry/components/data/info-list-01/dummy-data.tsx", "type": "registry:component", "target": "components/info-list-01/dummy-data.tsx" }
       ]
@@ -1237,7 +1237,7 @@
       "description": "Progress Timeline 01 bundle including the dummy-data fixtures (3 timeline shapes — before / active / after — plus a fixed dummyNow reference for deterministic SSR).",
       "author": "ilinxa",
       "categories": ["data", "events", "fixtures"],
-      "registryDependencies": ["progress-timeline-01"],
+      "registryDependencies": ["@ilinxa/progress-timeline-01"],
       "files": [
         { "path": "src/registry/components/data/progress-timeline-01/dummy-data.ts", "type": "registry:component", "target": "components/progress-timeline-01/dummy-data.ts" }
       ]
@@ -1250,7 +1250,7 @@
       "description": "Schedule List 01 bundle including the dummy-data fixtures (English + Turkish parallel 6-item schedules with icon / time-range / href samples).",
       "author": "ilinxa",
       "categories": ["data", "events", "fixtures"],
-      "registryDependencies": ["schedule-list-01"],
+      "registryDependencies": ["@ilinxa/schedule-list-01"],
       "files": [
         { "path": "src/registry/components/data/schedule-list-01/dummy-data.ts", "type": "registry:component", "target": "components/schedule-list-01/dummy-data.ts" }
       ]
@@ -1263,7 +1263,7 @@
       "description": "Event Card 01 bundle including the dummy-data fixtures (8 events covering all 6 statuses + Turkish-localized parallel array + 4 type-style maps + dummyNow reference date).",
       "author": "ilinxa",
       "categories": ["data", "events", "fixtures"],
-      "registryDependencies": ["event-card-01"],
+      "registryDependencies": ["@ilinxa/event-card-01"],
       "files": [
         { "path": "src/registry/components/data/event-card-01/dummy-data.ts", "type": "registry:component", "target": "components/event-card-01/dummy-data.ts" }
       ]
@@ -1296,7 +1296,7 @@
       "description": "Project Card 01 bundle including the dummy-data fixtures (6 projects covering all 3 statuses + featured + image-fallback edge + Turkish-localized parallel array + 2 category-style maps + Turkish labels).",
       "author": "ilinxa",
       "categories": ["data", "projects", "fixtures"],
-      "registryDependencies": ["project-card-01"],
+      "registryDependencies": ["@ilinxa/project-card-01"],
       "files": [
         { "path": "src/registry/components/data/project-card-01/dummy-data.ts", "type": "registry:component", "target": "components/project-card-01/dummy-data.ts" }
       ]
@@ -1366,7 +1366,7 @@
       "description": "Kanban Board 01 bundle including the dummy-data fixtures used by the docs-site demo (4 columns covering todo / doing / blocked / done, 2 swimlanes, mixed card + note items, 1 locked item, color-coded columns, soft maxItems cap, acceptsRendererIds restriction).",
       "author": "ilinxa",
       "categories": ["data", "kanban", "fixtures"],
-      "registryDependencies": ["kanban-board-01"],
+      "registryDependencies": ["@ilinxa/kanban-board-01"],
       "files": [
         { "path": "src/registry/components/data/kanban-board-01/dummy-data.ts", "type": "registry:component", "target": "components/kanban-board-01/dummy-data.ts" }
       ]

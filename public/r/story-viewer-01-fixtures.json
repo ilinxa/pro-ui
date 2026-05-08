@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Story Viewer 01 bundle including dummy-data fixtures (3 mock stories with mixed image+video items; w3schools video URLs matching kasder verbatim).",
   "registryDependencies": [
-    "story-viewer-01"
+    "@ilinxa/story-viewer-01"
   ],
   "files": [
     {

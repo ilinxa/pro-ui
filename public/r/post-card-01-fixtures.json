@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Post Card 01 bundle including dummy-data fixtures (text-only / single-image / multi-image / video / mixed-media / featured / long-text posts, detail-mode comment thread, viewer, and synthetic engagement + comment subscribe factories for sandbox realtime demos).",
   "registryDependencies": [
-    "post-card-01"
+    "@ilinxa/post-card-01"
   ],
   "files": [
     {
