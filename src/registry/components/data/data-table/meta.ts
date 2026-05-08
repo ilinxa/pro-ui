@@ -30,5 +30,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: [],
+  related: ["kanban-board-01", "workspace", "rich-card"],
 };

@@ -37,5 +37,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["detail-panel", "rich-card"],
+  related: ["detail-panel", "entity-picker", "filter-stack", "markdown-editor", "rich-card"],
 };

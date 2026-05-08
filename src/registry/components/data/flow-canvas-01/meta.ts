@@ -41,10 +41,13 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: [],
-    npm: { "@xyflow/react": "^12.10.2" },
+    shadcn: ["button", "context-menu", "dialog", "textarea"],
+    npm: {
+      "@xyflow/react": "^12.10.2",
+      "lucide-react": "^1.11.0",
+    },
     internal: [],
   },
 
-  related: ["force-graph", "kanban-board-01", "workspace"],
+  related: ["kanban-board-01", "workspace"],
 };

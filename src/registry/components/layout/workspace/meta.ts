@@ -32,5 +32,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: [],
+  related: ["data-table", "kanban-board-01", "flow-canvas-01"],
 };

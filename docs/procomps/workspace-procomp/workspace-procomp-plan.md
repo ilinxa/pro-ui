@@ -82,9 +82,11 @@ type Action =
   | { type: "merge";  survivorId: string; absorbedId: string }
   | { type: "resize"; splitPath: number[]; ratio: number }
   | { type: "swap";   areaId: string; componentId: string }
-  | { type: "preset"; presetId: string }
+  | { type: "focus";  areaId: string | null }
   | { type: "replace-tree"; tree: AreaTree };
 ```
+
+> **Implementation note (post-v0.1 review):** the reducer keeps preset-switching out of the action union — switching a preset dispatches `replace-tree` with the preset's `layout`, so the reducer stays purely structural. The `focus` action carries the keyboard-tracked focused area into reducer-owned state (`focusedAreaId`), so commands like split/merge can read it without prop-drilling.
 
 **Defaults:**
 - `minAreaSize`: `{ width: 120, height: 80 }`
@@ -223,7 +225,7 @@ dragging  (cursor: crosshair)
 Per Q-from-description-Q5 (AA accessibility): mouse gestures alone fail. Keyboard contract for v0.1:
 
 - Focus an area: `Tab` cycles areas in tree-traversal order.
-- `Alt+Enter` on focused area: opens an "Area actions" menu (a shadcn `DropdownMenu` rooted at the area header).
+- An always-visible chevron button on the focused area's header opens the "Area actions" menu (a shadcn `DropdownMenu` rooted at the area header). Activated via mouse or `Tab → Enter` on the chevron itself.
   - Split horizontal → dispatch split action
   - Split vertical → dispatch split action
   - Merge with neighbor → opens submenu (Up/Down/Left/Right) listing valid merge targets
@@ -231,7 +233,7 @@ Per Q-from-description-Q5 (AA accessibility): mouse gestures alone fail. Keyboar
   - Close
 - `Alt+Shift+ArrowKeys` on focused area: resize the boundary in that direction by 8px (or a percent step).
 
-The Alt+Enter menu mirrors mouse gestures 1:1, so keyboard users have full functional parity. Flagged as Q-P4 — confirm key mappings.
+The chevron-menu mirrors mouse gestures 1:1, so keyboard users have full functional parity (focusing the chevron via `Tab` is the keyboard entry point). The previously-planned `Alt+Enter` power-user shortcut was deferred to v0.2 in favor of the always-visible chevron — discoverable for new users without requiring shortcut knowledge. Tracked in v0.1 review F-02; revisit in v0.2.
 
 ---
 
@@ -292,14 +294,15 @@ Everything else in the component folder stays server-safe:
 
 | Primitive | Used for |
 |---|---|
-| `dropdown-menu` | Component picker, area-actions menu (Alt+Enter) |
+| `dropdown-menu` | Component picker, area-actions menu |
 | `scroll-area` | Per-area scrollable viewport |
-| `separator` | Visual edges where needed |
 | `tabs` | Presets tab strip |
 
 `tabs` is **not yet installed**. Plan-step before scaffolding: `pnpm dlx shadcn@latest add tabs`. Flagged in §15 stage gate.
 
-`meta.ts` `dependencies.shadcn`: `["dropdown-menu", "scroll-area", "separator", "tabs"]`.
+`meta.ts` `dependencies.shadcn`: `["dropdown-menu", "scroll-area", "tabs"]`.
+
+> **Note (post-v0.1 review):** `separator` was originally planned for visual edges between areas but the implementation uses Tailwind border utilities instead. Struck from this table per F-04 of v0.1 review — kept the meta.ts in sync.
 
 ### npm peer deps
 

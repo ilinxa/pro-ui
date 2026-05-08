@@ -684,3 +684,25 @@ These are choices the description didn't explicitly lock; the plan stage commits
 16. **Stale-edge handling: silent drop + dev-warn** when `findPortInTree` cannot resolve a port that an edge references.
 
 These decisions can be revisited in a v0.2 plan but are frozen for v0.1.
+
+---
+
+## Implementation deviations (post-v0.1 review F-05)
+
+The implementation that shipped at v0.1.0 differs from the file-by-file plan in §4 in a few places. Plan was 35 files; as-built is 30. The deltas are deliberate consolidations made during implementation, not silent drift — recorded here for traceability.
+
+| Plan'd | As-built | Why |
+|---|---|---|
+| Three menu files (`canvas-menu.tsx`, `node-menu.tsx`, `edge-menu.tsx` in `parts/`) | One unified `parts/context-menu.tsx` dispatching by xyflow event target | Three menus shared 80%+ of structure; one parametric component is simpler than three near-duplicates. |
+| Hook for port walker + hook for connection validation (`hooks/use-port-walker.ts`, `hooks/use-connection-validator.ts`) | Pure functions in `lib/ports.ts` and `lib/validation.ts`; consumed inline | These didn't need React state or effects — `lib/` is the right home; hooks were over-modeling. |
+| `parts/edge-adapter.tsx` to dispatch on `__type` to consumer edges | Built-in smoothstep + a single `'ilinxa-edge'` xyflow type with `data.__type` carried through | Consumer edge dispatch deferred to v0.2 (out-of-scope for v0.1 per description §2). The adapter became unnecessary. |
+| `parts/controls.tsx` with custom Controls override matching design tokens | Not authored. Relies on xyflow's default `<Controls />` styled via `--xy-controls-*` CSS variables in `globals.css`. Visual gap on the bottom-left edge of the controls panel is acknowledged. | Theming via CSS variables turned out sufficient for v0.1. v0.2 may revisit if the gap becomes a design concern. |
+
+Net effect on the file count breakdown:
+- 1 root (`flow-canvas-01.tsx`)
+- 13 parts (was 14; menu consolidation)
+- 5 hooks (was 7; two migrated to `lib/`)
+- 4 registries (renderers, port-types, edge-types, custom-json)
+- 7 lib (was 5; gained 2 from hook migration)
+- 6 fixed (`types.ts`, `dummy-data.ts`, `demo.tsx`, `usage.tsx`, `meta.ts`, `index.ts`)
+- **Total: 30** (— `controls.tsx` not authored).
