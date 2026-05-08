@@ -5,7 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { DEFAULT_PALETTE, findSwatch, swatchCssColor } from "../lib/palette";
 import type { KanbanCardRenderer, KanbanNoteData, KanbanRenderContext } from "../types";
+
+// `data.color` keys into the kanban palette (KanbanNoteData.color); default
+// "amber" preserves the v0.1 visual (amber-tinted note) but via the swatch's
+// --chart-1 token instead of hardcoded `amber-*` Tailwind classes — keeps the
+// component honest to the project's design-system mandate. Consumers using a
+// custom board-level `palette` prop see DEFAULT_PALETTE here in v0.2.1; full
+// palette propagation through `KanbanRenderContext` is a v0.3 follow-up
+// (would be additive — no breaking change).
+const NOTE_FALLBACK_COLOR_ID = "amber";
 
 export function KanbanNoteView({
   data,
@@ -14,17 +24,19 @@ export function KanbanNoteView({
   data: KanbanNoteData;
   ctx: KanbanRenderContext;
 }) {
+  const swatch = findSwatch(DEFAULT_PALETTE, data.color ?? NOTE_FALLBACK_COLOR_ID);
+  const accentColor = swatchCssColor(swatch);
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 rounded-md border-l-2 border-l-amber-500/60 border-y border-r border-border bg-amber-50/30 p-2.5",
-        "dark:bg-amber-950/20",
+        "flex flex-col gap-1 rounded-md border-l-2 border-y border-r border-border bg-muted/40 p-2.5",
         "transition-shadow",
         ctx.isDragging && "shadow-md",
         ctx.isLocked && "opacity-90",
       )}
+      style={accentColor ? { borderLeftColor: accentColor } : undefined}
     >
-      <span className="text-xs font-semibold tracking-wide uppercase text-amber-900 dark:text-amber-200">
+      <span className="text-xs font-semibold tracking-wide uppercase text-foreground">
         {data.title}
       </span>
       {data.body ? (
@@ -45,6 +57,8 @@ function KanbanNoteEditForm({
 }) {
   const [title, setTitle] = useState(data.title);
   const [body, setBody] = useState(data.body ?? "");
+  const swatch = findSwatch(DEFAULT_PALETTE, data.color ?? NOTE_FALLBACK_COLOR_ID);
+  const accentColor = swatchCssColor(swatch);
 
   function handleSave() {
     if (!title.trim()) return;
@@ -57,7 +71,8 @@ function KanbanNoteEditForm({
         e.preventDefault();
         handleSave();
       }}
-      className="flex flex-col gap-2 rounded-md border-l-2 border-l-amber-500/60 border-y border-r border-border bg-amber-50/30 p-2.5 dark:bg-amber-950/20"
+      className="flex flex-col gap-2 rounded-md border-l-2 border-y border-r border-border bg-muted/40 p-2.5"
+      style={accentColor ? { borderLeftColor: accentColor } : undefined}
     >
       <Input
         value={title}
