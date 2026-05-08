@@ -1370,6 +1370,58 @@
       "files": [
         { "path": "src/registry/components/data/kanban-board-01/dummy-data.ts", "type": "registry:component", "target": "components/kanban-board-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "flow-canvas-01",
+      "type": "registry:block",
+      "title": "Flow Canvas 01",
+      "description": "Node-and-edge canvas with typed ports, three keystone registries (renderer / port-type / edge-type), recursive sub-object rendering, and JSON-based save/load — built on @xyflow/react. Every node carries a __type field that keys into a renderer registry; unknown shapes fall back to a built-in custom-JSON renderer. Ports live inside the node data (recursively) so sub-objects can be extracted as standalone nodes through the same drop pipeline. Pan / zoom / fit-to-view, gradient background, controlled + uncontrolled state, imperative export ref, typed connection validation, multi-edge per port, sub-object drag-extract, read-only mode preserving pan / zoom / select.",
+      "author": "ilinxa",
+      "categories": ["data", "flow", "canvas", "node-editor"],
+      "registryDependencies": ["button", "context-menu", "dialog", "textarea"],
+      "dependencies": ["@xyflow/react", "lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/flow-canvas-01/flow-canvas-01.tsx", "type": "registry:component", "target": "components/flow-canvas-01/flow-canvas-01.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/index.ts", "type": "registry:component", "target": "components/flow-canvas-01/index.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/types.ts", "type": "registry:component", "target": "components/flow-canvas-01/types.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/hooks/use-canvas-data.ts", "type": "registry:component", "target": "components/flow-canvas-01/hooks/use-canvas-data.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/hooks/use-drop-pipeline.ts", "type": "registry:component", "target": "components/flow-canvas-01/hooks/use-drop-pipeline.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/hooks/use-export.ts", "type": "registry:component", "target": "components/flow-canvas-01/hooks/use-export.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/coerce-to-node-data.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/coerce-to-node-data.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/emit-sub-object-drag.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/emit-sub-object-drag.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/inflate-default-ports.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/inflate-default-ports.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/parse-json.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/parse-json.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/port-walker.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/port-walker.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/sub-object-paths.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/sub-object-paths.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/background.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/background.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/canvas-context-menu.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/canvas-context-menu.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/canvas.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/canvas.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/custom-json-node.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/custom-json-node.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/default-edge.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/default-edge.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/node-adapter.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/node-adapter.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/node-shell.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/node-shell.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/paste-dialog.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/paste-dialog.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/port-handle.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/port-handle.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/parts/ports-at.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/ports-at.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/registries/canvas-context.tsx", "type": "registry:component", "target": "components/flow-canvas-01/registries/canvas-context.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/registries/edge-type-registry.tsx", "type": "registry:component", "target": "components/flow-canvas-01/registries/edge-type-registry.tsx" },
+        { "path": "src/registry/components/data/flow-canvas-01/registries/port-type-registry.ts", "type": "registry:component", "target": "components/flow-canvas-01/registries/port-type-registry.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/registries/renderer-registry.tsx", "type": "registry:component", "target": "components/flow-canvas-01/registries/renderer-registry.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "flow-canvas-01-fixtures",
+      "type": "registry:block",
+      "title": "Flow Canvas 01 — fixtures",
+      "description": "Flow Canvas 01 bundle including the dummy-data fixtures used by the docs-site demo (sample nodes + edges exercising the renderer / port-type / edge-type registries, sub-object drag extraction, and the custom-JSON fallback).",
+      "author": "ilinxa",
+      "categories": ["data", "flow", "canvas", "fixtures"],
+      "registryDependencies": ["@ilinxa/flow-canvas-01"],
+      "files": [
+        { "path": "src/registry/components/data/flow-canvas-01/dummy-data.ts", "type": "registry:component", "target": "components/flow-canvas-01/dummy-data.ts" }
+      ]
     }
   ]
 }
