@@ -36,7 +36,7 @@
       "name": "rich-card",
       "type": "registry:block",
       "title": "Rich Card",
-      "description": "JSON-driven recursive card-tree viewer + structural editor. Drag-drop reordering, bulk multi-select, per-level/per-card/per-key permissions, custom predefined-key registration, opt-in virtualization, native search, validation hooks, undo/redo.",
+      "description": "JSON-driven recursive card-tree viewer + structural editor. Drag-drop reordering, bulk multi-select, per-level/per-card/per-key permissions, custom predefined-key registration, native search, validation hooks, undo/redo.",
       "author": "ilinxa",
       "categories": ["data", "graph-system"],
       "registryDependencies": ["popover"],
@@ -44,8 +44,7 @@
         "lucide-react",
         "@dnd-kit/core",
         "@dnd-kit/sortable",
-        "@dnd-kit/utilities",
-        "@tanstack/react-virtual"
+        "@dnd-kit/utilities"
       ],
       "files": [
         { "path": "src/registry/components/data/rich-card/rich-card.tsx", "type": "registry:component", "target": "components/rich-card/rich-card.tsx" },
@@ -62,7 +61,6 @@
         { "path": "src/registry/components/data/rich-card/hooks/use-tree-focus.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-tree-focus.ts" },
         { "path": "src/registry/components/data/rich-card/hooks/use-tree-keyboard.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-tree-keyboard.ts" },
         { "path": "src/registry/components/data/rich-card/hooks/use-undo.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-undo.ts" },
-        { "path": "src/registry/components/data/rich-card/hooks/use-virtualizer.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-virtualizer.ts" },
         { "path": "src/registry/components/data/rich-card/lib/bulk-actions.ts", "type": "registry:component", "target": "components/rich-card/lib/bulk-actions.ts" },
         { "path": "src/registry/components/data/rich-card/lib/classify-key.ts", "type": "registry:component", "target": "components/rich-card/lib/classify-key.ts" },
         { "path": "src/registry/components/data/rich-card/lib/dnd-helpers.ts", "type": "registry:component", "target": "components/rich-card/lib/dnd-helpers.ts" },

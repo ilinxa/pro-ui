@@ -1,8 +1,8 @@
 /**
  * Pure data-model search.
  *
- * Walks `RichCardTree` directly — finds matches in collapsed subtrees,
- * virtualized off-screen cards, and meta entries. No DOM dependence.
+ * Walks `RichCardTree` directly — finds matches in collapsed subtrees and
+ * meta entries. No DOM dependence.
  */
 
 import type {

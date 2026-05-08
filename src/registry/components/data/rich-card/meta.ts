@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "data",
 
   description:
-    "A JSON-driven recursive card-tree viewer + full structural editor with drag-drop, multi-select, permissions, custom keys, virtualization, native search, validation hooks, and undo/redo.",
+    "A JSON-driven recursive card-tree viewer + full structural editor with drag-drop, multi-select, permissions, custom keys, native search, validation hooks, and undo/redo.",
   context:
     "Rich Card renders deeply nested structured content — agent transcripts, configuration trees, decision records, runbooks, requirement docs — as a card-tree where each card has typed scalar flat fields (string/number/boolean/null/date), five predefined content blocks (codearea, image, table, quote, list), child cards, and per-card meta. v0.4 completes the safety net: sync validation hooks via 3-layer pipeline (built-in → per-action → master) with `onValidationFailed` event, plus per-commit undo/redo (state-snapshot strategy with structural sharing, default 50-step history, `Cmd+Z` / `Cmd+Shift+Z` / `Cmd+Y` keyboard shortcuts, optional `<RichCardUndoToolbar>` sibling export). Markdown adapter (v0.5) deferred indefinitely as a separate companion module — rich-card itself is JSON-native.",
   features: [
@@ -20,8 +20,7 @@ export const meta: ComponentMeta = {
     "Drag-drop reordering with 2 scopes (same-level + cross-level), keyboard alternative via @dnd-kit",
     "Multi-select with shift-click range + cmd-click toggle; bulk delete / duplicate / set-field / toggle-lock",
     "Permission matrix with declarative shorthand + 11 predicate escape hatches; meta-locked cascade",
-    "Opt-in virtualization for trees >500 nodes (auto-threshold); search works regardless",
-    "Native data-model search: finds matches in collapsed, virtualized, and meta — auto-expands path",
+    "Native data-model search: finds matches in collapsed cards and meta — auto-expands path",
     "Configurable delete policy (cascade / promote) + collision strategy (suffix / qualify / reject)",
     "Root-removal opt-in with onRootRemoved callback + emptyTreeRenderer prop",
     "v0.4 sync validation hooks (per-action + master); onValidationFailed event for analytics",
@@ -56,7 +55,6 @@ export const meta: ComponentMeta = {
       "@dnd-kit/core": "^6.3.1",
       "@dnd-kit/sortable": "^10.0.0",
       "@dnd-kit/utilities": "^3.2.2",
-      "@tanstack/react-virtual": "^3.13.24",
     },
     internal: [],
   },

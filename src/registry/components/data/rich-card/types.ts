@@ -421,9 +421,6 @@ export type RichCardProps = {
   // v0.3 — custom predefined keys
   customPredefinedKeys?: CustomPredefinedKey[];
 
-  // v0.3 — virtualization
-  virtualize?: boolean | "auto";
-
   // v0.3 — root-removal + delete policy
   allowRootRemoval?: boolean;
   onRootRemoved?: (current: RichCardJsonNode) => RichCardJsonNode | null;
