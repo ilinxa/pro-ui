@@ -127,7 +127,17 @@ export function flattenSubtreesPastDepth(
 ): AreaTree {
   if (tree.kind === "leaf") return tree;
   if (currentDepth >= cap) {
-    return collapseToFirstLeaf(tree);
+    // v0.1: this used `collapseToFirstLeaf`, which silently dropped every
+    // leaf except the leftmost — the contract said "deeper subtrees flatten
+    // to card stacks within their parent region" but the implementation lost
+    // content. v0.1.1 (post-review F-01): collapse to a balanced binary chain
+    // of splits over ALL leaves, inheriting the over-depth split's
+    // orientation so the row still feels like the user's original layout
+    // intent. Trade-off: the chain itself has depth ~log2(N) below the cap,
+    // so visual depth is no longer strictly capped — but no leaves are lost.
+    // v0.2 will add a `stack` kind to AreaTree that tiles uniformly without
+    // nested splits, fully honoring the cap; this v0.1.1 fix is a stopgap.
+    return collapseToBalancedSplits(tree, tree.orientation);
   }
   return {
     ...tree,
@@ -136,9 +146,28 @@ export function flattenSubtreesPastDepth(
   };
 }
 
-function collapseToFirstLeaf(tree: AreaTree): AreaTreeLeaf {
+function collapseToBalancedSplits(
+  tree: AreaTree,
+  orientation: SplitOrientation,
+): AreaTree {
   if (tree.kind === "leaf") return tree;
-  return collapseToFirstLeaf(tree.a);
+  const leaves = flattenLeavesInOrder(tree);
+  return buildBalancedSplits(leaves, orientation);
+}
+
+function buildBalancedSplits(
+  leaves: AreaTreeLeaf[],
+  orientation: SplitOrientation,
+): AreaTree {
+  if (leaves.length === 1) return leaves[0];
+  const mid = Math.floor(leaves.length / 2);
+  return {
+    kind: "split",
+    orientation,
+    ratio: mid / leaves.length,
+    a: buildBalancedSplits(leaves.slice(0, mid), orientation),
+    b: buildBalancedSplits(leaves.slice(mid), orientation),
+  };
 }
 
 export function validateTree(
