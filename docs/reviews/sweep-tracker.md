@@ -48,6 +48,7 @@
 |---|------|---------|--------|---------|-------------|-------|----------|-------|
 | 11 | `engagement-bar-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 |
 | 12 | `post-card-01` | 0.1.1 | ⚪ | — | — | — | — | Session 10 |
+| ⏭️ | ~~(`media-carousel-01`)~~ | ~~0.1.1~~ | ⏭️ Re-categorized | — | — | — | 2026-05-09 | **Re-categorized to media section as #12b in session 7d Phase 6 self-review.** Original numbering slot preserved as tombstone for stability (matches `force-graph` removal pattern). |
 | 14 | `article-meta-01` | 0.1.0 | ⚪ | — | — | — | — | Session 10 |
 | 15 | `comment-thread-01` | 0.1.0 | ⚪ | — | — | — | — | Session 10 |
 | 16 | `content-card-news-01` | 0.1.0 | ⚪ | — | — | — | — | Session 10 |
