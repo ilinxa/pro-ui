@@ -1337,7 +1337,6 @@
         { "path": "src/registry/components/data/kanban-board-01/hooks/use-kanban-state.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-kanban-state.ts" },
         { "path": "src/registry/components/data/kanban-board-01/hooks/use-renderer-map.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-renderer-map.ts" },
         { "path": "src/registry/components/data/kanban-board-01/hooks/use-drag-handlers.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-drag-handlers.ts" },
-        { "path": "src/registry/components/data/kanban-board-01/hooks/use-keyboard-actions.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-keyboard-actions.ts" },
         { "path": "src/registry/components/data/kanban-board-01/parts/board.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/board.tsx" },
         { "path": "src/registry/components/data/kanban-board-01/parts/column.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column.tsx" },
         { "path": "src/registry/components/data/kanban-board-01/parts/column-header.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column-header.tsx" },

@@ -54,5 +54,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["properties-form", "detail-panel", "filter-stack", "entity-picker"],
+  related: ["properties-form", "detail-panel", "filter-stack", "entity-picker", "workspace"],
 };

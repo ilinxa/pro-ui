@@ -190,7 +190,7 @@ const INITIAL_DATA: KanbanData = {
     {
       id: "col-review",
       title: "Review",
-      color: "indigo",
+      color: "sky",
       items: [
         {
           id: "item-rich-3",

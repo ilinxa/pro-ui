@@ -388,6 +388,8 @@ PopoverTrigger asChild's Slot composes its own ref over the user's `triggerRef` 
 
 **Custom-trigger contract:** if a custom trigger fails to attach `triggerRef`, our `focus()` ref method silently no-ops (production-safe; dev-only `console.warn` once per session). Documented in usage with the recipe.
 
+> **Implementation note (post-v0.1 review F-05):** the snippets above show `internalTriggerRef` for clarity, but the v0.1 implementation uses `const [triggerNode, setTriggerNode] = useState<HTMLElement | null>(null)` and passes `setTriggerNode` as the callback ref. `setState` setters have stable identity across renders, so React doesn't re-invoke the callback on every render — and reading `triggerNode` from state (rather than a `.current` ref read) satisfies React Compiler's tracked-read lint rule for the `focus()` `useCallback` dependency. Equivalent in observable behavior; safer for the Compiler.
+
 ### 6.4 Single-mode trigger
 
 Default trigger structure for single mode:

@@ -81,7 +81,11 @@ The library's gate against "build first, design later". A drifted doc means the 
 Code quality compounds: clean code makes future reviews fast; sloppy code breeds defects. The sealed-folder shape is what lets us extract to NPM later — break the shape and you break that exit.
 
 ### What to check
-- **Folder shape conforms to `data-table`:** `<slug>.tsx`, `parts/`, `hooks/`, `types.ts`, `dummy-data.ts`, `demo.tsx`, `usage.tsx`, `meta.ts`, `index.ts`.
+- **Folder shape conforms to one of two reference patterns:**
+  - **Simple primitive (e.g. `data-table`)** — flat: `<slug>.tsx`, `types.ts`, `dummy-data.ts`, `demo.tsx`, `usage.tsx`, `meta.ts`, `index.ts`. No `parts/` / `hooks/` / `lib/` sub-dirs needed when the component renders in a single tightly-scoped file. Right for thin, typed-generic primitives.
+  - **Host pattern (e.g. `kanban-board-01`, `workspace`, `flow-canvas-01`)** — sealed: `<slug>.tsx`, `parts/`, `hooks/`, `lib/` (optional), `types.ts`, `dummy-data.ts`, `demo.tsx`, `usage.tsx`, `meta.ts`, `index.ts`. Right for components hosting heterogeneous content, reducer/state machinery, multiple render surfaces, or composable sub-components.
+
+  Pick the smaller of the two that fits — don't over-decompose a primitive into the host shape, and don't cram a host into a single file. Prior to this clarification (added per data-table v0.1 review F-03), the guide misrepresented `data-table` as canonical for the host shape it doesn't use.
 - **Import allowlist:** only `react`, `@/components/ui/*`, `@/lib/utils`, declared third-party. **Never `next/*`**, no app contexts, no env-specific code. Grep each file.
 - **No dead code** — unused vars, commented-out blocks, `// removed` placeholders, unused `_` prefixed args.
 - **No half-finished `// TODO later`** without a tracking issue.

@@ -122,7 +122,7 @@ export function GraphAwareEditor({ graphNodes }: { graphNodes: WikilinkCandidate
 
       <Section
         title="Custom toolbar"
-        description="Spread defaultMarkdownToolbar and append items. Each item receives ToolbarCtx with the live EditorView, current value, and 3 dispatch helpers."
+        description="Spread defaultMarkdownToolbar and append items. Each item receives ToolbarCtx with the live EditorView, current value, and 3 dispatch helpers. To insert a vertical separator between groups, push a ToolbarItem with an empty-string label — the renderer detects label === '' and draws a divider instead of a button."
       >
         <CodeBlock>{`import { Sparkles } from "lucide-react";
 import {

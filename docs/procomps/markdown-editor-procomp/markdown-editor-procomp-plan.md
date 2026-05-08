@@ -81,13 +81,15 @@ interface ToolbarCtx {
 
 interface ToolbarItem {
   id: string;
-  label: string;                                                     // tooltip + aria-label
+  label: string;                                                     // tooltip + aria-label; "" = render as a vertical separator (sentinel — see note)
   icon?: ReactNode;                                                  // optional; defaults provided for built-in items
   shortcut?: string;                                                 // displayed hint, e.g. "⌘B"
   isActive?: (ctx: ToolbarCtx) => boolean;                           // for toggle states (bold-on, etc.)
   run: (ctx: ToolbarCtx) => void;
 }
 ```
+
+> **Toolbar separator sentinel (post-v0.1 review):** an empty `label: ""` is the convention for rendering a thin vertical divider between toolbar groups instead of a button. The default toolbar uses this between `bold/italic/code` and `link/lists/heading` groups. Discriminated alternative (`type: "separator"`) considered and deferred to v0.2 — the empty-label convention keeps `ToolbarItem` flat for v0.1 consumers. F-06 of v0.1 review.
 
 ### 3.2 Component props
 
@@ -137,7 +139,7 @@ interface MarkdownEditorHandle {
   insertText(text: string): void;                                    // replace selection if non-empty; insert at caret if empty
   getSelection(): { from: number; to: number; text: string };
   getValue(): string;                                                // current CM6 doc — may be marginally fresher than React `value`
-  getView(): EditorView;                                             // escape hatch (substrate-leak risk per §8.5 #6 + decision #19)
+  getView(): EditorView | null;                                      // escape hatch (substrate-leak risk per §8.5 #6 + decision #19); returns null pre-mount and post-unmount per §10
 }
 ```
 

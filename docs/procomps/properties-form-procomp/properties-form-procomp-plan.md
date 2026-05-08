@@ -352,7 +352,7 @@ src/registry/components/forms/properties-form/
 └── index.ts                           # PropertiesForm + types + flatten util re-export
 ```
 
-**File count: 22.** Within the Tier 1 size envelope (rich-card v0.1 was 26 files; workspace was 26).
+**File count: 25.** Within the Tier 1 size envelope (rich-card v0.1 was 26 files; workspace was 26). Corrected post-v0.1 review (F-05) — the file-tree above lists 25 entries; the prior "22" footer was a counting error, not an implementation drift.
 
 ### 8.2 Build order within v0.1
 
