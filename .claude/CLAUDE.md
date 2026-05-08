@@ -23,6 +23,7 @@ pnpm dev                                # next dev (Turbopack)
 pnpm build                              # production build
 pnpm lint                               # ESLint
 pnpm tsc --noEmit                       # typecheck
+pnpm validate:meta-deps                 # F-cross-07 audit — drift between meta.ts and shipped imports
 pnpm new:component <category>/<slug>    # scaffold a new component from _template
 pnpm new:migration <slug>               # scaffold a migration intake folder
 pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
