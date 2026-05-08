@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "shadcn build && next build",
+    "vercel-build": "pnpm run registry:build && next build",
     "start": "next start",
     "lint": "eslint",
     "validate:meta-deps": "node scripts/validate-meta-deps.mjs",
