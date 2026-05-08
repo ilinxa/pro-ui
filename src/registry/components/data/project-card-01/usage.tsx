@@ -14,7 +14,7 @@ export default function ProjectCard01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ProjectCard01 } from "@/registry/components/data/project-card-01";
+        <code>{`import { ProjectCard01 } from "@/components/project-card-01";
 
 <ProjectCard01
   project={{
@@ -90,7 +90,7 @@ export default function ProjectCard01Usage() {
         <code>{`import {
   PROJECT_STATUS_CONFIG,
   type ProjectStatus,
-} from "@/registry/components/data/project-card-01";
+} from "@/components/project-card-01";
 
 function StatusSummary({ projects }: { projects: { status: ProjectStatus }[] }) {
   const counts = projects.reduce<Record<ProjectStatus, number>>(
@@ -117,7 +117,7 @@ function StatusSummary({ projects }: { projects: { status: ProjectStatus }[] }) 
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`import NextLink from "next/link";
-import { ProjectCard01 } from "@/registry/components/data/project-card-01";
+import { ProjectCard01 } from "@/components/project-card-01";
 
 <ProjectCard01
   project={project}
@@ -228,13 +228,13 @@ import { ProjectCard01 } from "@/registry/components/data/project-card-01";
         <code>{`import { useState } from "react";
 import NextLink from "next/link";
 import { Building2 } from "lucide-react";
-import { PageHeroNews01 } from "@/registry/components/marketing/page-hero-news-01";
-import { FilterBar01 } from "@/registry/components/forms/filter-bar-01";
+import { PageHeroNews01 } from "@/components/page-hero-news-01";
+import { FilterBar01 } from "@/components/filter-bar-01";
 import {
   GridLayoutNews01,
   useMagazineFilter,
-} from "@/registry/components/layout/grid-layout-news-01";
-import { ProjectCard01 } from "@/registry/components/data/project-card-01";
+} from "@/components/grid-layout-news-01";
+import { ProjectCard01 } from "@/components/project-card-01";
 
 export default function ProjectsPage({ allProjects }) {
   const [category, setCategory] = useState<string | null>(null);

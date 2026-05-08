@@ -57,7 +57,7 @@ export default function MarkdownEditorUsage() {
         description="Minimum viable: controlled value/onChange, default toolbar, edit-only view."
       >
         <CodeBlock>{`import { useState } from "react";
-import { MarkdownEditor } from "@/registry/components/forms/markdown-editor";
+import { MarkdownEditor } from "@/components/markdown-editor";
 
 export function NoteEditor() {
   const [value, setValue] = useState("# Hello\\n\\nStart typing…");
@@ -70,8 +70,8 @@ export function NoteEditor() {
         description="Pass a stable wikilinkCandidates array (memoized or module-scope per §11.1.1 reference-stability footgun). Resolved labels render with accent styling; unresolved render dashed/destructive. Wire onWikilinkClick to navigate."
       >
         <CodeBlock>{`import { useMemo, useState } from "react";
-import { MarkdownEditor } from "@/registry/components/forms/markdown-editor";
-import type { WikilinkCandidate, KindMeta } from "@/registry/components/forms/markdown-editor";
+import { MarkdownEditor } from "@/components/markdown-editor";
+import type { WikilinkCandidate, KindMeta } from "@/components/markdown-editor";
 
 const KINDS: Record<string, KindMeta> = {
   person: { label: "Person", color: "oklch(0.62 0.18 250)" },
@@ -129,7 +129,7 @@ import {
   MarkdownEditor,
   defaultMarkdownToolbar,
   type ToolbarItem,
-} from "@/registry/components/forms/markdown-editor";
+} from "@/components/markdown-editor";
 
 const toolbar: ReadonlyArray<ToolbarItem> = [
   ...defaultMarkdownToolbar,

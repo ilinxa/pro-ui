@@ -16,7 +16,7 @@ export default function AuthorCard01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { AuthorCard01 } from "@/registry/components/marketing/author-card-01"
+        <code>{`import { AuthorCard01 } from "@/components/author-card-01"
 
 export function Example() {
   return (
@@ -39,7 +39,7 @@ export function Example() {
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`import Link from "next/link"
-import { AuthorCard01 } from "@/registry/components/marketing/author-card-01"
+import { AuthorCard01 } from "@/components/author-card-01"
 
 <AuthorCard01
   name="Daniel Park"

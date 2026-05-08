@@ -16,7 +16,7 @@ export default function ThumbList01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ThumbList01 } from "@/registry/components/data/thumb-list-01"
+        <code>{`import { ThumbList01 } from "@/components/thumb-list-01"
 
 const items = [
   { id: "1", title: "Sustainable cities", imageSrc: "/img/1.jpg", meta: "5 min read", href: "/news/1" },

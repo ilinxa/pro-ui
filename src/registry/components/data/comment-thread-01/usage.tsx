@@ -28,7 +28,7 @@ useEffect(() => {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
+        <code>{`import { CommentThread01 } from "@/components/comment-thread-01";
 
 export function Example() {
   return (
@@ -87,7 +87,7 @@ export function Example() {
         composer without the thread (article-page hero CTAs):
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { CommentComposer } from "@/registry/components/data/comment-thread-01";
+        <code>{`import { CommentComposer } from "@/components/comment-thread-01";
 
 <CommentComposer
   currentUser={viewer}

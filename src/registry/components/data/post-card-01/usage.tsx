@@ -134,7 +134,7 @@ const commentSubscribe = useCallback<Subscribe<CommentDelta>>(
         Custom engagement actions (extending defaults)
       </h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { defaultPostEngagementActions } from "@/registry/components/data/post-card-01";
+        <code>{`import { defaultPostEngagementActions } from "@/components/post-card-01";
 
 <PostCard01
   variant="feed"

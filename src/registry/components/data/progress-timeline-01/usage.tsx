@@ -15,7 +15,7 @@ export default function ProgressTimeline01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ProgressTimeline01 } from "@/registry/components/data/progress-timeline-01";
+        <code>{`import { ProgressTimeline01 } from "@/components/progress-timeline-01";
 
 <ProgressTimeline01
   start="2026-04-01"
@@ -37,7 +37,7 @@ export default function ProgressTimeline01Usage() {
   ProgressTimeline01,
   deriveTimelineState,
   type TimelineState,
-} from "@/registry/components/data/progress-timeline-01";
+} from "@/components/progress-timeline-01";
 
 // Header counter — how many windows are currently open?
 const activeCount = events.filter(

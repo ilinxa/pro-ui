@@ -13,7 +13,7 @@ export default function ShareBar01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { ShareBar01 } from "@/registry/components/marketing/share-bar-01"
+        <code>{`import { ShareBar01 } from "@/components/share-bar-01"
 
 export function ArticleFooter() {
   return (

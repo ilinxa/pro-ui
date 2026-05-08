@@ -15,7 +15,7 @@ export default function DetailPanelUsage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { DetailPanel } from "@/registry/components/feedback/detail-panel";
+        <code>{`import { DetailPanel } from "@/components/detail-panel";
 
 export function NodeDetail({ node }) {
   return (
@@ -111,11 +111,11 @@ export function NodeDetail({ node }) {
         Composing with properties-form (the showcase)
       </h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { DetailPanel } from "@/registry/components/feedback/detail-panel";
+        <code>{`import { DetailPanel } from "@/components/detail-panel";
 import {
   PropertiesForm,
   type PropertiesFormHandle,
-} from "@/registry/components/forms/properties-form";
+} from "@/components/properties-form";
 
 const formRef = useRef<PropertiesFormHandle>(null);
 

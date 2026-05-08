@@ -15,7 +15,7 @@ export default function VideoPlayer01Usage() {
 
       <h3 className="mt-6 mb-2 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { VideoPlayer01 } from "@/registry/components/media/video-player-01";
+        <code>{`import { VideoPlayer01 } from "@/components/video-player-01";
 
 export function Example() {
   return (
@@ -123,7 +123,7 @@ export function Example() {
         contexts (image carousels, photo viewers, card double-tap-to-favorite).
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { useDoubleTap } from "@/registry/components/media/video-player-01";
+        <code>{`import { useDoubleTap } from "@/components/video-player-01";
 
 function PhotoWithLike({ src, onLike }: { src: string; onLike: () => void }) {
   const handleTap = useDoubleTap(onLike);

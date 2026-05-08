@@ -16,7 +16,7 @@ export default function PropertiesFormUsage() {
         <code>{`import {
   PropertiesForm,
   type PropertiesFormField,
-} from "@/registry/components/forms/properties-form";
+} from "@/components/properties-form";
 
 interface Task {
   title: string;

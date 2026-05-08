@@ -52,7 +52,7 @@ export default function FlowCanvasUsage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { FlowCanvas, type NodeRenderer } from "@/registry/components/data/flow-canvas-01"
+        <code>{`import { FlowCanvas, type NodeRenderer } from "@/components/flow-canvas-01"
 
 // Register a renderer for your domain type. Define at module scope (or
 // useMemo) — recreating the array on every render thrashes xyflow's
@@ -86,7 +86,7 @@ export function MyEditor() {
       </h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`import { useRef } from "react"
-import { type FlowCanvasExportHandle } from "@/registry/components/data/flow-canvas-01"
+import { type FlowCanvasExportHandle } from "@/components/flow-canvas-01"
 
 const exportRef = useRef<FlowCanvasExportHandle>(null)
 

@@ -12,7 +12,7 @@ export default function RegistrationCard01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { RegistrationCard01 } from "@/registry/components/data/registration-card-01";
+        <code>{`import { RegistrationCard01 } from "@/components/registration-card-01";
 
 <RegistrationCard01
   heading="Registration"
@@ -60,7 +60,7 @@ export default function RegistrationCard01Usage() {
   RegistrationCard01,
   deriveRegistrationStatus,
   type RegistrationStatus,
-} from "@/registry/components/data/registration-card-01";
+} from "@/components/registration-card-01";
 
 // Header counter: how many events are still open?
 const stillOpen = events.filter(
@@ -89,7 +89,7 @@ const stillOpen = events.filter(
         when registration should close. Two common composition patterns:
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { getEventStatus } from "@/registry/components/data/event-card-01";
+        <code>{`import { getEventStatus } from "@/components/event-card-01";
 
 // Pattern 1 — close registration only when event has expired:
 <RegistrationCard01

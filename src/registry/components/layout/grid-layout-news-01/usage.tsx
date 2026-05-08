@@ -12,7 +12,7 @@ export default function GridLayoutNews01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { GridLayoutNews01 } from "@/registry/components/layout/grid-layout-news-01";
+        <code>{`import { GridLayoutNews01 } from "@/components/grid-layout-news-01";
 
 <GridLayoutNews01<Article>
   displayedItems={articles}
@@ -36,12 +36,12 @@ export default function GridLayoutNews01Usage() {
         the consumer level.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { GridLayoutNews01, useMagazineFilter } from "@/registry/components/layout/grid-layout-news-01";
-import { ContentCardNews01 } from "@/registry/components/data/content-card-news-01";
-import { FilterBar01 } from "@/registry/components/forms/filter-bar-01";
-import { CategoryCloud01 } from "@/registry/components/forms/category-cloud-01";
-import { NewsletterCard01 } from "@/registry/components/marketing/newsletter-card-01";
-import { PageHeroNews01 } from "@/registry/components/marketing/page-hero-news-01";
+        <code>{`import { GridLayoutNews01, useMagazineFilter } from "@/components/grid-layout-news-01";
+import { ContentCardNews01 } from "@/components/content-card-news-01";
+import { FilterBar01 } from "@/components/filter-bar-01";
+import { CategoryCloud01 } from "@/components/category-cloud-01";
+import { NewsletterCard01 } from "@/components/newsletter-card-01";
+import { PageHeroNews01 } from "@/components/page-hero-news-01";
 
 const filtered = useMagazineFilter<Article>({
   items: articles,

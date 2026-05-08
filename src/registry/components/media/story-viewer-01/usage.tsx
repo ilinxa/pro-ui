@@ -37,7 +37,7 @@ export default function StoryViewer01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal usage</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { StoryViewer01 } from "@/registry/components/media/story-viewer-01";
+        <code>{`import { StoryViewer01 } from "@/components/story-viewer-01";
 
 <StoryViewer01
   stories={stories}
@@ -83,7 +83,7 @@ const [activeIdx, setActiveIdx] = useState(-1);
         <code>{`import type {
   Subscribe,
   StoryViewerDelta,
-} from "@/registry/components/media/story-viewer-01";
+} from "@/components/story-viewer-01";
 
 const subscribe = useCallback<Subscribe<StoryViewerDelta>>(
   (handler) => channel.on("stories", handler),
