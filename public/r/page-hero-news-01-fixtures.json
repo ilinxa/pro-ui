@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Page Hero (News 01) bundle including the dummy-data fixtures (English + Turkish defaults + 3-stat row content).",
   "registryDependencies": [
-    "page-hero-news-01"
+    "@ilinxa/page-hero-news-01"
   ],
   "files": [
     {

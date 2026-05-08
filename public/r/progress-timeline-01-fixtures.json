@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Progress Timeline 01 bundle including the dummy-data fixtures (3 timeline shapes — before / active / after — plus a fixed dummyNow reference for deterministic SSR).",
   "registryDependencies": [
-    "progress-timeline-01"
+    "@ilinxa/progress-timeline-01"
   ],
   "files": [
     {

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Media Carousel 01 bundle including the dummy-data fixtures (mixed image+video set for kasder gallery demo, photos-only product gallery set, and single-item samples).",
   "registryDependencies": [
-    "media-carousel-01"
+    "@ilinxa/media-carousel-01"
   ],
   "files": [
     {

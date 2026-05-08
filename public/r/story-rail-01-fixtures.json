@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Story Rail 01 bundle including dummy-data fixtures (7 mock users matching kasder verbatim, viewer-avatar fixture, and a synthetic createDummyStoryRailSubscribe for sandbox realtime demos).",
   "registryDependencies": [
-    "story-rail-01"
+    "@ilinxa/story-rail-01"
   ],
   "files": [
     {

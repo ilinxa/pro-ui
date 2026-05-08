@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Markdown Editor bundle including the dummy-data fixtures (12-node graph fixture for wikilink demos).",
   "registryDependencies": [
-    "markdown-editor"
+    "@ilinxa/markdown-editor"
   ],
   "files": [
     {

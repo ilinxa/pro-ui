@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Thumb List 01 bundle including the dummy-data fixtures (3 sets — default / Turkish / dated for renderMeta example).",
   "registryDependencies": [
-    "thumb-list-01"
+    "@ilinxa/thumb-list-01"
   ],
   "files": [
     {

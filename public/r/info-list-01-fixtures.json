@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Info List 01 bundle including the dummy-data fixtures (English + Turkish parallel arrays for Event Details + Contact patterns).",
   "registryDependencies": [
-    "info-list-01"
+    "@ilinxa/info-list-01"
   ],
   "files": [
     {

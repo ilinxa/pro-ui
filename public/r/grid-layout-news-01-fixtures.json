@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Grid Layout (News 01) bundle including the dummy-data fixtures (14 demo articles for the magazine tower + featured demo).",
   "registryDependencies": [
-    "grid-layout-news-01"
+    "@ilinxa/grid-layout-news-01"
   ],
   "files": [
     {

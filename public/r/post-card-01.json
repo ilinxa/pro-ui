@@ -8,11 +8,11 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "expandable-text-01",
-    "video-player-01",
-    "media-carousel-01",
-    "engagement-bar-01",
-    "comment-thread-01",
+    "@ilinxa/expandable-text-01",
+    "@ilinxa/video-player-01",
+    "@ilinxa/media-carousel-01",
+    "@ilinxa/engagement-bar-01",
+    "@ilinxa/comment-thread-01",
     "https://ui.shadcn.com/r/styles/new-york/avatar.json",
     "https://ui.shadcn.com/r/styles/new-york/button.json",
     "https://ui.shadcn.com/r/styles/new-york/card.json",

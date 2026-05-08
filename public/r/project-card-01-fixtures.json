@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Project Card 01 bundle including the dummy-data fixtures (6 projects covering all 3 statuses + featured + image-fallback edge + Turkish-localized parallel array + 2 category-style maps + Turkish labels).",
   "registryDependencies": [
-    "project-card-01"
+    "@ilinxa/project-card-01"
   ],
   "files": [
     {

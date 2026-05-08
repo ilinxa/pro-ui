@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Video Player 01 bundle including the dummy-data fixtures (5 royalty-free Pexels video URLs + a sample WebVTT track entry for caption demos).",
   "registryDependencies": [
-    "video-player-01"
+    "@ilinxa/video-player-01"
   ],
   "files": [
     {

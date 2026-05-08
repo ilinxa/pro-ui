@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Newsletter Card 01 bundle including the dummy-data fixtures (Turkish labels + fake submit handlers for demo).",
   "registryDependencies": [
-    "newsletter-card-01"
+    "@ilinxa/newsletter-card-01"
   ],
   "files": [
     {

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Event Card 01 bundle including the dummy-data fixtures (8 events covering all 6 statuses + Turkish-localized parallel array + 4 type-style maps + dummyNow reference date).",
   "registryDependencies": [
-    "event-card-01"
+    "@ilinxa/event-card-01"
   ],
   "files": [
     {

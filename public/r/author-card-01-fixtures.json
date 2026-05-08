@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Author Card 01 bundle including the dummy-data fixtures (5 sample authors covering image / no-image / collective / clickable / Turkish).",
   "registryDependencies": [
-    "author-card-01"
+    "@ilinxa/author-card-01"
   ],
   "files": [
     {

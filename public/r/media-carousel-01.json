@@ -10,7 +10,7 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "video-player-01",
+    "@ilinxa/video-player-01",
     "button"
   ],
   "files": [

@@ -8,7 +8,7 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "video-player-01",
+    "@ilinxa/video-player-01",
     "https://ui.shadcn.com/r/styles/new-york/dialog.json",
     "https://ui.shadcn.com/r/styles/new-york/avatar.json",
     "https://ui.shadcn.com/r/styles/new-york/button.json"

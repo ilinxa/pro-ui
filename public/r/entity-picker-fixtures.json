@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Entity Picker bundle including the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
-    "entity-picker"
+    "@ilinxa/entity-picker"
   ],
   "files": [
     {

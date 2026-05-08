@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Comment Thread 01 bundle including dummy-data fixtures (flat / nested-depth-2 / nested-depth-3 / large-paginated comment trees, viewer fixture, page generator, and a synthetic createDummySubscribe for sandbox realtime demos).",
   "registryDependencies": [
-    "comment-thread-01"
+    "@ilinxa/comment-thread-01"
   ],
   "files": [
     {

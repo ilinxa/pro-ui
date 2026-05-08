@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Filter Bar 01 bundle including the dummy-data fixtures (Turkish labels + Turkish-locale date-range formatter).",
   "registryDependencies": [
-    "filter-bar-01"
+    "@ilinxa/filter-bar-01"
   ],
   "files": [
     {

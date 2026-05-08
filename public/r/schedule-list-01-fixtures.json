@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Schedule List 01 bundle including the dummy-data fixtures (English + Turkish parallel 6-item schedules with icon / time-range / href samples).",
   "registryDependencies": [
-    "schedule-list-01"
+    "@ilinxa/schedule-list-01"
   ],
   "files": [
     {
