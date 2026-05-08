@@ -16,7 +16,7 @@ This guide is the **complete developer reference** for `RichCard` v0.4. Every fe
 
 - **Viewer**: render any JSON object as a navigable card tree with typed scalar field rendering, five styled content blocks (`codearea` / `image` / `table` / `quote` / `list`), per-card meta, per-level visual hierarchy, and full ARIA tree accessibility.
 - **Editor (v0.2)**: click-to-edit field values, keys, card titles, predefined-key blocks, and meta entries. Hover-× to remove. "+" affordances to add. Sync built-in validation (reserved keys, sibling collisions, predefined shapes). Granular change events. Dirty tracking.
-- **Structural manager (v0.3)**: drag-drop reordering with two scopes (same-level + cross-level) via `@dnd-kit`, bulk multi-select (shift-click range + cmd-click toggle), per-level/per-card/per-predefined-key/per-field-type permission matrix with predicate escape hatches, `__rcmeta.locked` cascade lock, custom predefined-key registration, opt-in virtualization for trees > 500 nodes via `@tanstack/react-virtual`, native data-model search that finds matches in collapsed subtrees / virtualized off-screen cards / meta entries, inline meta editing with custom renderers + audit trail, root-removal opt-in, promote-on-delete with configurable collision strategy.
+- **Structural manager (v0.3)**: drag-drop reordering with two scopes (same-level + cross-level) via `@dnd-kit`, bulk multi-select (shift-click range + cmd-click toggle), per-level/per-card/per-predefined-key/per-field-type permission matrix with predicate escape hatches, `__rcmeta.locked` cascade lock, custom predefined-key registration, native data-model search that finds matches in collapsed subtrees and meta entries (auto-expands path to first match), inline meta editing with custom renderers + audit trail, root-removal opt-in, promote-on-delete with configurable collision strategy.
 - **Safety net (v0.4)**: host-supplied sync validation hooks (3-layer pipeline: built-in → per-action → master) with `onValidationFailed` event, per-commit undo/redo with state-snapshot strategy + structural sharing + 50-step default history, `Cmd+Z` / `Cmd+Shift+Z` / `Cmd+Y` keyboard shortcuts.
 
 Markdown source/serialization is **intentionally not in `rich-card`**. A v0.5 markdown adapter is deferred indefinitely as a separate companion module operating on the JSON model.
@@ -60,11 +60,10 @@ Zero `next/*` imports, zero app-context coupling. To copy:
    - `@/lib/utils` (`cn()` helper)
    - `lucide-react`
    - `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
-   - `@tanstack/react-virtual` (only loaded when `virtualize` is on)
 3. **Install shadcn primitives**: `npx shadcn@latest add popover separator`
 4. **Install npm peers**:
    ```bash
-   npm install lucide-react @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @tanstack/react-virtual
+   npm install lucide-react @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
    ```
 5. **Verify Tailwind v4 semantic tokens** (`--card`, `--muted`, `--border`, `--primary`, `--ring`, `--destructive`, etc.). Override defaults via `levelStyles` if your token set differs.
 
@@ -149,7 +148,6 @@ return (
       dndScopes={{ sameLevel: true, crossLevel: true }}
       validators={validators}
       search={{ query }}
-      virtualize="auto"
       onChange={() => {
         setCanUndo(ref.current?.canUndo() ?? false);
         setCanRedo(ref.current?.canRedo() ?? false);
@@ -354,7 +352,7 @@ type RichCardProps = {
   canDropCard?: (cardId: string, targetParentId: string) => boolean;
   onPermissionDenied?: (action, cardId, target, reason) => void;
   customPredefinedKeys?: CustomPredefinedKey[];
-  virtualize?: boolean | 'auto';
+  // virtualize?: boolean | 'auto'  — REMOVED in v0.4.1; deferred to v0.5 (see §18)
   allowRootRemoval?: boolean;
   onRootRemoved?: (current: RichCardJsonNode) => RichCardJsonNode | null;
   defaultDeletePolicy?: 'cascade' | 'promote';
@@ -774,25 +772,11 @@ ref.current?.getEffectivePermissions(cardId, { kind: "field", key: "priority" })
 
 ---
 
-## 18. Virtualization (v0.3)
+## 18. Virtualization (deferred to v0.5)
 
-### 18.1 Modes
-
-| `virtualize` | Behavior |
-|---|---|
-| `false` (default) | Nested rendering — every card in DOM. `Ctrl+F` works. Best for ≤ 500 nodes. |
-| `true` | Flat-list rendering with `position: absolute` + `aria-level` for hierarchy. ~30 cards in DOM at any time. |
-| `'auto'` | Auto-enables when tree exceeds 500 nodes |
-
-### 18.2 Trade-offs of virtualized mode
-
-- ✅ Handles 5000+ node trees at 60fps
-- ❌ Browser `Ctrl+F` only finds visible cards — **use the native search** (§19) instead, which works regardless
-- ❌ Some screen readers expect all `treeitem` siblings in DOM; we set `aria-rowcount` + `aria-rowindex` to compensate
-
-### 18.3 Dynamic loading
-
-`@tanstack/react-virtual` is dynamically imported only when `virtualize: true` (or auto-resolved to true). Bundle stays lean for the default case.
+> **v0.4.1 status:** the `virtualize` prop and `@tanstack/react-virtual` dependency have been removed. The original v0.3 plan called for opt-in virtualization for trees >500 nodes (auto-threshold), but the prop was authored without ever being wired into the render path — running on a 5000-node tree had no virtualization benefit. v0.4.1 removed the prop + the dead `useTreeVirtualizer` hook + the dependency to keep the published API honest about actual capabilities. Virtualization is deferred to v0.5 alongside the markdown adapter; until then, **rich-card's render budget is ≤ 500 nodes** (sufficient for the agent-transcript / configuration-tree / decision-record use cases the component was designed for).
+>
+> Native search (§19) operates on the data model directly, so it remains usable for trees of any size — it returns matches even from collapsed subtrees. For trees > 500 nodes today, host-side pagination of the tree input is the supported workaround.
 
 ---
 
@@ -836,9 +820,9 @@ When matches change, the parser walks ancestors of every matched card and remove
 
 Every text-rendering location (card title, field key, field value, predefined-key blocks, meta values) wraps its text in `<MatchHighlight>` which renders matched substrings in `<mark>` elements. Active match (the one navigated to via `findNext`) gets distinct active styling.
 
-### 19.5 Virtualization-safe
+### 19.5 Data-model search (works regardless of render mode)
 
-Native search walks the data model (not the DOM), so it finds matches in virtualized off-screen cards. `scrollToMatch` works in both nested and flat rendering modes.
+Native search walks the data model (not the DOM), so it finds matches in collapsed subtrees and meta entries. (The "virtualization-safe" framing here was relevant when `virtualize` was a planned prop; that feature is now deferred to v0.5 — see §18.)
 
 ### 19.6 Keyboard
 
@@ -1165,7 +1149,7 @@ Every commit auto-stamps `__rcmeta._lastEdited` (ISO timestamp) and `__rcmeta._l
 | 8 | Multi-instance predefined keys not allowed | One `codearea` / `image` / etc. per card. Use child cards for multiples. |
 | 9 | Tree-keyboard bypassed during editing | Arrow keys belong to active input; tree nav suspended |
 | 10 | `isDirty()` stays true after undo | Intentional — call `markClean()` after save |
-| 11 | Browser `Ctrl+F` doesn't find virtualized off-screen content | Use native search (`<RichCardSearchBar>`) instead — searches the data model |
+| 11 | Browser `Ctrl+F` doesn't find content inside collapsed cards | Use native search (`<RichCardSearchBar>`) instead — walks the data model and auto-expands the path to matches |
 | 12 | Custom keys aren't searched in v0.3 | `searchableText` API deferred. Search the card's `parentKey` or other fields meanwhile. |
 | 13 | `Cmd+F` is NOT intercepted by rich-card | Browser-native find still works; native search is `F3` / explicit input |
 | 14 | Validators don't see post-commit state | Pass-through is pre-commit only. Validators compute "would this be valid" from the event payload + current tree. |
@@ -1181,7 +1165,7 @@ Every commit auto-stamps `__rcmeta._lastEdited` (ISO timestamp) and `__rcmeta._l
 
 | Concern | Strategy |
 |---|---|
-| Render budget | 500 leaves at 60fps in default rendering. Trees > 500 → use `virtualize: 'auto'`. |
+| Render budget | 500 leaves at 60fps. Trees > 500 → host-side pagination of the tree input (virtualization deferred to v0.5; see §18). |
 | Edit re-renders | Only the editing input + its card re-render on keystroke. Reducer commits on blur/Enter. |
 | Validation cost | Pure functions; safe to run on every keystroke. Host validators should be O(1) or O(log n). |
 | Permission resolution | Memoized by `tree`; recomputes on tree change only. |
@@ -1199,9 +1183,10 @@ If profiling fails the budget, the documented fallback is manual `React.memo` wr
 |---|---|---|
 | **v0.1** | ✅ shipped | Viewer — JSON input, typed fields, 5 predefined keys, per-level styling, ARIA tree, keyboard nav, canonical round-trip |
 | **v0.2** | ✅ shipped | Inline editor — click-to-edit, granular events, dirty tracking, single-select |
-| **v0.3** | ✅ shipped | Structural management — drag-drop, bulk multi-select, permissions, custom keys, virtualization, native search, meta editing, root-removal, promote-on-delete |
+| **v0.3** | ✅ shipped | Structural management — drag-drop, bulk multi-select, permissions, custom keys, native search, meta editing, root-removal, promote-on-delete *(originally bundled `virtualize` prop; pulled in v0.4.1 — see §18)* |
 | **v0.4** | ✅ shipped (current, **beta**) | Safety net — host validation hooks, per-commit undo/redo |
-| **v0.5** | deferred indefinitely | Markdown ↔ JSON adapter (separate companion module, NOT inside rich-card) |
+| **v0.4.1** | ✅ shipped (post-v0.1-review patch) | Removed unwired `virtualize` prop + dead `useTreeVirtualizer` hook + `@tanstack/react-virtual` dep; updated meta + description to drop the never-functional virtualization claim |
+| **v0.5** | planned (no commit date) | Virtualization (the wiring work the v0.3 prop never received), markdown ↔ JSON adapter (separate companion module, NOT inside rich-card) |
 
 **Stable (1.0.0)** is gated on:
 - External consumer adoption

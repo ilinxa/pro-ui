@@ -34,7 +34,7 @@
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative, basename } from "node:path";
+import { join } from "node:path";
 
 const ROOT = process.cwd();
 const COMPONENTS_DIR = join(ROOT, "src", "registry", "components");

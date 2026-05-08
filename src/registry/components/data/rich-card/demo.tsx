@@ -98,11 +98,12 @@ export default function RichCardDemo() {
     <div className="space-y-3">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <p className="max-w-3xl text-sm text-muted-foreground">
-          v0.3 demo: structural management on top of v0.2&apos;s editor. Toggle
-          edit mode to enable inline editing, drag-drop reordering, multi-select
-          (shift-click range, cmd/ctrl-click toggle), and the bulk toolbar (≥2
-          selected). Use the search bar to find content in collapsed subtrees,
-          virtualized off-screen cards, and meta entries.
+          v0.4 demo: validators + per-commit undo/redo on v0.3&apos;s structural
+          management foundation. Toggle edit mode to enable inline editing,
+          drag-drop reordering, multi-select (shift-click range, cmd/ctrl-click
+          toggle), the bulk toolbar (≥2 selected), and the undo toolbar
+          (Cmd+Z / Cmd+Shift+Z / Cmd+Y). Use the search bar to find content in
+          collapsed subtrees and meta entries.
         </p>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
