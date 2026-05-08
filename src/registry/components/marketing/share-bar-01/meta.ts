@@ -41,7 +41,7 @@ export const meta: ComponentMeta = {
 
   dependencies: {
     shadcn: ["button"],
-    npm: { "lucide-react": "^0.x" },
+    npm: { "lucide-react": "^1.11.0" },
     internal: [],
   },
 

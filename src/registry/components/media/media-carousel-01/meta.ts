@@ -40,10 +40,10 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["button", "tabs"],
+    shadcn: ["button"],
     npm: {
-      "embla-carousel-react": "^8.x",
-      "lucide-react": "^0.x",
+      "embla-carousel-react": "^8.6.0",
+      "lucide-react": "^1.11.0",
     },
     internal: ["video-player-01"],
   },

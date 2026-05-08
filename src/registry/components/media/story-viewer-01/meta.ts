@@ -42,7 +42,7 @@ export const meta: ComponentMeta = {
 
   dependencies: {
     shadcn: ["dialog", "avatar", "button"],
-    npm: { "lucide-react": "^0.x" },
+    npm: { "lucide-react": "^1.11.0" },
     internal: ["video-player-01"],
   },
 

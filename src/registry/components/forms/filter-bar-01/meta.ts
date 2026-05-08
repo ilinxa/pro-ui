@@ -33,11 +33,9 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["input", "button", "popover", "calendar", "tabs"],
+    shadcn: ["input", "button", "popover", "calendar"],
     npm: {
       "lucide-react": "^1.11.0",
-      "react-day-picker": "^9.0.0",
-      "date-fns": "^4.0.0",
     },
     internal: [],
   },

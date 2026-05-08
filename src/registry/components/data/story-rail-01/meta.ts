@@ -53,8 +53,8 @@ export const meta: ComponentMeta = {
   dependencies: {
     shadcn: ["avatar"],
     npm: {
-      "embla-carousel-react": "^8.x",
-      "lucide-react": "^0.x",
+      "embla-carousel-react": "^8.6.0",
+      "lucide-react": "^1.11.0",
     },
     internal: [],
   },
