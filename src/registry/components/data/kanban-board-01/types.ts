@@ -84,17 +84,8 @@ export type KanbanBoardProps = {
   defaultData?: KanbanData;
   onChange?: (next: KanbanData) => void;
 
-  /**
-   * @deprecated Use `onItemCreateArgs` for the object-shape signature. v0.2
-   *   will remove the positional shape and rename `onItemCreateArgs` →
-   *   `onItemCreate`.
-   */
-  onItemCreate?: (columnId: string, item: KanbanItem) => void;
-  /**
-   * Object-shape signature; wins over `onItemCreate` (deprecated positional)
-   * when both are provided.
-   */
-  onItemCreateArgs?: (args: { columnId: string; item: KanbanItem }) => void;
+  /** Item-create handler — object-shape. v0.2 cutover from `(columnId, item)`. */
+  onItemCreate?: (args: { columnId: string; item: KanbanItem }) => void;
   onItemUpdate?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
   onColumnCreate?: (draft: Partial<KanbanColumn>) => void;
@@ -102,21 +93,8 @@ export type KanbanBoardProps = {
   onColumnDelete?: (columnId: string) => void;
 
   onItemClick?: (item: KanbanItem) => void;
-  /**
-   * @deprecated Use `onItemMoveArgs` for the object-shape signature. v0.2
-   *   will remove the positional shape and rename `onItemMoveArgs` →
-   *   `onItemMove`.
-   */
-  onItemMove?: (
-    item: KanbanItem,
-    from: { columnId: string; swimlaneId?: string },
-    to: { columnId: string; swimlaneId?: string },
-  ) => void;
-  /**
-   * Object-shape signature; wins over `onItemMove` (deprecated positional)
-   * when both are provided.
-   */
-  onItemMoveArgs?: (args: {
+  /** Item-move handler — object-shape. v0.2 cutover from `(item, from, to)`. */
+  onItemMove?: (args: {
     item: KanbanItem;
     from: { columnId: string; swimlaneId?: string };
     to: { columnId: string; swimlaneId?: string };

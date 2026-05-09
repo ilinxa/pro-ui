@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useId, useMemo, type MouseEvent } from "react";
+import { memo, useCallback, useId, useMemo, type MouseEvent } from "react";
 import {
   DEFAULT_PROJECT_CARD_LABELS,
   type ProjectCard01Labels,
@@ -16,7 +16,6 @@ function ProjectCard01Inner({
   href,
   getHref,
   onClick,
-  onClickArgs,
   linkComponent = "a",
   categoryStyles,
   labels: labelsProp,
@@ -29,22 +28,15 @@ function ProjectCard01Inner({
 }: ProjectCard01Props) {
   const titleId = useId();
 
-  // Resolve onClick — prefers `onClickArgs` (object shape, v0.2-bound).
-  // F-cross-12 transition; positional `onClick` still works with a dev-only
-  // console.warn. Pass the resolved positional-shape wrapper to parts.
-  const resolvedOnClick = onClickArgs
-    ? (proj: ProjectCardItem, mouseEvent: MouseEvent) =>
-        onClickArgs({ project: proj, mouseEvent })
-    : onClick
-      ? (() => {
-          if (process.env.NODE_ENV !== "production") {
-            console.warn(
-              "[project-card-01] `onClick` positional signature `(project, mouseEvent)` is @deprecated. Use `onClickArgs({ project, mouseEvent })` for the object-shape signature; v0.2 will remove the positional shape.",
-            );
-          }
-          return onClick;
-        })()
-      : undefined;
+  // The internal parts still use a positional shape for the click handler
+  // they pass to <a onClick={...}>. Adapt the public object-shape callback
+  // to a positional one at this boundary; parts stay untouched.
+  const handlePartClick = useCallback(
+    (proj: ProjectCardItem, mouseEvent: MouseEvent) => {
+      onClick?.({ project: proj, mouseEvent });
+    },
+    [onClick],
+  );
 
   const labels = useMemo<Required<ProjectCard01Labels>>(
     () => ({ ...DEFAULT_PROJECT_CARD_LABELS, ...labelsProp }),
@@ -66,7 +58,7 @@ function ProjectCard01Inner({
     categoryStyle,
     href: resolvedHref,
     linkComponent,
-    onClick: resolvedOnClick,
+    onClick: onClick ? handlePartClick : undefined,
     ariaLabel,
     titleId,
     titleClassName,

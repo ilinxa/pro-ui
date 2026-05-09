@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { InfiniteLoader } from "./parts/infinite-loader";
 import { MagazineTower } from "./parts/magazine-tower";
 import {
   DEFAULT_GRID_LABELS,
-  type GridLayoutItemSlot,
   type GridLayoutNewsProps,
 } from "./types";
 
@@ -28,7 +27,6 @@ export function GridLayoutNews01<T>(props: GridLayoutNewsProps<T>) {
     isLoading = false,
     onLoadMore,
     renderItem,
-    renderItemArgs,
     renderFeatured,
     hero,
     filterBar,
@@ -44,35 +42,6 @@ export function GridLayoutNews01<T>(props: GridLayoutNewsProps<T>) {
     () => ({ ...DEFAULT_GRID_LABELS, ...labelsProp }),
     [labelsProp],
   );
-
-  // Resolve the renderItem callback — prefers `renderItemArgs` (object shape,
-  // forward-compatible). Falls back to deprecated `renderItem` (positional)
-  // with a dev-only console.warn. F-cross-12 transition; v0.2 will remove
-  // the positional shape and rename `renderItemArgs` → `renderItem`.
-  // Computed inline; React Compiler memoizes automatically.
-  const renderItemResolved: (
-    item: T,
-    slot: GridLayoutItemSlot,
-    index: number,
-  ) => ReactNode = renderItemArgs
-    ? (item, slot, index) => renderItemArgs({ item, slot, index })
-    : renderItem
-      ? (() => {
-          if (process.env.NODE_ENV !== "production") {
-            console.warn(
-              "[grid-layout-news-01] `renderItem` positional signature `(item, slot)` is @deprecated. Use `renderItemArgs({ item, slot, index })` for the object-shape signature; v0.2 will remove the positional shape and rename `renderItemArgs` → `renderItem`.",
-            );
-          }
-          return (item, slot) => renderItem(item, slot);
-        })()
-      : (() => {
-          if (process.env.NODE_ENV !== "production") {
-            console.error(
-              "[grid-layout-news-01] At least one of `renderItem` or `renderItemArgs` must be provided.",
-            );
-          }
-          return () => null;
-        })();
 
   const hasContent = displayedItems.length > 0 || featuredItem !== undefined;
   const isEmpty = !hasContent && !isLoading;
@@ -104,11 +73,11 @@ export function GridLayoutNews01<T>(props: GridLayoutNewsProps<T>) {
               <div>
                 {renderFeatured
                   ? renderFeatured(featuredItem)
-                  : renderItemResolved(featuredItem, "large", 0)}
+                  : renderItem({ item: featuredItem, slot: "large", index: 0 })}
               </div>
             ) : null}
 
-            <MagazineTower items={displayedItems} renderItem={renderItemResolved} />
+            <MagazineTower items={displayedItems} renderItem={renderItem} />
 
             <InfiniteLoader
               hasMore={hasMore}

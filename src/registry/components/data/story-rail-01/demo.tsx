@@ -105,7 +105,7 @@ function RailWithViewer({
         renderThumbnail={renderThumbnail}
         subscribe={subscribe}
         onSubscribeDelta={subscribe ? (d) => log("delta", d) : undefined}
-        onItemClick={(item, index) => {
+        onItemClick={({ item, index }) => {
           log("click", { item, index });
           setActiveIdx(index);
         }}

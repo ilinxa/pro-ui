@@ -24,7 +24,7 @@ export const meta: ComponentMeta = {
   ],
   tags: ["grid-layout-news-01", "layout", "magazine", "feed", "infinite-scroll", "migration", "news"],
 
-  version: "0.1.2",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-02",
   updatedAt: "2026-05-09",
