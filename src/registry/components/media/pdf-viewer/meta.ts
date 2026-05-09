@@ -36,7 +36,7 @@ export const meta: ComponentMeta = {
     "pdfjs",
   ],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-05-10",
   updatedAt: "2026-05-10",
@@ -56,6 +56,7 @@ export const meta: ComponentMeta = {
     ],
     npm: {
       "react-pdf": "^10.4.1",
+      "pdfjs-dist": "5.4.296",
       "lucide-react": "^1.11.0",
     },
     internal: [],
