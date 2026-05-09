@@ -155,6 +155,20 @@ For full takeover of the center caption, use `renderCenterLabel(state)` which by
 | `now ∈ [start, end]` | status = `"active"`; percent ∈ [0, 100] |
 | `now > end` | status = `"after"`; percent = 100 |
 
+## Status-conditional colors
+
+The bar fill + marker dot pick up a state-aware color so the visual matches the center label:
+
+| Status | Bar fill | Marker dot |
+|---|---|---|
+| `before` (not yet started) | `bg-muted-foreground/30` (faint gray) | `bg-muted-foreground` |
+| `active` (currently in progress) | `bg-primary` (signal-lime, default) | `bg-primary` |
+| `after` (completed) | `bg-muted-foreground/40` (mid-gray) | `bg-muted-foreground` |
+
+This is supplementary to the dynamic center label (`labels.beforeText` / `labels.activeText` / `labels.afterText` or `renderCenterLabel`) — color-AND-text per WCAG (color-blind users still see the state encoded in the text). Override either with `barClassName` / `markerClassName` for per-instance theming.
+
+> **Note (v0.1.1 — pre-design-system-owner sign-off):** color picks selected to ensure visible 100%-fill in light + dark themes (`bg-secondary` was rejected because in this codebase it equals `bg-card` at light mode, making the after-state bar near-invisible). Subject to refinement.
+
 ## Accessibility
 
 - Wraps `<section aria-labelledby={headingId}>` when `heading` provided (id from `useId`).

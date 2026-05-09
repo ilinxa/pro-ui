@@ -95,7 +95,13 @@ function ProgressTimeline01Inner({
         <div className={cn("relative", barClassName)}>
           <Progress
             value={effectivePercent}
-            className="h-4 rounded-full"
+            className={cn(
+              "h-4 rounded-full",
+              effectiveStatus === "before" &&
+                "**:data-[slot=progress-indicator]:bg-muted-foreground/30",
+              effectiveStatus === "after" &&
+                "**:data-[slot=progress-indicator]:bg-muted-foreground/40",
+            )}
             aria-label={labels.ariaLabel}
           />
           {marker === "dot" && (
@@ -109,7 +115,10 @@ function ProgressTimeline01Inner({
             >
               <div
                 className={cn(
-                  "w-6 h-6 rounded-full bg-primary border-4 border-background shadow-lg",
+                  "w-6 h-6 rounded-full border-4 border-background shadow-lg",
+                  effectiveStatus === "active"
+                    ? "bg-primary"
+                    : "bg-muted-foreground",
                   markerClassName,
                 )}
               />
