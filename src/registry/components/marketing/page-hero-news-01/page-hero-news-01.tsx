@@ -88,7 +88,7 @@ function PageHeroNews01Impl(props: PageHeroNewsProps) {
           <HeadingTag
             id={titleId}
             className={cn(
-              "mb-6 font-bold text-4xl text-white md:text-5xl lg:text-6xl",
+              "mb-6 font-bold text-4xl text-primary-foreground md:text-5xl lg:text-6xl",
               revealClass,
             )}
             style={disableReveal ? undefined : { animationDelay: "60ms" }}
@@ -103,7 +103,7 @@ function PageHeroNews01Impl(props: PageHeroNewsProps) {
         {description ? (
           <p
             className={cn(
-              "mx-auto max-w-3xl text-lg text-white/80 md:text-xl",
+              "mx-auto max-w-3xl text-lg text-primary-foreground/80 md:text-xl",
               revealClass,
             )}
             style={disableReveal ? undefined : { animationDelay: "120ms" }}

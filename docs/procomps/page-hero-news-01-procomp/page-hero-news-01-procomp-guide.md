@@ -67,13 +67,18 @@
 <PageHeroNews01
   title=""
   titleSlot={
-    <h1 className="text-5xl font-bold text-white">
+    <h1 className="text-5xl font-bold text-primary-foreground">
       The <em className="text-accent">future</em> of news
     </h1>
   }
   description="..."
 />
 ```
+
+Use `text-primary-foreground` (near-black) — not `text-white` — over the lime
+gradient. The pro-ui design mandate forbids white text on signal-lime because
+lime is too bright for white to read against; `--primary-foreground` is paired
+with `--primary` specifically for this contrast.
 
 ## Gotchas
 
@@ -86,7 +91,7 @@ The `title` prop is required by the type but unused when `titleSlot` is provided
 The hero's gradient is the brand primary (lime in pro-ui). Default `<Button>` uses `bg-primary` (also lime) → blends in. For visible CTAs:
 
 - `<Button variant="secondary">` — muted button, contrasts well.
-- `<Button variant="outline" className="bg-transparent text-white border-white/40 hover:bg-white/10 hover:text-white">` — the demo's pattern.
+- `<Button variant="outline" className="bg-transparent text-primary-foreground border-primary-foreground/40 hover:bg-primary-foreground/10 hover:text-primary-foreground">` — the demo's pattern. Uses near-black text per the lime mandate, never `text-white`.
 
 ### `disableReveal` for SSR-only contexts
 
@@ -113,6 +118,6 @@ Originals at [`docs/migrations/page-hero-news-01/original/`](../../migrations/pa
 ## Open follow-ups
 
 - v0.2: `gradientFrom` / `gradientTo` props for non-primary tints.
-- v0.2: Light-on-light variant (text-foreground instead of text-white).
+- v0.2: Light-on-light variant (text-foreground for non-primary backgrounds).
 - v0.2: Optional sticky-on-scroll mini-mode (cuts to a thin band when user scrolls past).
 - v0.3: Sibling components — `page-hero-product-01`, `page-hero-event-01` — same engine, different defaults.

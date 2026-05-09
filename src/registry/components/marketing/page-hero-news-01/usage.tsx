@@ -82,7 +82,7 @@ import { Newspaper, TrendingUp, Clock } from "lucide-react";
         <code>{`<PageHeroNews01
   title="" // unused when titleSlot is provided
   titleSlot={
-    <h1 className="text-5xl font-bold text-white">
+    <h1 className="text-5xl font-bold text-primary-foreground">
       The <em className="text-accent">future</em> of news
     </h1>
   }
