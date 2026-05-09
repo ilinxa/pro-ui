@@ -36,7 +36,7 @@ export const meta: ComponentMeta = {
     "pdfjs",
   ],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-05-10",
   updatedAt: "2026-05-10",
