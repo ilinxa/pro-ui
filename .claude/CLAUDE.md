@@ -47,8 +47,9 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 5. Verify the docs render at `/components` and `/components/<slug>`.
 6. **Add the component to [`registry.json`](../registry.json)** — one base item (sealed-folder source files) + one `<slug>-fixtures` sibling item (just `dummy-data.ts`). Locked convention: every file uses `type: "registry:component"` and `target: "components/<slug>/<sub-path>"`. **Never ship `demo.tsx`, `usage.tsx`, or `meta.ts`** — those are docs-site only. Pattern in [docs/component-guide.md §11.5](../docs/component-guide.md#115-shipping-via-the-registry); skill at [.claude/skills/shadcn-registry-pro/](skills/shadcn-registry-pro/).
 7. `pnpm registry:build` to regenerate `public/r/*.json` locally; spot-check the new `<slug>.json` artifact. Optional but recommended on first ship: smoke-test from a tmp consumer (see §11.5).
-8. Update `.claude/STATUS.md` with the new entry and any decisions worth keeping.
-9. Commit + push to `master`. Vercel auto-runs `pnpm vercel-build` on each deploy, regenerating the catalog from `registry.json`. Once deployed, the component is installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>` from any consumer app.
+8. **(Required gate — must, GATE 3)** Run a structured component-readiness review. Use [`docs/reviews/templates/review-spotcheck.md`](../docs/reviews/templates/review-spotcheck.md) for v0.1.0 first ships (~25–35 min, 5 dimensions). Author the review file at `docs/procomps/<slug>-procomp/reviews/<YYYY-MM-DD>-v<version>-spotcheck.md`. Verdict must be `Pass` or `Pass with follow-ups` (each follow-up tagged with owner + bump target) for the component to "close" — `Needs revision` or `Block` means iterate, fix the findings, re-review. Full rule + escalation cases in [.claude/rules/component-readiness-review.md](rules/component-readiness-review.md). This catches the class of drift the 2026-05 sweep surfaced — design-system, callback-shape, cross-folder import, meta-deps drift.
+9. Update `.claude/STATUS.md` with the new entry and any decisions worth keeping. Add the review file to the "Recent activity" pointer if non-trivial.
+10. Commit + push to `master`. Vercel auto-runs `pnpm vercel-build` on each deploy, regenerating the catalog from `registry.json`. Once deployed, the component is installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>` from any consumer app.
 
 For human-readable rules and a worked end-to-end example, see [docs/component-guide.md](../docs/component-guide.md). This `CLAUDE.md` stays terse; the guide is the long-form reference. The `shadcn-registry-pro` skill at `.claude/skills/shadcn-registry-pro/` covers registry-side work in detail.
 
@@ -73,6 +74,9 @@ Hold the line on tokens defined in [src/app/globals.css](src/app/globals.css):
 - **IMPORTANT:** Use the `skill-creator-pro` skill to author or restructure any skill in `.claude/skills/`.
 - **IMPORTANT:** Use the `shadcn-registry-pro` skill when authoring `registry.json`, running `shadcn build`, hosting/configuring the shadcn registry, setting up namespaced installs, or shipping components via the `pnpm dlx shadcn add` flow.
 - **IMPORTANT:** Use the `xyflow-react-pro` skill when working with `@xyflow/react` (React Flow / ReactFlow) — building flow editors, node graphs, workflow canvases, port-and-edge UIs, custom node/edge types — or whenever a file imports from `@xyflow/react`. Required for the in-flight `flow-canvas-01` procomp.
+
+## Rules
+- **IMPORTANT — Component readiness review:** Every new component MUST pass a structured review (using [`docs/reviews/templates/review-spotcheck.md`](../docs/reviews/templates/review-spotcheck.md) for v0.1.0 first ships, [`review-checklist.md`](../docs/reviews/templates/review-checklist.md) for `alpha → beta` promotions) before push to `master`. Verdict ≥ `Pass with follow-ups`. Existing components grandfathered (sweep-reviewed). Full rule at [.claude/rules/component-readiness-review.md](rules/component-readiness-review.md).
 
 ## Progress tracking
 Read [.claude/STATUS.md](.claude/STATUS.md) at session start to see where the project is. STATUS.md is the current snapshot — not a changelog. When you ship a component / change a status / make a non-obvious decision worth keeping:
