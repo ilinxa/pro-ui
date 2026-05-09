@@ -42,10 +42,10 @@ export const meta: ComponentMeta = {
     "heart-burst",
   ],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-03",
+  updatedAt: "2026-05-09",
 
   author: { name: "ilinxa" },
 

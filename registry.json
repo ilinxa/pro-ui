@@ -1002,7 +1002,7 @@
         { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/engagement-heart-burst.tsx" },
         { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.css", "type": "registry:file", "target": "components/engagement-bar-01/parts/engagement-heart-burst.css" },
         { "path": "src/registry/components/data/engagement-bar-01/hooks/use-engagement-state.ts", "type": "registry:component", "target": "components/engagement-bar-01/hooks/use-engagement-state.ts" },
-        { "path": "src/registry/components/data/engagement-bar-01/utils/format-count.ts", "type": "registry:component", "target": "components/engagement-bar-01/utils/format-count.ts" }
+        { "path": "src/registry/components/data/engagement-bar-01/lib/format-count.ts", "type": "registry:component", "target": "components/engagement-bar-01/lib/format-count.ts" }
       ]
     },
     {

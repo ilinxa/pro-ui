@@ -10,7 +10,7 @@ export type {
   UseEngagementStateOptions,
   UseEngagementStateResult,
 } from "./hooks/use-engagement-state";
-export { formatEngagementCount } from "./utils/format-count";
+export { formatEngagementCount } from "./lib/format-count";
 
 export type {
   EngagementBar01Props,
