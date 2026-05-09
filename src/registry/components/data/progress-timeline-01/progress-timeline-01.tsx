@@ -118,7 +118,9 @@ function ProgressTimeline01Inner({
                   "w-6 h-6 rounded-full border-4 border-background shadow-lg",
                   effectiveStatus === "active"
                     ? "bg-primary"
-                    : "bg-muted-foreground",
+                    : effectiveStatus === "after"
+                      ? "bg-foreground"
+                      : "bg-muted-foreground",
                   markerClassName,
                 )}
               />

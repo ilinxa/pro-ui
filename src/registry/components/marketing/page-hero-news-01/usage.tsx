@@ -83,7 +83,7 @@ import { Newspaper, TrendingUp, Clock } from "lucide-react";
   title="" // unused when titleSlot is provided
   titleSlot={
     <h1 className="text-5xl font-bold text-primary-foreground">
-      The <em className="text-accent">future</em> of news
+      The <em className="italic text-primary-foreground">future</em> of news
     </h1>
   }
   description="..."

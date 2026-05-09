@@ -161,13 +161,15 @@ The bar fill + marker dot pick up a state-aware color so the visual matches the 
 
 | Status | Bar fill | Marker dot |
 |---|---|---|
-| `before` (not yet started) | `bg-muted-foreground/30` (faint gray) | `bg-muted-foreground` |
-| `active` (currently in progress) | `bg-primary` (signal-lime, default) | `bg-primary` |
-| `after` (completed) | `bg-muted-foreground/40` (mid-gray) | `bg-muted-foreground` |
+| `before` (not yet started) | `bg-muted-foreground/30` (faint gray) | `bg-muted-foreground` (mid-gray) |
+| `active` (currently in progress) | `bg-primary` (signal-lime, default) | `bg-primary` (lime) |
+| `after` (completed) | `bg-muted-foreground/40` (mid-gray) | `bg-foreground` (near-black light / near-white dark) |
 
 This is supplementary to the dynamic center label (`labels.beforeText` / `labels.activeText` / `labels.afterText` or `renderCenterLabel`) — color-AND-text per WCAG (color-blind users still see the state encoded in the text). Override either with `barClassName` / `markerClassName` for per-instance theming.
 
-> **Note (v0.1.1 — pre-design-system-owner sign-off):** color picks selected to ensure visible 100%-fill in light + dark themes (`bg-secondary` was rejected because in this codebase it equals `bg-card` at light mode, making the after-state bar near-invisible). Subject to refinement.
+The marker color carries the strongest visual signal of state: muted-gray (waiting) → lime (now) → solid-foreground (done). All three are visually distinct in both light and dark modes, with the after-state marker reading as the most "complete" / archived.
+
+> **Note (v0.1.1 — pre-design-system-owner sign-off):** color picks selected to ensure visible 100%-fill in light + dark themes (`bg-secondary` was rejected because in this codebase it equals `bg-card` at light mode, making the after-state bar near-invisible; `bg-foreground` for the after-marker replaces an earlier identical-to-before pick that lost differentiation). Subject to refinement.
 
 ## Accessibility
 

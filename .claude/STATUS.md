@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE**: 14 Mediums + paired Lows shipped across 10 groups; 10 components bumped; F-cross-11 closed via doc-path; 10 of 12 F-cross now closed)
+> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + audit follow-up**: 14 Mediums + paired Lows across 10 groups + post-Phase-7 self-review patch (progress-timeline marker + page-hero text-accent over lime); F-cross-11 closed via doc-path; 10 of 12 F-cross now closed)
 
 ---
 
@@ -30,7 +30,7 @@
 | `expandable-text-01` | data | alpha | 0.1.0 |
 | `info-list-01` | data | alpha | 0.1.0 |
 | `people-grid-01` | data | alpha | 0.1.0 |
-| `progress-timeline-01` | data | alpha | 0.1.1 |
+| `progress-timeline-01` | data | alpha | 0.1.2 |
 | `project-card-01` | data | alpha | 0.1.0 |
 | `registration-card-01` | data | alpha | 0.1.1 |
 | `schedule-list-01` | data | alpha | 0.1.0 |
@@ -46,7 +46,7 @@
 | `filter-stack` | forms | alpha | 0.1.0 |
 | `author-card-01` | marketing | alpha | 0.1.0 |
 | `newsletter-card-01` | marketing | alpha | 0.1.0 |
-| `page-hero-news-01` | marketing | alpha | 0.1.1 |
+| `page-hero-news-01` | marketing | alpha | 0.1.2 |
 | `share-bar-01` | marketing | alpha | 0.1.0 |
 | `media-carousel-01` | media | alpha | 0.1.2 |
 | `story-viewer-01` | media | alpha | 0.1.1 |
