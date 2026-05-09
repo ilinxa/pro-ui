@@ -367,3 +367,11 @@ The burst CSS needs to travel with the component. Three options: (A) inline `<st
 - Sibling `<LikersStrip>` part if 3+ consumers reach for the same Embla pattern
 - Optional ARIA `aria-describedby` linking like-count to a visually-hidden "X people liked this" string for richer screen-reader output
 - `kind: "tip"` (creator monetization — opens a tip sheet)
+
+## Cross-folder import contract
+
+When this component composes another registry component (cross-folder import), it imports only from the OTHER component's `<slug>.tsx` file — never from `lib/`, `hooks/`, or `parts/` sub-folders. Conversely, when other registry components compose `engagement-bar-01`, they import only from `engagement-bar-01.tsx`.
+
+The constraint comes from how `pnpm dlx shadcn add` rewrites import paths in installed copies; sub-folder paths often don't survive cleanly. Anything you want shareable across folder boundaries MUST be re-exported from `<slug>.tsx`.
+
+See [`docs/component-guide.md` §11.6](../../component-guide.md) — *Cross-folder import constraint*.

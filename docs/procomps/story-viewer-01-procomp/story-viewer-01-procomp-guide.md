@@ -262,3 +262,11 @@ This is the canonical Tier-3 wiring for the social-posts-system arc — story-ra
 - **Save / download / share buttons** — header has no overflow menu in kasder. v0.2 candidate via header-action slot.
 - **Audio-only stories / podcast items** — image + video only.
 - **Virtualization** — single item rendered at a time; non-issue.
+
+## Cross-folder import contract
+
+When this component composes another registry component (cross-folder import), it imports only from the OTHER component's `<slug>.tsx` file — never from `lib/`, `hooks/`, or `parts/` sub-folders. Conversely, when other registry components compose `story-viewer-01`, they import only from `story-viewer-01.tsx`.
+
+The constraint comes from how `pnpm dlx shadcn add` rewrites import paths in installed copies; sub-folder paths often don't survive cleanly. Anything you want shareable across folder boundaries MUST be re-exported from `<slug>.tsx`.
+
+See [`docs/component-guide.md` §11.6](../../component-guide.md) — *Cross-folder import constraint*.

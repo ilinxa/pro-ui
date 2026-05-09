@@ -1146,6 +1146,90 @@ Symptoms:
 
 This is exactly the gap `force-graph` sits in deliberately (frozen at v0.2; not yet shipped via registry). For any other component, this is a bug — it's "implemented but not shipped". Step 5 of the workflow exists specifically to prevent this.
 
+### 11.6. Cross-folder import constraint — re-export from `<slug>.tsx`, not from sub-folders
+
+> **TL;DR.** When component A composes component B (cross-folder import), import directly from B's `<slug>.tsx`, NOT from `B/lib/`, `B/hooks/`, or `B/parts/`. Anything you want shareable across folder boundaries MUST be re-exported from B's `<slug>.tsx`.
+
+This is the most-stepped-on gotcha when shipping the registry. The rule is enforced by how shadcn's CLI rewrites paths during `pnpm dlx shadcn add`, NOT by the dev-server compiler.
+
+#### The mechanic — why cross-folder imports break in shipped components
+
+When a consumer runs `pnpm dlx shadcn@latest add @ilinxa/component-a`, shadcn:
+
+1. Pulls component-a's `registry.json` artifact.
+2. Pulls each of component-a's `registryDependencies` (component-b, etc.) recursively.
+3. Rewrites import paths in the source files: every `@/registry/components/<category>/<other-slug>/...` reference becomes `@/components/<other-slug>/...` (the consumer's flat `components/` shape).
+
+The rewrite is intentionally narrow: it only swaps the registry-folder prefix. It does NOT re-target imports that drill into sub-folders. So an import like:
+
+```ts
+// In component-a's source — works fine in the docs site (registry layout).
+import { someHelper } from "@/registry/components/<category>/component-b/lib/helper";
+```
+
+…becomes:
+
+```ts
+// In the consumer's installed copy — broken: components/component-b/lib/ may not exist.
+import { someHelper } from "@/components/component-b/lib/helper";
+```
+
+The consumer's installed `components/component-b/lib/helper.ts` won't exist UNLESS that file was listed under component-b's `files[]` in `registry.json` AND the path mapping survives the rewrite. Sub-folder paths often don't survive cleanly.
+
+#### The rule — the only safe cross-folder import is `<slug>.tsx`
+
+Every symbol that another component might want to consume MUST be re-exported from `<slug>.tsx` (the file, not the folder, not the barrel `index.ts`). Other-component-A imports from other-component-B's `<slug>.tsx` directly:
+
+```ts
+// In component-a's source — the only cross-folder shape that survives rewrite.
+import { ComponentB, useComponentBHelper } from "@/registry/components/<category>/component-b/component-b";
+```
+
+Then component-b's `component-b.tsx` does:
+
+```tsx
+// component-b/component-b.tsx
+export { useComponentBHelper } from "./hooks/use-helper";
+export { someUtil } from "./lib/util";
+// …plus the actual ComponentB component implementation.
+```
+
+`<slug>.tsx` becomes the public-API surface for cross-folder consumption. Everything in `lib/`, `hooks/`, `parts/` is internal-only when accessed from outside the folder.
+
+#### What's safe within the same folder
+
+Same-folder imports (`./lib/X`, `./hooks/Y`, `./parts/Z`) are fine — they ride along with the folder when shipped, since they're listed in component-b's own `files[]` array and the relative path is preserved in the consumer's installed copy.
+
+The constraint is ONLY about CROSS-folder access.
+
+#### Worked example — `media-carousel-01` composing `video-player-01`
+
+`media-carousel-01` uses `video-player-01`'s double-tap hook for image slides. The cross-folder import:
+
+```tsx
+// src/registry/components/media/media-carousel-01/parts/carousel-track.tsx
+import { useDoubleTap } from "@/registry/components/media/video-player-01";
+//                                                                        ^^^^^^^^^^^^^^^^^^^^^^^
+//                                                                        barrel — points at video-player-01/index.ts
+```
+
+The barrel works in the docs site (it's a TS-only re-export through `index.ts`). But for the registry-shipped copy, what matters is:
+
+- `video-player-01/video-player-01.tsx` re-exports `useDoubleTap` (so it's part of the public surface)
+- `video-player-01`'s `registry.json` `files[]` includes `video-player-01.tsx` (so the symbol ships)
+
+`useDoubleTap` is implemented in `video-player-01/hooks/use-double-tap.ts`, but consumers MUST NOT import that path directly from a sibling component — it would break under shadcn rewrite.
+
+#### Carriers in the codebase (Tier 2 sweep findings)
+
+Two confirmed:
+- `post-card-01` (s10 F-01): cross-folder import from `engagement-bar-01` sub-folder — refactored before merge to import from the barrel.
+- `expandable-text-01` (s11 F-01): same shape — sub-folder import flagged + corrected.
+
+Tier 1 audit (sweep close): no Tier 1 components carry the violation.
+
+> **Why this is doc-only mitigation, not a code-level lint:** the brittleness reaches users only when they `pnpm dlx shadcn add` an offending component, by which point it's too late. A consumer-tsc smoke harness extension that simulates shadcn's rewrite + tries to compile the result would catch this at producer-side commit time. That harness is a v0.2 follow-up; for v0.1.x, this section is the contract.
+
 ---
 
 ## 12. Anti-patterns
