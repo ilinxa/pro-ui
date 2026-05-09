@@ -15,7 +15,7 @@ status: shipped
 **Procomp review sweep is COMPLETE.** Session 13 is the consolidation session — no per-component reviews, no smokes. 4 deliverables shipped:
 
 1. **F-cross-11** (cross-folder import brittleness) + **F-cross-12** (positional-callback signatures) escalated as new cross-cutting findings in `docs/reviews/sweep-tracker.md`.
-2. **Sweep rollup artifact** at `docs/reviews/2026-05-09-sweep-rollup.md` (~600L synthesis of all 13 sessions).
+2. **Sweep rollup artifact** at `docs/reviews/2026-05-09-sweep-rollup.md` (~270L synthesis of all 13 sessions).
 3. **Phase 7 v0.1.x patch plan** at `.claude/PHASE-7-PLAN.md` (10 groups bundling 14 Mediums + paired Lows; ~5-6h estimated).
 4. **Sweep-close updates** — STATUS.md "Recent activity" + sweep-tracker session-log row + all 3 Done-criteria checkpoints marked complete.
 
@@ -124,7 +124,7 @@ Push attempted at session close. Local-only commit count rises to ~17 if previou
 
 ## Cross-references
 
-- **Sweep rollup:** `docs/reviews/2026-05-09-sweep-rollup.md` — full synthesis (~600L)
+- **Sweep rollup:** `docs/reviews/2026-05-09-sweep-rollup.md` — full synthesis (~270L)
 - **Phase 7 plan:** `.claude/PHASE-7-PLAN.md` — execution plan for v0.1.x patches
 - **Sweep tracker:** `docs/reviews/sweep-tracker.md` — live state with F-cross-11 + F-cross-12 added
 - **STATUS.md:** updated "Last updated" line + "Recent activity" pointer (session 13 at top)
