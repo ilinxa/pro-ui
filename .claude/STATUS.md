@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + audit follow-up + smaller-opens cleanup**: 14 Mediums + paired Lows across 10 groups + post-Phase-7 self-review patch (progress-timeline marker + page-hero text-accent over lime) + reserved-meta-field cleanup (`subcategory` / `thumbnail` / `examples` removed); F-cross-11 closed via doc-path; 10 of 12 F-cross now closed)
+> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + post-Phase-7 cleanup pass**: 14 Mediums + paired Lows across 10 groups + audit follow-up (progress-timeline marker + page-hero text-accent over lime) + reserved-meta-field cleanup + F-cross-04 closed via self-hosted fonts; **11 of 12 F-cross now closed**, only F-cross-12 remains)
 
 ---
 
@@ -85,7 +85,7 @@ Next candidates, ordered by team utility:
 - **MDX for usage docs:** currently `usage.tsx`. **Trigger:** ~5 components reach prose-heavy guidance, OR a consumer needs MDX-specific features (codeblocks-with-render, embeds).
 - **NPM publish artifacts:** no `tsup`/`rollup`, no `package.json` exports map. Distribution via shadcn-registry handles the team-internal use case. **Trigger:** external consumer onboards, OR shadcn-registry's update-friction (re-running `pnpm dlx shadcn add`) surfaces real pain. Heavyweights (rich-card 51 files, markdown-editor 28 files + 10 codemirror peer deps) are the most likely first trigger.
 - **Test runner not wired.** `pnpm tsc --noEmit && pnpm lint` cover correctness today; demo-driven manual verification is the interactivity story. **Trigger:** first non-trivial bug in pure-function modules (workspace + rich-card + properties-form `lib/` directories). First test should be rich-card's `parse → serialize → parse` fixed-point round-trip property test.
-- **F-cross-04 (environmental):** `pnpm build` fails on `next/font/google` Playfair Display fetch in offline/sandboxed envs. Workaround in place: `pnpm tsc --noEmit && pnpm lint && pnpm registry:build` cover correctness without the font fetch. **Trigger:** offline-build becomes blocker for a contributor or CI runner.
+- ~~**F-cross-04 (environmental)**~~ **✅ CLOSED 2026-05-09** — replaced `next/font/google` with `@fontsource-variable/*` self-hosted packages; `pnpm build` no longer requires network access. See [`.claude/decisions/2026-05-09-fcross04-self-host-fonts.md`](decisions/2026-05-09-fcross04-self-host-fonts.md).
 
 For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta variants, footer version, public registry build, reserved meta fields, lime contrast pattern, F-cross-01 / F-cross-11, etc.), see the per-decision files in `.claude/decisions/` plus `STATUS-archive.md` (pre-2026-05-09 entries).
 
@@ -95,6 +95,7 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — F-cross-04 CLOSED: self-host fonts via @fontsource-variable](decisions/2026-05-09-fcross04-self-host-fonts.md) (replaced `next/font/google` with `@fontsource-variable/{onest,jetbrains-mono,playfair-display}`; `pnpm build` now succeeds without network fetch; 11/12 F-cross closed; only F-cross-12 (positional callbacks → v0.2) remains)
 - [2026-05-09 — session 14 follow-up: smaller-opens cleanup](decisions/2026-05-09-session-14-smaller-opens-cleanup.md) (removed 4 unused type members — `ComponentMeta.subcategory` / `thumbnail` / `RegistryEntry.examples` / `ComponentExample`; restructured STATUS Open decisions into Active vs Informed-defers with explicit triggers; tsc/lint/validate-meta-deps clean)
 - [2026-05-09 — session 14 PHASE 7 COMPLETE: 14 Mediums + paired Lows shipped across 10 groups](decisions/2026-05-09-session-14-phase-7.md) (10 components bumped — engagement-bar-01 + media-carousel-01 to v0.1.2; 8 others to v0.1.1; F-cross-11 closed via doc-path; 10/12 F-cross now closed; F-cross-04 + F-cross-12 still open)
 - [2026-05-09 — session 13 SWEEP CLOSE: rollup + Phase 7 plan + F-cross-11/12 escalations](decisions/2026-05-09-session-13-sweep-close.md) (sweep complete 36/36; rollup at `docs/reviews/2026-05-09-sweep-rollup.md`; Phase 7 plan at `.claude/PHASE-7-PLAN.md`; 14 Mediums bundled into 10 groups; 9/12 F-cross closed; F-cross-11 Phase 7 / F-cross-12 v0.2 / F-cross-04 deferred)
