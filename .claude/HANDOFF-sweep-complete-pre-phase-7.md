@@ -4,7 +4,7 @@
 > **Reason for handoff:** Sweep close at session 13 — clean session boundary before Phase 7 (the v0.1.x patch session) begins. Local push blocked on SSL cert intercept; durable but unpushed.
 > **Last commit:** `7705b59` — `review(sweep): close session 13 — SWEEP COMPLETE; F-cross-11 + F-cross-12 escalated; Phase 7 unlocked`
 > **Branch:** `master` — clean working tree (only `.claude/settings.local.json` intentionally untracked)
-> **Remote sync:** **17 commits ahead of `origin/master`** (s11=7 + s12=7 + s13=3); push blocked since session 11 close.
+> **Remote sync:** **18 commits ahead of `origin/master`** (s11=7 + s12=7 + s13=3 + this handoff=1); push blocked since session 11 close.
 
 ---
 
@@ -14,10 +14,10 @@
 
 **Two distinct work streams remain:**
 
-1. **Push 17 local commits** — environmental issue (SSL cert intercept by AV/proxy). Three resolution paths in §"Push troubleshooting" below.
+1. **Push 18 local commits** — environmental issue (SSL cert intercept by AV/proxy). Three resolution paths in §"Push troubleshooting" below.
 2. **Phase 7 patch session** — 14 Mediums + paired Lows bundled into 10 groups. Plan at [`.claude/PHASE-7-PLAN.md`](PHASE-7-PLAN.md). Estimated ~5-6 hours single session OR split across two. Does NOT depend on push landing first.
 
-**Sweep close artifact:** [`docs/reviews/2026-05-09-sweep-rollup.md`](../docs/reviews/2026-05-09-sweep-rollup.md) (~600L synthesis).
+**Sweep close artifact:** [`docs/reviews/2026-05-09-sweep-rollup.md`](../docs/reviews/2026-05-09-sweep-rollup.md) (~270L synthesis).
 
 ---
 
@@ -74,7 +74,7 @@
 
 ### Session 13 (Sweep close + rollup) — 3 commits LOCAL ONLY
 - F-cross-11 (cross-folder import brittleness) + F-cross-12 (positional callbacks) escalated
-- Sweep rollup artifact at `docs/reviews/2026-05-09-sweep-rollup.md` (~600L)
+- Sweep rollup artifact at `docs/reviews/2026-05-09-sweep-rollup.md` (~270L)
 - Phase 7 plan at `.claude/PHASE-7-PLAN.md` (10 groups; ~5-6h)
 - All 3 Done-criteria checkpoints marked complete in sweep-tracker
 - **Local commits:** `55bac10` rollup / `2892102` Phase 7 plan / `7705b59` session-close
@@ -84,7 +84,7 @@
 
 ## State of unpushed commits
 
-**17 commits ahead of `origin/master`.** All durable in the local repo. Vercel hasn't redeployed since session 10's push (`0ee1c34`).
+**18 commits ahead of `origin/master`.** All durable in the local repo. Vercel hasn't redeployed since session 10's push (`0ee1c34`).
 
 Verify the count anytime:
 ```bash
@@ -224,7 +224,7 @@ These are non-obvious things that have already burnt time. **Don't re-litigate.*
 ### Option A — Push first, then Phase 7
 
 1. Resolve SSL cert intercept (see "Push troubleshooting" above).
-2. `git push origin master` — Vercel redeploys with all 17 commits.
+2. `git push origin master` — Vercel redeploys with all 18 commits.
 3. Verify deploy: `curl -I https://ilinxa-proui.vercel.app/r/detail-panel.json` (Last-Modified should be recent).
 4. Begin Phase 7 per `.claude/PHASE-7-PLAN.md`.
 
