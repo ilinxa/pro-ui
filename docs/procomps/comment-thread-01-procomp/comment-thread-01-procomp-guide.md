@@ -318,3 +318,11 @@ const TR_LABELS: CommentThreadLabels = {
 ## Composing into Tier-2 / Tier-3
 
 When `post-card-01` (next ship) lands, it'll forward `subscribe` / `currentUser` / `commentActions` from the post card down into `<CommentThread01>`. The realtime contract is identical between `engagement-bar-01` and `comment-thread-01` — a single `Subscribe<TDelta>` mental model across the family.
+
+## Cross-folder import contract
+
+When this component composes another registry component (cross-folder import), it imports only from the OTHER component's `<slug>.tsx` file — never from `lib/`, `hooks/`, or `parts/` sub-folders. Conversely, when other registry components compose `comment-thread-01`, they import only from `comment-thread-01.tsx`.
+
+The constraint comes from how `pnpm dlx shadcn add` rewrites import paths in installed copies; sub-folder paths often don't survive cleanly. Anything you want shareable across folder boundaries MUST be re-exported from `<slug>.tsx`.
+
+See [`docs/component-guide.md` §11.6](../../component-guide.md) — *Cross-folder import constraint*.

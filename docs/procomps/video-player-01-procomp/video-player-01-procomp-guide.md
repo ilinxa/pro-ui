@@ -246,3 +246,11 @@ If you want unmuted autoplay (rare — bad UX in feeds), you're explicitly fight
 - Picture-in-picture toggle
 - Public `useVideoState` hook export
 - Programmatic seeking via imperative handle (currently only togglePlay/toggleMute exposed via slot state)
+
+## Cross-folder import contract
+
+When this component composes another registry component (cross-folder import), it imports only from the OTHER component's `<slug>.tsx` file — never from `lib/`, `hooks/`, or `parts/` sub-folders. Conversely, when other registry components compose `video-player-01` (e.g., `media-carousel-01`'s built-in video handler), they import only from `video-player-01.tsx`. The `useDoubleTap` hook is intentionally re-exported there for that reason.
+
+The constraint comes from how `pnpm dlx shadcn add` rewrites import paths in installed copies; sub-folder paths often don't survive cleanly. Anything you want shareable across folder boundaries MUST be re-exported from `<slug>.tsx`.
+
+See [`docs/component-guide.md` §11.6](../../component-guide.md) — *Cross-folder import constraint*.
