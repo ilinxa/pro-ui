@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 12 — FINAL Tier 2 batch: 5 spot-checks + detail-panel guide; **Tier 2 COMPLETE 27/27; F-cross-01 fully CLOSED; sweep close at s13**)
+> **Last updated:** 2026-05-09 (session 13 — **SWEEP CLOSE**: rollup + Phase 7 plan + F-cross-11/12 escalations; 13 sessions, 36 components, 9/12 F-cross closed; Phase 7 next)
 
 ---
 
@@ -91,11 +91,11 @@ For the historical "Open decisions / TODOs" entries that are now closed (Phase 0
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
-- [2026-05-09 — session 12 Tier 2 batch 5 (FINAL): 5 spot-checks + detail-panel guide](decisions/2026-05-09-session-12-tier2-batch-5.md) (detail-panel/story-rail-01/registration-card-01/schedule-list-01/thumb-list-01 — all Pass with follow-ups; 2 🔸 Medium; **Tier 2 COMPLETE 27/27; F-cross-01 fully CLOSED; sweep close at s13**)
-- [2026-05-09 — session 11 Tier 2 batch 4: 6 spot-checks data part 2](decisions/2026-05-09-session-11-tier2-batch-4.md) (event-card-01/project-card-01/people-grid-01/info-list-01/progress-timeline-01/expandable-text-01 — all Pass with follow-ups; 3 🔸 Medium; expandable-text-01 F-01 confirms post-card-01 F-01 as library-wide pattern → F-cross-NN candidate at s13)
+- [2026-05-09 — session 13 SWEEP CLOSE: rollup + Phase 7 plan + F-cross-11/12 escalations](decisions/2026-05-09-session-13-sweep-close.md) (sweep complete 36/36; rollup at `docs/reviews/2026-05-09-sweep-rollup.md`; Phase 7 plan at `.claude/PHASE-7-PLAN.md`; 14 Mediums bundled into 10 groups; 9/12 F-cross closed; F-cross-11 Phase 7 / F-cross-12 v0.2 / F-cross-04 deferred)
+- [2026-05-09 — session 12 Tier 2 batch 5 (FINAL): 5 spot-checks + detail-panel guide](decisions/2026-05-09-session-12-tier2-batch-5.md) (detail-panel/story-rail-01/registration-card-01/schedule-list-01/thumb-list-01 — all Pass with follow-ups; 2 🔸 Medium; Tier 2 COMPLETE 27/27; F-cross-01 fully CLOSED)
+- [2026-05-09 — session 11 Tier 2 batch 4: 6 spot-checks data part 2](decisions/2026-05-09-session-11-tier2-batch-4.md) (event-card-01/project-card-01/people-grid-01/info-list-01/progress-timeline-01/expandable-text-01 — all Pass with follow-ups; 3 🔸 Medium; expandable-text-01 F-01 confirms post-card-01 F-01 as library-wide pattern)
 - [2026-05-09 — session 10 Tier 2 batch 3: 6 spot-checks data + media](decisions/2026-05-09-session-10-tier2-batch-3.md) (post-card-01/comment-thread-01/engagement-bar-01/media-carousel-01/content-card-news-01/article-meta-01 — all Pass with follow-ups; 4 🔸 Medium findings; F-cross-05 + F-cross-06 regression-checks ✓)
 - [2026-05-09 — session 9 Tier 2 batch 2: 5 spot-checks media + marketing](decisions/2026-05-09-session-9-tier2-batch-2.md) (story-viewer-01/video-player-01/share-bar-01/newsletter-card-01/page-hero-news-01 — all Pass with follow-ups; 1 🔸 Medium F-01 page-hero white-on-lime mandate concern)
-- [2026-05-09 — session 8 Tier 2 batch 1: 5 spot-checks + filter-stack guide](decisions/2026-05-09-session-8-tier2-batch-1.md) (filter-stack/filter-bar-01/grid-layout-news-01/category-cloud-01/author-card-01 — all Pass with follow-ups; F-cross-01 narrowed to 1 open carrier)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 
