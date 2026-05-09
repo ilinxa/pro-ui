@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (Phase 6 sign-off — F-cross-02 closed; STATUS.md split per option b3 hybrid)
+> **Last updated:** 2026-05-09 (session 8 — Tier 2 batch 1: 5 spot-checks + filter-stack guide)
 
 ---
 
@@ -81,7 +81,7 @@ Next candidates, ordered by team utility:
 - **NPM publish artifacts:** no `tsup`/`rollup`, no `package.json` exports map. Distribution shipped via shadcn-registry instead (lower friction for the team-internal use case). NPM may still be worth doing for the heavyweights (rich-card 51 files, markdown-editor 28 files + 10 codemirror peer deps) — defer until an external consumer or a real updates-friction pain point shows up.
 - **Test runner not wired.** `pnpm tsc --noEmit && pnpm lint` cover correctness; demo-driven manual verification is the project's interactivity story today. The pure modules in workspace + rich-card + properties-form `lib/` directories are written to be testable in isolation when Vitest lands. First test landing should be a round-trip property test for rich-card's parse→serialize→parse fixed-point.
 - **F-cross-04 (open):** `pnpm build` fails on `next/font/google` Playfair Display fetch in offline/sandboxed envs. Workaround: `pnpm tsc --noEmit && pnpm lint && pnpm registry:build` cover correctness without the font fetch. Defer fix to a separate plan.
-- **F-cross-01 (Tier 2 carriers — open):** `detail-panel` (session 12) and `filter-stack` (session 8) are missing `guide.md`. Per master plan, those guides are authored alongside their Tier 2 reviews — not as standalone Phase 4 work.
+- **F-cross-01 (Tier 2 carriers — 1 open):** `detail-panel` (session 12) is the last remaining missing-guide carrier. `filter-stack` carrier closed in session 8 — guide authored alongside the Tier 2 spot-check.
 
 For the historical "Open decisions / TODOs" entries that are now closed (Phase 0 risk spike, chart palette, site nav, alpha/beta variants, footer version, public registry build, etc.), see the snapshot in `STATUS-archive.md`.
 
@@ -91,11 +91,11 @@ For the historical "Open decisions / TODOs" entries that are now closed (Phase 0
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — session 8 Tier 2 batch 1: 5 spot-checks + filter-stack guide](decisions/2026-05-09-session-8-tier2-batch-1.md) (filter-stack/filter-bar-01/grid-layout-news-01/category-cloud-01/author-card-01 — all Pass with follow-ups; F-cross-01 narrowed to 1 open carrier)
 - [2026-05-09 — session 7d Phase 6: F-cross-02 closed via b3 hybrid](decisions/2026-05-09-session-7d-phase-6.md) (STATUS.md split + decisions/ convention established)
 - [2026-05-09 — session 7c Phase 4: 6 missing procomp docs authored](decisions/2026-05-09-session-7c-phase-4.md) (closes F-cross-01 Tier 1)
 - [2026-05-09 — session 7b Phase 5: 8 Tier 1 v0.1.1 patches](decisions/2026-05-09-session-7b-phase-5.md) (workspace adaptive-flatten + rich-card v0.4.1 + kanban F-01 amber + plan-doc nits)
 - [2026-05-09 — session 7b Phase 3: F-cross-07 + F-cross-10 closure](decisions/2026-05-09-session-7b-phase-3.md) (validate-meta-deps lint + smoke-verify F-cross-03/05 + harness baseline)
-- [2026-05-08 — session 7 Phases 1+2: 5 cross-cutting findings closed](decisions/2026-05-08-session-7-phases-1-2.md) (F-cross-09 CLI regression + 4 sweep-wide fixes)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 
