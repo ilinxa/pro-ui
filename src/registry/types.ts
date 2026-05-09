@@ -21,17 +21,10 @@ export type ComponentDependencies = {
 
 export type ComponentAuthor = string | { name: string; url?: string };
 
-export type ComponentExample = {
-  name: string;
-  description?: string;
-  component: ComponentType;
-};
-
 export type ComponentMeta = {
   slug: string;
   name: string;
   category: ComponentCategorySlug;
-  subcategory?: string;
 
   description: string;
   context: string;
@@ -48,14 +41,12 @@ export type ComponentMeta = {
   dependencies?: ComponentDependencies;
 
   related?: string[];
-  thumbnail?: string;
 };
 
 export type RegistryEntry = {
   meta: ComponentMeta;
   Demo: ComponentType;
   Usage: ComponentType;
-  examples?: ComponentExample[];
 };
 
 export type CategoryMeta = {
