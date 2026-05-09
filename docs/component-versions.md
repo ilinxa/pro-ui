@@ -53,7 +53,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `schedule-list-01`      | Schedule List 01           | 0.1.0   | alpha  |
 | `story-rail-01`         | Story Rail 01              | 0.2.0   | alpha  |
 | `thumb-list-01`         | Thumb List 01              | 0.1.0   | alpha  |
-| `stat-card`             | Stat Card                  | 0.1.0   | alpha  |
+| `stat-card`             | Stat Card                  | 0.1.1   | alpha  |
 
 ## forms (6)
 
