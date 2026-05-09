@@ -2,7 +2,7 @@
 date: 2026-05-09
 session: 8
 type: review
-commits: []
+commits: [3e28b34, b0c2509, 49c23f0, 455e988, 9d41895, 4fbde19, 5c708a2]
 components: [filter-stack, filter-bar-01, grid-layout-news-01, category-cloud-01, author-card-01]
 findings: [F-cross-01]
 status: shipped
