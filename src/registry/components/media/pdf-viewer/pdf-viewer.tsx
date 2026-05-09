@@ -463,18 +463,6 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
             ? (renderToolbar?.(toolbarCtx) ?? <PdfToolbar />)
             : null}
 
-          {/* Document loader — invisible; just runs the load */}
-          {normalizedSource ? (
-            <Document
-              file={normalizedSource}
-              loading={null}
-              error={null}
-              noData={null}
-              externalLinkTarget="_blank"
-              {...documentState.documentCallbacks}
-            />
-          ) : null}
-
           <div
             ref={scrollContainerRef}
             {...(enableDragDrop ? drop.dropProps : {})}
@@ -499,33 +487,53 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
                 onRetry={documentState.retry}
               />
             ) : null}
-            {status === "ready" && documentState.pdfDocument ? (
-              <PdfContextMenu
-                enabled={enableContextMenu && !renderContextMenu}
-                onSearchSelection={
-                  onSearchSelection
-                    ? (text) => onSearchSelection({ text })
-                    : undefined
-                }
-                className="flex flex-col items-center gap-3 p-4"
+            {/*
+              Document wraps the page list so AnnotationLayer/TextLayer can
+              read `pdf` from DocumentContext. `className="contents"` keeps
+              its wrapper div transparent to layout.
+            */}
+            {normalizedSource ? (
+              <Document
+                file={normalizedSource}
+                loading={null}
+                error={null}
+                noData={null}
+                externalLinkTarget="_blank"
+                className="contents"
+                {...documentState.documentCallbacks}
               >
-                {Array.from({ length: documentState.numPages }, (_, i) => {
-                  const pageNumber = i + 1;
-                  const isVisible = visiblePages.has(pageNumber);
-                  return (
-                    <PdfPage
-                      key={pageNumber}
-                      pdfDocument={documentState.pdfDocument!}
-                      pageNumber={pageNumber}
-                      scale={zoom.scale}
-                      rotation={rotation}
-                      basePageSize={pageSizes[i] ?? null}
-                      placeholder={!isVisible}
-                      className={pageClassName}
-                    />
-                  );
-                })}
-              </PdfContextMenu>
+                {status === "ready" && documentState.pdfDocument ? (
+                  <PdfContextMenu
+                    enabled={enableContextMenu && !renderContextMenu}
+                    onSearchSelection={
+                      onSearchSelection
+                        ? (text) => onSearchSelection({ text })
+                        : undefined
+                    }
+                    className="flex flex-col items-center gap-3 p-4"
+                  >
+                    {Array.from(
+                      { length: documentState.numPages },
+                      (_, i) => {
+                        const pageNumber = i + 1;
+                        const isVisible = visiblePages.has(pageNumber);
+                        return (
+                          <PdfPage
+                            key={pageNumber}
+                            pdfDocument={documentState.pdfDocument!}
+                            pageNumber={pageNumber}
+                            scale={zoom.scale}
+                            rotation={rotation}
+                            basePageSize={pageSizes[i] ?? null}
+                            placeholder={!isVisible}
+                            className={pageClassName}
+                          />
+                        );
+                      },
+                    )}
+                  </PdfContextMenu>
+                ) : null}
+              </Document>
             ) : null}
           </div>
 
