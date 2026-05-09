@@ -164,6 +164,35 @@ Plus when **`onRegister` is undefined** → CTA renders disabled with `labels.ct
 
 Semantically distinct: ratio for state, count for color. For 100-capacity events, 80% means 20 left (not yet urgent). For 50-capacity events, 80% means 10 left (urgent).
 
+## Plural-correct suffix — `formatSpotsLeftSuffix`
+
+The default English suffix word ("spots left") is now produced by an `Intl.PluralRules`-driven callback rather than a static label. At count `=== 1` you get "spot left"; otherwise "spots left".
+
+Override the callback for non-English locales whose plural rules differ from English:
+
+```tsx
+<RegistrationCard01
+  capacity={100}
+  registered={99}
+  formatSpotsLeftSuffix={(count) => {
+    const rules = new Intl.PluralRules("ru");
+    switch (rules.select(count)) {
+      case "one": return "место осталось";
+      case "few": return "места осталось";
+      default:    return "мест осталось";
+    }
+  }}
+  onRegister={handleRegister}
+/>
+```
+
+The legacy `labels.spotsLeftSuffix` string still works (used as a constant suffix for every count) but is `@deprecated` — it produces ungrammatical "1 spots left" output and doesn't vary by count. Prefer the callback for any new integration.
+
+Resolution priority (highest first):
+1. `formatSpotsLeftSuffix` (callback prop) — wins
+2. `labels.spotsLeftSuffix` (deprecated static suffix) — back-compat
+3. Default Intl.PluralRules-based English
+
 ## Item shape — soft-failure
 
 | Field | Required | Behavior when absent |

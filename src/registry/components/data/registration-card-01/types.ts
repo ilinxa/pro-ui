@@ -6,7 +6,12 @@ export type { RegistrationStatus };
 export interface RegistrationCard01Labels {
   /** Default: "Capacity". Top-row left label above the bar. */
   capacityLabel?: ReactNode;
-  /** Default: "spots left". Counter suffix when spots remain. */
+  /**
+   * Default: "spots left". Counter suffix when spots remain.
+   * @deprecated Use `formatSpotsLeftSuffix` (callback) for plural-correct labels.
+   *   Setting this still works (used as a static suffix for all counts) but
+   *   produces ungrammatical output at count === 1 ("1 spots left").
+   */
   spotsLeftSuffix?: string;
   /** Default: "Sold out". Counter text when capacity reached. */
   spotsLeftFull?: string;
@@ -44,6 +49,15 @@ export interface RegistrationCard01Props {
   lastSpotsRatio?: number;
   /** Absolute spots-left count at which the counter color flips to text-destructive. Default: 10. */
   urgentSpotsCount?: number;
+
+  // ─── Formatters ──────────────────────────────────────────────────
+  /**
+   * Format the spots-left suffix as a function of count. Default uses
+   * `Intl.PluralRules` ("spot left" at 1, "spots left" otherwise). Receives
+   * the integer spots-left count, returns a string. Takes precedence over
+   * `labels.spotsLeftSuffix`.
+   */
+  formatSpotsLeftSuffix?: (count: number) => string;
 
   // ─── Heading ─────────────────────────────────────────────────────
   /** Optional section heading. */

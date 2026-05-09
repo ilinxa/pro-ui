@@ -28,6 +28,8 @@ interface ListPartProps {
   typeStyle: { className: string } | undefined;
   featured: boolean;
   labels: Required<EventCard01Labels>;
+  formatDaysUntilSuffix: (count: number) => string;
+  formatSpotsLeftSuffix: (count: number) => string;
   href: string;
   linkComponent: ElementType;
   onClick?: (event: EventCardItem, mouseEvent: MouseEvent) => void;
@@ -48,6 +50,8 @@ export function EventCardList({
   typeStyle,
   featured,
   labels,
+  formatDaysUntilSuffix,
+  formatSpotsLeftSuffix,
   href,
   linkComponent: LinkComponent,
   onClick,
@@ -183,7 +187,7 @@ export function EventCardList({
               <Users aria-hidden="true" className="w-3 h-3 shrink-0" />
               <span>
                 {spotsLeft != null && spotsLeft > 0
-                  ? `${spotsLeft} ${labels.spotsLeftSuffix}`
+                  ? `${spotsLeft} ${formatSpotsLeftSuffix(spotsLeft)}`
                   : labels.spotsLeftFull}
               </span>
             </li>
@@ -214,7 +218,7 @@ export function EventCardList({
               {daysUntil}
             </div>
             <div className="text-[10px] text-muted-foreground mt-0.5">
-              {labels.daysUntilSuffix}
+              {formatDaysUntilSuffix(daysUntil)}
             </div>
           </div>
         )}

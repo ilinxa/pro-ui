@@ -876,7 +876,8 @@
         { "path": "src/registry/components/data/registration-card-01/registration-card-01.tsx", "type": "registry:component", "target": "components/registration-card-01/registration-card-01.tsx" },
         { "path": "src/registry/components/data/registration-card-01/index.ts", "type": "registry:component", "target": "components/registration-card-01/index.ts" },
         { "path": "src/registry/components/data/registration-card-01/types.ts", "type": "registry:component", "target": "components/registration-card-01/types.ts" },
-        { "path": "src/registry/components/data/registration-card-01/lib/registration-status.ts", "type": "registry:component", "target": "components/registration-card-01/lib/registration-status.ts" }
+        { "path": "src/registry/components/data/registration-card-01/lib/registration-status.ts", "type": "registry:component", "target": "components/registration-card-01/lib/registration-status.ts" },
+        { "path": "src/registry/components/data/registration-card-01/lib/format-default.ts", "type": "registry:component", "target": "components/registration-card-01/lib/format-default.ts" }
       ]
     },
     {

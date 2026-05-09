@@ -49,12 +49,20 @@ export interface EventCard01Labels {
   /** Default: 'Last spots'. */
   lastSpots?: string;
   // ─── Image-area overlays ────────────────────────────────────────
-  /** Suffix on the days-until countdown. Default: 'days left'. */
+  /**
+   * Suffix on the days-until countdown. Default: 'days left'.
+   * @deprecated Use `formatDaysUntilSuffix` (callback) for plural-correct labels.
+   *   Setting this still works (used as a static suffix for all counts) but
+   *   produces ungrammatical output at count === 1 ("1 days left").
+   */
   daysUntilSuffix?: string;
   /** Pulsing-dot pill text on `ongoing` events. Default: 'Happening now'. */
   ongoingIndicator?: string;
   // ─── Capacity counter ───────────────────────────────────────────
-  /** Suffix on the spots-left counter. Default: 'spots left'. */
+  /**
+   * Suffix on the spots-left counter. Default: 'spots left'.
+   * @deprecated Use `formatSpotsLeftSuffix` (callback) for plural-correct labels.
+   */
   spotsLeftSuffix?: string;
   /** Spots-left counter when capacity hit. Default: 'Sold out'. */
   spotsLeftFull?: string;
@@ -96,6 +104,18 @@ export interface EventCard01Props {
   // ─── Time / formatting ───────────────────────────────────────────
   /** Custom date formatter. Default: browser locale long format. */
   formatDate?: (dateString: string) => string;
+  /**
+   * Format the days-until suffix as a function of count. Default uses
+   * `Intl.PluralRules` ("day left" at 1, "days left" otherwise). Receives the
+   * integer day-count, returns a string. Takes precedence over `labels.daysUntilSuffix`.
+   */
+  formatDaysUntilSuffix?: (count: number) => string;
+  /**
+   * Format the spots-left suffix as a function of count. Default uses
+   * `Intl.PluralRules` ("spot left" at 1, "spots left" otherwise). Takes
+   * precedence over `labels.spotsLeftSuffix`.
+   */
+  formatSpotsLeftSuffix?: (count: number) => string;
   /** Inject a "now" reference for deterministic status (tests, live clocks). Default: new Date() at render. */
   now?: Date;
   /** Override the derived status. Rare — for preview / what-if states. */

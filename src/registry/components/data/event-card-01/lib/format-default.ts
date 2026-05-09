@@ -18,3 +18,15 @@ export function getDaysUntilEvent(
     (eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
 }
+
+const enPluralRules = new Intl.PluralRules("en");
+
+/** Default English plural-correct days-until suffix. "day left" / "days left". */
+export function defaultFormatDaysUntilSuffix(count: number): string {
+  return enPluralRules.select(count) === "one" ? "day left" : "days left";
+}
+
+/** Default English plural-correct spots-left suffix. "spot left" / "spots left". */
+export function defaultFormatSpotsLeftSuffix(count: number): string {
+  return enPluralRules.select(count) === "one" ? "spot left" : "spots left";
+}
