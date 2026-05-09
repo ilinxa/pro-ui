@@ -13,7 +13,11 @@ export interface NewsletterCardLabels {
   title?: string;
   /** Body / description. Default: 'Latest updates, straight to your inbox.'. */
   body?: string;
-  /** Email input placeholder. Default: 'Email address'. */
+  /**
+   * Email input placeholder. Default: 'you@example.com' — a format-hint
+   * showing the expected shape (per Nielsen "recognition over recall"). Pass
+   * 'Email address' if you prefer a generic prompt over an example.
+   */
   placeholder?: string;
   /** Email input aria-label. Default: 'Email address'. */
   emailLabel?: string;
@@ -28,7 +32,7 @@ export interface NewsletterCardLabels {
 export const DEFAULT_LABELS: Required<NewsletterCardLabels> = {
   title: "Join our newsletter",
   body: "Latest updates, straight to your inbox.",
-  placeholder: "Email address",
+  placeholder: "you@example.com",
   emailLabel: "Email address",
   button: "Subscribe",
   successMessage: "Thanks! You're subscribed.",

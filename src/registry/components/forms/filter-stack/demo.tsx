@@ -439,6 +439,81 @@ function RichDemo() {
   );
 }
 
+function OnFilteredChangeDemo() {
+  const [values, setValues] = useState<Record<string, FilterValue>>({});
+  const [emitCount, setEmitCount] = useState(0);
+  const [lastSize, setLastSize] = useState<number | null>(null);
+
+  const categories = useMemo<ReadonlyArray<FilterCategory<GraphNodeFixture>>>(
+    () => [
+      {
+        id: "kind",
+        type: "checkbox-list",
+        label: "Kind",
+        options: KIND_OPTIONS as unknown as Array<{
+          value: string;
+          label: string;
+        }>,
+        predicate: (item, value) => {
+          const sel = asStringArray(value);
+          return sel.length === 0 || sel.includes(item.kind);
+        },
+      },
+      {
+        id: "search",
+        type: "text",
+        label: "Search by name",
+        placeholder: "Type to filter…",
+        predicate: (item, value) => {
+          if (typeof value !== "string" || value.length === 0) return true;
+          return item.label.toLowerCase().includes(value.toLowerCase());
+        },
+      },
+    ],
+    [],
+  );
+
+  const handleFilteredChange = useCallback(
+    (filtered: ReadonlyArray<GraphNodeFixture>) => {
+      setEmitCount((n) => n + 1);
+      setLastSize(filtered.length);
+    },
+    [],
+  );
+
+  const filtered = useMemo(() => {
+    return NODE_FIXTURES.filter((n) =>
+      categories.every((c) => c.predicate(n, values[c.id])),
+    );
+  }, [categories, values]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <PanelLayout
+        panel={
+          <FilterStack<GraphNodeFixture>
+            items={NODE_FIXTURES}
+            categories={categories}
+            values={values}
+            onChange={setValues}
+            onFilteredChange={handleFilteredChange}
+            ariaLabel="Filter stack with onFilteredChange consumer"
+          />
+        }
+        list={<FilteredList items={filtered} />}
+      />
+      <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <code>onFilteredChange</code> fired <code>{emitCount}</code> times;
+        last batch size <code>{lastSize ?? "—"}</code>.{" "}
+        Use this hook for analytics (track which filter combinations users
+        commit to), URL-state sync (push the filtered IDs into a query
+        param), or downstream side effects (kick off a server fetch keyed on
+        the filtered IDs).
+      </div>
+    </div>
+  );
+}
+
 export default function FilterStackDemo() {
   return (
     <Tabs defaultValue="basic">
@@ -448,6 +523,7 @@ export default function FilterStackDemo() {
         <TabsTrigger value="solo">Solo buttons</TabsTrigger>
         <TabsTrigger value="custom">Custom range</TabsTrigger>
         <TabsTrigger value="rich">All combined</TabsTrigger>
+        <TabsTrigger value="callback">onFilteredChange</TabsTrigger>
       </TabsList>
       <TabsContent value="basic" className="mt-4">
         <BasicDemo />
@@ -463,6 +539,9 @@ export default function FilterStackDemo() {
       </TabsContent>
       <TabsContent value="rich" className="mt-4">
         <RichDemo />
+      </TabsContent>
+      <TabsContent value="callback" className="mt-4">
+        <OnFilteredChangeDemo />
       </TabsContent>
     </Tabs>
   );

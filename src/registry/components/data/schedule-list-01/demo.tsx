@@ -23,7 +23,7 @@ function SpeakerAugmentedRow({ item }: { item: ScheduleListItem }) {
   const speaker = speakers[item.id];
   return (
     <div className="flex items-start gap-4 p-4 bg-card rounded-xl border border-border/50">
-      <div className="w-20 shrink-0">
+      <div className="w-auto min-w-20 shrink-0">
         <span className="text-lg font-bold text-primary">{item.time}</span>
       </div>
       {speaker && (

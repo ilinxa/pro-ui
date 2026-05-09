@@ -207,6 +207,10 @@ import { Bird } from "lucide-react";   // example: replace TwitterX with a gener
 2. **Fallback:** `document.execCommand("copy")` on a hidden textarea — older browsers, insecure HTTP contexts, embedded webviews.
 3. If both fail, `setCopyState("error")` fires; the icon flips to `X` (`text-destructive`) for `successResetMs` (default 2000ms); `onCopyError` callback fires; `aria-live="alert"` announces the error.
 
+### `successResetMs` is dual-purpose
+
+The same prop drives BOTH the success-icon revert (Check → Copy) AND the error-icon revert (X → Copy). One number governs the visible-feedback duration for either outcome — there is intentionally no `errorResetMs` sibling in v0.1. Pick a value that reads as "user noticed" without being annoying for the success case (typical values 1500–3000 ms; default 2000 ms).
+
 ## A11y
 
 - Each icon-only button has a `title` (sighted hover tooltip) + `aria-label` (SR label) — both default per kind, both overridable.
