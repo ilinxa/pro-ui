@@ -46,4 +46,3 @@ export { RichCardSearchBar } from "./parts/search-bar";
 export { RichCardUndoToolbar } from "./parts/undo-toolbar";
 
 // component metadata
-export { meta } from "./meta";

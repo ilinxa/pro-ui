@@ -18,4 +18,3 @@ export {
 
 export { formatEventDate, getDaysUntilEvent } from "./lib/format-default";
 
-export { meta } from "./meta";

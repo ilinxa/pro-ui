@@ -9,4 +9,3 @@ export type {
 
 export { DEFAULT_INFO_LIST_LABELS } from "./types";
 
-export { meta } from "./meta";

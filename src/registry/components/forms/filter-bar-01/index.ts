@@ -7,4 +7,3 @@ export type {
   FilterBarProps,
   FilterBarValue,
 } from "./types";
-export { meta } from "./meta";

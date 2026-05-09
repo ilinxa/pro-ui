@@ -13,4 +13,3 @@ export { DEFAULT_PEOPLE_GRID_LABELS } from "./types";
 
 export { getInitials } from "./lib/get-initials";
 
-export { meta } from "./meta";

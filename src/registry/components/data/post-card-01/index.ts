@@ -37,4 +37,3 @@ export type {
   EngagementBar01Handle,
 } from "@/registry/components/data/engagement-bar-01";
 
-export { meta } from "./meta";

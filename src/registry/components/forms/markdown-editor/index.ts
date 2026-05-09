@@ -10,4 +10,3 @@ export type {
   ViewMode,
   WikilinkCandidate,
 } from "./types";
-export { meta } from "./meta";

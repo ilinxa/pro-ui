@@ -8,4 +8,3 @@ export type {
   UseMagazineFilterArgs,
   UseMagazineFilterReturn,
 } from "./types";
-export { meta } from "./meta";

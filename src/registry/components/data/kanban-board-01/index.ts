@@ -15,4 +15,3 @@ export type {
   KanbanRenderContext,
   KanbanSwimlane,
 } from "./types";
-export { meta } from "./meta";

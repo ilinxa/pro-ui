@@ -13,4 +13,3 @@ export {
   type DeriveRegistrationStatusOptions,
 } from "./lib/registration-status";
 
-export { meta } from "./meta";

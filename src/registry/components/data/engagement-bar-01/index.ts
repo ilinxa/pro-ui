@@ -29,4 +29,3 @@ export type {
 
 export { DEFAULT_ENGAGEMENT_BAR_LABELS } from "./types";
 
-export { meta } from "./meta";

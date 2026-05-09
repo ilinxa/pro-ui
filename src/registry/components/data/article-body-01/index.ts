@@ -13,4 +13,3 @@ export {
   serializeArticleBodyToHtml,
   type SerializeHtmlOptions,
 } from "./lib/serialize-html";
-export { meta } from "./meta";

@@ -39,4 +39,3 @@ export type {
 
 export { DEFAULT_COMMENT_THREAD_LABELS } from "./types";
 
-export { meta } from "./meta";

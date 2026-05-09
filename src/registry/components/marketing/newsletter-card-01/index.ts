@@ -7,4 +7,3 @@ export type {
   NewsletterCardTone,
   NewsletterCardVariant,
 } from "./types";
-export { meta } from "./meta";

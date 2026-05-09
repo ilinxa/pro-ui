@@ -12,4 +12,3 @@ export type {
   WorkspacePreset,
   WorkspaceProps,
 } from "./types";
-export { meta } from "./meta";

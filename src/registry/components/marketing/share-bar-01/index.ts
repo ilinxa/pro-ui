@@ -10,4 +10,3 @@ export {
   type ShareTargetCustom,
 } from "./types";
 export { SHARE_TEMPLATES } from "./parts/templates";
-export { meta } from "./meta";

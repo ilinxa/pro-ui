@@ -14,4 +14,3 @@ export {
   type UseLineClampDetectResult,
 } from "./hooks/use-line-clamp-detect";
 
-export { meta } from "./meta";

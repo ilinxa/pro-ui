@@ -8,4 +8,3 @@ export type {
 
 export { DEFAULT_SCHEDULE_LIST_LABELS } from "./types";
 
-export { meta } from "./meta";

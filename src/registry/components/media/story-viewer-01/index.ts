@@ -32,4 +32,3 @@ export type {
 
 export { DEFAULT_STORY_VIEWER_LABELS } from "./types";
 
-export { meta } from "./meta";
