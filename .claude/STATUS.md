@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-10 (**pdf-viewer v0.1.1** shipped — second component under the readiness-review rule. 28-file sealed folder; `react-pdf@^10.4.1` substrate. v0.1.0 GATE 3 verdict `Pass with follow-ups`; v0.1.1 same-day patch closes the F-04 smoke regression (pdfjs-dist version skew via dropping bare-name dep declaration; TooltipProvider `delayDuration` removed for shadcn-base-ui consumer compat). **38 components total.** F-01 (worker CDN default, v0.2.0) + F-02 (actions identity, v0.1.1 follow-up) + F-03 (print busy UX, v0.1.1 follow-up) remain open.)
+> **Last updated:** 2026-05-10 (**pdf-viewer v0.1.2** shipped — second component under the readiness-review rule. 28-file sealed folder; `react-pdf@^10.4.1` substrate. v0.1.0 GATE 3 verdict `Pass with follow-ups`; v0.1.1 attempted to close F-04 by removing pdfjs-dist as a direct dep but broke type-imports (transitive types not resolvable for consumer tsc); v0.1.2 pins `pdfjs-dist@5.4.296` exactly to match react-pdf's transitive — single version, no skew, types resolvable. TooltipProvider `delayDuration` removed for shadcn-base-ui consumer compat. **38 components total.** F-01 (worker CDN default, v0.2.0) + F-02 (actions identity, v0.1.x follow-up) + F-03 (print busy UX, v0.1.x follow-up) remain open.)
 
 ---
 
@@ -52,7 +52,7 @@
 | `media-carousel-01` | media | alpha | 0.1.2 |
 | `story-viewer-01` | media | alpha | 0.1.1 |
 | `video-player-01` | media | alpha | 0.1.1 |
-| `pdf-viewer` | media | alpha | 0.1.1 |
+| `pdf-viewer` | media | alpha | 0.1.2 |
 | `detail-panel` | feedback | alpha | 0.1.1 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.

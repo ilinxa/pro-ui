@@ -6,6 +6,7 @@
   "description": "Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design system, no commercial SDK.",
   "dependencies": [
     "react-pdf",
+    "pdfjs-dist@5.4.296",
     "lucide-react"
   ],
   "registryDependencies": [
