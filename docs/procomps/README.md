@@ -76,8 +76,12 @@ This doc is **not a hard gate**, but it should land in the same PR as the compon
 [ ]  7. pnpm new:component <category>/<slug>
 [ ]  8. Implement against the plan
 [ ]  9. Author docs/procomps/<slug>-procomp/<slug>-procomp-guide.md
-[ ] 10. Run the §13 verification checklist
-[ ] 11. Update .claude/STATUS.md
+[ ] 10. Run the component-guide §13 verification checklist
+[ ] 11. Author a v0.1.0 spot-check review at docs/procomps/<slug>-procomp/reviews/<date>-v0.1.0-spotcheck.md
+       — use docs/reviews/templates/review-spotcheck.md (5 dimensions, 25–35 min)
+[ ] 12. Verdict ≥ "Pass with follow-ups"  ──── GATE 3 (.claude/rules/component-readiness-review.md)
+[ ] 13. Update .claude/STATUS.md (Components table + Recent activity)
+[ ] 14. Commit + push (Vercel auto-deploys)
 ```
 
 ## Why the gate exists

@@ -1330,27 +1330,52 @@ The corrected version is the worked example in §11.
 
 ## 13. Verification checklist
 
-Copy-paste into your PR description. All 16 must be `[x]` before merge.
+Copy-paste into your PR description. All items must be `[x]` before merge.
+
+### Build + correctness
 
 - [ ] Does `pnpm tsc --noEmit` pass?
 - [ ] Does `pnpm lint` pass?
+- [ ] Does `pnpm validate:meta-deps` report `36 / 36 clean`?
 - [ ] Does `pnpm dev` show the component at `/components/<slug>` with no console warnings?
+
+### Content + presentation
+
 - [ ] Does the catalog card show: name, description (truncated to 2 lines), status badge, first 4 tags?
 - [ ] Does the detail page show: context paragraph, working preview, usage prose with copy-pasteable code block, features list, full tags list, all declared dependencies?
 - [ ] Did you replace every `TODO:` and "Replace this..." string in `meta.ts` and `usage.tsx`?
+- [ ] Did you toggle the theme via the dev site's theme toggle and verify both light and dark look right?
+
+### Conventions
+
 - [ ] Does `meta.slug` exactly match the folder name and the URL?
 - [ ] Does the named export in `<slug>.tsx` match the PascalCase form of the slug?
 - [ ] Are `Demo` and `Usage` default exports (not named)?
 - [ ] Did you import only from the allowlist (`react` types, `@/components/ui/*`, `@/lib/utils`, declared deps)?
-- [ ] Did you grep your component folder for `next/`, `process.`, `bg-white`, `text-white`, `#`, `rgb(`, `prose ` and find nothing unexpected?
+- [ ] Did you grep your component folder for `next/`, `process.` (other than `process.env.NODE_ENV` dev-warn gates), `bg-white`, `text-white` over the lime gradient, `#`, `rgb(`, `prose ` and find nothing unexpected?
 - [ ] Did you list every `@/components/ui/*` you import in `meta.dependencies.shadcn`?
 - [ ] Is `version: "0.1.0"` and `status: "alpha"` for first ship?
-- [ ] Did you toggle the theme via the dev site's theme toggle and verify both light and dark look right?
-- [ ] Did you update [.claude/STATUS.md](../.claude/STATUS.md) (Components table + Recent decisions entry)?
 - [ ] Is the manifest entry placed with its category siblings, not appended to the bottom?
+
+### Registry distribution
+
 - [ ] Did you add the component to [`registry.json`](../registry.json) with **both** base + `<slug>-fixtures` items, every file `type: "registry:component"`, every target prefixed with `components/<slug>/`?
 - [ ] Did you cross-check `registryDependencies` and `dependencies` against actual imports in shipped files (excluding `demo.tsx` / `usage.tsx` / `meta.ts`) — not blindly copied from `meta.ts`?
+- [ ] Does NOT export `meta` from `index.ts` (it's docs-site-only and would break consumer-side tsc)?
 - [ ] Did `pnpm registry:build` complete cleanly with `public/r/<slug>.json` and `public/r/<slug>-fixtures.json` emitted?
+
+### Component readiness review (GATE 3) — see [.claude/rules/component-readiness-review.md](../.claude/rules/component-readiness-review.md)
+
+- [ ] Did you author a review file at `docs/procomps/<slug>-procomp/reviews/<YYYY-MM-DD>-v<version>-spotcheck.md` using [`docs/reviews/templates/review-spotcheck.md`](reviews/templates/review-spotcheck.md)?
+- [ ] Did the review cover the **fixed core 4 dimensions** — Procomp planning docs / Registry distribution / Meta + manifest sync / Verification — plus 1 rotating dimension chosen for this component's risk profile?
+- [ ] Did you run a smoke harness pass (F-cross-11 path b) for the new slug? `pnpm dlx shadcn add @ilinxa/<slug>` succeeds AND `pnpm tsc --noEmit` clean post-install?
+- [ ] Is the verdict `Pass` or `Pass with follow-ups` (NOT `Needs revision` or `Block`)?
+- [ ] If `Pass with follow-ups`, does each follow-up have an owner + a bump target version?
+
+### Bookkeeping
+
+- [ ] Did you update [.claude/STATUS.md](../.claude/STATUS.md) (Components table + Recent activity entry)?
+- [ ] If the review surfaced anything non-obvious, did you author a `.claude/decisions/<date>-<slug>.md` file?
 
 ---
 
