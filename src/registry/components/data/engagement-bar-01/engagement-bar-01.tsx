@@ -16,7 +16,7 @@ import {
   deriveStateFromActions,
   useEngagementState,
 } from "./hooks/use-engagement-state";
-import { formatEngagementCount } from "./utils/format-count";
+import { formatEngagementCount } from "./lib/format-count";
 
 interface EngagementBar01InnerProps extends EngagementBar01Props {
   ref?: React.Ref<EngagementBar01Handle>;
