@@ -1451,6 +1451,70 @@
       "files": [
         { "path": "src/registry/components/data/flow-canvas-01/dummy-data.ts", "type": "registry:component", "target": "components/flow-canvas-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "pdf-viewer",
+      "type": "registry:block",
+      "title": "PDF Viewer",
+      "description": "Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design system, no commercial SDK.",
+      "author": "ilinxa",
+      "categories": ["media", "pdf", "viewer"],
+      "registryDependencies": [
+        "button",
+        "context-menu",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "separator",
+        "skeleton",
+        "tooltip"
+      ],
+      "dependencies": ["react-pdf", "pdfjs-dist", "lucide-react"],
+      "files": [
+        { "path": "src/registry/components/media/pdf-viewer/pdf-viewer.tsx", "type": "registry:component", "target": "components/pdf-viewer/pdf-viewer.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/index.ts", "type": "registry:component", "target": "components/pdf-viewer/index.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/types.ts", "type": "registry:component", "target": "components/pdf-viewer/types.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-viewer-context.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-viewer-context.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-document.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-document.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-zoom.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-zoom.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-page-tracker.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-page-tracker.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-virtualization.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-virtualization.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-keyboard.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-keyboard.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-drop.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-drop.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-selection.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-selection.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/hooks/use-pdf-print.ts", "type": "registry:component", "target": "components/pdf-viewer/hooks/use-pdf-print.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/lib/clamp-scale.ts", "type": "registry:component", "target": "components/pdf-viewer/lib/clamp-scale.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/lib/compute-fit-scale.ts", "type": "registry:component", "target": "components/pdf-viewer/lib/compute-fit-scale.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/lib/normalize-source.ts", "type": "registry:component", "target": "components/pdf-viewer/lib/normalize-source.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/lib/download.ts", "type": "registry:component", "target": "components/pdf-viewer/lib/download.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/lib/worker-config.ts", "type": "registry:component", "target": "components/pdf-viewer/lib/worker-config.ts" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-page.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-page.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-toolbar.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-toolbar.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-page-nav.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-page-nav.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-page-indicator.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-page-indicator.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-zoom-controls.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-zoom-controls.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-action-menu.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-action-menu.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-context-menu.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-context-menu.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-password-prompt.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-password-prompt.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-drop-overlay.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-drop-overlay.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-empty-state.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-empty-state.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-error-state.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-error-state.tsx" },
+        { "path": "src/registry/components/media/pdf-viewer/parts/pdf-loading-state.tsx", "type": "registry:component", "target": "components/pdf-viewer/parts/pdf-loading-state.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "pdf-viewer-fixtures",
+      "type": "registry:block",
+      "title": "PDF Viewer — fixtures",
+      "description": "PDF Viewer bundle including the dummy-data fixtures used by the docs-site demo (sample PDF URL constants and Blob/ArrayBuffer fetch helpers).",
+      "author": "ilinxa",
+      "categories": ["media", "pdf", "viewer", "fixtures"],
+      "registryDependencies": ["@ilinxa/pdf-viewer"],
+      "files": [
+        { "path": "src/registry/components/media/pdf-viewer/dummy-data.ts", "type": "registry:component", "target": "components/pdf-viewer/dummy-data.ts" }
+      ]
     }
   ]
 }
