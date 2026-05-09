@@ -32,6 +32,7 @@ function StoryRail01Inner(props: StoryRail01InnerProps) {
     subscribe,
     onSubscribeDelta,
     onItemClick,
+    onItemClickArgs,
     linkComponent,
     getHref,
     renderThumbnail,
@@ -41,6 +42,24 @@ function StoryRail01Inner(props: StoryRail01InnerProps) {
     thumbnailClassName,
     ref,
   } = props;
+
+  // Resolve onItemClick — prefers `onItemClickArgs` (object shape, v0.2-bound).
+  // F-cross-12 transition; positional `onItemClick` still works with a dev-only
+  // console.warn. Pass the positional-shape wrapper to internals (StoryThumbnail
+  // and renderThumbnail slot keep the existing positional signature).
+  const resolvedOnItemClick: ((item: StoryRailItem, index: number) => void) | undefined =
+    onItemClickArgs
+      ? (item, index) => onItemClickArgs({ item, index })
+      : onItemClick
+        ? (() => {
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                "[story-rail-01] `onItemClick` positional signature `(item, index)` is @deprecated. Use `onItemClickArgs({ item, index })` for the object-shape signature; v0.2 will remove the positional shape.",
+              );
+            }
+            return onItemClick;
+          })()
+        : undefined;
 
   const labels = useMemo<
     Required<Omit<StoryRail01Labels, "thumbnailAriaLabel">> & {
@@ -130,7 +149,7 @@ function StoryRail01Inner(props: StoryRail01InnerProps) {
                   {renderThumbnail
                     ? renderThumbnail(item, !!item.hasUnread, {
                         index,
-                        onClick: () => onItemClick?.(item, index),
+                        onClick: () => resolvedOnItemClick?.(item, index),
                         baseId: `${rootId}-${item.id}`,
                       })
                     : (
@@ -138,7 +157,7 @@ function StoryRail01Inner(props: StoryRail01InnerProps) {
                           item={item}
                           index={index}
                           baseId={`${rootId}-${item.id}`}
-                          onItemClick={onItemClick}
+                          onItemClick={resolvedOnItemClick}
                           getHref={getHref}
                           linkComponent={linkComponent}
                           labels={labels}

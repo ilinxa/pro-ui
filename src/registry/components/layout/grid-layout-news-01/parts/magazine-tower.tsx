@@ -14,7 +14,12 @@ export function MagazineTower<T>({
   renderItem,
 }: {
   items: T[];
-  renderItem: (item: T, slot: GridLayoutItemSlot) => ReactNode;
+  /**
+   * Render callback receiving the resolved (item, slot, index) — internal
+   * indirection from the component's renderItemArgs / renderItem
+   * resolution; consumers don't see this signature.
+   */
+  renderItem: (item: T, slot: GridLayoutItemSlot, index: number) => ReactNode;
 }) {
   if (items.length === 0) return null;
 
@@ -24,12 +29,12 @@ export function MagazineTower<T>({
 
   return (
     <div className="space-y-8">
-      {renderItem(lead, "large")}
+      {renderItem(lead, "large", 0)}
 
       {twoUp.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2">
           {twoUp.map((item, i) => (
-            <div key={i}>{renderItem(item, "medium")}</div>
+            <div key={i}>{renderItem(item, "medium", i + 1)}</div>
           ))}
         </div>
       ) : null}
@@ -37,7 +42,7 @@ export function MagazineTower<T>({
       {rest.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {rest.map((item, i) => (
-            <div key={i}>{renderItem(item, "medium")}</div>
+            <div key={i}>{renderItem(item, "medium", i + 3)}</div>
           ))}
         </div>
       ) : null}

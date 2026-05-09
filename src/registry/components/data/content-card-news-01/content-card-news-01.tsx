@@ -32,6 +32,7 @@ function ContentCardNews01Impl(props: ContentCardNewsProps) {
     variant = "medium",
     href,
     onClick,
+    onClickArgs,
     linkComponent: LinkComponent = "a",
     formatRelativeTime,
     formatDate,
@@ -74,9 +75,23 @@ function ContentCardNews01Impl(props: ContentCardNewsProps) {
 
   const handleClick = useCallback(
     (event: MouseEvent) => {
-      onClick?.(item, event);
+      // Resolve onClick — prefers `onClickArgs` (object shape, v0.2-bound).
+      // F-cross-12 transition; v0.1.x keeps positional working with a dev-
+      // only console.warn when used.
+      if (onClickArgs) {
+        onClickArgs({ item, event });
+        return;
+      }
+      if (onClick) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "[content-card-news-01] `onClick` positional signature `(item, event)` is @deprecated. Use `onClickArgs({ item, event })` for the object-shape signature; v0.2 will remove the positional shape.",
+          );
+        }
+        onClick(item, event);
+      }
     },
-    [onClick, item],
+    [onClick, onClickArgs, item],
   );
 
   const loading: "lazy" | "eager" =
@@ -90,7 +105,7 @@ function ContentCardNews01Impl(props: ContentCardNewsProps) {
     labels,
     LinkComponent,
     href,
-    onClick: onClick ? handleClick : undefined,
+    onClick: onClick || onClickArgs ? handleClick : undefined,
     ariaLabel,
     titleId,
     titleClassName,
