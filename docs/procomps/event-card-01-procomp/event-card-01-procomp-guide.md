@@ -242,6 +242,36 @@ it("derives lastSpots when ≥80% capacity", () => {
 
 Capacity-less events are first-class — events with unlimited / drop-in capacity skip the capacity-derived states cleanly. Status falls through to time-only states (`open` / `upcoming` / `ongoing` / `expired`).
 
+## Plural-correct suffixes — `formatDaysUntilSuffix` / `formatSpotsLeftSuffix`
+
+The default English suffix words ("days left", "spots left") are now produced by `Intl.PluralRules`-driven callbacks rather than static labels. At count `=== 1` you get "day left" / "spot left"; otherwise "days left" / "spots left".
+
+For locales whose plural rules differ from English, override the callbacks directly:
+
+```tsx
+<EventCard01
+  event={event}
+  variant="grid"
+  href={href}
+  formatDaysUntilSuffix={(count) => {
+    const rules = new Intl.PluralRules("ru");
+    switch (rules.select(count)) {
+      case "one": return "день остался";
+      case "few": return "дня осталось";
+      default:    return "дней осталось";
+    }
+  }}
+  formatSpotsLeftSuffix={(count) => count === 1 ? "место осталось" : "мест осталось"}
+/>
+```
+
+The legacy `labels.daysUntilSuffix` / `labels.spotsLeftSuffix` strings still work (used as a constant suffix for every count) but are `@deprecated` — they produce ungrammatical "1 days left" output and don't vary by count. Prefer the callbacks for any new integration.
+
+Resolution priority (highest first):
+1. `formatDaysUntilSuffix` / `formatSpotsLeftSuffix` (callback prop) — wins
+2. `labels.daysUntilSuffix` / `labels.spotsLeftSuffix` (deprecated static suffix) — back-compat
+3. Default Intl.PluralRules-based English
+
 ## i18n — the 17-key labels object
 
 Every consumer-visible string is overridable. Pass a partial `labels` object; missing keys fall to English defaults:

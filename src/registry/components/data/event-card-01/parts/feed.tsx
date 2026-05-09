@@ -28,6 +28,8 @@ interface FeedPartProps {
   formattedDate: string;
   featured: boolean;
   labels: Required<EventCard01Labels>;
+  formatDaysUntilSuffix: (count: number) => string;
+  formatSpotsLeftSuffix: (count: number) => string;
   href: string;
   linkComponent: ElementType;
   onClick?: (event: EventCardItem, mouseEvent: MouseEvent) => void;
@@ -66,6 +68,8 @@ export function EventCardFeed({
   formattedDate,
   featured,
   labels,
+  formatDaysUntilSuffix,
+  formatSpotsLeftSuffix,
   href,
   linkComponent: LinkComponent,
   onClick,
@@ -170,7 +174,7 @@ export function EventCardFeed({
                 {daysUntil}
               </div>
               <div className="text-xs text-white/70">
-                {labels.daysUntilSuffix}
+                {formatDaysUntilSuffix(daysUntil)}
               </div>
             </div>
           ) : null}
@@ -223,7 +227,7 @@ export function EventCardFeed({
                 <Users aria-hidden="true" className="w-4 h-4" />
                 <span>
                   {spotsLeft != null && spotsLeft > 0
-                    ? `${spotsLeft} ${labels.spotsLeftSuffix}`
+                    ? `${spotsLeft} ${formatSpotsLeftSuffix(spotsLeft)}`
                     : labels.spotsLeftFull}
                 </span>
               </li>

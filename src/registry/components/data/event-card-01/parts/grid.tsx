@@ -23,6 +23,8 @@ interface GridPartProps {
   typeStyle: { className: string } | undefined;
   featured: boolean;
   labels: Required<EventCard01Labels>;
+  formatDaysUntilSuffix: (count: number) => string;
+  formatSpotsLeftSuffix: (count: number) => string;
   href: string;
   linkComponent: ElementType;
   onClick?: (event: EventCardItem, mouseEvent: MouseEvent) => void;
@@ -62,6 +64,8 @@ export function EventCardGrid({
   typeStyle,
   featured,
   labels,
+  formatDaysUntilSuffix,
+  formatSpotsLeftSuffix,
   href,
   linkComponent: LinkComponent,
   onClick,
@@ -155,7 +159,7 @@ export function EventCardGrid({
         {status !== "expired" && status !== "ongoing" && (
           <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 text-white">
             <div className="text-2xl font-bold leading-none">{daysUntil}</div>
-            <div className="text-xs text-white/70">{labels.daysUntilSuffix}</div>
+            <div className="text-xs text-white/70">{formatDaysUntilSuffix(daysUntil)}</div>
           </div>
         )}
         {status === "ongoing" && (
@@ -252,7 +256,7 @@ export function EventCardGrid({
                   )}
                 >
                   {spotsLeft > 0
-                    ? `${spotsLeft} ${labels.spotsLeftSuffix}`
+                    ? `${spotsLeft} ${formatSpotsLeftSuffix(spotsLeft)}`
                     : labels.spotsLeftFull}
                 </span>
               )}

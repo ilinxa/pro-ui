@@ -7,7 +7,12 @@ import {
   type EventCard01Labels,
 } from "./types";
 import { getEventStatus } from "./lib/event-status";
-import { getDaysUntilEvent, formatEventDate } from "./lib/format-default";
+import {
+  getDaysUntilEvent,
+  formatEventDate,
+  defaultFormatDaysUntilSuffix,
+  defaultFormatSpotsLeftSuffix,
+} from "./lib/format-default";
 import { EventCardGrid } from "./parts/grid";
 import { EventCardFeed } from "./parts/feed";
 import { EventCardList } from "./parts/list";
@@ -21,6 +26,8 @@ function EventCard01Inner({
   onClick,
   linkComponent = "a",
   formatDate,
+  formatDaysUntilSuffix,
+  formatSpotsLeftSuffix,
   now,
   statusOverride,
   labels: labelsProp,
@@ -38,6 +45,24 @@ function EventCard01Inner({
     () => ({ ...DEFAULT_EVENT_CARD_LABELS, ...labelsProp }),
     [labelsProp],
   );
+
+  const daysUntilSuffixFormatter = useMemo<(count: number) => string>(() => {
+    if (formatDaysUntilSuffix) return formatDaysUntilSuffix;
+    if (labelsProp?.daysUntilSuffix !== undefined) {
+      const suffix = labelsProp.daysUntilSuffix;
+      return () => suffix;
+    }
+    return defaultFormatDaysUntilSuffix;
+  }, [formatDaysUntilSuffix, labelsProp]);
+
+  const spotsLeftSuffixFormatter = useMemo<(count: number) => string>(() => {
+    if (formatSpotsLeftSuffix) return formatSpotsLeftSuffix;
+    if (labelsProp?.spotsLeftSuffix !== undefined) {
+      const suffix = labelsProp.spotsLeftSuffix;
+      return () => suffix;
+    }
+    return defaultFormatSpotsLeftSuffix;
+  }, [formatSpotsLeftSuffix, labelsProp]);
 
   const status = useMemo(
     () => statusOverride ?? getEventStatus(event, now),
@@ -67,6 +92,8 @@ function EventCard01Inner({
     formattedDate,
     featured,
     labels,
+    formatDaysUntilSuffix: daysUntilSuffixFormatter,
+    formatSpotsLeftSuffix: spotsLeftSuffixFormatter,
     href: resolvedHref,
     linkComponent,
     onClick,

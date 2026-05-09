@@ -12,6 +12,7 @@ import {
   type RegistrationStatus,
 } from "./types";
 import { deriveRegistrationStatus } from "./lib/registration-status";
+import { defaultFormatSpotsLeftSuffix } from "./lib/format-default";
 
 function getCtaConfig(
   status: RegistrationStatus,
@@ -45,6 +46,7 @@ function RegistrationCard01Inner({
   statusOverride,
   lastSpotsRatio = 0.8,
   urgentSpotsCount = 10,
+  formatSpotsLeftSuffix,
   heading,
   headingAs = "h3",
   framed = true,
@@ -64,6 +66,15 @@ function RegistrationCard01Inner({
     () => ({ ...DEFAULT_REGISTRATION_CARD_LABELS, ...labelsProp }),
     [labelsProp],
   );
+
+  const spotsLeftSuffixFormatter = useMemo<(count: number) => string>(() => {
+    if (formatSpotsLeftSuffix) return formatSpotsLeftSuffix;
+    if (labelsProp?.spotsLeftSuffix !== undefined) {
+      const suffix = labelsProp.spotsLeftSuffix;
+      return () => suffix;
+    }
+    return defaultFormatSpotsLeftSuffix;
+  }, [formatSpotsLeftSuffix, labelsProp]);
 
   const status = useMemo<RegistrationStatus>(
     () =>
@@ -120,7 +131,7 @@ function RegistrationCard01Inner({
               )}
             >
               {spotsLeft > 0
-                ? `${spotsLeft} ${labels.spotsLeftSuffix}`
+                ? `${spotsLeft} ${spotsLeftSuffixFormatter(spotsLeft)}`
                 : labels.spotsLeftFull}
             </span>
           </div>
