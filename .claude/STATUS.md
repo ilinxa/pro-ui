@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + post-Phase-7 cleanup pass**: 14 Mediums + paired Lows across 10 groups + audit follow-up (progress-timeline marker + page-hero text-accent over lime) + reserved-meta-field cleanup + F-cross-04 closed via self-hosted fonts; **11 of 12 F-cross now closed**, only F-cross-12 remains)
+> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + extended cleanup**: 14 Mediums + paired Lows across 10 groups + audit follow-up + reserved-meta-field cleanup + F-cross-04 closed via self-hosted fonts + F-cross-11 path (b) closed via consumer-side smoke-tsc + barrel-meta-export bug caught & fixed by path (b); **all 12 F-cross either closed or with active guards**, only F-cross-12 remains as v0.2 work)
 
 ---
 
@@ -78,7 +78,7 @@ Next candidates, ordered by team utility:
 **Active — needs decision or work**
 
 - **F-cross-12 (v0.2 candidate):** Positional-callback signatures across 5 components / 6 occurrences (kanban-board-01, grid-layout-news-01, content-card-news-01, project-card-01, story-rail-01). Breaking change; out of v0.1.x (non-breaking) scope. Library-wide v0.2 migration to object-shape callbacks with deprecation warnings emitted in v0.1.x as transition.
-- **F-cross-11 follow-up (paths b/c, v0.2):** Phase 7 closed F-cross-11 via doc-path mitigation only. Path (b) — extend smoke harness with consumer-side `pnpm tsc --noEmit` after install — catches the brittleness at producer-commit time via real type-checking. Path (c) — realign cross-folder import paths to consumer-side style — is more invasive but most robust. Both deferred as v0.2 follow-ups; (b) recommended first.
+- ~~**F-cross-11 follow-up paths (b)/(c)**~~ **✅ Path (b) CLOSED 2026-05-09** — smoke harness extended with consumer-side `pnpm tsc --noEmit` post-install; first run surfaced + fixed a real bug (37 `index.ts` files re-exporting docs-site-only `meta`). Path (c) — tsconfig path realignment — remains deferred; with (b) actively guarding, (c)'s additional safety value is marginal. See [`.claude/decisions/2026-05-09-fcross11-path-b-smoke-tsc.md`](decisions/2026-05-09-fcross11-path-b-smoke-tsc.md).
 
 **Informed defers — explicit trigger to revisit**
 
@@ -95,6 +95,7 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — F-cross-11 path (b) CLOSED: smoke harness gains consumer-side tsc](decisions/2026-05-09-fcross11-path-b-smoke-tsc.md) (smoke-all.mjs runs `pnpm tsc --noEmit` after install loop; first run caught 37 broken `index.ts` re-exports of docs-site-only `meta` — fixed in producer commit `c4662bb`; path (c) deferred since (b) is actively guarding)
 - [2026-05-09 — F-cross-04 CLOSED: self-host fonts via @fontsource-variable](decisions/2026-05-09-fcross04-self-host-fonts.md) (replaced `next/font/google` with `@fontsource-variable/{onest,jetbrains-mono,playfair-display}`; `pnpm build` now succeeds without network fetch; 11/12 F-cross closed; only F-cross-12 (positional callbacks → v0.2) remains)
 - [2026-05-09 — session 14 follow-up: smaller-opens cleanup](decisions/2026-05-09-session-14-smaller-opens-cleanup.md) (removed 4 unused type members — `ComponentMeta.subcategory` / `thumbnail` / `RegistryEntry.examples` / `ComponentExample`; restructured STATUS Open decisions into Active vs Informed-defers with explicit triggers; tsc/lint/validate-meta-deps clean)
 - [2026-05-09 — session 14 PHASE 7 COMPLETE: 14 Mediums + paired Lows shipped across 10 groups](decisions/2026-05-09-session-14-phase-7.md) (10 components bumped — engagement-bar-01 + media-carousel-01 to v0.1.2; 8 others to v0.1.1; F-cross-11 closed via doc-path; 10/12 F-cross now closed; F-cross-04 + F-cross-12 still open)
