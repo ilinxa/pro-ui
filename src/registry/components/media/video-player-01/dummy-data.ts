@@ -1,27 +1,36 @@
 import type { VideoTrack } from "./types";
 
-/** Royalty-free landscape clip (~6s). Pexels. */
+// Hotlink-friendly demo sources. Pexels' video CDN blocks anonymous hotlinks
+// (returns 403), so the fixtures use test-videos.co.uk (Big Buck Bunny / Sintel
+// / Jellyfish — public test-clip mirrors) and MDN's cc0-videos bucket.
+
+/** Royalty-free landscape clip (~10s, ~1MB). */
 export const SAMPLE_VIDEO_URL =
-  "https://videos.pexels.com/video-files/856005/856005-hd_1280_720_30fps.mp4";
+  "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4";
 
+/** Generic 1280×720 placeholder poster. Swap for a real still in production. */
 export const SAMPLE_POSTER_URL =
-  "https://images.pexels.com/videos/856005/free-video-856005.jpg?auto=compress&cs=tinysrgb&w=1280";
+  "https://images.placeholders.dev/?width=1280&height=720&text=Sample+Video";
 
-/** Vertical clip for story-like demos. */
+/**
+ * Short clip exported as the "vertical" sample slot for fixtures consumers.
+ * Note: this source is landscape. Story-style consumers should swap in their
+ * own vertical asset.
+ */
 export const SAMPLE_VERTICAL_VIDEO_URL =
-  "https://videos.pexels.com/video-files/2098989/2098989-uhd_2160_4096_25fps.mp4";
+  "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4";
 
-/** Shorter loopable clip for autoplay-loop scenarios. */
+/** Short loopable clip for autoplay-loop scenarios (~10s flower clip). */
 export const SAMPLE_LOOP_VIDEO_URL =
-  "https://videos.pexels.com/video-files/2491284/2491284-uhd_2560_1440_25fps.mp4";
+  "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
-/** Second landscape clip (different colors) — used for the isActive carousel demo. */
+/** Second landscape clip — used for the isActive carousel demo (Jellyfish). */
 export const SAMPLE_VIDEO_URL_B =
-  "https://videos.pexels.com/video-files/3163534/3163534-uhd_2560_1440_30fps.mp4";
+  "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4";
 
-/** Third landscape clip — used for the isActive carousel demo. */
+/** Third landscape clip — used for the isActive carousel demo (Sintel). */
 export const SAMPLE_VIDEO_URL_C =
-  "https://videos.pexels.com/video-files/2871916/2871916-uhd_2560_1440_25fps.mp4";
+  "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4";
 
 /** Sample English captions track. URL is a placeholder — verifies that <track> renders. */
 export const SAMPLE_TRACKS_EN: VideoTrack[] = [
