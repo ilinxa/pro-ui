@@ -20,14 +20,15 @@ export const meta: ComponentMeta = {
     "Built-in empty state with sibling export for composition",
     "Focus management — selection-change focuses panel root; mode→edit focuses body's first focusable; mode→read restores focus to triggering action by id",
     "ARIA — role region, aria-busy on loading, aria-live polite selection announcements",
+    "labels.region default ('Detail panel') guarantees role=region always has an accessible name; ariaLabel wins per render",
     "Imperative handle — focusBody() + resetMode()",
   ],
   tags: ["detail-panel", "feedback", "compound", "selection", "graph-system"],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-04-29",
-  updatedAt: "2026-04-29",
+  updatedAt: "2026-05-09",
 
   author: { name: "ilinxa" },
 

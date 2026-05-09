@@ -22,6 +22,19 @@ export type DetailPanelActionsRenderFn = (
   ctx: DetailPanelActionsContext,
 ) => ReactNode;
 
+export interface DetailPanelLabels {
+  /**
+   * Accessible name for the `role="region"` landmark when no per-render
+   * `ariaLabel` is supplied. Default: 'Detail panel'.
+   */
+  region?: string;
+}
+
+/** Default English labels — exported for consumer composition. */
+export const DEFAULT_DETAIL_PANEL_LABELS: Required<DetailPanelLabels> = {
+  region: "Detail panel",
+};
+
 export interface DetailPanelProps {
   selection: DetailPanelSelection | null;
 
@@ -37,7 +50,18 @@ export interface DetailPanelProps {
 
   children: ReactNode;
 
+  /**
+   * Per-render accessible name override (e.g., the currently-selected
+   * entity's label). Wins over `labels.region`. When BOTH are absent, the
+   * region falls back to `DEFAULT_DETAIL_PANEL_LABELS.region` ("Detail panel")
+   * so the `role="region"` landmark always has an accessible name.
+   */
   ariaLabel?: string;
+  /**
+   * Localized labels. Currently a single key — `region` (the static landmark
+   * name). `ariaLabel` overrides on a per-render basis.
+   */
+  labels?: DetailPanelLabels;
   className?: string;
 
   ref?: Ref<DetailPanelHandle>;
