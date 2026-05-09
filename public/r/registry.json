@@ -36,7 +36,7 @@
       "name": "rich-card",
       "type": "registry:block",
       "title": "Rich Card",
-      "description": "JSON-driven recursive card-tree viewer + structural editor. Drag-drop reordering, bulk multi-select, per-level/per-card/per-key permissions, custom predefined-key registration, opt-in virtualization, native search, validation hooks, undo/redo.",
+      "description": "JSON-driven recursive card-tree viewer + structural editor. Drag-drop reordering, bulk multi-select, per-level/per-card/per-key permissions, custom predefined-key registration, native search, validation hooks, undo/redo.",
       "author": "ilinxa",
       "categories": ["data", "graph-system"],
       "registryDependencies": ["popover"],
@@ -44,8 +44,7 @@
         "lucide-react",
         "@dnd-kit/core",
         "@dnd-kit/sortable",
-        "@dnd-kit/utilities",
-        "@tanstack/react-virtual"
+        "@dnd-kit/utilities"
       ],
       "files": [
         { "path": "src/registry/components/data/rich-card/rich-card.tsx", "type": "registry:component", "target": "components/rich-card/rich-card.tsx" },
@@ -62,7 +61,6 @@
         { "path": "src/registry/components/data/rich-card/hooks/use-tree-focus.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-tree-focus.ts" },
         { "path": "src/registry/components/data/rich-card/hooks/use-tree-keyboard.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-tree-keyboard.ts" },
         { "path": "src/registry/components/data/rich-card/hooks/use-undo.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-undo.ts" },
-        { "path": "src/registry/components/data/rich-card/hooks/use-virtualizer.ts", "type": "registry:component", "target": "components/rich-card/hooks/use-virtualizer.ts" },
         { "path": "src/registry/components/data/rich-card/lib/bulk-actions.ts", "type": "registry:component", "target": "components/rich-card/lib/bulk-actions.ts" },
         { "path": "src/registry/components/data/rich-card/lib/classify-key.ts", "type": "registry:component", "target": "components/rich-card/lib/classify-key.ts" },
         { "path": "src/registry/components/data/rich-card/lib/dnd-helpers.ts", "type": "registry:component", "target": "components/rich-card/lib/dnd-helpers.ts" },
@@ -641,6 +639,24 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "stat-card",
+      "type": "registry:block",
+      "title": "Stat Card",
+      "description": "Single-metric dashboard widget — value + label + optional delta + optional sparkline. 3 variants (default / compact / detailed); object-shape callbacks; built-in pure-SVG sparkline (no charting peer dep); polarity-aware coloring via betterIsHigher.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": ["skeleton"],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/data/stat-card/stat-card.tsx", "type": "registry:component", "target": "components/stat-card/stat-card.tsx" },
+        { "path": "src/registry/components/data/stat-card/index.ts", "type": "registry:component", "target": "components/stat-card/index.ts" },
+        { "path": "src/registry/components/data/stat-card/types.ts", "type": "registry:component", "target": "components/stat-card/types.ts" },
+        { "path": "src/registry/components/data/stat-card/parts/sparkline.tsx", "type": "registry:component", "target": "components/stat-card/parts/sparkline.tsx" },
+        { "path": "src/registry/components/data/stat-card/lib/format-default.ts", "type": "registry:component", "target": "components/stat-card/lib/format-default.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "thumb-list-01-fixtures",
       "type": "registry:block",
       "title": "Thumb List 01 — fixtures",
@@ -650,6 +666,19 @@
       "registryDependencies": ["@ilinxa/thumb-list-01"],
       "files": [
         { "path": "src/registry/components/data/thumb-list-01/dummy-data.ts", "type": "registry:component", "target": "components/thumb-list-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "stat-card-fixtures",
+      "type": "registry:block",
+      "title": "Stat Card — fixtures",
+      "description": "Stat Card bundle including the dummy-data fixtures (revenue / errorRate / activeUsers / latency / signups / uptime).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["@ilinxa/stat-card"],
+      "files": [
+        { "path": "src/registry/components/data/stat-card/dummy-data.ts", "type": "registry:component", "target": "components/stat-card/dummy-data.ts" }
       ]
     },
     {
@@ -878,7 +907,8 @@
         { "path": "src/registry/components/data/registration-card-01/registration-card-01.tsx", "type": "registry:component", "target": "components/registration-card-01/registration-card-01.tsx" },
         { "path": "src/registry/components/data/registration-card-01/index.ts", "type": "registry:component", "target": "components/registration-card-01/index.ts" },
         { "path": "src/registry/components/data/registration-card-01/types.ts", "type": "registry:component", "target": "components/registration-card-01/types.ts" },
-        { "path": "src/registry/components/data/registration-card-01/lib/registration-status.ts", "type": "registry:component", "target": "components/registration-card-01/lib/registration-status.ts" }
+        { "path": "src/registry/components/data/registration-card-01/lib/registration-status.ts", "type": "registry:component", "target": "components/registration-card-01/lib/registration-status.ts" },
+        { "path": "src/registry/components/data/registration-card-01/lib/format-default.ts", "type": "registry:component", "target": "components/registration-card-01/lib/format-default.ts" }
       ]
     },
     {
@@ -1003,7 +1033,7 @@
         { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/engagement-heart-burst.tsx" },
         { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.css", "type": "registry:file", "target": "components/engagement-bar-01/parts/engagement-heart-burst.css" },
         { "path": "src/registry/components/data/engagement-bar-01/hooks/use-engagement-state.ts", "type": "registry:component", "target": "components/engagement-bar-01/hooks/use-engagement-state.ts" },
-        { "path": "src/registry/components/data/engagement-bar-01/utils/format-count.ts", "type": "registry:component", "target": "components/engagement-bar-01/utils/format-count.ts" }
+        { "path": "src/registry/components/data/engagement-bar-01/lib/format-count.ts", "type": "registry:component", "target": "components/engagement-bar-01/lib/format-count.ts" }
       ]
     },
     {
@@ -1337,7 +1367,6 @@
         { "path": "src/registry/components/data/kanban-board-01/hooks/use-kanban-state.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-kanban-state.ts" },
         { "path": "src/registry/components/data/kanban-board-01/hooks/use-renderer-map.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-renderer-map.ts" },
         { "path": "src/registry/components/data/kanban-board-01/hooks/use-drag-handlers.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-drag-handlers.ts" },
-        { "path": "src/registry/components/data/kanban-board-01/hooks/use-keyboard-actions.ts", "type": "registry:component", "target": "components/kanban-board-01/hooks/use-keyboard-actions.ts" },
         { "path": "src/registry/components/data/kanban-board-01/parts/board.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/board.tsx" },
         { "path": "src/registry/components/data/kanban-board-01/parts/column.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column.tsx" },
         { "path": "src/registry/components/data/kanban-board-01/parts/column-header.tsx", "type": "registry:component", "target": "components/kanban-board-01/parts/column-header.tsx" },

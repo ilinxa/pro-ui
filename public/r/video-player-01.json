@@ -19,7 +19,7 @@
     },
     {
       "path": "src/registry/components/media/video-player-01/index.ts",
-      "content": "export { default as VideoPlayer01 } from \"./video-player-01\";\n\nexport type {\n  VideoPlayer01Props,\n  VideoPlayer01Labels,\n  VideoState,\n  VideoTrack,\n} from \"./types\";\n\nexport { DEFAULT_VIDEO_PLAYER_LABELS } from \"./types\";\n\nexport {\n  useDoubleTap,\n  type UseDoubleTapOptions,\n} from \"./hooks/use-double-tap\";\n\nexport { meta } from \"./meta\";\n",
+      "content": "export { default as VideoPlayer01 } from \"./video-player-01\";\n\nexport type {\n  VideoPlayer01Props,\n  VideoPlayer01Labels,\n  VideoState,\n  VideoTrack,\n} from \"./types\";\n\nexport { DEFAULT_VIDEO_PLAYER_LABELS } from \"./types\";\n\nexport {\n  useDoubleTap,\n  type UseDoubleTapOptions,\n} from \"./hooks/use-double-tap\";\n\n",
       "type": "registry:component",
       "target": "components/video-player-01/index.ts"
     },
@@ -49,7 +49,7 @@
     },
     {
       "path": "src/registry/components/media/video-player-01/hooks/use-double-tap.ts",
-      "content": "import { useCallback, useRef } from \"react\";\n\nexport interface UseDoubleTapOptions {\n  /** Time window in ms within which a second tap counts as a double-tap. Default: 300. */\n  windowMs?: number;\n}\n\n/**\n * Returns a click handler that fires `onDoubleTap` only when invoked twice\n * within `windowMs` of each other. Single-tap is silent. After firing, the\n * timestamp resets so a triple-tap doesn't fire again.\n *\n * Reusable outside `<video>` contexts — image double-tap-to-like, card\n * double-tap-to-favorite, etc.\n */\nexport function useDoubleTap(\n  onDoubleTap: (() => void) | undefined,\n  options?: UseDoubleTapOptions,\n): React.MouseEventHandler<HTMLElement> {\n  const lastTapRef = useRef(0);\n  const windowMs = options?.windowMs ?? 300;\n\n  return useCallback(() => {\n    if (!onDoubleTap) return;\n    const now = Date.now();\n    if (now - lastTapRef.current < windowMs) {\n      onDoubleTap();\n      lastTapRef.current = 0;\n    } else {\n      lastTapRef.current = now;\n    }\n  }, [onDoubleTap, windowMs]);\n}\n",
+      "content": "import { useCallback, useRef } from \"react\";\n\nexport interface UseDoubleTapOptions {\n  /** Time window in ms within which a second tap counts as a double-tap. Default: 300. */\n  windowMs?: number;\n}\n\n/**\n * Returns a click handler that fires `onDoubleTap` only when invoked twice\n * within `windowMs` of each other. Single-tap is silent. After firing, the\n * timestamp resets so a triple-tap doesn't fire again.\n *\n * Reusable outside `<video>` contexts — image double-tap-to-like, card\n * double-tap-to-favorite, etc.\n */\nexport function useDoubleTap(\n  onDoubleTap: (() => void) | undefined,\n  options?: UseDoubleTapOptions,\n): React.MouseEventHandler<HTMLElement> {\n  const lastTapRef = useRef(0);\n  const windowMs = options?.windowMs ?? 300;\n\n  return useCallback(() => {\n    if (!onDoubleTap) return;\n    const now = performance.now();\n    if (now - lastTapRef.current < windowMs) {\n      onDoubleTap();\n      lastTapRef.current = 0;\n    } else {\n      lastTapRef.current = now;\n    }\n  }, [onDoubleTap, windowMs]);\n}\n",
       "type": "registry:component",
       "target": "components/video-player-01/hooks/use-double-tap.ts"
     }

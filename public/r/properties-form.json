@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/forms/properties-form/index.ts",
-      "content": "export { PropertiesForm } from \"./properties-form\";\nexport { flatten, unflatten } from \"./lib/flatten\";\nexport type {\n  FieldOption,\n  FieldPermission,\n  FieldRendererProps,\n  FieldType,\n  FormMode,\n  PropertiesFormField,\n  PropertiesFormHandle,\n  PropertiesFormProps,\n  SubmitResult,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { PropertiesForm } from \"./properties-form\";\nexport { flatten, unflatten } from \"./lib/flatten\";\nexport type {\n  FieldOption,\n  FieldPermission,\n  FieldRendererProps,\n  FieldType,\n  FormMode,\n  PropertiesFormField,\n  PropertiesFormHandle,\n  PropertiesFormProps,\n  SubmitResult,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/properties-form/index.ts"
     },

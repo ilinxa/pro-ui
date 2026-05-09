@@ -15,7 +15,7 @@
     },
     {
       "path": "src/registry/components/data/people-grid-01/index.ts",
-      "content": "export { PeopleGrid01, default } from \"./people-grid-01\";\n\nexport type {\n  PeopleGridItem,\n  PeopleGrid01Labels,\n  PeopleGrid01Props,\n  PeopleGrid01Columns,\n  PeopleGrid01AvatarSize,\n  PeopleGrid01Alignment,\n} from \"./types\";\n\nexport { DEFAULT_PEOPLE_GRID_LABELS } from \"./types\";\n\nexport { getInitials } from \"./lib/get-initials\";\n\nexport { meta } from \"./meta\";\n",
+      "content": "export { PeopleGrid01, default } from \"./people-grid-01\";\n\nexport type {\n  PeopleGridItem,\n  PeopleGrid01Labels,\n  PeopleGrid01Props,\n  PeopleGrid01Columns,\n  PeopleGrid01AvatarSize,\n  PeopleGrid01Alignment,\n} from \"./types\";\n\nexport { DEFAULT_PEOPLE_GRID_LABELS } from \"./types\";\n\nexport { getInitials } from \"./lib/get-initials\";\n\n",
       "type": "registry:component",
       "target": "components/people-grid-01/index.ts"
     },

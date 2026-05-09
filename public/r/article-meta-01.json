@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/article-meta-01/index.ts",
-      "content": "export { ArticleMeta01 } from \"./article-meta-01\";\nexport type {\n  ArticleMeta01Props,\n  ArticleMetaItem,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { ArticleMeta01 } from \"./article-meta-01\";\nexport type {\n  ArticleMeta01Props,\n  ArticleMetaItem,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/article-meta-01/index.ts"
     },

@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/forms/filter-stack/index.ts",
-      "content": "export { FilterStack } from \"./filter-stack\";\nexport { defaultIsEmpty } from \"./lib/default-is-empty\";\nexport type {\n  CheckboxListFilter,\n  CustomFilter,\n  CustomFilterRenderProps,\n  FilterCategory,\n  FilterMode,\n  FilterOption,\n  FilterStackHandle,\n  FilterStackProps,\n  FilterValue,\n  TextFilter,\n  ToggleFilter,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { FilterStack } from \"./filter-stack\";\nexport { defaultIsEmpty } from \"./lib/default-is-empty\";\nexport type {\n  CheckboxListFilter,\n  CustomFilter,\n  CustomFilterRenderProps,\n  FilterCategory,\n  FilterMode,\n  FilterOption,\n  FilterStackHandle,\n  FilterStackProps,\n  FilterValue,\n  TextFilter,\n  ToggleFilter,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/filter-stack/index.ts"
     },

@@ -39,7 +39,7 @@
     },
     {
       "path": "src/registry/components/data/article-body-01/index.ts",
-      "content": "export { ArticleBodyEditor } from \"./article-body-01\";\nexport { ArticleBodyViewer } from \"./article-body-viewer\";\nexport {\n  ARTICLE_BODY_DEFAULT_PLACEHOLDER,\n  ARTICLE_BODY_EMPTY_VALUE,\n  type ArticleBodyEditorProps,\n  type ArticleBodyValue,\n  type ArticleBodyViewerProps,\n  type ImageUploadResult,\n  type ImageUploader,\n} from \"./types\";\nexport {\n  serializeArticleBodyToHtml,\n  type SerializeHtmlOptions,\n} from \"./lib/serialize-html\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { ArticleBodyEditor } from \"./article-body-01\";\nexport { ArticleBodyViewer } from \"./article-body-viewer\";\nexport {\n  ARTICLE_BODY_DEFAULT_PLACEHOLDER,\n  ARTICLE_BODY_EMPTY_VALUE,\n  type ArticleBodyEditorProps,\n  type ArticleBodyValue,\n  type ArticleBodyViewerProps,\n  type ImageUploadResult,\n  type ImageUploader,\n} from \"./types\";\nexport {\n  serializeArticleBodyToHtml,\n  type SerializeHtmlOptions,\n} from \"./lib/serialize-html\";\n",
       "type": "registry:component",
       "target": "components/article-body-01/index.ts"
     },

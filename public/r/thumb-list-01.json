@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/thumb-list-01/index.ts",
-      "content": "export { ThumbList01 } from \"./thumb-list-01\";\nexport {\n  THUMB_LIST_DEFAULT_LABELS,\n  type ThumbListItem,\n  type ThumbList01Labels,\n  type ThumbList01Props,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { ThumbList01 } from \"./thumb-list-01\";\nexport {\n  THUMB_LIST_DEFAULT_LABELS,\n  type ThumbListItem,\n  type ThumbList01Labels,\n  type ThumbList01Props,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/thumb-list-01/index.ts"
     },

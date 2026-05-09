@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/forms/category-cloud-01/index.ts",
-      "content": "export { CategoryCloud01, default } from \"./category-cloud-01\";\nexport type {\n  CategoryCloudHeadingLevel,\n  CategoryCloudItem,\n  CategoryCloudProps,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { CategoryCloud01, default } from \"./category-cloud-01\";\nexport type {\n  CategoryCloudHeadingLevel,\n  CategoryCloudItem,\n  CategoryCloudProps,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/category-cloud-01/index.ts"
     },

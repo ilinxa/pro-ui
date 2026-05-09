@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/marketing/author-card-01/index.ts",
-      "content": "export { AuthorCard01 } from \"./author-card-01\";\nexport {\n  AUTHOR_CARD_DEFAULT_LABELS,\n  type AuthorCard01Labels,\n  type AuthorCard01Props,\n  type AuthorCardTone,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { AuthorCard01 } from \"./author-card-01\";\nexport {\n  AUTHOR_CARD_DEFAULT_LABELS,\n  type AuthorCard01Labels,\n  type AuthorCard01Props,\n  type AuthorCardTone,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/author-card-01/index.ts"
     },
