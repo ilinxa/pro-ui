@@ -1,7 +1,13 @@
 "use client";
 
-import type { ReactNode, Ref } from "react";
-import { useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode, Ref } from "react";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import { cn } from "@/lib/utils";
 import { useDoubleTap } from "@/registry/components/media/video-player-01";
 import { useEmblaWithState } from "../hooks/use-embla-with-state";
@@ -97,6 +103,7 @@ function Slide({
         role="group"
         aria-roledescription="slide"
         aria-label={slideAriaLabel}
+        inert={!isActive}
         className={cn("min-w-0 mx-1 flex-[0_0_85%]")}
         style={{
           marginLeft: !loop && isFirst ? `${edgePeekPercent}%` : undefined,
@@ -132,6 +139,7 @@ function Slide({
       role="group"
       aria-roledescription="slide"
       aria-label={slideAriaLabel}
+      inert={!isActive}
       className={cn("min-w-0 flex-[0_0_100%]")}
       onClick={item.type === "image" ? imageDoubleTap : undefined}
     >
@@ -205,12 +213,42 @@ export function CarouselTrack({
   // — full-width slides have no peek to soften.
   const showEdgeGradients = variant === "gallery";
 
+  // Keyboard nav — APG carousel pattern: ArrowLeft/Right scroll prev/next
+  // (RTL-aware), Home/End jump to first/last. Wired on the focusable region
+  // wrapper so users tabbing into the carousel get arrow-key control without
+  // first focusing a child slide.
+  const handleKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (rtl) scrollNext();
+        else scrollPrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (rtl) scrollPrev();
+        else scrollNext();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        scrollTo(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        scrollTo(items.length - 1);
+      }
+    },
+    [rtl, scrollPrev, scrollNext, scrollTo, items.length],
+  );
+
   return (
     <div
       role="region"
       aria-roledescription="carousel"
       aria-label={labels.carouselLabel}
-      className={cn("relative", className)}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className={cn(
+        "relative outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md",
+        className,
+      )}
     >
       <div className="overflow-hidden" ref={ref}>
         <div className="flex">

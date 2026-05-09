@@ -28,14 +28,16 @@ export const meta: ComponentMeta = {
     "Embla options memoized — no re-init on render",
     "RTL via Embla direction + chevron flip",
     "WAI-ARIA APG carousel pattern (region / slide group / aria-current on indicators)",
+    "Keyboard nav — region focusable, ArrowLeft/Right scroll prev/next (RTL-aware), Home/End jump to first/last",
+    "Inactive slides get HTML5 `inert` — Tab skips inactive content, screen readers ignore it",
     "i18n via 5-key labels object with {index}/{total} placeholders",
   ],
   tags: ["media-carousel-01", "carousel", "media", "embla", "gallery"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-03",
+  updatedAt: "2026-05-09",
 
   author: { name: "ilinxa" },
 
