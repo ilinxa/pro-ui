@@ -123,6 +123,19 @@ const VARIANT_SPEC: Record<StatCardVariant, VariantSpec> = {
   },
 };
 
+// Per-variant skeleton block sizes — hardcoded rather than derived from
+// VARIANT_SPEC to avoid string-replace surgery on iconBoxSize (which contained
+// `bg-primary/10` in the detailed variant, conflicting with Skeleton's own
+// pulse-animation styling). See v0.1.0 review F-02.
+const SKELETON_SIZES: Record<
+  StatCardVariant,
+  { iconBox: string; value: string; sparkline: string }
+> = {
+  default: { iconBox: "h-9 w-9 rounded-md", value: "h-7 w-24", sparkline: "h-7 w-full" },
+  compact: { iconBox: "h-8 w-8 rounded-md", value: "h-6 w-20", sparkline: "h-7 w-full" },
+  detailed: { iconBox: "h-11 w-11 rounded-lg", value: "h-9 w-32", sparkline: "h-9 w-full" },
+};
+
 function StatCardSkeleton({
   variant,
   labels,
@@ -133,9 +146,13 @@ function StatCardSkeleton({
   className?: string;
 }) {
   const spec = VARIANT_SPEC[variant];
+  const sk = SKELETON_SIZES[variant];
   return (
+    // aria-busy on a generic div is sufficient — no role="region" (which
+    // would require an accessible name we can't supply when loadingLabel
+    // is a ReactNode). The sr-only span provides the spoken announcement.
+    // See v0.1.0 review F-01.
     <div
-      role="region"
       aria-busy="true"
       className={cn(
         "rounded-2xl border border-border bg-card text-card-foreground",
@@ -148,15 +165,11 @@ function StatCardSkeleton({
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <Skeleton className="h-3 w-24" />
-          <Skeleton className={spec.iconBoxSize.replace("bg-muted", "")} />
+          <Skeleton className={sk.iconBox} />
         </div>
-        <Skeleton
-          className={cn(
-            variant === "detailed" ? "h-9 w-32" : variant === "default" ? "h-7 w-24" : "h-6 w-20",
-          )}
-        />
+        <Skeleton className={sk.value} />
         <Skeleton className="h-3 w-32" />
-        {spec.showSparkline ? <Skeleton className="h-7 w-full" /> : null}
+        {spec.showSparkline ? <Skeleton className={sk.sparkline} /> : null}
       </div>
     </div>
   );
@@ -310,10 +323,21 @@ export function StatCard(props: StatCardProps) {
     const handleClick = onClick
       ? (event: MouseEvent) => onClick({ event })
       : undefined;
+    // Resolve the link's accessible name. Priority:
+    //   1. Consumer-supplied `ariaLabel` — wins absolutely.
+    //   2. `${label}: ${value}` — when both are stringifiable.
+    //   3. `${label}` only — when label is stringifiable but value isn't
+    //      (notably value === undefined). v0.1.1 fix per review F-03 — the
+    //      v0.1.0 implementation fell through to undefined here, leaving
+    //      a linked card with no accessible name.
+    //   4. undefined — when the label itself is a ReactNode and not a
+    //      string. Consumer should supply ariaLabel explicitly in that case.
     const computedAriaLabel =
       ariaLabel ??
-      (typeof label === "string" && (typeof value === "string" || typeof value === "number")
-        ? `${label}: ${value}`
+      (typeof label === "string"
+        ? typeof value === "string" || typeof value === "number"
+          ? `${label}: ${value}`
+          : label
         : undefined);
 
     return (

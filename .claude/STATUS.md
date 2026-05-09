@@ -36,7 +36,7 @@
 | `schedule-list-01` | data | alpha | 0.1.0 |
 | `story-rail-01` | data | alpha | 0.2.0 |
 | `thumb-list-01` | data | alpha | 0.1.0 |
-| `stat-card` | data | alpha | 0.1.0 |
+| `stat-card` | data | alpha | 0.1.1 |
 | `workspace` | layout | alpha | 0.1.1 |
 | `grid-layout-news-01` | layout | alpha | 0.2.0 |
 | `markdown-editor` | forms | alpha | 0.1.1 |
