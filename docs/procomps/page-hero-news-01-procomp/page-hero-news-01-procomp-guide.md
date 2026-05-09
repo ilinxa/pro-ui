@@ -68,17 +68,16 @@
   title=""
   titleSlot={
     <h1 className="text-5xl font-bold text-primary-foreground">
-      The <em className="text-accent">future</em> of news
+      The <em className="italic text-primary-foreground">future</em> of news
     </h1>
   }
   description="..."
 />
 ```
 
-Use `text-primary-foreground` (near-black) — not `text-white` — over the lime
-gradient. The pro-ui design mandate forbids white text on signal-lime because
-lime is too bright for white to read against; `--primary-foreground` is paired
-with `--primary` specifically for this contrast.
+Use `text-primary-foreground` (near-black) — not `text-white` and not `text-accent` — over the lime gradient. The pro-ui design mandate forbids white text on signal-lime because lime is too bright for white to read against; `--primary-foreground` is paired with `--primary` specifically for this contrast. Note that `--accent` in this codebase is a cool-gray neutral (near-white in light mode), not a colored splash, so `text-accent` also reads as low-contrast on the lime gradient and should be avoided in this hero.
+
+For visual emphasis on a sub-segment of the title (the `titleHighlight` pattern), use editorial styling — `italic` on top of `text-primary-foreground` — rather than reaching for a color-splash highlight.
 
 ## Gotchas
 

@@ -2,7 +2,7 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-09** (refreshed after Phase 7 v0.1.x patches across 10 Tier 2 components)
+> Snapshot date: **2026-05-09** (refreshed after Phase 7 v0.1.x patches across 10 Tier 2 components + a post-Phase-7 self-review patch on progress-timeline-01 + page-hero-news-01)
 > Total: **36 components** across 6 categories
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
@@ -22,8 +22,8 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 - **Past beta gate:** `rich-card` only — v0.4.1, status `beta`.
 - **v0.2.x (feature-evolved):** `article-body-01`, `kanban-board-01`.
-- **v0.1.2 (Phase 7 patches):** `engagement-bar-01` (utils→lib), `media-carousel-01` (a11y).
-- **v0.1.1 (patch shipped):** `post-card-01`, `data-table`, `flow-canvas-01`, `entity-picker`, `markdown-editor`, `properties-form`, `workspace`, plus Phase 7 batch — `event-card-01`, `registration-card-01`, `page-hero-news-01`, `progress-timeline-01`, `detail-panel`, `story-viewer-01`, `video-player-01`, `grid-layout-news-01`.
+- **v0.1.2:** `engagement-bar-01` (Phase 7 utils→lib), `media-carousel-01` (Phase 7 a11y), `progress-timeline-01` (Phase 7 status colors → audit follow-up marker differentiation), `page-hero-news-01` (Phase 7 lime mandate → audit follow-up `text-accent` carriers).
+- **v0.1.1 (patch shipped):** `post-card-01`, `data-table`, `flow-canvas-01`, `entity-picker`, `markdown-editor`, `properties-form`, `workspace`, plus Phase 7 batch — `event-card-01`, `registration-card-01`, `detail-panel`, `story-viewer-01`, `video-player-01`, `grid-layout-news-01`.
 - **All remaining components** sit at the initial v0.1.0 ship.
 - `force-graph` was **removed 2026-05-08** pending recreation under a new design + plan. v0.2 source + procomp docs archived to `docs/migrations/force-graph/`. The future v3 will go through the standard procomp planning pipeline; whether it reuses the `force-graph` slug or picks a new one (e.g. `graph-canvas-01`) is a v3 decision.
 - `flow-canvas-01` v0.1.0 is feature-rich despite the version (39 files; renderers/portTypes/edgeTypes registries; typed-port validation; sub-object drag-extract; right-click menus; 200-node stress demo).
@@ -46,7 +46,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `flow-canvas-01`        | Flow Canvas                | 0.1.1   | alpha  |
 | `info-list-01`          | Info List 01               | 0.1.0   | alpha  |
 | `people-grid-01`        | People Grid 01             | 0.1.0   | alpha  |
-| `progress-timeline-01`  | Progress Timeline 01       | 0.1.1   | alpha  |
+| `progress-timeline-01`  | Progress Timeline 01       | 0.1.2   | alpha  |
 | `project-card-01`       | Project Card 01            | 0.1.0   | alpha  |
 | `registration-card-01`  | Registration Card 01       | 0.1.1   | alpha  |
 | `schedule-list-01`      | Schedule List 01           | 0.1.0   | alpha  |
@@ -77,7 +77,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 |------------------------|---------------------|---------|--------|
 | `author-card-01`       | Author Card 01      | 0.1.0   | alpha  |
 | `newsletter-card-01`   | Newsletter Card 01  | 0.1.0   | alpha  |
-| `page-hero-news-01`    | Page Hero (News 01) | 0.1.1   | alpha  |
+| `page-hero-news-01`    | Page Hero (News 01) | 0.1.2   | alpha  |
 | `share-bar-01`         | Share Bar 01        | 0.1.0   | alpha  |
 
 ## media (3)

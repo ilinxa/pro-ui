@@ -67,7 +67,7 @@ function PageHeroNews01Impl(props: PageHeroNewsProps) {
         {badge ? (
           <span
             className={cn(
-              "mb-6 inline-flex items-center gap-2 rounded-full bg-accent/20 px-4 py-2 text-sm font-medium text-accent",
+              "mb-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2 text-sm font-medium text-primary-foreground",
               revealClass,
             )}
             style={disableReveal ? undefined : { animationDelay: "0ms" }}
@@ -95,7 +95,7 @@ function PageHeroNews01Impl(props: PageHeroNewsProps) {
           >
             {title}
             {titleHighlight ? (
-              <span className="block text-accent">{titleHighlight}</span>
+              <span className="block italic text-primary-foreground">{titleHighlight}</span>
             ) : null}
           </HeadingTag>
         )}
