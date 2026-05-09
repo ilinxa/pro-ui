@@ -21,14 +21,15 @@ export const meta: ComponentMeta = {
     "statusOverride for preview / what-if states",
     "i18n via labels object (6 keys)",
     "WCAG — Radix Progress role=progressbar + aria-valuenow",
+    "Status-conditional bar fill + marker color — before (muted gray), active (lime), after (mid-gray); pairs with center-text differentiation",
     "Soft-failure on invalid dates",
   ],
   tags: ["progress-timeline-01", "progress", "timeline", "countdown", "events"],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-02",
+  updatedAt: "2026-05-09",
 
   author: { name: "ilinxa" },
 
