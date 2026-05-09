@@ -76,8 +76,17 @@ export interface StoryRail01Props {
   subscribe?: Subscribe<StoryRailDelta>;
   onSubscribeDelta?: (delta: StoryRailDelta) => void;
 
-  /** Click handler. Host typically opens a story viewer. */
+  /**
+   * Click handler — positional signature. Host typically opens a story viewer.
+   * @deprecated Use `onItemClickArgs` for the object-shape signature. v0.2 will
+   *   remove the positional shape and rename `onItemClickArgs` → `onItemClick`.
+   */
   onItemClick?: (item: StoryRailItem, index: number) => void;
+  /**
+   * Click handler — object-shape signature; wins over `onItemClick`
+   * (deprecated positional) when both are provided.
+   */
+  onItemClickArgs?: (args: { item: StoryRailItem; index: number }) => void;
 
   /** Polymorphic root for the thumbnail when getHref provided. Default `"a"`. */
   linkComponent?: ElementType;

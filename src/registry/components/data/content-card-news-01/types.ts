@@ -58,8 +58,18 @@ export interface ContentCardNewsProps {
 
   /** URL the card links to. */
   href?: string;
-  /** Click handler, fired before navigation if href is also set. */
+  /**
+   * Click handler — positional signature.
+   * @deprecated Use `onClickArgs` for the object-shape signature. v0.2 will
+   *   remove the positional shape and rename `onClickArgs` → `onClick`.
+   */
   onClick?: (item: ContentCardItem, event: MouseEvent) => void;
+  /**
+   * Click handler — object-shape signature; wins over `onClick` (deprecated
+   * positional) when both are provided. Fired before navigation if `href`
+   * is also set.
+   */
+  onClickArgs?: (args: { item: ContentCardItem; event: MouseEvent }) => void;
   /** Element used for the link. Default: 'a'. Pass NextLink / RemixLink / etc. */
   linkComponent?: ElementType;
 

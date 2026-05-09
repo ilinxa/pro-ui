@@ -65,8 +65,18 @@ export interface ProjectCard01Props {
   href?: string;
   /** Alternative href derivation. Receives the project, returns a URL. Wins over `href` and `project.href`. */
   getHref?: (project: ProjectCardItem) => string;
-  /** Click handler, fired before navigation if href is also set. */
+  /**
+   * Click handler — positional signature, fired before navigation if href
+   * is also set.
+   * @deprecated Use `onClickArgs` for the object-shape signature. v0.2 will
+   *   remove the positional shape and rename `onClickArgs` → `onClick`.
+   */
   onClick?: (project: ProjectCardItem, mouseEvent: MouseEvent) => void;
+  /**
+   * Click handler — object-shape signature; wins over `onClick` (deprecated
+   * positional) when both are provided.
+   */
+  onClickArgs?: (args: { project: ProjectCardItem; mouseEvent: MouseEvent }) => void;
   /** Element used for the link. Default: 'a'. Pass NextLink / RemixLink / etc. */
   linkComponent?: ElementType;
 

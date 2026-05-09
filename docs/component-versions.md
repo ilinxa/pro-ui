@@ -34,12 +34,12 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 |-------------------------|----------------------------|---------|--------|
 | `rich-card`             | Rich Card                  | 0.4.1   | beta   |
 | `article-body-01`       | Article Body 01            | 0.2.0   | alpha  |
-| `kanban-board-01`       | Kanban Board 01            | 0.2.1   | alpha  |
+| `kanban-board-01`       | Kanban Board 01            | 0.2.2   | alpha  |
 | `engagement-bar-01`     | Engagement Bar 01          | 0.1.2   | alpha  |
 | `post-card-01`          | Post Card 01               | 0.1.1   | alpha  |
 | `article-meta-01`       | Article Meta 01            | 0.1.0   | alpha  |
 | `comment-thread-01`     | Comment Thread 01          | 0.1.0   | alpha  |
-| `content-card-news-01`  | Content Card (News 01)     | 0.1.0   | alpha  |
+| `content-card-news-01`  | Content Card (News 01)     | 0.1.1   | alpha  |
 | `data-table`            | Data Table                 | 0.1.1   | alpha  |
 | `event-card-01`         | Event Card 01              | 0.1.1   | alpha  |
 | `expandable-text-01`    | Expandable Text 01         | 0.1.0   | alpha  |
@@ -47,10 +47,10 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `info-list-01`          | Info List 01               | 0.1.0   | alpha  |
 | `people-grid-01`        | People Grid 01             | 0.1.0   | alpha  |
 | `progress-timeline-01`  | Progress Timeline 01       | 0.1.2   | alpha  |
-| `project-card-01`       | Project Card 01            | 0.1.0   | alpha  |
+| `project-card-01`       | Project Card 01            | 0.1.1   | alpha  |
 | `registration-card-01`  | Registration Card 01       | 0.1.1   | alpha  |
 | `schedule-list-01`      | Schedule List 01           | 0.1.0   | alpha  |
-| `story-rail-01`         | Story Rail 01              | 0.1.0   | alpha  |
+| `story-rail-01`         | Story Rail 01              | 0.1.1   | alpha  |
 | `thumb-list-01`         | Thumb List 01              | 0.1.0   | alpha  |
 
 ## forms (6)
@@ -68,7 +68,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 | Slug                  | Name                    | Version | Status |
 |-----------------------|-------------------------|---------|--------|
-| `grid-layout-news-01` | Grid Layout (News 01)   | 0.1.1   | alpha  |
+| `grid-layout-news-01` | Grid Layout (News 01)   | 0.1.2   | alpha  |
 | `workspace`           | Workspace               | 0.1.1   | alpha  |
 
 ## marketing (4)
