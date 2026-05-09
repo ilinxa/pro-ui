@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-10 (**pdf-viewer v0.1.2** shipped — second component under the readiness-review rule. 28-file sealed folder; `react-pdf@^10.4.1` substrate. v0.1.0 GATE 3 verdict `Pass with follow-ups`; v0.1.1 attempted to close F-04 by removing pdfjs-dist as a direct dep but broke type-imports (transitive types not resolvable for consumer tsc); v0.1.2 pins `pdfjs-dist@5.4.296` exactly to match react-pdf's transitive — single version, no skew, types resolvable. TooltipProvider `delayDuration` removed for shadcn-base-ui consumer compat. **38 components total.** F-01 (worker CDN default, v0.2.0) + F-02 (actions identity, v0.1.x follow-up) + F-03 (print busy UX, v0.1.x follow-up) remain open.)
+> **Last updated:** 2026-05-10 (**pdf-viewer v0.1.3 + video-player-01 v0.1.2** patch-bumped — runtime regression fixes, no API change. **pdf-viewer v0.1.3:** rendered `<Page>` outside `<Document>` with only the `pdf` prop, which works for the page itself but trips an invariant inside react-pdf's `AnnotationLayer` (it reads `pdf` exclusively from `useDocumentContext()` in v10). Wrapped the page list in `<Document className="contents">` so DocumentContext propagates, removed the now-redundant hidden loader. **video-player-01 v0.1.2:** Pexels' video CDN now blocks anonymous hotlinks (returns 403). Swapped all 6 sample URLs in `dummy-data.ts` for stable hotlink-friendly equivalents (test-videos.co.uk for BBB / Sintel / Jellyfish, MDN cc0-videos for flower / friday, placeholders.dev for the poster). All 6 verified HTTP 206 with range support. **38 components total.** Patch bumps don't trigger GATE 3. F-01 (worker CDN default, v0.2.0) + F-02 (actions identity) + F-03 (print busy UX) remain open on pdf-viewer.)
 
 ---
 
@@ -51,8 +51,8 @@
 | `share-bar-01` | marketing | alpha | 0.1.0 |
 | `media-carousel-01` | media | alpha | 0.1.2 |
 | `story-viewer-01` | media | alpha | 0.1.1 |
-| `video-player-01` | media | alpha | 0.1.1 |
-| `pdf-viewer` | media | alpha | 0.1.2 |
+| `video-player-01` | media | alpha | 0.1.2 |
+| `pdf-viewer` | media | alpha | 0.1.3 |
 | `detail-panel` | feedback | alpha | 0.1.1 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.
@@ -99,6 +99,7 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-10 — pdf-viewer v0.1.3 + video-player-01 v0.1.2 runtime fixes](decisions/2026-05-10-pdf-viewer-v013-video-player-v012-runtime-fixes.md) (two patch-bumps, no API change; pdf-viewer: `<Page>` rendered outside `<Document>` tripped AnnotationLayer's pdf-from-context invariant — fixed by wrapping page list in `<Document className="contents">`; video-player-01: Pexels CDN now 403s anonymous hotlinks — swapped all 6 fixture URLs to test-videos.co.uk + MDN cc0-videos + placeholders.dev, all curl-verified)
 - [2026-05-10 — pdf-viewer v0.1.0 first ship (second component under the readiness-review rule)](decisions/2026-05-10-pdf-viewer-v01-pipeline.md) (GATE 1 + GATE 2 + GATE 3 all passed; 28-file sealed folder; react-pdf@^10.4.1 substrate; toolbar + zoom + drag-drop + selection + right-click + password + print + virtualization; verdict `Pass with follow-ups` (4 findings); F-01 worker-default-on-CDN drift documented for v0.2.0)
 - [2026-05-09 — stat-card v0.1.0 → v0.1.1 pipeline (first component under the readiness-review rule)](decisions/2026-05-09-stat-card-v01-pipeline.md) (GATE 1 + GATE 2 + GATE 3 all passed; smoke verified post-Vercel-deploy; v0.1.1 same-day patch closed 3 of 4 follow-ups; F-04 (`--success` token) deferred to v0.2; sibling `<StatCardSparkline>` standalone export; object-shape callbacks; Intl percent delta formatter)
 - [2026-05-09 — Component-readiness-review rule established (GATE 3)](decisions/2026-05-09-component-readiness-review-rule.md) (every new component must pass a structured spot-check review before push; `.claude/rules/component-readiness-review.md` codifies it; CLAUDE.md + component-guide §13 + procomps/README + spotcheck/checklist templates all updated; existing components grandfathered)
