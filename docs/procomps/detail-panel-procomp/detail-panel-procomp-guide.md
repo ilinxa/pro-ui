@@ -283,9 +283,35 @@ ref.current?.focusBody();  // useful after a tab/keyboard navigation
 
 ## Gotchas
 
-### 1. `ariaLabel` is currently optional but should always be supplied
+### 1. `ariaLabel` is per-render; `labels.region` is the static default
 
-`<div role="region">` requires an accessible name per WAI-ARIA. The component doesn't yet enforce a default ARIA name for the region. Always pass `ariaLabel`. (v0.1.1 will likely make this required or provide a default.)
+`<div role="region">` requires an accessible name per WAI-ARIA. The panel now resolves the name in this order (highest first):
+
+1. **`ariaLabel`** prop — per-render override, e.g., the currently-selected entity's label (`ariaLabel={node.name}`). Wins when supplied.
+2. **`labels.region`** — static landmark name. Useful when the panel always represents the same kind of thing ("Properties", "Inspector"). Set once.
+3. **`DEFAULT_DETAIL_PANEL_LABELS.region`** = `"Detail panel"` — fallback. Guarantees the landmark always has an accessible name even if you forget both above.
+
+```tsx
+// Per-render override (most common — selection-aware)
+<DetailPanel selection={selection} ariaLabel={node?.name ?? "No selection"}>
+  ...
+</DetailPanel>
+
+// Static landmark name (when the panel has a fixed role on the page)
+<DetailPanel selection={selection} labels={{ region: "Inspector" }}>
+  ...
+</DetailPanel>
+
+// Localized landmark
+<DetailPanel
+  selection={selection}
+  labels={{ ...DEFAULT_DETAIL_PANEL_LABELS, region: "Detay paneli" }}
+>
+  ...
+</DetailPanel>
+```
+
+`DetailPanelLabels` and `DEFAULT_DETAIL_PANEL_LABELS` are re-exported from the package for consumer composition.
 
 ### 2. The composite re-key uses `${type}:${id}`
 

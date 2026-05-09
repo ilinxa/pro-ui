@@ -12,6 +12,7 @@ import type {
   DetailPanelHandle,
   DetailPanelProps,
 } from "./types";
+import { DEFAULT_DETAIL_PANEL_LABELS } from "./types";
 import { DetailPanelContext } from "./parts/detail-panel-context";
 import { DetailPanelHeader } from "./parts/detail-panel-header";
 import { DetailPanelBody } from "./parts/detail-panel-body";
@@ -38,9 +39,12 @@ function DetailPanelImpl({
   emptyState,
   children,
   ariaLabel,
+  labels,
   className,
   ref,
 }: DetailPanelProps) {
+  const resolvedAriaLabel =
+    ariaLabel ?? labels?.region ?? DEFAULT_DETAIL_PANEL_LABELS.region;
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +138,7 @@ function DetailPanelImpl({
       <div
         ref={rootRef}
         role="region"
-        aria-label={ariaLabel}
+        aria-label={resolvedAriaLabel}
         aria-busy={loading || undefined}
         tabIndex={-1}
         className={cn(
