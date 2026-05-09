@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 14 — **ALL F-cross-related debt addressed**: Phase 7 (14 Mediums) + audit follow-up + reserved-meta-field cleanup + F-cross-04 closed (self-hosted fonts) + F-cross-11 path (b) closed (smoke harness consumer-tsc) + F-cross-12 v0.1.x transition shipped (dual-prop deprecation across 5 components / 6 callbacks). **All 12 F-cross now closed or in transition.** New active work: F-cross-12 v0.2 cutover whenever the team is ready, plus Roadmap components.)
+> **Last updated:** 2026-05-09 (session 14 — **ALL F-cross debt FULLY CLOSED**: Phase 7 (14 Mediums) + audit follow-up + reserved-meta-field cleanup + F-cross-04 (self-hosted fonts) + F-cross-11 path (b) (consumer-tsc smoke) + F-cross-12 v0.1.x transition + v0.2 cutover (5 components: 4× v0.2.0, 1× v0.3.0). **12/12 F-cross closed.** Next: Roadmap components (stat-card, empty-state, multi-select, page-header, ...).)
 
 ---
 
@@ -18,26 +18,26 @@
 |------|----------|--------|---------|
 | `data-table` | data | alpha | 0.1.1 |
 | `rich-card` | data | **beta** | 0.4.1 |
-| `kanban-board-01` | data | alpha | 0.2.2 |
+| `kanban-board-01` | data | alpha | 0.3.0 |
 | `flow-canvas-01` | data | alpha | 0.1.1 |
 | `article-body-01` | data | alpha | 0.2.0 |
 | `engagement-bar-01` | data | alpha | 0.1.2 |
 | `post-card-01` | data | alpha | 0.1.1 |
 | `comment-thread-01` | data | alpha | 0.1.0 |
 | `article-meta-01` | data | alpha | 0.1.0 |
-| `content-card-news-01` | data | alpha | 0.1.1 |
+| `content-card-news-01` | data | alpha | 0.2.0 |
 | `event-card-01` | data | alpha | 0.1.1 |
 | `expandable-text-01` | data | alpha | 0.1.0 |
 | `info-list-01` | data | alpha | 0.1.0 |
 | `people-grid-01` | data | alpha | 0.1.0 |
 | `progress-timeline-01` | data | alpha | 0.1.2 |
-| `project-card-01` | data | alpha | 0.1.1 |
+| `project-card-01` | data | alpha | 0.2.0 |
 | `registration-card-01` | data | alpha | 0.1.1 |
 | `schedule-list-01` | data | alpha | 0.1.0 |
-| `story-rail-01` | data | alpha | 0.1.1 |
+| `story-rail-01` | data | alpha | 0.2.0 |
 | `thumb-list-01` | data | alpha | 0.1.0 |
 | `workspace` | layout | alpha | 0.1.1 |
-| `grid-layout-news-01` | layout | alpha | 0.1.2 |
+| `grid-layout-news-01` | layout | alpha | 0.2.0 |
 | `markdown-editor` | forms | alpha | 0.1.1 |
 | `properties-form` | forms | alpha | 0.1.1 |
 | `entity-picker` | forms | alpha | 0.1.1 |
@@ -86,7 +86,7 @@ Next candidates, ordered by team utility:
 - **NPM publish artifacts:** no `tsup`/`rollup`, no `package.json` exports map. Distribution via shadcn-registry handles the team-internal use case. **Trigger:** external consumer onboards, OR shadcn-registry's update-friction (re-running `pnpm dlx shadcn add`) surfaces real pain. Heavyweights (rich-card 51 files, markdown-editor 28 files + 10 codemirror peer deps) are the most likely first trigger.
 - **Test runner not wired.** `pnpm tsc --noEmit && pnpm lint` cover correctness today; demo-driven manual verification is the interactivity story. **Trigger:** first non-trivial bug in pure-function modules (workspace + rich-card + properties-form `lib/` directories). First test should be rich-card's `parse → serialize → parse` fixed-point round-trip property test.
 - ~~**F-cross-04 (environmental)**~~ **✅ CLOSED 2026-05-09** — replaced `next/font/google` with `@fontsource-variable/*` self-hosted packages; `pnpm build` no longer requires network access. See [`.claude/decisions/2026-05-09-fcross04-self-host-fonts.md`](decisions/2026-05-09-fcross04-self-host-fonts.md).
-- ~~**F-cross-12 (v0.2 callback migration)**~~ **✅ TRANSITION SHIPPED 2026-05-09** — all 6 positional callbacks across 5 components now have object-shape `<oldName>Args` siblings; positional shapes still work (back-compat) but emit dev-only `console.warn` when used. v0.2 will remove positional shapes and rename `*Args` → `*`. Components bumped: `grid-layout-news-01` 0.1.2, `content-card-news-01` 0.1.1, `project-card-01` 0.1.1, `story-rail-01` 0.1.1, `kanban-board-01` 0.2.2. See [`.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md`](decisions/2026-05-09-fcross12-callback-migration-transition.md).
+- ~~**F-cross-12 (v0.2 callback migration)**~~ **✅ FULLY CLOSED 2026-05-09** — v0.2 cutover landed: all 6 positional callbacks removed, `<oldName>Args` renamed to canonical `<oldName>` (now object-shape). Components bumped: `grid-layout-news-01` 0.2.0, `content-card-news-01` 0.2.0, `project-card-01` 0.2.0, `story-rail-01` 0.2.0, `kanban-board-01` 0.3.0. v0.1.x transition (Args sibling props with deprecation warnings) was the bridge; now removed. See [`.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md`](decisions/2026-05-09-fcross12-callback-migration-transition.md) + [`.claude/decisions/2026-05-09-fcross12-v02-cutover.md`](decisions/2026-05-09-fcross12-v02-cutover.md).
 
 For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta variants, footer version, public registry build, reserved meta fields, lime contrast pattern, F-cross-01 / F-cross-11, etc.), see the per-decision files in `.claude/decisions/` plus `STATUS-archive.md` (pre-2026-05-09 entries).
 

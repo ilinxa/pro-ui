@@ -32,7 +32,6 @@ export function KanbanBoard({
   defaultData,
   onChange,
   onItemCreate,
-  onItemCreateArgs,
   onItemUpdate,
   onItemDelete,
   onColumnCreate,
@@ -40,7 +39,6 @@ export function KanbanBoard({
   onColumnDelete,
   onItemClick,
   onItemMove,
-  onItemMoveArgs,
   palette,
   readOnly = false,
   "aria-label": ariaLabel = "Kanban board",
@@ -50,40 +48,16 @@ export function KanbanBoard({
   const rendererMap = useRendererMap(renderers);
   const palettePinned = useMemo(() => palette ?? DEFAULT_PALETTE, [palette]);
 
-  // Resolve onItemCreate / onItemMove — prefer the object-shape `*Args`
-  // versions (forward-compat). F-cross-12 transition; positional shapes
-  // still work with dev-only console.warn. v0.2 will remove the positional
-  // shapes and rename `*Args` → `*`.
-  const resolvedOnItemCreate = onItemCreateArgs
-    ? (columnId: string, item: KanbanItem) =>
-        onItemCreateArgs({ columnId, item })
-    : onItemCreate
-      ? (() => {
-          if (process.env.NODE_ENV !== "production") {
-            console.warn(
-              "[kanban-board-01] `onItemCreate` positional signature `(columnId, item)` is @deprecated. Use `onItemCreateArgs({ columnId, item })`; v0.2 will remove the positional shape.",
-            );
-          }
-          return onItemCreate;
-        })()
-      : undefined;
-
-  const resolvedOnItemMove = onItemMoveArgs
+  // Internal drag handlers + create-handler still use positional shapes for
+  // their internal contract. Adapt the public object-shape callbacks at this
+  // boundary so dispatch / useDragHandlers / handleItemCreate stay untouched.
+  const handlePartItemMove = onItemMove
     ? (
         item: KanbanItem,
         from: { columnId: string; swimlaneId?: string },
         to: { columnId: string; swimlaneId?: string },
-      ) => onItemMoveArgs({ item, from, to })
-    : onItemMove
-      ? (() => {
-          if (process.env.NODE_ENV !== "production") {
-            console.warn(
-              "[kanban-board-01] `onItemMove` positional signature `(item, from, to)` is @deprecated. Use `onItemMoveArgs({ item, from, to })`; v0.2 will remove the positional shape.",
-            );
-          }
-          return onItemMove;
-        })()
-      : undefined;
+      ) => onItemMove({ item, from, to })
+    : undefined;
 
   // Mount-time validation (developer feedback only; doesn't block render).
   useEffect(() => {
@@ -119,13 +93,13 @@ export function KanbanBoard({
     data: state,
     readOnly,
     dispatch,
-    onItemMove: resolvedOnItemMove,
+    onItemMove: handlePartItemMove,
   });
 
   // Internal handlers translating UI events into reducer actions + consumer callbacks.
   function handleItemCreate(columnId: string, item: KanbanItem) {
     dispatch({ type: "create-item", columnId, item });
-    resolvedOnItemCreate?.(columnId, item);
+    onItemCreate?.({ columnId, item });
   }
 
   function handleItemUpdate(item: KanbanItem) {
@@ -222,7 +196,7 @@ export function KanbanBoard({
           palette={palettePinned}
           readOnly={false}
           activeRendererId={activeRendererId}
-          onItemCreate={resolvedOnItemCreate ? handleItemCreate : undefined}
+          onItemCreate={onItemCreate ? handleItemCreate : undefined}
           onItemUpdate={onItemUpdate ? handleItemUpdate : undefined}
           onItemDelete={onItemDelete ? handleItemDelete : undefined}
           onItemClick={onItemClick}

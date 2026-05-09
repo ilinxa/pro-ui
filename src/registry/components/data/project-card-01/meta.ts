@@ -25,7 +25,7 @@ export const meta: ComponentMeta = {
   ],
   tags: ["project-card-01", "projects", "portfolio", "case-study", "status", "card"],
 
-  version: "0.1.1",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-03",
   updatedAt: "2026-05-09",

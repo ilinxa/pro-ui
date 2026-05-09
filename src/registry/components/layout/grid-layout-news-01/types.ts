@@ -30,25 +30,15 @@ export interface GridLayoutNewsProps<T> {
   onLoadMore?: () => void;
 
   /**
-   * How to render one item in a given slot — positional signature.
-   * @deprecated Use `renderItemArgs` for the object-shape signature.
-   *   Object shape extends cleanly when v0.2 widens the slot union or adds
-   *   contextual args; positional `(item, slot)` is a versioning trap.
-   *   This prop still works (back-compat) but emits a dev-only console.warn
-   *   when called. v0.2 will remove the positional shape and rename
-   *   `renderItemArgs` → `renderItem`.
-   */
-  renderItem?: (item: T, slot: GridLayoutItemSlot) => ReactNode;
-  /**
-   * How to render one item in a given slot — object-shape signature.
-   * Wins over `renderItem` (deprecated positional) when both are provided.
-   * Receives the slot identifier plus the item's `index` in the displayed
-   * list (new context not available in the positional shape).
+   * How to render one item in a given slot. Receives the slot identifier
+   * plus the item's `index` in the displayed list. Featured-item call site
+   * passes `index: 0`. Required.
    *
-   * Either `renderItemArgs` OR `renderItem` MUST be provided; if neither,
-   * a runtime error is thrown in dev (silently no-ops in production).
+   * v0.2 cutover from positional `(item, slot)`. The deprecated positional
+   * shape was kept as `renderItemArgs` during the v0.1.x transition and is
+   * now removed; the canonical name `renderItem` carries the object shape.
    */
-  renderItemArgs?: (args: {
+  renderItem: (args: {
     item: T;
     slot: GridLayoutItemSlot;
     index: number;

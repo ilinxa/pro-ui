@@ -145,7 +145,7 @@ export default function GridLayoutNews01Demo() {
           hasMore={filtered.hasMore}
           isLoading={filtered.isLoading}
           onLoadMore={filtered.loadMore}
-          renderItem={(article, slot) => (
+          renderItem={({ item: article, slot }) => (
             <DemoCard article={article} slot={slot} />
           )}
           renderFeatured={(article) => <FeaturedCard article={article} />}
@@ -157,7 +157,7 @@ export default function GridLayoutNews01Demo() {
       <TabsContent value="bare" className="mt-6">
         <GridLayoutNews01<DemoArticle>
           displayedItems={DEMO_ARTICLES.slice(0, 6)}
-          renderItem={(article, slot) => (
+          renderItem={({ item: article, slot }) => (
             <DemoCard article={article} slot={slot} />
           )}
         />
@@ -166,7 +166,7 @@ export default function GridLayoutNews01Demo() {
       <TabsContent value="empty" className="mt-6">
         <GridLayoutNews01<DemoArticle>
           displayedItems={[]}
-          renderItem={(article, slot) => (
+          renderItem={({ item: article, slot }) => (
             <DemoCard article={article} slot={slot} />
           )}
           emptyState={

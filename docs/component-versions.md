@@ -21,7 +21,8 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 ## Highlights
 
 - **Past beta gate:** `rich-card` only — v0.4.1, status `beta`.
-- **v0.2.x (feature-evolved):** `article-body-01`, `kanban-board-01`.
+- **v0.3.x:** `kanban-board-01` (F-cross-12 v0.2 cutover; see Highlights below).
+- **v0.2.x:** `article-body-01`, `grid-layout-news-01` + `content-card-news-01` + `project-card-01` + `story-rail-01` (F-cross-12 v0.2 cutover — positional callbacks removed; canonical names now object-shape).
 - **v0.1.2:** `engagement-bar-01` (Phase 7 utils→lib), `media-carousel-01` (Phase 7 a11y), `progress-timeline-01` (Phase 7 status colors → audit follow-up marker differentiation), `page-hero-news-01` (Phase 7 lime mandate → audit follow-up `text-accent` carriers).
 - **v0.1.1 (patch shipped):** `post-card-01`, `data-table`, `flow-canvas-01`, `entity-picker`, `markdown-editor`, `properties-form`, `workspace`, plus Phase 7 batch — `event-card-01`, `registration-card-01`, `detail-panel`, `story-viewer-01`, `video-player-01`, `grid-layout-news-01`.
 - **All remaining components** sit at the initial v0.1.0 ship.
@@ -34,12 +35,12 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 |-------------------------|----------------------------|---------|--------|
 | `rich-card`             | Rich Card                  | 0.4.1   | beta   |
 | `article-body-01`       | Article Body 01            | 0.2.0   | alpha  |
-| `kanban-board-01`       | Kanban Board 01            | 0.2.2   | alpha  |
+| `kanban-board-01`       | Kanban Board 01            | 0.3.0   | alpha  |
 | `engagement-bar-01`     | Engagement Bar 01          | 0.1.2   | alpha  |
 | `post-card-01`          | Post Card 01               | 0.1.1   | alpha  |
 | `article-meta-01`       | Article Meta 01            | 0.1.0   | alpha  |
 | `comment-thread-01`     | Comment Thread 01          | 0.1.0   | alpha  |
-| `content-card-news-01`  | Content Card (News 01)     | 0.1.1   | alpha  |
+| `content-card-news-01`  | Content Card (News 01)     | 0.2.0   | alpha  |
 | `data-table`            | Data Table                 | 0.1.1   | alpha  |
 | `event-card-01`         | Event Card 01              | 0.1.1   | alpha  |
 | `expandable-text-01`    | Expandable Text 01         | 0.1.0   | alpha  |
@@ -47,10 +48,10 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `info-list-01`          | Info List 01               | 0.1.0   | alpha  |
 | `people-grid-01`        | People Grid 01             | 0.1.0   | alpha  |
 | `progress-timeline-01`  | Progress Timeline 01       | 0.1.2   | alpha  |
-| `project-card-01`       | Project Card 01            | 0.1.1   | alpha  |
+| `project-card-01`       | Project Card 01            | 0.2.0   | alpha  |
 | `registration-card-01`  | Registration Card 01       | 0.1.1   | alpha  |
 | `schedule-list-01`      | Schedule List 01           | 0.1.0   | alpha  |
-| `story-rail-01`         | Story Rail 01              | 0.1.1   | alpha  |
+| `story-rail-01`         | Story Rail 01              | 0.2.0   | alpha  |
 | `thumb-list-01`         | Thumb List 01              | 0.1.0   | alpha  |
 
 ## forms (6)
@@ -68,7 +69,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 | Slug                  | Name                    | Version | Status |
 |-----------------------|-------------------------|---------|--------|
-| `grid-layout-news-01` | Grid Layout (News 01)   | 0.1.2   | alpha  |
+| `grid-layout-news-01` | Grid Layout (News 01)   | 0.2.0   | alpha  |
 | `workspace`           | Workspace               | 0.1.1   | alpha  |
 
 ## marketing (4)
