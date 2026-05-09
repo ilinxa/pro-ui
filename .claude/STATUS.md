@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + audit follow-up**: 14 Mediums + paired Lows across 10 groups + post-Phase-7 self-review patch (progress-timeline marker + page-hero text-accent over lime); F-cross-11 closed via doc-path; 10 of 12 F-cross now closed)
+> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE + audit follow-up + smaller-opens cleanup**: 14 Mediums + paired Lows across 10 groups + post-Phase-7 self-review patch (progress-timeline marker + page-hero text-accent over lime) + reserved-meta-field cleanup (`subcategory` / `thumbnail` / `examples` removed); F-cross-11 closed via doc-path; 10 of 12 F-cross now closed)
 
 ---
 
@@ -75,17 +75,19 @@ Next candidates, ordered by team utility:
 
 ## Open decisions / TODOs
 
-- **Reserved-but-unrendered meta fields:** `RegistryEntry.examples`, `ComponentMeta.thumbnail`, `ComponentMeta.subcategory` exist on the types but render nowhere yet. Decide whether to wire any (each adds detail-page surface) or remove them. (`ComponentMeta.related` IS now used — sweep-tracker links siblings via this field.)
-- **Lime contrast pattern is dark-on-lime.** Both modes use near-black `--primary-foreground`. Don't switch to white — contrast fails. If a use case really wants white text on a green action, use a darker green (e.g. `oklch(0.45 0.18 142)` forest) and pair white text — but that becomes a separate token, not `--primary`.
-- **MDX for usage docs:** currently `usage.tsx`. Consider migrating to `usage.mdx` once we cross ~5 components with prose-heavy guidance.
-- **NPM publish artifacts:** no `tsup`/`rollup`, no `package.json` exports map. Distribution shipped via shadcn-registry instead (lower friction for the team-internal use case). NPM may still be worth doing for the heavyweights (rich-card 51 files, markdown-editor 28 files + 10 codemirror peer deps) — defer until an external consumer or a real updates-friction pain point shows up.
-- **Test runner not wired.** `pnpm tsc --noEmit && pnpm lint` cover correctness; demo-driven manual verification is the project's interactivity story today. The pure modules in workspace + rich-card + properties-form `lib/` directories are written to be testable in isolation when Vitest lands. First test landing should be a round-trip property test for rich-card's parse→serialize→parse fixed-point.
-- **F-cross-04 (open):** `pnpm build` fails on `next/font/google` Playfair Display fetch in offline/sandboxed envs. Workaround: `pnpm tsc --noEmit && pnpm lint && pnpm registry:build` cover correctness without the font fetch. Defer fix to a separate plan.
-- **F-cross-12 (open — v0.2 candidate):** Positional-callback signatures across 5 components / 6 occurrences. Breaking change; out of Phase 7 (non-breaking) scope. Library-wide v0.2 migration to object-shape callbacks with deprecation warnings emitted in v0.1.x.
-- ~~F-cross-01 (Tier 2 carriers — 1 open)~~ **✅ CLOSED in session 12** — `detail-panel-procomp-guide.md` authored alongside its Tier 2 review. All 36 components now have full description + plan + guide procomp doc trio.
-- ~~F-cross-11 (open — Phase 7 candidate)~~ **✅ CLOSED in Phase 7 Group I** — `docs/component-guide.md` §11.6 *Cross-folder import constraint* documents the rule (cross-folder consumers MUST import from `<slug>.tsx`); cross-references added to all 6 carrier procomp guides.
+**Active — needs decision or work**
 
-For the historical "Open decisions / TODOs" entries that are now closed (Phase 0 risk spike, chart palette, site nav, alpha/beta variants, footer version, public registry build, etc.), see the snapshot in `STATUS-archive.md`.
+- **F-cross-12 (v0.2 candidate):** Positional-callback signatures across 5 components / 6 occurrences (kanban-board-01, grid-layout-news-01, content-card-news-01, project-card-01, story-rail-01). Breaking change; out of v0.1.x (non-breaking) scope. Library-wide v0.2 migration to object-shape callbacks with deprecation warnings emitted in v0.1.x as transition.
+- **F-cross-11 follow-up (paths b/c, v0.2):** Phase 7 closed F-cross-11 via doc-path mitigation only. Path (b) — extend smoke harness with consumer-side `pnpm tsc --noEmit` after install — catches the brittleness at producer-commit time via real type-checking. Path (c) — realign cross-folder import paths to consumer-side style — is more invasive but most robust. Both deferred as v0.2 follow-ups; (b) recommended first.
+
+**Informed defers — explicit trigger to revisit**
+
+- **MDX for usage docs:** currently `usage.tsx`. **Trigger:** ~5 components reach prose-heavy guidance, OR a consumer needs MDX-specific features (codeblocks-with-render, embeds).
+- **NPM publish artifacts:** no `tsup`/`rollup`, no `package.json` exports map. Distribution via shadcn-registry handles the team-internal use case. **Trigger:** external consumer onboards, OR shadcn-registry's update-friction (re-running `pnpm dlx shadcn add`) surfaces real pain. Heavyweights (rich-card 51 files, markdown-editor 28 files + 10 codemirror peer deps) are the most likely first trigger.
+- **Test runner not wired.** `pnpm tsc --noEmit && pnpm lint` cover correctness today; demo-driven manual verification is the interactivity story. **Trigger:** first non-trivial bug in pure-function modules (workspace + rich-card + properties-form `lib/` directories). First test should be rich-card's `parse → serialize → parse` fixed-point round-trip property test.
+- **F-cross-04 (environmental):** `pnpm build` fails on `next/font/google` Playfair Display fetch in offline/sandboxed envs. Workaround in place: `pnpm tsc --noEmit && pnpm lint && pnpm registry:build` cover correctness without the font fetch. **Trigger:** offline-build becomes blocker for a contributor or CI runner.
+
+For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta variants, footer version, public registry build, reserved meta fields, lime contrast pattern, F-cross-01 / F-cross-11, etc.), see the per-decision files in `.claude/decisions/` plus `STATUS-archive.md` (pre-2026-05-09 entries).
 
 ---
 
@@ -93,11 +95,11 @@ For the historical "Open decisions / TODOs" entries that are now closed (Phase 0
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — session 14 follow-up: smaller-opens cleanup](decisions/2026-05-09-session-14-smaller-opens-cleanup.md) (removed 4 unused type members — `ComponentMeta.subcategory` / `thumbnail` / `RegistryEntry.examples` / `ComponentExample`; restructured STATUS Open decisions into Active vs Informed-defers with explicit triggers; tsc/lint/validate-meta-deps clean)
 - [2026-05-09 — session 14 PHASE 7 COMPLETE: 14 Mediums + paired Lows shipped across 10 groups](decisions/2026-05-09-session-14-phase-7.md) (10 components bumped — engagement-bar-01 + media-carousel-01 to v0.1.2; 8 others to v0.1.1; F-cross-11 closed via doc-path; 10/12 F-cross now closed; F-cross-04 + F-cross-12 still open)
 - [2026-05-09 — session 13 SWEEP CLOSE: rollup + Phase 7 plan + F-cross-11/12 escalations](decisions/2026-05-09-session-13-sweep-close.md) (sweep complete 36/36; rollup at `docs/reviews/2026-05-09-sweep-rollup.md`; Phase 7 plan at `.claude/PHASE-7-PLAN.md`; 14 Mediums bundled into 10 groups; 9/12 F-cross closed; F-cross-11 Phase 7 / F-cross-12 v0.2 / F-cross-04 deferred)
 - [2026-05-09 — session 12 Tier 2 batch 5 (FINAL): 5 spot-checks + detail-panel guide](decisions/2026-05-09-session-12-tier2-batch-5.md) (detail-panel/story-rail-01/registration-card-01/schedule-list-01/thumb-list-01 — all Pass with follow-ups; 2 🔸 Medium; Tier 2 COMPLETE 27/27; F-cross-01 fully CLOSED)
 - [2026-05-09 — session 11 Tier 2 batch 4: 6 spot-checks data part 2](decisions/2026-05-09-session-11-tier2-batch-4.md) (event-card-01/project-card-01/people-grid-01/info-list-01/progress-timeline-01/expandable-text-01 — all Pass with follow-ups; 3 🔸 Medium; expandable-text-01 F-01 confirms post-card-01 F-01 as library-wide pattern)
-- [2026-05-09 — session 10 Tier 2 batch 3: 6 spot-checks data + media](decisions/2026-05-09-session-10-tier2-batch-3.md) (post-card-01/comment-thread-01/engagement-bar-01/media-carousel-01/content-card-news-01/article-meta-01 — all Pass with follow-ups; 4 🔸 Medium findings; F-cross-05 + F-cross-06 regression-checks ✓)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 
