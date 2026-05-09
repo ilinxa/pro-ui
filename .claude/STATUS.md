@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 9 — Tier 2 batch 2: 5 spot-checks media + marketing)
+> **Last updated:** 2026-05-09 (session 10 — Tier 2 batch 3: 6 spot-checks data + media; **16 of 27 Tier 2 done**)
 
 ---
 
@@ -91,11 +91,11 @@ For the historical "Open decisions / TODOs" entries that are now closed (Phase 0
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — session 10 Tier 2 batch 3: 6 spot-checks data + media](decisions/2026-05-09-session-10-tier2-batch-3.md) (post-card-01/comment-thread-01/engagement-bar-01/media-carousel-01/content-card-news-01/article-meta-01 — all Pass with follow-ups; 4 🔸 Medium findings; F-cross-05 + F-cross-06 regression-checks ✓)
 - [2026-05-09 — session 9 Tier 2 batch 2: 5 spot-checks media + marketing](decisions/2026-05-09-session-9-tier2-batch-2.md) (story-viewer-01/video-player-01/share-bar-01/newsletter-card-01/page-hero-news-01 — all Pass with follow-ups; 1 🔸 Medium F-01 page-hero white-on-lime mandate concern)
 - [2026-05-09 — session 8 Tier 2 batch 1: 5 spot-checks + filter-stack guide](decisions/2026-05-09-session-8-tier2-batch-1.md) (filter-stack/filter-bar-01/grid-layout-news-01/category-cloud-01/author-card-01 — all Pass with follow-ups; F-cross-01 narrowed to 1 open carrier)
 - [2026-05-09 — session 7d Phase 6: F-cross-02 closed via b3 hybrid](decisions/2026-05-09-session-7d-phase-6.md) (STATUS.md split + decisions/ convention established)
 - [2026-05-09 — session 7c Phase 4: 6 missing procomp docs authored](decisions/2026-05-09-session-7c-phase-4.md) (closes F-cross-01 Tier 1)
-- [2026-05-09 — session 7b Phase 5: 8 Tier 1 v0.1.1 patches](decisions/2026-05-09-session-7b-phase-5.md) (workspace adaptive-flatten + rich-card v0.4.1 + kanban F-01 amber + plan-doc nits)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 
