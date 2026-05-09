@@ -207,11 +207,12 @@
 
 - [ ] `pnpm tsc --noEmit` clean
 - [ ] `pnpm lint` clean (or pre-existing warnings explicitly listed below)
+- [ ] `pnpm validate:meta-deps` reports `36 / 36 clean` (post-Phase-7 lint; F-cross-07)
 - [ ] `pnpm build` clean
 - [ ] `pnpm registry:build` clean
 - [ ] Docs-site detail page renders at `/components/<slug>` without runtime errors
 - [ ] Browser validation: light + dark, narrow + wide, all interactive paths
-- [ ] (Full review) Smoke install in tmp consumer works
+- [ ] **Smoke harness pass (F-cross-11 path b):** `pnpm dlx shadcn add @ilinxa/<slug>` succeeds AND consumer-side `pnpm tsc --noEmit` clean post-install. Required for v0.1.0 first ships and `alpha → beta` promotions; see [.claude/rules/component-readiness-review.md](../../../.claude/rules/component-readiness-review.md).
 - [ ] Console clean during demo interaction (no warnings, errors, key warnings, hydration mismatches)
 
 **Pre-existing warnings (if any):**

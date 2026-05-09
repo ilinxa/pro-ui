@@ -32,7 +32,7 @@ A spot-check covers a **fixed core of 4 dimensions** plus **1 rotating dimension
 | 1 | Procomp planning docs | `<yes / no>` | description / plan / guide present + accurate? |
 | 9 | Registry distribution | `<yes / no>` | live endpoint resolves; targets locked-convention; no docs files in registry artifact |
 | 10 | Meta + manifest sync | `<yes / no>` | version + status + STATUS.md row honest |
-| 12 | Verification | `<yes / no>` | tsc + lint + build clean |
+| 12 | Verification | `<yes / no>` | tsc + lint + `validate:meta-deps` clean; `pnpm build` succeeds. **For v0.1.0 first ships:** smoke harness pass (F-cross-11 path b) — `pnpm dlx shadcn add @ilinxa/<slug>` succeeds AND consumer-side `pnpm tsc --noEmit` clean post-install. See [.claude/rules/component-readiness-review.md](../../../.claude/rules/component-readiness-review.md). |
 
 ### Rotating dimension
 
@@ -47,11 +47,13 @@ A spot-check covers a **fixed core of 4 dimensions** plus **1 rotating dimension
 
 ## Smoke result
 
-Copy the row for this slug from the latest smoke run at `e:/tmp/ilinxa-smoke-consumer/results/<DATE>-smoke.md`.
+Copy the row for this slug from the latest smoke run at `e:/tmp/ilinxa-smoke-consumer/results/<DATE>-smoke.md`. The harness extension landed in F-cross-11 path b adds a consumer-side `pnpm tsc --noEmit` pass after install — both columns matter for v0.1.0 first ships.
 
-| Slug | Install | Render | Console errors | Notes |
-|------|---------|--------|----------------|-------|
-| `<slug>` | `<pass | fail | expected-fail>` | `<pass | fail | skip>` | `<count>` | `<notes>` |
+| Slug | Install | TSC | Time (ms) | Notes |
+|------|---------|-----|-----------|-------|
+| `<slug>` | `<pass | fail | expected-fail>` | `<pass | fail | —>` | `<ms>` | `<notes>` |
+
+If `Install` passes but `TSC` fails, that's exactly the F-cross-11 brittleness signal the harness is now designed to surface — investigate the implicated file paths in the smoke report's "tsc errors" excerpt before declaring `Pass`.
 
 ---
 
