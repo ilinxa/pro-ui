@@ -22,7 +22,7 @@ export function useDoubleTap(
 
   return useCallback(() => {
     if (!onDoubleTap) return;
-    const now = Date.now();
+    const now = performance.now();
     if (now - lastTapRef.current < windowMs) {
       onDoubleTap();
       lastTapRef.current = 0;

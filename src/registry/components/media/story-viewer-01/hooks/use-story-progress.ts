@@ -22,8 +22,9 @@ export interface UseStoryProgressOptions {
  *
  * Tracks an `accumulatedMs` accumulator across pause/resume cycles so users
  * can pause for arbitrary durations without losing playback position.
- * Naive `Date.now() - startTime` recomputes (kasder's pattern) silently
- * advance ~50ms per pause/resume cycle.
+ * Naive `Date.now() - startTime` recomputes (kasder's original pattern) silently
+ * advance ~50ms per pause/resume cycle. Switched to `performance.now()` here
+ * for monotonic clock + immunity to NTP / DST jumps.
  */
 export function useStoryProgress({
   isOpen,
@@ -73,7 +74,7 @@ export function useStoryProgress({
     if (isPaused) {
       // Snapshot elapsed into accumulator + clear interval.
       if (startTimeRef.current !== null) {
-        accumulatedRef.current += Date.now() - startTimeRef.current;
+        accumulatedRef.current += performance.now() - startTimeRef.current;
         startTimeRef.current = null;
       }
       if (intervalRef.current !== null) {
@@ -84,11 +85,11 @@ export function useStoryProgress({
     }
 
     // Run.
-    startTimeRef.current = Date.now();
+    startTimeRef.current = performance.now();
     intervalRef.current = setInterval(() => {
       const startedAt = startTimeRef.current;
       if (startedAt === null) return;
-      const elapsed = Date.now() - startedAt + accumulatedRef.current;
+      const elapsed = performance.now() - startedAt + accumulatedRef.current;
       const pct = Math.min((elapsed / itemDurationMs) * 100, 100);
       setProgress(pct);
       if (pct >= 100 && !completedRef.current) {
