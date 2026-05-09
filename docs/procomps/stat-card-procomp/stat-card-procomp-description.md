@@ -8,7 +8,7 @@
 
 Every dashboard, admin panel, analytics view, and observability surface needs the same micro-component: **one big number, one label, optional vs-prior-period delta, optional miniature trend chart**. Most teams rebuild it ad-hoc per project — and they consistently get small things wrong:
 
-- Delta direction semantics: revenue ↑ is good (green), error rate ↑ is bad (red). One-size-fits-all "up=green" coloring is misleading half the time.
+- Delta-sign semantics: revenue ↑ is good (green), error rate ↑ is bad (red). One-size-fits-all "up=green" coloring is misleading half the time.
 - Sparkline rendering: heavyweight chart libraries (recharts ~40 KB) for what should be 30 lines of SVG, OR no sparkline at all when one would communicate volumes.
 - Number formatting: consumer responsibility, but the component should make `Intl.NumberFormat` ergonomic and locale-respectful, not push every team toward bespoke string-padding.
 - Accessibility: the big number needs to be reachable by screen readers WITHOUT them announcing the visual decoration ("$ 12.4 thousand point three percent up arrow vs last month"). Requires careful aria.
@@ -25,14 +25,18 @@ Pro-ui currently has no answer. `data-table` is for many-row tabular data. `cont
   - `detailed` — value + label + delta + sparkline + leading icon + optional secondary stats row (e.g., "from 1,200 last week"). For hero KPI cards.
 - **Object-shape callbacks** from day one (per F-cross-12 lessons): `onClick?: (args: { event }) => void`, formatters take `(args: { value, ... })` where multiple inputs exist.
 - **Built-in sparkline** as a sibling RSC-compatible part exported separately: `<StatCardSparkline data={[...]} />`. Pure SVG, no charting peer-dep. ~30 LOC. Consumers wanting different chart shapes (bar, dual-axis) bring their own via the `renderTrend` slot.
-- **Delta semantics**: `delta` is object-shape with `value` (signed number), `direction?: "up" | "down" | "neutral"` (auto-derived from sign by default), and `polarity?: "positive" | "negative" | "neutral"` — the "is up good?" override. Example: error-rate cards pass `polarity: "negative"` so an upward delta colors red.
+- **Delta semantics**: `delta` is object-shape with three fields:
+  - **`value: number`** — signed; **convention is a fraction (0-1 range) representing a percentage change** (`0.124` = +12.4%, `-0.08` = −8.0%). Consumers with non-percentage deltas (raw counts, latency ms) override `format`.
+  - **`format?: (value: number) => string`** — default: locale-aware `Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1, signDisplay: "exceptZero" })`. Renders `+12.4%` / `−8.0%` / `0%` out of the box. Override for absolute counts: `(v) => v.toLocaleString(undefined, { signDisplay: "exceptZero" })` → `+1,240`.
+  - **`betterIsHigher?: boolean`** — default `true`. Set `false` for cost/error-style metrics where ↑ is bad — colors the upward delta red instead of green. **Replaces the earlier `polarity` design (rejected as ambiguous: "polarity: positive" could mean "the number is positive" vs "up is good"; `betterIsHigher` is unambiguous).**
+  - Direction (visual up/down arrow) is computed internally from the sign of `value`; **not** exposed as a public prop (it would be redundant with the sign).
 - **`renderValue` slot** for cases where the value isn't a primitive — e.g., a value with a unit superscript, a value with a tooltip, a sparkline-as-value treatment. Default is `Intl.NumberFormat`-driven via `formatValue` callback.
 - **Polymorphic root** — `linkComponent` + `href` makes the whole card clickable with overlay-link pattern (a la `content-card-news-01` / `event-card-01`); when neither is provided, the card is a passive `<article>` (no focus ring, no click handling).
 - **Loading state** — `loading={true}` renders a skeleton that exactly matches the final shape (height-locked, no layout shift on hydration).
 - **Optional `icon`** — lucide-style `ComponentType<{ className?: string }>`. Default position: leading (top-left). `iconPosition: "leading" | "trailing"` for placement override.
-- **i18n via `labels`** — keys: `deltaPrefix` ("vs"), `deltaPeriod` ("last period"), `loadingLabel` ("Loading metric…"), `polarityNegativeLabel` ("decrease"), `polarityPositiveLabel` ("increase"). Defaults English; consumers override per call or globally.
+- **i18n via `labels`** — keys: `deltaPrefix` ("vs"), `deltaPeriod` ("last period"), `loadingLabel` ("Loading metric…"), `decreaseLabel` ("decrease"), `increaseLabel` ("increase"). Defaults English; consumers override per call or globally. Screen readers announce `<sr-only>{labels.increaseLabel}</sr-only>` or `<sr-only>{labels.decreaseLabel}</sr-only>` (chosen by sign of `delta.value`) — see WCAG bullet below.
 - **Soft-failure on missing optional fields** — only `value` + `label` are required. Delta absent → no delta row. Sparkline absent → no chart. Icon absent → no icon. Card adapts size accordingly.
-- **WCAG 2.1 AA target** — `<dl>` markup so screen readers announce label-value pairs natively; sparkline is `aria-hidden="true"` (it's decorative, the value is in the dt/dd); delta has a `<span class="sr-only">{polarityLabel}</span>` so SRs say "12.4% increase" not "12.4% up arrow"; focus-visible ring on whole card when linked.
+- **WCAG 2.1 AA target** — `<dl>` markup so screen readers announce label-value pairs natively; sparkline is `aria-hidden="true"` (it's decorative, the value is in the dt/dd); delta has a `<span class="sr-only">{labels.increaseLabel | labels.decreaseLabel}</span>` (chosen by sign of `delta.value`) so SRs say "12.4% increase" not "12.4% up arrow"; focus-visible ring on whole card when linked.
 
 ## Out of scope
 
@@ -62,11 +66,13 @@ The consumer is a **frontend dev assembling a multi-metric dashboard**, typicall
 ## Rough API sketch
 
 ```tsx
+// Revenue: up = good (default betterIsHigher=true). Default delta format
+// produces "+12.4%" — no need to supply `format` for the percent case.
 <StatCard
   value={12431}
   label="Revenue this month"
   formatValue={(v) => `$${v.toLocaleString()}`}
-  delta={{ value: 0.124, format: (v) => `${(v * 100).toFixed(1)}%`, polarity: "positive" }}
+  delta={{ value: 0.124 }}
   trend={[8200, 8800, 9100, 10200, 10900, 11500, 12100, 12431]}
   icon={DollarSign}
   variant="default"
@@ -74,15 +80,13 @@ The consumer is a **frontend dev assembling a multi-metric dashboard**, typicall
   linkComponent={Link}
 />
 
+// Error rate: up = bad. `betterIsHigher: false` flips the green/red
+// semantics — a positive delta colors red, a negative one colors green.
 <StatCard
   value={errorRate}
   label="Error rate (last 24h)"
   formatValue={(v) => `${v.toFixed(2)}%`}
-  delta={{
-    value: errorRateDelta,
-    format: (v) => `${Math.abs(v * 100).toFixed(1)}%`,
-    polarity: "negative",  // up is bad here — colors red on positive delta
-  }}
+  delta={{ value: errorRateDelta, betterIsHigher: false }}
   trend={errorRateHistory}
   icon={AlertTriangle}
 />
@@ -94,7 +98,7 @@ The consumer is a **frontend dev assembling a multi-metric dashboard**, typicall
   loading={isLoading}
 />
 
-// Custom value rendering for unit-superscript pattern
+// Custom value rendering for unit-superscript pattern; latency where ↓ is good.
 <StatCard
   value={42.7}
   label="Average response time"
@@ -103,7 +107,19 @@ The consumer is a **frontend dev assembling a multi-metric dashboard**, typicall
       {value.toFixed(1)}<span className="text-muted-foreground text-base ml-1">ms</span>
     </span>
   )}
-  delta={{ value: -0.08, polarity: "negative" }}
+  delta={{ value: -0.08, betterIsHigher: false }}
+/>
+
+// Absolute count delta (non-percentage): consumer overrides `format` to
+// produce "+1,240" instead of the default "+1240%".
+<StatCard
+  value={42138}
+  label="New signups this week"
+  formatValue={(v) => v.toLocaleString()}
+  delta={{
+    value: 1240,
+    format: (v) => v.toLocaleString(undefined, { signDisplay: "exceptZero" }),
+  }}
 />
 ```
 
@@ -111,7 +127,7 @@ The consumer is a **frontend dev assembling a multi-metric dashboard**, typicall
 
 **1. Admin dashboard top-row KPI strip (4 cards across)**
 
-A `grid grid-cols-2 lg:grid-cols-4 gap-4` of `<StatCard variant="default">` instances. Each consumes a different metric; deltas flip green/red per polarity. Sparklines on each give a sense of trend at a glance. Click-through routes to the detail view per metric.
+A `grid grid-cols-2 lg:grid-cols-4 gap-4` of `<StatCard variant="default">` instances. Each consumes a different metric; deltas flip green/red per their `betterIsHigher` value (revenue defaults to true; error rate sets false). Sparklines on each give a sense of trend at a glance. Click-through routes to the detail view per metric.
 
 **2. Sidebar widgets in a content app**
 
@@ -126,7 +142,7 @@ Two `<StatCard variant="detailed">` instances under the headline — "$1.2M ARR"
 The component is "done" when:
 
 1. **All three variants render correctly** with sensible defaults across light + dark + the existing pro-ui theme tokens. Visual review of the three demos passes the design system mandate (Onest font, lime accent, OKLCH colors only).
-2. **Delta polarity logic** is verifiably correct: positive delta + positive polarity = green text + up-arrow; positive delta + negative polarity = red text + up-arrow; etc. Six combinations (3 directions × 2 polarities, plus neutral). Each tested via demo tabs.
+2. **Delta color logic** is verifiably correct: positive `delta.value` + `betterIsHigher: true` = green text + up-arrow; positive `delta.value` + `betterIsHigher: false` = red text + up-arrow; negative `delta.value` + `betterIsHigher: true` = red text + down-arrow; negative `delta.value` + `betterIsHigher: false` = green text + down-arrow; zero `delta.value` = neutral text + no arrow. Five combinations total. Each tested via demo tabs.
 3. **Built-in sparkline** renders without a charting peer dep. Lighthouse accessibility audit on a 4-card demo strip: 100. No console errors at any data length (1, 2, many).
 4. **Object-shape callbacks** from day one — no positional shapes; F-cross-12 lessons applied at construction.
 5. **Loading skeleton** shape-matches the final state — visual layout-shift score (CLS) of 0 when toggling `loading=true → false`.
@@ -142,17 +158,15 @@ The component is "done" when:
 
 3. **Icon position default** — leading (top-left) vs trailing (top-right corner)? Recommendation: leading by default; trailing requires opt-in via `iconPosition: "trailing"`. Most dashboard cards I've seen put the icon top-left, balanced against the value's visual gravity bottom-right.
 
-4. **Should we pre-pick `polarity` from common labels?** — "Error rate" ↑ is bad; "Revenue" ↑ is good. The component COULD heuristically derive polarity from a `metricCategory: "growth" | "cost" | "quality"` flag. **Recommendation: NO.** Heuristics are wrong half the time and impossible to debug. Make `polarity` an explicit prop.
+4. **Should we auto-derive `betterIsHigher` from a `metricCategory` heuristic?** — "Error rate" ↑ is bad; "Revenue" ↑ is good. The component COULD infer `betterIsHigher` from a `metricCategory: "growth" | "cost" | "quality"` flag and skip the explicit boolean. **Recommendation: NO.** Heuristics are wrong half the time and impossible to debug from a stack trace. Keep `betterIsHigher` an explicit boolean (default `true`).
 
 5. **Polymorphic root for non-clickable cards** — when `href` is absent, render as `<article>`, `<section>`, or `<dl>`? Recommendation: `<dl>` to surface the label-value semantics. The icon + delta sit in metadata children of the `<dd>` to avoid extra `<dt>/<dd>` pairs. Need to validate with a screen-reader pass.
 
-6. **Should `delta.value` be the raw signed number or the percentage?** — Either could mean "0.124 = +12.4%" or "12.4 = +12.4". Recommendation: raw signed number; the consumer-supplied `format` callback decides display. So `delta.value = 0.124` + `format: (v) => (v * 100).toFixed(1) + '%'`. Matches the same separation as React Number formatters.
+6. **Stat card with a goal / target** — "12,431 / 15,000 monthly target". Out of scope for v0.1 but worth noting as a v0.2 candidate. Could be a `target?: number` prop with a tiny progress bar between value and delta rows.
 
-7. **Stat card with a goal / target** — "12,431 / 15,000 monthly target". Out of scope for v0.1 but worth noting as a v0.2 candidate. Could be a `target?: number` prop with a tiny progress bar between value and delta rows.
+7. **Empty state** — what does `value={undefined}` render? "—"? "No data"? The label still renders? Recommendation: when value is `undefined`, render a centered "—" in muted-foreground at the same size as the value would have been. Loading skeleton handles the "fetching" case; this handles the "fetched but empty" case.
 
-8. **Empty state** — what does `value={undefined}` render? "—"? "No data"? The label still renders? Recommendation: when value is `undefined`, render a centered "—" in muted-foreground at the same size as the value would have been. Loading skeleton handles the "fetching" case; this handles the "fetched but empty" case.
-
-9. **Multiple values per card** — some dashboards want "1,234 active / 567 new" in one card (two numbers, one label). v0.1 says: NO; use two stat-cards or use `comparison-card` (deferred sibling). v0.2 candidate to expand if real demand.
+8. **Multiple values per card** — some dashboards want "1,234 active / 567 new" in one card (two numbers, one label). v0.1 says: NO; use two stat-cards or use `comparison-card` (deferred sibling). v0.2 candidate to expand if real demand.
 
 ---
 
