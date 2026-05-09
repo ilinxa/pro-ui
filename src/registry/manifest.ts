@@ -146,6 +146,10 @@ import FlowCanvas01Demo from "./components/data/flow-canvas-01/demo";
 import FlowCanvas01Usage from "./components/data/flow-canvas-01/usage";
 import { meta as flowCanvas01Meta } from "./components/data/flow-canvas-01/meta";
 
+import PdfViewerDemo from "./components/media/pdf-viewer/demo";
+import PdfViewerUsage from "./components/media/pdf-viewer/usage";
+import { meta as pdfViewerMeta } from "./components/media/pdf-viewer/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -339,6 +343,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: flowCanvas01Meta,
     Demo: FlowCanvas01Demo,
     Usage: FlowCanvas01Usage,
+  },
+  {
+    meta: pdfViewerMeta,
+    Demo: PdfViewerDemo,
+    Usage: PdfViewerUsage,
   },
 ];
 

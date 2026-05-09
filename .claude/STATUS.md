@@ -6,13 +6,13 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session pause — clean stop point. **stat-card v0.1.1** is current (v0.1.0 shipped + same-day patch closed F-01/F-02/F-03 from the GATE 3 review; F-04 `--success` token deferred to v0.2). All 12 F-cross findings closed. Component-readiness-review rule established + proven on first use. **37 components total.** Tip of `master` is `9559ee3`; tree clean; remote in sync. Fresh-session entry point: [`.claude/HANDOFF-2026-05-09-session-pause.md`](HANDOFF-2026-05-09-session-pause.md).)
+> **Last updated:** 2026-05-10 (**pdf-viewer v0.1.0** shipped — second component under the readiness-review rule. 28-file sealed folder; `react-pdf@^10.4.1` substrate; toolbar + zoom + drag-drop + selection + right-click + password + print. GATE 3 verdict `Pass with follow-ups` (4 findings — F-01 worker default v0.2.0, F-02 actions identity v0.1.1, F-03 print UX v0.1.1, F-04 smoke pending post-deploy). **38 components total.** Smoke harness pass deferred to post-Vercel-redeploy.)
 
 ---
 
 ## Components
 
-37 components across 6 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
+38 components across 6 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 
 | Slug | Category | Status | Version |
 |------|----------|--------|---------|
@@ -52,6 +52,7 @@
 | `media-carousel-01` | media | alpha | 0.1.2 |
 | `story-viewer-01` | media | alpha | 0.1.1 |
 | `video-player-01` | media | alpha | 0.1.1 |
+| `pdf-viewer` | media | alpha | 0.1.0 |
 | `detail-panel` | feedback | alpha | 0.1.1 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.
@@ -78,6 +79,7 @@ Next candidates, ordered by team utility:
 
 **Active — needs decision or work**
 
+- **pdf-viewer worker default (F-01, v0.2.0):** Plan locked bundled-`?url` worker import for offline-friendliness. Turbopack rejected `new URL("bare-specifier", import.meta.url)` at build, so v0.1.0 ships with unpkg-CDN default + `workerSrc` prop override + `postinstall` recipe in guide. Bump-target v0.2.0: replace CDN default with bundled-or-postinstall path. Decision file at [`.claude/decisions/2026-05-10-pdf-viewer-v01-pipeline.md`](decisions/2026-05-10-pdf-viewer-v01-pipeline.md).
 - **F-cross-12 (v0.2 candidate):** Positional-callback signatures across 5 components / 6 occurrences (kanban-board-01, grid-layout-news-01, content-card-news-01, project-card-01, story-rail-01). Breaking change; out of v0.1.x (non-breaking) scope. Library-wide v0.2 migration to object-shape callbacks with deprecation warnings emitted in v0.1.x as transition.
 - ~~**F-cross-11 follow-up paths (b)/(c)**~~ **✅ Path (b) CLOSED 2026-05-09** — smoke harness extended with consumer-side `pnpm tsc --noEmit` post-install; first run surfaced + fixed a real bug (37 `index.ts` files re-exporting docs-site-only `meta`). Path (c) — tsconfig path realignment — remains deferred; with (b) actively guarding, (c)'s additional safety value is marginal. See [`.claude/decisions/2026-05-09-fcross11-path-b-smoke-tsc.md`](decisions/2026-05-09-fcross11-path-b-smoke-tsc.md).
 
@@ -97,11 +99,11 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-10 — pdf-viewer v0.1.0 first ship (second component under the readiness-review rule)](decisions/2026-05-10-pdf-viewer-v01-pipeline.md) (GATE 1 + GATE 2 + GATE 3 all passed; 28-file sealed folder; react-pdf@^10.4.1 substrate; toolbar + zoom + drag-drop + selection + right-click + password + print + virtualization; verdict `Pass with follow-ups` (4 findings); F-01 worker-default-on-CDN drift documented for v0.2.0)
 - [2026-05-09 — stat-card v0.1.0 → v0.1.1 pipeline (first component under the readiness-review rule)](decisions/2026-05-09-stat-card-v01-pipeline.md) (GATE 1 + GATE 2 + GATE 3 all passed; smoke verified post-Vercel-deploy; v0.1.1 same-day patch closed 3 of 4 follow-ups; F-04 (`--success` token) deferred to v0.2; sibling `<StatCardSparkline>` standalone export; object-shape callbacks; Intl percent delta formatter)
 - [2026-05-09 — Component-readiness-review rule established (GATE 3)](decisions/2026-05-09-component-readiness-review-rule.md) (every new component must pass a structured spot-check review before push; `.claude/rules/component-readiness-review.md` codifies it; CLAUDE.md + component-guide §13 + procomps/README + spotcheck/checklist templates all updated; existing components grandfathered)
 - [2026-05-09 — F-cross-11 path (b) CLOSED: smoke harness gains consumer-side tsc](decisions/2026-05-09-fcross11-path-b-smoke-tsc.md) (smoke-all.mjs runs `pnpm tsc --noEmit` after install loop; first run caught 37 broken `index.ts` re-exports of docs-site-only `meta` — fixed in producer commit `c4662bb`; path (c) deferred since (b) is actively guarding)
 - [2026-05-09 — F-cross-12 v0.2 cutover (post v0.1.x transition)](decisions/2026-05-09-fcross12-v02-cutover.md) (positional callbacks across 5 components removed; canonical names now object-shape; grid-layout-news / content-card-news / project-card / story-rail to 0.2.0; kanban-board to 0.3.0; **all 12 F-cross findings now closed**)
-- [2026-05-09 — F-cross-04 CLOSED: self-host fonts via @fontsource-variable](decisions/2026-05-09-fcross04-self-host-fonts.md) (replaced `next/font/google` with `@fontsource-variable/{onest,jetbrains-mono,playfair-display}`; `pnpm build` now succeeds without network fetch)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 

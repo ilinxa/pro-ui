@@ -1,0 +1,25 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "pdf-viewer-fixtures",
+  "title": "PDF Viewer — fixtures",
+  "author": "ilinxa",
+  "description": "PDF Viewer bundle including the dummy-data fixtures used by the docs-site demo (sample PDF URL constants and Blob/ArrayBuffer fetch helpers).",
+  "registryDependencies": [
+    "@ilinxa/pdf-viewer"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/pdf-viewer/dummy-data.ts",
+      "content": "/**\n * Mozilla's public-domain \"TraceMonkey\" PDF — used as the official pdf.js\n * demo file. Hosted on GitHub Pages with CORS headers, so we can render it\n * directly without proxying. ~14 pages, mixed text + figures.\n */\nexport const PDF_VIEWER_DUMMY_URL =\n  \"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf\";\n\n/**\n * A second, smaller sample for compact / single-page demos.\n * Single-page Berkeley computer science paper sample, also CORS-friendly.\n */\nexport const PDF_VIEWER_DUMMY_SHORT_URL =\n  \"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf\";\n\n/**\n * Construct a Blob from one of the sample URLs (for demos that want to\n * exercise the Blob source path). Used in demo.tsx via `useEffect`.\n */\nexport async function pdfViewerDummyBlob(\n  url = PDF_VIEWER_DUMMY_URL,\n): Promise<Blob> {\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(`Failed to fetch sample PDF (${res.status})`);\n  return await res.blob();\n}\n\n/**\n * Construct an ArrayBuffer from one of the sample URLs.\n */\nexport async function pdfViewerDummyArrayBuffer(\n  url = PDF_VIEWER_DUMMY_URL,\n): Promise<ArrayBuffer> {\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(`Failed to fetch sample PDF (${res.status})`);\n  return await res.arrayBuffer();\n}\n",
+      "type": "registry:component",
+      "target": "components/pdf-viewer/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "pdf",
+    "viewer",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
