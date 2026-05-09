@@ -1470,7 +1470,7 @@
         "skeleton",
         "tooltip"
       ],
-      "dependencies": ["react-pdf", "pdfjs-dist", "lucide-react"],
+      "dependencies": ["react-pdf", "lucide-react"],
       "files": [
         { "path": "src/registry/components/media/pdf-viewer/pdf-viewer.tsx", "type": "registry:component", "target": "components/pdf-viewer/pdf-viewer.tsx" },
         { "path": "src/registry/components/media/pdf-viewer/index.ts", "type": "registry:component", "target": "components/pdf-viewer/index.ts" },
