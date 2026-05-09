@@ -6,7 +6,7 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 13 — **SWEEP CLOSE**: rollup + Phase 7 plan + F-cross-11/12 escalations; 13 sessions, 36 components, 9/12 F-cross closed; Phase 7 next)
+> **Last updated:** 2026-05-09 (session 14 — **PHASE 7 COMPLETE**: 14 Mediums + paired Lows shipped across 10 groups; 10 components bumped; F-cross-11 closed via doc-path; 10 of 12 F-cross now closed)
 
 ---
 
@@ -21,23 +21,23 @@
 | `kanban-board-01` | data | alpha | 0.2.1 |
 | `flow-canvas-01` | data | alpha | 0.1.1 |
 | `article-body-01` | data | alpha | 0.2.0 |
-| `engagement-bar-01` | data | alpha | 0.1.1 |
+| `engagement-bar-01` | data | alpha | 0.1.2 |
 | `post-card-01` | data | alpha | 0.1.1 |
 | `comment-thread-01` | data | alpha | 0.1.0 |
 | `article-meta-01` | data | alpha | 0.1.0 |
 | `content-card-news-01` | data | alpha | 0.1.0 |
-| `event-card-01` | data | alpha | 0.1.0 |
+| `event-card-01` | data | alpha | 0.1.1 |
 | `expandable-text-01` | data | alpha | 0.1.0 |
 | `info-list-01` | data | alpha | 0.1.0 |
 | `people-grid-01` | data | alpha | 0.1.0 |
-| `progress-timeline-01` | data | alpha | 0.1.0 |
+| `progress-timeline-01` | data | alpha | 0.1.1 |
 | `project-card-01` | data | alpha | 0.1.0 |
-| `registration-card-01` | data | alpha | 0.1.0 |
+| `registration-card-01` | data | alpha | 0.1.1 |
 | `schedule-list-01` | data | alpha | 0.1.0 |
 | `story-rail-01` | data | alpha | 0.1.0 |
 | `thumb-list-01` | data | alpha | 0.1.0 |
 | `workspace` | layout | alpha | 0.1.1 |
-| `grid-layout-news-01` | layout | alpha | 0.1.0 |
+| `grid-layout-news-01` | layout | alpha | 0.1.1 |
 | `markdown-editor` | forms | alpha | 0.1.1 |
 | `properties-form` | forms | alpha | 0.1.1 |
 | `entity-picker` | forms | alpha | 0.1.1 |
@@ -46,12 +46,12 @@
 | `filter-stack` | forms | alpha | 0.1.0 |
 | `author-card-01` | marketing | alpha | 0.1.0 |
 | `newsletter-card-01` | marketing | alpha | 0.1.0 |
-| `page-hero-news-01` | marketing | alpha | 0.1.0 |
+| `page-hero-news-01` | marketing | alpha | 0.1.1 |
 | `share-bar-01` | marketing | alpha | 0.1.0 |
-| `media-carousel-01` | media | alpha | 0.1.1 |
-| `story-viewer-01` | media | alpha | 0.1.0 |
-| `video-player-01` | media | alpha | 0.1.0 |
-| `detail-panel` | feedback | alpha | 0.1.0 |
+| `media-carousel-01` | media | alpha | 0.1.2 |
+| `story-viewer-01` | media | alpha | 0.1.1 |
+| `video-player-01` | media | alpha | 0.1.1 |
+| `detail-panel` | feedback | alpha | 0.1.1 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.
 
@@ -81,7 +81,9 @@ Next candidates, ordered by team utility:
 - **NPM publish artifacts:** no `tsup`/`rollup`, no `package.json` exports map. Distribution shipped via shadcn-registry instead (lower friction for the team-internal use case). NPM may still be worth doing for the heavyweights (rich-card 51 files, markdown-editor 28 files + 10 codemirror peer deps) — defer until an external consumer or a real updates-friction pain point shows up.
 - **Test runner not wired.** `pnpm tsc --noEmit && pnpm lint` cover correctness; demo-driven manual verification is the project's interactivity story today. The pure modules in workspace + rich-card + properties-form `lib/` directories are written to be testable in isolation when Vitest lands. First test landing should be a round-trip property test for rich-card's parse→serialize→parse fixed-point.
 - **F-cross-04 (open):** `pnpm build` fails on `next/font/google` Playfair Display fetch in offline/sandboxed envs. Workaround: `pnpm tsc --noEmit && pnpm lint && pnpm registry:build` cover correctness without the font fetch. Defer fix to a separate plan.
+- **F-cross-12 (open — v0.2 candidate):** Positional-callback signatures across 5 components / 6 occurrences. Breaking change; out of Phase 7 (non-breaking) scope. Library-wide v0.2 migration to object-shape callbacks with deprecation warnings emitted in v0.1.x.
 - ~~F-cross-01 (Tier 2 carriers — 1 open)~~ **✅ CLOSED in session 12** — `detail-panel-procomp-guide.md` authored alongside its Tier 2 review. All 36 components now have full description + plan + guide procomp doc trio.
+- ~~F-cross-11 (open — Phase 7 candidate)~~ **✅ CLOSED in Phase 7 Group I** — `docs/component-guide.md` §11.6 *Cross-folder import constraint* documents the rule (cross-folder consumers MUST import from `<slug>.tsx`); cross-references added to all 6 carrier procomp guides.
 
 For the historical "Open decisions / TODOs" entries that are now closed (Phase 0 risk spike, chart palette, site nav, alpha/beta variants, footer version, public registry build, etc.), see the snapshot in `STATUS-archive.md`.
 
@@ -91,11 +93,11 @@ For the historical "Open decisions / TODOs" entries that are now closed (Phase 0
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — session 14 PHASE 7 COMPLETE: 14 Mediums + paired Lows shipped across 10 groups](decisions/2026-05-09-session-14-phase-7.md) (10 components bumped — engagement-bar-01 + media-carousel-01 to v0.1.2; 8 others to v0.1.1; F-cross-11 closed via doc-path; 10/12 F-cross now closed; F-cross-04 + F-cross-12 still open)
 - [2026-05-09 — session 13 SWEEP CLOSE: rollup + Phase 7 plan + F-cross-11/12 escalations](decisions/2026-05-09-session-13-sweep-close.md) (sweep complete 36/36; rollup at `docs/reviews/2026-05-09-sweep-rollup.md`; Phase 7 plan at `.claude/PHASE-7-PLAN.md`; 14 Mediums bundled into 10 groups; 9/12 F-cross closed; F-cross-11 Phase 7 / F-cross-12 v0.2 / F-cross-04 deferred)
 - [2026-05-09 — session 12 Tier 2 batch 5 (FINAL): 5 spot-checks + detail-panel guide](decisions/2026-05-09-session-12-tier2-batch-5.md) (detail-panel/story-rail-01/registration-card-01/schedule-list-01/thumb-list-01 — all Pass with follow-ups; 2 🔸 Medium; Tier 2 COMPLETE 27/27; F-cross-01 fully CLOSED)
 - [2026-05-09 — session 11 Tier 2 batch 4: 6 spot-checks data part 2](decisions/2026-05-09-session-11-tier2-batch-4.md) (event-card-01/project-card-01/people-grid-01/info-list-01/progress-timeline-01/expandable-text-01 — all Pass with follow-ups; 3 🔸 Medium; expandable-text-01 F-01 confirms post-card-01 F-01 as library-wide pattern)
 - [2026-05-09 — session 10 Tier 2 batch 3: 6 spot-checks data + media](decisions/2026-05-09-session-10-tier2-batch-3.md) (post-card-01/comment-thread-01/engagement-bar-01/media-carousel-01/content-card-news-01/article-meta-01 — all Pass with follow-ups; 4 🔸 Medium findings; F-cross-05 + F-cross-06 regression-checks ✓)
-- [2026-05-09 — session 9 Tier 2 batch 2: 5 spot-checks media + marketing](decisions/2026-05-09-session-9-tier2-batch-2.md) (story-viewer-01/video-player-01/share-bar-01/newsletter-card-01/page-hero-news-01 — all Pass with follow-ups; 1 🔸 Medium F-01 page-hero white-on-lime mandate concern)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 
