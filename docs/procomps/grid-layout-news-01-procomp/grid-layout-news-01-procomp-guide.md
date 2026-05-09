@@ -121,6 +121,22 @@ renderItem={(item, slot) => (
 )}
 ```
 
+### `renderItem` is positional `(item, slot)` — versioning trap
+
+The signature is intentionally two positional args, not an object: `renderItem(item: T, slot: "large" | "medium")`. That means a future v0.2 widening of the slot set (e.g., adding `"hero"`, `"sidebar"`) is a **breaking change** for consumers who narrowed their switch on the existing `"large" | "medium"` union — TypeScript will start flagging `slot === "hero"` as never reached and any `default` branch will newly receive the widened tag. Build switches with a fall-through default that preserves forward-compat:
+
+```tsx
+renderItem={(item, slot) => {
+  switch (slot) {
+    case "large":  return <HeroCard item={item} />;
+    case "medium": return <TileCard item={item} />;
+    default:       return <TileCard item={item} />;  // forward-compat
+  }
+}}
+```
+
+If we widen the slot union in v0.2, your `default` case absorbs the new slot until you explicitly handle it — no breaking type errors, just a graceful fallback. Without the default, TS narrows to `never` and the build breaks the moment the union widens.
+
 ### `useMagazineFilter` reset semantics
 
 The hook resets to page 1 when `items`, `filterPredicate`, or `sortComparator` references change. So passing inline arrows (`filterPredicate: (a) => ...`) creates new references every render = always-on-page-1. Memoize:

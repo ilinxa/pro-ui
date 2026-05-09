@@ -51,7 +51,7 @@ export function ScheduleRow({
         </div>
       )}
 
-      <div className="w-20 shrink-0">{timeContent}</div>
+      <div className="w-auto min-w-20 shrink-0">{timeContent}</div>
 
       <div className="min-w-0 flex-1">
         <h4 className="font-semibold text-foreground motion-safe:group-hover:text-primary transition-colors">

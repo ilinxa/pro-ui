@@ -16,6 +16,7 @@ import type { ShareTarget } from "./types";
 
 export default function ShareBar01Demo() {
   const [lastShared, setLastShared] = useState<string | null>(null);
+  const [copyEvents, setCopyEvents] = useState(0);
   const [internalDialog, setInternalDialog] = useState<string | null>(null);
 
   const customTargets: ReadonlyArray<ShareTarget> = [
@@ -64,11 +65,17 @@ export default function ShareBar01Demo() {
           headingAs="h4"
           divider
           onShare={(target) => setLastShared(target)}
+          onCopySuccess={() => setCopyEvents((n) => n + 1)}
         />
         <p className="mt-3 text-xs text-muted-foreground">
           {lastShared
             ? <>Last shared: <code>{lastShared}</code></>
             : <>Click any button to log via <code>onShare</code>.</>}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Copy successes (analytics): <code>{copyEvents}</code> — fires only on
+          successful clipboard write, distinct from <code>onShare</code> which
+          fires on every share-target click.
         </p>
       </TabsContent>
 
