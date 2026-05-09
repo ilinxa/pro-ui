@@ -54,7 +54,7 @@ export default function PageHeroNews01Demo() {
             <Button size="lg" variant="secondary">
               Get started
             </Button>
-            <Button size="lg" variant="outline" className="bg-transparent text-white border-white/40 hover:bg-white/10 hover:text-white">
+            <Button size="lg" variant="outline" className="bg-transparent text-primary-foreground border-primary-foreground/40 hover:bg-primary-foreground/10 hover:text-primary-foreground">
               View docs
             </Button>
           </div>
