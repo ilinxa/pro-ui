@@ -1,21 +1,17 @@
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { getGroupedRegistry } from "@/registry/manifest";
+import { Suspense } from "react";
+
+import { getMetaList } from "@/registry/manifest";
+
+import { ComponentsExplorer } from "./_components/components-explorer";
+import { deriveFacets } from "./_components/filter-utils";
 
 export default function ComponentsIndexPage() {
-  const groups = getGroupedRegistry();
-  const totalCount = groups.reduce((sum, g) => sum + g.entries.length, 0);
+  const entries = getMetaList();
+  const facets = deriveFacets(entries);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
-      <header className="mb-12 flex flex-col gap-3">
+      <header className="mb-10 flex flex-col gap-3">
         <p className="text-sm font-medium text-muted-foreground">
           ilinxa-ui-pro
         </p>
@@ -27,91 +23,28 @@ export default function ComponentsIndexPage() {
           Tailwind. Each one is standalone, dynamic, and follows the shadcn
           customization model.
         </p>
-        <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
-          <span>
-            {totalCount} component{totalCount === 1 ? "" : "s"}
-          </span>
-          <span aria-hidden>·</span>
-          <span>
-            {groups.length} categor{groups.length === 1 ? "y" : "ies"}
-          </span>
-        </div>
       </header>
 
-      {groups.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border bg-card p-12 text-center text-sm text-muted-foreground">
-          No components yet.
-        </div>
-      ) : (
-        <div className="flex flex-col gap-12">
-          {groups.map(({ category, entries }) => (
-            <section key={category.slug}>
-              <div className="mb-4 flex items-baseline justify-between">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                    {category.label}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {category.description}
-                  </p>
-                </div>
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {entries.length} item{entries.length === 1 ? "" : "s"}
-                </span>
-              </div>
+      <Suspense fallback={<ExplorerFallback />}>
+        <ComponentsExplorer entries={entries} facets={facets} />
+      </Suspense>
+    </div>
+  );
+}
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {entries.map(({ meta }) => (
-                  <Link
-                    key={meta.slug}
-                    href={`/components/${meta.slug}`}
-                    className="group focus:outline-none"
-                  >
-                    <Card className="h-full transition-colors group-hover:border-foreground/20 group-focus-visible:border-foreground/40">
-                      <CardHeader className="gap-2">
-                        <div className="flex items-center justify-between gap-3">
-                          <CardTitle className="text-base">
-                            {meta.name}
-                          </CardTitle>
-                          <Badge
-                            variant={
-                              meta.status === "stable"
-                                ? "default"
-                                : meta.status === "deprecated"
-                                  ? "destructive"
-                                  : meta.status === "beta"
-                                    ? "secondary"
-                                    : "outline"
-                            }
-                            className="capitalize"
-                          >
-                            {meta.status}
-                          </Badge>
-                        </div>
-                        <CardDescription className="line-clamp-2">
-                          {meta.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-1.5">
-                          {meta.tags.slice(0, 4).map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      )}
+function ExplorerFallback() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="h-4 w-48 animate-pulse rounded-full bg-muted" />
+      <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-40 animate-pulse rounded-md border border-border bg-card"
+          />
+        ))}
+      </div>
     </div>
   );
 }
