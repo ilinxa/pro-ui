@@ -6,4 +6,3 @@ export type {
   PageHeroHeadingLevel,
   PageHeroNewsProps,
 } from "./types";
-export { meta } from "./meta";

@@ -13,4 +13,3 @@ export type {
   TextFilter,
   ToggleFilter,
 } from "./types";
-export { meta } from "./meta";

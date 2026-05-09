@@ -7,4 +7,3 @@ export type {
 } from "./types";
 export { defaultRelativeTime } from "./hooks/use-relative-time";
 export { defaultDateFormat, toDate } from "./lib/format-default";
-export { meta } from "./meta";

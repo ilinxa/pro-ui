@@ -4,4 +4,3 @@ export type {
   CategoryCloudItem,
   CategoryCloudProps,
 } from "./types";
-export { meta } from "./meta";

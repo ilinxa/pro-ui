@@ -16,4 +16,3 @@ export {
   type ProjectStatusConfigEntry,
 } from "./lib/project-status";
 
-export { meta } from "./meta";

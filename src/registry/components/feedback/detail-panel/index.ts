@@ -13,4 +13,3 @@ export type {
   DetailPanelProps,
   DetailPanelSelection,
 } from "./types";
-export { meta } from "./meta";

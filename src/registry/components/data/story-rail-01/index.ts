@@ -23,4 +23,3 @@ export type {
 
 export { DEFAULT_STORY_RAIL_LABELS } from "./types";
 
-export { meta } from "./meta";

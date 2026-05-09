@@ -5,4 +5,3 @@ export {
   type ThumbList01Labels,
   type ThumbList01Props,
 } from "./types";
-export { meta } from "./meta";

@@ -12,4 +12,3 @@ export { DEFAULT_PROGRESS_TIMELINE_LABELS } from "./types";
 
 export { deriveTimelineState } from "./lib/timeline-state";
 
-export { meta } from "./meta";

@@ -14,4 +14,3 @@ export {
   type UseDoubleTapOptions,
 } from "./hooks/use-double-tap";
 
-export { meta } from "./meta";

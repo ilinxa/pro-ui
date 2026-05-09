@@ -5,4 +5,3 @@ export {
   type AuthorCard01Props,
   type AuthorCardTone,
 } from "./types";
-export { meta } from "./meta";

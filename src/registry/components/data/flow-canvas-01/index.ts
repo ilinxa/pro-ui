@@ -46,4 +46,3 @@ export type { FoundPort } from "./lib/port-walker";
 
 export { emitSubObjectDrag } from "./lib/emit-sub-object-drag";
 
-export { meta } from "./meta";

@@ -11,4 +11,3 @@ export type {
   PropertiesFormProps,
   SubmitResult,
 } from "./types";
-export { meta } from "./meta";

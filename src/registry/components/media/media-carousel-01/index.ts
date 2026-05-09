@@ -12,4 +12,3 @@ export type {
 
 export { DEFAULT_MEDIA_CAROUSEL_LABELS } from "./types";
 
-export { meta } from "./meta";
