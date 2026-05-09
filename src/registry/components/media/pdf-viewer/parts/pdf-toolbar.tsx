@@ -17,7 +17,7 @@ export function PdfToolbar({ className }: PdfToolbarProps) {
   const { labels } = usePdfViewer();
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider>
       <div
         role="toolbar"
         aria-label={labels.toolbarAriaLabel}

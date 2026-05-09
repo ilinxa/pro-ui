@@ -6,7 +6,6 @@
   "description": "Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design system, no commercial SDK.",
   "dependencies": [
     "react-pdf",
-    "pdfjs-dist",
     "lucide-react"
   ],
   "registryDependencies": [
@@ -130,7 +129,7 @@
     },
     {
       "path": "src/registry/components/media/pdf-viewer/parts/pdf-toolbar.tsx",
-      "content": "\"use client\";\n\nimport { Separator } from \"@/components/ui/separator\";\nimport { TooltipProvider } from \"@/components/ui/tooltip\";\nimport { cn } from \"@/lib/utils\";\nimport { usePdfViewer } from \"../hooks/use-pdf-viewer-context\";\nimport { PdfActionMenu } from \"./pdf-action-menu\";\nimport { PdfPageIndicator } from \"./pdf-page-indicator\";\nimport { PdfPageNav } from \"./pdf-page-nav\";\nimport { PdfZoomControls } from \"./pdf-zoom-controls\";\n\ninterface PdfToolbarProps {\n  className?: string;\n}\n\nexport function PdfToolbar({ className }: PdfToolbarProps) {\n  const { labels } = usePdfViewer();\n\n  return (\n    <TooltipProvider delayDuration={300}>\n      <div\n        role=\"toolbar\"\n        aria-label={labels.toolbarAriaLabel}\n        className={cn(\n          \"flex items-center gap-1 border-b border-border bg-card px-2 py-1.5\",\n          className,\n        )}\n      >\n        <PdfPageNav />\n        <PdfPageIndicator />\n        <Separator orientation=\"vertical\" className=\"mx-1 h-5\" />\n        <PdfZoomControls />\n        <Separator orientation=\"vertical\" className=\"mx-1 h-5\" />\n        <div className=\"ml-auto flex items-center gap-0.5\">\n          <PdfActionMenu />\n        </div>\n      </div>\n    </TooltipProvider>\n  );\n}\n",
+      "content": "\"use client\";\n\nimport { Separator } from \"@/components/ui/separator\";\nimport { TooltipProvider } from \"@/components/ui/tooltip\";\nimport { cn } from \"@/lib/utils\";\nimport { usePdfViewer } from \"../hooks/use-pdf-viewer-context\";\nimport { PdfActionMenu } from \"./pdf-action-menu\";\nimport { PdfPageIndicator } from \"./pdf-page-indicator\";\nimport { PdfPageNav } from \"./pdf-page-nav\";\nimport { PdfZoomControls } from \"./pdf-zoom-controls\";\n\ninterface PdfToolbarProps {\n  className?: string;\n}\n\nexport function PdfToolbar({ className }: PdfToolbarProps) {\n  const { labels } = usePdfViewer();\n\n  return (\n    <TooltipProvider>\n      <div\n        role=\"toolbar\"\n        aria-label={labels.toolbarAriaLabel}\n        className={cn(\n          \"flex items-center gap-1 border-b border-border bg-card px-2 py-1.5\",\n          className,\n        )}\n      >\n        <PdfPageNav />\n        <PdfPageIndicator />\n        <Separator orientation=\"vertical\" className=\"mx-1 h-5\" />\n        <PdfZoomControls />\n        <Separator orientation=\"vertical\" className=\"mx-1 h-5\" />\n        <div className=\"ml-auto flex items-center gap-0.5\">\n          <PdfActionMenu />\n        </div>\n      </div>\n    </TooltipProvider>\n  );\n}\n",
       "type": "registry:component",
       "target": "components/pdf-viewer/parts/pdf-toolbar.tsx"
     },
