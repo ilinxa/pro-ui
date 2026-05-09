@@ -639,6 +639,24 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "stat-card",
+      "type": "registry:block",
+      "title": "Stat Card",
+      "description": "Single-metric dashboard widget — value + label + optional delta + optional sparkline. 3 variants (default / compact / detailed); object-shape callbacks; built-in pure-SVG sparkline (no charting peer dep); polarity-aware coloring via betterIsHigher.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": ["skeleton"],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/data/stat-card/stat-card.tsx", "type": "registry:component", "target": "components/stat-card/stat-card.tsx" },
+        { "path": "src/registry/components/data/stat-card/index.ts", "type": "registry:component", "target": "components/stat-card/index.ts" },
+        { "path": "src/registry/components/data/stat-card/types.ts", "type": "registry:component", "target": "components/stat-card/types.ts" },
+        { "path": "src/registry/components/data/stat-card/parts/sparkline.tsx", "type": "registry:component", "target": "components/stat-card/parts/sparkline.tsx" },
+        { "path": "src/registry/components/data/stat-card/lib/format-default.ts", "type": "registry:component", "target": "components/stat-card/lib/format-default.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "thumb-list-01-fixtures",
       "type": "registry:block",
       "title": "Thumb List 01 — fixtures",
@@ -648,6 +666,19 @@
       "registryDependencies": ["@ilinxa/thumb-list-01"],
       "files": [
         { "path": "src/registry/components/data/thumb-list-01/dummy-data.ts", "type": "registry:component", "target": "components/thumb-list-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "stat-card-fixtures",
+      "type": "registry:block",
+      "title": "Stat Card — fixtures",
+      "description": "Stat Card bundle including the dummy-data fixtures (revenue / errorRate / activeUsers / latency / signups / uptime).",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["@ilinxa/stat-card"],
+      "files": [
+        { "path": "src/registry/components/data/stat-card/dummy-data.ts", "type": "registry:component", "target": "components/stat-card/dummy-data.ts" }
       ]
     },
     {

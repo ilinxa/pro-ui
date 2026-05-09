@@ -16,7 +16,7 @@
     },
     {
       "path": "src/registry/components/data/data-table/index.ts",
-      "content": "export { DataTable } from \"./data-table\";\nexport type { DataTableColumn, DataTableProps } from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { DataTable } from \"./data-table\";\nexport type { DataTableColumn, DataTableProps } from \"./types\";\n",
       "type": "registry:component",
       "target": "components/data-table/index.ts"
     },

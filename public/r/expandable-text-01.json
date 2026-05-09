@@ -15,7 +15,7 @@
     },
     {
       "path": "src/registry/components/data/expandable-text-01/index.ts",
-      "content": "export { default as ExpandableText01 } from \"./expandable-text-01\";\n\nexport type {\n  ExpandableText01Props,\n  ExpandableText01Labels,\n  ExpandableText01ToggleRenderProps,\n} from \"./types\";\n\nexport { DEFAULT_EXPANDABLE_TEXT_LABELS } from \"./types\";\n\nexport {\n  useLineClampDetect,\n  type UseLineClampDetectOptions,\n  type UseLineClampDetectResult,\n} from \"./hooks/use-line-clamp-detect\";\n\nexport { meta } from \"./meta\";\n",
+      "content": "export { default as ExpandableText01 } from \"./expandable-text-01\";\n\nexport type {\n  ExpandableText01Props,\n  ExpandableText01Labels,\n  ExpandableText01ToggleRenderProps,\n} from \"./types\";\n\nexport { DEFAULT_EXPANDABLE_TEXT_LABELS } from \"./types\";\n\nexport {\n  useLineClampDetect,\n  type UseLineClampDetectOptions,\n  type UseLineClampDetectResult,\n} from \"./hooks/use-line-clamp-detect\";\n\n",
       "type": "registry:component",
       "target": "components/expandable-text-01/index.ts"
     },

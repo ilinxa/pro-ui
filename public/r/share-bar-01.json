@@ -19,7 +19,7 @@
     },
     {
       "path": "src/registry/components/marketing/share-bar-01/index.ts",
-      "content": "export { ShareBar01 } from \"./share-bar-01\";\nexport {\n  SHARE_BAR_DEFAULT_LABELS,\n  type ShareBar01Labels,\n  type ShareBar01Props,\n  type ShareKind,\n  type ShareTarget,\n  type ShareTargetBuiltin,\n  type ShareTargetCopy,\n  type ShareTargetCustom,\n} from \"./types\";\nexport { SHARE_TEMPLATES } from \"./parts/templates\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { ShareBar01 } from \"./share-bar-01\";\nexport {\n  SHARE_BAR_DEFAULT_LABELS,\n  type ShareBar01Labels,\n  type ShareBar01Props,\n  type ShareKind,\n  type ShareTarget,\n  type ShareTargetBuiltin,\n  type ShareTargetCopy,\n  type ShareTargetCustom,\n} from \"./types\";\nexport { SHARE_TEMPLATES } from \"./parts/templates\";\n",
       "type": "registry:component",
       "target": "components/share-bar-01/index.ts"
     },

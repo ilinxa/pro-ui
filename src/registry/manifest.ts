@@ -62,6 +62,10 @@ import ThumbList01Demo from "./components/data/thumb-list-01/demo";
 import ThumbList01Usage from "./components/data/thumb-list-01/usage";
 import { meta as thumbList01Meta } from "./components/data/thumb-list-01/meta";
 
+import StatCardDemo from "./components/data/stat-card/demo";
+import StatCardUsage from "./components/data/stat-card/usage";
+import { meta as statCardMeta } from "./components/data/stat-card/meta";
+
 import ArticleMeta01Demo from "./components/data/article-meta-01/demo";
 import ArticleMeta01Usage from "./components/data/article-meta-01/usage";
 import { meta as articleMeta01Meta } from "./components/data/article-meta-01/meta";
@@ -230,6 +234,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: thumbList01Meta,
     Demo: ThumbList01Demo,
     Usage: ThumbList01Usage,
+  },
+  {
+    meta: statCardMeta,
+    Demo: StatCardDemo,
+    Usage: StatCardUsage,
   },
   {
     meta: articleMeta01Meta,

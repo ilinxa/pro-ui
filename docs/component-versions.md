@@ -2,7 +2,7 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-09** (refreshed after Phase 7 v0.1.x patches across 10 Tier 2 components + a post-Phase-7 self-review patch on progress-timeline-01 + page-hero-news-01)
+> Snapshot date: **2026-05-09** (post-Phase-7 patches + first new component under the readiness-review rule: stat-card v0.1.0)
 > Total: **36 components** across 6 categories
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
@@ -10,13 +10,13 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 | Category   | Count | Notes                                                                 |
 |------------|-------|-----------------------------------------------------------------------|
-| `data`     | 20    | Largest category; hosts the canonical `data-table` template           |
+| `data`     | 21    | Largest category; hosts the canonical `data-table` template + `stat-card` |
 | `forms`    | 6     |                                                                       |
 | `marketing`| 4     |                                                                       |
 | `media`    | 3     |                                                                       |
 | `layout`   | 2     |                                                                       |
 | `feedback` | 1     |                                                                       |
-| **Total**  | **36**|                                                                       |
+| **Total**  | **37**|                                                                       |
 
 ## Highlights
 
@@ -53,6 +53,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `schedule-list-01`      | Schedule List 01           | 0.1.0   | alpha  |
 | `story-rail-01`         | Story Rail 01              | 0.2.0   | alpha  |
 | `thumb-list-01`         | Thumb List 01              | 0.1.0   | alpha  |
+| `stat-card`             | Stat Card                  | 0.1.0   | alpha  |
 
 ## forms (6)
 

@@ -32,7 +32,7 @@
     },
     {
       "path": "src/registry/components/forms/markdown-editor/index.ts",
-      "content": "export { MarkdownEditor } from \"./markdown-editor\";\nexport { defaultMarkdownToolbar } from \"./default-toolbar\";\nexport { parseMarkdown } from \"./lib/parse-markdown\";\nexport type {\n  KindMeta,\n  MarkdownEditorHandle,\n  MarkdownEditorProps,\n  ToolbarCtx,\n  ToolbarItem,\n  ViewMode,\n  WikilinkCandidate,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { MarkdownEditor } from \"./markdown-editor\";\nexport { defaultMarkdownToolbar } from \"./default-toolbar\";\nexport { parseMarkdown } from \"./lib/parse-markdown\";\nexport type {\n  KindMeta,\n  MarkdownEditorHandle,\n  MarkdownEditorProps,\n  ToolbarCtx,\n  ToolbarItem,\n  ViewMode,\n  WikilinkCandidate,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/markdown-editor/index.ts"
     },

@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/info-list-01/index.ts",
-      "content": "export { InfoList01, default } from \"./info-list-01\";\n\nexport type {\n  InfoListItem,\n  InfoList01Labels,\n  InfoList01Props,\n  InfoList01Variant,\n} from \"./types\";\n\nexport { DEFAULT_INFO_LIST_LABELS } from \"./types\";\n\nexport { meta } from \"./meta\";\n",
+      "content": "export { InfoList01, default } from \"./info-list-01\";\n\nexport type {\n  InfoListItem,\n  InfoList01Labels,\n  InfoList01Props,\n  InfoList01Variant,\n} from \"./types\";\n\nexport { DEFAULT_INFO_LIST_LABELS } from \"./types\";\n\n",
       "type": "registry:component",
       "target": "components/info-list-01/index.ts"
     },

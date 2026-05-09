@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/forms/filter-bar-01/index.ts",
-      "content": "export { FilterBar01, default } from \"./filter-bar-01\";\nexport type {\n  DateRange,\n  FilterBarAlign,\n  FilterBarCategoryItem,\n  FilterBarLabels,\n  FilterBarProps,\n  FilterBarValue,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { FilterBar01, default } from \"./filter-bar-01\";\nexport type {\n  DateRange,\n  FilterBarAlign,\n  FilterBarCategoryItem,\n  FilterBarLabels,\n  FilterBarProps,\n  FilterBarValue,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/filter-bar-01/index.ts"
     },

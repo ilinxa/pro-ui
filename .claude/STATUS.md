@@ -6,13 +6,13 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-09 (session 14 — **ALL F-cross debt FULLY CLOSED**: Phase 7 (14 Mediums) + audit follow-up + reserved-meta-field cleanup + F-cross-04 (self-hosted fonts) + F-cross-11 path (b) (consumer-tsc smoke) + F-cross-12 v0.1.x transition + v0.2 cutover (5 components: 4× v0.2.0, 1× v0.3.0). **12/12 F-cross closed.** Next: Roadmap components (stat-card, empty-state, multi-select, page-header, ...).)
+> **Last updated:** 2026-05-09 (session 14 — **stat-card v0.1.0 SHIPPED** (first component under the new component-readiness-review rule; GATE 1 + GATE 2 + GATE 3 spot-check all passed; 4 follow-ups for v0.1.1). All F-cross debt (12/12) remained closed throughout. Next Roadmap candidates: empty-state, multi-select, page-header.)
 
 ---
 
 ## Components
 
-36 components across 6 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
+37 components across 6 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 
 | Slug | Category | Status | Version |
 |------|----------|--------|---------|
@@ -36,6 +36,7 @@
 | `schedule-list-01` | data | alpha | 0.1.0 |
 | `story-rail-01` | data | alpha | 0.2.0 |
 | `thumb-list-01` | data | alpha | 0.1.0 |
+| `stat-card` | data | alpha | 0.1.0 |
 | `workspace` | layout | alpha | 0.1.1 |
 | `grid-layout-news-01` | layout | alpha | 0.2.0 |
 | `markdown-editor` | forms | alpha | 0.1.1 |
@@ -96,6 +97,7 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-09 — stat-card v0.1.0 SHIPPED](../docs/procomps/stat-card-procomp/) (first component under the new component-readiness-review rule; GATE 1 + GATE 2 + GATE 3 all passed; 4 follow-ups (3M+1L) for v0.1.1; sibling `<StatCardSparkline>` standalone export; pure-SVG sparkline; object-shape callbacks throughout; default Intl percent delta formatter)
 - [2026-05-09 — F-cross-11 path (b) CLOSED: smoke harness gains consumer-side tsc](decisions/2026-05-09-fcross11-path-b-smoke-tsc.md) (smoke-all.mjs runs `pnpm tsc --noEmit` after install loop; first run caught 37 broken `index.ts` re-exports of docs-site-only `meta` — fixed in producer commit `c4662bb`; path (c) deferred since (b) is actively guarding)
 - [2026-05-09 — F-cross-04 CLOSED: self-host fonts via @fontsource-variable](decisions/2026-05-09-fcross04-self-host-fonts.md) (replaced `next/font/google` with `@fontsource-variable/{onest,jetbrains-mono,playfair-display}`; `pnpm build` now succeeds without network fetch; 11/12 F-cross closed; only F-cross-12 (positional callbacks → v0.2) remains)
 - [2026-05-09 — session 14 follow-up: smaller-opens cleanup](decisions/2026-05-09-session-14-smaller-opens-cleanup.md) (removed 4 unused type members — `ComponentMeta.subcategory` / `thumbnail` / `RegistryEntry.examples` / `ComponentExample`; restructured STATUS Open decisions into Active vs Informed-defers with explicit triggers; tsc/lint/validate-meta-deps clean)

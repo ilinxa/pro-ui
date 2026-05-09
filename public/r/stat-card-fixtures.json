@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "stat-card-fixtures",
+  "title": "Stat Card — fixtures",
+  "author": "ilinxa",
+  "description": "Stat Card bundle including the dummy-data fixtures (revenue / errorRate / activeUsers / latency / signups / uptime).",
+  "registryDependencies": [
+    "@ilinxa/stat-card"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/stat-card/dummy-data.ts",
+      "content": "// Demo fixtures — exercise the variant matrix + edge cases.\n// Numbers are illustrative; consumers always supply their own.\n\nexport const STAT_CARD_DUMMY_REVENUE = {\n  value: 12431,\n  label: \"Revenue this month\",\n  trend: [8200, 8800, 9100, 10200, 10900, 11500, 12100, 12431],\n  // Default delta semantics — up is good (revenue ↑ green).\n  delta: { value: 0.124 },\n};\n\nexport const STAT_CARD_DUMMY_ERROR_RATE = {\n  value: 0.42,\n  label: \"Error rate (last 24h)\",\n  trend: [0.31, 0.34, 0.36, 0.39, 0.41, 0.42, 0.42],\n  // betterIsHigher: false — up is bad (red on positive delta).\n  delta: { value: 0.08, betterIsHigher: false },\n};\n\nexport const STAT_CARD_DUMMY_ACTIVE_USERS = {\n  value: 1234,\n  label: \"Active users\",\n};\n\nexport const STAT_CARD_DUMMY_LATENCY = {\n  value: 42.7,\n  label: \"Average response time\",\n  // Latency went DOWN by 8% — good (green) when betterIsHigher=false.\n  delta: { value: -0.08, betterIsHigher: false },\n};\n\nexport const STAT_CARD_DUMMY_SIGNUPS = {\n  value: 42138,\n  label: \"New signups this week\",\n  // Absolute count delta (not a percentage) — override the format.\n  delta: {\n    value: 1240,\n    format: (v: number) =>\n      v.toLocaleString(undefined, { signDisplay: \"exceptZero\" }),\n  },\n  trend: [38000, 38800, 39400, 40200, 41100, 41800, 42138],\n};\n\nexport const STAT_CARD_DUMMY_UPTIME = {\n  value: 0.987,\n  label: \"Uptime (last 30 days)\",\n  trend: [0.992, 0.991, 0.987, 0.989, 0.987, 0.987, 0.987],\n  delta: { value: -0.005, betterIsHigher: true },\n};\n",
+      "type": "registry:component",
+      "target": "components/stat-card/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
