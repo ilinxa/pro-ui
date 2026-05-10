@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "code-block-fixtures",
+  "title": "Code Block — fixtures",
+  "author": "ilinxa",
+  "description": "Code Block bundle including the dummy-data fixtures used by the docs-site demo (TS sample + JSON + Python + terminal lines + long-block + error trace + annotations).",
+  "registryDependencies": [
+    "@ilinxa/code-block"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/code/code-block/dummy-data.ts",
+      "content": "import type { CodeBlockAnnotation, TerminalLine } from \"./types\";\n\nexport const SAMPLE_TS = `import { useState } from \"react\";\nimport { Button } from \"@/components/ui/button\";\n\nexport default function Counter() {\n  const [n, setN] = useState(0);\n  return (\n    <div className=\"flex items-center gap-3\">\n      <Button onClick={() => setN(n - 1)}>−</Button>\n      <span className=\"font-mono\">{n}</span>\n      <Button onClick={() => setN(n + 1)}>+</Button>\n    </div>\n  );\n}\n`;\n\nexport const SAMPLE_TS_HIGHLIGHTED = [5, 6, 7];\n\nexport const SAMPLE_JSON = `{\n  \"name\": \"ilinxa-ui-pro\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"dependencies\": {\n    \"next\": \"^16.2.0\",\n    \"react\": \"^19.2.0\",\n    \"shiki\": \"^4.0.2\",\n    \"@codemirror/state\": \"^6.6.0\"\n  },\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"lint\": \"eslint\"\n  }\n}\n`;\n\nexport const SAMPLE_PYTHON = `from dataclasses import dataclass\n\n@dataclass\nclass User:\n    id: int\n    name: str\n    email: str | None = None\n\ndef greet(user: User) -> str:\n    if user.email:\n        return f\"Hello {user.name} <{user.email}>\"\n    return f\"Hello {user.name}\"\n\nusers = [\n    User(id=1, name=\"Ada\", email=\"ada@example.com\"),\n    User(id=2, name=\"Linus\"),\n]\n\nfor u in users:\n    print(greet(u))\n`;\n\nexport const SAMPLE_LONG_JSON = `{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n    ${Array.from(\n      { length: 60 },\n      (_, i) =>\n        `{ \"type\": \"Feature\", \"id\": ${i + 1}, \"geometry\": { \"type\": \"Point\", \"coordinates\": [${(Math.random() * 360 - 180).toFixed(4)}, ${(Math.random() * 180 - 90).toFixed(4)}] } }`,\n    ).join(\",\\n    \")}\n  ]\n}\n`;\n\nexport const SAMPLE_TERMINAL: TerminalLine[] = [\n  { kind: \"input\", text: \"$ pnpm install\" },\n  { kind: \"output\", text: \"Resolving dependencies...\" },\n  { kind: \"output\", text: \"Adding 247 packages from 38 contributors...\" },\n  { kind: \"output\", text: \"✓ Done in 8.3s\" },\n  { kind: \"input\", text: \"$ pnpm dev\" },\n  { kind: \"output\", text: \"\" },\n  { kind: \"output\", text: \"  ▲ Next.js 16.2.0 (Turbopack)\" },\n  { kind: \"output\", text: \"  - Local:    http://localhost:3000\" },\n  { kind: \"output\", text: \"  - Network:  http://192.168.1.4:3000\" },\n  { kind: \"output\", text: \"\" },\n  { kind: \"output\", text: \" ✓ Ready in 1.1s\" },\n  { kind: \"input\", text: \"$ pnpm build\" },\n  { kind: \"error\", text: \"✗ Failed to compile\" },\n  { kind: \"error\", text: \"  Type error: Property 'foo' does not exist on type 'Bar'\" },\n];\n\nexport const SAMPLE_ERROR_TRACE = `TypeError: Cannot read property 'name' of undefined\n    at processUser (/app/src/users.ts:7:24)\n    at /app/src/index.ts:15:3\n    at Array.map (<anonymous>)\n    at greetAll (/app/src/index.ts:14:18)\n    at Object.<anonymous> (/app/src/index.ts:42:1)\n    at Module._compile (node:internal/modules/cjs/loader.js:1234:30)\n`;\n\nexport const SAMPLE_ERROR_ANNOTATIONS: CodeBlockAnnotation[] = [\n  { line: 1, type: \"error\", message: \"Cannot read property 'name' of undefined\" },\n  { line: 4, type: \"warn\", message: \"Unhandled rejection in greetAll\" },\n];\n\nexport const SAMPLE_EDIT_DEFAULT = `function greet(name: string): string {\n  return \\`Hello, \\${name}!\\`;\n}\n\ngreet(\"ilinxa\");\n`;\n\n/** Helper for the streaming demo — emit value in chunks. */\nexport function chunkString(s: string, size = 10): string[] {\n  const out: string[] = [];\n  for (let i = 0; i < s.length; i += size) {\n    out.push(s.slice(i, i + size));\n  }\n  return out;\n}\n",
+      "type": "registry:component",
+      "target": "components/code-block/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "code",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

@@ -10,6 +10,7 @@ export type ComponentCategorySlug =
   | "marketing"
   | "layout"
   | "media"
+  | "code"
   | "overlays"
   | "auth";
 

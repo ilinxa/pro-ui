@@ -154,6 +154,14 @@ import FileTreeDemo from "./components/navigation/file-tree/demo";
 import FileTreeUsage from "./components/navigation/file-tree/usage";
 import { meta as fileTreeMeta } from "./components/navigation/file-tree/meta";
 
+import FileManagerDemo from "./components/navigation/file-manager/demo";
+import FileManagerUsage from "./components/navigation/file-manager/usage";
+import { meta as fileManagerMeta } from "./components/navigation/file-manager/meta";
+
+import CodeBlockDemo from "./components/code/code-block/demo";
+import CodeBlockUsage from "./components/code/code-block/usage";
+import { meta as codeBlockMeta } from "./components/code/code-block/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -357,6 +365,16 @@ export const REGISTRY: RegistryEntry[] = [
     meta: fileTreeMeta,
     Demo: FileTreeDemo,
     Usage: FileTreeUsage,
+  },
+  {
+    meta: fileManagerMeta,
+    Demo: FileManagerDemo,
+    Usage: FileManagerUsage,
+  },
+  {
+    meta: codeBlockMeta,
+    Demo: CodeBlockDemo,
+    Usage: CodeBlockUsage,
   },
 ];
 

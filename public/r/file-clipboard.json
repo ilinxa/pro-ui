@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "file-clipboard",
+  "title": "File Clipboard primitive",
+  "author": "ilinxa",
+  "description": "Tiny shared clipboard primitive consumed by file-manager (and file-tree starting v0.2.0). Provides FileClipboardProvider + useFileClipboard hook. Wrap multiple file-* components under the provider to sync cut/copy/paste across instances.",
+  "files": [
+    {
+      "path": "src/registry/components/navigation/_shared/file-clipboard.tsx",
+      "content": "\"use client\";\n\nimport {\n  createContext,\n  useCallback,\n  useContext,\n  useMemo,\n  useState,\n  type ReactNode,\n} from \"react\";\n\n/**\n * Discriminator for clipboard semantics. `'cut'` items are visually marked\n * (50% opacity) and removed from their source on paste. `'copy'` items are\n * left in place; pasting clones them. `null` = clipboard is empty.\n */\nexport type FileClipboardKind = \"cut\" | \"copy\";\n\nexport interface FileClipboard {\n  kind: FileClipboardKind | null;\n  ids: string[];\n}\n\nexport const EMPTY_CLIPBOARD: FileClipboard = { kind: null, ids: [] };\n\ninterface FileClipboardContextValue {\n  clipboard: FileClipboard;\n  setClipboard: (next: FileClipboard) => void;\n  cut: (ids: string[]) => void;\n  copy: (ids: string[]) => void;\n  clearClipboard: () => void;\n  /** Sentinel — `true` when wrapped in `<FileClipboardProvider>`. */\n  __hasProvider: boolean;\n}\n\nconst DEFAULT_CONTEXT: FileClipboardContextValue = {\n  clipboard: EMPTY_CLIPBOARD,\n  setClipboard: () => {\n    /* no-op default */\n  },\n  cut: () => {\n    /* no-op default */\n  },\n  copy: () => {\n    /* no-op default */\n  },\n  clearClipboard: () => {\n    /* no-op default */\n  },\n  __hasProvider: false,\n};\n\nconst FileClipboardContext =\n  createContext<FileClipboardContextValue>(DEFAULT_CONTEXT);\n\nexport interface FileClipboardProviderProps {\n  children: ReactNode;\n  /** Optional initial clipboard state. */\n  initialClipboard?: FileClipboard;\n}\n\n/**\n * Wrap multiple `<FileManager>` / `<FileTree>` instances under this provider\n * to sync their cut / copy / paste state. A user copying in one component\n * pastes in another. Without the provider, each component keeps its own\n * internal clipboard.\n */\nexport function FileClipboardProvider(props: FileClipboardProviderProps) {\n  const { children, initialClipboard = EMPTY_CLIPBOARD } = props;\n  const [clipboard, setClipboardRaw] =\n    useState<FileClipboard>(initialClipboard);\n\n  const setClipboard = useCallback((next: FileClipboard) => {\n    setClipboardRaw(next);\n  }, []);\n\n  const cut = useCallback((ids: string[]) => {\n    setClipboardRaw({ kind: \"cut\", ids });\n  }, []);\n\n  const copy = useCallback((ids: string[]) => {\n    setClipboardRaw({ kind: \"copy\", ids });\n  }, []);\n\n  const clearClipboard = useCallback(() => {\n    setClipboardRaw(EMPTY_CLIPBOARD);\n  }, []);\n\n  const value = useMemo<FileClipboardContextValue>(\n    () => ({\n      clipboard,\n      setClipboard,\n      cut,\n      copy,\n      clearClipboard,\n      __hasProvider: true,\n    }),\n    [clipboard, setClipboard, cut, copy, clearClipboard],\n  );\n\n  return (\n    <FileClipboardContext.Provider value={value}>\n      {children}\n    </FileClipboardContext.Provider>\n  );\n}\n\n/**\n * Read / write the shared clipboard. Always returns a usable object;\n * `__hasProvider === false` indicates the consumer is not wrapped, in which\n * case writes are no-ops. Components that internalize a fallback clipboard\n * (e.g., `<FileManager>` without a provider AND without controlled\n * `clipboard` props) use `__hasProvider` to detect this case.\n */\nexport function useFileClipboard(): FileClipboardContextValue {\n  return useContext(FileClipboardContext);\n}\n",
+      "type": "registry:component",
+      "target": "components/_shared/file-clipboard.tsx"
+    }
+  ],
+  "categories": [
+    "navigation",
+    "filesystem",
+    "primitive"
+  ],
+  "type": "registry:block"
+}

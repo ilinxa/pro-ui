@@ -6,13 +6,13 @@
 > - Per-decision log going forward: [`.claude/decisions/`](decisions/) (one file per decision; YAML frontmatter + summary)
 > - Pre-2026-05-09 bulk archive: [`.claude/STATUS-archive.md`](STATUS-archive.md) (frozen; do not extend)
 >
-> **Last updated:** 2026-05-10 (**file-tree v0.1.0** SHIPPED — third component under the GATE-3 readiness-review rule, first entry in the new `navigation` category. VS Code-shaped hierarchical tree: format-aware Lucide icons, controlled-data with object-shape callbacks throughout, lazy children via `onLoadChildren` + `mergeLoadedChildren()` helper, single + multi-select with Cmd/Ctrl+click and Shift+click range, full RC menu, inline rename via F2 / double-click, drag-and-drop with cycle / self-drop pre-validation + auto-scroll, drag-from-OS, header buttons all gated, optional virtualization at ≥200 visible rows via TanStack Virtual, full ARIA tree pattern with roving tabindex. 26-file sealed folder under `src/registry/components/navigation/file-tree/`. Active queue: 2 of 6 shipped (pdf-viewer ✅ + file-tree ✅). 4 review findings, all v0.1.1+ follow-ups (none blocking). 5 self-caught fixes during review (roving tabindex, indexNodes memoization, renderRow wrapper double-nesting, missing TooltipProvider, ref-during-render). **39 components total.**)
+> **Last updated:** 2026-05-11 (**code-block v0.1.0** SHIPPED — fifth component under the GATE-3 readiness-review rule, first entry in the new **`code`** category. Language-agnostic code surface with **three modes in one component** — view (Shiki tokenization, dual-theme CSS variables, zero re-tokenize on theme switch, GitHub Light/Dark Default palettes), edit (CodeMirror 6 with custom HighlightStyle approximating GitHub colors via P2 substrate-shift after `@shikijs/codemirror` was found to not exist on npm), terminal (structured `TerminalLine[]` API with input/output/error kinds + prompt detection + optional macOS traffic-lights). Streaming-friendly via explicit `streaming` prop + rAF-batched re-tokenize + blinking tail cursor. Long-block collapse via `maxLines` + fade-out + "Show all" button. Line highlights, severity-icon annotations with tooltips, copy with clipboard-API + execCommand fallback, download via Blob URL, fullscreen expand modal, wrap toggle, filename pill, language label, full keyboard a11y. Filename → lang priority chain: `lang` > `filenameToLang()` > 30-entry built-in ext map > plaintext. Object-shape callbacks throughout. 42-file sealed folder + 2 registry items (base + fixtures). New `code` category at order 9 (between `media` and `auth`). Description + plan + spot-check review authored; both gates surfaced re-validation refinements (3 contradictions + 6 ambiguities + 3 decisions on GATE 1, 4 refinements + 1 decision on GATE 2, mid-implementation P2 substrate shift). Verdict `Pass with follow-ups` (5 findings, all v0.1.1+ or v0.2.0, none blocking). **41 components total** across 8 categories.)
 
 ---
 
 ## Components
 
-39 components across 7 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
+41 components across 8 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 
 | Slug | Category | Status | Version |
 |------|----------|--------|---------|
@@ -54,22 +54,25 @@
 | `video-player-01` | media | alpha | 0.1.2 |
 | `pdf-viewer` | media | alpha | 0.1.3 |
 | `file-tree` | navigation | alpha | 0.1.0 |
+| `file-manager` | navigation | alpha | 0.1.0 |
+| `code-block` | code | alpha | 0.1.0 |
 | `detail-panel` | feedback | alpha | 0.1.1 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.
 
 ---
 
-## Active queue (session-open list, 2026-05-10)
+## Active queue (session-open list, 2026-05-11)
 
-User's procomp queue — 2 of 6 shipped, 4 remaining. Each goes through GATE 1 (description) → GATE 2 (plan) → implementation → GATE 3 (spot-check review).
+User's procomp queue — 4 of 6 + 1 inserted (`code-block`) shipped, 3 remaining. Each goes through GATE 1 (description) → GATE 2 (plan) → implementation → GATE 3 (spot-check review).
 
 1. ~~`pdf-viewer`~~ ✅ shipped 2026-05-10 (v0.1.0 → v0.1.3 same day)
-2. ~~`file-tree`~~ ✅ shipped 2026-05-10 (v0.1.0; reordered ahead of `folder-manager` since it's the data-substrate primitive — folder-manager will compose it)
-3. `folder-manager`
-4. `rich-graph-2`
-5. `chat-panel`
-6. `notification-system`
+2. ~~`file-tree`~~ ✅ shipped 2026-05-10 (v0.1.0; the data-substrate primitive)
+3. ~~`file-manager`~~ ✅ shipped 2026-05-10 (v0.1.0; renamed from `folder-manager` to better reflect "files + folders"; composes `file-tree` via optional `sidebar` slot; ships shared `<FileClipboardProvider>` primitive)
+4. ~~`code-block`~~ ✅ shipped 2026-05-11 (v0.1.0; inserted mid-session at user's request; new `code` category; substrate for chat-panel, markdown fenced blocks, rich-card code sections, virtual terminals; P2 substrate-shift after `@shikijs/codemirror` was found to not exist on npm)
+5. `rich-graph-2`
+6. `chat-panel`
+7. `notification-system`
 
 ## Roadmap (longer-term team-utility candidates)
 
@@ -111,11 +114,12 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files, most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-11 — code-block v0.1.0; new `code` category + P2 substrate shift](decisions/2026-05-11-code-block-v01-pipeline.md) (fifth component under GATE-3 rule; substrate primitive for chat / markdown / rich-card / terminal surfaces; three modes — view/edit/terminal — in one component; Shiki dual-theme CSS-variable tokenization for view; CodeMirror 6 + custom HighlightStyle approximating GitHub colors for edit (P2 substrate-shift after `@shikijs/codemirror` was found to not exist on npm); structured `TerminalLine[]` API for terminal mode with prompt detection + macOS traffic-lights; streaming via explicit `streaming` prop + rAF batching; long-block collapse + line highlights + severity annotations + copy/wrap/expand/download chrome; 42-file sealed folder + 2 registry items; description + plan both surfaced re-validation refinements (3 contradictions + 6 ambiguities + 3 decisions on GATE 1, 4 refinements + 1 decision on GATE 2); RSC variant + guide.md + smoke path-b deferred as v0.1.1/v0.2.0 follow-ups; verdict `Pass with follow-ups` (5 findings, none blocking); 41 components total across 8 categories)
+- [2026-05-10 — file-manager v0.1.0; first cross-component shared primitive (`@ilinxa/file-clipboard`)](decisions/2026-05-10-file-manager-v01-pipeline.md) (fourth component under GATE-3; Mac-Finder content pane: grid+list views, marquee selection, cut/copy/paste via shared `<FileClipboardProvider>`, breadcrumbs path bar with click-to-edit, back/forward history, sort menu, type-ahead, drag-and-drop, drag-from-OS, lazy children, list-view virtualization at >=200 items; 32-file sealed folder + new `_shared/file-clipboard.tsx` shipped as separate `@ilinxa/file-clipboard` registry artifact; user-driven Q-Plan-3 override added v0.1.0 virtualization; verdict `Pass with follow-ups` (4 findings); 7 self-caught fixes; post-author user-reported fix moved `useVirtualizer` from a separate hook into list-view component to resolve blank-on-first-render bug; active queue 3/6)
 - [2026-05-10 — file-tree v0.1.0 first ship; first entry in `navigation` category](decisions/2026-05-10-file-tree-v01-pipeline.md) (third component under the GATE-3 rule; VS Code-shaped tree with format-aware Lucide icons, controlled-data + object-shape callbacks, lazy children, single+multi select, full RC menu + inline rename, drag-and-drop with cycle pre-validation + auto-scroll, drag-from-OS, optional virtualization, ARIA roving-tabindex; verdict `Pass with follow-ups` (4 findings); 5 self-caught fixes during review including roving tabindex + memoized cycle check + missing TooltipProvider; active queue 2/6 shipped)
 - [2026-05-10 — pdf-viewer v0.1.3 + video-player-01 v0.1.2 runtime fixes](decisions/2026-05-10-pdf-viewer-v013-video-player-v012-runtime-fixes.md) (two patch-bumps, no API change; pdf-viewer: `<Page>` rendered outside `<Document>` tripped AnnotationLayer's pdf-from-context invariant — fixed by wrapping page list in `<Document className="contents">`; video-player-01: Pexels CDN now 403s anonymous hotlinks — swapped all 6 fixture URLs to test-videos.co.uk + MDN cc0-videos + placeholders.dev, all curl-verified)
 - [2026-05-10 — pdf-viewer v0.1.0 first ship (second component under the readiness-review rule)](decisions/2026-05-10-pdf-viewer-v01-pipeline.md) (GATE 1 + GATE 2 + GATE 3 all passed; 28-file sealed folder; react-pdf@^10.4.1 substrate; toolbar + zoom + drag-drop + selection + right-click + password + print + virtualization; verdict `Pass with follow-ups` (4 findings); F-01 worker-default-on-CDN drift documented for v0.2.0)
 - [2026-05-09 — stat-card v0.1.0 → v0.1.1 pipeline (first component under the readiness-review rule)](decisions/2026-05-09-stat-card-v01-pipeline.md) (GATE 1 + GATE 2 + GATE 3 all passed; smoke verified post-Vercel-deploy; v0.1.1 same-day patch closed 3 of 4 follow-ups; F-04 (`--success` token) deferred to v0.2; sibling `<StatCardSparkline>` standalone export; object-shape callbacks; Intl percent delta formatter)
-- [2026-05-09 — Component-readiness-review rule established (GATE 3)](decisions/2026-05-09-component-readiness-review-rule.md) (every new component must pass a structured spot-check review before push; `.claude/rules/component-readiness-review.md` codifies it; CLAUDE.md + component-guide §13 + procomps/README + spotcheck/checklist templates all updated; existing components grandfathered)
 
 For every prior session / decision before 2026-05-08: see [`STATUS-archive.md`](STATUS-archive.md).
 
