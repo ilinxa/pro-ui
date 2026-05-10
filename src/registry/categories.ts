@@ -49,11 +49,17 @@ export const CATEGORIES: Record<ComponentCategorySlug, CategoryMeta> = {
     description: "Image galleries, video players, carousels, file viewers.",
     order: 8,
   },
+  code: {
+    slug: "code",
+    label: "Code",
+    description: "Code blocks, editors, diff views, terminals, syntax-highlighted surfaces.",
+    order: 9,
+  },
   auth: {
     slug: "auth",
     label: "Auth",
     description: "Login, signup, account, multi-factor, session UI.",
-    order: 9,
+    order: 10,
   },
 };
 
