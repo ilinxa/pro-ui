@@ -2,8 +2,8 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-09** (post-Phase-7 patches + first new component under the readiness-review rule: stat-card v0.1.0)
-> Total: **36 components** across 6 categories
+> Snapshot date: **2026-05-11** (post-pdf-viewer/file-tree/file-manager/code-block first ships under the GATE-3 readiness-review rule)
+> Total: **41 components** across **8 categories**
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
 ## Summary
@@ -13,23 +13,28 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `data`     | 21    | Largest category; hosts the canonical `data-table` template + `stat-card` |
 | `forms`    | 6     |                                                                       |
 | `marketing`| 4     |                                                                       |
-| `media`    | 3     |                                                                       |
+| `media`    | 4     | `pdf-viewer` added 2026-05-10                                         |
+| `navigation`| 2    | New category 2026-05-10 (`file-tree` + `file-manager`)               |
 | `layout`   | 2     |                                                                       |
+| `code`     | 1     | New category 2026-05-11 (`code-block`)                                |
 | `feedback` | 1     |                                                                       |
-| **Total**  | **37**|                                                                       |
+| **Total**  | **41**|                                                                       |
 
 ## Highlights
 
 - **Past beta gate:** `rich-card` only — v0.4.1, status `beta`.
-- **v0.3.x:** `kanban-board-01` (F-cross-12 v0.2 cutover; see Highlights below).
+- **v0.3.x:** `kanban-board-01` (F-cross-12 v0.2 cutover).
 - **v0.2.x:** `article-body-01`, `grid-layout-news-01` + `content-card-news-01` + `project-card-01` + `story-rail-01` (F-cross-12 v0.2 cutover — positional callbacks removed; canonical names now object-shape).
-- **v0.1.2:** `engagement-bar-01` (Phase 7 utils→lib), `media-carousel-01` (Phase 7 a11y), `progress-timeline-01` (Phase 7 status colors → audit follow-up marker differentiation), `page-hero-news-01` (Phase 7 lime mandate → audit follow-up `text-accent` carriers).
-- **v0.1.1 (patch shipped):** `post-card-01`, `data-table`, `flow-canvas-01`, `entity-picker`, `markdown-editor`, `properties-form`, `workspace`, plus Phase 7 batch — `event-card-01`, `registration-card-01`, `detail-panel`, `story-viewer-01`, `video-player-01`, `grid-layout-news-01`.
+- **v0.1.3:** `pdf-viewer` (AnnotationLayer fix — wrap page list in `<Document className="contents">`).
+- **v0.1.2:** `engagement-bar-01` (Phase 7 utils→lib), `media-carousel-01` (Phase 7 a11y), `progress-timeline-01` (Phase 7 status colors), `page-hero-news-01` (Phase 7 lime mandate), `video-player-01` (Pexels CDN fixture swap).
+- **v0.1.1 (patch shipped):** `post-card-01`, `data-table`, `flow-canvas-01`, `entity-picker`, `markdown-editor`, `properties-form`, `workspace`, plus Phase 7 batch — `event-card-01`, `registration-card-01`, `detail-panel`, `story-viewer-01`, `grid-layout-news-01`. `stat-card` patched 2026-05-09.
 - **All remaining components** sit at the initial v0.1.0 ship.
-- `force-graph` was **removed 2026-05-08** pending recreation under a new design + plan. v0.2 source + procomp docs archived to `docs/migrations/force-graph/`. The future v3 will go through the standard procomp planning pipeline; whether it reuses the `force-graph` slug or picks a new one (e.g. `graph-canvas-01`) is a v3 decision.
+- **New 2026-05-10:** `pdf-viewer` (media), `file-tree` (new `navigation` category), `file-manager` (navigation, composes file-tree + ships shared `@ilinxa/file-clipboard` primitive).
+- **New 2026-05-11:** `code-block` (new `code` category at order 9 — Shiki dual-theme + CodeMirror 6 + custom HighlightStyle; substrate for chat/markdown/rich-card/terminal surfaces).
+- `force-graph` was **removed 2026-05-08** pending recreation under a new design + plan. v0.2 source + procomp docs archived to `docs/migrations/force-graph/`. The future v3 will go through the standard procomp planning pipeline.
 - `flow-canvas-01` v0.1.0 is feature-rich despite the version (39 files; renderers/portTypes/edgeTypes registries; typed-port validation; sub-object drag-extract; right-click menus; 200-node stress demo).
 
-## data (20)
+## data (21)
 
 | Slug                    | Name                       | Version | Status |
 |-------------------------|----------------------------|---------|--------|
@@ -82,13 +87,27 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `page-hero-news-01`    | Page Hero (News 01) | 0.1.2   | alpha  |
 | `share-bar-01`         | Share Bar 01        | 0.1.0   | alpha  |
 
-## media (3)
+## media (4)
 
 | Slug                | Name              | Version | Status |
 |---------------------|-------------------|---------|--------|
 | `media-carousel-01` | Media Carousel 01 | 0.1.2   | alpha  |
+| `pdf-viewer`        | PDF Viewer        | 0.1.3   | alpha  |
 | `story-viewer-01`   | Story Viewer 01   | 0.1.1   | alpha  |
-| `video-player-01`   | Video Player 01   | 0.1.1   | alpha  |
+| `video-player-01`   | Video Player 01   | 0.1.2   | alpha  |
+
+## navigation (2)
+
+| Slug            | Name          | Version | Status |
+|-----------------|---------------|---------|--------|
+| `file-tree`     | File Tree     | 0.1.0   | alpha  |
+| `file-manager`  | File Manager  | 0.1.0   | alpha  |
+
+## code (1)
+
+| Slug          | Name        | Version | Status |
+|---------------|-------------|---------|--------|
+| `code-block`  | Code Block  | 0.1.0   | alpha  |
 
 ## feedback (1)
 
@@ -100,12 +119,14 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 ## Verification method
 
-Counts cross-checked three ways and all agreed at **36**:
+Counts cross-checked three ways and all agreed at **41**:
 
-1. **Filesystem:** `ls src/registry/components/<category>/` per category — 20 + 6 + 2 + 4 + 3 + 1 = 36.
-2. **Manifest:** `src/registry/manifest.ts` has 110 import lines — `(36 components × 3 imports each: Demo / Usage / meta) + 2 type-and-categories imports = 110`.
+1. **Filesystem:** `ls src/registry/components/<category>/` per category — 21 + 6 + 2 + 4 + 4 + 2 + 1 + 1 = 41.
+2. **Manifest:** `src/registry/manifest.ts` REGISTRY array has 41 entries (each component has 3 imports — Demo / Usage / meta — plus 2 type-and-categories imports at the bottom).
 3. **Per-component meta:** every directory contains a `meta.ts` with populated `slug`, `category`, `version`, and `status` fields, and each is registered in `REGISTRY` in the manifest.
 
 The `_template/_template/` folder is excluded — it ships its own placeholder `meta.ts` for `tsc` compatibility but is never registered or installable.
+
+Cross-component shared primitives (e.g., `@ilinxa/file-clipboard` shipped at `src/registry/components/navigation/_shared/`) are NOT counted as components — they ship as separate registry items but are not registered in the manifest's REGISTRY array.
 
 > **Removed 2026-05-08:** `force-graph` v0.2.0 (data) — pending recreation. v0.2 source + procomp docs archived to `docs/migrations/force-graph/`.
