@@ -150,6 +150,10 @@ import PdfViewerDemo from "./components/media/pdf-viewer/demo";
 import PdfViewerUsage from "./components/media/pdf-viewer/usage";
 import { meta as pdfViewerMeta } from "./components/media/pdf-viewer/meta";
 
+import FileTreeDemo from "./components/navigation/file-tree/demo";
+import FileTreeUsage from "./components/navigation/file-tree/usage";
+import { meta as fileTreeMeta } from "./components/navigation/file-tree/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -348,6 +352,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: pdfViewerMeta,
     Demo: PdfViewerDemo,
     Usage: PdfViewerUsage,
+  },
+  {
+    meta: fileTreeMeta,
+    Demo: FileTreeDemo,
+    Usage: FileTreeUsage,
   },
 ];
 

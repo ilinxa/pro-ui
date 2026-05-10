@@ -1515,6 +1515,58 @@
       "files": [
         { "path": "src/registry/components/media/pdf-viewer/dummy-data.ts", "type": "registry:component", "target": "components/pdf-viewer/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "file-tree",
+      "type": "registry:block",
+      "title": "File Tree",
+      "description": "VS Code-style hierarchical file tree with format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select.",
+      "author": "ilinxa",
+      "categories": ["navigation", "tree", "filesystem"],
+      "registryDependencies": ["alert-dialog", "button", "context-menu", "tooltip"],
+      "dependencies": ["@tanstack/react-virtual", "lucide-react"],
+      "files": [
+        { "path": "src/registry/components/navigation/file-tree/file-tree.tsx", "type": "registry:component", "target": "components/file-tree/file-tree.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/index.ts", "type": "registry:component", "target": "components/file-tree/index.ts" },
+        { "path": "src/registry/components/navigation/file-tree/types.ts", "type": "registry:component", "target": "components/file-tree/types.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-file-tree-context.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-file-tree-context.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-tree-state.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-tree-state.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-tree-flatten.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-tree-flatten.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-tree-keyboard.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-tree-keyboard.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-tree-drag.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-tree-drag.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-tree-virtual.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-tree-virtual.ts" },
+        { "path": "src/registry/components/navigation/file-tree/hooks/use-lazy-load.ts", "type": "registry:component", "target": "components/file-tree/hooks/use-lazy-load.ts" },
+        { "path": "src/registry/components/navigation/file-tree/lib/icons.tsx", "type": "registry:component", "target": "components/file-tree/lib/icons.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/lib/tree-utils.ts", "type": "registry:component", "target": "components/file-tree/lib/tree-utils.ts" },
+        { "path": "src/registry/components/navigation/file-tree/lib/validation.ts", "type": "registry:component", "target": "components/file-tree/lib/validation.ts" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-row.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-row.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-row-list.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-row-list.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-rename-input.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-rename-input.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-context-menu.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-context-menu.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-header.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-header.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-new-file-button.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-new-file-button.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-new-folder-button.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-new-folder-button.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-refresh-button.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-refresh-button.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-collapse-all-button.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-collapse-all-button.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-empty.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-empty.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-loading.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-loading.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-drag-overlay.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-drag-overlay.tsx" },
+        { "path": "src/registry/components/navigation/file-tree/parts/file-tree-delete-confirm.tsx", "type": "registry:component", "target": "components/file-tree/parts/file-tree-delete-confirm.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "file-tree-fixtures",
+      "type": "registry:block",
+      "title": "File Tree — fixtures",
+      "description": "File Tree bundle including the dummy-data fixtures used by the docs-site demo (sample Next.js project tree + 250-node generator).",
+      "author": "ilinxa",
+      "categories": ["navigation", "tree", "filesystem", "fixtures"],
+      "registryDependencies": ["@ilinxa/file-tree"],
+      "files": [
+        { "path": "src/registry/components/navigation/file-tree/dummy-data.ts", "type": "registry:component", "target": "components/file-tree/dummy-data.ts" }
+      ]
     }
   ]
 }
