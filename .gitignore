@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated source-map for docs detail page (regenerated on predev/prebuild)
+/src/app/components/[slug]/_lib/source-map.generated.ts
+
+# Claude Code per-machine permissions overrides
+.claude/settings.local.json

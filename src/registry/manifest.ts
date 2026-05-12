@@ -162,6 +162,10 @@ import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
 import { meta as codeBlockMeta } from "./components/code/code-block/meta";
 
+import JsonFormDemo from "./components/forms/json-form/demo";
+import JsonFormUsage from "./components/forms/json-form/usage";
+import { meta as jsonFormMeta } from "./components/forms/json-form/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -375,6 +379,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: codeBlockMeta,
     Demo: CodeBlockDemo,
     Usage: CodeBlockUsage,
+  },
+  {
+    meta: jsonFormMeta,
+    Demo: JsonFormDemo,
+    Usage: JsonFormUsage,
   },
 ];
 

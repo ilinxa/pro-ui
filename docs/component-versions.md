@@ -2,8 +2,8 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-11** (post-pdf-viewer/file-tree/file-manager/code-block first ships under the GATE-3 readiness-review rule)
-> Total: **41 components** across **8 categories**
+> Snapshot date: **2026-05-13** (post-json-form first ship; sixth component under the GATE-3 readiness-review rule)
+> Total: **42 components** across **8 categories**
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
 ## Summary
@@ -11,14 +11,14 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | Category   | Count | Notes                                                                 |
 |------------|-------|-----------------------------------------------------------------------|
 | `data`     | 21    | Largest category; hosts the canonical `data-table` template + `stat-card` |
-| `forms`    | 6     |                                                                       |
+| `forms`    | 7     | `json-form` added 2026-05-13 (first cross-registry `dependencies.internal` consumer; lazy-loads `@ilinxa/code-block`) |
 | `marketing`| 4     |                                                                       |
 | `media`    | 4     | `pdf-viewer` added 2026-05-10                                         |
 | `navigation`| 2    | New category 2026-05-10 (`file-tree` + `file-manager`)               |
 | `layout`   | 2     |                                                                       |
 | `code`     | 1     | New category 2026-05-11 (`code-block`)                                |
 | `feedback` | 1     |                                                                       |
-| **Total**  | **41**|                                                                       |
+| **Total**  | **42**|                                                                       |
 
 ## Highlights
 
