@@ -5,6 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CATEGORIES } from "@/registry/categories";
 import { getAllSlugs, getEntry } from "@/registry/manifest";
+import { DemoSourceBlock } from "./_components/demo-source-block";
+import { InstallationBlock } from "./_components/installation-block";
+import { ViewCodeDialog } from "./_components/view-code-dialog";
+import { getDemoSource } from "./_lib/source-map.generated";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -33,6 +37,7 @@ export default async function ComponentDetailPage({ params }: PageProps) {
 
   const { meta, Demo, Usage } = entry;
   const category = CATEGORIES[meta.category];
+  const demoSource = getDemoSource(slug);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
@@ -114,12 +119,35 @@ export default async function ComponentDetailPage({ params }: PageProps) {
 
       <section className="mb-10">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Installation
+        </h2>
+        <InstallationBlock slug={meta.slug} />
+      </section>
+
+      <section className="mb-10">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Preview
         </h2>
-        <div className="rounded-lg border border-border bg-background p-6">
+        <div className="relative rounded-lg border border-border bg-background p-6">
+          {demoSource ? (
+            <ViewCodeDialog source={demoSource} filename="demo.tsx" lang="tsx" />
+          ) : null}
           <Demo />
         </div>
       </section>
+
+      {demoSource ? (
+        <section className="mb-10">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Demo source
+          </h2>
+          <DemoSourceBlock
+            source={demoSource}
+            filename="demo.tsx"
+            lang="tsx"
+          />
+        </section>
+      ) : null}
 
       <section className="mb-10">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">

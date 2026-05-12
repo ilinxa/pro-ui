@@ -19,6 +19,14 @@
  *       shipped file imports `@/components/ui/<name>`. Catches `tabs` /
  *       `badge` / `button` listed in `meta.shadcn` for demo-only usage.
  *
+ *   (d) Internal-registry dep drift — `meta.internal` (cross-registry slugs
+ *       like `@ilinxa/code-block`) must match shipped `@ilinxa/<slug>`
+ *       imports. Three failure modes audited:
+ *         - phantom-internal: declared but not imported anywhere shipped
+ *         - undeclared-internal: imported but missing from `meta.internal`
+ *         - unknown-internal: declared slug doesn't exist as a sibling
+ *           component in the registry
+ *
  * Plus a forbidden-list (umbrella packages):
  *   - `radix-ui` — must use shadcn primitives or specific @radix-ui/*
  *
@@ -115,9 +123,11 @@ function walkShipped(slugDir) {
 // "@dnd-kit/core/utilities"  → "@dnd-kit/core"
 // "./relative"               → null
 // "@/components/ui/button"   → null  (alias; handled separately)
+// "@ilinxa/code-block"       → null  (internal registry; handled separately)
 // ───────────────────────────────────────────────────────────────────────
 function npmPkgFromImport(path) {
   if (path.startsWith(".") || path.startsWith("@/") || path.startsWith("/")) return null;
+  if (path.startsWith("@ilinxa/")) return null; // internal registry — not an npm dep
   if (path.startsWith("@")) {
     const parts = path.split("/");
     return parts.length >= 2 ? parts.slice(0, 2).join("/") : null;
@@ -129,6 +139,20 @@ function npmPkgFromImport(path) {
 function shadcnPrimitiveFromImport(path) {
   const m = path.match(/^@\/components\/ui\/([\w-]+)/);
   return m ? m[1] : null;
+}
+
+// Extract internal-registry slug from cross-folder import paths.
+// Producer-side sources use the project-relative form:
+//   "@/registry/components/data/expandable-text-01"     → "expandable-text-01"
+//   "@/registry/components/data/expandable-text-01/..." → "expandable-text-01"
+// Consumer-facing (post-shadcn-build) form, also accepted:
+//   "@ilinxa/code-block"                                → "code-block"
+function internalSlugFromImport(path) {
+  const consumerForm = path.match(/^@ilinxa\/([\w-]+)/);
+  if (consumerForm) return consumerForm[1];
+  const producerForm = path.match(/^@\/registry\/components\/[\w-]+\/([\w-]+)/);
+  if (producerForm) return producerForm[1];
+  return null;
 }
 
 // ───────────────────────────────────────────────────────────────────────
@@ -149,10 +173,34 @@ function findImports(content) {
   return paths;
 }
 
-// Aggregate npm + shadcn imports across all shipped files.
-function collectShippedImports(slugDir) {
+// Resolve a raw-relative import (e.g., "../../video-player-01") against an
+// importing file's path. Returns the sibling slug if the resolved path lands
+// inside `src/registry/components/<cat>/<slug>/...`, otherwise null.
+function relativeSiblingSlugFromImport(importPath, importerFile) {
+  if (!importPath.startsWith(".")) return null;
+  const importerDir = importerFile.replace(/[\\/][^\\/]+$/, "");
+  // Normalize: collapse \\ → / for the resolved path.
+  const parts = importerDir.replace(/\\/g, "/").split("/");
+  const segments = importPath.split("/");
+  const resolved = [...parts];
+  for (const seg of segments) {
+    if (seg === ".." || seg === "") resolved.pop();
+    else if (seg !== ".") resolved.push(seg);
+  }
+  const joined = resolved.join("/");
+  // Match `.../src/registry/components/<cat>/<slug>` (anywhere in the joined path).
+  const m = joined.match(/[\\/]registry[\\/]components[\\/][\w-]+[\\/]([\w-]+)/);
+  if (!m) return null;
+  // Skip underscore-prefixed siblings (`_shared`, `_template`) — not real component slugs.
+  if (m[1].startsWith("_")) return null;
+  return m[1];
+}
+
+// Aggregate npm + shadcn + internal-registry imports across all shipped files.
+function collectShippedImports(slugDir, currentSlug) {
   const npmPkgs = new Set();
   const shadcnPrimitives = new Set();
+  const internalSlugs = new Set();
   for (const file of walkShipped(slugDir)) {
     const content = readFileSync(file, "utf8");
     for (const path of findImports(content)) {
@@ -160,9 +208,13 @@ function collectShippedImports(slugDir) {
       if (npm) npmPkgs.add(npm);
       const primitive = shadcnPrimitiveFromImport(path);
       if (primitive) shadcnPrimitives.add(primitive);
+      const internal = internalSlugFromImport(path);
+      if (internal) internalSlugs.add(internal);
+      const relSibling = relativeSiblingSlugFromImport(path, file);
+      if (relSibling && relSibling !== currentSlug) internalSlugs.add(relSibling);
     }
   }
-  return { npmPkgs, shadcnPrimitives };
+  return { npmPkgs, shadcnPrimitives, internalSlugs };
 }
 
 // ───────────────────────────────────────────────────────────────────────
@@ -176,7 +228,7 @@ function parseMeta(metaPath) {
   const depsBlockMatch = text.match(
     /dependencies\s*:\s*\{([\s\S]*?)\n\s*\},?\s*\n\s*(?:related|thumbnail|features|context|description|tags|examples|author|version|status|createdAt|updatedAt|category|subcategory|name|slug|\}|\/\/)/,
   );
-  if (!depsBlockMatch) return { shadcn: [], npm: {}, parsedOk: false };
+  if (!depsBlockMatch) return { shadcn: [], npm: {}, internal: [], parsedOk: false };
 
   const body = depsBlockMatch[1];
 
@@ -194,7 +246,13 @@ function parseMeta(metaPath) {
     for (const p of pairs) npm[p[1]] = p[2];
   }
 
-  return { shadcn, npm, parsedOk: true };
+  // internal: ["slug-1", "slug-2", ...]
+  const internalMatch = body.match(/internal\s*:\s*\[([\s\S]*?)\]/);
+  const internal = internalMatch
+    ? Array.from(internalMatch[1].matchAll(/["']([^"']+)["']/g)).map((m) => m[1])
+    : [];
+
+  return { shadcn, npm, internal, parsedOk: true };
 }
 
 // ───────────────────────────────────────────────────────────────────────
@@ -214,7 +272,10 @@ function validateSlug({ slug, category, dir }) {
     return { slug, category, findings };
   }
 
-  const { npmPkgs, shadcnPrimitives } = collectShippedImports(dir);
+  const { npmPkgs, shadcnPrimitives, internalSlugs } = collectShippedImports(dir, slug);
+
+  // Build the set of known sibling slugs (for unknown-internal check).
+  const knownSlugs = new Set(allSlugs.map((s) => s.slug));
 
   // (a) Version drift vs producer
   for (const [pkg, ver] of Object.entries(meta.npm)) {
@@ -272,6 +333,44 @@ function validateSlug({ slug, category, dir }) {
         kind: "over-declared-shadcn",
         primitive,
         detail: `meta.shadcn includes "${primitive}" but no shipped source file imports @/components/ui/${primitive}. Likely demo-only.`,
+      });
+    }
+  }
+
+  // (d) Internal-registry dep drift
+  // (d.1) phantom-internal — declared but no shipped file imports @ilinxa/<slug>
+  for (const dep of meta.internal) {
+    if (!internalSlugs.has(dep)) {
+      findings.push({
+        severity: "high",
+        kind: "phantom-internal",
+        pkg: dep,
+        detail: `meta.internal includes "${dep}" but no shipped source file imports @ilinxa/${dep}.`,
+      });
+    }
+  }
+
+  // (d.2) undeclared-internal — imported @ilinxa/<slug> but missing from meta.internal
+  for (const dep of internalSlugs) {
+    if (dep === slug) continue; // self-reference would be weird but skip defensively
+    if (!meta.internal.includes(dep)) {
+      findings.push({
+        severity: "high",
+        kind: "undeclared-internal",
+        pkg: dep,
+        detail: `shipped source imports @ilinxa/${dep} but it's not declared in meta.internal.`,
+      });
+    }
+  }
+
+  // (d.3) unknown-internal — declared slug doesn't match any sibling component
+  for (const dep of meta.internal) {
+    if (!knownSlugs.has(dep)) {
+      findings.push({
+        severity: "high",
+        kind: "unknown-internal",
+        pkg: dep,
+        detail: `meta.internal declares "${dep}" but no component with that slug exists in the registry.`,
       });
     }
   }

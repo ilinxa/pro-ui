@@ -1731,6 +1731,93 @@
       "files": [
         { "path": "src/registry/components/code/code-block/dummy-data.ts", "type": "registry:component", "target": "components/code-block/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "json-form",
+      "type": "registry:block",
+      "title": "Json Form",
+      "description": "Schema-driven form renderer — declarative field DSL compiled to Zod, 25 built-in field types (incl. `richtext` via Plate), conditional + computed fields, extensible renderer registry, RHF v7 + zod v4 substrate. Cross-registry deps on @ilinxa/code-block (lazy `code` field) and @ilinxa/article-body-01 (lazy `richtext` field).",
+      "author": "ilinxa",
+      "categories": ["forms"],
+      "registryDependencies": [
+        "radio-group",
+        "slider",
+        "label",
+        "input",
+        "textarea",
+        "select",
+        "checkbox",
+        "switch",
+        "command",
+        "popover",
+        "calendar",
+        "button",
+        "separator",
+        "badge",
+        "@ilinxa/code-block",
+        "@ilinxa/article-body-01"
+      ],
+      "dependencies": [
+        "react-hook-form@^7.75.0",
+        "@hookform/resolvers@^5.2.2",
+        "zod@^4.4.3",
+        "lucide-react@^1.11.0"
+      ],
+      "files": [
+        { "path": "src/registry/components/forms/json-form/json-form.tsx", "type": "registry:component", "target": "components/json-form/json-form.tsx" },
+        { "path": "src/registry/components/forms/json-form/json-form-context.tsx", "type": "registry:component", "target": "components/json-form/json-form-context.tsx" },
+        { "path": "src/registry/components/forms/json-form/index.ts", "type": "registry:component", "target": "components/json-form/index.ts" },
+        { "path": "src/registry/components/forms/json-form/types.ts", "type": "registry:component", "target": "components/json-form/types.ts" },
+        { "path": "src/registry/components/forms/json-form/parts/field-wrapper.tsx", "type": "registry:component", "target": "components/json-form/parts/field-wrapper.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-text.tsx", "type": "registry:component", "target": "components/json-form/parts/field-text.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-textarea.tsx", "type": "registry:component", "target": "components/json-form/parts/field-textarea.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-select.tsx", "type": "registry:component", "target": "components/json-form/parts/field-select.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-radio-group.tsx", "type": "registry:component", "target": "components/json-form/parts/field-radio-group.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-checkbox.tsx", "type": "registry:component", "target": "components/json-form/parts/field-checkbox.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-checkbox-group.tsx", "type": "registry:component", "target": "components/json-form/parts/field-checkbox-group.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-switch.tsx", "type": "registry:component", "target": "components/json-form/parts/field-switch.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-date.tsx", "type": "registry:component", "target": "components/json-form/parts/field-date.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-code.tsx", "type": "registry:component", "target": "components/json-form/parts/field-code.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-richtext.tsx", "type": "registry:component", "target": "components/json-form/parts/field-richtext.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-slider.tsx", "type": "registry:component", "target": "components/json-form/parts/field-slider.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-rating.tsx", "type": "registry:component", "target": "components/json-form/parts/field-rating.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-computed.tsx", "type": "registry:component", "target": "components/json-form/parts/field-computed.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-hidden.tsx", "type": "registry:component", "target": "components/json-form/parts/field-hidden.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-section.tsx", "type": "registry:component", "target": "components/json-form/parts/field-section.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-divider.tsx", "type": "registry:component", "target": "components/json-form/parts/field-divider.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/field-fallback.tsx", "type": "registry:component", "target": "components/json-form/parts/field-fallback.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/form-header.tsx", "type": "registry:component", "target": "components/json-form/parts/form-header.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/error-summary.tsx", "type": "registry:component", "target": "components/json-form/parts/error-summary.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/submit-button.tsx", "type": "registry:component", "target": "components/json-form/parts/submit-button.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/reset-button.tsx", "type": "registry:component", "target": "components/json-form/parts/reset-button.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/json-form-field.tsx", "type": "registry:component", "target": "components/json-form/parts/json-form-field.tsx" },
+        { "path": "src/registry/components/forms/json-form/hooks/use-json-form.ts", "type": "registry:component", "target": "components/json-form/hooks/use-json-form.ts" },
+        { "path": "src/registry/components/forms/json-form/hooks/use-conditional.ts", "type": "registry:component", "target": "components/json-form/hooks/use-conditional.ts" },
+        { "path": "src/registry/components/forms/json-form/hooks/use-computed.ts", "type": "registry:component", "target": "components/json-form/hooks/use-computed.ts" },
+        { "path": "src/registry/components/forms/json-form/hooks/use-debounced-callback.ts", "type": "registry:component", "target": "components/json-form/hooks/use-debounced-callback.ts" },
+        { "path": "src/registry/components/forms/json-form/hooks/use-async-options.ts", "type": "registry:component", "target": "components/json-form/hooks/use-async-options.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/schema-compiler.ts", "type": "registry:component", "target": "components/json-form/lib/schema-compiler.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/condition-evaluator.ts", "type": "registry:component", "target": "components/json-form/lib/condition-evaluator.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/expression-parser.ts", "type": "registry:component", "target": "components/json-form/lib/expression-parser.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/default-registry.ts", "type": "registry:component", "target": "components/json-form/lib/default-registry.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/strings.ts", "type": "registry:component", "target": "components/json-form/lib/strings.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/path.ts", "type": "registry:component", "target": "components/json-form/lib/path.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/validate-schema.ts", "type": "registry:component", "target": "components/json-form/lib/validate-schema.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "json-form-fixtures",
+      "type": "registry:block",
+      "title": "Json Form — fixtures",
+      "description": "Json Form bundle including 6 named fixture schemas (registration / contact / conditional / computed / rich fields / admin user) plus the `mockFetchSchema` async helper for backend-driven demos.",
+      "author": "ilinxa",
+      "categories": ["forms", "fixtures"],
+      "registryDependencies": ["@ilinxa/json-form"],
+      "files": [
+        { "path": "src/registry/components/forms/json-form/dummy-data.ts", "type": "registry:component", "target": "components/json-form/dummy-data.ts" }
+      ]
     }
   ]
 }

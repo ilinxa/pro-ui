@@ -68,7 +68,6 @@ export const meta: ComponentMeta = {
       "media-carousel-01",
       "engagement-bar-01",
       "comment-thread-01",
-      "video-player-01",
     ],
   },
 
