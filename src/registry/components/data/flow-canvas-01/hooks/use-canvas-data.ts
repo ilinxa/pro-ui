@@ -127,6 +127,12 @@ export type UseCanvasDataResult = {
     gesture: "copy" | "move";
     newNode: NodeRecord;
   }) => void;
+  // Ref-based resolvers — used by callers (e.g. <CanvasContextMenu>) that
+  // need to look up nodes/edges by id without re-rendering on every state
+  // change. The returned functions are stable across renders; the lookup
+  // closes over a ref so it always sees the latest state.
+  getNodeById: (id: string) => NodeRecord | undefined;
+  getEdgeById: (id: string) => EdgeRecord | undefined;
 };
 
 export function useCanvasData({
@@ -163,6 +169,45 @@ export function useCanvasData({
   );
   const [viewport, setViewport] = useState(initial.viewport);
 
+  // Refs mirror the latest state so we can keep event handlers stable
+  // (empty-dep useCallback). This is the canonical xyflow perf pattern —
+  // see xyflow-react-pro skill "Performance" + "useCallback every event
+  // handler". At 200 nodes, dep-changing handlers cascade into a full
+  // ReactFlow reconciliation on every drag tick.
+  const nodesRef = useRef(internalNodes);
+  const edgesRef = useRef(internalEdges);
+  const viewportRef = useRef(viewport);
+  useEffect(() => {
+    nodesRef.current = internalNodes;
+  }, [internalNodes]);
+  useEffect(() => {
+    edgesRef.current = internalEdges;
+  }, [internalEdges]);
+  useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
+
+  // Also mirror callback props in refs so changing the consumer's callback
+  // identity doesn't churn our internal handlers.
+  const onChangeRef = useRef(onChange);
+  const onBeforeConnectRef = useRef(onBeforeConnect);
+  const onNodeCreateRef = useRef(onNodeCreate);
+  const onNodeUpdateRef = useRef(onNodeUpdate);
+  const onNodeDeleteRef = useRef(onNodeDelete);
+  const onEdgeCreateRef = useRef(onEdgeCreate);
+  const onEdgeDeleteRef = useRef(onEdgeDelete);
+  const onSubObjectExtractRef = useRef(onSubObjectExtract);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    onBeforeConnectRef.current = onBeforeConnect;
+    onNodeCreateRef.current = onNodeCreate;
+    onNodeUpdateRef.current = onNodeUpdate;
+    onNodeDeleteRef.current = onNodeDelete;
+    onEdgeCreateRef.current = onEdgeCreate;
+    onEdgeDeleteRef.current = onEdgeDelete;
+    onSubObjectExtractRef.current = onSubObjectExtract;
+  });
+
   // Reflect controlled-mode changes — `data` prop wholesale replacement
   const lastControlledData = useRef<CanvasData | undefined>(data);
   useEffect(() => {
@@ -180,37 +225,38 @@ export function useCanvasData({
       edges: XyEdge[],
       vp: CanvasData["viewport"],
     ) => {
-      if (!onChange) return;
-      onChange({
+      const cb = onChangeRef.current;
+      if (!cb) return;
+      cb({
         version: 1,
         nodes: nodes.map(fromXyNode),
         edges: edges.map(fromXyEdge),
         viewport: vp,
       });
     },
-    [onChange],
+    [],
   );
 
   const onNodesChange = useCallback(
     (changes: NodeChange<XyNode<XyNodeData>>[]) => {
       setInternalNodes((prev) => {
         const next = applyNodeChanges(changes, prev);
-        fireOnChange(next, internalEdges, viewport);
+        fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
     },
-    [fireOnChange, internalEdges, viewport],
+    [fireOnChange],
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<XyEdge>[]) => {
       setInternalEdges((prev) => {
         const next = applyEdgeChanges(changes, prev);
-        fireOnChange(internalNodes, next, viewport);
+        fireOnChange(nodesRef.current, next, viewportRef.current);
         return next;
       });
     },
-    [fireOnChange, internalNodes, viewport],
+    [fireOnChange],
   );
 
   // onConnect — adds an edge after typed validation (in canvas.tsx) AND
@@ -222,16 +268,17 @@ export function useCanvasData({
   //         → addEdge to state, fireOnChange, fire onEdgeCreate
   const onConnect = useCallback(
     (connection: Connection) => {
-      // Lookup the resolved Port objects so we can hand them to onBeforeConnect.
       let candidate: EdgeRecord = {
         id: makeEdgeId(),
         source: `${connection.source}:${connection.sourceHandle ?? ""}`,
         target: `${connection.target}:${connection.targetHandle ?? ""}`,
       };
 
-      if (onBeforeConnect) {
-        const srcNode = internalNodes.find((n) => n.id === connection.source);
-        const tgtNode = internalNodes.find((n) => n.id === connection.target);
+      const before = onBeforeConnectRef.current;
+      if (before) {
+        const nodes = nodesRef.current;
+        const srcNode = nodes.find((n) => n.id === connection.source);
+        const tgtNode = nodes.find((n) => n.id === connection.target);
         const srcPort: Port | undefined =
           srcNode && connection.sourceHandle
             ? findPortInTree(srcNode.data as NodeData, connection.sourceHandle)?.port
@@ -242,10 +289,7 @@ export function useCanvasData({
             : undefined;
         if (!srcPort || !tgtPort) return;
 
-        const result = onBeforeConnect(candidate, {
-          source: srcPort,
-          target: tgtPort,
-        });
+        const result = before(candidate, { source: srcPort, target: tgtPort });
         if (result === false) return;
         if (typeof result === "object" && result !== null) candidate = result;
       }
@@ -259,34 +303,34 @@ export function useCanvasData({
           },
           prev,
         );
-        fireOnChange(internalNodes, next, viewport);
+        fireOnChange(nodesRef.current, next, viewportRef.current);
         return next;
       });
-      onEdgeCreate?.(candidate);
+      onEdgeCreateRef.current?.(candidate);
     },
-    [fireOnChange, internalNodes, viewport, onBeforeConnect, onEdgeCreate],
+    [fireOnChange],
   );
 
   const snapshot = useCallback<() => CanvasData>(
     () => ({
       version: 1,
-      nodes: internalNodes.map(fromXyNode),
-      edges: internalEdges.map(fromXyEdge),
-      viewport,
+      nodes: nodesRef.current.map(fromXyNode),
+      edges: edgesRef.current.map(fromXyEdge),
+      viewport: viewportRef.current,
     }),
-    [internalNodes, internalEdges, viewport],
+    [],
   );
 
   const appendNode = useCallback(
     (node: NodeRecord) => {
       setInternalNodes((prev) => {
         const next = [...prev, toXyNode(node)];
-        fireOnChange(next, internalEdges, viewport);
+        fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
-      onNodeCreate?.(node);
+      onNodeCreateRef.current?.(node);
     },
-    [fireOnChange, internalEdges, viewport, onNodeCreate],
+    [fireOnChange],
   );
 
   const updateNodeData = useCallback(
@@ -299,17 +343,17 @@ export function useCanvasData({
           updatedRecord = fromXyNode({ ...n, data: updated });
           return { ...n, data: updated };
         });
-        fireOnChange(next, internalEdges, viewport);
+        fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
-      if (updatedRecord) onNodeUpdate?.(updatedRecord);
+      if (updatedRecord) onNodeUpdateRef.current?.(updatedRecord);
     },
-    [fireOnChange, internalEdges, viewport, onNodeUpdate],
+    [fireOnChange],
   );
 
   const duplicateNode = useCallback(
     (nodeId: string) => {
-      const target = internalNodes.find((n) => n.id === nodeId);
+      const target = nodesRef.current.find((n) => n.id === nodeId);
       if (!target) return;
       const clone: NodeRecord = {
         id: makeNodeId(),
@@ -318,56 +362,53 @@ export function useCanvasData({
       };
       appendNode(clone);
     },
-    [internalNodes, appendNode],
+    [appendNode],
   );
 
   const deleteNode = useCallback(
     (nodeId: string) => {
       // Cascade incident edges per Q15.
-      setInternalEdges((prev) => {
-        const next = prev.filter(
-          (e) => e.source !== nodeId && e.target !== nodeId,
-        );
-        return next;
-      });
+      setInternalEdges((prev) =>
+        prev.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      );
       setInternalNodes((prev) => {
         const next = prev.filter((n) => n.id !== nodeId);
-        fireOnChange(next, internalEdges, viewport);
+        fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
-      onNodeDelete?.(nodeId);
+      onNodeDeleteRef.current?.(nodeId);
     },
-    [fireOnChange, internalEdges, viewport, onNodeDelete],
+    [fireOnChange],
   );
 
   const deleteEdge = useCallback(
     (edgeId: string) => {
       setInternalEdges((prev) => {
         const next = prev.filter((e) => e.id !== edgeId);
-        fireOnChange(internalNodes, next, viewport);
+        fireOnChange(nodesRef.current, next, viewportRef.current);
         return next;
       });
-      onEdgeDelete?.(edgeId);
+      onEdgeDeleteRef.current?.(edgeId);
     },
-    [fireOnChange, internalNodes, viewport, onEdgeDelete],
+    [fireOnChange],
   );
 
   const setNodes = useCallback(
     (nodes: NodeRecord[]) => {
       const next = nodes.map(toXyNode);
       setInternalNodes(next);
-      fireOnChange(next, internalEdges, viewport);
+      fireOnChange(next, edgesRef.current, viewportRef.current);
     },
-    [fireOnChange, internalEdges, viewport],
+    [fireOnChange],
   );
 
   const setEdges = useCallback(
     (edges: EdgeRecord[]) => {
       const next = edges.map(toXyEdge);
       setInternalEdges(next);
-      fireOnChange(internalNodes, next, viewport);
+      fireOnChange(nodesRef.current, next, viewportRef.current);
     },
-    [fireOnChange, internalNodes, viewport],
+    [fireOnChange],
   );
 
   const replace = useCallback(
@@ -401,7 +442,7 @@ export function useCanvasData({
       setInternalNodes((prev) => {
         const withChild = [...prev, toXyNode(newNode)];
         if (gesture === "copy") {
-          fireOnChange(withChild, internalEdges, viewport);
+          fireOnChange(withChild, edgesRef.current, viewportRef.current);
           return withChild;
         }
         // Move — remove the sub-object from parent.data at `path`.
@@ -411,22 +452,25 @@ export function useCanvasData({
           updatedParentRecord = fromXyNode({ ...n, data: nextData });
           return { ...n, data: nextData };
         });
-        fireOnChange(next, internalEdges, viewport);
+        fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
-      onNodeCreate?.(newNode);
-      if (updatedParentRecord) onNodeUpdate?.(updatedParentRecord);
-      onSubObjectExtract?.(parentId, path, gesture);
+      onNodeCreateRef.current?.(newNode);
+      if (updatedParentRecord) onNodeUpdateRef.current?.(updatedParentRecord);
+      onSubObjectExtractRef.current?.(parentId, path, gesture);
     },
-    [
-      fireOnChange,
-      internalEdges,
-      viewport,
-      onNodeCreate,
-      onNodeUpdate,
-      onSubObjectExtract,
-    ],
+    [fireOnChange],
   );
+
+  const getNodeById = useCallback((id: string): NodeRecord | undefined => {
+    const n = nodesRef.current.find((x) => x.id === id);
+    return n ? fromXyNode(n) : undefined;
+  }, []);
+
+  const getEdgeById = useCallback((id: string): EdgeRecord | undefined => {
+    const e = edgesRef.current.find((x) => x.id === id);
+    return e ? fromXyEdge(e) : undefined;
+  }, []);
 
   return useMemo(
     () => ({
@@ -445,6 +489,8 @@ export function useCanvasData({
       setNodes,
       replace,
       extractSubObject,
+      getNodeById,
+      getEdgeById,
     }),
     [
       internalNodes,
@@ -462,6 +508,8 @@ export function useCanvasData({
       setNodes,
       replace,
       extractSubObject,
+      getNodeById,
+      getEdgeById,
     ],
   );
 }

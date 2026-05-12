@@ -33,10 +33,10 @@ export const meta: ComponentMeta = {
     "edges",
   ],
 
-  version: "0.1.1",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-05-06",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-05-11",
 
   author: { name: "ilinxa" },
 

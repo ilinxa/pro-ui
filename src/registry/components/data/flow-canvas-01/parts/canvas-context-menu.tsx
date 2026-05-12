@@ -53,15 +53,18 @@ export function CanvasContextMenu({
   children,
   readOnly,
   menuItems,
-  nodes,
-  edges,
+  getNodeById,
+  getEdgeById,
   actions,
 }: {
   children: ReactNode;
   readOnly: boolean;
   menuItems: FlowCanvasProps["menuItems"];
-  nodes: NodeRecord[];
-  edges: EdgeRecord[];
+  // Resolver-based lookup — avoids re-rendering the menu on every drag tick.
+  // Pre-v0.1.2 took `nodes: NodeRecord[]` + `edges: EdgeRecord[]` which
+  // forced a full ~200-element re-map per state update.
+  getNodeById: (id: string) => NodeRecord | undefined;
+  getEdgeById: (id: string) => EdgeRecord | undefined;
   actions: Actions;
 }) {
   const { renderers } = useFlowCanvasContext();
@@ -84,7 +87,7 @@ export function CanvasContextMenu({
 
       if (isNode && nodeEl) {
         const id = nodeEl.getAttribute("data-id");
-        const node = id ? nodes.find((n) => n.id === id) : undefined;
+        const node = id ? getNodeById(id) : undefined;
         if (node) {
           setTarget({ kind: "node", node });
           return;
@@ -92,7 +95,7 @@ export function CanvasContextMenu({
       }
       if (isEdge && edgeEl) {
         const id = edgeEl.getAttribute("data-id");
-        const edge = id ? edges.find((ed) => ed.id === id) : undefined;
+        const edge = id ? getEdgeById(id) : undefined;
         if (edge) {
           setTarget({ kind: "edge", edge });
           return;
@@ -101,7 +104,7 @@ export function CanvasContextMenu({
       const point = screenToFlowPosition({ x: e.clientX, y: e.clientY });
       setTarget({ kind: "canvas", point });
     },
-    [nodes, edges, screenToFlowPosition],
+    [getNodeById, getEdgeById, screenToFlowPosition],
   );
 
   const copyAsJson = useCallback((node: NodeRecord) => {
