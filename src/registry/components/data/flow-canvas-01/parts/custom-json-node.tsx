@@ -17,14 +17,17 @@ function deriveLabel(data: CustomJsonData): string {
 function CustomJsonNodeImpl({ data }: { data: CustomJsonData }) {
   const [expanded, setExpanded] = useState(false);
   const label = deriveLabel(data);
-  const summary = JSON.stringify(data, null, expanded ? 2 : 0);
 
-  // Selection ring + focus + lock chip belong to <NodeShell> upstream.
-  // This renderer is purely content + an expand/collapse header.
+  // Collapsed mode is the hot path — at 200 nodes, the prior implementation
+  // ran JSON.stringify on every node + rendered a CSS-truncated <pre> + the
+  // whole card carried a box-shadow. Skip all three when collapsed: render
+  // the label only, no <pre>, no shadow. Expanded mode keeps the full
+  // stringified payload (only one node is expanded at a time in practice).
   return (
     <div
       className={cn(
-        "min-w-45 max-w-90 rounded-md border border-border bg-card text-card-foreground shadow-sm",
+        "min-w-45 max-w-90 rounded-md border border-border bg-card text-card-foreground",
+        expanded && "shadow-sm",
       )}
     >
       <button
@@ -32,7 +35,8 @@ function CustomJsonNodeImpl({ data }: { data: CustomJsonData }) {
         onClick={() => setExpanded((v) => !v)}
         className={cn(
           "flex w-full items-center justify-between gap-2 px-3 py-2",
-          "border-b border-border text-left text-xs font-medium",
+          "text-left text-xs font-medium",
+          expanded && "border-b border-border",
         )}
       >
         <span className="truncate font-mono text-muted-foreground">
@@ -42,14 +46,11 @@ function CustomJsonNodeImpl({ data }: { data: CustomJsonData }) {
           {expanded ? "−" : "+"}
         </span>
       </button>
-      <pre
-        className={cn(
-          "overflow-hidden p-3 font-mono text-[11px] leading-snug text-muted-foreground",
-          expanded ? "max-h-80 overflow-auto whitespace-pre" : "truncate",
-        )}
-      >
-        <code>{summary}</code>
-      </pre>
+      {expanded && (
+        <pre className="max-h-80 overflow-auto whitespace-pre p-3 font-mono text-[11px] leading-snug text-muted-foreground">
+          <code>{JSON.stringify(data, null, 2)}</code>
+        </pre>
+      )}
     </div>
   );
 }

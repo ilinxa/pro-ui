@@ -125,6 +125,12 @@ export const FLOW_CANVAS_RICH: CanvasData = {
 // 200-node stress fixture for M8 perf verification. Custom-JSON nodes laid
 // out in a grid with a sparse, deterministic edge weave. Pair with
 // `onlyRenderVisibleElements` on <FlowCanvas> to see viewport culling kick in.
+//
+// An explicit `viewport` is shipped with the fixture: without it, the canvas
+// would `fitView` on mount and put every node on-screen, defeating
+// `onlyRenderVisibleElements` (xyflow only culls off-screen nodes). The
+// initial zoom shows ~30 nodes; pan to discover the rest. Tune zoom up to
+// see more at once, or set viewport to undefined to opt into fitView.
 export function makeStressData(count = 200): CanvasData {
   const cols = 20;
   const cellW = 200;
@@ -163,5 +169,10 @@ export function makeStressData(count = 200): CanvasData {
       });
     }
   }
-  return { version: 1, nodes, edges };
+  return {
+    version: 1,
+    nodes,
+    edges,
+    viewport: { x: 40, y: 40, zoom: 0.9 },
+  };
 }

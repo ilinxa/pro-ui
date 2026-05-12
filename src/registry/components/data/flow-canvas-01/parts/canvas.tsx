@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ConnectionMode,
   Controls,
@@ -110,6 +110,29 @@ export function Canvas({
     [selectionMode],
   );
 
+  // Honor an explicit initial viewport from CanvasData. When the consumer
+  // supplies one (e.g. the stress fixture starts at zoom 0.9), we hand it
+  // to ReactFlow as `defaultViewport` and disable `fitView` — otherwise
+  // fitView wins and every node ends up on-screen, defeating
+  // `onlyRenderVisibleElements` culling. Snapshot at mount with
+  // useState(initializer) so subsequent pans/zooms don't reset the viewport.
+  const [initialViewport] = useState(
+    () => data?.viewport ?? defaultData?.viewport,
+  );
+
+  // Refs mirror latest xyNodes/xyEdges so isValidConnection — a stable
+  // <ReactFlow> prop — can read fresh state without rebuilding on every
+  // drag tick. Without this, at 200+ nodes ReactFlow reconciles every
+  // tick (see xyflow-react-pro skill "Performance" + the v0.1.2 perf patch).
+  const nodesRef = useRef(canvas.xyNodes);
+  const edgesRef = useRef(canvas.xyEdges);
+  useEffect(() => {
+    nodesRef.current = canvas.xyNodes;
+  }, [canvas.xyNodes]);
+  useEffect(() => {
+    edgesRef.current = canvas.xyEdges;
+  }, [canvas.xyEdges]);
+
   // M3 typed-connection validator. Same `type` on both ends + opposite dirs
   // (out → in). Enforces `multi: false` by counting existing edges at the
   // candidate port. Per-handle override hooks land in plan §3.4 layer 3.
@@ -121,8 +144,10 @@ export function Canvas({
       const targetHandle = c.targetHandle ?? "";
       if (!source || !target || !sourceHandle || !targetHandle) return false;
 
-      const srcNode = canvas.xyNodes.find((n) => n.id === source);
-      const tgtNode = canvas.xyNodes.find((n) => n.id === target);
+      const nodes = nodesRef.current;
+      const edges = edgesRef.current;
+      const srcNode = nodes.find((n) => n.id === source);
+      const tgtNode = nodes.find((n) => n.id === target);
       if (!srcNode || !tgtNode) return false;
 
       const srcFound = findPortInTree(srcNode.data as NodeData, sourceHandle);
@@ -138,47 +163,49 @@ export function Canvas({
       // multi: false enforcement.
       if (
         !srcFound.port.multi &&
-        countEdgesAtPort(canvas.xyEdges, source, sourceHandle, "source") > 0
+        countEdgesAtPort(edges, source, sourceHandle, "source") > 0
       ) {
         return false;
       }
       if (
         !tgtFound.port.multi &&
-        countEdgesAtPort(canvas.xyEdges, target, targetHandle, "target") > 0
+        countEdgesAtPort(edges, target, targetHandle, "target") > 0
       ) {
         return false;
       }
       return true;
     },
-    [canvas.xyNodes, canvas.xyEdges],
+    [],
+  );
+
+  // Actions wrapper for the context menu. Stable object reference — its
+  // members are already stable from useCanvasData's ref-based callbacks.
+  const menuActions = useMemo(
+    () => ({
+      duplicateNode: canvas.duplicateNode,
+      deleteNode: canvas.deleteNode,
+      deleteEdge: canvas.deleteEdge,
+      updateNodeData: canvas.updateNodeData,
+      extractSubObject: canvas.extractSubObject,
+      appendNode: canvas.appendNode,
+    }),
+    [
+      canvas.duplicateNode,
+      canvas.deleteNode,
+      canvas.deleteEdge,
+      canvas.updateNodeData,
+      canvas.extractSubObject,
+      canvas.appendNode,
+    ],
   );
 
   return (
     <CanvasContextMenu
       readOnly={readOnly}
       menuItems={menuItems}
-      nodes={useMemo(() => canvas.xyNodes.map((n) => ({
-        id: n.id,
-        position: n.position,
-        data: n.data as NodeData,
-        selected: n.selected,
-        locked: n.draggable === false ? true : undefined,
-      })), [canvas.xyNodes])}
-      edges={useMemo(() => canvas.xyEdges.map((e) => ({
-        id: e.id,
-        source: `${e.source}:${e.sourceHandle ?? ""}` as `${string}:${string}`,
-        target: `${e.target}:${e.targetHandle ?? ""}` as `${string}:${string}`,
-        type: e.type === "ilinxa-edge" ? undefined : e.type,
-        selected: e.selected,
-      })), [canvas.xyEdges])}
-      actions={{
-        duplicateNode: canvas.duplicateNode,
-        deleteNode: canvas.deleteNode,
-        deleteEdge: canvas.deleteEdge,
-        updateNodeData: canvas.updateNodeData,
-        extractSubObject: canvas.extractSubObject,
-        appendNode: canvas.appendNode,
-      }}
+      getNodeById={canvas.getNodeById}
+      getEdgeById={canvas.getEdgeById}
+      actions={menuActions}
     >
       <div
         role="region"
@@ -214,7 +241,8 @@ export function Canvas({
           multiSelectionKeyCode={multiSelectionKeyCode}
           onlyRenderVisibleElements={onlyRenderVisibleElements}
           proOptions={{ hideAttribution: true }}
-          fitView
+          defaultViewport={initialViewport}
+          fitView={!initialViewport}
         >
           <Controls position="bottom-left" />
         </ReactFlow>
