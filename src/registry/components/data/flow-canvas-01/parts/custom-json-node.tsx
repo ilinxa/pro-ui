@@ -3,6 +3,7 @@
 import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { NodeData, NodeRenderer } from "../types";
+import { PortsAt } from "./ports-at";
 
 type CustomJsonData = NodeData & { _label?: string };
 
@@ -26,7 +27,7 @@ function CustomJsonNodeImpl({ data }: { data: CustomJsonData }) {
   return (
     <div
       className={cn(
-        "min-w-45 max-w-90 rounded-md border border-border bg-card text-card-foreground",
+        "relative min-w-45 max-w-90 rounded-md border border-border bg-card text-card-foreground",
         expanded && "shadow-sm",
       )}
     >
@@ -51,6 +52,16 @@ function CustomJsonNodeImpl({ data }: { data: CustomJsonData }) {
           <code>{JSON.stringify(data, null, 2)}</code>
         </pre>
       )}
+      {/* Render port handles for any ports declared in data.ports. Without
+       * these, xyflow's edge layer fails getEdgePosition() for every edge
+       * referencing this node and logs hundreds of warnings per frame.
+       * Discovered via 2026-05-14 baseline measurement — the cliff at
+       * N≥100 in vis-off was warning-spam CPU cost, not React reconciliation
+       * cost. v0.1.4 patch. */}
+      <PortsAt ports={data.ports} position="left" />
+      <PortsAt ports={data.ports} position="right" />
+      <PortsAt ports={data.ports} position="top" />
+      <PortsAt ports={data.ports} position="bottom" />
     </div>
   );
 }
