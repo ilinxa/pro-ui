@@ -176,3 +176,76 @@ export function makeStressData(count = 200): CanvasData {
     viewport: { x: 40, y: 40, zoom: 0.9 },
   };
 }
+
+// v0.2.0 heavy-renderer stress fixture for perf-tier measurement (Q28).
+// Pair with the synthetic heavy renderer registered in the sandbox at
+// `src/app/sandbox/flow-stress/page.tsx` — type discriminator `heavy-stress`.
+// Schema mirrors makeStressData (grid layout, sparse edges) but each node
+// carries ~3 visible fields, a 1-level nested visual block, and 4 ports
+// (left-in, right-out, top-doc-in, bottom-doc-out). Intentionally NOT coupled
+// to ProjectCard01 or rich-card — keeps the heavy fixture self-contained and
+// the measurements comparable across machines.
+export function makeHeavyStressData(count = 200): CanvasData {
+  const cols = 20;
+  const cellW = 240; // wider than light fixture — heavier node body
+  const cellH = 160;
+  const nodes: NodeRecord[] = [];
+  for (let i = 0; i < count; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    nodes.push({
+      id: `h${i}`,
+      position: { x: col * cellW, y: row * cellH },
+      data: {
+        __type: "heavy-stress",
+        title: `Heavy Node ${i}`,
+        description: `Synthetic node ${i} for perf measurement. Carries three visible fields, one nested visual block, and four ports.`,
+        status: i % 3 === 0 ? "active" : i % 3 === 1 ? "pending" : "archived",
+        priority: ((i * 7) % 5) + 1,
+        nested: {
+          label: "Nested block",
+          items: [
+            { key: "a", value: `item-${i}-a` },
+            { key: "b", value: `item-${i}-b` },
+          ],
+        },
+        ports: [
+          { id: "in", side: "left", dir: "in", type: "data" },
+          { id: "out", side: "right", dir: "out", type: "data", multi: true },
+          { id: "doc-in", side: "top", dir: "in", type: "doc" },
+          { id: "doc-out", side: "bottom", dir: "out", type: "doc", multi: true },
+        ],
+      },
+    });
+  }
+  const edges: EdgeRecord[] = [];
+  // Same sparse wiring as light fixture, plus a doc-edge for every 5th node
+  // exercising the top/bottom port pair (doc-out → doc-in on next row).
+  for (let i = 0; i + 2 < count; i++) {
+    edges.push({
+      id: `he-${i}-a`,
+      source: `h${i}:out`,
+      target: `h${i + 1}:in`,
+    });
+    if (i + cols < count) {
+      edges.push({
+        id: `he-${i}-b`,
+        source: `h${i}:out`,
+        target: `h${i + cols}:in`,
+      });
+    }
+    if (i % 5 === 0 && i + cols < count) {
+      edges.push({
+        id: `he-${i}-doc`,
+        source: `h${i}:doc-out`,
+        target: `h${i + cols}:doc-in`,
+      });
+    }
+  }
+  return {
+    version: 1,
+    nodes,
+    edges,
+    viewport: { x: 40, y: 40, zoom: 0.9 },
+  };
+}
