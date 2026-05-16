@@ -231,10 +231,14 @@ const sourceShape = exportRef.current?.export({ withPorts: false })`}</code>
         </li>
       </ul>
 
-      <h3 className="mb-2 mt-6 text-base font-semibold">Deferred to v0.2</h3>
+      <h3 className="mb-2 mt-6 text-base font-semibold">Deferred to v0.3+ (Tier 3 + adjacent)</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
-        <li>Custom edge renderers dispatched via <code>edgeTypes</code></li>
-        <li>Per-handle <code>isValidConnection</code> overrides</li>
+        <li>Custom edge renderers dispatched per-edge via <code>edgeTypes</code> (registry exists; dispatch is Tier 3 per perf description)</li>
+        <li>Per-handle <code>isValidConnection</code> overrides (node-local connection-validation slot)</li>
+      </ul>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Future considerations (no scheduled version)</h3>
+      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>Toast notifications on parse error (today: <code>console.warn</code> + silent abort)</li>
         <li>Undo / redo, marquee selection, groups / frames, minimap, execution-state animation</li>
         <li>DB-ref nodes (<code>{"{ ref: 'post:abc123' }"}</code> placeholders that fetch on demand)</li>

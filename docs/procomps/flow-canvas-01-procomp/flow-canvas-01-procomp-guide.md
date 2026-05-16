@@ -499,13 +499,16 @@ The built-in `DefaultEdge` follows this rule — see `parts/default-edge.tsx`'s 
 
 **Heavy editable content (rich-text editors, code editors, multi-line forms) should live in a consumer-owned dialog opened on click, NOT inline in the node renderer.**
 
+**v0.2.1 ships the canonical wiring** as additive optional props on `FlowCanvasProps` + `RenderContext`: renderers fire `ctx.onEditRequest?.(subPath?)` to request a dialog open; the host bubbles to `FlowCanvasProps.onEditRequest?.(nodeId, subPath?)`; consumers route to their own dialog mounting the heavy editor. The renderer stays editor-unaware; flow-canvas-01 stays content-unaware.
+
 ```ts
+// Canonical v0.2.1 pattern — renderer side
 const MyEditableNode: NodeRenderer = {
   type: "my-card",
   render: (data, ctx) => (
     <button
       type="button"
-      onClick={() => myEditDialog.open(ctx.nodeId)}  // consumer-owned dialog
+      onClick={() => ctx.onEditRequest?.()}  // v0.2.1 — host bubbles to FlowCanvasProps
       className="..."
     >
       {/* read-only display only — no editor inside */}
@@ -517,11 +520,28 @@ const MyEditableNode: NodeRenderer = {
     </button>
   ),
 };
+
+// Consumer side — open your own dialog from the canvas-level callback
+<FlowCanvas
+  data={canvas}
+  onChange={setCanvas}
+  renderers={[MyEditableNode]}
+  onEditRequest={(nodeId) => setEditingNodeId(nodeId)}
+/>;
+
+// In the dialog's onChange wire-back, use the exported helper:
+import { updateNodeData } from "@/components/flow-canvas-01"; // or @ilinxa/flow-canvas-01
+const next = updateNodeData(canvas, editingNodeId, newNodeData);
+setCanvas(next);
 ```
+
+**Subcard-level edit targeting** — renderers that paint multiple addressable sub-regions (e.g. nested cards) can pass an opaque `subPath` string so the consumer's dialog pre-focuses on the targeted sub-region: `ctx.onEditRequest?.("subcard-rcid-abc")`. The host forwards `subPath` to `FlowCanvasProps.onEditRequest` verbatim. The canonical example is the `rich-card-in-flow` procomp — see [`docs/procomps/rich-card-in-flow-procomp/`](../rich-card-in-flow-procomp/).
 
 The perf reason: even with viewport culling on, an inline editor mounts its full state machine (Plate, CodeMirror, etc.) per node — at N=200 that's 200 editor instances allocated, listening to keyboard, holding undo stacks. Putting the editor in a single dialog instance scopes that cost to the one node being edited.
 
-The first canonical consumer of this convention will be the `rich-card-in-flow` system (parallel track to v0.2.0 — see `docs/procomps/rich-card-in-flow-procomp/` once published). A future v0.3.0 `RenderContext.onEditRequest?.(nodeId)` slot may formalize the click-to-edit affordance, but for v0.2.0 the consumer-side `onClick` handler is the contract.
+**Gating the click affordance** — `ctx.onEditRequest` is `undefined` when the consumer hasn't wired `FlowCanvasProps.onEditRequest`. Renderers can gate their click handler / aria attributes via `if (ctx.onEditRequest)` so unwired canvases don't render dead click affordances.
+
+**For v0.2.0 consumers** (i.e., on the prior version): the canonical wiring above is not available; pass the dialog state directly from the renderer's `onClick` (e.g. `onClick={() => myEditDialog.open(ctx.nodeId)}`). Upgrading to v0.2.1+ is non-breaking (the new props are additive optionals).
 
 ### 8.4 Measuring
 
