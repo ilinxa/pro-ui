@@ -2,7 +2,7 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-16** (flow-canvas-01 v0.2.0 — Tier 1 + Tier 2 perf bundle SHIPPED: `onlyRenderVisibleElements` default flipped to `true`; `onChange` batches mid-drag, fires on drag-stop only; `DefaultEdge` `useStore` selector gains narrow `portEqual`; selection ring visual decoupled to CSS via new sealed-folder `flow-canvas-01.css`; new internal `lib/shallow.ts` helper. GATE 3 spot-check Pass with follow-ups.)
+> Snapshot date: **2026-05-16** (flow-canvas-01 v0.2.1 SHIPPED — Workstream A of rich-card-in-flow plan: additive `onEditRequest?: (nodeId, subPath?) => void` API on `FlowCanvasProps` + per-node-bound `onEditRequest?: (subPath?) => void` on `RenderContext` + new exported `updateNodeData(canvas, nodeId, nextData)` helper. F-V5 ref-mirror lock so consumer callback identity changes don't cascade. Patch-bump exemption — GATE 3 skipped, v0.2.0 verdict carries forward. Earlier today: v0.2.0 Tier 1 + Tier 2 perf bundle SHIPPED.)
 > Total: **42 components** across **8 categories**
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
@@ -24,7 +24,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 - **Past beta gate:** `rich-card` only — v0.4.1, status `beta`.
 - **v0.3.x:** `kanban-board-01` (F-cross-12 v0.2 cutover).
-- **v0.2.x:** `flow-canvas-01` (v0.2.0 — Tier 1 + Tier 2 perf bundle: default flip + drag-batching + narrow `portEqual` + CSS-driven selection ring + new `lib/shallow.ts` + sealed-folder `flow-canvas-01.css`; one default flip + one soft behavior change + zero breaking type changes; see [decision file](../.claude/decisions/2026-05-16-flow-canvas-v0.2.0-perf-bundle.md)), `article-body-01`, `grid-layout-news-01` + `content-card-news-01` + `project-card-01` + `story-rail-01` (F-cross-12 v0.2 cutover — positional callbacks removed; canonical names now object-shape).
+- **v0.2.x:** `flow-canvas-01` (v0.2.1 — additive `onEditRequest` API on `FlowCanvasProps` + `RenderContext` + new exported `updateNodeData` helper; popup-edit renderer convention canonical first consumer is `rich-card-in-flow@v0.1.0` (pending Workstream B); patch-bump exemption — no GATE 3; see [decision file](../.claude/decisions/2026-05-16-flow-canvas-v0.2.1-on-edit-request.md). v0.2.0 — Tier 1 + Tier 2 perf bundle: default flip + drag-batching + narrow `portEqual` + CSS-driven selection ring + new `lib/shallow.ts` + sealed-folder `flow-canvas-01.css`; one default flip + one soft behavior change + zero breaking type changes; see [decision file](../.claude/decisions/2026-05-16-flow-canvas-v0.2.0-perf-bundle.md)), `article-body-01`, `grid-layout-news-01` + `content-card-news-01` + `project-card-01` + `story-rail-01` (F-cross-12 v0.2 cutover — positional callbacks removed; canonical names now object-shape).
 - **v0.1.4 (now superseded by v0.2.0):** `flow-canvas-01` patch — custom-json renderer was missing `<PortsAt>` calls for declared ports; xyflow's edge layer failed `getEdgePosition` thousands of times per second and warning-spammed the console; ~6-line fix = 15-20× FPS improvement at the light-fixture cliff; surfaced during v0.2 perf-tier pre-work.
 - **v0.1.3:** `pdf-viewer` (AnnotationLayer fix — wrap page list in `<Document className="contents">`); `flow-canvas-01` (paint-side perf patch — `defaultViewport` snapshot + collapsed `<CustomJsonNode>` no-`<pre>` hot path; preceded by v0.1.2 cascading-callback round).
 - **v0.1.2:** `engagement-bar-01` (Phase 7 utils→lib), `media-carousel-01` (Phase 7 a11y), `progress-timeline-01` (Phase 7 status colors), `page-hero-news-01` (Phase 7 lime mandate), `video-player-01` (Pexels CDN fixture swap).
@@ -50,7 +50,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `data-table`            | Data Table                 | 0.1.1   | alpha  |
 | `event-card-01`         | Event Card 01              | 0.1.1   | alpha  |
 | `expandable-text-01`    | Expandable Text 01         | 0.1.0   | alpha  |
-| `flow-canvas-01`        | Flow Canvas                | 0.2.0   | alpha  |
+| `flow-canvas-01`        | Flow Canvas                | 0.2.1   | alpha  |
 | `info-list-01`          | Info List 01               | 0.1.0   | alpha  |
 | `people-grid-01`        | People Grid 01             | 0.1.0   | alpha  |
 | `progress-timeline-01`  | Progress Timeline 01       | 0.1.2   | alpha  |
