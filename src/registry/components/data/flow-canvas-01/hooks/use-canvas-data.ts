@@ -102,6 +102,51 @@ function fromXyEdge(e: XyEdge): EdgeRecord {
   };
 }
 
+// v0.2.3 lock — structural-equality fast check for controlled-mode resync.
+// Skips the wholesale-replace path in the data-prop useEffect when the new
+// `data` reference is the round-trip echo of our own `fireOnChange` fire.
+// Without this guard, every consumer setCanvas (the canonical controlled
+// pattern) would wipe xyflow's internal node references → xyflow re-measures
+// dimensions every cycle → "trying to drag a node that is not initialized"
+// warning during the re-measurement window.
+//
+// Compares id / position.x / position.y / data-ref on nodes, id / source /
+// target on edges, viewport x/y/zoom. Width/height intentionally NOT
+// compared — those are xyflow-managed (`measured` field) and don't round-trip
+// through NodeRecord cleanly. O(N) over nodes + edges; short-circuits on
+// first mismatch. Fast enough for controlled-mode consumers at N up to a few
+// thousand; for larger canvases, prefer `defaultData` (uncontrolled).
+function canvasMatchesInternalState(
+  data: CanvasData,
+  internalNodes: XyNode<XyNodeData>[],
+  internalEdges: XyEdge[],
+  internalViewport: CanvasData["viewport"],
+): boolean {
+  if (data.viewport?.x !== internalViewport?.x) return false;
+  if (data.viewport?.y !== internalViewport?.y) return false;
+  if (data.viewport?.zoom !== internalViewport?.zoom) return false;
+  if (data.nodes.length !== internalNodes.length) return false;
+  if (data.edges.length !== internalEdges.length) return false;
+  for (let i = 0; i < data.nodes.length; i++) {
+    const dn = data.nodes[i];
+    const xn = internalNodes[i];
+    if (dn.id !== xn.id) return false;
+    if (dn.position.x !== xn.position.x) return false;
+    if (dn.position.y !== xn.position.y) return false;
+    if (dn.data !== xn.data) return false; // ref check — same object if no edit
+  }
+  for (let i = 0; i < data.edges.length; i++) {
+    const de = data.edges[i];
+    const xe = internalEdges[i];
+    if (de.id !== xe.id) return false;
+    const expectedSource = `${xe.source}:${xe.sourceHandle ?? ""}`;
+    const expectedTarget = `${xe.target}:${xe.targetHandle ?? ""}`;
+    if (de.source !== expectedSource) return false;
+    if (de.target !== expectedTarget) return false;
+  }
+  return true;
+}
+
 export type UseCanvasDataResult = {
   // xyflow-shaped state for direct binding to <ReactFlow>
   xyNodes: XyNode<XyNodeData>[];
@@ -219,12 +264,34 @@ export function useCanvasData({
     onSubObjectExtractRef.current = onSubObjectExtract;
   });
 
-  // Reflect controlled-mode changes — `data` prop wholesale replacement
+  // Reflect controlled-mode changes — `data` prop wholesale replacement.
+  //
+  // v0.2.3: skip the resync when the new `data` prop is the round-trip echo
+  // of our own `fireOnChange`. After v0.2.2's microtask defer, consumer
+  // setCanvas creates a new top-level data reference even for echoes —
+  // reference equality alone (the v0.2.2 guard) misses every round-trip and
+  // wholesale-replaces xyflow's internal node refs each cycle, causing
+  // xyflow to re-measure dimensions and emit "trying to drag a node that is
+  // not initialized" warnings during the re-measurement window. Structural
+  // equality catches the echo while still allowing genuine external data
+  // changes to trigger the resync.
   const lastControlledData = useRef<CanvasData | undefined>(data);
   useEffect(() => {
     if (!isControlled) return;
     if (data === lastControlledData.current) return;
     lastControlledData.current = data;
+    if (
+      data &&
+      canvasMatchesInternalState(
+        data,
+        nodesRef.current,
+        edgesRef.current,
+        viewportRef.current,
+      )
+    ) {
+      // Round-trip echo — internal state already correct, no resync.
+      return;
+    }
     setInternalNodes((data ?? EMPTY).nodes.map(toXyNode));
     setInternalEdges((data ?? EMPTY).edges.map(toXyEdge));
     setViewport(data?.viewport);
