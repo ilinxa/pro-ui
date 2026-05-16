@@ -25,6 +25,61 @@ import { richCardInFlowFixture } from "./dummy-data";
 // arrays in render triggers teardown + remount on every render).
 const RENDERERS: NodeRenderer[] = [richCardViewerRenderer];
 
+// Reserved keys that belong to flow-canvas-01's NodeData shape (ports + the
+// `__type` discriminator) but not to rich-card's open-shape data model.
+// rich-card v0.1 logs warnings when it sees `ports: Port[]` arrays as
+// children (its parser only supports object-keyed children + the `list`
+// predefined key for scalar arrays). Strip these before handing to
+// `<RichCard>`; merge back on save so flow-canvas-01 keeps its routing data.
+const FLOW_CANVAS_RESERVED_KEYS = new Set(["ports", "__type"]);
+
+function stripFlowCanvasFields(data: RichCardJsonNode): RichCardJsonNode {
+  const out: RichCardJsonNode = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (FLOW_CANVAS_RESERVED_KEYS.has(key)) continue;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      out[key] = stripFlowCanvasFields(value as RichCardJsonNode);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+function mergeFlowCanvasFields(
+  edited: RichCardJsonNode,
+  original: RichCardJsonNode,
+): RichCardJsonNode {
+  const out: RichCardJsonNode = { ...edited };
+  // Restore the reserved keys from the original at this level.
+  for (const key of FLOW_CANVAS_RESERVED_KEYS) {
+    if (original[key] !== undefined) {
+      out[key] = original[key];
+    }
+  }
+  // Recurse into nested object children (subcards) by key match. Subcards
+  // not present in `edited` are dropped (user deleted them via rich-card);
+  // new subcards in `edited` not in `original` are preserved as-is (they
+  // have no flow-canvas data to merge).
+  for (const [key, value] of Object.entries(edited)) {
+    if (FLOW_CANVAS_RESERVED_KEYS.has(key)) continue;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const origChild = original[key];
+      if (
+        origChild &&
+        typeof origChild === "object" &&
+        !Array.isArray(origChild)
+      ) {
+        out[key] = mergeFlowCanvasFields(
+          value as RichCardJsonNode,
+          origChild as RichCardJsonNode,
+        );
+      }
+    }
+  }
+  return out;
+}
+
 export default function RichCardInFlowDemo() {
   // Controlled canvas state. onChange flows from flow-canvas-01 (after drag /
   // connect / delete) and from rich-card's onChange (live-save per Q2).
@@ -40,12 +95,15 @@ export default function RichCardInFlowDemo() {
 
   // Read the editing node's data once per open so RichCard's defaultValue is
   // stable across keystrokes (avoids the "value resets on every keystroke"
-  // anti-pattern). Re-derived only when editing.nodeId changes.
+  // anti-pattern). Strips flow-canvas reserved keys before handing to RichCard.
+  // Re-derived only when editing.nodeId changes (dep array intentional —
+  // `canvas` is read at memo time but doesn't trigger re-derivation; RichCard
+  // is uncontrolled via defaultValue + key= remount).
   const editingTree: RichCardJsonNode | null = useMemo(() => {
     if (!editing) return null;
     const node = canvas.nodes.find((n) => n.id === editing.nodeId);
     if (!node) return null;
-    return node.data as RichCardJsonNode;
+    return stripFlowCanvasFields(node.data as RichCardJsonNode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing?.nodeId]);
 
@@ -101,21 +159,21 @@ export default function RichCardInFlowDemo() {
                 defaultValue={editingTree}
                 editable={true}
                 onChange={(next) => {
-                  setCanvas((prev) =>
-                    updateNodeData(
+                  setCanvas((prev) => {
+                    const original = prev.nodes.find(
+                      (n) => n.id === editing.nodeId,
+                    )?.data as RichCardJsonNode | undefined;
+                    if (!original) return prev;
+                    // Merge rich-card's edited tree with the prior data shape
+                    // so flow-canvas-only reserved keys (ports + __type) round-
+                    // trip through the edit cleanly.
+                    const merged = mergeFlowCanvasFields(next, original);
+                    return updateNodeData(
                       prev,
                       editing.nodeId,
-                      // RichCard returns RichCardJsonNode; the canvas node's
-                      // data is RichCardCanvasNode (NodeData & RichCardJsonNode).
-                      // Preserve __type + ports by spreading the prior data
-                      // shape onto the rich-card output.
-                      {
-                        ...(prev.nodes.find((n) => n.id === editing.nodeId)
-                          ?.data ?? {}),
-                        ...next,
-                      } as RichCardJsonNode & { __type: string },
-                    ),
-                  );
+                      merged as RichCardJsonNode & { __type: string },
+                    );
+                  });
                 }}
               />
             </div>
