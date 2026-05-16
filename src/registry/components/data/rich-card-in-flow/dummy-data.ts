@@ -25,7 +25,9 @@ const promptCard: RichCardCanvasNode = {
     sessionId: "sess-7a2c",
     locale: "en-US",
     ports: [
-      { id: "p-prompt-meta-out", side: "right", dir: "out", type: "data" },
+      // Type "text" matches the target (p-llm-system-in) so typed-port
+      // validation passes; the metadata stream is text-shaped to LLM.
+      { id: "p-prompt-meta-out", side: "right", dir: "out", type: "text" },
     ],
   },
 };
@@ -46,7 +48,11 @@ const llmCard: RichCardCanvasNode = {
     title: "System message",
     content: "You are a helpful agent. Always cite sources.",
     ports: [
-      { id: "p-llm-system-in", side: "left", dir: "in", type: "text", multi: true },
+      // Dropped `multi: true` (was inconsistent with p-llm-user-in which
+      // has no multi). The multi field is not passed through to xyflow's
+      // <Handle> by PortHandle — it's a flow-canvas-only field for the
+      // typed-edge validator. Default (multi: false) is fine for v0.1.
+      { id: "p-llm-system-in", side: "left", dir: "in", type: "text" },
     ],
   },
   user: {
