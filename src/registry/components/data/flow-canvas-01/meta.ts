@@ -19,6 +19,7 @@ export const meta: ComponentMeta = {
     "Imperative export via exportRef ({ withPorts } toggles source vs canvas)",
     "Typed connection validation, multi-edge per port, sub-object drag-extract (M2+)",
     "Read-only mode that preserves pan / zoom / select",
+    "Popup-edit renderer convention (v0.2.1) — onEditRequest + updateNodeData helper",
   ],
   tags: [
     "flow-canvas-01",
@@ -33,7 +34,7 @@ export const meta: ComponentMeta = {
     "edges",
   ],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-05-06",
   updatedAt: "2026-05-16",
