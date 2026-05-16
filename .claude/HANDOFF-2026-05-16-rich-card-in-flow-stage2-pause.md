@@ -1,53 +1,45 @@
-# HANDOFF — rich-card-in-flow Stage 2 plan awaiting GATE 2 sign-off, paused 2026-05-16
+# HANDOFF — rich-card-in-flow Workstream B (flow-canvas-01@v0.2.1 SHIPPED, B remaining), 2026-05-16
 
-> **Read this first** when resuming work on rich-card-in-flow OR on flow-canvas-01@v0.2.1.
+> **Read this first** when resuming work on rich-card-in-flow@v0.1.0 first ship.
 > Locations referenced are relative to repo root.
 
 ## TL;DR — exactly where we are
 
-1. **flow-canvas-01@v0.2.0 SHIPPED + pushed** earlier this session (commits `a6b3295`..`6587ef6` + `4a9b5a3` + tracking-state commit from this pause). Tier 1 + Tier 2 perf bundle. GATE 3 spot-check **Pass with follow-ups** — 3 v0.2.1 candidates already in STATUS.md Open decisions.
-2. **rich-card-in-flow Stage 1 description SIGNED OFF + committed** (commit `4a9b5a3`). All 10 Qs locked (Q1, Q3, Q4, Q5, Q6, Q9 explicitly resolved; Q2, Q7, Q8, Q10 wholesale-accepted with proposed answers).
-3. **rich-card-in-flow Stage 2 plan DRAFTED + re-validated + gap-scanned + approval-ready** ([docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md](../docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md)). Status: **Draft v2 — awaiting sign-off (GATE 2); approval-ready**.
-   - 7 description-level F-findings (F-01..F-07) — impl-level locks of Stage 1 Qs
-   - 5 V-findings (F-V1..F-V5) — from initial + deep source-verification re-validation
-   - 4 gap-scan fold-ins (G1, G3, G4, G5) — from post-draft pass
-   - Plan doc committed in this pause's tracking-state commit
-4. **User explicitly paused** the session before approving the plan. **Approval is the very next action on resume.**
+1. **flow-canvas-01@v0.2.0 SHIPPED + pushed** earlier this session (commits `a6b3295`..`6587ef6`). Tier 1 + Tier 2 perf bundle. GATE 3 spot-check **Pass with follow-ups** — 3 v0.2.1 candidates parked in STATUS.md Open decisions.
+2. **rich-card-in-flow Stage 1 description SIGNED OFF + committed** (commit `4a9b5a3`). All 10 Qs locked.
+3. **rich-card-in-flow Stage 2 plan v3 SIGNED OFF (GATE 2 closed)** — commit `f3108f5` ([docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md](../docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md)). Pre-impl review caught Blocker F-V6 (`NodeRenderer<RichCardJsonNode>` fails `TData extends NodeData` constraint — `__type` is required on NodeData, absent on RichCardJsonNode); resolved via new `type RichCardCanvasNode = NodeData & RichCardJsonNode` intersection in rich-card-in-flow's `types.ts` (precedent: customJsonRenderer). Plan now has 7 F-findings + 6 V-findings + 4 gap fold-ins all resolved.
+4. **Workstream A — flow-canvas-01@v0.2.1 SHIPPED locally** — commits `9dbb06c` (A1 code edits) + `55c630e` (A2 meta + registry regen). `onEditRequest` API on both surfaces + `updateNodeData` helper exported. Patch-bump exemption — GATE 3 skipped, v0.2.0 verdict carries forward. tsc + lint + validate-meta-deps + registry:build all clean. **A3 tracking commit + push happens at end of this session.**
+5. **Workstream B — rich-card-in-flow@v0.1.0 first ship is the REMAINING WORK.** ~4–6 hours estimated. Scaffold + 13 files + smoke harness path-b (F-V2 lock, REQUIRED for v0.1.0 first ships) + GATE 3 spot-check (rotating dim: Public API).
 
 ## What's NEXT when you resume
 
-### Option 1 (default — what the user implied): User reviews + approves the plan
+**The user-defined next step:** start Workstream B — `rich-card-in-flow@v0.1.0` first ship.
 
-1. Read the plan doc top-to-bottom: [`docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md`](../docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md).
-2. If approved as-is, proceed to **Workstream A — Commit A1** (the flow-canvas-01@v0.2.1 patch).
-3. If user pushes back on any F-NN or F-V<N> or G<N> finding, refine the plan, re-present, get explicit sign-off, THEN proceed.
+1. Run `pnpm new:component data/rich-card-in-flow` — scaffolds the sealed folder.
+2. Implement per plan §5 file-by-file spec (13 files; ~700 LoC total).
+3. Run `pnpm tsc --noEmit && pnpm lint && pnpm validate:meta-deps` clean before each commit.
+4. After registry.json + `pnpm registry:build` + docs render verification, run **smoke harness path-b** per F-V2 lock (REQUIRED for v0.1.0 first ships — not skippable). Harness at `e:/tmp/ilinxa-smoke-consumer/`; serve `public/r/rich-card-in-flow.json` locally + point smoke consumer's `@ilinxa` namespace at localhost. Consumer-side `pnpm tsc --noEmit` clean post-install is the bar.
+5. Author Stage 3 guide alongside implementation.
+6. **GATE 3 spot-check REQUIRED.** Rotating dim: **Public API** (subPath signature, viewer composition, imperative-ref pattern). Verdict ≥ `Pass with follow-ups`.
+7. STATUS.md + decision file + push.
 
-### Option 2: Skip to a different next priority
+### Alternative pivot points (if user redirects)
 
-The user could choose to defer rich-card-in-flow and pick up one of:
-- **flow-canvas-01@v0.2.0 spotcheck follow-ups (F-01 / F-02 / F-03)** — see STATUS.md Open decisions; all v0.2.1 candidates. F-01 (formal post-Tier-1+2 measurement) is the most rigorous one.
-- **One of the 3 remaining active-queue procomps** — `rich-graph-2`, `chat-panel`, `notification-system`. None started.
+- **flow-canvas-01@v0.2.0 spotcheck follow-ups (F-01 / F-02 / F-03)** — parked v0.2.1 candidates (now v0.2.2 since v0.2.1 just shipped without folding them in). F-01 (formal post-Tier-1+2 measurement) is the most rigorous one.
+- **3 remaining active-queue procomps** — `rich-graph-2`, `chat-panel`, `notification-system`. None started.
 - **Roadmap items** — `empty-state`, `multi-select`, `page-header`, etc.
 
-### Option 3: Resume rich-card-in-flow implementation directly (NOT recommended without GATE 2 sign-off)
+## Implementation sequence
 
-The plan IS approval-ready, but per the readiness-review-rule + GATE-2-gate-discipline, **implementation should not start without explicit user sign-off**. If the user resumes with "approved" → proceed; otherwise check first.
+### Workstream A — `flow-canvas-01@v0.2.1` patch — DONE LOCALLY (push pending at end of session)
 
-## Implementation sequence (post-GATE-2-approval; from plan §6)
+| Commit | SHA | Files | What |
+|---|---|---|---|
+| **A1** ✅ | `9dbb06c` | `types.ts` · `parts/node-adapter.tsx` · `registries/canvas-context.tsx` · `flow-canvas-01.tsx` · `lib/update-node-data.ts` (new) · `index.ts` | Added `onEditRequest` (both surfaces) + ref-mirror plumbing in `flow-canvas-01.tsx` (F-V5 lock) + new `updateNodeData` helper |
+| **A2** ✅ | `55c630e` | `meta.ts` · `registry.json` · `public/r/flow-canvas-01.json` (regenerated) · `public/r/registry.json` | Version 0.2.0 → 0.2.1; registry.json gains `lib/update-node-data.ts` as `registry:component`; `pnpm registry:build` regen — verified artifact line 103 |
+| **A3** | (this commit) | `.claude/STATUS.md` · `.claude/decisions/2026-05-16-flow-canvas-v0.2.1-on-edit-request.md` (new) · `docs/component-versions.md` · this HANDOFF | Tracking update + decision file |
 
-The plan splits into two coordinated workstreams. Total estimated wall-clock: 1 long session OR 2 shorter sessions.
-
-### Workstream A — `flow-canvas-01@v0.2.1` patch (~1–2 hours)
-
-Additive patch, three+ file edits + meta bump + registry regen. **No GATE 3 review** (patch-bump exemption — additive, non-breaking, no public-API-touch-of-existing).
-
-| Commit | Files | What |
-|---|---|---|
-| **A1** | `types.ts` · `parts/node-adapter.tsx` · `registries/canvas-context.tsx` · `flow-canvas-01.tsx` · `lib/update-node-data.ts` (new) | Add `onEditRequest` (both surfaces) + ref-mirror plumbing in `flow-canvas-01.tsx` (F-V5 lock) + new `updateNodeData` helper |
-| **A2** | `meta.ts` · `registry.json` · `public/r/*.json` (regenerated) | Version 0.2.0 → 0.2.1; registry.json gains `lib/update-node-data.ts` as `registry:component`; `pnpm registry:build` regen |
-| **A3** | `.claude/STATUS.md` · `.claude/decisions/<date>-flow-canvas-v0.2.1-on-edit-request.md` (new) · `docs/component-versions.md` | Tracking update + decision file |
-
-**Push** Workstream A to origin (Vercel auto-deploys; `@ilinxa/flow-canvas-01@v0.2.1` becomes consumable).
+**Push at end of A3** — Vercel auto-deploys; `@ilinxa/flow-canvas-01@v0.2.1` becomes consumable.
 
 ### Workstream B — `rich-card-in-flow@v0.1.0` first ship (~4–6 hours)
 
@@ -80,31 +72,33 @@ New sealed folder. GATE 3 spot-check REQUIRED (Public API rotating dim). Smoke h
 | **Single-click trigger, not double-click** | F-07 | Matches n8n's gesture. v0.2 escape hatch via `editTrigger?: "click" \| "doubleClick"` if consumer signals. |
 | **`<div role="group">` outer + nested `<button>`s** | F-V1 | NOT a button-of-buttons (invalid HTML + double-click firing). Title strip and each subcard get their own `<button>`; outer is grouping role. |
 | **Smoke harness path-b is REQUIRED** | F-V2 | v0.1.0 first ship per readiness-review rule. Not skippable like v0.2.0's case. |
-| **Ref-mirror `onEditRequest` in flow-canvas-01.tsx** | F-V5 | Matches existing defensive posture in `use-canvas-data.ts` (which already ref-mirrors all consumer callbacks). Plan §4.3.1 + §4.3.2 spell out the exact wiring. |
+| **Ref-mirror `onEditRequest` in flow-canvas-01.tsx** | F-V5 | Matches existing defensive posture in `use-canvas-data.ts` (which already ref-mirrors all consumer callbacks). Plan §4.3.1 + §4.3.2 spell out the exact wiring. **Now SHIPPED in v0.2.1.** |
+| **`type RichCardCanvasNode = NodeData & RichCardJsonNode`** | F-V6 | `NodeRenderer<TData extends NodeData>` requires `__type: string` which `RichCardJsonNode` doesn't have. Intersection type defined in rich-card-in-flow's `types.ts`; re-exported from `index.ts`. Renderer is `NodeRenderer<RichCardCanvasNode>`; `data.ports` accessed directly (no `(data as NodeData)` cast). Subcards stay typed as `RichCardJsonNode` with `(card as NodeData).ports` cast at the subcard boundary. Precedent: `customJsonRenderer`'s `type CustomJsonData = NodeData & { _label?: string }` in [parts/custom-json-node.tsx:8](../src/registry/components/data/flow-canvas-01/parts/custom-json-node.tsx). |
 
 ## Files to read on resume (in order)
 
 1. **This file** — start here.
 2. [`.claude/STATUS.md`](STATUS.md) — current snapshot.
 3. [`docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-description.md`](../docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-description.md) — Stage 1 signed off, all 10 Qs locked.
-4. [`docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md`](../docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md) — Stage 2 approval-ready. Most important.
+4. [`docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md`](../docs/procomps/rich-card-in-flow-procomp/rich-card-in-flow-procomp-plan.md) — Stage 2 plan v3 signed off (GATE 2 closed). Most important for impl.
 5. [`docs/procomps/flow-canvas-01-procomp/flow-canvas-01-v0.2.0-perf-description.md`](../docs/procomps/flow-canvas-01-procomp/flow-canvas-01-v0.2.0-perf-description.md) — Q33 of this doc IS the popup-edit convention that rich-card-in-flow implements canonically.
-6. (When implementing) [`src/registry/components/data/flow-canvas-01/`](../src/registry/components/data/flow-canvas-01/) — the host source (v0.2.0 state).
-7. (When implementing) [`src/registry/components/data/rich-card/`](../src/registry/components/data/rich-card/) — the editor (v0.4.1 beta).
-8. (When implementing) [`src/registry/components/data/rich-card/types.ts`](../src/registry/components/data/rich-card/types.ts) for `RichCardJsonNode` + `RichCardProps` + `RichCardHandle` shapes.
+6. [`.claude/decisions/2026-05-16-flow-canvas-v0.2.1-on-edit-request.md`](decisions/2026-05-16-flow-canvas-v0.2.1-on-edit-request.md) — Workstream A decision file; explains the v0.2.1 API surface in detail.
+7. (When implementing) [`src/registry/components/data/flow-canvas-01/`](../src/registry/components/data/flow-canvas-01/) — the host source (v0.2.1 state now includes `onEditRequest` + `updateNodeData`).
+8. (When implementing) [`src/registry/components/data/rich-card/`](../src/registry/components/data/rich-card/) — the editor (v0.4.1 beta).
+9. (When implementing) [`src/registry/components/data/rich-card/types.ts`](../src/registry/components/data/rich-card/types.ts) for `RichCardJsonNode` + `RichCardProps` + `RichCardHandle` shapes.
 
-## Tree state at pause
+## Tree state post-Workstream A
 
-- 42 components, no new shipped this session beyond flow-canvas-01@v0.2.0 (which was a version bump, not a new component).
-- All recent commits clean: tsc + lint + validate-meta-deps + build all passing.
+- 42 components total; flow-canvas-01 bumped 0.2.0 → 0.2.1.
+- All recent commits clean: tsc + lint + validate-meta-deps + build + registry:build all passing.
 - Pre-existing virtualizer warnings (2) unchanged.
 - Untracked items kept out of commits (deliberate): `src/app/components/[slug]/_lib/` (auto-generated source-map).
 
-## Pre-existing v0.2.0 spotcheck follow-ups (separate from rich-card-in-flow)
+## Pre-existing v0.2.0 spotcheck follow-ups (NOT folded into v0.2.1)
 
-These are listed in STATUS.md Open decisions. They're v0.2.1 candidates for `flow-canvas-01`:
+These were tagged as v0.2.1 candidates pre-Workstream-A but v0.2.1 stayed minimal-scope (just the API addition). They're now **v0.2.2 candidates** for `flow-canvas-01`:
 - **F-01 (Med):** formal protocol-compliant post-Tier-1+2 measurement matrix deferred. Run 4 cells (light vis-on N=200/N=2000, heavy vis-on N=200/N=1000) per protocol §3; file as `research/<date>-tier2-postship.md`.
-- **F-02 (Low):** smoke harness path-b not run for v0.2.0.
+- **F-02 (Low):** smoke harness path-b not run for v0.2.0 OR v0.2.1.
 - **F-03 (Low):** `usage.tsx` "Deferred to v0.2" heading stale post-v0.2.0 ship.
 
 **These DO NOT block rich-card-in-flow.** They're separate work that can interleave or wait.
