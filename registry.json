@@ -1821,6 +1821,41 @@
       "files": [
         { "path": "src/registry/components/forms/json-form/dummy-data.ts", "type": "registry:component", "target": "components/json-form/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "rich-card-in-flow",
+      "type": "registry:block",
+      "title": "Rich Card in Flow",
+      "description": "Read-only RichCardViewer renderer for flow-canvas-01 nodes + consumer-owned-dialog pattern for editing rich-card content inside canvas nodes. Canonical implementation of the popup-edit renderer convention from flow-canvas-01@v0.2.0 perf description Q33. Cross-registry deps on @ilinxa/rich-card (editor) and @ilinxa/flow-canvas-01@^0.2.1 (host).",
+      "author": "ilinxa",
+      "categories": ["data", "flow", "rich-content"],
+      "registryDependencies": ["@ilinxa/rich-card", "@ilinxa/flow-canvas-01"],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/data/rich-card-in-flow/index.ts", "type": "registry:component", "target": "components/rich-card-in-flow/index.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/types.ts", "type": "registry:component", "target": "components/rich-card-in-flow/types.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/lib/derive-flat-fields.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/derive-flat-fields.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/lib/derive-title.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/derive-title.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/lib/enumerate-subcards.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/enumerate-subcards.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/lib/format-value.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/format-value.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/flat-field-strip.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/flat-field-strip.tsx" },
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/rich-card-viewer.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/rich-card-viewer.tsx" },
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/subcard-block.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/subcard-block.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "rich-card-in-flow-fixtures",
+      "type": "registry:block",
+      "title": "Rich Card in Flow — fixtures",
+      "description": "Rich Card in Flow bundle including the agent-workflow demo fixture (3 rich-card nodes + 1 custom-json audit-log node + connecting edges) used by the docs-site demo.",
+      "author": "ilinxa",
+      "categories": ["data", "flow", "rich-content", "fixtures"],
+      "registryDependencies": ["@ilinxa/rich-card-in-flow"],
+      "files": [
+        { "path": "src/registry/components/data/rich-card-in-flow/dummy-data.ts", "type": "registry:component", "target": "components/rich-card-in-flow/dummy-data.ts" }
+      ]
     }
   ]
 }
