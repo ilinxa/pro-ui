@@ -2,15 +2,15 @@
 
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
-> Snapshot date: **2026-05-16** (flow-canvas-01 v0.2.1 SHIPPED — Workstream A of rich-card-in-flow plan: additive `onEditRequest?: (nodeId, subPath?) => void` API on `FlowCanvasProps` + per-node-bound `onEditRequest?: (subPath?) => void` on `RenderContext` + new exported `updateNodeData(canvas, nodeId, nextData)` helper. F-V5 ref-mirror lock so consumer callback identity changes don't cascade. Patch-bump exemption — GATE 3 skipped, v0.2.0 verdict carries forward. Earlier today: v0.2.0 Tier 1 + Tier 2 perf bundle SHIPPED.)
-> Total: **42 components** across **8 categories**
+> Snapshot date: **2026-05-16** (**rich-card-in-flow v0.1.0 SHIPPED — Workstream B**: 43rd component, new sealed folder under `data/` category. Canonical implementation of the popup-edit renderer convention from flow-canvas-01@v0.2.0 perf description Q33: read-only `RichCardViewer` renderer + consumer-owned-dialog pattern; `RichCardCanvasNode = NodeData & RichCardJsonNode` intersection (F-V6 lock); subPath = rich-card `__rcid` + imperative `RichCardHandle.focusCard(id)` via ref (F-02 lock); F-V2 smoke harness path-b passed after F-S1 cross-procomp import fix-up cycle. GATE 3 Pass with follow-ups. Earlier today: flow-canvas-01 v0.2.1 SHIPPED — Workstream A: `onEditRequest` API + `updateNodeData` helper. Earlier today: v0.2.0 Tier 1 + Tier 2 perf bundle.)
+> Total: **43 components** across **8 categories**
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
 ## Summary
 
 | Category   | Count | Notes                                                                 |
 |------------|-------|-----------------------------------------------------------------------|
-| `data`     | 21    | Largest category; hosts the canonical `data-table` template + `stat-card` |
+| `data`     | 22    | Largest category; hosts the canonical `data-table` template + `stat-card` + new `rich-card-in-flow` (2026-05-16) |
 | `forms`    | 7     | `json-form` added 2026-05-13 (first cross-registry `dependencies.internal` consumer; lazy-loads `@ilinxa/code-block`) |
 | `marketing`| 4     |                                                                       |
 | `media`    | 4     | `pdf-viewer` added 2026-05-10                                         |
@@ -18,7 +18,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `layout`   | 2     |                                                                       |
 | `code`     | 1     | New category 2026-05-11 (`code-block`)                                |
 | `feedback` | 1     |                                                                       |
-| **Total**  | **42**|                                                                       |
+| **Total**  | **43**|                                                                       |
 
 ## Highlights
 
@@ -32,10 +32,11 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 - **All remaining components** sit at the initial v0.1.0 ship.
 - **New 2026-05-10:** `pdf-viewer` (media), `file-tree` (new `navigation` category), `file-manager` (navigation, composes file-tree + ships shared `@ilinxa/file-clipboard` primitive).
 - **New 2026-05-11:** `code-block` (new `code` category at order 9 — Shiki dual-theme + CodeMirror 6 + custom HighlightStyle; substrate for chat/markdown/rich-card/terminal surfaces).
+- **New 2026-05-16:** `rich-card-in-flow` (data; canonical implementation of flow-canvas-01@v0.2.0 perf description Q33's popup-edit renderer convention; cross-registry deps on `@ilinxa/rich-card` + `@ilinxa/flow-canvas-01@^0.2.1`; F-V2 smoke harness path-b PASS after F-S1 fix-up; GATE 3 Pass with follow-ups).
 - `force-graph` was **removed 2026-05-08** pending recreation under a new design + plan. v0.2 source + procomp docs archived to `docs/migrations/force-graph/`. The future v3 will go through the standard procomp planning pipeline.
 - `flow-canvas-01` v0.1.0 is feature-rich despite the version (39 files; renderers/portTypes/edgeTypes registries; typed-port validation; sub-object drag-extract; right-click menus; 200-node stress demo).
 
-## data (21)
+## data (22)
 
 | Slug                    | Name                       | Version | Status |
 |-------------------------|----------------------------|---------|--------|
@@ -60,6 +61,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `story-rail-01`         | Story Rail 01              | 0.2.0   | alpha  |
 | `thumb-list-01`         | Thumb List 01              | 0.1.0   | alpha  |
 | `stat-card`             | Stat Card                  | 0.1.1   | alpha  |
+| `rich-card-in-flow`     | Rich Card in Flow          | 0.1.0   | alpha  |
 
 ## forms (6)
 
