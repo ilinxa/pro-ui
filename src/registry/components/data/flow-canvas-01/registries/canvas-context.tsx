@@ -15,6 +15,11 @@ export type FlowCanvasContextValue = {
   readOnly: boolean;
   selectionMode: "single" | "multi";
   onNodeUpdate?: (node: NodeRecord) => void;
+  // v0.2.1 — bubbled up from a renderer's ctx.onEditRequest call.
+  // Identity is stabilized inside flow-canvas-01.tsx via ref-mirror so consumers
+  // passing inline `onEditRequest={...}` don't cascade re-renders across every
+  // NodeAdapter. Identity only flips on the wired/unwired transition.
+  onEditRequest?: (nodeId: string, subPath?: string) => void;
 };
 
 export const FlowCanvasContext = createContext<FlowCanvasContextValue | null>(

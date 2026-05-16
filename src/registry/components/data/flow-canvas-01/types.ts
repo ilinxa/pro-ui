@@ -55,6 +55,22 @@ export type RenderContext = {
   isDragging: boolean;
   isReadOnly: boolean;
   renderChild: (data: NodeData, opts?: { path?: string }) => ReactNode;
+
+  /**
+   * Fire from a renderer's click / keyboard-activate handler to request an
+   * edit-dialog open for the current node. v0.2.1 addition.
+   *
+   * - Bound to the renderer's current `nodeId` — renderers call it with NO
+   *   nodeId argument (the host already knows which node fired).
+   * - Optional `subPath` argument lets renderers signal sub-targeting (e.g.
+   *   a clicked subcard inside a rich-card viewer); the host forwards
+   *   `subPath` to `FlowCanvasProps.onEditRequest` verbatim.
+   * - `undefined` when the consumer hasn't wired `FlowCanvasProps.onEditRequest`.
+   *
+   * See the popup-edit renderer convention in the procomp guide §8.3 (v0.2.0
+   * docs) + the `rich-card-in-flow` procomp for the canonical implementation.
+   */
+  onEditRequest?: (subPath?: string) => void;
 };
 
 export type NodeRenderer<TData extends NodeData = NodeData> = {
@@ -168,6 +184,23 @@ export type FlowCanvasProps = {
    * layout measurement — rare).
    */
   onlyRenderVisibleElements?: boolean;
+
+  /**
+   * Fired when a renderer requests an edit-dialog open (typically click).
+   * v0.2.1 addition.
+   *
+   * - `nodeId` is the node firing the request.
+   * - `subPath` is an opaque renderer-defined string (e.g. a rich-card subcard's
+   *   `__rcid`) for sub-targeting; pass it through to your editor (e.g. via
+   *   `RichCardHandle.focusCard(subPath)` for the rich-card-in-flow case).
+   * - Leave `undefined` if you don't want edit affordances; renderers that
+   *   honor the convention will silently no-op (their `ctx.onEditRequest`
+   *   will be `undefined`).
+   *
+   * See the popup-edit renderer convention in the procomp guide §8.3 + the
+   * `rich-card-in-flow` procomp for the canonical consumer pattern.
+   */
+  onEditRequest?: (nodeId: string, subPath?: string) => void;
 
   exportRef?: Ref<FlowCanvasExportHandle>;
 

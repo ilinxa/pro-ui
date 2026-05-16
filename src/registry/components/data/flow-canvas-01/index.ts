@@ -46,3 +46,5 @@ export type { FoundPort } from "./lib/port-walker";
 
 export { emitSubObjectDrag } from "./lib/emit-sub-object-drag";
 
+export { updateNodeData } from "./lib/update-node-data";
+
