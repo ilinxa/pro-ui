@@ -1,6 +1,6 @@
 # `rich-card-in-flow` — Stage 2 Plan
 
-> **Stage:** 2 of 3 · **Status:** **Draft v2 — awaiting sign-off (GATE 2); approval-ready** · Re-validated 2026-05-16 (5 V-findings + 4 gap-scan fold-ins all resolved; indexed in §3.5)
+> **Stage:** 2 of 3 · **Status:** **v3 — Signed off 2026-05-16 (GATE 2 closed; implementation unlocked)** · Re-validated 2026-05-16 (6 V-findings + 4 gap-scan fold-ins all resolved; indexed in §3.5)
 > **Slug:** `rich-card-in-flow` · **Category:** `data`
 > **Inputs:** Stage 1 description signed off 2026-05-16 ([rich-card-in-flow-procomp-description.md](rich-card-in-flow-procomp-description.md), commit `4a9b5a3`). All 10 Qs locked. flow-canvas-01 currently at **v0.2.0** (commits `a6b3295`..`6587ef6`, shipped 2026-05-16) — the `onEditRequest` API has NOT yet landed; per Q5 it ships as `v0.2.1` patch, sequenced before rich-card-in-flow@v0.1.0.
 > **What this plan covers:** the **two coordinated workstreams** that together unlock rich-card content inside flow-canvas-01 nodes — `flow-canvas-01@v0.2.1` (small additive API patch) AND `rich-card-in-flow@v0.1.0` (new procomp). The two ship sequentially in close succession; v0.2.1 first, rich-card-in-flow second.
@@ -110,7 +110,7 @@ The viewer's `enumerateSubcards` + per-subcard `<PortsAt>` emit ports with their
 
 ### 3.5 Plan re-validation findings (V-series, 2026-05-16)
 
-Two-pass self-validation against current code state — initial draft pass surfaced F-V1/F-V2/F-V3; deeper post-draft pass against actual source files surfaced F-V4/F-V5. **Five findings total** (memory says 3–5 typical for Stage 2; this plan came in at the upper end after the careful source verification).
+Three-pass self-validation against current code state — initial draft pass surfaced F-V1/F-V2/F-V3; deeper post-draft pass against actual source files surfaced F-V4/F-V5; a third pre-approval review pass against the typed-generic surface of `NodeRenderer` surfaced F-V6. **Six findings total** (memory says 3–5 typical for Stage 2; this plan came in slightly above after the careful source verification — the extra surfaced an objective tsc blocker, well worth the pass).
 
 | ID | Severity | Resolved in | One-line summary |
 |---|---|---|---|
@@ -119,6 +119,7 @@ Two-pass self-validation against current code state — initial draft pass surfa
 | **F-V3** | 🔹 Low | §10 Impl-time | `dependencies.internal` in `rich-card-in-flow/meta.ts` declares `["rich-card", "flow-canvas-01"]`. The `validate-meta-deps` script will verify both cross-registry imports resolve; precedent: `json-form@v0.1.0` was the first procomp to use `dependencies.internal`. The script's "internal-registry slug" detector handles the `@/registry/components/<cat>/<slug>` pattern in source imports. Verify behavior at impl time. |
 | **F-V4** | 🔸 Med | §4.3.1 (NEW — `flow-canvas-01.tsx` wiring) | Plan §4.3 mentioned threading `onEditRequest` through canvas-context "terse" — but the actual wiring needs to land in [`flow-canvas-01.tsx`](../../../src/registry/components/data/flow-canvas-01/flow-canvas-01.tsx) (lines 34–53), which is where the canvas-context `useMemo` is built. Added a dedicated §4.3.1 sub-step documenting the exact edit. The Canvas component itself does NOT need to know about `onEditRequest` (it's context-only, like `renderers`). |
 | **F-V5** | 🔸 Med | §4.3.2 (NEW — consumer callback ref-mirror) | The existing pattern in [`use-canvas-data.ts`](../../../src/registry/components/data/flow-canvas-01/hooks/use-canvas-data.ts) ref-mirrors all consumer callbacks (`onChangeRef`, `onBeforeConnectRef`, etc.) so the canvas's internal callbacks stay stable even when consumers pass fresh function identities each render. `onEditRequest` flows through canvas-context (not `useCanvasData`), so it bypasses this defense — every render where the consumer passes a fresh `onEditRequest` would invalidate the context memo + cause ALL `NodeAdapter`s to re-render. Lock: ref-mirror `onEditRequest` inside `flow-canvas-01.tsx`; pass a STABLE wrapped callback through to context. Matches the existing project posture (ref-mirror consumer callbacks defensively; don't trust consumer `useCallback`). |
+| **F-V6** | 🚫 Blocker | §5.2 (renderer typing) + §5.7 (new `RichCardCanvasNode` intersection type) + §5.8 (barrel re-export) | The plan originally typed the renderer as `NodeRenderer<RichCardJsonNode>`. `NodeRenderer<TData extends NodeData = NodeData>` ([flow-canvas-01/types.ts:60](../../../src/registry/components/data/flow-canvas-01/types.ts)) constrains `TData` to extend `NodeData` ([flow-canvas-01/types.ts:19](../../../src/registry/components/data/flow-canvas-01/types.ts)), which requires `__type: string`. `RichCardJsonNode` ([rich-card/types.ts:49](../../../src/registry/components/data/rich-card/types.ts)) has only optional `__rcid?`/`__rcorder?`/`__rcmeta?` + index signature — `__type` is NOT required. tsc would error: *"Property '__type' is missing in type 'RichCardJsonNode' but required in type 'NodeData'."* Established precedent in [`parts/custom-json-node.tsx:8`](../../../src/registry/components/data/flow-canvas-01/parts/custom-json-node.tsx) uses intersection: `type CustomJsonData = NodeData & { _label?: string }`. **Lock:** define `type RichCardCanvasNode = NodeData & RichCardJsonNode` in `rich-card-in-flow/types.ts`; type the renderer as `NodeRenderer<RichCardCanvasNode>`. Renderer body can then read `data.ports`, `data.__rcid`, etc. directly without the `(data as NodeData)` cast. Subcards stay typed as `RichCardJsonNode` (legit — they're inner tree nodes, not flow-canvas nodes, and may not have `__type`); the `(card as NodeData).ports` cast at the subcard boundary is structurally sound (NodeData → RichCardJsonNode via the index signature) and stays. Re-export `RichCardCanvasNode` from `index.ts` so consumers can type their `CanvasData.nodes[].data` correctly. |
 
 **Gap-scan fold-ins (2026-05-16, post-draft pass):** four additional gaps surfaced from a deeper source-verification pass against current state. All folded into the plan in place:
 
@@ -372,14 +373,14 @@ The exported `NodeRenderer<RichCardJsonNode>`:
 "use client";
 
 import { memo } from "react";
-import type { NodeRenderer, RenderContext, NodeData } from "@/registry/components/data/flow-canvas-01";
+import type { NodeRenderer, RenderContext } from "@/registry/components/data/flow-canvas-01";
 import { PortsAt } from "@/registry/components/data/flow-canvas-01";
-import type { RichCardJsonNode } from "@/registry/components/data/rich-card";
 import { enumerateSubcards } from "../lib/enumerate-subcards";
 import { deriveTitle } from "../lib/derive-title";
 import { deriveFlatFields } from "../lib/derive-flat-fields";
 import { SubcardBlock } from "./subcard-block";
 import { FlatFieldStrip } from "./flat-field-strip";
+import type { RichCardCanvasNode } from "../types";
 
 // Locked constants (Q6) — v0.2 may open these as RichCardViewerOptions.
 const MAX_FLAT_FIELDS = 3;
@@ -390,13 +391,13 @@ function RichCardViewerImpl({
   data,
   ctx,
 }: {
-  data: RichCardJsonNode;
+  data: RichCardCanvasNode;
   ctx: RenderContext;
 }) {
   const title = deriveTitle(data);
   const flatFields = deriveFlatFields(data, MAX_FLAT_FIELDS);
   const subcards = enumerateSubcards(data).slice(0, MAX_NESTED_OUTLINES);
-  const ports = (data as NodeData).ports;  // root-level ports
+  const ports = data.ports;  // root-level ports — typed via RichCardCanvasNode (F-V6 lock)
 
   return (
     <div
@@ -444,7 +445,11 @@ function RichCardViewerImpl({
 
 const RichCardViewer = memo(RichCardViewerImpl);
 
-export const richCardViewerRenderer: NodeRenderer<RichCardJsonNode> = {
+// F-V6 lock: `NodeRenderer<TData extends NodeData>` requires TData to extend NodeData
+// (which requires `__type: string`). RichCardJsonNode alone does NOT satisfy that
+// constraint — see §5.7 + §3.5 F-V6. RichCardCanvasNode = NodeData & RichCardJsonNode
+// is the type that flows into flow-canvas-01's renderer registry.
+export const richCardViewerRenderer: NodeRenderer<RichCardCanvasNode> = {
   type: "rich-card",
   label: "Rich card",
   render: (data, ctx) => <RichCardViewer data={data} ctx={ctx} />,
@@ -573,30 +578,38 @@ Simple component — a `<dl>` (definition list) with `key: value` pairs, type-aw
 ### 5.7 `types.ts` (the procomp's own)
 
 ```ts
+import type { NodeData } from "@/registry/components/data/flow-canvas-01";
+import type { RichCardJsonNode } from "@/registry/components/data/rich-card";
+
 // Public type re-exports for consumer convenience (per Stage 1 §3 "Type re-exports" in-scope)
 export type { RichCardJsonNode } from "@/registry/components/data/rich-card";
 
-// Future v0.2 options stub — not exported as part of v0.1 public API;
-// kept as a private type so the v0.2 addition is purely additive (won't be a breaking change).
-// Open the type up + add a factory function in v0.2 when a real consumer asks.
-type _RichCardViewerOptions_v02_stub = {
-  maxFlatFields?: number;
-  maxNestedOutlines?: number;
-  nestedDepth?: number;
-  titleField?: string | ((data: import("@/registry/components/data/rich-card").RichCardJsonNode) => string);
-  fieldKeys?: string[];
-  editTrigger?: "click" | "doubleClick";
-};
-void {} as _RichCardViewerOptions_v02_stub;  // suppress unused warning (Q6 v0.2 stub only)
+/**
+ * The canvas-node form of a rich-card tree — intersection of `NodeData` (which
+ * the renderer registry requires; `__type: string` + optional `ports?: Port[]`)
+ * with rich-card's open-shape `RichCardJsonNode` (`__rcid?` / `__rcorder?` /
+ * `__rcmeta?` + index signature).
+ *
+ * Consumers writing typed canvas data should type their rich-card-bearing nodes
+ * as `NodeRecord & { data: RichCardCanvasNode }`. The renderer is registered as
+ * `NodeRenderer<RichCardCanvasNode>` (see parts/rich-card-viewer.tsx).
+ *
+ * F-V6 lock — see procomp plan §3.5 + §5.2. Precedent: `customJsonRenderer`'s
+ * `type CustomJsonData = NodeData & { _label?: string }` in flow-canvas-01.
+ */
+export type RichCardCanvasNode = NodeData & RichCardJsonNode;
 ```
+
+**Note on the dropped v0.2 stub:** the original draft included a `_RichCardViewerOptions_v02_stub` type with a `void {} as ...` suppression. The cast pattern was fragile (operator precedence yields `(void {}) as TYPE` → `undefined as TYPE`, which strict TS rejects). YAGNI applies — the v0.2 options surface lands when v0.2 work begins. Keep this `types.ts` minimal for v0.1.
 
 ### 5.8 `index.ts` — public barrel
 
 ```ts
 export { richCardViewerRenderer } from "./parts/rich-card-viewer";
 
-// Type re-export for consumers writing typed canvas data
+// Type re-exports for consumers writing typed canvas data
 export type { RichCardJsonNode } from "@/registry/components/data/rich-card";
+export type { RichCardCanvasNode } from "./types";  // F-V6 lock — canvas-node form
 
 // Optional helper re-export (sourced from flow-canvas-01@v0.2.1's lib;
 // re-exported here for ergonomic consumer DX — one import for the whole flow).
@@ -795,8 +808,8 @@ Two workstreams; A unblocks B. Commits stay small and reviewable.
 
 - **Impl-time** (F-V2 lock) — smoke harness path-b MUST run before push for rich-card-in-flow@v0.1.0. Use the harness at `e:/tmp/ilinxa-smoke-consumer/` (per project_smoke_harness memory). Run against locally-served `public/r/rich-card-in-flow.json`; consumer-side `pnpm tsc --noEmit` clean post-install is the bar.
 - **Impl-time** (F-V3 lock) — `dependencies.internal: ["rich-card", "flow-canvas-01"]` in `meta.ts`; verify `validate:meta-deps` accepts both. The `flow-canvas-01` dep is for the relative TS imports (`@/registry/components/data/flow-canvas-01`); the script's "internal-registry slug" detector should recognize it via the existing pattern.
-- **Impl-time** — when scaffolding the procomp, do NOT re-export `enumerate-subcards.ts` / `derive-*.ts` / `format-value.ts` from `index.ts`. They're internal helpers; only the renderer + type re-export + helper re-exports go in the barrel.
-- **Impl-time** — the `RichCardViewerOptions` v0.2 stub type in `types.ts` (§5.7) should be marked clearly as "v0.2 forward-compat placeholder" with a `_` prefix and `void {} as ...` suppression. NOT exported.
+- **Impl-time** — when scaffolding the procomp, do NOT re-export `enumerate-subcards.ts` / `derive-*.ts` / `format-value.ts` from `index.ts`. They're internal helpers; only the renderer + type re-exports + helper re-exports go in the barrel. **Why kept private (F-rev-3 lock):** `enumerateSubcards`'s signature depends on the `isCardLike` heuristic (F-04), which is explicitly marked for tightening in v0.2 if rich-card ships a canonical "is-card" predicate. Exporting now then changing the signature later = breaking change for consumers writing custom rich-card renderers on top of this procomp. **Revisit trigger:** v0.2 when (a) the configurable options surface lands AND (b) the `isCardLike` predicate stabilizes, OR a real consumer asks for it.
+- **Impl-time** (F-V6 lock) — the renderer is typed `NodeRenderer<RichCardCanvasNode>` where `RichCardCanvasNode = NodeData & RichCardJsonNode` (defined in `types.ts` per §5.7). Re-exported from `index.ts` so consumers can type `CanvasData.nodes[].data` correctly. The renderer body reads `data.ports` directly (no `(data as NodeData)` cast). Subcards stay typed as `RichCardJsonNode` and use the existing `(card as NodeData).ports` cast at the subcard boundary.
 - **Impl-time** — when authoring `demo.tsx`, the imperative `focusCard` wiring example matters — it's the single most important thing for consumers. Include comments noting "this is the locked F-02 pattern; see plan + procomp guide for why."
 - **Impl-time** — Stage 3 procomp guide (`rich-card-in-flow-procomp-guide.md`) sections to include: 1. Architecture, 2. Quick start (consumer wiring), 3. The dialog pattern (canonical example), 4. subPath model (`__rcid`-based), 5. Multi-select support (Q3 lock note), 6. Subcard limits (NESTED_DEPTH=1; MAX_FLAT_FIELDS=3), 7. Footguns (nested-button trap, port-uniqueness, missing-__rcid behavior), 8. Migration (none for v0.1; for v0.2 the configurable-knobs path).
 - **Impl-time** — when authoring the `updateNodeData` helper, type it strictly: `nextData: NodeData` (not `RichCardJsonNode`) — the helper is generic across all renderer types, not rich-card-specific. The procomp guide's example casts at the call site (`updateNodeData(prev, editingNodeId, next as NodeData)`).
@@ -814,6 +827,7 @@ The plan is "done" — i.e., both Workstreams implemented + GATE 3 review passed
 3. **§3 F-01 / F-02 / F-03 / F-04 / F-05 / F-06 / F-07 locks honored** in code (verifiable via spot-check review).
 4. **F-V1 nested-button avoided** — `RichCardViewer` outer element is `<div role="group">`; per-subcard `<button>`; title strip `<button>`. NOT a button-of-buttons.
 5. **F-V2 smoke harness path-b** runs clean: `pnpm dlx shadcn add @ilinxa/rich-card-in-flow` succeeds; consumer-side `pnpm tsc --noEmit` clean post-install.
+5a. **F-V6 renderer typing honored** — `types.ts` defines `export type RichCardCanvasNode = NodeData & RichCardJsonNode`; `index.ts` re-exports it; the renderer is `NodeRenderer<RichCardCanvasNode>`; `data.ports` is accessed directly (no `(data as NodeData)` cast inside the renderer body).
 6. **`meta.ts` declares** `version: "0.1.0"`, `status: "alpha"`, `dependencies.internal: ["rich-card", "flow-canvas-01"]`.
 7. **`registry.json` includes** both `rich-card-in-flow` (base) and `rich-card-in-flow-fixtures` items.
 8. **`pnpm tsc --noEmit && pnpm lint && pnpm validate:meta-deps` clean** (43/43 once this ships — flow-canvas-01@v0.2.1's `update-node-data.ts` doesn't trigger a count change).
