@@ -53,7 +53,7 @@ function NodeAdapterImpl(props: NodeProps) {
   };
 
   return (
-    <NodeShell isSelected={!!selected} isLocked={draggable === false}>
+    <NodeShell isLocked={draggable === false}>
       {renderer.render(nodeData, ctx)}
     </NodeShell>
   );
