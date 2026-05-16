@@ -1,7 +1,6 @@
-# HANDOFF — rich-card-in-flow Workstream B (flow-canvas-01@v0.2.1 SHIPPED, B remaining), 2026-05-16
+# HANDOFF — rich-card-in-flow workstream (FROZEN — both workstreams SHIPPED 2026-05-16)
 
-> **Read this first** when resuming work on rich-card-in-flow@v0.1.0 first ship.
-> Locations referenced are relative to repo root.
+> **STATUS: HISTORICAL/FROZEN.** Workstream A `flow-canvas-01@v0.2.1` + Workstream B `rich-card-in-flow@v0.1.0` BOTH SHIPPED 2026-05-16. This handoff is preserved as a record of the planning + ship narrative. For current state, read [`.claude/STATUS.md`](STATUS.md). For the v0.1.0 ship details, read [`.claude/decisions/2026-05-16-rich-card-in-flow-v0.1.0-first-ship.md`](decisions/2026-05-16-rich-card-in-flow-v0.1.0-first-ship.md).
 
 ## TL;DR — exactly where we are
 
