@@ -34,7 +34,7 @@ export const meta: ComponentMeta = {
     "edges",
   ],
 
-  version: "0.2.2",
+  version: "0.2.3",
   status: "alpha",
   createdAt: "2026-05-06",
   updatedAt: "2026-05-16",
