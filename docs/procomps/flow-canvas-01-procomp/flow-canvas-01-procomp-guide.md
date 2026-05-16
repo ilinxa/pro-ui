@@ -1,8 +1,8 @@
 # `flow-canvas-01` — Pro-component Guide (Stage 3)
 
 > **Stage:** 3 of 3 · **Status:** Living — grows with each milestone
-> **Slug:** `flow-canvas-01` · **Category:** `data` · **Version:** `0.1.0-alpha (M1–M9 shipped — ready for first-consumer testing)`
-> **Authoring rule:** every section here describes what is **actually shipped** in v0.1.0-alpha. Items deferred to v0.2 or later are flagged inline. The plan-stage shape (locked decisions Q1–Q24) lives in [the plan doc](flow-canvas-01-procomp-plan.md).
+> **Slug:** `flow-canvas-01` · **Category:** `data` · **Version:** `0.2.0-alpha (M1–M9 + v0.1.4 patch + v0.2.0 Tier 1+2 perf bundle shipped)`
+> **Authoring rule:** every section here describes what is **actually shipped**. Items deferred (Tier 3 / canvas edge overlay / LOD → v0.3.0; minimap / undo-redo / marquee → v0.2 non-perf candidates) are flagged inline. The plan-stage shape (locked decisions Q1–Q24 for v0.1, Q25–Q35 for v0.2 perf) lives in [the v0.1.x plan doc](flow-canvas-01-procomp-plan.md) and [the v0.2.0 plan doc](flow-canvas-01-v0.2.0-procomp-plan.md).
 
 The procomp-guide is the consumer-facing usage reference. It is wider than `usage.tsx` (which renders inside the docs site) and goes deeper on rationale, footguns, and stack-specific integration. It is the source of truth for "how to use `<FlowCanvas />` correctly."
 
@@ -463,7 +463,78 @@ Sub-object extract relies on two agreeing places: the renderer marks draggable s
 
 ---
 
-## 8. Migration
+## 8. Performance & scale
+
+`v0.2.0` ships a Tier 1 + Tier 2 perf bundle that raises the practical ceiling of `<FlowCanvas>` from ~200 nodes (the v0.1 stress target) to comfortably **1,000+ nodes (light renderers)** and **5,000+ nodes (heavy renderers with viewport culling)** — directional, measured on the [sandbox stress page](../../../src/app/sandbox/flow-stress/) and tracked in [`research/`](research/). Beyond that ceiling is the territory of the future `graph-canvas-01` sibling procomp (Tier 4 — out of `flow-canvas-01`'s scope; see the [v0.2.0 perf description §4.4](flow-canvas-01-v0.2.0-perf-description.md#44-tier-4--beyond-xyflow-not-in-flow-canvas-01)).
+
+### 8.1 What `v0.2.0` changed
+
+Two consumer-visible deltas (also recorded in the v0.2.0 decision file under [`.claude/decisions/`](../../../.claude/decisions/)):
+
+- **`FlowCanvasProps.onlyRenderVisibleElements` now defaults to `true`.** xyflow culls nodes + edges outside the viewport before rendering — transforms perf at large N (~12× FPS lift at N=5000 heavy on one measured machine). Pass `={false}` to opt out — only needed if your code relies on offscreen-node DOM (rare; e.g. layout measurement of nodes outside the viewport).
+- **`onChange` no longer fires on every drag tick — only on drag-end.** Mid-drag position-only changes are suppressed; `onNodeDragStop` flushes one final fire with the committed state. Mixed batches (e.g. position + dimensions in the same xyflow change set) still fire immediately. Reduces consumer-callback overhead by ~50% at N=1000. If you depend on per-tick fires (autosave during drag, real-time collab broadcast), either (a) debounce on the receiving side as before — unchanged on the wire, just received at drag-end instead of intermediate ticks — or (b) wire to xyflow's `onNodeDrag` callback for per-tick granularity. File an issue if neither path works.
+
+Internal improvements (no API surface): `DefaultEdge`'s xyflow store selector uses a narrow `portEqual` comparator (no re-renders on unrelated `nodeLookup` updates); selection-ring **visual** decoupled from React rendering — now driven by xyflow's `.react-flow__node.selected` CSS class via the sealed-folder `flow-canvas-01.css`. React reconciliation on selection is unchanged; the win is visual resilience (the ring applies even under React batching pressure) + a cleaner `<NodeShell>` contract.
+
+### 8.2 Custom edge selection state (renderer-author rule)
+
+**If you need to react to source or target node selection inside a custom edge renderer, query xyflow's store via `useStore`, NOT via per-edge React state.**
+
+```ts
+import { useStore } from "@xyflow/react";
+
+function MyCustomEdge(props: EdgeProps) {
+  const sourceSelected = useStore(
+    (s) => s.nodeLookup.get(props.source)?.selected ?? false,
+  );
+  // ...stroke / dash / hover style based on sourceSelected
+}
+```
+
+Per-edge React state would re-render every edge on every selection change in the canvas (cascades into reconciliation at scale). xyflow's store is the reactive surface xyflow itself uses — its updates are batched and only the edges whose selector slice actually changed will re-render. Cited from the xyflow team's own perf recommendations ([discussion #4975](https://github.com/xyflow/xyflow/discussions/4975)).
+
+The built-in `DefaultEdge` follows this rule — see `parts/default-edge.tsx`'s `useStore(selector, portEqual)` call. **Pass an equality function as `useStore`'s second arg when your selector returns an object shape**, so identity-equal updates don't trigger re-renders. The sealed-folder `lib/shallow.ts` exports a zero-dep `shallow` helper for the generic case; a narrower comparator (like `portEqual`) is lighter when you know the exact shape you're returning.
+
+### 8.3 Popup-edit renderer convention
+
+**Heavy editable content (rich-text editors, code editors, multi-line forms) should live in a consumer-owned dialog opened on click, NOT inline in the node renderer.**
+
+```ts
+const MyEditableNode: NodeRenderer = {
+  type: "my-card",
+  render: (data, ctx) => (
+    <button
+      type="button"
+      onClick={() => myEditDialog.open(ctx.nodeId)}  // consumer-owned dialog
+      className="..."
+    >
+      {/* read-only display only — no editor inside */}
+      <h3>{(data as MyCardData).title}</h3>
+      <p>{(data as MyCardData).summary}</p>
+      {/* handles still go here */}
+      <PortsAt ports={data.ports} position="left" />
+      <PortsAt ports={data.ports} position="right" />
+    </button>
+  ),
+};
+```
+
+The perf reason: even with viewport culling on, an inline editor mounts its full state machine (Plate, CodeMirror, etc.) per node — at N=200 that's 200 editor instances allocated, listening to keyboard, holding undo stacks. Putting the editor in a single dialog instance scopes that cost to the one node being edited.
+
+The first canonical consumer of this convention will be the `rich-card-in-flow` system (parallel track to v0.2.0 — see `docs/procomps/rich-card-in-flow-procomp/` once published). A future v0.3.0 `RenderContext.onEditRequest?.(nodeId)` slot may formalize the click-to-edit affordance, but for v0.2.0 the consumer-side `onClick` handler is the contract.
+
+### 8.4 Measuring
+
+For any non-trivial perf claim or regression triage, follow the protocol at [`research/2026-05-14-measurement-protocol.md`](research/2026-05-14-measurement-protocol.md). The sandbox stress page at `/sandbox/flow-stress` (source: [`src/app/sandbox/flow-stress/`](../../../src/app/sandbox/flow-stress/)) is the substrate — URL params (`?n=…&fixture=light|heavy&visible=on|off`) toggle the matrix cells without rebuilding.
+
+Two rules from the perf-bug hunt that drove `v0.1.4` + `v0.2.0`:
+
+1. **Investigate visually-rendered output before guessing at React internals.** A screenshot + console scan beats reading code for "what's wrong with this canvas." (The `v0.1.4` missing-handles bug was visible in the DOM from day one; several speculative patches chased phantoms first.)
+2. **The on-page FPS overlay is a smell test, not a measurement.** A 1-second rolling average can show 50 FPS while individual frames stutter at 100–200 ms — feels terrible, looks fine on the overlay. Trust Chrome DevTools Performance traces; trust your eyes when the overlay disagrees.
+
+---
+
+## 9. Migration
 
 Until v0.1 stabilizes, every milestone may reshape the API. Migrations from M(n) → M(n+1) are documented per release in `STATUS.md` "Recent decisions".
 
@@ -477,7 +548,7 @@ For consumers porting from another canvas library:
 
 ---
 
-## 9. FAQ
+## 10. FAQ
 
 **Q: Can I render any React component as a node?**
 A: Yes — register it as a `NodeRenderer`:
@@ -511,7 +582,7 @@ A: Yes — each instance has its own `ReactFlowProvider`. Drag-from-A-to-B is **
 
 ---
 
-## 10. Where things live
+## 11. Where things live
 
 | Concern | File |
 |---|---|
@@ -527,7 +598,7 @@ A: Yes — each instance has its own `ReactFlowProvider`. Drag-from-A-to-B is **
 
 ---
 
-## 11. Where to file issues
+## 12. Where to file issues
 
 - For component issues: `STATUS.md` "Recent decisions" log + a discussion in the PR thread for the milestone.
 - For xyflow-substrate issues (the underlying library): [github.com/xyflow/xyflow/issues](https://github.com/xyflow/xyflow/issues). Our component does not patch xyflow internals.
