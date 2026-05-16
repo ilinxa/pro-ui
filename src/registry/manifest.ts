@@ -166,6 +166,10 @@ import JsonFormDemo from "./components/forms/json-form/demo";
 import JsonFormUsage from "./components/forms/json-form/usage";
 import { meta as jsonFormMeta } from "./components/forms/json-form/meta";
 
+import RichCardInFlowDemo from "./components/data/rich-card-in-flow/demo";
+import RichCardInFlowUsage from "./components/data/rich-card-in-flow/usage";
+import { meta as richCardInFlowMeta } from "./components/data/rich-card-in-flow/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -384,6 +388,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: jsonFormMeta,
     Demo: JsonFormDemo,
     Usage: JsonFormUsage,
+  },
+  {
+    meta: richCardInFlowMeta,
+    Demo: RichCardInFlowDemo,
+    Usage: RichCardInFlowUsage,
   },
 ];
 
