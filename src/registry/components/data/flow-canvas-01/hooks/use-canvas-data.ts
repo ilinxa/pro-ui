@@ -116,6 +116,16 @@ function fromXyEdge(e: XyEdge): EdgeRecord {
 // through NodeRecord cleanly. O(N) over nodes + edges; short-circuits on
 // first mismatch. Fast enough for controlled-mode consumers at N up to a few
 // thousand; for larger canvases, prefer `defaultData` (uncontrolled).
+//
+// v0.2.4 — this check alone wasn't sufficient against the stale-snapshot
+// race: mid-drag mixed batches (position + dimensions) queued microtasks
+// whose snapshots fell behind further drag ticks, causing this check to
+// fail on legitimate divergence and trigger wholesale replace anyway. The
+// v0.2.4 fix is in onNodesChange + fireOnChange: suppress ALL onChange
+// notifications during drag (not just position-only), and have queued
+// microtasks bail at fire time if a drag started after they were queued.
+// The check below is still load-bearing for the non-drag round-trip path
+// (e.g. consumer applies an unrelated state update during steady state).
 function canvasMatchesInternalState(
   data: CanvasData,
   internalNodes: XyNode<XyNodeData>[],
@@ -133,7 +143,7 @@ function canvasMatchesInternalState(
     if (dn.id !== xn.id) return false;
     if (dn.position.x !== xn.position.x) return false;
     if (dn.position.y !== xn.position.y) return false;
-    if (dn.data !== xn.data) return false; // ref check — same object if no edit
+    if (dn.data !== xn.data) return false;
   }
   for (let i = 0; i < data.edges.length; i++) {
     const de = data.edges[i];
@@ -155,9 +165,10 @@ export type UseCanvasDataResult = {
   onEdgesChange: (changes: EdgeChange<XyEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   // Drag lifecycle — bind to <ReactFlow>'s onNodeDragStart/onNodeDragStop
-  // props. During a drag the per-tick onChange is suppressed (position-only
-  // changes are batched); onNodeDragStop flushes a single final fire with
-  // the committed state. Internal only — not re-exported from index.ts.
+  // props. During a drag, ALL consumer onChange notifications are suppressed
+  // (v0.2.4 widened from v0.2.0's position-only short-circuit); onNodeDragStop
+  // flushes a single authoritative fire with the committed post-drag state.
+  // Internal only — not re-exported from index.ts.
   onNodeDragStart: () => void;
   onNodeDragStop: () => void;
   // Snapshot in our CanvasData shape (used by exportRef + viewport setters)
@@ -229,9 +240,13 @@ export function useCanvasData({
   const edgesRef = useRef(internalEdges);
   const viewportRef = useRef(viewport);
   // Drag-lifecycle ref — flipped true between xyflow's onNodeDragStart and
-  // onNodeDragStop. While true, the position-only onNodesChange path skips
-  // the consumer onChange (per-tick suppression); onNodeDragStop flushes
-  // one final fire with the committed state. v0.2.0 Tier 1 perf change.
+  // onNodeDragStop. While true, `onNodesChange` suppresses ALL consumer
+  // onChange notifications (v0.2.4 widened this from v0.2.0's position-only
+  // short-circuit — see the v0.2.4 lock comment on `onNodesChange` below).
+  // `fireOnChange`'s microtask body also checks this ref at fire time to
+  // drop pre-drag snapshots that would otherwise round-trip during drag.
+  // `onNodeDragStop` flushes a single authoritative fire with the committed
+  // post-drag state.
   const isDraggingRef = useRef(false);
   useEffect(() => {
     nodesRef.current = internalNodes;
@@ -334,6 +349,14 @@ export function useCanvasData({
       vp: CanvasData["viewport"],
     ) => {
       queueMicrotask(() => {
+        // v0.2.4 lock — drop the microtask if a drag started between queue
+        // and fire. The captured `nodes` snapshot is from pre-drag (or an
+        // earlier drag tick) and is necessarily stale vs internal state by
+        // microtask time; sending it round-trips a stale data prop that the
+        // structural-equality check rejects → wholesale replace → measured
+        // wiped → xyflow #015. onNodeDragStop fires the authoritative post-
+        // drag snapshot.
+        if (isDraggingRef.current) return;
         const cb = onChangeRef.current;
         if (!cb) return;
         cb({
@@ -351,15 +374,16 @@ export function useCanvasData({
     (changes: NodeChange<XyNode<XyNodeData>>[]) => {
       setInternalNodes((prev) => {
         const next = applyNodeChanges(changes, prev);
-        // Skip the per-tick consumer callback during continuous drag IF all
-        // changes in this batch are position changes. onNodeDragStop flushes
-        // a single final fire when the drag ends. Mixed batches (e.g.
-        // position + dimensions) still fire immediately so a consumer's
-        // measurement-driven layout effect can't be silently delayed.
-        const isAllPositionChanges = changes.every((c) => c.type === "position");
-        if (isDraggingRef.current && isAllPositionChanges) {
-          return next;
-        }
+        // v0.2.4 lock — suppress ALL consumer onChange notifications during
+        // drag, not just position-only batches. Mid-drag mixed batches
+        // (position + dimensions for non-dragged nodes during multi-select
+        // or auto-layout resize) used to slip through, queue a microtask
+        // with a snapshot, and by the time the microtask ran, further drag
+        // ticks had moved internal state on. The stale snapshot round-
+        // tripped through the consumer, failed structural-equality, and
+        // triggered wholesale replace → xyflow #015. onNodeDragStop flushes
+        // a single authoritative fire at drag end.
+        if (isDraggingRef.current) return next;
         fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
@@ -368,10 +392,11 @@ export function useCanvasData({
   );
 
   // Drag-lifecycle callbacks — wired to <ReactFlow>'s onNodeDragStart /
-  // onNodeDragStop props in canvas.tsx. The pair plus the position-only
-  // short-circuit above implement description §4.1 Change #2 + #3 (batch
-  // per-tick consumer fires during drag; skip the full re-map at end-of-drag
-  // when only positions changed).
+  // onNodeDragStop props in canvas.tsx. The pair plus the v0.2.4 drag-time
+  // suppression in `onNodesChange` and the microtask drag-guard in
+  // `fireOnChange` together implement the description §4.1 Change #2 + #3
+  // intent (no per-tick consumer fires during drag; single authoritative
+  // fire at drag end), widened in v0.2.4 to cover mixed batches too.
   const onNodeDragStart = useCallback(() => {
     isDraggingRef.current = true;
   }, []);
