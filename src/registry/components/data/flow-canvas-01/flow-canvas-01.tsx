@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Canvas } from "./parts/canvas";
 import {
@@ -38,8 +38,32 @@ export function FlowCanvas({
   readOnly = false,
   selectionMode = "multi",
   onNodeUpdate,
+  onEditRequest,
   ...rest
 }: FlowCanvasProps) {
+  // v0.2.1 — ref-mirror consumer's onEditRequest so its identity changing
+  // doesn't invalidate the canvas-context memo on every render. Matches the
+  // existing defensive posture in use-canvas-data.ts (which ref-mirrors
+  // onChange / onBeforeConnect / etc.). Plan §4.3.2 (F-V5 lock).
+  const onEditRequestRef = useRef(onEditRequest);
+  useEffect(() => {
+    onEditRequestRef.current = onEditRequest;
+  });
+
+  // Stable wrapper — identity flips ONLY when consumer transitions between
+  // wired and unwired states, not when they pass a fresh function identity
+  // each render. Common consumer pattern: inline arrow on every render.
+  const wiredOnEditRequest = onEditRequest !== undefined;
+  const stableOnEditRequest = useMemo<
+    FlowCanvasContextValue["onEditRequest"]
+  >(
+    () =>
+      wiredOnEditRequest
+        ? (nodeId, subPath) => onEditRequestRef.current?.(nodeId, subPath)
+        : undefined,
+    [wiredOnEditRequest],
+  );
+
   const ctx = useMemo<FlowCanvasContextValue>(
     () => ({
       renderers: mergeRenderers(renderers),
@@ -48,8 +72,17 @@ export function FlowCanvas({
       readOnly,
       selectionMode,
       onNodeUpdate,
+      onEditRequest: stableOnEditRequest,
     }),
-    [renderers, portTypes, edgeTypes, readOnly, selectionMode, onNodeUpdate],
+    [
+      renderers,
+      portTypes,
+      edgeTypes,
+      readOnly,
+      selectionMode,
+      onNodeUpdate,
+      stableOnEditRequest,
+    ],
   );
 
   return (

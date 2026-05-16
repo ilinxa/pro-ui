@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import type { NodeProps } from "@xyflow/react";
 import { useFlowCanvasContext } from "../registries/canvas-context";
 import { findRenderer } from "../registries/renderer-registry";
@@ -33,7 +33,7 @@ function makeRenderChild(
 
 function NodeAdapterImpl(props: NodeProps) {
   const { id, data, selected, dragging, draggable } = props;
-  const { renderers, readOnly } = useFlowCanvasContext();
+  const { renderers, readOnly, onEditRequest } = useFlowCanvasContext();
 
   const nodeData = data as NodeData;
   const renderer =
@@ -44,12 +44,24 @@ function NodeAdapterImpl(props: NodeProps) {
     [renderers, id, readOnly],
   );
 
+  // v0.2.1 — bind canvas-level onEditRequest to this node's id so renderers
+  // fire `ctx.onEditRequest(subPath?)` without knowing their own nodeId.
+  // `onEditRequest` from context is itself stable (ref-mirrored in
+  // flow-canvas-01.tsx, F-V5 lock); identity flips only on wired/unwired.
+  const handleEditRequest = useCallback(
+    (subPath?: string) => onEditRequest?.(id, subPath),
+    [onEditRequest, id],
+  );
+
   const ctx: RenderContext = {
     nodeId: id,
     isSelected: !!selected,
     isDragging: !!dragging,
     isReadOnly: readOnly,
     renderChild,
+    // Leave undefined when consumer hasn't wired onEditRequest so renderers
+    // can gate their click affordances via `if (ctx.onEditRequest)`.
+    onEditRequest: onEditRequest ? handleEditRequest : undefined,
   };
 
   return (
