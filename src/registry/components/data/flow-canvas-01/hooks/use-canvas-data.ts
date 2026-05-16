@@ -230,19 +230,51 @@ export function useCanvasData({
     setViewport(data?.viewport);
   }, [isControlled, data]);
 
+  // v0.2.2 lock: notify the consumer in a microtask AFTER React commits the
+  // current state update. Why deferred:
+  //
+  // - `fireOnChange` is called from 13 sites in this file, MOST of which sit
+  //   inside `setInternalNodes/Edges/Viewport((prev) => { ... })` reducers
+  //   (the "reducer-side-effect" pattern acknowledged in v0.2.0 plan F-V4 as
+  //   a v0.3 cleanup candidate). When xyflow emits initial `dimensions`
+  //   changes during its own render-phase measurement, the reducer-side-
+  //   effect fires the consumer's `onChange` synchronously → consumer's
+  //   `setCanvas` → React 19 "setState during render" warning on the
+  //   consumer component. Surfaced 2026-05-16 by rich-card-in-flow@v0.1.0's
+  //   demo (first controlled-mode consumer in the library).
+  //
+  // - Wrapping the body in `queueMicrotask` gives ONE invariant: consumer
+  //   `onChange` always fires post-commit. Every code path in this file
+  //   becomes render-phase-safe — no need to refactor each reducer-side-
+  //   effect site individually. Promotes the v0.3-deferred cleanup forward
+  //   because the bug surfaced; "consistency over a one-off divergence" per
+  //   F-V4 still holds (all 13 sites get the SAME deferred behavior, not a
+  //   mixed bag of one-microtask-deferred + twelve-still-synchronous).
+  //
+  // - Capture semantics: `nodes` / `edges` / `vp` are captured in closure.
+  //   Post-`applyNodeChanges`/`applyEdgeChanges`/`xyAddEdge` arrays are
+  //   immutable; the `.map(fromXyNode)` runs at microtask time but reads
+  //   the captured references — consumer always sees the state that the
+  //   call site intended to notify about, not whatever state happens to be
+  //   current at microtask-execution time.
+  //
+  // - Latency: one microtask. Imperceptible. React batches the consumer's
+  //   resulting setState into the next paint either way.
   const fireOnChange = useCallback(
     (
       nodes: XyNode<XyNodeData>[],
       edges: XyEdge[],
       vp: CanvasData["viewport"],
     ) => {
-      const cb = onChangeRef.current;
-      if (!cb) return;
-      cb({
-        version: 1,
-        nodes: nodes.map(fromXyNode),
-        edges: edges.map(fromXyEdge),
-        viewport: vp,
+      queueMicrotask(() => {
+        const cb = onChangeRef.current;
+        if (!cb) return;
+        cb({
+          version: 1,
+          nodes: nodes.map(fromXyNode),
+          edges: edges.map(fromXyEdge),
+          viewport: vp,
+        });
       });
     },
     [],
@@ -282,9 +314,9 @@ export function useCanvasData({
     // Flush a final onChange with the committed state. The setInternalNodes
     // reducer reads the latest committed value synchronously and returns it
     // unchanged (React bails out on identity-equal state, no re-render).
-    // Matches the existing reducer-side-effect pattern used by 11 other
-    // sites in this file (v0.2.0 plan F-V4 — picked consistency over a
-    // one-off divergence; cleanup is a v0.3 candidate).
+    // The reducer-side-effect pattern (here + 12 other sites in this file)
+    // is now safe post-v0.2.2: `fireOnChange` is microtask-deferred in its
+    // definition above, so it never runs synchronously during a reducer.
     setInternalNodes((latestNodes) => {
       fireOnChange(latestNodes, edgesRef.current, viewportRef.current);
       return latestNodes;
