@@ -2,11 +2,11 @@
 
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import type {
-  NodeRenderer,
-  RenderContext,
-} from "@/registry/components/data/flow-canvas-01";
-import { PortsAt } from "@/registry/components/data/flow-canvas-01";
+// F-S1 lock — RELATIVE imports for cross-procomp types/files. Same-category
+// alias imports get the slug name substituted by shadcn's rewriter; relative
+// paths bypass that and translate verbatim.
+import type { NodeRenderer, RenderContext } from "../../flow-canvas-01/types";
+import { PortsAt } from "../../flow-canvas-01/parts/ports-at";
 import type { RichCardCanvasNode } from "../types";
 import { enumerateSubcards } from "../lib/enumerate-subcards";
 import { deriveTitle } from "../lib/derive-title";

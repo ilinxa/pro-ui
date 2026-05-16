@@ -1,9 +1,16 @@
-import type { NodeData } from "@/registry/components/data/flow-canvas-01";
-import type { RichCardJsonNode } from "@/registry/components/data/rich-card";
+// F-S1 lock (extended by rich-card-in-flow's v0.1.0 smoke): use RELATIVE
+// imports for cross-procomp types — shadcn's path rewriter has a bug where
+// same-category cross-procomp imports of `<other-slug>/types` get the
+// current procomp's slug substituted (`flow-canvas-01/types` →
+// `rich-card-in-flow/types`). Relative paths bypass the alias rewriter and
+// translate verbatim through the producer→consumer tree (both have sibling
+// procomp dirs at the same level).
+import type { NodeData } from "../flow-canvas-01/types";
+import type { RichCardJsonNode } from "../rich-card/types";
 
-// Public type re-exports for consumer convenience
+// Public type re-export for consumer convenience
 // (per Stage 1 description §3 "Type re-exports" in-scope)
-export type { RichCardJsonNode } from "@/registry/components/data/rich-card";
+export type { RichCardJsonNode } from "../rich-card/types";
 
 /**
  * The canvas-node form of a rich-card tree — intersection of `NodeData` (which

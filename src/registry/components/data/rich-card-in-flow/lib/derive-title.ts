@@ -1,4 +1,7 @@
-import type { RichCardJsonNode } from "@/registry/components/data/rich-card";
+// F-S1 lock — RELATIVE import for cross-procomp types. Same-category alias
+// imports get the slug name substituted by shadcn's rewriter; relative paths
+// bypass that and translate verbatim.
+import type { RichCardJsonNode } from "../../rich-card/types";
 
 // Skip these keys when scanning for the title fallback.
 const RESERVED_PREFIX = "__rc"; // __rcid / __rcorder / __rcmeta
