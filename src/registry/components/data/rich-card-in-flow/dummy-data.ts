@@ -1,4 +1,7 @@
-import type { CanvasData } from "@/registry/components/data/flow-canvas-01";
+// F-S1 lock — RELATIVE import for cross-procomp types. Same-category alias
+// imports get the slug name substituted by shadcn's rewriter; relative paths
+// bypass that and translate verbatim.
+import type { CanvasData } from "../flow-canvas-01/types";
 import type { RichCardCanvasNode } from "./types";
 
 // 3 rich-card nodes + 1 custom-json node. Each rich-card node has __rcids
