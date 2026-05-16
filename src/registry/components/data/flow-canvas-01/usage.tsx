@@ -147,8 +147,17 @@ const sourceShape = exportRef.current?.export({ withPorts: false })`}</code>
         </li>
         <li>
           <strong>Performance</strong> — every component memoized;{" "}
-          <code>onlyRenderVisibleElements</code> toggle for viewport-culling on
-          200+ nodes. Stress demo ships with <code>makeStressData(200)</code>.
+          <code>onlyRenderVisibleElements</code> defaults to{" "}
+          <code>true</code> in v0.2.0 (xyflow culls offscreen nodes / edges;
+          ~12× directional FPS lift at N=5000 heavy on one measured machine).
+          Pass <code>={"{false}"}</code> to opt out — rare; only if you rely
+          on offscreen-node DOM. <code>onChange</code> batches mid-drag
+          position-only changes — fires on drag-end, not every tick. Stress
+          demos ship with <code>makeStressData(N)</code> +{" "}
+          <code>makeHeavyStressData(N)</code>; the sandbox stress page at{" "}
+          <code>/sandbox/flow-stress</code> exposes URL params for live
+          N + fixture + lever toggles. Renderer-author perf rules in the
+          procomp guide §8 (linked below).
         </li>
         <li>
           <strong>Theming</strong> — <code>--xy-*</code> CSS variables in{" "}
@@ -193,6 +202,32 @@ const sourceShape = exportRef.current?.export({ withPorts: false })`}</code>
           (<code>data</code> + <code>onChange</code>) <em>or</em> uncontrolled
           (<code>defaultData</code>) per <code>&lt;FlowCanvas&gt;</code>{" "}
           instance. Don&apos;t flip mid-mount.
+        </li>
+      </ul>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Performance &amp; scale — renderer-author rules (v0.2.0)
+      </h3>
+      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <li>
+          <strong>Custom edge selection state:</strong> if your custom edge
+          needs to react to source / target node selection, query xyflow&apos;s
+          store via <code>useStore</code> — NOT per-edge React state.
+          Per-edge state cascades into full-canvas re-renders at scale. The
+          built-in <code>DefaultEdge</code> follows this rule; the sealed-folder{" "}
+          <code>lib/shallow.ts</code> exports a zero-dep <code>shallow</code>{" "}
+          helper for selectors returning object shapes. Pattern + the locked{" "}
+          <code>portEqual</code> example in procomp guide §8.2.
+        </li>
+        <li>
+          <strong>Popup-edit convention:</strong> heavy editable content
+          (rich-text, code editors, multi-line forms) lives in a consumer-owned
+          dialog opened on click, NOT inline in the node renderer. Inline
+          editors mount the full state machine per node (e.g. 200 editor
+          instances at N=200) — putting the editor in a single dialog scopes
+          that cost to the one node being edited. Pattern in procomp guide §8.3
+          + the future <code>RenderContext.onEditRequest</code> slot (v0.3
+          candidate).
         </li>
       </ul>
 
