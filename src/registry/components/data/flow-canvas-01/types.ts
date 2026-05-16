@@ -152,10 +152,21 @@ export type FlowCanvasProps = {
   zoomOnScroll?: boolean;
   selectionMode?: "single" | "multi";
 
-  // Performance: when true, xyflow culls nodes + edges outside the viewport
-  // before rendering (M8 perf lever). Default `false` — only flip on for
-  // very large graphs (200+ nodes). xyflow's threshold for "large" is loose;
-  // measure with the React DevTools profiler before enabling.
+  /**
+   * When true (default v0.2.0+), xyflow culls nodes + edges outside the
+   * viewport before rendering. Transforms perf at large N (5k+ heavy: ~12×
+   * FPS lift on one machine, per 2026-05-14 baseline). Marginal effect
+   * below ~200 nodes.
+   *
+   * Known caveats (don't block adoption):
+   * - All nodes still render on initial mount; culling kicks in after the
+   *   first viewport movement (xyflow issue #4378).
+   * - Offscreen edges may stutter if their offscreen target node has an
+   *   explicit height (xyflow issue #4329).
+   *
+   * Pass `={false}` to opt out (e.g. if you rely on offscreen-node DOM for
+   * layout measurement — rare).
+   */
   onlyRenderVisibleElements?: boolean;
 
   exportRef?: Ref<FlowCanvasExportHandle>;

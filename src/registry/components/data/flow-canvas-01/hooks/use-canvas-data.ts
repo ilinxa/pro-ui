@@ -109,6 +109,12 @@ export type UseCanvasDataResult = {
   onNodesChange: (changes: NodeChange<XyNode<XyNodeData>>[]) => void;
   onEdgesChange: (changes: EdgeChange<XyEdge>[]) => void;
   onConnect: (connection: Connection) => void;
+  // Drag lifecycle — bind to <ReactFlow>'s onNodeDragStart/onNodeDragStop
+  // props. During a drag the per-tick onChange is suppressed (position-only
+  // changes are batched); onNodeDragStop flushes a single final fire with
+  // the committed state. Internal only — not re-exported from index.ts.
+  onNodeDragStart: () => void;
+  onNodeDragStop: () => void;
   // Snapshot in our CanvasData shape (used by exportRef + viewport setters)
   snapshot: () => CanvasData;
   // Imperative helpers used by drop pipeline / sub-object extract / menus
@@ -177,6 +183,11 @@ export function useCanvasData({
   const nodesRef = useRef(internalNodes);
   const edgesRef = useRef(internalEdges);
   const viewportRef = useRef(viewport);
+  // Drag-lifecycle ref — flipped true between xyflow's onNodeDragStart and
+  // onNodeDragStop. While true, the position-only onNodesChange path skips
+  // the consumer onChange (per-tick suppression); onNodeDragStop flushes
+  // one final fire with the committed state. v0.2.0 Tier 1 perf change.
+  const isDraggingRef = useRef(false);
   useEffect(() => {
     nodesRef.current = internalNodes;
   }, [internalNodes]);
@@ -241,12 +252,44 @@ export function useCanvasData({
     (changes: NodeChange<XyNode<XyNodeData>>[]) => {
       setInternalNodes((prev) => {
         const next = applyNodeChanges(changes, prev);
+        // Skip the per-tick consumer callback during continuous drag IF all
+        // changes in this batch are position changes. onNodeDragStop flushes
+        // a single final fire when the drag ends. Mixed batches (e.g.
+        // position + dimensions) still fire immediately so a consumer's
+        // measurement-driven layout effect can't be silently delayed.
+        const isAllPositionChanges = changes.every((c) => c.type === "position");
+        if (isDraggingRef.current && isAllPositionChanges) {
+          return next;
+        }
         fireOnChange(next, edgesRef.current, viewportRef.current);
         return next;
       });
     },
     [fireOnChange],
   );
+
+  // Drag-lifecycle callbacks — wired to <ReactFlow>'s onNodeDragStart /
+  // onNodeDragStop props in canvas.tsx. The pair plus the position-only
+  // short-circuit above implement description §4.1 Change #2 + #3 (batch
+  // per-tick consumer fires during drag; skip the full re-map at end-of-drag
+  // when only positions changed).
+  const onNodeDragStart = useCallback(() => {
+    isDraggingRef.current = true;
+  }, []);
+
+  const onNodeDragStop = useCallback(() => {
+    isDraggingRef.current = false;
+    // Flush a final onChange with the committed state. The setInternalNodes
+    // reducer reads the latest committed value synchronously and returns it
+    // unchanged (React bails out on identity-equal state, no re-render).
+    // Matches the existing reducer-side-effect pattern used by 11 other
+    // sites in this file (v0.2.0 plan F-V4 — picked consistency over a
+    // one-off divergence; cleanup is a v0.3 candidate).
+    setInternalNodes((latestNodes) => {
+      fireOnChange(latestNodes, edgesRef.current, viewportRef.current);
+      return latestNodes;
+    });
+  }, [fireOnChange]);
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<XyEdge>[]) => {
@@ -479,6 +522,8 @@ export function useCanvasData({
       onNodesChange,
       onEdgesChange,
       onConnect,
+      onNodeDragStart,
+      onNodeDragStop,
       snapshot,
       appendNode,
       updateNodeData,
@@ -498,6 +543,8 @@ export function useCanvasData({
       onNodesChange,
       onEdgesChange,
       onConnect,
+      onNodeDragStart,
+      onNodeDragStop,
       snapshot,
       appendNode,
       updateNodeData,

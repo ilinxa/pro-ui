@@ -75,7 +75,7 @@ export function Canvas({
   zoomOnScroll = true,
   selectionMode = "multi",
   readOnly = false,
-  onlyRenderVisibleElements = false,
+  onlyRenderVisibleElements = true,
   exportRef,
   ariaLabel,
   backgroundConfig,
@@ -228,6 +228,8 @@ export function Canvas({
           onNodesChange={canvas.onNodesChange}
           onEdgesChange={canvas.onEdgesChange}
           onConnect={canvas.onConnect}
+          onNodeDragStart={canvas.onNodeDragStart}
+          onNodeDragStop={canvas.onNodeDragStop}
           isValidConnection={isValidConnection}
           connectionMode={ConnectionMode.Strict}
           nodeTypes={NODE_TYPES}
