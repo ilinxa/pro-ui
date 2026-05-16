@@ -1411,6 +1411,7 @@
       "registryDependencies": ["button", "context-menu", "dialog", "textarea"],
       "dependencies": ["@xyflow/react", "lucide-react"],
       "files": [
+        { "path": "src/registry/components/data/flow-canvas-01/flow-canvas-01.css", "type": "registry:file", "target": "components/flow-canvas-01/flow-canvas-01.css" },
         { "path": "src/registry/components/data/flow-canvas-01/flow-canvas-01.tsx", "type": "registry:component", "target": "components/flow-canvas-01/flow-canvas-01.tsx" },
         { "path": "src/registry/components/data/flow-canvas-01/index.ts", "type": "registry:component", "target": "components/flow-canvas-01/index.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/types.ts", "type": "registry:component", "target": "components/flow-canvas-01/types.ts" },
@@ -1422,6 +1423,7 @@
         { "path": "src/registry/components/data/flow-canvas-01/lib/inflate-default-ports.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/inflate-default-ports.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/lib/parse-json.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/parse-json.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/lib/port-walker.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/port-walker.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/shallow.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/shallow.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/lib/sub-object-paths.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/sub-object-paths.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/parts/background.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/background.tsx" },
         { "path": "src/registry/components/data/flow-canvas-01/parts/canvas-context-menu.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/canvas-context-menu.tsx" },
