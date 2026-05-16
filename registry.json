@@ -1425,6 +1425,7 @@
         { "path": "src/registry/components/data/flow-canvas-01/lib/port-walker.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/port-walker.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/lib/shallow.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/shallow.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/lib/sub-object-paths.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/sub-object-paths.ts" },
+        { "path": "src/registry/components/data/flow-canvas-01/lib/update-node-data.ts", "type": "registry:component", "target": "components/flow-canvas-01/lib/update-node-data.ts" },
         { "path": "src/registry/components/data/flow-canvas-01/parts/background.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/background.tsx" },
         { "path": "src/registry/components/data/flow-canvas-01/parts/canvas-context-menu.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/canvas-context-menu.tsx" },
         { "path": "src/registry/components/data/flow-canvas-01/parts/canvas.tsx", "type": "registry:component", "target": "components/flow-canvas-01/parts/canvas.tsx" },
