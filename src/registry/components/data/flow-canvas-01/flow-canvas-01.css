@@ -1,0 +1,30 @@
+/* flow-canvas-01 selection ring — driven by xyflow's wrapper class.
+ *
+ * Decouples the selection VISUAL from any React-side render of NodeShell /
+ * NodeAdapter / the consumer renderer. React-side re-renders on selection
+ * still happen (xyflow flips the `selected` prop on NodeAdapter, which
+ * recreates children) — this rule's win is that the visual ring applies
+ * as a pure browser-side CSS effect the instant xyflow toggles the
+ * `.selected` class, decoupled from React reconciliation timing. v0.2.0
+ * Tier 2 plan §5.3 + F-V1.
+ *
+ * DOM hierarchy when a node is selected:
+ *   <div class="react-flow__node ... selected">    ← xyflow's wrapper
+ *     <div class="relative outline-none">          ← NodeShell
+ *       <renderer-output />                         ← ring target
+ *       <span class="lock chip" />?                 ← also rings (matches v0.1.x)
+ *     </div>
+ *   </div>
+ *
+ * The `> * > *` selector targets NodeShell's direct children — the same
+ * elements v0.1.x ringed via NodeShell's `data-[selected=true]:[&>*]:ring-2`.
+ *
+ * NO `border-radius: inherit` (plan F-V6): the renderer outputs already
+ * carry their own border-radius (e.g. `rounded-md` on CustomJsonNode);
+ * `box-shadow` automatically conforms to the element's own border-radius.
+ * Setting `border-radius: inherit` here would pull NodeShell's (none) and
+ * OVERRIDE the renderer's rounded corners. Don't.
+ */
+.react-flow__node.selected > * > * {
+  box-shadow: 0 0 0 2px var(--ring);
+}

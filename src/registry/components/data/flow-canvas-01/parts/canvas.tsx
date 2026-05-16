@@ -1,5 +1,10 @@
 "use client";
 
+// Side-effect import — selection-ring CSS keyed on xyflow's `.react-flow__node.selected`
+// wrapper class. Sealed-folder file; auto-bundled by the host build (Turbopack /
+// shadcn-registry). v0.2.0 Tier 2 plan §5.3.
+import "../flow-canvas-01.css";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ConnectionMode,

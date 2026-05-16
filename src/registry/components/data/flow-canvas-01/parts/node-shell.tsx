@@ -6,31 +6,34 @@ import { cn } from "@/lib/utils";
 import type { NodeRecord } from "../types";
 
 // Wraps every consumer renderer's output. Owns:
-// - Selection ring (via data-selected attribute, styled with Tailwind ring-*)
 // - Lock chip (when node.locked is true)
 // - Focus-visible outline for keyboard navigation
 //
 // Consumer renderers focus on content + handles; the shell handles chrome.
+//
+// v0.2.0 Tier 2 (plan §5.3 + F-02): selection ring decoupled from this
+// component. It now lives in the sealed-folder `flow-canvas-01.css` keyed
+// on xyflow's own `.react-flow__node.selected` class — pure CSS, no React
+// prop / re-render coupling for the visual. RenderContext.isSelected is
+// still populated for renderers that opt into selection-conditional content.
 function NodeShellImpl({
-  isSelected,
   isLocked,
   className,
   children,
 }: {
-  isSelected: boolean;
   isLocked: boolean;
   className?: string;
   children: ReactNode;
 }) {
   return (
     <div
-      data-selected={isSelected}
       data-locked={isLocked}
       tabIndex={0}
       className={cn(
         "relative outline-none",
-        "data-[selected=true]:[&>*]:ring-2 data-[selected=true]:[&>*]:ring-ring",
-        "focus-visible:[&>*]:ring-2 focus-visible:[&>*]:ring-ring/60",
+        // Focus-visible ring stays here — xyflow doesn't own focus state.
+        // Tailwind v4 canonical `*:` shorthand (replaces v3's `[&>*]:`).
+        "focus-visible:*:ring-2 focus-visible:*:ring-ring/60",
         className,
       )}
     >
