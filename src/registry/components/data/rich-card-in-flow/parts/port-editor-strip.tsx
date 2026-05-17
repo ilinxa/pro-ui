@@ -142,28 +142,33 @@ export function PortEditorStrip({
               : "No ports."}
           </p>
         ) : (
-          <div className="space-y-1.5">
-            {target.ports.map((port) => (
-              <PortEditorRow
-                key={port.id}
-                cardId={cardId}
-                port={port}
-                portTypes={portTypes}
-                existingPorts={target.ports}
-                liveEdgeCount={
-                  liveEdgesMap.get(`${target.node.id}:${port.id}`) ?? {
-                    asSource: 0,
-                    asTarget: 0,
+          // Horizontal scroll wrapper — when the dialog or strip parent is
+          // narrower than the row's combined column min-widths, rows stay at
+          // their natural width and the strip becomes swipeable in x.
+          <div className="-mx-3 overflow-x-auto px-3">
+            <div className="min-w-max space-y-1.5">
+              {target.ports.map((port) => (
+                <PortEditorRow
+                  key={port.id}
+                  cardId={cardId}
+                  port={port}
+                  portTypes={portTypes}
+                  existingPorts={target.ports}
+                  liveEdgeCount={
+                    liveEdgesMap.get(`${target.node.id}:${port.id}`) ?? {
+                      asSource: 0,
+                      asTarget: 0,
+                    }
                   }
-                }
-                editable={editable}
-                permissions={permissions}
-                onUpdate={(mut) =>
-                  commit(updatePort(target.ports, port.id, mut))
-                }
-                onRemove={() => commit(removePort(target.ports, port.id))}
-              />
-            ))}
+                  editable={editable}
+                  permissions={permissions}
+                  onUpdate={(mut) =>
+                    commit(updatePort(target.ports, port.id, mut))
+                  }
+                  onRemove={() => commit(removePort(target.ports, port.id))}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>

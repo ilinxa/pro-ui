@@ -141,7 +141,7 @@ export default function RichCardInFlowDemo() {
           if (!open) setEditing(null);
         }}
       >
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-6xl">
           <DialogHeader>
             <DialogTitle>Edit rich card</DialogTitle>
             <DialogDescription>
