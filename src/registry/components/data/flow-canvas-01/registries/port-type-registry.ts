@@ -9,6 +9,9 @@ import { useFlowCanvasContext } from "./canvas-context";
 // — image: emerald (--chart-2)
 // — card:  signal-lime (--primary, the accent)
 // — event: cyan  (--chart-4)
+// — doc:   teal  (--chart-3) — v0.2.5 add; bottom-only side enforced editor-side
+//                              by @ilinxa/rich-card-in-flow's PortEditorStrip
+//                              (no runtime enforcement here)
 //
 // Color descriptions in the description doc said "blue / orange / lime / rose" —
 // the actual chart palette is lime → emerald → teal → cyan → blue, so we map to
@@ -19,6 +22,7 @@ export const defaultPortTypes: PortType[] = [
   { id: "image", color: "var(--chart-2)", label: "Image" },
   { id: "card", color: "var(--primary)", label: "Card" },
   { id: "event", color: "var(--chart-4)", label: "Event" },
+  { id: "doc", color: "var(--chart-3)", label: "Doc" },
 ];
 
 export function findPortType(

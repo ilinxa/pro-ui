@@ -13,7 +13,7 @@ export const meta: ComponentMeta = {
     "Pan / zoom / fit-to-view with gradient background (light + dark themes)",
     "Renderer registry by __type — register any React component as a node renderer",
     "Built-in custom-JSON fallback for unrecognized shapes",
-    "Port-type registry (5 built-in types: data / text / image / card / event)",
+    "Port-type registry (6 built-in types: data / text / image / card / event / doc)",
     "Edge-type registry with smoothstep default",
     "Controlled and uncontrolled state (data / defaultData / onChange)",
     "Imperative export via exportRef ({ withPorts } toggles source vs canvas)",
@@ -34,7 +34,7 @@ export const meta: ComponentMeta = {
     "edges",
   ],
 
-  version: "0.2.4",
+  version: "0.2.5",
   status: "alpha",
   createdAt: "2026-05-06",
   updatedAt: "2026-05-17",
