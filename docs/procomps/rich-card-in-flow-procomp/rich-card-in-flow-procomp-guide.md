@@ -220,19 +220,89 @@ The viewer paints a fixed summary shape — title + first 3 flat fields + up to 
 
 **Custom paint** — if you need a fully different shape, register your own `NodeRenderer<RichCardCanvasNode>` instead of the default. The data contract (root + subcards each addressable by `__rcid`; subcards keep their own `ports[]`) is the only thing the dialog wiring depends on.
 
-**v0.2 configurable options** — `RichCardViewerOptions` factory is the planned path: `richCardViewer(options): NodeRenderer<RichCardCanvasNode>` with `maxFlatFields`, `maxNestedOutlines`, `nestedDepth`, `titleField`, `fieldKeys`, `editTrigger?: "click" | "doubleClick"`. Lands when (a) two consumers diverge from the defaults OR (b) the `isCardLike` heuristic stabilizes (see §7 contributor notes).
+**v0.2 configurable options** — `RichCardViewerOptions` factory is the planned path: `richCardViewer(options): NodeRenderer<RichCardCanvasNode>` with `maxFlatFields`, `maxNestedOutlines`, `nestedDepth`, `titleField`, `fieldKeys`, `editTrigger?: "click" | "doubleClick"`. Lands when (a) two consumers diverge from the defaults OR (b) the `isCardLike` heuristic stabilizes (see §10 contributor notes).
 
 ---
 
-## 7. Footguns
+## 7. Port editor (v0.2 addition)
 
-### 7.1 Nested-button trap
+v0.2 ships an opt-in `<PortEditorStrip>` for editing the `ports[]` array of a card or subcard inline. Consumer mounts it alongside `<RichCard editable>` inside the dialog; the strip is uncontrolled (operates on the `canvas` prop) and live-saves on every mutation.
+
+### 7.1 Canonical wiring
+
+```tsx
+import {
+  PortEditorStrip,
+  type PortEditorPermissions,
+} from "@ilinxa/rich-card-in-flow";
+
+// inside the dialog body — strip above RichCard per Q1 lock
+{editing && (
+  <>
+    <PortEditorStrip
+      nodeId={editing.nodeId}
+      subPath={editing.subPath}     // targets root if undefined; subcard by __rcid
+      canvas={canvas}
+      onChange={setCanvas}
+      editable={true}
+      // optional — consumer-supplied predicates
+      permissions={{
+        canAddPort: (cardId) => true,
+        canRemovePort: (cardId, portId) => portId !== "p-locked",
+        canEditPortField: (cardId, portId, field) =>
+          field !== "id" || portId.startsWith("p-user-"),
+      }}
+    />
+    <RichCard editable defaultValue={...} onChange={...} />
+  </>
+)}
+```
+
+### 7.2 Direction multi-select at create time
+
+The "+ add port" popover shows `[✓in]` and `[✓out]` checkboxes. One checked → 1 port. Both checked → 2 ports (one `dir:"in"`, one `dir:"out"`) sharing `type / side / multi / label`, with ids `{base}-in` and `{base}-out`. **After save, the two ports are fully independent rows in the editor — no auto-grouping at re-render.** (Q3 lock.) To remove one direction post-save, click its row's remove button. To re-pair, remove one and re-add via the popover with both checked.
+
+This avoids fragile grouping heuristics (what if user manually edits type/side/multi on one of the pair? grouping breaks silently). Atomic-ports-post-save trades a tiny UX convenience for stability.
+
+### 7.3 Doc-port type (v0.2.5 of flow-canvas-01)
+
+`flow-canvas-01@v0.2.5` adds a built-in `"doc"` port type to `defaultPortTypes`. The strip enforces `side: "bottom"` for doc-typed ports editor-side (the side picker disables left/right/top when type is doc; switching type to "doc" auto-corrects an existing non-bottom side to bottom). **flow-canvas-01 runtime is neutral** — it doesn't validate doc-port side. The editor is the gate.
+
+**Targets don't exist yet.** Doc-files are a separate future procomp. Doc-typed ports in v0.2 are orphan slots — flow-canvas-01's `isValidConnection` rejects connections from `doc → text` (etc.) via the existing same-type-only validator, so doc-ports currently have nothing to connect to. The strip shows them in the picker (per Q-O2 lock = (a) orphan slots), so consumers can pre-wire layouts that activate when doc-files ship.
+
+### 7.4 Live save model
+
+Every mutation calls `onChange(updatedCanvas)`. No commit/cancel button. (Q6 lock.)
+
+- **Selects + checkbox:** commit on change (shadcn Select's `onValueChange` fires on commit, not on hover/preview).
+- **Id + label inputs:** commit on **blur** (id renames have edge-reference implications, label is no-op for runtime; both use blur for consistency).
+- **Renaming a port with live edges:** the row surfaces a `Tooltip` warning. The rename still commits — flow-canvas-01 doesn't auto-rewrite edges. The consumer must update edge `source` / `target` strings manually if they want to preserve the connection.
+
+### 7.5 What v0.2 does NOT do (deferred)
+
+- **Per-field ports** (a flat field IS a port — e.g. promote `prompt` field to `port-out`). v0.3 work; in v0.2 you add ports independently via the strip's "+ add port" affordance.
+- **Custom port-type registration** in the strip's picker. v0.2 uses `defaultPortTypes` only (`data` / `text` / `image` / `card` / `event` / `doc`). v0.3 will add proper shared-context plumbing so the strip's picker stays in sync with `<FlowCanvas portTypes={...}>` overrides.
+- **Doc-file targets.** Separate future procomp; until then, doc-ports are orphan slots.
+- **Drag-reorder ports within a card.** v0.3 if needed.
+- **Bulk port operations** (e.g. "generate 4 ports for 4 sides"). v0.3 if needed.
+
+### 7.6 Empty / null-target states
+
+If `findPortTarget` can't resolve the (nodeId, subPath) — e.g. dialog transitioning between nodes one frame before canvas state updates — the strip renders `"No card found at this path."` instead of crashing (F-05 lock). Self-corrects on the next render.
+
+If the targeted card has zero ports, the strip renders `"No ports yet. Click + add port to begin."` (with the add affordance visible when `editable=true`).
+
+---
+
+## 8. Footguns
+
+### 8.1 Nested-button trap
 
 `<RichCardViewer>`'s outer element is `<div role="group">`, NOT `<button>`. Inside are multiple `<button>` elements — title strip + each subcard. **A button-of-buttons is invalid HTML AND fires both onClick handlers** (the inner click bubbles to the outer click). The group-with-buttons composition routes each click to the right handler cleanly.
 
 If you fork or replace the viewer, do NOT wrap the whole renderer in a single `<button>`. F-V1 lock.
 
-### 7.2 `position: relative` chain is load-bearing
+### 8.2 `position: relative` chain is load-bearing
 
 xyflow's `<Handle>` is `position: absolute` — it anchors to the **nearest positioned ancestor**. For subcard handles to render at the subcard's screen location (not at the outer node's edges), every DOM level MUST be `position: relative`:
 
@@ -246,25 +316,25 @@ xyflow's `<Handle>` is `position: absolute` — it anchors to the **nearest posi
 
 If you fork the viewer and drop `relative` from any level, subcard handles silently fly to a wrong positioned ancestor. **No console warning. No test catches it.** G1 + F-05 lock. Comments in the source mark each level — preserve them in code reviews.
 
-### 7.3 Port IDs must be unique within the node
+### 8.3 Port IDs must be unique within the node
 
 Including across subcards. flow-canvas-01's `findPortInTree` returns the **first** match for a given port ID — duplicates silently mis-route edges. Dev mode logs a warning when a duplicate is detected on viewer mount.
 
-### 7.4 Don't use Radix `<Dialog.Portal forceMount>`
+### 8.4 Don't use Radix `<Dialog.Portal forceMount>`
 
 It defeats the "at most one editor mounted" property. shadcn's default `<Dialog>` unmounts content on close, which is what makes the perf claim hold. If you wrap with `forceMount`, `<RichCard>` stays mounted always → Plate state machine + DnD provider + reducer all stay live, even with the dialog closed.
 
-### 7.5 Subcards are NOT drag-extractable in v0.1
+### 8.5 Subcards are NOT drag-extractable in v0.1
 
 flow-canvas-01 ships a `data-draggable-subobject={path}` pattern that lets users drag a sub-piece OUT of a node to spawn it as a new canvas node. **Subcards in v0.1 don't support this** — they're part of one rich-card tree per Q1 lock; extracting them would mean splitting the tree across multiple flow-canvas nodes. v0.2 candidate if a consumer asks (needs a careful UX: split-tree vs copy-tree-content-as-new-node).
 
-### 7.6 `__rcid` must be on every subcard you want focusable
+### 8.6 `__rcid` must be on every subcard you want focusable
 
 See §4 — F-03 graceful degradation handles the missing case but disables click-to-focus for that subcard. Fix at the data layer: pass canvas data through `<RichCard>` once at boot, or call rich-card's ID-attach helper directly.
 
 ---
 
-## 8. Migration
+## 9. Migration
 
 **v0.1.0 first ship** — no migration path. You're either on v0.1.0 or you're not.
 
@@ -276,11 +346,11 @@ See §4 — F-03 graceful degradation handles the missing case but disables clic
 
 ---
 
-## 9. Contributor notes (maintenance footguns for the procomp itself)
+## 10. Contributor notes (maintenance footguns for the procomp itself)
 
 This section is for **maintainers of rich-card-in-flow**, not consumers. If you're consuming the procomp, you can stop reading.
 
-### 9.1 F-S1 lock — cross-procomp imports use RELATIVE paths
+### 10.1 F-S1 lock — cross-procomp imports use RELATIVE paths
 
 shadcn 4.6.0's path rewriter has two bugs that hit this procomp:
 
@@ -297,21 +367,21 @@ shadcn 4.6.0's path rewriter has two bugs that hit this procomp:
 
 If you fork this procomp into another category (e.g. `forms/`), you can probably switch back to alias imports for the cross-procomp paths — Bug 2 didn't reproduce when the producer-side categories differed (json-form is at `forms/` + imports `data/article-body-01` cleanly). Smoke-test before relying on this.
 
-### 9.2 F-V3 lock — `dependencies.internal` declaration
+### 10.2 F-V3 lock — `dependencies.internal` declaration
 
 `meta.ts` declares `internal: ["rich-card", "flow-canvas-01"]`. The `validate-meta-deps` audit catches drift between this declaration and the actual relative imports — keep them in sync.
 
-### 9.3 F-rev-3 — `enumerateSubcards` stays private
+### 10.3 F-rev-3 — `enumerateSubcards` stays private
 
 The helper is kept INTERNAL (not re-exported from `index.ts`) because its signature depends on the `isCardLike` heuristic, which is marked for tightening in v0.2 if rich-card ships a canonical "is-card" predicate. Exporting now then changing the signature later = breaking change for consumers writing custom rich-card renderers on top of this procomp. Revisit in v0.2.
 
-### 9.4 Smoke harness path-b is the F-V2 lock
+### 10.4 Smoke harness path-b is the F-V2 lock
 
 For v0.1.0 first ships per the readiness-review rule, smoke harness path-b is REQUIRED pre-push. The harness at `e:/tmp/ilinxa-smoke-consumer/` smokes against locally-served `public/r/<slug>.json` via `http-server` on port 8765 with the consumer's `@ilinxa` registry temporarily pointed at localhost. Run before push; reset baseline after.
 
 ---
 
-## 10. Cross-references
+## 11. Cross-references
 
 - **Stage 1 description** — what & why: [`rich-card-in-flow-procomp-description.md`](rich-card-in-flow-procomp-description.md)
 - **Stage 2 plan** — how (file-by-file spec): [`rich-card-in-flow-procomp-plan.md`](rich-card-in-flow-procomp-plan.md)

@@ -18,6 +18,7 @@ import {
   type RichCardHandle,
   type RichCardJsonNode,
 } from "@/registry/components/data/rich-card";
+import { PortEditorStrip } from "./parts/port-editor-strip";
 import { richCardViewerRenderer } from "./parts/rich-card-viewer";
 import { richCardInFlowFixture } from "./dummy-data";
 
@@ -150,9 +151,19 @@ export default function RichCardInFlowDemo() {
           </DialogHeader>
 
           {editing && editingTree && (
-            // key={editing.nodeId} forces a clean remount when switching nodes.
-            // Plate re-initializes per open — see plan §9 G3 for the perf trade.
-            <div className="max-h-[60vh] overflow-auto">
+            // key={editing.nodeId} forces a clean remount on RichCard when
+            // switching nodes — Plate re-initializes per open (plan §9 G3).
+            // PortEditorStrip is uncontrolled-by-design (Q9 lock); no key=
+            // remount needed — it re-reads ports on canvas-prop change.
+            <div className="max-h-[60vh] space-y-3 overflow-auto">
+              {/* v0.2 — port editor strip above the rich-card editor per Q1 lock */}
+              <PortEditorStrip
+                nodeId={editing.nodeId}
+                subPath={editing.subPath}
+                canvas={canvas}
+                onChange={setCanvas}
+                editable={true}
+              />
               <RichCard
                 key={editing.nodeId}
                 ref={richCardRef}
