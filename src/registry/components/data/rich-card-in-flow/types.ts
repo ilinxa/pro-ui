@@ -38,3 +38,23 @@ export type FlatField = {
   value: unknown;
   type: FlatFieldType;
 };
+
+/* ───────── v0.2 — PortEditorStrip ───────── */
+
+/**
+ * Optional consumer-supplied predicates that gate port editing affordances
+ * in `<PortEditorStrip>`. Default: everything allowed when `editable=true`.
+ * Same predicate-shape pattern as rich-card's permission predicates.
+ *
+ * v0.2.0 addition.
+ */
+export type PortEditorPermissions = {
+  canAddPort?: (cardId: string) => boolean;
+  canRemovePort?: (cardId: string, portId: string) => boolean;
+  canEditPort?: (cardId: string, portId: string) => boolean;
+  canEditPortField?: (
+    cardId: string,
+    portId: string,
+    field: "type" | "side" | "dir" | "multi" | "label" | "id",
+  ) => boolean;
+};
