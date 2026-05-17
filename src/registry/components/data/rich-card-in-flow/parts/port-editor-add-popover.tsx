@@ -147,7 +147,7 @@ export function PortEditorAddPopover({
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">Type</Label>
           <Select value={type} onValueChange={setType}>
-            <SelectTrigger className="h-8 text-xs">
+            <SelectTrigger className="h-8 w-full text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -174,7 +174,7 @@ export function PortEditorAddPopover({
             onValueChange={(v) => setSide(v as PortSide)}
             disabled={isDocType}
           >
-            <SelectTrigger className="h-8 text-xs">
+            <SelectTrigger className="h-8 w-full text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

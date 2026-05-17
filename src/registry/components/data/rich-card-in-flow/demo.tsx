@@ -141,7 +141,10 @@ export default function RichCardInFlowDemo() {
           if (!open) setEditing(null);
         }}
       >
-        <DialogContent className="max-w-6xl">
+        {/* shadcn DialogContent defaults to `sm:max-w-sm` (384px) at the sm
+            breakpoint — must use the responsive variant to override it.
+            Plain `max-w-N` would be capped to 384px on sm+. */}
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Edit rich card</DialogTitle>
             <DialogDescription>

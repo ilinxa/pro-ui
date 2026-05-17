@@ -113,10 +113,10 @@ function PortEditorRowImpl({
   }
 
   if (!editable) {
-    // F-08 read-only summary row. Same fixed-width columns as the editable
-    // grid so rows align under the same horizontal-scroll wrapper.
+    // F-08 read-only summary row. Mirrors the editable row's fixed-pixel
+    // column widths so rows align cleanly. No remove / no multi columns.
     return (
-      <div className="grid grid-cols-[200px_140px_80px_60px_180px] items-center gap-2 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5 text-xs">
+      <div className="grid grid-cols-[220px_120px_100px_80px_200px] items-center gap-1 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5 text-xs">
         <div className="truncate font-mono">{port.id}</div>
         <PortTypeBadge type={port.type} portTypes={portTypes} />
         <span className="text-muted-foreground">{port.side}</span>
@@ -150,10 +150,13 @@ function PortEditorRowImpl({
   );
 
   return (
-    // Pixel-based column widths (not fractional) so columns don't compress
-    // when the strip overflows its parent — the strip wraps this in an
-    // overflow-x-auto container, making the row horizontally swipeable.
-    <div className="grid grid-cols-[200px_140px_120px_100px_80px_180px_36px] items-center gap-2 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5">
+    // Fixed-pixel column widths sized for actual control content (no fr
+    // stretching — at wide parents the fr-grown columns made selects look
+    // unnecessarily wide). Row sits at natural width (~860px) anchored left;
+    // the strip's overflow-x-auto wrapper kicks in if the parent is narrower.
+    // Widths: id 220 / type 120 / side 100 / dir 80 / multi 80 / label 200 /
+    // remove 36 = 836 + 6×4 gaps = 860.
+    <div className="grid grid-cols-[220px_120px_100px_80px_80px_200px_36px] items-center gap-1 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5">
       {/* ID — commit on blur; tooltip when error OR live-edges warning */}
       {idError ? (
         <Tooltip>
@@ -178,7 +181,7 @@ function PortEditorRowImpl({
         onValueChange={handleTypeChange}
         disabled={!canEditField("type")}
       >
-        <SelectTrigger className="h-7 text-xs">
+        <SelectTrigger className="h-7 w-full text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -203,7 +206,7 @@ function PortEditorRowImpl({
         onValueChange={(v) => onUpdate({ side: v as PortSide })}
         disabled={!canEditField("side") || isDocType}
       >
-        <SelectTrigger className="h-7 text-xs">
+        <SelectTrigger className="h-7 w-full text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -226,7 +229,7 @@ function PortEditorRowImpl({
         onValueChange={(v) => onUpdate({ dir: v as PortDir })}
         disabled={!canEditField("dir")}
       >
-        <SelectTrigger className="h-7 text-xs">
+        <SelectTrigger className="h-7 w-full text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
