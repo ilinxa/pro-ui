@@ -42,6 +42,15 @@ export type FlatField = {
 /* ───────── v0.2 — PortEditorStrip ───────── */
 
 /**
+ * Editable port fields that consumer permission predicates can gate
+ * individually via `PortEditorPermissions.canEditPortField`. Mirrors the
+ * mutable subset of `Port` (id + type + side + dir + multi + label).
+ *
+ * v0.2.0 addition.
+ */
+export type PortField = "type" | "side" | "dir" | "multi" | "label" | "id";
+
+/**
  * Optional consumer-supplied predicates that gate port editing affordances
  * in `<PortEditorStrip>`. Default: everything allowed when `editable=true`.
  * Same predicate-shape pattern as rich-card's permission predicates.
@@ -52,9 +61,5 @@ export type PortEditorPermissions = {
   canAddPort?: (cardId: string) => boolean;
   canRemovePort?: (cardId: string, portId: string) => boolean;
   canEditPort?: (cardId: string, portId: string) => boolean;
-  canEditPortField?: (
-    cardId: string,
-    portId: string,
-    field: "type" | "side" | "dir" | "multi" | "label" | "id",
-  ) => boolean;
+  canEditPortField?: (cardId: string, portId: string, field: PortField) => boolean;
 };

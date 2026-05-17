@@ -25,7 +25,7 @@ import type {
   PortType,
 } from "../../flow-canvas-01/types";
 import { isDuplicateId } from "../lib/port-mutators";
-import type { PortEditorPermissions } from "../types";
+import type { PortEditorPermissions, PortField } from "../types";
 
 const SIDES: PortSide[] = ["left", "right", "top", "bottom"];
 const DIRS: PortDir[] = ["in", "out"];
@@ -72,9 +72,7 @@ function PortEditorRowImpl({
 
   const canEdit =
     editable && (permissions.canEditPort?.(cardId, port.id) ?? true);
-  const canEditField = (
-    field: NonNullable<Parameters<NonNullable<PortEditorPermissions["canEditPortField"]>>[2]>,
-  ): boolean =>
+  const canEditField = (field: PortField): boolean =>
     canEdit && (permissions.canEditPortField?.(cardId, port.id, field) ?? true);
   const canRemove =
     editable && (permissions.canRemovePort?.(cardId, port.id) ?? true);
