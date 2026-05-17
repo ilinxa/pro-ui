@@ -133,6 +133,74 @@ useEffect(() => {
         </li>
       </ul>
 
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Port editing (v0.2 — <code>&lt;PortEditorStrip&gt;</code>)
+      </h3>
+      <p className="text-muted-foreground">
+        v0.2 ships an opt-in <code>PortEditorStrip</code> for editing the
+        <code>ports[]</code> array of a card or subcard inline. Mount it
+        alongside <code>&lt;RichCard editable&gt;</code> inside your dialog
+        — the strip is uncontrolled (operates on the canvas prop) and
+        live-saves on every mutation.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import {
+  PortEditorStrip,
+  type PortEditorPermissions,
+} from "@ilinxa/rich-card-in-flow";
+
+// inside the dialog body — strip above RichCard per Q1 lock
+{editing && (
+  <>
+    <PortEditorStrip
+      nodeId={editing.nodeId}
+      subPath={editing.subPath}     // targets root if undefined; subcard by __rcid
+      canvas={canvas}
+      onChange={setCanvas}
+      editable={true}
+      // optional — gates affordances when supplied
+      permissions={{
+        canAddPort: (cardId) => true,
+        canRemovePort: (cardId, portId) => portId !== "p-locked-port",
+        canEditPortField: (cardId, portId, field) =>
+          field !== "id" || portId.startsWith("p-user-"),
+      }}
+    />
+    <RichCard editable defaultValue={...} onChange={...} />
+  </>
+)}`}</code>
+      </pre>
+      <p className="mt-3 text-muted-foreground">
+        Direction multi-select on add: check <code>[✓in]</code>,
+        <code>[✓out]</code>, or both. Both creates two atomic ports
+        sharing type / side / multi / label with <code>-in</code> /
+        <code>-out</code> id suffixes. After save, the two ports are
+        independent rows in the editor — no auto-grouping (Q3 lock).
+      </p>
+      <p className="mt-2 text-muted-foreground">
+        <strong>Doc-port type</strong> (v0.2.5 of flow-canvas-01 — new
+        built-in <code>&quot;doc&quot;</code> port type): forced to{" "}
+        <code>side: &quot;bottom&quot;</code> in the editor picker.
+        Targets (doc files) don&apos;t exist yet — doc-typed ports are
+        orphan slots until a future doc-file procomp ships.
+      </p>
+      <p className="mt-2 text-muted-foreground">
+        <strong>Live-save model:</strong> every change calls{" "}
+        <code>onChange(updatedCanvas)</code>. No commit/cancel button.
+        Selects + checkbox commit on change; id and label inputs commit
+        on blur (id renames have edge implications). Renaming a port
+        with live edges surfaces a tooltip warning; the rename still
+        commits but the consumer must update edge references manually.
+      </p>
+      <p className="mt-2 text-muted-foreground">
+        <strong>Custom port-type registration in the strip&apos;s
+        picker</strong> is deferred to v0.3 with proper shared-context
+        plumbing — v0.2 uses the 6 defaults only. <strong>Per-field
+        ports</strong> (a flat field IS a port) is also a v0.3 lift; in
+        v0.2 you add ports via the strip&apos;s &quot;+ add port&quot;
+        affordance independently from any field.
+      </p>
+
       <h3 className="mb-2 mt-6 text-base font-semibold">Footguns</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>
