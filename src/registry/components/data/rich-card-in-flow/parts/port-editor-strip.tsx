@@ -107,6 +107,9 @@ export function PortEditorStrip({
   const cardId = target.cardRcid ?? target.node.id;
   const canAdd = editable && (permissions.canAddPort?.(cardId) ?? true);
 
+  // `target!` is safe here — narrowed by the `if (!target) return` guard
+  // above; the assertion is needed only because the inner-function scope
+  // loses TS flow-analysis.
   function commit(next: Port[]) {
     onChange(target!.updateIn(next));
   }
