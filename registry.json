@@ -1827,10 +1827,20 @@
       "name": "rich-card-in-flow",
       "type": "registry:block",
       "title": "Rich Card in Flow",
-      "description": "Read-only RichCardViewer renderer for flow-canvas-01 nodes + consumer-owned-dialog pattern for editing rich-card content inside canvas nodes. Canonical implementation of the popup-edit renderer convention from flow-canvas-01@v0.2.0 perf description Q33. Cross-registry deps on @ilinxa/rich-card (editor) and @ilinxa/flow-canvas-01@^0.2.1 (host).",
+      "description": "Read-only RichCardViewer renderer for flow-canvas-01 nodes + consumer-owned-dialog pattern for editing rich-card content inside canvas nodes. v0.2 adds PortEditorStrip — opt-in port editor (id / type / side / dir / multi / label) per card or subcard with live-save, [✓in][✓out] atomic-row create-flow, doc-type bottom-side enforcement, and orphan-doc-target tooltips. Canonical implementation of the popup-edit renderer convention from flow-canvas-01@v0.2.0 perf description Q33. Cross-registry deps on @ilinxa/rich-card (editor) and @ilinxa/flow-canvas-01@^0.2.5 (host; requires built-in 'doc' port type).",
       "author": "ilinxa",
       "categories": ["data", "flow", "rich-content"],
-      "registryDependencies": ["@ilinxa/rich-card", "@ilinxa/flow-canvas-01"],
+      "registryDependencies": [
+        "popover",
+        "select",
+        "checkbox",
+        "input",
+        "tooltip",
+        "label",
+        "button",
+        "@ilinxa/rich-card",
+        "@ilinxa/flow-canvas-01"
+      ],
       "dependencies": [],
       "files": [
         { "path": "src/registry/components/data/rich-card-in-flow/index.ts", "type": "registry:component", "target": "components/rich-card-in-flow/index.ts" },
@@ -1839,9 +1849,14 @@
         { "path": "src/registry/components/data/rich-card-in-flow/lib/derive-title.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/derive-title.ts" },
         { "path": "src/registry/components/data/rich-card-in-flow/lib/enumerate-subcards.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/enumerate-subcards.ts" },
         { "path": "src/registry/components/data/rich-card-in-flow/lib/format-value.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/format-value.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/lib/find-port-target.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/find-port-target.ts" },
+        { "path": "src/registry/components/data/rich-card-in-flow/lib/port-mutators.ts", "type": "registry:component", "target": "components/rich-card-in-flow/lib/port-mutators.ts" },
         { "path": "src/registry/components/data/rich-card-in-flow/parts/flat-field-strip.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/flat-field-strip.tsx" },
         { "path": "src/registry/components/data/rich-card-in-flow/parts/rich-card-viewer.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/rich-card-viewer.tsx" },
-        { "path": "src/registry/components/data/rich-card-in-flow/parts/subcard-block.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/subcard-block.tsx" }
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/subcard-block.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/subcard-block.tsx" },
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/port-editor-add-popover.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/port-editor-add-popover.tsx" },
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/port-editor-row.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/port-editor-row.tsx" },
+        { "path": "src/registry/components/data/rich-card-in-flow/parts/port-editor-strip.tsx", "type": "registry:component", "target": "components/rich-card-in-flow/parts/port-editor-strip.tsx" }
       ]
     },
     {

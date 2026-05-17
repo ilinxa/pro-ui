@@ -103,7 +103,8 @@ function PortEditorRowImpl({
     onUpdate({ label: trimmed === "" ? undefined : trimmed });
   }
 
-  function handleTypeChange(v: string) {
+  function handleTypeChange(v: string | null) {
+    if (!v) return;
     // Q4 auto-correct: switching to "doc" forces side to "bottom".
     if (v === "doc" && port.side !== "bottom") {
       onUpdate({ type: v, side: "bottom" });
@@ -203,7 +204,7 @@ function PortEditorRowImpl({
       {/* Side — disabled for doc-type per Q4 */}
       <Select
         value={port.side}
-        onValueChange={(v) => onUpdate({ side: v as PortSide })}
+        onValueChange={(v: string | null) => v && onUpdate({ side: v as PortSide })}
         disabled={!canEditField("side") || isDocType}
       >
         <SelectTrigger className="h-7 w-full text-xs">
@@ -226,7 +227,7 @@ function PortEditorRowImpl({
       {/* Dir */}
       <Select
         value={port.dir}
-        onValueChange={(v) => onUpdate({ dir: v as PortDir })}
+        onValueChange={(v: string | null) => v && onUpdate({ dir: v as PortDir })}
         disabled={!canEditField("dir")}
       >
         <SelectTrigger className="h-7 w-full text-xs">

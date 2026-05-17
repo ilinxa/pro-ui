@@ -115,7 +115,7 @@ export function PortEditorStrip({
   }
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider>
       <div
         className={cn(
           "space-y-2 rounded-md border border-border/60 bg-card/20 p-3",
