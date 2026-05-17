@@ -1,9 +1,13 @@
 # HANDOFF — rich-card-in-flow v0.2.0 port editor — paused at B3 polish-2
 
-**Pause date:** 2026-05-17
-**Tip commit:** `55c7d82` (local; **NOT PUSHED** — see "Pre-push checklist" below)
+> **✅ CLOSED 2026-05-17 (same day resume) — BOTH WORKSTREAMS SHIPPED.** All "Next on resume" items completed. B4 path-b smoke surfaced a NEW failure class (F-cross-13 — shadcn primitive Radix → Base UI divergence in `TooltipProvider` + `Select.onValueChange` shapes) instead of the expected F-S1 rewriter bugs; closed via per-procomp defensive callback pattern in commit `5684bc5`. Final commit chain: 8 paused commits + B4 (`5684bc5`) + B5 rcif tracking (`1aa575c`) + A2 flow-canvas-01 tracking (`de7b3cd`) = 11 commits total this session. GATE 3 spotcheck Pass with follow-ups; 3 findings (F-01 F-cross-13 closed pre-ship; F-02 per-field ports + F-03 custom port-type registration both v0.3 candidates). Decisions: [`.claude/decisions/2026-05-17-rich-card-in-flow-v0.2.0-port-editor.md`](decisions/2026-05-17-rich-card-in-flow-v0.2.0-port-editor.md) + [`.claude/decisions/2026-05-17-flow-canvas-v0.2.5-doc-port-type.md`](decisions/2026-05-17-flow-canvas-v0.2.5-doc-port-type.md). Tracker: F-cross-13 entry at [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md). Memory: [`project_shadcn_primitive_radix_baseui_divergence.md`](../../../C:/Users/AsiaData/.claude/projects/e--2026-ilinxaDOC-ilinxa-ui-pro/memory/project_shadcn_primitive_radix_baseui_divergence.md). Document kept below for archival reference of the paused state + the original plan.
+
+---
+
+**Pause date:** 2026-05-17 (now closed same-day)
+**Tip commit at pause:** `55c7d82` (was local; superseded by final tip `de7b3cd` after B4 + B5 + A2)
 **Branch:** `master`
-**Status:** Workstreams A + B1–B3 done (code + docs + UI iteration); B4 (registry distribution + smoke) and B5 (GATE 3 + final tracking) remain.
+**Status:** ~~Workstreams A + B1–B3 done; B4 + B5 remain~~ ✅ FULLY SHIPPED — see closure note above.
 
 ---
 
