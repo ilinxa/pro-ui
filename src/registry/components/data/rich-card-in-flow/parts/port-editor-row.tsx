@@ -113,9 +113,10 @@ function PortEditorRowImpl({
   }
 
   if (!editable) {
-    // F-08 read-only summary row.
+    // F-08 read-only summary row. Same fixed-width columns as the editable
+    // grid so rows align under the same horizontal-scroll wrapper.
     return (
-      <div className="grid grid-cols-[1fr_auto_auto_auto_1fr] items-center gap-2 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5 text-xs">
+      <div className="grid grid-cols-[200px_140px_80px_60px_180px] items-center gap-2 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5 text-xs">
         <div className="truncate font-mono">{port.id}</div>
         <PortTypeBadge type={port.type} portTypes={portTypes} />
         <span className="text-muted-foreground">{port.side}</span>
@@ -149,7 +150,10 @@ function PortEditorRowImpl({
   );
 
   return (
-    <div className="grid grid-cols-[1.4fr_1fr_0.9fr_0.7fr_auto_1fr_auto] items-center gap-2 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5">
+    // Pixel-based column widths (not fractional) so columns don't compress
+    // when the strip overflows its parent — the strip wraps this in an
+    // overflow-x-auto container, making the row horizontally swipeable.
+    <div className="grid grid-cols-[200px_140px_120px_100px_80px_180px_36px] items-center gap-2 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5">
       {/* ID — commit on blur; tooltip when error OR live-edges warning */}
       {idError ? (
         <Tooltip>
