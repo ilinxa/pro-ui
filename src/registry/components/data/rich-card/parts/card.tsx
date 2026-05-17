@@ -391,39 +391,43 @@ export function Card({
               })}
             </div>
           ) : null}
+        </div>
+      ) : null}
 
-          {/* v0.2/0.3 add affordances */}
-          {config.editable ? (
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              {isAddingField ? (
-                <FieldAddForm
-                  validateAll={(key, value, type) =>
-                    config.validators.fieldAdd(tree.id, key, value, type)
-                  }
-                  onCommit={(key, value, type) =>
-                    config.dispatchers.fieldAdd(tree.id, key, value, type)
-                  }
-                  onCancel={() => config.clearEditMode()}
-                />
-              ) : canAddField ? (
-                <FieldAddButton
-                  onClick={() =>
-                    config.setEditMode({
-                      kind: "field-add",
-                      cardId: tree.id,
-                    })
-                  }
-                />
-              ) : null}
-              <PredefinedAddMenu
-                presentKeys={presentPredefinedKeys as PredefinedKey[]}
-                disabledKeys={config.disabledPredefinedKeys}
-                onAdd={(entry) =>
-                  config.dispatchers.predefinedAdd(tree.id, entry)
-                }
-              />
-            </div>
+      {/* v0.4.2 — add affordances rendered independently of `hasBody` so an
+          empty card (zero fields, zero predefined) can still be populated.
+          Pre-v0.4.2 this block sat inside the body wrapper above, making the
+          "+ FIELD" / "+ BLOCK" buttons unreachable for a freshly-added child
+          card (cardAdd creates fields:[]/predefined:[], so hasBody=false). */}
+      {config.editable && !collapsed ? (
+        <div className={cn("mt-2 flex flex-wrap items-center gap-1.5", levelStyle.fieldsClassName)}>
+          {isAddingField ? (
+            <FieldAddForm
+              validateAll={(key, value, type) =>
+                config.validators.fieldAdd(tree.id, key, value, type)
+              }
+              onCommit={(key, value, type) =>
+                config.dispatchers.fieldAdd(tree.id, key, value, type)
+              }
+              onCancel={() => config.clearEditMode()}
+            />
+          ) : canAddField ? (
+            <FieldAddButton
+              onClick={() =>
+                config.setEditMode({
+                  kind: "field-add",
+                  cardId: tree.id,
+                })
+              }
+            />
           ) : null}
+          <PredefinedAddMenu
+            presentKeys={presentPredefinedKeys as PredefinedKey[]}
+            disabledKeys={config.disabledPredefinedKeys}
+            onAdd={(entry) =>
+              config.dispatchers.predefinedAdd(tree.id, entry)
+            }
+          />
         </div>
       ) : null}
 
