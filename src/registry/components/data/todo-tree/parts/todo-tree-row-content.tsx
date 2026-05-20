@@ -71,9 +71,6 @@ export function TodoTreeRowContent({
       data-active={item.active}
       className={cn(
         "relative flex flex-col justify-center gap-0.5 py-1.5 pr-2",
-        // Strip indicator needs reserved left padding so the bar doesn't
-        // overlap content; non-strip variants leave the gap to indent only.
-        stripIndicator ? "pl-3" : "pl-2",
         dimmed && "opacity-50",
         className,
       )}

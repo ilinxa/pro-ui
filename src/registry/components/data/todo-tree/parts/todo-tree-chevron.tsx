@@ -33,7 +33,12 @@ export function TodoTreeChevron({
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={(e) => {
+        // Chevron is a leaf interaction — don't bubble to the row's click /
+        // select handler.
+        e.stopPropagation();
+        onToggle?.(e);
+      }}
       aria-label={collapsed ? "Expand" : "Collapse"}
       aria-expanded={!collapsed}
       className={cn(
