@@ -9,9 +9,7 @@ import {
 } from "react";
 import type { TodoItem } from "../../todo-rich-card/types";
 import type {
-  TodoTreeAction,
   TodoTreeChangeArgs,
-  TodoTreeChangeReason,
   TodoTreeFilter,
   TodoTreeHandle,
   TodoTreeSort,
@@ -39,6 +37,12 @@ export interface UseTodoTreeStateArgs extends TreeEventCallbacks {
   defaultFilter?: TodoTreeFilter;
   /** Default "fade"; "hide" omits non-matching + non-ancestor-of-match rows. */
   filterMode?: "fade" | "hide";
+  /**
+   * Optional drag-flag ref. Forwarded to useControlledMode so defense 3
+   * (suppress mid-drag onChange) reads from the same ref the host's DnD
+   * hooks mutate. When omitted, controlled-mode allocates its own inert ref.
+   */
+  isDraggingRef?: React.MutableRefObject<boolean>;
 }
 
 /**
@@ -64,6 +68,7 @@ export function useTodoTreeState(
     defaultSort,
     defaultFilter,
     filterMode = "fade",
+    isDraggingRef,
     ...eventCallbacks
   } = args;
 
@@ -116,20 +121,6 @@ export function useTodoTreeState(
     ],
   );
 
-  // Reason tracking: each handle method stashes the public change reason here
-  // before its dispatch. The onChange effect reads + clears it; raw-dispatch
-  // escape-hatch users fall back to "imperative-set".
-  const pendingReasonRef = useRef<TodoTreeChangeReason | null>(null);
-
-  /** Stash the reason then forward to the reducer's dispatch. */
-  const dispatchWithReason = useCallback(
-    (action: TodoTreeAction, reason: TodoTreeChangeReason) => {
-      pendingReasonRef.current = reason;
-      dispatch(action);
-    },
-    [dispatch],
-  );
-
   // Skip-onChange flag flipped before applyExternalItems so the resulting
   // SET_ITEMS dispatch doesn't echo the value-prop change back to the consumer.
   const skipNextOnChangeRef = useRef(false);
@@ -147,6 +138,7 @@ export function useTodoTreeState(
     internalItems: state.items,
     onChange,
     applyExternalItems,
+    isDraggingRef,
   });
 
   const { fire } = useTreeEvents(eventCallbacks);
@@ -192,14 +184,18 @@ export function useTodoTreeState(
     if (state.items !== prevItemsRef.current) {
       prevItemsRef.current = state.items;
       const skip = skipNextOnChangeRef.current;
-      const reason = pendingReasonRef.current ?? "imperative-set";
+      const reason = state.lastChangeReason ?? "imperative-set";
       skipNextOnChangeRef.current = false;
-      pendingReasonRef.current = null;
       // Controlled-mode echo: items came from the value prop's sync, so the
       // consumer already knows. Don't fire onChange back at them.
       if (skip) return;
       fireOnChange(state.items, reason);
     }
+    // `state.lastChangeReason` is intentionally omitted — it changes lockstep
+    // with `state.items` and is read only in the items branch. Adding it as
+    // a dep would fire onChange a second time when the reducer cleared the
+    // reason without items having changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     state.selectedIds,
     state.query,
@@ -222,23 +218,17 @@ export function useTodoTreeState(
     return {
       getValue: () => state.items,
       setValue: (next) => {
-        dispatchWithReason(
-          { type: "SET_ITEMS", items: next, reason: "imperative-set" },
-          "imperative-set",
-        );
+        dispatch({ type: "SET_ITEMS", items: next, reason: "imperative-set" });
       },
       addItem: (item, opts) => {
         const parentId = opts?.parentId ?? null;
-        dispatchWithReason(
-          {
-            type: "ADD_ITEM",
-            item,
-            parentId,
-            index: opts?.index,
-            via: "imperative",
-          },
-          "add-item",
-        );
+        dispatch({
+          type: "ADD_ITEM",
+          item,
+          parentId,
+          index: opts?.index,
+          via: "imperative",
+        });
         fireRef.current("itemAdded", {
           item,
           parentId,
@@ -249,17 +239,11 @@ export function useTodoTreeState(
       removeItem: (id) => {
         const item = findItemById(state.items, id);
         if (!item) return;
-        dispatchWithReason(
-          { type: "REMOVE_ITEM", id, via: "imperative" },
-          "remove-item",
-        );
+        dispatch({ type: "REMOVE_ITEM", id, via: "imperative" });
         fireRef.current("itemRemoved", { item, via: "imperative" });
       },
       addChild: (parentId, item, index) => {
-        dispatchWithReason(
-          { type: "ADD_CHILD", parentId, item, index },
-          "add-child",
-        );
+        dispatch({ type: "ADD_CHILD", parentId, item, index });
         fireRef.current("itemAdded", {
           item,
           parentId,
@@ -269,24 +253,18 @@ export function useTodoTreeState(
       },
       removeItems: (ids) => {
         if (ids.length === 0) return;
-        dispatchWithReason({ type: "REMOVE_ITEMS", ids }, "bulk-remove");
+        dispatch({ type: "REMOVE_ITEMS", ids });
         fireRef.current("bulkRemove", { ids });
       },
       toggleActive: (id, nextActive) => {
         const item = findItemById(state.items, id);
         if (!item) return;
-        dispatchWithReason(
-          { type: "TOGGLE_ACTIVE", id, nextActive },
-          "toggle-active",
-        );
+        dispatch({ type: "TOGGLE_ACTIVE", id, nextActive });
         fireRef.current("activeToggled", { item, nextActive });
       },
       toggleActiveBulk: (ids, nextActive) => {
         if (ids.length === 0) return;
-        dispatchWithReason(
-          { type: "TOGGLE_ACTIVE_BULK", ids, nextActive },
-          "bulk-toggle-active",
-        );
+        dispatch({ type: "TOGGLE_ACTIVE_BULK", ids, nextActive });
         fireRef.current("bulkToggleActive", { ids, nextActive });
       },
       focusItem: () => {
@@ -368,7 +346,6 @@ export function useTodoTreeState(
     state.collapsedIds,
     state.selectedIds,
     dispatch,
-    dispatchWithReason,
     selection.selectRange,
     selection.selectAllVisible,
   ]);
@@ -386,6 +363,7 @@ export function useTodoTreeState(
       sort: state.sort,
       filter: state.filter,
       dispatch,
+      handleRowClick: selection.handleRowClick,
     }),
     [
       handle,
@@ -397,6 +375,7 @@ export function useTodoTreeState(
       state.sort,
       state.filter,
       dispatch,
+      selection.handleRowClick,
     ],
   );
 }

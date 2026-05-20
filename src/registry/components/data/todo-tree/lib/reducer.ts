@@ -1,5 +1,10 @@
 import type { TodoItem } from "../../todo-rich-card/types";
-import type { TodoTreeAction, TodoTreeFilter, TodoTreeSort } from "../types";
+import type {
+  TodoTreeAction,
+  TodoTreeChangeReason,
+  TodoTreeFilter,
+  TodoTreeSort,
+} from "../types";
 import {
   insertAt,
   moveItem,
@@ -22,6 +27,13 @@ export interface State {
   sort: TodoTreeSort;
   filter: TodoTreeFilter;
   focusedItemId: string | null;
+  /**
+   * Set by the reducer on every items-changing action; consumed by the
+   * hook's items-change effect to route the correct reason to onChange.
+   * Lives in state (vs an external ref) so raw-dispatch consumers route
+   * correctly too. Non-items actions leave it untouched.
+   */
+  lastChangeReason: TodoTreeChangeReason | null;
 }
 
 export interface CreateInitialStateInput {
@@ -49,10 +61,52 @@ export function createInitialState(input: CreateInitialStateInput): State {
     sort: input.defaultSort ?? DEFAULT_SORT,
     filter: input.defaultFilter ?? DEFAULT_FILTER,
     focusedItemId: null,
+    lastChangeReason: null,
   };
 }
 
+/**
+ * Derive the public change reason from any items-changing action. Returns
+ * null for non-items actions so the hook's effect can skip firing onChange.
+ */
+function reasonFromAction(
+  action: TodoTreeAction,
+): TodoTreeChangeReason | null {
+  switch (action.type) {
+    case "SET_ITEMS":
+      return action.reason;
+    case "ADD_ITEM":
+      return action.via === "drop-from-external"
+        ? "drop-from-external"
+        : "add-item";
+    case "REMOVE_ITEM":
+      return "remove-item";
+    case "REMOVE_ITEMS":
+      return "bulk-remove";
+    case "ADD_CHILD":
+      return "add-child";
+    case "MOVE_ITEM":
+      return action.reason;
+    case "TOGGLE_ACTIVE":
+      return "toggle-active";
+    case "TOGGLE_ACTIVE_BULK":
+      return "bulk-toggle-active";
+    default:
+      return null;
+  }
+}
+
 export function reducer(state: State, action: TodoTreeAction): State {
+  const next = reducerInner(state, action);
+  if (next === state) return state;
+  if (next.items !== state.items) {
+    const reason = reasonFromAction(action);
+    return { ...next, lastChangeReason: reason };
+  }
+  return next;
+}
+
+function reducerInner(state: State, action: TodoTreeAction): State {
   switch (action.type) {
     case "SET_ITEMS": {
       if (action.items === state.items) return state;
