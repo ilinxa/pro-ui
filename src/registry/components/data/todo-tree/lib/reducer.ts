@@ -7,7 +7,6 @@ import {
   updateById,
 } from "./tree-mutators";
 import { forEachItem } from "./tree-walker";
-import { computeVisibleItems } from "./visible-items";
 
 /**
  * Internal reducer state. Not exported from the package barrel — only
@@ -180,27 +179,44 @@ export function reducer(state: State, action: TodoTreeAction): State {
         else next.add(id);
         return { ...state, selectedIds: next, selectionAnchorId: id };
       }
-      // mode === "range"
+      // mode === "range" — DFS over the (unfiltered, uncollapsed) tree.
+      // Visibility-aware range select is the hook's job: the hook computes the
+      // visible-row id list using the consumer's filterMode and dispatches
+      // SELECT_REPLACE with the resolved ids. This branch is the fallback for
+      // raw `dispatch(SELECT_ONE/range)` users and works correctly when the
+      // filter is inactive and nothing is collapsed.
       const anchor = state.selectionAnchorId;
-      const rangeIds = computeRangeIds(state, anchor, id);
+      const rangeIds = computeUnfilteredRangeIds(state.items, anchor, id);
+      if (rangeIds.length === 0) return state;
       const next = new Set(state.selectedIds);
       for (const r of rangeIds) next.add(r);
       return { ...state, selectedIds: next };
     }
 
     case "SELECT_ALL": {
+      // Unfiltered: select every id in the tree. Visibility-aware select-all
+      // is the hook's job; it uses SELECT_REPLACE with the visible-id list.
       const next = new Set<string>();
-      const rows = computeVisibleItems({
-        items: state.items,
-        query: state.query,
-        sort: state.sort,
-        filter: state.filter,
-        collapsedIds: state.collapsedIds,
-        filterMode: "fade",
+      forEachItem(state.items, (item) => {
+        next.add(item.id);
       });
-      for (const row of rows) next.add(row.item.id);
       if (sameSet(next, state.selectedIds)) return state;
       return { ...state, selectedIds: next };
+    }
+
+    case "SELECT_REPLACE": {
+      const next = new Set(action.ids);
+      const anchor =
+        action.anchorId !== undefined
+          ? action.anchorId
+          : state.selectionAnchorId;
+      if (
+        sameSet(next, state.selectedIds) &&
+        anchor === state.selectionAnchorId
+      ) {
+        return state;
+      }
+      return { ...state, selectedIds: next, selectionAnchorId: anchor };
     }
 
     case "CLEAR_SELECTION": {
@@ -326,29 +342,19 @@ function arrEq<T>(a: ReadonlyArray<T>, b: ReadonlyArray<T>): boolean {
 }
 
 /**
- * Range select: collect every id in the visible-row sequence between the
- * anchor and the target (inclusive). When no anchor is set, the range starts
- * from the first visible row.
- *
- * Uses default "fade" filterMode because the reducer doesn't see the
- * filterMode prop; in the common case (filter inactive) the visible-row set
- * is identical in both modes, so range is correct. C3 may wrap this with a
- * pre-computed range action when the host knows the filterMode.
+ * Range select fallback over the UNFILTERED tree in DFS order. The hook
+ * supersedes this for visibility-aware ranges by dispatching SELECT_REPLACE
+ * with pre-resolved ids; this only fires for raw `dispatch(SELECT_ONE/range)`.
  */
-function computeRangeIds(
-  state: State,
+function computeUnfilteredRangeIds(
+  items: ReadonlyArray<TodoItem>,
   anchor: string | null,
   target: string,
 ): string[] {
-  const rows = computeVisibleItems({
-    items: state.items,
-    query: state.query,
-    sort: state.sort,
-    filter: state.filter,
-    collapsedIds: state.collapsedIds,
-    filterMode: "fade",
+  const order: string[] = [];
+  forEachItem(items, (item) => {
+    order.push(item.id);
   });
-  const order = rows.map((r) => r.item.id);
   const targetIdx = order.indexOf(target);
   if (targetIdx === -1) return [];
   const anchorIdx = anchor === null ? 0 : order.indexOf(anchor);

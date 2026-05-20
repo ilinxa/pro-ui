@@ -20,8 +20,10 @@ export function insertAt(
     next.splice(at, 0, item);
     return next;
   }
-  return items.map((node) => {
+  let mutated = false;
+  const next = items.map((node) => {
     if (node.id === parentId) {
+      mutated = true;
       const children = node.children ? node.children.slice() : [];
       const at = clampIndex(index, children.length);
       children.splice(at, 0, item);
@@ -30,11 +32,13 @@ export function insertAt(
     if (node.children && node.children.length > 0) {
       const childUpdated = insertAt(node.children, parentId, index, item);
       if (childUpdated !== node.children) {
+        mutated = true;
         return { ...node, children: childUpdated };
       }
     }
     return node;
   });
+  return mutated ? next : (items as TodoItem[]);
 }
 
 /**
@@ -110,7 +114,6 @@ export function moveItem(
   if (to.parentId && isAncestor(items, sourceId, to.parentId)) {
     return items as TodoItem[];
   }
-  if (to.parentId === sourceId) return items as TodoItem[];
 
   const oldParentId = findParentId(items, sourceId);
   const sameParent = oldParentId === to.parentId;

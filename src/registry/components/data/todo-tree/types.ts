@@ -92,6 +92,11 @@ export type TodoTreeAction =
       mode: "replace" | "toggle" | "range";
     }
   | { type: "SELECT_ALL" }
+  | {
+      type: "SELECT_REPLACE";
+      ids: ReadonlyArray<string>;
+      anchorId?: string | null;
+    }
   | { type: "CLEAR_SELECTION" }
   | { type: "SET_QUERY"; query: string }
   | { type: "SET_SORT"; sort: TodoTreeSort }
