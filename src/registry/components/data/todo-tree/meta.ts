@@ -57,6 +57,7 @@ export const meta: ComponentMeta = {
     shadcn: ["checkbox", "avatar"],
     npm: {
       "lucide-react": "^1.11.0",
+      "@tanstack/react-virtual": "^3.13.24",
     },
     internal: ["todo-rich-card"],
   },

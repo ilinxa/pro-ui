@@ -1,84 +1,172 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+} from "react";
 import { cn } from "@/lib/utils";
+import type { TodoStatusOption } from "../todo-rich-card/types";
 import type { TodoTreeHandle, TodoTreeProps } from "./types";
+import { useTodoTreeState } from "./hooks/use-todo-tree-state";
+import {
+  TodoTreeRenderContext,
+  TodoTreeStateContext,
+  type TodoTreeRenderContextValue,
+} from "./hooks/use-todo-tree-context";
+import { TodoTreeList } from "./parts/todo-tree-list";
 
 /**
  * Tree-row renderer for TodoItem outlines. Sibling to `<TodoRichCard>` —
  * same `TodoItem` schema, lightweight two-line row instead of the rich
  * card chrome.
  *
- * Implementation is being scaffolded across commits C2–C8:
- *   C2: lib/ (reducer, mutators, filter/sort/flatten, permissions, DnD payload)
- *   C3: hooks/ (state hook, context, controlled-mode, events, selection)
- *   C4: parts/ row primitives (chevron, status, checkbox, name, description, person, row-content)
- *   C5: parts/ list + virtualization
- *   C6: Dual DnD (parts/ row + grip + drop-indicator + drag-overlay; hooks/ dnd-internal + dnd-html5)
- *   C7: toolbar (search + sort + filter + bulk-action-bar)
- *   C8: keyboard handler + a11y + empty state
+ * Status across the C1–C11 commit chain:
+ *   C1–C5 ✓  — scaffold, lib, hooks, row primitives, list + virtualization
+ *   C6   ◌  — Dual DnD wiring
+ *   C7   ◌  — toolbar
+ *   C8   ◌  — keyboard + a11y + empty state
+ *   C9+  ◌  — wrapper + demo + usage + meta sync + ship
  *
- * GATE 1 description: docs/procomps/todo-tree-procomp/todo-tree-procomp-description.md
- * GATE 2 plan:        docs/procomps/todo-tree-procomp/todo-tree-procomp-plan.md
+ * GATE 1: docs/procomps/todo-tree-procomp/todo-tree-procomp-description.md
+ * GATE 2: docs/procomps/todo-tree-procomp/todo-tree-procomp-plan.md
  */
 export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
   function TodoTree(props, ref) {
-    const handleRef = useRef<TodoTreeHandle | null>(null);
+    const {
+      defaultValue,
+      value,
+      onChange,
+      state: externalState,
+      statusOptions,
+      defaultCollapsedIds,
+      defaultSelectedIds,
+      indentSize = 20,
+      filterMode = "fade",
+      statusIndicator = "dot",
+      virtualize,
+      renderRow,
+      renderName,
+      renderDescription,
+      renderPerson,
+      renderStatusIndicator,
+      onItemClick,
+      onItemContextMenu,
+      onActiveToggled,
+      onCollapseToggled,
+      onItemMoved,
+      onItemDropped,
+      onItemAdded,
+      onItemRemoved,
+      onBulkToggleActive,
+      onBulkRemove,
+      onBulkEdit,
+      onSelectionChanged,
+      onSearchChanged,
+      onSortChanged,
+      onFilterChanged,
+      onPermissionDenied,
+      className,
+      "aria-label": ariaLabel,
+    } = props;
 
-    useImperativeHandle(
-      ref,
-      () =>
-        handleRef.current ?? {
-          // Stub handle so consumer ref doesn't error before C3 lands.
-          getValue: () => props.defaultValue ?? props.value ?? [],
-          setValue: () => undefined,
-          addItem: () => undefined,
-          removeItem: () => undefined,
-          addChild: () => undefined,
-          removeItems: () => undefined,
-          toggleActive: () => undefined,
-          toggleActiveBulk: () => undefined,
-          focusItem: () => undefined,
-          getItemById: () => undefined,
-          expandItem: () => undefined,
-          collapseItem: () => undefined,
-          toggleCollapse: () => undefined,
-          expandAll: () => undefined,
-          collapseAll: () => undefined,
-          isCollapsed: () => false,
-          selectItem: () => undefined,
-          deselectItem: () => undefined,
-          selectRange: () => undefined,
-          selectAll: () => undefined,
-          clearSelection: () => undefined,
-          getSelectedIds: () => new Set<string>(),
-          setQuery: () => undefined,
-          setSort: () => undefined,
-          setFilter: () => undefined,
-          clearAllFilters: () => undefined,
-        },
-      [props.defaultValue, props.value],
+    // The headless hook runs unconditionally; when an externalState is
+    // supplied we ignore the hook's value and use the external one as the
+    // single source of truth for context.
+    const internalState = useTodoTreeState({
+      defaultValue,
+      value,
+      onChange,
+      defaultCollapsedIds,
+      defaultSelectedIds,
+      filterMode,
+      onItemClick,
+      onItemContextMenu,
+      onActiveToggled,
+      onCollapseToggled,
+      onItemMoved,
+      onItemDropped,
+      onItemAdded,
+      onItemRemoved,
+      onBulkToggleActive,
+      onBulkRemove,
+      onBulkEdit,
+      onSelectionChanged,
+      onSearchChanged,
+      onSortChanged,
+      onFilterChanged,
+      onPermissionDenied,
+    });
+
+    const stateValue = externalState ?? internalState;
+
+    useImperativeHandle(ref, () => stateValue, [stateValue]);
+
+    const statusOptionMap = useMemo(() => {
+      const map = new Map<string, TodoStatusOption>();
+      if (statusOptions) {
+        for (const o of statusOptions) map.set(o.value, o);
+      }
+      return map;
+    }, [statusOptions]);
+
+    const renderContextValue = useMemo<TodoTreeRenderContextValue>(
+      () => ({
+        statusIndicator,
+        statusOptionMap,
+        indentSize,
+        renderName,
+        renderDescription,
+        renderPerson,
+        renderStatusIndicator,
+      }),
+      [
+        statusIndicator,
+        statusOptionMap,
+        indentSize,
+        renderName,
+        renderDescription,
+        renderPerson,
+        renderStatusIndicator,
+      ],
     );
 
+    // Virtualization config from prop variants:
+    //   - boolean true  → "always"
+    //   - boolean false → "never"
+    //   - object        → "auto" with custom threshold
+    //   - undefined     → "auto" default
+    const virtualizeMode: "auto" | "always" | "never" =
+      virtualize === true
+        ? "always"
+        : virtualize === false
+          ? "never"
+          : "auto";
+    const virtualizeThreshold =
+      typeof virtualize === "object" && virtualize !== null
+        ? (virtualize.threshold ?? 200)
+        : 200;
+
     return (
-      <div
-        role="tree"
-        aria-label={props["aria-label"] ?? "Todo tree (scaffold)"}
-        className={cn(
-          "rounded-md border border-dashed border-border bg-card p-6 text-card-foreground",
-          props.className,
-        )}
-      >
-        <div className="flex flex-col gap-1">
-          <span className="text-base font-semibold text-foreground">
-            todo-tree
-          </span>
-          <span className="text-sm text-muted-foreground">
-            Scaffolded · implementation lands in C2–C8 per
-            todo-tree-procomp-plan.md §18.
-          </span>
-        </div>
-      </div>
+      <TodoTreeStateContext.Provider value={stateValue}>
+        <TodoTreeRenderContext.Provider value={renderContextValue}>
+          <div
+            aria-label={ariaLabel ?? "Todo tree"}
+            className={cn("flex h-full flex-col", className)}
+          >
+            {/* Toolbar slot — C7 lands the default toolbar; for now we
+                leave the surface unrendered when toolbar is "default" so
+                consumers can drop in their own bar via renderToolbar. */}
+            {renderRow
+              ? null /* slot row replaces row-content; wired in C6's <TodoTreeRow> */
+              : null}
+            <TodoTreeList
+              virtualize={virtualizeMode}
+              virtualizeThreshold={virtualizeThreshold}
+            />
+          </div>
+        </TodoTreeRenderContext.Provider>
+      </TodoTreeStateContext.Provider>
     );
   },
 );
