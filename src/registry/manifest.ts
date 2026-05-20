@@ -170,6 +170,10 @@ import RichCardInFlowDemo from "./components/data/rich-card-in-flow/demo";
 import RichCardInFlowUsage from "./components/data/rich-card-in-flow/usage";
 import { meta as richCardInFlowMeta } from "./components/data/rich-card-in-flow/meta";
 
+import TodoRichCardDemo from "./components/data/todo-rich-card/demo";
+import TodoRichCardUsage from "./components/data/todo-rich-card/usage";
+import { meta as todoRichCardMeta } from "./components/data/todo-rich-card/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -393,6 +397,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: richCardInFlowMeta,
     Demo: RichCardInFlowDemo,
     Usage: RichCardInFlowUsage,
+  },
+  {
+    meta: todoRichCardMeta,
+    Demo: TodoRichCardDemo,
+    Usage: TodoRichCardUsage,
   },
 ];
 
