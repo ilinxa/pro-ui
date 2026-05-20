@@ -94,7 +94,7 @@ export type TodoTreePermissionDenialReason =
 // Reducer action union (private to lib/reducer; surfaced via dispatch escape hatch)
 export type TodoTreeAction =
   | { type: "SET_ITEMS"; items: TodoItem[]; reason: TodoTreeChangeReason }
-  | { type: "ADD_ITEM"; item: TodoItem; parentId: string | null; index?: number }
+  | { type: "ADD_ITEM"; item: TodoItem; parentId: string | null; index?: number; via: "imperative" | "drop-from-external" }
   | { type: "REMOVE_ITEM"; id: string; via: "imperative" | "keyboard" | "bulk" }
   | { type: "REMOVE_ITEMS"; ids: ReadonlyArray<string> }
   | { type: "ADD_CHILD"; parentId: string; item: TodoItem; index?: number }
@@ -256,6 +256,7 @@ export interface TodoTreeProps {
   statusIndicator?: "dot" | "strip" | "none";     // default "dot"
   virtualize?: boolean | { threshold?: number };  // default auto (threshold 200)
   toolbar?: "default" | "none" | ReactNode;       // default "default"
+  dndContext?: "internal" | "external";           // default "internal" — "external" skips internal <DndContext> mount (use when parent already provides one, e.g., nested inside kanban-board-01)
 
   // Slots (priority rule: slot wins over prop variant)
   renderRow?: (args: TodoTreeRowRenderArgs) => ReactNode;
@@ -390,10 +391,10 @@ Every `<TodoTreeRow>` carries **both** drag bindings simultaneously. Activation 
 
 | User gesture | Activator | System | Edge zones |
 |---|---|---|---|
-| Mouse-down on grip strip (hover-revealed, left edge) | `@dnd-kit` `useDraggable` listener | Internal (@dnd-kit) | @dnd-kit's drop detection inside the tree's `DndContext` |
-| Mouse-down on row body (outside grip) | native `onDragStart` | HTML5 | Native drop targets — both internal rows AND external `todo-rich-card` drop targets |
-| Touch-start + 300ms hold on grip strip | `@dnd-kit` `PointerSensor` with `activationConstraint: { delay: 300, tolerance: 5 }` | Internal (@dnd-kit, supports touch) | Same as @dnd-kit pointer |
-| Touch-start on row body (no grip-hover affordance on touch) | nothing — native HTML5 drag does NOT fire on touch | — | — |
+| Mouse-down on grip strip + 5px movement | `@dnd-kit` `MouseSensor` (distance: 5) via `useDraggable` on grip element | Internal (@dnd-kit) | @dnd-kit's drop detection inside the tree's `DndContext` |
+| Mouse-down on row body (outside grip) + native drag threshold | native `draggable={true}` + `onDragStart` on row body | HTML5 | Native drop targets — both internal rows AND external `todo-rich-card` drop targets |
+| Touch-press on grip strip + 300ms hold (no >5px jitter) | `@dnd-kit` `TouchSensor` (delay: 300, tolerance: 5) via `useDraggable` on grip element | Internal (@dnd-kit, supports touch) | Same as @dnd-kit pointer |
+| Touch-press on row body | nothing — native HTML5 drag does NOT fire on touch | — | — |
 
 **Implication:** internal touch-drag works (via @dnd-kit). Cross-procomp touch-drag does NOT work in v0.1 (native HTML5 has no touch). Internal pointer-drag and cross-procomp pointer-drag both work. This matches the L17 lock + R11 mitigation: full feature delivery on pointer; touch is internal-only.
 
@@ -440,7 +441,7 @@ Memoization: `useMemo` keyed on `[items, query, sort, filter, collapsedIds, filt
 
 ## 4. File structure
 
-Sealed folder at `src/registry/components/data/todo-tree/`. Expected ~53 files (~46 shipped via registry; demo/usage/meta docs-site only).
+Sealed folder at `src/registry/components/data/todo-tree/`. Expected 53 files (50 shipped via registry; demo/usage/meta docs-site only).
 
 ```
 src/registry/components/data/todo-tree/
@@ -493,7 +494,7 @@ src/registry/components/data/todo-tree/
    ├─ visible-items.ts            (filter + sort + flatten pipeline)
    ├─ filter-items.ts             (apply TodoTreeFilter)
    ├─ search-items.ts             (case-insensitive .includes on name + description)
-   ├─ sort-items.ts               (apply TodoTreeSort; 5 kinds + custom)
+   ├─ sort-items.ts               (apply TodoTreeSort; 4 named kinds + custom = 5 total)
    ├─ flatten-tree.ts             (DFS flatten + collapsed-respecting)
    ├─ tree-walker.ts              (find-by-id, find-parent, find-ancestors)
    ├─ tree-mutators.ts            (immutable add/remove/move/reparent)
@@ -963,7 +964,10 @@ export function TodoTreeRowContent({ item, level, isSelected, isCollapsed }: Tod
         )}
       </div>
       {item.description && (
-        <div className="text-xs text-muted-foreground truncate pl-[calc(level*var(--indent)+24px)]">
+        <div
+          className="text-xs text-muted-foreground truncate"
+          style={{ paddingLeft: level * indentSize + 24 }}
+        >
           {renderDescription ? renderDescription({ item, level }) : item.description}
         </div>
       )}
@@ -1045,7 +1049,7 @@ A "complete" wrapper would wire onChange + dispatch to setValue. **Q-P1 (plan-st
 
 ## 14. Dependencies
 
-### 14.1 New external deps (relative to producer + meta.ts declarations)
+### 14.1 External deps (relative to producer + meta.ts declarations)
 
 | Package | Version pinned by producer | Used by | Verified? |
 |---|---|---|---|
