@@ -2,17 +2,15 @@ import { useCallback } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { TodoItem } from "../../todo-rich-card/types";
 import type { TodoTreeAction, TodoTreeVisibleRow } from "../types";
+import type { TreeEventDispatcher } from "./use-tree-events";
 
 export interface UseSelectionArgs {
   visibleItems: ReadonlyArray<TodoTreeVisibleRow>;
   selectionAnchorId: string | null;
   selectedIds: ReadonlySet<string>;
   dispatch: (action: TodoTreeAction) => void;
-  onItemClick?: (args: {
-    item: TodoItem;
-    level: number;
-    event: ReactMouseEvent;
-  }) => void;
+  /** Event dispatcher; the click handler fires itemClick through here. */
+  fire: TreeEventDispatcher["fire"];
 }
 
 export interface UseSelectionResult {
@@ -39,8 +37,7 @@ export interface UseSelectionResult {
  * semantics for direct caller use).
  */
 export function useSelection(args: UseSelectionArgs): UseSelectionResult {
-  const { visibleItems, selectionAnchorId, selectedIds, dispatch, onItemClick } =
-    args;
+  const { visibleItems, selectionAnchorId, selectedIds, dispatch, fire } = args;
 
   const handleRowClick = useCallback(
     (item: TodoItem, level: number, event: ReactMouseEvent) => {
@@ -73,16 +70,12 @@ export function useSelection(args: UseSelectionArgs): UseSelectionResult {
         return;
       }
 
+      // Plain click: replace selection AND fire itemClick. Modifier-click
+      // does not fire itemClick (matches plan §8.1).
       dispatch({ type: "SELECT_ONE", id: item.id, mode: "replace" });
-      onItemClick?.({ item, level, event });
+      fire("itemClick", { item, level, event });
     },
-    [
-      visibleItems,
-      selectionAnchorId,
-      selectedIds,
-      dispatch,
-      onItemClick,
-    ],
+    [visibleItems, selectionAnchorId, selectedIds, dispatch, fire],
   );
 
   const selectRange = useCallback(
