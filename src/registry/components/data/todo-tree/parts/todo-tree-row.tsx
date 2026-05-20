@@ -44,7 +44,7 @@ export function TodoTreeRow({
   canToggleActive = true,
 }: TodoTreeRowProps) {
   const state = useTodoTreeStateContext();
-  const { indentSize, statusIndicator } = useTodoTreeRenderContext();
+  const { indentSize, statusIndicator, renderRow } = useTodoTreeRenderContext();
   const dnd = useTodoTreeDndContext();
 
   const { setNodeRef, isOver } = useDroppable({ id: item.id });
@@ -61,6 +61,31 @@ export function TodoTreeRow({
 
   const indicatorIndentPx =
     (statusIndicator === "strip" ? 12 : 8) + level * indentSize;
+
+  const hasChildren = !!item.children && item.children.length > 0;
+  const defaultRender = (
+    <TodoTreeRowContent
+      item={item}
+      level={level}
+      isSelected={isSelected}
+      isCollapsed={isCollapsed}
+      dimmed={dimmed}
+      canToggleActive={canToggleActive}
+      onToggleCollapse={() => state.toggleCollapse(item.id)}
+      onToggleActive={(next) => state.toggleActive(item.id, next)}
+    />
+  );
+
+  const body = renderRow
+    ? renderRow({
+        item,
+        level,
+        isSelected,
+        isCollapsed,
+        isExpanded: hasChildren && !isCollapsed,
+        defaultRender,
+      })
+    : defaultRender;
 
   return (
     <div
@@ -98,18 +123,7 @@ export function TodoTreeRow({
         <TodoTreeGrip id={item.id} enabled={canDrag} level={level} />
       </span>
 
-      <div className="flex-1">
-        <TodoTreeRowContent
-          item={item}
-          level={level}
-          isSelected={isSelected}
-          isCollapsed={isCollapsed}
-          dimmed={dimmed}
-          canToggleActive={canToggleActive}
-          onToggleCollapse={() => state.toggleCollapse(item.id)}
-          onToggleActive={(next) => state.toggleActive(item.id, next)}
-        />
-      </div>
+      <div className="flex-1">{body}</div>
 
       {showIndicator && dnd?.overZone && (
         <TodoTreeDropIndicator

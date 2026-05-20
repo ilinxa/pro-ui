@@ -9,6 +9,7 @@ import type {
 import type { TodoItem, TodoStatusOption } from "../../todo-rich-card/types";
 import type {
   TodoTreeFieldRenderArgs,
+  TodoTreeRowRenderArgs,
   TodoTreeStateValue,
   TodoTreeStatusRenderArgs,
 } from "../types";
@@ -59,6 +60,7 @@ export interface TodoTreeRenderContextValue {
   /** Pixels per nesting level. */
   indentSize: number;
   // Slot overrides — undefined => use the default leaf paint.
+  renderRow?: (args: TodoTreeRowRenderArgs) => ReactNode;
   renderName?: (args: TodoTreeFieldRenderArgs) => ReactNode;
   renderDescription?: (args: TodoTreeFieldRenderArgs) => ReactNode;
   renderPerson?: (args: TodoTreeFieldRenderArgs) => ReactNode;

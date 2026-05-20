@@ -60,10 +60,12 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       statusIndicator = "dot",
       virtualize,
       dndContext = "internal",
+      renderRow,
       renderName,
       renderDescription,
       renderPerson,
       renderStatusIndicator,
+      renderDragOverlay,
       onItemClick,
       onItemContextMenu,
       onActiveToggled,
@@ -133,6 +135,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         statusIndicator,
         statusOptionMap,
         indentSize,
+        renderRow,
         renderName,
         renderDescription,
         renderPerson,
@@ -142,6 +145,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         statusIndicator,
         statusOptionMap,
         indentSize,
+        renderRow,
         renderName,
         renderDescription,
         renderPerson,
@@ -233,12 +237,18 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       <DndContext {...dndProps}>
         {treeBody}
         <DragOverlay>
-          {dndInternal.activeItem && (
-            <TodoTreeDragOverlay
-              item={dndInternal.activeItem}
-              level={dndInternal.activeLevel}
-            />
-          )}
+          {dndInternal.activeItem &&
+            (renderDragOverlay
+              ? renderDragOverlay({
+                  item: dndInternal.activeItem,
+                  level: dndInternal.activeLevel,
+                })
+              : (
+                  <TodoTreeDragOverlay
+                    item={dndInternal.activeItem}
+                    level={dndInternal.activeLevel}
+                  />
+                ))}
         </DragOverlay>
       </DndContext>
     );
