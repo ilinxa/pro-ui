@@ -6,7 +6,7 @@ import {
   useTreeVirtual,
   type TodoTreeVirtualizeMode,
 } from "../hooks/use-tree-virtual";
-import { TodoTreeRowContent } from "./todo-tree-row-content";
+import { TodoTreeRow } from "./todo-tree-row";
 import { cn } from "@/lib/utils";
 
 export interface TodoTreeListProps {
@@ -108,18 +108,12 @@ export function TodoTreeList({
                 }
                 aria-selected={state.selectedIds.has(row.item.id) || undefined}
               >
-                <TodoTreeRowContent
+                <TodoTreeRow
                   item={row.item}
                   level={row.level}
                   isSelected={state.selectedIds.has(row.item.id)}
                   isCollapsed={state.collapsedIds.has(row.item.id)}
                   dimmed={row.dimmed}
-                  onToggleCollapse={() =>
-                    state.toggleCollapse(row.item.id)
-                  }
-                  onToggleActive={(next) =>
-                    state.toggleActive(row.item.id, next)
-                  }
                 />
               </div>
             );
@@ -149,16 +143,12 @@ export function TodoTreeList({
             }
             aria-selected={state.selectedIds.has(row.item.id) || undefined}
           >
-            <TodoTreeRowContent
+            <TodoTreeRow
               item={row.item}
               level={row.level}
               isSelected={state.selectedIds.has(row.item.id)}
               isCollapsed={state.collapsedIds.has(row.item.id)}
               dimmed={row.dimmed}
-              onToggleCollapse={() => state.toggleCollapse(row.item.id)}
-              onToggleActive={(next) =>
-                state.toggleActive(row.item.id, next)
-              }
             />
           </div>
         ))}

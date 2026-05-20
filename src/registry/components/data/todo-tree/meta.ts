@@ -58,6 +58,7 @@ export const meta: ComponentMeta = {
     npm: {
       "lucide-react": "^1.11.0",
       "@tanstack/react-virtual": "^3.13.24",
+      "@dnd-kit/core": "^6.3.1",
     },
     internal: ["todo-rich-card"],
   },

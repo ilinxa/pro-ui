@@ -29,6 +29,14 @@ export interface UseControlledModeArgs {
   internalItems: TodoItem[];
   onChange: ((args: TodoTreeChangeArgs) => void) | undefined;
   applyExternalItems: (items: TodoItem[]) => void;
+  /**
+   * Optional external drag-flag ref. When provided, the host (todo-tree.tsx)
+   * controls drag state from C6's DnD hooks; defense 3 reads from it at
+   * microtask-fire time. When omitted, an internal ref is used (no caller
+   * ever flips it, so drag suppression is inert — fine for pure controlled-
+   * mode users with no drag).
+   */
+  isDraggingRef?: React.MutableRefObject<boolean>;
 }
 
 export interface UseControlledModeResult {
@@ -42,14 +50,18 @@ export function useControlledMode(
 ): UseControlledModeResult {
   const { value, internalItems, onChange, applyExternalItems } = args;
   const isControlled = value !== undefined;
-  const isDraggingRef = useRef(false);
+  const internalDraggingRef = useRef(false);
+  const isDraggingRef = args.isDraggingRef ?? internalDraggingRef;
   const onChangeRef = useRef(onChange);
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Defense 1 + 3.
+  // Defense 1 + 3. `isDraggingRef` is intentionally omitted from the dep
+  // array — refs have stable identity and the callback reads `.current` at
+  // microtask-fire time. Including it would force fireOnChange's identity to
+  // change whenever the host swapped the ref (it never should).
   const fireOnChange = useCallback(
     (next: TodoItem[], reason: TodoTreeChangeReason) => {
       const cb = onChangeRef.current;
@@ -60,6 +72,7 @@ export function useControlledMode(
         live?.({ items: next, reason });
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 

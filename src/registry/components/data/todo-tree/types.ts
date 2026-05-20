@@ -231,6 +231,13 @@ export interface TodoTreeStateValue extends TodoTreeHandle {
   sort: TodoTreeSort;
   filter: TodoTreeFilter;
   dispatch: (action: TodoTreeAction) => void;
+  /**
+   * Click handler that owns selection-mode resolution (plain / cmd / shift),
+   * range resolution over `visibleItems`, and `onItemClick` firing. The
+   * default `<TodoTreeRow>` wires it; custom rows / slot consumers call it
+   * from their own row click target.
+   */
+  handleRowClick: (item: TodoItem, level: number, event: MouseEvent) => void;
 }
 
 /* ---------------------------------- Slot render-prop args ---------------------------------- */

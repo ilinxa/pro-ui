@@ -1,13 +1,18 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { TodoStatusOption } from "../../todo-rich-card/types";
+import type {
+  DragEvent as ReactDragEvent,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+} from "react";
+import type { TodoItem, TodoStatusOption } from "../../todo-rich-card/types";
 import type {
   TodoTreeFieldRenderArgs,
   TodoTreeStateValue,
   TodoTreeStatusRenderArgs,
 } from "../types";
-import type { ReactNode } from "react";
+import type { EdgeZone } from "../lib/edge-zone";
 
 /**
  * State context — populated by the host `<TodoTree>` so parts/ can read the
@@ -72,4 +77,43 @@ export function useTodoTreeRenderContext(): TodoTreeRenderContextValue {
     );
   }
   return ctx;
+}
+
+/**
+ * DnD context — drag-time state surfaced to rows so they can decorate
+ * themselves (drop indicator visual + dragging-source dimming) without
+ * needing to subscribe to the @dnd-kit store directly.
+ */
+export interface TodoTreeDndContextValue {
+  activeItemId: string | null;
+  overId: string | null;
+  overZone: EdgeZone | null;
+  /** True when the over zone would form a cycle; row should suppress the indicator. */
+  overCircular: boolean;
+  /** Click handler for plain / cmd / shift row click. */
+  handleRowClick: (
+    item: TodoItem,
+    level: number,
+    event: ReactMouseEvent,
+  ) => void;
+  /** Native HTML5 drag handlers; spread onto the row's outer div. */
+  getRowHandlers: (item: TodoItem) => {
+    draggable: boolean;
+    onDragStart: (e: ReactDragEvent<HTMLDivElement>) => void;
+    onDragOver: (e: ReactDragEvent<HTMLDivElement>) => void;
+    onDrop: (e: ReactDragEvent<HTMLDivElement>) => void;
+  };
+}
+
+/**
+ * `null` value indicates DnD is not mounted in this tree (e.g.,
+ * `dndContext="external"` is set AND the consumer's outer DndContext
+ * doesn't expose its over state to us). Rows degrade gracefully — no
+ * drop indicator, no row-click handler.
+ */
+export const TodoTreeDndContext =
+  createContext<TodoTreeDndContextValue | null>(null);
+
+export function useTodoTreeDndContext(): TodoTreeDndContextValue | null {
+  return useContext(TodoTreeDndContext);
 }
