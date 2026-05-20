@@ -1,8 +1,13 @@
 import { useCallback } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+} from "react";
 import type { TodoItem } from "../../todo-rich-card/types";
 import type { TodoTreeAction, TodoTreeVisibleRow } from "../types";
 import type { TreeEventDispatcher } from "./use-tree-events";
+
+type RowEvent = ReactMouseEvent | ReactKeyboardEvent;
 
 export interface UseSelectionArgs {
   visibleItems: ReadonlyArray<TodoTreeVisibleRow>;
@@ -15,11 +20,7 @@ export interface UseSelectionArgs {
 
 export interface UseSelectionResult {
   /** Plain / cmd-click / shift-click handler. Visibility-aware. */
-  handleRowClick: (
-    item: TodoItem,
-    level: number,
-    event: ReactMouseEvent,
-  ) => void;
+  handleRowClick: (item: TodoItem, level: number, event: RowEvent) => void;
   /** Imperative range — replaces selection with the visible-row sequence between idA and idB. */
   selectRange: (idA: string, idB: string) => void;
   /** Imperative — replaces selection with every currently-visible row id. */
@@ -40,7 +41,7 @@ export function useSelection(args: UseSelectionArgs): UseSelectionResult {
   const { visibleItems, selectionAnchorId, selectedIds, dispatch, fire } = args;
 
   const handleRowClick = useCallback(
-    (item: TodoItem, level: number, event: ReactMouseEvent) => {
+    (item: TodoItem, level: number, event: RowEvent) => {
       const isShift = event.shiftKey;
       const isCmd = event.metaKey || event.ctrlKey;
 
