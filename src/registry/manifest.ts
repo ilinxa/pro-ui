@@ -174,6 +174,10 @@ import TodoRichCardDemo from "./components/data/todo-rich-card/demo";
 import TodoRichCardUsage from "./components/data/todo-rich-card/usage";
 import { meta as todoRichCardMeta } from "./components/data/todo-rich-card/meta";
 
+import TodoTreeDemo from "./components/data/todo-tree/demo";
+import TodoTreeUsage from "./components/data/todo-tree/usage";
+import { meta as todoTreeMeta } from "./components/data/todo-tree/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -402,6 +406,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: todoRichCardMeta,
     Demo: TodoRichCardDemo,
     Usage: TodoRichCardUsage,
+  },
+  {
+    meta: todoTreeMeta,
+    Demo: TodoTreeDemo,
+    Usage: TodoTreeUsage,
   },
 ];
 
