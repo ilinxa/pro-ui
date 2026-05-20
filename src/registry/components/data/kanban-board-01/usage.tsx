@@ -134,6 +134,18 @@ function makeRichCardRenderer(
         on top and leaves the body fully interactive — right for renderers with
         click-to-edit fields, embedded inputs, or their own internal DnD.
       </p>
+      <p className="mt-2 text-muted-foreground">
+        <strong>Pre-built renderer — todo items:</strong>{" "}
+        <code>@ilinxa/todo-rich-card</code> exports a ready-to-use{" "}
+        <code>todoRichCardKanbanRenderer</code> (typed as{" "}
+        <code>KanbanCardRenderer&lt;TodoItem&gt;</code>,{" "}
+        <code>dragHandle: &quot;header&quot;</code>) — no factory wrapper
+        needed. Drop it directly into <code>renderers={"{[...]}"}</code> and
+        give each item <code>rendererId: &quot;todo-rich-card&quot;</code> with
+        a <code>TodoItem</code>-shaped <code>data</code> payload. See the
+        todo-rich-card detail page for the live kanban demo + the full code
+        recipe.
+      </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Keyboard</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">

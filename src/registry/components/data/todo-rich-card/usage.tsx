@@ -11,9 +11,12 @@ export default function TodoRichCardUsage() {
           is fully data-interactive (JSON I/O, clipboard, drag-drop).
         </p>
         <p className="mt-2 text-muted-foreground">
-          For lists of tasks with sort / filter / search / multi-select / variant
-          switching (rich / tree / kanban), reach for the sibling{" "}
-          <code>todo-list</code> procomp instead.
+          For lightweight tree-row rendering (collapsible sub-items, inline
+          checkbox, single-line description preview), reach for the sibling{" "}
+          <code>todo-tree</code> procomp — shares the same{" "}
+          <code>TodoItem</code> schema so drags + clipboard payload work
+          cross-procomp. For kanban, use{" "}
+          <code>kanban-board-01</code> + the renderer exported below.
         </p>
       </section>
 
@@ -132,17 +135,81 @@ export function Example() {
       </section>
 
       <section>
-        <h3 className="mb-2 text-base font-semibold">Composing with other procomps</h3>
+        <h3 className="mb-2 text-base font-semibold">Composing with kanban-board-01</h3>
+        <p className="text-muted-foreground">
+          The package exports{" "}
+          <code>todoRichCardKanbanRenderer</code> — a typed{" "}
+          <code>KanbanCardRenderer&lt;TodoItem&gt;</code> with{" "}
+          <code>dragHandle: &quot;header&quot;</code> so the kanban grip strip
+          handles outer column reorder while the card body keeps its full edit /
+          collapse / nested-DnD semantics. Drop it into the{" "}
+          <code>KanbanBoard</code> <code>renderers</code> array alongside (or
+          instead of) the built-in card renderers. The kanban-board demo on its
+          own detail page shows mixed renderers; below is the minimum wiring.
+        </p>
+        <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+{`import { KanbanBoard, kanbanCardRenderer } from "@/components/kanban-board-01";
+import { todoRichCardKanbanRenderer } from "@/components/todo-rich-card";
+import type { KanbanData } from "@/components/kanban-board-01";
+
+const initial: KanbanData = {
+  swimlanes: [],
+  columns: [
+    {
+      id: "col-todo",
+      title: "To do",
+      color: "slate",
+      items: [
+        {
+          id: "kanban-task-1",
+          rendererId: "todo-rich-card",            // matches renderer.id
+          data: {
+            id: "task-001",
+            name: "Review PR #482",
+            status: "todo",
+            active: true,
+            setAt: "2026-05-19T09:00:00Z",
+            expireAt: "2026-05-21T17:00:00Z",
+          },
+        },
+      ],
+    },
+    { id: "col-doing", title: "In progress", color: "lime", items: [] },
+    { id: "col-done",  title: "Done",        color: "emerald", items: [] },
+  ],
+};
+
+export function TodoKanbanExample() {
+  return (
+    <KanbanBoard
+      renderers={[kanbanCardRenderer, todoRichCardKanbanRenderer]}
+      defaultData={initial}
+      aria-label="Todo kanban"
+    />
+  );
+}`}
+        </pre>
+        <p className="mt-2 text-xs text-muted-foreground">
+          <code>rendererId: &quot;todo-rich-card&quot;</code> on each kanban
+          item must match{" "}
+          <code>todoRichCardKanbanRenderer.id</code> — the board uses this to
+          look up the renderer for each item. Items with no matching renderer
+          show a placeholder card.
+        </p>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-base font-semibold">Other composition targets</h3>
         <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
-          <li>
-            <strong>kanban-board-01</strong>: import{" "}
-            <code>todoRichCardKanbanRenderer</code> from this package and
-            register it in your board&apos;s <code>renderers</code> array.
-          </li>
           <li>
             <strong>flow-canvas-01</strong> (via{" "}
             <code>todo-rich-card-in-flow</code> sibling adapter, shipping
             separately): exposes a NodeRenderer that wraps this card.
+          </li>
+          <li>
+            <strong>todo-tree</strong> (sibling procomp, shipping separately):
+            lightweight tree-row alternative that shares the same{" "}
+            <code>TodoItem</code> schema and DnD payload so drags cross-procomp.
           </li>
         </ul>
       </section>
