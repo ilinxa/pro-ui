@@ -3,14 +3,17 @@
 Snapshot of every shipped procomponent in the registry, with version + release status. Pulled directly from each component's `src/registry/components/<category>/<slug>/meta.ts`.
 
 > Snapshot date: **2026-05-17** (**rich-card-in-flow v0.2.0 SHIPPED — port editor (Workstream B)**: adds `PortEditorStrip` — opt-in editor for the ports carried by each rich-card canvas node or its `__rcid`-tagged subcards. Six editable fields per port (id / type / side / dir / multi / label); live-save; add-popover with `[✓in][✓out]` atomic create-flow that splits to `{base}-in` / `{base}-out` rows after save (Q3 lock); doc-port type forces `bottom` side editor-side (Q4 lock); orphan-doc-target tooltip on doc-typed ports today (Q-O2 lock — separate doc-file procomp will resolve in v0.3+). No breaking changes vs v0.1.0. New public surface: `PortEditorStrip` + `PortEditorPermissions` + `PortField` union. shadcn primitive deps grew 0→7 (popover/select/checkbox/input/tooltip/label/button). Uncontrolled-by-design (Q9 lock). 8 implementation commits + B4 (registry distribution + path-b smoke + 3 primitive-divergence fixes — see F-cross-13 below). GATE 3 spotcheck Pass with follow-ups; rotating dim Public API; 3 findings (F-01 F-cross-13 closed pre-ship; F-02 per-field ports + F-03 custom port-type registration both v0.3 candidates). See [decision file](../.claude/decisions/2026-05-17-rich-card-in-flow-v0.2.0-port-editor.md). **flow-canvas-01 v0.2.5 SHIPPED — built-in `"doc"` port type (Workstream A prerequisite)**: one-line `defaultPortTypes` add — `{ id: "doc", color: "var(--chart-3)", label: "Doc" }`. Required upstream for rcif v0.2.0's PortEditorStrip — doc-port type is the only port type with editor-side side-enforcement (auto-corrects to `bottom`). Runtime stays neutral about doc ports. Patch-bump exemption per readiness-review rule — additive, non-breaking, no public-API touch; GATE 3 skipped, v0.2.0 spotcheck verdict carries forward. See [decision file](../.claude/decisions/2026-05-17-flow-canvas-v0.2.5-doc-port-type.md). **NEW F-cross-13 (Medium) — shadcn primitive Radix → Base UI divergence**: producer ships Radix-based primitives but `shadcn@4.6.0 add` ships Base UI primitives; `TooltipProvider.delayDuration` (Radix) vs `delay` (Base UI); `Select.onValueChange` is `(v: string)` on Radix vs `(v: string | null, eventDetails)` on Base UI. Path (a) defensive callback pattern shipped per-procomp in rcif v0.2.0 B4 (parameter contravariance — widen onValueChange to `(v: string | null)` to satisfy both backends); path (b) producer-primitive refresh = standalone hygiene task. See [`docs/reviews/sweep-tracker.md`](reviews/sweep-tracker.md) F-cross-13. **Earlier today: rich-card v0.4.2 SHIPPED — empty-card add-affordances fix**: lifted `+ FIELD` / `+ BLOCK` action row out of the `hasBody`-gated body wrapper in `parts/card.tsx` so empty cards (zero fields, zero predefined) — including any freshly-added child card — can be populated through the UI. Pre-v0.4.2, `dispatchers.cardAdd` created `fields:[]/predefined:[]` cards that had only `+ CHILD` exposed (nestable, never fillable). Surfaced during a post-v0.2.4 rich-card-in-flow editor audit; user-reported "ADD BLOCK options disappear" + "root has no add options" turned out to be by-design and a misperception respectively, but the investigation surfaced THIS distinct latent bug. Patch-bump exemption — GATE 3 skipped, rich-card stays `beta`. Earlier today: **flow-canvas-01 v0.2.4 SHIPPED — suppress mid-drag onChange + microtask-time drag guard**: third and final follow-up in the v0.2.2 → v0.2.3 → v0.2.4 controlled-mode saga. After v0.2.3, xyflow's #015 "trying to drag a node that is not initialized" warning was STILL firing during drag (10–20+ per drag) — mid-drag mixed batches slipped through the position-only short-circuit, queued microtasks via v0.2.2's defer, by microtask-fire time further drag ticks had moved internal state on, and v0.2.3's structural-check correctly identified the divergence but its "fix" (wholesale replace) wiped `measured` → #015 next tick. Two complementary defenses in `hooks/use-canvas-data.ts`: (1) `onNodesChange` suppresses ALL consumer onChange during drag (not just position-only batches); (2) `fireOnChange` microtask checks `isDraggingRef` at fire time + bails early if drag in progress. `onNodeDragStop` continues flushing the single authoritative post-drag snapshot. Patch-bump exemption — GATE 3 skipped. v0.2.4 is the floor for safe controlled-mode use. Earlier: v0.2.3 round-trip echo guard via `canvasMatchesInternalState` (still load-bearing for steady-state round-trips). Earlier: v0.2.2 setState-during-render fix (`queueMicrotask` wrap of `fireOnChange`). Earlier (2026-05-16): **rich-card-in-flow v0.1.0 SHIPPED**: 43rd component, canonical implementation of flow-canvas-01@v0.2.0's popup-edit renderer convention. flow-canvas-01 v0.2.1 (`onEditRequest` API + `updateNodeData` helper). v0.2.0 Tier 1 + Tier 2 perf bundle.)
-> Total: **43 components** across **8 categories**
+> Total: **45 components** across **8 categories**
+>
+> **Updated 2026-05-20** (additive to 2026-05-17 snapshot above): **todo-rich-card v0.1.0 → v0.1.1 SHIPPED** — first ship was the time-aware task card sibling to rich-card (full detail in [`decisions/2026-05-20-todo-rich-card-v0.1.0-first-ship.md`](../.claude/decisions/2026-05-20-todo-rich-card-v0.1.0-first-ship.md)); same-day F-cross-13 patch loop ([`decisions/2026-05-20-todo-rich-card-v0.1.1-f-cross-13-fix.md`](../.claude/decisions/2026-05-20-todo-rich-card-v0.1.1-f-cross-13-fix.md)) widened Select.onValueChange callbacks + dropped TooltipProvider.delayDuration; F-04 closed. **todo-tree v0.1.0 scaffolded** (C1 of C1–C11 chain per [todo-tree-procomp-plan.md §18](procomps/todo-tree-procomp/todo-tree-procomp-plan.md#18-implementation-order-commit-chain)) — single feature-complete v0.1, no v0.2/v0.3 deferrals; full type catalog locked, stub component renders; implementation lands across C2–C11. **Live rich+kanban composition demo** added to todo-rich-card detail page (docs-only).
+>
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
 ## Summary
 
 | Category   | Count | Notes                                                                 |
 |------------|-------|-----------------------------------------------------------------------|
-| `data`     | 22    | Largest category; hosts the canonical `data-table` template + `stat-card` + new `rich-card-in-flow` (2026-05-16) |
+| `data`     | 24    | Largest category; hosts the canonical `data-table` template + `stat-card` + `rich-card-in-flow` (2026-05-16) + `todo-rich-card` (2026-05-20) + `todo-tree` (2026-05-20 scaffold) |
 | `forms`    | 7     | `json-form` added 2026-05-13 (first cross-registry `dependencies.internal` consumer; lazy-loads `@ilinxa/code-block`) |
 | `marketing`| 4     |                                                                       |
 | `media`    | 4     | `pdf-viewer` added 2026-05-10                                         |
@@ -18,7 +21,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `layout`   | 2     |                                                                       |
 | `code`     | 1     | New category 2026-05-11 (`code-block`)                                |
 | `feedback` | 1     |                                                                       |
-| **Total**  | **43**|                                                                       |
+| **Total**  | **45**|                                                                       |
 
 ## Highlights
 
@@ -36,7 +39,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 - `force-graph` was **removed 2026-05-08** pending recreation under a new design + plan. v0.2 source + procomp docs archived to `docs/migrations/force-graph/`. The future v3 will go through the standard procomp planning pipeline.
 - `flow-canvas-01` v0.1.0 is feature-rich despite the version (39 files; renderers/portTypes/edgeTypes registries; typed-port validation; sub-object drag-extract; right-click menus; 200-node stress demo).
 
-## data (22)
+## data (24)
 
 | Slug                    | Name                       | Version | Status |
 |-------------------------|----------------------------|---------|--------|
@@ -62,6 +65,8 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `thumb-list-01`         | Thumb List 01              | 0.1.0   | alpha  |
 | `stat-card`             | Stat Card                  | 0.1.1   | alpha  |
 | `rich-card-in-flow`     | Rich Card in Flow          | 0.2.0   | alpha  |
+| `todo-rich-card`        | Todo Rich Card             | 0.1.1   | alpha  |
+| `todo-tree`             | Todo Tree                  | 0.1.0   | alpha (C1 scaffold; full implementation in flight across C2–C11) |
 
 ## forms (6)
 
