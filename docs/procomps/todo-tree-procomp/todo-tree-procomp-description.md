@@ -62,7 +62,7 @@ User direction: **no v0.2 / v0.3 deferrals.** Every capability that belongs in t
 **Headless state hook**
 - `useTodoTreeState(initialValue, options)` returns the **`TodoTreeStateValue`** object — a superset of `TodoTreeHandle`'s surface plus the live state values that the toolbar needs. Shape:
   - Data: `items`, `setItems`, `visibleItems` (flattened + filtered + sorted snapshot)
-  - Item ops (same as handle): `addItem`, `removeItem`, `addChild`, `removeItems`, `toggleActiveBulk`
+  - Item ops (same as handle): `addItem`, `removeItem`, `addChild`, `removeItems`, `toggleActive`, `toggleActiveBulk`
   - Collapse state + ops: `collapsedIds`, `toggleCollapse`, `expandItem`, `collapseItem`, `expandAll`, `collapseAll`, `isCollapsed`
   - Selection state + ops: `selectedIds`, `selectItem`, `deselectItem`, `selectRange`, `selectAll`, `clearSelection`
   - Query/sort/filter state + ops: `query`, `sort`, `filter`, `setQuery`, `setSort`, `setFilter`, `clearAllFilters`
@@ -100,7 +100,8 @@ User direction: **no v0.2 / v0.3 deferrals.** Every capability that belongs in t
 **Imperative handle (full surface)**
 - Tree state: `getValue(): TodoItem[]` / `setValue(next: TodoItem[]): void`
 - Item ops: `addItem(item, opts?: { parentId?: string; index?: number }): void` / `removeItem(id: string): void` / `addChild(parentId: string, item: TodoItem, index?: number): void`
-- Bulk ops: `removeItems(ids: string[]): void` / `toggleActiveBulk(ids: string[], nextActive: boolean): void`
+- Active toggle: `toggleActive(id: string, nextActive: boolean): void` (single) / `toggleActiveBulk(ids: string[], nextActive: boolean): void` (bulk)
+- Bulk remove: `removeItems(ids: string[]): void`
 - Focus / nav: `focusItem(id: string): void` / `getItemById(id: string): TodoItem | undefined`
 - Collapse: `expandItem(id)` / `collapseItem(id)` / `toggleCollapse(id)` / `expandAll()` / `collapseAll()` / `isCollapsed(id): boolean`
 - Selection: `selectItem(id)` / `deselectItem(id)` / `selectRange(idA, idB)` / `selectAll()` / `clearSelection()` / `getSelectedIds(): ReadonlySet<string>`
@@ -132,6 +133,7 @@ User direction: **no v0.2 / v0.3 deferrals.** Every capability that belongs in t
 - `renderToolbar?: (args: { defaultToolbar; state }) => ReactNode` — replace the default toolbar.
 - `renderEmptyState?: (args: { hasFilter: boolean }) => ReactNode` — replace the "No tasks." placeholder.
 - `renderDragOverlay?: (args: { item; level }) => ReactNode` — replace the drag preview.
+- **Priority rule:** when both a render-prop slot AND a prop variant are provided for the same surface (`renderStatusIndicator` + `statusIndicator`, `renderToolbar` + `toolbar`), the **slot wins**. Toolbar fallback chain: `renderToolbar` → `toolbar` as `ReactNode` → `toolbar === "default"` (built-in) → `toolbar === "none"` (no toolbar).
 
 **Optional virtualization**
 - `virtualize?: boolean | { threshold?: number }` prop. Default = auto-enable when **flattened visible items** ≥ 200 rows. Uses `@tanstack/react-virtual` under the hood (already a peer dep via other procomps).
@@ -294,6 +296,7 @@ export interface TodoTreeHandle {
   removeItem(id: string): void;
   addChild(parentId: string, item: TodoItem, index?: number): void;
   removeItems(ids: string[]): void;
+  toggleActive(id: string, nextActive: boolean): void;
   toggleActiveBulk(ids: string[], nextActive: boolean): void;
 
   // Focus / nav
@@ -461,7 +464,7 @@ No consumer code change beyond mounting both components on the page. The shared 
 10. Headless hook (`useTodoTreeState`) round-trips state correctly when consumer hosts the toolbar themselves.
 11. All eight slot props render correctly when provided; defaults work when omitted.
 12. Virtualization auto-enables at ≥200 rows; drag + drop zones still pixel-accurate while virtualized.
-13. Imperative handle methods all work (add / remove / addChild / removeItems / toggleActiveBulk / focus / expand/collapse / select / setQuery/Sort/Filter).
+13. Imperative handle methods all work (add / remove (single + bulk) / addChild / toggleActive (single + bulk) / focus / expand/collapse / select / setQuery/Sort/Filter).
 14. Keyboard navigation matches the WAI-ARIA tree pattern + Delete/Backspace remove + Cmd-A select all + Shift-click range.
 15. Touch DnD works on a touch device (or DevTools touch emulation): long-press lifts a row, edge-zones still detected. **(Q8 locked = option (a) Dual DnD — must verify both pointer + touch on internal drag, and HTML5 cross-procomp drag on pointer.)**
 16. Live demo on `/components/todo-tree` shows: a flat list, a nested list, a permissions-locked subtree, drag-to-reparent in action, the toolbar with search + sort + filter, multi-select + bulk actions, slot prop demonstration, virtualization at scale (≥500 rows), and cross-procomp drag with a `todo-rich-card` mounted alongside.
@@ -491,7 +494,7 @@ No consumer code change beyond mounting both components on the page. The shared 
 | L17 | **Touch DnD shipped in v0.1 via DUAL DnD system (Q8 = option a, locked 2026-05-20).** Every tree row is BOTH an `@dnd-kit` Draggable (drives internal reorder + reparent with full touch support via `PointerSensor` + activationConstraint) AND a native HTML5 drag source/target (drives cross-procomp drag with todo-rich-card via shared `application/x-ilinxa-todo+json` MIME). The two systems run in parallel; tree-internal drag uses @dnd-kit, cross-procomp drag uses HTML5. New peer deps: `@dnd-kit/core` (already in `kanban-board-01`). | GATE 2 plan must lock the row-level event ordering (which system claims drag-start when both are armed) + the @dnd-kit → HTML5 handoff strategy if the user drags out of the tree mid-@dnd-kit-drag. |
 | L18 | Virtualization shipped in v0.1; auto-enables at ≥200 visible rows | Uses `@tanstack/react-virtual` (existing peer dep). DOM structure unchanged when virtualized. |
 | L19 | Keyboard delete (`Delete` / `Backspace`) shipped in v0.1, gated on `canRemoveItem` | Paired with imperative `removeItem(id)` for programmatic remove. |
-| L20 | Full imperative handle shipped in v0.1 (no future-deferred methods) | 25 methods covering tree state, item ops, bulk ops, focus, collapse, selection, query/sort/filter. |
+| L20 | Full imperative handle shipped in v0.1 (no future-deferred methods) | 26 methods covering tree state, item ops, single + bulk active-toggle + remove, focus, collapse, selection, query/sort/filter. |
 | L21 | Cross-procomp drag semantics = copy by default | Consumer wires move semantics via `onItemDropped` + their own state. Mirrors todo-rich-card. |
 | L22 | Drop visual affordance: horizontal accent line for sibling zones; inner-glow ring for middle/reparent zone | Plan-stage will lock the exact pixel/timing values. |
 | L23 | Circular-drop prevention: hit-test bans drops where source `id` is an ancestor of target | Fires `onPermissionDenied` with reason `"circular-drop"`. |
@@ -525,7 +528,7 @@ Pre-answered where the answer is obvious; only genuinely open items remain as Qs
 | R3 | Reparenting via middle-zone drop is unintuitive without affordance. | L22 locks the visual affordance (line vs glow). |
 | R4 | Cross-procomp drags can create circular trees if a parent is dragged into its own child. | L23 — hit-test ban + `onPermissionDenied`. |
 | R5 | Imperative `setValue` bypassing `onChange` is a documented escape hatch but consumers may misuse it as the primary mutation path. | Document loudly in guide.md and usage.tsx: `setValue` is for replace-all, not for incremental edits. |
-| R6 | Component complexity: 25 locks, 8 slot props, 17 events, 25-method handle + extended state hook, virtualization, multi-select, toolbar — this is the largest single procomp surface in the project. | GATE 2 plan must enforce strict folder organization (parts/ split per UI subsystem, hooks/ split per concern, lib/ for pure ops) to keep this navigable. Likely 50+ files in the sealed folder. |
+| R6 | Component complexity: 24 locks, 8 slot props, 17 events, 26-method handle + extended state hook, virtualization, multi-select, toolbar — this is the largest single procomp surface in the project. | GATE 2 plan must enforce strict folder organization (parts/ split per UI subsystem, hooks/ split per concern, lib/ for pure ops) to keep this navigable. Likely 50+ files in the sealed folder. |
 | R7 | Virtualization + DnD interaction is a known footgun (the dragged item can scroll out of the windowed range mid-drag). | GATE 2 plan reviews kanban-board-01's virtualization + DnD patterns (if any) or evaluates `@tanstack/react-virtual`'s known interactions. If unresolvable, virtualization auto-suspends during drag. |
 | R8 | Bulk-edit callback shape is intentionally minimal (`onBulkEdit({ids})`) — consumers may want partial-snapshot of common fields. | Consumer can compute the snapshot themselves from `getItemById` on each id. Avoids baking a half-baked common-edit pre-form. |
 | R9 | Search/filter interplay with virtualization: filtered-out rows can shrink the visible list below the virtualization threshold, defeating the purpose. | Threshold check uses TOTAL items, not visible items, to decide whether to virtualize. (Locked here.) |
