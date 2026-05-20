@@ -10,13 +10,37 @@ Production-ready React components distributed via the [shadcn-registry](https://
 
 ### Prerequisites
 
-Your project must have shadcn already initialized:
+Your consumer app needs **three** things in place before installing any `@ilinxa/*` component. The CLI handles peer deps; it does NOT seed the design system itself.
+
+**1. Any React 19 host — Next.js is not required.**
+
+Components are pure React. They import only `react`, sibling shadcn primitives, and explicitly-declared third-party deps — never `next/*`. Any React 19 host works: Next.js 14/15/16 (App Router or Pages), Vite, Remix, Astro islands, RSPack, etc. Many components ship with a leading `"use client"` directive — load-bearing in the Next.js App Router, a harmless no-op everywhere else.
+
+**2. Tailwind CSS v4 with the shadcn token set.**
+
+This is a hard requirement, not a styling preference. Components render against semantic class names (`bg-card`, `text-foreground`, `border-border`, `bg-primary`, `text-muted-foreground`, `ring-ring`, …). Those classes only exist when Tailwind v4 reads a matching `@theme inline` block. Without it, the classes don't compile.
+
+Concretely, the consumer's `globals.css` needs the canonical shadcn CSS variables (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`) defined under `:root` and `.dark`, plus an `@theme inline` block that maps them onto `--color-*` / `--radius-*` tokens. Running `pnpm dlx shadcn@latest init` against a v4 project does this for you.
+
+A few components rely on extra tokens beyond the canonical set:
+
+| Token group | Required by | Where to copy from |
+|---|---|---|
+| `--chart-1` … `--chart-5` | chart-shell, stat-card, article-body-01 syntax highlighting | [src/app/globals.css:94-98, 132-136](src/app/globals.css#L94-L98) |
+| `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent`, `--sidebar-border`, `--sidebar-ring` (+ `-foreground` variants) | sidebar / nav surfaces | [src/app/globals.css:100-107, 137-144](src/app/globals.css#L100-L107) |
+| `--warning`, `--warning-foreground` | components with semantic warning state | [src/app/globals.css:86-87, 126-127](src/app/globals.css#L86-L87) |
+| `--xy-*` overrides | flow-canvas-01 only | [src/app/globals.css:224-244](src/app/globals.css#L224-L244) |
+| `.hljs-*` syntax classes | article-body-01 only | [src/app/globals.css:246-304](src/app/globals.css#L246-L304) |
+
+You **don't** need to copy the brand *values* — keep your own `--primary`, `--background`, etc. Every ilinxa component reads tokens by name, so it inherits whatever palette the host ships. The brand identity (signal-lime + cool off-white + graphite-cool dark) is only authoritative on this demo site.
+
+**3. shadcn initialized in the project.**
 
 ```bash
 pnpm dlx shadcn@latest init
 ```
 
-This seeds `lib/utils.ts` (the `cn` helper that all primitives import) and `components.json` (alias config). Skip this if you've already used any shadcn component in the project.
+This seeds `lib/utils.ts` (the `cn` helper that every primitive imports) and `components.json` (alias config). Skip if you've already used any shadcn component in the project.
 
 ### Register the namespace
 
@@ -95,10 +119,11 @@ Eight components, each with an optional `-fixtures` sibling for example data:
 
 ## Compatibility
 
-- **Next.js** 14 / 15 / 16 (App Router & Pages Router)
-- **React** 19 (or 18 with graceful primitive variants)
-- **Tailwind CSS** v4 (CSS-vars-only config; no `tailwind.config.*`)
-- **Package managers** pnpm / bun / yarn — npm + React 19 needs `--legacy-peer-deps`
+- **React host** — any React 19 framework. Tested on Next.js 14 / 15 / 16 (App Router & Pages Router); works in Vite, Remix, Astro, RSPack, etc. Components never import `next/*`.
+- **React version** — 19 (or 18 with graceful primitive variants).
+- **Tailwind CSS** — **v4 required** (CSS-vars-only config; no `tailwind.config.*`). The components are written against semantic Tailwind tokens (`bg-card`, `text-foreground`, `border-border`, …) registered through `@theme inline`. v3 + JS config won't compile the class names. See [Prerequisites §2](#prerequisites).
+- **Design tokens** — canonical shadcn token set required (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`). A few components also need `--chart-*`, `--sidebar*`, `--warning*` — see the table in [Prerequisites §2](#prerequisites).
+- **Package managers** — pnpm / bun / yarn. npm + React 19 needs `--legacy-peer-deps`.
 
 ---
 

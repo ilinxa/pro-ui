@@ -11,7 +11,13 @@ This is NOT an npm package. Do NOT try `pnpm add ilinxa-pro-ui` or `npm install 
 
 ## Consumer install (the one you usually want)
 
-Prerequisite: target project must have `pnpm dlx shadcn@latest init` already run. That step seeds `lib/utils.ts` (the `cn` helper every shadcn primitive imports). If `init` was never run, installs will succeed but the consumer's build will fail with `Cannot find module '@/lib/utils'`.
+Prerequisites — all three must hold:
+
+1. **Any React 19 host** — components are pure React and never import `next/*`. Works in Next.js (14/15/16, App Router or Pages), Vite, Remix, Astro, RSPack, etc. A leading `"use client"` directive in some files is load-bearing in Next App Router and a harmless no-op everywhere else.
+2. **Tailwind CSS v4 + the canonical shadcn token set** — components render against semantic Tailwind classes (`bg-card`, `text-foreground`, `border-border`, `bg-primary`, `text-muted-foreground`, `ring-ring`, …). Those classes only exist when v4's `@theme inline` block maps the shadcn CSS variables (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`) onto `--color-*` / `--radius-*` tokens. `shadcn init` against a v4 project sets this up. v3 + JS config will NOT compile the classes.
+3. **`shadcn init` already run in the consumer project** — seeds `lib/utils.ts` (the `cn` helper every primitive imports). Without this step installs succeed but the build fails with `Cannot find module '@/lib/utils'`.
+
+Extra tokens some components also need: `--chart-1..5` (chart-shell, stat-card, article-body-01), `--sidebar*` (sidebar surfaces), `--warning` + `--warning-foreground` (warning surfaces). Consumers don't need to adopt the ilinxa brand *values* — every component reads tokens by name, so the host's palette wins.
 
 Step 1 — add the namespace to the consumer's `components.json` (merge with their existing config):
 
@@ -66,10 +72,11 @@ Diff the changes (use `--dry-run` first if unsure), merge any local modification
 
 ## Compatibility
 
-- Next.js 14, 15, 16 (App Router or Pages Router)
-- React 18 or 19
-- Tailwind CSS v4 (CSS-vars-only config — no `tailwind.config.*`)
-- pnpm / bun / yarn / npm — npm + React 19 needs `--legacy-peer-deps`
+- **Host framework** — any React 19 host (Next.js 14/15/16 App Router or Pages, Vite, Remix, Astro, RSPack, etc.). Components never import `next/*`.
+- **React** — 19 (or 18 with graceful primitive variants).
+- **Tailwind CSS** — v4 REQUIRED. CSS-vars-only config; no `tailwind.config.*`. Components are written against semantic Tailwind tokens registered through `@theme inline`. v3 + JS config will not compile the class names.
+- **Design tokens** — canonical shadcn token set required (see Prerequisites above for the full list). Extras: `--chart-*`, `--sidebar*`, `--warning*` for the components that use them.
+- **Package managers** — pnpm / bun / yarn / npm. npm + React 19 needs `--legacy-peer-deps`.
 
 ## Common gotchas
 

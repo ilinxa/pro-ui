@@ -209,8 +209,6 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       toolbar === "default" ? (
         <TodoTreeToolbar
           statusOptions={statusOptions}
-          onBulkToggleActive={onBulkToggleActive}
-          onBulkRemove={onBulkRemove}
           onBulkEdit={onBulkEdit}
         />
       ) : null;
