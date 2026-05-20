@@ -1871,6 +1871,71 @@
       "files": [
         { "path": "src/registry/components/data/rich-card-in-flow/dummy-data.ts", "type": "registry:component", "target": "components/rich-card-in-flow/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "todo-rich-card",
+      "type": "registry:block",
+      "title": "Todo Rich Card",
+      "description": "Time-aware task card with OKLCH border-color engine (urgency green→red ramp), dual edit modes (popup + inline-toggle), JSON I/O, clipboard, DnD payload, granular events, permission predicates. Standalone-usable and registerable in kanban-board-01 via the included KanbanCardRenderer export.",
+      "author": "ilinxa",
+      "categories": ["data", "task-management"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "button",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "label",
+        "scroll-area",
+        "select",
+        "separator",
+        "switch",
+        "textarea",
+        "tooltip"
+      ],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/todo-rich-card/todo-rich-card.tsx", "type": "registry:component", "target": "components/todo-rich-card/todo-rich-card.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/index.ts", "type": "registry:component", "target": "components/todo-rich-card/index.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/types.ts", "type": "registry:component", "target": "components/todo-rich-card/types.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/time.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/time.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/normalize.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/normalize.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/ramp.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/ramp.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/color-engine.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/color-engine.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/permissions.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/permissions.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/json-io.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/json-io.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/reducer.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/reducer.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/hooks/use-card-context.ts", "type": "registry:component", "target": "components/todo-rich-card/hooks/use-card-context.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/hooks/use-color-engine.ts", "type": "registry:component", "target": "components/todo-rich-card/hooks/use-color-engine.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/hooks/use-keyboard.ts", "type": "registry:component", "target": "components/todo-rich-card/hooks/use-keyboard.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/card.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/card-header.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card-header.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/card-body.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card-body.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/status-badge.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/status-badge.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/person-chip.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/person-chip.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/link-chip.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/link-chip.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/image-strip.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/image-strip.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/time-info.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/time-info.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/action-menu.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/action-menu.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/edit-popup.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/edit-popup.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/edit-inline.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/edit-inline.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/kanban-adapter.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/kanban-adapter.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "todo-rich-card-fixtures",
+      "type": "registry:block",
+      "title": "Todo Rich Card — fixtures",
+      "description": "Todo Rich Card bundle including the four demo items (fresh / urgent / overdue / nested-3-level) used by the docs-site demo. Resolves the base todo-rich-card item automatically.",
+      "author": "ilinxa",
+      "categories": ["data", "task-management", "fixtures"],
+      "registryDependencies": ["@ilinxa/todo-rich-card"],
+      "files": [
+        { "path": "src/registry/components/data/todo-rich-card/dummy-data.ts", "type": "registry:component", "target": "components/todo-rich-card/dummy-data.ts" }
+      ]
     }
   ]
 }

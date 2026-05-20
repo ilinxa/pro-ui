@@ -130,9 +130,10 @@ function StatusField({
     return (
       <Select
         value={value}
-        onValueChange={(v) => {
-          setValue(v);
-          commit("status", item.status, v);
+        onValueChange={(v: string | null) => {
+          const next = v ?? "";
+          setValue(next);
+          commit("status", item.status, next);
         }}
       >
         {/* w-full override per F-cross-13 / shadcn v4 Select w-fit lock */}
