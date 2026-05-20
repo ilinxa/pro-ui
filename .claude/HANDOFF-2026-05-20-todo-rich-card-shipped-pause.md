@@ -1,10 +1,12 @@
-# Session pause — 2026-05-20
+# Session pause — 2026-05-20 — ⚑ HISTORICAL (closed same-session)
 
-> **Status at pause:** `todo-rich-card@v0.1.0` is **locally complete** (28 files in folder, 26 ship via registry, 0 lint/tsc/meta-deps/build errors) but **NOT YET COMMITTED OR PUSHED**. Tip: `33c72f9`. Working tree has 4 modified + 3 untracked paths (see §"Git state" below).
+> **HISTORICAL — closed same-session.** Pause was real but resume happened immediately. v0.1.0 shipped via commit chain `a7db466` → `d90f3a3` → `c2f7425` (push). F-04 path-b smoke against the published Vercel artifact then surfaced 3 F-cross-13 hits (Select Radix→Base UI signature divergence + TooltipProvider.delayDuration); patch-fixed in v0.1.1 (`431da34`); re-smoke clean. Spotcheck verdict stays `Pass with follow-ups` (F-04 closed in-line; F-01 v0.2 + F-03 future-patch + F-05 future remain open with bump targets). Next-up `todo-list` orchestration shell remains as recorded below — clarify Reading A vs B before drafting GATE 1.
+>
+> **Original status at pause:** `todo-rich-card@v0.1.0` is **locally complete** (28 files in folder, 26 ship via registry, 0 lint/tsc/meta-deps/build errors) but **NOT YET COMMITTED OR PUSHED**. Tip: `33c72f9`. Working tree has 4 modified + 3 untracked paths (see §"Git state" below).
 >
 > **Next-up on resume:** `todo-list` orchestration shell — sibling procomp to `todo-rich-card`. User explicitly named the **tree variant** as the entry point ("create the todo tree version"). Two interpretations possible; clarify on resume.
 >
-> **Active handoffs prior to this:** all historical — [2026-05-17 port-editor pause](HANDOFF-2026-05-17-port-editor-pause.md) (closed), [2026-05-16 × 2](HANDOFF-2026-05-16-rcif-edge-handle-debug-pause.md), [2026-05-14](HANDOFF-2026-05-14-flow-canvas-perf-pause.md), [2026-05-09](HANDOFF-2026-05-09-session-pause.md). All paused work has shipped; this is the only active handoff.
+> **Active handoffs prior to this:** all historical — [2026-05-17 port-editor pause](HANDOFF-2026-05-17-port-editor-pause.md) (closed), [2026-05-16 × 2](HANDOFF-2026-05-16-rcif-edge-handle-debug-pause.md), [2026-05-14](HANDOFF-2026-05-14-flow-canvas-perf-pause.md), [2026-05-09](HANDOFF-2026-05-09-session-pause.md). All paused work has shipped; this is now also historical.
 
 ---
 
