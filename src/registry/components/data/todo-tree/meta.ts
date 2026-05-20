@@ -54,7 +54,16 @@ export const meta: ComponentMeta = {
   // documented in the plan §14 — final state will be ~12 shadcn primitives +
   // 4 npm peer deps (lucide-react, @dnd-kit/core, @dnd-kit/utilities, @tanstack/react-virtual).
   dependencies: {
-    shadcn: ["checkbox", "avatar"],
+    shadcn: [
+      "checkbox",
+      "avatar",
+      "button",
+      "input",
+      "select",
+      "popover",
+      "badge",
+      "separator",
+    ],
     npm: {
       "lucide-react": "^1.11.0",
       "@tanstack/react-virtual": "^3.13.24",
