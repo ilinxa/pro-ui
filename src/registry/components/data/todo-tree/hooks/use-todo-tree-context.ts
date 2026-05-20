@@ -8,6 +8,7 @@ import type {
 } from "react";
 import type { TodoItem, TodoStatusOption } from "../../todo-rich-card/types";
 import type {
+  TodoTreeEmptyRenderArgs,
   TodoTreeFieldRenderArgs,
   TodoTreeRowRenderArgs,
   TodoTreeStateValue,
@@ -65,6 +66,7 @@ export interface TodoTreeRenderContextValue {
   renderDescription?: (args: TodoTreeFieldRenderArgs) => ReactNode;
   renderPerson?: (args: TodoTreeFieldRenderArgs) => ReactNode;
   renderStatusIndicator?: (args: TodoTreeStatusRenderArgs) => ReactNode;
+  renderEmptyState?: (args: TodoTreeEmptyRenderArgs) => ReactNode;
 }
 
 export const TodoTreeRenderContext =

@@ -69,6 +69,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       renderPerson,
       renderStatusIndicator,
       renderToolbar,
+      renderEmptyState,
       renderDragOverlay,
       onItemClick,
       onItemContextMenu,
@@ -144,6 +145,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         renderDescription,
         renderPerson,
         renderStatusIndicator,
+        renderEmptyState,
       }),
       [
         statusIndicator,
@@ -154,6 +156,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         renderDescription,
         renderPerson,
         renderStatusIndicator,
+        renderEmptyState,
       ],
     );
 

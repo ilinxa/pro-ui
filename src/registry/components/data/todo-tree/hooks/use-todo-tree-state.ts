@@ -267,10 +267,8 @@ export function useTodoTreeState(
         dispatch({ type: "TOGGLE_ACTIVE_BULK", ids, nextActive });
         fireRef.current("bulkToggleActive", { ids, nextActive });
       },
-      focusItem: () => {
-        // Focus is a DOM concern; the list view subscribes to state.focusedItemId
-        // and calls focus() on the matching row. C5 wires the subscription.
-        // Reducer doesn't track focus yet — placeholder.
+      focusItem: (id) => {
+        dispatch({ type: "SET_FOCUS", id });
       },
       getItemById: (id) => findItemById(state.items, id),
       expandItem: (id) => {
@@ -362,6 +360,7 @@ export function useTodoTreeState(
       query: state.query,
       sort: state.sort,
       filter: state.filter,
+      focusedItemId: state.focusedItemId,
       dispatch,
       handleRowClick: selection.handleRowClick,
     }),
@@ -374,6 +373,7 @@ export function useTodoTreeState(
       state.query,
       state.sort,
       state.filter,
+      state.focusedItemId,
       dispatch,
       selection.handleRowClick,
     ],

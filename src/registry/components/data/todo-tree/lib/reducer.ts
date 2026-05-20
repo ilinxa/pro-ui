@@ -284,6 +284,11 @@ function reducerInner(state: State, action: TodoTreeAction): State {
       };
     }
 
+    case "SET_FOCUS": {
+      if (state.focusedItemId === action.id) return state;
+      return { ...state, focusedItemId: action.id };
+    }
+
     case "SET_QUERY": {
       if (state.query === action.query) return state;
       return { ...state, query: action.query };
@@ -325,6 +330,7 @@ function pruneOrphanedIds(state: State): State {
   let collapsedIds = state.collapsedIds;
   let selectedIds = state.selectedIds;
   let anchor = state.selectionAnchorId;
+  let focus = state.focusedItemId;
 
   if (hasOrphan(collapsedIds, live)) {
     const next = new Set<string>();
@@ -337,15 +343,23 @@ function pruneOrphanedIds(state: State): State {
     selectedIds = next;
   }
   if (anchor !== null && !live.has(anchor)) anchor = null;
+  if (focus !== null && !live.has(focus)) focus = null;
 
   if (
     collapsedIds === state.collapsedIds &&
     selectedIds === state.selectedIds &&
-    anchor === state.selectionAnchorId
+    anchor === state.selectionAnchorId &&
+    focus === state.focusedItemId
   ) {
     return state;
   }
-  return { ...state, collapsedIds, selectedIds, selectionAnchorId: anchor };
+  return {
+    ...state,
+    collapsedIds,
+    selectedIds,
+    selectionAnchorId: anchor,
+    focusedItemId: focus,
+  };
 }
 
 function hasOrphan(ids: ReadonlySet<string>, live: ReadonlySet<string>): boolean {

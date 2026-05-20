@@ -99,6 +99,10 @@ export function TodoTreeRow({
         ) {
           return;
         }
+        // Move keyboard focus to the clicked row so arrow keys continue
+        // from here. The treeitem div's onFocus also calls focusItem, but
+        // a programmatic click from a slot may skip onFocus.
+        state.focusItem(item.id);
         dnd?.handleRowClick(item, level, e);
       }}
       draggable={rowHandlers?.draggable && canDrag}

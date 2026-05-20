@@ -98,6 +98,7 @@ export type TodoTreeAction =
       anchorId?: string | null;
     }
   | { type: "CLEAR_SELECTION" }
+  | { type: "SET_FOCUS"; id: string | null }
   | { type: "SET_QUERY"; query: string }
   | { type: "SET_SORT"; sort: TodoTreeSort }
   | { type: "SET_FILTER"; filter: TodoTreeFilter }
@@ -238,6 +239,12 @@ export interface TodoTreeStateValue extends TodoTreeHandle {
    * from their own row click target.
    */
   handleRowClick: (item: TodoItem, level: number, event: MouseEvent) => void;
+  /**
+   * Currently focused row id — drives the row's tabindex and arrow-key
+   * navigation. Null until the user interacts; first visible row becomes
+   * tabbable by default.
+   */
+  focusedItemId: string | null;
 }
 
 /* ---------------------------------- Slot render-prop args ---------------------------------- */
