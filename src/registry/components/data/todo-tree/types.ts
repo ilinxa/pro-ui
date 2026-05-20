@@ -1,4 +1,4 @@
-import type { ReactNode, MouseEvent } from "react";
+import type { ReactNode, MouseEvent, KeyboardEvent } from "react";
 import type { TodoItem, TodoStatusOption, TodoPermissions } from "../todo-rich-card/types";
 
 /**
@@ -114,7 +114,13 @@ export interface TodoTreeChangeArgs {
 export interface TodoTreeItemEvent {
   item: TodoItem;
   level: number;
-  event: MouseEvent;
+  /**
+   * The originating event. MouseEvent for click + context-menu, KeyboardEvent
+   * when the row is activated via Enter from the keyboard handler. Consumers
+   * narrow with `"clientX" in event` or instanceof checks when they need
+   * mouse-specific properties.
+   */
+  event: MouseEvent | KeyboardEvent;
 }
 
 export interface TodoTreeMoveEvent {
@@ -238,7 +244,11 @@ export interface TodoTreeStateValue extends TodoTreeHandle {
    * default `<TodoTreeRow>` wires it; custom rows / slot consumers call it
    * from their own row click target.
    */
-  handleRowClick: (item: TodoItem, level: number, event: MouseEvent) => void;
+  handleRowClick: (
+    item: TodoItem,
+    level: number,
+    event: MouseEvent | KeyboardEvent,
+  ) => void;
   /**
    * Currently focused row id — drives the row's tabindex and arrow-key
    * navigation. Null until the user interacts; first visible row becomes

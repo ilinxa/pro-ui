@@ -22,15 +22,17 @@ export interface UseTreeKeyboardResult {
  *   ArrowLeft             — collapse expanded; else move to parent
  *   Home / End            — first / last visible row
  *   Space                 — toggle the focused row's active state
- *   Enter                 — replace-select the focused row
+ *   Enter                 — select + fire onItemClick on the focused row
  *   Delete / Backspace    — remove the focused row
  *   Cmd/Ctrl + A          — select all visible
  *   Escape                — clear selection
  *
- * Note: Enter dispatches SELECT_ONE/replace rather than synthesising an
- * onItemClick event. The selectionChanged event still fires for consumers
- * observing selection. Wiring onItemClick from a keyboard event would
- * require widening TodoTreeItemEvent.event from React.MouseEvent — deferred.
+ * Bail-out rule: the handler is attached at the tree root and events bubble
+ * from interactive descendants (chevron buttons, checkboxes, grip, slot
+ * inputs). When the target is a form input or button, we bail so the
+ * native handler runs without double-handling (e.g., Space toggling the
+ * checkbox AND firing toggleActive a second time; Backspace deleting a
+ * character in a slot input AND removing the row).
  */
 export function useTreeKeyboard(
   args: UseTreeKeyboardArgs,
@@ -39,6 +41,15 @@ export function useTreeKeyboard(
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.matches(
+          "input, textarea, select, button, [role='button'], [contenteditable='true']",
+        )
+      ) {
+        return;
+      }
+
       const visible = state.visibleItems;
       if (visible.length === 0) return;
 
@@ -126,11 +137,11 @@ export function useTreeKeyboard(
         case "Enter": {
           event.preventDefault();
           if (!current) return;
-          state.dispatch({
-            type: "SELECT_ONE",
-            id: current.item.id,
-            mode: "replace",
-          });
+          // Route through handleRowClick so selection-mode resolution +
+          // onItemClick firing match the click path. TodoTreeItemEvent.event
+          // accepts MouseEvent | KeyboardEvent, so the KeyboardEvent passes
+          // through to the consumer's onItemClick handler.
+          state.handleRowClick(current.item, current.level, event);
           return;
         }
         case "Delete":
