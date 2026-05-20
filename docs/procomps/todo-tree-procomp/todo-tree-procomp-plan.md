@@ -1,6 +1,6 @@
 # `todo-tree` — Pro-component Plan (Stage 2)
 
-> **Stage:** 2 of 3 · **Status:** ⬜ Draft — awaiting GATE 2 sign-off
+> **Stage:** 2 of 3 · **Status:** ✅ Signed off (GATE 2 closed 2026-05-20)
 > **Inherits from:** [description doc](todo-tree-procomp-description.md) (GATE 1 closed 2026-05-20)
 > **Sibling-of:** [`todo-rich-card@v0.1.1`](../todo-rich-card-procomp/) — shared `TodoItem` schema; cross-procomp DnD via `application/x-ilinxa-todo+json`.
 
@@ -1288,10 +1288,10 @@ GATE 3 spotcheck verdict requires F-04 (consumer-side smoke) to flip from Open �
 
 ## 22. Definition of "done" for THIS document (stage gate)
 
-- [ ] All 8 Q-P open questions in §21 answered with explicit picks before C1 starts.
-- [ ] No new scope additions beyond description doc's locks (loud deviations only — fold into §7 of description on next revision).
-- [ ] All 11 commits in §18 have a clear scope; can be implemented mechanically.
-- [ ] User explicitly says "GATE 2 closed" (or equivalent).
+- [x] All 8 Q-P open questions in §21 answered with explicit picks (Q-P1–Q-P8 = author's suggested answers, accepted by user).
+- [x] No new scope additions beyond description doc's locks (LD1 + LD2 documented as plan-stage refinements in §22).
+- [x] All 11 commits in §18 have a clear scope; can be implemented mechanically.
+- [x] User explicitly closed GATE 2 — 2026-05-20.
 
 ### Loud deviations from description (plan-stage refinements)
 
