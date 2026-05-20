@@ -30,6 +30,8 @@ import { useTreeDndInternal } from "./hooks/use-tree-dnd-internal";
 import { useTreeDndHtml5 } from "./hooks/use-tree-dnd-html5";
 import { TodoTreeList } from "./parts/todo-tree-list";
 import { TodoTreeDragOverlay } from "./parts/todo-tree-drag-overlay";
+import { TodoTreeToolbar } from "./parts/todo-tree-toolbar";
+import { isValidElement, type ReactNode } from "react";
 
 /**
  * Tree-row renderer for TodoItem outlines. Sibling to `<TodoRichCard>` —
@@ -59,12 +61,14 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       filterMode = "fade",
       statusIndicator = "dot",
       virtualize,
+      toolbar = "default",
       dndContext = "internal",
       renderRow,
       renderName,
       renderDescription,
       renderPerson,
       renderStatusIndicator,
+      renderToolbar,
       renderDragOverlay,
       onItemClick,
       onItemContextMenu,
@@ -201,6 +205,23 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         ? (virtualize.threshold ?? 200)
         : 200;
 
+    const defaultToolbar: ReactNode =
+      toolbar === "default" ? (
+        <TodoTreeToolbar
+          statusOptions={statusOptions}
+          onBulkToggleActive={onBulkToggleActive}
+          onBulkRemove={onBulkRemove}
+          onBulkEdit={onBulkEdit}
+        />
+      ) : null;
+    const customNodeToolbar: ReactNode =
+      toolbar !== "default" && toolbar !== "none" && isValidElement(toolbar)
+        ? (toolbar as ReactNode)
+        : null;
+    const toolbarRendered: ReactNode = renderToolbar
+      ? renderToolbar({ defaultToolbar, state: stateValue })
+      : (customNodeToolbar ?? (toolbar === "none" ? null : defaultToolbar));
+
     const treeBody = (
       <TodoTreeStateContext.Provider value={stateValue}>
         <TodoTreeRenderContext.Provider value={renderContextValue}>
@@ -209,7 +230,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
               aria-label={ariaLabel ?? "Todo tree"}
               className={cn("flex h-full flex-col", className)}
             >
-              {/* Toolbar slot — C7 lands the default toolbar. */}
+              {toolbarRendered}
               <TodoTreeList
                 virtualize={virtualizeMode}
                 virtualizeThreshold={virtualizeThreshold}
