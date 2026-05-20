@@ -11,28 +11,32 @@ import { cn } from "@/lib/utils";
 
 export interface TodoTreeToolbarProps {
   statusOptions?: ReadonlyArray<TodoStatusOption>;
-  onBulkToggleActive?: (args: {
-    ids: ReadonlyArray<string>;
-    nextActive: boolean;
-  }) => void;
-  onBulkRemove?: (args: { ids: ReadonlyArray<string> }) => void;
+  /**
+   * Bulk-edit has no matching handle method (Q4 lock — v0.1 does not bake
+   * an edit dialog). When provided, the Edit button renders and fires this
+   * with the current selection; consumer wires their own dialog. When
+   * omitted, the Edit button is hidden.
+   */
   onBulkEdit?: (args: { ids: ReadonlyArray<string> }) => void;
   className?: string;
 }
 
 /**
- * Default toolbar. Reads state from context; the host passes the bulk
- * callbacks + statusOptions as props because those are wired from the
- * top-level TodoTreeProps (not part of state).
+ * Default toolbar. Reads state from context; the host passes statusOptions +
+ * onBulkEdit (the only bulk action with no handle method — Q4 lock means
+ * consumers wire their own edit dialog).
+ *
+ * Activate / Deactivate / Delete go through the handle methods
+ * (state.toggleActiveBulk, state.removeItems) so they actually mutate
+ * the tree. The matching event (onBulkToggleActive / onBulkRemove) fires
+ * automatically via the handle's internal event dispatcher.
  *
  * Layout per plan §7.1:
  *   [Search input (grows)] [Active toggle] [Sort dropdown] [Filter dropdown]
- *   [spacer] [Bulk action bar — when selectedIds.size > 0]
+ *   [Bulk action bar — when selectedIds.size > 0]
  */
 export function TodoTreeToolbar({
   statusOptions,
-  onBulkToggleActive,
-  onBulkRemove,
   onBulkEdit,
   className,
 }: TodoTreeToolbarProps) {
@@ -67,20 +71,10 @@ export function TodoTreeToolbar({
       {selectedCount > 0 && (
         <TodoTreeBulkActionBar
           count={selectedCount}
-          onToggleActive={
-            onBulkToggleActive
-              ? (next) =>
-                  onBulkToggleActive({
-                    ids: selectedIdsArray(),
-                    nextActive: next,
-                  })
-              : undefined
+          onToggleActive={(next) =>
+            state.toggleActiveBulk(selectedIdsArray(), next)
           }
-          onRemove={
-            onBulkRemove
-              ? () => onBulkRemove({ ids: selectedIdsArray() })
-              : undefined
-          }
+          onRemove={() => state.removeItems(selectedIdsArray())}
           onEdit={
             onBulkEdit
               ? () => onBulkEdit({ ids: selectedIdsArray() })

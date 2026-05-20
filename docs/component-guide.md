@@ -589,6 +589,48 @@ if (process.env.NODE_ENV !== "production") {
 
 Source of truth for tokens: [src/app/globals.css](../src/app/globals.css). **Don't restate OKLCH values in components — use semantic Tailwind utilities.**
 
+### What the consumer must provide (the runtime contract)
+
+Every pro-component is portable React, but it is NOT framework-agnostic in its styling. The component compiles against a Tailwind v4 + shadcn token environment. When you author a component, you are implicitly assuming the consumer has:
+
+1. **Tailwind CSS v4** running against the host's source (no `tailwind.config.*`; configuration is the CSS `@theme inline` block).
+2. **The canonical shadcn token set** declared in `:root` and `.dark` — `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`.
+3. **The `@theme inline` mapping** that exposes those CSS vars as `--color-*` / `--radius-*` tokens so Tailwind generates the matching utilities (`bg-card`, `border-border`, `rounded-lg`, …).
+4. **The `cn()` helper at `@/lib/utils`** — seeded by `shadcn init`.
+
+If your component needs anything beyond the canonical set, **document it in [`meta.ts`'s `dependencies` field and in `usage.tsx`** — and prefer adding the requirement to the README "Prerequisites" table so consumers don't hit a silent-no-op class. The extras currently in play across the library:
+
+| Extra token group | Components that use it |
+|---|---|
+| `--chart-1` … `--chart-5` | chart-shell, stat-card; article-body-01 syntax classes (via `.hljs-*`) |
+| `--sidebar*` (`-foreground`, `-primary`, `-primary-foreground`, `-accent`, `-accent-foreground`, `-border`, `-ring`) | sidebar / nav surfaces |
+| `--warning`, `--warning-foreground` | semantic warning surfaces (parallel to `--destructive`) |
+| `--xy-*` overrides | flow-canvas-01 only (`react-flow` themed against tokens) |
+| `.hljs-*` color classes | article-body-01 only (lowlight syntax) |
+
+The consumer is **never required to adopt the brand values** (signal-lime primary, off-white background, graphite-cool dark). Every component reads tokens by name; the host's palette wins. The ilinxa values in [src/app/globals.css](../src/app/globals.css) are only authoritative on the docs site itself.
+
+> **Rule (must):** When authoring a component, write against semantic token names, not OKLCH literals or hard-coded hex. The consumer rebrand path depends on it.
+
+### Host-framework requirements (what the consumer needs to run)
+
+Components are pure React 19 — they MUST work in any React 19 host, not just Next.js. The portability contract in §7 forbids `next/*` imports, app contexts, and env-specific code precisely because a sealed folder installed via `pnpm dlx shadcn add @ilinxa/<slug>` lands in Next, Vite, Remix, Astro, RSPack, or any other React 19 host.
+
+- ✅ Allowed: `react`, `react-dom`, `@/components/ui/*`, `@/lib/utils`, explicitly-declared peer deps (lucide, dnd-kit, codemirror, plate, etc.).
+- ❌ Banned: `next/link`, `next/image`, `next/navigation`, `next/dynamic`, `next/headers`, anything under `next/*`.
+- ❌ Banned: `process.env.*` outside of build-config files; runtime checks against `window`/`document` belong inside `useEffect`, not at module top-level.
+
+If a component genuinely needs `next/image` for performance or `next/link` for routing, take a slot prop:
+
+```tsx
+type FooProps = {
+  LinkComponent?: ComponentType<{ href: string; children: ReactNode }>; // default: <a>
+  ImageComponent?: ComponentType<{ src: string; alt: string }>;          // default: <img>
+};
+```
+
+Next.js consumers wire `next/link` / `next/image` in; Vite consumers get the plain HTML defaults. Zero coupling.
+
 ### Use semantic tokens, never hard-coded colors
 
 ✅ Allowed:
