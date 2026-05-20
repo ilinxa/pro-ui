@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import type { DragEvent as ReactDragEvent } from "react";
 import type { TodoItem } from "../../todo-rich-card/types";
 import type { TodoTreeAction } from "../types";
+import { findItemById } from "./../lib/tree-walker";
 import {
   TODO_TREE_MIME,
   parseFromDataTransfer,
@@ -11,6 +12,8 @@ import {
 } from "../lib/dnd-payload";
 
 export interface UseTreeDndHtml5Args {
+  /** Live items snapshot — needed to detect same-tree drops (which become noops). */
+  items: TodoItem[];
   dispatch: (action: TodoTreeAction) => void;
   fireDropped?: (args: {
     item: TodoItem;
@@ -59,7 +62,7 @@ export interface UseTreeDndHtml5Result {
 export function useTreeDndHtml5(
   args: UseTreeDndHtml5Args,
 ): UseTreeDndHtml5Result {
-  const { dispatch, fireDropped, fireAdded, isInternalDragRef } = args;
+  const { items, dispatch, fireDropped, fireAdded, isInternalDragRef } = args;
 
   const getRowHandlers = useCallback(
     (item: TodoItem): RowDragHandlers => ({
@@ -92,6 +95,12 @@ export function useTreeDndHtml5(
         const parsed = parseFromDataTransfer(e.dataTransfer);
         if (!parsed) return;
         if (parsed.id === item.id) return; // self-drop noop
+        // Same-tree native drop (rare — typically the grip routes through
+        // @dnd-kit, not native HTML5). Skip silently to avoid creating a
+        // duplicate row; internal moves come through MOVE_ITEM, not
+        // ADD_ITEM. External drops are detected by parsed.id NOT existing
+        // in our items.
+        if (findItemById(items, parsed.id)) return;
         e.preventDefault();
         const targetParentId = item.id;
         const targetIndex = item.children?.length ?? 0;
@@ -116,7 +125,7 @@ export function useTreeDndHtml5(
         });
       },
     }),
-    [dispatch, fireAdded, fireDropped, isInternalDragRef],
+    [items, dispatch, fireAdded, fireDropped, isInternalDragRef],
   );
 
   return { getRowHandlers };

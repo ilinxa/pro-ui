@@ -161,6 +161,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
     });
 
     const dndHtml5 = useTreeDndHtml5({
+      items: stateValue.items,
       dispatch: stateValue.dispatch,
       fireAdded: (args) => onItemAdded?.(args),
       fireDropped: (args) => onItemDropped?.(args),
