@@ -29,7 +29,7 @@ export function TimeInfo({ item }: { item: TodoItem }) {
   })();
 
   return (
-    <TooltipProvider delayDuration={200}>
+    <TooltipProvider>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {primary ? <span className="font-medium">{primary}</span> : null}
         <Tooltip>
