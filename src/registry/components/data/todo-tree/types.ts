@@ -160,6 +160,13 @@ export interface TodoTreeVisibleRow {
   level: number;
   parentId: string | null;
   index: number;
+  /**
+   * Set by the filter pipeline in `filterMode: "fade"` when this row's item
+   * doesn't match the active query/filter. Renderers apply reduced opacity
+   * while keeping interactive affordances reachable. Absent in "hide" mode
+   * because non-matching rows aren't emitted at all.
+   */
+  dimmed?: boolean;
 }
 
 /* ---------------------------------- Imperative handle ---------------------------------- */
