@@ -1,10 +1,8 @@
 export { TodoTree } from "./todo-tree";
+export { TodoTreeWithEditor } from "./todo-tree-with-editor";
 
-// Convenience wrapper (lands in C9):
-// export { TodoTreeWithEditor } from "./todo-tree-with-editor";
-
-// Headless state hook (lands in C3):
-// export { useTodoTreeState } from "./hooks/use-todo-tree-state";
+// Headless state hook
+export { useTodoTreeState } from "./hooks/use-todo-tree-state";
 
 export type {
   TodoTreeProps,

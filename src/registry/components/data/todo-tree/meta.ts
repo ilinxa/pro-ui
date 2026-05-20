@@ -44,15 +44,14 @@ export const meta: ComponentMeta = {
   version: "0.1.0",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-05-20",
+  updatedAt: "2026-05-21",
 
   author: { name: "ilinxa" },
 
-  // Note: shadcn + npm deps grow as each commit (C2–C8) lands its imports.
-  // validate:meta-deps enforces meta-vs-imports parity so we keep meta in sync
-  // with what's actually imported in shipped source. The full target surface is
-  // documented in the plan §14 — final state will be ~12 shadcn primitives +
-  // 4 npm peer deps (lucide-react, @dnd-kit/core, @dnd-kit/utilities, @tanstack/react-virtual).
+  // Final dep surface after C9 — 9 shadcn primitives + 3 npm peers
+  // (@dnd-kit/utilities was not needed for the v0.1 ship; the internal drag
+  // uses @dnd-kit/core only). validate:meta-deps enforces parity with
+  // shipped source.
   dependencies: {
     shadcn: [
       "checkbox",
@@ -63,6 +62,7 @@ export const meta: ComponentMeta = {
       "popover",
       "badge",
       "separator",
+      "dialog",
     ],
     npm: {
       "lucide-react": "^1.11.0",
