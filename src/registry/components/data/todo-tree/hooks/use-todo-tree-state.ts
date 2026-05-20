@@ -9,7 +9,9 @@ import {
 } from "react";
 import type { TodoItem } from "../../todo-rich-card/types";
 import type {
+  TodoTreeAction,
   TodoTreeChangeArgs,
+  TodoTreeChangeReason,
   TodoTreeFilter,
   TodoTreeHandle,
   TodoTreeSort,
@@ -114,8 +116,27 @@ export function useTodoTreeState(
     ],
   );
 
+  // Reason tracking: each handle method stashes the public change reason here
+  // before its dispatch. The onChange effect reads + clears it; raw-dispatch
+  // escape-hatch users fall back to "imperative-set".
+  const pendingReasonRef = useRef<TodoTreeChangeReason | null>(null);
+
+  /** Stash the reason then forward to the reducer's dispatch. */
+  const dispatchWithReason = useCallback(
+    (action: TodoTreeAction, reason: TodoTreeChangeReason) => {
+      pendingReasonRef.current = reason;
+      dispatch(action);
+    },
+    [dispatch],
+  );
+
+  // Skip-onChange flag flipped before applyExternalItems so the resulting
+  // SET_ITEMS dispatch doesn't echo the value-prop change back to the consumer.
+  const skipNextOnChangeRef = useRef(false);
+
   const applyExternalItems = useCallback(
     (next: TodoItem[]) => {
+      skipNextOnChangeRef.current = true;
       dispatch({ type: "SET_ITEMS", items: next, reason: "imperative-set" });
     },
     [dispatch],
@@ -170,9 +191,14 @@ export function useTodoTreeState(
     }
     if (state.items !== prevItemsRef.current) {
       prevItemsRef.current = state.items;
-      // onChange is wired through controlled-mode's microtask-deferred path
-      // so consumer setState doesn't fire mid-render.
-      fireOnChange(state.items, "imperative-set");
+      const skip = skipNextOnChangeRef.current;
+      const reason = pendingReasonRef.current ?? "imperative-set";
+      skipNextOnChangeRef.current = false;
+      pendingReasonRef.current = null;
+      // Controlled-mode echo: items came from the value prop's sync, so the
+      // consumer already knows. Don't fire onChange back at them.
+      if (skip) return;
+      fireOnChange(state.items, reason);
     }
   }, [
     state.selectedIds,
@@ -188,7 +214,7 @@ export function useTodoTreeState(
     selectionAnchorId: state.selectionAnchorId,
     selectedIds: state.selectedIds,
     dispatch,
-    onItemClick: args.onItemClick,
+    fire,
   });
 
   // Build the 26-method imperative handle.
@@ -196,17 +222,23 @@ export function useTodoTreeState(
     return {
       getValue: () => state.items,
       setValue: (next) => {
-        dispatch({ type: "SET_ITEMS", items: next, reason: "imperative-set" });
+        dispatchWithReason(
+          { type: "SET_ITEMS", items: next, reason: "imperative-set" },
+          "imperative-set",
+        );
       },
       addItem: (item, opts) => {
         const parentId = opts?.parentId ?? null;
-        dispatch({
-          type: "ADD_ITEM",
-          item,
-          parentId,
-          index: opts?.index,
-          via: "imperative",
-        });
+        dispatchWithReason(
+          {
+            type: "ADD_ITEM",
+            item,
+            parentId,
+            index: opts?.index,
+            via: "imperative",
+          },
+          "add-item",
+        );
         fireRef.current("itemAdded", {
           item,
           parentId,
@@ -217,11 +249,17 @@ export function useTodoTreeState(
       removeItem: (id) => {
         const item = findItemById(state.items, id);
         if (!item) return;
-        dispatch({ type: "REMOVE_ITEM", id, via: "imperative" });
+        dispatchWithReason(
+          { type: "REMOVE_ITEM", id, via: "imperative" },
+          "remove-item",
+        );
         fireRef.current("itemRemoved", { item, via: "imperative" });
       },
       addChild: (parentId, item, index) => {
-        dispatch({ type: "ADD_CHILD", parentId, item, index });
+        dispatchWithReason(
+          { type: "ADD_CHILD", parentId, item, index },
+          "add-child",
+        );
         fireRef.current("itemAdded", {
           item,
           parentId,
@@ -231,18 +269,24 @@ export function useTodoTreeState(
       },
       removeItems: (ids) => {
         if (ids.length === 0) return;
-        dispatch({ type: "REMOVE_ITEMS", ids });
+        dispatchWithReason({ type: "REMOVE_ITEMS", ids }, "bulk-remove");
         fireRef.current("bulkRemove", { ids });
       },
       toggleActive: (id, nextActive) => {
         const item = findItemById(state.items, id);
         if (!item) return;
-        dispatch({ type: "TOGGLE_ACTIVE", id, nextActive });
+        dispatchWithReason(
+          { type: "TOGGLE_ACTIVE", id, nextActive },
+          "toggle-active",
+        );
         fireRef.current("activeToggled", { item, nextActive });
       },
       toggleActiveBulk: (ids, nextActive) => {
         if (ids.length === 0) return;
-        dispatch({ type: "TOGGLE_ACTIVE_BULK", ids, nextActive });
+        dispatchWithReason(
+          { type: "TOGGLE_ACTIVE_BULK", ids, nextActive },
+          "bulk-toggle-active",
+        );
         fireRef.current("bulkToggleActive", { ids, nextActive });
       },
       focusItem: () => {
@@ -286,11 +330,19 @@ export function useTodoTreeState(
       },
       isCollapsed: (id) => state.collapsedIds.has(id),
       selectItem: (id) => {
-        dispatch({ type: "SELECT_ONE", id, mode: "toggle" });
+        // Idempotent ADD to selection. Toggle-mode would deselect when id is
+        // already selected — wrong semantics for an explicit "select".
+        if (state.selectedIds.has(id)) return;
+        const next: string[] = [];
+        for (const v of state.selectedIds) next.push(v);
+        next.push(id);
+        dispatch({ type: "SELECT_REPLACE", ids: next, anchorId: id });
       },
       deselectItem: (id) => {
         if (!state.selectedIds.has(id)) return;
-        dispatch({ type: "SELECT_ONE", id, mode: "toggle" });
+        const next: string[] = [];
+        for (const v of state.selectedIds) if (v !== id) next.push(v);
+        dispatch({ type: "SELECT_REPLACE", ids: next });
       },
       selectRange: selection.selectRange,
       selectAll: selection.selectAllVisible,
@@ -316,6 +368,7 @@ export function useTodoTreeState(
     state.collapsedIds,
     state.selectedIds,
     dispatch,
+    dispatchWithReason,
     selection.selectRange,
     selection.selectAllVisible,
   ]);

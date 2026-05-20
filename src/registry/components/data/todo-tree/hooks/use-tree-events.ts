@@ -90,10 +90,13 @@ export interface TreeEventDispatcher {
  * fireOnChange. Callbacks are read from a ref at fire-time, so consumers can
  * pass inline event handlers without re-rendering the tree.
  *
- * `onItemClick` / `onItemContextMenu` are intentionally fired synchronously
- * because event-loop-deferred dispatch can race with React's synthetic-event
- * pool reuse for `MouseEvent`. The other event names accept a microtask delay
- * without breaking semantics.
+ * `onItemClick` / `onItemContextMenu` fire SYNCHRONOUSLY (no microtask defer):
+ * these are user-initiated and consumers commonly call `event.preventDefault()`
+ * or navigate from within the handler. Deferring one tick would push focus /
+ * scroll / navigation out of the same task as the original click event and
+ * break the synchronous expectation. (React 17+ disabled synthetic-event
+ * pooling, so deferring is technically safe — this is a UX choice, not a
+ * correctness one.)
  */
 export function useTreeEvents(
   callbacks: TreeEventCallbacks,
