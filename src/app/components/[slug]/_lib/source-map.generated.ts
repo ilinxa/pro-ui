@@ -9418,6 +9418,7 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { TodoRichCard } from "./todo-rich-card";
+import { todoRichCardKanbanRenderer } from "./parts/kanban-adapter";
 import {
   DEMO_ITEMS,
   DEMO_NOW,
@@ -9427,9 +9428,65 @@ import {
   OVERDUE_TASK,
   URGENT_TASK,
 } from "./dummy-data";
-import type { TodoColorRampPreset } from "./types";
+import type { TodoColorRampPreset, TodoItem } from "./types";
+import {
+  KanbanBoard,
+  kanbanCardRenderer,
+  kanbanNoteRenderer,
+  type KanbanData,
+} from "@/registry/components/data/kanban-board-01";
 
 const RAMPS: TodoColorRampPreset[] = ["default", "muted", "vivid", "monochrome"];
+
+const KANBAN_INITIAL: KanbanData = {
+  swimlanes: [],
+  columns: [
+    {
+      id: "col-todo",
+      title: "To do",
+      color: "slate",
+      items: [
+        {
+          id: \`kanban-\${FRESH_TASK.id}\`,
+          rendererId: "todo-rich-card",
+          data: FRESH_TASK satisfies TodoItem,
+        },
+      ],
+    },
+    {
+      id: "col-doing",
+      title: "In progress",
+      color: "lime",
+      items: [
+        {
+          id: \`kanban-\${URGENT_TASK.id}\`,
+          rendererId: "todo-rich-card",
+          data: URGENT_TASK satisfies TodoItem,
+        },
+        {
+          id: "kanban-note-1",
+          rendererId: "kanban-note",
+          data: {
+            title: "Demo note",
+            body: "Note + todo renderers co-exist on the same board. Drag the todo cards to reorder; the renderer's \`dragHandle:'header'\` keeps the body fully interactive.",
+          },
+        },
+      ],
+    },
+    {
+      id: "col-done",
+      title: "Done",
+      color: "emerald",
+      items: [
+        {
+          id: \`kanban-\${OVERDUE_TASK.id}\`,
+          rendererId: "todo-rich-card",
+          data: OVERDUE_TASK satisfies TodoItem,
+        },
+      ],
+    },
+  ],
+};
 
 export default function TodoRichCardDemo() {
   const [editable, setEditable] = useState(false);
@@ -9519,10 +9576,56 @@ export default function TodoRichCardDemo() {
       </section>
 
       <p className="text-xs text-muted-foreground">
-        {DEMO_ITEMS.length} demos · click the pencil icon (or the action menu)
-        to edit · Cmd/Ctrl+C / Cmd/Ctrl+V on a focused card copies / pastes
-        as child · drag a card onto another&apos;s children area to paste.
+        {\`\${DEMO_ITEMS.length} demos · click the pencil icon (or the action menu) to edit · Cmd/Ctrl+C / Cmd/Ctrl+V on a focused card copies / pastes as child · drag a card onto another's children area to paste.\`}
       </p>
+
+      <section className="space-y-2 pt-4">
+        <h3 className="text-sm font-semibold">
+          Inside <code>kanban-board-01</code>
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          {\`The same TodoRichCard slots into a kanban column via the exported \`}
+          <code>todoRichCardKanbanRenderer</code>
+          {\`. Drag cards across columns by the grip strip; the card body keeps full edit / collapse / DnD semantics intact (renderer's dragHandle:"header").\`}
+        </p>
+        <KanbanBoard
+          renderers={[
+            kanbanCardRenderer,
+            kanbanNoteRenderer,
+            todoRichCardKanbanRenderer,
+          ]}
+          defaultData={KANBAN_INITIAL}
+          aria-label="Todo kanban demo"
+        />
+      </section>
+    </div>
+  );
+}
+`,
+  },
+  "todo-tree": {
+    demo: `"use client";
+
+import { TodoTree } from "./todo-tree";
+import {
+  TODO_TREE_DEMO_ITEMS,
+  TODO_TREE_DEMO_STATUS_OPTIONS,
+} from "./dummy-data";
+
+export default function TodoTreeDemo() {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300">
+        <strong>Scaffold preview</strong> — todo-tree is in active
+        implementation. The full row layout, toolbar, DnD, virtualization,
+        keyboard navigation, and slot props land across commits C2–C8 per the{" "}
+        <code>todo-tree-procomp-plan.md</code>.
+      </div>
+      <TodoTree
+        defaultValue={TODO_TREE_DEMO_ITEMS}
+        statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
+        aria-label="Q3 planning tasks"
+      />
     </div>
   );
 }
