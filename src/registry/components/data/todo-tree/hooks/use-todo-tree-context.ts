@@ -1,7 +1,13 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { TodoTreeStateValue } from "../types";
+import type { TodoStatusOption } from "../../todo-rich-card/types";
+import type {
+  TodoTreeFieldRenderArgs,
+  TodoTreeStateValue,
+  TodoTreeStatusRenderArgs,
+} from "../types";
+import type { ReactNode } from "react";
 
 /**
  * State context — populated by the host `<TodoTree>` so parts/ can read the
@@ -26,6 +32,43 @@ export function useTodoTreeStateContext(): TodoTreeStateValue {
     throw new Error(
       "useTodoTreeStateContext must be called inside <TodoTree>. " +
         "If composing parts/* manually, wrap them in <TodoTreeStateContext.Provider value={state}>.",
+    );
+  }
+  return ctx;
+}
+
+/**
+ * Render-config context — display config + slot overrides shared by parts/.
+ * Kept separate from the state context so headless consumers can drive their
+ * own render layer without inheriting the default chrome's config.
+ *
+ * Interactive callbacks (onToggleActive, onRowClick, etc.) are passed as
+ * props from `<TodoTreeRow>` down to the leaves, NOT through this context,
+ * to keep the leaves trivially testable.
+ */
+export interface TodoTreeRenderContextValue {
+  /** Default "dot"; "strip" renders a left-edge color strip; "none" hides. */
+  statusIndicator: "dot" | "strip" | "none";
+  /** Memoized lookup map; empty when the consumer passes no statusOptions. */
+  statusOptionMap: ReadonlyMap<string, TodoStatusOption>;
+  /** Pixels per nesting level. */
+  indentSize: number;
+  // Slot overrides — undefined => use the default leaf paint.
+  renderName?: (args: TodoTreeFieldRenderArgs) => ReactNode;
+  renderDescription?: (args: TodoTreeFieldRenderArgs) => ReactNode;
+  renderPerson?: (args: TodoTreeFieldRenderArgs) => ReactNode;
+  renderStatusIndicator?: (args: TodoTreeStatusRenderArgs) => ReactNode;
+}
+
+export const TodoTreeRenderContext =
+  createContext<TodoTreeRenderContextValue | null>(null);
+
+export function useTodoTreeRenderContext(): TodoTreeRenderContextValue {
+  const ctx = useContext(TodoTreeRenderContext);
+  if (ctx === null) {
+    throw new Error(
+      "useTodoTreeRenderContext must be called inside <TodoTree>. " +
+        "If composing parts/* manually, wrap them in <TodoTreeRenderContext.Provider value={config}>.",
     );
   }
   return ctx;
