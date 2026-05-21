@@ -6,12 +6,18 @@
 >
 > First Plate-based pro-comp in pro-ui. Pairs with `markdown-editor` (CodeMirror — source-text editor) but is a different paradigm: WYSIWYG rich text with JSON-as-storage.
 
-## What's new in v0.2 (2026-05-02)
+## What's new in v0.2
+
+**v0.2.0 (2026-05-02):**
 
 - **Syntax-highlighted code blocks** via lowlight — 15 languages registered (bash / css / diff / go / html / java / javascript / json / markdown / python / rust / shell / sql / typescript / xml / yaml). Token colors map to the chart-1..5 palette in `globals.css` so they integrate with the design system. To highlight a block, set `lang` on the code_block node: `{ type: "code_block", lang: "typescript", children: [...] }`.
 - **HTML serialization escape hatch** — call `serializeArticleBodyToHtml(value)` (async, server-only) for export boundaries (RSS, email, OG tags). JSON stays canonical for storage.
 - **Image resize + inline caption** — hover any image to reveal a right-edge resize handle; drag to resize (width persists as a percentage on the node). Click below the image to edit the caption inline.
 - **Floating toolbar** — selecting text inside the editor surfaces a compact floating toolbar (bold / italic / underline / strikethrough / inline-code / highlight / link). Anchored to the selection rect via `@floating-ui/react`. Coexists with the fixed top toolbar.
+
+**v0.2.1 (2026-05-21):** additive re-exports — `ArticleBodyValue` type alias and `ARTICLE_BODY_EMPTY_VALUE` constant are now first-class exports from the package barrel (previously file-local). Consumers wrapping the editor in RHF / json-form controllers no longer need to re-derive the empty shape. No public-API breakage.
+
+**v0.2.2 (2026-05-21):** content-equality echo guard in the controlled-mode sync effect. The sync effect that mirrors the `value` prop into Plate's `editor.children` now compares **stringified content** (`serializeValueKey(value) !== lastSyncedKeyRef.current`) instead of reference equality. RHF / json-form-style hosts emit a fresh `value` reference on every render even when the content is unchanged; the old reference check fired `editor.tf.setValue` on every keystroke, which reset Slate's selection and (under rapid succession) tripped React's max-update-depth guard (#185). The content check makes controlled mode work correctly under RHF — typing in an `<ArticleBodyEditor>` driven by `react-hook-form` no longer loses focus or loops. The JSON-stringify pass is O(n) on tree size but is cheap relative to a keystroke's frame budget.
 
 ## Install
 
@@ -204,6 +210,32 @@ interface ImageUploadResult {
 type ImageUploader = (file: File) => Promise<ImageUploadResult>;
 ```
 
+## Controlled mode (RHF / json-form)
+
+`<ArticleBodyEditor>` is safe to drive from a `react-hook-form` Controller or as a `json-form` `richtext` field. The sync effect uses **content-equality** (`serializeValueKey(value) !== lastSyncedKeyRef.current`) since v0.2.2, so:
+
+- A host that re-emits a new `value` reference per render with identical content (RHF's default behavior) does NOT trigger spurious `editor.tf.setValue` calls.
+- Selection / caret position is preserved across host re-renders that don't actually change content.
+- External content updates (`reset()`, server-loaded value swap) still flow through correctly — the content hash changes, the effect fires, `editor.tf.setValue` runs once.
+
+Worked example, RHF Controller:
+
+```tsx
+<Controller
+  name="body"
+  control={form.control}
+  defaultValue={ARTICLE_BODY_EMPTY_VALUE}
+  render={({ field }) => (
+    <ArticleBodyEditor
+      value={field.value}
+      onChange={field.onChange}
+    />
+  )}
+/>
+```
+
+For json-form, just declare a `richtext` field and let the substrate wire the controller — `parts/field-richtext.tsx` is the canonical adapter.
+
 ## Storage format
 
 The Plate `Value` type is an array of element nodes:
@@ -253,7 +285,7 @@ The Plate `Value` type is an array of element nodes:
 
 ## Known limits / v0.3 candidates
 
-**Closed in v0.2:** ✅ syntax highlighting (lowlight) · ✅ floating toolbar · ✅ image resizing + captions · ✅ HTML serialization escape hatch.
+**Closed in v0.2:** ✅ syntax highlighting (lowlight) · ✅ floating toolbar · ✅ image resizing + captions · ✅ HTML serialization escape hatch · ✅ `ArticleBodyValue` + `ARTICLE_BODY_EMPTY_VALUE` package-level re-exports (v0.2.1) · ✅ content-equality controlled-mode echo guard for RHF / json-form hosts (v0.2.2).
 
 **Still parked for future versions:**
 - **Heading-4 in toolbar.** Plugin set supports H1–H4; toolbar exposes H1–H3 only.
