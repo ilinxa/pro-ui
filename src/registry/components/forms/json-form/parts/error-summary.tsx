@@ -5,6 +5,7 @@ import {
   useJsonFormContext,
   useJsonFormHasSubmitted,
 } from "../json-form-context";
+import { flattenRhfErrorsToList } from "../lib/flatten-errors";
 import { fieldIdSlug } from "./field-wrapper";
 
 export interface JsonFormErrorSummaryProps {
@@ -31,7 +32,7 @@ export function JsonFormErrorSummary({
   const { errors } = useFormState({ control: ctx.rhf.control });
   const effective = strategy ?? "post-submit";
 
-  const flat = flattenErrors(errors);
+  const flat = flattenRhfErrorsToList(errors as Record<string, unknown>);
   if (flat.length === 0) return null;
   if (effective === "post-submit" && !hasSubmitted) return null;
 
@@ -53,6 +54,25 @@ export function JsonFormErrorSummary({
             <a
               href={`#${fieldIdSlug(ctx.formId, name)}`}
               className="underline-offset-2 hover:underline"
+              onClick={(e) => {
+                // Browser default scrolls to `id`, but does NOT focus the
+                // control (only focusable elements get focus on `href`-jump
+                // and group-style controls have id on the wrapper). Force
+                // focus via RHF so keyboard users land on the offending
+                // input, not just near it.
+                e.preventDefault();
+                const slug = fieldIdSlug(ctx.formId, name);
+                const target = typeof document !== "undefined"
+                  ? document.getElementById(slug)
+                  : null;
+                target?.scrollIntoView({ behavior: "smooth", block: "center" });
+                try {
+                  ctx.rhf.setFocus(name as never);
+                } catch {
+                  // setFocus throws on non-registered names; fall through to
+                  // letting the scroll-into-view land where it can.
+                }
+              }}
             >
               <span className="font-medium">{name}</span>
               <span className="px-1">—</span>
@@ -63,33 +83,6 @@ export function JsonFormErrorSummary({
       </ul>
     </div>
   );
-}
-
-function flattenErrors(
-  errors: Record<string, unknown>,
-  prefix = "",
-): Array<{ name: string; message: string }> {
-  const out: Array<{ name: string; message: string }> = [];
-  for (const [key, val] of Object.entries(errors)) {
-    if (!val) continue;
-    const path = prefix ? `${prefix}.${key}` : key;
-    if (
-      typeof val === "object" &&
-      val !== null &&
-      "message" in val &&
-      typeof (val as { message?: unknown }).message === "string"
-    ) {
-      out.push({
-        name: path,
-        message: String((val as { message?: unknown }).message),
-      });
-      continue;
-    }
-    if (typeof val === "object" && val !== null) {
-      out.push(...flattenErrors(val as Record<string, unknown>, path));
-    }
-  }
-  return out;
 }
 
 export default JsonFormErrorSummary;

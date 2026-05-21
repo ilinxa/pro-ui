@@ -1,16 +1,16 @@
 "use client";
 
-// Import from specific files (not the barrel) so shadcn's path rewriter
-// produces consumer-side paths that resolve correctly. The barrel index.ts
-// re-exports from `./types`, but shadcn rewrites
-// `@/registry/components/data/article-body-01` to
-// `@/components/article-body-01/article-body-01` (a .tsx file) — which
-// doesn't export the symbols at all. Direct file imports avoid the mangle.
-import { ArticleBodyEditor } from "@/registry/components/data/article-body-01/article-body-01";
+// Import everything from `article-body-01.tsx` (not `./types`, not the
+// barrel `./index`). shadcn 4.6.0's path rewriter handles cross-procomp
+// component-file paths correctly but mangles `/types` and `/index` to the
+// CURRENT slug (F-S1 cross-procomp `/types` bug), which then breaks
+// consumer-tsc. `article-body-01.tsx` re-exports the symbols we need at
+// its tail, so all imports land on a path the rewriter preserves.
 import {
+  ArticleBodyEditor,
   ARTICLE_BODY_EMPTY_VALUE,
   type ArticleBodyValue,
-} from "@/registry/components/data/article-body-01/types";
+} from "@/registry/components/data/article-body-01/article-body-01";
 import type { FieldRenderer } from "../types";
 
 /**

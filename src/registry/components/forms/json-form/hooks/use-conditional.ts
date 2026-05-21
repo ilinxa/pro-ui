@@ -3,7 +3,11 @@
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { FieldDefinition } from "../types";
-import { resolveConditionOrFn } from "../lib/condition-evaluator";
+import {
+  extractConditionOrFnDeps,
+  resolveConditionOrFn,
+} from "../lib/condition-evaluator";
+import { setByPath } from "../lib/path";
 
 export interface ConditionalState {
   visible: boolean;
@@ -13,21 +17,68 @@ export interface ConditionalState {
 
 /**
  * Evaluates `visibleWhen` / `enabledWhen` / `requiredWhen` for a single
- * field. Subscribes to the full values bag (50-conditional ceiling per the
- * O1 plan lock); plan-stage P-06 deferred the narrow-deps optimization
- * to v0.2 when real consumers hit the wall.
+ * field.
  *
- * v0.1.3 — memoization strategy changed (F-R5). v0.1.0–v0.1.2 used
- * `JSON.stringify(values)` as the dep key, which throws on circular refs
- * and silently fell back to a key that didn't react to value changes.
- * Now we compute the three booleans inline (cheap — bounded by condition
- * tree depth) and memoize the returned object on the BOOLEAN values, so
- * the returned shape has stable identity when nothing changed.
+ * v0.1.6 — narrow-deps subscription (T1.2). The union of static deps across
+ * all three conditions drives `useWatch({ name })`, so a conditional that
+ * only depends on `country` only re-renders when `country` changes — not on
+ * every keystroke anywhere in the form. Function-form conditions can't be
+ * statically analyzed (`extractConditionOrFnDeps` returns `null`); we fall
+ * back to the full-bag subscription for those.
+ *
+ * v0.1.3 — memoization on the boolean shape (F-R5). The returned object has
+ * stable identity when nothing changed.
  */
 export function useConditional(field: FieldDefinition): ConditionalState {
   const { control } = useFormContext();
-  const watched = useWatch({ control }) ?? {};
-  const values = watched as Record<string, unknown>;
+
+  const watchTarget = useMemo(() => {
+    if (!field.visibleWhen && !field.enabledWhen && !field.requiredWhen) {
+      return { mode: "none" as const };
+    }
+    const allDeps = new Set<string>();
+    let anyFnForm = false;
+    for (const key of ["visibleWhen", "enabledWhen", "requiredWhen"] as const) {
+      const c = field[key];
+      if (!c) continue;
+      const deps = extractConditionOrFnDeps(c);
+      if (deps == null) {
+        anyFnForm = true;
+        break;
+      }
+      deps.forEach((d) => allDeps.add(d));
+    }
+    if (anyFnForm) return { mode: "full" as const };
+    return { mode: "narrow" as const, names: Array.from(allDeps) };
+  }, [field.visibleWhen, field.enabledWhen, field.requiredWhen]);
+
+  // `useWatch` is called UNCONDITIONALLY (hook rules); the `name` arg drives
+  // narrow vs full subscription. RHF returns `[]` for `name: []`, which is
+  // fine — we never read it in that case. The `as never` cast matches the
+  // codebase's existing RHF-overload-disambiguation pattern (see
+  // `use-json-form.ts` resolver cast comment for the precedent rationale);
+  // here the union of `{ control, name }` vs `{ control }` ambiguates v7.76
+  // overload resolution against the new `compute` overload.
+  const watched = useWatch(
+    (watchTarget.mode === "narrow"
+      ? { control, name: watchTarget.names }
+      : { control }) as never,
+  );
+
+  const values = useMemo<Record<string, unknown>>(() => {
+    if (watchTarget.mode === "narrow") {
+      // RHF returns an array (positional) when `name` is an array. Rebuild
+      // a nested bag via `setByPath` so the condition evaluator's
+      // `getByPath('address.city')` walks into the right shape.
+      const arr = Array.isArray(watched) ? watched : [];
+      const bag: Record<string, unknown> = {};
+      watchTarget.names.forEach((n, i) => {
+        setByPath(bag, n, arr[i]);
+      });
+      return bag;
+    }
+    return (watched ?? {}) as Record<string, unknown>;
+  }, [watched, watchTarget]);
 
   const visible = field.visibleWhen
     ? resolveConditionOrFn(field.visibleWhen, values)

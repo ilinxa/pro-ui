@@ -87,6 +87,27 @@ export function validateSchemaDev(schema: FormSchema): void {
       break; // one warn is enough; consumer can fix and re-run
     }
   }
+
+  // (5) v0.1.7 — dangling `dependsOn` references. Match is dot-path-as-flat
+  // -string against `schema.fields[i].name` exactly. Fields declared via
+  // nested `defaultValue` shapes (e.g., `{ name: 'address', defaultValue:
+  // { city: '…' } }`) WON'T satisfy this lint for `'address.city'` —
+  // consumers using nested-default patterns need individual leaf entries
+  // to declare them lint-visible. Runtime watch-gating that honors
+  // `dependsOn` ships in v0.2.0; the lint runs in v0.1.7 so consumers can
+  // author forward-compatible schemas now.
+  const knownNames = new Set(schema.fields.map((f) => f.name));
+  for (const field of schema.fields) {
+    if (!field.dependsOn) continue;
+    for (const dep of field.dependsOn) {
+      if (knownNames.has(dep)) continue;
+      console.warn(
+        `[json-form] Field "${field.name}" declares dependsOn: "${dep}", ` +
+          `but no field with that exact name exists in the schema. ` +
+          `Lint matches against schema.fields[].name as a flat dot-path string.`,
+      );
+    }
+  }
 }
 
 /** Convenience: skip `section` / `divider` types when walking value-carrying fields. */

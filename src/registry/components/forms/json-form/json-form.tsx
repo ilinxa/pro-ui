@@ -18,6 +18,8 @@ import { useJsonForm } from "./hooks/use-json-form";
 import { useDebouncedCallback } from "./hooks/use-debounced-callback";
 import { mergeStrings } from "./lib/strings";
 import { defaultJsonFormRegistry } from "./lib/default-registry";
+import { flattenRhfErrorsToRecord } from "./lib/flatten-errors";
+import { isValueField } from "./lib/validate-schema";
 import { JsonFormProvider, useJsonFormContext } from "./json-form-context";
 import { FieldWrapper } from "./parts/field-wrapper";
 import { FieldFallback } from "./parts/field-fallback";
@@ -45,9 +47,11 @@ export function JsonForm<
   values,
   onSubmit,
   onSubmitError,
+  onSubmitAttempt,
   onChange,
   onChangeDebounce = 100,
   onValidationChange,
+  onReady,
   columns = 1,
   labelPosition = "top",
   showSummary,
@@ -101,6 +105,21 @@ export function JsonForm<
 
   useImperativeHandle(ref, () => handle, [handle]);
 
+  // T3.7 — fire `onReady` once after mount + defaults applied. Stored in a
+  // ref so a parent re-render that passes a fresh callback identity doesn't
+  // re-fire (the contract is "once per form lifetime"). Ref-write happens
+  // inside an effect (React Compiler bans mutation during render).
+  const onReadyRef = useRef(onReady);
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+  const readyFiredRef = useRef(false);
+  useEffect(() => {
+    if (readyFiredRef.current) return;
+    readyFiredRef.current = true;
+    onReadyRef.current?.({ formApi: handle });
+  }, [handle]);
+
   // Debounced onChange that subscribes to the values bag.
   const debouncedChange = useDebouncedCallback((vals: Record<string, unknown>) => {
     onChange?.({ values: vals as TValues, formApi: handle });
@@ -116,6 +135,8 @@ export function JsonForm<
           onSubmit={(e) => {
             e.preventDefault();
             setHasSubmitted(true);
+            // T3.6 — fires unconditionally before validation runs.
+            onSubmitAttempt?.({ formApi: handle });
             void form.handleSubmit(
               async (vals) => {
                 await onSubmit({
@@ -124,7 +145,7 @@ export function JsonForm<
                 });
               },
               (errs) => {
-                const flat = flattenRhfErrors(errs);
+                const flat = flattenRhfErrorsToRecord(errs);
                 onSubmitError?.({
                   errors: flat,
                   formApi: handle,
@@ -133,9 +154,26 @@ export function JsonForm<
                   isValid: false,
                   errors: flat,
                 });
-                // Focus the first invalid field.
-                const firstName = Object.keys(flat)[0];
-                if (firstName) form.setFocus(firstName as never);
+                // T2.2 — focus the first focusable invalid field in DOM
+                // order (schema.fields order). Skip non-focusable types
+                // (`computed` is `<output>`, `hidden`/`section`/`divider`
+                // render no control); falling through to the next errored
+                // field beats a silent no-op `setFocus` call.
+                const focusTarget = schema.fields.find(
+                  (f) =>
+                    isValueField(f) &&
+                    f.type !== "computed" &&
+                    f.type !== "hidden" &&
+                    flat[f.name] !== undefined,
+                );
+                if (focusTarget) {
+                  try {
+                    form.setFocus(focusTarget.name as never);
+                  } catch {
+                    // Fall through — non-registered name (rare; safer to
+                    // skip than to throw out of a submit handler).
+                  }
+                }
               },
             )(e);
           }}
@@ -186,6 +224,7 @@ function ChangeBridge({
   const values = useWatch();
   const { isValid, errors } = useFormState();
   const rendered = useRef(0);
+  const lastValuesKey = useRef<string | null>(null);
   const lastValidity = useRef<{ isValid: boolean; errorKey: string } | null>(null);
 
   useEffect(() => {
@@ -193,14 +232,23 @@ function ChangeBridge({
     // before the user has touched anything.
     if (rendered.current === 0) {
       rendered.current++;
+      lastValuesKey.current = stableStringify(values);
       return;
     }
+    // Structural-equality guard breaks the controlled-mode echo loop: when
+    // a consumer pipes `onChange` back through the `values` prop, RHF
+    // re-runs `useWatch` and produces a new reference for the same payload.
+    // Without this guard the debounced fire-out would still leak, defeating
+    // defense #2 of the controlled-mode three-defenses pattern.
+    const next = stableStringify(values);
+    if (next === lastValuesKey.current) return;
+    lastValuesKey.current = next;
     onChange?.((values ?? {}) as Record<string, unknown>);
   }, [values, onChange]);
 
   useEffect(() => {
     if (!onValidationChange) return;
-    const flat = flattenRhfErrors(errors as Record<string, unknown>);
+    const flat = flattenRhfErrorsToRecord(errors as Record<string, unknown>);
     const errorKey = `${Object.keys(flat).length}:${Object.keys(flat).join(",")}`;
     const last = lastValidity.current;
     if (last && last.isValid === isValid && last.errorKey === errorKey) return;
@@ -383,26 +431,16 @@ function SubmitRenderProxy({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function flattenRhfErrors(
-  errors: Record<string, unknown>,
-  prefix = "",
-): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [key, val] of Object.entries(errors)) {
-    if (!val) continue;
-    const path = prefix ? `${prefix}.${key}` : key;
-    if (
-      typeof val === "object" &&
-      val !== null &&
-      "message" in val &&
-      typeof (val as { message?: unknown }).message === "string"
-    ) {
-      out[path] = String((val as { message?: unknown }).message);
-      continue;
-    }
-    if (typeof val === "object" && val !== null) {
-      Object.assign(out, flattenRhfErrors(val as Record<string, unknown>, path));
-    }
-  }
-  return out;
+/**
+ * Key-sorted JSON stringify so `{ a: 1, b: 2 }` and `{ b: 2, a: 1 }` hash to
+ * the same key. Used by `ChangeBridge` to detect echo-loop re-emissions of a
+ * structurally-identical values bag.
+ */
+function stableStringify(input: unknown): string {
+  if (input === null || typeof input !== "object") return JSON.stringify(input);
+  if (Array.isArray(input)) return `[${input.map(stableStringify).join(",")}]`;
+  const keys = Object.keys(input as Record<string, unknown>).sort();
+  return `{${keys
+    .map((k) => `${JSON.stringify(k)}:${stableStringify((input as Record<string, unknown>)[k])}`)
+    .join(",")}}`;
 }

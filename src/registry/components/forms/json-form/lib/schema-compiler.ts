@@ -7,30 +7,73 @@ import { isValueField } from "./validate-schema";
 import { getByPath } from "./path";
 
 /**
- * Compile a `FormSchema` into a `ZodObject` ready for the RHF resolver.
+ * v0.1.7 (C1) — compile pipeline split into two stages for cache granularity:
  *
- * Pipeline (per plan):
- *   1. Walk value-carrying fields and build a per-field Zod chain from
+ *   compileStructural(schema)        → intermediate representation, schema-keyed
+ *   injectStrings(structural, strings) → final ZodObject, strings-keyed
+ *   compileSchema(schema, strings)   → composition wrapper (internal-only — not
+ *                                       exported from index.ts; kept for code
+ *                                       readability and any direct internal call)
+ *
+ * Why the split: in `useJsonForm`, `strings` identity changes (locale switch,
+ * error-message overrides) shouldn't re-walk the schema's field list. The
+ * two-memo pattern caches the structural step on schema identity, and only
+ * the string-injection step runs on strings change. For typical schemas the
+ * absolute saving is microseconds, but the cleanly-separated stages make the
+ * cache reasoning obvious and free us from RHF re-initialization on
+ * strings-only updates (the resolver wraps the new Zod object — RHF detects
+ * the resolver identity change but reuses prior form state).
+ *
+ * Pipeline (per the v0.1.0 plan):
+ *   1. Walk value-carrying fields, build a per-field Zod chain from
  *      `field.validators` + base type.
- *   2. Group fields by dot-path roots and build a nested ZodObject via
- *      a path-trie.
- *   3. Apply `field.validate` (sync) + `field.validateAsync` via
- *      `.superRefine()` on the leaf type (the resolver evaluates these
- *      after the structural validators).
- *   4. Apply form-level `schema.validate` via a final outer `.superRefine()`.
+ *   2. Group fields by dot-path roots, build a nested ZodObject via path-trie.
+ *   3. Apply `field.validate` (sync) + `field.validateAsync` via per-field
+ *      `.superRefine()` (resolver evaluates after structural validators).
+ *   4. Apply form-level `schema.validate` via an outer `.superRefine()`.
  *   5. Apply `requiredWhen` via another outer `.superRefine()` that checks
  *      visibility-aware required-ness against the runtime values bag.
  *   6. Merge `schema.zodSchema` LAST — consumer-provided keys overwrite
  *      DSL-generated ones (M-03 / T8 lock).
+ *
+ * Steps 1 + 2 + 5 + 6 reference `strings` (via `errorTemplates.*` messages
+ * baked into the constraint chains); step 1 also runs `buildFieldZod` per
+ * field which is the bulk of the per-field work. So `injectStrings` does
+ * most of the heavy lifting; `compileStructural` is the cheap "field list
+ * collection" memo whose output is reused across strings changes.
  */
-export function compileSchema(
-  schema: FormSchema,
-  strings: JsonFormStrings,
-): ZodObject<Record<string, ZodTypeAny>> {
-  // 1. Build flat leaf map: 'path' → ZodType
-  const leaves = new Map<string, ZodTypeAny>();
+
+/**
+ * Schema-keyed intermediate. Internal-only; not exported from index.ts.
+ *
+ * Holds the value-carrying field list pre-extracted (so `injectStrings`
+ * doesn't re-filter on every strings change) plus a reference to the source
+ * `FormSchema` for the outer-refinement steps (custom validators / form-level
+ * validate / requiredWhen / consumer-zodSchema merge).
+ */
+export interface CompiledStructural {
+  readonly leafFields: ReadonlyArray<FieldDefinition>;
+  readonly schema: FormSchema;
+}
+
+/** Schema-keyed compile stage. Cheap; safe to re-run on any schema change. */
+export function compileStructural(schema: FormSchema): CompiledStructural {
+  const leafFields: FieldDefinition[] = [];
   for (const field of schema.fields) {
     if (!isValueField(field)) continue;
+    leafFields.push(field);
+  }
+  return { leafFields, schema };
+}
+
+/** Strings-keyed compile stage. Builds the final Zod chains + outer refinements. */
+export function injectStrings(
+  structural: CompiledStructural,
+  strings: JsonFormStrings,
+): ZodObject<Record<string, ZodTypeAny>> {
+  // 1. Build flat leaf map: 'path' → ZodType (strings baked in)
+  const leaves = new Map<string, ZodTypeAny>();
+  for (const field of structural.leafFields) {
     leaves.set(field.name, buildFieldZod(field, strings));
   }
 
@@ -38,11 +81,11 @@ export function compileSchema(
   let zod = buildNestedZodObject(leaves);
 
   // 3. Per-field custom sync + async validators via outer .superRefine
-  zod = applyCustomValidators(zod, schema.fields);
+  zod = applyCustomValidators(zod, structural.schema.fields);
 
   // 4. Form-level validate
-  if (schema.validate) {
-    const formValidate = schema.validate;
+  if (structural.schema.validate) {
+    const formValidate = structural.schema.validate;
     zod = zod.superRefine((values, ctx) => {
       const errors = formValidate({ values: values as Record<string, unknown> });
       if (!errors) return;
@@ -57,14 +100,26 @@ export function compileSchema(
   }
 
   // 5. requiredWhen — conditional required
-  zod = applyRequiredWhen(zod, schema.fields, strings);
+  zod = applyRequiredWhen(zod, structural.schema.fields, strings);
 
   // 6. Merge consumer's zodSchema — consumer wins per-key
-  if (schema.zodSchema) {
-    zod = mergeZodSchemas(zod, schema.zodSchema);
+  if (structural.schema.zodSchema) {
+    zod = mergeZodSchemas(zod, structural.schema.zodSchema);
   }
 
   return zod;
+}
+
+/**
+ * Composition wrapper. Same signature as v0.1.x for any internal callsite
+ * that wants the one-shot compile. Equivalent to
+ * `injectStrings(compileStructural(schema), strings)`.
+ */
+export function compileSchema(
+  schema: FormSchema,
+  strings: JsonFormStrings,
+): ZodObject<Record<string, ZodTypeAny>> {
+  return injectStrings(compileStructural(schema), strings);
 }
 
 // ─── Per-field base Zod construction ─────────────────────────────────────────

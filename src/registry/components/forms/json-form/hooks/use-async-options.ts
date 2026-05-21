@@ -46,9 +46,14 @@ export function useAsyncOptions(field: FieldDefinition): AsyncOptionsState {
     setLoading(true);
     setError(null);
     const myGen = ++generation.current;
+    const controller = new AbortController();
 
     const handle = setTimeout(() => {
-      resolver({ query, allValues: getValues() as Record<string, unknown> })
+      resolver({
+        query,
+        allValues: getValues() as Record<string, unknown>,
+        signal: controller.signal,
+      })
         .then((next) => {
           if (myGen !== generation.current) return;
           setAsyncOptions(next);
@@ -56,13 +61,18 @@ export function useAsyncOptions(field: FieldDefinition): AsyncOptionsState {
         })
         .catch((err: unknown) => {
           if (myGen !== generation.current) return;
+          // AbortError is expected on supersede/unmount — don't surface it.
+          if (err instanceof DOMException && err.name === "AbortError") return;
           setAsyncOptions([]);
           setLoading(false);
           setError(err instanceof Error ? err.message : String(err));
         });
     }, debounce);
 
-    return () => clearTimeout(handle);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAsync, query, debounce, tick]);
 

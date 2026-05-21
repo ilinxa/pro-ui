@@ -10,7 +10,7 @@ import type {
   UseJsonFormOptions,
   UseJsonFormReturn,
 } from "../types";
-import { compileSchema } from "../lib/schema-compiler";
+import { compileStructural, injectStrings } from "../lib/schema-compiler";
 import { mergeStrings } from "../lib/strings";
 import { validateSchemaDev } from "../lib/validate-schema";
 
@@ -30,7 +30,16 @@ export function useJsonForm<TValues extends Record<string, unknown> = Record<str
     validateSchemaDev(schema);
   }, [schema]);
 
-  const zodSchema = useMemo(() => compileSchema(schema, strings), [schema, strings]);
+  // v0.1.7 (C1) — two-memo compile pipeline. The structural step (field-list
+  // extraction + schema reference) caches on schema identity; the strings
+  // injection (Zod chain construction + outer refinements) caches on the
+  // structural + strings pair. Strings-only changes (locale switch, error
+  // template overrides) skip the schema re-walk.
+  const structural = useMemo(() => compileStructural(schema), [schema]);
+  const zodSchema = useMemo(
+    () => injectStrings(structural, strings),
+    [structural, strings],
+  );
 
   const defaultValues = useMemo(() => {
     return mergeDefaultValues<TValues>(schema, options.defaultValues);
