@@ -118,16 +118,19 @@ export function TodoTreeRow({
         !dimmed && "hover:bg-accent/20",
       )}
     >
-      {/* Grip column — absolute on the row's left edge. Always rendered
+      {/* Grip column — leading flex item so it sits inside the row's
+          bounding box (a previous absolute `-left-4` placement landed
+          outside the row and was clipped by ancestor overflow:hidden /
+          overflow:auto, making DnD unreachable). Always rendered
           (no `sm:` gate) because @dnd-kit's TouchSensor listeners live on
           the grip's button — hiding it on mobile would make long-press
           drag unreachable. Desktop UX still hides at rest via the
           `group-hover` class inside <TodoTreeGrip>. */}
-      <span className="absolute inset-y-0 -left-4 z-10 flex items-center">
+      <span className="flex w-4 shrink-0 items-center justify-center">
         <TodoTreeGrip id={item.id} enabled={canDrag} level={level} />
       </span>
 
-      <div className="flex-1">{body}</div>
+      <div className="min-w-0 flex-1">{body}</div>
 
       {showIndicator && dnd?.overZone && (
         <TodoTreeDropIndicator

@@ -310,6 +310,44 @@ export interface TodoTreeProps {
 
   // Behavior
   readOnly?: boolean;
+  /**
+   * Signals that the tree has an editing affordance (an edit panel,
+   * inline editor, or similar consumer-provided surface). Default
+   * `false`. When false, the default toolbar's "+ New" button and the
+   * bulk action bar's "Delete" button are hidden — without an editor a
+   * newly-added row is just an unrenameable "Untitled" stub and a delete
+   * affordance is pointing at a row the user never got to interact with.
+   * `<TodoTreeWithEditor>` sets this to `true` automatically. Consumers
+   * wiring their own editor (via `onItemClick` opening a dialog, an
+   * inline rename, etc.) should set `editable` themselves.
+   */
+  editable?: boolean;
+  /**
+   * Factory for the default toolbar's "+ New" button. When provided, the
+   * toolbar renders the button and calls this on click; the returned item
+   * is appended at root via `state.addItem`. When absent, the toolbar
+   * falls back to a built-in factory IF `statusOptions[0]` is available
+   * (needed to satisfy the required `status` field). When neither path
+   * yields a factory (no `createItem` + no `statusOptions`), the button
+   * is hidden. Also hidden when `readOnly`, `editable === false`, or
+   * `toolbar` isn't the built-in default. Consumers wanting fancier
+   * behaviour (add-as-child, add-as-sibling, custom inline editor) should
+   * replace the toolbar via `renderToolbar` and call `state.addItem` /
+   * `state.addChild` themselves.
+   */
+  createItem?: () => TodoItem;
+  /**
+   * Intercepts the default toolbar's "+ New" button click. When provided,
+   * the toolbar calls this with a freshly-built item (via `createItem` or
+   * the built-in fallback) and DOES NOT add it to the tree itself —
+   * commit is the consumer's responsibility (call `state.addItem` /
+   * `handle.addItem` when ready). Used by `<TodoTreeWithEditor>` to open
+   * the edit dialog on a pending item and commit only after the user
+   * submits, so a new row never appears in the tree until its values are
+   * filled in. When omitted, the toolbar adds the item synchronously and
+   * focuses it (current behaviour).
+   */
+  onCreateRequest?: (item: TodoItem) => void;
   defaultCollapsedIds?: ReadonlyArray<string>;
   defaultSelectedIds?: ReadonlyArray<string>;
   /** Pixels per nesting level (default 20). */

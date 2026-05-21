@@ -28,6 +28,8 @@ export const meta: ComponentMeta = {
     "17 object-args events (post-F-cross-12 convention)",
     "Full WAI-ARIA tree pattern: role=tree + role=treeitem + aria-level + aria-expanded + aria-selected; arrow nav + Home/End + Space + Enter + Delete/Backspace + Cmd-A + Escape",
     "Companion: <TodoTreeWithEditor> convenience export wires todo-rich-card edit popup inside a Dialog automatically",
+    "Toolbar '+ New' button (createItem factory + statusOptions[0] fallback); gated behind editable + !readOnly. Wrapper opens the edit panel on a pending item; commit deferred until Submit (onCreateRequest hook)",
+    "Keyboard Space + Delete honor the permissions matrix + item.locked + readOnly; fire onPermissionDenied on denial (F-perm closed)",
   ],
   tags: [
     "todo-tree",
@@ -41,7 +43,7 @@ export const meta: ComponentMeta = {
     "virtualization",
   ],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-05-20",
   updatedAt: "2026-05-21",
