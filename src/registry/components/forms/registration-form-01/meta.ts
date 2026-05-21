@@ -45,15 +45,17 @@ export const meta: ComponentMeta = {
 
   author: { name: "ilinxa" },
 
-  // Deps grow incrementally per the commit chain (validate:meta-deps lint
-  // enforces no phantom entries). C2 adds zod + rhf + resolvers as the
-  // lib/hooks land; C3 adds input + label + button + checkbox as parts
-  // import them; C4 adds lucide-react when icons land. Final shape (after
-  // C5): shadcn = [input, label, button, checkbox]; npm = { rhf, resolvers,
-  // zod, lucide-react }; internal = [].
+  // Deps grow incrementally per the commit chain (validate:meta-deps
+  // lint enforces no phantom entries). C2 added rhf + resolvers + zod
+  // as lib/hooks landed. C3 will add input + label + button + checkbox
+  // when parts import them. C4 will add lucide-react when icons land.
   dependencies: {
     shadcn: [],
-    npm: {},
+    npm: {
+      "react-hook-form": "^7.75.0",
+      "@hookform/resolvers": "^5.2.2",
+      zod: "^4.4.3",
+    },
     internal: [],
   },
 
