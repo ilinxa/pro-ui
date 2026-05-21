@@ -1,0 +1,27 @@
+/**
+ * Sealed-folder CSS for the step-shell fade transition. Imported once
+ * at the root component (`registration-form-01.tsx`). The fade collapses
+ * to a hard 0ms swap under `prefers-reduced-motion: reduce` so a11y
+ * tooling isn't disorientated.
+ */
+
+@keyframes registration-form-01-step-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-registration-form-01-step] {
+  animation: registration-form-01-step-fade-in 150ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-registration-form-01-step] {
+    animation: none;
+  }
+}
