@@ -43,7 +43,7 @@ export const meta: ComponentMeta = {
     "virtualization",
   ],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-05-20",
   updatedAt: "2026-05-21",

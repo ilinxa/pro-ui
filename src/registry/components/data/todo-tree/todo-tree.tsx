@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -101,6 +102,13 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
     // mutual-exclusion gate between @dnd-kit grip and native HTML5 drag.
     const isDraggingRef = useRef(false);
     const isInternalDragRef = useRef(false);
+
+    // Stable id for <DndContext>. Without an explicit id, @dnd-kit allocates
+    // `DndDescribedBy-N` from a module-level counter that diverges between
+    // SSR (single pass) and CSR (StrictMode double-pass) — that triggers a
+    // hydration mismatch on every grip button's `aria-describedby`. React's
+    // useId is stable across SSR + CSR so we use it as the deterministic seed.
+    const dndContextId = useId();
 
     const internalState = useTodoTreeState({
       defaultValue,
@@ -256,6 +264,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
     );
 
     const dndProps: DndContextProps = {
+      id: dndContextId,
       sensors: dndInternal.sensors,
       onDragStart: dndInternal.onDragStart,
       onDragOver: dndInternal.onDragOver,
