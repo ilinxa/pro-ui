@@ -44,21 +44,32 @@ export function ArticleBodyEditor(props: ArticleBodyEditorProps) {
     autoSelect: autoFocus ? "end" : undefined,
   });
 
-  // Echo-guarded sync: when controlledValue prop changes from the outside,
-  // mirror it into the editor without re-emitting onChange. Stored in a ref
-  // (not state) — React Compiler-aware lint rejects setState in effect bodies,
-  // and we don't want to trigger a re-render on this anyway.
-  const lastSyncedValueRef = useRef<ArticleBodyValue>(initialValue);
+  // v0.2.2 — echo-guarded sync, now content-keyed. When `controlledValue`
+  // prop changes by REFERENCE only (e.g., RHF-controlled forms emit a fresh
+  // reference on every state change even when content is identical), the
+  // previous ref-equality check would fire `editor.tf.setValue` on every
+  // render. That re-applies the editor's current content as a "new" value,
+  // which resets Slate's selection — the user's cursor disappears
+  // immediately after every click, and typing can't land because each
+  // keystroke is followed by a setValue that wipes selection. Worse, on
+  // RHF + React 19, the rapid setValue → onChange → setState cascade
+  // tripped React error #185 (Maximum update depth exceeded). The fix is
+  // to gate the sync on the content key (cheap stringify of the Plate
+  // tree) — fire setValue only when the content actually differs from
+  // what the editor last emitted or accepted, regardless of how many fresh
+  // references the consumer pipes through `value`.
+  const lastSyncedKeyRef = useRef<string>(serializeValueKey(initialValue));
   useEffect(() => {
-    if (controlledValue && controlledValue !== lastSyncedValueRef.current) {
-      editor.tf.setValue(controlledValue);
-      lastSyncedValueRef.current = controlledValue;
-    }
+    if (!controlledValue) return;
+    const nextKey = serializeValueKey(controlledValue);
+    if (nextKey === lastSyncedKeyRef.current) return;
+    editor.tf.setValue(controlledValue);
+    lastSyncedKeyRef.current = nextKey;
   }, [controlledValue, editor]);
 
   const handleChange = useCallback(
     ({ value }: { value: ArticleBodyValue }) => {
-      lastSyncedValueRef.current = value;
+      lastSyncedKeyRef.current = serializeValueKey(value);
       onChange?.(value);
     },
     [onChange]
@@ -125,6 +136,21 @@ export function ArticleBodyEditor(props: ArticleBodyEditorProps) {
       </Plate>
     </div>
   );
+}
+
+/**
+ * v0.2.2 — content key for the echo-guarded controlled-value sync.
+ * Stringify is adequate for Plate JSON (no functions, no cycles) and
+ * cheap relative to a keystroke's frame budget for documents that fit on
+ * one screen. Returns a random hash on circular-ref edge cases so the
+ * effect still fires (defensive — we'd rather over-sync than skip a real
+ * external update). */
+function serializeValueKey(value: ArticleBodyValue): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(Math.random());
+  }
 }
 
 // Re-exports for cross-procomp consumers (e.g. json-form's `richtext` field
