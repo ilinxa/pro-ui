@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, type ReactNode } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { FieldValues, Path } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,8 @@ export function FieldWrapper({
   formLabelPosition,
   loadingFallback,
 }: FieldWrapperProps) {
-  const { control, register, unregister } = useFormContext();
+  const { control, register, unregister, trigger, getFieldState } =
+    useFormContext();
   const ctx = useJsonFormContext();
   const allValues = (useWatch({ control }) ?? {}) as Record<string, unknown>;
   const { visible, enabled, required } = useConditional(field);
@@ -58,6 +59,23 @@ export function FieldWrapper({
       unregister(field.name as Path<FieldValues>, { keepDefaultValue: true });
     }
   }, [visible, field.name, field.type, field.keepValueWhenHidden, unregister]);
+
+  // T2.6 — when `requiredWhen` flips a field's required state false→true on
+  // a field the user has already touched, trigger validation so the
+  // "required" error surfaces immediately instead of waiting for the next
+  // blur / submit. The first-render skip prevents pre-interaction errors.
+  const prevRequiredRef = useRef(required);
+  useEffect(() => {
+    if (!field.requiredWhen) return;
+    const prev = prevRequiredRef.current;
+    prevRequiredRef.current = required;
+    if (prev === required) return;
+    if (!required) return;
+    const state = getFieldState(field.name as Path<FieldValues>);
+    if (state.isTouched || state.isDirty) {
+      void trigger(field.name as Path<FieldValues>);
+    }
+  }, [required, field.requiredWhen, field.name, trigger, getFieldState]);
 
   // `hidden` fields are tracked but render nothing — register imperatively so
   // they always submit.

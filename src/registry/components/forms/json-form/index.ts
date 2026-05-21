@@ -11,10 +11,19 @@ export { JsonFormSubmitButton } from "./parts/submit-button";
 export { JsonFormResetButton } from "./parts/reset-button";
 export { FormHeader as JsonFormHeader } from "./parts/form-header";
 export { FieldWrapper as JsonFormFieldWrapper } from "./parts/field-wrapper";
+export {
+  JsonFormDevtools,
+  type JsonFormDevtoolsProps,
+} from "./parts/json-form-devtools";
 
 // Headless factory + default registry (consumer can spread + extend)
 export { useJsonForm } from "./hooks/use-json-form";
+export {
+  useJsonFormFieldValue,
+  useJsonFormFieldsValue,
+} from "./hooks/use-json-form-field-value";
 export { defaultJsonFormRegistry } from "./lib/default-registry";
+export { defineFieldRenderer } from "./lib/define-field-renderer";
 
 // String dictionary + helpers
 export { defaultStrings as defaultJsonFormStrings, mergeStrings as mergeJsonFormStrings } from "./lib/strings";

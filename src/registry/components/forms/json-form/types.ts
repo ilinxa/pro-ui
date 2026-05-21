@@ -33,6 +33,13 @@ export interface FieldOption {
 export type FieldOptionsResolver = (args: {
   query?: string;
   allValues: Record<string, unknown>;
+  /**
+   * v0.1.6 — abort signal. Fires when the resolver run is superseded by a
+   * newer query/dep change or the field unmounts. Fetch-based resolvers
+   * should pass this to `fetch(url, { signal })`; ignoring it is harmless
+   * (the result is still discarded by the generation guard).
+   */
+  signal: AbortSignal;
 }) => Promise<FieldOption[]>;
 
 /** Per-field type-specific config (hybrid shape — A1 resolution). */
@@ -124,6 +131,40 @@ export interface FieldDefinition {
   readOnly?: boolean;
   autoComplete?: string;
   autoFocus?: boolean;
+
+  /**
+   * v0.1.6 — typed metadata for downstream per-locale renderers (T3.8).
+   * Upstream `JsonForm` itself does NOT change behavior based on this flag;
+   * the contract is purely "this field's value is locale-aware." A
+   * consumer-side HOC composed into the registry (e.g., `withPerLocale`)
+   * reads this flag and renders a locale-tab strip around the underlying
+   * renderer. See the docs for the canonical HOC pattern.
+   */
+  translatable?: boolean;
+
+  /**
+   * **v0.1.7 — typed metadata + schema-lint validation only. The runtime
+   * watch-gating that honors this flag ships in v0.2.0.** Set the flag in
+   * v0.1.7 to make schemas forward-compatible; perf wins materialize on
+   * v0.2.0 upgrade.
+   *
+   * Once v0.2.0 lands, declares which field names this renderer's
+   * `allValues` access depends on. The wrapper subscribes to ONLY these
+   * names instead of the full values bag.
+   *
+   * - `undefined` (default) → full-bag subscription (current v0.1.x behavior)
+   * - `[]` → no subscription; renderer receives a static `rhf.getValues()`
+   *   snapshot under `allValues`. Use this when the renderer doesn't read
+   *   `allValues` at all (the most common case for custom renderers).
+   * - `['a', 'b']` → narrow subscription; `allValues` is rebuilt from the
+   *   watched names only via `setByPath`.
+   *
+   * Built-in default-registry renderers (`text`, `radio-group`, `checkbox`,
+   * etc.) auto-skip the subscription per an internal whitelist in v0.2.0 —
+   * declare `dependsOn` only on custom renderers, or to override the
+   * whitelist for a specific field.
+   */
+  dependsOn?: ReadonlyArray<string>;
 }
 
 /** Top-level form schema. */
@@ -251,9 +292,22 @@ export interface JsonFormProps<TValues extends Record<string, any> = Record<stri
 
   onSubmit: (args: JsonFormValuesArgs<TValues>) => void | Promise<void>;
   onSubmitError?: (args: JsonFormSubmitErrorArgs<TValues>) => void;
+  /**
+   * v0.1.6 (T3.6) — fires on every submit press, BEFORE validation runs.
+   * Use for "user attempted submit" telemetry / submit-counter UX hints
+   * that need to fire even when validation rejects the attempt. `onSubmit`
+   * still gates on validation passing.
+   */
+  onSubmitAttempt?: (args: { formApi: JsonFormHandle<TValues> }) => void;
   onChange?: (args: JsonFormValuesArgs<TValues>) => void;
   onChangeDebounce?: number;
   onValidationChange?: (args: JsonFormValidationChangeArgs) => void;
+  /**
+   * v0.1.6 (T3.7) — fires once after mount + defaults applied. Async-schema
+   * consumers (load schema → mount → wire callbacks) can ditch the manual
+   * `useEffect(...)` they wrote to capture the imperative handle.
+   */
+  onReady?: (args: { formApi: JsonFormHandle<TValues> }) => void;
 
   columns?: 1 | 2;
   labelPosition?: "top" | "left";
@@ -286,6 +340,14 @@ export interface JsonFormProps<TValues extends Record<string, any> = Record<stri
 // ─── Standalone-parts contexts ────────────────────────────────────────────────
 
 export type JsonFormContextValue<TValues extends Record<string, any> = Record<string, any>> = JsonFormHandle<TValues> & {
+  /**
+   * Escape hatch — the raw react-hook-form return. Standalone parts read
+   * `formState`, register custom controllers, etc. through this. NOT part of
+   * the json-form stability contract: if RHF renames or relocates API
+   * surface, this type follows. Prefer the typed handle methods
+   * (`setValue` / `getValue` / `trigger` / …) for anything reachable that
+   * way.
+   */
   rhf: UseFormReturn<TValues>;
   schema: FormSchema;
   zodSchema: ZodObject<Record<string, ZodTypeAny>>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JsonForm } from "./json-form";
@@ -10,8 +10,11 @@ import {
 } from "./json-form-context";
 import { JsonFormField } from "./parts/json-form-field";
 import { JsonFormSubmitButton } from "./parts/submit-button";
+import { JsonFormDevtools } from "./parts/json-form-devtools";
 import { useJsonForm } from "./hooks/use-json-form";
+import { useJsonFormFieldsValue } from "./hooks/use-json-form-field-value";
 import { defaultJsonFormRegistry } from "./lib/default-registry";
+import { defineFieldRenderer } from "./lib/define-field-renderer";
 import { defaultStrings as defaultJsonFormStrings } from "./lib/strings";
 import type {
   FieldRenderer,
@@ -163,10 +166,11 @@ function ConditionalTab() {
   return (
     <Section
       title="Conditional fields"
-      caption="`visibleWhen`, `enabledWhen`, `requiredWhen` adapt to user input. Try picking 'Other' or switching cadence to 'Annually'."
+      caption="`visibleWhen`, `enabledWhen`, `requiredWhen` adapt to user input. `validationMode='onChange'` makes the `requiredWhen` asterisk surface its error immediately on toggle — the default `onTouched` would wait until next blur."
     >
       <JsonForm
         schema={conditionalFormSchema}
+        validationMode="onChange"
         onSubmit={({ values }) => setLast(values)}
       />
       <LastSubmittedPanel payload={last} />
@@ -412,6 +416,77 @@ function HeadlessForm({
   );
 }
 
+// ─── Tab 8 — Devtools + perf (v0.1.7) ───────────────────────────────────────
+
+// Extract as an uppercase-named component so rules-of-hooks lint accepts
+// the `useJsonFormFieldsValue` call inside.
+function SummaryImpl() {
+  // narrow-deps via the new headless hook — re-renders only when the
+  // declared dependsOn fields change. Mirrors what a real consumer would
+  // write for a derived-summary surface.
+  const { firstName, lastName } = useJsonFormFieldsValue<{
+    firstName: string;
+    lastName: string;
+  }>(["firstName", "lastName"]);
+  const display = `${firstName ?? ""} ${lastName ?? ""}`.trim() || "—";
+  return (
+    <div className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+      Live preview: <span className="font-medium text-foreground">{display}</span>
+    </div>
+  );
+}
+
+const SummaryRenderer = defineFieldRenderer<unknown, unknown>({
+  displayName: "SummaryRenderer",
+  impl: () => <SummaryImpl />,
+});
+
+const devtoolsDemoSchema: FormSchema = {
+  meta: { title: "Devtools + narrow-deps perf" },
+  fields: [
+    { name: "firstName", type: "text", label: "First name", validators: { required: true } },
+    { name: "lastName", type: "text", label: "Last name", validators: { required: true } },
+    // Custom renderer using dependsOn — v0.1.7 ships this as typed metadata
+    // (runtime watch-gating ships in v0.2.0). Setting it now is forward-
+    // compatible authoring.
+    {
+      name: "summary",
+      type: "summary",
+      label: "Summary",
+      dependsOn: ["firstName", "lastName"],
+    },
+    { name: "role", type: "select", label: "Role", options: [
+      { value: "admin", label: "Admin" },
+      { value: "editor", label: "Editor" },
+      { value: "viewer", label: "Viewer" },
+    ] },
+    { name: "notes", type: "textarea", label: "Notes", rows: 3 },
+  ],
+};
+
+function DevtoolsPerfTab() {
+  const [last, setLast] = useState<Record<string, unknown> | null>(null);
+  const registry = useMemo(
+    () => ({ ...defaultJsonFormRegistry, summary: SummaryRenderer }),
+    [],
+  );
+  return (
+    <Section
+      title="Devtools + narrow-deps"
+      caption="Custom `summary` renderer reads firstName + lastName via `useJsonFormFieldsValue`. `dependsOn: ['firstName', 'lastName']` is forward-compatible typed metadata (runtime gating ships in v0.2.0). Inline `<JsonFormDevtools />` shows live schema / values / conditionals / errors below the form."
+    >
+      <JsonForm
+        schema={devtoolsDemoSchema}
+        columns={2}
+        fieldRegistry={registry}
+        onSubmit={({ values }) => setLast(values)}
+      />
+      <JsonFormDevtools inline />
+      <LastSubmittedPanel payload={last} />
+    </Section>
+  );
+}
+
 // ─── Tab shell ───────────────────────────────────────────────────────────────
 
 export default function JsonFormDemo() {
@@ -425,6 +500,7 @@ export default function JsonFormDemo() {
         <TabsTrigger value="rich">Rich fields</TabsTrigger>
         <TabsTrigger value="imperative">Imperative</TabsTrigger>
         <TabsTrigger value="custom">Custom registry</TabsTrigger>
+        <TabsTrigger value="devtools">Devtools + perf</TabsTrigger>
       </TabsList>
 
       <TabsContent value="registration" className="pt-3">
@@ -447,6 +523,9 @@ export default function JsonFormDemo() {
       </TabsContent>
       <TabsContent value="custom" className="pt-3">
         <CustomRegistryTab />
+      </TabsContent>
+      <TabsContent value="devtools" className="pt-3">
+        <DevtoolsPerfTab />
       </TabsContent>
 
       <span className="hidden">
