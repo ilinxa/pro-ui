@@ -1806,6 +1806,11 @@
         { "path": "src/registry/components/forms/json-form/lib/default-registry.ts", "type": "registry:component", "target": "components/json-form/lib/default-registry.ts" },
         { "path": "src/registry/components/forms/json-form/lib/strings.ts", "type": "registry:component", "target": "components/json-form/lib/strings.ts" },
         { "path": "src/registry/components/forms/json-form/lib/path.ts", "type": "registry:component", "target": "components/json-form/lib/path.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/flatten-errors.ts", "type": "registry:component", "target": "components/json-form/lib/flatten-errors.ts" },
+        { "path": "src/registry/components/forms/json-form/lib/define-field-renderer.ts", "type": "registry:component", "target": "components/json-form/lib/define-field-renderer.ts" },
+        { "path": "src/registry/components/forms/json-form/hooks/use-json-form-field-value.ts", "type": "registry:component", "target": "components/json-form/hooks/use-json-form-field-value.ts" },
+        { "path": "src/registry/components/forms/json-form/parts/json-form-devtools.tsx", "type": "registry:component", "target": "components/json-form/parts/json-form-devtools.tsx" },
+        { "path": "src/registry/components/forms/json-form/parts/json-form-devtools-body.tsx", "type": "registry:component", "target": "components/json-form/parts/json-form-devtools-body.tsx" },
         { "path": "src/registry/components/forms/json-form/lib/validate-schema.ts", "type": "registry:component", "target": "components/json-form/lib/validate-schema.ts" }
       ]
     },
