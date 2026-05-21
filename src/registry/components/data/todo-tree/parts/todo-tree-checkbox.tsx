@@ -34,7 +34,12 @@ export function TodoTreeCheckbox({
       aria-disabled={disabled || undefined}
       onCheckedChange={(next) => {
         if (disabled) return;
-        const value = next === "indeterminate" ? true : next;
+        // F-cross-13 defensive coerce. Producer's Radix Checkbox primitive
+        // passes `boolean | "indeterminate"`; consumer-installed Base UI
+        // Checkbox passes only `boolean`. A `=== "indeterminate"` check
+        // fails type-narrowing against the narrower signature. typeof gates
+        // through both backends without an `unknown` cast.
+        const value: boolean = typeof next === "boolean" ? next : true;
         onChange?.(value);
       }}
       onClick={(e) => {
