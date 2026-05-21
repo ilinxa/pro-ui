@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "todo-tree-fixtures",
+  "title": "Todo Tree — fixtures",
+  "author": "ilinxa",
+  "description": "Todo Tree bundle including the 3-level demo fixture (Q3 planning theme with mixed status / persons / nested children) used by the docs-site demo + default status options. Resolves the base todo-tree item automatically.",
+  "registryDependencies": [
+    "@ilinxa/todo-tree"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/todo-tree/dummy-data.ts",
+      "content": "import type { TodoItem, TodoStatusOption } from \"../todo-rich-card/types\";\n\n/**\n * Default status enum used by todo-tree demos.\n * Consumers pass their own via `statusOptions` prop.\n */\nexport const TODO_TREE_DEMO_STATUS_OPTIONS: TodoStatusOption[] = [\n  { value: \"todo\", label: \"To do\", variant: \"outline\" },\n  { value: \"in-progress\", label: \"In progress\", variant: \"secondary\" },\n  { value: \"done\", label: \"Done\", variant: \"default\" },\n  { value: \"blocked\", label: \"Blocked\", variant: \"destructive\" },\n];\n\n/**\n * Frozen \"now\" for deterministic demos — pin via `now={TODO_TREE_DEMO_NOW}`\n * in any composed TodoRichCard to keep snapshots stable.\n */\nexport const TODO_TREE_DEMO_NOW = new Date(\"2026-05-20T12:00:00Z\");\n\n/**\n * 3-level fixture exercising: top-level + children + grandchildren,\n * mixed active/inactive, mixed status, person assignments, and\n * description text long enough to truncate.\n */\nexport const TODO_TREE_DEMO_ITEMS: TodoItem[] = [\n  {\n    id: \"tt-q3-ship\",\n    name: \"Ship Q3 plan\",\n    status: \"in-progress\",\n    active: true,\n    setAt: \"2026-05-18T09:00:00Z\",\n    expireAt: \"2026-05-24T17:00:00Z\",\n    description:\n      \"Outline goals, OKRs, and risks for the team review. Coordinate with PM + design for the kickoff slot.\",\n    targetPerson: { id: \"u-ada\", name: \"Ada\" },\n    children: [\n      {\n        id: \"tt-q3-outline\",\n        name: \"Draft outline\",\n        status: \"done\",\n        active: true,\n        setAt: \"2026-05-18T09:00:00Z\",\n        description: \"Document the 4 themes and the ask for each team.\",\n        targetPerson: { id: \"u-ada\", name: \"Ada\" },\n      },\n      {\n        id: \"tt-q3-review\",\n        name: \"Review with leads\",\n        status: \"todo\",\n        active: true,\n        setAt: \"2026-05-18T09:00:00Z\",\n        description:\n          \"Schedule 30-min syncs with each lead; collect feedback by Friday.\",\n        targetPerson: { id: \"u-bo\", name: \"Bo\" },\n        children: [\n          {\n            id: \"tt-q3-review-eng\",\n            name: \"Engineering sync\",\n            status: \"in-progress\",\n            active: true,\n            setAt: \"2026-05-19T09:00:00Z\",\n            description: \"Cover platform + product engineering ROCEs.\",\n            targetPerson: { id: \"u-bo\", name: \"Bo\" },\n          },\n          {\n            id: \"tt-q3-review-design\",\n            name: \"Design sync\",\n            status: \"todo\",\n            active: false,\n            setAt: \"2026-05-19T09:00:00Z\",\n            description: \"Postponed until the brand refresh lands.\",\n            targetPerson: { id: \"u-co\", name: \"Co\" },\n          },\n        ],\n      },\n    ],\n  },\n  {\n    id: \"tt-bug-triage\",\n    name: \"Triage bug backlog\",\n    status: \"todo\",\n    active: true,\n    setAt: \"2026-05-15T09:00:00Z\",\n    expireAt: \"2026-05-22T17:00:00Z\",\n    description:\n      \"Audit the inbound bug queue (47 open); merge dupes; assign owners; promote 3 to P1.\",\n    targetPerson: { id: \"u-dee\", name: \"Dee\" },\n  },\n  {\n    id: \"tt-perf-investigation\",\n    name: \"Perf investigation — list render\",\n    status: \"blocked\",\n    active: false,\n    setAt: \"2026-05-10T09:00:00Z\",\n    description:\n      \"Blocked on profiling access; ticket #482 escalated to platform team.\",\n    targetPerson: { id: \"u-ada\", name: \"Ada\" },\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/todo-tree/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "data",
+    "task-management",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
