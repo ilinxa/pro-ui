@@ -74,6 +74,10 @@ import ShareBar01Demo from "./components/marketing/share-bar-01/demo";
 import ShareBar01Usage from "./components/marketing/share-bar-01/usage";
 import { meta as shareBar01Meta } from "./components/marketing/share-bar-01/meta";
 
+import PricingTable01Demo from "./components/marketing/pricing-table-01/demo";
+import PricingTable01Usage from "./components/marketing/pricing-table-01/usage";
+import { meta as pricingTable01Meta } from "./components/marketing/pricing-table-01/meta";
+
 import ArticleBody01Demo from "./components/data/article-body-01/demo";
 import ArticleBody01Usage from "./components/data/article-body-01/usage";
 import { meta as articleBody01Meta } from "./components/data/article-body-01/meta";
@@ -165,6 +169,10 @@ import { meta as codeBlockMeta } from "./components/code/code-block/meta";
 import JsonFormDemo from "./components/forms/json-form/demo";
 import JsonFormUsage from "./components/forms/json-form/usage";
 import { meta as jsonFormMeta } from "./components/forms/json-form/meta";
+
+import RegistrationForm01Demo from "./components/forms/registration-form-01/demo";
+import RegistrationForm01Usage from "./components/forms/registration-form-01/usage";
+import { meta as registrationForm01Meta } from "./components/forms/registration-form-01/meta";
 
 import RichCardInFlowDemo from "./components/data/rich-card-in-flow/demo";
 import RichCardInFlowUsage from "./components/data/rich-card-in-flow/usage";
@@ -283,6 +291,11 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: ShareBar01Usage,
   },
   {
+    meta: pricingTable01Meta,
+    Demo: PricingTable01Demo,
+    Usage: PricingTable01Usage,
+  },
+  {
     meta: articleBody01Meta,
     Demo: ArticleBody01Demo,
     Usage: ArticleBody01Usage,
@@ -396,6 +409,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: jsonFormMeta,
     Demo: JsonFormDemo,
     Usage: JsonFormUsage,
+  },
+  {
+    meta: registrationForm01Meta,
+    Demo: RegistrationForm01Demo,
+    Usage: RegistrationForm01Usage,
   },
   {
     meta: richCardInFlowMeta,
