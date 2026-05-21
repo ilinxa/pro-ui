@@ -31,6 +31,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 ## Highlights
 
+- **v0.2.5 (`json-form`, 2026-05-22):** `FieldRadioGroup` no longer flips from uncontrolled to controlled on first interaction. Before v0.2.5 the renderer passed `value={value == null ? undefined : String(value)}` to Radix `RadioGroup`, so for a radio-group field with no `defaultValue` (e.g., `kind` on the Conditional tab demo, `radioRequiredField` on any consumer schema), the initial render passed `undefined` → Radix treated the group as uncontrolled → first click made `value` defined → Radix flipped to controlled → React logged `RadioGroup is changing from uncontrolled to controlled` (radio-group.tsx:13 — the shadcn `RadioGroupPrimitive.Root` props spread). Mechanical fix mirroring `FieldSelect`'s already-correct pattern: pass `""` instead of `undefined` for the "no selection" state, keeping the group always-controlled. Patch-bump exemption per the readiness-review rule. See [decision file](../.claude/decisions/2026-05-22-json-form-v0.2.5-radio-group-controlled-fix.md).
 - **v0.2.4 (`json-form`, 2026-05-21):** crash fix — the documented headless pattern (`<JsonFormProvider value={{ ...handle, rhf: form, ... }}>{children}</JsonFormProvider>`) no longer requires consumers to also wrap with RHF's `<FormProvider {...form}>`. `JsonFormProvider` now bridges the RHF context internally via `<FormProvider {...value.rhf}>`. Before v0.2.4, every `<JsonFormField>` / `<FieldWrapper>` inside a headless tree crashed with `Cannot destructure 'control' of useFormContext() as it is null` — the demo's own `HeadlessExample` (inside the Imperative tab's `<details>` block) triggered this on every json-form page render; the failure surfaced after the v0.2.0 watch-drop work made FieldWrapper's RHF dependency load-bearing on first render. No public-API change, no consumer migration. Patch-bump exemption per the readiness-review rule. See [decision file](../.claude/decisions/2026-05-21-json-form-v0.2.4-headless-formprovider-bridge.md).
 - **Past beta gate:** `rich-card` only — v0.4.2, status `beta` (v0.4.2 patch 2026-05-17: empty-card add-affordances fix; lifted `+ FIELD` / `+ BLOCK` row out of the `hasBody` wrapper so freshly-added child cards can be populated through the UI; see [decision file](../.claude/decisions/2026-05-17-rich-card-v0.4.2-empty-card-add-affordances.md)).
 - **v0.3.x:** `kanban-board-01` (F-cross-12 v0.2 cutover).
@@ -88,7 +89,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `entity-picker`     | Entity Picker     | 0.1.1   | alpha  |
 | `filter-bar-01`     | Filter Bar 01     | 0.1.0   | alpha  |
 | `filter-stack`      | Filter Stack      | 0.1.0   | alpha  |
-| `json-form`         | Json Form         | 0.2.4   | alpha  |
+| `json-form`         | Json Form         | 0.2.5   | alpha  |
 | `markdown-editor`   | Markdown Editor   | 0.1.1   | alpha  |
 | `properties-form`   | Properties Form   | 0.1.1   | alpha  |
 

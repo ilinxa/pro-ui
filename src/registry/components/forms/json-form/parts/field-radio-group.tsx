@@ -21,7 +21,7 @@ export const FieldRadioGroup: FieldRenderer = ({
 
   return (
     <RadioGroup
-      value={value == null ? undefined : String(value)}
+      value={value == null ? "" : String(value)}
       onValueChange={(v) => onChange(coerceOptionValue(v, options))}
       disabled={disabled}
       onBlur={onBlur}
