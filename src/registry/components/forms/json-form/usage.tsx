@@ -127,12 +127,15 @@ const registry = { ...defaultJsonFormRegistry, color: MyColor };
       <section>
         <h3 className="mb-2 text-base font-semibold">Performance — narrow-deps with <code>dependsOn</code></h3>
         <p className="text-muted-foreground">
-          <strong>v0.1.7 — typed metadata + schema-lint validation only. The runtime watch-gating ships in v0.2.0.</strong> Set the flag now to make schemas forward-compatible; perf wins materialize on v0.2.0 upgrade.
+          Field renderers receive an <code>allValues</code> snapshot of the whole form. In v0.1.x every <code>FieldWrapper</code> subscribed to the full values bag to keep that snapshot live, so every field re-rendered on every keystroke anywhere in the form. Custom renderers that don&apos;t read <code>allValues</code> — most of them — paid this cost for nothing. As of v0.2.0 the subscription is resolved per-field:
         </p>
-        <p className="mt-2 text-muted-foreground">
-          By default, every field re-renders on every keystroke anywhere in the form (the FieldWrapper subscribes to the full values bag to populate <code>allValues</code> for the renderer). Custom renderers that don&apos;t read <code>allValues</code> — most of them — pay this cost for nothing. <code>dependsOn</code> opts a renderer into narrow-deps subscription:
-        </p>
-        <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-xs">
+        <ul className="ml-5 mt-2 list-disc space-y-1 text-muted-foreground">
+          <li><strong>Built-in renderers</strong> (<code>text</code>, <code>radio-group</code>, <code>checkbox</code>, etc.) — audited not to read <code>allValues</code>, so they skip the subscription automatically; <code>allValues</code> is a <code>getValues()</code> snapshot taken at render. <strong>No <code>dependsOn</code> declaration needed.</strong></li>
+          <li><strong>Custom renderer with <code>dependsOn: [&quot;a&quot;, &quot;b&quot;]</code></strong> — narrow watch. Re-renders only when those paths change. The renderer&apos;s <code>allValues</code> contains exactly the named paths, rebuilt via <code>setByPath</code>.</li>
+          <li><strong>Custom renderer with <code>dependsOn: []</code></strong> — explicit opt-out. Skip the watch entirely; <code>allValues</code> is a <code>getValues()</code> snapshot.</li>
+          <li><strong>Custom renderer without <code>dependsOn</code></strong> — legacy full-bag watch. Preserves v0.1.x behavior so unmigrated renderers keep working.</li>
+        </ul>
+        <pre className="overflow-x-auto mt-3 rounded-md border border-border bg-muted/40 p-3 font-mono text-xs">
           <code>{`{
   name: "summary",
   type: "summary",  // custom renderer reading firstName + lastName
@@ -146,7 +149,22 @@ const registry = { ...defaultJsonFormRegistry, color: MyColor };
 }`}</code>
         </pre>
         <p className="mt-2 text-muted-foreground">
-          Built-in renderers (<code>text</code>, <code>radio-group</code>, <code>checkbox</code>, etc.) auto-skip the subscription in v0.2.0 — no <code>dependsOn</code> declaration needed for them. <code>validateSchemaDev</code> warns when <code>dependsOn</code> references a field name that doesn&apos;t exist in <code>schema.fields[].name</code>.
+          The whitelist check resolves on the <strong>final renderer identity</strong>, not on <code>field.type</code> alone — a custom renderer registered at the <code>text</code> slot correctly opts back into full-bag unless it sets <code>dependsOn</code>. <code>validateSchemaDev</code> warns when <code>dependsOn</code> references a field name that doesn&apos;t exist in <code>schema.fields[].name</code>.
+        </p>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-base font-semibold">What changed in v0.2.0</h3>
+        <p className="text-muted-foreground">
+          v0.2.0 is the behavioral counterpart to the additive v0.1.7 substrate work. Two changes worth knowing about:
+        </p>
+        <ul className="ml-5 mt-2 list-disc space-y-1 text-muted-foreground">
+          <li><strong>Default-registry watch drop (A2).</strong> All 25 built-in renderers now skip the FieldWrapper-level <code>useWatch({"{ control }"})</code> subscription. On a 20-field form, FieldWrapper renders per keystroke drop from 20 down to 1–4 (only fields whose <code>useConditional</code> / <code>useComputed</code> narrow-deps reference the typed field). Custom renderers without <code>dependsOn</code> are unchanged.</li>
+          <li><strong>Deep-merge <code>defaultValues</code> (B1).</strong> Form-level <code>defaultValues</code> now overlays per-field defaults <strong>per leaf</strong>, not per top-level key. <code>defaultValues = {"{ address: { city: 'NYC' } }"}</code> no longer drops sibling per-field defaults at <code>address.country</code>, <code>address.zip</code>, etc. Nested per-field defaults are preserved.</li>
+          <li><strong>Conditional-count warn threshold</strong> bumped from 50 → 200 in <code>validateSchemaDev</code>; the per-keystroke render count no longer scales with conditional count.</li>
+        </ul>
+        <p className="mt-2 text-muted-foreground">
+          Both behavioral changes are <strong>auto-applied</strong> — zero consumer code changes required. If you were relying on the v0.1.x shallow <code>defaultValues</code> replace to clear nested per-field defaults, see the FAQ entry below.
         </p>
       </section>
 
@@ -325,6 +343,11 @@ function Custom() {
           <dt className="font-medium text-foreground">What changed about Zod compilation in v0.1.7?</dt>
           <dd>
             Internal refactor only. The single <code>compileSchema(schema, strings)</code> call is now split behind the scenes into <code>compileStructural(schema)</code> (cheap, schema-keyed) + <code>injectStrings(structural, strings)</code> (Zod chain construction, strings-keyed). <code>useJsonForm</code> caches each step independently, so changing only the <code>strings</code> prop (locale switch, error-message overrides) skips the structural re-walk. <strong>No public API change</strong>{" — the helpers are internal and not exported from the package barrel."}
+          </dd>
+
+          <dt className="font-medium text-foreground">My v0.1.x form passed <code>defaultValues = {"{ address: {} }"}</code> to clear nested per-field defaults — what do I do in v0.2.0?</dt>
+          <dd>
+            v0.2.0 deep-merges <code>defaultValues</code> per leaf instead of replacing per top-level key, so an empty object at <code>address</code> no longer wipes <code>address.country</code> / <code>address.zip</code> defaults. To clear them you now need to be explicit per leaf — either via a nested <code>defaultValues</code> shape (<code>{"{ address: { country: '', zip: '' } }"}</code>) or by setting the per-field <code>defaultValue</code> to <code>&quot;&quot;</code> directly on the schema field. The audit found no shipping consumer relying on the old shallow-replace, but if you hit this case, an empty string per leaf is the safest port.
           </dd>
         </dl>
       </section>
