@@ -117,10 +117,18 @@ const registry = { ...defaultJsonFormRegistry, color: MyColor };
 <JsonForm schema={schema} fieldRegistry={registry} onSubmit={...} />`}</code>
         </pre>
         <p className="mt-2 text-muted-foreground">
-          Field renderers receive <code>{`{ field, value, onChange, onBlur, error, disabled, readOnly, allValues, formApi }`}</code>{" "}
-          and must return a SINGLE React element — the wrapper uses{" "}
-          <code>Slot.Root</code> to forward <code>id</code> +{" "}
-          <code>aria-*</code> attributes onto it.
+          Field renderers receive <code>{`{ field, value, onChange, onBlur, error, disabled, readOnly, allValues, formApi, ariaProps }`}</code>{" "}
+          and return a <code>ReactNode</code> (single element, fragment, or
+          array — whatever fits). Spread <code>ariaProps.id</code> and the{" "}
+          <code>aria-*</code> attributes onto the native form control so{" "}
+          <code>label[for]</code> binds correctly; for group-style controls
+          (<code>role=&quot;radiogroup&quot;</code> /{" "}
+          <code>&quot;group&quot;</code>), attach{" "}
+          <code>aria-labelledby={`{ariaProps.labelledBy}`}</code> to the
+          group root. The <code>ariaProps</code> bridge replaced the v0.1.0
+          <code>Slot.Root</code> strategy in v0.1.2 — <code>Slot.Root</code>{" "}
+          silently failed on Popover-wrapped controls and on non-form group
+          roots.
         </p>
       </section>
 
@@ -154,17 +162,36 @@ const registry = { ...defaultJsonFormRegistry, color: MyColor };
       </section>
 
       <section>
-        <h3 className="mb-2 text-base font-semibold">What changed in v0.2.0</h3>
+        <h3 className="mb-2 text-base font-semibold">What changed in v0.2</h3>
         <p className="text-muted-foreground">
-          v0.2.0 is the behavioral counterpart to the additive v0.1.7 substrate work. Two changes worth knowing about:
+          The v0.2 arc is the behavioral + ergonomic counterpart to the
+          additive v0.1.7 substrate work. All changes are auto-applied —
+          zero consumer code changes required.
         </p>
-        <ul className="ml-5 mt-2 list-disc space-y-1 text-muted-foreground">
-          <li><strong>Default-registry watch drop (A2).</strong> All 25 built-in renderers now skip the FieldWrapper-level <code>useWatch({"{ control }"})</code> subscription. On a 20-field form, FieldWrapper renders per keystroke drop from 20 down to 1–4 (only fields whose <code>useConditional</code> / <code>useComputed</code> narrow-deps reference the typed field). Custom renderers without <code>dependsOn</code> are unchanged.</li>
-          <li><strong>Deep-merge <code>defaultValues</code> (B1).</strong> Form-level <code>defaultValues</code> now overlays per-field defaults <strong>per leaf</strong>, not per top-level key. <code>defaultValues = {"{ address: { city: 'NYC' } }"}</code> no longer drops sibling per-field defaults at <code>address.country</code>, <code>address.zip</code>, etc. Nested per-field defaults are preserved.</li>
+        <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.0</h4>
+        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+          <li><strong>Default-registry watch drop (A2).</strong> Every built-in renderer skips the FieldWrapper-level <code>useWatch({"{ control }"})</code> subscription (audited against <code>BUILTIN_RENDERER_TYPES_SKIPPING_ALL_VALUES</code>; identity-checked against <code>defaultJsonFormRegistry</code>). On a 20-field form, FieldWrapper renders per keystroke drop from 20 down to 1–4 (only fields whose <code>useConditional</code> / <code>useComputed</code> narrow-deps reference the typed field). Custom renderers without <code>dependsOn</code> are unchanged.</li>
+          <li><strong>Deep-merge <code>defaultValues</code> (B1).</strong> Form-level <code>defaultValues</code> now overlays per-field defaults <strong>per leaf</strong>, not per top-level key. <code>defaultValues = {"{ address: { city: 'NYC' } }"}</code> no longer drops sibling per-field defaults at <code>address.country</code>, <code>address.zip</code>, etc.</li>
           <li><strong>Conditional-count warn threshold</strong> bumped from 50 → 200 in <code>validateSchemaDev</code>; the per-keystroke render count no longer scales with conditional count.</li>
         </ul>
-        <p className="mt-2 text-muted-foreground">
-          Both behavioral changes are <strong>auto-applied</strong> — zero consumer code changes required. If you were relying on the v0.1.x shallow <code>defaultValues</code> replace to clear nested per-field defaults, see the FAQ entry below.
+        <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.1</h4>
+        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+          <li>JSDoc + devtools patch: <code>dependsOn</code> stable-identity guidance, <code>allValues</code> snapshot-freshness contract documented across the three subscription modes, <code>&lt;JsonFormDevtools&gt;</code> renders a soft-warning panel when no <code>&lt;JsonFormProvider&gt;</code> is in the tree (instead of crashing), BigInt-safe <code>prettyReplacer</code> in the devtools body.</li>
+        </ul>
+        <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.3</h4>
+        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+          <li>Richtext controlled-mode echo loop fixed at the substrate — depends on <code>@ilinxa/article-body-01@^0.2.2</code>, which now uses content-equality (JSON-stringified Plate-tree key) in its sync effect instead of reference-equality. The earlier v0.2.2 consumer-side band-aid in <code>parts/field-richtext.tsx</code> was reverted; the field is back to its simple v0.2.1 shape.</li>
+        </ul>
+        <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.4</h4>
+        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+          <li><strong>Headless <code>&lt;FormProvider&gt;</code> bridge.</strong> <code>&lt;JsonFormProvider&gt;</code> now wraps children in <code>&lt;FormProvider {"{...value.rhf}"}&gt;</code> internally. The documented headless pattern (<code>&lt;JsonFormProvider value={"{{ ...handle, rhf: form, ... }}"}&gt;</code>) no longer requires consumers to also wrap with RHF&apos;s <code>&lt;FormProvider&gt;</code>. Pre-v0.2.4 code that wraps with both still works — the inner wins, identical form instance.</li>
+        </ul>
+        <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.5</h4>
+        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+          <li><strong><code>&lt;FieldRadioGroup&gt;</code> always-controlled.</strong> Renderer now passes <code>value=&quot;&quot;</code> (Radix-canonical &quot;no selection&quot;) instead of <code>undefined</code> when the field has no value, so the underlying RadioGroup stays controlled. React no longer logs <em>&quot;RadioGroup is changing from uncontrolled to controlled&quot;</em> on the first interaction of a radio-group field without a <code>defaultValue</code>.</li>
+        </ul>
+        <p className="mt-3 text-muted-foreground">
+          If you were relying on the v0.1.x shallow <code>defaultValues</code> replace to clear nested per-field defaults, see the FAQ entry below.
         </p>
       </section>
 
@@ -256,15 +283,45 @@ export function MyForm() {
 
       <section>
         <h3 className="mb-2 text-base font-semibold">Headless usage</h3>
+        <p className="mb-2 text-muted-foreground">
+          <strong>v0.2.4:</strong> <code>&lt;JsonFormProvider&gt;</code>{" "}
+          bridges RHF&apos;s <code>&lt;FormProvider&gt;</code> internally,
+          so you do <strong>not</strong> need to wrap with both providers.
+          Construct a <code>ctx</code> object that satisfies{" "}
+          <code>JsonFormContextValue</code> and hand it to{" "}
+          <code>&lt;JsonFormProvider value={`{ctx}`}&gt;</code>; the
+          standalone parts resolve their RHF context through that bridge.
+        </p>
         <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-xs">
-          <code>{`import { useJsonForm, JsonFormProvider, JsonFormField, JsonFormSubmitButton } from "@ilinxa/json-form";
+          <code>{`import {
+  useJsonForm,
+  JsonFormProvider,
+  JsonFormField,
+  JsonFormSubmitButton,
+  defaultJsonFormRegistry,
+  defaultJsonFormStrings,
+} from "@ilinxa/json-form";
 
-function Custom() {
+function Custom({ schema, onValid }) {
   const { form, zodSchema, handle } = useJsonForm(schema);
-  const ctx = { ...handle, rhf: form, schema, zodSchema, strings, formId: "x", hasSubmitted: false, fieldRegistry };
+  const ctx = {
+    ...handle,
+    rhf: form,
+    schema,
+    zodSchema,
+    strings: defaultJsonFormStrings,
+    formId: "my-form",
+    hasSubmitted: false,
+    fieldRegistry: defaultJsonFormRegistry,
+  };
   return (
     <JsonFormProvider value={ctx}>
-      <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(onValid)(e); }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void form.handleSubmit(onValid)(e);
+        }}
+      >
         <JsonFormField name="email" />
         <JsonFormField name="password" />
         <JsonFormSubmitButton />
@@ -279,7 +336,7 @@ function Custom() {
         <h3 className="mb-2 text-base font-semibold">Accessibility</h3>
         <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
           <li>Deterministic SSR-stable field ids via React 19 <code>useId()</code>; <code>label[for]</code> matches the input id</li>
-          <li><code>aria-required</code>, <code>aria-invalid</code>, <code>aria-describedby</code> forwarded onto the control via <code>Slot.Root</code></li>
+          <li><code>aria-required</code>, <code>aria-invalid</code>, <code>aria-describedby</code> forwarded onto the control via the <code>ariaProps</code> bridge passed in <code>FieldRendererArgs</code> (v0.1.2 replaced the original <code>Slot.Root</code> strategy)</li>
           <li><code>{`role="alert"`}</code> on every error message + on the error summary; summary is <code>{`aria-live="polite"`}</code></li>
           <li>Focus moves to the first invalid field on submit failure (DOM order)</li>
           <li>Radio groups + checkbox groups have keyboard nav (arrow keys, space) via the underlying Radix primitive</li>
@@ -338,6 +395,11 @@ function Custom() {
           <dt className="font-medium text-foreground">Does <code>onChange</code> loop when piped back through <code>values</code>?</dt>
           <dd>
             No. <code>JsonForm</code> hashes the values bag before invoking <code>onChange</code> and skips structurally-identical re-emissions, so the controlled-mode round-trip (consumer <code>onChange</code> → <code>setState</code> → new <code>values</code> prop → RHF re-sync) terminates after one tick. The default <code>onChangeDebounce</code> of 100ms is an additional smoothing layer, not the loop-breaker.
+          </dd>
+
+          <dt className="font-medium text-foreground">Do I still need to wrap headless trees with RHF&apos;s <code>&lt;FormProvider&gt;</code>?</dt>
+          <dd>
+            No, as of v0.2.4 <code>&lt;JsonFormProvider&gt;</code> wraps its children in <code>&lt;FormProvider {"{...value.rhf}"}&gt;</code> internally. The documented headless pattern (<code>&lt;JsonFormProvider value={"{{ ...handle, rhf: form, ... }}"}&gt;</code>) is now self-contained — standalone parts (<code>&lt;JsonFormField&gt;</code>, <code>&lt;JsonFormSubmitButton&gt;</code>, etc.) see RHF&apos;s context through the bridge. Pre-v0.2.4 code that wraps with both providers still works (the inner wins; same form instance).
           </dd>
 
           <dt className="font-medium text-foreground">What changed about Zod compilation in v0.1.7?</dt>

@@ -4,7 +4,7 @@
 >
 > Component lives at [`src/registry/components/forms/json-form/`](../../../src/registry/components/forms/json-form/).
 >
-> **Current version:** `v0.2.3` (alpha). Substrate-grade schema-driven form renderer. RHF v7 + zod v4; 25 built-in field types; extensible renderer registry with typed authoring; narrow-deps headless hooks; floating devtools panel; per-field subscription gate (default-registry watch drop) + deep-merge `defaultValues`; conditional + computed fields with narrow-deps subscriptions; standalone parts for fully-headless layouts.
+> **Current version:** `v0.2.5` (alpha). Substrate-grade schema-driven form renderer. RHF v7 + zod v4; 25 built-in field types; extensible renderer registry with typed authoring; narrow-deps headless hooks; floating devtools panel; per-field subscription gate (default-registry watch drop) + deep-merge `defaultValues`; `<JsonFormProvider>` bridges RHF's `<FormProvider>` internally (v0.2.4) so headless trees no longer need to wrap with both; conditional + computed fields with narrow-deps subscriptions; standalone parts for fully-headless layouts.
 
 ## What ships in v0.2
 
@@ -22,6 +22,10 @@
 - `prettyReplacer` handles `BigInt` values (`${value.toString()}n`).
 
 **v0.2.3 (2026-05-21):** reverts v0.2.2's `useStableRichtextValue` consumer-side band-aid in `parts/field-richtext.tsx` (back to its v0.2.1 simple shape); the proper fix landed in `article-body-01@v0.2.2` (content-equality echo guard at the substrate). RHF-controlled `richtext` fields now work without keystroke focus-loss. No public-API change; the dropped helpers were file-local.
+
+**v0.2.4 (2026-05-21):** `<JsonFormProvider>` now wraps its children in `<FormProvider {...value.rhf}>` internally. The documented headless pattern (`<JsonFormProvider value={{ ...handle, rhf: form, ... }}>`) no longer requires consumers to also wrap with RHF's `<FormProvider>`. Pre-v0.2.4 code that wraps with both still works (the inner wins; same form instance). The fix closes a user-reported page-crash on the demo's Custom Registry tab — the Imperative tab's `<details>`-embedded `HeadlessExample` was missing the outer wrap and v0.2.0's watch-drop made FieldWrapper's `useFormContext()` load-bearing on first render.
+
+**v0.2.5 (2026-05-22):** `parts/field-radio-group.tsx` now passes `value=""` (Radix-canonical "no selection") instead of `undefined` when the field has no value, so the underlying RadioGroup stays always-controlled. React no longer logs *"RadioGroup is changing from uncontrolled to controlled"* on the first interaction of a radio-group field without a `defaultValue`. Mechanical fix mirroring `FieldSelect`'s already-correct pattern. Cross-checked all 25 default-registry renderers — `field-radio-group` was the lone holdout.
 
 ## v0.1.7 substrate (still current — no changes since)
 
@@ -46,7 +50,7 @@
 pnpm dlx shadcn@latest add @ilinxa/json-form
 ```
 
-This pulls the sealed-folder source AND auto-installs the npm dependencies (`react-hook-form@^7.75.0`, `@hookform/resolvers@^5.2.2`, `zod@^4.4.3`, `lucide-react@^1.11.0`) AND chain-installs `@ilinxa/code-block`.
+This pulls the sealed-folder source AND auto-installs the npm dependencies (`react-hook-form@^7.75.0`, `@hookform/resolvers@^5.2.2`, `zod@^4.4.3`, `lucide-react@^1.11.0`) AND chain-installs `@ilinxa/code-block` (for the `code` field) and `@ilinxa/article-body-01` (for the `richtext` field).
 
 The `@ilinxa/json-form-fixtures` sibling adds the 6 fixture schemas + `mockFetchSchema` async helper. Skip if you have your own schemas.
 
@@ -80,27 +84,29 @@ export function Signup() {
 ```ts
 interface FieldDefinition {
   name: string;            // required for every type, even section/divider
-  type: FieldType;         // 24 built-ins + consumer types
+  type: FieldType;         // 25 built-ins + consumer types
   label?: string;
   description?: string;    // helper text below label
   placeholder?: string;
   defaultValue?: unknown;
 
-  // declarative validators (compiled to Zod)
+  // declarative validators (compiled to Zod) — `{ value, message }` form
+  // accepts a typed payload; see `FieldValidators` in types.ts for the
+  // full shape (`value: number | string` for min/max, etc.).
   validators?: {
     required?: boolean | string;
-    min?: number | string | { value; message };
-    max?: number | string | { value; message };
-    minLength?: number | { value; message };
-    maxLength?: number | { value; message };
-    pattern?: string | { value; message };
-    email?: boolean | { message };
-    url?: boolean | { message };
+    min?: number | string | { value: number | string; message: string };
+    max?: number | string | { value: number | string; message: string };
+    minLength?: number | { value: number; message: string };
+    maxLength?: number | { value: number; message: string };
+    pattern?: string | { value: string; message: string };
+    email?: boolean | { message: string };
+    url?: boolean | { message: string };
   };
 
-  // imperative validators
-  validate?: (args: { value; allValues }) => string | undefined;
-  validateAsync?: (args: { value; allValues }) => Promise<string | undefined>;
+  // imperative validators — object-shape callbacks (F-cross-12)
+  validate?: (args: { value: unknown; allValues: Record<string, unknown> }) => string | undefined;
+  validateAsync?: (args: { value: unknown; allValues: Record<string, unknown> }) => Promise<string | undefined>;
   validateAsyncDebounce?: number;       // default 400ms
 
   // conditional logic
@@ -121,12 +127,14 @@ interface FieldDefinition {
 
   // computed fields
   expression?: string;                  // '{a} - {b}'
-  compute?: (args: { values }) => unknown;
+  compute?: (args: { values: Record<string, unknown> }) => unknown;
   editable?: boolean;
 
   // layout
   width?: 'full' | 'half' | 'third' | 'quarter' | number;
   labelPosition?: 'top' | 'left';
+  row?: string;                         // group fields onto the same row
+  colSpan?: 'full' | 1 | 2;             // columns=2 forms — span both columns
 
   // misc
   disabled?: boolean;
@@ -176,7 +184,7 @@ When `visibleWhen` flips to `false`, the field unmounts and its value is strippe
 }
 ```
 
-`expression` parses dependencies from the template (`{firstName}` → deps include `firstName`). `compute` runs as-is — for branchy logic, add an explicit `dependsOn?: string[]` if needed (v0.1.x).
+`expression` parses dependencies from the template (`{firstName}` → deps include `firstName`) and uses a narrow-deps `useWatch` internally (v0.1.6). `compute` runs as-is — its internal watch is currently full-bag. The `dependsOn` flag on a `computed` field narrows the **FieldWrapper-level** subscription (relevant if the renderer reads `args.allValues`); it does **not** narrow the `compute` function's dependency tracking.
 
 Set `editable: true` to let the consumer type over the computed value (the field renders as a text input prefilled with the latest compute result, but accepts overrides).
 
@@ -202,7 +210,7 @@ const registry = { ...defaultJsonFormRegistry, color: ColorRenderer };
 <JsonForm schema={schema} fieldRegistry={registry} onSubmit={...} />;
 ```
 
-Field renderers receive `{ field, value, onChange, onBlur, error, disabled, readOnly, allValues, formApi, ariaProps }` and MUST return a single React element. `ariaProps` (v0.1.2) carries `id` (for native controls — pair with the wrapper's `<label htmlFor>`) + `labelledBy` (for group-style controls — `aria-labelledby` to the wrapper's label) + the standard `aria-required` / `aria-invalid` / `aria-disabled` / `aria-describedby` attributes.
+Field renderers receive `{ field, value, onChange, onBlur, error, disabled, readOnly, allValues, formApi, ariaProps }` and return a `ReactNode` (single element, fragment, or array). `ariaProps` (v0.1.2 — replaced the v0.1.0 `Slot.Root` strategy) carries `id` (for native controls — pair with the wrapper's `<label htmlFor>`) + `labelledBy` (for group-style controls — `aria-labelledby` to the wrapper's label) + the standard `aria-required` / `aria-invalid` / `aria-disabled` / `aria-describedby` attributes.
 
 ## Typed renderer authoring — `defineFieldRenderer<T>` (v0.1.7)
 
@@ -367,10 +375,17 @@ const ref = useRef<JsonFormHandle>(null);
 <JsonForm ref={ref} schema={schema} onSubmit={...} />
 
 // Then:
-ref.current?.submit();           // programmatic submit (returns {ok, values, errors})
-ref.current?.reset();            // reset to defaultValues
-ref.current?.setValue("x", 42);  // set a single field
+ref.current?.submit();              // programmatic submit (returns {ok, values, errors})
+ref.current?.reset();               // reset to defaultValues
+ref.current?.reset({ x: 42 });      // reset with new defaults
+ref.current?.setValue("x", 42);     // set a single field
+ref.current?.getValue("x");         // read a single field
+ref.current?.getValues();           // read the full values bag
 ref.current?.setError("x", "Server rejected this value");
+ref.current?.clearErrors("x");      // clear one field's error
+ref.current?.clearErrors();         // ...or all errors
+ref.current?.trigger("x");          // re-run validation
+ref.current?.trigger();             // ...for every field
 ref.current?.focus("x");
 ref.current?.isDirty();
 ref.current?.isValid();
@@ -379,7 +394,9 @@ ref.current?.isSubmitting();
 
 ## Headless usage
 
-For fully-custom layouts, use the factory + standalone parts:
+For fully-custom layouts, use the factory + standalone parts.
+
+> **Note (v0.2.4):** `<JsonFormProvider>` wraps its children in `<FormProvider {...value.rhf}>` internally. You do **NOT** need to also wrap with RHF's `<FormProvider>`. The pattern below is self-contained — the standalone parts resolve their RHF context through the bridge. Pre-v0.2.4 code that wraps with both still works (the inner provider wins; same form instance).
 
 ```tsx
 "use client";
