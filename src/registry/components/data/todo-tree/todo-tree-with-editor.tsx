@@ -3,9 +3,9 @@
 import {
   forwardRef,
   useCallback,
-  useImperativeHandle,
   useRef,
   useState,
+  type Ref,
 } from "react";
 import {
   Dialog,
@@ -16,7 +16,6 @@ import { TodoRichCard } from "../todo-rich-card/todo-rich-card";
 import type { TodoItem } from "../todo-rich-card/types";
 import { TodoTree } from "./todo-tree";
 import type {
-  TodoTreeChangeArgs,
   TodoTreeHandle,
   TodoTreeItemEvent,
   TodoTreeProps,
@@ -26,45 +25,42 @@ import { updateById } from "./lib/tree-mutators";
 /**
  * Convenience wrapper that pairs `<TodoTree>` with a `<TodoRichCard>` edit
  * dialog. Clicking a row opens the matching card in a modal; live-saves
- * propagate back into the tree (Q-P1 lock — wrapper auto-persists).
+ * propagate back into the tree via the tree's imperative handle (Q-P1 lock
+ * — wrapper auto-persists).
  *
- * Composition rules:
- *   - Owns its own `items` state seeded from value/defaultValue. The outer
- *     <TodoTree> is rendered in controlled mode.
- *   - Forwards the consumer's onChange (post-mutation, including edits).
- *   - Forwards the consumer's onItemClick AFTER opening the dialog so the
- *     consumer can still react to row clicks (e.g., analytics).
- *   - Forwards the imperative handle ref so consumer code can drive the
- *     wrapped tree directly.
+ * Architecture:
+ *   - Wrapper is STATE-TRANSPARENT. Consumer's value / defaultValue /
+ *     onChange flow through to TodoTree unmodified. The wrapper owns only
+ *     the edit-dialog open state. Controlled-mode consumers stay
+ *     authoritative; uncontrolled-mode keeps TodoTree's internal state.
+ *   - Edits inside the dialog route through the tree's handle.setValue,
+ *     which dispatches SET_ITEMS internally and fires onChange — so
+ *     controlled consumers see the change via their normal onChange path.
+ *   - Outer ref is forwarded via a callback ref so the consumer's
+ *     ref.current stays in sync as the inner handle identity changes
+ *     across renders (it changes whenever state.items mutates because
+ *     TodoTreeStateValue is rebuilt). useImperativeHandle would freeze
+ *     to the initial handle.
  *
- * Consumers that want a stricter integration (e.g., gate edits with a
- * confirm dialog) should compose <TodoTree> + their own dialog instead.
+ * Consumers that want a stricter integration (confirm dialog before edit,
+ * custom editor surface) should compose <TodoTree> + their own dialog
+ * using the onItemClick callback.
  */
 export const TodoTreeWithEditor = forwardRef<TodoTreeHandle, TodoTreeProps>(
   function TodoTreeWithEditor(props, ref) {
-    // Destructure the callbacks we wrap, then keep the rest for `{...rest}`
-    // pass-through. Avoids the "useCallback depends on props" lint hit.
-    const {
-      value: propValue,
-      defaultValue: propDefaultValue,
-      onChange: onChangeProp,
-      onItemClick: onItemClickProp,
-      ...rest
-    } = props;
+    const { onItemClick: onItemClickProp, ...rest } = props;
 
-    const initialItems = propValue ?? propDefaultValue ?? [];
-    const [items, setItems] = useState<TodoItem[]>(initialItems);
-    const [editTarget, setEditTarget] = useState<TodoItem | null>(null);
     const treeRef = useRef<TodoTreeHandle | null>(null);
+    const [editTarget, setEditTarget] = useState<TodoItem | null>(null);
 
-    useImperativeHandle(ref, () => treeRef.current as TodoTreeHandle, []);
-
-    const handleTreeChange = useCallback(
-      (args: TodoTreeChangeArgs) => {
-        setItems(args.items);
-        onChangeProp?.(args);
+    // Callback ref — fires whenever the inner TodoTree's handle reference
+    // changes. Forwards to both internal treeRef and the outer consumer ref.
+    const setTreeRef = useCallback(
+      (handle: TodoTreeHandle | null) => {
+        treeRef.current = handle;
+        forwardRefValue(ref, handle);
       },
-      [onChangeProp],
+      [ref],
     );
 
     const handleRowClick = useCallback(
@@ -75,21 +71,23 @@ export const TodoTreeWithEditor = forwardRef<TodoTreeHandle, TodoTreeProps>(
       [onItemClickProp],
     );
 
-    const handleEditedItemChange = useCallback(
-      (updated: TodoItem) => {
-        setItems((prev) => updateById(prev, updated.id, () => updated));
-        setEditTarget(updated);
-      },
-      [],
-    );
+    const handleEditedItemChange = useCallback((updated: TodoItem) => {
+      const handle = treeRef.current;
+      if (!handle) return;
+      const current = handle.getValue();
+      const next = updateById(current, updated.id, () => updated);
+      handle.setValue(next);
+      // Keep the dialog's local editTarget reference in sync so the title
+      // tracks renames. Doesn't re-init TodoRichCard (defaultValue is
+      // uncontrolled — already-rendered card ignores the prop change).
+      setEditTarget(updated);
+    }, []);
 
     return (
       <>
         <TodoTree
           {...rest}
-          ref={treeRef}
-          value={items}
-          onChange={handleTreeChange}
+          ref={setTreeRef}
           onItemClick={handleRowClick}
         />
         <Dialog
@@ -100,7 +98,7 @@ export const TodoTreeWithEditor = forwardRef<TodoTreeHandle, TodoTreeProps>(
         >
           <DialogContent className="max-w-2xl">
             <DialogTitle className="sr-only">
-              {editTarget ? `Edit "${editTarget.name}"` : "Edit task"}
+              {editTarget ? `Edit ${editTarget.name}` : "Edit task"}
             </DialogTitle>
             {editTarget && (
               <TodoRichCard
@@ -115,3 +113,13 @@ export const TodoTreeWithEditor = forwardRef<TodoTreeHandle, TodoTreeProps>(
     );
   },
 );
+
+function forwardRefValue<T>(ref: Ref<T> | undefined, value: T | null): void {
+  if (!ref) return;
+  if (typeof ref === "function") {
+    ref(value);
+    return;
+  }
+  // RefObject — assign current.
+  (ref as { current: T | null }).current = value;
+}
