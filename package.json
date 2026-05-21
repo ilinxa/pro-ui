@@ -11,10 +11,11 @@
     "start": "next start",
     "lint": "eslint",
     "validate:meta-deps": "node scripts/validate-meta-deps.mjs",
+    "validate:default-registry-whitelist": "node scripts/validate-default-registry-whitelist.mjs",
     "build:source-map": "node scripts/build-source-map.mjs",
     "new:component": "node scripts/new-component.mjs",
     "new:migration": "node scripts/new-migration.mjs",
-    "registry:build": "node scripts/validate-meta-deps.mjs && shadcn build"
+    "registry:build": "node scripts/validate-meta-deps.mjs && node scripts/validate-default-registry-whitelist.mjs && shadcn build"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

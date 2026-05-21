@@ -55,9 +55,11 @@ const FieldRichtext: FieldRenderer = (args: FieldRendererArgs) =>
  * opts out of the watch drop unless the field also sets `dependsOn`.
  *
  * Drift mitigation: any future built-in renderer that adds `args.allValues`
- * access MUST be removed from this set in the same commit. A
- * `validate-meta-deps`-style lint scanning default-registry sources for
- * `args.allValues` access is planned for v0.2.0+1.
+ * access MUST be removed from this set in the same commit. Enforced by
+ * `scripts/validate-default-registry-whitelist.mjs` (F-03), which is
+ * chained into `pnpm registry:build` and `pnpm vercel-build` so producer
+ * deploys fail fast if drift lands. Run standalone via
+ * `pnpm validate:default-registry-whitelist`.
  */
 export const BUILTIN_RENDERER_TYPES_SKIPPING_ALL_VALUES: ReadonlySet<string> =
   new Set([
