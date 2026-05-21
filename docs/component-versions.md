@@ -7,6 +7,8 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 >
 > **Updated 2026-05-20** (additive to 2026-05-17 snapshot above): **todo-rich-card v0.1.0 → v0.1.1 SHIPPED** — first ship was the time-aware task card sibling to rich-card (full detail in [`decisions/2026-05-20-todo-rich-card-v0.1.0-first-ship.md`](../.claude/decisions/2026-05-20-todo-rich-card-v0.1.0-first-ship.md)); same-day F-cross-13 patch loop ([`decisions/2026-05-20-todo-rich-card-v0.1.1-f-cross-13-fix.md`](../.claude/decisions/2026-05-20-todo-rich-card-v0.1.1-f-cross-13-fix.md)) widened Select.onValueChange callbacks + dropped TooltipProvider.delayDuration; F-04 closed. **todo-tree v0.1.0 scaffolded** (C1 of C1–C11 chain per [todo-tree-procomp-plan.md §18](procomps/todo-tree-procomp/todo-tree-procomp-plan.md#18-implementation-order-commit-chain)) — single feature-complete v0.1, no v0.2/v0.3 deferrals; full type catalog locked, stub component renders; implementation lands across C2–C11. **Live rich+kanban composition demo** added to todo-rich-card detail page (docs-only).
 >
+> **Updated 2026-05-21** (additive): **todo-tree v0.1.0 → v0.1.1 SHIPPED** — 45th component formally closed under the GATE 3 readiness-review rule. C1–C11 of plan §18 chain complete; commit chain `aa623a0..5aba0cd` (19 commits incl. 6 audit fixups). 48 base + 1 fixtures = 49 files via registry. Same-day F-cross-13 patch loop ([`decisions/2026-05-21-todo-tree-v0.1.0-and-v0.1.1-first-ship.md`](../.claude/decisions/2026-05-21-todo-tree-v0.1.0-and-v0.1.1-first-ship.md)) replaced `=== "indeterminate"` check at `parts/todo-tree-checkbox.tsx:37` with `typeof next === "boolean" ? next : true` — third same-day F-cross-13 patch loop in a row; adds **Checkbox.onCheckedChange to the carrier list** alongside Select.onValueChange + TooltipProvider.delayDuration. F-S1 verified clean (third same-category cross-procomp ship to pass; lock now battle-tested project default). GATE 3 spotcheck **Pass with follow-ups** ([reviews/2026-05-21-v0.1.1-spotcheck.md](procomps/todo-tree-procomp/reviews/2026-05-21-v0.1.1-spotcheck.md)) — rotating dim Public API; 5 findings (F-perm Medium permissions matrix not threaded through keyboard handlers v0.1.2 candidate; F-event Low Enter handler event-union widening walkthrough; F-grip-clip Low cosmetic; F-04 High path-b smoke closed in v0.1.1; F-html5-edge Low HTML5 drops no edge-zone v0.2 candidate). Procomp guide.md authored at C11. 45 components total — todo-tree promoted from scaffold to shipped.
+>
 > Source of truth: `meta.ts` per component (this doc is a generated snapshot — re-run when versions change)
 
 ## Summary
@@ -66,7 +68,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `stat-card`             | Stat Card                  | 0.1.1   | alpha  |
 | `rich-card-in-flow`     | Rich Card in Flow          | 0.2.0   | alpha  |
 | `todo-rich-card`        | Todo Rich Card             | 0.1.1   | alpha  |
-| `todo-tree`             | Todo Tree                  | 0.1.0   | alpha (C1 scaffold; full implementation in flight across C2–C11) |
+| `todo-tree`             | Todo Tree                  | 0.1.1   | alpha  |
 
 ## forms (6)
 
