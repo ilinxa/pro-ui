@@ -4,9 +4,26 @@
 >
 > Component lives at [`src/registry/components/forms/json-form/`](../../../src/registry/components/forms/json-form/).
 >
-> **Current version:** `v0.1.7` (alpha). Substrate-grade schema-driven form renderer. RHF v7 + zod v4; 25 built-in field types; extensible renderer registry with typed authoring; narrow-deps headless hooks; floating devtools panel; conditional + computed fields with narrow-deps subscriptions; standalone parts for fully-headless layouts.
+> **Current version:** `v0.2.3` (alpha). Substrate-grade schema-driven form renderer. RHF v7 + zod v4; 25 built-in field types; extensible renderer registry with typed authoring; narrow-deps headless hooks; floating devtools panel; per-field subscription gate (default-registry watch drop) + deep-merge `defaultValues`; conditional + computed fields with narrow-deps subscriptions; standalone parts for fully-headless layouts.
 
-## What ships in v0.1.7
+## What ships in v0.2
+
+**v0.2.0 (behavioral, 2026-05-21):**
+
+- **Per-field subscription gate** — built-in default renderers skip the FieldWrapper-level `useWatch({ control })` subscription (audited not to read `allValues`; identity-checked against `defaultJsonFormRegistry`, so consumer-registered renderers at default slots correctly opt back into full-bag unless they declare `dependsOn`). Custom renderers opt in via `dependsOn` — `[]` = explicit no-watch + `getValues()` snapshot, `["a","b"]` = narrow watch + rebuilt `allValues`, omitted = legacy full-bag for backward compatibility. On a 20-field form, per-keystroke FieldWrapper renders drop **20 → 1–4**.
+- **Deep-merge `defaultValues`** — form-level `defaultValues` now overlays per leaf via a `walkLeaves` + `setByPath` pipeline, so sibling per-field defaults at shared parent paths are no longer dropped.
+- **Conditional-count dev-warn threshold** bumped 50 → 200.
+
+**v0.2.1 (docs + devtools patch, 2026-05-21):**
+
+- `dependsOn` JSDoc rewritten with stable-identity guidance + final-renderer-identity check note.
+- `allValues` JSDoc covers snapshot / narrow / fullbag freshness contracts.
+- `<JsonFormDevtools>` no longer crashes when no `<JsonFormProvider>` is in scope — renders an explanatory fallback panel via internal `useJsonFormContextOptional()` (not exported).
+- `prettyReplacer` handles `BigInt` values (`${value.toString()}n`).
+
+**v0.2.3 (2026-05-21):** reverts v0.2.2's `useStableRichtextValue` consumer-side band-aid in `parts/field-richtext.tsx` (back to its v0.2.1 simple shape); the proper fix landed in `article-body-01@v0.2.2` (content-equality echo guard at the substrate). RHF-controlled `richtext` fields now work without keystroke focus-loss. No public-API change; the dropped helpers were file-local.
+
+## v0.1.7 substrate (still current — no changes since)
 
 - **25 built-in field types** across 5 families — text (×7), choice (×6), date/time (×4), rich/composite (`code` / `slider` / `rating` / `richtext`), special (`computed` / `hidden` / `section` / `divider`).
 - **Conditional logic** — 11-operator Condition DSL (`equals` / `notEquals` / `in` / `notIn` / `matches` / `truthy` / `greaterThan` / `lessThan` / `all` / `any` / `not`) plus function escape hatch. Covers `visibleWhen` / `enabledWhen` / `requiredWhen`. **Narrow-deps subscription** (v0.1.6) — static conditions subscribe only to referenced fields; function form falls back to full-bag.
@@ -19,7 +36,7 @@
 - **Headless factory** — `useJsonForm(schema, options)` returns `{ form, zodSchema, fieldList, isValid, isSubmitting, handle }`.
 - **Cross-registry deps** — `@ilinxa/code-block` (for `code`) + `@ilinxa/article-body-01` (for `richtext`), both lazy-loaded via `React.lazy` so the heavy bundles only ship when a form actually contains those fields.
 - **Lifecycle callbacks** (v0.1.6) — `onSubmitAttempt` (fires on every submit press before validation) + `onReady` (fires once after mount + defaults applied).
-- **`dependsOn` typed metadata** (v0.1.7) — declare which field names a custom renderer's `allValues` access depends on. Schema-lint warns on dangling refs. **Runtime watch-gating ships in v0.2.0** — set the flag in v0.1.7 to make schemas forward-compatible.
+- **`dependsOn` typed metadata** (v0.1.7) — declare which field names a custom renderer's `allValues` access depends on. Schema-lint warns on dangling refs. **Runtime watch-gating live in v0.2.0** — the FieldWrapper resolves a per-field subscription mode (snapshot / narrow / fullbag) from this flag.
 - **`translatable` typed flag** (v0.1.6) — typed metadata for downstream per-locale renderer HOCs. Upstream `JsonForm` does NOT change behavior based on this flag.
 - **Robustness** — submit-error focus walks `schema.fields` in declaration order (skips `computed`/`hidden`/`section`/`divider`); `requiredWhen` flip eager-triggers on touched/dirty fields; `AbortController` + `signal` in `FieldOptionsResolver` for fetch cleanup; `number`-input empty-state coerced to `undefined` (not `""` → `0` via `z.coerce.number()`); error-summary anchor scroll + `setFocus` combo.
 
@@ -122,7 +139,9 @@ interface FieldDefinition {
   translatable?: boolean;
 
   // v0.1.7 — narrow-deps subscription opt-in for custom renderers
-  // (typed-only; runtime watch-gating ships v0.2.0)
+  // (v0.2.0 honors this at runtime — see Performance section below)
+  // Three semantic states: [] = no-watch + snapshot; [a,b] = narrow watch;
+  // omitted = legacy full-bag (for backward compatibility).
   dependsOn?: ReadonlyArray<string>;
 }
 ```
@@ -280,13 +299,20 @@ Posture:
 
 **Important:** `<JsonFormDevtools>` MUST be a descendant of `<JsonForm>` or `<JsonFormProvider>` — it reads `useJsonFormContext()`, which throws if no provider is in scope. Inline mode placed inside `<JsonForm>` works fine; sibling placement does NOT.
 
-## Performance — `dependsOn` opt-in narrow-deps (v0.1.7 typed-only)
+## Performance — `dependsOn` opt-in narrow-deps (v0.2.0 runtime)
 
-By default every field re-renders on every keystroke anywhere in the form (the FieldWrapper subscribes to the full values bag to populate `allValues` for the renderer). Most custom renderers don't read `allValues` and pay this cost for nothing.
+Before v0.2.0, every field re-rendered on every keystroke anywhere in the form (FieldWrapper subscribed to the full values bag to populate `allValues` for the renderer). Most renderers don't read `allValues` and paid the cost for nothing.
 
-`dependsOn` opts a renderer into narrow-deps subscription. **v0.1.7 ships the flag as typed metadata + schema-lint warn only**; the runtime watch-gating that honors this flag ships in v0.2.0. Set the flag in v0.1.7 to make schemas forward-compatible.
+As of v0.2.0, FieldWrapper resolves a per-field subscription mode:
 
-Three semantic states:
+- **Built-in default renderers** — audited not to read `allValues`; identity-checked against `defaultJsonFormRegistry`. They skip the watch entirely; `allValues` is a `getValues()` snapshot taken at render. **No `dependsOn` declaration needed.**
+- **Custom renderer with `dependsOn: ["a","b"]`** — narrow watch on those paths only. `allValues` is rebuilt from the watched bag via `setByPath` (sparse — only the declared paths).
+- **Custom renderer with `dependsOn: []`** — explicit opt-out. Skip the watch entirely; `allValues` is a `getValues()` snapshot.
+- **Custom renderer without `dependsOn`** — legacy full-bag watch. Preserves v0.1.x behavior so unmigrated renderers keep working.
+
+The whitelist check resolves on the **final renderer identity**, not on `field.type` alone — a custom renderer registered at the `text` slot correctly opts back into full-bag unless it sets `dependsOn`. `validateSchemaDev` warns when `dependsOn` references a field name that doesn't match any `schema.fields[].name`.
+
+Worked examples:
 
 ```ts
 {
@@ -303,12 +329,12 @@ Three semantic states:
 
 {
   name: "deeplyDynamic",
-  type: "custom",                     // current behavior — full-bag subscription
-  // dependsOn undefined → no opt-in
+  type: "custom",                     // unmigrated — full-bag subscription
+  // dependsOn undefined → legacy v0.1.x behavior preserved
 }
 ```
 
-In v0.2.0, built-in renderers (`text`, `radio-group`, `checkbox`, etc.) auto-skip the subscription per an internal whitelist — no `dependsOn` declaration needed for them. `validateSchemaDev` warns when `dependsOn` references a field name that doesn't match any `schema.fields[].name` exactly (dot-path-as-flat-string matching; fields declared via nested `defaultValue` shapes need individual leaf entries to satisfy the lint).
+**Stable-identity tip:** if you authored a custom renderer factory with `defineFieldRenderer`, keep the `dependsOn` array reference stable — declare it module-scope or memoize it. Each render with a new array identity invalidates `useWatch`'s dep tracking. Schema-lint flags `dependsOn` names that don't resolve to a `schema.fields[].name` (dot-path-as-flat-string; nested-shape leaves need individual entries).
 
 ## Lifecycle callbacks (v0.1.6)
 
@@ -455,7 +481,7 @@ Pass `strings={{ ... }}`. Shallow-merge over the defaults; per-key override of `
 - **Don't use both `values` AND `onChange`** — that's double-bookkeeping. Pick one: `values` if the parent owns state, `onChange` if you want change events.
 - **Don't render `<JsonFormField>` outside a `<JsonForm>` or `<JsonFormProvider>`** — `useJsonFormContext` throws a dev-friendly error.
 - **Custom renderers must attach `ariaProps` to the right element** — v0.1.2 dropped the `Slot.Root` strategy. For native form controls (`<input>`, `<textarea>`, `<button>`), spread `ariaProps.id` + the `aria-*` attributes onto the control. For group-style controls (`role="radiogroup"`, `role="group"`), attach `aria-labelledby={ariaProps.labelledBy}` to the group root instead of `id`.
-- **Don't read `args.allValues` from a custom renderer without setting `dependsOn`** — v0.2.0 will auto-skip the full-bag subscription for built-in renderers; consumer renderers that omit `dependsOn` keep the legacy full-bag behavior. If your renderer doesn't read `allValues`, set `dependsOn: []` so the v0.2.0 watch-gating skips the subscription. If it reads `allValues.country`, set `dependsOn: ["country"]`.
+- **Don't read `args.allValues` from a custom renderer without setting `dependsOn`** — as of v0.2.0 built-in renderers auto-skip the full-bag subscription; consumer renderers that omit `dependsOn` keep the legacy full-bag behavior (slow). If your renderer doesn't read `allValues`, set `dependsOn: []` so the watch is skipped. If it reads `allValues.country`, set `dependsOn: ["country"]`.
 - **Don't render `<JsonFormDevtools>` outside a `<JsonForm>` / `<JsonFormProvider>`** — `useJsonFormContext` throws.
 - **Don't expect `<JsonFormDevtools>` to tree-shake in prod without a consumer-side guard** — the runtime returns `null` in prod, but the ~10-LOC loader stub still ships. For true dead-code-elimination, wrap with `{process.env.NODE_ENV !== "production" && <JsonFormDevtools />}`.
 
