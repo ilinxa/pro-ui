@@ -46,15 +46,18 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   // Deps grow incrementally per the commit chain (validate:meta-deps
-  // lint enforces no phantom entries). C2 added rhf + resolvers + zod
-  // as lib/hooks landed. C3 will add input + label + button + checkbox
-  // when parts import them. C4 will add lucide-react when icons land.
+  // lint enforces no phantom entries). C2 added rhf + resolvers + zod.
+  // C3 added input + label + button + checkbox shadcn primitives + the
+  // lucide-react icon dep (Eye/EyeOff for the password show/hide toggle;
+  // C4 brings more icons via the OAuth row + submit-row spinner +
+  // server-error icon). C5/C6 do not grow deps further.
   dependencies: {
-    shadcn: [],
+    shadcn: ["input", "label", "button", "checkbox"],
     npm: {
       "react-hook-form": "^7.75.0",
       "@hookform/resolvers": "^5.2.2",
       zod: "^4.4.3",
+      "lucide-react": "^1.11.0",
     },
     internal: [],
   },
