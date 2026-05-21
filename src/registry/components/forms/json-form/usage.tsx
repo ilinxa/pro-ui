@@ -179,7 +179,7 @@ const ColorSwatch = defineFieldRenderer<string, ColorConfig>({
 const registry = { ...defaultJsonFormRegistry, color: ColorSwatch };`}</code>
         </pre>
         <p className="mt-2 text-muted-foreground">
-          <code>defineFieldRenderer&lt;TValue, TConfig&gt;</code> narrows the renderer args at the type level. <strong>It&apos;s type-narrowing only</strong> — there&apos;s no runtime narrowing, because RHF values aren&apos;t statically known. The factory attaches a <code>displayName</code> (used by <code>&lt;JsonFormDevtools&gt;</code>) as a non-enumerable property.
+          <code>defineFieldRenderer&lt;TValue, TConfig&gt;</code> narrows the renderer args at the type level. <strong>It&apos;s type-narrowing only</strong>{" — there’s no runtime narrowing, because RHF values aren’t statically known. The factory attaches a "}<code>displayName</code> (used by <code>&lt;JsonFormDevtools&gt;</code>) as a non-enumerable property.
         </p>
       </section>
 
@@ -204,7 +204,7 @@ function NamePreview() {
 }`}</code>
         </pre>
         <p className="mt-2 text-muted-foreground">
-          Both hooks are pure ergonomic wrappers around RHF&apos;s <code>useWatch</code> scoped to the active <code>&lt;JsonFormProvider&gt;</code>. The generic <code>&lt;T&gt;</code> is <strong>consumer-asserted</strong> — RHF values aren&apos;t statically known, so this is typed convenience, not a runtime guarantee.
+          Both hooks are pure ergonomic wrappers around RHF&apos;s <code>useWatch</code> scoped to the active <code>&lt;JsonFormProvider&gt;</code>. The generic <code>&lt;T&gt;</code> is <strong>consumer-asserted</strong>{" — RHF values aren’t statically known, so this is typed convenience, not a runtime guarantee."}
         </p>
       </section>
 
@@ -324,7 +324,7 @@ function Custom() {
 
           <dt className="font-medium text-foreground">What changed about Zod compilation in v0.1.7?</dt>
           <dd>
-            Internal refactor only. The single <code>compileSchema(schema, strings)</code> call is now split behind the scenes into <code>compileStructural(schema)</code> (cheap, schema-keyed) + <code>injectStrings(structural, strings)</code> (Zod chain construction, strings-keyed). <code>useJsonForm</code> caches each step independently, so changing only the <code>strings</code> prop (locale switch, error-message overrides) skips the structural re-walk. <strong>No public API change</strong> — the helpers are internal and not exported from the package barrel.
+            Internal refactor only. The single <code>compileSchema(schema, strings)</code> call is now split behind the scenes into <code>compileStructural(schema)</code> (cheap, schema-keyed) + <code>injectStrings(structural, strings)</code> (Zod chain construction, strings-keyed). <code>useJsonForm</code> caches each step independently, so changing only the <code>strings</code> prop (locale switch, error-message overrides) skips the structural re-walk. <strong>No public API change</strong>{" — the helpers are internal and not exported from the package barrel."}
           </dd>
         </dl>
       </section>
