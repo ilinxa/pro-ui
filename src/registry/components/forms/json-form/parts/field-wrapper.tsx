@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils";
 import type { FieldAriaProps, FieldDefinition, FieldRenderer } from "../types";
 import { useConditional } from "../hooks/use-conditional";
 import { useJsonFormContext } from "../json-form-context";
+import {
+  BUILTIN_RENDERER_TYPES_SKIPPING_ALL_VALUES,
+  defaultJsonFormRegistry,
+} from "../lib/default-registry";
+import { setByPath } from "../lib/path";
 
 /**
  * Stable, SSR-friendly id slug for a field. Dots are escaped (HTML id can't
@@ -44,10 +49,62 @@ export function FieldWrapper({
   formLabelPosition,
   loadingFallback,
 }: FieldWrapperProps) {
-  const { control, register, unregister, trigger, getFieldState } =
+  const { control, register, unregister, trigger, getFieldState, getValues } =
     useFormContext();
   const ctx = useJsonFormContext();
-  const allValues = (useWatch({ control }) ?? {}) as Record<string, unknown>;
+
+  // v0.2.0 (A2) — three-mode subscription gate. The default v0.1.x behavior
+  // was a full-bag `useWatch({ control })` on every field, re-rendering the
+  // whole form on every keystroke. Now resolved per-field:
+  //
+  //   • snapshot — built-in default renderer (audited not to read
+  //     `allValues`) OR explicit opt-out via `dependsOn: []`. Skip the
+  //     watch; `allValues` is a `getValues()` snapshot at render.
+  //   • narrow — `dependsOn: ['a','b']`. Subscribe only to those paths;
+  //     rebuild a path-keyed bag via `setByPath`.
+  //   • fullbag — fallback. Preserves v0.1.x behavior for custom renderers
+  //     that didn't opt in.
+  //
+  // The whitelist check resolves on the FINAL renderer identity (not just
+  // `field.type`) so a consumer-registered renderer replacing `text`
+  // correctly opts back into full-bag unless it sets `dependsOn`.
+  const dependsOn = field.dependsOn;
+  const hasDependsOn = Array.isArray(dependsOn);
+  const isBuiltinDefault =
+    BUILTIN_RENDERER_TYPES_SKIPPING_ALL_VALUES.has(field.type) &&
+    renderer === defaultJsonFormRegistry[field.type];
+  const subscriptionMode: "snapshot" | "narrow" | "fullbag" =
+    isBuiltinDefault || (hasDependsOn && dependsOn.length === 0)
+      ? "snapshot"
+      : hasDependsOn && dependsOn.length > 0
+        ? "narrow"
+        : "fullbag";
+
+  // Always call `useWatch` once with mode-conditional inputs to keep hook
+  // order stable. `disabled: true` skips the subscription in snapshot mode.
+  const watched = useWatch(
+    (subscriptionMode === "snapshot"
+      ? { control, disabled: true }
+      : subscriptionMode === "narrow"
+        ? { control, name: dependsOn as ReadonlyArray<string> }
+        : { control }) as never,
+  );
+
+  let allValues: Record<string, unknown>;
+  if (subscriptionMode === "snapshot") {
+    allValues = (getValues() ?? {}) as Record<string, unknown>;
+  } else if (subscriptionMode === "narrow") {
+    const arr = Array.isArray(watched) ? watched : [];
+    const bag: Record<string, unknown> = {};
+    const names = dependsOn as ReadonlyArray<string>;
+    for (let i = 0; i < names.length; i++) {
+      setByPath(bag, names[i], arr[i]);
+    }
+    allValues = bag;
+  } else {
+    allValues = (watched ?? {}) as Record<string, unknown>;
+  }
+
   const { visible, enabled, required } = useConditional(field);
 
   // Unmount-clean: when `visibleWhen` flips a field invisible and the consumer
