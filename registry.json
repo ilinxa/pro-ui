@@ -1829,6 +1829,62 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "registration-form-01",
+      "type": "registry:block",
+      "title": "Registration Form 01",
+      "description": "Email + password registration form with optional second-step profile fields, ToS-consent gate, OAuth row above, password-strength meter, magic-link variant, and an off-screen honeypot. Hand-rolled on RHF v7 + zod v4 — does not depend on @ilinxa/json-form. Discriminated submit payload forces consumers to switch on stepCompleted so naïve destructuring never sends undefined profile fields to backend APIs.",
+      "author": "ilinxa",
+      "categories": ["forms"],
+      "registryDependencies": ["input", "label", "button", "checkbox"],
+      "dependencies": [
+        "react-hook-form@^7.75.0",
+        "@hookform/resolvers@^5.2.2",
+        "zod@^4.4.3",
+        "lucide-react@^1.11.0"
+      ],
+      "files": [
+        { "path": "src/registry/components/forms/registration-form-01/registration-form-01.tsx", "type": "registry:component", "target": "components/registration-form-01/registration-form-01.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/registration-form-01.css", "type": "registry:component", "target": "components/registration-form-01/registration-form-01.css" },
+        { "path": "src/registry/components/forms/registration-form-01/index.ts", "type": "registry:component", "target": "components/registration-form-01/index.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/types.ts", "type": "registry:component", "target": "components/registration-form-01/types.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/email-field.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/email-field.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/password-field.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/password-field.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/consent-checkbox.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/consent-checkbox.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/honeypot-field.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/honeypot-field.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/optional-fields-fieldset.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/optional-fields-fieldset.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/step-indicator.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/step-indicator.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/step-shell.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/step-shell.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/server-error.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/server-error.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/success-screen.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/success-screen.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/submit-row.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/submit-row.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/sign-in-link.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/sign-in-link.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/oauth-row.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/oauth-row.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/strength-meter.tsx", "type": "registry:component", "target": "components/registration-form-01/parts/strength-meter.tsx" },
+        { "path": "src/registry/components/forms/registration-form-01/parts/labels.ts", "type": "registry:component", "target": "components/registration-form-01/parts/labels.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/hooks/use-registration-form.ts", "type": "registry:component", "target": "components/registration-form-01/hooks/use-registration-form.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/hooks/use-strength-meter.ts", "type": "registry:component", "target": "components/registration-form-01/hooks/use-strength-meter.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/hooks/use-form-step.ts", "type": "registry:component", "target": "components/registration-form-01/hooks/use-form-step.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/lib/build-schema.ts", "type": "registry:component", "target": "components/registration-form-01/lib/build-schema.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/lib/honeypot.ts", "type": "registry:component", "target": "components/registration-form-01/lib/honeypot.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/lib/oauth-providers.ts", "type": "registry:component", "target": "components/registration-form-01/lib/oauth-providers.ts" },
+        { "path": "src/registry/components/forms/registration-form-01/lib/strength-calculator.ts", "type": "registry:component", "target": "components/registration-form-01/lib/strength-calculator.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "registration-form-01-fixtures",
+      "type": "registry:block",
+      "title": "Registration Form 01 — fixtures",
+      "description": "Registration Form 01 bundle including 6 named fixture prop bundles (default / oauth / two-step / magic-link / dense / controlled-status). Copy any one as the starting point for your own sign-up surface.",
+      "author": "ilinxa",
+      "categories": ["forms", "fixtures"],
+      "registryDependencies": ["@ilinxa/registration-form-01"],
+      "files": [
+        { "path": "src/registry/components/forms/registration-form-01/dummy-data.ts", "type": "registry:component", "target": "components/registration-form-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "rich-card-in-flow",
       "type": "registry:block",
       "title": "Rich Card in Flow",
