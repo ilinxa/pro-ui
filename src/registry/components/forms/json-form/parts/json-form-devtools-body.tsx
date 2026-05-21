@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   XIcon,
@@ -63,7 +62,7 @@ export default function JsonFormDevtoolsBody({
         className,
       )
     : cn(
-        "fixed bottom-4 right-4 z-[9999] flex w-96 max-w-[calc(100vw-2rem)] flex-col rounded-lg border border-border bg-card text-card-foreground shadow-xl",
+        "fixed bottom-4 right-4 z-9999 flex w-96 max-w-[calc(100vw-2rem)] flex-col rounded-lg border border-border bg-card text-card-foreground shadow-xl",
         className,
       );
 
@@ -72,7 +71,7 @@ export default function JsonFormDevtoolsBody({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-[9999] flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-xs font-medium text-foreground shadow-md hover:bg-muted"
+        className="fixed bottom-4 right-4 z-9999 flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-xs font-medium text-foreground shadow-md hover:bg-muted"
         aria-label="Open JsonForm devtools panel"
       >
         <span className="size-2 rounded-full bg-primary" />
@@ -158,7 +157,7 @@ export default function JsonFormDevtoolsBody({
         ))}
       </nav>
 
-      <div className="max-h-[400px] min-h-[160px] flex-1 overflow-y-auto p-3 text-xs">
+      <div className="max-h-100 min-h-40 flex-1 overflow-y-auto p-3 text-xs">
         {tab === "schema" ? <SchemaTab /> : null}
         {tab === "values" ? <ValuesTab /> : null}
         {tab === "conditionals" ? <ConditionalsTab /> : null}
