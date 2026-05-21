@@ -32,17 +32,19 @@ export function validateSchemaDev(schema: FormSchema): void {
     }
   }
 
-  // (3) Active-conditional count — perf ceiling (O1 lock, ~50)
+  // (3) Active-conditional count — perf ceiling (O1 lock; threshold bumped
+  // from 50 → 200 in v0.2.0 since per-keystroke render count no longer scales
+  // with conditional count under the default-registry watch drop).
   let conditionalCount = 0;
   for (const field of schema.fields) {
     if (field.visibleWhen) conditionalCount++;
     if (field.enabledWhen) conditionalCount++;
     if (field.requiredWhen) conditionalCount++;
   }
-  if (conditionalCount > 50) {
+  if (conditionalCount > 200) {
     console.warn(
       `[json-form] Schema has ${conditionalCount} active conditionals (visibleWhen / enabledWhen / requiredWhen). ` +
-        `Performance may degrade past ~50; consider hoisting conditionals into a derived schema or splitting the form.`,
+        `Performance may degrade past ~200; consider hoisting conditionals into a derived schema or splitting the form.`,
     );
   }
 
