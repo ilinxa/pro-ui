@@ -63,6 +63,10 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       virtualize,
       toolbar = "default",
       dndContext = "internal",
+      readOnly,
+      editable = false,
+      createItem,
+      onCreateRequest,
       renderRow,
       renderName,
       renderDescription,
@@ -86,6 +90,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       onSearchChanged,
       onSortChanged,
       onFilterChanged,
+      permissions,
       onPermissionDenied,
       className,
       "aria-label": ariaLabel,
@@ -213,6 +218,10 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         <TodoTreeToolbar
           statusOptions={statusOptions}
           onBulkEdit={onBulkEdit}
+          createItem={createItem}
+          onCreateRequest={onCreateRequest}
+          readOnly={readOnly}
+          editable={editable}
         />
       ) : null;
     const customNodeToolbar: ReactNode =
@@ -236,6 +245,9 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
                 virtualize={virtualizeMode}
                 virtualizeThreshold={virtualizeThreshold}
                 suspended={dndInternal.activeItem !== null}
+                permissions={permissions}
+                onPermissionDenied={onPermissionDenied}
+                readOnly={readOnly}
               />
             </div>
           </TodoTreeDndContext.Provider>

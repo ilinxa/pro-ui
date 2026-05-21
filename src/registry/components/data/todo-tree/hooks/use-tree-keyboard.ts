@@ -2,10 +2,30 @@
 
 import { useCallback } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
-import type { TodoTreeStateValue } from "../types";
+import type { TodoPermissions } from "../../todo-rich-card/types";
+import type {
+  TodoTreePermissionAction,
+  TodoTreePermissionDeniedEvent,
+  TodoTreeStateValue,
+} from "../types";
+import { evalPermission } from "../lib/permissions";
 
 export interface UseTreeKeyboardArgs {
   state: TodoTreeStateValue;
+  /** Declarative permission matrix (defaults to allow-all when omitted). */
+  permissions?: TodoPermissions;
+  /**
+   * Fired when a Space (toggleActive) or Delete/Backspace (remove)
+   * shortcut is denied by `permissions` or `item.locked`. Receives the
+   * resolved action code + the offending item id + a reason tag.
+   */
+  onPermissionDenied?: (args: TodoTreePermissionDeniedEvent) => void;
+  /**
+   * When true, suppresses Space + Delete/Backspace shortcuts entirely
+   * and fires a `denied-by-readOnly` event. Navigation + selection
+   * shortcuts continue to work.
+   */
+  readOnly?: boolean;
 }
 
 export interface UseTreeKeyboardResult {
@@ -37,7 +57,22 @@ export interface UseTreeKeyboardResult {
 export function useTreeKeyboard(
   args: UseTreeKeyboardArgs,
 ): UseTreeKeyboardResult {
-  const { state } = args;
+  const { state, permissions, onPermissionDenied, readOnly } = args;
+
+  const denyAndFire = useCallback(
+    (action: TodoTreePermissionAction, itemId: string, locked: boolean) => {
+      onPermissionDenied?.({
+        action,
+        itemId,
+        reason: readOnly
+          ? "denied-by-readOnly"
+          : locked
+            ? "denied-by-lock"
+            : "denied-by-rule",
+      });
+    },
+    [onPermissionDenied, readOnly],
+  );
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -131,6 +166,24 @@ export function useTreeKeyboard(
         case "Spacebar": {
           event.preventDefault();
           if (!current) return;
+          if (readOnly) {
+            denyAndFire("toggleActive", current.item.id, false);
+            return;
+          }
+          const allowed = evalPermission(
+            permissions,
+            "toggleActive",
+            current.item,
+            current.level,
+          );
+          if (!allowed) {
+            denyAndFire(
+              "toggleActive",
+              current.item.id,
+              current.item.locked === true,
+            );
+            return;
+          }
           state.toggleActive(current.item.id, !current.item.active);
           return;
         }
@@ -148,6 +201,24 @@ export function useTreeKeyboard(
         case "Backspace": {
           event.preventDefault();
           if (!current) return;
+          if (readOnly) {
+            denyAndFire("remove", current.item.id, false);
+            return;
+          }
+          const allowed = evalPermission(
+            permissions,
+            "remove",
+            current.item,
+            current.level,
+          );
+          if (!allowed) {
+            denyAndFire(
+              "remove",
+              current.item.id,
+              current.item.locked === true,
+            );
+            return;
+          }
           // Move focus to the next row BEFORE removal so the user keeps a
           // sensible focus target. Fall back to previous if at the end.
           const nextFocus =
@@ -163,7 +234,7 @@ export function useTreeKeyboard(
         }
       }
     },
-    [state],
+    [state, permissions, readOnly, denyAndFire],
   );
 
   return { onKeyDown };

@@ -1,12 +1,17 @@
 "use client";
 
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useTodoTreeStateContext } from "../hooks/use-todo-tree-context";
 import { TodoTreeSearchInput } from "./todo-tree-search-input";
 import { TodoTreeSortDropdown } from "./todo-tree-sort-dropdown";
 import { TodoTreeFilterDropdown } from "./todo-tree-filter-dropdown";
 import { TodoTreeFilterActiveToggle } from "./todo-tree-filter-active-toggle";
 import { TodoTreeBulkActionBar } from "./todo-tree-bulk-action-bar";
-import type { TodoStatusOption } from "../../todo-rich-card/types";
+import type {
+  TodoItem,
+  TodoStatusOption,
+} from "../../todo-rich-card/types";
 import { cn } from "@/lib/utils";
 
 export interface TodoTreeToolbarProps {
@@ -18,6 +23,30 @@ export interface TodoTreeToolbarProps {
    * omitted, the Edit button is hidden.
    */
   onBulkEdit?: (args: { ids: ReadonlyArray<string> }) => void;
+  /**
+   * Optional factory for the "+ New" button. Falls back to a built-in
+   * default item (`name: "Untitled"`, first statusOption, `active: true`,
+   * `setAt: now`) when omitted but `statusOptions` is non-empty. Button
+   * hides entirely if neither path can produce a valid TodoItem or if
+   * `readOnly` is set.
+   */
+  createItem?: () => TodoItem;
+  /**
+   * Intercepts the "+ New" click. When provided, the toolbar calls this
+   * with the factory's output instead of committing to the tree itself —
+   * the consumer (e.g., `<TodoTreeWithEditor>`) takes over to open an
+   * editor on a pending item and commit only on user submit.
+   */
+  onCreateRequest?: (item: TodoItem) => void;
+  /** Suppresses the "+ New" button when true. */
+  readOnly?: boolean;
+  /**
+   * Gates the "+ New" button AND the bulk action bar's Delete button.
+   * Without an editing affordance there's nothing meaningful to do with
+   * a freshly-added "Untitled" row or with a row the user can't otherwise
+   * interact with — so we hide both.
+   */
+  editable?: boolean;
   className?: string;
 }
 
@@ -38,12 +67,38 @@ export interface TodoTreeToolbarProps {
 export function TodoTreeToolbar({
   statusOptions,
   onBulkEdit,
+  createItem,
+  onCreateRequest,
+  readOnly,
+  editable = false,
   className,
 }: TodoTreeToolbarProps) {
   const state = useTodoTreeStateContext();
 
   const selectedCount = state.selectedIds.size;
   const selectedIdsArray = (): string[] => Array.from(state.selectedIds);
+
+  // Resolve the new-item factory. Explicit prop wins; otherwise build a
+  // minimal default that satisfies TodoItem's required fields — needs
+  // statusOptions[0] for `status`. When neither path can produce an item
+  // we hide the button rather than insert invalid data.
+  const factory: (() => TodoItem) | null =
+    createItem ??
+    (statusOptions && statusOptions.length > 0
+      ? () => ({
+          id:
+            typeof crypto !== "undefined" && "randomUUID" in crypto
+              ? crypto.randomUUID()
+              : `todo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          name: "Untitled",
+          status: statusOptions[0].value,
+          active: true,
+          setAt: new Date().toISOString(),
+        })
+      : null);
+
+  const canAdd = editable && !readOnly && factory !== null;
+  const canBulkRemove = editable && !readOnly;
 
   return (
     <div
@@ -68,13 +123,46 @@ export function TodoTreeToolbar({
         items={state.items}
         statusOptions={statusOptions}
       />
+      {canAdd && (
+        <Button
+          size="sm"
+          variant="default"
+          className="ml-auto"
+          onClick={(e) => {
+            const next = factory!();
+            if (onCreateRequest) {
+              // Blur the trigger before the consumer mounts a Radix Dialog
+              // — Radix flips aria-hidden on the surrounding tree wrapper
+              // synchronously on open, and a still-focused button inside
+              // an aria-hidden ancestor trips the browser's a11y warning.
+              // Blurring here lets the dialog's auto-focus take over
+              // cleanly.
+              (e.currentTarget as HTMLButtonElement).blur();
+              // Deferred-commit path — consumer opens an editor and commits
+              // on submit. Toolbar stays out of the tree mutation entirely.
+              onCreateRequest(next);
+              return;
+            }
+            // Default path — commit immediately + focus.
+            state.addItem(next);
+            state.focusItem(next.id);
+          }}
+        >
+          <Plus className="size-3.5" />
+          New
+        </Button>
+      )}
       {selectedCount > 0 && (
         <TodoTreeBulkActionBar
           count={selectedCount}
           onToggleActive={(next) =>
             state.toggleActiveBulk(selectedIdsArray(), next)
           }
-          onRemove={() => state.removeItems(selectedIdsArray())}
+          onRemove={
+            canBulkRemove
+              ? () => state.removeItems(selectedIdsArray())
+              : undefined
+          }
           onEdit={
             onBulkEdit
               ? () => onBulkEdit({ ids: selectedIdsArray() })

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { TodoPermissions } from "../../todo-rich-card/types";
+import type { TodoTreePermissionDeniedEvent } from "../types";
 import {
   useTodoTreeRenderContext,
   useTodoTreeStateContext,
@@ -27,6 +29,12 @@ export interface TodoTreeListProps {
    * DnD hooks so virtualizer + drag don't fight over scroll position.
    */
   suspended?: boolean;
+  /** Forwarded into the keyboard hook so Space + Delete honor permissions. */
+  permissions?: TodoPermissions;
+  /** Forwarded into the keyboard hook for permission-denied events. */
+  onPermissionDenied?: (args: TodoTreePermissionDeniedEvent) => void;
+  /** When true, keyboard Space + Delete fire `denied-by-readOnly`. */
+  readOnly?: boolean;
   className?: string;
 }
 
@@ -47,12 +55,20 @@ export function TodoTreeList({
   virtualizeThreshold = 200,
   rowHeight = 52,
   suspended = false,
+  permissions,
+  onPermissionDenied,
+  readOnly,
   className,
 }: TodoTreeListProps) {
   const state = useTodoTreeStateContext();
   const { renderEmptyState } = useTodoTreeRenderContext();
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const { onKeyDown } = useTreeKeyboard({ state });
+  const { onKeyDown } = useTreeKeyboard({
+    state,
+    permissions,
+    onPermissionDenied,
+    readOnly,
+  });
 
   const { active, virtualizer } = useTreeVirtual({
     rows: state.visibleItems,

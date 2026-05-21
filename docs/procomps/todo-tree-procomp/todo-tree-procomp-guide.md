@@ -1,8 +1,8 @@
 # `todo-tree` — Pro-component Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** Authored alongside v0.1.0 / v0.1.1 implementation
+> **Stage:** 3 of 3 · **Status:** Authored alongside v0.1.0 / v0.1.1 / v0.1.2 implementation
 > **Slug:** `todo-tree` · **Category:** `data`
-> **Version:** 0.1.1 (alpha) · **Shipped:** 2026-05-21
+> **Version:** 0.1.2 (alpha) · **Shipped:** 2026-05-21
 > Consumer-facing usage notes. The description doc explains "why," the plan doc explains "how"; this doc explains "use it."
 
 ---
@@ -112,6 +112,117 @@ import { TodoTreeWithEditor } from "@/components/todo-tree";
 
 ---
 
+## Adding new items — toolbar `"+ New"` button
+
+(New in v0.1.2.) The default toolbar gains a primary **"+ New"** button when the tree is told it has an editing affordance. The button is hidden by default to avoid surfacing an add-affordance the consumer can't follow through on (the prior "Untitled" stub problem).
+
+### Gating
+
+```
+canAdd = editable && !readOnly && factory != null
+```
+
+- `editable` (default `false`) — signals that the tree has an edit panel / inline editor / etc.
+- `readOnly` (default `false`) — when true, hides Add + bulk Delete entirely.
+- `factory` — resolved from explicit `createItem` prop, else a built-in fallback using `statusOptions[0]`. If neither yields a factory, the button is hidden.
+
+`<TodoTreeWithEditor>` passes `editable={true}` automatically. For a bare `<TodoTree>` with your own editor, pass `editable` yourself.
+
+### Two flows: immediate-add vs. deferred-commit
+
+**Immediate-add** (no `onCreateRequest`): click → factory runs → row is added at root → focus moves to it. Your editor wires whatever happens next (open on focus, click, etc.).
+
+**Deferred-commit** (`onCreateRequest` provided): click → factory runs → `onCreateRequest(item)` fires → toolbar does NOT mutate the tree. The consumer is now responsible for committing via `handle.addItem(...)` when ready. This is how `<TodoTreeWithEditor>` opens the edit dialog on a pending item and only commits on Submit.
+
+### Custom factory
+
+```tsx
+<TodoTree
+  editable
+  statusOptions={STATUS_OPTIONS}
+  createItem={() => ({
+    id: crypto.randomUUID(),
+    name: "",                        // empty for inline rename
+    status: "todo",
+    active: true,
+    setAt: new Date().toISOString(),
+    creatorPerson: currentUser,      // pre-fill from auth context
+  })}
+/>
+```
+
+### Deferred-commit flow (the `<TodoTreeWithEditor>` pattern)
+
+When you want the user to fill in values BEFORE the row appears in the tree:
+
+```tsx
+const ref = useRef<TodoTreeHandle>(null);
+const [pending, setPending] = useState<TodoItem | null>(null);
+
+<>
+  <TodoTree
+    ref={ref}
+    editable
+    statusOptions={STATUS_OPTIONS}
+    onCreateRequest={(draft) => setPending(draft)}
+  />
+  <Dialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
+    <DialogContent>
+      {pending && (
+        <>
+          <MyEditor
+            value={pending}
+            onChange={setPending}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPending(null)}>Cancel</Button>
+            <Button onClick={() => {
+              ref.current?.addItem(pending);
+              ref.current?.focusItem(pending.id);
+              setPending(null);
+            }}>
+              Add task
+            </Button>
+          </DialogFooter>
+        </>
+      )}
+    </DialogContent>
+  </Dialog>
+</>
+```
+
+The wrapper does exactly this — see [`todo-tree-with-editor.tsx`](../../src/registry/components/data/todo-tree/todo-tree-with-editor.tsx).
+
+### Going further (add-as-child, split button, etc.)
+
+Replace the toolbar via `renderToolbar` and call `handle.addItem` / `handle.addChild` from your own button:
+
+```tsx
+<TodoTree
+  state={state}
+  renderToolbar={({ defaultToolbar, state }) => (
+    <div className="flex items-center gap-2">
+      {defaultToolbar}
+      <DropdownMenu>
+        <DropdownMenuItem onClick={() => state.addItem(factory(), { parentId: null })}>
+          Add at root
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!state.focusedItemId}
+          onClick={() =>
+            state.addChild(state.focusedItemId!, factory())
+          }
+        >
+          Add as child of focused
+        </DropdownMenuItem>
+      </DropdownMenu>
+    </div>
+  )}
+/>
+```
+
+---
+
 ## Multi-select + bulk ops
 
 | Gesture | Action |
@@ -128,7 +239,7 @@ When 2+ rows are selected, the **bulk action bar** appears at the top of the lis
 - **Remove** — fires `onBulkRemove` with the selected ids
 - **Edit** — fires `onBulkEdit` with the selected items (consumer-defined dialog)
 
-Each bulk action is permission-gated via the matrix (`canRemoveItem`, `canToggleActive`) but **see the F-perm caveat below** — permission predicates are not yet wired end-to-end in v0.1.1.
+Each bulk action is permission-gated via the matrix (`canRemoveItem`, `canToggleActive`). As of v0.1.2, keyboard Space (toggle active) and Delete/Backspace (remove) shortcuts also consult the matrix + `item.locked` + `readOnly` and fire `onPermissionDenied` on denial (F-perm closed). The bulk Delete toolbar button is additionally gated on `editable` — see [§ Adding new items](#adding-new-items--toolbar--new--button).
 
 The bar is invoked via slot if you want full custom rendering:
 
@@ -230,7 +341,9 @@ Mirrors `todo-rich-card`'s shape. Two layers:
 
 The permission `action` codes for tree-only events map to rule keys as follows: `dropAsSibling` → `drag` rule key, `dropIntoChildren` → `addChildren` rule key.
 
-> **⚠️ v0.1.1 gap (F-perm):** `permissions` is declared on `TodoTreeProps` but **not yet threaded end-to-end** in the host. The DnD path uses `canDropAsSibling` / `canDropIntoChildren` predicates and the action-menu paths gate at the affordance level, but Keyboard Space (toggle-active) and Keyboard Delete (remove) bypass the predicates today. Consumers should gate at the affordance level OR hold off on the predicates until v0.1.2 wires them through `useTreeKeyboard`. Tracked in the v0.1.1 spotcheck as F-perm.
+> **✅ v0.1.2 closed F-perm.** Keyboard Space (toggleActive) and Delete/Backspace (remove) now consult the declarative `permissions` matrix + `item.locked` + `readOnly` and fire `onPermissionDenied` on denial with one of `denied-by-rule` / `denied-by-lock` / `denied-by-readOnly`. The DnD path continues to consult its own `canDropAsSibling` / `canDropIntoChildren` predicates as before.
+>
+> **Imperative handle methods do NOT gate.** `handle.removeItem(id)` / `handle.toggleActive(id, next)` mutate regardless of permissions, by design. The handle is the raw mutation surface for advanced consumers (controlled-mode orchestrators, server-side reconcilers) who enforce their own policy. UI affordances (keyboard, toolbar, DnD) ARE the gates.
 
 ---
 
@@ -355,9 +468,9 @@ Full WAI-ARIA tree pattern:
 | `ArrowRight` | If collapsed → expand; if expanded → focus first child |
 | `ArrowLeft` | If expanded → collapse; if collapsed → focus parent |
 | `Home` / `End` | Focus first / last visible row |
-| `Space` | Toggle `active` on focused row |
+| `Space` | Toggle `active` on focused row (consults permissions; v0.1.2+) |
 | `Enter` | Fire `onItemClick` for focused row (opens consumer popup) |
-| `Delete` / `Backspace` | Fire `onItemRemoved` for focused row |
+| `Delete` / `Backspace` | Fire `onItemRemoved` for focused row (consults permissions; v0.1.2+) |
 | `Cmd/Ctrl + A` | Select all visible rows |
 | `Escape` | Clear selection / focus |
 
@@ -433,7 +546,7 @@ Both resolve to the same type.
 
 ## Gotchas
 
-- **Permissions are partially wired in v0.1.1 (F-perm).** Predicates exist on props and matter at the DnD + affordance level, but keyboard Space/Delete shortcuts bypass them. Gate at the affordance level OR wait for v0.1.2.
+- **Permissions are fully wired through the UI surface as of v0.1.2.** DnD predicates, bulk action bar, and keyboard Space/Delete shortcuts all consult the declarative `permissions` matrix + `item.locked` + `readOnly`, and fire `onPermissionDenied` on denial. **Imperative handle methods do NOT gate** — `handle.removeItem(id)` / `handle.toggleActive(id, next)` will mutate regardless of permissions, by design. The handle is the raw mutation surface; consumers driving the tree imperatively are expected to enforce their own policy. UI affordances (keyboard, toolbar, DnD) ARE the gates.
 - **External (HTML5) drops always land as last child.** No edge-zone for the HTML5 transport; only `@dnd-kit` gets top/middle/bottom. If you need sibling drops from another procomp, use the `@dnd-kit` transport (same page, both endpoints).
 - **Virtualization auto-disables under <200 items.** That's intentional — short trees don't pay for it. If you want a fixed mode, pass `virtualization={{ mode: "always" | "never" }}`.
 - **Echo guard is structural** — only (`id`, `name`, `status`, `active`, `children`) compared. Mutations to other fields from outside the tree fall through as echoes. Remount via `key` or include a structural field change to force a resync.
@@ -452,8 +565,8 @@ This is a new component — no migration path. If you're coming from a custom tr
 
 ## Open follow-ups
 
-- **v0.1.2 (patch)** — Thread `permissions` matrix end-to-end through `useTodoTreeState` + `useTreeKeyboard` so Space/Delete shortcuts honor predicates (F-perm).
-- **v0.1.x cosmetic** — Move the grip from `absolute -left-4` to an in-flow column so it never clips against narrow containers (F-grip-clip).
+- ~~**v0.1.2 (patch)** — Thread `permissions` matrix end-to-end through `useTodoTreeState` + `useTreeKeyboard` so Space/Delete shortcuts honor predicates (F-perm).~~ ✅ Closed in v0.1.2.
+- ~~**v0.1.x cosmetic** — Move the grip from `absolute -left-4` to an in-flow column so it never clips against narrow containers (F-grip-clip).~~ ✅ Closed in v0.1.2.
 - **v0.2** — Inline-rename mode (Enter-to-rename, Esc-to-cancel); sibling-drop edge zone for HTML5 transport; per-row collapse animations (gated on framer-motion adoption); slot props for the bulk-action-bar individual buttons.
 - **v0.3** — Server-rendered initial state with deferred hydration (currently full client-side); per-tree theming via `--todo-tree-*` CSS variables.
 - **Test runner** — Vitest landing is project-wide. Pure `lib/` modules (`visible-items`, `flatten-tree`, `tree-walker`, `tree-mutators`, `circular-drop`, `edge-zone`) are the highest-priority test targets — they're all pure functions with no DOM dependencies.
