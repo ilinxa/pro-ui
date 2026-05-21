@@ -2,6 +2,8 @@
 
 > Stage 2: how. The implementation contract.
 >
+> **Status (2026-05-22):** this document is the v0.1.0 GATE 2 lock — historical record. Current shipped surface is **v0.2.5**. The v0.1.x increment plans (v0.1.1 `richtext`, v0.1.2 `ariaProps`, v0.1.6 narrow-deps + lifecycle callbacks, v0.1.7 `defineFieldRenderer` + headless hooks + `<JsonFormDevtools>`) landed additively; the v0.2.0 plan is captured separately at [`json-form-procomp-plan-v0.2.0.md`](./json-form-procomp-plan-v0.2.0.md). Source of truth for current API surface: [`json-form-procomp-guide.md`](./json-form-procomp-guide.md). Counts and type lists below reflect v0.1.0 (`24 built-in types`); v0.1.1 added `richtext` → 25.
+>
 > **Predecessor:** [`json-form-procomp-description.md`](./json-form-procomp-description.md), signed off after a careful review pass that surfaced 3 blockers + 5 high + 8 medium + 7 low findings — all resolved inline. The description locked: custom field-DSL → Zod, RHF v7 substrate, extensible renderer registry, 4 field families (text + choice + date/time + rich-composite), conditional + computed, hybrid `config` shape, hidden-vs-visible split, computed-as-interpolation-only.
 
 ## Substrate decisions (locked)

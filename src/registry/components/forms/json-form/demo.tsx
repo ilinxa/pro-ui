@@ -366,6 +366,10 @@ function HeadlessExample() {
   const [last, setLast] = useState<Record<string, unknown> | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  // v0.2.4 — `<JsonFormProvider>` bridges `<FormProvider {...value.rhf}>`
+  // internally, so no outer `<FormProvider>` is needed here. The standalone
+  // parts (`<JsonFormField>`, `<JsonFormSubmitButton>`, narrow-deps hooks)
+  // resolve their RHF context through the bridge.
   return (
     <JsonFormProvider
       value={{
@@ -416,7 +420,7 @@ function HeadlessForm({
   );
 }
 
-// ─── Tab 8 — Devtools + perf (v0.1.7) ───────────────────────────────────────
+// ─── Tab 8 — Devtools + perf ────────────────────────────────────────────────
 
 // Extract as an uppercase-named component so rules-of-hooks lint accepts
 // the `useJsonFormFieldsValue` call inside.
@@ -446,9 +450,11 @@ const devtoolsDemoSchema: FormSchema = {
   fields: [
     { name: "firstName", type: "text", label: "First name", validators: { required: true } },
     { name: "lastName", type: "text", label: "Last name", validators: { required: true } },
-    // Custom renderer using dependsOn — v0.1.7 ships this as typed metadata
-    // (runtime watch-gating ships in v0.2.0). Setting it now is forward-
-    // compatible authoring.
+    // Custom renderer using dependsOn — runtime watch-gating active as of
+    // v0.2.0 (FieldWrapper resolves a narrow watch from this metadata; the
+    // `summary` renderer reads firstName + lastName via
+    // `useJsonFormFieldsValue`, and re-renders only when one of those
+    // declared deps changes).
     {
       name: "summary",
       type: "summary",
@@ -473,7 +479,7 @@ function DevtoolsPerfTab() {
   return (
     <Section
       title="Devtools + narrow-deps"
-      caption="Custom `summary` renderer reads firstName + lastName via `useJsonFormFieldsValue`. `dependsOn: ['firstName', 'lastName']` is forward-compatible typed metadata (runtime gating ships in v0.2.0). Inline `<JsonFormDevtools />` shows live schema / values / conditionals / errors below the form."
+      caption="Custom `summary` renderer reads firstName + lastName via `useJsonFormFieldsValue`. `dependsOn: ['firstName', 'lastName']` drives the FieldWrapper subscription mode (narrow watch — re-renders only when one of the declared deps changes; live as of v0.2.0). Inline `<JsonFormDevtools />` shows live schema / values / conditionals / errors below the form."
     >
       <JsonForm
         schema={devtoolsDemoSchema}

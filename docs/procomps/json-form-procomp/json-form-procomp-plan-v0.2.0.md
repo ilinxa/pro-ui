@@ -1,5 +1,7 @@
 # json-form — procomp plan, v0.2.0
 
+> **Status (2026-05-22):** this delta plan is **historical**. v0.1.7 and v0.2.0 both shipped 2026-05-21. The v0.2.x patch series since: v0.2.1 (docs + devtools), v0.2.3 (revert v0.2.2 richtext band-aid + dep on `article-body-01@^0.2.2`), v0.2.4 (`<JsonFormProvider>` bridges RHF's `<FormProvider>` internally), v0.2.5 (`<FieldRadioGroup>` always-controlled). Current shipped surface is **v0.2.5**. The forward-looking "≥7-day gate" referenced below was satisfied at ship time; the verbiage is retained as the original contract. Source of truth for current API: [`json-form-procomp-guide.md`](./json-form-procomp-guide.md).
+>
 > Stage 2 delta plan for the **v0.1.6 → v0.1.7 → v0.2.0** progression. Substrate decisions and public-API foundation are inherited from [`json-form-procomp-plan.md`](./json-form-procomp-plan.md) (v0.1.0 plan, signed off and shipped); this file specifies ONLY the deltas.
 >
 > **Predecessor work:** v0.1.5 (cross-procomp `/types` fix + echo-guard + docs polish), v0.1.6 (narrow-deps `useConditional` + `useComputed`, `AbortController` in async options, submit focus-walk, requiredWhen eager trigger, number-input empty-state coercion to `undefined`, error-summary anchor focus, `onSubmitAttempt` + `onReady` + `translatable` flag).
@@ -157,7 +159,7 @@ export function JsonFormDevtools(props: JsonFormDevtoolsProps): ReactNode;
 | `index.ts` | + `useJsonFormFieldValue`, `useJsonFormFieldsValue`, `defineFieldRenderer`, `JsonFormDevtools` exports. + `JsonFormDevtoolsProps` type. | +10 |
 | `usage.tsx` | + 3 new sections: `dependsOn` (custom renderer perf opt-in), `<JsonFormDevtools>` (dev panel walkthrough), `defineFieldRenderer<T>` (typed authoring). + FAQ entry on compile-split (mostly invisible — for advanced consumers using `compileSchema` directly). | +120 |
 | `demo.tsx` | + new tab "Devtools + perf" demonstrating: (a) `<JsonFormDevtools>` inline panel beside the form; (b) a custom renderer using `defineFieldRenderer<string>` with `dependsOn: ['otherField']`; (c) a perf-comparison side-by-side of two identical 20-field forms — one with the default behavior, one with `dependsOn` on every custom renderer — showing the React DevTools profiler render-count delta. | +90 |
-| `meta.ts` | bump `version: "0.1.7"`, `updatedAt: "2026-05-XX"`, expand `features` with 4 new entries (dependsOn opt-in, narrow-deps hooks, defineFieldRenderer factory, devtools panel), expand `description` accordingly | +5 |
+| `meta.ts` | bump `version: "0.1.7"`, `updatedAt: "2026-05-21"`, expand `features` with 4 new entries (dependsOn opt-in, narrow-deps hooks, defineFieldRenderer factory, devtools panel), expand `description` accordingly | +5 |
 | `registry.json` | + 4 new files in json-form item: `lib/define-field-renderer.ts`, `hooks/use-json-form-field-value.ts`, `parts/json-form-devtools.tsx`, `parts/json-form-devtools-body.tsx`. (`lib/flatten-errors.ts` was added in v0.1.6 and is already present.) The 4-file count reflects the devtools stub + body split — `React.lazy()` requires a separate module for the body chunk. | +4 |
 
 **Total new code:** ~740 LOC across 14 files (4 new files, 10 modified). Re-add: 35 + 35 + 12 + 60 + 35 + 60 + 250 + 15 + 12 + 10 + 120 + 90 + 5 + 4 = 743. (Pre-fix total was ~690 / 13 files / 3 new — the devtools split into stub + body added 1 file; the body's 250-LOC chunk replaces the original ~260-LOC single-file estimate, so net deltas: +1 file, +~50 LOC vs the original plan number.)
@@ -172,7 +174,7 @@ export function JsonFormDevtools(props: JsonFormDevtoolsProps): ReactNode;
 | C4 | feat(json-form): `defineFieldRenderer` factory (C2) | `lib/define-field-renderer.ts`, `index.ts` | tsc + lint clean |
 | C5 | feat(json-form): `<JsonFormDevtools>` panel (C3) | `parts/json-form-devtools.tsx`, `index.ts` | tsc + lint clean; bundle analyzer confirms the lazy panel-body chunk is absent from prod entry chunks (loader stub may remain unless consumer-side import is conditional) |
 | C6 | docs(json-form): v0.1.7 usage + demo updates | `usage.tsx`, `demo.tsx` | docs render clean; perf-comparison demo verified in browser |
-| C7 | chore(json-form): bump v0.1.7 + registry.json + spotcheck | `meta.ts`, `registry.json`, `reviews/2026-05-XX-v0.1.7-spotcheck.md` | full producer verification chain + path-b smoke harness pass |
+| C7 | chore(json-form): bump v0.1.7 + registry.json + spotcheck | `meta.ts`, `registry.json`, `reviews/2026-05-21-v0.1.7-spotcheck.md` | full producer verification chain + path-b smoke harness pass |
 
 Each commit ships green tsc + lint + meta-deps + registry-build. Path-b smoke runs at C7 against the deployed Vercel artifact post-push.
 
@@ -229,7 +231,7 @@ The 50-conditional dev-warn in `validateSchemaDev` is **demoted to 200-condition
 | `hooks/use-json-form.ts` | rewrite `mergeDefaultValues` — use `setByPath` per leaf instead of shallow per-top-level-key replacement. Add a small `walkLeaves(obj, prefix, fn)` helper. | +30 / -15 net +15 |
 | `lib/validate-schema.ts` | tweak: bump the conditional-count warning threshold from 50 → 200 (post-v0.2.0 the per-keystroke render count no longer scales with conditional count). | +1 / -1 |
 | `usage.tsx` | + section: "What changed in v0.2.0" — release-note-style explanation of the watch drop + deep-merge behavior. + 1 FAQ entry on the deep-merge change. | +40 |
-| `meta.ts` | bump `version: "0.2.0"`, `updatedAt: "2026-05-XX"`. Update `features` list to reflect the perf cliff lift and deep-merge default semantics. | +5 |
+| `meta.ts` | bump `version: "0.2.0"`, `updatedAt: "2026-05-21"`. Update `features` list to reflect the perf cliff lift and deep-merge default semantics. | +5 |
 
 **Total v0.2.0 code:** ~85 LOC across 5 files (all modified).
 
@@ -240,7 +242,7 @@ The 50-conditional dev-warn in `validateSchemaDev` is **demoted to 200-condition
 | C1 | feat(json-form): deep-merge defaultValues (B1) | `use-json-form.ts` | tsc + lint clean; round-trip test: `mergeDefaultValues({ address: { country: 'US' } }, { address: { city: 'NYC' } })` returns `{ address: { country: 'US', city: 'NYC' } }` |
 | C2 | feat(json-form): default-registry watch drop + dependsOn gate (A2) | `field-wrapper.tsx`, `validate-schema.ts` | tsc + lint clean; React DevTools profiler verifies render-count drop on 20-field form; backward-compat audit: existing demo schemas + fixtures all render visually identically |
 | C3 | docs(json-form): v0.2.0 release notes + FAQ | `usage.tsx` | docs render clean |
-| C4 | chore(json-form): bump v0.2.0 + registry.json + GATE 3 full checklist review | `meta.ts`, `registry.json`, `reviews/2026-05-XX-v0.2.0-checklist.md`, decision file | full review + smoke + STATUS update |
+| C4 | chore(json-form): bump v0.2.0 + registry.json + GATE 3 full checklist review | `meta.ts`, `registry.json`, `reviews/2026-05-21-v0.2.0-checklist.md`, decision file | full review + smoke + STATUS update |
 
 ---
 
@@ -314,7 +316,7 @@ Returns `FieldRenderer` directly. Registry-shape compatible. Type-narrowing only
 1. C1 — `use-json-form.ts` `mergeDefaultValues` rewritten via `setByPath` per leaf.
 2. C2 — `parts/field-wrapper.tsx` gated `useWatch` (per-field-type-whitelist + `dependsOn` opt-in); `validate-schema.ts` conditional-count threshold bumped to 200.
 3. C3 — `usage.tsx` v0.2.0 release notes + FAQ entry.
-4. C4 — `meta.ts` v0.2.0, full-checklist review file authored at `reviews/2026-05-XX-v0.2.0-checklist.md`, decision file authored, STATUS.md updated, smoke harness run including rcif + todo-rich-card downstream verification.
+4. C4 — `meta.ts` v0.2.0, full-checklist review file authored at `reviews/2026-05-21-v0.2.0-checklist.md`, decision file authored, STATUS.md updated, smoke harness run including rcif + todo-rich-card downstream verification.
 
 ### Estimated effort
 
