@@ -73,8 +73,13 @@ export function useJsonForm<TValues extends Record<string, unknown> = Record<str
 }
 
 /**
- * Merge per-field `defaultValue` with form-level `defaultValues`.
- * Form-level wins on conflict (P-09 recommendation).
+ * Merge per-field `defaultValue` with form-level `defaultValues`. Form-level
+ * wins on conflict (P-09).
+ *
+ * v0.2.0 (B1): form-level `defaultValues` deep-merges per leaf via
+ * `setByPath`/`walkLeaves` instead of shallow per-top-level-key replacement.
+ * `{ address: { city: 'X' } }` at form-level no longer drops sibling per-field
+ * defaults at `address.country`, `address.zip`, etc.
  */
 function mergeDefaultValues<TValues extends Record<string, unknown>>(
   schema: FormSchema,
@@ -83,26 +88,60 @@ function mergeDefaultValues<TValues extends Record<string, unknown>>(
   const out: Record<string, unknown> = {};
   for (const field of schema.fields) {
     if (field.defaultValue !== undefined) {
-      // dot-path set
-      const segments = field.name.split(".");
-      let cur: Record<string, unknown> = out;
-      for (let i = 0; i < segments.length - 1; i++) {
-        const seg = segments[i];
-        if (!(seg in cur) || typeof cur[seg] !== "object" || cur[seg] === null) {
-          cur[seg] = {};
-        }
-        cur = cur[seg] as Record<string, unknown>;
-      }
-      cur[segments[segments.length - 1]] = field.defaultValue;
+      setByPath(out, field.name.split("."), field.defaultValue);
     }
   }
-  // Form-level overrides per top-level key
   if (formLevel) {
-    for (const key of Object.keys(formLevel)) {
-      out[key] = (formLevel as Record<string, unknown>)[key];
-    }
+    walkLeaves(formLevel as Record<string, unknown>, [], (path, value) => {
+      setByPath(out, path, value);
+    });
   }
   return out as Partial<TValues>;
+}
+
+/** True for `{}` / `Object.create(null)` shapes. Arrays / Dates / class
+ * instances return false so they're treated as terminal leaves. */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== "object") return false;
+  if (Array.isArray(value)) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/** Write `value` at dot-segments `path` into `obj`, lazily creating
+ * intermediate plain-object containers when missing or non-object. */
+function setByPath(
+  obj: Record<string, unknown>,
+  path: ReadonlyArray<string>,
+  value: unknown,
+): void {
+  let cur = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    const seg = path[i];
+    if (!isPlainObject(cur[seg])) {
+      cur[seg] = {};
+    }
+    cur = cur[seg] as Record<string, unknown>;
+  }
+  cur[path[path.length - 1]] = value;
+}
+
+/** Depth-first walk: invokes `fn(path, leafValue)` for every non-plain-object
+ * value reachable from `obj`. Empty objects emit no callback. */
+function walkLeaves(
+  obj: Record<string, unknown>,
+  prefix: ReadonlyArray<string>,
+  fn: (path: ReadonlyArray<string>, value: unknown) => void,
+): void {
+  for (const key of Object.keys(obj)) {
+    const value = obj[key];
+    const nextPath = [...prefix, key];
+    if (isPlainObject(value)) {
+      walkLeaves(value, nextPath, fn);
+    } else {
+      fn(nextPath, value);
+    }
+  }
 }
 
 /** Stable imperative-handle factory; methods read fresh RHF state per call. */
