@@ -75,4 +75,17 @@ export function useJsonFormHasSubmitted(): boolean {
   return useContext(JsonFormSubmittedContext);
 }
 
+/**
+ * v0.2.1 — non-throwing variant of `useJsonFormContext`. Returns `null`
+ * when no `<JsonFormProvider>` is in the tree. Internal-only — exported
+ * for `<JsonFormDevtools>` to render a soft-warning fallback panel
+ * instead of throwing when consumers forget the Provider wrap.
+ */
+export function useJsonFormContextOptional<TValues extends Record<string, any> = Record<string, any>>(): JsonFormContextValue<TValues> | null {
+  const ctx = useContext(JsonFormContext);
+  const hasSubmitted = useContext(JsonFormSubmittedContext);
+  if (!ctx) return null;
+  return { ...ctx, hasSubmitted } as JsonFormContextValue<TValues>;
+}
+
 /* eslint-enable @typescript-eslint/no-explicit-any */

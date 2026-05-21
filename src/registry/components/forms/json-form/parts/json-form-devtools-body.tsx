@@ -9,7 +9,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
 } from "lucide-react";
-import { useJsonFormContext } from "../json-form-context";
+import { useJsonFormContext, useJsonFormContextOptional } from "../json-form-context";
 import { useConditional } from "../hooks/use-conditional";
 import { flattenRhfErrorsToList } from "../lib/flatten-errors";
 import { isValueField } from "../lib/validate-schema";
@@ -39,7 +39,7 @@ export default function JsonFormDevtoolsBody({
   shortcut,
   className,
 }: JsonFormDevtoolsBodyProps) {
-  const ctx = useJsonFormContext();
+  const maybeCtx = useJsonFormContextOptional();
   const [open, setOpen] = useState(inline);
   const [tab, setTab] = useState<Tab>("schema");
 
@@ -80,6 +80,42 @@ export default function JsonFormDevtoolsBody({
       </button>
     );
   }
+
+  // v0.2.1 (F-06) — soft-warning fallback when no <JsonFormProvider> is in
+  // the tree. Renders an explanatory panel instead of throwing, so the
+  // consumer mistake is visible-but-recoverable rather than a hard crash.
+  if (!maybeCtx) {
+    return (
+      <div className={wrapperClass} data-jsonform-devtools data-state="no-provider">
+        {!inline ? (
+          <header className="flex items-center justify-between border-b border-border px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              json-form devtools
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close devtools panel"
+              className="rounded p-1 hover:bg-muted"
+            >
+              <XIcon className="size-3.5" />
+            </button>
+          </header>
+        ) : null}
+        <div className="p-3 text-xs text-muted-foreground">
+          <p className="mb-1 font-medium text-foreground">No JsonForm context found.</p>
+          <p>
+            Place <code className="rounded bg-muted px-1">&lt;JsonFormDevtools /&gt;</code>{" "}
+            inside a <code className="rounded bg-muted px-1">&lt;JsonForm&gt;</code> or{" "}
+            <code className="rounded bg-muted px-1">&lt;JsonFormProvider&gt;</code>{" "}
+            tree so the panel can read schema, values, conditionals, and errors.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const ctx = maybeCtx;
 
   return (
     <div className={wrapperClass} data-jsonform-devtools>
@@ -131,7 +167,7 @@ export default function JsonFormDevtoolsBody({
 
       <footer className="flex items-center justify-between border-t border-border px-3 py-1.5 text-[10px] text-muted-foreground">
         <span data-jsonform-devtools-form-id>{ctx.formId}</span>
-        <span>v0.1.7</span>
+        <span>v0.2.1</span>
       </footer>
     </div>
   );
@@ -263,10 +299,14 @@ function ErrorsTab() {
 
 /**
  * JSON.stringify replacer that turns function values into a placeholder
- * (raw schemas often hold validate / compute / visibleWhen callbacks).
+ * (raw schemas often hold validate / compute / visibleWhen callbacks). Also
+ * serializes Map / Set / BigInt — `JSON.stringify` itself throws on bigint
+ * (v0.2.1 F-08), so the panel would crash if a consumer's form held a
+ * bigint value.
  */
 function prettyReplacer(_key: string, value: unknown): unknown {
   if (typeof value === "function") return "[Function]";
+  if (typeof value === "bigint") return `${value.toString()}n`;
   if (value instanceof Map) return Object.fromEntries(value);
   if (value instanceof Set) return Array.from(value);
   return value;

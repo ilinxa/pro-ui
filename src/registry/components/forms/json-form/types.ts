@@ -143,26 +143,33 @@ export interface FieldDefinition {
   translatable?: boolean;
 
   /**
-   * **v0.1.7 — typed metadata + schema-lint validation only. The runtime
-   * watch-gating that honors this flag ships in v0.2.0.** Set the flag in
-   * v0.1.7 to make schemas forward-compatible; perf wins materialize on
-   * v0.2.0 upgrade.
+   * Declares which field paths this renderer's `allValues` access depends
+   * on. The FieldWrapper resolves a per-field subscription mode against
+   * this flag (active as of v0.2.0):
    *
-   * Once v0.2.0 lands, declares which field names this renderer's
-   * `allValues` access depends on. The wrapper subscribes to ONLY these
-   * names instead of the full values bag.
-   *
-   * - `undefined` (default) → full-bag subscription (current v0.1.x behavior)
-   * - `[]` → no subscription; renderer receives a static `rhf.getValues()`
-   *   snapshot under `allValues`. Use this when the renderer doesn't read
+   * - `undefined` (default) → full-bag subscription; preserves v0.1.x
+   *   behavior for unmigrated custom renderers.
+   * - `[]` → no subscription; renderer receives a `getValues()` snapshot
+   *   under `allValues`. Use this when the renderer doesn't read
    *   `allValues` at all (the most common case for custom renderers).
    * - `['a', 'b']` → narrow subscription; `allValues` is rebuilt from the
-   *   watched names only via `setByPath`.
+   *   watched paths only via `setByPath`.
    *
    * Built-in default-registry renderers (`text`, `radio-group`, `checkbox`,
-   * etc.) auto-skip the subscription per an internal whitelist in v0.2.0 —
-   * declare `dependsOn` only on custom renderers, or to override the
-   * whitelist for a specific field.
+   * etc.) auto-skip the subscription per an internal whitelist — declare
+   * `dependsOn` only on custom renderers, or to override the whitelist for
+   * a specific field. The whitelist check resolves on the FINAL renderer
+   * identity (not on `field.type` alone), so a consumer-registered renderer
+   * replacing `text` correctly opts back into full-bag unless it sets
+   * `dependsOn`.
+   *
+   * **Stable identity:** the array reference should be stable across renders
+   * (module-scope const or `useMemo`-cached). RHF de-dupes subscription
+   * targets by content, so an unstable reference doesn't break correctness,
+   * but stable refs avoid wasted reconciles.
+   *
+   * `validateSchemaDev` warns when `dependsOn` references a field name that
+   * doesn't exist in `schema.fields[].name`.
    */
   dependsOn?: ReadonlyArray<string>;
 }
@@ -231,6 +238,22 @@ export interface FieldRendererArgs {
   error: string | undefined;
   disabled: boolean;
   readOnly: boolean;
+  /**
+   * The form's current values bag. **Freshness depends on the field's
+   * subscription mode** (resolved per-field as of v0.2.0):
+   *
+   * - **Snapshot mode** (built-in default renderers OR `dependsOn: []`):
+   *   captured via `getValues()` at render time. Stays fresh on the field's
+   *   own value changes (Controller re-renders), but DOES NOT reflect
+   *   changes to other fields between renders. If a custom renderer in
+   *   snapshot mode needs live values, subscribe via
+   *   `useJsonFormFieldValue` / `useJsonFormFieldsValue` instead of reading
+   *   from `allValues`.
+   * - **Narrow mode** (`dependsOn: ['a','b']`): live for the declared paths;
+   *   `setByPath`-rebuilt so dot-paths read correctly.
+   * - **Full-bag mode** (`dependsOn` omitted on a custom renderer): live
+   *   across the whole form. Preserves v0.1.x behavior.
+   */
   allValues: Record<string, unknown>;
   formApi: JsonFormHandle<Record<string, unknown>>;
   /** v0.1.2 — ARIA bridge. See `FieldAriaProps` for usage rules. */
