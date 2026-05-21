@@ -41,7 +41,7 @@ export const meta: ComponentMeta = {
     "headless",
   ],
 
-  version: "0.2.3",
+  version: "0.2.4",
   status: "alpha",
   createdAt: "2026-05-12",
   updatedAt: "2026-05-21",

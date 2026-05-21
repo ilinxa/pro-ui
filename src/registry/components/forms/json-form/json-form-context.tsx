@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
+import { FormProvider } from "react-hook-form";
 import type { JsonFormContextValue } from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- `Record<string, any>` is required to satisfy react-hook-form's `FieldValues` constraint; `unknown` won't type-check there. */
@@ -33,12 +34,26 @@ export function JsonFormProvider<TValues extends Record<string, any> = Record<st
   hasSubmitted = false,
   children,
 }: JsonFormProviderProps<TValues>) {
+  // v0.2.4 — bridge RHF's <FormProvider> internally so the documented headless
+  // pattern (`<JsonFormProvider value={{ ...handle, rhf: form, ... }}>`)
+  // works end-to-end without consumers having to also remember to wrap
+  // children in `<FormProvider {...form}>`. `<JsonFormField>` /
+  // `<FieldWrapper>` and the narrow-deps hooks need RHF's context to call
+  // `useFormContext()` and `useWatch({ control })`; before v0.2.4 the
+  // headless example in `demo.tsx` (and any consumer copying it) silently
+  // mounted a tree where every FieldWrapper crashed with "Cannot destructure
+  // 'control' of useFormContext() as it is null". `<JsonForm>` already wraps
+  // with `<FormProvider {...form}>` at the top level — nesting a second copy
+  // here is a no-op since both share the same `form` instance (the inner
+  // wins, identical values).
   return (
-    <JsonFormContext.Provider value={value as JsonFormContextValue}>
-      <JsonFormSubmittedContext.Provider value={hasSubmitted}>
-        {children}
-      </JsonFormSubmittedContext.Provider>
-    </JsonFormContext.Provider>
+    <FormProvider {...value.rhf}>
+      <JsonFormContext.Provider value={value as JsonFormContextValue}>
+        <JsonFormSubmittedContext.Provider value={hasSubmitted}>
+          {children}
+        </JsonFormSubmittedContext.Provider>
+      </JsonFormContext.Provider>
+    </FormProvider>
   );
 }
 
