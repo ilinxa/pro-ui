@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import type {
   NavEntry,
@@ -117,12 +118,17 @@ export function SidebarNavList({
     };
 
   // Renders a single NavItem row, honoring the renderItem slot (L13/L29).
+  // Returns an `<li>` (either via <SidebarNavRow> itself or the renderItem
+  // wrapper). The key lives on the returned element directly — callers must
+  // NOT add an intermediate wrapper, since the parent is a <ul> and only
+  // <li> can be a valid direct child.
   const renderRow = (item: NavItem, sectionId: string | null, indexInSection: number) => {
     const isActive = activeItemId === item.id;
     const isFocused = focusedItemId === item.id;
     const rovingTabIndex = resolveRovingTabIndex(item.id);
     const defaultRender = (
       <SidebarNavRow
+        key={item.id}
         item={item}
         isActive={isActive}
         isCollapsed={isCollapsed}
@@ -184,25 +190,28 @@ export function SidebarNavList({
               rovingTabIndex={sectionRovingTabIndex}
               onToggle={handleSectionToggle}
             >
-              {entry.items.map((child, idx) => (
-                <span key={child.id}>{renderRow(child, entry.id, idx)}</span>
-              ))}
+              {entry.items.map((child, idx) => renderRow(child, entry.id, idx))}
             </SidebarNavSection>
           );
           if (!renderSection) return defaultSection;
+          // `renderSection` is expected to return an `<li>` (typically by
+          // forwarding `defaultRender` or composing its own list-item).
+          // Fragment carries the key without injecting an invalid DOM node
+          // between the `<ul>` parent and the consumer's `<li>`.
           return (
-            <span key={entry.id}>
+            <Fragment key={entry.id}>
               {renderSection({
                 section: entry,
                 isCollapsed: isSectionCollapsed,
                 visibleItemCount: entry.items.length,
                 defaultRender: defaultSection,
               })}
-            </span>
+            </Fragment>
           );
         }
-        // Top-level NavItem
-        return <span key={entry.id}>{renderRow(entry, null, i)}</span>;
+        // Top-level NavItem — renderRow returns an `<li>` directly with
+        // the key already applied, so no wrapper element is needed.
+        return renderRow(entry, null, i);
       })}
     </ul>
   );
