@@ -20,25 +20,71 @@ interface DeriveOptions {
   items: ReadonlyArray<NavEntry>;
   permissions?: ReadonlySet<string>;
   keepEmptySections?: boolean;
+  /**
+   * v0.2.0 — Whether the current user is an owner. Used by `ownerOnly`
+   * gate (L44). Default `false` (matches v0.1 behavior — no items have
+   * `ownerOnly` in v0.1.x so default is a no-op for legacy callers).
+   */
+  isOwner?: boolean;
+  /**
+   * v0.2.0 — Current plan-tier seat capacity. Used by `minMembers` gate
+   * (L45). Default `Infinity` (matches v0.1 behavior — no items have
+   * `minMembers` in v0.1.x so default is a no-op for legacy callers).
+   */
+  currentMaxMembers?: number;
+  /**
+   * v0.2.0 — When `true`, bypass ALL permission gates (permission /
+   * ownerOnly / minMembers) at BOTH section AND item levels (Q21 +
+   * re-validation Finding 4). `hidden: true` is unconditionally respected.
+   * Default `false`.
+   */
+  bypassFiltering?: boolean;
 }
 
 /**
  * Filter and shape the items[] for render.
  *
- * Order of gating per NavItem (L48):
- *   1. hidden === true → drop (no diagnostic)
- *   2. permission set AND permissions doesn't include it → drop + record
+ * Gating order per NavItem:
+ *   1. hidden === true → drop (no diagnostic, ALWAYS respected — Q21)
+ *   2. If !bypassFiltering: permission ∩ ownerOnly ∩ minMembers (L46)
  *
- * NavSection gates the same way at the section level (whole-group drop).
- * Empty sections after item filter auto-hide unless keepEmptySections (L41).
+ * NavSection gates the same way at the section level (whole-group drop) —
+ * `bypassFiltering` applies at BOTH levels coherently per Finding 4 from
+ * the GATE 2 re-validation (else "section disappears, items remain"
+ * inconsistency). Empty sections after item filter auto-hide unless
+ * keepEmptySections.
+ *
+ * v0.1 callers (without isOwner / currentMaxMembers / bypassFiltering)
+ * see byte-identical behavior because the new gates only fire when the
+ * corresponding optional NavItem fields are present + the bypass flag is
+ * false; defaults are explicit per Finding 5.
  */
 export function deriveVisibleEntries(opts: DeriveOptions): VisibleEntriesResult {
-  const { items, permissions, keepEmptySections = false } = opts;
+  const {
+    items,
+    permissions,
+    keepEmptySections = false,
+    isOwner = false,
+    currentMaxMembers = Infinity,
+    bypassFiltering = false,
+  } = opts;
 
   const out: NavEntry[] = [];
   const filteredByPermission: { item: NavItem; requiredPermission: string }[] = [];
   let totalItemCount = 0;
   let hiddenItemCount = 0;
+
+  const passesItemGates = (item: NavItem): { pass: boolean; missingPermission?: string } => {
+    if (bypassFiltering) return { pass: true };
+    if (item.permission && !(permissions?.has(item.permission) ?? false)) {
+      return { pass: false, missingPermission: item.permission };
+    }
+    if (item.ownerOnly && !isOwner) return { pass: false };
+    if (item.minMembers !== undefined && currentMaxMembers < item.minMembers) {
+      return { pass: false };
+    }
+    return { pass: true };
+  };
 
   for (const entry of items) {
     if (entry.kind === "separator") {
@@ -49,8 +95,12 @@ export function deriveVisibleEntries(opts: DeriveOptions): VisibleEntriesResult 
     if (entry.kind === "section") {
       const section = entry as NavSection;
       if (section.hidden) continue;
-      if (section.permission && !(permissions?.has(section.permission) ?? false)) {
-        // Section-level permission gate — drop whole group, no per-item diagnostic
+      // Section perm gate — also skipped by bypassFiltering per Finding 4.
+      if (
+        !bypassFiltering &&
+        section.permission &&
+        !(permissions?.has(section.permission) ?? false)
+      ) {
         continue;
       }
       const visibleInner: NavItem[] = [];
@@ -60,8 +110,11 @@ export function deriveVisibleEntries(opts: DeriveOptions): VisibleEntriesResult 
           hiddenItemCount += 1;
           continue;
         }
-        if (child.permission && !(permissions?.has(child.permission) ?? false)) {
-          filteredByPermission.push({ item: child, requiredPermission: child.permission });
+        const gate = passesItemGates(child);
+        if (!gate.pass) {
+          if (gate.missingPermission) {
+            filteredByPermission.push({ item: child, requiredPermission: gate.missingPermission });
+          }
           continue;
         }
         visibleInner.push(child);
@@ -78,8 +131,11 @@ export function deriveVisibleEntries(opts: DeriveOptions): VisibleEntriesResult 
       hiddenItemCount += 1;
       continue;
     }
-    if (item.permission && !(permissions?.has(item.permission) ?? false)) {
-      filteredByPermission.push({ item, requiredPermission: item.permission });
+    const gate = passesItemGates(item);
+    if (!gate.pass) {
+      if (gate.missingPermission) {
+        filteredByPermission.push({ item, requiredPermission: gate.missingPermission });
+      }
       continue;
     }
     out.push(item);
