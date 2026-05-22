@@ -3,7 +3,9 @@
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useCallback, useId, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useActiveDetection } from "./hooks/use-active-detection";
+import { useMatchMedia, resolveBreakpointQuery } from "./hooks/use-match-media";
 import { useSidebarReducer } from "./hooks/use-sidebar-reducer";
 import {
   SidebarNav01Context,
@@ -18,6 +20,22 @@ import type {
   SidebarNav01Props,
   SidebarNav01StateValue,
 } from "./types";
+
+/** Breakpoint → CSS class lookup (L44 — CSS-gated, not JS-gated rendering). */
+const BREAKPOINT_DESKTOP_VISIBLE: Record<string, string> = {
+  sm: "sm:flex",
+  md: "md:flex",
+  lg: "lg:flex",
+  xl: "xl:flex",
+  "2xl": "2xl:flex",
+};
+const BREAKPOINT_MOBILE_VISIBLE: Record<string, string> = {
+  sm: "sm:hidden",
+  md: "md:hidden",
+  lg: "lg:hidden",
+  xl: "xl:hidden",
+  "2xl": "2xl:hidden",
+};
 
 /**
  * C3 — items rendering + active detection.
@@ -64,6 +82,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
     expandedWidth,
     transitionDuration,
     style,
+    mobileBreakpoint = "lg",
+    mobileDrawerSide,
+    drawerHeaderSlot,
   } = props;
 
   // L32: id defaults via useId() for <SidebarNavTrigger aria-controls>
@@ -105,9 +126,28 @@ export function SidebarNav01(props: SidebarNav01Props) {
     keepEmptySections,
   });
 
+  // Breakpoint resolution — CSS class names for the L44 CSS-gated render path.
+  // `useMatchMedia` returns the live mobile state for JS BEHAVIOR gating only
+  // (e.g., autoCloseMobileOnNavigate timing decisions — actual visual swap is
+  // CSS-driven, no SSR flash).
+  const desktopVisibleClass =
+    typeof mobileBreakpoint === "string" &&
+    mobileBreakpoint in BREAKPOINT_DESKTOP_VISIBLE
+      ? BREAKPOINT_DESKTOP_VISIBLE[mobileBreakpoint]
+      : "lg:flex";
+  const mobileVisibleClass =
+    typeof mobileBreakpoint === "string" &&
+    mobileBreakpoint in BREAKPOINT_MOBILE_VISIBLE
+      ? BREAKPOINT_MOBILE_VISIBLE[mobileBreakpoint]
+      : "lg:hidden";
+
+  const isMobileBehavior = useMatchMedia(resolveBreakpointQuery(mobileBreakpoint));
+
   const closeMobile = useCallback(() => {
+    // Only fire when the consumer is actually on mobile (defensive gate).
+    if (!isMobileBehavior) return;
     dispatch({ type: "SET_MOBILE_OPEN", open: false, reason: "item-click" });
-  }, [dispatch]);
+  }, [dispatch, isMobileBehavior]);
 
   const toggleSection = useCallback(
     (sectionId: string) => {
@@ -214,19 +254,87 @@ export function SidebarNav01(props: SidebarNav01Props) {
     </button>
   );
 
+  // Shared inner chrome — used by BOTH desktop <nav> and mobile <Sheet>.
+  // Single source of truth for the header / list / footer composition.
+  const renderInnerChrome = (mode: "desktop" | "mobile") => (
+    <>
+      {/* Brand / header zone */}
+      {(headerSlot || brandSlot || navAccessorySlot !== null) && (
+        <div className="flex items-center gap-2 border-b border-border p-3 min-h-14">
+          {mode === "mobile" && drawerHeaderSlot ? (
+            <div className="contents">{drawerHeaderSlot}</div>
+          ) : (
+            <>
+              {headerSlot && <div className="contents">{headerSlot}</div>}
+              {brandSlot && <div className="flex-1 min-w-0">{brandSlot}</div>}
+              {!brandSlot && !headerSlot && <div className="flex-1" aria-hidden />}
+              {mode === "desktop" && (
+                <div className="ml-auto shrink-0">
+                  {navAccessorySlot ?? defaultAccessory}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      {/* If no brand/header content was supplied, still render a collapse-toggle row (desktop only) */}
+      {mode === "desktop" &&
+        !headerSlot &&
+        !brandSlot &&
+        navAccessorySlot === undefined && (
+          <div className="flex items-center justify-end gap-2 p-3 min-h-14">
+            {defaultAccessory}
+          </div>
+        )}
+
+      {/* Nav list */}
+      <div className="flex flex-1 flex-col gap-2 overflow-hidden p-3">
+        <SidebarNavList
+          entries={visible.entries}
+          activeItemId={active.item?.id ?? null}
+          isCollapsed={mode === "mobile" ? false : state.collapsed}
+          linkComponent={linkComponent}
+          activeVariant={activeVariant}
+          autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
+          isMobileOpen={state.mobileOpen}
+          onCloseMobile={closeMobile}
+          collapsedSectionIds={state.collapsedSectionIds}
+          onToggleSection={toggleSection}
+          onItemClick={onItemClick}
+          onItemNavigate={onItemNavigate}
+          onSectionToggle={onSectionToggle}
+          renderItem={renderItem}
+          renderSection={renderSection}
+          renderBadge={renderBadge}
+          renderTooltipContent={renderTooltipContent}
+        />
+        {primaryActionSlot && <div className="pt-2">{primaryActionSlot}</div>}
+      </div>
+
+      {/* Footer zone */}
+      {footerSlot && (
+        <div className="border-t border-border p-3">{footerSlot}</div>
+      )}
+    </>
+  );
+
+  const drawerSide = mobileDrawerSide ?? side;
+
   return (
     <SidebarNav01Context.Provider value={contextValue}>
+      {/* Desktop render path — CSS-hidden BELOW breakpoint (L44) */}
       <nav
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C6-badge-tooltip"
+        data-stage="C7-drawer-trigger"
         data-collapsed={state.collapsed}
         data-mobile-open={state.mobileOpen}
         data-side={side}
         style={{ ...cssVars, ...style }}
         className={cn(
-          "flex h-full flex-col bg-card",
+          "hidden h-full flex-col bg-card",
+          desktopVisibleClass,
           // Side-aware border
           side === "left" ? "border-r" : "border-l",
           "border-border",
@@ -234,61 +342,46 @@ export function SidebarNav01(props: SidebarNav01Props) {
           "data-[collapsed=false]:w-(--ilinxa-sidebar-w-expanded)",
           "data-[collapsed=true]:w-(--ilinxa-sidebar-w-collapsed)",
           "motion-safe:transition-[width] motion-safe:duration-(--ilinxa-sidebar-transition-duration)",
-          // RTL hook — when consumer sets dir="rtl", border swaps with logical side
+          // RTL hook
           "rtl:border-x-0",
           side === "left" ? "rtl:border-l" : "rtl:border-r",
           className,
         )}
       >
-        {/* Brand / header zone */}
-        {(headerSlot || brandSlot || navAccessorySlot !== null) && (
-          <div className="flex items-center gap-2 border-b border-border p-3 min-h-14">
-            {headerSlot && <div className="contents">{headerSlot}</div>}
-            {brandSlot && <div className="flex-1 min-w-0">{brandSlot}</div>}
-            {!brandSlot && !headerSlot && <div className="flex-1" aria-hidden />}
-            <div className="ml-auto shrink-0">
-              {navAccessorySlot ?? defaultAccessory}
-            </div>
-          </div>
-        )}
-        {/* If no brand/header content was supplied, still render a collapse-toggle row */}
-        {!headerSlot && !brandSlot && navAccessorySlot === undefined && (
-          <div className="flex items-center justify-end gap-2 p-3 min-h-14">
-            {defaultAccessory}
-          </div>
-        )}
-
-        {/* Nav list */}
-        <div className="flex flex-1 flex-col gap-2 overflow-hidden p-3">
-          <SidebarNavList
-            entries={visible.entries}
-            activeItemId={active.item?.id ?? null}
-            isCollapsed={state.collapsed}
-            linkComponent={linkComponent}
-            activeVariant={activeVariant}
-            autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
-            isMobileOpen={state.mobileOpen}
-            onCloseMobile={closeMobile}
-            collapsedSectionIds={state.collapsedSectionIds}
-            onToggleSection={toggleSection}
-            onItemClick={onItemClick}
-            onItemNavigate={onItemNavigate}
-            onSectionToggle={onSectionToggle}
-            renderItem={renderItem}
-            renderSection={renderSection}
-            renderBadge={renderBadge}
-            renderTooltipContent={renderTooltipContent}
-          />
-
-          {/* Primary action zone — full <NavPrimaryAction> + shorthand in C8 */}
-          {primaryActionSlot && <div className="pt-2">{primaryActionSlot}</div>}
-        </div>
-
-        {/* Footer zone — full <NavUser> + shorthand in C8 */}
-        {footerSlot && (
-          <div className="border-t border-border p-3">{footerSlot}</div>
-        )}
+        {renderInnerChrome("desktop")}
       </nav>
+
+      {/* Mobile render path — CSS-hidden ABOVE breakpoint */}
+      <div
+        className={mobileVisibleClass}
+        data-component="sidebar-nav-01-mobile-wrapper"
+        style={cssVars}
+      >
+        <Sheet
+          open={state.mobileOpen}
+          // F-cross-13 defensive: Radix passes (open: boolean); Base UI may pass
+          // undefined or different shape. Runtime-check before dispatching.
+          onOpenChange={(nextOpen: boolean | undefined) => {
+            if (typeof nextOpen === "boolean") {
+              dispatch({
+                type: "SET_MOBILE_OPEN",
+                open: nextOpen,
+                reason: nextOpen ? "imperative" : "outside-click",
+              });
+            }
+          }}
+        >
+          <SheetContent
+            side={drawerSide}
+            className="flex w-72 flex-col bg-card p-0"
+            style={cssVars}
+            aria-describedby={undefined}
+          >
+            <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
+            {renderInnerChrome("mobile")}
+          </SheetContent>
+        </Sheet>
+      </div>
     </SidebarNav01Context.Provider>
   );
 }

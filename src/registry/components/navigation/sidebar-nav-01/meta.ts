@@ -46,7 +46,7 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["tooltip"],
+    shadcn: ["tooltip", "sheet"],
     npm: {
       "lucide-react": "^1.11.0",
     },
