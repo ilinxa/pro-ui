@@ -10,6 +10,10 @@ interface UseActiveDetectionOptions {
   defaultMatch?: "exact" | "prefix";
   permissions?: ReadonlySet<string>;
   keepEmptySections?: boolean;
+  // v0.2.0 — gates threaded to deriveVisibleEntries (L44 / L45 / Q21).
+  isOwner?: boolean;
+  currentMaxMembers?: number;
+  bypassFiltering?: boolean;
 }
 
 export interface UseActiveDetectionResult {
@@ -22,6 +26,9 @@ export interface UseActiveDetectionResult {
  *
  * Reference stability of `items` is critical (L34) — non-memoized items[]
  * invalidate this memo every render. Guide.md teaches consumers to memoize.
+ *
+ * v0.2.0 — also threads `isOwner`, `currentMaxMembers`, `bypassFiltering`
+ * into the deriveVisibleEntries call (L44–L46 + Q21).
  */
 export function useActiveDetection(
   options: UseActiveDetectionOptions,
@@ -32,8 +39,18 @@ export function useActiveDetection(
         items: options.items,
         permissions: options.permissions,
         keepEmptySections: options.keepEmptySections,
+        isOwner: options.isOwner,
+        currentMaxMembers: options.currentMaxMembers,
+        bypassFiltering: options.bypassFiltering,
       }),
-    [options.items, options.permissions, options.keepEmptySections],
+    [
+      options.items,
+      options.permissions,
+      options.keepEmptySections,
+      options.isOwner,
+      options.currentMaxMembers,
+      options.bypassFiltering,
+    ],
   );
 
   const active = useMemo(
