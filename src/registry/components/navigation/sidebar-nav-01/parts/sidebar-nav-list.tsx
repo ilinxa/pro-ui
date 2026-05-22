@@ -1,0 +1,146 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import type {
+  NavEntry,
+  NavItem,
+  NavLinkComponent,
+  SidebarNav01EventArgs,
+  SidebarNav01Props,
+} from "../types";
+import { SidebarNavRow } from "./sidebar-nav-row";
+import { SidebarNavSeparator } from "./sidebar-nav-separator";
+
+interface SidebarNavListProps {
+  entries: ReadonlyArray<NavEntry>;
+  activeItemId: string | null;
+  isCollapsed: boolean;
+  linkComponent: NavLinkComponent;
+  autoCloseMobileOnNavigate: boolean;
+  isMobileOpen: boolean;
+  onCloseMobile: () => void;
+
+  // Consumer event hooks
+  onItemClick?: (args: SidebarNav01EventArgs["itemClick"]) => void;
+  onItemNavigate?: (args: SidebarNav01EventArgs["itemNavigate"]) => void;
+
+  // Slot priority (C5 + C10 will plumb these through)
+  renderItem?: SidebarNav01Props["renderItem"];
+}
+
+/**
+ * Renders the NavEntry[] list — flat NavItems, NavSections, and NavSeparators.
+ *
+ * C3 surface: flat items + separators. Sections render their items in a
+ * single ungrouped list (full section UI with title + collapsible header
+ * lands C4 in parts/sidebar-nav-section.tsx).
+ *
+ * Click sequence per L28:
+ *   1. consumer's item.onClick fires sync
+ *   2. onItemClick (component-level) fires sync
+ *   3. if event.defaultPrevented → stop
+ *   4. queueMicrotask → onItemNavigate + autoCloseMobileOnNavigate
+ *
+ * Disabled items short-circuit at step 1 (L27).
+ */
+export function SidebarNavList({
+  entries,
+  activeItemId,
+  isCollapsed,
+  linkComponent,
+  autoCloseMobileOnNavigate,
+  isMobileOpen,
+  onCloseMobile,
+  onItemClick,
+  onItemNavigate,
+  renderItem,
+}: SidebarNavListProps) {
+  const handleItemClick =
+    (item: NavItem, sectionId: string | null, indexInSection: number) =>
+    (event: React.MouseEvent) => {
+      // L27 — disabled items short-circuit at step 1
+      if (item.disabled) {
+        event.preventDefault();
+        return;
+      }
+      // Step 1 — consumer's per-item onClick
+      item.onClick?.(event);
+      // Step 2 — component-level onItemClick
+      onItemClick?.({ item, isActive: activeItemId === item.id, event });
+      // Step 3 — short-circuit if cancelled
+      if (event.defaultPrevented) return;
+      // Step 4 — microtask defer the navigation-side effects
+      queueMicrotask(() => {
+        onItemNavigate?.({ item });
+        if (autoCloseMobileOnNavigate && isMobileOpen) {
+          onCloseMobile();
+        }
+      });
+      // Intentionally allow native <a> navigation to proceed unless
+      // consumer called preventDefault in step 1 or 2.
+      void sectionId;
+      void indexInSection;
+    };
+
+  // Renders a single NavItem row, honoring the renderItem slot (L13/L29).
+  const renderRow = (item: NavItem, sectionId: string | null, indexInSection: number) => {
+    const isActive = activeItemId === item.id;
+    const defaultRender = (
+      <SidebarNavRow
+        item={item}
+        isActive={isActive}
+        isCollapsed={isCollapsed}
+        linkComponent={linkComponent}
+        onClick={handleItemClick(item, sectionId, indexInSection)}
+      />
+    );
+    if (!renderItem) return defaultRender;
+    return (
+      <li key={item.id} className="list-none">
+        {renderItem({
+          item,
+          isActive,
+          isCollapsed,
+          isFocused: false, // C12 wires the focus tracker
+          isDisabled: item.disabled ?? false,
+          sectionId,
+          indexInSection,
+          defaultRender,
+        })}
+      </li>
+    );
+  };
+
+  return (
+    <ul
+      role="list"
+      className={cn(
+        "flex flex-1 flex-col gap-1 overflow-y-auto",
+        // C5 hooks: motion-safe transitions will live here
+      )}
+    >
+      {entries.map((entry, i) => {
+        if (entry.kind === "separator") {
+          return <SidebarNavSeparator key={entry.id ?? `sep-${i}`} />;
+        }
+        if (entry.kind === "section") {
+          // C4 will render the section header + collapsible body.
+          // C3 baseline: flatten the section's items inline so we can
+          // verify items + active detection works for sectioned data
+          // before the section UI lands.
+          return (
+            <li key={entry.id} className="list-none">
+              <ul role="list" className="flex flex-col gap-1">
+                {entry.items.map((child, idx) => (
+                  <span key={child.id}>{renderRow(child, entry.id, idx)}</span>
+                ))}
+              </ul>
+            </li>
+          );
+        }
+        // Top-level NavItem
+        return <span key={entry.id}>{renderRow(entry, null, i)}</span>;
+      })}
+    </ul>
+  );
+}

@@ -56,6 +56,7 @@ export interface NavLinkProps {
   className?: string;
   "aria-current"?: "page" | undefined;
   "aria-label"?: string;
+  "aria-disabled"?: boolean | "true" | "false" | undefined;
   "data-active"?: boolean;
   children?: ReactNode;
   onClick?: (e: React.MouseEvent) => void;
@@ -63,6 +64,7 @@ export interface NavLinkProps {
   onFocus?: (e: React.FocusEvent) => void;
   target?: string;
   rel?: string;
+  tabIndex?: number;
   ref?: Ref<HTMLAnchorElement>;
   [key: `data-${string}`]: unknown;
 }
