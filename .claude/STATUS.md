@@ -88,6 +88,7 @@
 | `pdf-viewer` | media | alpha | 0.1.3 |
 | `file-tree` | navigation | alpha | 0.1.0 |
 | `file-manager` | navigation | alpha | 0.1.0 |
+| `sidebar-nav-01` | navigation | **in-progress (C10/13)** | (pre-ship) |
 | `code-block` | code | alpha | 0.1.0 |
 | `detail-panel` | feedback | alpha | 0.1.1 |
 
@@ -111,6 +112,8 @@ User's procomp queue — 7 of 8 shipped, 2 remaining. Each goes through GATE 1 (
 10. `notification-system`
 
 Sibling procomp queued: `todo-rich-card-in-flow` (flow-canvas-01 adapter mirroring rcif's shape; no GATE 1 yet).
+
+**Side workstream in-flight (added 2026-05-22):** `sidebar-nav-01` — migration from kasder social-nav-system. PAUSED at C10/13. Sibling `bottom-tab-bar-01` to ship after sidebar-nav-01 closes (shares `<NavBadge>` + `NavItem` schema via F-S1 relative-path import). See HANDOFF + decision file linked in Recent activity above.
 
 ## Roadmap (longer-term team-utility candidates)
 
@@ -158,6 +161,7 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files (or HANDOFF artifacts), most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [⏸ 2026-05-22 — sidebar-nav-01 PAUSED at C10/13 (HANDOFF)](HANDOFF-2026-05-22-sidebar-nav-01-paused-after-c10.md) — new procomp in-flight, migration from kasder social-nav-system. GATE 1 + GATE 2 docs signed off (40 + 50 locks across description + plan, 4 audit-pass appendices total surfacing 62 substantive findings across migration analysis + Stage 1 + Stage 2 + Stage 2 plan revalidation). C1–C10 of the 13-commit chain landed on master (`39a03bc..8952fb7`) + 6 inline fixup commits (`ed2e7d9` quotes / `11d77ff` duplicate header rows / `f6e1b0e` useImperativeHandle missing / `e198bf0` DropdownMenu+Slot composition bugs). Remaining: C11 (keyboard + skip link + permissions diff) → C12 (deferred event wiring + RTL polish) → C13 (registry.json + STATUS row → alpha 0.1.0 + spotcheck + path-b smoke). Tip `8952fb7` local + pushed. **L14 12-slot inventory complete + 12 prefab/headless surface complete + F-cross-13 carriers Tooltip+Sheet+DropdownMenu all defensively wired.** `SidebarNav01Context` is rendered INSIDE the sidebar's own subtree → trigger-as-sibling needs the explicit `controls` ref (documented limitation for v0.1; future `<SidebarNav01Provider>` wrapper could enable cross-tree triggers). Decision: [`.claude/decisions/2026-05-22-sidebar-nav-01-migration-and-c1-c10.md`](decisions/2026-05-22-sidebar-nav-01-migration-and-c1-c10.md).
 - [2026-05-22 — registration-form-01 v0.1.1 SHIPPED — submit-row layout fix](decisions/2026-05-22-registration-form-01-v0.1.1-submit-row-fullwidth.md) — user-reported layout glitch on the docs preview surface. `SubmitRow` collapses to a full-width `<Button type="submit">` when there are no secondary actions (single-step / step-1 of two-step); step-2 of two-step preserved. Sibling demo-side polish: `Section` width tightened to `max-w-md p-6`, `TabsList` un-`w-full`'d to stop the last tab colliding with the "View Code" badge. Patch-bump exemption.
 - [2026-05-22 — pricing-table-01 v0.1.0 SHIPPED — 47th component](decisions/2026-05-22-pricing-table-01-v0.1.0-first-ship.md) — CMS conversion-block batch fully closed (sibling of registration-form-01). Marketing-category pricing surface; F-cross-13 carrier `<TooltipProvider delayDuration={150}>` dropped pre-ship; GATE 3 Pass with follow-ups; 5 non-blocking findings.
 - [2026-05-22 — registration-form-01 v0.1.0 SHIPPED — 46th component](decisions/2026-05-22-registration-form-01-v0.1.0-first-ship.md) — hand-rolled on RHF v7 + zod v4; sibling of in-flight pricing-table-01. Three load-bearing contracts: discriminated submit payload + status mutual-exclusion + honeypot two-key duality. GATE 3 Pass with follow-ups; 5 findings non-blocking (path-b smoke deferred to post-deploy per established pattern).
