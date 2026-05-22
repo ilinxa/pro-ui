@@ -91,6 +91,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
     mobileBreakpoint = "lg",
     mobileDrawerSide,
     drawerHeaderSlot,
+    // TODO(C12): wire onBrandClick / onPrimaryActionClick / onFooterTriggerOpen
+    // / onFooterMenuItemClick events through prefab configs. For now slot-based
+    // usage fires consumer's own handlers; component-level events deferred.
     ref: externalRef,
   } = props;
 
