@@ -17,6 +17,7 @@ interface SidebarNavListProps {
   activeItemId: string | null;
   isCollapsed: boolean;
   linkComponent: NavLinkComponent;
+  activeVariant?: SidebarNav01Props["activeVariant"];
   autoCloseMobileOnNavigate: boolean;
   isMobileOpen: boolean;
   onCloseMobile: () => void;
@@ -30,7 +31,7 @@ interface SidebarNavListProps {
   onItemNavigate?: (args: SidebarNav01EventArgs["itemNavigate"]) => void;
   onSectionToggle?: (args: SidebarNav01EventArgs["sectionToggle"]) => void;
 
-  // Slot priority (C5 + C10 will plumb these through)
+  // Slot priority
   renderItem?: SidebarNav01Props["renderItem"];
   renderSection?: SidebarNav01Props["renderSection"];
 }
@@ -55,6 +56,7 @@ export function SidebarNavList({
   activeItemId,
   isCollapsed,
   linkComponent,
+  activeVariant,
   autoCloseMobileOnNavigate,
   isMobileOpen,
   onCloseMobile,
@@ -102,6 +104,7 @@ export function SidebarNavList({
         isActive={isActive}
         isCollapsed={isCollapsed}
         linkComponent={linkComponent}
+        activeVariant={activeVariant}
         onClick={handleItemClick(item, sectionId, indexInSection)}
       />
     );
