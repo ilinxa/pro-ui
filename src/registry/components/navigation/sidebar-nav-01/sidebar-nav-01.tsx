@@ -43,10 +43,12 @@ export function SidebarNav01(props: SidebarNav01Props) {
     onMobileOpenChange,
     onItemClick,
     onItemNavigate,
+    onSectionToggle,
     autoCloseMobileOnNavigate = true,
     keepEmptySections = false,
     permissions,
     renderItem,
+    renderSection,
     brandSlot,
     headerSlot,
     primaryActionSlot,
@@ -57,11 +59,25 @@ export function SidebarNav01(props: SidebarNav01Props) {
   const autoId = useId();
   const sidebarId = idProp ?? `sidebar-nav-01-${autoId}`;
 
+  // Section-collapse init priority (plan §8): explicit prop > per-section
+  // defaultCollapsed. Storage rehydration (C11) will outrank both via
+  // EXTERNAL_SYNC after mount.
+  const initialCollapsedSectionIds = useMemo(() => {
+    if (defaultCollapsedSectionIds) return defaultCollapsedSectionIds;
+    const fromItems: string[] = [];
+    for (const entry of items) {
+      if (entry.kind === "section" && entry.defaultCollapsed) {
+        fromItems.push(entry.id);
+      }
+    }
+    return fromItems;
+  }, [defaultCollapsedSectionIds, items]);
+
   // Reducer + Defense-1 + Defense-2 wiring
   const { state, dispatch } = useSidebarReducer({
     defaultCollapsed,
     defaultMobileOpen,
-    defaultCollapsedSectionIds,
+    defaultCollapsedSectionIds: initialCollapsedSectionIds,
     isCollapsed,
     isMobileOpen,
     onCollapsedChange,
@@ -81,6 +97,13 @@ export function SidebarNav01(props: SidebarNav01Props) {
   const closeMobile = useCallback(() => {
     dispatch({ type: "SET_MOBILE_OPEN", open: false, reason: "item-click" });
   }, [dispatch]);
+
+  const toggleSection = useCallback(
+    (sectionId: string) => {
+      dispatch({ type: "TOGGLE_SECTION", sectionId });
+    },
+    [dispatch],
+  );
 
   // Imperative handle — refreshed with items + active-detection results
   const handle = useMemo<SidebarNav01Handle>(() => {
@@ -160,7 +183,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C3-items-rendering"
+        data-stage="C4-sections"
         data-collapsed={state.collapsed}
         data-mobile-open={state.mobileOpen}
         className={cn(
@@ -186,9 +209,13 @@ export function SidebarNav01(props: SidebarNav01Props) {
             autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
             isMobileOpen={state.mobileOpen}
             onCloseMobile={closeMobile}
+            collapsedSectionIds={state.collapsedSectionIds}
+            onToggleSection={toggleSection}
             onItemClick={onItemClick}
             onItemNavigate={onItemNavigate}
+            onSectionToggle={onSectionToggle}
             renderItem={renderItem}
+            renderSection={renderSection}
           />
 
           {/* Primary action zone — full <NavPrimaryAction> + shorthand in C9 */}
