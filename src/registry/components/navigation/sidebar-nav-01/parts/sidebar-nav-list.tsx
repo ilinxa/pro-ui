@@ -15,6 +15,13 @@ import { SidebarNavSeparator } from "./sidebar-nav-separator";
 interface SidebarNavListProps {
   entries: ReadonlyArray<NavEntry>;
   activeItemId: string | null;
+  focusedItemId: string | null;
+  /**
+   * Stable id of the first focusable item/section header in the rendered
+   * traversal — used as the roving tabindex anchor when nothing is focused.
+   * Null if no row is focusable (loading / empty).
+   */
+  keyboardEntryId: string | null;
   isCollapsed: boolean;
   linkComponent: NavLinkComponent;
   activeVariant?: SidebarNav01Props["activeVariant"];
@@ -56,6 +63,8 @@ interface SidebarNavListProps {
 export function SidebarNavList({
   entries,
   activeItemId,
+  focusedItemId,
+  keyboardEntryId,
   isCollapsed,
   linkComponent,
   activeVariant,
@@ -72,6 +81,14 @@ export function SidebarNavList({
   renderBadge,
   renderTooltipContent,
 }: SidebarNavListProps) {
+  // Roving tabindex (L37). The "entry point" rule:
+  //   - Some row has the user's focus      → only that row is tabbable.
+  //   - Nothing focused yet                 → the keyboard entry row is tabbable.
+  //   - Disabled items always pass to -1.
+  const resolveRovingTabIndex = (itemId: string): 0 | -1 => {
+    if (focusedItemId) return focusedItemId === itemId ? 0 : -1;
+    return keyboardEntryId === itemId ? 0 : -1;
+  };
   const handleItemClick =
     (item: NavItem, sectionId: string | null, indexInSection: number) =>
     (event: React.MouseEvent) => {
@@ -102,11 +119,15 @@ export function SidebarNavList({
   // Renders a single NavItem row, honoring the renderItem slot (L13/L29).
   const renderRow = (item: NavItem, sectionId: string | null, indexInSection: number) => {
     const isActive = activeItemId === item.id;
+    const isFocused = focusedItemId === item.id;
+    const rovingTabIndex = resolveRovingTabIndex(item.id);
     const defaultRender = (
       <SidebarNavRow
         item={item}
         isActive={isActive}
         isCollapsed={isCollapsed}
+        isFocused={isFocused}
+        rovingTabIndex={rovingTabIndex}
         linkComponent={linkComponent}
         activeVariant={activeVariant}
         onClick={handleItemClick(item, sectionId, indexInSection)}
@@ -121,7 +142,7 @@ export function SidebarNavList({
           item,
           isActive,
           isCollapsed,
-          isFocused: false, // C12 wires the focus tracker
+          isFocused,
           isDisabled: item.disabled ?? false,
           sectionId,
           indexInSection,
@@ -145,6 +166,9 @@ export function SidebarNavList({
         }
         if (entry.kind === "section") {
           const isSectionCollapsed = collapsedSectionIds.has(entry.id);
+          const isSectionFocused = focusedItemId === entry.id;
+          const sectionRovingTabIndex =
+            entry.collapsible ? resolveRovingTabIndex(entry.id) : -1;
           const handleSectionToggle = () => {
             onToggleSection(entry.id);
             onSectionToggle?.({ section: entry, collapsed: !isSectionCollapsed });
@@ -156,6 +180,8 @@ export function SidebarNavList({
               isCollapsed={isSectionCollapsed}
               isSidebarCollapsed={isCollapsed}
               visibleItemCount={entry.items.length}
+              isFocused={isSectionFocused}
+              rovingTabIndex={sectionRovingTabIndex}
               onToggle={handleSectionToggle}
             >
               {entry.items.map((child, idx) => (

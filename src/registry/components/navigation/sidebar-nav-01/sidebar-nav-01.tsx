@@ -1,7 +1,14 @@
 "use client";
 
 import { PanelLeft, PanelLeftClose } from "lucide-react";
-import { useCallback, useEffect, useId, useImperativeHandle, useMemo } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useActiveDetection } from "./hooks/use-active-detection";
@@ -13,6 +20,8 @@ import {
   type SidebarNav01ContextValue,
 } from "./contexts/sidebar-nav-context";
 import { deriveCssVars } from "./lib/derive-css-vars";
+import { flattenEntriesForKeyboard } from "./lib/flatten-entries";
+import { handleSidebarKeydown } from "./lib/keyboard-handler";
 import { DefaultLink } from "./parts/default-link";
 import { NavBrand } from "./parts/nav-brand";
 import { NavPrimaryAction } from "./parts/nav-primary-action";
@@ -20,6 +29,7 @@ import { NavUser } from "./parts/nav-user";
 import { SidebarEmptyState } from "./parts/sidebar-empty-state";
 import { SidebarLoadingSkeleton } from "./parts/sidebar-loading-skeleton";
 import { SidebarNavList } from "./parts/sidebar-nav-list";
+import { SidebarSkipLink } from "./parts/sidebar-skip-link";
 import type {
   NavItem,
   SidebarNav01EmptyReason,
@@ -102,6 +112,10 @@ export function SidebarNav01(props: SidebarNav01Props) {
     mobileBreakpoint = "lg",
     mobileDrawerSide,
     drawerHeaderSlot,
+    skipLinkTarget,
+    skipLinkLabel = "Skip to content",
+    onPermissionDenied,
+    onSkipLinkActivated,
     // TODO(C12): wire onBrandClick / onPrimaryActionClick / onFooterTriggerOpen
     // / onFooterMenuItemClick events through prefab configs. For now slot-based
     // usage fires consumer's own handlers; component-level events deferred.
@@ -287,6 +301,74 @@ export function SidebarNav01(props: SidebarNav01Props) {
   const finalVisibleEntries = externalState?.visibleEntries ?? visible.entries;
   const finalHandle: SidebarNav01Handle = externalState ?? handle;
 
+  // Flattened keyboard traversal sequence (L37). Section headers (collapsible
+  // only) interleave with their items; items hide when section is collapsed.
+  const keyboardFlat = useMemo(
+    () =>
+      flattenEntriesForKeyboard(finalVisibleEntries, finalCollapsedSectionIds),
+    [finalVisibleEntries, finalCollapsedSectionIds],
+  );
+  const keyboardEntryId = keyboardFlat.length > 0 ? keyboardFlat[0].id : null;
+
+  // Reducer-driven focus state. Even when external `state` is provided,
+  // focus tracking lives in the internal reducer — focus is transient UI,
+  // not persistable consumer state.
+  const focusedItemId = state.focusedItemId;
+
+  // L38 — onPermissionDenied diff-firing. Fire once per item initially +
+  // again for any item NEWLY entering the filtered set on subsequent renders.
+  // Comparison runs on each render via the ref-tracked previous set.
+  const prevFilteredRef = useRef<ReadonlySet<string> | null>(null);
+  useEffect(() => {
+    const currentFiltered = visible.filteredByPermission;
+    const currentIds = new Set(currentFiltered.map((f) => f.item.id));
+    if (onPermissionDenied) {
+      const prevIds = prevFilteredRef.current;
+      for (const entry of currentFiltered) {
+        if (prevIds === null || !prevIds.has(entry.item.id)) {
+          onPermissionDenied({
+            item: entry.item,
+            requiredPermission: entry.requiredPermission,
+          });
+        }
+      }
+    }
+    prevFilteredRef.current = currentIds;
+  }, [visible.filteredByPermission, onPermissionDenied]);
+
+  // Programmatic focus follow-up — when reducer's focusedItemId changes,
+  // move DOM focus to the matching row (via `data-nav-id`). Layout effect
+  // so focus lands before the browser paints, avoiding visible flashes.
+  useEffect(() => {
+    if (!focusedItemId) return;
+    if (typeof document === "undefined") return;
+    const nav = document.getElementById(sidebarId);
+    if (!nav) return;
+    const escaped =
+      typeof window !== "undefined" && typeof window.CSS?.escape === "function"
+        ? window.CSS.escape(focusedItemId)
+        : focusedItemId.replace(/(["\\])/g, "\\$1");
+    const target = nav.querySelector<HTMLElement>(
+      `[data-nav-id="${escaped}"]`,
+    );
+    if (target && document.activeElement !== target) {
+      target.focus();
+    }
+  }, [focusedItemId, sidebarId]);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLElement>) => {
+      handleSidebarKeydown(event, {
+        flat: keyboardFlat,
+        focusedId: focusedItemId,
+        setFocusedId: (id) => dispatch({ type: "FOCUS_ITEM", itemId: id }),
+        toggleSection: (id) => finalHandle.toggleSection(id),
+        isSectionCollapsed: (id) => finalCollapsedSectionIds.has(id),
+      });
+    },
+    [keyboardFlat, focusedItemId, dispatch, finalHandle, finalCollapsedSectionIds],
+  );
+
   // F2 — auto-scroll active item into view on mount + currentPath change (L48-c)
   useEffect(() => {
     if (!autoScrollActiveIntoView) return;
@@ -425,6 +507,8 @@ export function SidebarNav01(props: SidebarNav01Props) {
       <SidebarNavList
         entries={finalVisibleEntries}
         activeItemId={finalActiveItem?.id ?? null}
+        focusedItemId={focusedItemId}
+        keyboardEntryId={keyboardEntryId}
         isCollapsed={collapsed}
         linkComponent={linkComponent}
         activeVariant={activeVariant}
@@ -488,13 +572,14 @@ export function SidebarNav01(props: SidebarNav01Props) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C10-persist-headless-state"
+        data-stage="C11-keyboard-skiplink-permissions"
         data-collapsed={finalCollapsed}
         data-mobile-open={finalMobileOpen}
         data-side={side}
+        onKeyDown={handleKeyDown}
         style={{ ...cssVars, ...style }}
         className={cn(
-          "hidden h-full flex-col bg-card",
+          "relative hidden h-full flex-col bg-card",
           desktopVisibleClass,
           // Side-aware border
           side === "left" ? "border-r" : "border-l",
@@ -509,6 +594,13 @@ export function SidebarNav01(props: SidebarNav01Props) {
           className,
         )}
       >
+        {skipLinkTarget && (
+          <SidebarSkipLink
+            target={skipLinkTarget}
+            label={skipLinkLabel}
+            onActivated={onSkipLinkActivated}
+          />
+        )}
         {renderInnerChrome("desktop")}
       </nav>
 
@@ -533,11 +625,19 @@ export function SidebarNav01(props: SidebarNav01Props) {
         >
           <SheetContent
             side={drawerSide}
-            className="flex w-72 flex-col bg-card p-0"
+            className="relative flex w-72 flex-col bg-card p-0"
             style={cssVars}
             aria-describedby={undefined}
+            onKeyDown={handleKeyDown}
           >
             <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
+            {skipLinkTarget && (
+              <SidebarSkipLink
+                target={skipLinkTarget}
+                label={skipLinkLabel}
+                onActivated={onSkipLinkActivated}
+              />
+            )}
             {renderInnerChrome("mobile")}
           </SheetContent>
         </Sheet>

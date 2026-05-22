@@ -16,6 +16,13 @@ interface SidebarNavRowProps {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
+  isFocused: boolean;
+  /**
+   * Roving tabindex (L37). `0` when this row is the keyboard entry point
+   * (= focused row OR — when nothing is focused — the first focusable row);
+   * `-1` otherwise. Disabled items always pass through to `tabIndex={-1}`.
+   */
+  rovingTabIndex: 0 | -1;
   linkComponent: NavLinkComponent;
   activeVariant?: SidebarNav01Props["activeVariant"];
   onClick: (event: React.MouseEvent) => void;
@@ -45,6 +52,8 @@ export function SidebarNavRow({
   item,
   isActive,
   isCollapsed,
+  isFocused,
+  rovingTabIndex,
   linkComponent: LinkComponent,
   activeVariant,
   onClick,
@@ -94,7 +103,9 @@ export function SidebarNavRow({
       aria-label={isCollapsed ? item.label : undefined}
       aria-disabled={isDisabled || undefined}
       data-active={isActive}
-      tabIndex={isDisabled ? -1 : undefined}
+      data-focused={isFocused || undefined}
+      data-nav-id={item.id}
+      tabIndex={isDisabled ? -1 : rovingTabIndex}
       target={item.target}
       rel={item.rel}
       className={cn(

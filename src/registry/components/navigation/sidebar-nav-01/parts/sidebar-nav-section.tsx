@@ -11,6 +11,9 @@ interface SidebarNavSectionProps {
   isCollapsed: boolean; // section's own collapse state (NOT sidebar's)
   isSidebarCollapsed: boolean; // sidebar collapsed = icon-only mode
   visibleItemCount: number;
+  isFocused: boolean;
+  /** Roving tabindex for the collapsible header button (L37). */
+  rovingTabIndex: 0 | -1;
   children: React.ReactNode; // the section's items (already rendered by parent)
   onToggle: () => void;
 }
@@ -31,6 +34,8 @@ export function SidebarNavSection({
   isCollapsed,
   isSidebarCollapsed,
   visibleItemCount,
+  isFocused,
+  rovingTabIndex,
   children,
   onToggle,
 }: SidebarNavSectionProps) {
@@ -88,6 +93,9 @@ export function SidebarNavSection({
           onClick={onToggle}
           aria-expanded={!isCollapsed}
           aria-controls={bodyId}
+          data-nav-id={section.id}
+          data-focused={isFocused || undefined}
+          tabIndex={rovingTabIndex}
           className={cn(
             "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left",
             "hover:bg-muted/50",
