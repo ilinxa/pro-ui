@@ -91,14 +91,14 @@
 | `page-hero-news-01` | marketing | alpha | 0.1.2 |
 | `share-bar-01` | marketing | alpha | 0.1.0 |
 | `media-carousel-01` | media | alpha | 0.1.2 |
-| `story-viewer-01` | media | alpha | 0.1.1 |
+| `story-viewer-01` | media | alpha | 0.1.2 |
 | `video-player-01` | media | alpha | 0.1.2 |
 | `pdf-viewer` | media | alpha | 0.1.3 |
 | `file-tree` | navigation | alpha | 0.1.0 |
 | `file-manager` | navigation | alpha | 0.1.0 |
 | `rich-sidebar` | navigation | alpha | 0.2.1 |
 | `account-switcher-01` | navigation | alpha | 0.1.0 |
-| `code-block` | code | alpha | 0.1.0 |
+| `code-block` | code | alpha | 0.1.1 |
 | `detail-panel` | feedback | alpha | 0.1.1 |
 
 > `force-graph` removed 2026-05-08 pending recreation; v0.2 source + procomp docs archived to [`docs/migrations/force-graph/`](../docs/migrations/force-graph/). v3 design + slug TBD.
