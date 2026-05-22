@@ -268,6 +268,9 @@ function V02MultiContextDemo() {
   const [maxMembers, setMaxMembers] = useState(5);
   const [bypass, setBypass] = useState(false);
   const [currentPath, setCurrentPath] = useState(V02_DEFAULT_PATH_BY_CONTEXT["biz-acme"]);
+  // Lift collapsed state so it threads to BOTH <RichSidebar> AND the slotted
+  // <AccountSwitcher01> — the canonical collapse-aware composition recipe.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Items + slug derive purely from the current context.
   const items = V02_NAV_BY_CONTEXT[activeContextKey];
@@ -320,6 +323,14 @@ function V02MultiContextDemo() {
           />
           bypassFiltering
         </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={sidebarCollapsed}
+            onChange={(e) => setSidebarCollapsed(e.target.checked)}
+          />
+          collapse sidebar
+        </label>
         <span className="ml-auto font-mono text-muted-foreground">
           context: <code>{activeContextKey}</code>
           {slug ? (
@@ -333,6 +344,8 @@ function V02MultiContextDemo() {
         <RichSidebar
           items={items}
           currentPath={currentPath}
+          isCollapsed={sidebarCollapsed}
+          onCollapsedChange={({ collapsed }) => setSidebarCollapsed(collapsed)}
           onItemClick={({ item, event }) => {
             if (item.href) {
               event.preventDefault();
@@ -344,6 +357,7 @@ function V02MultiContextDemo() {
               items={V02_SWITCHER_ITEMS}
               activeKey={activeContextKey}
               onSelect={handleContextSwitch}
+              isCollapsed={sidebarCollapsed}
             />
           }
           hrefTemplateValues={templateValues}
@@ -362,6 +376,12 @@ function V02MultiContextDemo() {
             <li><code>Analytics</code> / <code>Settings</code> / <code>Billing</code> hide unless <code>isOwner</code></li>
             <li><code>Team</code> hidden unless <code>currentMaxMembers ≥ 2</code></li>
             <li><code>bypassFiltering</code> reveals everything (still respects <code>hidden:true</code>)</li>
+            <li>
+              <code>collapse sidebar</code> threads <code>isCollapsed</code> into BOTH
+              <code>&lt;RichSidebar&gt;</code> AND the slotted{" "}
+              <code>&lt;AccountSwitcher01&gt;</code> — switcher trigger flips to
+              icon-only along with the rest of the sidebar
+            </li>
           </ul>
         </div>
       </div>
