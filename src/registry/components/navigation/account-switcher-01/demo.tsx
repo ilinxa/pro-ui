@@ -71,8 +71,8 @@ function SidebarDemo() {
     ACCOUNT_SWITCHER_01_DUMMY_ACTIVE_KEY ?? "personal",
   );
   return (
-    <div className="flex gap-6">
-      <div className="flex w-64 flex-col gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+      <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-3 md:w-64">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -104,11 +104,11 @@ function TopbarDemo() {
   const [activeKey, setActiveKey] = useState<string>("biz-acme");
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3 text-sm font-medium text-foreground">
           <span className="text-base">○ MyApp</span>
         </div>
-        <div className="w-60">
+        <div className="order-3 w-full min-w-0 sm:order-0 sm:w-60">
           <AccountSwitcher01
             items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
             activeKey={activeKey}
@@ -131,8 +131,8 @@ function TopbarDemo() {
 function CollapsedDemo() {
   const [activeKey, setActiveKey] = useState<string>("biz-acme");
   return (
-    <div className="flex gap-6">
-      <div className="flex w-16 flex-col items-center gap-3 rounded-lg border border-border bg-card p-2">
+    <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+      <div className="flex w-16 flex-col items-center gap-3 self-start rounded-lg border border-border bg-card p-2">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -172,7 +172,7 @@ function FallbackDemo() {
   const [activeKey, setActiveKey] = useState<string | null>("not-in-list");
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-3 text-sm">
         <label htmlFor="active-key-input" className="font-medium text-foreground">
           activeKey:
         </label>
@@ -181,13 +181,13 @@ function FallbackDemo() {
           type="text"
           value={activeKey ?? ""}
           onChange={(e) => setActiveKey(e.target.value || null)}
-          className="w-48 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs"
+          className="w-full min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs sm:w-48 sm:flex-none"
         />
         <span className="text-xs text-muted-foreground">
           (try blank, &quot;personal&quot;, or any unmatched string)
         </span>
       </div>
-      <div className="max-w-sm">
+      <div className="w-full max-w-sm">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -213,7 +213,7 @@ function ControlledDemo() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -232,7 +232,7 @@ function ControlledDemo() {
           open: <code>{String(open)}</code>
         </span>
       </div>
-      <div className="max-w-sm">
+      <div className="w-full max-w-sm">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
