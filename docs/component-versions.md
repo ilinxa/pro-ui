@@ -131,7 +131,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 |-------------------|-----------------|---------|--------|
 | `file-tree`       | File Tree       | 0.1.0   | alpha  |
 | `file-manager`    | File Manager    | 0.1.0   | alpha  |
-| `rich-sidebar`  | Rich Sidebar  | 0.1.1   | alpha  |
+| `rich-sidebar`  | Rich Sidebar  | 0.2.0   | alpha  |
 | `account-switcher-01` | Account Switcher | 0.1.0 | alpha  |
 
 ## code (1)

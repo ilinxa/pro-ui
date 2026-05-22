@@ -14,9 +14,15 @@ export const meta: ComponentMeta = {
     "Mobile-drawer mode via shadcn Sheet (CSS-gated render path; no SSR flash)",
     "<RichSidebarTrigger> companion for hamburger button outside sidebar subtree",
     "Items discriminated union: NavItem | NavSection | NavSeparator",
+    "v0.2 — topSlot above brand zone for AccountSwitcher / context widgets",
+    "v0.2 — {key} href template substitution + resolveHref callback escape hatch",
+    "v0.2 — ownerOnly + minMembers gates (three-gate intersection: permission ∩ ownerOnly ∩ minMembers)",
+    "v0.2 — bypassFiltering at BOTH section + item levels for personal-context / debug views",
+    "v0.2 — exported NavContext discriminated union (type-only)",
+    "v0.2 — exported useFilteredNavSections hook (works standalone, not coupled to <RichSidebar>)",
     "Active-route detection: currentPath + isActive predicate + per-item match",
     "linkComponent abstraction (router-agnostic — Next.js, React Router, TanStack)",
-    "12 slots (named + render-prop) + 4 prefab parts (NavBadge, NavBrand, NavPrimaryAction, NavUser)",
+    "13 slots (named + render-prop, incl. v0.2 topSlot) + 4 prefab parts (NavBadge, NavBrand, NavPrimaryAction, NavUser)",
     "5 active-state variants (fill / left-bar / right-bar / outline / subtle)",
     "CSS-variable theme surface (--ilinxa-sidebar-*) for any-scope theming",
     "Section auto-expand when active item inside + auto-scroll into view",
@@ -38,10 +44,10 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.1.1",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-22",
-  updatedAt: "2026-05-22",
+  updatedAt: "2026-05-23",
 
   author: { name: "ilinxa" },
 
@@ -53,5 +59,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["todo-tree", "todo-rich-card"],
+  related: ["account-switcher-01", "todo-tree", "todo-rich-card"],
 };

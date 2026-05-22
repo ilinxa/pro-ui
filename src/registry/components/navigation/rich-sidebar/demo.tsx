@@ -2,19 +2,29 @@
 
 import {
   Briefcase,
+  Building2,
+  Crown,
   LogOut,
   PlusSquare,
   Settings,
   User as UserIcon,
+  Users,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { AccountSwitcher01 } from "../account-switcher-01/account-switcher-01";
+import type { SwitcherItem } from "../account-switcher-01/types";
 import { RichSidebar } from "./rich-sidebar";
+import { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
 import { RichSidebarTrigger } from "./parts/sidebar-nav-trigger";
 import {
   SIDEBAR_NAV_01_DUMMY_ITEMS,
   SIDEBAR_NAV_01_DUMMY_SECTIONED,
 } from "./dummy-data";
-import type { RichSidebarHandle, RichSidebarProps } from "./types";
+import type {
+  NavEntry,
+  RichSidebarHandle,
+  RichSidebarProps,
+} from "./types";
 
 const KSquareLogo = () => (
   <span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg) text-sm font-bold">
@@ -180,6 +190,162 @@ export default function RichSidebarDemo() {
           mobileBreakpoint="2xl"
           aria-label="Drawer demo"
         />
+      </div>
+
+      <V02MultiContextDemo />
+      <V02HeadlessFilterDemo />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v0.2.0 — Multi-context demo (topSlot + {slug} + ownerOnly + minMembers + bypass)
+// ─────────────────────────────────────────────────────────────────────────
+
+const V02_SWITCHER_ITEMS: ReadonlyArray<SwitcherItem> = [
+  { key: "personal", label: "Personal", icon: UserIcon, href: "/home" },
+  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/biz/acme" },
+  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/biz/globex" },
+];
+
+const V02_NAV_ITEMS_FOR_BUSINESS: ReadonlyArray<NavEntry> = [
+  { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+  { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+  { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+  { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+];
+
+function V02MultiContextDemo() {
+  const [activeContextKey, setActiveContextKey] = useState<string>("biz-acme");
+  const [isOwner, setIsOwner] = useState(true);
+  const [maxMembers, setMaxMembers] = useState(5);
+  const [bypass, setBypass] = useState(false);
+  const [currentPath, setCurrentPath] = useState("/bconsole/acme/dashboard");
+
+  const slug = activeContextKey.startsWith("biz-")
+    ? activeContextKey.slice(4)
+    : "acme";
+
+  const templateValues = useMemo(() => ({ slug }), [slug]);
+
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.2.0 — multi-context: topSlot + &#123;slug&#125; templates + ownerOnly + minMembers + bypassFiltering
+      </p>
+      <div className="mb-3 flex flex-wrap items-center gap-4 rounded-md border border-border bg-card p-3 text-xs">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isOwner}
+            onChange={(e) => setIsOwner(e.target.checked)}
+          />
+          isOwner
+        </label>
+        <label className="flex items-center gap-2">
+          currentMaxMembers:
+          <input
+            type="number"
+            min={0}
+            max={50}
+            value={maxMembers}
+            onChange={(e) => setMaxMembers(Number(e.target.value) || 0)}
+            className="w-16 rounded border border-border bg-background px-2 py-0.5"
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={bypass}
+            onChange={(e) => setBypass(e.target.checked)}
+          />
+          bypassFiltering
+        </label>
+        <span className="ml-auto font-mono text-muted-foreground">
+          slug: <code>{slug}</code>
+        </span>
+      </div>
+      <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
+        <RichSidebar
+          items={V02_NAV_ITEMS_FOR_BUSINESS}
+          currentPath={currentPath}
+          onItemClick={({ item, event }) => {
+            if (item.href) {
+              event.preventDefault();
+              setCurrentPath(item.href);
+            }
+          }}
+          topSlot={
+            <AccountSwitcher01
+              items={V02_SWITCHER_ITEMS}
+              activeKey={activeContextKey}
+              onSelect={(item) => setActiveContextKey(item.key)}
+            />
+          }
+          hrefTemplateValues={templateValues}
+          isOwner={isOwner}
+          currentMaxMembers={maxMembers}
+          bypassFiltering={bypass}
+          aria-label="v0.2 multi-context demo"
+        />
+        <div className="flex flex-1 flex-col gap-2 p-6 text-sm text-muted-foreground">
+          <p>Active context: <code className="font-mono">{activeContextKey}</code></p>
+          <p>Active path: <code className="font-mono">{currentPath}</code></p>
+          <ul className="ml-4 list-disc space-y-1 text-xs">
+            <li><code>Settings</code> + <code>Billing</code> hidden unless <code>isOwner</code></li>
+            <li><code>Team</code> hidden unless <code>currentMaxMembers ≥ 2</code></li>
+            <li><code>bypassFiltering</code> reveals everything (still respects <code>hidden:true</code>)</li>
+            <li>Hrefs interpolate <code>&#123;slug&#125;</code> from the switcher</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v0.2.0 — Headless useFilteredNavSections (standalone, no <RichSidebar>)
+// ─────────────────────────────────────────────────────────────────────────
+
+function V02HeadlessFilterDemo() {
+  const [isOwner, setIsOwner] = useState(false);
+  const filtered = useFilteredNavSections({
+    sections: V02_NAV_ITEMS_FOR_BUSINESS,
+    isOwner,
+    currentMaxMembers: 10,
+  });
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.2.0 — headless useFilteredNavSections (no &lt;RichSidebar&gt;)
+      </p>
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 text-sm">
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={isOwner}
+            onChange={(e) => setIsOwner(e.target.checked)}
+          />
+          isOwner (toggle to flip Settings + Billing visibility)
+        </label>
+        <ul className="flex flex-col gap-1">
+          {filtered.map((entry, index) =>
+            entry.kind === "section" ? null : entry.kind === "separator" ? (
+              <li key={entry.id ?? `sep-${index}`} className="my-1 h-px bg-border" />
+            ) : (
+              <li key={entry.id} className="flex items-center gap-2">
+                <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
+                <span>{entry.label}</span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  href: <code>{entry.href}</code>
+                </span>
+              </li>
+            ),
+          )}
+        </ul>
+        <p className="text-xs text-muted-foreground">
+          Renders consumer-owned UI; library helper just does the filter math.
+        </p>
       </div>
     </div>
   );
