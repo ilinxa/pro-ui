@@ -47,21 +47,41 @@ export function SubmitRow({
   const isStep1OfTwoStep = flow === "two-step" && step === "step1";
   const isStep2OfTwoStep = flow === "two-step" && step === "step2";
   const effectiveLabel = isStep1OfTwoStep ? labels.continueLabel : submitLabel;
+  const hasSecondaryActions = isStep2OfTwoStep;
+
+  const submitButton = (
+    <Button
+      type="submit"
+      variant={submitVariant ?? "default"}
+      aria-busy={isSubmitting || undefined}
+      disabled={isSubmitting}
+      className={cn(!hasSecondaryActions && "w-full")}
+    >
+      <span className={cn("inline-flex items-center gap-2")}>
+        {isSubmitting ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : null}
+        {effectiveLabel}
+      </span>
+    </Button>
+  );
+
+  if (!hasSecondaryActions) {
+    return submitButton;
+  }
 
   return (
     <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
       <div className="flex gap-2">
-        {isStep2OfTwoStep ? (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onBack}
-            disabled={isSubmitting}
-          >
-            {labels.backLabel}
-          </Button>
-        ) : null}
-        {isStep2OfTwoStep && skippableStepTwo ? (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onBack}
+          disabled={isSubmitting}
+        >
+          {labels.backLabel}
+        </Button>
+        {skippableStepTwo ? (
           <Button
             type="button"
             variant="outline"
@@ -72,19 +92,7 @@ export function SubmitRow({
           </Button>
         ) : null}
       </div>
-      <Button
-        type="submit"
-        variant={submitVariant ?? "default"}
-        aria-busy={isSubmitting || undefined}
-        disabled={isSubmitting}
-      >
-        <span className={cn("inline-flex items-center gap-2")}>
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          ) : null}
-          {effectiveLabel}
-        </span>
-      </Button>
+      {submitButton}
     </div>
   );
 }

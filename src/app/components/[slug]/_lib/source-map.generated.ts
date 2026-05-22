@@ -8105,7 +8105,7 @@ function ControlledTab() {
 export default function RegistrationForm01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex w-full flex-wrap">
+      <TabsList className="flex flex-wrap gap-2">
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="oauth">OAuth</TabsTrigger>
         <TabsTrigger value="two-step">Two-step</TabsTrigger>
