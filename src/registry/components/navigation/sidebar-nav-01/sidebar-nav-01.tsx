@@ -13,6 +13,9 @@ import {
 } from "./contexts/sidebar-nav-context";
 import { deriveCssVars } from "./lib/derive-css-vars";
 import { DefaultLink } from "./parts/default-link";
+import { NavBrand } from "./parts/nav-brand";
+import { NavPrimaryAction } from "./parts/nav-primary-action";
+import { NavUser } from "./parts/nav-user";
 import { SidebarNavList } from "./parts/sidebar-nav-list";
 import type {
   NavItem,
@@ -72,10 +75,13 @@ export function SidebarNav01(props: SidebarNav01Props) {
     renderBadge,
     renderTooltipContent,
     brandSlot,
+    brand,
     headerSlot,
     navAccessorySlot,
     primaryActionSlot,
+    primaryAction,
     footerSlot,
+    footer,
     side = "left",
     activeVariant = "fill",
     collapsedWidth,
@@ -267,14 +273,20 @@ export function SidebarNav01(props: SidebarNav01Props) {
   //   desktop: ALWAYS renders (defaultAccessory always available unless
   //            consumer explicitly passes navAccessorySlot={null} to hide it
   //            AND supplies neither header nor brand → only then suppressed)
-  //   mobile: renders only when drawerHeaderSlot OR headerSlot OR brandSlot
+  //   mobile: renders only when drawerHeaderSlot OR headerSlot OR resolvedBrand
   //           supplied (mobile drawer has no collapse toggle — sheet close
   //           button handles that)
+  // Slot-vs-config resolution (L13): slot wins over shorthand config
+  const resolvedBrand = brandSlot ?? (brand ? <NavBrand {...brand} /> : null);
+  const resolvedPrimaryAction =
+    primaryActionSlot ?? (primaryAction ? <NavPrimaryAction {...primaryAction} /> : null);
+  const resolvedFooter = footerSlot ?? (footer ? <NavUser {...footer} /> : null);
+
   const desktopAccessory =
     navAccessorySlot === null ? null : (navAccessorySlot ?? defaultAccessory);
   const showDesktopHeader =
-    !!headerSlot || !!brandSlot || desktopAccessory !== null;
-  const showMobileHeader = !!drawerHeaderSlot || !!headerSlot || !!brandSlot;
+    !!headerSlot || !!resolvedBrand || desktopAccessory !== null;
+  const showMobileHeader = !!drawerHeaderSlot || !!headerSlot || !!resolvedBrand;
 
   const renderInnerChrome = (mode: "desktop" | "mobile") => (
     <>
@@ -286,8 +298,8 @@ export function SidebarNav01(props: SidebarNav01Props) {
           ) : (
             <>
               {headerSlot && <div className="contents">{headerSlot}</div>}
-              {brandSlot && <div className="flex-1 min-w-0">{brandSlot}</div>}
-              {!brandSlot && !headerSlot && <div className="flex-1" aria-hidden />}
+              {resolvedBrand && <div className="flex-1 min-w-0">{resolvedBrand}</div>}
+              {!resolvedBrand && !headerSlot && <div className="flex-1" aria-hidden />}
               {mode === "desktop" && desktopAccessory !== null && (
                 <div className="ml-auto shrink-0">{desktopAccessory}</div>
               )}
@@ -317,12 +329,14 @@ export function SidebarNav01(props: SidebarNav01Props) {
           renderBadge={renderBadge}
           renderTooltipContent={renderTooltipContent}
         />
-        {primaryActionSlot && <div className="pt-2">{primaryActionSlot}</div>}
+        {resolvedPrimaryAction && (
+          <div className="pt-2">{resolvedPrimaryAction}</div>
+        )}
       </div>
 
       {/* Footer zone */}
-      {footerSlot && (
-        <div className="border-t border-border p-3">{footerSlot}</div>
+      {resolvedFooter && (
+        <div className="border-t border-border p-3">{resolvedFooter}</div>
       )}
     </>
   );
@@ -336,7 +350,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C7-drawer-trigger"
+        data-stage="C8-prefab-parts"
         data-collapsed={state.collapsed}
         data-mobile-open={state.mobileOpen}
         data-side={side}

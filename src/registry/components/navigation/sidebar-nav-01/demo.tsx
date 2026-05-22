@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  Briefcase,
+  LogOut,
+  PlusSquare,
+  Settings,
+  User as UserIcon,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import { SidebarNav01 } from "./sidebar-nav-01";
 import { SidebarNav01Trigger } from "./parts/sidebar-nav-trigger";
@@ -9,14 +16,20 @@ import {
 } from "./dummy-data";
 import type { SidebarNav01Handle, SidebarNav01Props } from "./types";
 
+const KSquareLogo = () => (
+  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg) text-sm font-bold">
+    K
+  </span>
+);
+
 export default function SidebarNav01Demo() {
   const [path, setPath] = useState("/social/home");
   const [sectionedPath, setSectionedPath] = useState("/projects");
+  const [recipePath, setRecipePath] = useState("/social/home");
   const [variant, setVariant] =
     useState<NonNullable<SidebarNav01Props["activeVariant"]>>("fill");
   const drawerRef = useRef<SidebarNav01Handle>(null);
 
-  // Intercept item clicks to mimic router behavior on the docs site.
   const interceptClick =
     (setter: (p: string) => void) =>
     ({ item, event }: { item: { href?: string }; event: React.MouseEvent }) => {
@@ -51,10 +64,57 @@ export default function SidebarNav01Demo() {
         ))}
       </div>
 
-      {/* Flat list — kasder recipe */}
+      {/* Full kasder recipe — brand + items + primary action + footer */}
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Flat list (kasder recipe) — collapse toggle in header
+          Full kasder recipe — brand · items · primary action · user footer
+        </p>
+        <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
+          <SidebarNav01
+            items={SIDEBAR_NAV_01_DUMMY_ITEMS}
+            currentPath={recipePath}
+            onItemClick={interceptClick(setRecipePath)}
+            activeVariant={variant}
+            brand={{ logo: <KSquareLogo />, label: "Kasder", href: "/" }}
+            primaryAction={{
+              icon: PlusSquare,
+              label: "Paylaş",
+              onClick: () => alert("Open post composer"),
+            }}
+            footer={{
+              user: {
+                name: "Ahmet Kaya",
+                handle: "@ahmetkaya",
+                status: "online",
+              },
+              menuItems: [
+                { kind: "item", icon: UserIcon, label: "Profil", onClick: () => alert("profile") },
+                { kind: "item", icon: Settings, label: "Ayarlar", onClick: () => alert("settings") },
+                { kind: "item", icon: Briefcase, label: "İşletme", onClick: () => alert("business") },
+                { kind: "separator" },
+                { kind: "item", icon: LogOut, label: "Çıkış Yap", variant: "destructive", onClick: () => alert("logout") },
+              ],
+            }}
+            aria-label="Full recipe"
+          />
+          <div className="flex flex-1 items-center justify-center p-6">
+            <p className="text-sm text-muted-foreground">
+              Active path: <span className="font-mono">{recipePath}</span>
+              <br />
+              <span className="text-xs">
+                Toggle collapse (top-right) to see brand/labels hide,
+                badges flip to corner, tooltip shows on hover, footer
+                dropdown align flips to center.
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Flat list */}
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Flat list (no chrome)
         </p>
         <div className="flex h-96 overflow-hidden rounded-lg border border-border bg-background">
           <SidebarNav01
@@ -93,14 +153,14 @@ export default function SidebarNav01Demo() {
         </div>
       </div>
 
-      {/* Mobile drawer (simulated — force narrow breakpoint to "2xl"
-          so the drawer is reachable even on the desktop docs page) */}
+      {/* Mobile drawer */}
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Mobile drawer + SidebarNav01Trigger (
-          <code className="font-mono text-[10px]">mobileBreakpoint=&quot;2xl&quot;</code>{" "}
-          forced so it&apos;s reachable on a desktop viewport — tap the
-          hamburger)
+          Mobile drawer (
+          <code className="font-mono text-[10px]">
+            mobileBreakpoint=&quot;2xl&quot;
+          </code>{" "}
+          forced so it&apos;s reachable on a desktop viewport)
         </p>
         <div className="flex min-h-32 items-center gap-3 rounded-lg border border-border bg-background p-3">
           <SidebarNav01Trigger
@@ -112,7 +172,6 @@ export default function SidebarNav01Demo() {
             ref to open drawer.
           </span>
         </div>
-        {/* Hidden sidebar instance — only renders via Sheet because mobileBreakpoint=2xl */}
         <SidebarNav01
           ref={drawerRef}
           items={SIDEBAR_NAV_01_DUMMY_ITEMS}

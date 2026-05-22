@@ -1,6 +1,9 @@
 export { SidebarNav01 } from "./sidebar-nav-01";
 export { SidebarNav01Trigger } from "./parts/sidebar-nav-trigger";
 export { NavBadge } from "./parts/nav-badge";
+export { NavBrand } from "./parts/nav-brand";
+export { NavPrimaryAction } from "./parts/nav-primary-action";
+export { NavUser } from "./parts/nav-user";
 
 export type {
   // Items schema
