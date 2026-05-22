@@ -61,9 +61,18 @@ export function SidebarNavSection({
           <div className="my-1 h-px w-full bg-border" role="presentation" />
         )}
         {!isCollapsed && (
-          <div id={bodyId} role="group" aria-label={section.title}>
+          // <ul> (not <div>) so the `<li>` rows produced by SidebarNavRow
+          // are valid direct children. Outer wrapper is also <li> (section
+          // root), so the structure is <li><ul><li>...</li></ul></li> —
+          // valid HTML for a nested list group.
+          <ul
+            id={bodyId}
+            role="group"
+            aria-label={section.title}
+            className="flex flex-col gap-1"
+          >
             {children}
-          </div>
+          </ul>
         )}
       </li>
     );
