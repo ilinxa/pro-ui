@@ -1,7 +1,7 @@
 "use client";
 
 import { PanelLeft, PanelLeftClose } from "lucide-react";
-import { useCallback, useId, useMemo } from "react";
+import { useCallback, useId, useImperativeHandle, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useActiveDetection } from "./hooks/use-active-detection";
@@ -85,6 +85,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
     mobileBreakpoint = "lg",
     mobileDrawerSide,
     drawerHeaderSlot,
+    ref: externalRef,
   } = props;
 
   // L32: id defaults via useId() for <SidebarNavTrigger aria-controls>
@@ -222,6 +223,11 @@ export function SidebarNav01(props: SidebarNav01Props) {
     };
     return handleObj;
   }, [state, dispatch, items, visible, active]);
+
+  // Attach the imperative handle to the consumer-supplied ref (React 19
+  // ref-as-prop pattern; no forwardRef needed). This is what makes
+  // <SidebarNav01 ref={ref}> + <SidebarNav01Trigger controls={ref}> actually work.
+  useImperativeHandle(externalRef, () => handle, [handle]);
 
   const contextValue = useMemo<SidebarNav01ContextValue>(
     () => ({ state, dispatch, handle, sidebarId }),
