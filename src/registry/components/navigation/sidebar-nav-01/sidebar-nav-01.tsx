@@ -256,10 +256,24 @@ export function SidebarNav01(props: SidebarNav01Props) {
 
   // Shared inner chrome — used by BOTH desktop <nav> and mobile <Sheet>.
   // Single source of truth for the header / list / footer composition.
+  //
+  // Header-row visibility rules:
+  //   desktop: ALWAYS renders (defaultAccessory always available unless
+  //            consumer explicitly passes navAccessorySlot={null} to hide it
+  //            AND supplies neither header nor brand → only then suppressed)
+  //   mobile: renders only when drawerHeaderSlot OR headerSlot OR brandSlot
+  //           supplied (mobile drawer has no collapse toggle — sheet close
+  //           button handles that)
+  const desktopAccessory =
+    navAccessorySlot === null ? null : (navAccessorySlot ?? defaultAccessory);
+  const showDesktopHeader =
+    !!headerSlot || !!brandSlot || desktopAccessory !== null;
+  const showMobileHeader = !!drawerHeaderSlot || !!headerSlot || !!brandSlot;
+
   const renderInnerChrome = (mode: "desktop" | "mobile") => (
     <>
       {/* Brand / header zone */}
-      {(headerSlot || brandSlot || navAccessorySlot !== null) && (
+      {(mode === "desktop" ? showDesktopHeader : showMobileHeader) && (
         <div className="flex items-center gap-2 border-b border-border p-3 min-h-14">
           {mode === "mobile" && drawerHeaderSlot ? (
             <div className="contents">{drawerHeaderSlot}</div>
@@ -268,24 +282,13 @@ export function SidebarNav01(props: SidebarNav01Props) {
               {headerSlot && <div className="contents">{headerSlot}</div>}
               {brandSlot && <div className="flex-1 min-w-0">{brandSlot}</div>}
               {!brandSlot && !headerSlot && <div className="flex-1" aria-hidden />}
-              {mode === "desktop" && (
-                <div className="ml-auto shrink-0">
-                  {navAccessorySlot ?? defaultAccessory}
-                </div>
+              {mode === "desktop" && desktopAccessory !== null && (
+                <div className="ml-auto shrink-0">{desktopAccessory}</div>
               )}
             </>
           )}
         </div>
       )}
-      {/* If no brand/header content was supplied, still render a collapse-toggle row (desktop only) */}
-      {mode === "desktop" &&
-        !headerSlot &&
-        !brandSlot &&
-        navAccessorySlot === undefined && (
-          <div className="flex items-center justify-end gap-2 p-3 min-h-14">
-            {defaultAccessory}
-          </div>
-        )}
 
       {/* Nav list */}
       <div className="flex flex-1 flex-col gap-2 overflow-hidden p-3">
