@@ -121,6 +121,13 @@ export function RichSidebar(props: RichSidebarProps) {
     onFooterTriggerOpen,
     onFooterMenuItemClick,
     ref: externalRef,
+    // v0.2.0 — additive (L41–L52)
+    topSlot,
+    hrefTemplateValues,
+    resolveHref,
+    isOwner,
+    currentMaxMembers,
+    bypassFiltering,
   } = props;
 
   // L32: id defaults via useId() for <SidebarNavTrigger aria-controls>
@@ -175,6 +182,10 @@ export function RichSidebar(props: RichSidebarProps) {
     defaultMatch,
     permissions,
     keepEmptySections,
+    // v0.2.0 — three-gate intersection (L46) + bypass (Q21)
+    isOwner,
+    currentMaxMembers,
+    bypassFiltering,
   });
 
   // F1 — auto-expand section containing the active item (L48-b).
@@ -587,6 +598,8 @@ export function RichSidebar(props: RichSidebarProps) {
         renderSection={renderSection}
         renderBadge={renderBadge}
         renderTooltipContent={renderTooltipContent}
+        hrefTemplateValues={hrefTemplateValues}
+        resolveHref={resolveHref}
       />
     );
   };
@@ -595,6 +608,16 @@ export function RichSidebar(props: RichSidebarProps) {
     const headerCollapsedDesktop = mode === "desktop" && finalCollapsed;
     return (
     <>
+      {/* v0.2.0 — topSlot above the brand zone (L41). Geographically distinct
+       *  from headerSlot (which renders INSIDE the brand row). Zero layout
+       *  shift when null/undefined per success #10. PQ3: unlabeled wrapper —
+       *  ARIA semantics are the consumer's responsibility. */}
+      {topSlot ? (
+        <div className="ilinxa-sidebar-top-slot border-b border-border p-3">
+          {topSlot}
+        </div>
+      ) : null}
+
       {/* Brand / header zone.
        *
        * Layout:

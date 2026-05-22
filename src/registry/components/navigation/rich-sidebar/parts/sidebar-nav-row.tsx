@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { getActiveVariantClasses } from "../lib/active-variant-classes";
+import { resolveItemHref } from "../lib/href-resolver";
 import type {
   NavBadgeConfig,
   NavItem,
@@ -28,6 +29,9 @@ interface SidebarNavRowProps {
   onClick: (event: React.MouseEvent) => void;
   renderBadge?: RichSidebarProps["renderBadge"];
   renderTooltipContent?: RichSidebarProps["renderTooltipContent"];
+  // v0.2.0 — href resolution (L42 + L43)
+  hrefTemplateValues?: RichSidebarProps["hrefTemplateValues"];
+  resolveHref?: RichSidebarProps["resolveHref"];
 }
 
 /**
@@ -59,9 +63,15 @@ export function SidebarNavRow({
   onClick,
   renderBadge,
   renderTooltipContent,
+  hrefTemplateValues,
+  resolveHref,
 }: SidebarNavRowProps) {
   const isDisabled = item.disabled ?? false;
-  const href = item.href ?? "#";
+  // v0.2.0: resolveItemHref applies the precedence pipeline (callback wins
+  // over template-value substitution; fallback to item.href as-is). When
+  // neither v0.2 prop is provided, this is byte-identical to v0.1 behavior.
+  const resolvedHref = resolveItemHref(item, { templateValues: hrefTemplateValues, resolveHref });
+  const href = resolvedHref ?? "#";
 
   const badgeConfig = resolveBadgeConfig(item.badge);
   const defaultBadge = badgeConfig ? (

@@ -44,6 +44,10 @@ interface SidebarNavListProps {
   renderSection?: RichSidebarProps["renderSection"];
   renderBadge?: RichSidebarProps["renderBadge"];
   renderTooltipContent?: RichSidebarProps["renderTooltipContent"];
+
+  // v0.2.0 — href resolution (L42 + L43)
+  hrefTemplateValues?: RichSidebarProps["hrefTemplateValues"];
+  resolveHref?: RichSidebarProps["resolveHref"];
 }
 
 /**
@@ -81,6 +85,8 @@ export function SidebarNavList({
   renderSection,
   renderBadge,
   renderTooltipContent,
+  hrefTemplateValues,
+  resolveHref,
 }: SidebarNavListProps) {
   // Roving tabindex (L37). The "entry point" rule:
   //   - Some row has the user's focus      → only that row is tabbable.
@@ -139,6 +145,8 @@ export function SidebarNavList({
         onClick={handleItemClick(item, sectionId, indexInSection)}
         renderBadge={renderBadge}
         renderTooltipContent={renderTooltipContent}
+        hrefTemplateValues={hrefTemplateValues}
+        resolveHref={resolveHref}
       />
     );
     if (!renderItem) return defaultRender;
