@@ -2178,6 +2178,42 @@
       "files": [
         { "path": "src/registry/components/navigation/rich-sidebar/dummy-data.ts", "type": "registry:component", "target": "components/rich-sidebar/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "account-switcher-01",
+      "type": "registry:block",
+      "title": "Account Switcher",
+      "description": "Popover-with-switchable-items primitive: active context label + chevron trigger that opens a list of contexts to switch to, plus an arbitrary footer slot for create/request affordances. Ships with controlled+uncontrolled open state from v0.1 (open / defaultOpen / onOpenChange), programmable ariaCurrent, collapse-to-icon trigger mode for slotting into icon-only sidebars, and F-cross-13 pre-emption on Popover.onOpenChange. Canonical occupant of rich-sidebar v0.2.0's topSlot.",
+      "author": "ilinxa",
+      "categories": ["navigation", "app-shell"],
+      "registryDependencies": ["popover", "separator"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/navigation/account-switcher-01/account-switcher-01.tsx", "type": "registry:component", "target": "components/account-switcher-01/account-switcher-01.tsx" },
+        { "path": "src/registry/components/navigation/account-switcher-01/index.ts", "type": "registry:component", "target": "components/account-switcher-01/index.ts" },
+        { "path": "src/registry/components/navigation/account-switcher-01/types.ts", "type": "registry:component", "target": "components/account-switcher-01/types.ts" },
+        { "path": "src/registry/components/navigation/account-switcher-01/hooks/use-controllable-state.ts", "type": "registry:component", "target": "components/account-switcher-01/hooks/use-controllable-state.ts" },
+        { "path": "src/registry/components/navigation/account-switcher-01/lib/enforce-unique-keys.ts", "type": "registry:component", "target": "components/account-switcher-01/lib/enforce-unique-keys.ts" },
+        { "path": "src/registry/components/navigation/account-switcher-01/lib/resolve-active-item.ts", "type": "registry:component", "target": "components/account-switcher-01/lib/resolve-active-item.ts" },
+        { "path": "src/registry/components/navigation/account-switcher-01/parts/empty-placeholder.tsx", "type": "registry:component", "target": "components/account-switcher-01/parts/empty-placeholder.tsx" },
+        { "path": "src/registry/components/navigation/account-switcher-01/parts/render-icon.tsx", "type": "registry:component", "target": "components/account-switcher-01/parts/render-icon.tsx" },
+        { "path": "src/registry/components/navigation/account-switcher-01/parts/switcher-item-row.tsx", "type": "registry:component", "target": "components/account-switcher-01/parts/switcher-item-row.tsx" },
+        { "path": "src/registry/components/navigation/account-switcher-01/parts/switcher-trigger.tsx", "type": "registry:component", "target": "components/account-switcher-01/parts/switcher-trigger.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "account-switcher-01-fixtures",
+      "type": "registry:block",
+      "title": "Account Switcher — fixtures",
+      "description": "Account Switcher bundle including the demo multi-context fixture (personal / business / cms-business / platform / governance) plus a fallback active-item example for I-1. Resolves the base account-switcher-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["navigation", "app-shell", "fixtures"],
+      "registryDependencies": ["@ilinxa/account-switcher-01"],
+      "files": [
+        { "path": "src/registry/components/navigation/account-switcher-01/dummy-data.ts", "type": "registry:component", "target": "components/account-switcher-01/dummy-data.ts" }
+      ]
     }
   ]
 }

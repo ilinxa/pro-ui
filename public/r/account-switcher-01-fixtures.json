@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "account-switcher-01-fixtures",
+  "title": "Account Switcher — fixtures",
+  "author": "ilinxa",
+  "description": "Account Switcher bundle including the demo multi-context fixture (personal / business / cms-business / platform / governance) plus a fallback active-item example for I-1. Resolves the base account-switcher-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/account-switcher-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/navigation/account-switcher-01/dummy-data.ts",
+      "content": "import { Building2, Globe, Settings2, ShieldCheck, User } from \"lucide-react\";\nimport type { SwitcherItem } from \"./types\";\n\n/**\n * Realistic multi-context fixture covering all 5 categories from the\n * source's NavContext union (personal / business / platform / governance /\n * cms-business). Demonstrates dual-entry pattern (`biz-acme` + `cms-biz-acme`\n * share the conceptual account but have distinct keys per L3).\n */\nexport const ACCOUNT_SWITCHER_01_DUMMY_ITEMS: ReadonlyArray<SwitcherItem> = [\n  {\n    key: \"personal\",\n    label: \"Personal\",\n    icon: User,\n    href: \"/home\",\n  },\n  {\n    key: \"biz-acme\",\n    label: \"Acme Corp\",\n    icon: Building2,\n    href: \"/bconsole/acme/dashboard\",\n  },\n  {\n    key: \"biz-globex\",\n    label: \"Globex Industries\",\n    icon: Building2,\n    href: \"/bconsole/globex/dashboard\",\n  },\n  {\n    key: \"cms-biz-acme\",\n    label: \"Acme Corp · CMS\",\n    icon: Settings2,\n    href: \"/cconsole/business/acme/dashboard\",\n  },\n  {\n    key: \"platform\",\n    label: \"Platform\",\n    icon: Globe,\n    href: \"/pconsole/dashboard\",\n  },\n  {\n    key: \"governance\",\n    label: \"Governance\",\n    icon: ShieldCheck,\n    href: \"/gconsole/dashboard\",\n  },\n];\n\nexport const ACCOUNT_SWITCHER_01_DUMMY_ACTIVE_KEY: string | null = \"biz-acme\";\n\n/**\n * Fallback shown when the consumer-provided `activeKey` doesn't resolve to\n * any item (I-1; avoids the source's governance-mislabel bug). Demos use it\n * to show the trigger never crashes on bad input.\n */\nexport const ACCOUNT_SWITCHER_01_DUMMY_FALLBACK: SwitcherItem = {\n  key: \"fallback\",\n  label: \"Select a context\",\n  icon: User,\n};\n",
+      "type": "registry:component",
+      "target": "components/account-switcher-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "navigation",
+    "app-shell",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
