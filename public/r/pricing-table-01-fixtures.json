@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "pricing-table-01-fixtures",
+  "title": "Pricing Table 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Pricing Table 01 bundle including the dummy-data fixtures (sample tier configurations covering cards layout, table layout, monthly/annual toggle, highlighted tier).",
+  "registryDependencies": [
+    "@ilinxa/pricing-table-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/pricing-table-01/dummy-data.ts",
+      "content": "import type { PricingTableLabels, PricingTier } from \"./types\";\n\nexport const PRICING_DEMO_TIERS_THREE: ReadonlyArray<PricingTier> = [\n  {\n    name: \"Starter\",\n    description: \"For individuals trying things out.\",\n    priceMonthly: 0,\n    currencyCode: \"USD\",\n    features: [\n      { label: \"1 workspace\", included: true },\n      { label: \"Community support\", included: true },\n      {\n        label: \"Advanced analytics\",\n        included: false,\n        tooltip: \"Available on Pro and above.\",\n      },\n      { label: \"Custom domains\", included: false },\n      { label: \"SLA\", included: false },\n    ],\n    cta: { label: \"Start free\", href: \"/signup\", variant: \"outline\" },\n  },\n  {\n    name: \"Pro\",\n    description: \"For growing teams.\",\n    priceMonthly: 19,\n    priceAnnual: 15,\n    currencyCode: \"USD\",\n    highlighted: true,\n    features: [\n      { label: \"Unlimited workspaces\", included: true },\n      { label: \"Priority email support\", included: true },\n      { label: \"Advanced analytics\", included: true },\n      { label: \"Custom domains\", included: false },\n      { label: \"SLA\", included: false },\n    ],\n    cta: {\n      label: \"Start Pro trial\",\n      href: \"/signup?plan=pro\",\n      variant: \"primary\",\n    },\n  },\n  {\n    name: \"Enterprise\",\n    description: \"For larger organizations.\",\n    priceMonthly: 49,\n    priceAnnual: 39,\n    currencyCode: \"USD\",\n    features: [\n      { label: \"Unlimited workspaces\", included: true },\n      { label: \"Dedicated support\", included: true },\n      { label: \"Advanced analytics\", included: true },\n      { label: \"Custom domains\", included: true },\n      {\n        label: \"SLA\",\n        included: true,\n        tooltip: \"99.95% uptime guarantee.\",\n      },\n    ],\n    cta: { label: \"Contact sales\", href: \"/contact\", variant: \"outline\" },\n  },\n];\n\nexport const PRICING_DEMO_TIERS_TWO: ReadonlyArray<PricingTier> = [\n  {\n    name: \"Free\",\n    description: \"All you need to get started.\",\n    priceMonthly: 0,\n    currencyCode: \"USD\",\n    features: [\n      { label: \"Up to 3 projects\", included: true },\n      { label: \"Community support\", included: true },\n      { label: \"Custom domains\", included: false },\n    ],\n    cta: { label: \"Sign up\", href: \"/signup\", variant: \"outline\" },\n  },\n  {\n    name: \"Team\",\n    description: \"Everything in Free, plus collaboration.\",\n    priceMonthly: 12,\n    priceAnnual: 9,\n    currencyCode: \"USD\",\n    highlighted: true,\n    features: [\n      { label: \"Unlimited projects\", included: true },\n      { label: \"Priority support\", included: true },\n      { label: \"Custom domains\", included: true },\n    ],\n    cta: {\n      label: \"Try Team free for 14 days\",\n      href: \"/signup?plan=team\",\n      variant: \"primary\",\n    },\n  },\n];\n\nexport const PRICING_DEMO_LABELS_TR: PricingTableLabels = {\n  monthlyLabel: \"Aylık\",\n  annualLabel: \"Yıllık\",\n  toggleGroupLabel: \"Ödeme dönemi\",\n  popularBadge: \"En popüler\",\n  periodMonthly: \"/ ay\",\n  periodAnnual: \"/ ay (yıllık ödeme)\",\n  freeLabel: \"Ücretsiz\",\n  yearlyHint: \"{amount} / yıl\",\n  featureIncluded: \"Dahil\",\n  featureExcluded: \"Dahil değil\",\n};\n",
+      "type": "registry:component",
+      "target": "components/pricing-table-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "marketing",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
