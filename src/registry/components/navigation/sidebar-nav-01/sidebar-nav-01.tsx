@@ -51,6 +51,8 @@ export function SidebarNav01(props: SidebarNav01Props) {
     permissions,
     renderItem,
     renderSection,
+    renderBadge,
+    renderTooltipContent,
     brandSlot,
     headerSlot,
     navAccessorySlot,
@@ -218,7 +220,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C5-collapse-vars-variants"
+        data-stage="C6-badge-tooltip"
         data-collapsed={state.collapsed}
         data-mobile-open={state.mobileOpen}
         data-side={side}
@@ -229,9 +231,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
           side === "left" ? "border-r" : "border-l",
           "border-border",
           // CSS-var-driven width + motion-safe transition
-          "data-[collapsed=false]:w-[var(--ilinxa-sidebar-w-expanded)]",
-          "data-[collapsed=true]:w-[var(--ilinxa-sidebar-w-collapsed)]",
-          "motion-safe:transition-[width] motion-safe:duration-[var(--ilinxa-sidebar-transition-duration)]",
+          "data-[collapsed=false]:w-(--ilinxa-sidebar-w-expanded)",
+          "data-[collapsed=true]:w-(--ilinxa-sidebar-w-collapsed)",
+          "motion-safe:transition-[width] motion-safe:duration-(--ilinxa-sidebar-transition-duration)",
           // RTL hook — when consumer sets dir="rtl", border swaps with logical side
           "rtl:border-x-0",
           side === "left" ? "rtl:border-l" : "rtl:border-r",
@@ -274,6 +276,8 @@ export function SidebarNav01(props: SidebarNav01Props) {
             onSectionToggle={onSectionToggle}
             renderItem={renderItem}
             renderSection={renderSection}
+            renderBadge={renderBadge}
+            renderTooltipContent={renderTooltipContent}
           />
 
           {/* Primary action zone — full <NavPrimaryAction> + shorthand in C8 */}

@@ -22,31 +22,31 @@ export function getActiveVariantClasses(
 
   switch (variant ?? "fill") {
     case "fill":
-      return "bg-[var(--ilinxa-nav-active-bg)] text-[var(--ilinxa-nav-active-fg)]";
+      return "bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg)";
 
     case "left-bar":
       return [
-        "relative text-[var(--ilinxa-nav-active-bg)]",
+        "relative text-(--ilinxa-nav-active-bg)",
         "before:absolute before:left-0 before:top-1.5 before:bottom-1.5",
-        "before:w-[var(--ilinxa-nav-active-bar-w)] before:rounded-r-full",
-        "before:bg-[var(--ilinxa-nav-active-bg)]",
+        "before:w-(--ilinxa-nav-active-bar-w) before:rounded-r-full",
+        "before:bg-(--ilinxa-nav-active-bg)",
       ].join(" ");
 
     case "right-bar":
       return [
-        "relative text-[var(--ilinxa-nav-active-bg)]",
+        "relative text-(--ilinxa-nav-active-bg)",
         "after:absolute after:right-0 after:top-1.5 after:bottom-1.5",
-        "after:w-[var(--ilinxa-nav-active-bar-w)] after:rounded-l-full",
-        "after:bg-[var(--ilinxa-nav-active-bg)]",
+        "after:w-(--ilinxa-nav-active-bar-w) after:rounded-l-full",
+        "after:bg-(--ilinxa-nav-active-bg)",
       ].join(" ");
 
     case "outline":
-      return "ring-2 ring-inset ring-[var(--ilinxa-nav-active-bg)] text-[var(--ilinxa-nav-active-bg)]";
+      return "ring-2 ring-inset ring-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-bg)";
 
     case "subtle":
       return "bg-accent/30 text-foreground font-semibold";
 
     default:
-      return "bg-[var(--ilinxa-nav-active-bg)] text-[var(--ilinxa-nav-active-fg)]";
+      return "bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg)";
   }
 }
