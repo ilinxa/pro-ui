@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { NavItem, NavLinkComponent } from "../types";
+import { getActiveVariantClasses } from "../lib/active-variant-classes";
+import type { NavItem, NavLinkComponent, SidebarNav01Props } from "../types";
 import { Icon } from "./icon";
 
 interface SidebarNavRowProps {
@@ -9,6 +10,7 @@ interface SidebarNavRowProps {
   isActive: boolean;
   isCollapsed: boolean;
   linkComponent: NavLinkComponent;
+  activeVariant?: SidebarNav01Props["activeVariant"];
   onClick: (event: React.MouseEvent) => void;
 }
 
@@ -29,6 +31,7 @@ export function SidebarNavRow({
   isActive,
   isCollapsed,
   linkComponent: LinkComponent,
+  activeVariant,
   onClick,
 }: SidebarNavRowProps) {
   const isDisabled = item.disabled ?? false;
@@ -50,10 +53,8 @@ export function SidebarNavRow({
           "group relative flex items-center gap-3 rounded-lg px-3 py-2.5",
           "text-sm font-medium",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
-          // Active vs inactive paint (C3 baseline; activeVariant matrix lands C5)
-          isActive
-            ? "bg-primary text-primary-foreground"
-            : "text-foreground hover:bg-muted",
+          // Active vs inactive paint via L12 variant matrix
+          getActiveVariantClasses(activeVariant, isActive),
           // Disabled (L27)
           isDisabled && "pointer-events-none cursor-not-allowed opacity-50",
         )}

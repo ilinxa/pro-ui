@@ -1,5 +1,6 @@
 "use client";
 
+import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useCallback, useId, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useActiveDetection } from "./hooks/use-active-detection";
@@ -8,6 +9,7 @@ import {
   SidebarNav01Context,
   type SidebarNav01ContextValue,
 } from "./contexts/sidebar-nav-context";
+import { deriveCssVars } from "./lib/derive-css-vars";
 import { DefaultLink } from "./parts/default-link";
 import { SidebarNavList } from "./parts/sidebar-nav-list";
 import type {
@@ -51,8 +53,15 @@ export function SidebarNav01(props: SidebarNav01Props) {
     renderSection,
     brandSlot,
     headerSlot,
+    navAccessorySlot,
     primaryActionSlot,
     footerSlot,
+    side = "left",
+    activeVariant = "fill",
+    collapsedWidth,
+    expandedWidth,
+    transitionDuration,
+    style,
   } = props;
 
   // L32: id defaults via useId() for <SidebarNavTrigger aria-controls>
@@ -177,35 +186,84 @@ export function SidebarNav01(props: SidebarNav01Props) {
     [state, dispatch, handle, sidebarId],
   );
 
+  const cssVars = useMemo(
+    () => deriveCssVars({ collapsedWidth, expandedWidth, transitionDuration }),
+    [collapsedWidth, expandedWidth, transitionDuration],
+  );
+
+  const defaultAccessory = (
+    <button
+      type="button"
+      onClick={() => dispatch({ type: "TOGGLE_COLLAPSED" })}
+      aria-label={state.collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-expanded={!state.collapsed}
+      aria-controls={sidebarId}
+      className={cn(
+        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
+        "text-muted-foreground hover:bg-muted hover:text-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+      )}
+    >
+      {state.collapsed ? (
+        <PanelLeft className="h-4 w-4" aria-hidden="true" />
+      ) : (
+        <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+      )}
+    </button>
+  );
+
   return (
     <SidebarNav01Context.Provider value={contextValue}>
       <nav
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C4-sections"
+        data-stage="C5-collapse-vars-variants"
         data-collapsed={state.collapsed}
         data-mobile-open={state.mobileOpen}
+        data-side={side}
+        style={{ ...cssVars, ...style }}
         className={cn(
-          "flex h-full w-64 flex-col border-r border-border bg-card",
+          "flex h-full flex-col bg-card",
+          // Side-aware border
+          side === "left" ? "border-r" : "border-l",
+          "border-border",
+          // CSS-var-driven width + motion-safe transition
+          "data-[collapsed=false]:w-[var(--ilinxa-sidebar-w-expanded)]",
+          "data-[collapsed=true]:w-[var(--ilinxa-sidebar-w-collapsed)]",
+          "motion-safe:transition-[width] motion-safe:duration-[var(--ilinxa-sidebar-transition-duration)]",
+          // RTL hook — when consumer sets dir="rtl", border swaps with logical side
+          "rtl:border-x-0",
+          side === "left" ? "rtl:border-l" : "rtl:border-r",
           className,
         )}
       >
-        {/* Brand / header zone — C3 placeholder; full <NavBrand> + headerSlot in C9 */}
-        {(headerSlot || brandSlot) && (
-          <div className="border-b border-border p-3">
-            {headerSlot}
-            {brandSlot}
+        {/* Brand / header zone */}
+        {(headerSlot || brandSlot || navAccessorySlot !== null) && (
+          <div className="flex items-center gap-2 border-b border-border p-3 min-h-14">
+            {headerSlot && <div className="contents">{headerSlot}</div>}
+            {brandSlot && <div className="flex-1 min-w-0">{brandSlot}</div>}
+            {!brandSlot && !headerSlot && <div className="flex-1" aria-hidden />}
+            <div className="ml-auto shrink-0">
+              {navAccessorySlot ?? defaultAccessory}
+            </div>
+          </div>
+        )}
+        {/* If no brand/header content was supplied, still render a collapse-toggle row */}
+        {!headerSlot && !brandSlot && navAccessorySlot === undefined && (
+          <div className="flex items-center justify-end gap-2 p-3 min-h-14">
+            {defaultAccessory}
           </div>
         )}
 
         {/* Nav list */}
-        <div className="flex flex-1 flex-col gap-2 p-3">
+        <div className="flex flex-1 flex-col gap-2 overflow-hidden p-3">
           <SidebarNavList
             entries={visible.entries}
             activeItemId={active.item?.id ?? null}
             isCollapsed={state.collapsed}
             linkComponent={linkComponent}
+            activeVariant={activeVariant}
             autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
             isMobileOpen={state.mobileOpen}
             onCloseMobile={closeMobile}
@@ -218,11 +276,11 @@ export function SidebarNav01(props: SidebarNav01Props) {
             renderSection={renderSection}
           />
 
-          {/* Primary action zone — full <NavPrimaryAction> + shorthand in C9 */}
+          {/* Primary action zone — full <NavPrimaryAction> + shorthand in C8 */}
           {primaryActionSlot && <div className="pt-2">{primaryActionSlot}</div>}
         </div>
 
-        {/* Footer zone — full <NavUser> + shorthand in C9 */}
+        {/* Footer zone — full <NavUser> + shorthand in C8 */}
         {footerSlot && (
           <div className="border-t border-border p-3">{footerSlot}</div>
         )}
