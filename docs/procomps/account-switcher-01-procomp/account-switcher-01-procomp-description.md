@@ -2,7 +2,7 @@
 
 > **Stage:** 1 of 3 · **Status:** 🟡 Drafted, awaiting sign-off
 > **Slug:** `account-switcher-01` · **Category:** `navigation`
-> **Release model:** **single feature-complete v0.1.** The surface is intentionally tight (six props); compactness IS the design. Expansion candidates (`description?` line, `groupId?` grouping, `triggerVariant?`) are explicitly deferred — see §2.
+> **Release model:** **single feature-complete v0.1.** The surface is intentionally tight (nine props — six render/data + three dynamicity-mandate ergonomics: controlled-open triplet + `ariaCurrent`); compactness IS the design. Expansion candidates (`description?` line, `groupId?` grouping, `triggerVariant?`) are explicitly deferred — see §2.
 > **Conceptual lineage:** workspace/context switchers in Linear, Notion, Vercel dashboard, Slack ⌘K workspace dropdown, GitHub repo selector. Source pattern: combobox-style popover with an active row + a footer affordance.
 >
 > **Migration origin:** [`docs/migrations/socialmedia-adv-nav-system/`](../../migrations/socialmedia-adv-nav-system/) — extracts the `<AccountSwitcher>` pattern from the multi-context app shell (the THE-feature-the-user-flagged from the v0.1 sidebar migration miss). 172-LOC source at [`original/components/AccountSwitcher.tsx`](../../migrations/socialmedia-adv-nav-system/original/components/AccountSwitcher.tsx). 30% direct port / 70% generalization — source is tightly coupled to memberships + business-creation feature; library version is a domain-agnostic primitive.
@@ -63,6 +63,8 @@ interface SwitcherItem {
 - **`footerSlot?: ReactNode`** — rendered below the items list, separated by a divider. Consumer places "Create new …" / multi-state Request affordances / Settings link / sign-out / anything. The library does NOT model state — slot accepts arbitrary content.
 - **`isCollapsed?: boolean`** — when true, the trigger collapses to icon-only mode (no label, no chevron). The popover content still shows full labels (the trigger collapses; the popover doesn't). Designed for slotting into `rich-sidebar`'s collapse-to-icon mode.
 - **`"aria-label"?: string`** — defaults to `"Switch account context"` (matches source). Consumer overrides for non-account semantics.
+- **`ariaCurrent?: "true" | "page" | "step" | "location" | "date" | "time" | false`** — value applied to the active item's `aria-current` attribute. Default `"true"` (generic active-state semantic, correct for a switcher). Consumer overrides to `"page"` when the switcher acts as primary navigation, `"step"` for stepper-style mode toggles, etc. Pass `false` to omit the attribute entirely (uncommon, e.g. when the consumer manages aria semantics externally). (L14)
+- **`open?: boolean`** / **`defaultOpen?: boolean`** / **`onOpenChange?: (next: boolean) => void`** — controlled+uncontrolled open-state triplet, mirroring Radix Popover's canonical pattern. Uncontrolled by default. Lets consumers wire keyboard-shortcut openers (Cmd+K), tutorial-driven programmatic opens, multi-switcher sync, and test harnesses without a v0.2 break. `onOpenChange` is F-cross-13 typeof-guarded internally (per L11). (L13)
 - **`className?: string`** — pass-through to the trigger element.
 
 **Interaction model**
@@ -222,23 +224,25 @@ These are the calls already made — listed for explicitness so we can re-audit 
 | **L10** | **Collapsed-mode trigger renders icon-only**; popover content shows full labels regardless. Designed to slot into `rich-sidebar`'s icon-collapsed mode. Detail behaviors (popover side, focus return after icon-trigger close, label-hide aria-label fallback) locked at GATE 2 plan. |
 | **L11** | **F-cross-13 pre-emption from day one.** `Popover.onOpenChange` typeof-guarded `(next: unknown) => { if (typeof next !== "boolean") return; ... }` since shadcn@4.6.0 may ship Base UI primitives with different callback shapes. |
 | **L12** | **Generic naming, account-agnostic semantics.** Default `aria-label="Switch account context"` matches source, but the prop is overridable. Component works for accounts, workspaces, projects, contexts, modes — any "current X + switchable other X's" surface. |
+| **L13** | **Controlled-open triplet from v0.1** (`open?` / `defaultOpen?` / `onOpenChange?`). Mirrors Radix Popover's canonical controlled+uncontrolled pattern. Promoted from Q6 during the 2026-05-23 re-validation pass per the dynamicity-primacy rule (`add it later is a breaking change`). Zero default-behavior change for uncontrolled consumers; `onOpenChange` is F-cross-13 typeof-guarded per L11. |
+| **L14** | **`ariaCurrent?` prop with `"true"` default.** Promoted from Q5 during the 2026-05-23 re-validation pass. Default value is unchanged (correct semantic for a switcher), but consumers can override to `"page"` / `"step"` / `false` / etc. for nav-style or stepper-style usages. |
 
 ---
 
-## 8. Open questions to lock during sign-off
+## 8. Open questions — RESOLVED at GATE 1 sign-off (2026-05-23)
 
-Open Q-Ps requiring your call. Each has a recommended default (so silence = recommended).
+All Q-Ps below were signed off at GATE 1 close with defaults accepted unless noted. Kept here as historical record; future iteration replaces the table rather than re-opening individual rows.
 
-| # | Q | Default (silence accepts) |
+| # | Q | Resolution |
 |---|---|---|
-| **Q1** | When `items.length === 0` AND no `fallbackActiveItem`, what does the trigger show? **(a)** empty button with chevron (current source behavior — undefined `items[0]` crashes); **(b)** disabled button with placeholder text; **(c)** library throws in dev, renders nothing in prod. | **(b)** — disabled with placeholder. Defensive, no crashes. |
-| **Q2** | Should the library enforce key uniqueness? **(a)** dev-warn + ignore duplicates; **(b)** dev-throw; **(c)** silently accept (last-write-wins for collision). | **(a)** — dev-warn (`console.warn` in NODE_ENV !== "production"), strip duplicates at render. Matches React's key warning semantics. |
+| **Q1** | When `items.length === 0` AND no `fallbackActiveItem`, what does the trigger show? **(a)** empty button with chevron (current source behavior — undefined `items[0]` crashes); **(b)** disabled button with placeholder text; **(c)** library throws in dev, renders nothing in prod. | ✅ **Locked (b)** — disabled with placeholder. Defensive, no crashes. |
+| **Q2** | Should the library enforce key uniqueness? **(a)** dev-warn + ignore duplicates; **(b)** dev-throw; **(c)** silently accept (last-write-wins for collision). | ✅ **Locked (a)** — dev-warn (`console.warn` in NODE_ENV !== "production"), strip duplicates at render. Matches React's key warning semantics. |
 | ~~Q3~~ | ~~Active-row click semantics~~ — **promoted to L6 (locked).** |  |
-| **Q4** | Popover-side in collapsed mode — `"right"` (always) vs `"right-then-flip"` (collision-aware, default Radix). | **right-then-flip** — Radix's auto-flip is the right default. |
-| **Q5** | `aria-current` on active item — `"true"` vs `"page"`. | **`"true"`** — switcher isn't navigation in the link sense; `"true"` is the generic active-state ARIA value. |
-| **Q6** | Should we expose a `controlledOpen?: boolean + onOpenChange?: (open: boolean) => void` pair, or keep open-state purely internal? | **Internal-only in v0.1.** Add when a consumer asks for it. v0.2 candidate. |
-| **Q7** | `footerSlot` separator — library renders an `<hr>` ABOVE the slot always, OR only when `footerSlot` is present? | **Only when present.** Empty slot = no separator. |
-| **Q8** | Click-through-keyboard on items — should `Enter` AND `Space` both activate, or only `Enter`? | **Both.** Standard button semantics; consistent with shadcn defaults. |
+| **Q4** | Popover-side in collapsed mode — `"right"` (always) vs `"right-then-flip"` (collision-aware, default Radix). | ✅ **Locked right-then-flip.** Radix's auto-flip is the right default; GATE 2 plan may expose `collapsedPopoverSide?` override prop. |
+| ~~Q5~~ | ~~`aria-current` on active item — `"true"` vs `"page"`.~~ — **promoted to L14 (locked, prop exposed)** during re-validation pass. Default unchanged (`"true"`); consumer overridable. |  |
+| ~~Q6~~ | ~~Expose `controlledOpen?: boolean + onOpenChange?: (open: boolean) => void` pair or keep internal?~~ — **promoted to L13 (locked, controlled-open triplet shipped from v0.1)** during re-validation pass. Dynamicity-primacy rule applied. |  |
+| **Q7** | `footerSlot` separator — library renders an `<hr>` ABOVE the slot always, OR only when `footerSlot` is present? | ✅ **Locked only when present.** Empty slot = no separator. |
+| **Q8** | Click-through-keyboard on items — should `Enter` AND `Space` both activate, or only `Enter`? | ✅ **Locked both.** Standard button semantics; consistent with shadcn defaults. |
 
 ---
 
@@ -256,16 +260,16 @@ Open Q-Ps requiring your call. Each has a recommended default (so silence = reco
 
 ---
 
-## 10. Definition of "done" for THIS document (stage gate)
+## 10. Definition of "done" for THIS document (stage gate) — ✅ CLOSED 2026-05-23
 
-GATE 1 closes when:
+GATE 1 is **closed**:
 
-- [ ] All 8 Q-Ps resolved (or explicitly deferred to GATE 2 plan)
-- [ ] No additional locks emerge from a final read-through
-- [ ] You sign off ("yes ship as drafted" / "accept defaults Q1–Q8" / etc.)
-- [ ] Re-validation pass run (per `feedback_re_validation_pass_catches_real_issues`) — drafted findings ≤ 3 or all resolved
+- [x] All 8 Q-Ps resolved — Q3/Q5/Q6 promoted to locks (L6/L14/L13); Q1/Q2/Q4/Q7/Q8 accepted at default values per §8.
+- [x] Re-validation pass surfaced 2 dynamicity-primacy findings (Q5 hardcoded-aria-current, Q6 internal-only-open); both applied as L14 + L13 before close.
+- [x] Final read-through complete — locks L1–L14 reflect every behavior contract; no orphan Q-Ps or undefined behaviors.
+- [x] User signed off 2026-05-23 ("Apply both — then accept all defaults" on the GATE 1 close question).
 
-After GATE 1 closes, GATE 2 plan authoring begins: file structure, commit chain, internal implementation strategy.
+GATE 2 plan authoring (`account-switcher-01-procomp-plan.md`) begins now: file structure, commit chain, internal implementation strategy, demo plans.
 
 ---
 
@@ -284,7 +288,7 @@ This matches the `todo-rich-card` ↔ `todo-tree` sibling pattern shipped 2026-0
 
 ## Appendix B — Improvements over source (deliberate deviations)
 
-This component is **not a 1:1 port**. It carries the source's load-bearing pattern but improves on it in eight specific places. Each improvement is the library doing more than the source did — captured here as the audit trail so future contributors don't accidentally regress them by "matching the source."
+This component is **not a 1:1 port**. It carries the source's load-bearing pattern but improves on it in nine specific places. Each improvement is the library doing more than the source did — captured here as the audit trail so future contributors don't accidentally regress them by "matching the source."
 
 | # | Improvement | Source behavior | Library behavior | Locked in |
 |---|---|---|---|---|
@@ -292,10 +296,11 @@ This component is **not a 1:1 port**. It carries the source's load-bearing patte
 | **I-2** | **Empty-items defensiveness** | Source crashes on empty `items` (undefined `items[0]` access). | Library renders a disabled placeholder when items is empty (Q1 default). | Q1 |
 | **I-3** | **Key uniqueness enforcement** | Source has no guard — duplicate keys silently render multiple rows. | Library dev-warns + strips duplicates at render (Q2 default). | L3, Q2 |
 | **I-4** | **Icon type widened** | Source: strict `LucideIcon` (only Lucide icons accepted). | Library: `ReactNode | ComponentType<{ className?: string }>` — accepts JSX elements, custom components, Lucide icons, image marks, anything. | L1 (SwitcherItem) |
-| **I-5** | **`aria-current="true"` on active item** | Source has no aria-current attribute — only visual Check icon. | Library adds `aria-current="true"` so screen-reader users hear "current item". | L7, success #2, §2 a11y mandate |
-| **I-6** | **F-cross-13 pre-emption on Popover.onOpenChange** | Source pre-dates the F-cross-13 era; uses Radix shape with no defensive typeof-guard. | Library wraps onOpenChange in `(next: unknown) => { if (typeof next !== "boolean") return; ... }` for shadcn@4.6.0 Base UI compatibility. | L11 |
+| **I-5** | **Programmable `aria-current` on active item** | Source has no aria-current attribute — only visual Check icon. | Library adds `aria-current="true"` (default) AND exposes `ariaCurrent?` so consumers can override to `"page"` / `"step"` / `false` for nav-style or stepper-style usages. Screen-reader users always hear "current item" by default. | L14, L7, success #2, §2 a11y mandate |
+| **I-6** | **F-cross-13 pre-emption on Popover.onOpenChange** | Source pre-dates the F-cross-13 era; uses Radix shape with no defensive typeof-guard. | Library wraps onOpenChange in `(next: unknown) => { if (typeof next !== "boolean") return; ... }` for shadcn@4.6.0 Base UI compatibility. Applies to both the internal handler AND the consumer-supplied `onOpenChange` (L13). | L11, L13 |
 | **I-7** | **Collapsed-mode (icon-only) trigger** | Source has no collapse mode — desktop sidebar is fixed-width. | Library exposes `isCollapsed?` so the trigger can render as a 40px icon-only button when slotted into rich-sidebar's collapse-to-icon mode (an ilinxa extension beyond the source). | L10 |
 | **I-8** | **Domain-agnostic + portable** | Source imports `useUser`, `useMembershipStore`, `useBusinessMemberships`, etc., directly. | Library imports zero auth/membership/router code. Consumer derives `items`, `activeKey`, and footer state outside the library. Zero `next/*` imports. | success #1, §2 "Permissions & gating model" |
+| **I-9** | **Controlled-open triplet from v0.1** | Source: open state is internal — no programmatic open, no controlled mode, no event observability. Consumers wanting to open the popover from a keyboard shortcut, tutorial, or test had no path. | Library ships `open?` / `defaultOpen?` / `onOpenChange?` from day one, mirroring Radix Popover's canonical controlled+uncontrolled pattern. Uncontrolled by default (zero behavior change for default consumers); controlled unlocks Cmd+K openers, onboarding flows, multi-switcher sync, and test harnesses. F-cross-13 guard applies. | L13 |
 
 ---
 
