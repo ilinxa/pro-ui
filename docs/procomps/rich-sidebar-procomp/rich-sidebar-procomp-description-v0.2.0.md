@@ -199,18 +199,20 @@ All v0.1 success criteria stand. New v0.2.0 criteria:
 
 ---
 
-## 8. Open questions to lock during sign-off
+## 8. Open questions — RESOLVED at GATE 1 sign-off (2026-05-23)
 
-| # | Q | Default (silence accepts) |
+All Q-Ps below were signed off at GATE 1 close with defaults accepted. Kept here as historical record; future iteration replaces the table rather than re-opening individual rows.
+
+| # | Q | Resolution |
 |---|---|---|
-| **Q15** | Final slot name: `topSlot` vs `aboveBrandSlot` vs `chromeSlot` vs `headerSlot` (wait — `headerSlot` is already taken in v0.1 for the HEADER row, distinct from above-the-brand zone). | **`topSlot`** — analysis F-11 deferred; my recommendation is `topSlot` for brevity. |
-| **Q16** | Should `useFilteredNavSections` be a memoized hook (returns referentially-stable sections when inputs unchanged) or a pure function called inline? | **Memoized hook** — `useMemo` internally. Aligns with the rest of rich-sidebar's hook patterns; cheap. |
-| **Q17** | When `resolveHref` is provided, do we still pass `hrefTemplateValues` to it (as the second arg)? Or does the callback fully own substitution? | **Pass `templateValues` as the second arg.** Callback owns substitution but has the values available — lets it implement a strict superset of the default behavior. |
+| **Q15** | Final slot name: `topSlot` vs `aboveBrandSlot` vs `chromeSlot` vs `headerSlot` (wait — `headerSlot` is already taken in v0.1 for the HEADER row, distinct from above-the-brand zone). | ✅ **Locked `topSlot`** — analysis F-11 closed; terse wins. L41 stands. |
+| **Q16** | Should `useFilteredNavSections` be a memoized hook (returns referentially-stable sections when inputs unchanged) or a pure function called inline? | ✅ **Locked memoized hook** — `useMemo` internally over `[sections, permissions, isOwner, currentMaxMembers, bypassFiltering]`. Aligns with the rest of rich-sidebar's hook patterns; R14 mitigation. |
+| **Q17** | When `resolveHref` is provided, do we still pass `hrefTemplateValues` to it (as the second arg)? Or does the callback fully own substitution? | ✅ **Locked pass `templateValues` as the second arg.** Strict superset of default behavior; consumer-friendly. |
 | ~~Q18~~ | ~~permission AND ownerOnly intersection vs union~~ — **already locked at L46** (three-gate intersection). Question removed as redundant; L46 stands. |  |
-| **Q19** | Should the dev console warn when `hrefTemplateValues` has keys NOT referenced in any item, OR items reference `{xxx}` placeholders not present in `hrefTemplateValues`? | **Warn on missing placeholder values (items reference `{xxx}` not in map).** Helps consumers catch drift. No warn on unused values — those are common (one map, multiple sidebars). |
+| **Q19** | Should the dev console warn when `hrefTemplateValues` has keys NOT referenced in any item, OR items reference `{xxx}` placeholders not present in `hrefTemplateValues`? | ✅ **Locked warn on missing placeholder values (items reference `{xxx}` not in map).** Helps consumers catch drift. No warn on unused values — those are common (one map, multiple sidebars). |
 | ~~Q20~~ | ~~permissions value optional vs required~~ — **already implied by L47**'s `permissions?:` optional marker. Question removed; `undefined ≡ empty set` semantic is locked by the optional `?` in L47. |  |
-| **Q21** | Should `bypassFiltering` truly bypass ALL gates (including `hidden: true`), or only the three permission gates? | **Three permission gates only.** `hidden: true` is an explicit per-item opt-out; respecting it is unconditional. |
-| **Q22** | Should we ship a `validateNavContextConfig()` runtime helper that checks consumer's NAV_CONFIG-shaped object for common issues (duplicate keys, missing placeholders, dangling references)? | **No — v0.3+ candidate.** Consumer's responsibility for now. |
+| **Q21** | Should `bypassFiltering` truly bypass ALL gates (including `hidden: true`), or only the three permission gates? | ✅ **Locked three permission gates only.** `hidden: true` is an explicit per-item opt-out; respecting it is unconditional. |
+| **Q22** | Should we ship a `validateNavContextConfig()` runtime helper that checks consumer's NAV_CONFIG-shaped object for common issues (duplicate keys, missing placeholders, dangling references)? | ✅ **Locked NO — v0.3+ candidate.** Consumer's responsibility for now. |
 
 ---
 
@@ -228,16 +230,16 @@ All v0.1 success criteria stand. New v0.2.0 criteria:
 
 ---
 
-## 10. Definition of "done" for THIS document (stage gate)
+## 10. Definition of "done" for THIS document (stage gate) — ✅ CLOSED 2026-05-23
 
-GATE 1 for v0.2.0 closes when:
+GATE 1 for v0.2.0 is **closed**:
 
-- [ ] All 8 new Q-Ps (Q15–Q22) resolved
-- [ ] All 12 new locks (L41–L52) confirmed
-- [ ] Re-validation pass run on this addendum
-- [ ] You sign off
+- [x] All 6 active Q-Ps (Q15/Q16/Q17/Q19/Q21/Q22) resolved at default. Q18 + Q20 struck during the pre-close revalidation pass (already locked at L46 / L47).
+- [x] All 12 new locks (L41–L52) confirmed.
+- [x] Re-validation pass (2026-05-23) — 11 findings on addendum applied (9 self + 2 cross-consistency); no further dynamicity-primacy gaps surfaced for rich-sidebar (the two findings from that pass landed in the sibling account-switcher-01 description).
+- [x] User signed off 2026-05-23 ("Apply both — then accept all defaults").
 
-After GATE 1 closes, GATE 2 plan authoring for v0.2.0 begins at [`rich-sidebar-procomp-plan-v0.2.0.md`](rich-sidebar-procomp-plan-v0.2.0.md) (companion to this addendum). The plan will list the additive files, the migration shape inside `derive-visible-entries.ts`, the new hook implementation, the demo update, the type re-exports, etc.
+GATE 2 plan authoring for v0.2.0 begins now at [`rich-sidebar-procomp-plan-v0.2.0.md`](rich-sidebar-procomp-plan-v0.2.0.md) (companion to this addendum). The plan will list the additive files, the migration shape inside `derive-visible-entries.ts`, the new hook implementation, the demo update, the type re-exports, etc.
 
 ---
 
