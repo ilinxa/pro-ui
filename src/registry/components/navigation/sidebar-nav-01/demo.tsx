@@ -98,7 +98,7 @@ export default function SidebarNav01Demo() {
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Mobile drawer + SidebarNav01Trigger (
-          <code className="font-mono text-[10px]">mobileBreakpoint="2xl"</code>{" "}
+          <code className="font-mono text-[10px]">mobileBreakpoint=&quot;2xl&quot;</code>{" "}
           forced so it&apos;s reachable on a desktop viewport — tap the
           hamburger)
         </p>
