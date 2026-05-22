@@ -44,10 +44,12 @@ export function NavBadge({
     muted: "bg-muted/60 text-muted-foreground",
   };
 
-  // Position → layout classes
+  // Position → layout classes. RTL flip: in collapsed-mode the badge corner
+  // anchors on the icon's inline-end edge — physically -right-1 in LTR and
+  // -left-1 in RTL.
   const positionClasses =
     resolvedPosition === "corner"
-      ? "absolute -top-1 -right-1"
+      ? "absolute -top-1 -right-1 rtl:right-auto rtl:-left-1"
       : "relative inline-flex";
 
   if (variant === "dot") {

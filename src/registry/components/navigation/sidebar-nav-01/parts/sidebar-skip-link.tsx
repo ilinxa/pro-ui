@@ -32,6 +32,9 @@ export function SidebarSkipLink({
         // sr-only by default — appears on focus
         "sr-only focus:not-sr-only",
         "focus:absolute focus:left-2 focus:top-2 focus:z-50",
+        // RTL: skip link should sit on the same logical inline-start edge,
+        // which means physical-right when direction is RTL
+        "rtl:focus:left-auto rtl:focus:right-2",
         "focus:inline-flex focus:items-center focus:rounded-md",
         "focus:bg-card focus:px-3 focus:py-2",
         "focus:text-sm focus:font-medium focus:text-foreground",

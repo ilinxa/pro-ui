@@ -79,6 +79,8 @@ export function NavUser({
             aria-hidden="true"
             className={cn(
               "absolute -bottom-0.5 -right-0.5 inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-card",
+              // RTL flip — status dot stays on the avatar's inline-end side
+              "rtl:right-auto rtl:-left-0.5",
               statusDot,
             )}
           />

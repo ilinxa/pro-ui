@@ -105,9 +105,12 @@ export function SidebarNavSection({
           {headerInner}
           <ChevronDown
             className={cn(
-              "h-3.5 w-3.5 text-muted-foreground transition-transform",
-              "motion-safe:duration-200",
+              "h-3.5 w-3.5 text-muted-foreground",
+              "motion-safe:transition-transform motion-safe:duration-200",
               isCollapsed && "-rotate-90",
+              // RTL: chevron rotates the OTHER way when collapsed so it
+              // still points "outward" from the open direction
+              isCollapsed && "rtl:rotate-90",
             )}
             aria-hidden="true"
           />
