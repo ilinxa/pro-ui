@@ -22,7 +22,13 @@ export function Icon({ icon, className }: IconProps) {
     return <>{icon}</>;
   }
 
-  if (typeof icon === "function") {
+  // Plain function components AND forwardRef objects (lucide-react icons in
+  // v0.475+ ship as `forwardRef` objects whose typeof === "object", not
+  // "function" — the previous typeof-only check rendered the object as a
+  // child and crashed the static-prerender path).
+  const isComponentObject =
+    typeof icon === "object" && icon !== null && "$$typeof" in icon;
+  if (typeof icon === "function" || isComponentObject) {
     const IconComponent = icon as ComponentType<{ className?: string }>;
     return <IconComponent className={cn("h-5 w-5 shrink-0", className)} />;
   }
