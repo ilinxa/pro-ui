@@ -746,6 +746,43 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "pricing-table-01",
+      "type": "registry:block",
+      "title": "Pricing Table 01",
+      "description": "Side-by-side pricing tier cards (2–4 tiers) with optional monthly/annual toggle, highlighted-tier badge, per-feature included rows with tooltips, and a feature-comparison table layout. Controlled-or-uncontrolled toggle state, full i18n bag, three tones, RTL-safe. CTAs accept ReactNode (consumer wraps with router primitive) OR a CtaSpec convenience overload.",
+      "author": "ilinxa",
+      "categories": ["marketing"],
+      "registryDependencies": ["button", "tooltip"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/marketing/pricing-table-01/pricing-table-01.tsx", "type": "registry:component", "target": "components/pricing-table-01/pricing-table-01.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/index.ts", "type": "registry:component", "target": "components/pricing-table-01/index.ts" },
+        { "path": "src/registry/components/marketing/pricing-table-01/types.ts", "type": "registry:component", "target": "components/pricing-table-01/types.ts" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/billing-toggle.tsx", "type": "registry:component", "target": "components/pricing-table-01/parts/billing-toggle.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/comparison-table.tsx", "type": "registry:component", "target": "components/pricing-table-01/parts/comparison-table.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/price-display.tsx", "type": "registry:component", "target": "components/pricing-table-01/parts/price-display.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/tier-card.tsx", "type": "registry:component", "target": "components/pricing-table-01/parts/tier-card.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/tier-cta.tsx", "type": "registry:component", "target": "components/pricing-table-01/parts/tier-cta.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/tier-feature-row.tsx", "type": "registry:component", "target": "components/pricing-table-01/parts/tier-feature-row.tsx" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/format.ts", "type": "registry:component", "target": "components/pricing-table-01/parts/format.ts" },
+        { "path": "src/registry/components/marketing/pricing-table-01/parts/tone.ts", "type": "registry:component", "target": "components/pricing-table-01/parts/tone.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "pricing-table-01-fixtures",
+      "type": "registry:block",
+      "title": "Pricing Table 01 — fixtures",
+      "description": "Pricing Table 01 bundle including the dummy-data fixtures (sample tier configurations covering cards layout, table layout, monthly/annual toggle, highlighted tier).",
+      "author": "ilinxa",
+      "categories": ["marketing", "fixtures"],
+      "registryDependencies": ["@ilinxa/pricing-table-01"],
+      "files": [
+        { "path": "src/registry/components/marketing/pricing-table-01/dummy-data.ts", "type": "registry:component", "target": "components/pricing-table-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "article-body-01",
       "type": "registry:block",
       "title": "Article Body 01",
