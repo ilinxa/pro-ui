@@ -45,4 +45,7 @@ export type {
   // Companion + hook options
   RichSidebarTriggerProps,
   UseRichSidebarStateOptions,
+
+  // v0.2.0 — additive
+  NavContext,
 } from "./types";
