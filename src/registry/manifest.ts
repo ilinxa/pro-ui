@@ -166,6 +166,10 @@ import RichSidebarDemo from "./components/navigation/rich-sidebar/demo";
 import RichSidebarUsage from "./components/navigation/rich-sidebar/usage";
 import { meta as richSidebarMeta } from "./components/navigation/rich-sidebar/meta";
 
+import AccountSwitcher01Demo from "./components/navigation/account-switcher-01/demo";
+import AccountSwitcher01Usage from "./components/navigation/account-switcher-01/usage";
+import { meta as accountSwitcher01Meta } from "./components/navigation/account-switcher-01/meta";
+
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
 import { meta as codeBlockMeta } from "./components/code/code-block/meta";
@@ -438,6 +442,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: richSidebarMeta,
     Demo: RichSidebarDemo,
     Usage: RichSidebarUsage,
+  },
+  {
+    meta: accountSwitcher01Meta,
+    Demo: AccountSwitcher01Demo,
+    Usage: AccountSwitcher01Usage,
   },
 ];
 
