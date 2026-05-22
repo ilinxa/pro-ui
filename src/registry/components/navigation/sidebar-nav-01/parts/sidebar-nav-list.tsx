@@ -34,6 +34,8 @@ interface SidebarNavListProps {
   // Slot priority
   renderItem?: SidebarNav01Props["renderItem"];
   renderSection?: SidebarNav01Props["renderSection"];
+  renderBadge?: SidebarNav01Props["renderBadge"];
+  renderTooltipContent?: SidebarNav01Props["renderTooltipContent"];
 }
 
 /**
@@ -67,6 +69,8 @@ export function SidebarNavList({
   onSectionToggle,
   renderItem,
   renderSection,
+  renderBadge,
+  renderTooltipContent,
 }: SidebarNavListProps) {
   const handleItemClick =
     (item: NavItem, sectionId: string | null, indexInSection: number) =>
@@ -106,6 +110,8 @@ export function SidebarNavList({
         linkComponent={linkComponent}
         activeVariant={activeVariant}
         onClick={handleItemClick(item, sectionId, indexInSection)}
+        renderBadge={renderBadge}
+        renderTooltipContent={renderTooltipContent}
       />
     );
     if (!renderItem) return defaultRender;
