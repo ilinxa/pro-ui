@@ -26,6 +26,7 @@ export function ViewerShell({
       <DialogContent
         showCloseButton={false}
         aria-label={ariaLabel}
+        aria-describedby={undefined}
         className={cn(
           // Reset shadcn defaults: no card chrome, no padding, no ring, no rounded.
           "block gap-0 overflow-hidden bg-black p-0 text-white ring-0",

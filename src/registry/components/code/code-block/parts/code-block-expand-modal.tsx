@@ -22,7 +22,10 @@ export function CodeBlockExpandModal({
 }: CodeBlockExpandModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[min(95vw,1200px)] gap-0 p-0">
+      <DialogContent
+        className="max-w-[min(95vw,1200px)] gap-0 p-0"
+        aria-describedby={undefined}
+      >
         <DialogHeader className="border-b border-border/60 px-4 py-3">
           <DialogTitle className="text-sm font-medium">
             {title ?? "Code"}

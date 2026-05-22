@@ -33,10 +33,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["story-viewer-01", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-05-03",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-05-23",
 
   author: { name: "ilinxa" },
 

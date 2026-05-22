@@ -39,7 +39,7 @@ export function MyCanvas() {
         onEditRequest={(nodeId, subPath) => setEditing({ nodeId, subPath })}
       />
       <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           {editing && (
             <RichCard
               key={editing.nodeId}                       // clean remount
