@@ -120,7 +120,7 @@ User's procomp queue — 7 of 8 shipped, 2 remaining. Each goes through GATE 1 (
 
 Sibling procomp queued: `todo-rich-card-in-flow` (flow-canvas-01 adapter mirroring rcif's shape; no GATE 1 yet).
 
-**Side workstream — recently closed:** `rich-sidebar` v0.1.0 SHIPPED 2026-05-22 (migration from kasder social-nav-system; full C1→C13 chain). Sibling `bottom-tab-bar-01` is queued next — shares `<NavBadge>` + `NavItem` schema with rich-sidebar via the F-S1 relative-path import pattern; no GATE 1 yet.
+**Side workstream — recently closed:** `account-switcher-01` v0.1.0 SHIPPED 2026-05-23 (49th component; full GATE 1+2+3 + C1→C7 chain in single session; popover-with-switchable-items primitive; canonical occupant of rich-sidebar v0.2.0's `topSlot`). Previously: `rich-sidebar` v0.1.0 → v0.1.1 SHIPPED 2026-05-22 (migration from kasder social-nav-system). **Side workstream — IN FLIGHT:** `rich-sidebar` v0.2.0 — GATE 1 + GATE 2 closed 2026-05-23; C1–C6 implementation chain unblocked (additive on v0.1.x: `topSlot` + `{key}` href templates + `ownerOnly` + `minMembers` + exported `NavContext` + `useFilteredNavSections` hook). Sibling `bottom-tab-bar-01` still queued — shares `<NavBadge>` + `NavItem` schema via F-S1 relative-path imports; no GATE 1 yet.
 
 ## Roadmap (longer-term team-utility candidates)
 
