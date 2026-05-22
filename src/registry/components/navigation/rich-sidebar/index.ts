@@ -5,6 +5,8 @@ export { NavBrand } from "./parts/nav-brand";
 export { NavPrimaryAction } from "./parts/nav-primary-action";
 export { NavUser } from "./parts/nav-user";
 export { useRichSidebarState } from "./hooks/use-sidebar-nav-state";
+export { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
+export type { UseFilteredNavSectionsOpts } from "./hooks/use-filtered-nav-sections";
 
 export type {
   // Items schema
