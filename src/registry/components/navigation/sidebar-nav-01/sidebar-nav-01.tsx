@@ -116,9 +116,10 @@ export function SidebarNav01(props: SidebarNav01Props) {
     skipLinkLabel = "Skip to content",
     onPermissionDenied,
     onSkipLinkActivated,
-    // TODO(C12): wire onBrandClick / onPrimaryActionClick / onFooterTriggerOpen
-    // / onFooterMenuItemClick events through prefab configs. For now slot-based
-    // usage fires consumer's own handlers; component-level events deferred.
+    onBrandClick,
+    onPrimaryActionClick,
+    onFooterTriggerOpen,
+    onFooterMenuItemClick,
     ref: externalRef,
   } = props;
 
@@ -452,11 +453,73 @@ export function SidebarNav01(props: SidebarNav01Props) {
   //   mobile: renders only when drawerHeaderSlot OR headerSlot OR resolvedBrand
   //           supplied (mobile drawer has no collapse toggle — sheet close
   //           button handles that)
-  // Slot-vs-config resolution (L13): slot wins over shorthand config
-  const resolvedBrand = brandSlot ?? (brand ? <NavBrand {...brand} /> : null);
-  const resolvedPrimaryAction =
-    primaryActionSlot ?? (primaryAction ? <NavPrimaryAction {...primaryAction} /> : null);
-  const resolvedFooter = footerSlot ?? (footer ? <NavUser {...footer} /> : null);
+  // Slot-vs-config resolution (L13): slot wins over shorthand config.
+  // Component-level events (onBrandClick / onPrimaryActionClick /
+  // onFooterTriggerOpen / onFooterMenuItemClick) are wired into the resolved
+  // prefabs here so they fire regardless of whether the consumer used the
+  // shorthand config or supplied their own slot. Slot consumers wire their
+  // own callbacks directly — the component-level callbacks only apply to
+  // the prefab path.
+  const resolvedBrand = useMemo(() => {
+    if (brandSlot) return brandSlot;
+    if (!brand) return null;
+    const brandElement = <NavBrand {...brand} />;
+    if (!onBrandClick) return brandElement;
+    return (
+      <span
+        onClick={(event) => onBrandClick({ event })}
+        className="contents"
+      >
+        {brandElement}
+      </span>
+    );
+  }, [brandSlot, brand, onBrandClick]);
+
+  const resolvedPrimaryAction = useMemo(() => {
+    if (primaryActionSlot) return primaryActionSlot;
+    if (!primaryAction) return null;
+    if (!onPrimaryActionClick) return <NavPrimaryAction {...primaryAction} />;
+    return (
+      <NavPrimaryAction
+        {...primaryAction}
+        onClick={(event) => {
+          primaryAction.onClick?.(event);
+          onPrimaryActionClick({ event });
+        }}
+      />
+    );
+  }, [primaryActionSlot, primaryAction, onPrimaryActionClick]);
+
+  const resolvedFooter = useMemo(() => {
+    if (footerSlot) return footerSlot;
+    if (!footer) return null;
+    const wireMenuItem = onFooterMenuItemClick
+      ? (() => {
+          const wired = footer.menuItems.map((entry) => {
+            if (entry.kind === "separator") return entry;
+            const item = entry;
+            return {
+              ...item,
+              onClick: (event: React.MouseEvent) => {
+                item.onClick?.(event);
+                onFooterMenuItemClick({ menuItem: item, event });
+              },
+            };
+          });
+          return wired;
+        })()
+      : footer.menuItems;
+    return (
+      <NavUser
+        {...footer}
+        menuItems={wireMenuItem}
+        onTriggerOpen={(args) => {
+          footer.onTriggerOpen?.(args);
+          onFooterTriggerOpen?.(args);
+        }}
+      />
+    );
+  }, [footerSlot, footer, onFooterTriggerOpen, onFooterMenuItemClick]);
 
   const desktopAccessory =
     navAccessorySlot === null ? null : (navAccessorySlot ?? defaultAccessory);
