@@ -20,6 +20,19 @@ export interface NavItem {
   target?: "_blank" | "_self" | "_parent" | "_top";
   rel?: string;
   permission?: string;
+  /**
+   * v0.2.0 — When `true`, item is hidden in the filter pass unless the
+   * sidebar's `isOwner` prop is also `true`. Default `false`. Works
+   * alongside `permission` and `minMembers` — all three gates pass
+   * independently (intersection per L46).
+   */
+  ownerOnly?: boolean;
+  /**
+   * v0.2.0 — When set, item is hidden unless sidebar's `currentMaxMembers`
+   * prop is `>=` this value. Default unset (no min). Useful for plan-tier
+   * gating (Members tab visible only when seat capacity ≥ N).
+   */
+  minMembers?: number;
   disabled?: boolean;
   hidden?: boolean;
   className?: string;
@@ -46,6 +59,32 @@ export interface NavSeparator {
 export type NavEntry = NavItem | NavSection | NavSeparator;
 export type BasicNavItems = ReadonlyArray<NavItem>;
 export type SidebarNavItems = ReadonlyArray<NavEntry>;
+
+// ─────────────────────────────────────────────────────────────────────────
+// NavContext discriminated union (v0.2.0 — L48 + I-6)
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Discriminated union for app-shell context types — exported helper for
+ * consumers building multi-tenant SaaS surfaces. Type-only export; library
+ * does NOT ship a `useNavContext` hook because the URL→context derivation
+ * is coupled to the consumer's router (Next.js, TanStack Router, plain
+ * `location` — all different). Consumers type their derivation function
+ * with `(): NavContext` and TypeScript narrows correctly across the
+ * discriminant.
+ *
+ * Source of the 5-case shape: migration analysis §8.2 (the kasder
+ * socialmedia-adv-nav-system app-shell). Consumers needing different
+ * context shapes type their own; this is a documented helper, not
+ * mandatory. R13 acknowledges the opinionated shape.
+ */
+export type NavContext =
+  | { type: "personal" }
+  | { type: "business"; slug: string; accountId: string; accountName: string }
+  | { type: "platform"; accountId: string }
+  | { type: "governance" }
+  | { type: "cms"; mode: "platform" }
+  | { type: "cms"; mode: "business"; slug: string; accountId: string; accountName: string };
 
 // ─────────────────────────────────────────────────────────────────────────
 // Link primitive (L10 + L15)
@@ -354,6 +393,66 @@ export interface RichSidebarProps {
   skipLinkTarget?: string;
   skipLinkLabel?: string;
   ref?: Ref<RichSidebarHandle>;
+
+  // ───────────────────────────────────────────────────────────────────────
+  // v0.2.0 — additive expansion (L41–L52). Zero breaking changes for v0.1.x
+  // consumers; every new prop is optional and defaults to v0.1 behavior.
+  // ───────────────────────────────────────────────────────────────────────
+
+  /**
+   * v0.2.0 — Slot above the brand row. Geographically distinct from v0.1's
+   * `headerSlot` (which is INSIDE the brand row, to the LEFT of brand).
+   * Hierarchy top → bottom: `topSlot` → `headerSlot` → `brandSlot` →
+   * `navAccessorySlot`. Consumer Fragment-stacks if multiple widgets
+   * needed (L41). Canonical occupant: `<AccountSwitcher01>`.
+   */
+  topSlot?: ReactNode;
+
+  /**
+   * v0.2.0 — Map of placeholder values for href substitution. When present,
+   * every `{key}` substring in any `NavItem.href` is replaced with
+   * `templateValues[key]` via `String.prototype.replaceAll`. Items whose
+   * href has no `{...}` placeholders render unchanged. Combines with
+   * `resolveHref` — `resolveHref` wins when both provided (L43).
+   *
+   * Dev-warns when an href references a `{xxx}` placeholder not present
+   * in the map (only at the substitution site; tree-shaken in prod).
+   */
+  hrefTemplateValues?: Record<string, string>;
+
+  /**
+   * v0.2.0 — Escape-hatch callback for href resolution. When provided,
+   * wins precedence over `hrefTemplateValues`. Called per item per render
+   * — should be a stable function (`useCallback`). Return value is the
+   * final href string (strict `string`; consumer suppresses href by
+   * removing the item from `items`).
+   */
+  resolveHref?: (
+    item: NavItem,
+    templateValues: Record<string, string> | undefined,
+  ) => string;
+
+  /**
+   * v0.2.0 — Whether the current user is an owner. Fed into the filter
+   * pass; default `false` → all `ownerOnly` items hidden. Raw scalar, not
+   * opaque membership object (L52).
+   */
+  isOwner?: boolean;
+
+  /**
+   * v0.2.0 — Current plan-tier seat capacity. Fed into the filter pass;
+   * default `Infinity` → all `minMembers` items visible.
+   */
+  currentMaxMembers?: number;
+
+  /**
+   * v0.2.0 — When `true`, bypass the three permission gates (`permission`
+   * / `ownerOnly` / `minMembers`) at BOTH section AND item levels (Finding
+   * 4 — prevents "section disappears, items remain" inconsistency).
+   * `hidden: true` is still respected (Q21). Use case: personal-context
+   * shortcuts, admin overrides, debug views.
+   */
+  bypassFiltering?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
