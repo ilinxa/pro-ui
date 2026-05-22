@@ -9,6 +9,7 @@ import type {
   SidebarNav01Props,
 } from "../types";
 import { SidebarNavRow } from "./sidebar-nav-row";
+import { SidebarNavSection } from "./sidebar-nav-section";
 import { SidebarNavSeparator } from "./sidebar-nav-separator";
 
 interface SidebarNavListProps {
@@ -20,12 +21,18 @@ interface SidebarNavListProps {
   isMobileOpen: boolean;
   onCloseMobile: () => void;
 
+  // Section state — driven by reducer in parent
+  collapsedSectionIds: ReadonlySet<string>;
+  onToggleSection: (sectionId: string) => void;
+
   // Consumer event hooks
   onItemClick?: (args: SidebarNav01EventArgs["itemClick"]) => void;
   onItemNavigate?: (args: SidebarNav01EventArgs["itemNavigate"]) => void;
+  onSectionToggle?: (args: SidebarNav01EventArgs["sectionToggle"]) => void;
 
   // Slot priority (C5 + C10 will plumb these through)
   renderItem?: SidebarNav01Props["renderItem"];
+  renderSection?: SidebarNav01Props["renderSection"];
 }
 
 /**
@@ -51,9 +58,13 @@ export function SidebarNavList({
   autoCloseMobileOnNavigate,
   isMobileOpen,
   onCloseMobile,
+  collapsedSectionIds,
+  onToggleSection,
   onItemClick,
   onItemNavigate,
+  onSectionToggle,
   renderItem,
+  renderSection,
 }: SidebarNavListProps) {
   const handleItemClick =
     (item: NavItem, sectionId: string | null, indexInSection: number) =>
@@ -124,18 +135,35 @@ export function SidebarNavList({
           return <SidebarNavSeparator key={entry.id ?? `sep-${i}`} />;
         }
         if (entry.kind === "section") {
-          // C4 will render the section header + collapsible body.
-          // C3 baseline: flatten the section's items inline so we can
-          // verify items + active detection works for sectioned data
-          // before the section UI lands.
+          const isSectionCollapsed = collapsedSectionIds.has(entry.id);
+          const handleSectionToggle = () => {
+            onToggleSection(entry.id);
+            onSectionToggle?.({ section: entry, collapsed: !isSectionCollapsed });
+          };
+          const defaultSection = (
+            <SidebarNavSection
+              key={entry.id}
+              section={entry}
+              isCollapsed={isSectionCollapsed}
+              isSidebarCollapsed={isCollapsed}
+              visibleItemCount={entry.items.length}
+              onToggle={handleSectionToggle}
+            >
+              {entry.items.map((child, idx) => (
+                <span key={child.id}>{renderRow(child, entry.id, idx)}</span>
+              ))}
+            </SidebarNavSection>
+          );
+          if (!renderSection) return defaultSection;
           return (
-            <li key={entry.id} className="list-none">
-              <ul role="list" className="flex flex-col gap-1">
-                {entry.items.map((child, idx) => (
-                  <span key={child.id}>{renderRow(child, entry.id, idx)}</span>
-                ))}
-              </ul>
-            </li>
+            <span key={entry.id}>
+              {renderSection({
+                section: entry,
+                isCollapsed: isSectionCollapsed,
+                visibleItemCount: entry.items.length,
+                defaultRender: defaultSection,
+              })}
+            </span>
           );
         }
         // Top-level NavItem
