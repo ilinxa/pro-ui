@@ -16,9 +16,12 @@ import { DefaultLink } from "./parts/default-link";
 import { NavBrand } from "./parts/nav-brand";
 import { NavPrimaryAction } from "./parts/nav-primary-action";
 import { NavUser } from "./parts/nav-user";
+import { SidebarEmptyState } from "./parts/sidebar-empty-state";
+import { SidebarLoadingSkeleton } from "./parts/sidebar-loading-skeleton";
 import { SidebarNavList } from "./parts/sidebar-nav-list";
 import type {
   NavItem,
+  SidebarNav01EmptyReason,
   SidebarNav01Handle,
   SidebarNav01Props,
   SidebarNav01StateValue,
@@ -74,6 +77,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
     renderSection,
     renderBadge,
     renderTooltipContent,
+    renderLoading,
+    renderEmptyState,
+    loading = false,
     brandSlot,
     brand,
     headerSlot,
@@ -291,6 +297,65 @@ export function SidebarNav01(props: SidebarNav01Props) {
     !!headerSlot || !!resolvedBrand || desktopAccessory !== null;
   const showMobileHeader = !!drawerHeaderSlot || !!headerSlot || !!resolvedBrand;
 
+  // L39 — loading/empty branching precedence:
+  //   loading=true → renderLoading slot OR default skeleton
+  //   else items.length === 0 → renderEmptyState({reason: "no-items"})
+  //   else visibleEntries.length === 0 AND filtered count > 0
+  //     → renderEmptyState({reason: "all-filtered-by-permission"})
+  //   else visibleEntries.length === 0 AND hidden count > 0
+  //     → renderEmptyState({reason: "all-hidden"})
+  //   else → normal list render
+  const renderListBody = (mode: "desktop" | "mobile") => {
+    const collapsed = mode === "mobile" ? false : state.collapsed;
+
+    if (loading) {
+      const defaultRender = (
+        <SidebarLoadingSkeleton isCollapsed={collapsed} />
+      );
+      if (renderLoading) {
+        return renderLoading({ isCollapsed: collapsed, defaultRender });
+      }
+      return defaultRender;
+    }
+
+    if (visible.entries.length === 0) {
+      const reason: SidebarNav01EmptyReason =
+        items.length === 0
+          ? "no-items"
+          : visible.filteredByPermission.length > 0
+            ? "all-filtered-by-permission"
+            : visible.hiddenItemCount > 0
+              ? "all-hidden"
+              : "no-items";
+      if (renderEmptyState) {
+        return renderEmptyState({ reason });
+      }
+      return <SidebarEmptyState reason={reason} />;
+    }
+
+    return (
+      <SidebarNavList
+        entries={visible.entries}
+        activeItemId={active.item?.id ?? null}
+        isCollapsed={collapsed}
+        linkComponent={linkComponent}
+        activeVariant={activeVariant}
+        autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
+        isMobileOpen={state.mobileOpen}
+        onCloseMobile={closeMobile}
+        collapsedSectionIds={state.collapsedSectionIds}
+        onToggleSection={toggleSection}
+        onItemClick={onItemClick}
+        onItemNavigate={onItemNavigate}
+        onSectionToggle={onSectionToggle}
+        renderItem={renderItem}
+        renderSection={renderSection}
+        renderBadge={renderBadge}
+        renderTooltipContent={renderTooltipContent}
+      />
+    );
+  };
+
   const renderInnerChrome = (mode: "desktop" | "mobile") => (
     <>
       {/* Brand / header zone */}
@@ -311,27 +376,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
         </div>
       )}
 
-      {/* Nav list */}
+      {/* Nav list — loading/empty branching per L39 */}
       <div className="flex flex-1 flex-col gap-2 overflow-hidden p-3">
-        <SidebarNavList
-          entries={visible.entries}
-          activeItemId={active.item?.id ?? null}
-          isCollapsed={mode === "mobile" ? false : state.collapsed}
-          linkComponent={linkComponent}
-          activeVariant={activeVariant}
-          autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
-          isMobileOpen={state.mobileOpen}
-          onCloseMobile={closeMobile}
-          collapsedSectionIds={state.collapsedSectionIds}
-          onToggleSection={toggleSection}
-          onItemClick={onItemClick}
-          onItemNavigate={onItemNavigate}
-          onSectionToggle={onSectionToggle}
-          renderItem={renderItem}
-          renderSection={renderSection}
-          renderBadge={renderBadge}
-          renderTooltipContent={renderTooltipContent}
-        />
+        {renderListBody(mode)}
         {resolvedPrimaryAction && (
           <div className="pt-2">{resolvedPrimaryAction}</div>
         )}
@@ -353,7 +400,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C8-prefab-parts"
+        data-stage="C9-loading-empty"
         data-collapsed={state.collapsed}
         data-mobile-open={state.mobileOpen}
         data-side={side}
