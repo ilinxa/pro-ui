@@ -4763,6 +4763,10 @@ function HeadlessExample() {
   const [last, setLast] = useState<Record<string, unknown> | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  // v0.2.4 — \`<JsonFormProvider>\` bridges \`<FormProvider {...value.rhf}>\`
+  // internally, so no outer \`<FormProvider>\` is needed here. The standalone
+  // parts (\`<JsonFormField>\`, \`<JsonFormSubmitButton>\`, narrow-deps hooks)
+  // resolve their RHF context through the bridge.
   return (
     <JsonFormProvider
       value={{
@@ -4813,7 +4817,7 @@ function HeadlessForm({
   );
 }
 
-// ─── Tab 8 — Devtools + perf (v0.1.7) ───────────────────────────────────────
+// ─── Tab 8 — Devtools + perf ────────────────────────────────────────────────
 
 // Extract as an uppercase-named component so rules-of-hooks lint accepts
 // the \`useJsonFormFieldsValue\` call inside.
@@ -4843,9 +4847,11 @@ const devtoolsDemoSchema: FormSchema = {
   fields: [
     { name: "firstName", type: "text", label: "First name", validators: { required: true } },
     { name: "lastName", type: "text", label: "Last name", validators: { required: true } },
-    // Custom renderer using dependsOn — v0.1.7 ships this as typed metadata
-    // (runtime watch-gating ships in v0.2.0). Setting it now is forward-
-    // compatible authoring.
+    // Custom renderer using dependsOn — runtime watch-gating active as of
+    // v0.2.0 (FieldWrapper resolves a narrow watch from this metadata; the
+    // \`summary\` renderer reads firstName + lastName via
+    // \`useJsonFormFieldsValue\`, and re-renders only when one of those
+    // declared deps changes).
     {
       name: "summary",
       type: "summary",
@@ -4870,7 +4876,7 @@ function DevtoolsPerfTab() {
   return (
     <Section
       title="Devtools + narrow-deps"
-      caption="Custom \`summary\` renderer reads firstName + lastName via \`useJsonFormFieldsValue\`. \`dependsOn: ['firstName', 'lastName']\` is forward-compatible typed metadata (runtime gating ships in v0.2.0). Inline \`<JsonFormDevtools />\` shows live schema / values / conditionals / errors below the form."
+      caption="Custom \`summary\` renderer reads firstName + lastName via \`useJsonFormFieldsValue\`. \`dependsOn: ['firstName', 'lastName']\` drives the FieldWrapper subscription mode (narrow watch — re-renders only when one of the declared deps changes; live as of v0.2.0). Inline \`<JsonFormDevtools />\` shows live schema / values / conditionals / errors below the form."
     >
       <JsonForm
         schema={devtoolsDemoSchema}
@@ -6840,6 +6846,130 @@ export default function PostCard01Demo() {
 }
 `,
   },
+  "pricing-table-01": {
+    demo: `"use client";
+
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PricingTable01 } from "./pricing-table-01";
+import {
+  PRICING_DEMO_LABELS_TR,
+  PRICING_DEMO_TIERS_THREE,
+  PRICING_DEMO_TIERS_TWO,
+} from "./dummy-data";
+import type { BillingPeriod } from "./types";
+
+function ControlledDemo() {
+  const [billing, setBilling] = useState<BillingPeriod>("monthly");
+  const [log, setLog] = useState<string[]>([]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PricingTable01
+        heading="Plans"
+        subheading="Controlled toggle + analytics example."
+        billingToggle="monthly-annual"
+        billing={billing}
+        onBillingChange={setBilling}
+        tiers={PRICING_DEMO_TIERS_THREE}
+        onTierCtaClick={(name) =>
+          setLog((prev) =>
+            [\`\${new Date().toLocaleTimeString()} · \${name}\`, ...prev].slice(0, 5),
+          )
+        }
+      />
+      <aside className="rounded-xl border border-dashed border-border/60 bg-muted/30 p-4 text-xs text-muted-foreground">
+        <div className="mb-2 font-medium text-foreground">
+          External state · billing = {billing}
+        </div>
+        {log.length === 0 ? (
+          <p>Click a tier CTA to log analytics events here.</p>
+        ) : (
+          <ul className="flex flex-col gap-1 font-mono">
+            {log.map((entry, idx) => (
+              <li key={\`\${entry}-\${idx}\`}>{entry}</li>
+            ))}
+          </ul>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+export default function PricingTable01Demo() {
+  return (
+    <Tabs defaultValue="cards" className="w-full">
+      <TabsList className="flex flex-wrap gap-2">
+        <TabsTrigger value="cards">Cards · toggle</TabsTrigger>
+        <TabsTrigger value="two-tier">Free / Paid</TabsTrigger>
+        <TabsTrigger value="table">Comparison table</TabsTrigger>
+        <TabsTrigger value="controlled">Controlled + analytics</TabsTrigger>
+        <TabsTrigger value="i18n">Custom labels (TR)</TabsTrigger>
+        <TabsTrigger value="tones">Tones</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="cards" className="mt-6">
+        <PricingTable01
+          heading="Plans for every team"
+          subheading="Start free, scale when you're ready."
+          billingToggle="monthly-annual"
+          tiers={PRICING_DEMO_TIERS_THREE}
+        />
+      </TabsContent>
+
+      <TabsContent value="two-tier" className="mt-6">
+        <PricingTable01
+          heading="Simple, transparent pricing"
+          tiers={PRICING_DEMO_TIERS_TWO}
+        />
+      </TabsContent>
+
+      <TabsContent value="table" className="mt-6">
+        <PricingTable01
+          heading="Compare plans"
+          subheading="Every feature, side by side."
+          layout="table"
+          billingToggle="monthly-annual"
+          tiers={PRICING_DEMO_TIERS_THREE}
+        />
+      </TabsContent>
+
+      <TabsContent value="controlled" className="mt-6">
+        <ControlledDemo />
+      </TabsContent>
+
+      <TabsContent value="i18n" className="mt-6">
+        <PricingTable01
+          heading="Her ekip için planlar"
+          subheading="Ücretsiz başlayın, ihtiyacınız olduğunda büyüyün."
+          billingToggle="monthly-annual"
+          labels={PRICING_DEMO_LABELS_TR}
+          tiers={PRICING_DEMO_TIERS_THREE}
+        />
+      </TabsContent>
+
+      <TabsContent value="tones" className="mt-6 flex flex-col gap-12">
+        <PricingTable01
+          heading="Primary"
+          tone="primary"
+          tiers={PRICING_DEMO_TIERS_TWO}
+        />
+        <PricingTable01
+          heading="Accent"
+          tone="accent"
+          tiers={PRICING_DEMO_TIERS_TWO}
+        />
+        <PricingTable01
+          heading="Muted"
+          tone="muted"
+          tiers={PRICING_DEMO_TIERS_TWO}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+}
+`,
+  },
   "progress-timeline-01": {
     demo: `"use client";
 
@@ -7743,6 +7873,264 @@ export default function RegistrationCard01Demo() {
             labels={fundraisingLabels}
           />
         </div>
+      </TabsContent>
+    </Tabs>
+  );
+}
+`,
+  },
+  "registration-form-01": {
+    demo: `"use client";
+
+import { useCallback, useState } from "react";
+import { GitBranch, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RegistrationForm01 } from "./registration-form-01";
+import {
+  controlledRegistrationProps,
+  defaultRegistrationProps,
+  denseRegistrationProps,
+  magicLinkRegistrationProps,
+  oauthRegistrationProps,
+  twoStepRegistrationProps,
+} from "./dummy-data";
+import type {
+  RegistrationFormStatus,
+  RegistrationSubmitPayload,
+} from "./types";
+
+function Section({
+  title,
+  caption,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+        {caption ? (
+          <p className="text-xs text-muted-foreground">{caption}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function LastPayloadPanel({
+  payload,
+}: {
+  payload: RegistrationSubmitPayload | null;
+}) {
+  if (!payload) {
+    return (
+      <p className="text-xs italic text-muted-foreground">
+        Submit any form to see the discriminated payload here.
+      </p>
+    );
+  }
+  return (
+    <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+      {JSON.stringify(payload, null, 2)}
+    </pre>
+  );
+}
+
+// ─── Tab 1: Default ──────────────────────────────────────────────────────────
+
+function DefaultTab() {
+  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Default — single-step"
+      caption="Email + password + consent gate. The simplest shape."
+    >
+      <RegistrationForm01
+        {...defaultRegistrationProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 2: OAuth ────────────────────────────────────────────────────────────
+
+function OauthTab() {
+  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
+  return (
+    <Section
+      title="OAuth row + oauthIcons slot"
+      caption="The fixture leaves icons empty (text-only fallback). Here we wire lucide-react icons via the slot — Mail as a Google stand-in (no Google brand asset shipped) and Github for the github provider."
+    >
+      <RegistrationForm01
+        {...oauthRegistrationProps}
+        oauthIcons={{
+          // lucide-react v1.x dropped branded icons (Google / GitHub /
+          // Apple) to dodge licensing — these are generic stand-ins.
+          // Consumers swap in their own brand-compliant SVGs.
+          google: <Mail className="size-4" aria-hidden="true" />,
+          github: <GitBranch className="size-4" aria-hidden="true" />,
+        }}
+        onOAuthClick={({ provider }) =>
+          console.log(\`[registration-form-01 demo] OAuth click:\`, provider)
+        }
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 3: Two-step ─────────────────────────────────────────────────────────
+
+function TwoStepTab() {
+  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Two-step flow with skip"
+      caption="Step 1 = email/password/consent. Step 2 = optional profile (firstName required, lastName + company optional). Skip-for-now button submits with \`stepCompleted: 'step1'\` so consumers can switch on the discriminant."
+    >
+      <RegistrationForm01
+        {...twoStepRegistrationProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 4: Magic-link ───────────────────────────────────────────────────────
+
+function MagicLinkTab() {
+  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Magic-link strategy"
+      caption="Drops the password input entirely; the form is email + consent + (optional) OAuth. Useful for low-friction sign-ups."
+    >
+      <RegistrationForm01
+        {...magicLinkRegistrationProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 5: Dense ────────────────────────────────────────────────────────────
+
+function DenseTab() {
+  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Compact density"
+      caption="Narrower max-width, tighter vertical rhythm. For sidebars, modals, or dense onboarding flows."
+    >
+      <RegistrationForm01
+        {...denseRegistrationProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 6: Controlled status ────────────────────────────────────────────────
+
+function ControlledTab() {
+  const [status, setStatus] = useState<RegistrationFormStatus>("idle");
+  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
+
+  // Mutual-exclusion contract: while \`status\` is provided, the component
+  // is read-only on its own state. We own the transitions here.
+  const handleSubmit = useCallback(
+    async (payload: RegistrationSubmitPayload) => {
+      setLast(payload);
+      setStatus("submitting");
+      // Simulate a network round-trip.
+      await new Promise((r) => setTimeout(r, 800));
+      // 70% success rate for the demo
+      if (Math.random() > 0.3) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    },
+    [],
+  );
+
+  return (
+    <Section
+      title="Controlled status (mutual-exclusion contract)"
+      caption="\`status\` + \`onStatusChange\` controlled. The parent owns transitions; the component renders based on \`status\` and never self-transitions. 70% success rate so you can see both branches."
+    >
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setStatus("idle")}
+        >
+          Reset to idle
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          status: <span className="font-mono">{status}</span>
+        </span>
+      </div>
+      <RegistrationForm01
+        {...controlledRegistrationProps}
+        status={status}
+        onStatusChange={(next) =>
+          console.log(\`[registration-form-01 demo] status change requested:\`, next)
+        }
+        errorMessage={
+          status === "error"
+            ? "Demo error — your account already exists."
+            : undefined
+        }
+        onSubmit={handleSubmit}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab shell ───────────────────────────────────────────────────────────────
+
+export default function RegistrationForm01Demo() {
+  return (
+    <Tabs defaultValue="default" className="w-full">
+      <TabsList className="flex w-full flex-wrap">
+        <TabsTrigger value="default">Default</TabsTrigger>
+        <TabsTrigger value="oauth">OAuth</TabsTrigger>
+        <TabsTrigger value="two-step">Two-step</TabsTrigger>
+        <TabsTrigger value="magic-link">Magic-link</TabsTrigger>
+        <TabsTrigger value="dense">Dense</TabsTrigger>
+        <TabsTrigger value="controlled">Controlled status</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="default" className="pt-3">
+        <DefaultTab />
+      </TabsContent>
+      <TabsContent value="oauth" className="pt-3">
+        <OauthTab />
+      </TabsContent>
+      <TabsContent value="two-step" className="pt-3">
+        <TwoStepTab />
+      </TabsContent>
+      <TabsContent value="magic-link" className="pt-3">
+        <MagicLinkTab />
+      </TabsContent>
+      <TabsContent value="dense" className="pt-3">
+        <DenseTab />
+      </TabsContent>
+      <TabsContent value="controlled" className="pt-3">
+        <ControlledTab />
       </TabsContent>
     </Tabs>
   );
