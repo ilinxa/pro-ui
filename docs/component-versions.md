@@ -23,11 +23,11 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `forms`    | 7     | `json-form` added 2026-05-13 (first cross-registry `dependencies.internal` consumer; lazy-loads `@ilinxa/code-block`) |
 | `marketing`| 4     |                                                                       |
 | `media`    | 4     | `pdf-viewer` added 2026-05-10                                         |
-| `navigation`| 3    | New category 2026-05-10 (`file-tree` + `file-manager`); `rich-sidebar` added 2026-05-22 |
+| `navigation`| 4    | New category 2026-05-10 (`file-tree` + `file-manager`); `rich-sidebar` added 2026-05-22; `account-switcher-01` added 2026-05-23 |
 | `layout`   | 2     |                                                                       |
 | `code`     | 1     | New category 2026-05-11 (`code-block`)                                |
 | `feedback` | 1     |                                                                       |
-| **Total**  | **48**|                                                                       |
+| **Total**  | **49**|                                                                       |
 
 ## Highlights
 
@@ -125,13 +125,14 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `story-viewer-01`   | Story Viewer 01   | 0.1.1   | alpha  |
 | `video-player-01`   | Video Player 01   | 0.1.2   | alpha  |
 
-## navigation (3)
+## navigation (4)
 
 | Slug              | Name            | Version | Status |
 |-------------------|-----------------|---------|--------|
 | `file-tree`       | File Tree       | 0.1.0   | alpha  |
 | `file-manager`    | File Manager    | 0.1.0   | alpha  |
 | `rich-sidebar`  | Rich Sidebar  | 0.1.1   | alpha  |
+| `account-switcher-01` | Account Switcher | 0.1.0 | alpha  |
 
 ## code (1)
 
