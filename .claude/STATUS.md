@@ -96,7 +96,7 @@
 | `pdf-viewer` | media | alpha | 0.1.3 |
 | `file-tree` | navigation | alpha | 0.1.0 |
 | `file-manager` | navigation | alpha | 0.1.0 |
-| `rich-sidebar` | navigation | alpha | 0.2.0 |
+| `rich-sidebar` | navigation | alpha | 0.2.1 |
 | `account-switcher-01` | navigation | alpha | 0.1.0 |
 | `code-block` | code | alpha | 0.1.0 |
 | `detail-panel` | feedback | alpha | 0.1.1 |

@@ -22,12 +22,12 @@ import type { NavEntry } from "./types";
 
 // Flat list (kasder-style)
 export const SIDEBAR_NAV_01_DUMMY_ITEMS: ReadonlyArray<NavEntry> = [
-  { id: "home", label: "Ana Sayfa", href: "/social/home", icon: Home },
-  { id: "explore", label: "Keşfet", href: "/social/explore", icon: Compass },
-  { id: "chat", label: "Mesajlar", href: "/social/chat", icon: MessageCircle, badge: 3 },
-  { id: "notif", label: "Bildirimler", href: "/social/notifications", icon: Bell, badge: 5 },
-  { id: "prof", label: "Profil", href: "/social/profile", icon: User },
-  { id: "biz", label: "İşletme", href: "/social/business", icon: Briefcase },
+  { id: "home", label: "Home", href: "/social/home", icon: Home },
+  { id: "explore", label: "Explore", href: "/social/explore", icon: Compass },
+  { id: "chat", label: "Messages", href: "/social/chat", icon: MessageCircle, badge: 3 },
+  { id: "notif", label: "Notifications", href: "/social/notifications", icon: Bell, badge: 5 },
+  { id: "prof", label: "Profile", href: "/social/profile", icon: User },
+  { id: "biz", label: "Business", href: "/social/business", icon: Briefcase },
 ];
 
 // Sectioned variant — demonstrates groups + separators + collapsible

@@ -1,9 +1,15 @@
 "use client";
 
 import {
+  BarChart3,
+  Bell,
+  Bookmark,
   Briefcase,
   Building2,
   Crown,
+  FileText,
+  Globe,
+  Home,
   LogOut,
   PlusSquare,
   Settings,
@@ -88,21 +94,21 @@ export default function RichSidebarDemo() {
             brand={{ logo: <KSquareLogo />, label: "Kasder", href: "/" }}
             primaryAction={{
               icon: PlusSquare,
-              label: "Paylaş",
+              label: "Post",
               onClick: () => alert("Open post composer"),
             }}
             footer={{
               user: {
-                name: "Ahmet Kaya",
-                handle: "@ahmetkaya",
+                name: "Alex Morgan",
+                handle: "@alexmorgan",
                 status: "online",
               },
               menuItems: [
-                { kind: "item", icon: UserIcon, label: "Profil", onClick: () => alert("profile") },
-                { kind: "item", icon: Settings, label: "Ayarlar", onClick: () => alert("settings") },
-                { kind: "item", icon: Briefcase, label: "İşletme", onClick: () => alert("business") },
+                { kind: "item", icon: UserIcon, label: "Profile", onClick: () => alert("profile") },
+                { kind: "item", icon: Settings, label: "Settings", onClick: () => alert("settings") },
+                { kind: "item", icon: Briefcase, label: "Business", onClick: () => alert("business") },
                 { kind: "separator" },
-                { kind: "item", icon: LogOut, label: "Çıkış Yap", variant: "destructive", onClick: () => alert("logout") },
+                { kind: "item", icon: LogOut, label: "Log out", variant: "destructive", onClick: () => alert("logout") },
               ],
             }}
             aria-label="Full recipe"
@@ -200,33 +206,86 @@ export default function RichSidebarDemo() {
 
 // ─────────────────────────────────────────────────────────────────────────
 // v0.2.0 — Multi-context demo (topSlot + {slug} + ownerOnly + minMembers + bypass)
+//
+// Demonstrates the *real* v0.2 power: switching contexts in the topSlot
+// account-switcher changes BOTH the nav-item catalog AND the {slug} value
+// fed into href substitution. Each context has its own item set — matches
+// the source app-shell pattern (analysis §8.2 NavContext discriminant).
 // ─────────────────────────────────────────────────────────────────────────
+
+type V02ContextKey = "personal" | "biz-acme" | "biz-globex" | "platform";
 
 const V02_SWITCHER_ITEMS: ReadonlyArray<SwitcherItem> = [
   { key: "personal", label: "Personal", icon: UserIcon, href: "/home" },
-  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/biz/acme" },
-  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/biz/globex" },
+  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/bconsole/acme" },
+  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/bconsole/globex" },
+  { key: "platform", label: "Platform", icon: Globe, href: "/pconsole/overview" },
 ];
 
-const V02_NAV_ITEMS_FOR_BUSINESS: ReadonlyArray<NavEntry> = [
-  { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
-  { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
-  { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
-  { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
-];
+// Per-context nav catalogs. Switching contexts swaps the entire item set;
+// {slug} substitution applies only when the context provides a slug.
+const V02_NAV_BY_CONTEXT: Record<V02ContextKey, ReadonlyArray<NavEntry>> = {
+  personal: [
+    { id: "home", label: "Home", icon: Home, href: "/home" },
+    { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
+    { id: "notifications", label: "Notifications", icon: Bell, href: "/notifications", badge: 3 },
+    { id: "saved", label: "Saved items", icon: Bookmark, href: "/saved" },
+  ],
+  "biz-acme": [
+    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
+    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
+    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+  ],
+  "biz-globex": [
+    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
+    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
+    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+  ],
+  platform: [
+    { id: "overview", label: "Overview", icon: Globe, href: "/pconsole/overview" },
+    { id: "users", label: "All users", icon: Users, href: "/pconsole/users", ownerOnly: true },
+    { id: "audit", label: "Audit log", icon: FileText, href: "/pconsole/audit", ownerOnly: true },
+    { id: "platform-settings", label: "Platform settings", icon: Settings, href: "/pconsole/settings", ownerOnly: true },
+  ],
+};
+
+const V02_DEFAULT_PATH_BY_CONTEXT: Record<V02ContextKey, string> = {
+  personal: "/home",
+  "biz-acme": "/bconsole/acme/dashboard",
+  "biz-globex": "/bconsole/globex/dashboard",
+  platform: "/pconsole/overview",
+};
 
 function V02MultiContextDemo() {
-  const [activeContextKey, setActiveContextKey] = useState<string>("biz-acme");
+  const [activeContextKey, setActiveContextKey] = useState<V02ContextKey>("biz-acme");
   const [isOwner, setIsOwner] = useState(true);
   const [maxMembers, setMaxMembers] = useState(5);
   const [bypass, setBypass] = useState(false);
-  const [currentPath, setCurrentPath] = useState("/bconsole/acme/dashboard");
+  const [currentPath, setCurrentPath] = useState(V02_DEFAULT_PATH_BY_CONTEXT["biz-acme"]);
+
+  // Items + slug derive purely from the current context.
+  const items = V02_NAV_BY_CONTEXT[activeContextKey];
 
   const slug = activeContextKey.startsWith("biz-")
     ? activeContextKey.slice(4)
-    : "acme";
+    : undefined;
 
-  const templateValues = useMemo(() => ({ slug }), [slug]);
+  const templateValues = useMemo(
+    () => (slug ? { slug } : undefined),
+    [slug],
+  );
+
+  const handleContextSwitch = (item: SwitcherItem) => {
+    const next = item.key as V02ContextKey;
+    setActiveContextKey(next);
+    setCurrentPath(V02_DEFAULT_PATH_BY_CONTEXT[next]);
+  };
 
   return (
     <div>
@@ -262,12 +321,17 @@ function V02MultiContextDemo() {
           bypassFiltering
         </label>
         <span className="ml-auto font-mono text-muted-foreground">
-          slug: <code>{slug}</code>
+          context: <code>{activeContextKey}</code>
+          {slug ? (
+            <>
+              {" "}· slug: <code>{slug}</code>
+            </>
+          ) : null}
         </span>
       </div>
       <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
         <RichSidebar
-          items={V02_NAV_ITEMS_FOR_BUSINESS}
+          items={items}
           currentPath={currentPath}
           onItemClick={({ item, event }) => {
             if (item.href) {
@@ -279,7 +343,7 @@ function V02MultiContextDemo() {
             <AccountSwitcher01
               items={V02_SWITCHER_ITEMS}
               activeKey={activeContextKey}
-              onSelect={(item) => setActiveContextKey(item.key)}
+              onSelect={handleContextSwitch}
             />
           }
           hrefTemplateValues={templateValues}
@@ -291,11 +355,13 @@ function V02MultiContextDemo() {
         <div className="flex flex-1 flex-col gap-2 p-6 text-sm text-muted-foreground">
           <p>Active context: <code className="font-mono">{activeContextKey}</code></p>
           <p>Active path: <code className="font-mono">{currentPath}</code></p>
+          <p className="text-xs">Items in this context: <code>{items.length}</code></p>
           <ul className="ml-4 list-disc space-y-1 text-xs">
-            <li><code>Settings</code> + <code>Billing</code> hidden unless <code>isOwner</code></li>
+            <li>Switch context in the popover — items + default path swap</li>
+            <li>Business contexts use <code>&#123;slug&#125;</code> in hrefs (Acme vs Globex)</li>
+            <li><code>Analytics</code> / <code>Settings</code> / <code>Billing</code> hide unless <code>isOwner</code></li>
             <li><code>Team</code> hidden unless <code>currentMaxMembers ≥ 2</code></li>
             <li><code>bypassFiltering</code> reveals everything (still respects <code>hidden:true</code>)</li>
-            <li>Hrefs interpolate <code>&#123;slug&#125;</code> from the switcher</li>
           </ul>
         </div>
       </div>
@@ -310,7 +376,7 @@ function V02MultiContextDemo() {
 function V02HeadlessFilterDemo() {
   const [isOwner, setIsOwner] = useState(false);
   const filtered = useFilteredNavSections({
-    sections: V02_NAV_ITEMS_FOR_BUSINESS,
+    sections: V02_NAV_BY_CONTEXT["biz-acme"],
     isOwner,
     currentMaxMembers: 10,
   });
