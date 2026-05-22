@@ -26,7 +26,6 @@ export function enforceUniqueKeys(
     deduped.push(item);
   }
   if (duplicateKeys.length > 0 && process.env.NODE_ENV !== "production") {
-    // eslint-disable-next-line no-console
     console.warn(
       `[account-switcher-01] Duplicate item keys stripped: ${duplicateKeys.join(", ")}. ` +
         `Each item must have a unique \`key\`. First occurrence preserved by source order.`,
