@@ -162,9 +162,9 @@ import FileManagerDemo from "./components/navigation/file-manager/demo";
 import FileManagerUsage from "./components/navigation/file-manager/usage";
 import { meta as fileManagerMeta } from "./components/navigation/file-manager/meta";
 
-import SidebarNav01Demo from "./components/navigation/sidebar-nav-01/demo";
-import SidebarNav01Usage from "./components/navigation/sidebar-nav-01/usage";
-import { meta as sidebarNav01Meta } from "./components/navigation/sidebar-nav-01/meta";
+import RichSidebarDemo from "./components/navigation/rich-sidebar/demo";
+import RichSidebarUsage from "./components/navigation/rich-sidebar/usage";
+import { meta as richSidebarMeta } from "./components/navigation/rich-sidebar/meta";
 
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
@@ -435,9 +435,9 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: TodoTreeUsage,
   },
   {
-    meta: sidebarNav01Meta,
-    Demo: SidebarNav01Demo,
-    Usage: SidebarNav01Usage,
+    meta: richSidebarMeta,
+    Demo: RichSidebarDemo,
+    Usage: RichSidebarUsage,
   },
 ];
 
