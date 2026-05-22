@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,7 +15,6 @@ import { deriveAvatarFallback } from "../lib/derive-avatar-fallback";
 import type { NavUserConfig, NavUserMenuItem } from "../types";
 import { DefaultLink } from "./default-link";
 import { Icon } from "./icon";
-import { TooltipWrapper } from "./tooltip-wrapper";
 
 const STATUS_DOT_CLASSES: Record<string, string> = {
   online: "bg-emerald-500",
@@ -111,24 +110,7 @@ export function NavUser({
         }
       }}
     >
-      <DropdownMenuTrigger asChild>
-        <TooltipWrapper
-          content={
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium">{user.name}</span>
-              {user.handle && (
-                <span className="text-[10px] text-muted-foreground">
-                  {user.handle}
-                </span>
-              )}
-            </div>
-          }
-          side="right"
-          disabled={!isCollapsed}
-        >
-          {trigger}
-        </TooltipWrapper>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align={isCollapsed ? "center" : "end"}
         side="top"
@@ -157,22 +139,20 @@ export function NavUser({
               asChild={!!item.href}
             >
               {item.href ? (
-                <Fragment>
-                  {(() => {
-                    const LinkComponent = item.linkComponent ?? DefaultLink;
-                    return (
-                      <LinkComponent href={item.href}>
-                        <Icon icon={item.icon} className="h-4 w-4" />
-                        <span className="flex-1">{item.label}</span>
-                        {item.shortcut && (
-                          <span className="ml-auto font-mono text-xs text-muted-foreground">
-                            {item.shortcut}
-                          </span>
-                        )}
-                      </LinkComponent>
-                    );
-                  })()}
-                </Fragment>
+                (() => {
+                  const LinkComponent = item.linkComponent ?? DefaultLink;
+                  return (
+                    <LinkComponent href={item.href}>
+                      <Icon icon={item.icon} className="h-4 w-4" />
+                      <span className="flex-1">{item.label}</span>
+                      {item.shortcut && (
+                        <span className="ml-auto font-mono text-xs text-muted-foreground">
+                          {item.shortcut}
+                        </span>
+                      )}
+                    </LinkComponent>
+                  );
+                })()
               ) : (
                 <>
                   <Icon icon={item.icon} className="h-4 w-4" />
