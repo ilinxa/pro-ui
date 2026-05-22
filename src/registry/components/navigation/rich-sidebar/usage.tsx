@@ -130,6 +130,43 @@ export function AppShell({ children }) {
         <code>currentMaxMembers</code> from your auth store. Zero hard registry
         dep between rich-sidebar and account-switcher-01.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Collapse-aware composition (responsive)
+      </h3>
+      <p className="text-muted-foreground">
+        <code>rich-sidebar</code> is viewport-aware (built-in mobile drawer
+        below <code>mobileBreakpoint</code>) AND container-aware via{" "}
+        <code>isCollapsed</code> (icon-only desktop mode). The slotted{" "}
+        <code>&lt;AccountSwitcher01&gt;</code> is NOT viewport-aware on its
+        own — it&apos;s a primitive, not an app-shell. The recipe is to LIFT
+        the collapsed state so it threads into both:
+      </p>
+      <pre className="mt-2 overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+<RichSidebar
+  items={items}
+  currentPath={pathname}
+  isCollapsed={sidebarCollapsed}
+  onCollapsedChange={({ collapsed }) => setSidebarCollapsed(collapsed)}
+  topSlot={
+    <AccountSwitcher01
+      items={switcherItems}
+      activeKey={activeKey}
+      onSelect={onSelect}
+      isCollapsed={sidebarCollapsed}   // ← passthrough; trigger flips icon-only
+    />
+  }
+/>`}</code>
+      </pre>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Below <code>mobileBreakpoint</code> the sidebar becomes a Sheet
+        drawer; inside that drawer pass{" "}
+        <code>isCollapsed=&#123;false&#125;</code> (the drawer renders the
+        sidebar full-width on mobile). Full recipe in{" "}
+        <code>account-switcher-01-procomp-guide.md</code> §4.6.
+      </p>
     </div>
   );
 }

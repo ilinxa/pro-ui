@@ -185,24 +185,72 @@ If you want a one-off programmatic open without committing to controlled mode, w
 
 ### 4.6 Slotting into `rich-sidebar` v0.2.0's topSlot (canonical pairing)
 
+The full collapse-aware composition. `rich-sidebar` owns the collapsed
+state; the slotted switcher receives the same flag so its trigger flips
+to icon-only in lockstep with the rest of the sidebar.
+
 ```tsx
-<RichSidebar
-  items={navItems}
-  currentPath={pathname}
-  isCollapsed={sidebarCollapsed}
-  topSlot={
-    <AccountSwitcher01
-      items={switcherItems}
-      activeKey={activeKey}
-      onSelect={(item) => router.push(item.href!)}
-      isCollapsed={sidebarCollapsed}  // pass through
-      footerSlot={<CreateBusinessButton />}
+function MyAppShell() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  // ... derive activeContextKey, items, etc., from your auth/router
+
+  return (
+    <RichSidebar
+      items={navItems}
+      currentPath={pathname}
+      // ── controlled-collapse: lift state so the switcher can read it too
+      isCollapsed={sidebarCollapsed}
+      onCollapsedChange={({ collapsed }) => setSidebarCollapsed(collapsed)}
+      // v0.2 features
+      hrefTemplateValues={{ slug: currentBusinessSlug }}
+      isOwner={membership?.is_owner ?? false}
+      currentMaxMembers={membership?.account_max_members}
+      // ── canonical topSlot occupant — THREAD isCollapsed through
+      topSlot={
+        <AccountSwitcher01
+          items={switcherItems}
+          activeKey={activeContextKey}
+          onSelect={(item) => item.href && router.push(item.href)}
+          isCollapsed={sidebarCollapsed}      // ← collapse passthrough
+          footerSlot={<CreateBusinessButton />}
+        />
+      }
     />
-  }
-/>
+  );
+}
 ```
 
-Both procomps are independently installable (`@ilinxa/account-switcher-01` and `@ilinxa/rich-sidebar`) — zero registry dep between them. The composition is your app code.
+**Why pass `isCollapsed` separately?** AccountSwitcher is a primitive — it
+does NOT auto-detect being inside a collapsed sidebar (it could equally be
+mounted in a topbar or settings page where collapse doesn't apply). The
+parent decides; the prop flows down.
+
+**What the user sees** in expanded mode:
+- Sidebar at full width; switcher trigger renders as a full-width button
+  with chevron + active label
+- Popover content opens BELOW the trigger, width matches trigger via
+  `--radix-popover-trigger-width`
+
+**Same in collapsed mode** (`sidebarCollapsed === true`):
+- Sidebar shrinks to icon-only (~80px); switcher trigger renders as a
+  40×40 square icon-only button (no label, no chevron)
+- Popover content opens to the SIDE of the trigger (Radix collision-aware
+  flip); content-sized, list rows + footer slot render identically to
+  expanded mode
+
+**Mobile drawer behavior** (when `rich-sidebar`'s viewport drops below
+`mobileBreakpoint`): the sidebar becomes a Sheet drawer. The switcher
+inside renders in EXPANDED mode within the drawer (because the drawer
+opens to full width on mobile) — pass `isCollapsed={false}` OR omit the
+prop entirely when inside the drawer's render path. Simplest pattern: tie
+the switcher's `isCollapsed` to `sidebarCollapsed && !isMobileDrawerOpen`
+if you need finer control.
+
+Both procomps are independently installable (`@ilinxa/account-switcher-01`
+and `@ilinxa/rich-sidebar`) — zero registry dep between them. The
+composition lives in your app code.
 
 ### 4.7 Re-affirming active-item clicks
 
