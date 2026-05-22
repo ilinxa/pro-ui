@@ -70,9 +70,65 @@ export function AppShell({ children }) {
         </li>
       </ul>
 
-      <p className="mt-6 italic text-muted-foreground">
-        Full prop documentation lands with C14 (final demo + usage). Until
-        then this page demonstrates only the C1 placeholder rendering.
+      <h3 className="mb-2 mt-6 text-base font-semibold">v0.2.0 — additions</h3>
+      <p className="text-muted-foreground">
+        v0.2.0 is strictly additive on v0.1 — every existing consumer compiles
+        unchanged. New surface unlocks multi-tenant SaaS shells:
+      </p>
+      <ul className="ml-5 mt-2 list-disc space-y-1 text-muted-foreground">
+        <li>
+          <code>topSlot</code> — single slot ABOVE the brand row for an
+          <code> AccountSwitcher01</code> / governance bar / status banner.
+          Renders nothing when omitted (zero layout shift vs v0.1).
+        </li>
+        <li>
+          <code>hrefTemplateValues</code> — map of <code>&#123;key&#125;</code>{" "}
+          placeholders substituted in every <code>NavItem.href</code>. e.g.
+          {" "}<code>{"{ slug: 'acme' }"}</code> turns <code>/biz/&#123;slug&#125;/team</code>{" "}
+          into <code>/biz/acme/team</code>.
+        </li>
+        <li>
+          <code>resolveHref(item, values)</code> — escape-hatch callback;
+          wins precedence over the built-in substitution. Use for subdomain
+          rewrites / locale prefixes / conditional sub-paths. Should be a
+          stable <code>useCallback</code>.
+        </li>
+        <li>
+          <code>NavItem.ownerOnly</code> + sidebar prop <code>isOwner</code>{" "}
+          — hides the item unless <code>isOwner</code> is true. Pairs with the
+          existing <code>permission</code> gate; both must pass (intersection).
+        </li>
+        <li>
+          <code>NavItem.minMembers</code> + sidebar prop{" "}
+          <code>currentMaxMembers</code> — hides the item unless plan-tier seat
+          capacity meets the threshold. Useful for &ldquo;Members tab only on
+          plans with ≥N seats&rdquo;.
+        </li>
+        <li>
+          <code>bypassFiltering</code> — when true, skips ALL permission gates
+          (permission ∩ ownerOnly ∩ minMembers) at BOTH section + item levels.
+          <code> hidden: true</code> is still respected.
+        </li>
+        <li>
+          <code>useFilteredNavSections({"{ sections, permissions?, isOwner?, currentMaxMembers?, bypassFiltering? }"})</code>{" "}
+          — pure helper hook returning the filtered <code>NavEntry[]</code>.
+          NOT coupled to <code>&lt;RichSidebar&gt;</code> — render your own
+          arbitrary sidebar UI with this hook standalone.
+        </li>
+        <li>
+          <code>type NavContext</code> — exported discriminated union covering
+          personal / business / platform / governance / cms-platform /
+          cms-business. Type-only; use it to type your URL→context derivation.
+          (Library does NOT ship <code>useNavContext</code> — that&apos;s your
+          router&apos;s concern.)
+        </li>
+      </ul>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Composition recipe — drop <code>&lt;AccountSwitcher01&gt;</code> into{" "}
+        <code>topSlot</code>; thread the current context&apos;s slug into{" "}
+        <code>hrefTemplateValues</code>; pass <code>isOwner</code> +{" "}
+        <code>currentMaxMembers</code> from your auth store. Zero hard registry
+        dep between rich-sidebar and account-switcher-01.
       </p>
     </div>
   );
