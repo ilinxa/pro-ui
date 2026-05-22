@@ -1,12 +1,13 @@
 "use client";
 
 import { PanelLeft, PanelLeftClose } from "lucide-react";
-import { useCallback, useId, useImperativeHandle, useMemo } from "react";
+import { useCallback, useEffect, useId, useImperativeHandle, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useActiveDetection } from "./hooks/use-active-detection";
 import { useMatchMedia, resolveBreakpointQuery } from "./hooks/use-match-media";
 import { useSidebarReducer } from "./hooks/use-sidebar-reducer";
+import { useStorageSync } from "./hooks/use-storage-sync";
 import {
   SidebarNav01Context,
   type SidebarNav01ContextValue,
@@ -80,6 +81,10 @@ export function SidebarNav01(props: SidebarNav01Props) {
     renderLoading,
     renderEmptyState,
     loading = false,
+    state: externalState,
+    storageKey,
+    autoExpandActiveSection = true,
+    autoScrollActiveIntoView = true,
     brandSlot,
     brand,
     headerSlot,
@@ -132,6 +137,21 @@ export function SidebarNav01(props: SidebarNav01Props) {
     onMobileOpenChange,
   });
 
+  // localStorage opt-in (L23). Per L43: when external `state` provided,
+  // the hook owns storageKey; component's storageKey is ignored + dev warn.
+  const effectiveStorageKey = externalState ? undefined : storageKey;
+  if (
+    externalState &&
+    storageKey &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[sidebar-nav-01] `storageKey` is ignored when `state` (lifted hook) is provided — the hook owns persistence (L43). Move storageKey to useSidebarNav01State() options.",
+    );
+  }
+  useStorageSync(state, dispatch, effectiveStorageKey);
+
   // Items pipeline: derive visible entries → compute active item
   const { visible, active } = useActiveDetection({
     items,
@@ -141,6 +161,27 @@ export function SidebarNav01(props: SidebarNav01Props) {
     permissions,
     keepEmptySections,
   });
+
+  // F1 — auto-expand section containing the active item (L48-b).
+  // When external state is provided, the hook (useSidebarNav01State)
+  // owns F1; component-internal effect skipped to avoid double-firing.
+  useEffect(() => {
+    if (externalState) return;
+    if (!autoExpandActiveSection) return;
+    if (!active.sectionId) return;
+    if (!state.collapsedSectionIds.has(active.sectionId)) return;
+    dispatch({
+      type: "SET_SECTION_COLLAPSED",
+      sectionId: active.sectionId,
+      collapsed: false,
+    });
+  }, [
+    externalState,
+    autoExpandActiveSection,
+    active.sectionId,
+    state.collapsedSectionIds,
+    dispatch,
+  ]);
 
   // Breakpoint resolution — CSS class names for the L44 CSS-gated render path.
   // `useMatchMedia` returns the live mobile state for JS BEHAVIOR gating only
@@ -159,18 +200,13 @@ export function SidebarNav01(props: SidebarNav01Props) {
 
   const isMobileBehavior = useMatchMedia(resolveBreakpointQuery(mobileBreakpoint));
 
-  const closeMobile = useCallback(() => {
-    // Only fire when the consumer is actually on mobile (defensive gate).
-    if (!isMobileBehavior) return;
-    dispatch({ type: "SET_MOBILE_OPEN", open: false, reason: "item-click" });
-  }, [dispatch, isMobileBehavior]);
-
-  const toggleSection = useCallback(
-    (sectionId: string) => {
-      dispatch({ type: "TOGGLE_SECTION", sectionId });
-    },
-    [dispatch],
-  );
+  // closeMobile / toggleSection are wired through `finalHandle` so they
+  // mutate the EXTERNAL state when one is provided, or the internal
+  // reducer otherwise. Trade-off (L20 reasons): when external state,
+  // the auto-close path loses the "item-click" reason discriminator —
+  // `onMobileOpenChange` fires with "imperative" instead. Acceptable
+  // for v0.1; a future polish commit can add `setMobileOpenWithReason`
+  // to the handle if needed.
 
   // Imperative handle — refreshed with items + active-detection results
   const handle = useMemo<SidebarNav01Handle>(() => {
@@ -239,14 +275,63 @@ export function SidebarNav01(props: SidebarNav01Props) {
     return handleObj;
   }, [state, dispatch, items, visible, active]);
 
+  // L30 — state prop precedence: external lifted state wins entirely over
+  // internal reducer state. Internal reducer still computed for hooks-rules
+  // compliance (L47), but its values flow through `finalCollapsed` /
+  // `finalMobileOpen` / etc. only when external state isn't supplied.
+  const finalCollapsed = externalState?.collapsed ?? state.collapsed;
+  const finalMobileOpen = externalState?.mobileOpen ?? state.mobileOpen;
+  const finalCollapsedSectionIds =
+    externalState?.collapsedSectionIds ?? state.collapsedSectionIds;
+  const finalActiveItem = externalState?.activeItem ?? active.item;
+  const finalVisibleEntries = externalState?.visibleEntries ?? visible.entries;
+  const finalHandle: SidebarNav01Handle = externalState ?? handle;
+
+  // F2 — auto-scroll active item into view on mount + currentPath change (L48-c)
+  useEffect(() => {
+    if (!autoScrollActiveIntoView) return;
+    if (typeof document === "undefined") return;
+    if (!finalActiveItem) return;
+    const nav = document.getElementById(sidebarId);
+    if (!nav) return;
+    const activeEl = nav.querySelector('[data-active="true"]');
+    if (!(activeEl instanceof HTMLElement)) return;
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    activeEl.scrollIntoView({
+      block: "nearest",
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  }, [autoScrollActiveIntoView, finalActiveItem, sidebarId]);
+
+  // Helpers used by render — wired through finalHandle so they mutate
+  // external state (when provided) or internal reducer (default).
+  const closeMobile = useCallback(() => {
+    if (!isMobileBehavior) return;
+    finalHandle.closeMobile();
+  }, [finalHandle, isMobileBehavior]);
+
+  const toggleSection = useCallback(
+    (sectionId: string) => {
+      finalHandle.toggleSection(sectionId);
+    },
+    [finalHandle],
+  );
+
   // Attach the imperative handle to the consumer-supplied ref (React 19
-  // ref-as-prop pattern; no forwardRef needed). This is what makes
-  // <SidebarNav01 ref={ref}> + <SidebarNav01Trigger controls={ref}> actually work.
-  useImperativeHandle(externalRef, () => handle, [handle]);
+  // ref-as-prop pattern). When external state provided, ref exposes the
+  // external handle so trigger toggles drive the right state machine.
+  useImperativeHandle(externalRef, () => finalHandle, [finalHandle]);
 
   const contextValue = useMemo<SidebarNav01ContextValue>(
-    () => ({ state, dispatch, handle, sidebarId }),
-    [state, dispatch, handle, sidebarId],
+    () => ({
+      state: { ...state, collapsed: finalCollapsed, mobileOpen: finalMobileOpen, collapsedSectionIds: finalCollapsedSectionIds },
+      dispatch,
+      handle: finalHandle,
+      sidebarId,
+    }),
+    [state, dispatch, finalHandle, sidebarId, finalCollapsed, finalMobileOpen, finalCollapsedSectionIds],
   );
 
   const cssVars = useMemo(
@@ -257,9 +342,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
   const defaultAccessory = (
     <button
       type="button"
-      onClick={() => dispatch({ type: "TOGGLE_COLLAPSED" })}
-      aria-label={state.collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      aria-expanded={!state.collapsed}
+      onClick={() => finalHandle.toggleCollapse()}
+      aria-label={finalCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-expanded={!finalCollapsed}
       aria-controls={sidebarId}
       className={cn(
         "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
@@ -267,7 +352,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
       )}
     >
-      {state.collapsed ? (
+      {finalCollapsed ? (
         <PanelLeft className="h-4 w-4" aria-hidden="true" />
       ) : (
         <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
@@ -306,7 +391,7 @@ export function SidebarNav01(props: SidebarNav01Props) {
   //     → renderEmptyState({reason: "all-hidden"})
   //   else → normal list render
   const renderListBody = (mode: "desktop" | "mobile") => {
-    const collapsed = mode === "mobile" ? false : state.collapsed;
+    const collapsed = mode === "mobile" ? false : finalCollapsed;
 
     if (loading) {
       const defaultRender = (
@@ -318,7 +403,10 @@ export function SidebarNav01(props: SidebarNav01Props) {
       return defaultRender;
     }
 
-    if (visible.entries.length === 0) {
+    if (finalVisibleEntries.length === 0) {
+      // When external state is provided, internal `visible.*` diagnostic
+      // counts are best-effort (may not match externalState.items). Reason
+      // resolution is lossy in that path — defaults to "no-items".
       const reason: SidebarNav01EmptyReason =
         items.length === 0
           ? "no-items"
@@ -335,15 +423,15 @@ export function SidebarNav01(props: SidebarNav01Props) {
 
     return (
       <SidebarNavList
-        entries={visible.entries}
-        activeItemId={active.item?.id ?? null}
+        entries={finalVisibleEntries}
+        activeItemId={finalActiveItem?.id ?? null}
         isCollapsed={collapsed}
         linkComponent={linkComponent}
         activeVariant={activeVariant}
         autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
-        isMobileOpen={state.mobileOpen}
+        isMobileOpen={finalMobileOpen}
         onCloseMobile={closeMobile}
-        collapsedSectionIds={state.collapsedSectionIds}
+        collapsedSectionIds={finalCollapsedSectionIds}
         onToggleSection={toggleSection}
         onItemClick={onItemClick}
         onItemNavigate={onItemNavigate}
@@ -400,9 +488,9 @@ export function SidebarNav01(props: SidebarNav01Props) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="sidebar-nav-01"
-        data-stage="C9-loading-empty"
-        data-collapsed={state.collapsed}
-        data-mobile-open={state.mobileOpen}
+        data-stage="C10-persist-headless-state"
+        data-collapsed={finalCollapsed}
+        data-mobile-open={finalMobileOpen}
         data-side={side}
         style={{ ...cssVars, ...style }}
         className={cn(
@@ -431,17 +519,16 @@ export function SidebarNav01(props: SidebarNav01Props) {
         style={cssVars}
       >
         <Sheet
-          open={state.mobileOpen}
+          open={finalMobileOpen}
           // F-cross-13 defensive: Radix passes (open: boolean); Base UI may pass
-          // undefined or different shape. Runtime-check before dispatching.
+          // undefined or different shape. Runtime-check before mutating.
+          // Routed through finalHandle so external state (when provided)
+          // is the mutation target. Note: this loses the "outside-click"
+          // reason discriminator (handle.closeMobile uses "imperative").
           onOpenChange={(nextOpen: boolean | undefined) => {
-            if (typeof nextOpen === "boolean") {
-              dispatch({
-                type: "SET_MOBILE_OPEN",
-                open: nextOpen,
-                reason: nextOpen ? "imperative" : "outside-click",
-              });
-            }
+            if (typeof nextOpen !== "boolean") return;
+            if (nextOpen) finalHandle.openMobile();
+            else finalHandle.closeMobile();
           }}
         >
           <SheetContent

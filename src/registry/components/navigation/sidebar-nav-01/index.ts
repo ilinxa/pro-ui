@@ -4,6 +4,7 @@ export { NavBadge } from "./parts/nav-badge";
 export { NavBrand } from "./parts/nav-brand";
 export { NavPrimaryAction } from "./parts/nav-primary-action";
 export { NavUser } from "./parts/nav-user";
+export { useSidebarNav01State } from "./hooks/use-sidebar-nav-state";
 
 export type {
   // Items schema
