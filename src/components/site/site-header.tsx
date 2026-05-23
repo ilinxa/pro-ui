@@ -18,27 +18,27 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-6 px-6">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-3 sm:gap-6 sm:px-6">
         <Link
           href="/"
-          className="group flex items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+          className="group flex shrink-0 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm sm:gap-2.5"
           aria-label="ilinxa-ui-pro home"
         >
           <span
             aria-hidden
             className="block size-2 rounded-[2px] bg-primary transition-transform group-hover:scale-125"
           />
-          <span className="flex items-baseline gap-1.5">
+          <span className="flex items-baseline gap-1 sm:gap-1.5">
             <span className="text-sm font-semibold tracking-tight text-foreground">
               ilinxa
             </span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-[11px] sm:tracking-[0.18em]">
               /ui-pro
             </span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-0.5 sm:gap-3">
           <nav className="flex items-center">
             {NAV.map(({ href, label }) => {
               const active =
@@ -48,7 +48,7 @@ export function SiteHeader() {
                   key={href}
                   href={href}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors outline-none",
+                    "flex items-center rounded-md px-1 py-1.5 font-mono text-[9px] uppercase transition-colors outline-none sm:gap-2 sm:px-3 sm:text-[11px] sm:tracking-[0.16em]",
                     active
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground",
@@ -58,7 +58,7 @@ export function SiteHeader() {
                   <span
                     aria-hidden
                     className={cn(
-                      "size-1 rounded-full transition-all duration-200",
+                      "hidden size-1 rounded-full transition-all duration-200 sm:block",
                       active
                         ? "bg-primary opacity-100 scale-100"
                         : "bg-transparent opacity-0 scale-50",
@@ -77,7 +77,7 @@ export function SiteHeader() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub repository"
-            className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring outline-none"
+            className="hidden size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring outline-none sm:inline-flex"
           >
             <svg
               aria-hidden
