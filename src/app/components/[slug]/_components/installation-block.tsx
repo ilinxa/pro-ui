@@ -38,14 +38,14 @@ function CopyableCommand({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2",
+        "group relative flex w-full min-w-0 items-center gap-2 rounded-md border border-border bg-card px-3 py-2",
         "font-mono text-[13px] leading-snug text-card-foreground shadow-sm",
       )}
     >
       <span className="select-none text-muted-foreground" aria-hidden>
         $
       </span>
-      <code className="flex-1 overflow-x-auto whitespace-nowrap">
+      <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap">
         {command}
       </code>
       <Button
@@ -75,7 +75,7 @@ function CopyableSnippet({
 }) {
   const { copy, copied } = useCopyToClipboard();
   return (
-    <div className="relative rounded-md border border-border bg-card shadow-sm">
+    <div className="relative w-full min-w-0 rounded-md border border-border bg-card shadow-sm">
       <Button
         type="button"
         size="icon"
@@ -202,7 +202,7 @@ export function InstallationBlock({ slug }: { slug: string }) {
             href={jsonUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex items-center gap-1 font-mono text-[13px] text-primary underline-offset-4 hover:underline"
+            className="inline-flex items-center gap-1 break-all font-mono text-[13px] text-primary underline-offset-4 hover:underline"
           >
             {jsonUrl}
           </a>
