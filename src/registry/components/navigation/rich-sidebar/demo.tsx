@@ -44,7 +44,6 @@ export default function RichSidebarDemo() {
   const [recipePath, setRecipePath] = useState("/social/home");
   const [variant, setVariant] =
     useState<NonNullable<RichSidebarProps["activeVariant"]>>("fill");
-  const drawerRef = useRef<RichSidebarHandle>(null);
   const kasderRecipeRef = useRef<RichSidebarHandle>(null);
   const flatListRef = useRef<RichSidebarHandle>(null);
   const sectionedRef = useRef<RichSidebarHandle>(null);
@@ -190,35 +189,6 @@ export default function RichSidebarDemo() {
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Mobile drawer */}
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Mobile drawer (
-          <code className="font-mono text-[10px]">
-            mobileBreakpoint=&quot;2xl&quot;
-          </code>{" "}
-          forced so it&apos;s reachable on a desktop viewport)
-        </p>
-        <div className="flex min-h-32 items-center gap-3 rounded-lg border border-border bg-background p-3">
-          <RichSidebarTrigger
-            controls={drawerRef}
-            aria-label="Open navigation"
-          />
-          <span className="text-sm text-muted-foreground">
-            Trigger uses <code className="font-mono text-[10px]">controls</code>{" "}
-            ref to open drawer.
-          </span>
-        </div>
-        <RichSidebar
-          ref={drawerRef}
-          items={SIDEBAR_NAV_01_DUMMY_ITEMS}
-          currentPath={path}
-          onItemClick={interceptClick(setPath)}
-          mobileBreakpoint="2xl"
-          aria-label="Drawer demo"
-        />
       </div>
 
       <V02MultiContextDemo />
