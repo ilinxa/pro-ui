@@ -141,11 +141,33 @@ export interface NavPrimaryActionConfig {
   tone?: "default" | "accent" | "destructive";
 }
 
+/**
+ * v0.3.0 — Event union for `NavUserMenuItem.onClick` callbacks. The underlying
+ * primitive (`DropdownMenuItem.onSelect`) passes a plain `Event` for keyboard
+ * activations and a `React.MouseEvent` for clicks. Use this alias to type
+ * custom `onClick` handlers without spelling out the union:
+ *
+ * ```ts
+ * const handler = (event: NavUserMenuItemSelectEvent) => {
+ *   if (event instanceof MouseEvent) { console.log(event.clientX); }
+ * };
+ * ```
+ */
+export type NavUserMenuItemSelectEvent = Event | React.MouseEvent;
+
 export interface NavUserMenuItem {
   kind: "item";
   icon?: ReactNode | ComponentType<{ className?: string }>;
   label: string;
-  onClick?: (event: React.MouseEvent) => void;
+  /**
+   * v0.3.0 — widened from `React.MouseEvent` to `Event | React.MouseEvent` to
+   * honestly type the event arg passed by Radix's `DropdownMenuItem.onSelect`
+   * (which may be a plain `Event` or `MouseEvent` depending on input modality
+   * and primitive vendor). v0.2.x consumers reading MouseEvent-only fields
+   * (e.g. `event.clientX`) narrow with `if (event instanceof MouseEvent) { … }`
+   * or cast at the call site.
+   */
+  onClick?: (event: NavUserMenuItemSelectEvent) => void;
   href?: string;
   linkComponent?: NavLinkComponent;
   variant?: "default" | "destructive";
@@ -183,16 +205,31 @@ export interface RichSidebarHandle {
   isCollapsed(): boolean;
 
   // Mobile drawer
-  openMobile(): void;
-  closeMobile(): void;
-  toggleMobile(): void;
+  // v0.3.0 (L54): optional `reason?` param propagates through to
+  // `onMobileOpenChange.reason`. Default `"imperative"` preserves v0.2.x
+  // call sites — `handle.closeMobile()` still works exactly as before.
+  /** Open the mobile drawer. Optional `reason` reaches `onMobileOpenChange.reason`. Default `"imperative"`. */
+  openMobile(reason?: RichSidebarMobileOpenReason): void;
+  /** Close the mobile drawer. Optional `reason` reaches `onMobileOpenChange.reason`. Default `"imperative"`. */
+  closeMobile(reason?: RichSidebarMobileOpenReason): void;
+  /** Toggle the mobile drawer. Optional `reason` reaches `onMobileOpenChange.reason`. Default `"imperative"`. */
+  toggleMobile(reason?: RichSidebarMobileOpenReason): void;
   isMobileOpen(): boolean;
 
   // Section state
   toggleSection(sectionId: string): void;
   expandSection(sectionId: string): void;
   collapseSection(sectionId: string): void;
+  /** Expand every section (clears the entire collapsed-set). */
   expandAllSections(): void;
+  /**
+   * Collapse every currently-VISIBLE section.
+   *
+   * v0.3.0 NOTE: operates on sections that survive the permission /
+   * ownerOnly / minMembers filter pass — sections hidden by gates are not
+   * touched. To collapse a section regardless of visibility, call
+   * `collapseSection(id)` directly with its id.
+   */
   collapseAllSections(): void;
   isSectionCollapsed(sectionId: string): boolean;
 
@@ -289,7 +326,10 @@ export interface RichSidebarEventArgs {
   brandClick: { event: React.MouseEvent };
   primaryActionClick: { event: React.MouseEvent };
   footerTriggerOpen: { open: boolean };
-  footerMenuItemClick: { menuItem: NavUserMenuItem; event: React.MouseEvent };
+  // v0.3.0 (C4, F10): event widened to NavUserMenuItemSelectEvent to match
+  // the widened NavUserMenuItem.onClick. Same callback chain — must be
+  // self-consistent. Consumers narrow with `event instanceof MouseEvent`.
+  footerMenuItemClick: { menuItem: NavUserMenuItem; event: NavUserMenuItemSelectEvent };
   skipLinkActivated: { event: React.MouseEvent };
   mount: { initialState: RichSidebarStateValue };
 }
@@ -313,6 +353,17 @@ export interface RichSidebarProps {
   // Collapse (uncontrolled / controlled / lifted via state)
   defaultCollapsed?: boolean;
   isCollapsed?: boolean;
+  /**
+   * Fired when the collapsed state changes.
+   *
+   * v0.3.0 NOTE: does NOT fire during localStorage rehydration on mount. The
+   * persisted collapsed state is already reflected in the initial render via
+   * the storage-read effect; firing the callback at that point would be
+   * confusing (the consumer didn't request the change). The callback only
+   * fires on user-initiated transitions: toggle button, controlled-prop
+   * change, or imperative handle call (`handle.toggleCollapse()` /
+   * `setCollapsed(next)`).
+   */
   onCollapsedChange?: (args: RichSidebarEventArgs["collapsedChange"]) => void;
 
   // Mobile drawer (L8 + L24 + L44)

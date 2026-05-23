@@ -171,15 +171,18 @@ export function SidebarNavRow({
     </LinkComponent>
   );
 
+  // v0.3.0 (C1, L55): SidebarNavRow returns ONLY the tooltip-wrapped link.
+  // The outer `<li>` is owned by SidebarNavList — consistent across the
+  // default path and the renderItem-slot path, so consumer's
+  // `renderItem={({ defaultRender }) => defaultRender}` no longer produces
+  // double-nested `<li><li>...</li></li>`.
   return (
-    <li className={cn("list-none", item.className)} data-testid={item["data-testid"]}>
-      <TooltipWrapper
-        content={tooltipContent}
-        side="right"
-        disabled={!isCollapsed}
-      >
-        {linkEl}
-      </TooltipWrapper>
-    </li>
+    <TooltipWrapper
+      content={tooltipContent}
+      side="right"
+      disabled={!isCollapsed}
+    >
+      {linkEl}
+    </TooltipWrapper>
   );
 }

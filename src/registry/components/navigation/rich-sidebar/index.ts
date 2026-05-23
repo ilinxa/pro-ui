@@ -26,6 +26,7 @@ export type {
   NavBrandConfig,
   NavPrimaryActionConfig,
   NavUserMenuItem,
+  NavUserMenuItemSelectEvent, // v0.3.0 (L56) — event arg type for NavUserMenuItem.onClick
   NavUserConfig,
 
   // Main component

@@ -2142,6 +2142,7 @@
         { "path": "src/registry/components/navigation/rich-sidebar/hooks/use-filtered-nav-sections.ts", "type": "registry:component", "target": "components/rich-sidebar/hooks/use-filtered-nav-sections.ts" },
         { "path": "src/registry/components/navigation/rich-sidebar/lib/active-variant-classes.ts", "type": "registry:component", "target": "components/rich-sidebar/lib/active-variant-classes.ts" },
         { "path": "src/registry/components/navigation/rich-sidebar/lib/badge-format.ts", "type": "registry:component", "target": "components/rich-sidebar/lib/badge-format.ts" },
+        { "path": "src/registry/components/navigation/rich-sidebar/lib/build-handle.ts", "type": "registry:component", "target": "components/rich-sidebar/lib/build-handle.ts" },
         { "path": "src/registry/components/navigation/rich-sidebar/lib/compute-active-item.ts", "type": "registry:component", "target": "components/rich-sidebar/lib/compute-active-item.ts" },
         { "path": "src/registry/components/navigation/rich-sidebar/lib/derive-avatar-fallback.ts", "type": "registry:component", "target": "components/rich-sidebar/lib/derive-avatar-fallback.ts" },
         { "path": "src/registry/components/navigation/rich-sidebar/lib/derive-css-vars.ts", "type": "registry:component", "target": "components/rich-sidebar/lib/derive-css-vars.ts" },

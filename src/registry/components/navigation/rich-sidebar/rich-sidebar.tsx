@@ -19,6 +19,7 @@ import {
   RichSidebarContext,
   type RichSidebarContextValue,
 } from "./contexts/sidebar-nav-context";
+import { buildHandle } from "./lib/build-handle";
 import { deriveCssVars } from "./lib/derive-css-vars";
 import { flattenEntriesForKeyboard } from "./lib/flatten-entries";
 import { handleSidebarKeydown } from "./lib/keyboard-handler";
@@ -31,11 +32,11 @@ import { SidebarLoadingSkeleton } from "./parts/sidebar-loading-skeleton";
 import { SidebarNavList } from "./parts/sidebar-nav-list";
 import { SidebarSkipLink } from "./parts/sidebar-skip-link";
 import type {
-  NavItem,
+  NavUserMenuItemSelectEvent,
   RichSidebarEmptyReason,
   RichSidebarHandle,
+  RichSidebarMobileOpenReason,
   RichSidebarProps,
-  RichSidebarStateValue,
 } from "./types";
 
 /** Breakpoint → CSS class lookup (L44 — CSS-gated, not JS-gated rendering). */
@@ -234,72 +235,14 @@ export function RichSidebar(props: RichSidebarProps) {
   // for v0.1; a future polish commit can add `setMobileOpenWithReason`
   // to the handle if needed.
 
-  // Imperative handle — refreshed with items + active-detection results
-  const handle = useMemo<RichSidebarHandle>(() => {
-    const itemsLookup = new Map<string, NavItem>();
-    for (const entry of visible.entries) {
-      if (entry.kind === "section") {
-        for (const child of entry.items) itemsLookup.set(child.id, child);
-      } else if (entry.kind !== "separator") {
-        itemsLookup.set(entry.id, entry);
-      }
-    }
-
-    const handleMethods: Omit<RichSidebarHandle, "getState"> = {
-      // Collapse
-      toggleCollapse: () => dispatch({ type: "TOGGLE_COLLAPSED" }),
-      setCollapsed: (next) => dispatch({ type: "SET_COLLAPSED", collapsed: next }),
-      isCollapsed: () => state.collapsed,
-
-      // Mobile drawer
-      openMobile: () =>
-        dispatch({ type: "SET_MOBILE_OPEN", open: true, reason: "imperative" }),
-      closeMobile: () =>
-        dispatch({ type: "SET_MOBILE_OPEN", open: false, reason: "imperative" }),
-      toggleMobile: () => dispatch({ type: "TOGGLE_MOBILE" }),
-      isMobileOpen: () => state.mobileOpen,
-
-      // Section state
-      toggleSection: (sectionId) => dispatch({ type: "TOGGLE_SECTION", sectionId }),
-      expandSection: (sectionId) =>
-        dispatch({ type: "SET_SECTION_COLLAPSED", sectionId, collapsed: false }),
-      collapseSection: (sectionId) =>
-        dispatch({ type: "SET_SECTION_COLLAPSED", sectionId, collapsed: true }),
-      expandAllSections: () =>
-        dispatch({ type: "EXPAND_ALL_SECTIONS", allSectionIds: [] }),
-      collapseAllSections: () => {
-        const ids = items
-          .filter((e) => "kind" in e && e.kind === "section")
-          .map((e) => (e as { id: string }).id);
-        dispatch({ type: "COLLAPSE_ALL_SECTIONS", allSectionIds: ids });
-      },
-      isSectionCollapsed: (id) => state.collapsedSectionIds.has(id),
-
-      // Items + active (now backed by real derivation)
-      getItems: () => items,
-      getItemById: (id) => itemsLookup.get(id),
-      getActiveItem: () => active.item ?? undefined,
-
-      // Focus — stub until C12 keyboard handler lands
-      focusItem: (itemId) => dispatch({ type: "FOCUS_ITEM", itemId }),
-      focusFirstItem: () => dispatch({ type: "FOCUS_ITEM", itemId: null }),
-      focusLastItem: () => dispatch({ type: "FOCUS_ITEM", itemId: null }),
-    };
-
-    const handleObj: RichSidebarHandle = {
-      ...handleMethods,
-      getState: (): RichSidebarStateValue => ({
-        ...handleObj,
-        collapsed: state.collapsed,
-        mobileOpen: state.mobileOpen,
-        collapsedSectionIds: state.collapsedSectionIds,
-        activeItemId: active.item?.id ?? null,
-        activeItem: active.item,
-        visibleEntries: visible.entries,
-      }),
-    };
-    return handleObj;
-  }, [state, dispatch, items, visible, active]);
+  // Imperative handle — refreshed with items + active-detection results.
+  // v0.3.0 (C5, F5): delegated to the shared `buildHandle` factory.
+  // Identical factory consumed by `useRichSidebarState` so the two state
+  // paths can't drift apart.
+  const handle = useMemo<RichSidebarHandle>(
+    () => buildHandle({ state, dispatch, items, visible, active }),
+    [state, dispatch, items, visible, active],
+  );
 
   // L30 — state prop precedence: external lifted state wins entirely over
   // internal reducer state. Internal reducer still computed for hooks-rules
@@ -356,10 +299,12 @@ export function RichSidebar(props: RichSidebarProps) {
     if (typeof document === "undefined") return;
     const nav = document.getElementById(sidebarId);
     if (!nav) return;
-    const escaped =
-      typeof window !== "undefined" && typeof window.CSS?.escape === "function"
-        ? window.CSS.escape(focusedItemId)
-        : focusedItemId.replace(/(["\\])/g, "\\$1");
+    // v0.3.0 (C3, F3): CSS.escape is universal in modern browsers
+    // (Chrome 46+ / Edge 79+ / Firefox 31+ / Safari 10+) — the SSR guard
+    // above already gates this code to the browser. The old `replace`
+    // fallback only escaped `"` and `\`, missing `:`, `]`, leading digits,
+    // and dozens of other selector-illegal characters.
+    const escaped = window.CSS.escape(focusedItemId);
     const target = nav.querySelector<HTMLElement>(
       `[data-nav-id="${escaped}"]`,
     );
@@ -401,10 +346,15 @@ export function RichSidebar(props: RichSidebarProps) {
 
   // Helpers used by render — wired through finalHandle so they mutate
   // external state (when provided) or internal reducer (default).
-  const closeMobile = useCallback(() => {
-    if (!isMobileBehavior) return;
-    finalHandle.closeMobile();
-  }, [finalHandle, isMobileBehavior]);
+  // v0.3.0 (C2, L54): closeMobile accepts a reason for the discriminator
+  // (default "imperative" if unspecified — preserves v0.2.x callers).
+  const closeMobile = useCallback(
+    (reason?: RichSidebarMobileOpenReason) => {
+      if (!isMobileBehavior) return;
+      finalHandle.closeMobile(reason);
+    },
+    [finalHandle, isMobileBehavior],
+  );
 
   const toggleSection = useCallback(
     (sectionId: string) => {
@@ -511,7 +461,8 @@ export function RichSidebar(props: RichSidebarProps) {
             const item = entry;
             return {
               ...item,
-              onClick: (event: React.MouseEvent) => {
+              // v0.3.0 (C4, F10): widened event arg matches NavUserMenuItem.onClick.
+              onClick: (event: NavUserMenuItemSelectEvent) => {
                 item.onClick?.(event);
                 onFooterMenuItemClick({ menuItem: item, event });
               },
@@ -546,65 +497,103 @@ export function RichSidebar(props: RichSidebarProps) {
   //   else visibleEntries.length === 0 AND hidden count > 0
   //     → renderEmptyState({reason: "all-hidden"})
   //   else → normal list render
-  const renderListBody = (mode: "desktop" | "mobile") => {
-    const collapsed = mode === "mobile" ? false : finalCollapsed;
+  //
+  // v0.3.0 (C6, F7): wrapped in useCallback so consumers in non-React-Compiler
+  // environments (registry installs into apps without the compiler) still get
+  // stable references and avoid the cascade of <SidebarNavList> re-renders on
+  // unrelated parent state changes.
+  const renderListBody = useCallback(
+    (mode: "desktop" | "mobile") => {
+      const collapsed = mode === "mobile" ? false : finalCollapsed;
 
-    if (loading) {
-      const defaultRender = (
-        <SidebarLoadingSkeleton isCollapsed={collapsed} />
+      if (loading) {
+        const defaultRender = (
+          <SidebarLoadingSkeleton isCollapsed={collapsed} />
+        );
+        if (renderLoading) {
+          return renderLoading({ isCollapsed: collapsed, defaultRender });
+        }
+        return defaultRender;
+      }
+
+      if (finalVisibleEntries.length === 0) {
+        // When external state is provided, internal `visible.*` diagnostic
+        // counts are best-effort (may not match externalState.items). Reason
+        // resolution is lossy in that path — defaults to "no-items".
+        const reason: RichSidebarEmptyReason =
+          items.length === 0
+            ? "no-items"
+            : visible.filteredByPermission.length > 0
+              ? "all-filtered-by-permission"
+              : visible.hiddenItemCount > 0
+                ? "all-hidden"
+                : "no-items";
+        if (renderEmptyState) {
+          return renderEmptyState({ reason });
+        }
+        return <SidebarEmptyState reason={reason} />;
+      }
+
+      return (
+        <SidebarNavList
+          entries={finalVisibleEntries}
+          activeItemId={finalActiveItem?.id ?? null}
+          focusedItemId={focusedItemId}
+          keyboardEntryId={keyboardEntryId}
+          isCollapsed={collapsed}
+          linkComponent={linkComponent}
+          activeVariant={activeVariant}
+          autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
+          isMobileOpen={finalMobileOpen}
+          onCloseMobile={closeMobile}
+          collapsedSectionIds={finalCollapsedSectionIds}
+          onToggleSection={toggleSection}
+          onItemClick={onItemClick}
+          onItemNavigate={onItemNavigate}
+          onSectionToggle={onSectionToggle}
+          renderItem={renderItem}
+          renderSection={renderSection}
+          renderBadge={renderBadge}
+          renderTooltipContent={renderTooltipContent}
+          hrefTemplateValues={hrefTemplateValues}
+          resolveHref={resolveHref}
+        />
       );
-      if (renderLoading) {
-        return renderLoading({ isCollapsed: collapsed, defaultRender });
-      }
-      return defaultRender;
-    }
+    },
+    [
+      finalCollapsed,
+      loading,
+      renderLoading,
+      finalVisibleEntries,
+      items.length,
+      visible.filteredByPermission.length,
+      visible.hiddenItemCount,
+      renderEmptyState,
+      finalActiveItem?.id,
+      focusedItemId,
+      keyboardEntryId,
+      linkComponent,
+      activeVariant,
+      autoCloseMobileOnNavigate,
+      finalMobileOpen,
+      closeMobile,
+      finalCollapsedSectionIds,
+      toggleSection,
+      onItemClick,
+      onItemNavigate,
+      onSectionToggle,
+      renderItem,
+      renderSection,
+      renderBadge,
+      renderTooltipContent,
+      hrefTemplateValues,
+      resolveHref,
+    ],
+  );
 
-    if (finalVisibleEntries.length === 0) {
-      // When external state is provided, internal `visible.*` diagnostic
-      // counts are best-effort (may not match externalState.items). Reason
-      // resolution is lossy in that path — defaults to "no-items".
-      const reason: RichSidebarEmptyReason =
-        items.length === 0
-          ? "no-items"
-          : visible.filteredByPermission.length > 0
-            ? "all-filtered-by-permission"
-            : visible.hiddenItemCount > 0
-              ? "all-hidden"
-              : "no-items";
-      if (renderEmptyState) {
-        return renderEmptyState({ reason });
-      }
-      return <SidebarEmptyState reason={reason} />;
-    }
-
-    return (
-      <SidebarNavList
-        entries={finalVisibleEntries}
-        activeItemId={finalActiveItem?.id ?? null}
-        focusedItemId={focusedItemId}
-        keyboardEntryId={keyboardEntryId}
-        isCollapsed={collapsed}
-        linkComponent={linkComponent}
-        activeVariant={activeVariant}
-        autoCloseMobileOnNavigate={autoCloseMobileOnNavigate}
-        isMobileOpen={finalMobileOpen}
-        onCloseMobile={closeMobile}
-        collapsedSectionIds={finalCollapsedSectionIds}
-        onToggleSection={toggleSection}
-        onItemClick={onItemClick}
-        onItemNavigate={onItemNavigate}
-        onSectionToggle={onSectionToggle}
-        renderItem={renderItem}
-        renderSection={renderSection}
-        renderBadge={renderBadge}
-        renderTooltipContent={renderTooltipContent}
-        hrefTemplateValues={hrefTemplateValues}
-        resolveHref={resolveHref}
-      />
-    );
-  };
-
-  const renderInnerChrome = (mode: "desktop" | "mobile") => {
+  // v0.3.0 (C6, F7): wrapped in useCallback — see note on renderListBody.
+  const renderInnerChrome = useCallback(
+    (mode: "desktop" | "mobile") => {
     const headerCollapsedDesktop = mode === "desktop" && finalCollapsed;
     // v0.2 — when topSlot is supplied with NO brand/headerSlot, the brand
     // row would otherwise render empty just to host the collapse toggle
@@ -726,7 +715,20 @@ export function RichSidebar(props: RichSidebarProps) {
       )}
     </>
     );
-  };
+    },
+    [
+      finalCollapsed,
+      topSlot,
+      headerSlot,
+      resolvedBrand,
+      desktopAccessory,
+      showMobileHeader,
+      drawerHeaderSlot,
+      renderListBody,
+      resolvedPrimaryAction,
+      resolvedFooter,
+    ],
+  );
 
   const drawerSide = mobileDrawerSide ?? side;
 
@@ -737,7 +739,6 @@ export function RichSidebar(props: RichSidebarProps) {
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="rich-sidebar"
-        data-stage="C11-keyboard-skiplink-permissions"
         data-collapsed={finalCollapsed}
         data-mobile-open={finalMobileOpen}
         data-side={side}
@@ -780,8 +781,16 @@ export function RichSidebar(props: RichSidebarProps) {
           // F-cross-13 defensive: Radix passes (open: boolean); Base UI may pass
           // undefined or different shape. Runtime-check before mutating.
           // Routed through finalHandle so external state (when provided)
-          // is the mutation target. Note: this loses the "outside-click"
-          // reason discriminator (handle.closeMobile uses "imperative").
+          // is the mutation target.
+          //
+          // v0.3.0 (C2, L53): the dedicated <SheetContent onPointerDownOutside>
+          // and <SheetContent onEscapeKeyDown> handlers below fire FIRST and
+          // write the specific reason via finalHandle.closeMobile("outside-click"
+          // | "escape"). This onOpenChange dispatch then fires as a sanity
+          // re-confirm — the reducer's no-op guard at SET_MOBILE_OPEN returns
+          // the same state object (mobileOpen already false), preserving the
+          // specific lastMobileOpenReason for the Defense-1 callback. Net:
+          // callback fires ONCE with the most-specific reason.
           onOpenChange={(nextOpen: boolean | undefined) => {
             if (typeof nextOpen !== "boolean") return;
             if (nextOpen) finalHandle.openMobile();
@@ -797,6 +806,13 @@ export function RichSidebar(props: RichSidebarProps) {
             style={cssVars}
             aria-describedby={undefined}
             onKeyDown={handleKeyDown}
+            // v0.3.0 (C2, L54): dedicated handlers for outside-click + escape
+            // so onMobileOpenChange.reason fires with the right discriminator.
+            // F-cross-13 graceful degradation: if shadcn migrates these prop
+            // names in a future version, the onOpenChange fallback above still
+            // closes the drawer (with reason: "imperative").
+            onPointerDownOutside={() => finalHandle.closeMobile("outside-click")}
+            onEscapeKeyDown={() => finalHandle.closeMobile("escape")}
           >
             <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
             {skipLinkTarget && (

@@ -22,6 +22,7 @@ import type { SwitcherItem } from "../account-switcher-01/types";
 import { RichSidebar } from "./rich-sidebar";
 import { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
 import { RichSidebarTrigger } from "./parts/sidebar-nav-trigger";
+import { TooltipWrapper } from "./parts/tooltip-wrapper";
 import {
   SIDEBAR_NAV_01_DUMMY_ITEMS,
   SIDEBAR_NAV_01_DUMMY_SECTIONED,
@@ -191,8 +192,80 @@ export default function RichSidebarDemo() {
         </div>
       </div>
 
+      <V03RenderItemSlotDemo variant={variant} />
       <V02MultiContextDemo />
       <V02HeadlessFilterDemo />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v0.3.0 — renderItem slot demo (C1 + C6 regression anchor)
+//
+// Demonstrates the load-bearing pattern: wrap the library's defaultRender
+// in a consumer-supplied affordance. Pre-v0.3.0, returning `defaultRender`
+// produced double-nested <li><li>...</li></li>. The C1 ownership inversion
+// fix means the <li> is always owned by the library — consumer's renderItem
+// return value goes inside that one <li>.
+// ─────────────────────────────────────────────────────────────────────────
+
+function V03RenderItemSlotDemo({
+  variant,
+}: {
+  variant: NonNullable<RichSidebarProps["activeVariant"]>;
+}) {
+  const [renderItemPath, setRenderItemPath] = useState("/social/home");
+  const renderItemRef = useRef<RichSidebarHandle>(null);
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.3.0 — renderItem slot (wraps defaultRender in TooltipWrapper)
+      </p>
+      <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
+        <RichSidebar
+          ref={renderItemRef}
+          items={SIDEBAR_NAV_01_DUMMY_ITEMS}
+          currentPath={renderItemPath}
+          onItemClick={({ item, event }) => {
+            if (item.href) {
+              event.preventDefault();
+              setRenderItemPath(item.href);
+            }
+          }}
+          activeVariant={variant}
+          renderItem={({ defaultRender, item }) => (
+            <TooltipWrapper
+              content={
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{item.label}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    Slot-wrapped via renderItem
+                  </span>
+                </div>
+              }
+              side="right"
+              disabled={false}
+            >
+              {defaultRender}
+            </TooltipWrapper>
+          )}
+          aria-label="renderItem slot demo"
+        />
+        <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+          <RichSidebarTrigger
+            controls={renderItemRef}
+            aria-label="Open renderItem demo"
+            className="lg:hidden"
+          />
+          <p className="text-sm text-muted-foreground sm:text-center">
+            Hover any row — the consumer-supplied TooltipWrapper wraps the
+            library&apos;s default link. Inspect the DOM: each row is a
+            SINGLE <code>&lt;li&gt;</code> (no double-nesting).
+            <br />
+            Active path: <span className="font-mono">{renderItemPath}</span>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
