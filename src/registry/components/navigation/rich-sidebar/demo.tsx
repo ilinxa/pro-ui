@@ -45,6 +45,9 @@ export default function RichSidebarDemo() {
   const [variant, setVariant] =
     useState<NonNullable<RichSidebarProps["activeVariant"]>>("fill");
   const drawerRef = useRef<RichSidebarHandle>(null);
+  const kasderRecipeRef = useRef<RichSidebarHandle>(null);
+  const flatListRef = useRef<RichSidebarHandle>(null);
+  const sectionedRef = useRef<RichSidebarHandle>(null);
 
   const interceptClick =
     (setter: (p: string) => void) =>
@@ -85,8 +88,9 @@ export default function RichSidebarDemo() {
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Full kasder recipe — brand · items · primary action · user footer
         </p>
-        <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
+        <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
           <RichSidebar
+            ref={kasderRecipeRef}
             items={SIDEBAR_NAV_01_DUMMY_ITEMS}
             currentPath={recipePath}
             onItemClick={interceptClick(setRecipePath)}
@@ -113,14 +117,21 @@ export default function RichSidebarDemo() {
             }}
             aria-label="Full recipe"
           />
-          <div className="flex flex-1 items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <RichSidebarTrigger
+              controls={kasderRecipeRef}
+              aria-label="Open navigation"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
               Active path: <span className="font-mono">{recipePath}</span>
               <br />
               <span className="text-xs">
-                Toggle collapse (top-right) to see brand/labels hide,
-                badges flip to corner, tooltip shows on hover, footer
-                dropdown align flips to center.
+                Toggle collapse (top-right at <code>lg</code>+) to see
+                brand/labels hide, badges flip to corner, tooltip shows on
+                hover, footer dropdown align flips to center. Below{" "}
+                <code>lg</code> the sidebar opens as a drawer — tap the
+                hamburger above.
               </span>
             </p>
           </div>
@@ -132,16 +143,22 @@ export default function RichSidebarDemo() {
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Flat list (no chrome)
         </p>
-        <div className="flex h-96 overflow-hidden rounded-lg border border-border bg-background">
+        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
           <RichSidebar
+            ref={flatListRef}
             items={SIDEBAR_NAV_01_DUMMY_ITEMS}
             currentPath={path}
             onItemClick={interceptClick(setPath)}
             activeVariant={variant}
             aria-label="Flat nav demo"
           />
-          <div className="flex flex-1 items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <RichSidebarTrigger
+              controls={flatListRef}
+              aria-label="Open flat nav"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
               Active path: <span className="font-mono">{path}</span>
             </p>
           </div>
@@ -153,16 +170,22 @@ export default function RichSidebarDemo() {
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Sections + separators + collapsible groups
         </p>
-        <div className="flex h-96 overflow-hidden rounded-lg border border-border bg-background">
+        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
           <RichSidebar
+            ref={sectionedRef}
             items={SIDEBAR_NAV_01_DUMMY_SECTIONED}
             currentPath={sectionedPath}
             onItemClick={interceptClick(setSectionedPath)}
             activeVariant={variant}
             aria-label="Sectioned nav demo"
           />
-          <div className="flex flex-1 items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <RichSidebarTrigger
+              controls={sectionedRef}
+              aria-label="Open sectioned nav"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
               Active path: <span className="font-mono">{sectionedPath}</span>
             </p>
           </div>
@@ -271,6 +294,7 @@ function V02MultiContextDemo() {
   // Lift collapsed state so it threads to BOTH <RichSidebar> AND the slotted
   // <AccountSwitcher01> — the canonical collapse-aware composition recipe.
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const v02SidebarRef = useRef<RichSidebarHandle>(null);
 
   // Items + slug derive purely from the current context.
   const items = V02_NAV_BY_CONTEXT[activeContextKey];
@@ -340,8 +364,9 @@ function V02MultiContextDemo() {
           ) : null}
         </span>
       </div>
-      <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
+      <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
         <RichSidebar
+          ref={v02SidebarRef}
           items={items}
           currentPath={currentPath}
           isCollapsed={sidebarCollapsed}
@@ -366,9 +391,14 @@ function V02MultiContextDemo() {
           bypassFiltering={bypass}
           aria-label="v0.2 multi-context demo"
         />
-        <div className="flex flex-1 flex-col gap-2 p-6 text-sm text-muted-foreground">
+        <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-muted-foreground sm:p-6">
+          <RichSidebarTrigger
+            controls={v02SidebarRef}
+            aria-label="Open v0.2 multi-context nav"
+            className="self-start lg:hidden"
+          />
           <p>Active context: <code className="font-mono">{activeContextKey}</code></p>
-          <p>Active path: <code className="font-mono">{currentPath}</code></p>
+          <p>Active path: <code className="font-mono break-all">{currentPath}</code></p>
           <p className="text-xs">Items in this context: <code>{items.length}</code></p>
           <ul className="ml-4 list-disc space-y-1 text-xs">
             <li>Switch context in the popover — items + default path swap</li>
@@ -419,11 +449,17 @@ function V02HeadlessFilterDemo() {
             entry.kind === "section" ? null : entry.kind === "separator" ? (
               <li key={entry.id ?? `sep-${index}`} className="my-1 h-px bg-border" />
             ) : (
-              <li key={entry.id} className="flex items-center gap-2">
-                <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
-                <span>{entry.label}</span>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  href: <code>{entry.href}</code>
+              <li
+                key={entry.id}
+                className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
+                  <span>{entry.label}</span>
+                </span>
+                <span className="min-w-0 text-xs text-muted-foreground sm:ml-auto">
+                  href:{" "}
+                  <code className="break-all">{entry.href}</code>
                 </span>
               </li>
             ),
