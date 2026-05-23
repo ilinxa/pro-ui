@@ -637,7 +637,15 @@ export function RichSidebar(props: RichSidebarProps) {
       {topSlot ? (
         <div
           className={cn(
-            "ilinxa-sidebar-top-slot border-b border-border p-3",
+            "ilinxa-sidebar-top-slot border-b border-border",
+            // Collapsed desktop: 80px-wide sidebar — center the topSlot
+            // content so icon-only widgets (the canonical AccountSwitcher
+            // 40×40 trigger) line up with the nav-row icons below. Without
+            // this the icon sits left-aligned in p-3 padding (12+40+24 in
+            // an 80px column) and visually drifts from the rest.
+            headerCollapsedDesktop
+              ? "flex items-center justify-center px-2 py-2"
+              : "p-3",
             mergeAccessoryIntoTopSlot && "flex items-center gap-2",
           )}
         >
