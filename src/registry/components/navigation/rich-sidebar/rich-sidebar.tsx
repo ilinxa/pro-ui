@@ -606,15 +606,49 @@ export function RichSidebar(props: RichSidebarProps) {
 
   const renderInnerChrome = (mode: "desktop" | "mobile") => {
     const headerCollapsedDesktop = mode === "desktop" && finalCollapsed;
+    // v0.2 — when topSlot is supplied with NO brand/headerSlot, the brand
+    // row would otherwise render empty just to host the collapse toggle
+    // (desktopAccessory), leaving a wasteful gap below topSlot. Merge the
+    // accessory into the topSlot row instead (expanded desktop only —
+    // collapsed mode keeps its own vertical-stack layout for the toggle).
+    const mergeAccessoryIntoTopSlot =
+      mode === "desktop" &&
+      !headerCollapsedDesktop &&
+      !!topSlot &&
+      !headerSlot &&
+      !resolvedBrand &&
+      desktopAccessory !== null;
+    const shouldShowBrandRow =
+      mode === "desktop"
+        ? !!headerSlot ||
+          !!resolvedBrand ||
+          (desktopAccessory !== null && !mergeAccessoryIntoTopSlot)
+        : showMobileHeader;
     return (
     <>
       {/* v0.2.0 — topSlot above the brand zone (L41). Geographically distinct
        *  from headerSlot (which renders INSIDE the brand row). Zero layout
        *  shift when null/undefined per success #10. PQ3: unlabeled wrapper —
-       *  ARIA semantics are the consumer's responsibility. */}
+       *  ARIA semantics are the consumer's responsibility.
+       *
+       *  When `mergeAccessoryIntoTopSlot` is true (topSlot present, no brand
+       *  row content of its own), the collapse toggle moves into this row
+       *  pinned to the right — eliminates the empty brand-row gap. */}
       {topSlot ? (
-        <div className="ilinxa-sidebar-top-slot border-b border-border p-3">
-          {topSlot}
+        <div
+          className={cn(
+            "ilinxa-sidebar-top-slot border-b border-border p-3",
+            mergeAccessoryIntoTopSlot && "flex items-center gap-2",
+          )}
+        >
+          {mergeAccessoryIntoTopSlot ? (
+            <>
+              <div className="min-w-0 flex-1">{topSlot}</div>
+              <div className="shrink-0">{desktopAccessory}</div>
+            </>
+          ) : (
+            topSlot
+          )}
         </div>
       ) : null}
 
@@ -626,7 +660,7 @@ export function RichSidebar(props: RichSidebarProps) {
        *   - collapsed desktop: stack vertically and center — there isn't
        *     room for both brand (32px) and toggle (32px) plus gap inside
        *     an 80px-wide column without the two visually overlapping. */}
-      {(mode === "desktop" ? showDesktopHeader : showMobileHeader) && (
+      {shouldShowBrandRow && (
         <div
           className={cn(
             "flex border-b border-border min-h-14",
@@ -654,15 +688,17 @@ export function RichSidebar(props: RichSidebarProps) {
               {!resolvedBrand && !headerSlot && !headerCollapsedDesktop && (
                 <div className="flex-1" aria-hidden />
               )}
-              {mode === "desktop" && desktopAccessory !== null && (
-                <div
-                  className={cn(
-                    headerCollapsedDesktop ? "shrink-0" : "ml-auto shrink-0",
-                  )}
-                >
-                  {desktopAccessory}
-                </div>
-              )}
+              {mode === "desktop" &&
+                desktopAccessory !== null &&
+                !mergeAccessoryIntoTopSlot && (
+                  <div
+                    className={cn(
+                      headerCollapsedDesktop ? "shrink-0" : "ml-auto shrink-0",
+                    )}
+                  >
+                    {desktopAccessory}
+                  </div>
+                )}
             </>
           )}
         </div>
