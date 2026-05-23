@@ -82,8 +82,8 @@ function SidebarDemo() {
     ACCOUNT_SWITCHER_01_DUMMY_ACTIVE_KEY ?? "personal",
   );
   return (
-    <div className="flex gap-6">
-      <div className="flex w-64 flex-col gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+      <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-3 md:w-64">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -115,11 +115,11 @@ function TopbarDemo() {
   const [activeKey, setActiveKey] = useState<string>("biz-acme");
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3 text-sm font-medium text-foreground">
           <span className="text-base">○ MyApp</span>
         </div>
-        <div className="w-60">
+        <div className="order-3 w-full min-w-0 sm:order-0 sm:w-60">
           <AccountSwitcher01
             items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
             activeKey={activeKey}
@@ -142,8 +142,8 @@ function TopbarDemo() {
 function CollapsedDemo() {
   const [activeKey, setActiveKey] = useState<string>("biz-acme");
   return (
-    <div className="flex gap-6">
-      <div className="flex w-16 flex-col items-center gap-3 rounded-lg border border-border bg-card p-2">
+    <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+      <div className="flex w-16 flex-col items-center gap-3 self-start rounded-lg border border-border bg-card p-2">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -183,7 +183,7 @@ function FallbackDemo() {
   const [activeKey, setActiveKey] = useState<string | null>("not-in-list");
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-3 text-sm">
         <label htmlFor="active-key-input" className="font-medium text-foreground">
           activeKey:
         </label>
@@ -192,13 +192,13 @@ function FallbackDemo() {
           type="text"
           value={activeKey ?? ""}
           onChange={(e) => setActiveKey(e.target.value || null)}
-          className="w-48 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs"
+          className="w-full min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs sm:w-48 sm:flex-none"
         />
         <span className="text-xs text-muted-foreground">
           (try blank, &quot;personal&quot;, or any unmatched string)
         </span>
       </div>
-      <div className="max-w-sm">
+      <div className="w-full max-w-sm">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -224,7 +224,7 @@ function ControlledDemo() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -243,7 +243,7 @@ function ControlledDemo() {
           open: <code>{String(open)}</code>
         </span>
       </div>
-      <div className="max-w-sm">
+      <div className="w-full max-w-sm">
         <AccountSwitcher01
           items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
           activeKey={activeKey}
@@ -8914,9 +8914,15 @@ export default function RichCardInFlowDemo() {
     demo: `"use client";
 
 import {
+  BarChart3,
+  Bell,
+  Bookmark,
   Briefcase,
   Building2,
   Crown,
+  FileText,
+  Globe,
+  Home,
   LogOut,
   PlusSquare,
   Settings,
@@ -8925,9 +8931,11 @@ import {
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { AccountSwitcher01 } from "../account-switcher-01/account-switcher-01";
+import type { SwitcherItem } from "../account-switcher-01/types";
 import { RichSidebar } from "./rich-sidebar";
 import { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
 import { RichSidebarTrigger } from "./parts/sidebar-nav-trigger";
+import { TooltipWrapper } from "./parts/tooltip-wrapper";
 import {
   SIDEBAR_NAV_01_DUMMY_ITEMS,
   SIDEBAR_NAV_01_DUMMY_SECTIONED,
@@ -8950,7 +8958,9 @@ export default function RichSidebarDemo() {
   const [recipePath, setRecipePath] = useState("/social/home");
   const [variant, setVariant] =
     useState<NonNullable<RichSidebarProps["activeVariant"]>>("fill");
-  const drawerRef = useRef<RichSidebarHandle>(null);
+  const kasderRecipeRef = useRef<RichSidebarHandle>(null);
+  const flatListRef = useRef<RichSidebarHandle>(null);
+  const sectionedRef = useRef<RichSidebarHandle>(null);
 
   const interceptClick =
     (setter: (p: string) => void) =>
@@ -8991,8 +9001,9 @@ export default function RichSidebarDemo() {
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Full kasder recipe — brand · items · primary action · user footer
         </p>
-        <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
+        <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
           <RichSidebar
+            ref={kasderRecipeRef}
             items={SIDEBAR_NAV_01_DUMMY_ITEMS}
             currentPath={recipePath}
             onItemClick={interceptClick(setRecipePath)}
@@ -9000,33 +9011,40 @@ export default function RichSidebarDemo() {
             brand={{ logo: <KSquareLogo />, label: "Kasder", href: "/" }}
             primaryAction={{
               icon: PlusSquare,
-              label: "Paylaş",
+              label: "Post",
               onClick: () => alert("Open post composer"),
             }}
             footer={{
               user: {
-                name: "Ahmet Kaya",
-                handle: "@ahmetkaya",
+                name: "Alex Morgan",
+                handle: "@alexmorgan",
                 status: "online",
               },
               menuItems: [
-                { kind: "item", icon: UserIcon, label: "Profil", onClick: () => alert("profile") },
-                { kind: "item", icon: Settings, label: "Ayarlar", onClick: () => alert("settings") },
-                { kind: "item", icon: Briefcase, label: "İşletme", onClick: () => alert("business") },
+                { kind: "item", icon: UserIcon, label: "Profile", onClick: () => alert("profile") },
+                { kind: "item", icon: Settings, label: "Settings", onClick: () => alert("settings") },
+                { kind: "item", icon: Briefcase, label: "Business", onClick: () => alert("business") },
                 { kind: "separator" },
-                { kind: "item", icon: LogOut, label: "Çıkış Yap", variant: "destructive", onClick: () => alert("logout") },
+                { kind: "item", icon: LogOut, label: "Log out", variant: "destructive", onClick: () => alert("logout") },
               ],
             }}
             aria-label="Full recipe"
           />
-          <div className="flex flex-1 items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <RichSidebarTrigger
+              controls={kasderRecipeRef}
+              aria-label="Open navigation"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
               Active path: <span className="font-mono">{recipePath}</span>
               <br />
               <span className="text-xs">
-                Toggle collapse (top-right) to see brand/labels hide,
-                badges flip to corner, tooltip shows on hover, footer
-                dropdown align flips to center.
+                Toggle collapse (top-right at <code>lg</code>+) to see
+                brand/labels hide, badges flip to corner, tooltip shows on
+                hover, footer dropdown align flips to center. Below{" "}
+                <code>lg</code> the sidebar opens as a drawer — tap the
+                hamburger above.
               </span>
             </p>
           </div>
@@ -9038,16 +9056,22 @@ export default function RichSidebarDemo() {
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Flat list (no chrome)
         </p>
-        <div className="flex h-96 overflow-hidden rounded-lg border border-border bg-background">
+        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
           <RichSidebar
+            ref={flatListRef}
             items={SIDEBAR_NAV_01_DUMMY_ITEMS}
             currentPath={path}
             onItemClick={interceptClick(setPath)}
             activeVariant={variant}
             aria-label="Flat nav demo"
           />
-          <div className="flex flex-1 items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <RichSidebarTrigger
+              controls={flatListRef}
+              aria-label="Open flat nav"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
               Active path: <span className="font-mono">{path}</span>
             </p>
           </div>
@@ -9059,51 +9083,29 @@ export default function RichSidebarDemo() {
         <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Sections + separators + collapsible groups
         </p>
-        <div className="flex h-96 overflow-hidden rounded-lg border border-border bg-background">
+        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
           <RichSidebar
+            ref={sectionedRef}
             items={SIDEBAR_NAV_01_DUMMY_SECTIONED}
             currentPath={sectionedPath}
             onItemClick={interceptClick(setSectionedPath)}
             activeVariant={variant}
             aria-label="Sectioned nav demo"
           />
-          <div className="flex flex-1 items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <RichSidebarTrigger
+              controls={sectionedRef}
+              aria-label="Open sectioned nav"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
               Active path: <span className="font-mono">{sectionedPath}</span>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Mobile drawer */}
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Mobile drawer (
-          <code className="font-mono text-[10px]">
-            mobileBreakpoint=&quot;2xl&quot;
-          </code>{" "}
-          forced so it&apos;s reachable on a desktop viewport)
-        </p>
-        <div className="flex min-h-32 items-center gap-3 rounded-lg border border-border bg-background p-3">
-          <RichSidebarTrigger
-            controls={drawerRef}
-            aria-label="Open navigation"
-          />
-          <span className="text-sm text-muted-foreground">
-            Trigger uses <code className="font-mono text-[10px]">controls</code>{" "}
-            ref to open drawer.
-          </span>
-        </div>
-        <RichSidebar
-          ref={drawerRef}
-          items={SIDEBAR_NAV_01_DUMMY_ITEMS}
-          currentPath={path}
-          onItemClick={interceptClick(setPath)}
-          mobileBreakpoint="2xl"
-          aria-label="Drawer demo"
-        />
-      </div>
-
+      <V03RenderItemSlotDemo variant={variant} />
       <V02MultiContextDemo />
       <V02HeadlessFilterDemo />
     </div>
@@ -9111,34 +9113,162 @@ export default function RichSidebarDemo() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// v0.2.0 — Multi-context demo (topSlot + {slug} + ownerOnly + minMembers + bypass)
+// v0.3.0 — renderItem slot demo (C1 + C6 regression anchor)
+//
+// Demonstrates the load-bearing pattern: wrap the library's defaultRender
+// in a consumer-supplied affordance. Pre-v0.3.0, returning \`defaultRender\`
+// produced double-nested <li><li>...</li></li>. The C1 ownership inversion
+// fix means the <li> is always owned by the library — consumer's renderItem
+// return value goes inside that one <li>.
 // ─────────────────────────────────────────────────────────────────────────
 
-const V02_SWITCHER_ITEMS = [
-  { key: "personal", label: "Personal", icon: UserIcon, href: "/home" },
-  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/biz/acme" },
-  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/biz/globex" },
-] as const;
+function V03RenderItemSlotDemo({
+  variant,
+}: {
+  variant: NonNullable<RichSidebarProps["activeVariant"]>;
+}) {
+  const [renderItemPath, setRenderItemPath] = useState("/social/home");
+  const renderItemRef = useRef<RichSidebarHandle>(null);
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.3.0 — renderItem slot (wraps defaultRender in TooltipWrapper)
+      </p>
+      <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
+        <RichSidebar
+          ref={renderItemRef}
+          items={SIDEBAR_NAV_01_DUMMY_ITEMS}
+          currentPath={renderItemPath}
+          onItemClick={({ item, event }) => {
+            if (item.href) {
+              event.preventDefault();
+              setRenderItemPath(item.href);
+            }
+          }}
+          activeVariant={variant}
+          renderItem={({ defaultRender, item }) => (
+            <TooltipWrapper
+              content={
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{item.label}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    Slot-wrapped via renderItem
+                  </span>
+                </div>
+              }
+              side="right"
+              disabled={false}
+            >
+              {defaultRender}
+            </TooltipWrapper>
+          )}
+          aria-label="renderItem slot demo"
+        />
+        <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+          <RichSidebarTrigger
+            controls={renderItemRef}
+            aria-label="Open renderItem demo"
+            className="lg:hidden"
+          />
+          <p className="text-sm text-muted-foreground sm:text-center">
+            Hover any row — the consumer-supplied TooltipWrapper wraps the
+            library&apos;s default link. Inspect the DOM: each row is a
+            SINGLE <code>&lt;li&gt;</code> (no double-nesting).
+            <br />
+            Active path: <span className="font-mono">{renderItemPath}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-const V02_NAV_ITEMS_FOR_BUSINESS: ReadonlyArray<NavEntry> = [
-  { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
-  { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
-  { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
-  { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+// ─────────────────────────────────────────────────────────────────────────
+// v0.2.0 — Multi-context demo (topSlot + {slug} + ownerOnly + minMembers + bypass)
+//
+// Demonstrates the *real* v0.2 power: switching contexts in the topSlot
+// account-switcher changes BOTH the nav-item catalog AND the {slug} value
+// fed into href substitution. Each context has its own item set — matches
+// the source app-shell pattern (analysis §8.2 NavContext discriminant).
+// ─────────────────────────────────────────────────────────────────────────
+
+type V02ContextKey = "personal" | "biz-acme" | "biz-globex" | "platform";
+
+const V02_SWITCHER_ITEMS: ReadonlyArray<SwitcherItem> = [
+  { key: "personal", label: "Personal", icon: UserIcon, href: "/home" },
+  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/bconsole/acme" },
+  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/bconsole/globex" },
+  { key: "platform", label: "Platform", icon: Globe, href: "/pconsole/overview" },
 ];
 
+// Per-context nav catalogs. Switching contexts swaps the entire item set;
+// {slug} substitution applies only when the context provides a slug.
+const V02_NAV_BY_CONTEXT: Record<V02ContextKey, ReadonlyArray<NavEntry>> = {
+  personal: [
+    { id: "home", label: "Home", icon: Home, href: "/home" },
+    { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
+    { id: "notifications", label: "Notifications", icon: Bell, href: "/notifications", badge: 3 },
+    { id: "saved", label: "Saved items", icon: Bookmark, href: "/saved" },
+  ],
+  "biz-acme": [
+    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
+    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
+    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+  ],
+  "biz-globex": [
+    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
+    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
+    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+  ],
+  platform: [
+    { id: "overview", label: "Overview", icon: Globe, href: "/pconsole/overview" },
+    { id: "users", label: "All users", icon: Users, href: "/pconsole/users", ownerOnly: true },
+    { id: "audit", label: "Audit log", icon: FileText, href: "/pconsole/audit", ownerOnly: true },
+    { id: "platform-settings", label: "Platform settings", icon: Settings, href: "/pconsole/settings", ownerOnly: true },
+  ],
+};
+
+const V02_DEFAULT_PATH_BY_CONTEXT: Record<V02ContextKey, string> = {
+  personal: "/home",
+  "biz-acme": "/bconsole/acme/dashboard",
+  "biz-globex": "/bconsole/globex/dashboard",
+  platform: "/pconsole/overview",
+};
+
 function V02MultiContextDemo() {
-  const [activeContextKey, setActiveContextKey] = useState<string>("biz-acme");
+  const [activeContextKey, setActiveContextKey] = useState<V02ContextKey>("biz-acme");
   const [isOwner, setIsOwner] = useState(true);
   const [maxMembers, setMaxMembers] = useState(5);
   const [bypass, setBypass] = useState(false);
-  const [currentPath, setCurrentPath] = useState("/bconsole/acme/dashboard");
+  const [currentPath, setCurrentPath] = useState(V02_DEFAULT_PATH_BY_CONTEXT["biz-acme"]);
+  // Lift collapsed state so it threads to BOTH <RichSidebar> AND the slotted
+  // <AccountSwitcher01> — the canonical collapse-aware composition recipe.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const v02SidebarRef = useRef<RichSidebarHandle>(null);
+
+  // Items + slug derive purely from the current context.
+  const items = V02_NAV_BY_CONTEXT[activeContextKey];
 
   const slug = activeContextKey.startsWith("biz-")
     ? activeContextKey.slice(4)
-    : "acme";
+    : undefined;
 
-  const templateValues = useMemo(() => ({ slug }), [slug]);
+  const templateValues = useMemo(
+    () => (slug ? { slug } : undefined),
+    [slug],
+  );
+
+  const handleContextSwitch = (item: SwitcherItem) => {
+    const next = item.key as V02ContextKey;
+    setActiveContextKey(next);
+    setCurrentPath(V02_DEFAULT_PATH_BY_CONTEXT[next]);
+  };
 
   return (
     <div>
@@ -9173,14 +9303,30 @@ function V02MultiContextDemo() {
           />
           bypassFiltering
         </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={sidebarCollapsed}
+            onChange={(e) => setSidebarCollapsed(e.target.checked)}
+          />
+          collapse sidebar
+        </label>
         <span className="ml-auto font-mono text-muted-foreground">
-          slug: <code>{slug}</code>
+          context: <code>{activeContextKey}</code>
+          {slug ? (
+            <>
+              {" "}· slug: <code>{slug}</code>
+            </>
+          ) : null}
         </span>
       </div>
-      <div className="flex h-136 overflow-hidden rounded-lg border border-border bg-background">
+      <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
         <RichSidebar
-          items={V02_NAV_ITEMS_FOR_BUSINESS}
+          ref={v02SidebarRef}
+          items={items}
           currentPath={currentPath}
+          isCollapsed={sidebarCollapsed}
+          onCollapsedChange={({ collapsed }) => setSidebarCollapsed(collapsed)}
           onItemClick={({ item, event }) => {
             if (item.href) {
               event.preventDefault();
@@ -9189,9 +9335,10 @@ function V02MultiContextDemo() {
           }}
           topSlot={
             <AccountSwitcher01
-              items={V02_SWITCHER_ITEMS as never}
+              items={V02_SWITCHER_ITEMS}
               activeKey={activeContextKey}
-              onSelect={(item) => setActiveContextKey(item.key)}
+              onSelect={handleContextSwitch}
+              isCollapsed={sidebarCollapsed}
             />
           }
           hrefTemplateValues={templateValues}
@@ -9200,14 +9347,27 @@ function V02MultiContextDemo() {
           bypassFiltering={bypass}
           aria-label="v0.2 multi-context demo"
         />
-        <div className="flex flex-1 flex-col gap-2 p-6 text-sm text-muted-foreground">
+        <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-muted-foreground sm:p-6">
+          <RichSidebarTrigger
+            controls={v02SidebarRef}
+            aria-label="Open v0.2 multi-context nav"
+            className="self-start lg:hidden"
+          />
           <p>Active context: <code className="font-mono">{activeContextKey}</code></p>
-          <p>Active path: <code className="font-mono">{currentPath}</code></p>
+          <p>Active path: <code className="font-mono break-all">{currentPath}</code></p>
+          <p className="text-xs">Items in this context: <code>{items.length}</code></p>
           <ul className="ml-4 list-disc space-y-1 text-xs">
-            <li><code>Settings</code> + <code>Billing</code> hidden unless <code>isOwner</code></li>
+            <li>Switch context in the popover — items + default path swap</li>
+            <li>Business contexts use <code>&#123;slug&#125;</code> in hrefs (Acme vs Globex)</li>
+            <li><code>Analytics</code> / <code>Settings</code> / <code>Billing</code> hide unless <code>isOwner</code></li>
             <li><code>Team</code> hidden unless <code>currentMaxMembers ≥ 2</code></li>
             <li><code>bypassFiltering</code> reveals everything (still respects <code>hidden:true</code>)</li>
-            <li>Hrefs interpolate <code>&#123;slug&#125;</code> from the switcher</li>
+            <li>
+              <code>collapse sidebar</code> threads <code>isCollapsed</code> into BOTH
+              <code>&lt;RichSidebar&gt;</code> AND the slotted{" "}
+              <code>&lt;AccountSwitcher01&gt;</code> — switcher trigger flips to
+              icon-only along with the rest of the sidebar
+            </li>
           </ul>
         </div>
       </div>
@@ -9222,7 +9382,7 @@ function V02MultiContextDemo() {
 function V02HeadlessFilterDemo() {
   const [isOwner, setIsOwner] = useState(false);
   const filtered = useFilteredNavSections({
-    sections: V02_NAV_ITEMS_FOR_BUSINESS,
+    sections: V02_NAV_BY_CONTEXT["biz-acme"],
     isOwner,
     currentMaxMembers: 10,
   });
@@ -9245,11 +9405,17 @@ function V02HeadlessFilterDemo() {
             entry.kind === "section" ? null : entry.kind === "separator" ? (
               <li key={entry.id ?? \`sep-\${index}\`} className="my-1 h-px bg-border" />
             ) : (
-              <li key={entry.id} className="flex items-center gap-2">
-                <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
-                <span>{entry.label}</span>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  href: <code>{entry.href}</code>
+              <li
+                key={entry.id}
+                className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
+                  <span>{entry.label}</span>
+                </span>
+                <span className="min-w-0 text-xs text-muted-foreground sm:ml-auto">
+                  href:{" "}
+                  <code className="break-all">{entry.href}</code>
                 </span>
               </li>
             ),

@@ -17,16 +17,26 @@ export interface SidebarReducerState {
     collapsed: boolean;
     mobileOpen: boolean;
   };
+  // v0.3.0 (C2, L53) — reason of the most-recent mobile-drawer transition.
+  // Drained by Defense-1 microtask effect for the onMobileOpenChange callback.
+  // OVERWRITES on each transition (no explicit clear). EXTERNAL_SYNC resets to
+  // "imperative" on transition-causing syncs to prevent stale carry-over.
+  lastMobileOpenReason: RichSidebarMobileOpenReason | null;
 }
 
 export type SidebarReducerAction =
   | { type: "SET_COLLAPSED"; collapsed: boolean }
   | { type: "TOGGLE_COLLAPSED" }
   | { type: "SET_MOBILE_OPEN"; open: boolean; reason: RichSidebarMobileOpenReason }
-  | { type: "TOGGLE_MOBILE" }
+  // v0.3.0 (C2, L54): TOGGLE_MOBILE gains optional `reason?` so the reducer
+  // can read fresh state.mobileOpen (handles rapid same-tick double-clicks)
+  // while still propagating the discriminator. Default is "imperative".
+  | { type: "TOGGLE_MOBILE"; reason?: RichSidebarMobileOpenReason }
   | { type: "SET_SECTION_COLLAPSED"; sectionId: string; collapsed: boolean }
   | { type: "TOGGLE_SECTION"; sectionId: string }
-  | { type: "EXPAND_ALL_SECTIONS"; allSectionIds: ReadonlyArray<string> }
+  // v0.3.0 (C5, F8): drop unused allSectionIds payload (reducer always cleared
+  // the set regardless of payload).
+  | { type: "EXPAND_ALL_SECTIONS" }
   | { type: "COLLAPSE_ALL_SECTIONS"; allSectionIds: ReadonlyArray<string> }
   | { type: "FOCUS_ITEM"; itemId: string | null }
   | { type: "EXTERNAL_SYNC"; collapsed: boolean; mobileOpen: boolean }
@@ -49,6 +59,7 @@ export function createInitialState(
     collapsedSectionIds: new Set(options.defaultCollapsedSectionIds ?? []),
     focusedItemId: null,
     lastSyncedSnapshot: { collapsed, mobileOpen },
+    lastMobileOpenReason: null,
   };
 }
 
@@ -65,11 +76,24 @@ export function sidebarReducer(
       return { ...state, collapsed: !state.collapsed };
 
     case "SET_MOBILE_OPEN":
+      // No-op guard preserves prior lastMobileOpenReason on duplicate dispatch
+      // (load-bearing for the L53 "no double-fire on re-entry" guarantee).
       if (state.mobileOpen === action.open) return state;
-      return { ...state, mobileOpen: action.open };
+      return {
+        ...state,
+        mobileOpen: action.open,
+        lastMobileOpenReason: action.reason,
+      };
 
     case "TOGGLE_MOBILE":
-      return { ...state, mobileOpen: !state.mobileOpen };
+      // Reducer reads FRESH state.mobileOpen — translating to SET at the
+      // handle would use a stale closure value and the no-op guard would
+      // drop rapid same-tick double-clicks (R21).
+      return {
+        ...state,
+        mobileOpen: !state.mobileOpen,
+        lastMobileOpenReason: action.reason ?? "imperative",
+      };
 
     case "SET_SECTION_COLLAPSED": {
       const has = state.collapsedSectionIds.has(action.sectionId);
@@ -89,6 +113,8 @@ export function sidebarReducer(
     }
 
     case "EXPAND_ALL_SECTIONS":
+      // v0.3.0 (C5, F8): action no longer carries allSectionIds — the field
+      // was always ignored here (we just clear the set unconditionally).
       if (state.collapsedSectionIds.size === 0) return state;
       return { ...state, collapsedSectionIds: new Set() };
 
@@ -116,6 +142,13 @@ export function sidebarReducer(
       ) {
         return state;
       }
+      // v0.3.0 (C2, R23): when mobileOpen actually changes via EXTERNAL_SYNC
+      // (controlled-prop change from consumer), reset lastMobileOpenReason
+      // to "imperative" — otherwise a stale "item-click" / "escape" /
+      // "outside-click" from a prior in-app transition would leak into the
+      // callback for this prop-driven transition. When EXTERNAL_SYNC only
+      // changes `collapsed`, preserve the mobile reason untouched.
+      const mobileChanged = state.mobileOpen !== action.mobileOpen;
       return {
         ...state,
         collapsed: action.collapsed,
@@ -124,6 +157,9 @@ export function sidebarReducer(
           collapsed: action.collapsed,
           mobileOpen: action.mobileOpen,
         },
+        lastMobileOpenReason: mobileChanged
+          ? "imperative"
+          : state.lastMobileOpenReason,
       };
     }
 

@@ -7,6 +7,7 @@ import type {
   NavItem,
   NavLinkComponent,
   RichSidebarEventArgs,
+  RichSidebarMobileOpenReason,
   RichSidebarProps,
 } from "../types";
 import { SidebarNavRow } from "./sidebar-nav-row";
@@ -28,7 +29,9 @@ interface SidebarNavListProps {
   activeVariant?: RichSidebarProps["activeVariant"];
   autoCloseMobileOnNavigate: boolean;
   isMobileOpen: boolean;
-  onCloseMobile: () => void;
+  // v0.3.0 (C2, L54): accepts reason for the discriminator. Click handler
+  // passes "item-click"; parent forwards to finalHandle.closeMobile(reason).
+  onCloseMobile: (reason: RichSidebarMobileOpenReason) => void;
 
   // Section state — driven by reducer in parent
   collapsedSectionIds: ReadonlySet<string>;
@@ -114,7 +117,7 @@ export function SidebarNavList({
       queueMicrotask(() => {
         onItemNavigate?.({ item });
         if (autoCloseMobileOnNavigate && isMobileOpen) {
-          onCloseMobile();
+          onCloseMobile("item-click");
         }
       });
       // Intentionally allow native <a> navigation to proceed unless
@@ -123,18 +126,18 @@ export function SidebarNavList({
       void indexInSection;
     };
 
-  // Renders a single NavItem row, honoring the renderItem slot (L13/L29).
-  // Returns an `<li>` (either via <SidebarNavRow> itself or the renderItem
-  // wrapper). The key lives on the returned element directly — callers must
-  // NOT add an intermediate wrapper, since the parent is a <ul> and only
-  // <li> can be a valid direct child.
+  // v0.3.0 (C1, L55): renderRow always wraps in a SINGLE `<li>`. SidebarNavRow
+  // returns only the tooltip-wrapped link (no internal `<li>`). The renderItem
+  // slot path uses the SAME `<li>` wrapper — so consumer's
+  // `renderItem={({ defaultRender }) => defaultRender}` produces
+  // `<li><a>…</a></li>` instead of the v0.2.x `<li><li>…</li></li>` bug.
+  // Item-level `className` + `data-testid` are applied to this wrapper.
   const renderRow = (item: NavItem, sectionId: string | null, indexInSection: number) => {
     const isActive = activeItemId === item.id;
     const isFocused = focusedItemId === item.id;
     const rovingTabIndex = resolveRovingTabIndex(item.id);
     const defaultRender = (
       <SidebarNavRow
-        key={item.id}
         item={item}
         isActive={isActive}
         isCollapsed={isCollapsed}
@@ -149,10 +152,8 @@ export function SidebarNavList({
         resolveHref={resolveHref}
       />
     );
-    if (!renderItem) return defaultRender;
-    return (
-      <li key={item.id} className="list-none">
-        {renderItem({
+    const body = renderItem
+      ? renderItem({
           item,
           isActive,
           isCollapsed,
@@ -161,7 +162,15 @@ export function SidebarNavList({
           sectionId,
           indexInSection,
           defaultRender,
-        })}
+        })
+      : defaultRender;
+    return (
+      <li
+        key={item.id}
+        className={cn("list-none", item.className)}
+        data-testid={item["data-testid"]}
+      >
+        {body}
       </li>
     );
   };

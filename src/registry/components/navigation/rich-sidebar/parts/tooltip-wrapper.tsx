@@ -16,11 +16,15 @@ interface TooltipWrapperProps {
 }
 
 /**
- * F-cross-13 defensive Tooltip wrapper (L19 + R7).
+ * Tooltip wrapper for collapsed-sidebar row labels.
  *
- * Producer ships Radix-based primitive (delayDuration); consumer-installed
- * shadcn 4.6+ may ship Base UI primitive (delay). Pass BOTH prop names —
- * the unused one is silently ignored by the underlying implementation.
+ * v0.3.0 (C4, F11): the F-cross-13 dual-prop shim is GONE. As of 2026-05-23
+ * audit, `@/components/ui/tooltip` ships a Radix-based primitive
+ * (imports `Tooltip` from `radix-ui` umbrella package) — `TooltipProvider`
+ * accepts `delayDuration` only. If a future shadcn version migrates this
+ * primitive to Base UI (which uses `delay`), restore the dual-prop shim
+ * with a `@ts-expect-error` comment AND cite the new tooltip.tsx import
+ * path as concrete evidence.
  *
  * When `disabled` is true (e.g., expanded sidebar mode), children render
  * without the Tooltip wrapper at all — saves Provider mount cost.
@@ -35,14 +39,7 @@ export function TooltipWrapper({
   if (disabled) return <>{children}</>;
 
   return (
-    <TooltipProvider
-      delayDuration={delay}
-      // @ts-expect-error — Base UI primitives use `delay` prop name; Radix uses
-      // `delayDuration`. Pass both defensively per F-cross-13 (memory:
-      // project_shadcn_primitive_radix_baseui_divergence). The unused prop is
-      // ignored at runtime.
-      delay={delay}
-    >
+    <TooltipProvider delayDuration={delay}>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
         <TooltipContent side={side} className="z-50">

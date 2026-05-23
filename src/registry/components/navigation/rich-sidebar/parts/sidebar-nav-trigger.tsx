@@ -55,7 +55,10 @@ export function RichSidebarTrigger({
       resolved = ctx.handle;
     }
     if (resolved) {
-      resolved.toggleMobile();
+      // v0.3.0 (C2, L54 + Q25): companion trigger always identifies as
+      // "trigger" so consumers wiring onMobileOpenChange to analytics can
+      // distinguish hamburger taps from other close paths.
+      resolved.toggleMobile("trigger");
     } else if (process.env.NODE_ENV !== "production") {
       // eslint-disable-next-line no-console
       console.warn(

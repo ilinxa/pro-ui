@@ -12,7 +12,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useRichSidebarContextOrNull } from "../contexts/sidebar-nav-context";
 import { deriveAvatarFallback } from "../lib/derive-avatar-fallback";
-import type { NavUserConfig, NavUserMenuItem } from "../types";
+import type {
+  NavUserConfig,
+  NavUserMenuItem,
+  NavUserMenuItemSelectEvent,
+} from "../types";
 import { DefaultLink } from "./default-link";
 import { Icon } from "./icon";
 
@@ -127,12 +131,12 @@ export function NavUser({
             <DropdownMenuItem
               key={item.label + i}
               disabled={item.disabled}
-              // F-cross-13: onSelect arg may be Event (Radix) or undefined (Base UI variants)
-              onSelect={(eventArg: unknown) => {
-                // Treat as MouseEvent for our callback signature; the actual
-                // event shape may vary across primitive vendors but a
-                // generic "select happened" signal is what consumers need.
-                item.onClick?.(eventArg as React.MouseEvent);
+              // v0.3.0 (C4, F10, L56): callback signature widened to honestly
+              // accept Event | React.MouseEvent. Radix passes Event for keyboard
+              // activations and MouseEvent for clicks; consumers narrow at call
+              // site with `instanceof MouseEvent` if needed. No unsafe cast.
+              onSelect={(eventArg: NavUserMenuItemSelectEvent) => {
+                item.onClick?.(eventArg);
               }}
               className={cn(
                 "gap-2",

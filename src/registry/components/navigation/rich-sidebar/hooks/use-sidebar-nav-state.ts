@@ -3,11 +3,11 @@
 import { useEffect, useMemo } from "react";
 import type {
   NavEntry,
-  NavItem,
   RichSidebarHandle,
   RichSidebarStateValue,
   UseRichSidebarStateOptions,
 } from "../types";
+import { buildHandle } from "../lib/build-handle";
 import { useActiveDetection } from "./use-active-detection";
 import { useSidebarReducer } from "./use-sidebar-reducer";
 import { useStorageSync } from "./use-storage-sync";
@@ -80,68 +80,12 @@ export function useRichSidebarState(
     dispatch,
   ]);
 
-  // Build the imperative handle (two-step to break recursive type cycle)
-  const handle = useMemo<RichSidebarHandle>(() => {
-    const itemsLookup = new Map<string, NavItem>();
-    for (const entry of visible.entries) {
-      if (entry.kind === "section") {
-        for (const child of entry.items) itemsLookup.set(child.id, child);
-      } else if (entry.kind !== "separator") {
-        itemsLookup.set(entry.id, entry);
-      }
-    }
-
-    const methods: Omit<RichSidebarHandle, "getState"> = {
-      // Collapse
-      toggleCollapse: () => dispatch({ type: "TOGGLE_COLLAPSED" }),
-      setCollapsed: (next) => dispatch({ type: "SET_COLLAPSED", collapsed: next }),
-      isCollapsed: () => state.collapsed,
-      // Mobile drawer
-      openMobile: () =>
-        dispatch({ type: "SET_MOBILE_OPEN", open: true, reason: "imperative" }),
-      closeMobile: () =>
-        dispatch({ type: "SET_MOBILE_OPEN", open: false, reason: "imperative" }),
-      toggleMobile: () => dispatch({ type: "TOGGLE_MOBILE" }),
-      isMobileOpen: () => state.mobileOpen,
-      // Section state
-      toggleSection: (sectionId) => dispatch({ type: "TOGGLE_SECTION", sectionId }),
-      expandSection: (sectionId) =>
-        dispatch({ type: "SET_SECTION_COLLAPSED", sectionId, collapsed: false }),
-      collapseSection: (sectionId) =>
-        dispatch({ type: "SET_SECTION_COLLAPSED", sectionId, collapsed: true }),
-      expandAllSections: () =>
-        dispatch({ type: "EXPAND_ALL_SECTIONS", allSectionIds: [] }),
-      collapseAllSections: () => {
-        const ids = items
-          .filter((e) => "kind" in e && e.kind === "section")
-          .map((e) => (e as { id: string }).id);
-        dispatch({ type: "COLLAPSE_ALL_SECTIONS", allSectionIds: ids });
-      },
-      isSectionCollapsed: (id) => state.collapsedSectionIds.has(id),
-      // Items + active
-      getItems: () => items,
-      getItemById: (id) => itemsLookup.get(id),
-      getActiveItem: () => active.item ?? undefined,
-      // Focus — stub until C11 keyboard handler lands
-      focusItem: (itemId) => dispatch({ type: "FOCUS_ITEM", itemId }),
-      focusFirstItem: () => dispatch({ type: "FOCUS_ITEM", itemId: null }),
-      focusLastItem: () => dispatch({ type: "FOCUS_ITEM", itemId: null }),
-    };
-
-    const handleObj: RichSidebarHandle = {
-      ...methods,
-      getState: (): RichSidebarStateValue => ({
-        ...handleObj,
-        collapsed: state.collapsed,
-        mobileOpen: state.mobileOpen,
-        collapsedSectionIds: state.collapsedSectionIds,
-        activeItemId: active.item?.id ?? null,
-        activeItem: active.item,
-        visibleEntries: visible.entries,
-      }),
-    };
-    return handleObj;
-  }, [state, dispatch, items, visible, active]);
+  // v0.3.0 (C5, F5): delegated to the shared `buildHandle` factory. Identical
+  // factory consumed by `rich-sidebar.tsx` so the two state paths can't drift.
+  const handle = useMemo<RichSidebarHandle>(
+    () => buildHandle({ state, dispatch, items, visible, active }),
+    [state, dispatch, items, visible, active],
+  );
 
   return useMemo<RichSidebarStateValue>(
     () => ({

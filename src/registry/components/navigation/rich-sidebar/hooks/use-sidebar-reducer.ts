@@ -91,18 +91,20 @@ export function useSidebarReducer(
       const next = state.mobileOpen;
       prevMobileOpenRef.current = next;
       if (state.lastSyncedSnapshot.mobileOpen !== next) {
-        // Reason embedded in the action; the effect can't recover it.
-        // Workaround: a separate effect could subscribe to a queue of reasons,
-        // but at this commit (C2) the firing is reason-less. C3+ will refine.
+        // v0.3.0 (C2, L53): read the reason the dispatching action wrote into
+        // reducer state. EXTERNAL_SYNC resets to "imperative" on transition;
+        // SET/TOGGLE write the explicit reason; the no-op guard in the reducer
+        // prevents re-entry from Sheet's onOpenChange from overwriting.
+        const reason = state.lastMobileOpenReason ?? "imperative";
         queueMicrotask(() => {
           onMobileOpenChangeRef.current?.({
             open: next,
-            reason: "imperative",
+            reason,
           });
         });
       }
     }
-  }, [state.collapsed, state.mobileOpen, state.lastSyncedSnapshot]);
+  }, [state.collapsed, state.mobileOpen, state.lastSyncedSnapshot, state.lastMobileOpenReason]);
 
   // Stable dispatch (useReducer's dispatch is already stable; wrap for symmetry)
   const stableDispatch = useCallback<React.Dispatch<SidebarReducerAction>>(
