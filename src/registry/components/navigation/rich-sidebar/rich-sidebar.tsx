@@ -746,7 +746,10 @@ export function RichSidebar(props: RichSidebarProps) {
         >
           <SheetContent
             side={drawerSide}
-            className="relative flex w-72 flex-col bg-card p-0"
+            // NOTE: do NOT add `relative` here — it would tailwind-merge
+            // away Radix's `fixed inset-y-0 {side}-0`, leaving the panel
+            // unpositioned and invisible against the overlay backdrop.
+            className="flex w-72 flex-col bg-card p-0"
             style={cssVars}
             aria-describedby={undefined}
             onKeyDown={handleKeyDown}
