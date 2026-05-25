@@ -1,7 +1,7 @@
 ---
 date: 2026-05-24
 type: patch
-commits: []
+commits: [5233498]
 components: [workspace]
 findings: [A-1, A-2, A-3, A-4, A-5, A-6, A-7, A-8, A-9, A-10, A-13, A-14]
 status: shipped
