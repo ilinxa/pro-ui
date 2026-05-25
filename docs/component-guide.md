@@ -1406,7 +1406,9 @@ Copy-paste into your PR description. All items must be `[x]` before merge.
 - [ ] Does NOT export `meta` from `index.ts` (it's docs-site-only and would break consumer-side tsc)?
 - [ ] Did `pnpm registry:build` complete cleanly with `public/r/<slug>.json` and `public/r/<slug>-fixtures.json` emitted?
 
-### Component readiness review (GATE 3) — see [.claude/rules/component-readiness-review.md](../.claude/rules/component-readiness-review.md)
+### Readiness review (GATE 3) — see [.claude/rules/readiness-review.md](../.claude/rules/readiness-review.md)
+
+> This section applies to procomps. Sections / pages / panels use the same gate spine with tier-specific dim additions — see [`docs/library-tiers-charter.md`](library-tiers-charter.md).
 
 - [ ] Did you author a review file at `docs/procomps/<slug>-procomp/reviews/<YYYY-MM-DD>-v<version>-spotcheck.md` using [`docs/reviews/templates/review-spotcheck.md`](reviews/templates/review-spotcheck.md)?
 - [ ] Did the review cover the **fixed core 4 dimensions** — Procomp planning docs / Registry distribution / Meta + manifest sync / Verification — plus 1 rotating dimension chosen for this component's risk profile?
