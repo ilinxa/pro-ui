@@ -3,7 +3,7 @@ date: 2026-05-25
 session: workspace v0.1.3 patch (F-03 close-out)
 phase: post-Phase-A polish (between v0.1.2 ship and v0.2.0 Phase B start)
 type: patch-ship
-commits: []
+commits: [48a503c]
 components: [workspace]
 findings: [F-03]
 status: shipped
