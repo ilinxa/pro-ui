@@ -3,7 +3,7 @@ date: 2026-05-25
 session: workspace v0.2.0 Phase B — GATE 1 close
 phase: pre-implementation planning (post-v0.1.3 ship, pre-GATE 2 plan refresh)
 type: gate-1-close
-commits: []
+commits: [3158a02]
 components: [workspace]
 findings: []
 status: gate-closed
