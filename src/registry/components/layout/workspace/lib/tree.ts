@@ -291,3 +291,41 @@ export function computeLayout(
   walk(tree, bounds, 0, []);
   return { leaves, dividers };
 }
+
+export function computeLayoutBoundsForPath(
+  tree: AreaTree,
+  splitPath: number[],
+  canvasSize: { width: number; height: number },
+  minAreaSize: { width: number; height: number },
+): Rect | null {
+  let x = 0;
+  let y = 0;
+  let width = canvasSize.width;
+  let height = canvasSize.height;
+  let node: AreaTree = tree;
+  for (const step of splitPath) {
+    if (node.kind !== "split") return null;
+    const total = node.orientation === "vertical" ? width : height;
+    const min =
+      node.orientation === "vertical" ? minAreaSize.width : minAreaSize.height;
+    const r = clampRatio(node.ratio, total, min, min);
+    const aSize = total * r;
+    if (node.orientation === "vertical") {
+      if (step === 0) {
+        width = aSize;
+      } else {
+        x = x + aSize;
+        width = total - aSize;
+      }
+    } else {
+      if (step === 0) {
+        height = aSize;
+      } else {
+        y = y + aSize;
+        height = total - aSize;
+      }
+    }
+    node = step === 0 ? node.a : node.b;
+  }
+  return { x, y, width, height };
+}

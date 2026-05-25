@@ -6,16 +6,18 @@ import { AreaContextContext } from "../hooks/use-area-context";
 import { ComponentPicker } from "./component-picker";
 import type { AreaTreeLeaf, WorkspaceComponent } from "../types";
 
-const STACK_CARD_HEIGHT = 320;
+const DEFAULT_STACK_CARD_HEIGHT = 320;
 
 export function CardStack({
   leaves,
   components,
   onSelectComponent,
+  itemHeight = DEFAULT_STACK_CARD_HEIGHT,
 }: {
   leaves: AreaTreeLeaf[];
   components: WorkspaceComponent[];
   onSelectComponent: (areaId: string, componentId: string) => void;
+  itemHeight?: number;
 }) {
   return (
     <ScrollArea className="h-full w-full">
@@ -25,6 +27,7 @@ export function CardStack({
             key={leaf.id}
             leaf={leaf}
             components={components}
+            itemHeight={itemHeight}
             onSelectComponent={(componentId) =>
               onSelectComponent(leaf.id, componentId)
             }
@@ -38,10 +41,12 @@ export function CardStack({
 function StackedCard({
   leaf,
   components,
+  itemHeight,
   onSelectComponent,
 }: {
   leaf: AreaTreeLeaf;
   components: WorkspaceComponent[];
+  itemHeight: number;
   onSelectComponent: (componentId: string) => void;
 }) {
   const component = components.find((c) => c.id === leaf.componentId);
@@ -49,10 +54,10 @@ function StackedCard({
     () => ({
       areaId: leaf.id,
       width: 0,
-      height: STACK_CARD_HEIGHT,
+      height: itemHeight,
       isFocused: false,
     }),
-    [leaf.id],
+    [leaf.id, itemHeight],
   );
   return (
     <div
@@ -70,7 +75,7 @@ function StackedCard({
       </div>
       <div
         className="relative overflow-hidden"
-        style={{ height: STACK_CARD_HEIGHT }}
+        style={{ height: itemHeight }}
       >
         <AreaContextContext.Provider value={ctx}>
           <ScrollArea className="h-full w-full">

@@ -18,11 +18,14 @@ import { useBreakpoint } from "./hooks/use-breakpoint";
 import { useAreaFocus } from "./hooks/use-area-focus";
 import { useCornerGesture } from "./hooks/use-corner-gesture";
 import { useEdgeGesture } from "./hooks/use-edge-gesture";
-import { useKeyboardActions } from "./hooks/use-keyboard-actions";
+import {
+  useKeyboardActions,
+  useResizeKeyboard,
+} from "./hooks/use-keyboard-actions";
 import { reducer, type Action } from "./lib/reducer";
-import { clampRatio } from "./lib/geometry";
 import {
   computeLayout,
+  computeLayoutBoundsForPath,
   flattenLeavesInOrder,
   flattenSubtreesPastDepth,
   getNodeAtPath,
@@ -77,6 +80,8 @@ export function Workspace({
   minAreaSize = DEFAULT_MIN_AREA_SIZE,
   maxSplitDepth,
   breakpoints = DEFAULT_BREAKPOINTS,
+  cardStackItemHeight,
+  onError,
   className,
   "aria-label": ariaLabel = "Workspace",
 }: WorkspaceProps) {
@@ -135,11 +140,16 @@ export function Workspace({
   );
 
   // Validate tree once per change for unregistered component-ids etc.
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
   useEffect(() => {
     const componentIds = components.map((c) => c.id);
     const result = validateTree(tree, componentIds);
     if (!result.valid) {
       console.error("[workspace] invalid tree:", result.errors);
+      onErrorRef.current?.(result.errors);
     }
   }, [tree, components]);
 
@@ -156,7 +166,7 @@ export function Workspace({
     [tree, cap],
   );
 
-  const isStacked = breakpoint === "mobile" || cap === 0;
+  const isStacked = breakpoint === "mobile";
 
   // Measure canvas to compute layout rects.
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -232,11 +242,7 @@ export function Workspace({
     ) => {
       const node = getNodeAtPath(renderedTree, splitPath);
       if (node.kind !== "split") return;
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rootRect = canvas.getBoundingClientRect();
-      // Compute the bounds of the parent split based on its children's union
-      // by re-using leaf rects: find leaves descending from this split.
+      if (!canvasRef.current) return;
       const parentRect = computeLayoutBoundsForPath(
         renderedTree,
         splitPath,
@@ -244,8 +250,6 @@ export function Workspace({
         minAreaSize,
       );
       if (!parentRect) return;
-      // adjust to client coords for startClient (we use clientX/clientY)
-      void rootRect;
       beginEdgeDrag(
         splitPath,
         node.orientation,
@@ -273,62 +277,14 @@ export function Workspace({
     [dispatch],
   );
 
-  // Keyboard shortcut: Alt+Shift+Arrow to resize boundary in that direction.
-  useEffect(() => {
-    if (isStacked) return;
-    const handler = (e: KeyboardEvent) => {
-      if (!focusedAreaId) return;
-      if (!e.altKey || !e.shiftKey) return;
-      const isHorizontal = e.key === "ArrowLeft" || e.key === "ArrowRight";
-      const isVertical = e.key === "ArrowUp" || e.key === "ArrowDown";
-      if (!isHorizontal && !isVertical) return;
-      e.preventDefault();
-      // Find the relevant split divider that would resize in that direction.
-      const direction =
-        e.key === "ArrowRight"
-          ? 1
-          : e.key === "ArrowLeft"
-            ? -1
-            : e.key === "ArrowDown"
-              ? 1
-              : -1;
-      const orientation = isHorizontal ? "vertical" : "horizontal";
-      // Find first divider of this orientation that flanks the focused area.
-      const focusedRect = leaves.find((l) => l.areaId === focusedAreaId);
-      if (!focusedRect) return;
-      const candidate = dividers.find((d) => {
-        if (d.orientation !== orientation) return false;
-        if (orientation === "vertical") {
-          const onRight = Math.abs(focusedRect.x + focusedRect.width - d.x) < 1;
-          const onLeft = Math.abs(focusedRect.x - d.x) < 1;
-          return onLeft || onRight;
-        } else {
-          const onBottom =
-            Math.abs(focusedRect.y + focusedRect.height - d.y) < 1;
-          const onTop = Math.abs(focusedRect.y - d.y) < 1;
-          return onTop || onBottom;
-        }
-      });
-      if (!candidate) return;
-      const node = getNodeAtPath(renderedTree, candidate.splitPath);
-      if (node.kind !== "split") return;
-      const next = Math.max(
-        0.05,
-        Math.min(0.95, node.ratio + keyboard.KEYBOARD_RESIZE_STEP * direction),
-      );
-      dispatch({ type: "resize", splitPath: candidate.splitPath, ratio: next });
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [
-    isStacked,
-    focusedAreaId,
+  useResizeKeyboard({
+    enabled: !isStacked,
     leaves,
     dividers,
     renderedTree,
+    focusedAreaId,
     dispatch,
-    keyboard.KEYBOARD_RESIZE_STEP,
-  ]);
+  });
 
   return (
     <div
@@ -358,6 +314,7 @@ export function Workspace({
           <CardStack
             leaves={stackedLeaves}
             components={components}
+            itemHeight={cardStackItemHeight}
             onSelectComponent={handleStackedSelectComponent}
           />
         ) : (
@@ -449,6 +406,23 @@ export function Workspace({
                   length={d.length}
                   ratioPercent={ratio * 100}
                   onPointerDown={(e) => handleDividerPointerDown(d.splitPath, e)}
+                  onKeyResize={(delta) => {
+                    const currentNode = getNodeAtPath(renderedTree, d.splitPath);
+                    if (currentNode.kind !== "split") return;
+                    const next = Math.max(
+                      0.05,
+                      Math.min(
+                        0.95,
+                        currentNode.ratio +
+                          keyboard.KEYBOARD_RESIZE_STEP * delta,
+                      ),
+                    );
+                    dispatch({
+                      type: "resize",
+                      splitPath: d.splitPath,
+                      ratio: next,
+                    });
+                  }}
                 />
               );
             })}
@@ -460,41 +434,3 @@ export function Workspace({
   );
 }
 
-function computeLayoutBoundsForPath(
-  tree: AreaTree,
-  splitPath: number[],
-  canvasSize: { width: number; height: number },
-  minAreaSize: { width: number; height: number },
-): { x: number; y: number; width: number; height: number } | null {
-  // Walk the tree following splitPath and compute the bounds of the node at that path.
-  let x = 0;
-  let y = 0;
-  let width = canvasSize.width;
-  let height = canvasSize.height;
-  let node: AreaTree = tree;
-  for (const step of splitPath) {
-    if (node.kind !== "split") return null;
-    const total = node.orientation === "vertical" ? width : height;
-    const min =
-      node.orientation === "vertical" ? minAreaSize.width : minAreaSize.height;
-    const r = clampRatio(node.ratio, total, min, min);
-    const aSize = total * r;
-    if (node.orientation === "vertical") {
-      if (step === 0) {
-        width = aSize;
-      } else {
-        x = x + aSize;
-        width = total - aSize;
-      }
-    } else {
-      if (step === 0) {
-        height = aSize;
-      } else {
-        y = y + aSize;
-        height = total - aSize;
-      }
-    }
-    node = step === 0 ? node.a : node.b;
-  }
-  return { x, y, width, height };
-}

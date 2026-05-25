@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  AlertTriangleIcon,
   ClockIcon,
   HashIcon,
   NotebookIcon,
@@ -162,15 +163,48 @@ const components: WorkspaceComponent[] = [
 ];
 
 export default function WorkspaceDemo() {
+  const [errors, setErrors] = useState<string[]>([]);
+  const handleError = useMemo(
+    () => (next: string[]) => setErrors(next),
+    [],
+  );
   return (
-    <div className="h-140 w-full">
-      <Workspace
-        components={components}
-        defaultComponentId="notes"
-        defaultLayout={DEMO_INITIAL_LAYOUT}
-        presets={DEMO_PRESETS}
-        aria-label="Workspace demo"
-      />
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        Try splitting an area by dragging from a corner, resize via the
+        boundary, or <strong>click a divider and press Arrow keys</strong> to
+        nudge it (new in v0.1.2). Mobile widths collapse to a card stack
+        whose item height you control via <code>cardStackItemHeight</code> —
+        420px in this demo. Validation issues surface via <code>onError</code>
+        below the canvas.
+      </p>
+      <div className="h-140 w-full">
+        <Workspace
+          components={components}
+          defaultComponentId="notes"
+          defaultLayout={DEMO_INITIAL_LAYOUT}
+          presets={DEMO_PRESETS}
+          cardStackItemHeight={420}
+          onError={handleError}
+          aria-label="Workspace demo"
+        />
+      </div>
+      {errors.length > 0 ? (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive"
+        >
+          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+          <div>
+            <p className="font-medium">Workspace validation</p>
+            <ul className="mt-1 ml-3 list-disc space-y-0.5">
+              {errors.map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

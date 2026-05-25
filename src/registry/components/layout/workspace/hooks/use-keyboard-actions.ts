@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import type { Action } from "../lib/reducer";
-import type { LeafRect } from "../lib/geometry";
+import type { LeafRect, SplitDividerRect } from "../lib/geometry";
 import { rectsShareFullEdge } from "../lib/geometry";
-import type { SplitOrientation } from "../types";
+import { getNodeAtPath } from "../lib/tree";
+import type { AreaTree, SplitOrientation } from "../types";
 
 const KEYBOARD_RESIZE_STEP = 0.04;
 
@@ -111,4 +112,62 @@ export function useKeyboardActions(opts: {
     canSplit: focusedCanSplit,
     KEYBOARD_RESIZE_STEP,
   };
+}
+
+export function useResizeKeyboard(opts: {
+  enabled: boolean;
+  leaves: LeafRect[];
+  dividers: SplitDividerRect[];
+  renderedTree: AreaTree;
+  focusedAreaId: string | null;
+  dispatch: React.Dispatch<Action>;
+}) {
+  const { enabled, leaves, dividers, renderedTree, focusedAreaId, dispatch } =
+    opts;
+
+  useEffect(() => {
+    if (!enabled) return;
+    const handler = (e: KeyboardEvent) => {
+      if (!focusedAreaId) return;
+      if (!e.altKey || !e.shiftKey) return;
+      const isHorizontal = e.key === "ArrowLeft" || e.key === "ArrowRight";
+      const isVertical = e.key === "ArrowUp" || e.key === "ArrowDown";
+      if (!isHorizontal && !isVertical) return;
+      e.preventDefault();
+      const direction =
+        e.key === "ArrowRight"
+          ? 1
+          : e.key === "ArrowLeft"
+            ? -1
+            : e.key === "ArrowDown"
+              ? 1
+              : -1;
+      const orientation = isHorizontal ? "vertical" : "horizontal";
+      const focusedRect = leaves.find((l) => l.areaId === focusedAreaId);
+      if (!focusedRect) return;
+      const candidate = dividers.find((d) => {
+        if (d.orientation !== orientation) return false;
+        if (orientation === "vertical") {
+          const onRight = Math.abs(focusedRect.x + focusedRect.width - d.x) < 1;
+          const onLeft = Math.abs(focusedRect.x - d.x) < 1;
+          return onLeft || onRight;
+        } else {
+          const onBottom =
+            Math.abs(focusedRect.y + focusedRect.height - d.y) < 1;
+          const onTop = Math.abs(focusedRect.y - d.y) < 1;
+          return onTop || onBottom;
+        }
+      });
+      if (!candidate) return;
+      const node = getNodeAtPath(renderedTree, candidate.splitPath);
+      if (node.kind !== "split") return;
+      const next = Math.max(
+        0.05,
+        Math.min(0.95, node.ratio + KEYBOARD_RESIZE_STEP * direction),
+      );
+      dispatch({ type: "resize", splitPath: candidate.splitPath, ratio: next });
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [enabled, focusedAreaId, leaves, dividers, renderedTree, dispatch]);
 }
