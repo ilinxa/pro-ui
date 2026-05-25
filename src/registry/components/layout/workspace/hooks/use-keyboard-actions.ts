@@ -114,6 +114,17 @@ export function useKeyboardActions(opts: {
   };
 }
 
+/**
+ * @internal
+ *
+ * Wires the global `Alt+Shift+Arrow` divider-resize gesture. Not part of the
+ * workspace package's stable public API — the only stable exports are those
+ * re-exported from `index.ts` (`Workspace`, `useAreaContext`, the type set).
+ * This hook exists solely to keep `workspace.tsx` lean (extracted in v0.1.2
+ * patch A-3); a consumer driving Alt+Shift+Arrow on a custom layout would
+ * need to supply `leaves` / `dividers` / `renderedTree` themselves, which is
+ * not a documented contract and may change in any patch.
+ */
 export function useResizeKeyboard(opts: {
   enabled: boolean;
   leaves: LeafRect[];

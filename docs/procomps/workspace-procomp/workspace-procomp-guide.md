@@ -378,6 +378,13 @@ These are deliberate non-goals for v0.1.0:
 
 ## Migration notes
 
+### v0.1.2 → v0.1.3 (2026-05-25)
+
+Patch bump — non-breaking. Docs / convention only:
+
+- `useResizeKeyboard` in `hooks/use-keyboard-actions.ts` is now `@internal`-tagged. It was never re-exported from `index.ts`, but consumers deep-importing it should stop — its inputs (`leaves` / `dividers` / `renderedTree`) are derived state internal to `<Workspace>`. Closes spotcheck F-03.
+- "Public API surface" reference section clarified: only `index.ts` re-exports are stable; anything else may change in any patch.
+
 ### v0.1.1 → v0.1.2 (2026-05-24)
 
 Patch bump — non-breaking. New optional props with sensible defaults:
@@ -415,5 +422,5 @@ Tracked in [.claude/STATUS.md](../../../.claude/STATUS.md):
 - **Description (what & why):** [workspace-procomp-description.md](workspace-procomp-description.md)
 - **Plan (how it was built):** [workspace-procomp-plan.md](workspace-procomp-plan.md)
 - **Source:** [src/registry/components/layout/workspace/](../../../src/registry/components/layout/workspace/)
-- **Public API surface:** see `index.ts` in the source folder — `Workspace`, `useAreaContext`, plus 9 type exports (`AreaContext`, `AreaTree`, `AreaTreeLeaf`, `AreaTreeSplit`, `Breakpoint`, `ResponsiveValue`, `SplitOrientation`, `WorkspaceComponent`, `WorkspacePreset`, `WorkspaceProps`). v0.1.2 added optional `WorkspaceProps` fields `onError` + `cardStackItemHeight`; no new exported types or symbols.
+- **Public API surface:** see `index.ts` in the source folder — `Workspace`, `useAreaContext`, plus 9 type exports (`AreaContext`, `AreaTree`, `AreaTreeLeaf`, `AreaTreeSplit`, `Breakpoint`, `ResponsiveValue`, `SplitOrientation`, `WorkspaceComponent`, `WorkspacePreset`, `WorkspaceProps`). v0.1.2 added optional `WorkspaceProps` fields `onError` + `cardStackItemHeight`; no new exported types or symbols. **Anything not re-exported by `index.ts` is internal and may change in any patch** — e.g. the `useResizeKeyboard` hook in `hooks/use-keyboard-actions.ts` is `@internal`-tagged in v0.1.3 and exists only to keep `workspace.tsx` lean; do not deep-import it.
 - **Dummy registry used in the demo:** [src/registry/components/layout/workspace/demo.tsx](../../../src/registry/components/layout/workspace/demo.tsx) — Notes, Clock, Counter, Data Table. Demo exercises `cardStackItemHeight={420}` + `onError` callback rendered as an alert beneath the canvas + the new divider-keyboard hint in the inline copy.
