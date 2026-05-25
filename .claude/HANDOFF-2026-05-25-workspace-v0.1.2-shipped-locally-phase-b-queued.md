@@ -1,9 +1,11 @@
 # HANDOFF — 2026-05-25 — workspace v0.1.2 SHIPPED locally; Phase B (v0.2.0) plan written + queued
 
+> **PARTIALLY SUPERSEDED 2026-05-25 (same day).** Resume path 1 (push + smoke + close F-01) was executed and completed in commit `3a6f707`. The current truth lives in [`STATUS.md`](STATUS.md) (top banner row). The remaining two resume paths below — Phase B (v0.2.0) and v0.1.3 micro-patch — are still open and accurate; the rest of this file is preserved for context.
+>
 > **Active handoff.** Read this first on resume. Supersedes [`HANDOFF-2026-05-09-session-pause.md`](HANDOFF-2026-05-09-session-pause.md) (frozen).
 >
 > **Resume entry points (pick one):**
-> 1. `git push` to land the v0.1.2 ship on Vercel (deploy auto-runs `pnpm vercel-build`); then F-cross-11 path-b consumer-tsc smoke against the deployed artifact (closes spotcheck F-01).
+> 1. ~~`git push` to land the v0.1.2 ship on Vercel (deploy auto-runs `pnpm vercel-build`); then F-cross-11 path-b consumer-tsc smoke against the deployed artifact (closes spotcheck F-01).~~ ✅ **Completed 2026-05-25 in commit `3a6f707`** — Vercel rebuild ~70s, smoke clean (0 workspace-scoped tsc errors), F-01 closed.
 > 2. Start Phase B (v0.2.0 — alpha → beta promotion). Full plan at [`C:/Users/AsiaData/.claude/plans/lets-create-a-comprehensive-proud-cloud.md`](file:///C:/Users/AsiaData/.claude/plans/lets-create-a-comprehensive-proud-cloud.md). Phase A is fully shipped; Phase B is untouched code.
 > 3. v0.1.3 micro-patch closing the v0.1.2 spotcheck F-03 (`useResizeKeyboard` export — un-export OR document for the rare consumer reaching for it).
 
