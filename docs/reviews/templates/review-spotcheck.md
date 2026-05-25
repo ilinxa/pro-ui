@@ -32,7 +32,7 @@ A spot-check covers a **fixed core of 4 dimensions** plus **1 rotating dimension
 | 1 | Procomp planning docs | `<yes / no>` | description / plan / guide present + accurate? |
 | 9 | Registry distribution | `<yes / no>` | live endpoint resolves; targets locked-convention; no docs files in registry artifact |
 | 10 | Meta + manifest sync | `<yes / no>` | version + status + STATUS.md row honest |
-| 12 | Verification | `<yes / no>` | tsc + lint + `validate:meta-deps` clean; `pnpm build` succeeds. **For v0.1.0 first ships:** smoke harness pass (F-cross-11 path b) — `pnpm dlx shadcn add @ilinxa/<slug>` succeeds AND consumer-side `pnpm tsc --noEmit` clean post-install. See [.claude/rules/component-readiness-review.md](../../../.claude/rules/component-readiness-review.md). |
+| 12 | Verification | `<yes / no>` | tsc + lint + `validate:meta-deps` clean; `pnpm build` succeeds. **For v0.1.0 first ships:** smoke harness pass (F-cross-11 path b) — `pnpm dlx shadcn add @ilinxa/<slug>` succeeds AND consumer-side `pnpm tsc --noEmit` clean post-install. See [.claude/rules/readiness-review.md](../../../.claude/rules/readiness-review.md). |
 
 ### Rotating dimension
 

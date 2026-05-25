@@ -58,6 +58,21 @@
 
 ---
 
+## Library tiers
+
+Four-tier model formalized 2026-05-25. Charter: [`docs/library-tiers-charter.md`](../docs/library-tiers-charter.md). Rule: [`.claude/rules/readiness-review.md`](rules/readiness-review.md).
+
+| Tier | Shipped | Distribution | Folder |
+|---|---|---|---|
+| **pro-component** | 49 | runtime (`registry:component`) | `src/registry/components/` |
+| **pro-section** | 0 (charter locked, tooling Phase B) | runtime default | `src/registry/sections/` *(Phase B)* |
+| **pro-page** | 0 (charter locked, tooling Phase B) | scaffold-fork (`registry:block`) | `src/registry/pages/` *(Phase B)* |
+| **pro-panel** | 0 (charter locked, tooling Phase B) | scaffold-fork meta-block | `src/registry/panels/` *(Phase B)* |
+
+Phase A landed 2026-05-25 (this file's "## Library tiers" block + the charter + rule restructure + tier dir READMEs). Phase B (scaffolders + registry infra + per-tier categories + meta-deps lint extension) ships alongside the first pilot in each tier. Phase C is pilots in order: section → page → panel (no panel-first; composition risk compounds).
+
+---
+
 ## Components
 
 49 components across 8 categories. Source of truth for per-component description / API / status: each component's `meta.ts` and procomp docs (`docs/procomps/<slug>-procomp/`). For the version snapshot: [`docs/component-versions.md`](../docs/component-versions.md). For per-component review state (Tier 1 reviewed / Tier 2 pending) + per-finding history: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
@@ -183,6 +198,7 @@ For closed entries (Phase 0 risk spike, chart palette, site nav, alpha/beta vari
 
 The 5 most-recent decision files (or HANDOFF artifacts), most-recent first. Full list at [`.claude/decisions/`](decisions/).
 
+- [2026-05-25 — Library tier system charter LOCKED (Phase A) — pro-section + pro-page + pro-panel tiers formalized above procomp; rule renamed `component-readiness-review.md` → `readiness-review.md` with stub redirect](decisions/2026-05-25-library-tier-system-charter.md) — foundational docs only (no code, no scaffolders, no tooling). Charter at [`docs/library-tiers-charter.md`](../docs/library-tiers-charter.md) locks: four tiers; responsibility-based boundaries (not procomp-count); runtime vs. scaffold-fork distribution defaults (overrideable at GATE 1, except panels which are always scaffold-fork); 3-gate spine scaled per tier (constituent inventory + composition contract fold into GATE 1, no GATE 0); pro-page GATE 3 adds composition integrity as 5th fixed dim; pro-panel GATE 3 adds design coherence as 5th fixed dim; pages + panels require peer/AI review (no self-review); scaffolds are snapshots (no SemVer compat across re-installs); shared `@ilinxa/<slug>` namespace; constituent rule (every constituent must close its own GATE 3 before higher-tier GATE 3). Deep revalidation surfaced 15 findings, all folded in pre-sign-off. Phase B (scaffolders + registry infra + per-tier categories + meta-deps lint extension + templates) deferred to first pilot in each tier. Phase C is pilots in order: section → page → panel. 49 procomps unchanged + grandfathered.
 - [2026-05-25 — workspace v0.2.0 GATE 1 CLOSED — description addendum signed off (9 Q-Ps locked, QP-3 reversed during re-validation)](decisions/2026-05-25-workspace-v0.2.0-gate-1-closed.md) — pre-implementation planning gate for the alpha → beta promotion ship. Layered addendum doc (`-v0.2.0.md`) over canonical description; 7 new in-scope items (N-1..N-7), 4 breaking changes (BC-1..BC-4), 9 open decisions locked per recommendations. Re-validation pass caught 1 reversed rec + 8 clarifications. Next gate = plan refresh (GATE 2).
 - [2026-05-25 — workspace v0.1.3 SHIPPED — F-03 close-out (`useResizeKeyboard` `@internal` JSDoc + guide Public-API surface note; no public API change)](decisions/2026-05-25-workspace-v0.1.3-f-03-internal-jsdoc.md) — micro-patch on `workspace` v0.1.2 closing the last spotcheck follow-up. Hybrid (a)+(b) fix since true `export` removal would have undone the v0.1.2 A-3 refactor. All three v0.1.2 spotcheck follow-ups now resolved (F-01 closed 2026-05-25 via push+smoke; F-02 = Phase B v0.2.0 queued; F-03 closed here). Patch-bump GATE 3 exempt.
 - [2026-05-24 — workspace v0.1.2 SHIPPED — deep-review close-out (12 findings: 9 code + 3 doc; alpha; ALL non-breaking)](decisions/2026-05-24-workspace-v0.1.2-deep-review-closeout.md) — patch bump on `workspace` v0.1.1 closing every validated finding from the 2026-05-23 deep-review pass. 10-commit chain: A-1 dead rootRect drop + A-2 `computeLayoutBoundsForPath` relocation to `lib/tree.ts` + A-3 `Alt+Shift+Arrow` consolidated into new `useResizeKeyboard` hook + A-4 `cap=0` no-longer-forces-card-stack at desktop (tile rendering with corners inert; dividers stay resizable) + A-5 `<SplitDivider>` keyboard-resizable via Arrow keys (`tabIndex=-1` + `onKeyResize` prop) + A-6 new `onError` callback surfaces `validateTree` issues + A-7 new `cardStackItemHeight` prop (default 320) + A-8 `DropdownMenuGroup` semantics in `<ComponentPicker>` + A-9 per-instance `inertLogged` ref (multi-instance correctness) + A-10/A-14 docs for `onLayoutChange` 60Hz storm + first-render breakpoint flash. v0.2.0 work (imperative API + `stack` kind + touch + undo + multi-edge linked resize + beta promotion) scoped in the comprehensive plan at [`C:/Users/AsiaData/.claude/plans/lets-create-a-comprehensive-proud-cloud.md`](file:///C:/Users/AsiaData/.claude/plans/lets-create-a-comprehensive-proud-cloud.md). GATE 3 spotcheck rotating-dim Public API. Only F-06 (inertLogged) from the 2026-05-08 v0.1.0 sweep review remained open; closed here as A-9.
