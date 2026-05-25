@@ -24,8 +24,6 @@ export type CornerDragState = {
 
 const DRAG_THRESHOLD_PX = 4;
 
-let inertLogged = false;
-
 export function useCornerGesture(opts: {
   rootRef: React.RefObject<HTMLElement | null>;
   leaves: LeafRect[];
@@ -37,6 +35,7 @@ export function useCornerGesture(opts: {
   const { rootRef, leaves, cap, breakpoint, dispatch, makeAreaId } = opts;
   const [dragState, setDragState] = useState<CornerDragState | null>(null);
   const dragRef = useRef<CornerDragState | null>(null);
+  const inertLoggedRef = useRef(false);
   const leavesRef = useRef(leaves);
   useEffect(() => {
     leavesRef.current = leaves;
@@ -89,11 +88,11 @@ export function useCornerGesture(opts: {
         // SPLIT intent — gated by per-leaf depth. Splitting a leaf at depth N
         // produces children at depth N+1, so the cap rule is `origin.depth < cap`.
         if (origin.depth >= cap) {
-          if (!inertLogged) {
+          if (!inertLoggedRef.current) {
             console.debug(
               `[workspace] split inert: leaf at depth ${origin.depth} would exceed cap ${cap} for breakpoint "${breakpoint}"`,
             );
-            inertLogged = true;
+            inertLoggedRef.current = true;
           }
           return { kind: "none" };
         }

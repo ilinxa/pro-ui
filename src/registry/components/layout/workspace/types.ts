@@ -59,6 +59,10 @@ export type WorkspaceProps = {
   maxSplitDepth?: ResponsiveValue<number>;
   breakpoints?: { mobile: number; tablet: number };
 
+  cardStackItemHeight?: number;
+
+  onError?: (errors: string[]) => void;
+
   "aria-label"?: string;
   className?: string;
 };

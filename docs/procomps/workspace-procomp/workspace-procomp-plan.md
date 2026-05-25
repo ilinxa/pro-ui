@@ -1,10 +1,24 @@
 # `workspace` — Pro-component Plan (Stage 2)
 
-> **Stage:** 2 of 3 · **Status:** Draft — awaiting sign-off
+> **Stage:** 2 of 3 · **Status:** Signed off + shipped (v0.1.0 → v0.1.1 → v0.1.2 → next: v0.2.0).
 > **Slug:** `workspace` · **Category:** `layout`
 > **Inputs:** description signed off ([workspace-procomp-description.md](workspace-procomp-description.md)). All twelve description-stage decisions are inherited as fixed inputs.
 
 This doc locks **how** we build what the description doc said we'd build. After sign-off, no scaffolding-time second-guessing — implementation follows the plan, deviations are loud.
+
+## Post-ship addenda (loud deviations + extensions)
+
+- **v0.1.1 (2026-05-09)** — F-01 fix from v0.1.0 review: `flattenSubtreesPastDepth` swapped `collapseToFirstLeaf` → `collapseToBalancedSplits` (preserves all leaves; depth no longer strictly capped during cross-breakpoint flatten — trade-off resolved properly in v0.2.0 via the new `stack` kind). F-04 (separator) struck from §9 below. F-05 (focus action) documented as the reducer's 7th action.
+- **v0.1.2 (2026-05-24)** — deep-review close-out, all additive / refactor / doc:
+  - **New optional props:** `onError?: (errors: string[]) => void` (surfaces `validateTree` issues alongside `console.error`); `cardStackItemHeight?: number` (default 320; replaces the previously hardcoded `STACK_CARD_HEIGHT` in `<CardStack>`).
+  - **New keyboard surface:** `<SplitDivider>` is `tabIndex={-1}` + responds to ArrowLeft/Right (vertical) or ArrowUp/Down (horizontal) via a new `onKeyResize` prop. Pointer-down also focuses the divider, so subsequent arrow presses keep working without a tab cycle.
+  - **Internal refactor:** `computeLayoutBoundsForPath` moved from `workspace.tsx` to `lib/tree.ts` (and exported); `Alt+Shift+Arrow` resize `useEffect` extracted from `workspace.tsx` into a new exported `useResizeKeyboard` hook in `hooks/use-keyboard-actions.ts`.
+  - **Behavior fix:** `isStacked = breakpoint === "mobile"` (removed the `|| cap === 0` conflation). `maxSplitDepth={{ desktop: 0 }}` + multi-leaf layouts now tile-render with inert corners and resizable dividers instead of forcing a desktop card stack.
+  - **Multi-instance correctness:** `inertLogged` moved from module-level `let` to per-instance `useRef` inside `useCornerGesture`.
+  - **Component-picker semantics:** category groups wrapped in `<DropdownMenuGroup>` instead of bare `<div>`.
+  - **Docs only:** `onLayoutChange` 60Hz storm warning + debounce recipe (structural fix `onResize`/`onLayoutChange` split queued for v0.2.0); first-render breakpoint flash gotcha; full v0.1.1 → v0.1.2 changelog in the guide's Migration notes.
+  - Full closure detail: [decision file](../../../.claude/decisions/2026-05-24-workspace-v0.1.2-deep-review-closeout.md) + [GATE 3 spotcheck](reviews/2026-05-24-v0.1.2-spotcheck.md).
+- **v0.2.0 (planned)** — alpha→beta promotion ship: imperative `WorkspaceHandle` ref API (mirrors `TodoTreeHandle`), `stack` kind in `AreaTree` (closes the v0.1.1 depth-cap trade-off), `onResize` per-frame callback split from debounced `onLayoutChange`, built-in undo/redo, touch/pen gestures, multi-edge linked resize. Full plan: [`C:/Users/AsiaData/.claude/plans/lets-create-a-comprehensive-proud-cloud.md`](file:///C:/Users/AsiaData/.claude/plans/lets-create-a-comprehensive-proud-cloud.md).
 
 ---
 

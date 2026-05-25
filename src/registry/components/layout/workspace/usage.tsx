@@ -80,6 +80,10 @@ function ChartPanel() {
           <code>Alt+Shift+Arrow</code> on a focused area — nudge the adjacent
           boundary.
         </li>
+        <li>
+          Click a divider, then <code>Arrow</code> keys — resize the divider
+          directly (new in v0.1.2).
+        </li>
       </ul>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>
@@ -109,7 +113,20 @@ function ChartPanel() {
         <li>
           Pass <code>layout</code> + <code>onLayoutChange</code> for controlled
           mode (consumer owns persistence). Omit <code>layout</code> and pass{" "}
-          <code>defaultLayout</code> for uncontrolled.
+          <code>defaultLayout</code> for uncontrolled. Note:{" "}
+          <code>onLayoutChange</code> fires per animation frame during edge-drag
+          (~60Hz) — debounce in your handler if you persist to storage. v0.2.0
+          will split this into a per-frame <code>onResize</code> and a
+          debounced <code>onLayoutChange</code>.
+        </li>
+        <li>
+          <code>onError</code> (v0.1.2) surfaces tree-validation issues
+          (unregistered <code>componentId</code>, duplicate ids, bad ratios)
+          alongside the existing <code>console.error</code>.
+        </li>
+        <li>
+          <code>cardStackItemHeight</code> (v0.1.2) overrides the mobile card
+          height (default 320px).
         </li>
       </ul>
     </div>

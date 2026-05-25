@@ -4,6 +4,7 @@ import { ChevronDownIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -64,7 +65,7 @@ export function ComponentPicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-44">
         {groups.map((group, gi) => (
-          <div key={group.category || `__${gi}`}>
+          <DropdownMenuGroup key={group.category || `__${gi}`}>
             {group.category ? (
               <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 {group.category}
@@ -85,7 +86,7 @@ export function ComponentPicker({
               </DropdownMenuItem>
             ))}
             {gi < groups.length - 1 ? <DropdownMenuSeparator /> : null}
-          </div>
+          </DropdownMenuGroup>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

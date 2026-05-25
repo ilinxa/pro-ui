@@ -1,8 +1,10 @@
 # `workspace` — Pro-component Description (Stage 1)
 
-> **Stage:** 1 of 3 · **Status:** Decisions locked — awaiting final sign-off
+> **Stage:** 1 of 3 · **Status:** Decisions locked — signed off, in production at `v0.1.2` (alpha) as of 2026-05-24.
 > **Slug:** `workspace` · **Category:** `layout`
 > **Conceptual lineage:** desktop tiling-window patterns (Blender areas, VS Code editor groups, tiling WMs) — adapted to the modern web. **Not a Blender clone.** A web-app / dashboard / dev-tool layout primitive.
+>
+> **Live API since v0.1.2 (additive over v0.1.0 surface, all non-breaking):** `onError?: (errors: string[]) => void` callback for `validateTree` issues; `cardStackItemHeight?: number` overrides the mobile card height; `<SplitDivider>` is now keyboard-resizable (click to focus, Arrow keys to nudge); `maxSplitDepth={{ desktop: 0 }}` no longer routes to card-stack at desktop (tiles render with corners inert, dividers resizable). See [guide § Migration notes](workspace-procomp-guide.md#migration-notes) and [decision file](../../../.claude/decisions/2026-05-24-workspace-v0.1.2-deep-review-closeout.md).
 
 This is the **description** doc. Its job is to pin down what we're building and why, surface open decisions, and earn sign-off before any planning or code. All twelve open questions raised during review have been resolved (see §7). The full concept brief authored by the user is preserved verbatim in the appendix at the end.
 

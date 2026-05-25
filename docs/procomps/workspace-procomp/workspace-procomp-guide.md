@@ -56,8 +56,25 @@ Splits and merges are tree edits:
 |---|---|
 | Corner-drag inward | A leaf becomes an internal split with two leaves |
 | Corner-drag outward (onto neighbor) | An internal split's surviving child replaces the split |
-| Edge-drag | A split node's `ratio` changes |
+| Edge-drag (or click divider + Arrow keys, v0.1.2) | A split node's `ratio` changes |
 | Dropdown swap | A leaf's `componentId` changes |
+
+### Useful options (v0.1.2)
+
+All optional, default-off. Reach for them when you need them:
+
+```tsx
+<Workspace
+  components={components}
+  defaultComponentId="chart"
+  cardStackItemHeight={420}                // override mobile card height (default 320)
+  onError={(errors) => toast.error(errors.join("; "))}   // surface validateTree issues
+  layout={layout}
+  onLayoutChange={debouncedPersist}        // see Pattern 4 — DEBOUNCE: fires per rAF tick during edge-drag
+/>
+```
+
+Full prop reference lives in [`types.ts`](../../../src/registry/components/layout/workspace/types.ts).
 
 ## Composition patterns
 
@@ -112,24 +129,43 @@ This is how you wire up "one component per metric" without exploding the registr
 
 ### Pattern 4: controlled mode for persistence
 
-For "remember the user's layout" UX, use controlled mode:
+For "remember the user's layout" UX, use controlled mode. **Debounce the write** — `onLayoutChange` fires per animation frame during edge-drag (~60 callbacks per second of resizing), so persisting on every call is a real footgun.
 
 ```tsx
-const [layout, setLayout] = useState<AreaTree>(() => loadFromLocalStorage());
+import { useMemo, useState } from "react";
+import { debounce } from "lodash-es";  // or any debounce of your choice
+import type { AreaTree } from "@/registry/components/layout/workspace";
 
-useEffect(() => saveToLocalStorage(layout), [layout]);
+const KEY = "myapp.workspace.layout";
+
+const [layout, setLayout] = useState<AreaTree>(
+  () => JSON.parse(localStorage.getItem(KEY) ?? "null") ?? DEFAULT_LAYOUT,
+);
+
+const persist = useMemo(
+  () =>
+    debounce((next: AreaTree) => {
+      localStorage.setItem(KEY, JSON.stringify(next));
+    }, 250),
+  [],
+);
 
 return (
   <Workspace
     components={components}
     defaultComponentId="chart"
     layout={layout}
-    onLayoutChange={setLayout}
+    onLayoutChange={(next) => {
+      setLayout(next);     // local state update is cheap — fire every time
+      persist(next);       // I/O write — debounced
+    }}
   />
 );
 ```
 
 The `AreaTree` is plain JSON — `JSON.stringify` / `JSON.parse` round-trip cleanly. Persist to localStorage, IndexedDB, your backend, or wherever.
+
+> v0.2.0 will split this into a per-frame `onResize` callback and a debounced `onLayoutChange`, eliminating the need to debounce in your handler. Until then, the recipe above is the canonical pattern.
 
 ### Pattern 5: presets as tabs
 
@@ -206,6 +242,41 @@ The root has `role="application"` (appropriate for keyboard-driven workspace UIs
 <Workspace components={...} defaultComponentId="..." aria-label="Sales dashboard" />
 ```
 
+### `onLayoutChange` fires on every animation frame during edge-drag
+
+A 1-second edge-drag fires ~60 `onLayoutChange` callbacks (one per animation frame). If you're persisting to storage, debounce or throttle in your handler — a raw `localStorage.setItem` per callback will cause 60 synchronous writes per second.
+
+```tsx
+const persist = useMemo(
+  () => debounce((next: AreaTree) => localStorage.setItem(KEY, JSON.stringify(next)), 250),
+  [],
+);
+
+<Workspace ... onLayoutChange={persist} />
+```
+
+v0.2.0 will split this into a per-frame `onResize` callback and a debounced `onLayoutChange` to remove the footgun. Until then, debounce in your handler.
+
+### First-render breakpoint flash
+
+`useBreakpoint` returns `"desktop"` on first render until the first `ResizeObserver` measurement (~1 frame). On mobile devices this produces a brief flash of the desktop tile layout before the card stack appears.
+
+If the flash is visible in your app, the safest workaround is at the wrapper level: gate the `<Workspace>` render behind a `useLayoutEffect`-measured viewport check, or hide the wrapper via `visibility: hidden` until first paint. We deliberately don't measure inside the component itself because the obvious "lazy init via `useLayoutEffect`" approach risks React 19 hydration mismatch warnings in SSR contexts.
+
+### Validation errors via `onError`
+
+If your `layout` or a preset references an unregistered `componentId`, has duplicate area-ids, or has out-of-range split ratios, the component logs to `console.error` and (since v0.1.2) calls your `onError` callback if provided:
+
+```tsx
+<Workspace
+  components={components}
+  defaultComponentId="chart"
+  onError={(errors) => toast.error(`Workspace validation: ${errors.join("; ")}`)}
+/>
+```
+
+The areas referencing unregistered components still render a placeholder card; `onError` lets you surface the issue to the user rather than swallowing it.
+
 ## Common operations cookbook
 
 ### Programmatically reset to a clean layout
@@ -234,7 +305,12 @@ return <div ref={ref}><Workspace ... /></div>;
 
 ### Persist + restore
 
+Always debounce the write — `onLayoutChange` fires per animation frame during edge-drag. See [Pattern 4](#pattern-4-controlled-mode-for-persistence) for the full recipe with `useMemo + debounce`. Quick version:
+
 ```tsx
+import { useMemo, useState } from "react";
+import { debounce } from "lodash-es";
+
 const KEY = "myapp.workspace.layout";
 
 const [layout, setLayout] = useState<AreaTree>(() => {
@@ -242,11 +318,42 @@ const [layout, setLayout] = useState<AreaTree>(() => {
   return saved ? JSON.parse(saved) : DEFAULT_LAYOUT;
 });
 
-useEffect(() => {
-  localStorage.setItem(KEY, JSON.stringify(layout));
-}, [layout]);
+const persist = useMemo(
+  () => debounce((next: AreaTree) => localStorage.setItem(KEY, JSON.stringify(next)), 250),
+  [],
+);
 
-return <Workspace components={...} defaultComponentId="..." layout={layout} onLayoutChange={setLayout} />;
+return (
+  <Workspace
+    components={...}
+    defaultComponentId="..."
+    layout={layout}
+    onLayoutChange={(next) => { setLayout(next); persist(next); }}
+  />
+);
+```
+
+### Surface validation errors
+
+```tsx
+<Workspace
+  components={components}
+  defaultComponentId="chart"
+  onError={(errors) => {
+    // unregistered componentId, duplicate area-ids, out-of-range ratios, etc.
+    toast.error(`Workspace validation: ${errors.join("; ")}`);
+  }}
+/>
+```
+
+Areas referencing unregistered components still render a placeholder card (the existing fallback); `onError` lets you tell the user *why* without parsing console logs.
+
+### Customize the mobile card height
+
+By default the mobile card stack lays out items at 320px. Override per-app:
+
+```tsx
+<Workspace components={...} defaultComponentId="..." cardStackItemHeight={420} />
 ```
 
 ### Add a "reset layout" button outside the workspace
@@ -271,21 +378,42 @@ These are deliberate non-goals for v0.1.0:
 
 ## Migration notes
 
-This is the first ship. Nothing to migrate from. When v0.2 lands, this section will document any breaking changes.
+### v0.1.1 → v0.1.2 (2026-05-24)
+
+Patch bump — non-breaking. New optional props with sensible defaults:
+
+- `onError?: (errors: string[]) => void` — fires alongside `console.error` when `validateTree` rejects a layout (unregistered `componentId`, duplicate area-ids, out-of-range ratios).
+- `cardStackItemHeight?: number` — overrides the mobile / cap=0 card height (default 320).
+- `<SplitDivider>` is now keyboard-resizable — click a divider to focus it, then use Arrow keys.
+- `maxSplitDepth={{ desktop: 0 }}` no longer forces a card-stack at desktop; it now renders all leaves as tiles with corner-splits disabled (M-1 dividers remain resizable).
+
+### v0.1.0 → v0.1.1 (initial)
+
+This was the first ship. Nothing to migrate from. When v0.2 lands, this section will document its breaking changes.
 
 ## Open follow-ups
 
 Tracked in [.claude/STATUS.md](../../../.claude/STATUS.md):
 
-- **Test debt** — no test runner is wired in this repo. The pure modules in `lib/` (`tree.ts`, `reducer.ts`, `geometry.ts`) are written to be testable in isolation when Vitest lands. Visual verification for v0.1 is demo-driven (the `Counter` panel in the demo proves Q3 state preservation).
-- **Aligned-edge linked resize** for v0.2.
-- **Touch / pen support** for v0.2.
-- **Detach-to-OS-window** for v0.2 — the API surface won't break when this lands.
+- ~~**`inertLogged` was module-level, not per-instance**~~ ✅ Closed in v0.1.2 (per-instance `useRef`).
+- ~~**`onLayoutChange` 60Hz storm during edge-drag**~~ ✅ Doc workaround in v0.1.2; structural fix (`onResize` split) in v0.2.0.
+- ~~**Divider keyboard mismatch (`aria-valuenow` without keyboard control)**~~ ✅ Closed in v0.1.2 (Arrow key resize).
+- ~~**`cap=0` conflation routed desktop to card stack**~~ ✅ Closed in v0.1.2.
+- ~~**`STACK_CARD_HEIGHT` hardcoded at 320**~~ ✅ Closed in v0.1.2 (`cardStackItemHeight` prop).
+- ~~**`validateTree` errors swallowed (console-only)**~~ ✅ Closed in v0.1.2 (`onError` callback).
+- **Imperative ref API** — landing in v0.2.0 (`WorkspaceHandle` mirroring `TodoTreeHandle`).
+- **`stack` kind in `AreaTree`** — v0.2.0; closes the F-01 trade-off (depth cap strictly honored, no balanced-split chain side-effect).
+- **Touch / pen gestures** — v0.2.0 (long-press 300ms via Pointer Events; mobile cap default bumps to 2).
+- **Built-in undo / redo** — v0.2.0 (`Ctrl/Cmd+Z`, `historyDepth` prop).
+- **Aligned-edge linked resize** — v0.2.0 (`linkedResize` prop, default `true`).
+- **Detach-to-OS-window** — v0.3.
+- **DnD-between-areas** — v0.3.
+- **Test debt** — no test runner is wired in this repo. The pure modules in `lib/` (`tree.ts`, `reducer.ts`, `geometry.ts`) are written to be testable in isolation when Vitest lands.
 
 ## Reference
 
 - **Description (what & why):** [workspace-procomp-description.md](workspace-procomp-description.md)
 - **Plan (how it was built):** [workspace-procomp-plan.md](workspace-procomp-plan.md)
 - **Source:** [src/registry/components/layout/workspace/](../../../src/registry/components/layout/workspace/)
-- **Public API surface:** see `index.ts` in the source folder — `Workspace`, `useAreaContext`, plus 9 type exports
-- **Dummy registry used in the demo:** [src/registry/components/layout/workspace/demo.tsx](../../../src/registry/components/layout/workspace/demo.tsx) — Notes, Clock, Counter, Data Table
+- **Public API surface:** see `index.ts` in the source folder — `Workspace`, `useAreaContext`, plus 9 type exports (`AreaContext`, `AreaTree`, `AreaTreeLeaf`, `AreaTreeSplit`, `Breakpoint`, `ResponsiveValue`, `SplitOrientation`, `WorkspaceComponent`, `WorkspacePreset`, `WorkspaceProps`). v0.1.2 added optional `WorkspaceProps` fields `onError` + `cardStackItemHeight`; no new exported types or symbols.
+- **Dummy registry used in the demo:** [src/registry/components/layout/workspace/demo.tsx](../../../src/registry/components/layout/workspace/demo.tsx) — Notes, Clock, Counter, Data Table. Demo exercises `cardStackItemHeight={420}` + `onError` callback rendered as an alert beneath the canvas + the new divider-keyboard hint in the inline copy.
