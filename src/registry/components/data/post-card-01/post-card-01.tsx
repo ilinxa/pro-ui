@@ -77,6 +77,8 @@ function PostCard01Inner(props: PostCard01Props) {
     // v0.2.0 header-level callbacks (threaded to PostHeader via variants).
     onLocationClick,
     onMentionClick,
+    // v0.2.0 content-body sibling — tag chips below content (C5).
+    onTagClick,
 
     engagementSubscribe,
     commentSubscribe,
@@ -559,6 +561,7 @@ function PostCard01Inner(props: PostCard01Props) {
     renderEngagementBar,
     onLocationClick,
     onMentionClick,
+    onTagClick,
     className,
     headerClassName,
     mediaClassName,
