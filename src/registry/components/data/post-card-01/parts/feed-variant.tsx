@@ -11,6 +11,7 @@ import {
 import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
+import { LinkPreviewCard } from "./link-preview-card";
 import type { VariantInnerProps } from "./variant-shared";
 
 function FeedVariantInner(props: VariantInnerProps) {
@@ -48,6 +49,9 @@ function FeedVariantInner(props: VariantInnerProps) {
     onSensitiveReveal,
     disableSensitiveGate,
     renderSensitiveGate,
+    onLinkPreviewClick,
+    disableLinkPreviewRender,
+    renderLinkPreview,
     inlinePanelNode,
     className,
     headerClassName,
@@ -56,6 +60,8 @@ function FeedVariantInner(props: VariantInnerProps) {
 
   const showSensitiveGate =
     !disableSensitiveGate && post.isSensitive === true && !sensitiveRevealed;
+  const showLinkPreview =
+    !disableLinkPreviewRender && post.linkPreview !== undefined;
 
   const overlayLink =
     cardLinkable && linkHref ? (
@@ -134,6 +140,16 @@ function FeedVariantInner(props: VariantInnerProps) {
         {post.tags && post.tags.length > 0 ? (
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
+        {showLinkPreview && post.linkPreview
+          ? renderLinkPreview
+            ? renderLinkPreview(post)
+            : (
+              <LinkPreviewCard
+                preview={post.linkPreview}
+                onClick={onLinkPreviewClick}
+              />
+            )
+          : null}
       </div>
       {mediaNode ? (
         <div className={cn("relative", mediaClassName)}>

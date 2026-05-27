@@ -12,6 +12,7 @@ import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
 import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
+import { LinkPreviewCard } from "./link-preview-card";
 import type { DetailVariantInnerProps } from "./variant-shared";
 
 function DetailVariantInner(props: DetailVariantInnerProps) {
@@ -47,6 +48,9 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     onSensitiveReveal,
     disableSensitiveGate,
     renderSensitiveGate,
+    onLinkPreviewClick,
+    disableLinkPreviewRender,
+    renderLinkPreview,
     commentThread,
     commentPageSize,
     commentSubscribe,
@@ -160,6 +164,16 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
         {post.tags && post.tags.length > 0 ? (
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
+        {!disableLinkPreviewRender && post.linkPreview
+          ? renderLinkPreview
+            ? renderLinkPreview(post)
+            : (
+              <LinkPreviewCard
+                preview={post.linkPreview}
+                onClick={onLinkPreviewClick}
+              />
+            )
+          : null}
       </div>
       {mediaNode ? (
         <div className={cn("relative", mediaClassName)}>
