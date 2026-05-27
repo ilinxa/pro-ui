@@ -89,6 +89,11 @@ function PostCard01Inner(props: PostCard01Props) {
     disableLinkPreviewRender,
     renderLinkPreview,
 
+    // v0.2.0 repost mini-card (C8 — feed + detail only per description §1.3).
+    onRepostOfClick,
+    disableRepostOfRender,
+    renderRepostOf,
+
     engagementSubscribe,
     commentSubscribe,
     onSubscribeEngagementDelta,
@@ -587,6 +592,12 @@ function PostCard01Inner(props: PostCard01Props) {
     onLinkPreviewClick,
     disableLinkPreviewRender,
     renderLinkPreview,
+    onRepostOfClick,
+    disableRepostOfRender,
+    renderRepostOf,
+    getHref,
+    linkComponent,
+    cardLabels: labelsProp,
     className,
     headerClassName,
     mediaClassName,

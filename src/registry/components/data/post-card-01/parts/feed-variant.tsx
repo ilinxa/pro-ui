@@ -12,6 +12,7 @@ import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
 import { LinkPreviewCard } from "./link-preview-card";
+import { RepostOfCard } from "./repost-of-card";
 import type { VariantInnerProps } from "./variant-shared";
 
 function FeedVariantInner(props: VariantInnerProps) {
@@ -52,6 +53,12 @@ function FeedVariantInner(props: VariantInnerProps) {
     onLinkPreviewClick,
     disableLinkPreviewRender,
     renderLinkPreview,
+    onRepostOfClick,
+    disableRepostOfRender,
+    renderRepostOf,
+    getHref,
+    linkComponent,
+    cardLabels,
     inlinePanelNode,
     className,
     headerClassName,
@@ -62,6 +69,12 @@ function FeedVariantInner(props: VariantInnerProps) {
     !disableSensitiveGate && post.isSensitive === true && !sensitiveRevealed;
   const showLinkPreview =
     !disableLinkPreviewRender && post.linkPreview !== undefined;
+  const showRepostOf =
+    !disableRepostOfRender && post.repostOf !== undefined;
+
+  const handleRepostClick = onRepostOfClick
+    ? () => post.repostOf && onRepostOfClick(post.repostOf)
+    : undefined;
 
   const overlayLink =
     cardLinkable && linkHref ? (
@@ -147,6 +160,19 @@ function FeedVariantInner(props: VariantInnerProps) {
               <LinkPreviewCard
                 preview={post.linkPreview}
                 onClick={onLinkPreviewClick}
+              />
+            )
+          : null}
+        {showRepostOf && post.repostOf
+          ? renderRepostOf
+            ? renderRepostOf(post, { onClick: handleRepostClick })
+            : (
+              <RepostOfCard
+                originalPost={post.repostOf}
+                onClick={onRepostOfClick}
+                getHref={getHref}
+                linkComponent={linkComponent}
+                labels={cardLabels}
               />
             )
           : null}

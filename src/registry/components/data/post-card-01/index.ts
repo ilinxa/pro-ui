@@ -8,6 +8,10 @@ export { MentionText } from "./parts/mention-text";
 export type { MentionTextProps } from "./parts/mention-text";
 export { TagChips } from "./parts/tag-chips";
 export type { TagChipsProps } from "./parts/tag-chips";
+// v0.2.0 sub-export — host-side opt-in for rendering a nested repost mini-card
+// outside the auto-rendered feed/detail slot (e.g. inside a custom layout).
+export { RepostOfCard } from "./parts/repost-of-card";
+export type { RepostOfCardProps } from "./parts/repost-of-card";
 // LikersStrip + ShareMenu moved to engagement-bar-01 in v0.2.0; re-exported here
 // as a soft-compat affordance so v0.1 consumers that imported them from this
 // barrel continue to work. New consumers should import directly from

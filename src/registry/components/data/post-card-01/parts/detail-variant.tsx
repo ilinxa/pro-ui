@@ -13,6 +13,7 @@ import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
 import { LinkPreviewCard } from "./link-preview-card";
+import { RepostOfCard } from "./repost-of-card";
 import type { DetailVariantInnerProps } from "./variant-shared";
 
 function DetailVariantInner(props: DetailVariantInnerProps) {
@@ -51,6 +52,12 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     onLinkPreviewClick,
     disableLinkPreviewRender,
     renderLinkPreview,
+    onRepostOfClick,
+    disableRepostOfRender,
+    renderRepostOf,
+    getHref,
+    linkComponent,
+    cardLabels,
     commentThread,
     commentPageSize,
     commentSubscribe,
@@ -171,6 +178,23 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
               <LinkPreviewCard
                 preview={post.linkPreview}
                 onClick={onLinkPreviewClick}
+              />
+            )
+          : null}
+        {!disableRepostOfRender && post.repostOf
+          ? renderRepostOf
+            ? renderRepostOf(post, {
+                onClick: onRepostOfClick
+                  ? () => post.repostOf && onRepostOfClick(post.repostOf)
+                  : undefined,
+              })
+            : (
+              <RepostOfCard
+                originalPost={post.repostOf}
+                onClick={onRepostOfClick}
+                getHref={getHref}
+                linkComponent={linkComponent}
+                labels={cardLabels}
               />
             )
           : null}
