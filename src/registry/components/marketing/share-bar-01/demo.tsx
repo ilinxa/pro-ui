@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Send } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ShareBar01 } from "./share-bar-01";
 import {
   SHARE_BAR_01_DUMMY_COMPACT,
@@ -34,13 +35,13 @@ export default function ShareBar01Demo() {
 
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="full">Full + analytics</TabsTrigger>
         <TabsTrigger value="custom">Custom target</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="i18n">Localized (TR)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
         <ShareBar01

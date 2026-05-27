@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { AtSign, Briefcase, Globe } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PeopleGrid01 } from "./people-grid-01";
 import { dummyBoard, dummySpeakers, dummyTeam } from "./dummy-data";
 
@@ -17,13 +18,13 @@ const speakerSocial: Record<
 export default function PeopleGrid01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="initials">Initials fallback</TabsTrigger>
         <TabsTrigger value="columns">Columns 2-5</TabsTrigger>
         <TabsTrigger value="linked">Linked + actions</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — kasder Konuşmacılar verbatim */}
       <TabsContent value="default" className="mt-6">

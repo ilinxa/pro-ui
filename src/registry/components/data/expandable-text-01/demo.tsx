@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ExpandableText01 } from "./expandable-text-01";
 import { LONG_EN, LONG_TR, SHORT_EN, SHORT_TR } from "./dummy-data";
 
@@ -45,12 +46,12 @@ function CustomToggleDemo() {
 export default function ExpandableText01Demo() {
   return (
     <Tabs defaultValue="default">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="custom-lines">Custom maxLines</TabsTrigger>
         <TabsTrigger value="localized">Localized (TR)</TabsTrigger>
         <TabsTrigger value="custom-toggle">Custom toggle</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-6">
         <div className="space-y-2">

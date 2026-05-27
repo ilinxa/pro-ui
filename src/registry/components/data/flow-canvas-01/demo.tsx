@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import { Bot, FileText, GripVertical, Sparkles, Wrench } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ProjectCard01 } from "../project-card-01";
 import type { ProjectCardItem } from "../project-card-01/types";
 import { FlowCanvas } from "./flow-canvas-01";
@@ -177,12 +178,12 @@ export default function FlowCanvasDemo() {
 
   return (
     <Tabs defaultValue="workflow" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="workflow">Workflow</TabsTrigger>
         <TabsTrigger value="readonly">Read-only viewer</TabsTrigger>
         <TabsTrigger value="custom-json">Custom JSON only</TabsTrigger>
         <TabsTrigger value="stress">Stress (200 nodes)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="workflow" className="mt-4">
         <p className="mb-2 text-xs text-muted-foreground">

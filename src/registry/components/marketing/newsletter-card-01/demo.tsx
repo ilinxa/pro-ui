@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { NewsletterCard01 } from "./newsletter-card-01";
 import {
   NEWSLETTER_CARD_LABELS_TR,
@@ -11,13 +12,13 @@ import {
 export default function NewsletterCard01Demo() {
   return (
     <Tabs defaultValue="inline-form" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="inline-form">Inline form</TabsTrigger>
         <TabsTrigger value="cta-only">CTA only</TabsTrigger>
         <TabsTrigger value="i18n">Custom labels</TabsTrigger>
         <TabsTrigger value="error">Error state</TabsTrigger>
         <TabsTrigger value="tones">Tones</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="inline-form" className="mt-6 max-w-md">
         <NewsletterCard01 onSubmit={fakeSubmitSuccess} />

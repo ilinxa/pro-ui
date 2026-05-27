@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ProgressTimeline01 } from "./progress-timeline-01";
 import {
   dummyNow,
@@ -22,13 +23,13 @@ const trLabels = {
 export default function ProgressTimeline01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="states">3 states</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="custom">Custom render</TabsTrigger>
         <TabsTrigger value="value">Value escape hatch</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — Turkish, mirrors the kasder source verbatim */}
       <TabsContent value="default" className="mt-6">

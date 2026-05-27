@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { ChevronDown, Pin, UserCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EntityPicker } from "./entity-picker";
 import {
   GRAPH_NODES,
@@ -315,7 +316,7 @@ function HandleDemo() {
 export default function EntityPickerDemo() {
   return (
     <Tabs defaultValue="single">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="single">Single</TabsTrigger>
         <TabsTrigger value="multi">Multi</TabsTrigger>
         <TabsTrigger value="no-kinds">No kinds</TabsTrigger>
@@ -324,7 +325,7 @@ export default function EntityPickerDemo() {
         <TabsTrigger value="custom-empty">Custom empty</TabsTrigger>
         <TabsTrigger value="custom-trigger">Custom trigger</TabsTrigger>
         <TabsTrigger value="handle">Imperative handle</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="single" className="mt-4">
         <SingleDemo />
       </TabsContent>

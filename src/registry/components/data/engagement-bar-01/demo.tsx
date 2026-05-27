@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
 import { Wand2 } from "lucide-react";
@@ -7,7 +7,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EngagementBar01 } from "./engagement-bar-01";
 import { EngagementHeartBurst } from "./parts/engagement-heart-burst";
 import {
@@ -117,14 +118,14 @@ const CUSTOM_REMIX_ACTIONS: EngagementAction[] = [
 export default function EngagementBar01Demo() {
   return (
     <Tabs defaultValue="default">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (post)</TabsTrigger>
         <TabsTrigger value="compact">Compact (news-card)</TabsTrigger>
         <TabsTrigger value="stacked">Stacked (video overlay)</TabsTrigger>
         <TabsTrigger value="realtime">Realtime subscribe</TabsTrigger>
         <TabsTrigger value="burst">Heart-burst</TabsTrigger>
         <TabsTrigger value="custom">Custom action</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-3">
         <EngagementBar01

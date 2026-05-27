@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { cn } from "@/lib/utils";
 import {
   PDF_VIEWER_DUMMY_URL,
@@ -372,7 +373,7 @@ export default function PdfViewerDemo() {
 
   return (
     <Tabs value={tab} onValueChange={setTab} defaultValue="url">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="url">URL</TabsTrigger>
         <TabsTrigger value="file">File</TabsTrigger>
         <TabsTrigger value="blob">Blob</TabsTrigger>
@@ -382,7 +383,7 @@ export default function PdfViewerDemo() {
         <TabsTrigger value="permissions">Permissions</TabsTrigger>
         <TabsTrigger value="ref">Imperative ref</TabsTrigger>
         <TabsTrigger value="selection">Selection</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="url" className="mt-6">
         <UrlTab />

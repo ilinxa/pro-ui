@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { JsonForm } from "./json-form";
 import {
   JsonFormProvider,
@@ -498,7 +499,7 @@ function DevtoolsPerfTab() {
 export default function JsonFormDemo() {
   return (
     <Tabs defaultValue="registration" className="w-full">
-      <TabsList className="flex w-full flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="registration">Registration</TabsTrigger>
         <TabsTrigger value="backend">Backend-driven</TabsTrigger>
         <TabsTrigger value="conditional">Conditional</TabsTrigger>
@@ -507,7 +508,7 @@ export default function JsonFormDemo() {
         <TabsTrigger value="imperative">Imperative</TabsTrigger>
         <TabsTrigger value="custom">Custom registry</TabsTrigger>
         <TabsTrigger value="devtools">Devtools + perf</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="registration" className="pt-3">
         <RegistrationTab />

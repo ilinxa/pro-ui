@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Wand2 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PostCard01 } from "./post-card-01";
 import { defaultPostEngagementActions } from "./lib/defaults";
 import {
@@ -393,8 +394,7 @@ function CustomActionsTab() {
 export default function PostCard01Demo() {
   return (
     <Tabs defaultValue="feed" className="w-full">
-      {/* Responsive tab strip — flex-scroll on <sm, auto-fit grid on sm+ per description §2.1-B */}
-      <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-[repeat(auto-fit,minmax(96px,1fr))]">
+      <SwipeTabsList>
         <TabsTrigger value="feed">Feed</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="list">List</TabsTrigger>
@@ -407,7 +407,7 @@ export default function PostCard01Demo() {
         <TabsTrigger value="repost">Repost</TabsTrigger>
         <TabsTrigger value="poll">Poll</TabsTrigger>
         <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="feed" className="mt-4">
         <FeedTab />
       </TabsContent>

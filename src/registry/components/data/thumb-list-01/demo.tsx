@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import type { ComponentProps, ElementType } from "react";
 import { Bookmark } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ThumbList01 } from "./thumb-list-01";
 import {
   THUMB_LIST_01_DUMMY,
@@ -46,14 +47,14 @@ function formatRelativeDays(dateStr: string): string {
 export default function ThumbList01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="no-frame">No frame</TabsTrigger>
         <TabsTrigger value="custom-meta">Custom meta</TabsTrigger>
         <TabsTrigger value="no-icon">No icon + router link</TabsTrigger>
         <TabsTrigger value="empty">Empty state</TabsTrigger>
         <TabsTrigger value="i18n">Custom icon + Turkish</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
         <ThumbList01 items={THUMB_LIST_01_DUMMY} />

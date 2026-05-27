@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useState } from "react";
 import { GitBranch, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { RegistrationForm01 } from "./registration-form-01";
 import {
   controlledRegistrationProps,
@@ -223,14 +224,14 @@ function ControlledTab() {
 export default function RegistrationForm01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="oauth">OAuth</TabsTrigger>
         <TabsTrigger value="two-step">Two-step</TabsTrigger>
         <TabsTrigger value="magic-link">Magic-link</TabsTrigger>
         <TabsTrigger value="dense">Dense</TabsTrigger>
         <TabsTrigger value="controlled">Controlled status</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="pt-3">
         <DefaultTab />

@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { CommentThread01 } from "./comment-thread-01";
 import {
   DUMMY_FLAT_COMMENTS,
@@ -142,7 +143,7 @@ export default function CommentThread01Demo() {
   const [tab, setTab] = useState("flat");
   return (
     <Tabs value={tab} onValueChange={setTab} className="w-full">
-      <TabsList className="grid grid-cols-7">
+      <SwipeTabsList>
         <TabsTrigger value="flat">Flat</TabsTrigger>
         <TabsTrigger value="depth2">Nested d2</TabsTrigger>
         <TabsTrigger value="depth3">Nested d3</TabsTrigger>
@@ -150,7 +151,7 @@ export default function CommentThread01Demo() {
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="disabled">No user</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="flat" className="mt-4">
         <FlatTab />

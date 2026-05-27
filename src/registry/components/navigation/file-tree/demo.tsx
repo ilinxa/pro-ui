@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useState } from "react";
 import { Code2, FileSpreadsheet, ImageIcon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FileTree } from "./file-tree";
 import {
   dummyFsNodes,
@@ -265,14 +266,14 @@ function VirtualizedDemo() {
 export default function FileTreeDemo() {
   return (
     <Tabs defaultValue="readonly" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="readonly">Read-only</TabsTrigger>
         <TabsTrigger value="crud">Full CRUD</TabsTrigger>
         <TabsTrigger value="lazy">Lazy load</TabsTrigger>
         <TabsTrigger value="multi">Multi-select</TabsTrigger>
         <TabsTrigger value="icons">Custom icons</TabsTrigger>
         <TabsTrigger value="virtual">Virtualized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="readonly">
         <ReadOnlyDemo />
       </TabsContent>

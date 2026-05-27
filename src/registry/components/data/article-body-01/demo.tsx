@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ArticleBodyEditor } from "./article-body-01";
 import { ArticleBodyViewer } from "./article-body-viewer";
 import {
@@ -64,7 +65,7 @@ export default function ArticleBody01Demo() {
 
   return (
     <Tabs defaultValue="editor" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="editor">Editor</TabsTrigger>
         <TabsTrigger value="viewer">Viewer</TabsTrigger>
         <TabsTrigger value="roundtrip">Edit ↔ View</TabsTrigger>
@@ -73,7 +74,7 @@ export default function ArticleBody01Demo() {
         <TabsTrigger value="export">HTML export</TabsTrigger>
         <TabsTrigger value="empty">Empty</TabsTrigger>
         <TabsTrigger value="json">JSON</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="editor" className="mt-6">
         <ArticleBodyEditor

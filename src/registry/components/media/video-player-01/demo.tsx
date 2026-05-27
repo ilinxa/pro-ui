@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { cn } from "@/lib/utils";
 import { VideoPlayer01 } from "./video-player-01";
 import {
@@ -109,13 +110,13 @@ function CarouselDemo() {
 export default function VideoPlayer01Demo() {
   return (
     <Tabs defaultValue="default">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="custom-controls">Custom controls</TabsTrigger>
         <TabsTrigger value="captions">Captions</TabsTrigger>
         <TabsTrigger value="decorative">Decorative</TabsTrigger>
         <TabsTrigger value="carousel">isActive (carousel)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6">
         <div className="aspect-video overflow-hidden rounded-md">

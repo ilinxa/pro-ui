@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FileManager } from "./file-manager";
 import {
   dummyFsNodes,
@@ -303,13 +304,13 @@ function VirtualizedDemo() {
 export default function FileManagerDemo() {
   return (
     <Tabs defaultValue="standalone" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="standalone">Standalone</TabsTrigger>
         <TabsTrigger value="flat">Flat grid</TabsTrigger>
         <TabsTrigger value="crud">Full CRUD + clipboard</TabsTrigger>
         <TabsTrigger value="lazy">Lazy load</TabsTrigger>
         <TabsTrigger value="virtual">Virtualized list</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="standalone">
         <StandaloneGridDemo />
       </TabsContent>
