@@ -32,6 +32,8 @@ function ListVariantInner(props: VariantInnerProps) {
     renderContent,
     renderMedia,
     renderEngagementBar,
+    onLocationClick,
+    onMentionClick,
     className,
     headerClassName,
     mediaClassName,
@@ -62,7 +64,9 @@ function ListVariantInner(props: VariantInnerProps) {
       headingAs={headingAs}
       formattedTime={formattedTime}
       authorId={authorId}
-      labels={{ verifiedBadgeLabel: labels.verifiedBadgeLabel }}
+      labels={labels}
+      onLocationClick={onLocationClick}
+      onMentionClick={onMentionClick}
       compact
       className={headerClassName}
     />

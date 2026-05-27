@@ -66,6 +66,11 @@ export interface VariantInnerProps {
   renderMedia?: PostCard01Props["renderMedia"];
   renderEngagementBar?: PostCard01Props["renderEngagementBar"];
 
+  // v0.2.0 header-level callbacks threaded to PostHeader (location chip,
+  // replyTo "Replying to @x" mention click).
+  onLocationClick?: PostCard01Props["onLocationClick"];
+  onMentionClick?: PostCard01Props["onMentionClick"];
+
   /** Inline likes/comments panel rendered below the engagement bar (feed + compact only). */
   inlinePanelNode?: import("react").ReactNode;
 

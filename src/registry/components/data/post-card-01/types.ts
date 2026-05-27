@@ -343,6 +343,8 @@ export interface PostCard01Labels {
   editedSuffix?: string;
   /** Pinned badge text. Default "Pinned". */
   pinnedBadgeLabel?: string;
+  /** "Replying to" sub-header line label prefix. Default "Replying to". Renders as `{label} @{username}`. */
+  replyingTo?: string;
 
   // ─── v0.2.0 sensitive-gate labels ───
 
@@ -403,6 +405,7 @@ export const DEFAULT_POST_CARD_LABELS: Required<
   visibilityCustom: "Custom",
   editedSuffix: "(edited)",
   pinnedBadgeLabel: "Pinned",
+  replyingTo: "Replying to",
   sensitiveHeading: "Sensitive content",
   sensitiveRevealLabel: "Show",
   pollHeading: "Poll",

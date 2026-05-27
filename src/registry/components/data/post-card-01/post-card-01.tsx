@@ -74,6 +74,10 @@ function PostCard01Inner(props: PostCard01Props) {
     onRevealSensitive,
     onVotePoll,
 
+    // v0.2.0 header-level callbacks (threaded to PostHeader via variants).
+    onLocationClick,
+    onMentionClick,
+
     engagementSubscribe,
     commentSubscribe,
     onSubscribeEngagementDelta,
@@ -553,6 +557,8 @@ function PostCard01Inner(props: PostCard01Props) {
     renderContent,
     renderMedia,
     renderEngagementBar,
+    onLocationClick,
+    onMentionClick,
     className,
     headerClassName,
     mediaClassName,
