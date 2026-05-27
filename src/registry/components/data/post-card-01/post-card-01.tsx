@@ -62,6 +62,18 @@ function PostCard01Inner(props: PostCard01Props) {
     onCopyLink,
     onReport,
 
+    // v0.2.0 mutation handlers — destructured here for use by the imperative handle (C3).
+    // Others (onChangeVisibility / onMarkSensitive / onSeeAnalytics / onBlockAuthor /
+    // onMuteAuthor) flow through PostMutationHandlers props inheritance and reach the
+    // kebab via the C11 wiring; the imperative handle exposes only the 5 most-direct
+    // triggers (per dynamicity-primacy memory: programmatic escape hatches for the
+    // common actions).
+    onEdit,
+    onDelete,
+    onPin,
+    onRevealSensitive,
+    onVotePoll,
+
     engagementSubscribe,
     commentSubscribe,
     onSubscribeEngagementDelta,
@@ -106,6 +118,17 @@ function PostCard01Inner(props: PostCard01Props) {
 
   // ─── Always-uncontrolled `post` — stateful from mount; updated via reset() handle ───
   const [statefulPost, setStatefulPost] = useState<Post>(initialPost);
+
+  // ─── v0.2.0 local-mirror additions (per plan C3 / Q-P32 / Q-P33) ───
+  // Optimistic poll vote — host can reject by calling `ref.current.reset(originalPost)`
+  // which clears this alongside the rest of the mirror.
+  const [pollVote, setPollVote] = useState<{
+    optionId: string;
+    votedAt: Date;
+  } | null>(null);
+  // Sensitive-media gate state — flips to `true` when viewer taps "Show".
+  // Resets on `ref.current.reset(...)`.
+  const [sensitiveRevealed, setSensitiveRevealed] = useState(false);
 
   // ─── Inline panel state (only meaningful when engagementMode === "inline") ───
   // detail variant ignores inline mode (it always shows the thread).
@@ -345,7 +368,24 @@ function PostCard01Inner(props: PostCard01Props) {
     setBurstKey((k) => k + 1);
   }, [heartBurstWired]);
 
-  // ─── Imperative handle (R-Plan-3) ───
+  // ─── Imperative handle (R-Plan-3 + v0.2.0 C3 additions) ───
+  // Handler refs — useImperativeHandle deps + closure capture pattern. v0.2.0
+  // mutation handlers (onEdit / onDelete / onPin / onRevealSensitive / onVotePoll)
+  // are accessed via refs so the handle identity doesn't churn on every handler
+  // identity change (host typically re-creates them per render).
+  const onEditRef = useRef(onEdit);
+  const onDeleteRef = useRef(onDelete);
+  const onPinRef = useRef(onPin);
+  const onRevealSensitiveRef = useRef(onRevealSensitive);
+  const onVotePollRef = useRef(onVotePoll);
+  useEffect(() => {
+    onEditRef.current = onEdit;
+    onDeleteRef.current = onDelete;
+    onPinRef.current = onPin;
+    onRevealSensitiveRef.current = onRevealSensitive;
+    onVotePollRef.current = onVotePoll;
+  });
+
   useImperativeHandle(
     ref,
     () => ({
@@ -355,9 +395,37 @@ function PostCard01Inner(props: PostCard01Props) {
         if (heartBurstWired) setBurstKey((k) => k + 1);
       },
       getCurrentPost: () => statefulPostRef.current,
-      reset: (next: Post) => setStatefulPost(next),
+      reset: (next: Post) => {
+        setStatefulPost(next);
+        // Clear v0.2.0 local-mirror state — caller's "reset to known state" intent
+        // covers the optimistic poll vote + the sensitive-gate reveal.
+        setPollVote(null);
+        setSensitiveRevealed(false);
+      },
       getEngagementHandle: () => barRef.current,
       getThreadHandle: () => threadRef.current,
+
+      // v0.2.0 triggers — fire the handler without consulting the permissions
+      // matrix. Matrix gates the UI; handle is the escape hatch. If the handler
+      // isn't wired, the method is a no-op.
+      triggerEdit: () => {
+        onEditRef.current?.(statefulPostRef.current.id);
+      },
+      triggerDelete: () => {
+        onDeleteRef.current?.(statefulPostRef.current.id);
+      },
+      triggerPin: () => {
+        const p = statefulPostRef.current;
+        onPinRef.current?.(p.id, !(p.isPinned ?? false));
+      },
+      revealSensitive: () => {
+        setSensitiveRevealed(true);
+        onRevealSensitiveRef.current?.(statefulPostRef.current.id);
+      },
+      votePoll: (optionId: string) => {
+        setPollVote({ optionId, votedAt: new Date() });
+        onVotePollRef.current?.(statefulPostRef.current.id, optionId);
+      },
     }),
     // heartBurstWired re-derives per render; capture via ref if needed.
     // For v0.1 simplicity, identity churns when heartBurstWired changes — acceptable.
