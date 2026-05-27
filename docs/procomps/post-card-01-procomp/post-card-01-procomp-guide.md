@@ -354,3 +354,220 @@ When this component composes another registry component (cross-folder import), i
 The constraint comes from how `pnpm dlx shadcn add` rewrites import paths in installed copies; sub-folder paths often don't survive cleanly. Anything you want shareable across folder boundaries MUST be re-exported from `<slug>.tsx`.
 
 See [`docs/component-guide.md` §11.6](../../component-guide.md) — *Cross-folder import constraint*.
+
+---
+
+# v0.2.0 — additive expansion (2026-05-27)
+
+v0.2.0 is fully backwards-compatible — every v0.1 demo + every v0.1 consumer call pattern compiles + renders identically. The expansion is six buckets per the description: permissions resolver / responsive sweep / schema expansion / engagement extraction (engagement-bar-01 v0.2.x sibling ship) / display badges + content gates / sibling post-editor-01 procomp (separate slug). Below are the consumer-facing sections.
+
+## Permissions toggle — `viewerMode` + `permissions` + `canPerformAction`
+
+Three new optional props compose into a single dual-mode kebab resolver:
+
+```tsx
+<PostCard01
+  variant="detail"
+  post={ownPost}
+  viewerMode="owner"            // (a) high-level role flag
+  permissions={{ canDelete: false }}    // (b) per-action override
+  canPerformAction={(action) =>          // (c) universal predicate (per-action per-render)
+    moderator ? true : undefined
+  }
+  onEdit={(id) => api.openEditor(id)}
+  onDelete={(id) => api.deletePost(id)}
+  onChangeVisibility={(id, current) =>     // host opens its own picker
+    setVisibilityPickerFor({ postId: id, currentVisibility: current })
+  }
+  /* + onPin / onMarkSensitive / onSeeAnalytics / onBlockAuthor / onMuteAuthor */
+/>
+```
+
+**Resolution order** (most → least specific, per plan §3):
+1. `canPerformAction(action, post)` returning `true | false` wins everything for that action.
+2. `permissions[canX]` per-field overrides the mode default.
+3. `viewerMode`-derived defaults from `PERMISSION_DEFAULTS_BY_MODE`.
+4. Library-baseline default (legacy v0.1 mode — resolver NOT called).
+
+**Legacy mode** is automatic: when `viewerMode` + `permissions` + `canPerformAction` are ALL `undefined`, the helper takes the v0.1 handler-driven path. Items are built from "which handler is wired" — exact v0.1 behavior. Zero drift.
+
+**`canPerformAction` performance contract**: called per-action per-render (cheap). Host should memoize the callback identity via `useCallback`. The matrix itself (mode + permissions merge) is `useMemo`-cached per `(viewerMode, permissions)` identity inside the card.
+
+### Owner kebab order (when all owner-side handlers wired)
+Edit · Pin/Unpin · Change visibility · Mark/Unmark sensitive · See analytics · Bookmark · Share · Copy link · Translate · ⟨separator⟩ · Delete (destructive)
+
+### Viewer kebab order (when all viewer-side handlers wired)
+Bookmark · Share · Copy link · Translate · Mute author · ⟨separator⟩ · Block author (destructive) · Report (destructive)
+
+## Visibility — host opens its own picker
+
+`onChangeVisibility(postId, currentVisibility)` is a **single trigger** — the library ships **no** visibility picker UI (Q-P42 lock). The host opens its own banner / sheet / dialog wherever its UX wants:
+
+```tsx
+<PostCard01
+  post={p}
+  viewerMode="owner"
+  onChangeVisibility={(id, current) => setVisibilityPicker({ id, current })}
+/>
+{visibilityPicker && (
+  <YourCustomVisibilityDialog
+    postId={visibilityPicker.id}
+    currentVisibility={visibilityPicker.current}
+    onSubmit={(next) => api.changeVisibility(visibilityPicker.id, next)}
+    onClose={() => setVisibilityPicker(null)}
+  />
+)}
+```
+
+`PostVisibility` is a **Facebook-style extensible string union** — 6 base values (`"public" | "followers" | "friends" | "circle" | "only-me" | "private"`) + `(string & {})` for granular per-app values like `"specific-friends"` or `"everyone-except-bob"`. Library renders default labels + icons for the 6 base values; custom values fall back to `labels.visibilityCustom` (default `"Custom"`).
+
+## Schema expansion — 12 new optional `Post` fields
+
+```ts
+interface Post {
+  // ... v0.1 fields
+  isPinned?: boolean;          // "Pinned" badge above the header
+  isSensitive?: boolean;       // sensitive-media gate over the media block
+  sensitiveReason?: string;    // explanatory copy in the gate
+  visibility?: PostVisibility; // icon + label badge next to timestamp
+  editedAt?: Date | string | number;  // "(edited)" suffix
+  mentions?: PostMention[];    // ranges into post.content (UTF-16); opt-in highlight via renderContent + MentionText
+  tags?: string[];             // auto-rendered chip row below content
+  location?: PostLocation;     // place chip in header sub-row
+  language?: string;           // BCP-47; gates onTranslate kebab item
+  replyTo?: PostReplyTo;       // "Replying to @username" sub-line above header (feed + detail only)
+  repostOf?: Post;             // nested compact mini-card (feed + detail only)
+  linkPreview?: LinkPreview;   // OG card below content
+  poll?: PostPoll;             // inline poll widget
+}
+```
+
+Every field is optional — v0.1 consumers' narrower `Post` shapes still satisfy the type via structural subtyping.
+
+## Sensitive-media gate
+
+When `post.isSensitive === true`, the media block renders behind a backdrop-blur overlay with a "Show" button. Viewer tap fires `onRevealSensitive(postId)` (analytics hook) and flips the local mirror `sensitiveRevealed` to `true`. The gate is per-post, not per-`MediaItem`.
+
+- Wired in feed + detail variants only (per description §1.3). Compact + list ignore.
+- Host can opt out via `disableSensitiveGate` or take over the render via `renderSensitiveGate?(post, { onReveal })`.
+- Keyboard-operable; `motion-reduce:transition-none` for `prefers-reduced-motion`.
+
+## Inline poll widget
+
+Renders below content + above any link-preview. Two views:
+
+- **Vote view** — viewer hasn't voted yet + poll not closed. List of vote buttons (`h-11` per WCAG 2.5.5). Tap fires `onVotePoll(postId, optionId)` + optimistically flips the local mirror.
+- **Results view** — owner OR voted OR closed. Bar chart with `transition-[width]` (motion-reduce safe). Viewer's option highlighted via `ring-1 ring-primary`.
+
+```tsx
+<PostCard01
+  post={postWithPoll}
+  onVotePoll={(postId, optionId) => api.castVote(postId, optionId)}
+  viewerMode="viewer"
+/>
+```
+
+Optimistic vote semantics: the library increments the picked option's `voteCount` + the displayed total immediately. Host can **reject** by calling `ref.current.reset(originalPost)` — that clears the local mirror so the bars roll back to the server-resolved counts.
+
+**Multi-select polls** (`poll.multiSelect: true`) currently render the same single-vote UI in v0.2.0. Multi-select behavior is a v0.2.x / v0.3 follow-up.
+
+## OG link-preview card
+
+Host pre-fetches `post.linkPreview` (Q-D4 lock — library is fetch-free). Card renders below content + above any media:
+
+```ts
+interface LinkPreview {
+  url: string;
+  title?: string;
+  description?: string;
+  siteName?: string;
+  image?: string;
+}
+```
+
+A bare URL with no metadata renders as `null` (the library skips rather than showing an empty card). Override with `onLinkPreviewClick` to handle custom navigation (e.g., in-app browser), or `renderLinkPreview` for full takeover.
+
+`<LinkPreviewCard>` is internal-only (not sub-exported in v0.2.0 — flagged as a potential v0.2.x sub-export follow-up).
+
+## Repost mini-card
+
+When `post.repostOf` is set, a nested counts-only compact card renders below content. Per Q-P30, the nested card runs with:
+
+- `variant="compact"`
+- `engagementMode="navigate"` (no inline panels)
+- `viewerMode="viewer"` (no owner kebab)
+- `engagementActions={() => []}` (engagement bar suppressed)
+
+A foreground click overlay captures all input (button if `onRepostOfClick` is provided, `<LinkComponent href={getHref(repostOf)}>` if `getHref` is set, non-interactive otherwise). The nested card uses `pointer-events-none` to avoid HTML-invalid nesting (e.g., article-inside-button) and to keep clicks routed to the overlay.
+
+**Recursion-strip:** the nested post has its own `repostOf` field forced to `undefined` to prevent infinite nesting. Defense-in-depth — the compact variant doesn't render `RepostOfCard` either, so a chain bottoms out either way.
+
+`RepostOfCard` is sub-exported for standalone host-side use (e.g., admin "show all reposts of post X" surfaces).
+
+## Mentions + tags + location + replyTo + edited
+
+- **Mentions:** `post.mentions` carries `{ id, name, username?, range }`. Library default `renderContent` is `<ExpandableText01 content={post.content}>` and does NOT auto-highlight mentions (ExpandableText01's `content: string` API can't accept JSX). Opt-in via the slot:
+  ```tsx
+  <PostCard01
+    post={p}
+    renderContent={(p) => (
+      <MentionText
+        content={p.content}
+        mentions={p.mentions ?? []}
+        onMentionClick={(id) => router.push(`/u/${id}`)}
+      />
+    )}
+  />
+  ```
+- **Tags:** `post.tags?: string[]` auto-renders a chip row below content via `<TagChips>` (feed + detail only). `onTagClick(tag)` fires when a chip is tapped.
+- **Location:** `post.location` renders a `<MapPin>` + name chip in the header sub-row beside the timestamp. `onLocationClick(location)` fires when tapped.
+- **replyTo:** `post.replyTo` renders a "Replying to @username" sub-line above the header (feed + detail only — hidden on compact + list). The username button fires `onMentionClick(authorId)`.
+- **editedAt:** `post.editedAt` renders an "(edited)" suffix after the timestamp, with `title={editedAt}` tooltip showing the exact time.
+
+## Responsive sweep — §2.1-B step rules
+
+Padding / avatar / body-text / list-thumb step at `sm:` / `md:` / `lg:` per the description's step table. Touch targets are ≥44×44 px (kebab is `h-11 w-11`; poll vote buttons are `h-11`; likers-strip `+N` pill is `h-11 sm:h-12`).
+
+When you author a custom slot (`renderHeader`, `renderContent`, etc.), match the step convention so the responsive narrative stays coherent across the card.
+
+## Imperative handle additions
+
+```ts
+interface PostCard01Handle {
+  // v0.1
+  openKebab(): void;
+  triggerLike(): void;
+  getCurrentPost(): Post;
+  reset(next: Post): void;
+  getEngagementHandle(): EngagementBar01Handle | null;
+  getThreadHandle(): CommentThread01Handle | null;
+  // v0.2.0
+  triggerEdit(): void;            // fires onEdit(id) — bypasses permission matrix
+  triggerDelete(): void;          // fires onDelete(id)
+  triggerPin(): void;             // fires onPin(id, !isPinned)
+  revealSensitive(): void;        // flips sensitiveRevealed=true + fires onRevealSensitive
+  votePoll(optionId: string): void;  // optimistic vote + fires onVotePoll
+}
+```
+
+Triggers bypass the permission matrix — the matrix gates the UI, the handle is the programmatic escape hatch. If the corresponding handler isn't wired, the method is a no-op.
+
+`reset(next)` clears the local mirror including v0.2.0 fields (`pollVote`, `sensitiveRevealed`).
+
+## Sub-exports
+
+```ts
+import {
+  PostCard01,
+  VerifiedBadge,          // v0.1
+  MentionText, TagChips,  // v0.2.0
+  RepostOfCard,           // v0.2.0
+  PollWidget,             // v0.2.0
+  defaultPostEngagementActions,
+  defaultPostKebabActions,
+  LikersStrip, ShareMenu, // v0.2.0 — re-exported from engagement-bar-01 for soft-compat
+} from "@ilinxa/post-card-01";
+```
+
+`LinkPreviewCard` and `SensitiveGate` are NOT sub-exported in v0.2.0 — flagged as potential v0.2.x consistency follow-ups (the asymmetry is documented in the GATE 3 review).
+

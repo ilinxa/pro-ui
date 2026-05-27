@@ -9,9 +9,18 @@ import {
   DUMMY_DETAIL_THREAD,
   DUMMY_FEATURED_POST,
   DUMMY_LIKERS,
+  DUMMY_LINK_PREVIEW_POST,
   DUMMY_LONG_TEXT_POST,
   DUMMY_MIXED_MEDIA_POST,
   DUMMY_MULTI_IMAGE_POST,
+  DUMMY_PINNED_POST,
+  DUMMY_POLL_CLOSED_POST,
+  DUMMY_POLL_POST,
+  DUMMY_POLL_VOTED_POST,
+  DUMMY_REPLY_POST,
+  DUMMY_REPOST_POST,
+  DUMMY_RICH_POST,
+  DUMMY_SENSITIVE_POST,
   DUMMY_SINGLE_IMAGE_POST,
   DUMMY_TEXT_ONLY_POST,
   DUMMY_VIDEO_POST,
@@ -121,17 +130,29 @@ function ListTab() {
 }
 
 function DetailTab() {
+  // v0.2.0 — Detail tab demonstrates the full owner-side surface via
+  // viewerMode="owner" + all 8 mutation handlers wired. The kebab will
+  // render Edit / Pin / Change visibility / Mark sensitive / See analytics /
+  // Bookmark / Share / Copy link / [sep] / Delete.
   return (
     <div className="mx-auto max-w-2xl">
       <PostCard01
         variant="detail"
-        post={DUMMY_FEATURED_POST}
+        post={DUMMY_PINNED_POST}
         currentUser={DUMMY_VIEWER}
         commentThread={DUMMY_DETAIL_THREAD}
+        viewerMode="owner"
         onLike={(id, liked) => log("like", { id, liked })}
         onShare={(id) => log("share", id)}
         onBookmark={(id, bookmarked) => log("bookmark", { id, bookmarked })}
-        onReport={(id) => log("report", id)}
+        onEdit={(id) => log("edit", id)}
+        onDelete={(id) => log("delete", id)}
+        onPin={(id, next) => log("pin", { id, next })}
+        onChangeVisibility={(id, current) =>
+          log("change-visibility", { id, current })
+        }
+        onMarkSensitive={(id, next) => log("mark-sensitive", { id, next })}
+        onSeeAnalytics={(id) => log("see-analytics", id)}
         onAddComment={async (content, parentId) => {
           log("add-comment", { content, parentId });
         }}
@@ -140,6 +161,104 @@ function DetailTab() {
         }
         onDeleteComment={(id) => log("delete-comment", id)}
         onReportComment={(id) => log("report-comment", id)}
+        getHref={(p) => `/posts/${p.id}`}
+      />
+    </div>
+  );
+}
+
+// ─── v0.2.0 tabs ──────────────────────────────────────────────────────────
+
+function RepostTab() {
+  // Showcases the nested repost mini-card (Q-D3 / Q-P30). Outer post is a
+  // public viewer-mode repost; nested mini-card is the original FEATURED post
+  // with engagementActions={()=>[]} suppressing the inner bar.
+  return (
+    <div className="mx-auto max-w-xl">
+      <PostCard01
+        variant="feed"
+        post={DUMMY_REPOST_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+        onShare={(id) => log("share", id)}
+        onBookmark={(id, bookmarked) => log("bookmark", { id, bookmarked })}
+        onRepostOfClick={(orig) => log("repost-of-click", orig.id)}
+        getHref={(p) => `/posts/${p.id}`}
+      />
+    </div>
+  );
+}
+
+function PollTab() {
+  // Three cards stacked: active poll (vote view) → voted poll (results view
+  // with viewer choice highlighted) → closed poll (results + closed label).
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-4">
+      <PostCard01
+        variant="feed"
+        post={DUMMY_POLL_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onVotePoll={(id, optionId) => log("vote-poll", { id, optionId })}
+        onLike={(id, liked) => log("like", { id, liked })}
+      />
+      <PostCard01
+        variant="feed"
+        post={DUMMY_POLL_VOTED_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+      />
+      <PostCard01
+        variant="feed"
+        post={DUMMY_POLL_CLOSED_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+      />
+    </div>
+  );
+}
+
+function SensitiveTab() {
+  // Two cards: sensitive gate (viewer taps Show) + link-preview card + rich
+  // header (visibility / edited / location / mentions / tags).
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-4">
+      <PostCard01
+        variant="feed"
+        post={DUMMY_SENSITIVE_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+        onRevealSensitive={(id) => log("reveal-sensitive", id)}
+      />
+      <PostCard01
+        variant="feed"
+        post={DUMMY_LINK_PREVIEW_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+        onLinkPreviewClick={(url) => log("link-preview-click", url)}
+      />
+      <PostCard01
+        variant="feed"
+        post={DUMMY_RICH_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+        onLocationClick={(loc) => log("location-click", loc)}
+        onMentionClick={(mid) => log("mention-click", mid)}
+        onTagClick={(tag) => log("tag-click", tag)}
+      />
+      <PostCard01
+        variant="feed"
+        post={DUMMY_REPLY_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        onLike={(id, liked) => log("like", { id, liked })}
+        onMentionClick={(mid) => log("reply-mention-click", mid)}
       />
     </div>
   );
@@ -274,7 +393,8 @@ function CustomActionsTab() {
 export default function PostCard01Demo() {
   return (
     <Tabs defaultValue="feed" className="w-full">
-      <TabsList className="grid grid-cols-9">
+      {/* Responsive tab strip — flex-scroll on <sm, auto-fit grid on sm+ per description §2.1-B */}
+      <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-[repeat(auto-fit,minmax(96px,1fr))]">
         <TabsTrigger value="feed">Feed</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="list">List</TabsTrigger>
@@ -284,6 +404,9 @@ export default function PostCard01Demo() {
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="inline">Inline TR</TabsTrigger>
         <TabsTrigger value="custom">Custom</TabsTrigger>
+        <TabsTrigger value="repost">Repost</TabsTrigger>
+        <TabsTrigger value="poll">Poll</TabsTrigger>
+        <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
       </TabsList>
       <TabsContent value="feed" className="mt-4">
         <FeedTab />
@@ -311,6 +434,15 @@ export default function PostCard01Demo() {
       </TabsContent>
       <TabsContent value="custom" className="mt-4">
         <CustomActionsTab />
+      </TabsContent>
+      <TabsContent value="repost" className="mt-4">
+        <RepostTab />
+      </TabsContent>
+      <TabsContent value="poll" className="mt-4">
+        <PollTab />
+      </TabsContent>
+      <TabsContent value="sensitive" className="mt-4">
+        <SensitiveTab />
       </TabsContent>
     </Tabs>
   );
