@@ -91,6 +91,20 @@ export interface VariantInnerProps {
   /** Full takeover for the link-preview card. */
   renderLinkPreview?: PostCard01Props["renderLinkPreview"];
 
+  // v0.2.0 poll widget (C9) — feed + detail variants only per description §1.3.
+  /** Per-card vote dispatcher — wraps setPollVote(local-mirror) + onVotePoll(host). */
+  onPollVote?: (optionId: string) => void;
+  /** Local-mirror optimistic vote (from useState in post-card-01.tsx). */
+  pollOptimisticVote: { optionId: string; votedAt: Date } | null;
+  /** Resolved owner view flag — true when viewerMode === "owner". */
+  isOwnerView: boolean;
+  /** When true, suppresses the default poll-widget render even if post.poll is set. */
+  disablePollRender?: PostCard01Props["disablePollRender"];
+  /** Full takeover for the poll widget. */
+  renderPoll?: PostCard01Props["renderPoll"];
+  /** Relative-time formatter for the closesAt countdown line. */
+  formatRelativeTime?: (date: Date, now: Date) => string;
+
   // v0.2.0 repost mini-card (C8) — feed + detail variants only per description §1.3.
   /** Click handler — overrides default getHref-based navigation on the nested repost card. */
   onRepostOfClick?: PostCard01Props["onRepostOfClick"];

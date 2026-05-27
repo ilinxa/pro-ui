@@ -1170,6 +1170,7 @@
         { "path": "src/registry/components/data/post-card-01/parts/sensitive-gate.tsx", "type": "registry:component", "target": "components/post-card-01/parts/sensitive-gate.tsx" },
         { "path": "src/registry/components/data/post-card-01/parts/link-preview-card.tsx", "type": "registry:component", "target": "components/post-card-01/parts/link-preview-card.tsx" },
         { "path": "src/registry/components/data/post-card-01/parts/repost-of-card.tsx", "type": "registry:component", "target": "components/post-card-01/parts/repost-of-card.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/poll-widget.tsx", "type": "registry:component", "target": "components/post-card-01/parts/poll-widget.tsx" },
         { "path": "src/registry/components/data/post-card-01/parts/variant-shared.ts", "type": "registry:component", "target": "components/post-card-01/parts/variant-shared.ts" },
         { "path": "src/registry/components/data/post-card-01/lib/defaults.tsx", "type": "registry:component", "target": "components/post-card-01/lib/defaults.tsx" },
         { "path": "src/registry/components/data/post-card-01/lib/permissions.ts", "type": "registry:component", "target": "components/post-card-01/lib/permissions.ts" }

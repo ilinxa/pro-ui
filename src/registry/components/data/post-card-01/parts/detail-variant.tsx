@@ -14,6 +14,7 @@ import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
 import { LinkPreviewCard } from "./link-preview-card";
 import { RepostOfCard } from "./repost-of-card";
+import { PollWidget } from "./poll-widget";
 import type { DetailVariantInnerProps } from "./variant-shared";
 
 function DetailVariantInner(props: DetailVariantInnerProps) {
@@ -58,6 +59,12 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     getHref,
     linkComponent,
     cardLabels,
+    onPollVote,
+    pollOptimisticVote,
+    isOwnerView,
+    disablePollRender,
+    renderPoll,
+    formatRelativeTime,
     commentThread,
     commentPageSize,
     commentSubscribe,
@@ -171,6 +178,31 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
         {post.tags && post.tags.length > 0 ? (
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
+        {!disablePollRender && post.poll
+          ? renderPoll
+            ? renderPoll(post, { onVote: onPollVote, isOwnerView })
+            : (
+              <PollWidget
+                poll={post.poll}
+                hasVoted={
+                  pollOptimisticVote !== null || (post.poll.hasVoted ?? false)
+                }
+                isOwnerView={isOwnerView}
+                optimisticVoteOptionId={
+                  pollOptimisticVote?.optionId ?? post.poll.viewerVoteOptionId
+                }
+                optimisticIncrement={pollOptimisticVote !== null}
+                onVote={onPollVote}
+                labels={{
+                  pollHeading: labels.pollHeading,
+                  pollTotalVotesLabel: labels.pollTotalVotesLabel,
+                  pollClosesAtLabel: labels.pollClosesAtLabel,
+                  pollClosedLabel: labels.pollClosedLabel,
+                }}
+                formatRelativeTime={formatRelativeTime}
+              />
+            )
+          : null}
         {!disableLinkPreviewRender && post.linkPreview
           ? renderLinkPreview
             ? renderLinkPreview(post)

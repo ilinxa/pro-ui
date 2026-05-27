@@ -13,6 +13,7 @@ import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
 import { LinkPreviewCard } from "./link-preview-card";
 import { RepostOfCard } from "./repost-of-card";
+import { PollWidget } from "./poll-widget";
 import type { VariantInnerProps } from "./variant-shared";
 
 function FeedVariantInner(props: VariantInnerProps) {
@@ -59,6 +60,12 @@ function FeedVariantInner(props: VariantInnerProps) {
     getHref,
     linkComponent,
     cardLabels,
+    onPollVote,
+    pollOptimisticVote,
+    isOwnerView,
+    disablePollRender,
+    renderPoll,
+    formatRelativeTime,
     inlinePanelNode,
     className,
     headerClassName,
@@ -71,6 +78,12 @@ function FeedVariantInner(props: VariantInnerProps) {
     !disableLinkPreviewRender && post.linkPreview !== undefined;
   const showRepostOf =
     !disableRepostOfRender && post.repostOf !== undefined;
+  const showPoll = !disablePollRender && post.poll !== undefined;
+  const pollHasVoted =
+    pollOptimisticVote !== null || (post.poll?.hasVoted ?? false);
+  const pollOptimisticVoteOptionId =
+    pollOptimisticVote?.optionId ?? post.poll?.viewerVoteOptionId;
+  const pollOptimisticIncrement = pollOptimisticVote !== null;
 
   const handleRepostClick = onRepostOfClick
     ? () => post.repostOf && onRepostOfClick(post.repostOf)
@@ -153,6 +166,27 @@ function FeedVariantInner(props: VariantInnerProps) {
         {post.tags && post.tags.length > 0 ? (
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
+        {showPoll && post.poll
+          ? renderPoll
+            ? renderPoll(post, { onVote: onPollVote, isOwnerView })
+            : (
+              <PollWidget
+                poll={post.poll}
+                hasVoted={pollHasVoted}
+                isOwnerView={isOwnerView}
+                optimisticVoteOptionId={pollOptimisticVoteOptionId}
+                optimisticIncrement={pollOptimisticIncrement}
+                onVote={onPollVote}
+                labels={{
+                  pollHeading: labels.pollHeading,
+                  pollTotalVotesLabel: labels.pollTotalVotesLabel,
+                  pollClosesAtLabel: labels.pollClosesAtLabel,
+                  pollClosedLabel: labels.pollClosedLabel,
+                }}
+                formatRelativeTime={formatRelativeTime}
+              />
+            )
+          : null}
         {showLinkPreview && post.linkPreview
           ? renderLinkPreview
             ? renderLinkPreview(post)
