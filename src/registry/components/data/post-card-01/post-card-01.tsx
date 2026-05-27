@@ -94,6 +94,13 @@ function PostCard01Inner(props: PostCard01Props) {
     disableRepostOfRender,
     renderRepostOf,
 
+    // v0.2.0 poll widget (C9 — feed + detail only per description §1.3).
+    // `viewerMode` is also read by C11's kebab wiring (extended
+    // `defaultPostKebabActions`); destructured once here.
+    viewerMode,
+    disablePollRender,
+    renderPoll,
+
     engagementSubscribe,
     commentSubscribe,
     onSubscribeEngagementDelta,
@@ -397,6 +404,18 @@ function PostCard01Inner(props: PostCard01Props) {
     onRevealSensitive?.(statefulPostRef.current.id);
   }, [onRevealSensitive]);
 
+  // C9 — poll vote dispatcher: optimistic flip + host callback. Used by the
+  // PollWidget in feed + detail variants. The imperative handle's votePoll()
+  // does the same flip via the ref pattern in C3 (handler-ref capture).
+  const onPollVote = useCallback(
+    (optionId: string) => {
+      setPollVote({ optionId, votedAt: new Date() });
+      onVotePoll?.(statefulPostRef.current.id, optionId);
+    },
+    [onVotePoll],
+  );
+  const isOwnerView = viewerMode === "owner";
+
   // ─── Imperative handle (R-Plan-3 + v0.2.0 C3 additions) ───
   // Handler refs — useImperativeHandle deps + closure capture pattern. v0.2.0
   // mutation handlers (onEdit / onDelete / onPin / onRevealSensitive / onVotePoll)
@@ -598,6 +617,12 @@ function PostCard01Inner(props: PostCard01Props) {
     getHref,
     linkComponent,
     cardLabels: labelsProp,
+    onPollVote,
+    pollOptimisticVote: pollVote,
+    isOwnerView,
+    disablePollRender,
+    renderPoll,
+    formatRelativeTime: format,
     className,
     headerClassName,
     mediaClassName,

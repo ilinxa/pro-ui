@@ -12,6 +12,10 @@ export type { TagChipsProps } from "./parts/tag-chips";
 // outside the auto-rendered feed/detail slot (e.g. inside a custom layout).
 export { RepostOfCard } from "./parts/repost-of-card";
 export type { RepostOfCardProps } from "./parts/repost-of-card";
+// v0.2.0 sub-export — host-side opt-in for rendering an inline poll widget
+// outside the auto-rendered feed/detail slot (e.g. a standalone poll page).
+export { PollWidget } from "./parts/poll-widget";
+export type { PollWidgetProps } from "./parts/poll-widget";
 // LikersStrip + ShareMenu moved to engagement-bar-01 in v0.2.0; re-exported here
 // as a soft-compat affordance so v0.1 consumers that imported them from this
 // barrel continue to work. New consumers should import directly from
