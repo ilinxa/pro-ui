@@ -42,7 +42,10 @@ export function TagChips({
           onClick={onTagClick ? () => onTagClick(tag) : undefined}
           disabled={!onTagClick}
           className={cn(
-            "inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground",
+            // Q-P40 / WCAG 2.5.5 — chips must be ≥44×44 since they're a primary
+            // touch target. h-11 (44px) is the floor; visual chip-density is
+            // sacrificed for compliance per the v0.2.0 plan lock.
+            "inline-flex h-11 items-center rounded-full bg-muted px-3 text-xs font-medium text-muted-foreground",
             onTagClick &&
               "transition-colors hover:bg-muted/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             !onTagClick && "cursor-default",

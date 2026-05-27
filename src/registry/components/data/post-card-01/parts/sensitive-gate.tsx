@@ -68,9 +68,8 @@ export function SensitiveGate({
       <Button
         type="button"
         variant="outline"
-        size="sm"
         onClick={onReveal}
-        className="mt-2"
+        className="mt-2 h-11 px-6"
       >
         {revealLabel}
       </Button>
