@@ -1162,6 +1162,9 @@
         { "path": "src/registry/components/data/post-card-01/parts/detail-variant.tsx", "type": "registry:component", "target": "components/post-card-01/parts/detail-variant.tsx" },
         { "path": "src/registry/components/data/post-card-01/parts/post-header.tsx", "type": "registry:component", "target": "components/post-card-01/parts/post-header.tsx" },
         { "path": "src/registry/components/data/post-card-01/parts/verified-badge.tsx", "type": "registry:component", "target": "components/post-card-01/parts/verified-badge.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/pinned-badge.tsx", "type": "registry:component", "target": "components/post-card-01/parts/pinned-badge.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/visibility-badge.tsx", "type": "registry:component", "target": "components/post-card-01/parts/visibility-badge.tsx" },
+        { "path": "src/registry/components/data/post-card-01/parts/edited-suffix.tsx", "type": "registry:component", "target": "components/post-card-01/parts/edited-suffix.tsx" },
         { "path": "src/registry/components/data/post-card-01/parts/variant-shared.ts", "type": "registry:component", "target": "components/post-card-01/parts/variant-shared.ts" },
         { "path": "src/registry/components/data/post-card-01/lib/defaults.tsx", "type": "registry:component", "target": "components/post-card-01/lib/defaults.tsx" },
         { "path": "src/registry/components/data/post-card-01/lib/permissions.ts", "type": "registry:component", "target": "components/post-card-01/lib/permissions.ts" }

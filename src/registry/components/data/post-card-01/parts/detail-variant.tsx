@@ -38,6 +38,8 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     renderMedia,
     renderEngagementBar,
     renderCommentSection,
+    onLocationClick,
+    onMentionClick,
     commentThread,
     commentPageSize,
     commentSubscribe,
@@ -68,7 +70,9 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
       headingAs={headingAs}
       formattedTime={formattedTime}
       authorId={authorId}
-      labels={{ verifiedBadgeLabel: labels.verifiedBadgeLabel }}
+      labels={labels}
+      onLocationClick={onLocationClick}
+      onMentionClick={onMentionClick}
       className={headerClassName}
     />
   );

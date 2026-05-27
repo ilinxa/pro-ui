@@ -32,6 +32,8 @@ function CompactVariantInner(props: VariantInnerProps) {
     renderContent,
     renderMedia,
     renderEngagementBar,
+    onLocationClick,
+    onMentionClick,
     inlinePanelNode,
     className,
     headerClassName,
@@ -63,7 +65,9 @@ function CompactVariantInner(props: VariantInnerProps) {
       headingAs={headingAs}
       formattedTime={formattedTime}
       authorId={authorId}
-      labels={{ verifiedBadgeLabel: labels.verifiedBadgeLabel }}
+      labels={labels}
+      onLocationClick={onLocationClick}
+      onMentionClick={onMentionClick}
       compact
       className={headerClassName}
     />
