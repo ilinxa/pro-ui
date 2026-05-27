@@ -122,7 +122,7 @@ function FeedVariantInner(props: VariantInnerProps) {
     <ExpandableText01
       content={post.content}
       maxLines={bodyMaxLines}
-      contentClassName={cn("text-sm", bodyClassName)}
+      contentClassName={cn("text-[15px] sm:text-sm", bodyClassName)}
     />
   );
 
@@ -160,7 +160,7 @@ function FeedVariantInner(props: VariantInnerProps) {
       )}
     >
       {overlayLink}
-      <div className="relative z-10 flex flex-col gap-3 p-4">
+      <div className="relative z-10 flex flex-col gap-3 p-3 sm:p-4">
         {headerNode}
         {contentNode}
         {post.tags && post.tags.length > 0 ? (
@@ -233,11 +233,11 @@ function FeedVariantInner(props: VariantInnerProps) {
             : null}
         </div>
       ) : null}
-      <div className={cn("relative z-10 px-4 pb-3 pt-3", engagementClassName)}>
+      <div className={cn("relative z-10 px-3 pb-3 pt-3 sm:px-4", engagementClassName)}>
         {engagementNode}
       </div>
       {inlinePanelNode ? (
-        <div className="relative z-10 border-t border-border/60 px-4 py-3">
+        <div className="relative z-10 border-t border-border/60 px-3 py-3 sm:px-4">
           {inlinePanelNode}
         </div>
       ) : null}

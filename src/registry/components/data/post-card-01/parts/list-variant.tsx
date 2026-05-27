@@ -80,7 +80,7 @@ function ListVariantInner(props: VariantInnerProps) {
     <ExpandableText01
       content={post.content}
       maxLines={bodyMaxLines}
-      contentClassName={cn("text-sm", bodyClassName)}
+      contentClassName={cn("text-xs md:text-sm", bodyClassName)}
     />
   );
 
@@ -98,7 +98,7 @@ function ListVariantInner(props: VariantInnerProps) {
       aria-labelledby={authorId}
       className={cn(
         "relative flex items-stretch gap-3 overflow-hidden rounded-lg border border-border bg-card",
-        firstMedia ? "p-0" : "p-3",
+        firstMedia ? "p-0" : "p-2.5 sm:p-3",
         className,
       )}
     >
@@ -109,7 +109,7 @@ function ListVariantInner(props: VariantInnerProps) {
         ) : (
           <div
             className={cn(
-              "relative w-32 shrink-0 self-stretch overflow-hidden",
+              "relative w-20 shrink-0 self-stretch overflow-hidden sm:w-28 md:w-32 lg:w-40",
               mediaClassName,
             )}
           >
@@ -124,7 +124,7 @@ function ListVariantInner(props: VariantInnerProps) {
       <div
         className={cn(
           "relative z-10 flex min-w-0 flex-1 flex-col gap-2",
-          firstMedia ? "p-3" : "",
+          firstMedia ? "p-2.5 sm:p-3" : "",
         )}
       >
         {headerNode}

@@ -161,9 +161,9 @@ function LikersStripInner({
           <div
             key={user.id}
             role="listitem"
-            className="flex w-20 shrink-0 flex-col items-center gap-1"
+            className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20"
           >
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
               {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
               <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
@@ -180,7 +180,7 @@ function LikersStripInner({
           </div>
         ))}
         {remaining > 0 && onLoadMore ? (
-          <div className="flex w-20 shrink-0 flex-col items-center gap-1">
+          <div className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20">
             <Button
               type="button"
               variant="outline"
@@ -192,7 +192,7 @@ function LikersStripInner({
                 "{count}",
                 String(remaining),
               )}
-              className="h-12 w-12 shrink-0 rounded-full p-0 text-xs font-semibold"
+              className="h-11 w-11 shrink-0 rounded-full p-0 text-xs font-semibold sm:h-12 sm:w-12"
             >
               {isLoading ? "…" : `+${remaining > 99 ? "99" : remaining}`}
             </Button>

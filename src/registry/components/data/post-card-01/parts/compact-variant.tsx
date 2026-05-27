@@ -81,7 +81,7 @@ function CompactVariantInner(props: VariantInnerProps) {
     <ExpandableText01
       content={post.content}
       maxLines={bodyMaxLines}
-      contentClassName={cn("text-xs", bodyClassName)}
+      contentClassName={cn("text-xs md:text-sm", bodyClassName)}
     />
   );
 
@@ -90,7 +90,7 @@ function CompactVariantInner(props: VariantInnerProps) {
       role="article"
       aria-labelledby={authorId}
       className={cn(
-        "relative overflow-hidden rounded-lg border border-border bg-card p-3",
+        "relative overflow-hidden rounded-lg border border-border bg-card p-2.5 sm:p-3",
         className,
       )}
     >
