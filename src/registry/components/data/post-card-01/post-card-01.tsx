@@ -34,8 +34,10 @@ import { FeedVariant } from "./parts/feed-variant";
 import { CompactVariant } from "./parts/compact-variant";
 import { ListVariant } from "./parts/list-variant";
 import { DetailVariant } from "./parts/detail-variant";
-import { LikersStrip } from "./parts/likers-strip";
-import { ShareMenu } from "./parts/share-menu";
+import {
+  LikersStrip,
+  ShareMenu,
+} from "@/registry/components/data/engagement-bar-01";
 import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
 
 function PostCard01Inner(props: PostCard01Props) {

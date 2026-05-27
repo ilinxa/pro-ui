@@ -6,16 +6,16 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { PostLikeUser } from "../types";
+import type { EngagementLikerProfile } from "../types";
 
 export interface ShareMenuProps {
   /** Pre-loaded recent / suggested users for sharing. */
-  users: PostLikeUser[];
+  users: EngagementLikerProfile[];
   /** Optional async search — called on every input change with the trimmed query.
    * If omitted, the panel filters `users` locally by name/username. */
-  onSearch?: (query: string) => Promise<PostLikeUser[]>;
+  onSearch?: (query: string) => Promise<EngagementLikerProfile[]>;
   /** Fired when the user selects someone to share with. */
-  onShareTo: (user: PostLikeUser) => void;
+  onShareTo: (user: EngagementLikerProfile) => void;
   /** Heading label. Default "Share with…". */
   heading?: string;
   /** Search input placeholder. Default "Search people…". */
@@ -52,11 +52,11 @@ function ShareMenuInner({
   className,
 }: ShareMenuProps) {
   const [query, setQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<PostLikeUser[] | null>(
+  const [searchResults, setSearchResults] = useState<EngagementLikerProfile[] | null>(
     null,
   );
 
-  const visibleUsers = useMemo<PostLikeUser[]>(() => {
+  const visibleUsers = useMemo<EngagementLikerProfile[]>(() => {
     if (searchResults !== null) return searchResults;
     const q = query.trim().toLowerCase();
     if (!q) return users;

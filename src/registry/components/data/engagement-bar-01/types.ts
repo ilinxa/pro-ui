@@ -63,6 +63,18 @@ export interface EngagementLikeUser {
   avatar: string;
 }
 
+/**
+ * UI-display shape for likers strips and share-menu user pickers.
+ * Looser than {@link EngagementLikeUser} (the realtime-delta payload shape) —
+ * `username` and `avatar` are optional because UI sources may not always have them.
+ */
+export interface EngagementLikerProfile {
+  id: string;
+  name: string;
+  username?: string;
+  avatar?: string;
+}
+
 /** Realtime delta union. Same shape conventions as comment-thread-01 will use. */
 export type EngagementDelta =
   | { kind: "like-changed"; count: number; liked?: boolean; userId?: string }

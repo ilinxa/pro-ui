@@ -34,7 +34,7 @@ Phase A landed 2026-05-25 (charter + rule restructure + tier dir READMEs + STATU
 | `kanban-board-01` | data | alpha | 0.3.0 |
 | `flow-canvas-01` | data | alpha | 0.2.5 |
 | `article-body-01` | data | alpha | 0.2.2 |
-| `engagement-bar-01` | data | alpha | 0.1.2 |
+| `engagement-bar-01` | data | alpha | 0.2.0 |
 | `post-card-01` | data | alpha | 0.1.1 |
 | `comment-thread-01` | data | alpha | 0.1.0 |
 | `article-meta-01` | data | alpha | 0.1.0 |
@@ -144,6 +144,7 @@ Closed entries (F-cross-01/04/11-pathB/12, Phase 0 risk spike, chart palette, si
 
 The 5 most-recent decision files, most-recent first. Full per-decision log at [`.claude/decisions/`](decisions/).
 
+- **2026-05-27 — engagement-bar-01 v0.2.0 SHIPPED** ([decision](decisions/2026-05-27-engagement-bar-01-v0.2.0-likers-strip-share-menu-extraction.md)) — additive sub-export extraction: `LikersStrip` + `ShareMenu` moved from `post-card-01/parts/` → `engagement-bar-01/parts/`; new `EngagementLikerProfile` type (relaxed-fields shape, parallel to strict `EngagementLikeUser` for delta payloads). Spotcheck verdict **Pass**, zero findings. C0 prerequisite for post-card-01 v0.2.0; main chain C1 → C12 unblocked.
 - **⏸ 2026-05-25 — cms-panel-01 GATE 1 description IN FLIGHT** (uncommitted; awaiting user sign-off + answers to 10 open questions). Authored at [`docs/panels/cms-panel-01/cms-panel-01-description.md`](../docs/panels/cms-panel-01/cms-panel-01-description.md) — first `pro-panel` pilot. 11 routes staged v0.1/v0.2/v0.3; hybrid CRUD strategy (shared sections + `entity-crud-page-01` parameterized by `entityType` serves 4 routes); WP-5-role permissions; ~13–14 constituent artifacts to ship bottom-up before panel closes. Active handoff: [`HANDOFF-2026-05-25-cms-panel-01-gate-1-awaiting-signoff.md`](HANDOFF-2026-05-25-cms-panel-01-gate-1-awaiting-signoff.md). No decision file yet (lands when GATE 1 signs off).
 - [2026-05-25 — Library tier system charter LOCKED (Phase A)](decisions/2026-05-25-library-tier-system-charter.md) — pro-section + pro-page + pro-panel tiers formalized above procomp; rule renamed `component-readiness-review.md` → `readiness-review.md` with stub redirect; foundational docs only (no code, no scaffolders). 49 procomps unchanged + grandfathered. Phase B/C deferred to first pilot in each tier. Tip `a771758`.
 - **2026-05-25 — STATUS.md slim-down** (`72fdec2`) — 41K tokens → 14KB (~6× shrink). Dropped 16 intro banner-blockquote entries + trimmed Recent activity ~25 → 5 entries + condensed Open decisions blocks. Restores F-cross-02 lean-snapshot convention (2026-05-09 precedent). Added "Intro banner urge — Resist" row to How-to-update table to slow re-bloat.

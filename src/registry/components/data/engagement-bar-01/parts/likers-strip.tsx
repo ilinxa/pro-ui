@@ -4,7 +4,7 @@ import { memo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { PostLikeUser } from "../types";
+import type { EngagementLikerProfile } from "../types";
 
 /** Pointer-event drag-to-scroll for the likers strip (desktop). Touch devices get
  * native swipe via `touch-action: pan-x`. */
@@ -74,11 +74,11 @@ export interface LikersStripProps {
   /** Total likes on the post (drives the "+N" pill). */
   totalCount: number;
   /** Already-loaded likers. */
-  likers: PostLikeUser[];
+  likers: EngagementLikerProfile[];
   /** Heading label (e.g. "Beğenenler" / "Likes"). */
   heading: string;
   /** Fetch more likers. Component appends results to local state. */
-  onLoadMore?: () => Promise<PostLikeUser[]>;
+  onLoadMore?: () => Promise<EngagementLikerProfile[]>;
   /** "+N" pill aria-label template — `{count}` is replaced. Default "+{count} more". */
   moreAriaLabelTemplate?: string;
   /** Hide-button label (kasder's "Gizle"). When provided, renders a Hide button next to the heading. */

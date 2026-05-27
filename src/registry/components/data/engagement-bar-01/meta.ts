@@ -29,6 +29,8 @@ export const meta: ComponentMeta = {
     "i18n via 8-key labels object with English defaults (incl. `openLikersPanel` for the split count button's aria-label)",
     "React.memo per action part + at root — cheap re-renders",
     "Subscription effect uses controlledRef pattern — re-runs only on subscribe identity change",
+    "LikersStrip sub-export — horizontal swipable avatar strip + +N pill (touch swipe + desktop drag-to-scroll). v0.2.0",
+    "ShareMenu sub-export — searchable user picker (sync filter + optional async onSearch). v0.2.0",
   ],
   tags: [
     "engagement-bar-01",
@@ -40,17 +42,18 @@ export const meta: ComponentMeta = {
     "bookmark",
     "realtime",
     "heart-burst",
+    "likers",
   ],
 
-  version: "0.1.2",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-05-27",
 
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["button"],
+    shadcn: ["avatar", "button", "input"],
     npm: {
       "lucide-react": "^1.11.0",
     },
