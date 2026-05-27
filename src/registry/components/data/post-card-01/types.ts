@@ -595,8 +595,31 @@ export interface PostCard01Handle {
   triggerLike: () => void;
   /** Read the current local mirror state (post + engagement deltas applied). */
   getCurrentPost: () => Post;
-  /** Replace the post (re-derives local engagement mirror on next render). */
+  /** Replace the post (re-derives local engagement mirror; clears pollVote + sensitiveRevealed). */
   reset: (next: Post) => void;
   getEngagementHandle: () => EngagementBar01Handle | null;
   getThreadHandle: () => CommentThread01Handle | null;
+
+  // ─── v0.2.0 imperative triggers ───
+  // The handle is an escape hatch — these methods fire the handler without
+  // consulting the permissions matrix. The matrix gates UI affordances (which
+  // kebab items render), not programmatic triggers. If the handler isn't wired,
+  // the method is a no-op. Consumers using these triggers are presumed to know
+  // what they're doing (e.g. moderator dashboards with custom UI bypassing the
+  // default kebab).
+
+  /** Fires `onEdit(post.id)` if wired. No-op otherwise. */
+  triggerEdit: () => void;
+  /** Fires `onDelete(post.id)` if wired. No-op otherwise. */
+  triggerDelete: () => void;
+  /** Fires `onPin(post.id, !post.isPinned)` if wired. No-op otherwise. */
+  triggerPin: () => void;
+  /** Sets local `sensitiveRevealed=true` (clears the gate) + fires `onRevealSensitive` if wired. */
+  revealSensitive: () => void;
+  /**
+   * Optimistic poll vote — sets local `pollVote = { optionId, votedAt }` + fires
+   * `onVotePoll(post.id, optionId)` if wired. Host can reject by calling `reset(originalPost)`,
+   * which clears the local pollVote alongside the rest of the mirror.
+   */
+  votePoll: (optionId: string) => void;
 }
