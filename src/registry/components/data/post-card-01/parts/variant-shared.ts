@@ -91,6 +91,20 @@ export interface VariantInnerProps {
   /** Full takeover for the link-preview card. */
   renderLinkPreview?: PostCard01Props["renderLinkPreview"];
 
+  // v0.2.0 repost mini-card (C8) — feed + detail variants only per description §1.3.
+  /** Click handler — overrides default getHref-based navigation on the nested repost card. */
+  onRepostOfClick?: PostCard01Props["onRepostOfClick"];
+  /** When true, suppresses the default repost mini-card render even if post.repostOf is set. */
+  disableRepostOfRender?: PostCard01Props["disableRepostOfRender"];
+  /** Full takeover for the repost mini-card. */
+  renderRepostOf?: PostCard01Props["renderRepostOf"];
+  /** Forwarded to the nested compact `<PostCard01>` for default href derivation. */
+  getHref?: PostCard01Props["getHref"];
+  /** Forwarded to the nested compact `<PostCard01>` for polymorphic anchor root. */
+  linkComponent?: PostCard01Props["linkComponent"];
+  /** Forwarded to the nested compact `<PostCard01>` for header label strings. */
+  cardLabels?: PostCard01Props["labels"];
+
   /** Inline likes/comments panel rendered below the engagement bar (feed + compact only). */
   inlinePanelNode?: import("react").ReactNode;
 
