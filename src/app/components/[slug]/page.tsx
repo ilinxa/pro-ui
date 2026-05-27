@@ -125,13 +125,15 @@ export default async function ComponentDetailPage({ params }: PageProps) {
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Preview
-        </h2>
-        <div className="relative rounded-lg border border-border bg-background p-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Preview
+          </h2>
           {demoSource ? (
             <ViewCodeDialog source={demoSource} filename="demo.tsx" lang="tsx" />
           ) : null}
+        </div>
+        <div className="relative rounded-lg border border-border bg-background p-6">
           <Demo />
         </div>
       </section>

@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ArticleMeta01 } from "./article-meta-01";
 import {
   ARTICLE_META_01_DUMMY,
@@ -13,14 +14,14 @@ import {
 export default function ArticleMeta01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="centered">Centered</TabsTrigger>
         <TabsTrigger value="end">End-aligned</TabsTrigger>
         <TabsTrigger value="clickable">Clickable byline</TabsTrigger>
         <TabsTrigger value="text-only">Text-only</TabsTrigger>
         <TabsTrigger value="video">Video meta</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-2xl">
         <h2 className="text-2xl font-serif font-bold text-foreground mb-4">

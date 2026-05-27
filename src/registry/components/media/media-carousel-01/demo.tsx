@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { MediaCarousel01 } from "./media-carousel-01";
 import {
   DUMMY_MIXED_MEDIA,
@@ -69,13 +70,13 @@ function ImperativeRefDemo() {
 export default function MediaCarousel01Demo() {
   return (
     <Tabs defaultValue="gallery">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="gallery">Gallery (mixed)</TabsTrigger>
         <TabsTrigger value="linear">Linear (photos)</TabsTrigger>
         <TabsTrigger value="single">Single-item shortcut</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
         <TabsTrigger value="imperative">Imperative ref</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="gallery" className="mt-6 space-y-3">
         <MediaCarousel01

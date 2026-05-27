@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
 import { Save, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { MarkdownEditor } from "./markdown-editor";
 import { defaultMarkdownToolbar } from "./default-toolbar";
 import {
@@ -286,7 +287,7 @@ function HandleDemo() {
 export default function MarkdownEditorDemo() {
   return (
     <Tabs defaultValue="basic">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
         <TabsTrigger value="views">View modes</TabsTrigger>
         <TabsTrigger value="wikilinks">Wikilinks</TabsTrigger>
@@ -295,7 +296,7 @@ export default function MarkdownEditorDemo() {
         <TabsTrigger value="save">onSave</TabsTrigger>
         <TabsTrigger value="no-toolbar">No toolbar</TabsTrigger>
         <TabsTrigger value="handle">Imperative handle</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="basic" className="mt-4">
         <BasicDemo />
       </TabsContent>

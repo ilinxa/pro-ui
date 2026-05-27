@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { Bookmark, CalendarPlus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { RegistrationCard01 } from "./registration-card-01";
 import {
   dummyRegistrationClosed,
@@ -19,13 +20,13 @@ const noop = () => {};
 export default function RegistrationCard01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="states">All states</TabsTrigger>
         <TabsTrigger value="no-quota">No-quota</TabsTrigger>
         <TabsTrigger value="actions">Custom actions</TabsTrigger>
         <TabsTrigger value="bare">Bare + relabeled</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default (TR) — kasder Kayıt Durumu verbatim */}
       <TabsContent value="default" className="mt-6">

@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PricingTable01 } from "./pricing-table-01";
 import {
   PRICING_DEMO_LABELS_TR,
@@ -50,14 +51,14 @@ function ControlledDemo() {
 export default function PricingTable01Demo() {
   return (
     <Tabs defaultValue="cards" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="cards">Cards · toggle</TabsTrigger>
         <TabsTrigger value="two-tier">Free / Paid</TabsTrigger>
         <TabsTrigger value="table">Comparison table</TabsTrigger>
         <TabsTrigger value="controlled">Controlled + analytics</TabsTrigger>
         <TabsTrigger value="i18n">Custom labels (TR)</TabsTrigger>
         <TabsTrigger value="tones">Tones</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="cards" className="mt-6">
         <PricingTable01

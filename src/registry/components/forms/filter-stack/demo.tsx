@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useMemo, useState } from "react";
 import { Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FilterStack } from "./filter-stack";
 import {
   KIND_OPTIONS,
@@ -517,14 +518,14 @@ function OnFilteredChangeDemo() {
 export default function FilterStackDemo() {
   return (
     <Tabs defaultValue="basic">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic facets</TabsTrigger>
         <TabsTrigger value="mode">Mode toggle</TabsTrigger>
         <TabsTrigger value="solo">Solo buttons</TabsTrigger>
         <TabsTrigger value="custom">Custom range</TabsTrigger>
         <TabsTrigger value="rich">All combined</TabsTrigger>
         <TabsTrigger value="callback">onFilteredChange</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="basic" className="mt-4">
         <BasicDemo />
       </TabsContent>

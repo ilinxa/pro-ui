@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, CalendarPlus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EventCard01 } from "./event-card-01";
 import {
   dummyCustomTypeStyles,
@@ -99,7 +100,7 @@ export default function EventCard01Demo() {
 
   return (
     <Tabs defaultValue="grid" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="grid">Grid</TabsTrigger>
         <TabsTrigger value="feed">Feed</TabsTrigger>
         <TabsTrigger value="list">List</TabsTrigger>
@@ -108,7 +109,7 @@ export default function EventCard01Demo() {
         <TabsTrigger value="localized">Localized (TR)</TabsTrigger>
         <TabsTrigger value="custom-types">Custom types</TabsTrigger>
         <TabsTrigger value="actions">Actions slot</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Grid */}
       <TabsContent value="grid" className="mt-6">

@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { StoryViewer01 } from "../../media/story-viewer-01";
 import type { Story } from "../../media/story-viewer-01";
 import { StoryRail01 } from "./story-rail-01";
@@ -185,7 +186,7 @@ function EmptyTab() {
 export default function StoryRail01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="grid grid-cols-7">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="add">+ Add</TabsTrigger>
         <TabsTrigger value="mixed">Mixed</TabsTrigger>
@@ -193,7 +194,7 @@ export default function StoryRail01Demo() {
         <TabsTrigger value="custom">Custom</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="empty">Empty</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="default" className="mt-4">
         <DefaultTab />
       </TabsContent>

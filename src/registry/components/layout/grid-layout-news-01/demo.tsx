@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { GridLayoutNews01 } from "./grid-layout-news-01";
 import { useMagazineFilter } from "./hooks/use-magazine-filter";
 import { DEMO_ARTICLES, type DemoArticle } from "./dummy-data";
@@ -132,11 +133,11 @@ export default function GridLayoutNews01Demo() {
 
   return (
     <Tabs defaultValue="composed" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="composed">Slot composition</TabsTrigger>
         <TabsTrigger value="bare">Bare layout</TabsTrigger>
         <TabsTrigger value="empty">Empty state</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="composed" className="mt-6">
         <GridLayoutNews01<DemoArticle>

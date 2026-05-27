@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FilterBar01 } from "./filter-bar-01";
 import {
   DUMMY_CATEGORIES_EN,
@@ -19,12 +20,12 @@ export default function FilterBar01Demo() {
 
   return (
     <Tabs defaultValue="basic" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="partial">Partial usage</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6">
         <FilterBar01

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -9,7 +9,8 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { StatCard } from "./stat-card";
 import { StatCardSparkline } from "./parts/sparkline";
 import {
@@ -26,7 +27,7 @@ export default function StatCardDemo() {
 
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="detailed">Detailed</TabsTrigger>
@@ -36,7 +37,7 @@ export default function StatCardDemo() {
         <TabsTrigger value="custom-value">Custom value</TabsTrigger>
         <TabsTrigger value="sparkline-only">Sparkline only</TabsTrigger>
         <TabsTrigger value="i18n">Localized (TR)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* Default — 4-card KPI strip */}
       <TabsContent value="default" className="mt-6">

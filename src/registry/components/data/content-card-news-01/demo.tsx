@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ContentCardNews01 } from "./content-card-news-01";
 import {
   dummyCategoryStyles,
@@ -74,7 +75,7 @@ export default function ContentCardNews01Demo() {
 
   return (
     <Tabs defaultValue="featured" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="featured">Featured</TabsTrigger>
         <TabsTrigger value="large">Large</TabsTrigger>
         <TabsTrigger value="medium">Medium</TabsTrigger>
@@ -82,7 +83,7 @@ export default function ContentCardNews01Demo() {
         <TabsTrigger value="list">List</TabsTrigger>
         <TabsTrigger value="composed">Composed</TabsTrigger>
         <TabsTrigger value="actions">Actions slot</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="featured" className="mt-6">
         <ContentCardNews01

@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
 import { HeroStats, PageHeroNews01 } from "./page-hero-news-01";
 import {
@@ -13,13 +14,13 @@ import {
 export default function PageHeroNews01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="stats">With HeroStats</TabsTrigger>
         <TabsTrigger value="cta">CTA cluster</TabsTrigger>
         <TabsTrigger value="density">Density</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 overflow-hidden rounded-2xl border border-border/50">
         <PageHeroNews01

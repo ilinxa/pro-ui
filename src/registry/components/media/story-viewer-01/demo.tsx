@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
 import { StoryViewer01 } from "./story-viewer-01";
 import { STORY_VIEWER_01_DUMMY } from "./dummy-data";
@@ -242,14 +243,14 @@ function CustomRenderItemTab() {
 export default function StoryViewer01Demo() {
   return (
     <Tabs defaultValue="image" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="image">Image only</TabsTrigger>
         <TabsTrigger value="video">Video only</TabsTrigger>
         <TabsTrigger value="mixed">Mixed</TabsTrigger>
         <TabsTrigger value="multi">Multi-story nav</TabsTrigger>
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="image"><ImageOnlyTab /></TabsContent>
       <TabsContent value="video"><VideoOnlyTab /></TabsContent>
       <TabsContent value="mixed"><MixedTab /></TabsContent>

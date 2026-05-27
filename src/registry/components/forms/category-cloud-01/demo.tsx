@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { CategoryCloud01 } from "./category-cloud-01";
 import { DUMMY_CATEGORIES_EN, DUMMY_CATEGORIES_TR } from "./dummy-data";
 
@@ -10,12 +11,12 @@ export default function CategoryCloud01Demo() {
 
   return (
     <Tabs defaultValue="basic" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
         <TabsTrigger value="counts">With counts</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6 max-w-md rounded-2xl border border-border/50 bg-card p-6">
         <CategoryCloud01

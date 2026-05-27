@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { CircleUser } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { InfoList01 } from "./info-list-01";
 import {
   dummyContactItems,
@@ -45,13 +46,13 @@ const peopleItemsAsInfoListItems: InfoListItem[] = peopleItems.map((p) => ({
 export default function InfoList01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="compact">Compact (TR)</TabsTrigger>
         <TabsTrigger value="stacked">Both stacked</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — kasder Etkinlik Bilgileri verbatim */}
       <TabsContent value="default" className="mt-6">

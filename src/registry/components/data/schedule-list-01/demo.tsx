@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { Mic } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ScheduleList01 } from "./schedule-list-01";
 import { dummySchedule, dummyScheduleTr } from "./dummy-data";
 import type { ScheduleListItem } from "./types";
@@ -55,13 +56,13 @@ function SpeakerAugmentedRow({ item }: { item: ScheduleListItem }) {
 export default function ScheduleList01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="english">English</TabsTrigger>
         <TabsTrigger value="bare">Bare rows</TabsTrigger>
         <TabsTrigger value="links">Icons + links</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — Turkish, mirrors the kasder source verbatim */}
       <TabsContent value="default" className="mt-6">

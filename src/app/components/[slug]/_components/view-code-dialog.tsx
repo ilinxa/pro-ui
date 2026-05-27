@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { CodeBlock } from "@/registry/components/code/code-block";
 
-// "View Code" overlay used on the main Preview surface. Shadcn-parity: button
-// → centered Dialog containing the demo source rendered through code-block.
-// Modal is wider than the page preview to fit long demos comfortably.
+// "View Code" trigger used in the Preview section heading row. Button → centered
+// Dialog containing the demo source rendered through code-block. Modal is wider
+// than the page preview to fit long demos comfortably. The button renders in
+// normal flow; positioning is up to the caller.
 export function ViewCodeDialog({
   source,
   filename = "demo.tsx",
@@ -35,7 +36,7 @@ export function ViewCodeDialog({
           type="button"
           size="sm"
           variant="secondary"
-          className="absolute right-3 top-3 z-10 h-7 gap-1.5 text-xs"
+          className="h-7 shrink-0 gap-1.5 text-xs"
         >
           <Code2 aria-hidden className="h-3.5 w-3.5" />
           {triggerLabel}

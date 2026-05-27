@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useState } from "react";
 import { Pencil, Pin, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { DetailPanel, DetailPanelEmptyState } from "./detail-panel";
 import { useDetailPanel } from "./parts/detail-panel-context";
 import {
@@ -334,7 +335,7 @@ function CustomEmptyDemo() {
 export default function DetailPanelDemo() {
   return (
     <Tabs defaultValue="empty">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="empty">Empty</TabsTrigger>
         <TabsTrigger value="read">Read</TabsTrigger>
         <TabsTrigger value="mode">Mode toggle</TabsTrigger>
@@ -342,7 +343,7 @@ export default function DetailPanelDemo() {
         <TabsTrigger value="error">Error</TabsTrigger>
         <TabsTrigger value="switcher">Selection switcher</TabsTrigger>
         <TabsTrigger value="custom-empty">Custom empty</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="empty" className="mt-4">
         <EmptyDemo />
       </TabsContent>

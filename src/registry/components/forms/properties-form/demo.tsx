@@ -4,7 +4,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PropertiesForm } from "./properties-form";
 import {
   PRIORITY_OPTIONS,
@@ -263,13 +264,13 @@ export default function PropertiesFormDemo() {
   return (
     <div className="flex flex-col gap-4">
       <Tabs defaultValue="read">
-        <TabsList className="flex flex-wrap">
+        <SwipeTabsList>
           <TabsTrigger value="read">Read mode</TabsTrigger>
           <TabsTrigger value="edit">Edit + submit</TabsTrigger>
           <TabsTrigger value="mixed">Mixed permissions</TabsTrigger>
           <TabsTrigger value="validation">Validation</TabsTrigger>
           <TabsTrigger value="custom">Custom renderer</TabsTrigger>
-        </TabsList>
+        </SwipeTabsList>
         <TabsContent value="read" className="mt-4">
           <ReadDemo />
         </TabsContent>
