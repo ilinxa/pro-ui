@@ -1,6 +1,10 @@
 export { EngagementBar01 } from "./engagement-bar-01";
 export { EngagementHeartBurst } from "./parts/engagement-heart-burst";
 export type { EngagementHeartBurstProps } from "./parts/engagement-heart-burst";
+export { LikersStrip } from "./parts/likers-strip";
+export type { LikersStripProps } from "./parts/likers-strip";
+export { ShareMenu } from "./parts/share-menu";
+export type { ShareMenuProps } from "./parts/share-menu";
 export {
   engagementReducer,
   useEngagementState,
@@ -21,6 +25,7 @@ export type {
   EngagementActionAlign,
   EngagementDelta,
   EngagementLikeUser,
+  EngagementLikerProfile,
   EngagementState,
   EngagementLocalAction,
   Subscribe,
