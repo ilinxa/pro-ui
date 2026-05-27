@@ -109,7 +109,7 @@ function ListVariantInner(props: VariantInnerProps) {
         ) : (
           <div
             className={cn(
-              "relative w-20 shrink-0 self-stretch overflow-hidden sm:w-28 md:w-32 lg:w-40",
+              "relative w-16 shrink-0 self-stretch overflow-hidden sm:w-20 md:w-24 lg:w-28",
               mediaClassName,
             )}
           >

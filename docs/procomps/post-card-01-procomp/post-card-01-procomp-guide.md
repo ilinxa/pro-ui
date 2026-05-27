@@ -571,3 +571,8 @@ import {
 
 `LinkPreviewCard` and `SensitiveGate` are NOT sub-exported in v0.2.0 — flagged as potential v0.2.x consistency follow-ups (the asymmetry is documented in the GATE 3 review).
 
+## v0.2.1 patch notes (since v0.2.0)
+
+- **List variant image — width shrink.** The list-thumb column dropped at every breakpoint to give the text column more room on narrow containers (sidebar / column / true mobile). Before: `w-20 sm:w-28 md:w-32 lg:w-40`; after: `w-16 sm:w-20 md:w-24 lg:w-28`. `self-stretch` preserved — the image still spans the full card height. No public-API change, no demo behavior change.
+
+
