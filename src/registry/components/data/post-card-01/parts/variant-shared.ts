@@ -73,6 +73,16 @@ export interface VariantInnerProps {
   /** Threaded to the auto-rendered <TagChips> sibling below content (C5). */
   onTagClick?: PostCard01Props["onTagClick"];
 
+  // v0.2.0 sensitive-media gate (C6) — feed + detail variants only per description §1.3.
+  /** Current reveal state; gate renders when post.isSensitive && !sensitiveRevealed. */
+  sensitiveRevealed: boolean;
+  /** Single handler: flips local sensitiveRevealed=true + fires host's onRevealSensitive. */
+  onSensitiveReveal: () => void;
+  /** When true, gate is suppressed entirely even if post.isSensitive (moderator surfaces). */
+  disableSensitiveGate?: PostCard01Props["disableSensitiveGate"];
+  /** Full takeover for the sensitive-media gate overlay. Receives `onReveal` helper. */
+  renderSensitiveGate?: PostCard01Props["renderSensitiveGate"];
+
   /** Inline likes/comments panel rendered below the engagement bar (feed + compact only). */
   inlinePanelNode?: import("react").ReactNode;
 

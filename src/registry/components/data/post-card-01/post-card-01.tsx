@@ -80,6 +80,10 @@ function PostCard01Inner(props: PostCard01Props) {
     // v0.2.0 content-body sibling — tag chips below content (C5).
     onTagClick,
 
+    // v0.2.0 sensitive-media gate (C6 — feed + detail only per description §1.3).
+    disableSensitiveGate,
+    renderSensitiveGate,
+
     engagementSubscribe,
     commentSubscribe,
     onSubscribeEngagementDelta,
@@ -374,6 +378,15 @@ function PostCard01Inner(props: PostCard01Props) {
     setBurstKey((k) => k + 1);
   }, [heartBurstWired]);
 
+  // C6 — sensitive-media reveal: single handler combining local-state flip
+  // + host's onRevealSensitive callback (analytics hook). Used by the gate
+  // button in feed + detail variants AND by the imperative handle's
+  // revealSensitive() (which does its own flip via the ref pattern in C3).
+  const onSensitiveReveal = useCallback(() => {
+    setSensitiveRevealed(true);
+    onRevealSensitive?.(statefulPostRef.current.id);
+  }, [onRevealSensitive]);
+
   // ─── Imperative handle (R-Plan-3 + v0.2.0 C3 additions) ───
   // Handler refs — useImperativeHandle deps + closure capture pattern. v0.2.0
   // mutation handlers (onEdit / onDelete / onPin / onRevealSensitive / onVotePoll)
@@ -562,6 +575,10 @@ function PostCard01Inner(props: PostCard01Props) {
     onLocationClick,
     onMentionClick,
     onTagClick,
+    sensitiveRevealed,
+    onSensitiveReveal,
+    disableSensitiveGate,
+    renderSensitiveGate,
     className,
     headerClassName,
     mediaClassName,

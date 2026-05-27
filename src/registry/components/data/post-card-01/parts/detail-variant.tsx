@@ -11,6 +11,7 @@ import {
 import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
 import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
+import { SensitiveGate } from "./sensitive-gate";
 import type { DetailVariantInnerProps } from "./variant-shared";
 
 function DetailVariantInner(props: DetailVariantInnerProps) {
@@ -42,6 +43,10 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     onLocationClick,
     onMentionClick,
     onTagClick,
+    sensitiveRevealed,
+    onSensitiveReveal,
+    disableSensitiveGate,
+    renderSensitiveGate,
     commentThread,
     commentPageSize,
     commentSubscribe,
@@ -164,6 +169,18 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
               <EngagementHeartBurst trigger={burstKey} />
             </div>
           ) : null}
+          {!disableSensitiveGate && post.isSensitive && !sensitiveRevealed
+            ? renderSensitiveGate
+              ? renderSensitiveGate(post, { onReveal: onSensitiveReveal })
+              : (
+                <SensitiveGate
+                  heading={labels.sensitiveHeading}
+                  reason={post.sensitiveReason}
+                  revealLabel={labels.sensitiveRevealLabel}
+                  onReveal={onSensitiveReveal}
+                />
+              )
+            : null}
         </div>
       ) : null}
       <div className={cn("px-4 pb-3 pt-3", engagementClassName)}>

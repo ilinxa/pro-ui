@@ -10,6 +10,7 @@ import {
 } from "@/registry/components/data/engagement-bar-01";
 import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
+import { SensitiveGate } from "./sensitive-gate";
 import type { VariantInnerProps } from "./variant-shared";
 
 function FeedVariantInner(props: VariantInnerProps) {
@@ -43,11 +44,18 @@ function FeedVariantInner(props: VariantInnerProps) {
     onLocationClick,
     onMentionClick,
     onTagClick,
+    sensitiveRevealed,
+    onSensitiveReveal,
+    disableSensitiveGate,
+    renderSensitiveGate,
     inlinePanelNode,
     className,
     headerClassName,
     mediaClassName,
   } = props;
+
+  const showSensitiveGate =
+    !disableSensitiveGate && post.isSensitive === true && !sensitiveRevealed;
 
   const overlayLink =
     cardLinkable && linkHref ? (
@@ -135,6 +143,18 @@ function FeedVariantInner(props: VariantInnerProps) {
               <EngagementHeartBurst trigger={burstKey} />
             </div>
           ) : null}
+          {showSensitiveGate
+            ? renderSensitiveGate
+              ? renderSensitiveGate(post, { onReveal: onSensitiveReveal })
+              : (
+                <SensitiveGate
+                  heading={labels.sensitiveHeading}
+                  reason={post.sensitiveReason}
+                  revealLabel={labels.sensitiveRevealLabel}
+                  onReveal={onSensitiveReveal}
+                />
+              )
+            : null}
         </div>
       ) : null}
       <div className={cn("relative z-10 px-4 pb-3 pt-3", engagementClassName)}>
