@@ -109,7 +109,10 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
       content={post.content}
       // bodyMaxLines may be 0 in detail (no clamp); ExpandableText01 handles 0 as no clamp
       maxLines={bodyMaxLines || 999}
-      contentClassName={cn("text-base leading-relaxed", bodyClassName)}
+      contentClassName={cn(
+        "text-[15px] leading-relaxed sm:text-sm lg:text-base",
+        bodyClassName,
+      )}
     />
   );
 
@@ -172,7 +175,7 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
         className,
       )}
     >
-      <div className="flex flex-col gap-3 p-4">
+      <div className="flex flex-col gap-3 p-3 sm:p-4 md:p-5 lg:p-6">
         {headerNode}
         {contentNode}
         {post.tags && post.tags.length > 0 ? (
@@ -253,12 +256,17 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
             : null}
         </div>
       ) : null}
-      <div className={cn("px-4 pb-3 pt-3", engagementClassName)}>
+      <div
+        className={cn(
+          "px-3 pb-3 pt-3 sm:px-4 md:px-5 lg:px-6",
+          engagementClassName,
+        )}
+      >
         {engagementNode}
       </div>
       <div
         className={cn(
-          "border-t border-border/60 px-4 py-4",
+          "border-t border-border/60 px-3 py-3 sm:px-4 sm:py-4 md:px-5 md:py-5 lg:px-6 lg:py-6",
           commentSectionClassName,
         )}
       >

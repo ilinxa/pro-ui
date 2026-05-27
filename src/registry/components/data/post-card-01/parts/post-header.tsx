@@ -76,7 +76,11 @@ function PostHeaderInner({
   compact = false,
   className,
 }: PostHeaderProps) {
-  const avatarSize = compact ? "h-8 w-8" : "h-10 w-10";
+  // §2.1-B step rules: non-compact `h-9 w-9 → h-10 w-10` at sm; compact
+  // `h-7 w-7 → h-8 w-8` at sm. Avatar is decorative (not a touch target).
+  const avatarSize = compact
+    ? "h-7 w-7 sm:h-8 sm:w-8"
+    : "h-9 w-9 sm:h-10 sm:w-10";
   const nameSize = compact ? "text-sm" : "text-sm";
 
   // Per description §1.3 render-surface table:
@@ -204,10 +208,10 @@ function PostHeaderInner({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative z-10 h-8 w-8 shrink-0"
+                className="relative z-10 h-11 w-11 shrink-0"
                 aria-label="Post actions"
               >
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="z-20">
