@@ -204,6 +204,232 @@ export const DUMMY_LONG_TEXT_POST: Post = {
   shares: 11,
 };
 
+// ─── v0.2.0 schema-expansion fixtures ─────────────────────────────────────
+//
+// These don't replace any v0.1 dummies — they're new fixtures showcasing the
+// 12 new optional Post fields (visibility, isPinned, isSensitive, poll,
+// repostOf, linkPreview, replyTo, mentions, tags, location, editedAt, language).
+// The v0.1 dummies above remain untouched to preserve zero visual regression
+// for v0.1 demo tabs.
+
+/** Pinned + public visibility + edited — owner-side header polish. */
+export const DUMMY_PINNED_POST: Post = {
+  id: "post-pinned",
+  author: {
+    id: "u-yusuf",
+    name: "Yusuf Kaya",
+    username: "yusuf",
+    avatar: "https://i.pravatar.cc/100?img=33",
+    isVerified: true,
+  },
+  content:
+    "Pinned: the v0.2 ship locks the schema for the post-editor sibling — if you've been waiting on this to start your form work, the green light is here. Editor description doc lands next week.",
+  createdAt: daysAgo(3),
+  editedAt: hoursAgo(2),
+  isPinned: true,
+  visibility: "public",
+  likes: 521,
+  isLiked: false,
+  comments: 38,
+  shares: 14,
+};
+
+/** Sensitive media gate — viewer sees the overlay until they tap "Show". */
+export const DUMMY_SENSITIVE_POST: Post = {
+  id: "post-sensitive",
+  author: {
+    id: "u-noor",
+    name: "Noor Halabi",
+    username: "noor",
+    avatar: "https://i.pravatar.cc/100?img=44",
+  },
+  content:
+    "Studio test print from this morning's run. Apologies for the warning gate — the print includes content the platform flags by default; here's the explanation.",
+  media: [
+    { id: "media-sensitive-1", type: "image", url: PEXELS_IMG_2, alt: "Test print" },
+  ],
+  createdAt: hoursAgo(6),
+  isSensitive: true,
+  sensitiveReason: "Contains depictions that may be flagged by automated review.",
+  visibility: "followers",
+  likes: 89,
+  isLiked: false,
+  comments: 17,
+  shares: 2,
+};
+
+/** Active poll — viewer can vote; bar fills optimistically. */
+export const DUMMY_POLL_POST: Post = {
+  id: "post-poll",
+  author: {
+    id: "u-priya",
+    name: "Priya Menon",
+    username: "priya",
+    avatar: "https://i.pravatar.cc/100?img=20",
+  },
+  content: "Quick poll for the team — which onboarding flow feels right for the v2 ship?",
+  createdAt: hoursAgo(3),
+  visibility: "followers",
+  likes: 24,
+  comments: 7,
+  shares: 1,
+  poll: {
+    options: [
+      { id: "opt-a", label: "Single-step (just email)", voteCount: 18 },
+      { id: "opt-b", label: "Two-step (email + workspace)", voteCount: 47 },
+      { id: "opt-c", label: "Three-step with role pick", voteCount: 12 },
+    ],
+    closesAt: hoursAgo(-48), // 2 days from now
+    totalVotes: 77,
+  },
+};
+
+/** Poll viewer has already voted — results view with viewer's choice highlighted. */
+export const DUMMY_POLL_VOTED_POST: Post = {
+  id: "post-poll-voted",
+  author: DUMMY_POLL_POST.author,
+  content: "Server-resolved vote state — viewer chose option B; results view renders.",
+  createdAt: hoursAgo(3),
+  likes: 24,
+  comments: 7,
+  shares: 1,
+  poll: {
+    options: [
+      { id: "opt-a", label: "Single-step (just email)", voteCount: 18 },
+      { id: "opt-b", label: "Two-step (email + workspace)", voteCount: 48 },
+      { id: "opt-c", label: "Three-step with role pick", voteCount: 12 },
+    ],
+    closesAt: hoursAgo(-48),
+    totalVotes: 78,
+    hasVoted: true,
+    viewerVoteOptionId: "opt-b",
+  },
+};
+
+/** Closed poll — vote buttons hidden; results visible to everyone. */
+export const DUMMY_POLL_CLOSED_POST: Post = {
+  id: "post-poll-closed",
+  author: DUMMY_POLL_POST.author,
+  content: "Last week's poll — closed. The team picked option B by a wide margin.",
+  createdAt: daysAgo(8),
+  likes: 56,
+  comments: 14,
+  shares: 3,
+  poll: {
+    options: [
+      { id: "opt-a", label: "Single-step (just email)", voteCount: 22 },
+      { id: "opt-b", label: "Two-step (email + workspace)", voteCount: 91 },
+      { id: "opt-c", label: "Three-step with role pick", voteCount: 18 },
+    ],
+    closesAt: daysAgo(1), // closed 1 day ago
+    totalVotes: 131,
+  },
+};
+
+/** Repost — nested compact mini-card pointing at DUMMY_FEATURED_POST. */
+export const DUMMY_REPOST_POST: Post = {
+  id: "post-repost",
+  author: {
+    id: "u-elena",
+    name: "Elena Marchetti",
+    username: "elena",
+    avatar: "https://i.pravatar.cc/100?img=29",
+  },
+  content:
+    "Reposting Hana's announcement — three months of cross-team work shipping next week. If you're on the launch list, watch this space for the rollout cadence.",
+  createdAt: minutesAgo(35),
+  visibility: "public",
+  likes: 73,
+  comments: 9,
+  shares: 5,
+  repostOf: DUMMY_FEATURED_POST,
+};
+
+/** Link preview — OG card renders below content + above any media. */
+export const DUMMY_LINK_PREVIEW_POST: Post = {
+  id: "post-linkpreview",
+  author: {
+    id: "u-akira",
+    name: "Akira Tanaka",
+    username: "akira",
+    avatar: "https://i.pravatar.cc/100?img=58",
+  },
+  content:
+    "Worth a read if you're working on shadcn-registry distribution — the namespace pattern alone unlocks a lot.",
+  createdAt: hoursAgo(11),
+  likes: 142,
+  comments: 22,
+  shares: 18,
+  linkPreview: {
+    url: "https://ui.shadcn.com/docs/registry",
+    title: "shadcn/ui — Registry",
+    description:
+      "Build your own component distribution platform with the same primitives the shadcn CLI ships against.",
+    siteName: "ui.shadcn.com",
+    image: PEXELS_IMG_1,
+  },
+};
+
+/** Reply — "Replying to @username" sub-line above the header (feed/detail only). */
+export const DUMMY_REPLY_POST: Post = {
+  id: "post-reply",
+  author: {
+    id: "u-sina",
+    name: "Sina Aytaç",
+    username: "sina",
+    avatar: "https://i.pravatar.cc/100?img=68",
+  },
+  content:
+    "@mira agree on the deprecation thread — the migration tooling at component count > 60 is where the real cost is, not the surface area itself.",
+  createdAt: minutesAgo(20),
+  likes: 8,
+  comments: 1,
+  shares: 0,
+  replyTo: {
+    id: DUMMY_TEXT_ONLY_POST.id,
+    author: DUMMY_TEXT_ONLY_POST.author,
+  },
+  mentions: [
+    {
+      id: "u-mira",
+      name: "Mira Solano",
+      username: "mira",
+      range: [0, 5], // "@mira"
+    },
+  ],
+};
+
+/** Rich post — combines tags + location + visibility + editedAt + mentions
+ *  to showcase header sub-row density. */
+export const DUMMY_RICH_POST: Post = {
+  id: "post-rich",
+  author: {
+    id: "u-camille",
+    name: "Camille Dubois",
+    username: "camille",
+    avatar: "https://i.pravatar.cc/100?img=23",
+    isVerified: true,
+  },
+  content:
+    "Field report from the field test — @theo nailed the prototype handoff, location pin attached. Tags below for retrieval.",
+  createdAt: hoursAgo(5),
+  editedAt: hoursAgo(4),
+  visibility: "circle",
+  likes: 67,
+  comments: 11,
+  shares: 4,
+  location: {
+    name: "Marseille, FR",
+    lat: 43.296482,
+    lng: 5.36978,
+  },
+  tags: ["fieldtest", "prototype", "v0.2"],
+  mentions: [
+    { id: "u-theo", name: "Theo Zarrin", username: "theoz", range: [35, 40] }, // "@theo"
+  ],
+  language: "en",
+};
+
 export const DUMMY_POSTS: Post[] = [
   DUMMY_TEXT_ONLY_POST,
   DUMMY_SINGLE_IMAGE_POST,
@@ -212,6 +438,16 @@ export const DUMMY_POSTS: Post[] = [
   DUMMY_MIXED_MEDIA_POST,
   DUMMY_FEATURED_POST,
   DUMMY_LONG_TEXT_POST,
+  // v0.2.0 additions:
+  DUMMY_PINNED_POST,
+  DUMMY_SENSITIVE_POST,
+  DUMMY_POLL_POST,
+  DUMMY_POLL_VOTED_POST,
+  DUMMY_POLL_CLOSED_POST,
+  DUMMY_REPOST_POST,
+  DUMMY_LINK_PREVIEW_POST,
+  DUMMY_REPLY_POST,
+  DUMMY_RICH_POST,
 ];
 
 export const DUMMY_DETAIL_THREAD: Comment[] = [
