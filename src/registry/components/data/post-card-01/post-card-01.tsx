@@ -84,6 +84,11 @@ function PostCard01Inner(props: PostCard01Props) {
     disableSensitiveGate,
     renderSensitiveGate,
 
+    // v0.2.0 link-preview card (C7 — feed + detail only per description §1.3).
+    onLinkPreviewClick,
+    disableLinkPreviewRender,
+    renderLinkPreview,
+
     engagementSubscribe,
     commentSubscribe,
     onSubscribeEngagementDelta,
@@ -579,6 +584,9 @@ function PostCard01Inner(props: PostCard01Props) {
     onSensitiveReveal,
     disableSensitiveGate,
     renderSensitiveGate,
+    onLinkPreviewClick,
+    disableLinkPreviewRender,
+    renderLinkPreview,
     className,
     headerClassName,
     mediaClassName,

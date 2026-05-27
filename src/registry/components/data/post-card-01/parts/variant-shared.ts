@@ -83,6 +83,14 @@ export interface VariantInnerProps {
   /** Full takeover for the sensitive-media gate overlay. Receives `onReveal` helper. */
   renderSensitiveGate?: PostCard01Props["renderSensitiveGate"];
 
+  // v0.2.0 link-preview card (C7) — feed + detail variants only per description §1.3.
+  /** Click handler — overrides default <a href target=_blank> navigation. */
+  onLinkPreviewClick?: PostCard01Props["onLinkPreviewClick"];
+  /** When true, suppresses the default link-preview render even if post.linkPreview is set. */
+  disableLinkPreviewRender?: PostCard01Props["disableLinkPreviewRender"];
+  /** Full takeover for the link-preview card. */
+  renderLinkPreview?: PostCard01Props["renderLinkPreview"];
+
   /** Inline likes/comments panel rendered below the engagement bar (feed + compact only). */
   inlinePanelNode?: import("react").ReactNode;
 
