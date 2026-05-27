@@ -62,17 +62,28 @@ function PostCard01Inner(props: PostCard01Props) {
     onCopyLink,
     onReport,
 
-    // v0.2.0 mutation handlers — destructured here for use by the imperative handle (C3).
-    // Others (onChangeVisibility / onMarkSensitive / onSeeAnalytics / onBlockAuthor /
-    // onMuteAuthor) flow through PostMutationHandlers props inheritance and reach the
-    // kebab via the C11 wiring; the imperative handle exposes only the 5 most-direct
-    // triggers (per dynamicity-primacy memory: programmatic escape hatches for the
-    // common actions).
+    // v0.2.0 mutation handlers — destructured here for use by the imperative handle
+    // (C3) AND the role-aware kebab wiring (C11). The imperative handle exposes only
+    // the 5 most-direct triggers (per dynamicity-primacy memory: programmatic escape
+    // hatches for the common actions). The kebab pulls from all 8 via `mutationHandlers`.
     onEdit,
     onDelete,
     onPin,
     onRevealSensitive,
     onVotePoll,
+    onChangeVisibility,
+    onMarkSensitive,
+    onSeeAnalytics,
+    onBlockAuthor,
+    onMuteAuthor,
+    onTranslate,
+
+    // v0.2.0 role-aware kebab inputs (C11) — pass-through to defaultPostKebabActions.
+    // Triple-optional: when ALL three are undefined, the helper takes the legacy
+    // handler-driven path (zero v0.1 drift). When ANY is set, the resolver assembles
+    // role-aware items.
+    permissions,
+    canPerformAction,
 
     // v0.2.0 header-level callbacks (threaded to PostHeader via variants).
     onLocationClick,
@@ -352,7 +363,10 @@ function PostCard01Inner(props: PostCard01Props) {
     ],
   );
 
-  // ─── Kebab items ───
+  // ─── Kebab items (C11 — role-aware via extended defaultPostKebabActions) ───
+  // The helper is dual-mode: when viewerMode + permissions + canPerformAction are
+  // ALL undefined, it takes the v0.1 legacy code path (zero drift). When ANY is set,
+  // it resolves the matrix + assembles role-aware items per plan §3 resolution order.
   const kebabItems = useMemo(() => {
     if (kebabActions) return kebabActions(statefulPost);
     return defaultPostKebabActions(
@@ -365,6 +379,20 @@ function PostCard01Inner(props: PostCard01Props) {
           onCopyLink || getHref ? handleCopyLink : undefined,
       },
       labels,
+      viewerMode,
+      permissions,
+      canPerformAction,
+      {
+        onEdit,
+        onDelete,
+        onPin,
+        onChangeVisibility,
+        onMarkSensitive,
+        onSeeAnalytics,
+        onBlockAuthor,
+        onMuteAuthor,
+      },
+      onTranslate,
     );
   }, [
     kebabActions,
@@ -377,6 +405,18 @@ function PostCard01Inner(props: PostCard01Props) {
     getHref,
     handleCopyLink,
     labels,
+    viewerMode,
+    permissions,
+    canPerformAction,
+    onEdit,
+    onDelete,
+    onPin,
+    onChangeVisibility,
+    onMarkSensitive,
+    onSeeAnalytics,
+    onBlockAuthor,
+    onMuteAuthor,
+    onTranslate,
   ]);
 
   // ─── State + refs ───
