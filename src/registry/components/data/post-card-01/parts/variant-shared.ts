@@ -70,6 +70,8 @@ export interface VariantInnerProps {
   // replyTo "Replying to @x" mention click).
   onLocationClick?: PostCard01Props["onLocationClick"];
   onMentionClick?: PostCard01Props["onMentionClick"];
+  /** Threaded to the auto-rendered <TagChips> sibling below content (C5). */
+  onTagClick?: PostCard01Props["onTagClick"];
 
   /** Inline likes/comments panel rendered below the engagement bar (feed + compact only). */
   inlinePanelNode?: import("react").ReactNode;

@@ -10,6 +10,7 @@ import {
 } from "@/registry/components/data/engagement-bar-01";
 import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
 import { PostHeader } from "./post-header";
+import { TagChips } from "./tag-chips";
 import type { DetailVariantInnerProps } from "./variant-shared";
 
 function DetailVariantInner(props: DetailVariantInnerProps) {
@@ -40,6 +41,7 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     renderCommentSection,
     onLocationClick,
     onMentionClick,
+    onTagClick,
     commentThread,
     commentPageSize,
     commentSubscribe,
@@ -150,6 +152,9 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
       <div className="flex flex-col gap-3 p-4">
         {headerNode}
         {contentNode}
+        {post.tags && post.tags.length > 0 ? (
+          <TagChips tags={post.tags} onTagClick={onTagClick} />
+        ) : null}
       </div>
       {mediaNode ? (
         <div className={cn("relative", mediaClassName)}>

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ExpandableText01 } from "@/registry/components/data/expandable-text-01";
 import { EngagementBar01 } from "@/registry/components/data/engagement-bar-01";
 import { PostHeader } from "./post-header";
+import { TagChips } from "./tag-chips";
 import type { VariantInnerProps } from "./variant-shared";
 
 function ListVariantInner(props: VariantInnerProps) {
@@ -34,6 +35,7 @@ function ListVariantInner(props: VariantInnerProps) {
     renderEngagementBar,
     onLocationClick,
     onMentionClick,
+    onTagClick,
     className,
     headerClassName,
     mediaClassName,
@@ -127,6 +129,9 @@ function ListVariantInner(props: VariantInnerProps) {
       >
         {headerNode}
         {contentNode}
+        {post.tags && post.tags.length > 0 ? (
+          <TagChips tags={post.tags} onTagClick={onTagClick} />
+        ) : null}
         <div className={cn("relative z-10 mt-auto", engagementClassName)}>
           {renderEngagementBar ? (
             renderEngagementBar(post, { actions: engagementActions })

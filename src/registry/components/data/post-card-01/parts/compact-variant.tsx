@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ExpandableText01 } from "@/registry/components/data/expandable-text-01";
 import { EngagementBar01 } from "@/registry/components/data/engagement-bar-01";
 import { PostHeader } from "./post-header";
+import { TagChips } from "./tag-chips";
 import type { VariantInnerProps } from "./variant-shared";
 
 function CompactVariantInner(props: VariantInnerProps) {
@@ -34,6 +35,7 @@ function CompactVariantInner(props: VariantInnerProps) {
     renderEngagementBar,
     onLocationClick,
     onMentionClick,
+    onTagClick,
     inlinePanelNode,
     className,
     headerClassName,
@@ -116,6 +118,9 @@ function CompactVariantInner(props: VariantInnerProps) {
             )
           ) : null}
         </div>
+        {post.tags && post.tags.length > 0 ? (
+          <TagChips tags={post.tags} onTagClick={onTagClick} />
+        ) : null}
         <div className={cn("relative z-10 mt-1", engagementClassName)}>
           {renderEngagementBar ? (
             renderEngagementBar(post, { actions: engagementActions })

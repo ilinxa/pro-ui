@@ -9,6 +9,7 @@ import {
   EngagementHeartBurst,
 } from "@/registry/components/data/engagement-bar-01";
 import { PostHeader } from "./post-header";
+import { TagChips } from "./tag-chips";
 import type { VariantInnerProps } from "./variant-shared";
 
 function FeedVariantInner(props: VariantInnerProps) {
@@ -41,6 +42,7 @@ function FeedVariantInner(props: VariantInnerProps) {
     renderEngagementBar,
     onLocationClick,
     onMentionClick,
+    onTagClick,
     inlinePanelNode,
     className,
     headerClassName,
@@ -121,6 +123,9 @@ function FeedVariantInner(props: VariantInnerProps) {
       <div className="relative z-10 flex flex-col gap-3 p-4">
         {headerNode}
         {contentNode}
+        {post.tags && post.tags.length > 0 ? (
+          <TagChips tags={post.tags} onTagClick={onTagClick} />
+        ) : null}
       </div>
       {mediaNode ? (
         <div className={cn("relative", mediaClassName)}>
