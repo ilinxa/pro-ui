@@ -28,6 +28,7 @@ export const meta: ComponentMeta = {
     "v0.2.0 — Imperative handle gains 5 trigger methods: triggerEdit / triggerDelete / triggerPin / revealSensitive / votePoll",
     "v0.3.0 — Moderator section in kebab (ILX-3): `moderatorActions(post)` slot + `canModerate` permission + `\"moderate\"` action discriminator. Orthogonal to viewerMode (never auto-derived). Renders between common items and viewer-destructive items with a divider above.",
     "v0.3.1 — F-S1 cross-procomp cleanup: 32 absolute `@/registry/components/...` imports across 9 files converted to relative + specific-file paths (the F-S1 lock pattern). Latent v0.2.0 bug where shadcn 4.6.0's path-rewriter mangled cross-procomp barrel imports — surfaced post-push by the v0.3.0 smoke; consumers couldn't tsc-pass after install. Zero public-API change.",
+    "v0.3.2 — Cross-category MediaItem inline-copy: shadcn rewriter mangles cross-category `/types` imports in unpredictable ways (sometimes to wrong-slug, sometimes preserving an invalid `<cat>/` prefix). Local `PostMediaItem` type defined in `types.ts` (structurally identical to media-carousel-01's MediaItem); `MediaItem` retained as soft-compat alias for v0.2.x consumers. Drops the broken cross-category re-export from `index.ts`.",
     "LikersStrip part — horizontal swipable avatar strip + paginating +N pill (touch swipe + desktop drag-to-scroll)",
     "ShareMenu part — searchable user picker; local filter when no async wired, optional onShareSearch for backend search",
     "Auto-wired canonical heart-burst on double-tap (heuristic; disableHeartBurst opt-out)",
@@ -65,7 +66,7 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.3.1",
+  version: "0.3.2",
   status: "alpha",
   createdAt: "2026-05-02",
   updatedAt: "2026-05-28",

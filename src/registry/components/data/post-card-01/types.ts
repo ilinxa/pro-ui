@@ -2,10 +2,41 @@ import type { ElementType, ReactNode } from "react";
 // F-S1 lock: cross-procomp imports use RELATIVE paths to specific files
 // (NOT barrels) so shadcn 4.6.0's path-rewriter doesn't mangle them.
 // See .claude/decisions/2026-05-28-post-card-01-v0.3.1-fcross-11-fs1-cleanup.md
-// Cross-category cross-procomp: relative paths break in consumer's flat tree
-// (`../../media/...` resolves to `src/media/...` in consumer — doesn't exist).
-// Absolute-with-suffix preserves the file path through the CLI rewriter.
-import type { MediaItem } from "@/registry/components/media/media-carousel-01/types";
+// Cross-category type imports are not safe under shadcn 4.6.0's rewriter
+// (both `@/registry/components/<other-cat>/<other-slug>` AND its `/types`
+// suffix get mangled — sometimes to the wrong slug, sometimes preserving an
+// invalid `<cat>/` prefix). For cross-category TYPES we inline a local
+// structurally-compatible copy. Keep in sync with media-carousel-01's
+// MediaItem export. Cross-category COMPONENT imports (MediaCarousel01) DO
+// work via `@/registry/components/<cat>/<slug>/<slug>` — see variants.
+
+/**
+ * Structurally identical to `@ilinxa/media-carousel-01`'s `MediaItem`.
+ * Inlined to avoid the cross-category type-import rewriter bug. If
+ * media-carousel-01's MediaItem changes shape, this must follow manually.
+ */
+export type PostMediaItem =
+  | {
+      id: string;
+      type: "image";
+      url: string;
+      alt?: string;
+    }
+  | {
+      id: string;
+      type: "video";
+      url: string;
+      alt?: string;
+      poster?: string;
+    };
+
+/**
+ * @deprecated v0.3.2 — use `PostMediaItem`. Soft-compat alias for v0.2.x
+ * consumers that imported `MediaItem` from this barrel. The cross-category
+ * type re-export was broken at install-time even at v0.2.0; this alias
+ * preserves the symbol name for source-code compatibility.
+ */
+export type MediaItem = PostMediaItem;
 import type {
   Comment,
   CommentDelta,
