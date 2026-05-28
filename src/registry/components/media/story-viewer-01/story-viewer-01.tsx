@@ -34,6 +34,7 @@ import { ReplyComposer } from "./parts/reply-composer";
 import { OwnerOverlay } from "./parts/owner-overlay";
 import { KebabPanel } from "./parts/kebab-panel";
 import { LinkCta } from "./parts/link-cta";
+import { CommentsPanel } from "./parts/comments-panel";
 import { defaultStoryKebabActions } from "./lib/kebab";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
@@ -69,7 +70,6 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onLikeStory,
     onReactStory,
     onShareStory,
-    onBookmarkStory,
     reactionKinds,
     disableEngagement = false,
     renderEngagementOverlay,
@@ -104,6 +104,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     // v0.2.2 — author tap-target
     onAuthorClick,
     authorComponent,
+    // v0.3.0 — comments panel
+    renderCommentsPanel,
+    disableComments = false,
     // v0.2.0 — kebab item handlers (mirrors post-card-01 v0.2.0; flattened
     // on Props rather than a discrete StoryMutationHandlers interface). All
     // optional; gated by the permissions matrix in defaultStoryKebabActions.
@@ -280,6 +283,21 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     setKebabOpen(false);
   }, [cursor.storyIndex, cursor.itemIndex]);
 
+  // ─── v0.3.0 comments panel state — opens on comment-icon tap ──────────
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  // Auto-pause story timer when panel is open; resume on close. Mirrors the
+  // long-press-pause additive — opening the panel is an explicit focus
+  // change toward comments and the auto-advance should not race the user.
+  useEffect(() => {
+    if (!commentsOpen) return;
+    setPaused(true);
+    return () => setPaused(false);
+  }, [commentsOpen, setPaused]);
+  // Close panel on cursor change (next/prev nav).
+  useEffect(() => {
+    setCommentsOpen(false);
+  }, [cursor.storyIndex, cursor.itemIndex]);
+
   // Resolved kebab items — kebabActions full-takeover wins; otherwise
   // defaultStoryKebabActions assembles per permissions matrix + moderator section.
   const kebabItems = useMemo(() => {
@@ -402,7 +420,14 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         onReactStory?.(currentStory!.id, currentItem!.id, kind);
       },
       onCommentClick: () => {
-        composerRef.current?.focus();
+        // v0.3.0 — open the comments panel (Instagram-canonical). When
+        // disableComments is set, fall back to focusing the DM input
+        // (v0.2.x behavior).
+        if (!disableComments) {
+          setCommentsOpen(true);
+        } else {
+          composerRef.current?.focus();
+        }
       },
       onKebabOpen: () => setKebabOpen(true),
       kebabIcon: <MoreVertical className="h-5 w-5" />,
@@ -410,10 +435,6 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       onShareClick: () => {
         onShareStory?.(currentStory!.id, currentItem!.id);
       },
-      onBookmarkToggle: (next: boolean) => {
-        onBookmarkStory?.(currentStory!.id, currentItem!.id, next);
-      },
-      // Kebab wired in C6
     });
   }, [
     engagementOverlayMounted,
@@ -428,7 +449,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onLikeStory,
     onReactStory,
     onShareStory,
-    onBookmarkStory,
+    disableComments,
   ]);
 
   // v0.2.0 — wire trigger* refs to live handlers each render. These bypass
@@ -541,79 +562,104 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             authorComponent={authorComponent}
           />
         )}
-        <ItemView
-          item={currentItem}
-          story={currentStory}
-          totalItems={currentStory.items.length}
-          cursor={cursor}
-          isPaused={isPaused}
-          isMuted={isMuted}
-          onLoadedMetadata={handleVideoMetadata}
-          onEnded={goToNextItem}
-          renderItem={renderItem}
-          labels={labels}
-        />
-        {/* v0.2.0 C7 — renderTapZones slot wins as full takeover.
-            v0.2.0 C8 — `disableTapZones` suppresses the default mount entirely. */}
-        {renderTapZones ? (
-          renderTapZones(slotHelpers)
-        ) : !disableTapZones ? (
-          <TapZones
-            onPrev={goToPrevItem}
-            onTogglePause={() => setPaused((p) => !p)}
-            onNext={goToNextItem}
-          />
-        ) : null}
-
-        {/* v0.2.0 C9 — StoryItem.link CTA bottom button. Coexists with the
-            engagement overlay (sits above it) and the reply composer (sits
-            below it in viewer mode). Polymorphic root via `linkComponent`. */}
-        {currentItem.link ? (
-          <LinkCta
-            story={currentStory}
+        {/* v0.3.0 — scaling wrapper: when the comments panel is open, the
+            entire visual stack (media + tap-zones + link CTA + engagement
+            overlay + DM input) shrinks toward the top with pointer-events
+            disabled inside. Mirrors the Instagram comments-panel UX. */}
+        <div
+          className={cn(
+            "absolute inset-0 origin-top transition-transform duration-300 ease-out",
+            commentsOpen && "scale-[0.55] translate-y-[-18%] pointer-events-none",
+          )}
+        >
+          <ItemView
             item={currentItem}
-            linkComponent={linkComponent}
-            onLinkClick={onLinkClick}
+            story={currentStory}
+            totalItems={currentStory.items.length}
+            cursor={cursor}
+            isPaused={isPaused}
+            isMuted={isMuted}
+            onLoadedMetadata={handleVideoMetadata}
+            onEnded={goToNextItem}
+            renderItem={renderItem}
             labels={labels}
           />
-        ) : null}
+          {/* v0.2.0 C7 — renderTapZones slot wins as full takeover.
+              v0.2.0 C8 — `disableTapZones` suppresses the default mount entirely. */}
+          {renderTapZones ? (
+            renderTapZones(slotHelpers)
+          ) : !disableTapZones ? (
+            <TapZones
+              onPrev={goToPrevItem}
+              onTogglePause={() => setPaused((p) => !p)}
+              onNext={goToNextItem}
+            />
+          ) : null}
 
-        {/* v0.2.0 — engagement overlay (TikTok/Reels-style stacked right edge).
-            Renders only when viewerMode="viewer" + !disableEngagement.
-            renderEngagementOverlay slot wins as full takeover. */}
-        {engagementOverlayMounted ? (
-          renderEngagementOverlay ? (
-            renderEngagementOverlay(currentStory!, currentItem!, slotHelpers)
-          ) : (
-            <EngagementOverlay
-              story={currentStory!}
-              item={currentItem!}
-              actions={engagementActions}
+          {/* v0.2.0 C9 — StoryItem.link CTA bottom button. Coexists with the
+              engagement overlay (sits above it) and the DM input (sits
+              below it in viewer mode). Polymorphic root via `linkComponent`. */}
+          {currentItem.link ? (
+            <LinkCta
+              story={currentStory}
+              item={currentItem}
+              linkComponent={linkComponent}
+              onLinkClick={onLinkClick}
               labels={labels}
             />
-          )
-        ) : null}
+          ) : null}
 
-        {/* v0.2.0 — reply composer at bottom (Q-V1 lock — always-visible).
-            Renders only when viewerMode="viewer" + !disableReplyComposer.
-            currentUser absent → null + composerEmptyState rendered instead.
-            renderReplyComposer slot wins as full takeover. */}
-        {replyComposerMounted ? (
-          renderReplyComposer ? (
-            renderReplyComposer(currentStory!, currentItem!, slotHelpers)
-          ) : currentUser ? (
-            <ReplyComposer
-              story={currentStory!}
-              item={currentItem!}
-              currentUser={currentUser}
-              onAddReply={onAddReply}
-              onSetPaused={(p) => setPaused(p)}
-              labels={labels}
-              composerRef={composerRef}
-            />
-          ) : (
-            composerEmptyState
-          )
+          {/* v0.2.0 — engagement overlay (TikTok/Reels-style stacked right edge).
+              Renders only when viewerMode="viewer" + !disableEngagement.
+              renderEngagementOverlay slot wins as full takeover. */}
+          {engagementOverlayMounted ? (
+            renderEngagementOverlay ? (
+              renderEngagementOverlay(currentStory!, currentItem!, slotHelpers)
+            ) : (
+              <EngagementOverlay
+                story={currentStory!}
+                item={currentItem!}
+                actions={engagementActions}
+                labels={labels}
+              />
+            )
+          ) : null}
+
+          {/* v0.2.0 — DM composer at bottom (always-visible "Reply to @user…"
+              input — Instagram-canonical DM channel, NOT public comments).
+              Renders only when viewerMode="viewer" + !disableReplyComposer.
+              currentUser absent → null + composerEmptyState rendered instead.
+              renderReplyComposer slot wins as full takeover. */}
+          {replyComposerMounted ? (
+            renderReplyComposer ? (
+              renderReplyComposer(currentStory!, currentItem!, slotHelpers)
+            ) : currentUser ? (
+              <ReplyComposer
+                story={currentStory!}
+                item={currentItem!}
+                currentUser={currentUser}
+                onAddReply={onAddReply}
+                onSetPaused={(p) => setPaused(p)}
+                labels={labels}
+                composerRef={composerRef}
+              />
+            ) : (
+              composerEmptyState
+            )
+          ) : null}
+        </div>
+
+        {/* v0.3.0 — backdrop catcher: while the comments panel is open, a
+            transparent layer above the (now-shrunk + pointer-events-none)
+            visual stack catches clicks and closes the panel. Sits below
+            the panel itself (z-35 vs panel z-40). */}
+        {commentsOpen ? (
+          <button
+            type="button"
+            className="absolute inset-0 z-35 bg-transparent"
+            onClick={() => setCommentsOpen(false)}
+            aria-label={labels.commentsCloseLabel}
+          />
         ) : null}
 
         {/* v0.2.0 — owner overlay (view-count + lazy viewers list).
@@ -660,6 +706,27 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           onClose={() => setKebabOpen(false)}
           labels={labels}
         />
+
+        {/* v0.3.0 — comments panel. Always mounted so consumer-side state
+            inside `renderCommentsPanel` (typically CommentThread01's draft
+            composer) persists across open/close cycles. Hidden via
+            translate-y when closed. Mount-gated by viewerMode + !disableComments
+            so non-viewer modes / opt-outs don't ship the panel at all. */}
+        {!!viewerMode && viewerMode === "viewer" && !disableComments ? (
+          <CommentsPanel
+            story={currentStory}
+            item={currentItem}
+            open={commentsOpen}
+            onClose={() => setCommentsOpen(false)}
+            labels={labels}
+          >
+            {renderCommentsPanel?.(currentStory, currentItem, {
+              ...slotHelpers,
+              isCommentsOpen: commentsOpen,
+              closeCommentsPanel: () => setCommentsOpen(false),
+            })}
+          </CommentsPanel>
+        ) : null}
       </div>
     </ViewerShell>
   );

@@ -1265,7 +1265,8 @@
         { "path": "src/registry/components/media/story-viewer-01/parts/kebab-panel.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/kebab-panel.tsx" },
         { "path": "src/registry/components/media/story-viewer-01/lib/kebab.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/kebab.ts" },
         { "path": "src/registry/components/media/story-viewer-01/parts/link-cta.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/link-cta.tsx" },
-        { "path": "src/registry/components/media/story-viewer-01/hooks/use-long-press-pause.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-long-press-pause.ts" }
+        { "path": "src/registry/components/media/story-viewer-01/hooks/use-long-press-pause.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-long-press-pause.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/comments-panel.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/comments-panel.tsx" }
       ]
     },
     {

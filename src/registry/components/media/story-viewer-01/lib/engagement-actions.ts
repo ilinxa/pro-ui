@@ -42,11 +42,7 @@ export interface BuildEngagementActionsOptions {
   onCommentClick?: () => void;
   /** Share click handler. */
   onShareClick?: () => void;
-  /** Bookmark toggle handler. */
-  onBookmarkToggle?: (next: boolean) => void;
-  /** Initial bookmark state (host-supplied via Story/StoryItem extension or kept local). */
-  isBookmarked?: boolean;
-  /** Kebab open handler — fires when the 6th custom-action is tapped. */
+  /** Kebab open handler — fires when the 5th custom-action is tapped. */
   onKebabOpen?: () => void;
   /** Icon node for the kebab custom action. */
   kebabIcon?: import("react").ReactNode;
@@ -106,15 +102,12 @@ export function buildStoryEngagementActions(
     });
   }
 
-  // Bookmark (always available — no canBookmark in matrix; matches engagement-bar default)
-  actions.push({
-    kind: "bookmark",
-    bookmarked: opts.isBookmarked ?? false,
-    onToggle: opts.onBookmarkToggle,
-  });
+  // Bookmark removed in v0.3.0 — stories are not bookmarkable (Instagram-
+  // canonical: stories are ephemeral, only owners "save to highlights" via
+  // the kebab; viewers don't bookmark).
 
   // Kebab — last item, rendered via kind="custom" (Q-V17 lock — kebab in
-  // engagement overlay as 6th item; HeaderKebabFallback handles disableEngagement).
+  // engagement overlay; HeaderKebabFallback handles disableEngagement).
   if (opts.onKebabOpen) {
     actions.push({
       kind: "custom",
