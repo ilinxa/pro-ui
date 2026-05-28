@@ -1,4 +1,5 @@
-import { VideoPlayer01 } from "../../video-player-01";
+// F-S1 lock: same-category cross-procomp via relative + specific-file path.
+import { VideoPlayer01 } from "../../video-player-01/video-player-01";
 import type {
   RenderItemContext,
   Story,
