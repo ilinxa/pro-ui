@@ -179,45 +179,6 @@ function ReactionActionInner({
     <Smile className={cn(iconSizeClass, "transition-transform")} />
   );
 
-  // We use `<PopoverTrigger>` (not `<PopoverAnchor>`) because Anchor is only
-  // exported by the producer-side Radix popover — `shadcn@4.6.0 add popover`
-  // ships the Base UI variant, which does NOT export PopoverAnchor (F-cross-13).
-  // Trigger is exported by both. The trade-off: Trigger composes its built-in
-  // `onOpenToggle` click handler with ours via Slot merge. We compensate by
-  // overriding the auto-toggle with a microtask-scheduled `setPickerOpen(...)`
-  // in `handleIconClick` for tap-clear + long-press paths.
-  //
-  // Radix auto-sets aria-haspopup + aria-expanded + aria-controls via Slot;
-  // we only add aria-pressed (our own toggle state) and aria-label.
-  const triggerButton = (
-    <button
-      type="button"
-      aria-pressed={state.viewerReaction !== null}
-      aria-label={triggerAriaLabel}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={cancelLongPress}
-      onPointerCancel={cancelLongPress}
-      onClick={handleIconClick}
-      className={cn(
-        "inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium transition-colors",
-        "hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        "select-none touch-none",
-        state.viewerReaction !== null && "text-foreground",
-        // E10 — match like-action convention: non-split mode merges actionClassName
-        // into the button directly (no wrapping div).
-        !splitCount && actionClassName,
-      )}
-    >
-      {iconNode}
-      {showCount && !splitCount ? (
-        <span className="text-sm font-medium tabular-nums" aria-live="polite">
-          {format(totalCount)}
-        </span>
-      ) : null}
-    </button>
-  );
-
   const countButton =
     splitCount && showCount ? (
       <button
@@ -233,9 +194,39 @@ function ReactionActionInner({
       </button>
     ) : null;
 
+  // F-cross-13 deeper: Base UI's PopoverTrigger doesn't accept `asChild` (it
+  // uses a `render` prop pattern instead). Radix DOES accept asChild. Cross-
+  // compatible solution: render PopoverTrigger DIRECTLY as the button (both
+  // libraries render it as a `<button>` by default + pass through props). We
+  // drop our `<button>` wrapper + spread the button props onto PopoverTrigger.
+  // `triggerButton` is inlined here as PopoverTrigger's children.
   const popover = (
     <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-      <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+      <PopoverTrigger
+        type="button"
+        aria-pressed={state.viewerReaction !== null}
+        aria-label={triggerAriaLabel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+        onClick={handleIconClick}
+        className={cn(
+          "inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium transition-colors",
+          "hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "select-none touch-none",
+          state.viewerReaction !== null && "text-foreground",
+          // E10 — non-split mode merges actionClassName into the trigger button.
+          !splitCount && actionClassName,
+        )}
+      >
+        {iconNode}
+        {showCount && !splitCount ? (
+          <span className="text-sm font-medium tabular-nums" aria-live="polite">
+            {format(totalCount)}
+          </span>
+        ) : null}
+      </PopoverTrigger>
       <PopoverContent className="w-auto" align="start">
         <ReactionPicker
           kinds={action.kinds}

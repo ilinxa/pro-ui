@@ -51,7 +51,7 @@ export const meta: ComponentMeta = {
     "reactions",
   ],
 
-  version: "0.3.1",
+  version: "0.3.2",
   status: "alpha",
   createdAt: "2026-05-02",
   updatedAt: "2026-05-28",
