@@ -26,9 +26,13 @@ import { ViewerHeader } from "./parts/viewer-header";
 import { TapZones } from "./parts/tap-zones";
 import { NavArrows } from "./parts/nav-arrows";
 import { ItemView } from "./parts/item-view";
+import { MoreVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { EngagementOverlay } from "./parts/engagement-overlay";
 import { ReplyComposer } from "./parts/reply-composer";
 import { OwnerOverlay } from "./parts/owner-overlay";
+import { KebabPanel } from "./parts/kebab-panel";
+import { defaultStoryKebabActions } from "./lib/kebab";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
 
@@ -77,7 +81,41 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onLoadViewers,
     disableOwnerOverlay = false,
     renderOwnerOverlay,
-  } = props;
+    // v0.2.0 — kebab inputs (C6)
+    kebabActions,
+    moderatorActions,
+    // Kebab item handlers — flattened onto props (mirrors post-card-01 v0.2.0
+    // mutation-handler convention). All optional; gated by permissions matrix.
+    // Future: extract into a discrete StoryMutationHandlers interface.
+  } = props as typeof props & {
+    onSaveToHighlights?: (storyId: string) => void;
+    onDeleteStory?: (storyId: string) => void;
+    onShareToFeed?: (storyId: string) => void;
+    onReport?: (storyId: string) => void;
+    onBlockAuthor?: (authorId: string) => void;
+    onMuteAuthor?: (authorId: string) => void;
+    onCopyLink?: (storyId: string) => void;
+    isSavedToHighlights?: boolean;
+  };
+  const {
+    onSaveToHighlights,
+    onDeleteStory,
+    onShareToFeed,
+    onReport,
+    onBlockAuthor,
+    onMuteAuthor,
+    onCopyLink,
+    isSavedToHighlights,
+  } = props as {
+    onSaveToHighlights?: (storyId: string) => void;
+    onDeleteStory?: (storyId: string) => void;
+    onShareToFeed?: (storyId: string) => void;
+    onReport?: (storyId: string) => void;
+    onBlockAuthor?: (authorId: string) => void;
+    onMuteAuthor?: (authorId: string) => void;
+    onCopyLink?: (storyId: string) => void;
+    isSavedToHighlights?: boolean;
+  };
 
   // v0.2.0 labels shape: required for all keys EXCEPT the nested forwards
   // (engagementLabels + commentLabels) which stay optional — hosts opt-in.
@@ -156,7 +194,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         }
       },
       triggerShare: () => {},
-      openKebab: () => {},
+      openKebab: () => setKebabOpen(true),
     }),
     [goToStoryIndex, goToItemIndex, setPaused, setMuted, reset, dispatch],
   );
@@ -215,6 +253,65 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
 
   // ─── v0.2.0 reply composer ref (for focus + triggerReply handle method) ──
   const composerRef = useRef<CommentComposerHandle | null>(null);
+
+  // ─── v0.2.0 kebab state (C6) — shared between engagement-overlay placement + header fallback ──
+  const [kebabOpen, setKebabOpen] = useState(false);
+  // Close kebab on cursor change (so it doesn't persist across story navigation).
+  useEffect(() => {
+    setKebabOpen(false);
+  }, [cursor.storyIndex, cursor.itemIndex]);
+
+  // Resolved kebab items — kebabActions full-takeover wins; otherwise
+  // defaultStoryKebabActions assembles per permissions matrix + moderator section.
+  const kebabItems = useMemo(() => {
+    if (!currentStory || !currentItem) return [];
+    if (kebabActions) return kebabActions(currentStory, currentItem);
+    return defaultStoryKebabActions({
+      story: currentStory,
+      item: currentItem,
+      handlers: {
+        onSaveToHighlights,
+        onDeleteStory,
+        onShareToFeed,
+        onReport,
+        onBlockAuthor,
+        onMuteAuthor,
+        onCopyLink,
+        isSavedToHighlights,
+      },
+      labels: {
+        saveToHighlights: labels.saveToHighlights,
+        unsaveFromHighlights: labels.unsaveFromHighlights,
+        deleteStory: labels.deleteStory,
+        shareToFeed: labels.shareToFeed,
+        report: labels.report,
+        blockAuthor: labels.blockAuthor,
+        muteAuthor: labels.muteAuthor,
+        copyLink: labels.copyLink,
+      },
+      viewerMode,
+      permissions,
+      canPerformAction,
+      moderatorActions,
+    });
+  }, [
+    currentStory,
+    currentItem,
+    kebabActions,
+    onSaveToHighlights,
+    onDeleteStory,
+    onShareToFeed,
+    onReport,
+    onBlockAuthor,
+    onMuteAuthor,
+    onCopyLink,
+    isSavedToHighlights,
+    labels,
+    viewerMode,
+    permissions,
+    canPerformAction,
+    moderatorActions,
+  ]);
 
   // Resolved engagement actions for the current item (rebuilt per cursor change)
   const engagementOverlayMounted =
@@ -288,6 +385,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       onCommentClick: () => {
         composerRef.current?.focus();
       },
+      onKebabOpen: () => setKebabOpen(true),
+      kebabIcon: <MoreVertical className="h-5 w-5" />,
+      kebabLabel: labels.kebabAriaLabel,
       onShareClick: () => {
         onShareStory?.(currentStory!.id, currentItem!.id);
       },
@@ -436,6 +536,34 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             />
           )
         ) : null}
+
+        {/* v0.2.0 — header fallback kebab button (when disableEngagement OR
+            no viewerMode set with kebab items present). Rendered as plain
+            button to avoid F-cross-13 DropdownMenuTrigger trap. */}
+        {viewerMode && disableEngagement && kebabItems.length > 0 ? (
+          <div className="absolute right-16 top-4 z-25 md:right-20">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
+              onClick={() => setKebabOpen(true)}
+              aria-label={labels.kebabAriaLabel}
+            >
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </div>
+        ) : null}
+
+        {/* v0.2.0 — kebab bottom-sheet panel (shared by engagement-overlay
+            kebab + header fallback). Rendered only when kebabOpen + items
+            non-empty. */}
+        <KebabPanel
+          open={kebabOpen}
+          items={kebabItems}
+          onClose={() => setKebabOpen(false)}
+          labels={labels}
+        />
       </div>
     </ViewerShell>
   );
