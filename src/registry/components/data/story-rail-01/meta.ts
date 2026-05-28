@@ -31,6 +31,7 @@ export const meta: ComponentMeta = {
     "Tailwind v4-clean (no legacy class names)",
     "No new shadcn primitives — avatar already installed",
     "No framer-motion — CSS transitions only",
+    "v0.2.1 — usage.tsx docs patch: 3 stale positional `onItemClick(item, index)` snippets + 1 prose mention updated to object-shape `({ item, index })` (v0.2 contract). Zero code change.",
   ],
   tags: [
     "story-rail-01",
@@ -43,10 +44,10 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-05-03",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-05-28",
 
   author: { name: "ilinxa" },
 

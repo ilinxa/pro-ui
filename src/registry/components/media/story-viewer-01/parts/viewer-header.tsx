@@ -46,7 +46,7 @@ export function ViewerHeader({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
+          className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
           onClick={onTogglePause}
           aria-label={isPaused ? labels.play : labels.pause}
         >
@@ -57,7 +57,7 @@ export function ViewerHeader({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
+            className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
             onClick={onToggleMute}
             aria-label={isMuted ? labels.unmute : labels.mute}
             aria-pressed={isMuted}
@@ -69,7 +69,7 @@ export function ViewerHeader({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
+          className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
           onClick={onClose}
           aria-label={labels.close}
         >

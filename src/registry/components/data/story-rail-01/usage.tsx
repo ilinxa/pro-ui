@@ -7,9 +7,9 @@ export default function StoryRail01Usage() {
         rail at the top of a feed — kasder-style portrait thumbnails with a
         gradient ring (unread) or muted ring (read), drag-free skim-scroll, and
         edge-fade gradients. Decoupled from the viewer:{" "}
-        <code>onItemClick(item, index)</code> hands off to whatever your host
-        renders (your own viewer, the future <code>story-viewer-01</code>, a
-        navigation push, etc.).
+        <code>onItemClick({"{"} item, index {"}"})</code> hands off to whatever
+        your host renders (your own viewer, the future{" "}
+        <code>story-viewer-01</code>, a navigation push, etc.).
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
@@ -29,7 +29,7 @@ export default function StoryRail01Usage() {
 
 <StoryRail01
   items={stories}
-  onItemClick={(item, index) => openViewer(index)}
+  onItemClick={({ item, index }) => openViewer(index)}
 />`}</code>
       </pre>
 
@@ -50,7 +50,7 @@ export default function StoryRail01Usage() {
       onClick={() => openStoryComposer()}
     />
   }
-  onItemClick={(item, index) => openViewer(index)}
+  onItemClick={({ item, index }) => openViewer(index)}
 />`}</code>
       </pre>
 
@@ -88,7 +88,7 @@ const subscribe = useCallback<Subscribe<StoryRailDelta>>(
 <StoryRail01
   ref={railRef}
   items={stories}
-  onItemClick={(item, index) => {
+  onItemClick={({ item, index }) => {
     setActiveStoryIndex(index);
     setViewerOpen(true);
   }}
