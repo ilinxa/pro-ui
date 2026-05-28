@@ -84,6 +84,11 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     // v0.2.0 — kebab inputs (C6)
     kebabActions,
     moderatorActions,
+    // v0.2.0 — render slots for the 4 default parts (C7)
+    renderHeader,
+    renderProgress,
+    renderNavArrows,
+    renderTapZones,
     // Kebab item handlers — flattened onto props (mirrors post-card-01 v0.2.0
     // mutation-handler convention). All optional; gated by permissions matrix.
     // Future: extract into a discrete StoryMutationHandlers interface.
@@ -440,30 +445,45 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       ariaLabel={labels.viewerLabel}
       className={contentClassName}
     >
-      <NavArrows
-        canPrev={cursor.storyIndex > 0}
-        onPrev={goToPrevStory}
-        onNext={goToNextStory}
-        labels={labels}
-      />
-
-      <div className={cn("relative h-full w-full bg-black", className)}>
-        <ProgressBars
-          items={currentStory.items}
-          currentItemIndex={cursor.itemIndex}
-          progress={progress}
-        />
-        <ViewerHeader
-          story={currentStory}
-          item={currentItem}
-          isPaused={isPaused}
-          isMuted={isMuted}
-          onTogglePause={() => setPaused((p) => !p)}
-          onToggleMute={() => setMuted((m) => !m)}
-          onClose={onClose}
-          formatTime={labels.formatTime}
+      {/* v0.2.0 C7 — renderNavArrows slot wins as full takeover. */}
+      {renderNavArrows ? (
+        renderNavArrows(slotHelpers)
+      ) : (
+        <NavArrows
+          canPrev={cursor.storyIndex > 0}
+          onPrev={goToPrevStory}
+          onNext={goToNextStory}
           labels={labels}
         />
+      )}
+
+      <div className={cn("relative h-full w-full bg-black", className)}>
+        {/* v0.2.0 C7 — renderProgress slot wins as full takeover. */}
+        {renderProgress ? (
+          renderProgress(currentStory.items, cursor.itemIndex, progress, slotHelpers)
+        ) : (
+          <ProgressBars
+            items={currentStory.items}
+            currentItemIndex={cursor.itemIndex}
+            progress={progress}
+          />
+        )}
+        {/* v0.2.0 C7 — renderHeader slot wins as full takeover. */}
+        {renderHeader ? (
+          renderHeader(currentStory, currentItem, slotHelpers)
+        ) : (
+          <ViewerHeader
+            story={currentStory}
+            item={currentItem}
+            isPaused={isPaused}
+            isMuted={isMuted}
+            onTogglePause={() => setPaused((p) => !p)}
+            onToggleMute={() => setMuted((m) => !m)}
+            onClose={onClose}
+            formatTime={labels.formatTime}
+            labels={labels}
+          />
+        )}
         <ItemView
           item={currentItem}
           story={currentStory}
@@ -476,11 +496,16 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           renderItem={renderItem}
           labels={labels}
         />
-        <TapZones
-          onPrev={goToPrevItem}
-          onTogglePause={() => setPaused((p) => !p)}
-          onNext={goToNextItem}
-        />
+        {/* v0.2.0 C7 — renderTapZones slot wins as full takeover. */}
+        {renderTapZones ? (
+          renderTapZones(slotHelpers)
+        ) : (
+          <TapZones
+            onPrev={goToPrevItem}
+            onTogglePause={() => setPaused((p) => !p)}
+            onNext={goToNextItem}
+          />
+        )}
 
         {/* v0.2.0 — engagement overlay (TikTok/Reels-style stacked right edge).
             Renders only when viewerMode="viewer" + !disableEngagement.
