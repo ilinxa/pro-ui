@@ -43,7 +43,7 @@ export const meta: ComponentMeta = {
   dependencies: {
     shadcn: ["dialog", "avatar", "button"],
     npm: { "lucide-react": "^1.11.0" },
-    internal: ["video-player-01", "engagement-bar-01"],
+    internal: ["video-player-01", "engagement-bar-01", "comment-thread-01"],
   },
 
   related: ["story-rail-01", "video-player-01", "media-carousel-01", "post-card-01"],

@@ -1253,7 +1253,12 @@
         { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-viewer-state.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-viewer-state.ts" },
         { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-progress.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-progress.ts" },
         { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-keyboard-nav.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-keyboard-nav.ts" },
-        { "path": "src/registry/components/media/story-viewer-01/lib/format-time.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/format-time.ts" }
+        { "path": "src/registry/components/media/story-viewer-01/hooks/use-story-engagement-state.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-story-engagement-state.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/lib/format-time.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/format-time.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/lib/permissions.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/permissions.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/lib/engagement-actions.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/engagement-actions.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/engagement-overlay.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/engagement-overlay.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/reply-composer.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/reply-composer.tsx" }
       ]
     },
     {
