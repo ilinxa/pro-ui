@@ -24,7 +24,6 @@ export function ViewerShell({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
         aria-label={ariaLabel}
         aria-describedby={undefined}
         className={cn(
@@ -34,6 +33,14 @@ export function ViewerShell({
           "h-dvh w-screen max-w-none rounded-none",
           // Desktop: portrait modal centered (kasder-exact 400×700).
           "md:h-175 md:w-100 md:max-w-100 md:rounded-2xl",
+          // F-cross-13 — suppress the dialog's default close button across
+          // both producer (Radix v4 with showCloseButton toggle) and consumer
+          // (older Radix that always renders a direct-child button). The
+          // default close button (in both backends) is rendered as a direct
+          // `<button class="absolute …">` child positioned top-right; the
+          // viewer ships its own close affordance inside ViewerHeader (which
+          // is wrapped in a div, so this selector doesn't hit it).
+          "[&>button.absolute]:hidden",
           className,
         )}
       >
