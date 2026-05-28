@@ -26,6 +26,7 @@ export type {
   EngagementDelta,
   EngagementLikeUser,
   EngagementLikerProfile,
+  EngagementReactionKind,
   EngagementState,
   EngagementLocalAction,
   Subscribe,

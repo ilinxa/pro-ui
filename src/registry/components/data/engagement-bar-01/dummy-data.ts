@@ -7,21 +7,28 @@ import type {
 
 const noop = () => {};
 
+// Demo data uses UNCONTROLLED mode (no explicit `liked` / `bookmarked` fields)
+// so clicks visibly flip via the bar's internal mirror. Passing `liked: false`
+// would put the action in CONTROLLED mode (action.liked !== undefined), which
+// means the host owns the value — clicks dispatch nothing visible because the
+// noop callback doesn't update a host-side state. Pre-existing demos passed
+// these explicit-false fields, which silently disabled interactivity. v0.3.0
+// fix: drop them; let the internal mirror drive.
 export const DUMMY_POST_ENGAGEMENT: EngagementAction[] = [
-  { kind: "like", count: 142, liked: false, onToggle: noop },
+  { kind: "like", count: 142, onToggle: noop },
   { kind: "comment", count: 23, onClick: noop },
   { kind: "share", count: 8, onClick: noop },
-  { kind: "bookmark", bookmarked: false, onToggle: noop },
+  { kind: "bookmark", onToggle: noop },
 ];
 
 export const DUMMY_NEWS_CARD_ENGAGEMENT: EngagementAction[] = [
-  { kind: "like", count: 56, liked: false, onToggle: noop },
+  { kind: "like", count: 56, onToggle: noop },
   { kind: "share", onClick: noop },
-  { kind: "bookmark", bookmarked: true, onToggle: noop },
+  { kind: "bookmark", onToggle: noop },
 ];
 
 export const DUMMY_VIDEO_ENGAGEMENT_STACKED: EngagementAction[] = [
-  { kind: "like", count: 1234, liked: true, onToggle: noop },
+  { kind: "like", count: 1234, onToggle: noop },
   { kind: "comment", count: 87, onClick: noop },
   { kind: "share", count: 12, onClick: noop },
   { kind: "view-count", count: 12_345 },

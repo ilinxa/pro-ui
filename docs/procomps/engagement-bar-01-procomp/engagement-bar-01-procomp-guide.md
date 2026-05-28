@@ -302,6 +302,89 @@ function LikersStrip({ users, totalCount }) {
 
 The slot renders below the action row when provided. The bar doesn't ship a `LikersStrip` of its own — hosts wire whatever pattern fits (avatar pile, popover with full list, "+12 others" pill).
 
+### 11. FB-style multi-kind reactions (v0.3.0)
+
+`kind: "reaction"` ships the LinkedIn / Facebook pattern: one reaction per viewer per content item, picked from a host-supplied catalog.
+
+```tsx
+import { Heart, Laugh, PartyPopper, Frown, Angry } from "lucide-react";
+import type { EngagementReactionKind } from "@ilinxa/engagement-bar-01";
+
+const REACTION_KINDS: EngagementReactionKind[] = [
+  { key: "love",  icon: <Heart className="h-5 w-5 fill-current" />, label: "Love",  count: 124, color: "#e0245e" },
+  { key: "laugh", icon: <Laugh className="h-5 w-5" />,              label: "Laugh", count: 38,  color: "#f7b928" },
+  { key: "wow",   icon: <PartyPopper className="h-5 w-5" />,        label: "Wow",   count: 12,  color: "#9b59b6" },
+  { key: "sad",   icon: <Frown className="h-5 w-5" />,              label: "Sad",   count: 5,   color: "#5b9bd5" },
+  { key: "angry", icon: <Angry className="h-5 w-5" />,              label: "Angry", count: 2,   color: "#e74c3c" },
+];
+
+<EngagementBar01
+  actions={[
+    {
+      kind: "reaction",
+      kinds: REACTION_KINDS,
+      totalCount: 181,
+      onSelect: (kind) => updatePostReaction(post.id, kind), // null clears
+      onCountClick: () => openReactorsPanel(post.id),
+      // viewerReaction: "love",        // optional — sets controlled mode
+      // clearOnTap: false,             // FB-Reactions parity (tap opens picker, no clear)
+    },
+    { kind: "comment", count: 28, onClick: openComments },
+    { kind: "share",   count: 11, onClick: openShareSheet },
+    { kind: "bookmark", onToggle: toggleBookmark },
+  ]}
+  reactionsPreview={<ReactorsPreview />}
+/>
+```
+
+**Interaction model:**
+
+| State | Tap | Long-press (≥350ms) |
+|---|---|---|
+| `viewerReaction = null` | Open picker | Open picker |
+| `viewerReaction = "love"`, `clearOnTap: true` (default) | Clear → `onSelect(null)` | Open picker |
+| `viewerReaction = "love"`, `clearOnTap: false` | Open picker | Open picker |
+
+The picker shows all kinds in a horizontal row with full colors + per-kind live counts; a Remove (`×`) button appears on the right when a reaction is set.
+
+**Q-PP-4 source-of-truth rule.** After mount, `state.reactionCounts[k.key]` is the live tally; `kinds[i].count` is the SEED only. Optimistic picks update the mirror, server `reaction-changed` deltas replace it. Host-supplied `kinds` array per re-render does NOT re-init counts (that would erase optimistic flips).
+
+**Controlled `viewerReaction`.** Passing `viewerReaction` (string OR explicit `null`) puts the action in controlled mode — host owns the value. Defense 2 syncs internal state to controlled changes (prevents stale state across mode transitions). Counts are NEVER controlled — backend updates them via `reaction-changed` deltas, host renders the array.
+
+**Hybrid with `kind: "like"`** (Q-P3 lock — supported pattern):
+
+```tsx
+<EngagementBar01
+  actions={[
+    { kind: "like", count: 67, onToggle: toggleLike },
+    {
+      kind: "reaction",
+      kinds: REACTION_KINDS,
+      totalCount: 181,
+      onSelect: updatePostReaction,
+    },
+    { kind: "comment", count: 14, onClick: openComments },
+  ]}
+/>
+```
+
+Library does NOT enforce mutual exclusion — both render in array order, interact independently. Use for products that want classic thumbs-up alongside emoji-reactions.
+
+**Reactors preview slot.** `reactionsPreview?: ReactNode` is parallel to `likersPreview` — rendered below the action row in all 3 variants. When both are passed, `likersPreview` renders first, then `reactionsPreview`. Host owns the markup (avatar pile / "X reacted" pill / popover trigger).
+
+**Imperative handle additions:**
+
+```tsx
+const barRef = useRef<EngagementBar01Handle>(null);
+
+// Programmatically set the viewer's reaction (validates `kind` is in the catalog or null).
+barRef.current?.triggerReaction("laugh");
+barRef.current?.triggerReaction(null);    // clear
+
+// Convenience read.
+const current = barRef.current?.getCurrentReaction(); // string | null
+```
+
 ## Anti-patterns
 
 | Don't | Why |
@@ -339,10 +422,10 @@ The burst CSS needs to travel with the component. Three options: (A) inline `<st
 
 ## Limitations / caveats
 
-- **No reaction emojis** (Facebook-style 6-emoji popover on long-press of like). Out of scope for v0.1; would be `kind: "reaction"` if added.
 - **No built-in share menu** (copy-link / share-to-X). `share.onClick` opens the host's menu / native share sheet.
-- **No animated count rolling** (digit-by-digit slot machine). Counts flip via instant CSS transform. v0.2 candidate if requested.
-- **No long-press detection.** Click + double-tap (via host) only.
+- **No animated count rolling** (digit-by-digit slot machine). Counts flip via instant CSS transform. v0.4+ candidate if requested.
+- **Long-press is reaction-specific** (350ms on the reaction action opens the picker). Not generalized across other actions.
+- **Controlled `viewerReaction` + realtime delta race:** when the host has `viewerReaction` controlled AND a server `reaction-changed` delta arrives carrying a NEW viewer kind, the bar updates its internal state but the effective overlay shows the host's still-stale controlled value briefly. Host MUST process the delta (via `onSubscribeDelta`) and reflect it in their state — Defense 2 then catches up on the next render. Acceptable for the controlled+realtime combo; uncontrolled hosts are unaffected.
 - **No per-action analytics auto-fire.** Wire your own analytics inside `onToggle` / `onClick` / `onSubscribeDelta`.
 - **`kind: "view-count"` is display-only.** No `onClick`. View counts aren't user-actionable.
 - **First-render of a stacked variant on the server**: layout SSRs correctly; `aria-pressed` reflects the initial `liked` / `bookmarked` props. Subscribe deltas fire only after hydration (client-only).
@@ -357,16 +440,18 @@ The burst CSS needs to travel with the component. Three options: (A) inline `<st
 - [`content-card-news-01`](../content-card-news-01-procomp/) — earlier ship; gets `engagement-bar-01` retrofitted into its `actions` slot for instant social upgrade.
 - [`event-card-01`](../event-card-01-procomp/) — earlier ship; same retrofit path.
 
-## v0.2 candidates
+## v0.4+ candidates
 
-- Reaction emojis (`kind: "reaction"` with multi-emoji popover)
 - Animated count roll (digit-by-digit slot machine)
 - `kind: "share"` with built-in share menu (copy-link / native share sheet)
 - Per-action analytics hook (`onAnalyticsEvent?: (kind, payload) => void`)
-- Long-press detection for power-user actions
-- Sibling `<LikersStrip>` part if 3+ consumers reach for the same Embla pattern
+- General long-press detection across all actions (currently reaction-only)
+- FB-style picker open animation (bouncy hover-burst); v0.3 ships fade-in only
 - Optional ARIA `aria-describedby` linking like-count to a visually-hidden "X people liked this" string for richer screen-reader output
 - `kind: "tip"` (creator monetization — opens a tip sheet)
+- Comment reactions (reactions on individual comments — `comment-thread-01` extension)
+
+**Delivered in v0.3.0** (was on the v0.2 candidates list): reaction emojis (`kind: "reaction"` with multi-kind picker, host-supplied `kinds` catalog, configurable `clearOnTap`, hybrid-with-like coexistence), long-press detection (reaction-specific), `<LikersStrip>` and `<ShareMenu>` were delivered in v0.2.0.
 
 ## Cross-folder import contract
 
