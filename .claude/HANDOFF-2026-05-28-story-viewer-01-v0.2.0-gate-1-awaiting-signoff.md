@@ -6,8 +6,9 @@
 
 ## Tip + working tree
 
-- **git tip:** `c229be3` (`fix(post-card-01): v0.3.2 — inline PostMediaItem to dodge cross-cat /types rewriter bug`).
-- **Working tree:** clean after this commit lands. (This commit itself bundles the GATE 1 description + STATUS update + handoff — see "Commits in this state-lock" below.)
+- **git tip:** `27d9518` (`docs(status): session-close state-lock for story-viewer-01 v0.2.0 GATE 1 awaiting sign-off`).
+- **Prior tip (pre-state-lock):** `c229be3` (`fix(post-card-01): v0.3.2 — inline PostMediaItem to dodge cross-cat /types rewriter bug`).
+- **Working tree:** clean post-commit.
 
 ## What just happened in this session
 
@@ -119,4 +120,4 @@ No code changes. No version bumps. Pure planning artifact + state-lock.
 
 ---
 
-**Status:** ✅ State locked. Working tree clean post-commit. cms-panel-01 GATE 1 in-flight unchanged. Tip will become `<new SHA>` after this commit lands.
+**Status:** ✅ State locked. Working tree clean post-commit. cms-panel-01 GATE 1 in-flight unchanged. Tip = `27d9518`.
