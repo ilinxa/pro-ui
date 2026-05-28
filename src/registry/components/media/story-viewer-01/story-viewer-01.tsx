@@ -101,20 +101,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     longPressThresholdMs,
     linkComponent,
     onLinkClick,
-    // Kebab item handlers — flattened onto props (mirrors post-card-01 v0.2.0
-    // mutation-handler convention). All optional; gated by permissions matrix.
-    // Future: extract into a discrete StoryMutationHandlers interface.
-  } = props as typeof props & {
-    onSaveToHighlights?: (storyId: string) => void;
-    onDeleteStory?: (storyId: string) => void;
-    onShareToFeed?: (storyId: string) => void;
-    onReport?: (storyId: string) => void;
-    onBlockAuthor?: (authorId: string) => void;
-    onMuteAuthor?: (authorId: string) => void;
-    onCopyLink?: (storyId: string) => void;
-    isSavedToHighlights?: boolean;
-  };
-  const {
+    // v0.2.0 — kebab item handlers (mirrors post-card-01 v0.2.0; flattened
+    // on Props rather than a discrete StoryMutationHandlers interface). All
+    // optional; gated by the permissions matrix in defaultStoryKebabActions.
     onSaveToHighlights,
     onDeleteStory,
     onShareToFeed,
@@ -123,16 +112,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onMuteAuthor,
     onCopyLink,
     isSavedToHighlights,
-  } = props as {
-    onSaveToHighlights?: (storyId: string) => void;
-    onDeleteStory?: (storyId: string) => void;
-    onShareToFeed?: (storyId: string) => void;
-    onReport?: (storyId: string) => void;
-    onBlockAuthor?: (authorId: string) => void;
-    onMuteAuthor?: (authorId: string) => void;
-    onCopyLink?: (storyId: string) => void;
-    isSavedToHighlights?: boolean;
-  };
+  } = props;
 
   // v0.2.0 labels shape: required for all keys EXCEPT the nested forwards
   // (engagementLabels + commentLabels) which stay optional — hosts opt-in.
@@ -183,6 +163,14 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     storiesRef.current = stories;
     cursorRef.current = cursor;
   });
+  // Forward-ref-stable handlers for the v0.2.0 trigger* handle methods.
+  // The methods need to read the CURRENT story/item/engagement state at call
+  // time (not the closure snapshot from when the handle was first created),
+  // so we mirror them through refs to keep the handle's identity stable.
+  const triggerLikeRef = useRef<() => void>(() => {});
+  const triggerReactionRef = useRef<(kind?: string) => void>(() => {});
+  const triggerShareRef = useRef<() => void>(() => {});
+
   useImperativeHandle(
     ref,
     () => ({
@@ -197,13 +185,12 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       getCurrentStories: () => storiesRef.current,
       reset,
       dispatch,
-      // v0.2.0 additions — stubbed no-ops in C1 (types-only commit). Real
-      // implementations wire in C3 (triggerLike/triggerReaction/triggerShare
-      // via engagement-overlay ref), C4 (triggerReply via composer ref + focus),
-      // C6 (openKebab via kebab open state), and C10 (setMuted via setMuted setter).
+      // v0.2.0 additions — wired through refs so the handle stays stable
+      // while the underlying handlers re-resolve on every render against
+      // the latest cursor + engagement state.
       setMuted: (muted: boolean) => setMuted(muted),
-      triggerLike: () => {},
-      triggerReaction: (_kind?: string) => {},
+      triggerLike: () => triggerLikeRef.current(),
+      triggerReaction: (kind?: string) => triggerReactionRef.current(kind),
       triggerReply: (content?: string) => {
         composerRef.current?.focus();
         if (content) {
@@ -211,7 +198,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           // Future enhancement: extend Handle with setValue method.
         }
       },
-      triggerShare: () => {},
+      triggerShare: () => triggerShareRef.current(),
       openKebab: () => setKebabOpen(true),
     }),
     [goToStoryIndex, goToItemIndex, setPaused, setMuted, reset, dispatch],
@@ -440,6 +427,39 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onShareStory,
     onBookmarkStory,
   ]);
+
+  // v0.2.0 — wire trigger* refs to live handlers each render. These bypass
+  // the permissions matrix (the matrix gates UI affordances; the handle is
+  // the programmatic escape hatch). No-op when no story/item is current.
+  useEffect(() => {
+    triggerLikeRef.current = () => {
+      if (!currentStory || !currentItem) return;
+      const state = getEngagementState(currentStory.id, currentItem.id);
+      const nextLiked = !state.liked;
+      dispatchEngagement({
+        kind: "like-toggle",
+        storyId: currentStory.id,
+        itemId: currentItem.id,
+        nextLiked,
+      });
+      onLikeStory?.(currentStory.id, currentItem.id, nextLiked);
+    };
+    triggerReactionRef.current = (kind?: string) => {
+      if (!currentStory || !currentItem) return;
+      const nextKind = kind ?? null;
+      dispatchEngagement({
+        kind: "reaction-select",
+        storyId: currentStory.id,
+        itemId: currentItem.id,
+        reactionKind: nextKind,
+      });
+      onReactStory?.(currentStory.id, currentItem.id, nextKind);
+    };
+    triggerShareRef.current = () => {
+      if (!currentStory || !currentItem) return;
+      onShareStory?.(currentStory.id, currentItem.id);
+    };
+  });
 
   const handleOpenChange = useCallback(
     (open: boolean) => {

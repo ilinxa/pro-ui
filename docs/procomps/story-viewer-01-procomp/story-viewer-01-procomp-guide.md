@@ -263,6 +263,161 @@ This is the canonical Tier-3 wiring for the social-posts-system arc — story-ra
 - **Audio-only stories / podcast items** — image + video only.
 - **Virtualization** — single item rendered at a time; non-issue.
 
+## v0.2.0 — engagement layer (additive)
+
+v0.2.0 stays **fully backwards-compatible** with v0.1 — every v0.2.0 surface
+is opt-in (gated on `viewerMode` being set + per-feature disable flags).
+Drop-in for an existing v0.1 consumer is zero-change.
+
+### Role-aware mode (`viewerMode`)
+
+Two modes opt the engagement layer in:
+
+```tsx
+<StoryViewer01
+  viewerMode="viewer"  // or "owner"
+  currentUser={{ id, name, avatar }}
+  reactionKinds={[/* host-supplied */]}
+  // ...
+/>
+```
+
+Mode is **explicit-only** — the library does NOT auto-derive owner mode from
+`currentUser.id === story.userId`. Hosts pick the mode because identity models
+vary (mirrors post-card-01 v0.3.0 resolver).
+
+Mode-derived defaults can be overridden two ways:
+
+1. `permissions` matrix — per-field booleans (`canReact`, `canDeleteStory`, …)
+2. `canPerformAction(action, story, item)` — universal predicate, wins over both
+
+Resolution order: predicate → matrix → mode defaults. Returning `undefined` from
+the predicate falls through.
+
+### Engagement overlay
+
+Mounts in `viewerMode="viewer"` (`disableEngagement` opts out). Composes
+`@ilinxa/engagement-bar-01` `variant="stacked"` on the viewer's right edge:
+
+- **like** — toggles via `onLikeStory`
+- **reaction** — picker over host-supplied `reactionKinds`; fires `onReactStory`
+- **comment** — focuses the reply composer
+- **share** — fires `onShareStory`
+- **bookmark** — fires `onBookmarkStory`
+- **kebab** — 6th item, opens the bottom-sheet (Instagram-2024 placement)
+
+`renderEngagementOverlay` slot wins as full takeover.
+
+### Reply composer
+
+Mounts in `viewerMode="viewer"` (`disableReplyComposer` opts out). Composes
+`@ilinxa/comment-thread-01`'s `CommentComposer`. Auto-pauses on first character
+typed; resumes on submit / cancel / blur. When `currentUser` is absent, the
+composer is hidden and `composerEmptyState` (a ReactNode) is rendered in its
+place.
+
+### Owner overlay
+
+Mounts in `viewerMode="owner"` (`disableOwnerOverlay` opts out). Hybrid loader:
+
+- `story.viewerCount` (cheap number) → shows immediately as a chip
+- `story.viewers?: ViewerListItem[]` → optional eager seed
+- `onLoadViewers(storyId)` → lazy fetch on chip tap (LikersStrip is reused)
+
+Tap the chip to expand → fetch fires if no eager seed.
+
+### Kebab placement
+
+Default: 6th item of the engagement overlay (Instagram-2024). When
+`disableEngagement` is set, the kebab falls back to the header right cluster
+(plain button — no DropdownMenu trap surface).
+
+`kebabActions` (full takeover) and `moderatorActions` (insert with auto-divider)
+control content. Default assembly in `lib/kebab.ts::defaultStoryKebabActions`
+consults the permissions matrix.
+
+### Render slots (v0.2.0: 1 → 7)
+
+Each slot receives `StoryViewerSlotHelpers` (cursor / pause / mute / nav /
+labels) for full takeover:
+
+- `renderHeader`
+- `renderProgress`
+- `renderNavArrows`
+- `renderTapZones`
+- `renderEngagementOverlay`
+- `renderReplyComposer`
+- `renderOwnerOverlay`
+
+(`renderItem` from v0.1 is unchanged — distinct from the v0.2.0 slots above.)
+
+### Disable opt-outs (v0.2.0: 8 flags)
+
+Each suppresses its surface entirely; flags compose freely:
+
+| Flag | Effect |
+|---|---|
+| `disableTapZones` | No tap zones (keyboard + arrows still work) |
+| `disableKeyboardNav` | Keyboard listener never attaches |
+| `disableNavArrows` | No desktop ← → arrows |
+| `disableAutoClose` | `onAutoCloseAtEnd` fires; viewer stays open at last item |
+| `disableProgressBars` | No segmented bars (timer still runs) |
+| `disableEngagement` | No overlay; kebab moves to header |
+| `disableReplyComposer` | No composer in viewer mode |
+| `disableOwnerOverlay` | No view-count chip / viewers panel in owner mode |
+
+### Long-press pause (additive)
+
+Hold anywhere on the viewer past `longPressThresholdMs` (default 200ms — the
+Instagram-feel) to pause; release to resume. Short taps continue to flow
+through the tap zones unchanged, so v0.1 middle-tap-pause keeps working as the
+desktop fallback (Q-V8 lock).
+
+### `StoryItem.link` CTA
+
+Items with `link: { url, cta? }` render a bottom button:
+
+```tsx
+{
+  id: "promo-1",
+  type: "image",
+  src: "...",
+  link: { url: "https://example.com/shop", cta: "Shop now" },
+}
+```
+
+`linkComponent` (default `"a"`) is polymorphic — pass Next.js `<Link>` for
+client-side nav. `onLinkClick(storyId, itemId, url)` fires before navigation
+(host can preventDefault if needed).
+
+### Imperative handle additions
+
+```ts
+handle.setMuted(true)         // parity with setPaused
+handle.triggerLike()          // toggles current like state
+handle.triggerReaction("love") // selects a reaction kind (or null to clear)
+handle.triggerReply("draft")  // focuses composer (setValue stubbed in v0.2.0)
+handle.triggerShare()         // fires onShareStory
+handle.openKebab()            // opens the kebab bottom-sheet
+```
+
+trigger* methods **bypass** the permissions matrix — the matrix gates UI
+affordances; the handle is the programmatic escape hatch.
+
+### Realtime — `engagementSubscribe`
+
+Per-item like / reaction / reply / view-count deltas stream through a
+**separate** subscription from the v0.1 `subscribe` (which stays scoped to
+story-list mutations). Asymmetric naming preserved for zero v0.1 breakage
+(Q-V16 lock):
+
+```tsx
+<StoryViewer01
+  subscribe={storyListStream}              // v0.1 — StoryViewerDelta
+  engagementSubscribe={engagementStream}   // v0.2.0 — StoryEngagementDelta
+/>
+```
+
 ## Cross-folder import contract
 
 When this component composes another registry component (cross-folder import), it imports only from the OTHER component's `<slug>.tsx` file — never from `lib/`, `hooks/`, or `parts/` sub-folders. Conversely, when other registry components compose `story-viewer-01`, they import only from `story-viewer-01.tsx`.

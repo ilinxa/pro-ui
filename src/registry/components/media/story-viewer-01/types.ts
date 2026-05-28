@@ -595,6 +595,36 @@ export interface StoryViewer01Props {
    */
   moderatorActions?: (story: Story, item: StoryItem) => StoryKebabMenuItem[];
 
+  // ─── v0.2.0 — kebab item handlers (mirrors post-card-01 v0.2.0) ──────
+  //
+  // Flattened onto Props (rather than a discrete StoryMutationHandlers
+  // interface) to match the post-card-01 mutation-handler convention. Each
+  // handler is optional; the default kebab assembly in
+  // `lib/kebab.ts::defaultStoryKebabActions` consults the permissions matrix
+  // before deciding which items to render, so a wired handler only surfaces
+  // its kebab item when the matrix allows it.
+
+  /** Owner action — save the current story to highlights. */
+  onSaveToHighlights?: (storyId: string) => void;
+  /** Owner action — delete the current story. */
+  onDeleteStory?: (storyId: string) => void;
+  /** Owner action — re-share the current story to the main feed. */
+  onShareToFeed?: (storyId: string) => void;
+  /** Viewer action — report the current story to moderators. */
+  onReport?: (storyId: string) => void;
+  /** Viewer action — block the story author. */
+  onBlockAuthor?: (authorId: string) => void;
+  /** Viewer action — mute the story author. */
+  onMuteAuthor?: (authorId: string) => void;
+  /** Viewer action — copy a deep link to the current story. */
+  onCopyLink?: (storyId: string) => void;
+  /**
+   * Owner side — whether the current story is already saved to highlights.
+   * Drives the default kebab item label toggle
+   * (`saveToHighlights` ↔ `unsaveFromHighlights`).
+   */
+  isSavedToHighlights?: boolean;
+
   // ─── v0.2.0 — engagement overlay configuration ────────────────────────
 
   /**
