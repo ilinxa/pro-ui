@@ -147,7 +147,7 @@ const commentSubscribe = useCallback<Subscribe<CommentDelta>>(
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
-        Custom kebab actions (moderator surfaces)
+        Custom kebab actions (full takeover)
       </h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<PostCard01
@@ -160,6 +160,51 @@ const commentSubscribe = useCallback<Subscribe<CommentDelta>>(
   ]}
 />`}</code>
       </pre>
+      <p className="text-muted-foreground">
+        <code>kebabActions</code> is full-takeover — it bypasses the role-aware
+        default assembly entirely. For an <em>additive</em> moderator section
+        on top of the default kebab, use <code>moderatorActions</code> below.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        v0.3.0 — Moderator section (ILX-3)
+      </h3>
+      <p className="text-muted-foreground">
+        Moderation is orthogonal to <code>viewerMode</code> — a moderator is
+        usually a viewer (or sometimes an owner) with extra capability. Opt
+        the viewer in via <code>permissions.canModerate: true</code> (or the
+        universal <code>canPerformAction(&quot;moderate&quot;, post)</code>{" "}
+        predicate) AND supply the menu items via{" "}
+        <code>moderatorActions(post)</code>. The library renders them as a
+        section between common items (Bookmark / Share / Copy link / Translate)
+        and viewer-destructive items (Mute / Block / Report), with a divider
+        above. Setting <code>kebabActions</code> still wins (full takeover).
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<PostCard01
+  variant="feed"
+  post={post}
+  currentUser={viewer}
+  viewerMode="viewer"
+  permissions={{ canModerate: viewer.role === "mod" || viewer.role === "admin" }}
+  moderatorActions={(p) => [
+    { label: "Feature post", icon: <Star className="h-4 w-4" />, onClick: () => api.feature(p.id) },
+    { label: "Lock comments", icon: <Lock className="h-4 w-4" />, onClick: () => api.lockThread(p.id) },
+    { label: "Remove post", icon: <Trash2 className="h-4 w-4" />, destructive: true, onClick: () => api.removePost(p.id) },
+  ]}
+  // viewer-side defaults still resolve:
+  onReport={api.report}
+  onBlockAuthor={api.block}
+  onMuteAuthor={api.mute}
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        Resolution: <code>moderatorActions</code> runs only when{" "}
+        <code>canPerformAction(&quot;moderate&quot;, post)</code> returns true
+        (wins) OR <code>permissions.canModerate === true</code>. Default for
+        both viewer modes is <code>false</code> — moderators must be opted in
+        explicitly; never auto-derived from <code>viewerMode</code>.
+      </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">i18n</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
@@ -201,6 +246,14 @@ const commentSubscribe = useCallback<Subscribe<CommentDelta>>(
           Default kebab is &quot;Bookmark / Share / Copy link / Report&quot; —
           each item only appears when its handler is wired (or for Copy link,
           when <code>getHref</code> is provided).
+        </li>
+        <li>
+          v0.3.0 — <code>moderatorActions(post)</code> +{" "}
+          <code>permissions.canModerate</code> +{" "}
+          <code>&quot;moderate&quot;</code> action discriminator. Orthogonal to
+          <code> viewerMode</code> (never auto-derived). The section sits between
+          common items and viewer-destructive items with a divider above.
+          <code> kebabActions</code> full-takeover still wins.
         </li>
         <li>
           The split heart-vs-count behavior comes from{" "}

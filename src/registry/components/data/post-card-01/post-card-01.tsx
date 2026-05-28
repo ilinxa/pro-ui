@@ -137,6 +137,7 @@ function PostCard01Inner(props: PostCard01Props) {
     engagementActions: engagementActionsSlot,
     renderEngagementBar,
     kebabActions,
+    moderatorActions,
     commentActions,
     renderCommentSection,
 
@@ -393,6 +394,7 @@ function PostCard01Inner(props: PostCard01Props) {
         onMuteAuthor,
       },
       onTranslate,
+      moderatorActions,
     );
   }, [
     kebabActions,
@@ -417,6 +419,7 @@ function PostCard01Inner(props: PostCard01Props) {
     onBlockAuthor,
     onMuteAuthor,
     onTranslate,
+    moderatorActions,
   ]);
 
   // ─── State + refs ───

@@ -26,6 +26,7 @@ export const meta: ComponentMeta = {
     "v0.2.0 — Responsive sweep: padding / avatar / body-text / list-thumb step at sm / md / lg per description §2.1-B; touch targets ≥44×44 (kebab fixed)",
     "v0.2.0 — engagement-bar-01 v0.2.x dependency (LikersStrip + ShareMenu sub-exports re-exported here for soft-compat)",
     "v0.2.0 — Imperative handle gains 5 trigger methods: triggerEdit / triggerDelete / triggerPin / revealSensitive / votePoll",
+    "v0.3.0 — Moderator section in kebab (ILX-3): `moderatorActions(post)` slot + `canModerate` permission + `\"moderate\"` action discriminator. Orthogonal to viewerMode (never auto-derived). Renders between common items and viewer-destructive items with a divider above.",
     "LikersStrip part — horizontal swipable avatar strip + paginating +N pill (touch swipe + desktop drag-to-scroll)",
     "ShareMenu part — searchable user picker; local filter when no async wired, optional onShareSearch for backend search",
     "Auto-wired canonical heart-burst on double-tap (heuristic; disableHeartBurst opt-out)",
@@ -63,10 +64,10 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.2.1",
+  version: "0.3.0",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-27",
+  updatedAt: "2026-05-28",
 
   author: { name: "ilinxa" },
 

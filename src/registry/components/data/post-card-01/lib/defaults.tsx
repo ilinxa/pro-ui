@@ -151,6 +151,14 @@ export function defaultPostKebabActions(
   ) => boolean | undefined,
   mutationHandlers?: Partial<PostMutationHandlers>,
   onTranslate?: (postId: string, sourceLanguage: string) => void,
+  /**
+   * v0.3.0 — supplier for the moderator section. Items render between common
+   * items and viewer-destructive items, with `separatorBefore: true` injected
+   * on the first item so the host kebab renders a divider above the group.
+   * Gated by `canDo("moderate")` — host opts the viewer in via
+   * `permissions.canModerate` or `canPerformAction("moderate", post)`.
+   */
+  moderatorActions?: (post: Post) => CommentMenuItem[],
 ): CommentMenuItem[] {
   const roleAwareMode =
     viewerMode !== undefined ||
@@ -270,6 +278,21 @@ export function defaultPostKebabActions(
       icon: <Languages className="h-4 w-4" />,
       onClick: () => onTranslate(post.id, post.language!),
     });
+  }
+
+  // ─── v0.3.0 moderator section ─── ILX-3
+  // Rendered between common items and viewer-destructive items. Gated by
+  // `canDo("moderate")` AND a non-empty `moderatorActions(post)` return.
+  // The first moderator item carries `separatorBefore: true` so the host
+  // kebab renders a divider above the whole group.
+  if (canDo("moderate") && moderatorActions) {
+    const modItems = moderatorActions(post);
+    if (modItems.length > 0) {
+      items.push({ ...modItems[0], separatorBefore: true });
+      for (let i = 1; i < modItems.length; i++) {
+        items.push(modItems[i]);
+      }
+    }
   }
 
   // Viewer-side items (destructive at the bottom)

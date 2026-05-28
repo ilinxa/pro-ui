@@ -206,6 +206,14 @@ function CommentNodeInner(props: CommentNodeProps) {
         <div className="mt-1 flex items-center gap-3 px-1">
           <span className="text-xs text-muted-foreground">
             {format(toDate(comment.createdAt), new Date())}
+            {comment.edited ? (
+              <>
+                {" "}
+                <span className="text-muted-foreground/80">
+                  {labels.editedSuffix}
+                </span>
+              </>
+            ) : null}
           </span>
           <EngagementBar01
             variant="compact"

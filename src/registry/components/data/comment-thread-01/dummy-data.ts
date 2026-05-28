@@ -53,9 +53,11 @@ export const DUMMY_FLAT_COMMENTS: Comment[] = [
       username: "ines",
       avatar: "https://i.pravatar.cc/100?img=32",
     },
-    content: "Bookmarked. Thanks for sharing.",
+    content:
+      "Bookmarked. Thanks for sharing — fixed a typo here, the original phrasing was misleading.",
     createdAt: hoursAgo(2),
     likes: 4,
+    edited: true,
   },
   {
     id: "c4",

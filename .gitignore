@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Claude Code per-machine permissions overrides
 .claude/settings.local.json
+
+# Claude Code scheduled-tasks runtime PID locks
+.claude/*.lock

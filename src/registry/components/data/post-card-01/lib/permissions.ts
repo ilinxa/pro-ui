@@ -49,6 +49,9 @@ export const PERMISSION_DEFAULTS_BY_MODE: Record<
     canReport: false,
     canBlockAuthor: false,
     canMuteAuthor: false,
+    // moderation is orthogonal to viewerMode — never auto-derived; host opts in
+    // explicitly via permissions.canModerate or canPerformAction("moderate", …).
+    canModerate: false,
   },
   viewer: {
     canEdit: false,
@@ -62,6 +65,7 @@ export const PERMISSION_DEFAULTS_BY_MODE: Record<
     canReport: true,
     canBlockAuthor: true,
     canMuteAuthor: true,
+    canModerate: false,
   },
 };
 

@@ -20,8 +20,8 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | Category   | Count | Notes                                                                 |
 |------------|-------|-----------------------------------------------------------------------|
 | `data`     | 24    | Largest category; hosts the canonical `data-table` template + `stat-card` + `rich-card-in-flow` (2026-05-16) + `todo-rich-card` (2026-05-20) + `todo-tree` (2026-05-20 scaffold) |
-| `forms`    | 7     | `json-form` added 2026-05-13 (first cross-registry `dependencies.internal` consumer; lazy-loads `@ilinxa/code-block`) |
-| `marketing`| 4     |                                                                       |
+| `forms`    | 8     | `json-form` added 2026-05-13 (first cross-registry `dependencies.internal` consumer; lazy-loads `@ilinxa/code-block`); `registration-form-01` added 2026-05-22 |
+| `marketing`| 5     | `pricing-table-01` added 2026-05-22                                   |
 | `media`    | 4     | `pdf-viewer` added 2026-05-10                                         |
 | `navigation`| 4    | New category 2026-05-10 (`file-tree` + `file-manager`); `rich-sidebar` added 2026-05-22; `account-switcher-01` added 2026-05-23 |
 | `layout`   | 2     |                                                                       |
@@ -68,9 +68,9 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `article-body-01`       | Article Body 01            | 0.2.2   | alpha  |
 | `kanban-board-01`       | Kanban Board 01            | 0.3.0   | alpha  |
 | `engagement-bar-01`     | Engagement Bar 01          | 0.3.2   | alpha  |
-| `post-card-01`          | Post Card 01               | 0.2.1   | alpha  |
+| `post-card-01`          | Post Card 01               | 0.3.0   | alpha  |
 | `article-meta-01`       | Article Meta 01            | 0.1.0   | alpha  |
-| `comment-thread-01`     | Comment Thread 01          | 0.1.0   | alpha  |
+| `comment-thread-01`     | Comment Thread 01          | 0.2.0   | alpha  |
 | `content-card-news-01`  | Content Card (News 01)     | 0.2.0   | alpha  |
 | `data-table`            | Data Table                 | 0.1.1   | alpha  |
 | `event-card-01`         | Event Card 01              | 0.1.1   | alpha  |
@@ -89,7 +89,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `todo-rich-card`        | Todo Rich Card             | 0.1.1   | alpha  |
 | `todo-tree`             | Todo Tree                  | 0.1.3   | alpha  |
 
-## forms (7)
+## forms (8)
 
 | Slug                | Name              | Version | Status |
 |---------------------|-------------------|---------|--------|
@@ -109,7 +109,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `grid-layout-news-01` | Grid Layout (News 01)   | 0.2.0   | alpha  |
 | `workspace`           | Workspace               | 0.1.3   | alpha  |
 
-## marketing (4)
+## marketing (5)
 
 | Slug                   | Name                | Version | Status |
 |------------------------|---------------------|---------|--------|
@@ -134,7 +134,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 |-------------------|-----------------|---------|--------|
 | `file-tree`       | File Tree       | 0.1.0   | alpha  |
 | `file-manager`    | File Manager    | 0.1.0   | alpha  |
-| `rich-sidebar`  | Rich Sidebar  | 0.2.4   | alpha  |
+| `rich-sidebar`  | Rich Sidebar  | 0.3.0   | alpha  |
 | `account-switcher-01` | Account Switcher | 0.1.0 | alpha  |
 
 ## code (1)
@@ -153,10 +153,10 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 ## Verification method
 
-Counts cross-checked three ways and all agreed at **41**:
+Counts cross-checked three ways and all agreed at **49**:
 
-1. **Filesystem:** `ls src/registry/components/<category>/` per category — 21 + 6 + 2 + 4 + 4 + 2 + 1 + 1 = 41.
-2. **Manifest:** `src/registry/manifest.ts` REGISTRY array has 41 entries (each component has 3 imports — Demo / Usage / meta — plus 2 type-and-categories imports at the bottom).
+1. **Filesystem:** `ls src/registry/components/<category>/` per category — 24 (data) + 8 (forms) + 5 (marketing) + 4 (media) + 4 (navigation) + 2 (layout) + 1 (code) + 1 (feedback) = 49.
+2. **Manifest:** `src/registry/manifest.ts` REGISTRY array has 49 entries (each component has 3 imports — Demo / Usage / meta — plus 2 type-and-categories imports at the bottom).
 3. **Per-component meta:** every directory contains a `meta.ts` with populated `slug`, `category`, `version`, and `status` fields, and each is registered in `REGISTRY` in the manifest.
 
 The `_template/_template/` folder is excluded — it ships its own placeholder `meta.ts` for `tsc` compatibility but is never registered or installable.
