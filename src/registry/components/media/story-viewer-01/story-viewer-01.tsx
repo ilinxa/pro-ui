@@ -19,12 +19,15 @@ import {
 import { useStoryViewerState } from "./hooks/use-story-viewer-state";
 import { useStoryProgress } from "./hooks/use-story-progress";
 import { useStoryKeyboardNav } from "./hooks/use-story-keyboard-nav";
+import { useStoryEngagementState } from "./hooks/use-story-engagement-state";
 import { ViewerShell } from "./parts/viewer-shell";
 import { ProgressBars } from "./parts/progress-bars";
 import { ViewerHeader } from "./parts/viewer-header";
 import { TapZones } from "./parts/tap-zones";
 import { NavArrows } from "./parts/nav-arrows";
 import { ItemView } from "./parts/item-view";
+import { EngagementOverlay } from "./parts/engagement-overlay";
+import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 
 interface StoryViewer01InnerProps extends StoryViewer01Props {
   ref?: React.Ref<StoryViewer01Handle>;
@@ -48,6 +51,19 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     labels: labelsProp,
     className,
     contentClassName,
+    // v0.2.0 — engagement layer inputs (all optional; gated on viewerMode + !disableEngagement)
+    viewerMode,
+    permissions,
+    canPerformAction,
+    engagementSubscribe,
+    onSubscribeEngagementDelta,
+    onLikeStory,
+    onReactStory,
+    onShareStory,
+    onBookmarkStory,
+    reactionKinds,
+    disableEngagement = false,
+    renderEngagementOverlay,
   } = props;
 
   // v0.2.0 labels shape: required for all keys EXCEPT the nested forwards
@@ -171,6 +187,72 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onTogglePause: () => setPaused((p) => !p),
   });
 
+  // ─── v0.2.0 engagement state (per-item like / reaction / reply counts) ──
+  const { getState: getEngagementState, dispatch: dispatchEngagement } =
+    useStoryEngagementState({
+      subscribe: engagementSubscribe,
+      onSubscribeDelta: onSubscribeEngagementDelta,
+    });
+
+  // Resolved engagement actions for the current item (rebuilt per cursor change)
+  const engagementOverlayMounted =
+    !!viewerMode && viewerMode === "viewer" && !disableEngagement && !!currentStory && !!currentItem;
+  const engagementActions = useMemo(() => {
+    if (!engagementOverlayMounted) return [];
+    const state = getEngagementState(currentStory!.id, currentItem!.id);
+    return buildStoryEngagementActionsWithMatrix({
+      story: currentStory!,
+      item: currentItem!,
+      state,
+      viewerMode,
+      permissions,
+      canPerformAction,
+      reactionKinds,
+      onLikeToggle: (next: boolean) => {
+        dispatchEngagement({
+          kind: "like-toggle",
+          storyId: currentStory!.id,
+          itemId: currentItem!.id,
+          nextLiked: next,
+        });
+        onLikeStory?.(currentStory!.id, currentItem!.id, next);
+      },
+      onReactSelect: (kind: string | null) => {
+        dispatchEngagement({
+          kind: "reaction-select",
+          storyId: currentStory!.id,
+          itemId: currentItem!.id,
+          reactionKind: kind,
+        });
+        onReactStory?.(currentStory!.id, currentItem!.id, kind);
+      },
+      onCommentClick: () => {
+        // C4 will wire this to focus the reply composer; C3 stub
+      },
+      onShareClick: () => {
+        onShareStory?.(currentStory!.id, currentItem!.id);
+      },
+      onBookmarkToggle: (next: boolean) => {
+        onBookmarkStory?.(currentStory!.id, currentItem!.id, next);
+      },
+      // Kebab wired in C6
+    });
+  }, [
+    engagementOverlayMounted,
+    currentStory,
+    currentItem,
+    getEngagementState,
+    viewerMode,
+    permissions,
+    canPerformAction,
+    reactionKinds,
+    dispatchEngagement,
+    onLikeStory,
+    onReactStory,
+    onShareStory,
+    onBookmarkStory,
+  ]);
+
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (!open) onClose();
@@ -240,6 +322,34 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           onTogglePause={() => setPaused((p) => !p)}
           onNext={goToNextItem}
         />
+
+        {/* v0.2.0 — engagement overlay (TikTok/Reels-style stacked right edge).
+            Renders only when viewerMode="viewer" + !disableEngagement.
+            renderEngagementOverlay slot wins as full takeover. */}
+        {engagementOverlayMounted ? (
+          renderEngagementOverlay ? (
+            renderEngagementOverlay(currentStory!, currentItem!, {
+              cursor,
+              isPaused,
+              isMuted,
+              setPaused: (p: boolean) => setPaused(p),
+              setMuted: (m: boolean) => setMuted(m),
+              goToPrevItem,
+              goToNextItem,
+              goToPrevStory,
+              goToNextStory,
+              onClose,
+              labels,
+            })
+          ) : (
+            <EngagementOverlay
+              story={currentStory!}
+              item={currentItem!}
+              actions={engagementActions}
+              labels={labels}
+            />
+          )
+        ) : null}
       </div>
     </ViewerShell>
   );
