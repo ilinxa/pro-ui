@@ -35,7 +35,7 @@ Phase A landed 2026-05-25 (charter + rule restructure + tier dir READMEs + STATU
 | `flow-canvas-01` | data | alpha | 0.2.5 |
 | `article-body-01` | data | alpha | 0.2.2 |
 | `engagement-bar-01` | data | alpha | 0.3.2 |
-| `post-card-01` | data | alpha | 0.3.1 |
+| `post-card-01` | data | alpha | 0.3.2 |
 | `comment-thread-01` | data | alpha | 0.2.1 |
 | `article-meta-01` | data | alpha | 0.1.0 |
 | `content-card-news-01` | data | alpha | 0.2.0 |

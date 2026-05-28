@@ -68,7 +68,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `article-body-01`       | Article Body 01            | 0.2.2   | alpha  |
 | `kanban-board-01`       | Kanban Board 01            | 0.3.0   | alpha  |
 | `engagement-bar-01`     | Engagement Bar 01          | 0.3.2   | alpha  |
-| `post-card-01`          | Post Card 01               | 0.3.1   | alpha  |
+| `post-card-01`          | Post Card 01               | 0.3.2   | alpha  |
 | `article-meta-01`       | Article Meta 01            | 0.1.0   | alpha  |
 | `comment-thread-01`     | Comment Thread 01          | 0.2.1   | alpha  |
 | `content-card-news-01`  | Content Card (News 01)     | 0.2.0   | alpha  |

@@ -45,8 +45,11 @@ export { DEFAULT_POST_CARD_LABELS } from "./types";
 
 // Re-exports for consumer convenience — single import.
 // v0.3.1 F-S1 lock: relative + specific-file paths.
-// Cross-category: absolute-with-suffix (relative breaks in consumer's flat tree).
-export type { MediaItem } from "@/registry/components/media/media-carousel-01/types";
+// v0.3.2: cross-category MediaItem re-export DROPPED — the shadcn rewriter
+// mangles cross-category /types imports. `PostMediaItem` is now defined in
+// `./types.ts` (structurally identical to media-carousel-01's MediaItem),
+// with a soft-compat `MediaItem` alias re-exported below.
+export type { PostMediaItem, MediaItem } from "./types";
 export type {
   Comment,
   CommentDelta,
