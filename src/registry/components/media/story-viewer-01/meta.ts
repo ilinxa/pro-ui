@@ -42,10 +42,11 @@ export const meta: ComponentMeta = {
     "v0.2.0 — Long-press pause additive (Instagram-canonical mobile gesture; preserves v0.1 middle-tap-pause as desktop fallback; longPressThresholdMs prop tunable)",
     "v0.2.0 — F-S1 hygiene: VideoPlayer01 import switched to specific-file path",
     "v0.2.0 — Touch-target patch: header buttons 32×32 → 44×44 (WCAG 2.5.5 compliant)",
+    "v0.2.1 — F-cross-13 viewer-shell patch: drop `showCloseButton={false}` prop (not in consumer's Radix dialog) + suppress close button via `[&>button.absolute]:hidden` CSS (works on both backends)",
   ],
   tags: ["story-viewer-01", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-05-03",
   updatedAt: "2026-05-29",
