@@ -1,7 +1,7 @@
 import { Pause, Play, Volume2, VolumeX, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { Story, StoryItem, StoryViewer01Labels } from "../types";
+import type { ResolvedStoryViewer01Labels, Story, StoryItem } from "../types";
 
 export interface ViewerHeaderProps {
   story: Story;
@@ -12,7 +12,7 @@ export interface ViewerHeaderProps {
   onToggleMute: () => void;
   onClose: () => void;
   formatTime: (date: Date) => string;
-  labels: Required<StoryViewer01Labels>;
+  labels: ResolvedStoryViewer01Labels;
 }
 
 export function ViewerHeader({

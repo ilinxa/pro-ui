@@ -1,13 +1,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { StoryViewer01Labels } from "../types";
+import type { ResolvedStoryViewer01Labels } from "../types";
 
 export interface NavArrowsProps {
   canPrev: boolean;
   onPrev: () => void;
   onNext: () => void;
-  labels: Required<StoryViewer01Labels>;
+  labels: ResolvedStoryViewer01Labels;
 }
 
 /**

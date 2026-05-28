@@ -2,9 +2,9 @@
 import { VideoPlayer01 } from "../../video-player-01/video-player-01";
 import type {
   RenderItemContext,
+  ResolvedStoryViewer01Labels,
   Story,
   StoryItem,
-  StoryViewer01Labels,
 } from "../types";
 
 export interface ItemViewProps {
@@ -17,7 +17,7 @@ export interface ItemViewProps {
   onLoadedMetadata: (duration: number) => void;
   onEnded: () => void;
   renderItem?: (item: StoryItem, context: RenderItemContext) => React.ReactNode;
-  labels: Required<StoryViewer01Labels>;
+  labels: ResolvedStoryViewer01Labels;
 }
 
 export function ItemView({
