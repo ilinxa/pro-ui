@@ -27,7 +27,9 @@ import { TapZones } from "./parts/tap-zones";
 import { NavArrows } from "./parts/nav-arrows";
 import { ItemView } from "./parts/item-view";
 import { EngagementOverlay } from "./parts/engagement-overlay";
+import { ReplyComposer } from "./parts/reply-composer";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
+import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
 
 interface StoryViewer01InnerProps extends StoryViewer01Props {
   ref?: React.Ref<StoryViewer01Handle>;
@@ -64,6 +66,12 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     reactionKinds,
     disableEngagement = false,
     renderEngagementOverlay,
+    // v0.2.0 — reply composer inputs (C4)
+    currentUser,
+    onAddReply,
+    composerEmptyState,
+    disableReplyComposer = false,
+    renderReplyComposer,
   } = props;
 
   // v0.2.0 labels shape: required for all keys EXCEPT the nested forwards
@@ -135,7 +143,13 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       setMuted: (muted: boolean) => setMuted(muted),
       triggerLike: () => {},
       triggerReaction: (_kind?: string) => {},
-      triggerReply: (_content?: string) => {},
+      triggerReply: (content?: string) => {
+        composerRef.current?.focus();
+        if (content) {
+          // CommentComposerHandle exposes focus; setValue not in v0.2.1.
+          // Future enhancement: extend Handle with setValue method.
+        }
+      },
       triggerShare: () => {},
       openKebab: () => {},
     }),
@@ -194,9 +208,45 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       onSubscribeDelta: onSubscribeEngagementDelta,
     });
 
+  // ─── v0.2.0 reply composer ref (for focus + triggerReply handle method) ──
+  const composerRef = useRef<CommentComposerHandle | null>(null);
+
   // Resolved engagement actions for the current item (rebuilt per cursor change)
   const engagementOverlayMounted =
     !!viewerMode && viewerMode === "viewer" && !disableEngagement && !!currentStory && !!currentItem;
+  // Reply composer mount gate — viewer mode + opt-in + story/item present.
+  // currentUser absent is HANDLED INSIDE the render (composerEmptyState fallback).
+  const replyComposerMounted =
+    !!viewerMode && viewerMode === "viewer" && !disableReplyComposer && !!currentStory && !!currentItem;
+  // Slot helpers — passed to every renderXxx slot.
+  const slotHelpers = useMemo(
+    () => ({
+      cursor,
+      isPaused,
+      isMuted,
+      setPaused: (p: boolean) => setPaused(p),
+      setMuted: (m: boolean) => setMuted(m),
+      goToPrevItem,
+      goToNextItem,
+      goToPrevStory,
+      goToNextStory,
+      onClose,
+      labels,
+    }),
+    [
+      cursor,
+      isPaused,
+      isMuted,
+      setPaused,
+      setMuted,
+      goToPrevItem,
+      goToNextItem,
+      goToPrevStory,
+      goToNextStory,
+      onClose,
+      labels,
+    ],
+  );
   const engagementActions = useMemo(() => {
     if (!engagementOverlayMounted) return [];
     const state = getEngagementState(currentStory!.id, currentItem!.id);
@@ -227,7 +277,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         onReactStory?.(currentStory!.id, currentItem!.id, kind);
       },
       onCommentClick: () => {
-        // C4 will wire this to focus the reply composer; C3 stub
+        composerRef.current?.focus();
       },
       onShareClick: () => {
         onShareStory?.(currentStory!.id, currentItem!.id);
@@ -328,19 +378,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             renderEngagementOverlay slot wins as full takeover. */}
         {engagementOverlayMounted ? (
           renderEngagementOverlay ? (
-            renderEngagementOverlay(currentStory!, currentItem!, {
-              cursor,
-              isPaused,
-              isMuted,
-              setPaused: (p: boolean) => setPaused(p),
-              setMuted: (m: boolean) => setMuted(m),
-              goToPrevItem,
-              goToNextItem,
-              goToPrevStory,
-              goToNextStory,
-              onClose,
-              labels,
-            })
+            renderEngagementOverlay(currentStory!, currentItem!, slotHelpers)
           ) : (
             <EngagementOverlay
               story={currentStory!}
@@ -348,6 +386,28 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
               actions={engagementActions}
               labels={labels}
             />
+          )
+        ) : null}
+
+        {/* v0.2.0 — reply composer at bottom (Q-V1 lock — always-visible).
+            Renders only when viewerMode="viewer" + !disableReplyComposer.
+            currentUser absent → null + composerEmptyState rendered instead.
+            renderReplyComposer slot wins as full takeover. */}
+        {replyComposerMounted ? (
+          renderReplyComposer ? (
+            renderReplyComposer(currentStory!, currentItem!, slotHelpers)
+          ) : currentUser ? (
+            <ReplyComposer
+              story={currentStory!}
+              item={currentItem!}
+              currentUser={currentUser}
+              onAddReply={onAddReply}
+              onSetPaused={(p) => setPaused(p)}
+              labels={labels}
+              composerRef={composerRef}
+            />
+          ) : (
+            composerEmptyState
           )
         ) : null}
       </div>
