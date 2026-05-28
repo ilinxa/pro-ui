@@ -216,10 +216,14 @@ function PostHeaderInner({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="z-20">
               {kebabItems.map((item, i) => {
+                // v0.3.0: honor explicit `separatorBefore` flag (used by the
+                // moderator section in `defaultPostKebabActions`) AND the
+                // implicit destructive-boundary divider. Both can fire but
+                // only one separator renders (the explicit flag short-circuits).
                 const showSeparatorBefore =
-                  item.destructive &&
                   i > 0 &&
-                  !kebabItems[i - 1]?.destructive;
+                  (item.separatorBefore ||
+                    (item.destructive && !kebabItems[i - 1]?.destructive));
                 return (
                   <Fragment key={`${item.label}-${i}`}>
                     {showSeparatorBefore ? <DropdownMenuSeparator /> : null}

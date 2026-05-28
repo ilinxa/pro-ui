@@ -126,7 +126,7 @@ export function commentReducer(
           return findAndPatch(
             state,
             (c) => c.id === d.commentId,
-            (c) => ({ ...c, content: d.content }),
+            (c) => ({ ...c, content: d.content, edited: true }),
           );
         case "removed":
           return pruneById(state, d.commentId);

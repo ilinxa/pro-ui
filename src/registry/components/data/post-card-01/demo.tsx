@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Wand2 } from "lucide-react";
+import { Lock, Star, Trash2, Wand2 } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PostCard01 } from "./post-card-01";
@@ -350,6 +350,50 @@ function InlineEngagementTab() {
   );
 }
 
+function ModeratorTab() {
+  // v0.3.0 ILX-3 — viewer-mode card with moderator capability opted in via
+  // `permissions={{ canModerate: true }}`. `moderatorActions(post)` supplies
+  // the items; the library wraps them in a section between common items and
+  // viewer-destructive items, with a divider above. `kebabActions` is left
+  // unset so the role-aware default kebab assembly runs.
+  return (
+    <div className="mx-auto max-w-xl">
+      <PostCard01
+        variant="feed"
+        post={DUMMY_FEATURED_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        permissions={{ canModerate: true }}
+        moderatorActions={(p): CommentMenuItem[] => [
+          {
+            label: "Feature post",
+            icon: <Star className="h-4 w-4" />,
+            onClick: () => log("mod:feature", p.id),
+          },
+          {
+            label: "Lock comments",
+            icon: <Lock className="h-4 w-4" />,
+            onClick: () => log("mod:lock", p.id),
+          },
+          {
+            label: "Remove post",
+            icon: <Trash2 className="h-4 w-4" />,
+            destructive: true,
+            onClick: () => log("mod:remove", p.id),
+          },
+        ]}
+        onLike={(id, liked) => log("like", { id, liked })}
+        onShare={(id) => log("share", id)}
+        onBookmark={(id, bookmarked) => log("bookmark", { id, bookmarked })}
+        onReport={(id) => log("report", id)}
+        onBlockAuthor={(authorId) => log("block-author", authorId)}
+        onMuteAuthor={(authorId) => log("mute-author", authorId)}
+        getHref={(p) => `/posts/${p.id}`}
+      />
+    </div>
+  );
+}
+
 function CustomActionsTab() {
   const [extras] = useState({ remixActive: false });
   return (
@@ -404,6 +448,7 @@ export default function PostCard01Demo() {
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="inline">Inline TR</TabsTrigger>
         <TabsTrigger value="custom">Custom</TabsTrigger>
+        <TabsTrigger value="moderator">Moderator</TabsTrigger>
         <TabsTrigger value="repost">Repost</TabsTrigger>
         <TabsTrigger value="poll">Poll</TabsTrigger>
         <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
@@ -434,6 +479,9 @@ export default function PostCard01Demo() {
       </TabsContent>
       <TabsContent value="custom" className="mt-4">
         <CustomActionsTab />
+      </TabsContent>
+      <TabsContent value="moderator" className="mt-4">
+        <ModeratorTab />
       </TabsContent>
       <TabsContent value="repost" className="mt-4">
         <RepostTab />

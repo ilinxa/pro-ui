@@ -29,8 +29,14 @@ export type PostCard01Variant = "feed" | "compact" | "list" | "detail";
  * `currentUser` — the host explicitly picks the mode to keep the library neutral
  * across identity / role models (different projects derive ownership differently).
  *
- * Moderator UX (take-down, feature, etc.) is slot-driven via the existing
- * `kebabActions={...}` full-takeover, NOT a third toggle value in v0.2.0.
+ * Moderator UX (take-down, feature, lock, etc.) is **NOT** a third `viewerMode`
+ * value — moderation is an orthogonal capability that crosses owner / viewer
+ * lines. Wire it via `permissions.canModerate: true` (or
+ * `canPerformAction("moderate", post) === true`) PLUS the
+ * {@link PostCard01Props.moderatorActions} slot which supplies the menu items.
+ * The moderator section renders as its own group in the kebab with a divider
+ * above it, sitting between common items and viewer-destructive items. Full
+ * kebab takeover via {@link PostCard01Props.kebabActions} still bypasses everything.
  */
 export type PostViewerMode = "owner" | "viewer";
 
@@ -65,7 +71,8 @@ export type PostPermissionAction =
   | "bookmark"
   | "report"
   | "blockAuthor"
-  | "muteAuthor";
+  | "muteAuthor"
+  | "moderate";
 
 /**
  * Per-action permissions matrix. Overrides the `viewerMode`-derived defaults.
@@ -95,6 +102,14 @@ export interface PostPermissions {
   canReport?: boolean;
   canBlockAuthor?: boolean;
   canMuteAuthor?: boolean;
+  /**
+   * Moderator capability — orthogonal to owner / viewer modes. When `true`
+   * AND {@link PostCard01Props.moderatorActions} returns ≥1 item, the kebab
+   * renders a moderator section between common items and viewer-destructive
+   * items with a divider above it. Defaults to `false` in both viewer modes —
+   * moderators must be opted in explicitly by the host's permission resolver.
+   */
+  canModerate?: boolean;
 }
 
 /**
@@ -528,6 +543,18 @@ export interface PostCard01Props extends PostHandlers, PostMutationHandlers {
     defaults: { actions: EngagementAction[] },
   ) => ReactNode;
   kebabActions?: (post: Post) => CommentMenuItem[];
+  /**
+   * Supplier for the moderator section of the kebab. Items render only when
+   * `canModerate` resolves to `true` (via `permissions.canModerate` or
+   * `canPerformAction("moderate", post)`). The library inserts a divider
+   * above the first returned item and positions the group between common
+   * items (Bookmark / Share / Copy link / Translate) and viewer-destructive
+   * items (Mute / Block / Report). Return `[]` to suppress.
+   *
+   * Bypassed entirely when {@link PostCard01Props.kebabActions} is supplied
+   * (full takeover wins).
+   */
+  moderatorActions?: (post: Post) => CommentMenuItem[];
   commentActions?: (
     comment: Comment,
     helpers: {

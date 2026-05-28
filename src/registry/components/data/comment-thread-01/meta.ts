@@ -19,6 +19,8 @@ export const meta: ComponentMeta = {
     "Optimistic delete + revert via host's comments prop or realtime delta",
     "Realtime via Subscribe<CommentDelta> — added / edited / removed / liked",
     "onSubscribeDelta callback fires for every delta regardless of mode",
+    "v0.2.0 — `Comment.edited` first-paint flag + `(edited)` suffix render after timestamp; realtime `{ kind: \"edited\" }` delta also flips `edited:true` so first-paint and post-edit UI behave identically",
+    "v0.2.0 — `CommentMenuItem.separatorBefore` opt-in divider above any kebab item (used by post-card-01's moderator section; reusable for host-grouped kebabs)",
     "Pagination — onLoadMore(page) appends; pageSize default 10",
     "Inline reply composer per row (kasder UX); single composer in DOM at a time",
     "Default kebab — Delete (own only) + Report (when wired); commentActions slot for full takeover",
@@ -43,10 +45,10 @@ export const meta: ComponentMeta = {
     "expandable",
   ],
 
-  version: "0.1.0",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-02",
+  updatedAt: "2026-05-28",
 
   author: { name: "ilinxa" },
 

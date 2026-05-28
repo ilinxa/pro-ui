@@ -76,8 +76,27 @@ export function Example() {
     isOwn && { label: "Pin", onClick: () => api.pinComment(comment.id) },
     isOwn && { label: "Delete", destructive: true, onClick: () => api.deleteComment(comment.id) },
     !isOwn && { label: "Block author", onClick: () => api.block(comment.author.id) },
+    // v0.2.0 — explicit section divider above this item
+    { label: "Mark spam", separatorBefore: true, onClick: () => api.flagSpam(comment.id) },
     { label: "Report", onClick: () => openReportDialog(comment.id) },
   ].filter(Boolean) as CommentMenuItem[]}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">v0.2.0 — edited badge</h3>
+      <p className="text-muted-foreground">
+        Set <code>comment.edited = true</code> on first paint when your backend
+        reports the comment was edited; the row renders an{" "}
+        <code>(edited)</code> suffix after the timestamp. The realtime{" "}
+        <code>{`{ kind: "edited" }`}</code> delta also flips{" "}
+        <code>edited:true</code>, so first-paint and post-realtime UI behave
+        identically. Override the suffix copy via{" "}
+        <code>labels.editedSuffix</code>:
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<CommentThread01
+  comments={comments.map((c) => ({ ...c, edited: c.serverEditedAt != null }))}
+  labels={{ editedSuffix: "(düzenlendi)" }} // i18n override
 />`}</code>
       </pre>
 
@@ -113,9 +132,16 @@ export function Example() {
           semantics.
         </li>
         <li>
-          Realtime <code>CommentDelta.edited</code> is part of the v0.1 contract
-          (so future v0.2 edit-affordance UI doesn&apos;t break realtime), but
-          the v0.1 UI does not surface an Edit affordance.
+          v0.2.0 — <code>comment.edited</code> renders an{" "}
+          <code>(edited)</code> suffix; the realtime{" "}
+          <code>{`{ kind: "edited" }`}</code> delta now also flips this flag.
+          The thread still does not surface an Edit affordance — wire it via
+          <code> commentActions</code>.
+        </li>
+        <li>
+          v0.2.0 — <code>CommentMenuItem.separatorBefore</code> draws a divider
+          above the item in the kebab. Useful for host-grouped sections (e.g.
+          post-card-01&apos;s moderator block).
         </li>
         <li>
           <code>renderNode</code>, <code>renderViewReplies</code>, and{" "}

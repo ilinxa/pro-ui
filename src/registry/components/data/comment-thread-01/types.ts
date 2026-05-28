@@ -17,6 +17,14 @@ export interface Comment {
   replies?: Comment[];
   /** Server-known total. Used as label hint when `replies.length` undercounts. */
   replyCount?: number;
+  /**
+   * Server-marked edited flag. When `true`, the row renders an "(edited)"
+   * suffix after the timestamp. Independent of the realtime `{ kind: "edited" }`
+   * delta — that delta will also flip this to `true` so first-paint and
+   * post-edit UI behave identically. Override the suffix copy via
+   * {@link CommentThreadLabels.editedSuffix}.
+   */
+  edited?: boolean;
 }
 
 export type CommentDelta =
@@ -34,6 +42,14 @@ export interface CommentMenuItem {
   icon?: ReactNode;
   destructive?: boolean;
   disabled?: boolean;
+  /**
+   * Render a divider line above this item. Used by host components that group
+   * items into visual sections (e.g. post-card-01's moderator section sits
+   * above viewer-destructive items). The default destructive-boundary divider
+   * still fires automatically — this flag is for explicit section breaks that
+   * aren't destructive boundaries.
+   */
+  separatorBefore?: boolean;
 }
 
 export interface CommentThreadCurrentUser {
@@ -79,6 +95,8 @@ export interface CommentThreadLabels {
   loadMore?: string;
   emptyState?: string;
   signInPrompt?: string;
+  /** Suffix appended after the timestamp when `comment.edited === true`. Default `"(edited)"`. */
+  editedSuffix?: string;
   /** Override the default English relative-time formatter. */
   formatRelativeTime?: (date: Date, now: Date) => string;
 }
@@ -99,6 +117,7 @@ export const DEFAULT_COMMENT_THREAD_LABELS: Required<
   loadMore: "Load older comments",
   emptyState: "No comments yet — be the first.",
   signInPrompt: "Sign in to comment",
+  editedSuffix: "(edited)",
 };
 
 export type CommentLocalAction =
