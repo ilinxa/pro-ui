@@ -652,6 +652,27 @@ export interface StoryViewer01Props {
   /** Fired when the link CTA is tapped. Overrides default href navigation if provided. */
   onLinkClick?: (storyId: string, itemId: string, url: string) => void;
 
+  // ─── v0.2.2 — author tap-target ───────────────────────────────────────
+
+  /**
+   * v0.2.2 — fires when the avatar + username strip in the header is
+   * tapped. When set, the strip renders as a `<button>` (or
+   * `authorComponent` if provided) instead of a static `<div>`, with a
+   * subtle hover opacity to telegraph affordance. Common use: navigate to
+   * the author's profile.
+   */
+  onAuthorClick?: (story: Story) => void;
+  /**
+   * v0.2.2 — polymorphic root for the author tap-target. Default:
+   * `"button"` when `onAuthorClick` is set, otherwise the strip stays a
+   * static `<div>`. Pass `"a"` / Next.js `<Link>` / react-router `<Link>`
+   * etc. for href-based nav — the root receives `onClick`, `className`,
+   * and the avatar + name as children; manage `href` inside the custom
+   * component if needed. F-cross-13 safe (polymorphic component
+   * identifiers are not touched by the rewriter).
+   */
+  authorComponent?: ElementType;
+
   // ─── v0.2.0 — long-press pause ────────────────────────────────────────
 
   /** Long-press hold threshold in ms before pause kicks in. Default 200 (Instagram-feel). */

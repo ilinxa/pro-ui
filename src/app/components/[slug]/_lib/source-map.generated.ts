@@ -279,10 +279,11 @@ function ControlledDemo() {
 `,
   },
   "article-body-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ArticleBodyEditor } from "./article-body-01";
 import { ArticleBodyViewer } from "./article-body-viewer";
 import {
@@ -345,7 +346,7 @@ export default function ArticleBody01Demo() {
 
   return (
     <Tabs defaultValue="editor" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="editor">Editor</TabsTrigger>
         <TabsTrigger value="viewer">Viewer</TabsTrigger>
         <TabsTrigger value="roundtrip">Edit ↔ View</TabsTrigger>
@@ -354,7 +355,7 @@ export default function ArticleBody01Demo() {
         <TabsTrigger value="export">HTML export</TabsTrigger>
         <TabsTrigger value="empty">Empty</TabsTrigger>
         <TabsTrigger value="json">JSON</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="editor" className="mt-6">
         <ArticleBodyEditor
@@ -515,9 +516,10 @@ export default function ArticleBody01Demo() {
 `,
   },
   "article-meta-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ArticleMeta01 } from "./article-meta-01";
 import {
   ARTICLE_META_01_DUMMY,
@@ -530,14 +532,14 @@ import {
 export default function ArticleMeta01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="centered">Centered</TabsTrigger>
         <TabsTrigger value="end">End-aligned</TabsTrigger>
         <TabsTrigger value="clickable">Clickable byline</TabsTrigger>
         <TabsTrigger value="text-only">Text-only</TabsTrigger>
         <TabsTrigger value="video">Video meta</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-2xl">
         <h2 className="text-2xl font-serif font-bold text-foreground mb-4">
@@ -596,23 +598,24 @@ export default function ArticleMeta01Demo() {
 `,
   },
   "author-card-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { Users } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { AuthorCard01 } from "./author-card-01";
 import { AUTHOR_CARD_01_DUMMY } from "./dummy-data";
 
 export default function AuthorCard01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="with-image">With image</TabsTrigger>
         <TabsTrigger value="clickable">Clickable</TabsTrigger>
         <TabsTrigger value="muted">Muted tone</TabsTrigger>
         <TabsTrigger value="i18n">Turkish content</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
         <AuthorCard01 {...AUTHOR_CARD_01_DUMMY.withoutImage} />
@@ -647,10 +650,11 @@ export default function AuthorCard01Demo() {
 `,
   },
   "category-cloud-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { CategoryCloud01 } from "./category-cloud-01";
 import { DUMMY_CATEGORIES_EN, DUMMY_CATEGORIES_TR } from "./dummy-data";
 
@@ -659,12 +663,12 @@ export default function CategoryCloud01Demo() {
 
   return (
     <Tabs defaultValue="basic" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
         <TabsTrigger value="counts">With counts</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6 max-w-md rounded-2xl border border-border/50 bg-card p-6">
         <CategoryCloud01
@@ -941,12 +945,13 @@ export default function CodeBlockDemo() {
 `,
   },
   "comment-thread-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { CommentThread01 } from "./comment-thread-01";
 import {
   DUMMY_FLAT_COMMENTS,
@@ -1085,7 +1090,7 @@ export default function CommentThread01Demo() {
   const [tab, setTab] = useState("flat");
   return (
     <Tabs value={tab} onValueChange={setTab} className="w-full">
-      <TabsList className="grid grid-cols-7">
+      <SwipeTabsList>
         <TabsTrigger value="flat">Flat</TabsTrigger>
         <TabsTrigger value="depth2">Nested d2</TabsTrigger>
         <TabsTrigger value="depth3">Nested d3</TabsTrigger>
@@ -1093,7 +1098,7 @@ export default function CommentThread01Demo() {
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="disabled">No user</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="flat" className="mt-4">
         <FlatTab />
@@ -1122,12 +1127,13 @@ export default function CommentThread01Demo() {
 `,
   },
   "content-card-news-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ContentCardNews01 } from "./content-card-news-01";
 import {
   dummyCategoryStyles,
@@ -1198,7 +1204,7 @@ export default function ContentCardNews01Demo() {
 
   return (
     <Tabs defaultValue="featured" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="featured">Featured</TabsTrigger>
         <TabsTrigger value="large">Large</TabsTrigger>
         <TabsTrigger value="medium">Medium</TabsTrigger>
@@ -1206,7 +1212,7 @@ export default function ContentCardNews01Demo() {
         <TabsTrigger value="list">List</TabsTrigger>
         <TabsTrigger value="composed">Composed</TabsTrigger>
         <TabsTrigger value="actions">Actions slot</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="featured" className="mt-6">
         <ContentCardNews01
@@ -1401,13 +1407,14 @@ export default function DataTableDemo() {
 `,
   },
   "detail-panel": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useCallback, useState } from "react";
 import { Pencil, Pin, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { DetailPanel, DetailPanelEmptyState } from "./detail-panel";
 import { useDetailPanel } from "./parts/detail-panel-context";
 import {
@@ -1737,7 +1744,7 @@ function CustomEmptyDemo() {
 export default function DetailPanelDemo() {
   return (
     <Tabs defaultValue="empty">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="empty">Empty</TabsTrigger>
         <TabsTrigger value="read">Read</TabsTrigger>
         <TabsTrigger value="mode">Mode toggle</TabsTrigger>
@@ -1745,7 +1752,7 @@ export default function DetailPanelDemo() {
         <TabsTrigger value="error">Error</TabsTrigger>
         <TabsTrigger value="switcher">Selection switcher</TabsTrigger>
         <TabsTrigger value="custom-empty">Custom empty</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="empty" className="mt-4">
         <EmptyDemo />
       </TabsContent>
@@ -1773,18 +1780,34 @@ export default function DetailPanelDemo() {
 `,
   },
   "engagement-bar-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
-import { useMemo, useRef, useState } from "react";
-import { Wand2 } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  Angry,
+  Frown,
+  Heart,
+  Laugh,
+  PartyPopper,
+  Wand2,
+} from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EngagementBar01 } from "./engagement-bar-01";
 import { EngagementHeartBurst } from "./parts/engagement-heart-burst";
+import { LikersStrip } from "./parts/likers-strip";
+import { ShareMenu } from "./parts/share-menu";
+import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
+import type { Comment } from "@/registry/components/data/comment-thread-01";
+import {
+  DUMMY_FLAT_COMMENTS,
+  DUMMY_VIEWER,
+} from "@/registry/components/data/comment-thread-01/dummy-data";
 import {
   DUMMY_LIKE_USERS,
   DUMMY_NEWS_CARD_ENGAGEMENT,
@@ -1795,9 +1818,13 @@ import {
 import type {
   EngagementAction,
   EngagementBar01Handle,
+  EngagementReactionKind,
 } from "./types";
 
-function LikersStrip({ users }: { users: typeof DUMMY_LIKE_USERS }) {
+// Static avatar pile + "Liked by X and N others" caption.
+// Distinct from the v0.2.0 \`<LikersStrip>\` sub-export (which is the swipable
+// horizontal list used by the InteractiveDefaultDemo below).
+function LikersPile({ users }: { users: typeof DUMMY_LIKE_USERS }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex -space-x-2">
@@ -1821,6 +1848,128 @@ function LikersStrip({ users }: { users: typeof DUMMY_LIKE_USERS }) {
   );
 }
 
+/**
+ * Default-tab interactive showcase — wires all four engagement-bar callbacks
+ * to demonstrate the kasder-style inline panel pattern:
+ *  - \`like.onCountClick\`  → toggle inline \`<LikersStrip>\` (v0.2.0 sub-export, swipable)
+ *  - \`comment.onClick\`    → toggle a comment-panel placeholder (real comment thread
+ *                            lives in the \`comment-thread-01\` sibling procomp; see
+ *                            \`post-card-01\` for the full inline-panel pattern)
+ *  - \`share.onClick\`      → toggle inline \`<ShareMenu>\` (v0.2.0 sub-export, searchable)
+ *  - \`bookmark.onToggle\`  → uncontrolled, internal mirror flips the icon on click
+ *
+ * The bar's library code only fires the callbacks; the host (this demo)
+ * decides what UI those callbacks open. Three of the four panels are
+ * mutually exclusive (one active at a time), matching the kasder UX.
+ */
+function InteractiveDefaultDemo() {
+  const [activePanel, setActivePanel] = useState<
+    "none" | "likers" | "share" | "comments"
+  >("none");
+
+  const toggle = (p: "likers" | "share" | "comments") =>
+    setActivePanel((prev) => (prev === p ? "none" : p));
+
+  const actions: EngagementAction[] = useMemo(
+    () => [
+      {
+        kind: "like",
+        count: 142,
+        onToggle: (next) => console.log("[demo] like →", next),
+        // Split heart-vs-count: heart fires onToggle; count opens likers panel.
+        onCountClick: () => toggle("likers"),
+      },
+      {
+        kind: "comment",
+        count: 23,
+        onClick: () => toggle("comments"),
+      },
+      {
+        kind: "share",
+        count: 8,
+        onClick: () => toggle("share"),
+      },
+      {
+        kind: "bookmark",
+        onToggle: (next) => console.log("[demo] bookmark →", next),
+      },
+    ],
+    [],
+  );
+
+  return (
+    <div className="space-y-3">
+      <EngagementBar01 actions={actions} />
+      {activePanel === "likers" ? (
+        <LikersStrip
+          totalCount={142}
+          likers={DUMMY_LIKE_USERS}
+          heading="Likes"
+          onClose={() => setActivePanel("none")}
+        />
+      ) : null}
+      {activePanel === "share" ? (
+        <div className="rounded-lg border border-border bg-card p-3">
+          <ShareMenu
+            users={DUMMY_LIKE_USERS}
+            onShareTo={(user) => {
+              console.log("[demo] share to", user.name);
+              setActivePanel("none");
+            }}
+            onClose={() => setActivePanel("none")}
+          />
+        </div>
+      ) : null}
+      {activePanel === "comments" ? (
+        <div className="overflow-hidden rounded-lg border border-border bg-card p-4 text-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-medium">Comments</p>
+            <button
+              type="button"
+              onClick={() => setActivePanel("none")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Hide
+            </button>
+          </div>
+          {/* max-h-105 (= 420px in Tailwind v4's 4px spacing scale) gives
+              ~5 comments before scroll kicks in. pageSize={5} + onLoadMore =
+              "Load older comments" button at the bottom of the thread once
+              initial 5 are exhausted. Page-3 returns [] → button disappears. */}
+          <div className="max-h-105 overflow-y-auto pr-1">
+            <CommentThread01
+              comments={INITIAL_COMMENTS}
+              currentUser={DUMMY_VIEWER}
+              pageSize={5}
+              onLoadMore={async (page) => {
+                // Simulate network latency for realistic UX.
+                await new Promise((r) => setTimeout(r, 400));
+                if (page === 1) return OLDER_COMMENTS_PAGE_2;
+                return [];
+              }}
+              onAddComment={(content, parentId) => {
+                console.log("[demo] add comment", { content, parentId });
+              }}
+              onLikeComment={(id, next) =>
+                console.log("[demo] like comment", id, next)
+              }
+              onDeleteComment={(id) =>
+                console.log("[demo] delete comment", id)
+              }
+              onReportComment={(id) =>
+                console.log("[demo] report comment", id)
+              }
+            />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Real <code>{"<CommentThread01>"}</code> sibling procomp (composer + recursive replies). Scrollable list capped at 5 visible rows; <code>pageSize=5</code> + <code>onLoadMore</code> drives the {'"Load older comments"'} lazy-load button. engagement-bar-01 only fires <code>comment.onClick</code>; the host composes this surface. <code>post-card-01</code> wires the same flow inline.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function RealtimeDemo() {
   const subscribe = useMemo(() => createDummySubscribe(142), []);
   return (
@@ -1830,7 +1979,7 @@ function RealtimeDemo() {
       onSubscribeDelta={(d) =>
         console.log("[demo] delta", d)
       }
-      likersPreview={<LikersStrip users={DUMMY_LIKE_USERS} />}
+      likersPreview={<LikersPile users={DUMMY_LIKE_USERS} />}
     />
   );
 }
@@ -1865,7 +2014,7 @@ function HeartBurstDemo() {
       <EngagementBar01
         ref={barRef}
         actions={DUMMY_POST_ENGAGEMENT}
-        likersPreview={<LikersStrip users={DUMMY_LIKE_USERS} />}
+        likersPreview={<LikersPile users={DUMMY_LIKE_USERS} />}
       />
       <p className="text-xs text-muted-foreground">
         Double-click the image — the bar&apos;s like flips and the heart bursts.
@@ -1878,8 +2027,8 @@ function HeartBurstDemo() {
 }
 
 const CUSTOM_REMIX_ACTIONS: EngagementAction[] = [
-  { kind: "like", count: 89, liked: false, onToggle: () => {} },
-  { kind: "comment", count: 12, onClick: () => {} },
+  { kind: "like", count: 89, onToggle: (next) => console.log("[demo] like →", next) },
+  { kind: "comment", count: 12, onClick: () => console.log("[demo] comment click") },
   {
     kind: "custom",
     id: "remix",
@@ -1889,29 +2038,362 @@ const CUSTOM_REMIX_ACTIONS: EngagementAction[] = [
   },
 ];
 
+// FB-style 5-reaction catalog. Host owns icons + labels + colors — library
+// ships no defaults (per Q-P1 lock; matches PostVisibility convention).
+const REACTION_KINDS: EngagementReactionKind[] = [
+  {
+    key: "love",
+    icon: <Heart className="h-5 w-5 fill-current" />,
+    label: "Love",
+    count: 124,
+    color: "#e0245e",
+  },
+  {
+    key: "laugh",
+    icon: <Laugh className="h-5 w-5" />,
+    label: "Laugh",
+    count: 38,
+    color: "#f7b928",
+  },
+  {
+    key: "wow",
+    icon: <PartyPopper className="h-5 w-5" />,
+    label: "Wow",
+    count: 12,
+    color: "#9b59b6",
+  },
+  {
+    key: "sad",
+    icon: <Frown className="h-5 w-5" />,
+    label: "Sad",
+    count: 5,
+    color: "#5b9bd5",
+  },
+  {
+    key: "angry",
+    icon: <Angry className="h-5 w-5" />,
+    label: "Angry",
+    count: 2,
+    color: "#e74c3c",
+  },
+];
+
+const REACTION_TOTAL_COUNT = REACTION_KINDS.reduce(
+  (acc, k) => acc + k.count,
+  0,
+);
+
+// \`viewerReaction\` is OMITTED in the reaction action below — passing \`null\`
+// OR a string would put the bar in controlled mode (\`action.viewerReaction
+// !== undefined\`), which causes \`handlePick\` to skip the optimistic dispatch
+// and rely on the host to update the prop. Since the demo's \`onSelect\` is
+// just \`console.log\` (per F-05 fix: no demo-side useState re-derive), the
+// bar would never visually change. Omitting makes it uncontrolled → internal
+// mirror drives visual updates.
+
+/**
+ * Reactions tab interactive showcase.
+ *  - \`reaction.onCountClick\` toggles a scrollable reactors panel below the bar
+ *    (host-owned UI; library only fires the event).
+ *  - Panel uses the same max-h-105 (= 420px, ~5 rows) + Load-older lazy-load
+ *    pattern as the comment thread on the Default tab — 3 pages, 5 + 5 + 3
+ *    reactors (DEMO_REACTORS sliced).
+ *  - The \`reactionsPreview\` slot keeps the static avatar-cluster preview above
+ *    the expandable panel (the slot is independent of the click-to-expand
+ *    behavior; demo keeps both visible to show that).
+ */
+function InteractiveReactionsDemo() {
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [reactors, setReactors] = useState<Reactor[]>(REACTORS_PAGE_1);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const hasMore = page < 3;
+
+  const handleLoadMore = useCallback(async () => {
+    if (isLoading || !hasMore) return;
+    setIsLoading(true);
+    await new Promise((r) => setTimeout(r, 400));
+    if (page === 1) {
+      setReactors((prev) => [...prev, ...REACTORS_PAGE_2]);
+      setPage(2);
+    } else if (page === 2) {
+      setReactors((prev) => [...prev, ...REACTORS_PAGE_3]);
+      setPage(3);
+    }
+    setIsLoading(false);
+  }, [isLoading, hasMore, page]);
+
+  const actions: EngagementAction[] = useMemo(
+    () => [
+      {
+        kind: "reaction",
+        kinds: REACTION_KINDS,
+        totalCount: REACTION_TOTAL_COUNT,
+        onSelect: (kind) =>
+          console.log("[demo] reaction onSelect", kind),
+        onCountClick: () => setPanelOpen((open) => !open),
+      },
+      { kind: "comment", count: 28, onClick: () => {} },
+      { kind: "share", count: 11, onClick: () => {} },
+      { kind: "bookmark", onToggle: () => {} },
+    ],
+    [],
+  );
+
+  return (
+    <div className="space-y-3">
+      <EngagementBar01
+        actions={actions}
+        reactionsPreview={<ReactorsPreview />}
+      />
+      {panelOpen ? (
+        <ReactorsList
+          reactors={reactors}
+          hasMore={hasMore}
+          isLoading={isLoading}
+          onLoadMore={handleLoadMore}
+          onClose={() => setPanelOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+// Hybrid per Q-P3 lock — both \`like\` AND \`reaction\` in the same actions array.
+// Library does not enforce mutual exclusion; renders both in array order.
+// Use case: classic thumbs-up + emoji-reactions on the same content.
+// Same uncontrolled-mode rationale as REACTION_ACTIONS above.
+const HYBRID_ACTIONS: EngagementAction[] = [
+  { kind: "like", count: 67, onToggle: () => {} },
+  {
+    kind: "reaction",
+    kinds: REACTION_KINDS,
+    totalCount: REACTION_TOTAL_COUNT,
+    onSelect: (kind) => console.log("[demo] hybrid reaction onSelect", kind),
+  },
+  { kind: "comment", count: 14, onClick: () => {} },
+];
+
+// Page-1 = first 5 of the flat fixture. Page-2 = the 6th + 4 synthetic ones.
+// Page-3+ returns empty → "Load older comments" button disappears.
+const INITIAL_COMMENTS = DUMMY_FLAT_COMMENTS.slice(0, 5);
+
+const OLDER_COMMENTS_PAGE_2: Comment[] = [
+  DUMMY_FLAT_COMMENTS[5], // c6 — Hana Sato
+  {
+    id: "c7",
+    author: {
+      id: "u7",
+      name: "Owen Tanaka",
+      username: "owent",
+      avatar: "https://i.pravatar.cc/100?img=8",
+    },
+    content:
+      "Late to this, but the section on slot-driven composition saved me a 3-day refactor. Bookmarked.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5),
+    likes: 3,
+  },
+  {
+    id: "c8",
+    author: {
+      id: "u8",
+      name: "Priya Raman",
+      username: "priya",
+      avatar: "https://i.pravatar.cc/100?img=23",
+    },
+    content: "I disagree with the cross-folder import constraint — but only mildly. Net-positive overall.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+    likes: 9,
+  },
+  {
+    id: "c9",
+    author: {
+      id: "u9",
+      name: "Mateo Ríos",
+      username: "mateo",
+      avatar: "https://i.pravatar.cc/100?img=11",
+    },
+    content: "Echoing what others said upstream — this is the right tradeoff.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9),
+    likes: 1,
+  },
+  {
+    id: "c10",
+    author: {
+      id: "u10",
+      name: "Yuna Park",
+      username: "yuna",
+      avatar: "https://i.pravatar.cc/100?img=20",
+    },
+    content: "Saved. Will revisit when we tackle the same arc internally.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12),
+    likes: 6,
+  },
+];
+
+// Reactor records — user + which reaction kind they picked. Synthetic data for
+// the reactors-panel demo (no equivalent built-in fixture; library doesn't ship
+// a reactors list — host owns the data shape).
+type Reactor = {
+  id: string;
+  name: string;
+  avatar: string;
+  kind: (typeof REACTION_KINDS)[number];
+};
+
+const DEMO_REACTORS: Reactor[] = [
+  { id: "r1", name: "Ada Lovelace", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80", kind: REACTION_KINDS[0] },
+  { id: "r2", name: "Grace Hopper", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80", kind: REACTION_KINDS[0] },
+  { id: "r3", name: "Linus Torvalds", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80", kind: REACTION_KINDS[1] },
+  { id: "r4", name: "Margaret Hamilton", avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80", kind: REACTION_KINDS[0] },
+  { id: "r5", name: "Alan Turing", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80", kind: REACTION_KINDS[2] },
+  { id: "r6", name: "Hedy Lamarr", avatar: "https://i.pravatar.cc/100?img=29", kind: REACTION_KINDS[0] },
+  { id: "r7", name: "Donald Knuth", avatar: "https://i.pravatar.cc/100?img=51", kind: REACTION_KINDS[1] },
+  { id: "r8", name: "Barbara Liskov", avatar: "https://i.pravatar.cc/100?img=21", kind: REACTION_KINDS[2] },
+  { id: "r9", name: "Edsger Dijkstra", avatar: "https://i.pravatar.cc/100?img=55", kind: REACTION_KINDS[3] },
+  { id: "r10", name: "Frances Allen", avatar: "https://i.pravatar.cc/100?img=18", kind: REACTION_KINDS[0] },
+  { id: "r11", name: "John Carmack", avatar: "https://i.pravatar.cc/100?img=33", kind: REACTION_KINDS[1] },
+  { id: "r12", name: "Anita Borg", avatar: "https://i.pravatar.cc/100?img=36", kind: REACTION_KINDS[4] },
+  { id: "r13", name: "Tim Berners-Lee", avatar: "https://i.pravatar.cc/100?img=57", kind: REACTION_KINDS[0] },
+];
+
+const REACTORS_PAGE_SIZE = 5;
+const REACTORS_PAGE_1 = DEMO_REACTORS.slice(0, REACTORS_PAGE_SIZE);
+const REACTORS_PAGE_2 = DEMO_REACTORS.slice(REACTORS_PAGE_SIZE, REACTORS_PAGE_SIZE * 2);
+const REACTORS_PAGE_3 = DEMO_REACTORS.slice(REACTORS_PAGE_SIZE * 2);
+
+function ReactorsList({
+  reactors,
+  hasMore,
+  isLoading,
+  onLoadMore,
+  onClose,
+}: {
+  reactors: Reactor[];
+  hasMore: boolean;
+  isLoading: boolean;
+  onLoadMore: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-card p-4 text-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="font-medium">Reactions</p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          Hide
+        </button>
+      </div>
+      {/* max-h-105 (= 420px) → ~5 rows before scroll kicks in. */}
+      <ul className="max-h-105 space-y-2 overflow-y-auto pr-1">
+        {reactors.map((r) => (
+          <li
+            key={r.id}
+            className="flex items-center gap-3 rounded-md py-1.5 transition-colors hover:bg-accent/50"
+          >
+            <div className="relative">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={r.avatar} alt={r.name} />
+                <AvatarFallback className="text-xs">
+                  {r.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span
+                aria-hidden
+                className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-card ring-2 ring-card"
+                style={{ color: r.kind.color }}
+              >
+                <span className="scale-75">{r.kind.icon}</span>
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{r.name}</p>
+              <p className="text-xs text-muted-foreground">
+                Reacted with {r.kind.label}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {hasMore ? (
+        <button
+          type="button"
+          onClick={onLoadMore}
+          disabled={isLoading}
+          className="mt-3 w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent disabled:opacity-60"
+        >
+          {isLoading ? "Loading older reactions…" : "Load older reactions"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function ReactorsPreview() {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex -space-x-1">
+        {REACTION_KINDS.slice(0, 3).map((k) => (
+          <span
+            key={k.key}
+            aria-hidden
+            className="flex h-5 w-5 items-center justify-center rounded-full bg-card ring-1 ring-border"
+            style={{ color: k.color }}
+          >
+            <span className="scale-75">{k.icon}</span>
+          </span>
+        ))}
+      </div>
+      <span className="text-xs text-muted-foreground">
+        <span className="font-medium text-foreground">
+          {DUMMY_LIKE_USERS[0].name}
+        </span>{" "}
+        and {REACTION_TOTAL_COUNT - 1} others reacted
+      </span>
+    </div>
+  );
+}
+
 export default function EngagementBar01Demo() {
   return (
     <Tabs defaultValue="default">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (post)</TabsTrigger>
         <TabsTrigger value="compact">Compact (news-card)</TabsTrigger>
         <TabsTrigger value="stacked">Stacked (video overlay)</TabsTrigger>
         <TabsTrigger value="realtime">Realtime subscribe</TabsTrigger>
         <TabsTrigger value="burst">Heart-burst</TabsTrigger>
         <TabsTrigger value="custom">Custom action</TabsTrigger>
-      </TabsList>
+        <TabsTrigger value="reactions">Reactions</TabsTrigger>
+        <TabsTrigger value="hybrid">Hybrid (like + reaction)</TabsTrigger>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-3">
-        <EngagementBar01
-          actions={DUMMY_POST_ENGAGEMENT}
-          likersPreview={<LikersStrip users={DUMMY_LIKE_USERS} />}
-        />
+        <InteractiveDefaultDemo />
         <p className="text-xs text-muted-foreground">
-          Standard post engagement row. Like / comment / share on the left;
-          bookmark drifts right via default <code>align</code> rule. Click
-          like — count flips optimistically (uncontrolled mode, internal state
-          owns it).
+          Fully-wired post-style engagement row. Every action is uncontrolled — internal mirror drives visuals; callbacks log to console.
         </p>
+        <ul className="ml-4 list-disc space-y-1 text-xs text-muted-foreground">
+          <li>
+            <strong>Heart icon</strong> — toggles like (mirror flips visibly).
+          </li>
+          <li>
+            <strong>Like count</strong> — split-tap target via <code>like.onCountClick</code>; opens the v0.2.0 <code>{"<LikersStrip>"}</code> sub-export (swipable horizontal avatar row + {'"+N"'} pill).
+          </li>
+          <li>
+            <strong>Comment</strong> — opens a placeholder panel with input + Send. Atomic bar fires <code>onClick</code>; real comment thread comes from <code>comment-thread-01</code> (see <code>post-card-01</code> for the full inline pattern).
+          </li>
+          <li>
+            <strong>Share</strong> — opens the v0.2.0 <code>{"<ShareMenu>"}</code> sub-export (searchable user picker).
+          </li>
+          <li>
+            <strong>Bookmark</strong> — right-aligned via default <code>align</code> rule; uncontrolled toggle, fill flips on click.
+          </li>
+        </ul>
       </TabsContent>
 
       <TabsContent value="compact" className="mt-6 space-y-3">
@@ -1963,10 +2445,36 @@ export default function EngagementBar01Demo() {
       <TabsContent value="custom" className="mt-6 space-y-3">
         <EngagementBar01 actions={CUSTOM_REMIX_ACTIONS} />
         <p className="text-xs text-muted-foreground">
-          Custom action via <code>kind: &quot;custom&quot;</code>: host
+          Custom action via <code>{'kind: "custom"'}</code>: host
           provides <code>id</code>, <code>label</code>, <code>icon</code>,
           optional <code>count</code> + <code>active</code>, and{" "}
           <code>onClick</code>. The bar treats it like any other action.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="reactions" className="mt-6 space-y-3">
+        <InteractiveReactionsDemo />
+        <p className="text-xs text-muted-foreground">
+          FB / LinkedIn-style multi-kind reactions via <code>{'kind: "reaction"'}</code>. Host supplies a <code>kinds</code> catalog (key + icon + label + seed count + optional color); library ships no defaults.
+        </p>
+        <ul className="ml-4 list-disc space-y-1 text-xs text-muted-foreground">
+          <li>Demo is uncontrolled (no <code>viewerReaction</code> passed) — bar&apos;s internal mirror drives visuals.</li>
+          <li>Tap the action → opens the picker; pick a kind → trigger icon + total tick update.</li>
+          <li>Long-press (~350ms) → opens the picker regardless of current state.</li>
+          <li>Once a kind is set, default <code>clearOnTap: true</code> means a tap CLEARS; flip to <code>false</code> for picker-only UX.</li>
+          <li>Remove (×) button inside the picker always available when a reaction is set.</li>
+          <li><strong>Click the total count</strong> → toggles the scrollable + lazy-loaded reactors panel below (host-owned UI). Panel caps at ~5 rows visible; {'"Load older reactions"'} button paginates (5 + 5 + 3 reactors across 3 pages, 400ms simulated latency).</li>
+          <li>The static avatar cluster (<code>reactionsPreview</code> slot, parallel to <code>likersPreview</code>) stays above the expandable panel — the slot is independent of the count-click expand behavior.</li>
+        </ul>
+      </TabsContent>
+
+      <TabsContent value="hybrid" className="mt-6 space-y-3">
+        <EngagementBar01 actions={HYBRID_ACTIONS} />
+        <p className="text-xs text-muted-foreground">
+          Hybrid layout per the Q-P3 lock — both <code>{'kind: "like"'}</code> AND <code>{'kind: "reaction"'}</code> in the same <code>actions</code> array. Library does NOT enforce mutual exclusion; both render in array order, both interact independently.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Use case: a product that wants the classic thumbs-up alongside emoji-reactions on the same content. End-user UX is the host&apos;s call — library blesses the configuration, not the visual outcome.
         </p>
       </TabsContent>
     </Tabs>
@@ -1975,13 +2483,14 @@ export default function EngagementBar01Demo() {
 `,
   },
   "entity-picker": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useRef, useState } from "react";
 import { ChevronDown, Pin, UserCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EntityPicker } from "./entity-picker";
 import {
   GRAPH_NODES,
@@ -2292,7 +2801,7 @@ function HandleDemo() {
 export default function EntityPickerDemo() {
   return (
     <Tabs defaultValue="single">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="single">Single</TabsTrigger>
         <TabsTrigger value="multi">Multi</TabsTrigger>
         <TabsTrigger value="no-kinds">No kinds</TabsTrigger>
@@ -2301,7 +2810,7 @@ export default function EntityPickerDemo() {
         <TabsTrigger value="custom-empty">Custom empty</TabsTrigger>
         <TabsTrigger value="custom-trigger">Custom trigger</TabsTrigger>
         <TabsTrigger value="handle">Imperative handle</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="single" className="mt-4">
         <SingleDemo />
       </TabsContent>
@@ -2332,12 +2841,13 @@ export default function EntityPickerDemo() {
 `,
   },
   "event-card-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, CalendarPlus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EventCard01 } from "./event-card-01";
 import {
   dummyCustomTypeStyles,
@@ -2433,7 +2943,7 @@ export default function EventCard01Demo() {
 
   return (
     <Tabs defaultValue="grid" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="grid">Grid</TabsTrigger>
         <TabsTrigger value="feed">Feed</TabsTrigger>
         <TabsTrigger value="list">List</TabsTrigger>
@@ -2442,7 +2952,7 @@ export default function EventCard01Demo() {
         <TabsTrigger value="localized">Localized (TR)</TabsTrigger>
         <TabsTrigger value="custom-types">Custom types</TabsTrigger>
         <TabsTrigger value="actions">Actions slot</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Grid */}
       <TabsContent value="grid" className="mt-6">
@@ -2678,11 +3188,12 @@ export default function EventCard01Demo() {
 `,
   },
   "expandable-text-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ExpandableText01 } from "./expandable-text-01";
 import { LONG_EN, LONG_TR, SHORT_EN, SHORT_TR } from "./dummy-data";
 
@@ -2725,12 +3236,12 @@ function CustomToggleDemo() {
 export default function ExpandableText01Demo() {
   return (
     <Tabs defaultValue="default">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="custom-lines">Custom maxLines</TabsTrigger>
         <TabsTrigger value="localized">Localized (TR)</TabsTrigger>
         <TabsTrigger value="custom-toggle">Custom toggle</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-6">
         <div className="space-y-2">
@@ -2789,10 +3300,11 @@ export default function ExpandableText01Demo() {
 `,
   },
   "file-manager": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useCallback, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FileManager } from "./file-manager";
 import {
   dummyFsNodes,
@@ -3094,13 +3606,13 @@ function VirtualizedDemo() {
 export default function FileManagerDemo() {
   return (
     <Tabs defaultValue="standalone" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="standalone">Standalone</TabsTrigger>
         <TabsTrigger value="flat">Flat grid</TabsTrigger>
         <TabsTrigger value="crud">Full CRUD + clipboard</TabsTrigger>
         <TabsTrigger value="lazy">Lazy load</TabsTrigger>
         <TabsTrigger value="virtual">Virtualized list</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="standalone">
         <StandaloneGridDemo />
       </TabsContent>
@@ -3122,11 +3634,12 @@ export default function FileManagerDemo() {
 `,
   },
   "file-tree": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useCallback, useState } from "react";
 import { Code2, FileSpreadsheet, ImageIcon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FileTree } from "./file-tree";
 import {
   dummyFsNodes,
@@ -3389,14 +3902,14 @@ function VirtualizedDemo() {
 export default function FileTreeDemo() {
   return (
     <Tabs defaultValue="readonly" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="readonly">Read-only</TabsTrigger>
         <TabsTrigger value="crud">Full CRUD</TabsTrigger>
         <TabsTrigger value="lazy">Lazy load</TabsTrigger>
         <TabsTrigger value="multi">Multi-select</TabsTrigger>
         <TabsTrigger value="icons">Custom icons</TabsTrigger>
         <TabsTrigger value="virtual">Virtualized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="readonly">
         <ReadOnlyDemo />
       </TabsContent>
@@ -3421,10 +3934,11 @@ export default function FileTreeDemo() {
 `,
   },
   "filter-bar-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FilterBar01 } from "./filter-bar-01";
 import {
   DUMMY_CATEGORIES_EN,
@@ -3442,12 +3956,12 @@ export default function FilterBar01Demo() {
 
   return (
     <Tabs defaultValue="basic" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="partial">Partial usage</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6">
         <FilterBar01
@@ -3522,12 +4036,13 @@ export default function FilterBar01Demo() {
 `,
   },
   "filter-stack": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useCallback, useMemo, useState } from "react";
 import { Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { FilterStack } from "./filter-stack";
 import {
   KIND_OPTIONS,
@@ -4041,14 +4556,14 @@ function OnFilteredChangeDemo() {
 export default function FilterStackDemo() {
   return (
     <Tabs defaultValue="basic">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic facets</TabsTrigger>
         <TabsTrigger value="mode">Mode toggle</TabsTrigger>
         <TabsTrigger value="solo">Solo buttons</TabsTrigger>
         <TabsTrigger value="custom">Custom range</TabsTrigger>
         <TabsTrigger value="rich">All combined</TabsTrigger>
         <TabsTrigger value="callback">onFilteredChange</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="basic" className="mt-4">
         <BasicDemo />
       </TabsContent>
@@ -4073,11 +4588,12 @@ export default function FilterStackDemo() {
 `,
   },
   "flow-canvas-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useMemo } from "react";
 import { Bot, FileText, GripVertical, Sparkles, Wrench } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ProjectCard01 } from "../project-card-01";
 import type { ProjectCardItem } from "../project-card-01/types";
 import { FlowCanvas } from "./flow-canvas-01";
@@ -4252,12 +4768,12 @@ export default function FlowCanvasDemo() {
 
   return (
     <Tabs defaultValue="workflow" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="workflow">Workflow</TabsTrigger>
         <TabsTrigger value="readonly">Read-only viewer</TabsTrigger>
         <TabsTrigger value="custom-json">Custom JSON only</TabsTrigger>
         <TabsTrigger value="stress">Stress (200 nodes)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="workflow" className="mt-4">
         <p className="mb-2 text-xs text-muted-foreground">
@@ -4320,13 +4836,14 @@ export default function FlowCanvasDemo() {
 `,
   },
   "grid-layout-news-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { GridLayoutNews01 } from "./grid-layout-news-01";
 import { useMagazineFilter } from "./hooks/use-magazine-filter";
 import { DEMO_ARTICLES, type DemoArticle } from "./dummy-data";
@@ -4454,11 +4971,11 @@ export default function GridLayoutNews01Demo() {
 
   return (
     <Tabs defaultValue="composed" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="composed">Slot composition</TabsTrigger>
         <TabsTrigger value="bare">Bare layout</TabsTrigger>
         <TabsTrigger value="empty">Empty state</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="composed" className="mt-6">
         <GridLayoutNews01<DemoArticle>
@@ -4509,10 +5026,11 @@ export default function GridLayoutNews01Demo() {
 `,
   },
   "info-list-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { CircleUser } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { InfoList01 } from "./info-list-01";
 import {
   dummyContactItems,
@@ -4556,13 +5074,13 @@ const peopleItemsAsInfoListItems: InfoListItem[] = peopleItems.map((p) => ({
 export default function InfoList01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="compact">Compact (TR)</TabsTrigger>
         <TabsTrigger value="stacked">Both stacked</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — kasder Etkinlik Bilgileri verbatim */}
       <TabsContent value="default" className="mt-6">
@@ -4665,11 +5183,12 @@ export default function InfoList01Demo() {
 `,
   },
   "json-form": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { JsonForm } from "./json-form";
 import {
   JsonFormProvider,
@@ -5165,7 +5684,7 @@ function DevtoolsPerfTab() {
 export default function JsonFormDemo() {
   return (
     <Tabs defaultValue="registration" className="w-full">
-      <TabsList className="flex w-full flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="registration">Registration</TabsTrigger>
         <TabsTrigger value="backend">Backend-driven</TabsTrigger>
         <TabsTrigger value="conditional">Conditional</TabsTrigger>
@@ -5174,7 +5693,7 @@ export default function JsonFormDemo() {
         <TabsTrigger value="imperative">Imperative</TabsTrigger>
         <TabsTrigger value="custom">Custom registry</TabsTrigger>
         <TabsTrigger value="devtools">Devtools + perf</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="registration" className="pt-3">
         <RegistrationTab />
@@ -5528,13 +6047,14 @@ export default function KanbanBoard01Demo() {
 `,
   },
   "markdown-editor": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useRef, useState } from "react";
 import { Save, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { MarkdownEditor } from "./markdown-editor";
 import { defaultMarkdownToolbar } from "./default-toolbar";
 import {
@@ -5816,7 +6336,7 @@ function HandleDemo() {
 export default function MarkdownEditorDemo() {
   return (
     <Tabs defaultValue="basic">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="basic">Basic</TabsTrigger>
         <TabsTrigger value="views">View modes</TabsTrigger>
         <TabsTrigger value="wikilinks">Wikilinks</TabsTrigger>
@@ -5825,7 +6345,7 @@ export default function MarkdownEditorDemo() {
         <TabsTrigger value="save">onSave</TabsTrigger>
         <TabsTrigger value="no-toolbar">No toolbar</TabsTrigger>
         <TabsTrigger value="handle">Imperative handle</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="basic" className="mt-4">
         <BasicDemo />
       </TabsContent>
@@ -5856,11 +6376,12 @@ export default function MarkdownEditorDemo() {
 `,
   },
   "media-carousel-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { MediaCarousel01 } from "./media-carousel-01";
 import {
   DUMMY_MIXED_MEDIA,
@@ -5927,13 +6448,13 @@ function ImperativeRefDemo() {
 export default function MediaCarousel01Demo() {
   return (
     <Tabs defaultValue="gallery">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="gallery">Gallery (mixed)</TabsTrigger>
         <TabsTrigger value="linear">Linear (photos)</TabsTrigger>
         <TabsTrigger value="single">Single-item shortcut</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
         <TabsTrigger value="imperative">Imperative ref</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="gallery" className="mt-6 space-y-3">
         <MediaCarousel01
@@ -6034,9 +6555,10 @@ export default function MediaCarousel01Demo() {
 `,
   },
   "newsletter-card-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { NewsletterCard01 } from "./newsletter-card-01";
 import {
   NEWSLETTER_CARD_LABELS_TR,
@@ -6047,13 +6569,13 @@ import {
 export default function NewsletterCard01Demo() {
   return (
     <Tabs defaultValue="inline-form" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="inline-form">Inline form</TabsTrigger>
         <TabsTrigger value="cta-only">CTA only</TabsTrigger>
         <TabsTrigger value="i18n">Custom labels</TabsTrigger>
         <TabsTrigger value="error">Error state</TabsTrigger>
         <TabsTrigger value="tones">Tones</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="inline-form" className="mt-6 max-w-md">
         <NewsletterCard01 onSubmit={fakeSubmitSuccess} />
@@ -6090,9 +6612,10 @@ export default function NewsletterCard01Demo() {
 `,
   },
   "page-hero-news-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
 import { HeroStats, PageHeroNews01 } from "./page-hero-news-01";
 import {
@@ -6105,13 +6628,13 @@ import {
 export default function PageHeroNews01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="stats">With HeroStats</TabsTrigger>
         <TabsTrigger value="cta">CTA cluster</TabsTrigger>
         <TabsTrigger value="density">Density</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 overflow-hidden rounded-2xl border border-border/50">
         <PageHeroNews01
@@ -6185,7 +6708,7 @@ export default function PageHeroNews01Demo() {
 `,
   },
   "pdf-viewer": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
@@ -6194,7 +6717,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { cn } from "@/lib/utils";
 import {
   PDF_VIEWER_DUMMY_URL,
@@ -6559,7 +7083,7 @@ export default function PdfViewerDemo() {
 
   return (
     <Tabs value={tab} onValueChange={setTab} defaultValue="url">
-      <TabsList className="flex flex-wrap">
+      <SwipeTabsList>
         <TabsTrigger value="url">URL</TabsTrigger>
         <TabsTrigger value="file">File</TabsTrigger>
         <TabsTrigger value="blob">Blob</TabsTrigger>
@@ -6569,7 +7093,7 @@ export default function PdfViewerDemo() {
         <TabsTrigger value="permissions">Permissions</TabsTrigger>
         <TabsTrigger value="ref">Imperative ref</TabsTrigger>
         <TabsTrigger value="selection">Selection</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="url" className="mt-6">
         <UrlTab />
@@ -6604,10 +7128,11 @@ export default function PdfViewerDemo() {
 `,
   },
   "people-grid-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { AtSign, Briefcase, Globe } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PeopleGrid01 } from "./people-grid-01";
 import { dummyBoard, dummySpeakers, dummyTeam } from "./dummy-data";
 
@@ -6623,13 +7148,13 @@ const speakerSocial: Record<
 export default function PeopleGrid01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="initials">Initials fallback</TabsTrigger>
         <TabsTrigger value="columns">Columns 2-5</TabsTrigger>
         <TabsTrigger value="linked">Linked + actions</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — kasder Konuşmacılar verbatim */}
       <TabsContent value="default" className="mt-6">
@@ -6800,8 +7325,9 @@ export default function PeopleGrid01Demo() {
     demo: `"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Wand2 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Lock, Star, Trash2, Wand2 } from "lucide-react";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PostCard01 } from "./post-card-01";
 import { defaultPostEngagementActions } from "./lib/defaults";
 import {
@@ -7148,6 +7674,50 @@ function InlineEngagementTab() {
   );
 }
 
+function ModeratorTab() {
+  // v0.3.0 ILX-3 — viewer-mode card with moderator capability opted in via
+  // \`permissions={{ canModerate: true }}\`. \`moderatorActions(post)\` supplies
+  // the items; the library wraps them in a section between common items and
+  // viewer-destructive items, with a divider above. \`kebabActions\` is left
+  // unset so the role-aware default kebab assembly runs.
+  return (
+    <div className="mx-auto max-w-xl">
+      <PostCard01
+        variant="feed"
+        post={DUMMY_FEATURED_POST}
+        currentUser={DUMMY_VIEWER}
+        viewerMode="viewer"
+        permissions={{ canModerate: true }}
+        moderatorActions={(p): CommentMenuItem[] => [
+          {
+            label: "Feature post",
+            icon: <Star className="h-4 w-4" />,
+            onClick: () => log("mod:feature", p.id),
+          },
+          {
+            label: "Lock comments",
+            icon: <Lock className="h-4 w-4" />,
+            onClick: () => log("mod:lock", p.id),
+          },
+          {
+            label: "Remove post",
+            icon: <Trash2 className="h-4 w-4" />,
+            destructive: true,
+            onClick: () => log("mod:remove", p.id),
+          },
+        ]}
+        onLike={(id, liked) => log("like", { id, liked })}
+        onShare={(id) => log("share", id)}
+        onBookmark={(id, bookmarked) => log("bookmark", { id, bookmarked })}
+        onReport={(id) => log("report", id)}
+        onBlockAuthor={(authorId) => log("block-author", authorId)}
+        onMuteAuthor={(authorId) => log("mute-author", authorId)}
+        getHref={(p) => \`/posts/\${p.id}\`}
+      />
+    </div>
+  );
+}
+
 function CustomActionsTab() {
   const [extras] = useState({ remixActive: false });
   return (
@@ -7192,8 +7762,7 @@ function CustomActionsTab() {
 export default function PostCard01Demo() {
   return (
     <Tabs defaultValue="feed" className="w-full">
-      {/* Responsive tab strip — flex-scroll on <sm, auto-fit grid on sm+ per description §2.1-B */}
-      <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-[repeat(auto-fit,minmax(96px,1fr))]">
+      <SwipeTabsList>
         <TabsTrigger value="feed">Feed</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="list">List</TabsTrigger>
@@ -7203,10 +7772,11 @@ export default function PostCard01Demo() {
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="inline">Inline TR</TabsTrigger>
         <TabsTrigger value="custom">Custom</TabsTrigger>
+        <TabsTrigger value="moderator">Moderator</TabsTrigger>
         <TabsTrigger value="repost">Repost</TabsTrigger>
         <TabsTrigger value="poll">Poll</TabsTrigger>
         <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="feed" className="mt-4">
         <FeedTab />
       </TabsContent>
@@ -7234,6 +7804,9 @@ export default function PostCard01Demo() {
       <TabsContent value="custom" className="mt-4">
         <CustomActionsTab />
       </TabsContent>
+      <TabsContent value="moderator" className="mt-4">
+        <ModeratorTab />
+      </TabsContent>
       <TabsContent value="repost" className="mt-4">
         <RepostTab />
       </TabsContent>
@@ -7249,10 +7822,11 @@ export default function PostCard01Demo() {
 `,
   },
   "pricing-table-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PricingTable01 } from "./pricing-table-01";
 import {
   PRICING_DEMO_LABELS_TR,
@@ -7301,14 +7875,14 @@ function ControlledDemo() {
 export default function PricingTable01Demo() {
   return (
     <Tabs defaultValue="cards" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="cards">Cards · toggle</TabsTrigger>
         <TabsTrigger value="two-tier">Free / Paid</TabsTrigger>
         <TabsTrigger value="table">Comparison table</TabsTrigger>
         <TabsTrigger value="controlled">Controlled + analytics</TabsTrigger>
         <TabsTrigger value="i18n">Custom labels (TR)</TabsTrigger>
         <TabsTrigger value="tones">Tones</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="cards" className="mt-6">
         <PricingTable01
@@ -7373,9 +7947,10 @@ export default function PricingTable01Demo() {
 `,
   },
   "progress-timeline-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ProgressTimeline01 } from "./progress-timeline-01";
 import {
   dummyNow,
@@ -7397,13 +7972,13 @@ const trLabels = {
 export default function ProgressTimeline01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="states">3 states</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="custom">Custom render</TabsTrigger>
         <TabsTrigger value="value">Value escape hatch</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — Turkish, mirrors the kasder source verbatim */}
       <TabsContent value="default" className="mt-6">
@@ -7515,12 +8090,13 @@ export default function ProgressTimeline01Demo() {
 `,
   },
   "project-card-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ProjectCard01 } from "./project-card-01";
 import {
   dummyCategoryStyles,
@@ -7634,13 +8210,13 @@ export default function ProjectCard01Demo() {
 
   return (
     <Tabs defaultValue="grid" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="grid">Grid</TabsTrigger>
         <TabsTrigger value="feature">Feature (bento)</TabsTrigger>
         <TabsTrigger value="featured">Featured</TabsTrigger>
         <TabsTrigger value="localized">Localized (TR)</TabsTrigger>
         <TabsTrigger value="actions">Actions slot</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Grid — vertical image-on-top, 1/2/3-col responsive */}
       <TabsContent value="grid" className="mt-6">
@@ -7815,7 +8391,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PropertiesForm } from "./properties-form";
 import {
   PRIORITY_OPTIONS,
@@ -8074,13 +8651,13 @@ export default function PropertiesFormDemo() {
   return (
     <div className="flex flex-col gap-4">
       <Tabs defaultValue="read">
-        <TabsList className="flex flex-wrap">
+        <SwipeTabsList>
           <TabsTrigger value="read">Read mode</TabsTrigger>
           <TabsTrigger value="edit">Edit + submit</TabsTrigger>
           <TabsTrigger value="mixed">Mixed permissions</TabsTrigger>
           <TabsTrigger value="validation">Validation</TabsTrigger>
           <TabsTrigger value="custom">Custom renderer</TabsTrigger>
-        </TabsList>
+        </SwipeTabsList>
         <TabsContent value="read" className="mt-4">
           <ReadDemo />
         </TabsContent>
@@ -8106,11 +8683,12 @@ export default function PropertiesFormDemo() {
 `,
   },
   "registration-card-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { Bookmark, CalendarPlus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { RegistrationCard01 } from "./registration-card-01";
 import {
   dummyRegistrationClosed,
@@ -8127,13 +8705,13 @@ const noop = () => {};
 export default function RegistrationCard01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="states">All states</TabsTrigger>
         <TabsTrigger value="no-quota">No-quota</TabsTrigger>
         <TabsTrigger value="actions">Custom actions</TabsTrigger>
         <TabsTrigger value="bare">Bare + relabeled</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default (TR) — kasder Kayıt Durumu verbatim */}
       <TabsContent value="default" className="mt-6">
@@ -8282,12 +8860,13 @@ export default function RegistrationCard01Demo() {
 `,
   },
   "registration-form-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useCallback, useState } from "react";
 import { GitBranch, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { RegistrationForm01 } from "./registration-form-01";
 import {
   controlledRegistrationProps,
@@ -8507,14 +9086,14 @@ function ControlledTab() {
 export default function RegistrationForm01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="oauth">OAuth</TabsTrigger>
         <TabsTrigger value="two-step">Two-step</TabsTrigger>
         <TabsTrigger value="magic-link">Magic-link</TabsTrigger>
         <TabsTrigger value="dense">Dense</TabsTrigger>
         <TabsTrigger value="controlled">Controlled status</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="pt-3">
         <DefaultTab />
@@ -9563,10 +10142,11 @@ function V02HeadlessFilterDemo() {
 `,
   },
   "schedule-list-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { Mic } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ScheduleList01 } from "./schedule-list-01";
 import { dummySchedule, dummyScheduleTr } from "./dummy-data";
 import type { ScheduleListItem } from "./types";
@@ -9620,13 +10200,13 @@ function SpeakerAugmentedRow({ item }: { item: ScheduleListItem }) {
 export default function ScheduleList01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex-wrap h-auto">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default (TR)</TabsTrigger>
         <TabsTrigger value="english">English</TabsTrigger>
         <TabsTrigger value="bare">Bare rows</TabsTrigger>
         <TabsTrigger value="links">Icons + links</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* 1. Default — Turkish, mirrors the kasder source verbatim */}
       <TabsContent value="default" className="mt-6">
@@ -9692,11 +10272,12 @@ export default function ScheduleList01Demo() {
 `,
   },
   "share-bar-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { Send } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ShareBar01 } from "./share-bar-01";
 import {
   SHARE_BAR_01_DUMMY_COMPACT,
@@ -9728,13 +10309,13 @@ export default function ShareBar01Demo() {
 
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="full">Full + analytics</TabsTrigger>
         <TabsTrigger value="custom">Custom target</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="i18n">Localized (TR)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
         <ShareBar01
@@ -9818,7 +10399,7 @@ export default function ShareBar01Demo() {
 `,
   },
   "stat-card": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import {
@@ -9829,7 +10410,8 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { StatCard } from "./stat-card";
 import { StatCardSparkline } from "./parts/sparkline";
 import {
@@ -9846,7 +10428,7 @@ export default function StatCardDemo() {
 
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="compact">Compact</TabsTrigger>
         <TabsTrigger value="detailed">Detailed</TabsTrigger>
@@ -9856,7 +10438,7 @@ export default function StatCardDemo() {
         <TabsTrigger value="custom-value">Custom value</TabsTrigger>
         <TabsTrigger value="sparkline-only">Sparkline only</TabsTrigger>
         <TabsTrigger value="i18n">Localized (TR)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       {/* Default — 4-card KPI strip */}
       <TabsContent value="default" className="mt-6">
@@ -10166,10 +10748,11 @@ export default function StatCardDemo() {
 `,
   },
   "story-rail-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { StoryViewer01 } from "../../media/story-viewer-01";
 import type { Story } from "../../media/story-viewer-01";
 import { StoryRail01 } from "./story-rail-01";
@@ -10353,7 +10936,7 @@ function EmptyTab() {
 export default function StoryRail01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="grid grid-cols-7">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="add">+ Add</TabsTrigger>
         <TabsTrigger value="mixed">Mixed</TabsTrigger>
@@ -10361,7 +10944,7 @@ export default function StoryRail01Demo() {
         <TabsTrigger value="custom">Custom</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="empty">Empty</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
       <TabsContent value="default" className="mt-4">
         <DefaultTab />
       </TabsContent>
@@ -10389,18 +10972,25 @@ export default function StoryRail01Demo() {
 `,
   },
   "story-viewer-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useMemo, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
 import { StoryViewer01 } from "./story-viewer-01";
-import { STORY_VIEWER_01_DUMMY } from "./dummy-data";
+import {
+  STORY_VIEWER_01_DUMMY,
+  STORY_VIEWER_01_DUMMY_CURRENT_USER,
+  STORY_VIEWER_01_DUMMY_REACTION_KINDS,
+  STORY_VIEWER_01_DUMMY_VIEWERS,
+} from "./dummy-data";
 import type {
   Story,
   StoryItem,
   StoryViewerDelta,
   Subscribe,
+  ViewerListItem,
 } from "./types";
 
 function log(tag: string, payload: unknown) {
@@ -10630,34 +11220,197 @@ function CustomRenderItemTab() {
   );
 }
 
+// ─── v0.2.0 — viewer / owner / slots / link demos ──────────────────────────
+
+function ViewerModeTab() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="text-sm text-muted-foreground">
+        viewerMode=&quot;viewer&quot;: stacked engagement overlay + reply composer +
+        viewer-side kebab.
+      </p>
+      <OpenButton label="Open viewer-mode story" onClick={() => setOpen(true)} />
+      <StoryViewer01
+        stories={ALL_STORIES}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        viewerMode="viewer"
+        currentUser={STORY_VIEWER_01_DUMMY_CURRENT_USER}
+        reactionKinds={STORY_VIEWER_01_DUMMY_REACTION_KINDS}
+        onLikeStory={(s, i, liked) => log("like", { s, i, liked })}
+        onReactStory={(s, i, kind) => log("react", { s, i, kind })}
+        onShareStory={(s, i) => log("share", { s, i })}
+        onBookmarkStory={(s, i, b) => log("bookmark", { s, i, b })}
+        onAddReply={(s, i, content) => log("reply", { s, i, content })}
+        onReport={(s) => log("report", s)}
+        onBlockAuthor={(a) => log("block-author", a)}
+        onCopyLink={(s) => log("copy-link", s)}
+      />
+    </div>
+  );
+}
+
+function OwnerModeTab() {
+  const [open, setOpen] = useState(false);
+  // Lazy-fetch handler — simulates a server round-trip after the eager
+  // count chip is tapped (Q-V5 hybrid: viewerCount eager, viewers lazy).
+  const onLoadViewers = useMemo(
+    () => async (storyId: string): Promise<ViewerListItem[]> => {
+      log("load-viewers", storyId);
+      await new Promise((r) => setTimeout(r, 350));
+      return STORY_VIEWER_01_DUMMY_VIEWERS;
+    },
+    [],
+  );
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="text-sm text-muted-foreground">
+        viewerMode=&quot;owner&quot;: view-count chip + lazy viewers list (350ms
+        simulated fetch). Owner-side kebab (save / delete / share-to-feed).
+      </p>
+      <OpenButton label="Open owner-mode story" onClick={() => setOpen(true)} />
+      <StoryViewer01
+        stories={ALL_STORIES}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        viewerMode="owner"
+        onLoadViewers={onLoadViewers}
+        onSaveToHighlights={(s) => log("save-to-highlights", s)}
+        onDeleteStory={(s) => log("delete-story", s)}
+        onShareToFeed={(s) => log("share-to-feed", s)}
+        isSavedToHighlights={false}
+      />
+    </div>
+  );
+}
+
+function CustomSlotsTab() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="text-sm text-muted-foreground">
+        Full takeover via renderHeader + renderProgress + renderEngagementOverlay.
+        Slots receive helpers (cursor / pause / nav) so custom UI keeps full
+        control of the viewer.
+      </p>
+      <OpenButton label="Open custom-slots story" onClick={() => setOpen(true)} />
+      <StoryViewer01
+        stories={ALL_STORIES}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        viewerMode="viewer"
+        currentUser={STORY_VIEWER_01_DUMMY_CURRENT_USER}
+        reactionKinds={STORY_VIEWER_01_DUMMY_REACTION_KINDS}
+        renderHeader={(story, _item, helpers) => (
+          <div className="absolute top-4 right-4 left-4 z-20 flex items-center justify-between rounded-lg bg-black/50 px-3 py-2 backdrop-blur-sm">
+            <p className="text-sm font-semibold text-white">@{story.username}</p>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-white hover:bg-white/20 hover:text-white"
+              onClick={helpers.onClose}
+            >
+              Close
+            </Button>
+          </div>
+        )}
+        renderProgress={(items, idx, p) => (
+          <div className="absolute top-0 right-0 left-0 z-20 flex gap-0.5 p-2">
+            {items.map((it, i) => (
+              <div
+                key={it.id}
+                className="h-1 flex-1 overflow-hidden rounded-full bg-white/20"
+              >
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-100"
+                  style={{ width: \`\${i < idx ? 100 : i === idx ? p : 0}%\` }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        renderEngagementOverlay={(_story, _item, helpers) => (
+          <div className="absolute right-3 bottom-24 z-30 flex flex-col items-center gap-3">
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={() => helpers.setPaused(!helpers.isPaused)}
+            >
+              {helpers.isPaused ? "▶" : "❚❚"}
+            </Button>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+function LinkAndLongPressTab() {
+  const [open, setOpen] = useState(false);
+  // Use the story-1 fixture (the dummy ships an item with a link CTA).
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="px-6 text-center text-sm text-muted-foreground">
+        First item carries a link CTA (&quot;Shop now&quot; → example.com).
+        Hold-press anywhere on the viewer to pause; release to resume.
+      </p>
+      <OpenButton label="Open link + long-press story" onClick={() => setOpen(true)} />
+      <StoryViewer01
+        stories={[STORY_VIEWER_01_DUMMY[0]]}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        viewerMode="viewer"
+        currentUser={STORY_VIEWER_01_DUMMY_CURRENT_USER}
+        reactionKinds={STORY_VIEWER_01_DUMMY_REACTION_KINDS}
+        onLinkClick={(s, i, url) => log("link-click", { s, i, url })}
+        longPressThresholdMs={250}
+      />
+    </div>
+  );
+}
+
 export default function StoryViewer01Demo() {
   return (
     <Tabs defaultValue="image" className="w-full">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="image">Image only</TabsTrigger>
         <TabsTrigger value="video">Video only</TabsTrigger>
         <TabsTrigger value="mixed">Mixed</TabsTrigger>
         <TabsTrigger value="multi">Multi-story nav</TabsTrigger>
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
-      </TabsList>
+        <TabsTrigger value="viewer-mode">Viewer mode</TabsTrigger>
+        <TabsTrigger value="owner-mode">Owner mode</TabsTrigger>
+        <TabsTrigger value="custom-slots">Custom slots</TabsTrigger>
+        <TabsTrigger value="link-longpress">Link + long-press</TabsTrigger>
+      </SwipeTabsList>
       <TabsContent value="image"><ImageOnlyTab /></TabsContent>
       <TabsContent value="video"><VideoOnlyTab /></TabsContent>
       <TabsContent value="mixed"><MixedTab /></TabsContent>
       <TabsContent value="multi"><MultiStoryTab /></TabsContent>
       <TabsContent value="realtime"><RealtimeTab /></TabsContent>
       <TabsContent value="custom"><CustomRenderItemTab /></TabsContent>
+      <TabsContent value="viewer-mode"><ViewerModeTab /></TabsContent>
+      <TabsContent value="owner-mode"><OwnerModeTab /></TabsContent>
+      <TabsContent value="custom-slots"><CustomSlotsTab /></TabsContent>
+      <TabsContent value="link-longpress"><LinkAndLongPressTab /></TabsContent>
     </Tabs>
   );
 }
 `,
   },
   "thumb-list-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import type { ComponentProps, ElementType } from "react";
 import { Bookmark } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ThumbList01 } from "./thumb-list-01";
 import {
   THUMB_LIST_01_DUMMY,
@@ -10701,14 +11454,14 @@ function formatRelativeDays(dateStr: string): string {
 export default function ThumbList01Demo() {
   return (
     <Tabs defaultValue="default" className="w-full">
-      <TabsList className="flex flex-wrap gap-2">
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="no-frame">No frame</TabsTrigger>
         <TabsTrigger value="custom-meta">Custom meta</TabsTrigger>
         <TabsTrigger value="no-icon">No icon + router link</TabsTrigger>
         <TabsTrigger value="empty">Empty state</TabsTrigger>
         <TabsTrigger value="i18n">Custom icon + Turkish</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
         <ThumbList01 items={THUMB_LIST_01_DUMMY} />
@@ -11221,12 +11974,13 @@ function ImperativeHandleDemo() {
 `,
   },
   "video-player-01": {
-    demo: `"use client";
+    demo: `﻿"use client";
 
 import { useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { cn } from "@/lib/utils";
 import { VideoPlayer01 } from "./video-player-01";
 import {
@@ -11332,13 +12086,13 @@ function CarouselDemo() {
 export default function VideoPlayer01Demo() {
   return (
     <Tabs defaultValue="default">
-      <TabsList>
+      <SwipeTabsList>
         <TabsTrigger value="default">Default</TabsTrigger>
         <TabsTrigger value="custom-controls">Custom controls</TabsTrigger>
         <TabsTrigger value="captions">Captions</TabsTrigger>
         <TabsTrigger value="decorative">Decorative</TabsTrigger>
         <TabsTrigger value="carousel">isActive (carousel)</TabsTrigger>
-      </TabsList>
+      </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6">
         <div className="aspect-video overflow-hidden rounded-md">

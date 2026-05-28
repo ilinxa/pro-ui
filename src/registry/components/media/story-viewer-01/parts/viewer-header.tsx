@@ -1,4 +1,6 @@
+import { type ElementType } from "react";
 import { Pause, Play, Volume2, VolumeX, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { ResolvedStoryViewer01Labels, Story, StoryItem } from "../types";
@@ -13,6 +15,16 @@ export interface ViewerHeaderProps {
   onClose: () => void;
   formatTime: (date: Date) => string;
   labels: ResolvedStoryViewer01Labels;
+  /**
+   * v0.2.2 — when set, the avatar + name strip becomes interactive (rendered
+   * as `authorComponent` if provided, else `<button type="button">`).
+   */
+  onAuthorClick?: (story: Story) => void;
+  /**
+   * v0.2.2 — polymorphic root override for the author tap-target. Defaults
+   * to `"button"` when onAuthorClick is set, `"div"` otherwise.
+   */
+  authorComponent?: ElementType;
 }
 
 export function ViewerHeader({
@@ -25,11 +37,29 @@ export function ViewerHeader({
   onClose,
   formatTime,
   labels,
+  onAuthorClick,
+  authorComponent,
 }: ViewerHeaderProps) {
   const initials = story.username.slice(0, 2).toUpperCase();
+  const isInteractive = !!onAuthorClick || !!authorComponent;
+  const AuthorRoot: ElementType =
+    authorComponent ?? (onAuthorClick ? "button" : "div");
+  const authorRootProps: Record<string, unknown> = {
+    className: cn(
+      "flex items-center gap-3 rounded-full text-left",
+      isInteractive &&
+        "cursor-pointer transition-opacity hover:opacity-80 focus-visible:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+    ),
+  };
+  if (onAuthorClick) {
+    authorRootProps.onClick = () => onAuthorClick(story);
+  }
+  if (AuthorRoot === "button") {
+    authorRootProps.type = "button";
+  }
   return (
     <div className="absolute left-0 right-0 top-4 z-20 flex items-center justify-between px-4 pt-2">
-      <div className="flex items-center gap-3">
+      <AuthorRoot {...authorRootProps}>
         <Avatar className="h-10 w-10 border-2 border-white">
           {story.avatar ? <AvatarImage src={story.avatar} alt="" /> : null}
           <AvatarFallback>{initials}</AvatarFallback>
@@ -40,7 +70,7 @@ export function ViewerHeader({
             {formatTime(new Date(story.createdAt))}
           </p>
         </div>
-      </div>
+      </AuthorRoot>
       <div className="flex items-center gap-2">
         <Button
           type="button"

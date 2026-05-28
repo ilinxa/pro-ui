@@ -390,6 +390,33 @@ Items with `link: { url, cta? }` render a bottom button:
 client-side nav. `onLinkClick(storyId, itemId, url)` fires before navigation
 (host can preventDefault if needed).
 
+### Author tap-target (v0.2.2)
+
+The avatar + username strip in the header is a static `<div>` by default.
+Set `onAuthorClick(story)` to make it interactive:
+
+```tsx
+<StoryViewer01
+  // ...
+  onAuthorClick={(story) => router.push(`/u/${story.username}`)}
+/>
+```
+
+When set, the strip renders as `<button type="button">` with hover-opacity +
+focus ring. For href-based nav (Next.js `<Link>`, `<a>`, etc.) pass
+`authorComponent` — the polymorphic root receives `onClick` + `className`
+and the avatar + name as children; manage `href` inside your wrapper:
+
+```tsx
+<StoryViewer01
+  // ...
+  authorComponent={(props) => (
+    <Link href={`/u/${currentUser.username}`} {...props} />
+  )}
+  onAuthorClick={(story) => analytics.track("author", story.username)}
+/>
+```
+
 ### Imperative handle additions
 
 ```ts

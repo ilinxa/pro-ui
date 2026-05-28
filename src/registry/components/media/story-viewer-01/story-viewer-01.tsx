@@ -101,6 +101,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     longPressThresholdMs,
     linkComponent,
     onLinkClick,
+    // v0.2.2 — author tap-target
+    onAuthorClick,
+    authorComponent,
     // v0.2.0 — kebab item handlers (mirrors post-card-01 v0.2.0; flattened
     // on Props rather than a discrete StoryMutationHandlers interface). All
     // optional; gated by the permissions matrix in defaultStoryKebabActions.
@@ -534,6 +537,8 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             onClose={onClose}
             formatTime={labels.formatTime}
             labels={labels}
+            onAuthorClick={onAuthorClick}
+            authorComponent={authorComponent}
           />
         )}
         <ItemView
