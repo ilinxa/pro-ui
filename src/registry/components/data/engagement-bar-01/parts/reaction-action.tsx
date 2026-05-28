@@ -4,8 +4,8 @@ import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { Smile } from "lucide-react";
 import {
   Popover,
-  PopoverAnchor,
   PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type {
@@ -90,10 +90,19 @@ function ReactionActionInner({
   const isControlled = action.viewerReaction !== undefined;
 
   const handleIconClick = useCallback(() => {
-    // Long-press suppression: if the long-press timer already fired the picker
-    // open, swallow the trailing click so tap-clear doesn't ALSO run.
+    // PopoverTrigger's built-in onClick fires alongside ours (Slot mergeProps
+    // composes both handlers; Radix's `setOpen(!open)` toggle runs after our
+    // handler returns). We override Radix's toggle via `queueMicrotask` when
+    // our tap-matrix doesn't want it to fire — the microtask runs after Radix's
+    // state update commits, so our `setPickerOpen(...)` is the final value.
+    // This avoids the F-cross-13 mismatch (Base UI doesn't export PopoverAnchor)
+    // while still suppressing Radix's auto-toggle when needed.
+
+    // Long-press suppression: the timer already opened the picker. Radix's
+    // trailing click would close it; force it back open.
     if (longPressFired.current) {
       longPressFired.current = false;
+      queueMicrotask(() => setPickerOpen(true));
       return;
     }
     cancelLongPress();
@@ -102,20 +111,23 @@ function ReactionActionInner({
     const clearOnTap = action.clearOnTap ?? true;
 
     // F-01 lock matrix:
-    //   viewer = null  →  open picker (any clearOnTap)
-    //   viewer = set, clearOnTap = true  →  clear (dispatch null + microtask onSelect(null))
-    //   viewer = set, clearOnTap = false →  open picker
+    //   viewer = null  →  open picker (any clearOnTap) — Radix toggles for us
+    //   viewer = set, clearOnTap = true  →  clear (dispatch null + microtask
+    //     onSelect(null)) — Radix toggles open, we override to closed
+    //   viewer = set, clearOnTap = false →  open picker — Radix toggles for us
     if (viewer !== null && clearOnTap) {
       if (!isControlled) {
         dispatch({ kind: "reaction-select", reactionKind: null });
       }
-      // Defense 1 — microtask-deferred consumer notify.
+      // Defense 1 — microtask-deferred consumer notify + override Radix's
+      // auto-toggle. Both queued in the same microtask for consistency.
       queueMicrotask(() => {
         action.onSelect?.(null);
+        setPickerOpen(false);
       });
-    } else {
-      setPickerOpen(true);
     }
+    // Else: Radix's PopoverTrigger toggle handles opening the picker. We
+    // don't call setPickerOpen here.
   }, [cancelLongPress, state.viewerReaction, action, isControlled, dispatch]);
 
   const handlePick = useCallback(
@@ -167,20 +179,21 @@ function ReactionActionInner({
     <Smile className={cn(iconSizeClass, "transition-transform")} />
   );
 
-  // We use `<PopoverAnchor>` instead of `<PopoverTrigger>` because Trigger
-  // composes its built-in `onOpenToggle` click handler with ours via Slot
-  // merge — so EVERY click would toggle the popover open state regardless
-  // of our tap-matrix decisions (e.g. tap-clear would also open the picker).
-  // Anchor is positioning-only with no click handler; our code is the sole
-  // driver of `pickerOpen`. We must therefore set aria-haspopup / aria-expanded
-  // / aria-controls manually (Anchor doesn't supply them).
+  // We use `<PopoverTrigger>` (not `<PopoverAnchor>`) because Anchor is only
+  // exported by the producer-side Radix popover — `shadcn@4.6.0 add popover`
+  // ships the Base UI variant, which does NOT export PopoverAnchor (F-cross-13).
+  // Trigger is exported by both. The trade-off: Trigger composes its built-in
+  // `onOpenToggle` click handler with ours via Slot merge. We compensate by
+  // overriding the auto-toggle with a microtask-scheduled `setPickerOpen(...)`
+  // in `handleIconClick` for tap-clear + long-press paths.
+  //
+  // Radix auto-sets aria-haspopup + aria-expanded + aria-controls via Slot;
+  // we only add aria-pressed (our own toggle state) and aria-label.
   const triggerButton = (
     <button
       type="button"
       aria-pressed={state.viewerReaction !== null}
       aria-label={triggerAriaLabel}
-      aria-haspopup="dialog"
-      aria-expanded={pickerOpen}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={cancelLongPress}
@@ -222,7 +235,7 @@ function ReactionActionInner({
 
   const popover = (
     <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-      <PopoverAnchor asChild>{triggerButton}</PopoverAnchor>
+      <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
       <PopoverContent className="w-auto" align="start">
         <ReactionPicker
           kinds={action.kinds}
