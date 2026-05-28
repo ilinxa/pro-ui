@@ -89,6 +89,12 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     renderProgress,
     renderNavArrows,
     renderTapZones,
+    // v0.2.0 — remaining disable opt-outs (C8); 3 already pulled above
+    disableTapZones = false,
+    disableKeyboardNav = false,
+    disableNavArrows = false,
+    disableAutoClose = false,
+    disableProgressBars = false,
     // Kebab item handlers — flattened onto props (mirrors post-card-01 v0.2.0
     // mutation-handler convention). All optional; gated by permissions matrix.
     // Future: extract into a discrete StoryMutationHandlers interface.
@@ -158,6 +164,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onCursorChange,
     onAutoCloseAtEnd,
     onClose,
+    disableAutoClose,
   });
 
   const currentStory = stories[cursor.storyIndex];
@@ -242,8 +249,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   });
 
   // Keyboard nav (Escape funnels through Radix → onOpenChange).
+  // v0.2.0 — `enabled` gates the listener entirely per `disableKeyboardNav`.
   useStoryKeyboardNav({
     isOpen,
+    enabled: !disableKeyboardNav,
     onPrevItem: goToPrevItem,
     onNextItem: goToNextItem,
     onTogglePause: () => setPaused((p) => !p),
@@ -445,29 +454,32 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       ariaLabel={labels.viewerLabel}
       className={contentClassName}
     >
-      {/* v0.2.0 C7 — renderNavArrows slot wins as full takeover. */}
+      {/* v0.2.0 C7 — renderNavArrows slot wins as full takeover.
+          v0.2.0 C8 — `disableNavArrows` suppresses the default mount entirely. */}
       {renderNavArrows ? (
         renderNavArrows(slotHelpers)
-      ) : (
+      ) : !disableNavArrows ? (
         <NavArrows
           canPrev={cursor.storyIndex > 0}
           onPrev={goToPrevStory}
           onNext={goToNextStory}
           labels={labels}
         />
-      )}
+      ) : null}
 
       <div className={cn("relative h-full w-full bg-black", className)}>
-        {/* v0.2.0 C7 — renderProgress slot wins as full takeover. */}
+        {/* v0.2.0 C7 — renderProgress slot wins as full takeover.
+            v0.2.0 C8 — `disableProgressBars` suppresses the default mount;
+            timer still runs (drives auto-advance). */}
         {renderProgress ? (
           renderProgress(currentStory.items, cursor.itemIndex, progress, slotHelpers)
-        ) : (
+        ) : !disableProgressBars ? (
           <ProgressBars
             items={currentStory.items}
             currentItemIndex={cursor.itemIndex}
             progress={progress}
           />
-        )}
+        ) : null}
         {/* v0.2.0 C7 — renderHeader slot wins as full takeover. */}
         {renderHeader ? (
           renderHeader(currentStory, currentItem, slotHelpers)
@@ -496,16 +508,17 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           renderItem={renderItem}
           labels={labels}
         />
-        {/* v0.2.0 C7 — renderTapZones slot wins as full takeover. */}
+        {/* v0.2.0 C7 — renderTapZones slot wins as full takeover.
+            v0.2.0 C8 — `disableTapZones` suppresses the default mount entirely. */}
         {renderTapZones ? (
           renderTapZones(slotHelpers)
-        ) : (
+        ) : !disableTapZones ? (
           <TapZones
             onPrev={goToPrevItem}
             onTogglePause={() => setPaused((p) => !p)}
             onNext={goToNextItem}
           />
-        )}
+        ) : null}
 
         {/* v0.2.0 — engagement overlay (TikTok/Reels-style stacked right edge).
             Renders only when viewerMode="viewer" + !disableEngagement.

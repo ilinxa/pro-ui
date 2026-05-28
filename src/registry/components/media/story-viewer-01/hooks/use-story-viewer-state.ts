@@ -142,6 +142,13 @@ export interface UseStoryViewerStateOptions {
   onCursorChange?: (storyIndex: number, itemIndex: number) => void;
   onAutoCloseAtEnd?: () => void;
   onClose: () => void;
+  /**
+   * v0.2.0 — when true, the auto-close at end of the last story fires
+   * `onAutoCloseAtEnd` but DOES NOT call `onClose()`. The viewer stays
+   * open at the last item. Default false. Mirrors the `disableAutoClose`
+   * opt-out on StoryViewer01Props.
+   */
+  disableAutoClose?: boolean;
 }
 
 export interface UseStoryViewerStateResult {
@@ -176,7 +183,12 @@ export function useStoryViewerState(
     onCursorChange,
     onAutoCloseAtEnd,
     onClose,
+    disableAutoClose = false,
   } = opts;
+  const disableAutoCloseRef = useRef(disableAutoClose);
+  useEffect(() => {
+    disableAutoCloseRef.current = disableAutoClose;
+  });
 
   const [stories, dispatch] = useReducer(storyViewerReducer, initialStories);
 
@@ -314,9 +326,9 @@ export function useStoryViewerState(
         return;
       }
     }
-    // No next story — auto-close.
+    // No next story — auto-close (gated by disableAutoClose per v0.2.0).
     onAutoCloseAtEndRef.current?.();
-    onCloseRef.current();
+    if (!disableAutoCloseRef.current) onCloseRef.current();
   }, [cursorIds]);
 
   const goToPrevStory = useCallback(() => {
@@ -346,7 +358,7 @@ export function useStoryViewerState(
       }
     }
     onAutoCloseAtEndRef.current?.();
-    onCloseRef.current();
+    if (!disableAutoCloseRef.current) onCloseRef.current();
   }, [cursorIds]);
 
   const goToStoryIndex = useCallback((index: number) => {
