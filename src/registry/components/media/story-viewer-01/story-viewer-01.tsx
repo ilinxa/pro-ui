@@ -28,6 +28,7 @@ import { NavArrows } from "./parts/nav-arrows";
 import { ItemView } from "./parts/item-view";
 import { EngagementOverlay } from "./parts/engagement-overlay";
 import { ReplyComposer } from "./parts/reply-composer";
+import { OwnerOverlay } from "./parts/owner-overlay";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
 
@@ -72,6 +73,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     composerEmptyState,
     disableReplyComposer = false,
     renderReplyComposer,
+    // v0.2.0 — owner overlay inputs (C5)
+    onLoadViewers,
+    disableOwnerOverlay = false,
+    renderOwnerOverlay,
   } = props;
 
   // v0.2.0 labels shape: required for all keys EXCEPT the nested forwards
@@ -218,6 +223,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   // currentUser absent is HANDLED INSIDE the render (composerEmptyState fallback).
   const replyComposerMounted =
     !!viewerMode && viewerMode === "viewer" && !disableReplyComposer && !!currentStory && !!currentItem;
+  // Owner overlay mount gate — owner mode + opt-in + story/item present.
+  // Mutually exclusive with replyComposerMounted (owner vs viewer modes).
+  const ownerOverlayMounted =
+    !!viewerMode && viewerMode === "owner" && !disableOwnerOverlay && !!currentStory && !!currentItem;
   // Slot helpers — passed to every renderXxx slot.
   const slotHelpers = useMemo(
     () => ({
@@ -408,6 +417,23 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             />
           ) : (
             composerEmptyState
+          )
+        ) : null}
+
+        {/* v0.2.0 — owner overlay (view-count + lazy viewers list).
+            Renders only when viewerMode="owner" + !disableOwnerOverlay.
+            Mutually exclusive with reply composer (owner vs viewer modes).
+            renderOwnerOverlay slot wins as full takeover. */}
+        {ownerOverlayMounted ? (
+          renderOwnerOverlay ? (
+            renderOwnerOverlay(currentStory!, currentItem!, slotHelpers)
+          ) : (
+            <OwnerOverlay
+              story={currentStory!}
+              item={currentItem!}
+              onLoadViewers={onLoadViewers}
+              labels={labels}
+            />
           )
         ) : null}
       </div>

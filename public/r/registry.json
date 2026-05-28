@@ -1258,7 +1258,8 @@
         { "path": "src/registry/components/media/story-viewer-01/lib/permissions.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/permissions.ts" },
         { "path": "src/registry/components/media/story-viewer-01/lib/engagement-actions.ts", "type": "registry:component", "target": "components/story-viewer-01/lib/engagement-actions.ts" },
         { "path": "src/registry/components/media/story-viewer-01/parts/engagement-overlay.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/engagement-overlay.tsx" },
-        { "path": "src/registry/components/media/story-viewer-01/parts/reply-composer.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/reply-composer.tsx" }
+        { "path": "src/registry/components/media/story-viewer-01/parts/reply-composer.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/reply-composer.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/owner-overlay.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/owner-overlay.tsx" }
       ]
     },
     {
