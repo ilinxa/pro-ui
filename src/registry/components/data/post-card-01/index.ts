@@ -45,7 +45,8 @@ export { DEFAULT_POST_CARD_LABELS } from "./types";
 
 // Re-exports for consumer convenience — single import.
 // v0.3.1 F-S1 lock: relative + specific-file paths.
-export type { MediaItem } from "../../media/media-carousel-01/types";
+// Cross-category: absolute-with-suffix (relative breaks in consumer's flat tree).
+export type { MediaItem } from "@/registry/components/media/media-carousel-01/types";
 export type {
   Comment,
   CommentDelta,

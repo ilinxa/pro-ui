@@ -36,7 +36,7 @@ Phase A landed 2026-05-25 (charter + rule restructure + tier dir READMEs + STATU
 | `article-body-01` | data | alpha | 0.2.2 |
 | `engagement-bar-01` | data | alpha | 0.3.2 |
 | `post-card-01` | data | alpha | 0.3.1 |
-| `comment-thread-01` | data | alpha | 0.2.0 |
+| `comment-thread-01` | data | alpha | 0.2.1 |
 | `article-meta-01` | data | alpha | 0.1.0 |
 | `content-card-news-01` | data | alpha | 0.2.0 |
 | `event-card-01` | data | alpha | 0.1.1 |
@@ -68,7 +68,7 @@ Phase A landed 2026-05-25 (charter + rule restructure + tier dir READMEs + STATU
 | `newsletter-card-01` | marketing | alpha | 0.1.0 |
 | `page-hero-news-01` | marketing | alpha | 0.1.2 |
 | `share-bar-01` | marketing | alpha | 0.1.0 |
-| `media-carousel-01` | media | alpha | 0.1.2 |
+| `media-carousel-01` | media | alpha | 0.1.3 |
 | `story-viewer-01` | media | alpha | 0.1.2 |
 | `video-player-01` | media | alpha | 0.1.2 |
 | `pdf-viewer` | media | alpha | 0.1.3 |

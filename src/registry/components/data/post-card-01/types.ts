@@ -2,7 +2,10 @@ import type { ElementType, ReactNode } from "react";
 // F-S1 lock: cross-procomp imports use RELATIVE paths to specific files
 // (NOT barrels) so shadcn 4.6.0's path-rewriter doesn't mangle them.
 // See .claude/decisions/2026-05-28-post-card-01-v0.3.1-fcross-11-fs1-cleanup.md
-import type { MediaItem } from "../../media/media-carousel-01/types";
+// Cross-category cross-procomp: relative paths break in consumer's flat tree
+// (`../../media/...` resolves to `src/media/...` in consumer — doesn't exist).
+// Absolute-with-suffix preserves the file path through the CLI rewriter.
+import type { MediaItem } from "@/registry/components/media/media-carousel-01/types";
 import type {
   Comment,
   CommentDelta,

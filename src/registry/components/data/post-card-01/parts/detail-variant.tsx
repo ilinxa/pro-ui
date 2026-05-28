@@ -4,7 +4,9 @@ import { memo } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: cross-procomp imports via relative + specific-file paths.
 import { ExpandableText01 } from "../../expandable-text-01/expandable-text-01";
-import { MediaCarousel01 } from "../../../media/media-carousel-01/media-carousel-01";
+// Cross-category: absolute-with-suffix (relative would resolve to non-existent
+// `src/media/...` in consumer's flat tree).
+import { MediaCarousel01 } from "@/registry/components/media/media-carousel-01/media-carousel-01";
 import { EngagementBar01 } from "../../engagement-bar-01/engagement-bar-01";
 import { EngagementHeartBurst } from "../../engagement-bar-01/parts/engagement-heart-burst";
 import { CommentThread01 } from "../../comment-thread-01/comment-thread-01";
