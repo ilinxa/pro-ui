@@ -9,6 +9,12 @@ export interface UseStoryKeyboardNavOptions {
   onTogglePause: () => void;
   /** Optional — Radix Dialog already handles Escape via `onOpenChange`; supply only if you want a parallel hook. */
   onClose?: () => void;
+  /**
+   * v0.2.0 — when false, the window keydown listener does not attach.
+   * Default: true. Mirrors the `disableKeyboardNav` opt-out on
+   * StoryViewer01Props.
+   */
+  enabled?: boolean;
 }
 
 /**
@@ -28,9 +34,10 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
     refs.current = opts;
   });
 
-  const { isOpen } = opts;
+  const { isOpen, enabled = true } = opts;
   useEffect(() => {
     if (!isOpen) return;
+    if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
       switch (e.key) {
         case "ArrowLeft":
@@ -50,5 +57,5 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isOpen]);
+  }, [isOpen, enabled]);
 }
