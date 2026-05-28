@@ -9,7 +9,8 @@ import {
   useRef,
 } from "react";
 import { cn } from "@/lib/utils";
-import { useDoubleTap } from "@/registry/components/media/video-player-01";
+// F-S1 lock: same-category cross-procomp via relative + specific-file path.
+import { useDoubleTap } from "../../video-player-01/hooks/use-double-tap";
 import { useEmblaWithState } from "../hooks/use-embla-with-state";
 import type {
   LinearAspect,

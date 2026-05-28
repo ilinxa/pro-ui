@@ -70,7 +70,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 | `engagement-bar-01`     | Engagement Bar 01          | 0.3.2   | alpha  |
 | `post-card-01`          | Post Card 01               | 0.3.1   | alpha  |
 | `article-meta-01`       | Article Meta 01            | 0.1.0   | alpha  |
-| `comment-thread-01`     | Comment Thread 01          | 0.2.0   | alpha  |
+| `comment-thread-01`     | Comment Thread 01          | 0.2.1   | alpha  |
 | `content-card-news-01`  | Content Card (News 01)     | 0.2.0   | alpha  |
 | `data-table`            | Data Table                 | 0.1.1   | alpha  |
 | `event-card-01`         | Event Card 01              | 0.1.1   | alpha  |
@@ -123,7 +123,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 
 | Slug                | Name              | Version | Status |
 |---------------------|-------------------|---------|--------|
-| `media-carousel-01` | Media Carousel 01 | 0.1.2   | alpha  |
+| `media-carousel-01` | Media Carousel 01 | 0.1.3   | alpha  |
 | `pdf-viewer`        | PDF Viewer        | 0.1.3   | alpha  |
 | `story-viewer-01`   | Story Viewer 01   | 0.1.2   | alpha  |
 | `video-player-01`   | Video Player 01   | 0.1.2   | alpha  |

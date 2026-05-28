@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,20 +71,22 @@ function CommentKebabInner({
 
   if (items.length === 0) return null;
 
+  // F-cross-13: drop `asChild` + render the Radix/Base-UI primitive directly
+  // as a <button>. The shadcn CLI rewrites `asChild` to `render={<Button …>}`
+  // at install-time (Base UI idiom), which breaks consumers who installed the
+  // Radix primitive. Inline button styling via `buttonVariants(…)` instead.
+  const triggerClass = cn(
+    buttonVariants({ variant: "ghost", size: "icon" }),
+    "h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100",
+    className,
+  );
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100",
-            className,
-          )}
-          aria-label={`Comment actions for ${comment.author.name}`}
-        >
-          <MoreHorizontal className="h-3 w-3" />
-        </Button>
+      <DropdownMenuTrigger
+        className={triggerClass}
+        aria-label={`Comment actions for ${comment.author.name}`}
+      >
+        <MoreHorizontal className="h-3 w-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {items.map((item, i) => (

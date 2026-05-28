@@ -4,7 +4,7 @@ import { Fragment, memo } from "react";
 import { MapPin, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -202,18 +202,21 @@ function PostHeaderInner({
           </div>
         </div>
 
-        {/* Kebab — shrink-0 so it never gets pushed off-screen. */}
+        {/* Kebab — shrink-0 so it never gets pushed off-screen.
+            F-cross-13: drop `asChild` (shadcn CLI rewrites it to `render={…}`
+            at install-time — Base UI idiom — which breaks consumers who
+            installed the Radix dropdown-menu primitive). Render the trigger
+            as the button directly with `buttonVariants(…)` for styling. */}
         {kebabItems.length > 0 ? (
           <DropdownMenu open={kebabOpen} onOpenChange={onKebabOpenChange}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative z-10 h-11 w-11 shrink-0"
-                aria-label="Post actions"
-              >
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
+            <DropdownMenuTrigger
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                "relative z-10 h-11 w-11 shrink-0",
+              )}
+              aria-label="Post actions"
+            >
+              <MoreHorizontal className="h-5 w-5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="z-20">
               {kebabItems.map((item, i) => {

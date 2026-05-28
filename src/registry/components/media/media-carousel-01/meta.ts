@@ -34,10 +34,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["media-carousel-01", "carousel", "media", "embla", "gallery"],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-05-28",
 
   author: { name: "ilinxa" },
 
