@@ -327,7 +327,7 @@ export interface StoryViewerSlotHelpers {
   goToPrevStory: () => void;
   goToNextStory: () => void;
   onClose: () => void;
-  labels: Required<StoryViewer01Labels>;
+  labels: ResolvedStoryViewer01Labels;
 }
 
 // ─── i18n ───────────────────────────────────────────────────────────────
