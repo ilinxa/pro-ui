@@ -273,6 +273,7 @@ function ViewerModeTab() {
         onReport={(s) => log("report", s)}
         onBlockAuthor={(a) => log("block-author", a)}
         onCopyLink={(s) => log("copy-link", s)}
+        onAuthorClick={(s) => log("author-click", s.username)}
       />
     </div>
   );

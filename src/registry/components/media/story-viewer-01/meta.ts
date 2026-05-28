@@ -43,10 +43,11 @@ export const meta: ComponentMeta = {
     "v0.2.0 — F-S1 hygiene: VideoPlayer01 import switched to specific-file path",
     "v0.2.0 — Touch-target patch: header buttons 32×32 → 44×44 (WCAG 2.5.5 compliant)",
     "v0.2.1 — F-cross-13 viewer-shell patch: drop `showCloseButton={false}` prop (not in consumer's Radix dialog) + suppress close button via `[&>button.absolute]:hidden` CSS (works on both backends)",
+    "v0.2.2 — Author tap-target additive: `onAuthorClick(story)` + polymorphic `authorComponent` (default `\"button\"` when handler set). Avatar + username strip becomes a real tap-target with hover/focus affordance; consumers can pass Next.js `<Link>` or `<a>` for href-based nav.",
   ],
   tags: ["story-viewer-01", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   createdAt: "2026-05-03",
   updatedAt: "2026-05-29",
