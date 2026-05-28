@@ -50,7 +50,12 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     contentClassName,
   } = props;
 
-  const labels = useMemo<Required<StoryViewer01Labels>>(
+  // v0.2.0 labels shape: required for all keys EXCEPT the nested forwards
+  // (engagementLabels + commentLabels) which stay optional — hosts opt-in.
+  const labels = useMemo<
+    Required<Omit<StoryViewer01Labels, "engagementLabels" | "commentLabels">> &
+      Pick<StoryViewer01Labels, "engagementLabels" | "commentLabels">
+  >(
     () => ({ ...DEFAULT_STORY_VIEWER_LABELS, ...labelsProp }),
     [labelsProp],
   );
@@ -96,6 +101,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   useImperativeHandle(
     ref,
     () => ({
+      // v0.1 (preserved)
       goToStory: goToStoryIndex,
       goToItem: goToItemIndex,
       setPaused: (paused: boolean) => setPaused(paused),
@@ -106,8 +112,18 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       getCurrentStories: () => storiesRef.current,
       reset,
       dispatch,
+      // v0.2.0 additions — stubbed no-ops in C1 (types-only commit). Real
+      // implementations wire in C3 (triggerLike/triggerReaction/triggerShare
+      // via engagement-overlay ref), C4 (triggerReply via composer ref + focus),
+      // C6 (openKebab via kebab open state), and C10 (setMuted via setMuted setter).
+      setMuted: (muted: boolean) => setMuted(muted),
+      triggerLike: () => {},
+      triggerReaction: (_kind?: string) => {},
+      triggerReply: (_content?: string) => {},
+      triggerShare: () => {},
+      openKebab: () => {},
     }),
-    [goToStoryIndex, goToItemIndex, setPaused, reset, dispatch],
+    [goToStoryIndex, goToItemIndex, setPaused, setMuted, reset, dispatch],
   );
 
   // Per-item video metadata duration cache.
