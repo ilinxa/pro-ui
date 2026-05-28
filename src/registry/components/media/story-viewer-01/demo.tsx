@@ -11,6 +11,11 @@ import {
   STORY_VIEWER_01_DUMMY_REACTION_KINDS,
   STORY_VIEWER_01_DUMMY_VIEWERS,
 } from "./dummy-data";
+import { CommentThread01 } from "@/registry/components/data/comment-thread-01/comment-thread-01";
+import {
+  DUMMY_FLAT_COMMENTS,
+  generateOlderPage,
+} from "@/registry/components/data/comment-thread-01/dummy-data";
 import type {
   Story,
   StoryItem,
@@ -268,12 +273,32 @@ function ViewerModeTab() {
         onLikeStory={(s, i, liked) => log("like", { s, i, liked })}
         onReactStory={(s, i, kind) => log("react", { s, i, kind })}
         onShareStory={(s, i) => log("share", { s, i })}
-        onBookmarkStory={(s, i, b) => log("bookmark", { s, i, b })}
         onAddReply={(s, i, content) => log("reply", { s, i, content })}
         onReport={(s) => log("report", s)}
         onBlockAuthor={(a) => log("block-author", a)}
         onCopyLink={(s) => log("copy-link", s)}
         onAuthorClick={(s) => log("author-click", s.username)}
+        renderCommentsPanel={(story, item) => (
+          <CommentThread01
+            comments={DUMMY_FLAT_COMMENTS}
+            currentUser={{
+              id: STORY_VIEWER_01_DUMMY_CURRENT_USER.id,
+              name: STORY_VIEWER_01_DUMMY_CURRENT_USER.name,
+              avatar: STORY_VIEWER_01_DUMMY_CURRENT_USER.avatar,
+            }}
+            pageSize={5}
+            onAddComment={(content) => {
+              log("add-comment", { story: story.id, item: item.id, content });
+            }}
+            onLoadMore={async (page) => {
+              log("load-more", { story: story.id, item: item.id, page });
+              await new Promise((r) => setTimeout(r, 300));
+              return generateOlderPage(page);
+            }}
+            onLikeComment={(id, liked) => log("like-comment", { id, liked })}
+            className="h-full"
+          />
+        )}
       />
     </div>
   );

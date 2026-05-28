@@ -401,6 +401,14 @@ export interface StoryViewer01Labels {
   /** Default fallback when StoryItem.link.cta absent. Default: "Open link". */
   openLink?: string;
 
+  // v0.3.0 — comments panel
+  /** Panel heading. Default: "Comments". */
+  commentsHeading?: string;
+  /** aria-label on the panel-close button. Default: "Close comments". */
+  commentsCloseLabel?: string;
+  /** Default empty-state copy when no renderCommentsPanel is supplied. */
+  commentsDefaultEmptyState?: string;
+
   // v0.2.0 — nested forwards
   /** Nested forward to engagement-bar-01 labels (per Q-V14 — defensive callback contravariance applied). */
   engagementLabels?: StoryEngagementBarLabels;
@@ -456,6 +464,9 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   copyLink: "Copy link",
   kebabAriaLabel: "Story actions",
   openLink: "Open link",
+  commentsHeading: "Comments",
+  commentsCloseLabel: "Close comments",
+  commentsDefaultEmptyState: "No comments yet. Be the first to reply.",
 };
 
 // ─── Imperative handle ──────────────────────────────────────────────────
@@ -546,12 +557,23 @@ export interface StoryViewer01Props {
   onReactStory?: (storyId: string, itemId: string, reactionKind: string | null) => void;
   /** Fires on share affordance. Host opens share-sheet / system share. */
   onShareStory?: (storyId: string, itemId: string) => void;
-  /** Fires on bookmark toggle. */
-  onBookmarkStory?: (storyId: string, itemId: string, nextBookmarked: boolean) => void;
+  // onBookmarkStory removed in v0.3.0 — stories are not bookmarkable.
 
-  // ─── v0.2.0 — reply composer ──────────────────────────────────────────
+  // ─── v0.2.0 — DM composer (always-visible bottom input) ──────────────
+  //
+  // Per Instagram-canonical semantic: the always-visible bottom input is a
+  // DIRECT MESSAGE to the story author (content sent through to the author's
+  // chat alongside a snapshot of the current item). It is NOT a public
+  // comment — public comments live in the v0.3.0 comments panel (see below).
 
-  /** Fires on reply submit. Library does NOT optimistically render (reply is a DM, not a comment). */
+  /**
+   * Fires on DM submit from the always-visible bottom input. Library does
+   * NOT optimistically render (DM is a chat message; the response surface
+   * lives outside the viewer entirely).
+   *
+   * The name `onAddReply` is preserved from v0.2.0 for back-compat —
+   * semantically equivalent to `onSendDirectMessage`.
+   */
   onAddReply?: (storyId: string, itemId: string, content: string) => Promise<void> | void;
 
   // ─── v0.2.0 — owner overlay ───────────────────────────────────────────
@@ -704,6 +726,25 @@ export interface StoryViewer01Props {
   renderReplyComposer?: (story: Story, item: StoryItem, helpers: StoryViewerSlotHelpers) => ReactNode;
   /** Replace the owner overlay (view-count + viewers list). */
   renderOwnerOverlay?: (story: Story, item: StoryItem, helpers: StoryViewerSlotHelpers) => ReactNode;
+  /**
+   * v0.3.0 — replace the comments-panel content. When the panel is opened
+   * (tapping the comment icon in the engagement overlay), the visual content
+   * shrinks toward the top and this slot's return is rendered inside the
+   * bottom sheet. Hosts typically mount `<CommentThread01 />` here with
+   * per-item comments + `onAddComment` + `onLoadMore` wired.
+   *
+   * When omitted, the panel renders a thin default surface (heading +
+   * "drop a comment" hint + `composerEmptyState` fallback) — usable, but
+   * the canonical pattern is to provide CommentThread01.
+   */
+  renderCommentsPanel?: (
+    story: Story,
+    item: StoryItem,
+    helpers: StoryViewerSlotHelpers & {
+      isCommentsOpen: boolean;
+      closeCommentsPanel: () => void;
+    },
+  ) => ReactNode;
 
   // ─── v0.2.0 disable opt-outs (8 new) ──────────────────────────────────
 
@@ -723,6 +764,13 @@ export interface StoryViewer01Props {
   disableReplyComposer?: boolean;
   /** Suppress the owner overlay (view-count + viewers list) entirely. */
   disableOwnerOverlay?: boolean;
+  /**
+   * v0.3.0 — suppress the comments panel entirely. When set, the comment
+   * action in the engagement overlay falls back to focusing the DM input
+   * (v0.2.x behavior). The comment icon is NOT hidden — `disableEngagement`
+   * is the way to remove the whole overlay.
+   */
+  disableComments?: boolean;
 
   // ─── Defaults ──────────────────────────────────────────────────────────
   /** Default item duration in seconds when neither item.duration nor video metadata is available. Default 5. */
