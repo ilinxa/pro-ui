@@ -1051,10 +1051,10 @@
       "name": "engagement-bar-01",
       "type": "registry:block",
       "title": "Engagement Bar 01",
-      "description": "Discriminated-union action row (like / comment / share / bookmark / view-count / custom) with realtime subscribe contract, sibling RSC heart-burst sub-export (CSS-keyframe driven via registry:file), per-action controlled vs uncontrolled mode, slot-based likers preview, and three variants (default / compact / stacked). No framer-motion. Highest-leverage primitive in the social-posts-system arc; retrofits cleanly into news-card-01 + event-card-01 actions slots. Fourth ship in the social-posts-system arc.",
+      "description": "Discriminated-union action row (like / comment / share / bookmark / view-count / custom / reaction) with realtime subscribe contract, sibling RSC heart-burst sub-export (CSS-keyframe driven via registry:file), per-action controlled vs uncontrolled mode, slot-based likers + reactors previews, FB-style multi-kind reaction picker with 350ms long-press + hybrid-with-like coexistence, and three variants (default / compact / stacked). No framer-motion. Highest-leverage primitive in the social-posts-system arc; retrofits cleanly into news-card-01 + event-card-01 actions slots.",
       "author": "ilinxa",
       "categories": ["data"],
-      "registryDependencies": ["button", "avatar", "input"],
+      "registryDependencies": ["button", "avatar", "input", "popover"],
       "dependencies": ["lucide-react"],
       "files": [
         { "path": "src/registry/components/data/engagement-bar-01/engagement-bar-01.tsx", "type": "registry:component", "target": "components/engagement-bar-01/engagement-bar-01.tsx" },
@@ -1071,6 +1071,8 @@
         { "path": "src/registry/components/data/engagement-bar-01/parts/engagement-heart-burst.css", "type": "registry:file", "target": "components/engagement-bar-01/parts/engagement-heart-burst.css" },
         { "path": "src/registry/components/data/engagement-bar-01/parts/likers-strip.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/likers-strip.tsx" },
         { "path": "src/registry/components/data/engagement-bar-01/parts/share-menu.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/share-menu.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/reaction-picker.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/reaction-picker.tsx" },
+        { "path": "src/registry/components/data/engagement-bar-01/parts/reaction-action.tsx", "type": "registry:component", "target": "components/engagement-bar-01/parts/reaction-action.tsx" },
         { "path": "src/registry/components/data/engagement-bar-01/hooks/use-engagement-state.ts", "type": "registry:component", "target": "components/engagement-bar-01/hooks/use-engagement-state.ts" },
         { "path": "src/registry/components/data/engagement-bar-01/lib/format-count.ts", "type": "registry:component", "target": "components/engagement-bar-01/lib/format-count.ts" }
       ]

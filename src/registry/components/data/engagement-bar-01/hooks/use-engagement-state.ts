@@ -16,6 +16,12 @@ interface ControlledFlags {
   commentCount: boolean;
   shareCount: boolean;
   viewCount: boolean;
+  /**
+   * Controlled if `action.viewerReaction !== undefined` (host explicitly passes the
+   * value, either `string` or `null`). Reaction `kinds[i].count` is NEVER controlled
+   * per Q-PP-4 source-of-truth rule — state wins after init.
+   */
+  viewerReaction: boolean;
 }
 
 const INITIAL_EMPTY_STATE: EngagementState = {
@@ -25,6 +31,9 @@ const INITIAL_EMPTY_STATE: EngagementState = {
   shareCount: null,
   viewCount: null,
   bookmarked: false,
+  reactionCounts: null,
+  reactionTotalCount: null,
+  viewerReaction: null,
 };
 
 /**
@@ -54,6 +63,18 @@ export function deriveStateFromActions(
       case "view-count":
         next.viewCount = action.count;
         break;
+      case "reaction":
+        // Per Q-PP-4 source-of-truth rule — kinds[i].count is the SEED only.
+        next.reactionCounts = action.kinds.reduce<Record<string, number>>(
+          (acc, k) => {
+            acc[k.key] = k.count;
+            return acc;
+          },
+          {},
+        );
+        next.reactionTotalCount = action.totalCount;
+        next.viewerReaction = action.viewerReaction ?? null;
+        break;
       // "custom" doesn't contribute to internal state — host owns active/count
     }
   }
@@ -68,6 +89,7 @@ function deriveControlledFlags(actions: EngagementAction[]): ControlledFlags {
     commentCount: false,
     shareCount: false,
     viewCount: false,
+    viewerReaction: false,
   };
   for (const action of actions) {
     switch (action.kind) {
@@ -80,6 +102,11 @@ function deriveControlledFlags(actions: EngagementAction[]): ControlledFlags {
         break;
       case "bookmark":
         if (action.bookmarked !== undefined) flags.bookmarked = true;
+        break;
+      case "reaction":
+        // `viewerReaction` is optional-controlled per the like pattern.
+        // `kinds[i].count` is NEVER controlled — state owns counts after init.
+        if (action.viewerReaction !== undefined) flags.viewerReaction = true;
         break;
       // other action kinds don't have separate controlled flags here —
       // their counts always come from props directly via the resolved state.
@@ -126,8 +153,58 @@ export function engagementReducer(
           // These deltas inform the likersPreview slot host, not the bar's
           // internal state. Bar state unchanged.
           return state;
+        case "reaction-changed":
+          // Server-authoritative replace. Counts + total + viewer all swap to
+          // the delta payload. Viewer is optional in the delta — fall back to
+          // current state when absent (so the server can update just counts).
+          return {
+            ...state,
+            reactionCounts: d.counts,
+            reactionTotalCount: d.totalCount,
+            viewerReaction:
+              d.viewerReaction !== undefined
+                ? d.viewerReaction
+                : state.viewerReaction,
+          };
+        case "reactor-added":
+        case "reactor-removed":
+          // Pass-through per Q-PP-4 — the bar does not maintain a reactor list.
+          // Hosts that want a live reactors strip consume the delta via
+          // onSubscribeDelta and render into the `reactionsPreview` slot.
+          return state;
       }
       return state;
+    }
+    case "reaction-select": {
+      // Optimistic per-kind tally update. State holds the live count map; a
+      // null reactionKind clears the viewer + decrements the old kind.
+      if (state.reactionCounts === null || state.reactionTotalCount === null) {
+        // No reaction action present — dispatch is a no-op.
+        return state;
+      }
+      const current = state.viewerReaction;
+      const next = action.reactionKind;
+      if (current === next) return state; // same kind tap = no-op
+
+      const counts = { ...state.reactionCounts };
+      let total = state.reactionTotalCount;
+
+      if (current !== null) {
+        // Decrement old kind. Counts can never go below 0 (defensive — host
+        // backend should guarantee this, but optimistic ops shouldn't crash on drift).
+        counts[current] = Math.max(0, (counts[current] ?? 0) - 1);
+        total = Math.max(0, total - 1);
+      }
+      if (next !== null) {
+        counts[next] = (counts[next] ?? 0) + 1;
+        total = total + 1;
+      }
+      return {
+        ...state,
+        reactionCounts: counts,
+        reactionTotalCount: total,
+        viewerReaction: next,
+      };
     }
     case "reset":
       return action.next;
@@ -152,6 +229,17 @@ function isControlledForDelta(
     case "liker-added":
     case "liker-removed":
       return false; // these never patch internal state anyway
+    case "reaction-changed":
+      // Counts + total are NEVER controlled per Q-PP-4 — always patch from server.
+      // Viewer field also patches; effective-state useMemo overlays the host's
+      // controlled `viewerReaction` if `controlled.viewerReaction === true`.
+      return false;
+    case "reactor-added":
+    case "reactor-removed":
+      // Never patch internal state (pass-through to host's reactionsPreview slot).
+      // Dispatch is harmless (reducer returns state unchanged) — matches the
+      // existing `liker-added` / `liker-removed` convention.
+      return false;
   }
 }
 
@@ -198,6 +286,7 @@ export function useEngagementState(
     const commentAction = opts.actions.find((a) => a.kind === "comment");
     const shareAction = opts.actions.find((a) => a.kind === "share");
     const viewCountAction = opts.actions.find((a) => a.kind === "view-count");
+    const reactionAction = opts.actions.find((a) => a.kind === "reaction");
 
     return {
       liked:
@@ -224,6 +313,18 @@ export function useEngagementState(
         controlled.bookmarked && bookmarkAction?.kind === "bookmark"
           ? (bookmarkAction.bookmarked ?? false)
           : internalState.bookmarked,
+      // Per Q-PP-4 source-of-truth rule: `reactionCounts` and `reactionTotalCount`
+      // are NEVER controlled — state owns them. Renderers read
+      // `state.reactionCounts[k.key] ?? k.count` per kind (action.kinds is the seed).
+      reactionCounts: internalState.reactionCounts,
+      reactionTotalCount: internalState.reactionTotalCount,
+      // `viewerReaction` follows the like-pattern: optional-controlled. When the
+      // host passes `action.viewerReaction !== undefined` (string OR null), host
+      // wins. Otherwise internal state.
+      viewerReaction:
+        controlled.viewerReaction && reactionAction?.kind === "reaction"
+          ? (reactionAction.viewerReaction ?? null)
+          : internalState.viewerReaction,
     };
   }, [internalState, opts.actions, controlled]);
 
@@ -250,6 +351,32 @@ export function useEngagementState(
     });
     return unsub;
   }, [subscribe]);
+
+  // Defense 2 (structural resync guard) per Q-PP-3 — when the host transitions
+  // `viewerReaction` from uncontrolled → controlled (or changes the controlled
+  // value), the internal mirror can be stale relative to the effective overlay.
+  // The next `reaction-select` dispatch would read stale internal state and
+  // decrement the wrong kind. This effect syncs the internal `viewerReaction`
+  // to the controlled value without touching counts (counts stay server / state
+  // owned per Q-PP-4 source-of-truth).
+  const reactionAction = opts.actions.find((a) => a.kind === "reaction");
+  const controlledViewerReaction =
+    controlled.viewerReaction && reactionAction?.kind === "reaction"
+      ? (reactionAction.viewerReaction ?? null)
+      : undefined;
+  const internalStateRef = useRef(internalState);
+  useEffect(() => {
+    internalStateRef.current = internalState;
+  });
+  useEffect(() => {
+    if (controlledViewerReaction === undefined) return;
+    const current = internalStateRef.current;
+    if (controlledViewerReaction === current.viewerReaction) return;
+    dispatch({
+      kind: "reset",
+      next: { ...current, viewerReaction: controlledViewerReaction },
+    });
+  }, [controlledViewerReaction]);
 
   return { state, dispatch, controlled };
 }

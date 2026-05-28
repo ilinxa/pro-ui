@@ -37,6 +37,7 @@ function EngagementBar01Inner({
   subscribe,
   onSubscribeDelta,
   likersPreview,
+  reactionsPreview,
   labels: labelsProp,
   className,
   actionClassName,
@@ -90,7 +91,31 @@ function EngagementBar01Inner({
         }
         bookmarkAction.onToggle?.(next);
       },
+      triggerReaction: (kind: string | null) => {
+        const reactionAction = actionsRef.current.find(
+          (a) => a.kind === "reaction",
+        );
+        if (!reactionAction || reactionAction.kind !== "reaction") return;
+        // Per the handle's contract: no-op if `kind` is not in the catalog.
+        if (
+          kind !== null &&
+          !reactionAction.kinds.some((k) => k.key === kind)
+        ) {
+          return;
+        }
+        // Optimistic dispatch only when uncontrolled (otherwise host owns the value
+        // and the dispatch would be overwritten by the next render's overlay).
+        if (reactionAction.viewerReaction === undefined) {
+          dispatch({ kind: "reaction-select", reactionKind: kind });
+        }
+        // Defense 1 per Q-PP-3 — microtask-deferred consumer notify so the local
+        // mirror commits before the host hears about the change.
+        queueMicrotask(() => {
+          reactionAction.onSelect?.(kind);
+        });
+      },
       getCurrentState: () => stateRef.current,
+      getCurrentReaction: () => stateRef.current.viewerReaction,
       reset: () => {
         dispatch({
           kind: "reset",
@@ -125,6 +150,9 @@ function EngagementBar01Inner({
           />
         ))}
         {likersPreview ? <div className="mt-1">{likersPreview}</div> : null}
+        {reactionsPreview ? (
+          <div className="mt-1">{reactionsPreview}</div>
+        ) : null}
       </div>
     );
   }
@@ -177,6 +205,9 @@ function EngagementBar01Inner({
         ) : null}
       </div>
       {likersPreview ? <div className="mt-1">{likersPreview}</div> : null}
+      {reactionsPreview ? (
+        <div className="mt-1">{reactionsPreview}</div>
+      ) : null}
     </div>
   );
 }

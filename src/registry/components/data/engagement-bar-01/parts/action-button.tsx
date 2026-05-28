@@ -14,6 +14,7 @@ import { ShareAction } from "./share-action";
 import { BookmarkAction } from "./bookmark-action";
 import { ViewCountAction } from "./view-count-action";
 import { CustomAction } from "./custom-action";
+import { ReactionAction } from "./reaction-action";
 
 interface ControlledFlags {
   liked: boolean;
@@ -117,6 +118,18 @@ function ActionButtonInner({
           active={action.active}
           onClick={action.onClick}
           format={format}
+          actionClassName={actionClassName}
+        />
+      );
+    case "reaction":
+      return (
+        <ReactionAction
+          action={action}
+          variant={variant}
+          state={state}
+          dispatch={dispatch}
+          format={format}
+          labels={labels}
           actionClassName={actionClassName}
         />
       );
