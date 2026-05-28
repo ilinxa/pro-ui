@@ -20,6 +20,7 @@ import { useStoryViewerState } from "./hooks/use-story-viewer-state";
 import { useStoryProgress } from "./hooks/use-story-progress";
 import { useStoryKeyboardNav } from "./hooks/use-story-keyboard-nav";
 import { useStoryEngagementState } from "./hooks/use-story-engagement-state";
+import { useLongPressPause } from "./hooks/use-long-press-pause";
 import { ViewerShell } from "./parts/viewer-shell";
 import { ProgressBars } from "./parts/progress-bars";
 import { ViewerHeader } from "./parts/viewer-header";
@@ -32,6 +33,7 @@ import { EngagementOverlay } from "./parts/engagement-overlay";
 import { ReplyComposer } from "./parts/reply-composer";
 import { OwnerOverlay } from "./parts/owner-overlay";
 import { KebabPanel } from "./parts/kebab-panel";
+import { LinkCta } from "./parts/link-cta";
 import { defaultStoryKebabActions } from "./lib/kebab";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
@@ -95,6 +97,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     disableNavArrows = false,
     disableAutoClose = false,
     disableProgressBars = false,
+    // v0.2.0 — long-press pause + link CTA (C9)
+    longPressThresholdMs,
+    linkComponent,
+    onLinkClick,
     // Kebab item handlers — flattened onto props (mirrors post-card-01 v0.2.0
     // mutation-handler convention). All optional; gated by permissions matrix.
     // Future: extract into a discrete StoryMutationHandlers interface.
@@ -256,6 +262,15 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onPrevItem: goToPrevItem,
     onNextItem: goToNextItem,
     onTogglePause: () => setPaused((p) => !p),
+  });
+
+  // v0.2.0 C9 — long-press pause (Instagram-canonical mobile gesture).
+  // Additive to v0.1 middle-tap pause; both coexist (Q-V8 lock).
+  const longPress = useLongPressPause({
+    isOpen,
+    longPressThresholdMs,
+    onPause: () => setPaused(true),
+    onResume: () => setPaused(false),
   });
 
   // ─── v0.2.0 engagement state (per-item like / reaction / reply counts) ──
@@ -467,7 +482,12 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         />
       ) : null}
 
-      <div className={cn("relative h-full w-full bg-black", className)}>
+      <div
+        className={cn("relative h-full w-full bg-black", className)}
+        onPointerDown={longPress.handlePointerDown}
+        onPointerUp={longPress.handlePointerUp}
+        onPointerCancel={longPress.handlePointerCancel}
+      >
         {/* v0.2.0 C7 — renderProgress slot wins as full takeover.
             v0.2.0 C8 — `disableProgressBars` suppresses the default mount;
             timer still runs (drives auto-advance). */}
@@ -517,6 +537,19 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             onPrev={goToPrevItem}
             onTogglePause={() => setPaused((p) => !p)}
             onNext={goToNextItem}
+          />
+        ) : null}
+
+        {/* v0.2.0 C9 — StoryItem.link CTA bottom button. Coexists with the
+            engagement overlay (sits above it) and the reply composer (sits
+            below it in viewer mode). Polymorphic root via `linkComponent`. */}
+        {currentItem.link ? (
+          <LinkCta
+            story={currentStory}
+            item={currentItem}
+            linkComponent={linkComponent}
+            onLinkClick={onLinkClick}
+            labels={labels}
           />
         ) : null}
 
