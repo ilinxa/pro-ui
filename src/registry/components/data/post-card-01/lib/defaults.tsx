@@ -15,8 +15,9 @@ import {
   UserX,
   VolumeX,
 } from "lucide-react";
-import type { EngagementAction } from "@/registry/components/data/engagement-bar-01";
-import type { CommentMenuItem } from "@/registry/components/data/comment-thread-01";
+// F-S1 lock: cross-procomp imports via relative + specific-file paths.
+import type { EngagementAction } from "../../engagement-bar-01/types";
+import type { CommentMenuItem } from "../../comment-thread-01/types";
 import type {
   Post,
   PostCard01Labels,

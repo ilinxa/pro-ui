@@ -2,8 +2,9 @@
 
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import { ExpandableText01 } from "@/registry/components/data/expandable-text-01";
-import { EngagementBar01 } from "@/registry/components/data/engagement-bar-01";
+// F-S1 lock: cross-procomp imports via relative + specific-file paths.
+import { ExpandableText01 } from "../../expandable-text-01/expandable-text-01";
+import { EngagementBar01 } from "../../engagement-bar-01/engagement-bar-01";
 import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import type { VariantInnerProps } from "./variant-shared";
