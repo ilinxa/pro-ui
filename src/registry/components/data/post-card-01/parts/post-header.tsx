@@ -12,7 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { CommentMenuItem } from "@/registry/components/data/comment-thread-01";
+// F-S1 lock: cross-procomp import via relative + specific-file path.
+import type { CommentMenuItem } from "../../comment-thread-01/types";
 import { VerifiedBadge } from "./verified-badge";
 import { PinnedBadge } from "./pinned-badge";
 import { VisibilityBadge } from "./visibility-badge";

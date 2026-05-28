@@ -10,14 +10,13 @@ import {
   useRef,
   useState,
 } from "react";
-import type {
-  CommentThread01Handle,
-} from "@/registry/components/data/comment-thread-01";
-import { defaultRelativeTime, toDate } from "@/registry/components/data/comment-thread-01";
+// F-S1 lock: cross-procomp imports use RELATIVE paths to specific files.
+import type { CommentThread01Handle } from "../comment-thread-01/types";
+import { defaultRelativeTime, toDate } from "../comment-thread-01/lib/format-time";
 import type {
   EngagementBar01Handle,
   EngagementDelta,
-} from "@/registry/components/data/engagement-bar-01";
+} from "../engagement-bar-01/types";
 import {
   DEFAULT_POST_CARD_LABELS,
   type Post,
@@ -34,11 +33,9 @@ import { FeedVariant } from "./parts/feed-variant";
 import { CompactVariant } from "./parts/compact-variant";
 import { ListVariant } from "./parts/list-variant";
 import { DetailVariant } from "./parts/detail-variant";
-import {
-  LikersStrip,
-  ShareMenu,
-} from "@/registry/components/data/engagement-bar-01";
-import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
+import { LikersStrip } from "../engagement-bar-01/parts/likers-strip";
+import { ShareMenu } from "../engagement-bar-01/parts/share-menu";
+import { CommentThread01 } from "../comment-thread-01/comment-thread-01";
 
 function PostCard01Inner(props: PostCard01Props) {
   const {

@@ -2,13 +2,12 @@
 
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import { ExpandableText01 } from "@/registry/components/data/expandable-text-01";
-import { MediaCarousel01 } from "@/registry/components/media/media-carousel-01";
-import {
-  EngagementBar01,
-  EngagementHeartBurst,
-} from "@/registry/components/data/engagement-bar-01";
-import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
+// F-S1 lock: cross-procomp imports via relative + specific-file paths.
+import { ExpandableText01 } from "../../expandable-text-01/expandable-text-01";
+import { MediaCarousel01 } from "../../../media/media-carousel-01/media-carousel-01";
+import { EngagementBar01 } from "../../engagement-bar-01/engagement-bar-01";
+import { EngagementHeartBurst } from "../../engagement-bar-01/parts/engagement-heart-burst";
+import { CommentThread01 } from "../../comment-thread-01/comment-thread-01";
 import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";

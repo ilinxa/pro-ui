@@ -1,4 +1,5 @@
 import type { ElementType } from "react";
+// F-S1 lock: cross-procomp imports use RELATIVE paths to specific files.
 import type {
   Comment,
   CommentDelta,
@@ -7,13 +8,13 @@ import type {
   CommentThreadLabels,
   CommentThread01Handle,
   Subscribe,
-} from "@/registry/components/data/comment-thread-01";
+} from "../../comment-thread-01/types";
 import type {
   EngagementAction,
   EngagementBar01Handle,
   EngagementBarLabels,
   EngagementDelta,
-} from "@/registry/components/data/engagement-bar-01";
+} from "../../engagement-bar-01/types";
 import type {
   Post,
   PostCard01Labels,

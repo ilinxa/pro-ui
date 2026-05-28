@@ -1,5 +1,8 @@
 import type { ElementType, ReactNode } from "react";
-import type { MediaItem } from "@/registry/components/media/media-carousel-01";
+// F-S1 lock: cross-procomp imports use RELATIVE paths to specific files
+// (NOT barrels) so shadcn 4.6.0's path-rewriter doesn't mangle them.
+// See .claude/decisions/2026-05-28-post-card-01-v0.3.1-fcross-11-fs1-cleanup.md
+import type { MediaItem } from "../../media/media-carousel-01/types";
 import type {
   Comment,
   CommentDelta,
@@ -8,14 +11,14 @@ import type {
   CommentThreadLabels,
   CommentThread01Handle,
   Subscribe,
-} from "@/registry/components/data/comment-thread-01";
+} from "../comment-thread-01/types";
 import type {
   EngagementAction,
   EngagementBar01Handle,
   EngagementBarLabels,
   EngagementDelta,
   EngagementLikerProfile,
-} from "@/registry/components/data/engagement-bar-01";
+} from "../engagement-bar-01/types";
 
 export type PostCard01Variant = "feed" | "compact" | "list" | "detail";
 
