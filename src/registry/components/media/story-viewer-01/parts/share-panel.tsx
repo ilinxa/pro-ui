@@ -4,42 +4,44 @@ import { type ReactNode } from "react";
 import type { ResolvedStoryViewer01Labels, Story, StoryItem } from "../types";
 import { BottomSheet } from "./bottom-sheet";
 
-export interface CommentsPanelProps {
+export interface SharePanelProps {
   story: Story;
   item: StoryItem;
   open: boolean;
   onClose: () => void;
   labels: ResolvedStoryViewer01Labels;
   /**
-   * Custom content (typically `<CommentThread01 />` wired with per-item
-   * comments + onAddComment + onLoadMore). When absent, a default
-   * empty-state is rendered.
+   * Custom content (typically `<ShareMenu />` from engagement-bar-01 wired
+   * with the recent-shareable-users list + onShareTo). When absent, a
+   * default empty-state is rendered.
    */
   children?: ReactNode;
 }
 
 /**
- * v0.3.0 — Instagram-style comments panel. Thin wrapper over `BottomSheet`
- * with comments-specific labels and an empty-state fallback.
+ * v0.3.1 — Instagram-style share panel. Mirrors `CommentsPanel` for the
+ * share affordance; opens when the share icon is tapped in the engagement
+ * overlay. Host typically mounts `<ShareMenu />` (from `@ilinxa/engagement-bar-01`)
+ * inside via `renderSharePanel`.
  */
-export function CommentsPanel({
+export function SharePanel({
   story,
   open,
   onClose,
   labels,
   children,
-}: CommentsPanelProps) {
+}: SharePanelProps) {
   void story;
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
-      heading={labels.commentsHeading}
-      closeLabel={labels.commentsCloseLabel}
+      heading={labels.shareHeading}
+      closeLabel={labels.shareCloseLabel}
     >
       {children ?? (
         <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
-          {labels.commentsDefaultEmptyState}
+          {labels.shareDefaultEmptyState}
         </div>
       )}
     </BottomSheet>

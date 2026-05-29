@@ -35,6 +35,7 @@ import { OwnerOverlay } from "./parts/owner-overlay";
 import { KebabPanel } from "./parts/kebab-panel";
 import { LinkCta } from "./parts/link-cta";
 import { CommentsPanel } from "./parts/comments-panel";
+import { SharePanel } from "./parts/share-panel";
 import { defaultStoryKebabActions } from "./lib/kebab";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
@@ -107,6 +108,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     // v0.3.0 — comments panel
     renderCommentsPanel,
     disableComments = false,
+    // v0.3.1 — share panel
+    renderSharePanel,
+    disableSharePanel = false,
     // v0.2.0 — kebab item handlers (mirrors post-card-01 v0.2.0; flattened
     // on Props rather than a discrete StoryMutationHandlers interface). All
     // optional; gated by the permissions matrix in defaultStoryKebabActions.
@@ -285,18 +289,32 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
 
   // ─── v0.3.0 comments panel state — opens on comment-icon tap ──────────
   const [commentsOpen, setCommentsOpen] = useState(false);
-  // Auto-pause story timer when panel is open; resume on close. Mirrors the
-  // long-press-pause additive — opening the panel is an explicit focus
-  // change toward comments and the auto-advance should not race the user.
+  // ─── v0.3.1 share panel state — opens on share-icon tap ──────────────
+  const [shareOpen, setShareOpen] = useState(false);
+  const anyPanelOpen = commentsOpen || shareOpen;
+  // Auto-pause story timer while any v0.3 panel is open; resume on close.
+  // Mirrors the long-press-pause additive — opening a panel is an explicit
+  // focus change away from the media and the auto-advance should not race
+  // the user.
   useEffect(() => {
-    if (!commentsOpen) return;
+    if (!anyPanelOpen) return;
     setPaused(true);
     return () => setPaused(false);
-  }, [commentsOpen, setPaused]);
-  // Close panel on cursor change (next/prev nav).
+  }, [anyPanelOpen, setPaused]);
+  // Close panels on cursor change (next/prev nav).
   useEffect(() => {
     setCommentsOpen(false);
+    setShareOpen(false);
   }, [cursor.storyIndex, cursor.itemIndex]);
+  // Mutual exclusion — opening one closes the other.
+  const openCommentsPanel = useCallback(() => {
+    setShareOpen(false);
+    setCommentsOpen(true);
+  }, []);
+  const openSharePanel = useCallback(() => {
+    setCommentsOpen(false);
+    setShareOpen(true);
+  }, []);
 
   // Resolved kebab items — kebabActions full-takeover wins; otherwise
   // defaultStoryKebabActions assembles per permissions matrix + moderator section.
@@ -424,15 +442,21 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         // disableComments is set, fall back to focusing the DM input
         // (v0.2.x behavior).
         if (!disableComments) {
-          setCommentsOpen(true);
+          openCommentsPanel();
         } else {
           composerRef.current?.focus();
         }
       },
       onKebabOpen: () => setKebabOpen(true),
-      kebabIcon: <MoreVertical className="h-5 w-5" />,
+      kebabIcon: <MoreVertical className="h-6 w-6" />,
       kebabLabel: labels.kebabAriaLabel,
       onShareClick: () => {
+        // v0.3.1 — open the share panel (Instagram-canonical bottom-sheet).
+        // When disableSharePanel is set, fall back to firing onShareStory
+        // directly (v0.2.x system-share behavior).
+        if (!disableSharePanel) {
+          openSharePanel();
+        }
         onShareStory?.(currentStory!.id, currentItem!.id);
       },
     });
@@ -450,6 +474,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onReactStory,
     onShareStory,
     disableComments,
+    disableSharePanel,
+    openCommentsPanel,
+    openSharePanel,
   ]);
 
   // v0.2.0 — wire trigger* refs to live handlers each render. These bypass
@@ -562,14 +589,15 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             authorComponent={authorComponent}
           />
         )}
-        {/* v0.3.0 — scaling wrapper: when the comments panel is open, the
-            entire visual stack (media + tap-zones + link CTA + engagement
-            overlay + DM input) shrinks toward the top with pointer-events
-            disabled inside. Mirrors the Instagram comments-panel UX. */}
+        {/* v0.3.0 — scaling wrapper: when the comments or share panel is
+            open, the entire visual stack (media + tap-zones + link CTA +
+            engagement overlay + DM input) shrinks toward the top with
+            pointer-events disabled inside. Mirrors the Instagram bottom-
+            sheet UX. */}
         <div
           className={cn(
             "absolute inset-0 origin-top transition-transform duration-300 ease-out",
-            commentsOpen && "scale-[0.55] translate-y-[-18%] pointer-events-none",
+            anyPanelOpen && "scale-[0.55] translate-y-[-18%] pointer-events-none",
           )}
         >
           <ItemView
@@ -649,16 +677,22 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           ) : null}
         </div>
 
-        {/* v0.3.0 — backdrop catcher: while the comments panel is open, a
-            transparent layer above the (now-shrunk + pointer-events-none)
-            visual stack catches clicks and closes the panel. Sits below
-            the panel itself (z-35 vs panel z-40). */}
-        {commentsOpen ? (
+        {/* v0.3.0 — backdrop catcher: while any v0.3 panel is open, a
+            dimming layer above the (now-shrunk + pointer-events-none)
+            visual stack catches clicks and closes the active panel. Sits
+            below the panel itself (z-35 vs panel z-40). v0.3.1: added a
+            black/40 dim for visual hierarchy + smoother feel. */}
+        {anyPanelOpen ? (
           <button
             type="button"
-            className="absolute inset-0 z-35 bg-transparent"
-            onClick={() => setCommentsOpen(false)}
-            aria-label={labels.commentsCloseLabel}
+            className="absolute inset-0 z-35 bg-black/40 transition-opacity duration-300"
+            onClick={() => {
+              setCommentsOpen(false);
+              setShareOpen(false);
+            }}
+            aria-label={
+              commentsOpen ? labels.commentsCloseLabel : labels.shareCloseLabel
+            }
           />
         ) : null}
 
@@ -726,6 +760,26 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
               closeCommentsPanel: () => setCommentsOpen(false),
             })}
           </CommentsPanel>
+        ) : null}
+
+        {/* v0.3.1 — share panel. Same mount gate as comments (viewer mode +
+            !disableSharePanel). Always-mounted so consumer-side state
+            (typically <ShareMenu />'s search query) persists across
+            open/close cycles. */}
+        {!!viewerMode && viewerMode === "viewer" && !disableSharePanel ? (
+          <SharePanel
+            story={currentStory}
+            item={currentItem}
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            labels={labels}
+          >
+            {renderSharePanel?.(currentStory, currentItem, {
+              ...slotHelpers,
+              isShareOpen: shareOpen,
+              closeSharePanel: () => setShareOpen(false),
+            })}
+          </SharePanel>
         ) : null}
       </div>
     </ViewerShell>
