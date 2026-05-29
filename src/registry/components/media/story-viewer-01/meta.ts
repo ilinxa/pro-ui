@@ -53,10 +53,11 @@ export const meta: ComponentMeta = {
     "v0.3.1 — Scroll fix: panel content area uses `overflow-y-auto overscroll-contain` (was `overflow-hidden`) so CommentThread01 + ShareMenu scroll properly on mobile.",
     "v0.3.1 — UI polish: backdrop dim (`bg-black/40`) behind shrunk visual when any panel is open; engagement icon sizes unified (kebab `h-5 → h-6` to match like/comment/share/reaction).",
     "v0.3.1 — DM input clickability fix: explicit `pointer-events-auto` + `z-[31]` + `right-16` (leaves space for right-side engagement overlay) so the always-visible Direct Message input wins focus reliably.",
+    "v0.3.2 — DM composer + engagement overlay collision fix (user-flagged): when the composer is focused or has content, it expands to full width (`right-0`) AND the engagement overlay fades out (opacity-0 + pointer-events-none) so the Cancel + Send chrome no longer overlaps the right-edge icons. Lift via new `onActiveChange?: (active) => void` prop on ReplyComposer.",
   ],
   tags: ["story-viewer-01", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.3.1",
+  version: "0.3.2",
   status: "alpha",
   createdAt: "2026-05-03",
   updatedAt: "2026-05-29",

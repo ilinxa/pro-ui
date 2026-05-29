@@ -292,6 +292,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   // ─── v0.3.1 share panel state — opens on share-icon tap ──────────────
   const [shareOpen, setShareOpen] = useState(false);
   const anyPanelOpen = commentsOpen || shareOpen;
+  // ─── v0.3.2 DM composer active state — focused or has content ─────────
+  // Used to hide the right-edge engagement overlay so the composer's
+  // expanded chrome (Cancel + Send) doesn't overlap with the icons.
+  const [composerActive, setComposerActive] = useState(false);
   // Auto-pause story timer while any v0.3 panel is open; resume on close.
   // Mirrors the long-press-pause additive — opening a panel is an explicit
   // focus change away from the media and the auto-advance should not race
@@ -639,7 +643,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
 
           {/* v0.2.0 — engagement overlay (TikTok/Reels-style stacked right edge).
               Renders only when viewerMode="viewer" + !disableEngagement.
-              renderEngagementOverlay slot wins as full takeover. */}
+              renderEngagementOverlay slot wins as full takeover.
+              v0.3.2 — fades out when the DM composer is active so the
+              expanded chrome (Cancel + Send) doesn't overlap the icons. */}
           {engagementOverlayMounted ? (
             renderEngagementOverlay ? (
               renderEngagementOverlay(currentStory!, currentItem!, slotHelpers)
@@ -649,6 +655,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
                 item={currentItem!}
                 actions={engagementActions}
                 labels={labels}
+                className={cn(
+                  "transition-opacity duration-200",
+                  composerActive && "opacity-0 pointer-events-none",
+                )}
               />
             )
           ) : null}
@@ -670,6 +680,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
                 onSetPaused={(p) => setPaused(p)}
                 labels={labels}
                 composerRef={composerRef}
+                onActiveChange={setComposerActive}
               />
             ) : (
               composerEmptyState

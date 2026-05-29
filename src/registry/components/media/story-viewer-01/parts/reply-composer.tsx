@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 cross-cat component import — absolute-with-suffix preserves through
 // the shadcn 4.6.0 rewriter (Bug 3 only affects /types).
@@ -28,6 +28,14 @@ export interface ReplyComposerProps {
   className?: string;
   /** Optional handle ref so the parent can focus / pre-fill the composer (triggerReply). */
   composerRef?: React.Ref<CommentComposerHandle>;
+  /**
+   * v0.3.2 — fires when the composer becomes active (focused or has
+   * content) vs collapsed (blurred + empty). Parent (story-viewer-01.tsx)
+   * uses this to hide the right-edge engagement overlay while active so
+   * the composer's expanded chrome (Cancel + Send) doesn't overlap the
+   * engagement icons.
+   */
+  onActiveChange?: (active: boolean) => void;
 }
 
 /**
@@ -46,9 +54,20 @@ function ReplyComposerInner(props: ReplyComposerProps) {
   // Track whether user has typed anything since last submit/cancel; auto-pause
   // fires only on the FIRST keystroke (cheap idempotent setPaused call too).
   const pausedRef = useRef(false);
+  // v0.3.2 — track active state (focused OR has content). Parent uses this
+  // to hide the right-edge engagement overlay while composer is active so
+  // the composer's expanded chrome (Cancel + Send) doesn't overlap.
+  const [hasFocus, setHasFocus] = useState(false);
+  const [hasContent, setHasContent] = useState(false);
+  const active = hasFocus || hasContent;
+  const { onActiveChange } = props;
+  useEffect(() => {
+    onActiveChange?.(active);
+  }, [active, onActiveChange]);
 
   const handleChange = useCallback(
     (value: string) => {
+      setHasContent(value.length > 0);
       if (value.length > 0 && !pausedRef.current) {
         pausedRef.current = true;
         props.onSetPaused(true);
@@ -67,6 +86,7 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         await props.onAddReply?.(props.story.id, props.item.id, content);
       } finally {
         pausedRef.current = false;
+        setHasContent(false);
         props.onSetPaused(false);
       }
     },
@@ -75,6 +95,7 @@ function ReplyComposerInner(props: ReplyComposerProps) {
 
   const handleCancel = useCallback(() => {
     pausedRef.current = false;
+    setHasContent(false);
     props.onSetPaused(false);
   }, [props.onSetPaused]);
 
@@ -84,12 +105,18 @@ function ReplyComposerInner(props: ReplyComposerProps) {
   // StoryCurrentUser is structurally identical — cast at the boundary.
   return (
     <div
+      onFocusCapture={() => setHasFocus(true)}
+      onBlurCapture={() => setHasFocus(false)}
       className={cn(
-        // v0.3.1: explicit pointer-events-auto + higher z (z-31) so the DM
-        // input always wins focus over the engagement overlay (z-30) on the
-        // right cluster + the TapZones (z-10) underneath. Width is bounded
-        // to leave space for the right-side engagement overlay.
-        "absolute right-16 bottom-0 left-0 z-[31] px-4 pt-8 pb-4 pointer-events-auto",
+        // v0.3.1: explicit pointer-events-auto + higher z (z-[31]) so the
+        // DM input always wins focus over the engagement overlay (z-30) +
+        // TapZones (z-10) underneath.
+        // v0.3.2: when collapsed, leave right space for the engagement
+        // overlay (right-16). When active (focused or typing), expand to
+        // full width and the parent hides the engagement overlay so the
+        // Cancel + Send chrome doesn't overlap.
+        "absolute bottom-0 left-0 z-[31] px-4 pt-8 pb-4 pointer-events-auto transition-[right] duration-200",
+        active ? "right-0" : "right-16",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
         props.className,
       )}
