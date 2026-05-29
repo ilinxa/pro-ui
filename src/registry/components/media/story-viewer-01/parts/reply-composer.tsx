@@ -85,7 +85,11 @@ function ReplyComposerInner(props: ReplyComposerProps) {
   return (
     <div
       className={cn(
-        "absolute left-0 right-0 bottom-0 z-30 px-4 pb-4 pt-8",
+        // v0.3.1: explicit pointer-events-auto + higher z (z-31) so the DM
+        // input always wins focus over the engagement overlay (z-30) on the
+        // right cluster + the TapZones (z-10) underneath. Width is bounded
+        // to leave space for the right-side engagement overlay.
+        "absolute right-16 bottom-0 left-0 z-[31] px-4 pt-8 pb-4 pointer-events-auto",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
         props.className,
       )}

@@ -111,20 +111,20 @@ export const STORY_VIEWER_01_DUMMY_REACTION_KINDS: StoryEngagementReactionKind[]
   [
     {
       key: "like",
-      icon: createElement(ThumbsUp, { className: "h-4 w-4" }),
+      icon: createElement(ThumbsUp, { className: "h-6 w-6" }),
       label: "Like",
       count: 12,
     },
     {
       key: "love",
-      icon: createElement(Heart, { className: "h-4 w-4" }),
+      icon: createElement(Heart, { className: "h-6 w-6" }),
       label: "Love",
       count: 8,
       color: "#ef4444",
     },
     {
       key: "laugh",
-      icon: createElement(Laugh, { className: "h-4 w-4" }),
+      icon: createElement(Laugh, { className: "h-6 w-6" }),
       label: "Haha",
       count: 3,
     },

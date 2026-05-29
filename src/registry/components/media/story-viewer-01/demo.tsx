@@ -16,6 +16,8 @@ import {
   DUMMY_FLAT_COMMENTS,
   generateOlderPage,
 } from "@/registry/components/data/comment-thread-01/dummy-data";
+import { ShareMenu } from "@/registry/components/data/engagement-bar-01/parts/share-menu";
+import { DUMMY_LIKE_USERS } from "@/registry/components/data/engagement-bar-01/dummy-data";
 import type {
   Story,
   StoryItem,
@@ -296,8 +298,24 @@ function ViewerModeTab() {
               return generateOlderPage(page);
             }}
             onLikeComment={(id, liked) => log("like-comment", { id, liked })}
-            className="h-full"
+            className="px-4 py-3"
           />
+        )}
+        renderSharePanel={(story, item, helpers) => (
+          <div className="px-4 py-3">
+            <ShareMenu
+              users={DUMMY_LIKE_USERS}
+              onShareTo={(user) => {
+                log("share-to", {
+                  story: story.id,
+                  item: item.id,
+                  to: user.username,
+                });
+                helpers.closeSharePanel();
+              }}
+              heading="Send to…"
+            />
+          </div>
         )}
       />
     </div>

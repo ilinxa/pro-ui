@@ -409,6 +409,14 @@ export interface StoryViewer01Labels {
   /** Default empty-state copy when no renderCommentsPanel is supplied. */
   commentsDefaultEmptyState?: string;
 
+  // v0.3.1 — share panel
+  /** Panel heading. Default: "Share". */
+  shareHeading?: string;
+  /** aria-label on the share-panel close button. Default: "Close share". */
+  shareCloseLabel?: string;
+  /** Default empty-state copy when no renderSharePanel is supplied. */
+  shareDefaultEmptyState?: string;
+
   // v0.2.0 — nested forwards
   /** Nested forward to engagement-bar-01 labels (per Q-V14 — defensive callback contravariance applied). */
   engagementLabels?: StoryEngagementBarLabels;
@@ -467,6 +475,9 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   commentsHeading: "Comments",
   commentsCloseLabel: "Close comments",
   commentsDefaultEmptyState: "No comments yet. Be the first to reply.",
+  shareHeading: "Share",
+  shareCloseLabel: "Close share",
+  shareDefaultEmptyState: "Share targets not loaded yet.",
 };
 
 // ─── Imperative handle ──────────────────────────────────────────────────
@@ -745,6 +756,24 @@ export interface StoryViewer01Props {
       closeCommentsPanel: () => void;
     },
   ) => ReactNode;
+  /**
+   * v0.3.1 — replace the share-panel content. When the panel is opened
+   * (tapping the share icon in the engagement overlay), the visual content
+   * shrinks toward the top and this slot's return is rendered inside the
+   * bottom sheet. Hosts typically mount `<ShareMenu />` (from
+   * `@ilinxa/engagement-bar-01`) here with recent-shareable-users + onShareTo
+   * wired.
+   *
+   * When omitted, the panel renders a thin default empty-state surface.
+   */
+  renderSharePanel?: (
+    story: Story,
+    item: StoryItem,
+    helpers: StoryViewerSlotHelpers & {
+      isShareOpen: boolean;
+      closeSharePanel: () => void;
+    },
+  ) => ReactNode;
 
   // ─── v0.2.0 disable opt-outs (8 new) ──────────────────────────────────
 
@@ -771,6 +800,12 @@ export interface StoryViewer01Props {
    * is the way to remove the whole overlay.
    */
   disableComments?: boolean;
+  /**
+   * v0.3.1 — suppress the share panel entirely. When set, the share action
+   * in the engagement overlay falls back to firing `onShareStory` directly
+   * (the v0.2.x system-share behavior, no overlay panel).
+   */
+  disableSharePanel?: boolean;
 
   // ─── Defaults ──────────────────────────────────────────────────────────
   /** Default item duration in seconds when neither item.duration nor video metadata is available. Default 5. */
