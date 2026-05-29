@@ -40,7 +40,7 @@ export default async function ComponentDetailPage({ params }: PageProps) {
   const demoSource = getDemoSource(slug);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-12">
+    <div className="mx-auto w-full max-w-5xl overflow-x-hidden px-6 py-12 sm:overflow-x-visible">
       <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/components" className="hover:text-foreground">
           Components
@@ -168,7 +168,9 @@ export default async function ComponentDetailPage({ params }: PageProps) {
             </h3>
             <ul className="ml-5 list-disc space-y-1 text-sm text-foreground">
               {meta.features.map((f) => (
-                <li key={f}>{f}</li>
+                <li key={f} className="wrap-break-word">
+                  {f}
+                </li>
               ))}
             </ul>
           </div>
