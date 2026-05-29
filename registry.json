@@ -1230,7 +1230,7 @@
       "name": "story-viewer-01",
       "type": "registry:block",
       "title": "Story Viewer 01",
-      "description": "Full-screen sequential story viewer — Radix Dialog modal with segmented progress, tap zones, multi-story nav arrows, keyboard nav, accumulator-based pause-preserving timer (fixes kasder's pause drift), ID-anchored cursor (insertion-stable), Subscribe<StoryViewerDelta> realtime contract, video-player-01 composition for video items, renderItem slot. Forward-only onStoryViewed semantics (matches Instagram). Always-uncontrolled with reset() + dispatch() + goToStory/goToItem/setPaused imperative escape hatches. v0.1 ships pure CSS animations; framer-motion swipe-to-dismiss is the locked v0.2 adoption gate. Eighth (and final) ship in the social-posts-system arc.",
+      "description": "Full-screen sequential story viewer — Radix Dialog modal with segmented progress, multi-story navigation via Instagram-canonical 3D cube transition + finger-following swipe (v0.4), tap zones, keyboard nav, accumulator-based pause-preserving timer, ID-anchored cursor (insertion-stable), Subscribe<StoryViewerDelta> realtime contract, video-player-01 composition. v0.2 added an engagement overlay (composing engagement-bar-01) + DM composer (composing comment-thread-01) + role-aware viewerMode + permissions matrix + owner overlay + kebab + long-press pause. v0.3 added Instagram-canonical comments panel (renderCommentsPanel) and share panel (renderSharePanel). v0.4 added the 3D cube story-to-story transition with finger drag + mobile-fullscreen sizing fix. Always-uncontrolled with reset() + dispatch() + 13-method imperative handle.",
       "author": "ilinxa",
       "categories": ["media"],
       "registryDependencies": [
@@ -1268,7 +1268,9 @@
         { "path": "src/registry/components/media/story-viewer-01/hooks/use-long-press-pause.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-long-press-pause.ts" },
         { "path": "src/registry/components/media/story-viewer-01/parts/comments-panel.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/comments-panel.tsx" },
         { "path": "src/registry/components/media/story-viewer-01/parts/bottom-sheet.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/bottom-sheet.tsx" },
-        { "path": "src/registry/components/media/story-viewer-01/parts/share-panel.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/share-panel.tsx" }
+        { "path": "src/registry/components/media/story-viewer-01/parts/share-panel.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/share-panel.tsx" },
+        { "path": "src/registry/components/media/story-viewer-01/hooks/use-cube-transition.ts", "type": "registry:component", "target": "components/story-viewer-01/hooks/use-cube-transition.ts" },
+        { "path": "src/registry/components/media/story-viewer-01/parts/story-cube-face.tsx", "type": "registry:component", "target": "components/story-viewer-01/parts/story-cube-face.tsx" }
       ]
     },
     {

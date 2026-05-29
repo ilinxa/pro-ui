@@ -1,21 +1,28 @@
 # story-viewer-01 — consumer guide
 
-> Stage 3: how to use it. Authored alongside the v0.1 implementation.
+> Stage 3: how to use it. Originally authored alongside v0.1; refreshed
+> across v0.2 (engagement layer) + v0.3 (comments / share panels) + v0.4
+> (3D cube + finger-following swipe).
 >
-> See [`story-viewer-01-procomp-description.md`](./story-viewer-01-procomp-description.md) for what & why,
-> and [`story-viewer-01-procomp-plan.md`](./story-viewer-01-procomp-plan.md) for the implementation contract.
+> Per-version planning docs are frozen:
+> [`description.md`](./story-viewer-01-procomp-description.md) +
+> [`plan.md`](./story-viewer-01-procomp-plan.md) (v0.1),
+> [`description-v0.2.0.md`](./story-viewer-01-procomp-description-v0.2.0.md) +
+> [`plan-v0.2.0.md`](./story-viewer-01-procomp-plan-v0.2.0.md) (v0.2). This
+> guide is the only live consumer-facing doc.
 
 ## 30-second mental model
 
-`<StoryViewer01>` is a **full-screen sequential story viewer** — Radix Dialog modal with kasder-exact chrome (mobile fullscreen / desktop centered portrait `md:w-100 md:h-175`), segmented progress bars, tap zones (left/middle/right thirds), desktop nav arrows for story-level navigation, keyboard nav (← → space escape), pause-preserving accumulator timer, ID-anchored cursor, video-player-01 composed for video items.
+`<StoryViewer01>` is a **full-screen sequential story viewer** — Radix Dialog modal with mobile-fullscreen / desktop centered portrait (`md:w-100 md:h-175`), segmented progress bars, tap zones (left/middle/right thirds), desktop nav arrows for story-level navigation, keyboard nav (← → space escape), pause-preserving accumulator timer, ID-anchored cursor, video-player-01 composed for video items. v0.2 added a role-aware engagement layer (composing `engagement-bar-01` + `comment-thread-01`); v0.3 added Instagram-canonical comments + share bottom-sheet panels; v0.4 added a 3D cube transition + finger-driven swipe between stories (pure CSS — no framer-motion).
 
-**Five rules:**
+**Six rules:**
 
 1. **`stories` prop is mount-only initial state.** Subsequent prop reference changes are IGNORED. Use `ref.current.reset(next)` or `dispatch(action)` to push external updates.
 2. **Cursor resets when `(initialStoryIndex, isOpen)` pair changes.** Re-opening with the same `initialStoryIndex` still goes back to item 0. Mid-view nav is preserved.
 3. **`onStoryViewed` is forward-only.** Backward navigation does NOT mark stories viewed (matches Instagram).
 4. **Click-outside / Escape close via Radix Dialog.** No bespoke modal logic; Radix handles focus trap + portal + escape natively.
-5. **v0.1 is CSS-only animations.** framer-motion enters in v0.2 for swipe-to-dismiss (the locked motion-substrate adoption gate).
+5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
+6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
 
 ## Install
 
@@ -250,18 +257,40 @@ function FeedPage({ stories, posts, viewer }: Props) {
 
 This is the canonical Tier-3 wiring for the social-posts-system arc — story-rail-01 + story-viewer-01 in lockstep, post-card-01 below, all 8 components composed once. The `/sandbox/social-feed-page-01` Tier-3 sandbox demonstrates this end-to-end.
 
-## What's NOT in v0.1
+## Still out of scope (as of v0.4)
 
-- **Swipe-to-dismiss** (drag-y to close) — the framer-motion adoption gate. v0.2.
-- **Story reactions / reply input** — kasder doesn't ship it; would compose with `engagement-bar-01` reactions + `comment-thread-01` composer. v0.2 candidate.
-- **Heart-burst on double-tap** — kasder's viewer doesn't have like-on-media. Add when reactions land.
-- **Polls / quizzes / question stickers** — host-level overlay; not a viewer concern.
-- **Story expiration timer** (24h auto-disappear) — host owns expiration; passes filtered stories.
-- **Story groups / Highlights** — separate composite. Out of scope.
-- **Auto-advance to next user's story past last story** — auto-closes (kasder pattern). Hosts wanting "next: someone else's story?" intercept via `onAutoCloseAtEnd`.
-- **Save / download / share buttons** — header has no overflow menu in kasder. v0.2 candidate via header-action slot.
+The following remain intentionally **not** in the component:
+
+- **Swipe-to-dismiss** (drag-Y to close the modal) — distinct from v0.4's
+  horizontal swipe between stories. The Y-axis dismiss gesture is still
+  deferred (would be the motion-substrate adoption gate if/when adopted;
+  framer-motion is NOT a project peer dep yet).
+- **Heart-burst on double-tap** — like-on-media micro-animation. v0.4 has
+  the like action (via the engagement overlay) but no double-tap shortcut
+  or heart burst.
+- **Polls / quizzes / question stickers** — host-level overlay; renders via
+  `renderItem` if needed.
+- **Story expiration timer** (24h auto-disappear) — host owns expiration;
+  pass already-filtered stories.
+- **Story groups / Highlights** — separate composite.
+- **Auto-advance to a different user's story past the last own story** —
+  auto-closes by default; hosts wanting "next: someone else's story?"
+  intercept via `onAutoCloseAtEnd` and re-open with a new
+  `initialStoryIndex`.
 - **Audio-only stories / podcast items** — image + video only.
 - **Virtualization** — single item rendered at a time; non-issue.
+- **Comment thread inline (not in a panel)** — the v0.3.0 comments panel
+  is a bottom-sheet, not an inline column. Hosts wanting a different
+  layout use `renderCommentsPanel` for full takeover.
+
+Now shipped — was originally listed here as "v0.2 candidate":
+
+- ✅ **Story reactions** — v0.2.0 engagement overlay (`reactionKinds` +
+  `onReactStory`).
+- ✅ **Reply input** — v0.2.0 DM composer (`currentUser` + `onAddReply`).
+- ✅ **Save / share / report kebab** — v0.2.0 kebab (moved to the header
+  cluster in v0.3.5).
+- ✅ **Horizontal swipe between stories** — v0.4.1 finger-driven cube swipe.
 
 ## v0.2.0 — engagement layer (additive)
 
@@ -294,19 +323,33 @@ Mode-derived defaults can be overridden two ways:
 Resolution order: predicate → matrix → mode defaults. Returning `undefined` from
 the predicate falls through.
 
-### Engagement overlay
+### Engagement overlay (v0.3 layout)
 
 Mounts in `viewerMode="viewer"` (`disableEngagement` opts out). Composes
-`@ilinxa/engagement-bar-01` `variant="stacked"` on the viewer's right edge:
+`@ilinxa/engagement-bar-01` `variant="stacked"` on the viewer's right edge,
+**collapsed by default** in v0.3.5+. Only a heart toggle is visible inline
+with the DM bar at `right-3 bottom-3`; tapping it reveals the engagement
+icons (like / reaction / comment / share) with a staggered bottom-to-top
+animation (delay-0/75/150/200ms). Tapping the heart again or anywhere
+else outside the column collapses it.
+
+Items in the order they reveal:
 
 - **like** — toggles via `onLikeStory`
 - **reaction** — picker over host-supplied `reactionKinds`; fires `onReactStory`
-- **comment** — focuses the reply composer
-- **share** — fires `onShareStory`
-- **bookmark** — fires `onBookmarkStory`
-- **kebab** — 6th item, opens the bottom-sheet (Instagram-2024 placement)
+- **comment** — opens the comments panel (v0.3.0; falls back to focusing the DM input when `disableComments` is set)
+- **share** — opens the share panel (v0.3.1; falls back to firing `onShareStory` directly when `disableSharePanel` is set)
 
-`renderEngagementOverlay` slot wins as full takeover.
+Bookmark was **removed in v0.3.0** (stories are ephemeral; owner-side
+`Save to highlights` lives in the kebab instead).
+
+The **kebab** moved out of the engagement column to the ViewerHeader's
+right cluster in v0.3.5 (between the mute and close buttons). Activation
+is the same — `kebabActions` for full takeover, `moderatorActions` to
+insert a moderator section with auto-divider, otherwise default
+assembly via the permissions matrix.
+
+`renderEngagementOverlay` slot still wins as full takeover.
 
 ### Reply composer
 
@@ -326,45 +369,43 @@ Mounts in `viewerMode="owner"` (`disableOwnerOverlay` opts out). Hybrid loader:
 
 Tap the chip to expand → fetch fires if no eager seed.
 
-### Kebab placement
-
-Default: 6th item of the engagement overlay (Instagram-2024). When
-`disableEngagement` is set, the kebab falls back to the header right cluster
-(plain button — no DropdownMenu trap surface).
-
-`kebabActions` (full takeover) and `moderatorActions` (insert with auto-divider)
-control content. Default assembly in `lib/kebab.ts::defaultStoryKebabActions`
-consults the permissions matrix.
-
-### Render slots (v0.2.0: 1 → 7)
+### Render slots (current: 1 → 9)
 
 Each slot receives `StoryViewerSlotHelpers` (cursor / pause / mute / nav /
-labels) for full takeover:
+labels) for full takeover. The comments + share panel slots additionally
+receive `isXxxOpen` + `closeXxxPanel` helpers.
 
-- `renderHeader`
-- `renderProgress`
-- `renderNavArrows`
-- `renderTapZones`
-- `renderEngagementOverlay`
-- `renderReplyComposer`
-- `renderOwnerOverlay`
+| Slot | Since | Replaces |
+|---|---|---|
+| `renderItem` | v0.1 | the default image / video item branch |
+| `renderHeader` | v0.2.0 | avatar + username + time + buttons strip |
+| `renderProgress` | v0.2.0 | segmented progress bars |
+| `renderNavArrows` | v0.2.0 | desktop ← → arrows |
+| `renderTapZones` | v0.2.0 | tap-zone strip |
+| `renderEngagementOverlay` | v0.2.0 | stacked engagement bar |
+| `renderReplyComposer` | v0.2.0 | DM composer (bottom input) |
+| `renderOwnerOverlay` | v0.2.0 | view-count chip + viewers list |
+| `renderCommentsPanel` | v0.3.0 | comments bottom-sheet content |
+| `renderSharePanel` | v0.3.1 | share bottom-sheet content |
 
-(`renderItem` from v0.1 is unchanged — distinct from the v0.2.0 slots above.)
-
-### Disable opt-outs (v0.2.0: 8 flags)
+### Disable opt-outs (current: 12 flags)
 
 Each suppresses its surface entirely; flags compose freely:
 
-| Flag | Effect |
-|---|---|
-| `disableTapZones` | No tap zones (keyboard + arrows still work) |
-| `disableKeyboardNav` | Keyboard listener never attaches |
-| `disableNavArrows` | No desktop ← → arrows |
-| `disableAutoClose` | `onAutoCloseAtEnd` fires; viewer stays open at last item |
-| `disableProgressBars` | No segmented bars (timer still runs) |
-| `disableEngagement` | No overlay; kebab moves to header |
-| `disableReplyComposer` | No composer in viewer mode |
-| `disableOwnerOverlay` | No view-count chip / viewers panel in owner mode |
+| Flag | Since | Effect |
+|---|---|---|
+| `disableTapZones` | v0.2.0 | No tap zones (keyboard + arrows still work) |
+| `disableKeyboardNav` | v0.2.0 | Keyboard listener never attaches |
+| `disableNavArrows` | v0.2.0 | No desktop ← → arrows |
+| `disableAutoClose` | v0.2.0 | `onAutoCloseAtEnd` fires; viewer stays open at last item |
+| `disableProgressBars` | v0.2.0 | No segmented bars (timer still runs) |
+| `disableEngagement` | v0.2.0 | No overlay; kebab stays in header |
+| `disableReplyComposer` | v0.2.0 | No DM composer in viewer mode |
+| `disableOwnerOverlay` | v0.2.0 | No view-count chip / viewers panel in owner mode |
+| `disableComments` | v0.3.0 | No comments panel; comment-icon focuses DM input instead |
+| `disableSharePanel` | v0.3.1 | No share panel; share-icon fires `onShareStory` directly |
+| `disableStoryTransition` | v0.4.0 | No 3D cube between stories; hard-cut nav (and no swipe) |
+| `storyTransitionDurationMs` | v0.4.0 | Tune cube duration (default `400`) |
 
 ### Long-press pause (additive)
 
@@ -444,6 +485,173 @@ story-list mutations). Asymmetric naming preserved for zero v0.1 breakage
   engagementSubscribe={engagementStream}   // v0.2.0 — StoryEngagementDelta
 />
 ```
+
+## v0.3.0 — comments panel (additive)
+
+The comment icon in the engagement overlay opens a bottom-sheet (~62%
+viewer height) holding host-supplied comment content. The visual stack
+above scales to ~55% + translates up; a tap on the shrunk visual closes
+the panel. Always-mounted so consumer state (e.g., CommentThread01's
+draft composer) persists across open/close cycles. The story timer
+auto-pauses while the panel is open.
+
+```tsx
+import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
+
+<StoryViewer01
+  /* ... */
+  renderCommentsPanel={(story, item, helpers) => (
+    <CommentThread01
+      comments={getCommentsFor(story.id, item.id)}
+      currentUser={viewer}
+      pageSize={5}
+      onAddComment={(content) => api.addComment(story.id, item.id, content)}
+      onLoadMore={(page) => api.loadOlderComments(story.id, item.id, page)}
+      onLikeComment={(id, liked) => api.likeComment(id, liked)}
+      className="px-4 py-3"
+    />
+  )}
+/>
+```
+
+`helpers.isCommentsOpen` + `helpers.closeCommentsPanel` are available
+inside the slot if you need them. Set `disableComments` to fall back to
+the v0.2.x behavior (comment-icon focuses the DM input, no panel).
+
+**DM vs comments semantic (clarified in v0.3.0):** the always-visible
+bottom `<ReplyComposer>` is the **Direct Message** channel to the story
+author (Instagram-canonical "Reply to @user…"); it is NOT public
+comments. Public comments live in the panel above. The
+`onAddReply(storyId, itemId, content)` callback name is preserved for
+back-compat — semantically equivalent to `onSendDirectMessage`.
+
+## v0.3.1 — share panel (additive)
+
+Same mount + dismiss model as comments. Wire `renderSharePanel` to a
+share UI — typically `ShareMenu` from `@ilinxa/engagement-bar-01`:
+
+```tsx
+import { ShareMenu } from "@/registry/components/data/engagement-bar-01";
+
+<StoryViewer01
+  /* ... */
+  renderSharePanel={(story, item, helpers) => (
+    <ShareMenu
+      users={recentRecipients}
+      onShareTo={(user) => {
+        api.shareStoryTo(story.id, item.id, user.id);
+        helpers.closeSharePanel();
+      }}
+      heading="Send to…"
+    />
+  )}
+/>
+```
+
+Comments + share panels are **mutually exclusive** — opening one closes
+the other. `disableSharePanel` falls back to firing `onShareStory`
+directly (v0.2.x system-share behavior).
+
+## v0.3.8 — link-CTA drawer
+
+`StoryItem.link` was originally a bottom button (v0.2.0); v0.3.8
+redesigned it as an Instagram-canonical top-anchored collapsible drawer.
+Default state: small rounded chip at `top-16 right-3` showing the host
+domain + link icon. Tap → drawer slides down with the host preview + CTA
+button + X-close. Tap anywhere outside or the X to collapse. The
+`linkComponent` + `onLinkClick` props are unchanged — same polymorphic
+semantics, new chrome.
+
+## v0.3.9 — additional label keys
+
+v0.3.9 added four new keys to `StoryViewer01Labels` (all overridable;
+defaults shipped):
+
+- `linkCloseLabel` — aria-label on the link-drawer X (default `"Close link"`)
+- `engagementShowLabel` — aria-label on the heart toggle when collapsed (default `"Show reactions"`)
+- `engagementHideLabel` — aria-label on the heart toggle when expanded (default `"Hide reactions"`)
+- `replyAriaLabel(story)` — DM textarea aria-label (default `Reply to ${story.username}`)
+
+Plus three new panel-related keys from v0.3.0–v0.3.1: `commentsHeading`,
+`commentsCloseLabel`, `commentsDefaultEmptyState`, `shareHeading`,
+`shareCloseLabel`, `shareDefaultEmptyState`. The labels object is now
+37 standalone keys + 2 nested-forward namespaces (`engagementLabels` for
+engagement-bar-01, `commentLabels` for comment-thread-01).
+
+## v0.4.0 — Instagram-canonical 3D cube transition
+
+Story-to-story navigation (auto-advance + ← → nav arrows + tap-zone
+spillover at last item + keyboard arrows + programmatic `goToStory`)
+animates a `perspective-distant` cube swinging `rotateY 0 → ∓90°` over
+400ms with Apple-spring easing `cubic-bezier(0.32, 0.72, 0, 1)`. The
+leaving story renders as a static ghost (progress bars + header + image
+or video poster); the incoming story is pre-placed on the side wall and
+rotated into view. Detection runs during render (mid-render `setState`
+pattern) so the cube engages in the same React commit as the cursor
+change — no 1-frame flash. Item-to-item navigation within a single
+story stays a hard cut (matches Instagram).
+
+```tsx
+<StoryViewer01
+  stories={stories}
+  initialStoryIndex={0}
+  isOpen={open}
+  onClose={onClose}
+  disableStoryTransition={false}    // default — set true to revert to hard cuts
+  storyTransitionDurationMs={400}    // default; tune 200–800 for taste
+/>
+```
+
+The cube uses Tailwind v4's `perspective-distant` + `@container` +
+`transform-3d` + `backface-hidden` + `translateZ(50cqw)` inline — no JS
+width measurement needed. **v0.4.2** prefixes the rotator transform with
+`translateZ(-50cqw)` so the front face lands at the perspective plane at
+idle (scale 1.0×) and scales DOWN as it rotates away (proper cube
+perspective), avoiding the visible scale-jump that 50cqw-without-the-shift
+would produce.
+
+## v0.4.1 — finger-following swipe
+
+Pointer drag on the viewer body drives the cube angle in real-time
+(Δx → angle, 1:1 at half-width = 90°). Drag-left advances to the next
+story; drag-right returns to previous. On release:
+
+- distance ≥ 30% width OR velocity ≥ 0.5 px/ms → commit
+- otherwise → snap-back to current
+
+During drag, prev + next ghosts are mounted on the left/right walls so
+the user can swing either way mid-gesture. Boundary resistance (×0.25)
+applies at the first/last story so the cube "stretches" rather than
+snapping past nothing.
+
+Conflicts handled automatically:
+
+- **long-press pause** — drag intent (Δx > 10px AND > Δy) cancels the
+  long-press timer; the gesture becomes a swipe.
+- **tap zones** — a `swipeJustEnded` flag suppresses the click that
+  would otherwise fire on `pointerup` after a successful drag.
+
+Suppress the entire system (cube + swipe together) with
+`disableStoryTransition`.
+
+## v0.4.1 — mobile-fullscreen sizing fix
+
+shadcn's `DialogContent` ships `sm:max-w-sm` which caps the modal width
+at 384px on viewports ≥ 640px — overriding the viewer's `max-w-none` on
+that intermediate range. v0.4.2 hardened the override with Tailwind v4's
+`!` important suffix:
+
+```css
+/* viewer-shell.tsx */
+h-dvh!  w-screen!  max-w-none!  rounded-none!
+sm:h-dvh!  sm:w-screen!  sm:max-w-none!  sm:rounded-none!
+md:h-175!  md:w-100!  md:max-w-100!  md:rounded-2xl!
+```
+
+The modal is now truly full-screen across the entire `< md` range and
+gains its 400×700 portrait chrome only at desktop. Consumer overrides
+via `contentClassName` still compose normally (they apply after these
+utilities in the className chain).
 
 ## Cross-folder import contract
 

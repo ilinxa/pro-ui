@@ -125,6 +125,117 @@ ref.current?.reset(updatedStories);`}</code>
         <code>renderItem</code> and re-implement the image / video defaults
         themselves.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Role-aware mode (v0.2.0)
+      </h3>
+      <p className="text-muted-foreground">
+        Pass <code>viewerMode=&quot;viewer&quot;</code> to opt into the
+        engagement overlay + DM composer + kebab. Pass{" "}
+        <code>viewerMode=&quot;owner&quot;</code> for owners (no engagement;
+        owner overlay with view-count + viewers list instead). Per-action
+        overrides go through <code>permissions</code> (e.g.{" "}
+        <code>{`{ canReact: false }`}</code>) or the universal{" "}
+        <code>canPerformAction(action, story, item)</code> predicate, which
+        wins over both. Resolution order: predicate → matrix →
+        viewerMode-derived defaults.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Engagement overlay (v0.2.0)
+      </h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<StoryViewer01
+  stories={stories}
+  initialStoryIndex={0}
+  isOpen={open}
+  onClose={onClose}
+  viewerMode="viewer"
+  currentUser={{ id: "u1", name: "Hessam", avatar: "/me.png" }}
+  reactionKinds={[
+    { key: "love", icon: <Heart />, label: "Love", count: 0 },
+    { key: "laugh", icon: <Laugh />, label: "Laugh", count: 0 },
+  ]}
+  onLikeStory={(storyId, itemId, nextLiked) => api.like(storyId, itemId, nextLiked)}
+  onReactStory={(storyId, itemId, kind) => api.react(storyId, itemId, kind)}
+  onShareStory={(storyId, itemId) => api.share(storyId, itemId)}
+  onAddReply={(storyId, itemId, content) => api.dm(storyId, itemId, content)}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Comments panel (v0.3.0)
+      </h3>
+      <p className="text-muted-foreground">
+        Wire <code>renderCommentsPanel</code> to host the per-item comment
+        thread (typically <code>CommentThread01</code>). Tapping the
+        comment icon opens a bottom-sheet (~62% viewer height) — the visual
+        stack above scales to 55% and translates up; tap on the shrunk
+        visual closes the panel. Always-mounted so the consumer&apos;s draft
+        state survives open/close. The story timer auto-pauses while the
+        panel is open. Set <code>disableComments</code> to fall back to the
+        v0.2.x behavior (comment icon focuses the DM input).
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<StoryViewer01
+  /* … */
+  renderCommentsPanel={(story, item, helpers) => (
+    <CommentThread01
+      comments={getCommentsFor(story.id, item.id)}
+      onAddComment={(content) => api.addComment(story.id, item.id, content)}
+      onLoadMore={() => api.loadMoreComments(story.id, item.id)}
+    />
+  )}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Share panel (v0.3.1)
+      </h3>
+      <p className="text-muted-foreground">
+        Same shape as <code>renderCommentsPanel</code> — wire{" "}
+        <code>renderSharePanel</code> to a share UI (typically{" "}
+        <code>ShareMenu</code> from <code>@ilinxa/engagement-bar-01</code>).
+        Comments + share panels are mutually exclusive (opening one closes
+        the other). <code>disableSharePanel</code> falls back to firing{" "}
+        <code>onShareStory</code> directly (v0.2.x system-share behavior).
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Story-to-story 3D cube + swipe (v0.4)
+      </h3>
+      <p className="text-muted-foreground">
+        Story-to-story navigation (auto-advance + nav arrows + tap-zone
+        spillover + keyboard + programmatic <code>goToStory</code>)
+        animates an Instagram-canonical 3D cube with{" "}
+        <code>rotateY 0 → ∓90°</code> over 400ms and Apple-spring easing.
+        Item-to-item navigation within a story stays a hard cut. The cube
+        is also finger-drivable: drag-left to advance, drag-right to
+        return; release commits past 30% width or 0.5 px/ms velocity. Pass{" "}
+        <code>storyTransitionDurationMs</code> to tune (default 400) or{" "}
+        <code>disableStoryTransition</code> to revert to v0.3.x hard cuts.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Public types &amp; helpers
+      </h3>
+      <p className="text-muted-foreground">
+        The barrel exports every public type referenced by props +
+        callbacks — <code>Story</code> / <code>StoryItem</code> /{" "}
+        <code>StoryItemLink</code> / <code>StoryViewerMode</code> /{" "}
+        <code>StoryViewerPermissions</code> /{" "}
+        <code>StoryEngagementReactionKind</code> /{" "}
+        <code>StoryKebabMenuItem</code> /{" "}
+        <code>ViewerListItem</code> /{" "}
+        <code>StoryCurrentUser</code> /{" "}
+        <code>StoryEngagementDelta</code> + companions. Three internal
+        hooks are also exported standalone for advanced consumers (custom
+        viewers reusing the same reducer / progress timer / keyboard nav):{" "}
+        <code>useStoryViewerState</code>, <code>useStoryProgress</code>,{" "}
+        <code>useStoryKeyboardNav</code>. <code>useCubeTransition</code>{" "}
+        and <code>useLongPressPause</code> stay internal — they&apos;re
+        tightly coupled to this viewer&apos;s render shape.
+      </p>
     </div>
   );
 }
