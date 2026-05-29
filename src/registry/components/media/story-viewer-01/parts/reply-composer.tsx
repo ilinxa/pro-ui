@@ -128,8 +128,10 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // story DM has no Cancel; engagement column stays visible. handleCancel
         // is still wired internally for future use (e.g. Escape key handler
         // on the textarea), but no Cancel button is rendered.
+        // v0.3.4: removed `pr-12` — the engagement column sits at `bottom-24`
+        // while the input is at `bottom-0`, so they don't overlap vertically
+        // and the input can extend full width.
         submitOnEnter
-        className="pr-12"
         minRows={1}
         maxRows={3}
         ariaLabel={`Reply to ${props.story.username}`}
