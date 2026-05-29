@@ -59,10 +59,11 @@ export const meta: ComponentMeta = {
     "v0.3.5 — Engagement column UX overhaul (user-flagged): kebab moved out of the engagement column into the ViewerHeader's right cluster (between mute and close). Engagement column now collapsed by default — only the heart toggle visible. Tap the heart → engagement icons (like / reaction / comment / share) reveal with a staggered bottom-to-top animation (delay-0/75/150/200ms). Tap the heart again or anywhere else → icons collapse back. Outside-pointer-down listener handles the dismiss. New EngagementOverlay props: `expanded` + `onToggle` + `containerRef`. ViewerHeader gains optional `onKebabClick` prop.",
     "v0.3.6 — DM input height shrink (user-flagged: 'too high — match avatar height'). Two coordinated fixes: ReplyComposer's outer vertical padding `pt-8 pb-4` → `pt-3 pb-3`. CommentComposer's textarea overrides shadcn-baked `min-h-16` (64px) with `min-h-9` (36px) + `py-1.5 text-sm` via `[&_textarea]:` arbitrary-selector className passthrough. Avatar (h-8) and textarea (min-h-9) now visually align.",
     "v0.3.7 — Heart toggle moved inline with the DM bar (user-flagged: 'put the heart in the same row with the direct input'). EngagementOverlay no longer renders the toggle; it only renders the engagement icons themselves and sits at `bottom-20` (just above the DM row). The toggle is now an absolute button at `right-3 bottom-3 z-32` rendered by story-viewer-01.tsx, aligned with the DM input avatar. ReplyComposer's outer gains `pr-16` so the input doesn't extend under the toggle. Outside-pointerdown listener checks both the engagement column ref AND the toggle ref so tapping the toggle doesn't trigger an immediate dismiss.",
+    "v0.3.8 — StoryItem.link CTA redesigned as a top-anchored collapsible drawer (user-flagged: bottom button collided with the DM bar). Default state: small rounded chip at `top-16 right-3` showing the host domain + link icon. Tap the chip → drawer slides down (origin-top-right scale+fade transition) showing the host preview + the CTA button + an X-close. Tap chip again or anywhere outside → collapses. Outside-pointer-down listener handles the dismiss. Matches Instagram-canonical link-sticker UX. Polymorphic `linkComponent` + `onLinkClick` semantics preserved.",
   ],
   tags: ["story-viewer-01", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.3.7",
+  version: "0.3.8",
   status: "alpha",
   createdAt: "2026-05-03",
   updatedAt: "2026-05-29",
