@@ -51,12 +51,15 @@ export interface ReplyComposerProps {
  * mounts `composerEmptyState` slot instead (sign-in CTA for unauth viewers).
  */
 function ReplyComposerInner(props: ReplyComposerProps) {
-  // Track whether user has typed anything since last submit/cancel; auto-pause
-  // fires only on the FIRST keystroke (cheap idempotent setPaused call too).
+  // Track whether user has typed anything since last submit; auto-pause
+  // fires only on the FIRST keystroke (cheap idempotent setPaused call).
   const pausedRef = useRef(false);
-  // v0.3.2 — track active state (focused OR has content). Parent uses this
-  // to hide the right-edge engagement overlay while composer is active so
-  // the composer's expanded chrome (Cancel + Send) doesn't overlap.
+  // v0.3.2 — focus + content tracking still fires `onActiveChange` for
+  // host-side polish (e.g., a future heart-toggle that only reveals the
+  // engagement column when composer is active). v0.3.3 stopped USING the
+  // signal internally — gradient is full-width always; engagement stays
+  // always visible; the Cancel button (which caused the collision) was
+  // removed. The signal is kept for forward compat.
   const [hasFocus, setHasFocus] = useState(false);
   const [hasContent, setHasContent] = useState(false);
   const active = hasFocus || hasContent;
@@ -93,12 +96,6 @@ function ReplyComposerInner(props: ReplyComposerProps) {
     [props.onAddReply, props.story.id, props.item.id, props.onSetPaused],
   );
 
-  const handleCancel = useCallback(() => {
-    pausedRef.current = false;
-    setHasContent(false);
-    props.onSetPaused(false);
-  }, [props.onSetPaused]);
-
   if (!props.currentUser) return null;
 
   // CommentComposer accepts a stricter currentUser shape (CommentThreadCurrentUser).
@@ -108,15 +105,14 @@ function ReplyComposerInner(props: ReplyComposerProps) {
       onFocusCapture={() => setHasFocus(true)}
       onBlurCapture={() => setHasFocus(false)}
       className={cn(
-        // v0.3.1: explicit pointer-events-auto + higher z (z-[31]) so the
-        // DM input always wins focus over the engagement overlay (z-30) +
-        // TapZones (z-10) underneath.
-        // v0.3.2: when collapsed, leave right space for the engagement
-        // overlay (right-16). When active (focused or typing), expand to
-        // full width and the parent hides the engagement overlay so the
-        // Cancel + Send chrome doesn't overlap.
-        "absolute bottom-0 left-0 z-[31] px-4 pt-8 pb-4 pointer-events-auto transition-[right] duration-200",
-        active ? "right-0" : "right-16",
+        // v0.3.3: full-width gradient strip at the bottom (right-0 always).
+        // Engagement overlay sits at `right-3 bottom-24` ABOVE this gradient
+        // — the column overlays visually on top of the dim. Internal padding
+        // (`pr-20`) on the inner row keeps the textarea + Send button to
+        // the left of the engagement column so they don't visually clash.
+        // z-[31] keeps the input itself above engagement overlay (z-30) on
+        // the OS focus stack so taps reliably reach the textarea.
+        "absolute right-0 bottom-0 left-0 z-31 px-4 pt-8 pb-4 pointer-events-auto",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
         props.className,
       )}
@@ -128,8 +124,12 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         placeholder={props.labels.replyComposerPlaceholder(props.story)}
         onChange={handleChange}
         onSubmit={handleSubmit}
-        onCancel={handleCancel}
+        // v0.3.3: Cancel button removed per UX feedback — Instagram-canonical
+        // story DM has no Cancel; engagement column stays visible. handleCancel
+        // is still wired internally for future use (e.g. Escape key handler
+        // on the textarea), but no Cancel button is rendered.
         submitOnEnter
+        className="pr-12"
         minRows={1}
         maxRows={3}
         ariaLabel={`Reply to ${props.story.username}`}

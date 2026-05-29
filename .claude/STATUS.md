@@ -69,7 +69,7 @@ Phase A landed 2026-05-25 (charter + rule restructure + tier dir READMEs + STATU
 | `page-hero-news-01` | marketing | alpha | 0.1.2 |
 | `share-bar-01` | marketing | alpha | 0.1.0 |
 | `media-carousel-01` | media | alpha | 0.1.3 |
-| `story-viewer-01` | media | alpha | 0.3.2 |
+| `story-viewer-01` | media | alpha | 0.3.3 |
 | `video-player-01` | media | alpha | 0.1.2 |
 | `pdf-viewer` | media | alpha | 0.1.3 |
 | `file-tree` | navigation | alpha | 0.1.0 |
