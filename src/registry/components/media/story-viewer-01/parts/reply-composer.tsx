@@ -106,13 +106,11 @@ function ReplyComposerInner(props: ReplyComposerProps) {
       onBlurCapture={() => setHasFocus(false)}
       className={cn(
         // v0.3.3: full-width gradient strip at the bottom (right-0 always).
-        // Engagement overlay sits at `right-3 bottom-24` ABOVE this gradient
-        // — the column overlays visually on top of the dim. Internal padding
-        // (`pr-20`) on the inner row keeps the textarea + Send button to
-        // the left of the engagement column so they don't visually clash.
-        // z-[31] keeps the input itself above engagement overlay (z-30) on
-        // the OS focus stack so taps reliably reach the textarea.
-        "absolute right-0 bottom-0 left-0 z-31 px-4 pt-8 pb-4 pointer-events-auto",
+        // z-31 keeps the input above the engagement overlay (z-30) on the
+        // OS focus stack so taps reliably reach the textarea.
+        // v0.3.6: tightened vertical padding (`pt-3 pb-3` was `pt-8 pb-4`).
+        // The gradient still feels present from the bg-linear-to-t.
+        "absolute right-0 bottom-0 left-0 z-31 px-4 pt-3 pb-3 pointer-events-auto",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
         props.className,
       )}
@@ -131,6 +129,12 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // v0.3.4: removed `pr-12` — the engagement column sits at `bottom-24`
         // while the input is at `bottom-0`, so they don't overlap vertically
         // and the input can extend full width.
+        // v0.3.6: override shadcn Textarea's baked-in `min-h-16` (64px) via
+        // arbitrary-selector className passthrough — bring the textarea down
+        // to a single-row height that matches the 8x8 avatar (`min-h-9`)
+        // with tighter vertical padding. The textarea still auto-grows up
+        // to `maxRows={3}` while typing.
+        className="[&_textarea]:min-h-9 [&_textarea]:py-1.5 [&_textarea]:text-sm"
         submitOnEnter
         minRows={1}
         maxRows={3}
