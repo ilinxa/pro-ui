@@ -42,12 +42,6 @@ export interface BuildEngagementActionsOptions {
   onCommentClick?: () => void;
   /** Share click handler. */
   onShareClick?: () => void;
-  /** Kebab open handler — fires when the 5th custom-action is tapped. */
-  onKebabOpen?: () => void;
-  /** Icon node for the kebab custom action. */
-  kebabIcon?: import("react").ReactNode;
-  /** Aria label for the kebab custom action. */
-  kebabLabel?: string;
 }
 
 export function buildStoryEngagementActions(
@@ -102,21 +96,12 @@ export function buildStoryEngagementActions(
     });
   }
 
-  // Bookmark removed in v0.3.0 — stories are not bookmarkable (Instagram-
-  // canonical: stories are ephemeral, only owners "save to highlights" via
-  // the kebab; viewers don't bookmark).
-
-  // Kebab — last item, rendered via kind="custom" (Q-V17 lock — kebab in
-  // engagement overlay; HeaderKebabFallback handles disableEngagement).
-  if (opts.onKebabOpen) {
-    actions.push({
-      kind: "custom",
-      id: "kebab",
-      label: opts.kebabLabel ?? "More",
-      icon: opts.kebabIcon,
-      onClick: opts.onKebabOpen,
-    });
-  }
+  // Bookmark removed in v0.3.0 — stories are not bookmarkable.
+  //
+  // Kebab moved to header right cluster in v0.3.5 (user feedback —
+  // engagement-overlay kebab was visually inconsistent and not
+  // functional). The header always renders the kebab when viewerMode is
+  // set + kebab items exist.
 
   return actions;
 }
