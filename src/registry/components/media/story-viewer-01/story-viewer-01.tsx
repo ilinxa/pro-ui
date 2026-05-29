@@ -629,10 +629,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           />
         )}
         {/* v0.3.0 — scaling wrapper: when the comments or share panel is
-            open, the entire visual stack (media + tap-zones + link CTA +
-            engagement overlay + DM input) shrinks toward the top with
-            pointer-events disabled inside. Mirrors the Instagram bottom-
-            sheet UX. */}
+            open, the entire visual stack (media + tap-zones + link CTA chip
+            + engagement column + heart toggle + DM bar) shrinks toward the
+            top with pointer-events disabled inside. Mirrors the Instagram
+            bottom-sheet UX. */}
         <div
           className={cn(
             "absolute inset-0 origin-top transition-transform duration-300 ease-out",
@@ -733,7 +733,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
               onClick={() => setEngagementExpanded((v) => !v)}
               aria-expanded={engagementExpanded ? "true" : "false"}
               aria-label={
-                engagementExpanded ? "Hide reactions" : "Show reactions"
+                engagementExpanded
+                  ? labels.engagementHideLabel
+                  : labels.engagementShowLabel
               }
               className={cn(
                 "absolute right-3 bottom-3 z-32 flex h-9 w-9 items-center justify-center rounded-full text-white pointer-events-auto",

@@ -18,12 +18,11 @@ export interface KebabPanelProps {
 }
 
 /**
- * Bottom-sheet action panel used by BOTH kebab placements:
- *
- *   - Engagement-overlay placement (default): triggered by the 6th custom
- *     action in the stacked engagement-bar (Q-V17 lock — Instagram-2024 exact).
- *   - Header fallback (disableEngagement=true): triggered by a button in the
- *     header right cluster.
+ * Bottom-sheet action panel triggered by the kebab button in
+ * ViewerHeader's right cluster (moved here in v0.3.5 — previously this
+ * panel was triggered by a 6th custom action in the engagement-bar, but
+ * the engagement column was reduced to a collapsible heart toggle and the
+ * kebab moved into the header for consistency).
  *
  * Renders as a fixed-position bottom sheet rather than a DropdownMenu — this
  * matches Instagram / Snapchat / TikTok action-sheet UX AND avoids the

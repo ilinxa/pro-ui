@@ -149,7 +149,7 @@ export function LinkCta({
           <button
             type="button"
             onClick={() => setExpanded(false)}
-            aria-label={labels.commentsCloseLabel}
+            aria-label={labels.linkCloseLabel}
             className={cn(
               "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
               "text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",

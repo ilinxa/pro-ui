@@ -177,6 +177,14 @@ export interface StoryViewerPermissions {
 // SYNC WARNING: if @ilinxa/engagement-bar-01 changes any of these shapes
 // in a future bump, this file MUST be updated manually. The upstream
 // definitions live at src/registry/components/data/engagement-bar-01/types.ts.
+//
+// NOTE — orphan arms: `kind: "bookmark"` + `kind: "view-count"` arms are
+// part of the inline-copy for structural sync with upstream, but story-
+// viewer-01 never produces them (bookmark was removed in v0.3.0; view-
+// count lives in the owner overlay rather than the engagement bar). The
+// `labels.bookmark` / `labels.unbookmark` keys on `StoryEngagementBarLabels`
+// are similarly orphaned. Kept as-is so that an upstream EngagementAction
+// passed through a slot still type-checks.
 
 export type StoryEngagementActionAlign = "left" | "right" | "auto";
 
@@ -400,6 +408,18 @@ export interface StoryViewer01Labels {
   // v0.2.0 — link CTA
   /** Default fallback when StoryItem.link.cta absent. Default: "Open link". */
   openLink?: string;
+  /** v0.3.9 — aria-label on the link-drawer close button. Default: "Close link". */
+  linkCloseLabel?: string;
+
+  // v0.3.9 — engagement column toggle (heart inline with DM bar)
+  /** aria-label on the heart toggle when the column is collapsed. Default: "Show reactions". */
+  engagementShowLabel?: string;
+  /** aria-label on the heart toggle when the column is expanded. Default: "Hide reactions". */
+  engagementHideLabel?: string;
+
+  // v0.3.9 — reply / DM input aria
+  /** Function so hosts can interpolate username. Default: `Reply to ${story.username}`. Used as the textarea aria-label. */
+  replyAriaLabel?: (story: Story) => string;
 
   // v0.3.0 — comments panel
   /** Panel heading. Default: "Comments". */
@@ -472,6 +492,10 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   copyLink: "Copy link",
   kebabAriaLabel: "Story actions",
   openLink: "Open link",
+  linkCloseLabel: "Close link",
+  engagementShowLabel: "Show reactions",
+  engagementHideLabel: "Hide reactions",
+  replyAriaLabel: (story: Story) => `Reply to ${story.username}`,
   commentsHeading: "Comments",
   commentsCloseLabel: "Close comments",
   commentsDefaultEmptyState: "No comments yet. Be the first to reply.",
