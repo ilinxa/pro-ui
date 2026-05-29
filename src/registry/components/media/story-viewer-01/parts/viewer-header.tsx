@@ -1,5 +1,5 @@
 import { type ElementType } from "react";
-import { Pause, Play, Volume2, VolumeX, X } from "lucide-react";
+import { MoreVertical, Pause, Play, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,12 @@ export interface ViewerHeaderProps {
    * to `"button"` when onAuthorClick is set, `"div"` otherwise.
    */
   authorComponent?: ElementType;
+  /**
+   * v0.3.5 — when set, the kebab button renders in the header right cluster
+   * (between mute and close). Tapping it fires this callback (the caller
+   * owns the bottom-sheet panel state).
+   */
+  onKebabClick?: () => void;
 }
 
 export function ViewerHeader({
@@ -39,6 +45,7 @@ export function ViewerHeader({
   labels,
   onAuthorClick,
   authorComponent,
+  onKebabClick,
 }: ViewerHeaderProps) {
   const initials = story.username.slice(0, 2).toUpperCase();
   const isInteractive = !!onAuthorClick || !!authorComponent;
@@ -93,6 +100,18 @@ export function ViewerHeader({
             aria-pressed={isMuted}
           >
             {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </Button>
+        ) : null}
+        {onKebabClick ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
+            onClick={onKebabClick}
+            aria-label={labels.kebabAriaLabel}
+          >
+            <MoreVertical className="h-5 w-5" />
           </Button>
         ) : null}
         <Button

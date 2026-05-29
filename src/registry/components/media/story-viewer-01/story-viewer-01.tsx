@@ -27,8 +27,8 @@ import { ViewerHeader } from "./parts/viewer-header";
 import { TapZones } from "./parts/tap-zones";
 import { NavArrows } from "./parts/nav-arrows";
 import { ItemView } from "./parts/item-view";
-import { MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// MoreVertical + Button no longer needed here in v0.3.5 — kebab moved
+// inside ViewerHeader's right cluster.
 import { EngagementOverlay } from "./parts/engagement-overlay";
 import { ReplyComposer } from "./parts/reply-composer";
 import { OwnerOverlay } from "./parts/owner-overlay";
@@ -287,6 +287,29 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     setKebabOpen(false);
   }, [cursor.storyIndex, cursor.itemIndex]);
 
+  // ─── v0.3.5 engagement bar expand/collapse state ─────────────────────
+  // Default: collapsed (only the heart toggle visible). Tapping the toggle
+  // reveals the engagement icons with a staggered bottom-to-top animation;
+  // tapping anywhere else collapses it.
+  const [engagementExpanded, setEngagementExpanded] = useState(false);
+  const engagementColumnRef = useRef<HTMLDivElement | null>(null);
+  // Close engagement on cursor change.
+  useEffect(() => {
+    setEngagementExpanded(false);
+  }, [cursor.storyIndex, cursor.itemIndex]);
+  // Outside-click: any pointer event outside the engagement column collapses it.
+  useEffect(() => {
+    if (!engagementExpanded) return;
+    const handleDown = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (engagementColumnRef.current && target && !engagementColumnRef.current.contains(target)) {
+        setEngagementExpanded(false);
+      }
+    };
+    document.addEventListener("pointerdown", handleDown);
+    return () => document.removeEventListener("pointerdown", handleDown);
+  }, [engagementExpanded]);
+
   // ─── v0.3.0 comments panel state — opens on comment-icon tap ──────────
   const [commentsOpen, setCommentsOpen] = useState(false);
   // ─── v0.3.1 share panel state — opens on share-icon tap ──────────────
@@ -453,9 +476,8 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           composerRef.current?.focus();
         }
       },
-      onKebabOpen: () => setKebabOpen(true),
-      kebabIcon: <MoreVertical className="h-6 w-6" />,
-      kebabLabel: labels.kebabAriaLabel,
+      // v0.3.5 — kebab moved out of the engagement column to the header
+      // right cluster; not added to the actions array here.
       onShareClick: () => {
         // v0.3.1 — open the share panel (Instagram-canonical bottom-sheet).
         // When disableSharePanel is set, fall back to firing onShareStory
@@ -593,6 +615,11 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             labels={labels}
             onAuthorClick={onAuthorClick}
             authorComponent={authorComponent}
+            onKebabClick={
+              viewerMode && kebabItems.length > 0
+                ? () => setKebabOpen(true)
+                : undefined
+            }
           />
         )}
         {/* v0.3.0 — scaling wrapper: when the comments or share panel is
@@ -660,6 +687,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
                 item={currentItem!}
                 actions={engagementActions}
                 labels={labels}
+                expanded={engagementExpanded}
+                onToggle={() => setEngagementExpanded((v) => !v)}
+                containerRef={engagementColumnRef}
               />
             )
           ) : null}
@@ -724,23 +754,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           )
         ) : null}
 
-        {/* v0.2.0 — header fallback kebab button (when disableEngagement OR
-            no viewerMode set with kebab items present). Rendered as plain
-            button to avoid F-cross-13 DropdownMenuTrigger trap. */}
-        {viewerMode && disableEngagement && kebabItems.length > 0 ? (
-          <div className="absolute right-16 top-4 z-25 md:right-20">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
-              onClick={() => setKebabOpen(true)}
-              aria-label={labels.kebabAriaLabel}
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          </div>
-        ) : null}
+        {/* v0.3.5 — kebab button now lives INSIDE ViewerHeader's right cluster
+            (passed via the `onKebabClick` prop). The standalone absolute
+            block that used to sit at right-16 top-4 is gone — caused
+            overlap risks with the close button on small viewports. */}
 
         {/* v0.2.0 — kebab bottom-sheet panel (shared by engagement-overlay
             kebab + header fallback). Rendered only when kebabOpen + items

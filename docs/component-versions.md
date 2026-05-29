@@ -125,7 +125,7 @@ Snapshot of every shipped procomponent in the registry, with version + release s
 |---------------------|-------------------|---------|--------|
 | `media-carousel-01` | Media Carousel 01 | 0.1.3   | alpha  |
 | `pdf-viewer`        | PDF Viewer        | 0.1.3   | alpha  |
-| `story-viewer-01`   | Story Viewer 01   | 0.3.4   | alpha  |
+| `story-viewer-01`   | Story Viewer 01   | 0.3.5   | alpha  |
 | `video-player-01`   | Video Player 01   | 0.1.2   | alpha  |
 
 ## navigation (4)

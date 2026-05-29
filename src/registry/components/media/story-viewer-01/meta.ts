@@ -56,10 +56,11 @@ export const meta: ComponentMeta = {
     "v0.3.2 — DM composer + engagement overlay collision fix (user-flagged): when the composer is focused or has content, it expands to full width (`right-0`) AND the engagement overlay fades out (opacity-0 + pointer-events-none) so the Cancel + Send chrome no longer overlaps the right-edge icons. Lift via new `onActiveChange?: (active) => void` prop on ReplyComposer.",
     "v0.3.3 — DM bar layout overhaul (user-flagged 'engagement pushes the bottom area to the left'): gradient strip is now full-width always (`right-0`); engagement column visually overlays it on the right. Cancel button removed entirely — Instagram-canonical story DM has no Cancel. Engagement column stays always visible (no longer fades when composer is active). `onActiveChange` prop kept on ReplyComposer for forward compat (e.g., future heart-toggle that reveals engagement on demand).",
     "v0.3.4 — DM input full-width follow-up: removed leftover `pr-12` padding on the CommentComposer in v0.3.3 — the engagement column sits at `bottom-24` while the DM input lives at `bottom-0`, so they don't overlap vertically and the input can extend to the right edge.",
+    "v0.3.5 — Engagement column UX overhaul (user-flagged): kebab moved out of the engagement column into the ViewerHeader's right cluster (between mute and close). Engagement column now collapsed by default — only the heart toggle visible. Tap the heart → engagement icons (like / reaction / comment / share) reveal with a staggered bottom-to-top animation (delay-0/75/150/200ms). Tap the heart again or anywhere else → icons collapse back. Outside-pointer-down listener handles the dismiss. New EngagementOverlay props: `expanded` + `onToggle` + `containerRef`. ViewerHeader gains optional `onKebabClick` prop.",
   ],
   tags: ["story-viewer-01", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.3.4",
+  version: "0.3.5",
   status: "alpha",
   createdAt: "2026-05-03",
   updatedAt: "2026-05-29",
