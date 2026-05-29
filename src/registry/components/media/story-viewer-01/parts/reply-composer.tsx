@@ -29,11 +29,11 @@ export interface ReplyComposerProps {
   /** Optional handle ref so the parent can focus / pre-fill the composer (triggerReply). */
   composerRef?: React.Ref<CommentComposerHandle>;
   /**
-   * v0.3.2 — fires when the composer becomes active (focused or has
-   * content) vs collapsed (blurred + empty). Parent (story-viewer-01.tsx)
-   * uses this to hide the right-edge engagement overlay while active so
-   * the composer's expanded chrome (Cancel + Send) doesn't overlap the
-   * engagement icons.
+   * @deprecated v0.3.3 — Cancel button removed and engagement column
+   *   redesigned as a heart-toggle reveal in v0.3.5/v0.3.7. This callback
+   *   is kept as a forward-compat hook for future host-side polish (e.g.,
+   *   conditional engagement reveal tied to composer focus). Currently
+   *   fired but not consumed by `story-viewer-01.tsx`.
    */
   onActiveChange?: (active: boolean) => void;
 }
@@ -140,7 +140,7 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         submitOnEnter
         minRows={1}
         maxRows={3}
-        ariaLabel={`Reply to ${props.story.username}`}
+        ariaLabel={props.labels.replyAriaLabel(props.story)}
         labels={
           props.labels.commentLabels
             ? {

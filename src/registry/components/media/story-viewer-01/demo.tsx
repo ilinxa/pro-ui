@@ -404,7 +404,7 @@ function CustomSlotsTab() {
           </div>
         )}
         renderEngagementOverlay={(_story, _item, helpers) => (
-          <div className="absolute right-3 bottom-24 z-30 flex flex-col items-center gap-3">
+          <div className="absolute right-3 bottom-20 z-30 flex flex-col items-center gap-3">
             <Button
               size="icon"
               variant="secondary"
