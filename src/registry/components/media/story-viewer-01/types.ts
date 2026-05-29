@@ -830,6 +830,19 @@ export interface StoryViewer01Props {
    * (the v0.2.x system-share behavior, no overlay panel).
    */
   disableSharePanel?: boolean;
+  /**
+   * v0.4.0 — suppress the Instagram-canonical 3D cube transition between
+   * stories. When set, story-to-story navigation is a hard cut (the v0.3.x
+   * behavior). Item-to-item navigation within a story is always a hard cut
+   * either way (matches Instagram). Default `false`.
+   */
+  disableStoryTransition?: boolean;
+  /**
+   * v0.4.0 — duration of the 3D cube transition in milliseconds. Default 400
+   * (matches Instagram's perceived feel). Ignored when `disableStoryTransition`
+   * is true.
+   */
+  storyTransitionDurationMs?: number;
 
   // ─── Defaults ──────────────────────────────────────────────────────────
   /** Default item duration in seconds when neither item.duration nor video metadata is available. Default 5. */

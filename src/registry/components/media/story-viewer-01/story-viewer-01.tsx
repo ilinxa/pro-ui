@@ -12,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_STORY_VIEWER_LABELS,
+  type Story,
+  type StoryItem,
   type StoryViewer01Handle,
   type StoryViewer01Labels,
   type StoryViewer01Props,
@@ -21,6 +23,10 @@ import { useStoryProgress } from "./hooks/use-story-progress";
 import { useStoryKeyboardNav } from "./hooks/use-story-keyboard-nav";
 import { useStoryEngagementState } from "./hooks/use-story-engagement-state";
 import { useLongPressPause } from "./hooks/use-long-press-pause";
+import {
+  useCubeTransition,
+  type CubeDirection,
+} from "./hooks/use-cube-transition";
 import { ViewerShell } from "./parts/viewer-shell";
 import { ProgressBars } from "./parts/progress-bars";
 import { ViewerHeader } from "./parts/viewer-header";
@@ -36,6 +42,7 @@ import { KebabPanel } from "./parts/kebab-panel";
 import { LinkCta } from "./parts/link-cta";
 import { CommentsPanel } from "./parts/comments-panel";
 import { SharePanel } from "./parts/share-panel";
+import { StoryCubeFace } from "./parts/story-cube-face";
 import { defaultStoryKebabActions } from "./lib/kebab";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread-01/parts/comment-composer";
@@ -111,6 +118,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     // v0.3.1 — share panel
     renderSharePanel,
     disableSharePanel = false,
+    // v0.4.0 — Instagram-canonical 3D cube transition between stories
+    disableStoryTransition = false,
+    storyTransitionDurationMs = 400,
     // v0.2.0 — kebab item handlers (mirrors post-card-01 v0.2.0; flattened
     // on Props rather than a discrete StoryMutationHandlers interface). All
     // optional; gated by the permissions matrix in defaultStoryKebabActions.
@@ -251,6 +261,157 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onComplete: goToNextItem,
   });
 
+  // ─── v0.4.0–v0.4.1 cube transition + swipe ──────────────────────────────
+  // Detect story-level cursor changes during render and trigger the AUTO
+  // cube animation in the SAME commit as the cursor change. The previous
+  // values live in React state (`trackedCursor`) — NOT refs — so the
+  // mid-render setState pattern handles the sync without tripping the
+  // React Compiler "no refs during render" lint.
+  //
+  // `pendingDragCommit` suppresses the auto trigger when the cursor change
+  // was caused by a drag commit (we already played the cube animation
+  // during the drag — no need to play it again).
+  const cube = useCubeTransition(storyTransitionDurationMs);
+  const [trackedCursor, setTrackedCursor] = useState({
+    storyIndex: cursor.storyIndex,
+    itemIndex: cursor.itemIndex,
+    isOpen,
+  });
+  const [pendingDragCommit, setPendingDragCommit] = useState(false);
+  if (trackedCursor.isOpen !== isOpen) {
+    setTrackedCursor({
+      storyIndex: cursor.storyIndex,
+      itemIndex: cursor.itemIndex,
+      isOpen,
+    });
+  } else if (pendingDragCommit && cursor.storyIndex !== trackedCursor.storyIndex) {
+    // Cursor change came from a drag commit — suppress the auto animation.
+    setPendingDragCommit(false);
+    setTrackedCursor({
+      storyIndex: cursor.storyIndex,
+      itemIndex: cursor.itemIndex,
+      isOpen,
+    });
+  } else if (
+    isOpen &&
+    !disableStoryTransition &&
+    cube.state.phase === "idle" &&
+    cursor.storyIndex !== trackedCursor.storyIndex &&
+    stories.length > 0
+  ) {
+    const direction =
+      cursor.storyIndex > trackedCursor.storyIndex ? "next" : "prev";
+    const leavingStory = stories[trackedCursor.storyIndex];
+    const leavingItem = leavingStory?.items[trackedCursor.itemIndex];
+    if (leavingStory && leavingItem) {
+      cube.startAuto({
+        direction,
+        leaving: {
+          storyId: leavingStory.id,
+          itemId: leavingItem.id,
+          itemIndex: trackedCursor.itemIndex,
+          progress: 100,
+        },
+      });
+    }
+    setTrackedCursor({
+      storyIndex: cursor.storyIndex,
+      itemIndex: cursor.itemIndex,
+      isOpen,
+    });
+  } else if (
+    trackedCursor.storyIndex !== cursor.storyIndex ||
+    trackedCursor.itemIndex !== cursor.itemIndex
+  ) {
+    setTrackedCursor({
+      storyIndex: cursor.storyIndex,
+      itemIndex: cursor.itemIndex,
+      isOpen,
+    });
+  }
+  // Force idle on viewer close to clear any in-flight cube state.
+  // Dep only on the memoized `forceIdle` (stable identity) — depending on
+  // the whole `cube` object triggers an infinite loop because the hook
+  // returns a fresh container object on every render.
+  const cubeForceIdle = cube.forceIdle;
+  useEffect(() => {
+    if (!isOpen) cubeForceIdle();
+  }, [isOpen, cubeForceIdle]);
+
+  // Derived: cube mount + per-face transforms. The cube structure
+  // (perspective + container + rotator) is rendered whenever phase !== idle.
+  // The CSS transition on the rotator is enabled in auto/releasing modes
+  // (animated angle change) and DISABLED in dragging mode (pointer drives
+  // it directly — any transition would lag the finger).
+  const cubeMounted = cube.state.phase !== "idle";
+  const cubeUsesTransition =
+    cube.state.phase === "auto" || cube.state.phase === "releasing";
+  // Hoist narrowed snapshots out of the discriminated union for JSX use.
+  let autoLeavingStory: Story | null = null;
+  let autoLeavingItem: StoryItem | null = null;
+  let autoLeavingItemIndex = 0;
+  let autoLeavingProgress = 0;
+  let autoDirection: CubeDirection | null = null;
+  let dragPrev: { story: Story; item: StoryItem; itemIndex: number; progress: number } | null = null;
+  let dragNext: { story: Story; item: StoryItem; itemIndex: number; progress: number } | null = null;
+  if (cube.state.phase === "auto") {
+    const cs = cube.state;
+    autoDirection = cs.direction;
+    autoLeavingItemIndex = cs.leaving.itemIndex;
+    autoLeavingProgress = cs.leaving.progress;
+    autoLeavingStory = stories.find((s) => s.id === cs.leaving.storyId) ?? null;
+    autoLeavingItem =
+      autoLeavingStory?.items.find((i) => i.id === cs.leaving.itemId) ?? null;
+  } else if (
+    cube.state.phase === "dragging" ||
+    cube.state.phase === "releasing"
+  ) {
+    const cs = cube.state;
+    if (cs.prev) {
+      const ps = stories.find((s) => s.id === cs.prev!.storyId);
+      const pi = ps?.items.find((i) => i.id === cs.prev!.itemId);
+      if (ps && pi) {
+        dragPrev = {
+          story: ps,
+          item: pi,
+          itemIndex: cs.prev.itemIndex,
+          progress: cs.prev.progress,
+        };
+      }
+    }
+    if (cs.next) {
+      const ns = stories.find((s) => s.id === cs.next!.storyId);
+      const ni = ns?.items.find((i) => i.id === cs.next!.itemId);
+      if (ns && ni) {
+        dragNext = {
+          story: ns,
+          item: ni,
+          itemIndex: cs.next.itemIndex,
+          progress: cs.next.progress,
+        };
+      }
+    }
+  }
+
+  // ─── v0.4.1 swipe gesture ──────────────────────────────────────────────
+  // Pointer-driven Instagram-style swipe between stories. Engages when
+  // horizontal drag exceeds 10px AND > vertical drag. While engaged,
+  // `--story-cube-angle` is driven directly through the cube hook.
+  // On release: distance > 30% width OR velocity > 0.5 px/ms → commit.
+  // Else: snap back to 0.
+  const swipeRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startTime: number;
+    active: boolean;
+    width: number;
+    suppressClick: boolean;
+  } | null>(null);
+  const swipeJustEndedRef = useRef(false);
+  // The gesture handlers themselves are declared LATER in the component,
+  // after the longPress hook is initialized (they coexist).
+
   // Keyboard nav (Escape funnels through Radix → onOpenChange).
   // v0.2.0 — `enabled` gates the listener entirely per `disableKeyboardNav`.
   useStoryKeyboardNav({
@@ -269,6 +430,160 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     onPause: () => setPaused(true),
     onResume: () => setPaused(false),
   });
+
+  // v0.4.1 — Swipe gesture handlers. Coexist with longPress: pointerdown
+  // calls both; if drag intent is detected, longPress is cancelled.
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (disableStoryTransition) {
+        longPress.handlePointerDown();
+        return;
+      }
+      if (e.pointerType === "mouse" && e.button !== 0) {
+        longPress.handlePointerDown();
+        return;
+      }
+      const width = e.currentTarget.getBoundingClientRect().width;
+      swipeRef.current = {
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        startTime: performance.now(),
+        active: false,
+        width,
+        suppressClick: false,
+      };
+      longPress.handlePointerDown();
+    },
+    [disableStoryTransition, longPress],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const swipe = swipeRef.current;
+      if (!swipe || swipe.pointerId !== e.pointerId) return;
+      const dx = e.clientX - swipe.startX;
+      const dy = e.clientY - swipe.startY;
+      if (!swipe.active) {
+        // Drag intent: Δx > 10px AND > Δy.
+        if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+          swipe.active = true;
+          longPress.handlePointerCancel();
+          const prevStory = stories[cursor.storyIndex - 1];
+          const nextStory = stories[cursor.storyIndex + 1];
+          cube.beginDrag({
+            prev:
+              prevStory && prevStory.items[0]
+                ? {
+                    storyId: prevStory.id,
+                    itemId: prevStory.items[0].id,
+                    itemIndex: 0,
+                    progress: 100,
+                  }
+                : null,
+            next:
+              nextStory && nextStory.items[0]
+                ? {
+                    storyId: nextStory.id,
+                    itemId: nextStory.items[0].id,
+                    itemIndex: 0,
+                    progress: 0,
+                  }
+                : null,
+          });
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } catch {
+            // setPointerCapture can throw if pointer was already released.
+          }
+        } else {
+          return;
+        }
+      }
+      e.preventDefault();
+      const hasPrev = cursor.storyIndex > 0;
+      const hasNext = cursor.storyIndex < stories.length - 1;
+      // Δx → angle. Drag right (Δx > 0) → +angle (reveals prev, left wall).
+      // Drag left (Δx < 0) → -angle (reveals next, right wall).
+      let angle = (dx / swipe.width) * 90;
+      if (angle > 0 && !hasPrev) angle = angle * 0.25;
+      if (angle < 0 && !hasNext) angle = angle * 0.25;
+      angle = Math.max(-90, Math.min(90, angle));
+      cube.setDragAngle(angle);
+    },
+    [longPress, stories, cursor.storyIndex, cube],
+  );
+
+  const handlePointerEnd = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const swipe = swipeRef.current;
+      if (!swipe || swipe.pointerId !== e.pointerId) {
+        longPress.handlePointerUp();
+        return;
+      }
+      swipeRef.current = null;
+      if (!swipe.active) {
+        longPress.handlePointerUp();
+        return;
+      }
+      // Active drag release — snap decision.
+      const dx = e.clientX - swipe.startX;
+      const elapsedMs = Math.max(1, performance.now() - swipe.startTime);
+      const velocity = dx / elapsedMs;
+      const commitDistance = swipe.width * 0.3;
+      const commitVelocity = 0.5;
+      const hasPrev = cursor.storyIndex > 0;
+      const hasNext = cursor.storyIndex < stories.length - 1;
+
+      let snap: "next" | "prev" | "back" = "back";
+      if ((dx <= -commitDistance || velocity <= -commitVelocity) && hasNext) {
+        snap = "next";
+      } else if ((dx >= commitDistance || velocity >= commitVelocity) && hasPrev) {
+        snap = "prev";
+      }
+
+      // Suppress the click that would fire on this pointerup (tap zones).
+      swipeJustEndedRef.current = true;
+      try {
+        e.currentTarget.releasePointerCapture(swipe.pointerId);
+      } catch {
+        // Already released — safe to ignore.
+      }
+
+      if (snap === "next") {
+        cube.releaseDrag({
+          targetDeg: -90,
+          onComplete: () => {
+            setPendingDragCommit(true);
+            goToNextStory();
+          },
+        });
+      } else if (snap === "prev") {
+        cube.releaseDrag({
+          targetDeg: 90,
+          onComplete: () => {
+            setPendingDragCommit(true);
+            goToPrevStory();
+          },
+        });
+      } else {
+        cube.releaseDrag({ targetDeg: 0 });
+      }
+    },
+    [cube, cursor.storyIndex, goToNextStory, goToPrevStory, longPress, stories.length],
+  );
+
+  const handleClickCapture = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (swipeJustEndedRef.current) {
+        swipeJustEndedRef.current = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    [],
+  );
+
 
   // ─── v0.2.0 engagement state (per-item like / reaction / reply counts) ──
   const { getState: getEngagementState, dispatch: dispatchEngagement } =
@@ -588,11 +903,137 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       ) : null}
 
       <div
-        className={cn("relative h-full w-full bg-black", className)}
-        onPointerDown={longPress.handlePointerDown}
-        onPointerUp={longPress.handlePointerUp}
-        onPointerCancel={longPress.handlePointerCancel}
+        className={cn(
+          "relative h-full w-full bg-black touch-pan-y",
+          // v0.4.0 — `perspective` + `container-type: inline-size` engage only
+          // while the cube is mounted (auto / dragging / releasing); idle
+          // state is a flat surface (no 3D context, no container-query
+          // side-effects on consumer content).
+          cubeMounted && "perspective-distant @container",
+          className,
+        )}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onClickCapture={handleClickCapture}
       >
+        {/* v0.4.0 — Cube rotator. When idle, contents render normally
+            (no transform, no preserve-3d). When mounted, the rotator's
+            transform reads `--story-cube-angle` (driven by the hook via
+            DOM + RAF / pointer events — not React state — so we don't
+            re-render per frame).
+            v0.4.2 — Prefix `translateZ(-50cqw)`. The faces themselves
+            sit at `translateZ(50cqw)` (front wall of the cube). Without
+            the rotator's `-50cqw` shift, the front face would land in
+            front of the perspective plane and CSS perspective would
+            magnify it (~1.2× at rest), causing a visible scale-up jump
+            the moment the cube engages on a swipe. With the shift, the
+            front face's world z = 0 at idle — natural CSS scale 1.0×,
+            no jump — and naturally scales DOWN as it rotates away (the
+            proper cube perspective behavior). The incoming face arrives
+            at world z=0 at ∓90° and ends at scale 1.0× too. */}
+        <div
+          ref={cube.setRotatorRef}
+          className={cn(
+            "absolute inset-0",
+            cubeMounted && "transform-3d",
+          )}
+          style={
+            cubeMounted
+              ? {
+                  transform:
+                    "translateZ(-50cqw) rotateY(var(--story-cube-angle, 0deg))",
+                  transition: cubeUsesTransition
+                    ? `transform ${storyTransitionDurationMs}ms cubic-bezier(0.32, 0.72, 0, 1)`
+                    : "none",
+                }
+              : undefined
+          }
+        >
+        {/* v0.4.0 auto-mode — Leaving face (ghost). Pre-placed at the
+            front wall (`translateZ(50cqw)`). As the rotator swings ∓90deg
+            the ghost rotates out of view to the side. */}
+        {cube.state.phase === "auto" && autoLeavingStory && autoLeavingItem ? (
+          <div
+            className="absolute inset-0 backface-hidden pointer-events-none"
+            style={{ transform: "translateZ(50cqw)" }}
+            aria-hidden="true"
+          >
+            <StoryCubeFace
+              story={autoLeavingStory}
+              item={autoLeavingItem}
+              itemIndex={autoLeavingItemIndex}
+              progress={autoLeavingProgress}
+              isMuted={isMuted}
+              labels={labels}
+            />
+          </div>
+        ) : null}
+        {/* v0.4.1 drag-mode — Prev ghost on the LEFT wall (rotateY -90deg).
+            Mounted during dragging + releasing so the user can swipe to
+            either neighbor. */}
+        {(cube.state.phase === "dragging" || cube.state.phase === "releasing") &&
+        dragPrev ? (
+          <div
+            className="absolute inset-0 backface-hidden pointer-events-none"
+            style={{ transform: "rotateY(-90deg) translateZ(50cqw)" }}
+            aria-hidden="true"
+          >
+            <StoryCubeFace
+              story={dragPrev.story}
+              item={dragPrev.item}
+              itemIndex={dragPrev.itemIndex}
+              progress={dragPrev.progress}
+              isMuted={isMuted}
+              labels={labels}
+            />
+          </div>
+        ) : null}
+        {/* v0.4.1 drag-mode — Next ghost on the RIGHT wall (rotateY +90deg). */}
+        {(cube.state.phase === "dragging" || cube.state.phase === "releasing") &&
+        dragNext ? (
+          <div
+            className="absolute inset-0 backface-hidden pointer-events-none"
+            style={{ transform: "rotateY(90deg) translateZ(50cqw)" }}
+            aria-hidden="true"
+          >
+            <StoryCubeFace
+              story={dragNext.story}
+              item={dragNext.item}
+              itemIndex={dragNext.itemIndex}
+              progress={dragNext.progress}
+              isMuted={isMuted}
+              labels={labels}
+            />
+          </div>
+        ) : null}
+        {/* v0.4.0 — Live tree face. Position depends on cube phase:
+            – idle: no transform, renders inline (no cube structure)
+            – auto: pre-placed on the side wall opposite the leaving ghost
+              (right wall for "next", left wall for "prev") — rotator
+              swings it into view
+            – dragging / releasing: at the FRONT wall (translateZ only);
+              the prev/next ghosts swing in as the rotator rotates. */}
+        <div
+          className={cn(
+            "absolute inset-0",
+            cubeMounted && "backface-hidden",
+          )}
+          style={
+            cube.state.phase === "auto" && autoDirection
+              ? {
+                  transform:
+                    autoDirection === "next"
+                      ? "rotateY(90deg) translateZ(50cqw)"
+                      : "rotateY(-90deg) translateZ(50cqw)",
+                }
+              : cube.state.phase === "dragging" ||
+                  cube.state.phase === "releasing"
+                ? { transform: "translateZ(50cqw)" }
+                : undefined
+          }
+        >
         {/* v0.2.0 C7 — renderProgress slot wins as full takeover.
             v0.2.0 C8 — `disableProgressBars` suppresses the default mount;
             timer still runs (drives auto-advance). */}
@@ -843,6 +1284,8 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             })}
           </SharePanel>
         ) : null}
+        </div>{/* v0.4.0 — close incoming face */}
+        </div>{/* v0.4.0 — close cube rotator */}
       </div>
     </ViewerShell>
   );
