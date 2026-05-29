@@ -27,8 +27,8 @@ import { ViewerHeader } from "./parts/viewer-header";
 import { TapZones } from "./parts/tap-zones";
 import { NavArrows } from "./parts/nav-arrows";
 import { ItemView } from "./parts/item-view";
-// MoreVertical + Button no longer needed here in v0.3.5 — kebab moved
-// inside ViewerHeader's right cluster.
+// v0.3.7: Heart icon is rendered inline in the DM bar row.
+import { Heart } from "lucide-react";
 import { EngagementOverlay } from "./parts/engagement-overlay";
 import { ReplyComposer } from "./parts/reply-composer";
 import { OwnerOverlay } from "./parts/owner-overlay";
@@ -291,18 +291,24 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   // Default: collapsed (only the heart toggle visible). Tapping the toggle
   // reveals the engagement icons with a staggered bottom-to-top animation;
   // tapping anywhere else collapses it.
+  // v0.3.7: heart toggle moved inline beside the DM bar.
   const [engagementExpanded, setEngagementExpanded] = useState(false);
   const engagementColumnRef = useRef<HTMLDivElement | null>(null);
+  const engagementToggleRef = useRef<HTMLButtonElement | null>(null);
   // Close engagement on cursor change.
   useEffect(() => {
     setEngagementExpanded(false);
   }, [cursor.storyIndex, cursor.itemIndex]);
-  // Outside-click: any pointer event outside the engagement column collapses it.
+  // Outside-click: any pointer event outside BOTH the engagement column
+  // AND the inline toggle button collapses the column.
   useEffect(() => {
     if (!engagementExpanded) return;
     const handleDown = (e: PointerEvent) => {
       const target = e.target as Node | null;
-      if (engagementColumnRef.current && target && !engagementColumnRef.current.contains(target)) {
+      if (!target) return;
+      const insideColumn = engagementColumnRef.current?.contains(target);
+      const insideToggle = engagementToggleRef.current?.contains(target);
+      if (!insideColumn && !insideToggle) {
         setEngagementExpanded(false);
       }
     };
@@ -688,7 +694,6 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
                 actions={engagementActions}
                 labels={labels}
                 expanded={engagementExpanded}
-                onToggle={() => setEngagementExpanded((v) => !v)}
                 containerRef={engagementColumnRef}
               />
             )
@@ -715,6 +720,33 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             ) : (
               composerEmptyState
             )
+          ) : null}
+
+          {/* v0.3.7 — heart engagement toggle inline with the DM bar.
+              Sits at right-3 bottom-3 — aligned with the DM input row.
+              Tapping toggles the EngagementOverlay (which sits above the
+              DM row, animating its icons in from bottom-to-top). */}
+          {engagementOverlayMounted && !renderEngagementOverlay ? (
+            <button
+              ref={engagementToggleRef}
+              type="button"
+              onClick={() => setEngagementExpanded((v) => !v)}
+              aria-expanded={engagementExpanded ? "true" : "false"}
+              aria-label={
+                engagementExpanded ? "Hide reactions" : "Show reactions"
+              }
+              className={cn(
+                "absolute right-3 bottom-3 z-32 flex h-9 w-9 items-center justify-center rounded-full text-white pointer-events-auto",
+                "transition-colors hover:bg-white/15 focus-visible:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+              )}
+            >
+              <Heart
+                className={cn(
+                  "h-5 w-5 transition-transform duration-200",
+                  engagementExpanded && "scale-110 fill-current text-rose-400",
+                )}
+              />
+            </button>
           ) : null}
         </div>
 

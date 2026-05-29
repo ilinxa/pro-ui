@@ -109,8 +109,10 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // z-31 keeps the input above the engagement overlay (z-30) on the
         // OS focus stack so taps reliably reach the textarea.
         // v0.3.6: tightened vertical padding (`pt-3 pb-3` was `pt-8 pb-4`).
-        // The gradient still feels present from the bg-linear-to-t.
-        "absolute right-0 bottom-0 left-0 z-31 px-4 pt-3 pb-3 pointer-events-auto",
+        // v0.3.7: right padding bumped to `pr-16` so the input doesn't
+        // extend under the heart toggle that now sits inline in the DM bar
+        // row (rendered by story-viewer-01.tsx at right-3 bottom-3).
+        "absolute right-0 bottom-0 left-0 z-31 pl-4 pr-16 pt-3 pb-3 pointer-events-auto",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
         props.className,
       )}
