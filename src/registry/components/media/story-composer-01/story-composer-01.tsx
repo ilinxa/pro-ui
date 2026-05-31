@@ -14,8 +14,12 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { ComposerShell } from "./parts/composer-shell";
 import { ModeTogglePill } from "./parts/mode-toggle-pill";
+import type Konva from "konva";
 import { ComposerCamera } from "./parts/composer-camera";
+import { ComposerPublishBar } from "./parts/composer-publish-bar";
 import { ComposerToolbar } from "./parts/composer-toolbar";
+import { DiscardConfirmDialog } from "./parts/discard-confirm-dialog";
+import { PublishingProgressOverlay } from "./parts/publishing-progress-overlay";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
 import { ToolCropOverlay } from "./parts/tool-crop-overlay";
 import {
@@ -30,6 +34,9 @@ import { ToolTextInput } from "./parts/tool-text-input";
 import { VideoTrimBar } from "./parts/video-trim-bar";
 import { useDrawingStroke } from "./hooks/use-drawing-stroke";
 import { useHistory } from "./hooks/use-history";
+import { useImageUploader } from "./hooks/use-image-uploader";
+import { compositeVideo } from "./lib/composite-video";
+import { exportPhotoBlob } from "./lib/export-blob";
 import { resolveFilterPresets } from "./lib/konva-filters";
 import { resolveStickerSets } from "./lib/built-in-stickers";
 import {
@@ -58,6 +65,8 @@ import {
   type DrawingStroke,
   type ImageAdjustments,
   type PlacedSticker,
+  type PublishedStory,
+  type PublishMetadata,
   type StickerOption,
   type StoryComposer01Handle,
   type StoryComposer01Labels,
@@ -97,6 +106,12 @@ export const StoryComposer01 = forwardRef<
     maxFileSizeMb = 50,
     presentation = "auto",
     editorBackground = "#000",
+    confirmOnDiscard = true,
+    uploadUrl,
+    uploader,
+    uploadFields,
+    onPublished,
+    onPublishError,
     enabledTools = ["text", "draw", "stickers", "filters", "adjust", "crop"],
     filterPresets,
     replaceBuiltinFilters,
@@ -155,6 +170,10 @@ export const StoryComposer01 = forwardRef<
   const [cropAspect, setCropAspect] = useState(cropAspects[0] ?? "9:16");
   const [cropRect, setCropRect] = useState<CropRect | null>(null);
   const stageSizeRef = useRef<{ width: number; height: number } | null>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
+  const uploader_ = useImageUploader({ uploadUrl, uploader, uploadFields });
 
   const history = useHistory({ capacity: 50, bindKeyboard: isOpen });
 
@@ -184,6 +203,13 @@ export const StoryComposer01 = forwardRef<
       history.reset();
     }
   }, [cropAspects, history]);
+
+  const performClose = useCallback(() => {
+    acceptDraft(null);
+    state.reset();
+    uploader_.reset();
+    onClose();
+  }, [acceptDraft, onClose, state, uploader_]);
 
   // ─── Text-overlay commands (wrapped through history for C10 undo) ─────
 
@@ -342,6 +368,151 @@ export const StoryComposer01 = forwardRef<
     onStrokeComplete: commitDrawingStroke,
   });
 
+  // ─── Publish flow ────────────────────────────────────────────────────
+
+  const buildMetadata = useCallback(
+    (
+      mode: "photo" | "video" | "text",
+      width: number,
+      height: number,
+      mimeType: string,
+      durationMs?: number,
+    ): PublishMetadata => ({
+      mode,
+      width,
+      height,
+      mimeType,
+      durationMs,
+      textOverlays,
+      stickers: placedStickers,
+      drawingStrokes: drawingStrokes.length,
+      appliedFilter: activeFilterId ?? undefined,
+      adjustments,
+    }),
+    [
+      activeFilterId,
+      adjustments,
+      drawingStrokes.length,
+      placedStickers,
+      textOverlays,
+    ],
+  );
+
+  const handlePublish = useCallback(async () => {
+    if (!draft) return;
+    state.setStage("publishing");
+    try {
+      let blob: Blob;
+      let width: number;
+      let height: number;
+      let mimeType: string;
+      let durationMs: number | undefined;
+
+      if (draft.kind === "image") {
+        if (!stageRef.current) throw new Error("Editor canvas not ready");
+        blob = await exportPhotoBlob({
+          stage: stageRef.current,
+          cropRect,
+          mimeType: "image/jpeg",
+          quality: 0.92,
+        });
+        width = cropRect?.width ?? stageRef.current.width();
+        height = cropRect?.height ?? stageRef.current.height();
+        mimeType = "image/jpeg";
+      } else {
+        // Video draft — Q-P1a bake-in.
+        // The stage-snapshot-over-video baking pipeline is wired here; for
+        // a no-overlay/no-trim draft we still re-encode for consistency.
+        const stage = stageRef.current;
+        const ow = cropRect?.width ?? draft.width ?? 720;
+        const oh = cropRect?.height ?? draft.height ?? 1280;
+        const result = await compositeVideo({
+          sourceBlob: draft.blob,
+          outputWidth: Math.round(ow),
+          outputHeight: Math.round(oh),
+          renderFrame: (ctx, video) => {
+            ctx.clearRect(0, 0, ow, oh);
+            // Draw video frame (cover-fit into output rect).
+            const vw = video.videoWidth || ow;
+            const vh = video.videoHeight || oh;
+            const scale = Math.max(ow / vw, oh / vh);
+            const dw = vw * scale;
+            const dh = vh * scale;
+            ctx.drawImage(
+              video,
+              (ow - dw) / 2,
+              (oh - dh) / 2,
+              dw,
+              dh,
+            );
+            // Snapshot overlay layers (text + sticker + drawing) from the
+            // Konva stage and paint on top.
+            if (stage) {
+              const overlayCanvas = stage.toCanvas({
+                x: cropRect?.x ?? 0,
+                y: cropRect?.y ?? 0,
+                width: cropRect?.width ?? stage.width(),
+                height: cropRect?.height ?? stage.height(),
+                pixelRatio: 1,
+              });
+              ctx.drawImage(overlayCanvas, 0, 0, ow, oh);
+            }
+          },
+        });
+        blob = result.blob;
+        mimeType = result.mimeType;
+        durationMs = result.durationMs;
+        width = Math.round(ow);
+        height = Math.round(oh);
+      }
+
+      const metadata = buildMetadata(
+        draft.kind === "image" ? "photo" : "video",
+        width,
+        height,
+        mimeType,
+        durationMs,
+      );
+      const result = await uploader_.upload(blob, metadata);
+
+      const story: PublishedStory = {
+        id: `story-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        items: [
+          {
+            id: `item-${Date.now()}`,
+            type: draft.kind,
+            src: result.url,
+            duration:
+              draft.kind === "video"
+                ? Math.round((durationMs ?? 0) / 1000) || undefined
+                : undefined,
+            thumbnailUrl: result.thumbnailUrl,
+          },
+        ],
+      };
+      state.setStage("done");
+      onPublished(story);
+      // Auto-close on success after a short success-state beat.
+      setTimeout(() => {
+        performClose();
+      }, 800);
+    } catch (err) {
+      state.setStage("error");
+      const e = err as Error;
+      if (onPublishError) onPublishError(e);
+    }
+  }, [
+    buildMetadata,
+    cropRect,
+    draft,
+    onPublishError,
+    onPublished,
+    performClose,
+    state,
+    uploader_,
+  ]);
+
   const handlePhoto = useCallback(
     (photo: CapturedPhoto) => {
       const url = URL.createObjectURL(photo.blob);
@@ -399,22 +570,22 @@ export const StoryComposer01 = forwardRef<
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
-      if (!next) {
-        acceptDraft(null);
-        state.reset();
-        onClose();
+      if (next) return;
+      // Guard the close path when the editor is dirty (Q-P10a).
+      if (confirmOnDiscard && state.isDirty && state.stage !== "publishing") {
+        setShowDiscardConfirm(true);
+        return;
       }
+      performClose();
     },
-    [acceptDraft, onClose, state],
+    [confirmOnDiscard, performClose, state.isDirty, state.stage],
   );
 
   useImperativeHandle(
     ref,
     () => {
-      const notReady = () =>
-        Promise.reject(new Error("story-composer-01: feature lands later"));
       const noop = () => {
-        throw new Error("story-composer-01: feature lands later");
+        /* no-op for compat */
       };
       return {
         open: () => {
@@ -445,18 +616,47 @@ export const StoryComposer01 = forwardRef<
         setAdjustments: (partial) =>
           setAdjustments((prev) => ({ ...prev, ...partial })),
         applyFilter: (name) => setActiveFilterId(name),
-        publish: notReady,
-        exportBlob: () =>
-          Promise.reject(
-            new Error("story-composer-01: feature lands later"),
-          ),
+        publish: handlePublish,
+        exportBlob: async () => {
+          if (!draft) throw new Error("No draft to export");
+          if (draft.kind === "image") {
+            if (!stageRef.current) throw new Error("Editor not ready");
+            const blob = await exportPhotoBlob({
+              stage: stageRef.current,
+              cropRect,
+            });
+            return {
+              blob,
+              metadata: buildMetadata(
+                "photo",
+                cropRect?.width ?? stageRef.current.width(),
+                cropRect?.height ?? stageRef.current.height(),
+                "image/jpeg",
+              ),
+            };
+          }
+          return {
+            blob: draft.blob,
+            metadata: buildMetadata(
+              "video",
+              draft.width ?? 720,
+              draft.height ?? 1280,
+              draft.mimeType,
+              draft.durationMs,
+            ),
+          };
+        },
       };
     },
     [
       acceptDraft,
       addStickerOverlay,
       addTextOverlay,
+      buildMetadata,
+      cropRect,
+      draft,
       handlePhoto,
+      handlePublish,
       handleVideo,
       onClose,
       state,
@@ -509,25 +709,35 @@ export const StoryComposer01 = forwardRef<
       background={editorBackground}
       ariaLabel={labels.composerLabel}
     >
-      {/* Top bar — close + mode pill + reserved publish-CTA slot */}
-      <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 right-3 z-30 flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => handleOpenChange(false)}
-          aria-label={labels.close}
-          className="text-white hover:bg-white/10 hover:text-white"
-        >
-          <X className="size-5" />
-        </Button>
-        <ModeTogglePill
-          mode={state.mode}
-          visibleModes={state.visibleModes}
+      {/* Top bar — capture stage shows close + mode pill; edit stage shows publish bar. */}
+      {state.stage === "capture" ? (
+        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 right-3 z-30 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleOpenChange(false)}
+            aria-label={labels.close}
+            className="text-white hover:bg-white/10 hover:text-white"
+          >
+            <X className="size-5" />
+          </Button>
+          <ModeTogglePill
+            mode={state.mode}
+            visibleModes={state.visibleModes}
+            labels={labels}
+            onModeChange={state.setMode}
+          />
+          <div className="size-9" aria-hidden />
+        </div>
+      ) : (
+        <ComposerPublishBar
+          isPublishing={state.stage === "publishing"}
+          canPublish={!!draft}
           labels={labels}
-          onModeChange={state.setMode}
+          onPublish={handlePublish}
+          onClose={() => handleOpenChange(false)}
         />
-        <div className="size-9" aria-hidden />
-      </div>
+      )}
 
       {/* Capture surface (camera + gallery picker) */}
       {captureActive ? (
@@ -628,6 +838,9 @@ export const StoryComposer01 = forwardRef<
                         fitCropToStage(cropAspect, size.width, size.height),
                       );
                     }
+                  }}
+                  onStageReady={(s) => {
+                    stageRef.current = s;
                   }}
                 />
               </Suspense>
@@ -756,6 +969,54 @@ export const StoryComposer01 = forwardRef<
           ) : null}
         </div>
       ) : null}
+
+      {/* Publishing / success / error overlay */}
+      {(state.stage === "publishing" ||
+        state.stage === "done" ||
+        state.stage === "error") &&
+      draft ? (
+        <PublishingProgressOverlay
+          progress={
+            uploader_.status === "uploading" ? uploader_.progress : null
+          }
+          status={
+            state.stage === "done"
+              ? "done"
+              : state.stage === "error"
+                ? "error"
+                : "uploading"
+          }
+          errorMessage={uploader_.error?.message}
+          labels={labels}
+          onRetry={
+            state.stage === "error"
+              ? () => {
+                  state.setStage("edit");
+                  void handlePublish();
+                }
+              : undefined
+          }
+          onCancel={
+            state.stage === "publishing"
+              ? () => {
+                  uploader_.cancel();
+                  state.setStage("edit");
+                }
+              : undefined
+          }
+        />
+      ) : null}
+
+      {/* Discard-confirm guard (Q-P10a) */}
+      <DiscardConfirmDialog
+        open={showDiscardConfirm}
+        labels={labels}
+        onCancel={() => setShowDiscardConfirm(false)}
+        onConfirm={() => {
+          setShowDiscardConfirm(false);
+          performClose();
+        }}
+      />
     </ComposerShell>
   );
 });
