@@ -170,6 +170,10 @@ import AccountSwitcher01Demo from "./components/navigation/account-switcher-01/d
 import AccountSwitcher01Usage from "./components/navigation/account-switcher-01/usage";
 import { meta as accountSwitcher01Meta } from "./components/navigation/account-switcher-01/meta";
 
+import StoryComposer01Demo from "./components/media/story-composer-01/demo";
+import StoryComposer01Usage from "./components/media/story-composer-01/usage";
+import { meta as storyComposer01Meta } from "./components/media/story-composer-01/meta";
+
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
 import { meta as codeBlockMeta } from "./components/code/code-block/meta";
@@ -447,6 +451,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: accountSwitcher01Meta,
     Demo: AccountSwitcher01Demo,
     Usage: AccountSwitcher01Usage,
+  },
+  {
+    meta: storyComposer01Meta,
+    Demo: StoryComposer01Demo,
+    Usage: StoryComposer01Usage,
   },
 ];
 
