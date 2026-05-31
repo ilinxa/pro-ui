@@ -42,6 +42,8 @@ export const meta: ComponentMeta = {
     shadcn: ["button", "dialog", "toggle-group"],
     npm: {
       "lucide-react": "^1.11.0",
+      konva: "^10.3.0",
+      "react-konva": "^19.2.4",
     },
     internal: [],
   },

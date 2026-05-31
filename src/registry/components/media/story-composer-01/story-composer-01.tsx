@@ -2,6 +2,8 @@
 
 import {
   forwardRef,
+  lazy,
+  Suspense,
   useCallback,
   useImperativeHandle,
   useMemo,
@@ -14,6 +16,15 @@ import { ComposerShell } from "./parts/composer-shell";
 import { ModeTogglePill } from "./parts/mode-toggle-pill";
 import { ComposerCamera } from "./parts/composer-camera";
 import { VideoTrimBar } from "./parts/video-trim-bar";
+
+// React.lazy defers the react-konva import to client-side render, avoiding
+// SSR evaluation of konva's top-level `window` reference. Cannot use
+// `next/dynamic` here — registry code can't import from next/*.
+const ComposerEditor = lazy(() =>
+  import("./parts/composer-editor").then((m) => ({
+    default: m.ComposerEditor,
+  })),
+);
 import { useStoryComposerState } from "./hooks/use-story-composer-state";
 import {
   type CapturedPhoto,
@@ -251,18 +262,12 @@ export const StoryComposer01 = forwardRef<
         </div>
       ) : null}
 
-      {/* Edit-stage placeholder (real editor lands C6) */}
+      {/* Edit-stage — Konva canvas (image) + native video preview + trim bar */}
       {state.stage === "edit" && draft ? (
         <div className="flex-1 relative bg-black flex flex-col">
           <div className="flex-1 relative">
-            {draft.kind === "image" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={draft.url}
-                alt="Captured story preview"
-                className="absolute inset-0 w-full h-full object-contain"
-              />
-            ) : (
+            {/* For video drafts we need a measurable size to initialize trim. */}
+            {draft.kind === "video" ? (
               <video
                 src={draft.url}
                 autoPlay
@@ -271,7 +276,6 @@ export const StoryComposer01 = forwardRef<
                 playsInline
                 onLoadedMetadata={(e) => {
                   const v = e.currentTarget;
-                  // Initialize trim range when metadata first arrives.
                   if (
                     !trim &&
                     Number.isFinite(v.duration) &&
@@ -286,6 +290,13 @@ export const StoryComposer01 = forwardRef<
                 }}
                 className="absolute inset-0 w-full h-full object-contain"
               />
+            ) : (
+              <Suspense fallback={<div className="absolute inset-0 bg-black" />}>
+                <ComposerEditor
+                  imageUrl={draft.url}
+                  background={editorBackground}
+                />
+              </Suspense>
             )}
           </div>
           {/* Trim bar — video only */}
@@ -307,11 +318,7 @@ export const StoryComposer01 = forwardRef<
                 }
               />
             </div>
-          ) : (
-            <div className="text-center text-xs text-white/60 pb-3">
-              Editor lands C6 · {draft.source} · {draft.kind}
-            </div>
-          )}
+          ) : null}
         </div>
       ) : null}
     </ComposerShell>
