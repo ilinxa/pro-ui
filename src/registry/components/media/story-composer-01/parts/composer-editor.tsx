@@ -19,6 +19,8 @@ import { useKonvaSelection } from "../hooks/use-konva-selection";
 import type {
   FilterPreset,
   ImageAdjustments,
+  PlacedSticker,
+  StickerOption,
   TextOverlay,
 } from "../types";
 
@@ -41,6 +43,14 @@ export interface ComposerEditorProps {
   onTextChange?: (next: TextOverlay) => void;
   /** Fired when a text overlay is tapped (selects it). */
   onTextSelect?: (id: string | null) => void;
+  /** Sticker overlays (C9). */
+  stickers?: PlacedSticker[];
+  /** Sticker-id → StickerOption resolver (lets the editor look up src/dimensions). */
+  resolveSticker?: (stickerId: string) => StickerOption | undefined;
+  /** Currently selected sticker id (C9). */
+  selectedStickerId?: string | null;
+  onStickerChange?: (next: PlacedSticker) => void;
+  onStickerSelect?: (id: string | null) => void;
   className?: string;
 }
 
@@ -66,6 +76,11 @@ export function ComposerEditor({
   selectedTextId,
   onTextChange,
   onTextSelect,
+  stickers,
+  resolveSticker,
+  selectedStickerId,
+  onStickerChange,
+  onStickerSelect,
   className,
 }: ComposerEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -95,27 +110,37 @@ export function ComposerEditor({
   }, [image, activeFilter, adjustments]);
 
   const textNodeRefs = useRef<Map<string, Konva.Text>>(new Map());
+  const stickerNodeRefs = useRef<Map<string, Konva.Image>>(new Map());
 
-  // Attach the Transformer to the currently-selected text node.
+  // Attach the Transformer to the currently-selected node (text or sticker).
   useEffect(() => {
     const t = selection.transformerRef.current;
     if (!t) return;
+    let node: Konva.Node | undefined;
     if (selectedTextId) {
-      const node = textNodeRefs.current.get(selectedTextId);
-      if (node) {
-        t.nodes([node]);
-        t.getLayer()?.batchDraw();
-        return;
-      }
+      node = textNodeRefs.current.get(selectedTextId);
+    } else if (selectedStickerId) {
+      node = stickerNodeRefs.current.get(selectedStickerId);
     }
-    t.nodes([]);
+    if (node) {
+      t.nodes([node]);
+    } else {
+      t.nodes([]);
+    }
     t.getLayer()?.batchDraw();
-  }, [selectedTextId, textOverlays, selection.transformerRef]);
+  }, [
+    selectedTextId,
+    selectedStickerId,
+    textOverlays,
+    stickers,
+    selection.transformerRef,
+  ]);
 
-  // Click on bare Stage background → clear text selection.
+  // Click on bare Stage background → clear all selection.
   const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target === e.target.getStage()) {
       onTextSelect?.(null);
+      onStickerSelect?.(null);
       selection.clear();
     }
   };
@@ -162,8 +187,26 @@ export function ComposerEditor({
           </Layer>
           {/* drawing layer — empty in C6, populated C10 */}
           <Layer />
-          {/* sticker layer — empty in C6, populated C9 */}
-          <Layer />
+          {/* sticker layer (C9) */}
+          <Layer>
+            {stickers?.map((placed) => {
+              const option = resolveSticker?.(placed.stickerId);
+              if (!option) return null;
+              return (
+                <PlacedStickerImage
+                  key={placed.id}
+                  placed={placed}
+                  option={option}
+                  onMount={(node) => {
+                    if (node) stickerNodeRefs.current.set(placed.id, node);
+                    else stickerNodeRefs.current.delete(placed.id);
+                  }}
+                  onSelect={() => onStickerSelect?.(placed.id)}
+                  onChange={onStickerChange}
+                />
+              );
+            })}
+          </Layer>
           {/* text layer (C8) */}
           <Layer>
             {textOverlays?.map((overlay) => (
@@ -229,6 +272,68 @@ export function ComposerEditor({
         </Stage>
       ) : null}
     </div>
+  );
+}
+
+// ─── Sticker rendering ────────────────────────────────────────────────
+
+interface PlacedStickerImageProps {
+  placed: PlacedSticker;
+  option: StickerOption;
+  onMount: (node: Konva.Image | null) => void;
+  onSelect: () => void;
+  onChange?: (next: PlacedSticker) => void;
+}
+
+function PlacedStickerImage({
+  placed,
+  option,
+  onMount,
+  onSelect,
+  onChange,
+}: PlacedStickerImageProps) {
+  const [image] = useImage(option.src);
+  if (!image) return null;
+  return (
+    <KonvaImage
+      ref={(n) => onMount(n)}
+      image={image}
+      x={placed.x}
+      y={placed.y}
+      width={option.width ?? 128}
+      height={option.height ?? 128}
+      offsetX={(option.width ?? 128) / 2}
+      offsetY={(option.height ?? 128) / 2}
+      rotation={placed.rotation}
+      scaleX={placed.scale}
+      scaleY={placed.scale}
+      draggable
+      onMouseDown={(e) => {
+        e.cancelBubble = true;
+        onSelect();
+      }}
+      onTouchStart={(e) => {
+        e.cancelBubble = true;
+        onSelect();
+      }}
+      onDragEnd={(e) => {
+        onChange?.({
+          ...placed,
+          x: e.target.x(),
+          y: e.target.y(),
+        });
+      }}
+      onTransformEnd={(e) => {
+        const node = e.target as Konva.Image;
+        onChange?.({
+          ...placed,
+          x: node.x(),
+          y: node.y(),
+          rotation: node.rotation(),
+          scale: node.scaleX(),
+        });
+      }}
+    />
   );
 }
 

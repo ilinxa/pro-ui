@@ -18,9 +18,11 @@ import { ComposerCamera } from "./parts/composer-camera";
 import { ComposerToolbar } from "./parts/composer-toolbar";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
 import { ToolFilterStrip } from "./parts/tool-filter-strip";
+import { ToolStickerPicker } from "./parts/tool-sticker-picker";
 import { ToolTextInput } from "./parts/tool-text-input";
 import { VideoTrimBar } from "./parts/video-trim-bar";
 import { resolveFilterPresets } from "./lib/konva-filters";
+import { resolveStickerSets } from "./lib/built-in-stickers";
 import {
   DEFAULT_COLOR_PRESETS,
   DEFAULT_FONTS,
@@ -45,6 +47,8 @@ import {
   DEFAULT_STORY_COMPOSER_LABELS,
   type EditTool,
   type ImageAdjustments,
+  type PlacedSticker,
+  type StickerOption,
   type StoryComposer01Handle,
   type StoryComposer01Labels,
   type StoryComposer01Props,
@@ -86,6 +90,8 @@ export const StoryComposer01 = forwardRef<
     enabledTools = ["text", "draw", "stickers", "filters", "adjust", "crop"],
     filterPresets,
     replaceBuiltinFilters,
+    stickers: stickersProp,
+    replaceBuiltinStickers,
     fonts = DEFAULT_FONTS,
     colorPresets = DEFAULT_COLOR_PRESETS,
     labels: labelOverrides,
@@ -98,6 +104,19 @@ export const StoryComposer01 = forwardRef<
     () => resolveFilterPresets(filterPresets, !!replaceBuiltinFilters),
     [filterPresets, replaceBuiltinFilters],
   );
+
+  const stickerSets = useMemo(
+    () => resolveStickerSets(stickersProp, !!replaceBuiltinStickers),
+    [stickersProp, replaceBuiltinStickers],
+  );
+
+  const stickerById = useMemo(() => {
+    const map = new Map<string, StickerOption>();
+    for (const set of stickerSets) {
+      for (const s of set.stickers) map.set(s.id, s);
+    }
+    return map;
+  }, [stickerSets]);
   const labels = useMemo<Required<StoryComposer01Labels>>(
     () => ({ ...DEFAULT_STORY_COMPOSER_LABELS, ...labelOverrides }),
     [labelOverrides],
@@ -114,6 +133,10 @@ export const StoryComposer01 = forwardRef<
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(
+    null,
+  );
 
   const activeFilter = useMemo(
     () => presets.find((p) => p.id === activeFilterId) ?? null,
@@ -133,6 +156,8 @@ export const StoryComposer01 = forwardRef<
       setActiveFilterId(null);
       setTextOverlays([]);
       setSelectedTextId(null);
+      setPlacedStickers([]);
+      setSelectedStickerId(null);
     }
   }, []);
 
@@ -174,6 +199,37 @@ export const StoryComposer01 = forwardRef<
     (id: string) => {
       setTextOverlays((prev) => prev.filter((o) => o.id !== id));
       setSelectedTextId((prev) => (prev === id ? null : prev));
+      state.markDirty(true);
+    },
+    [state],
+  );
+
+  // ─── Sticker commands ─────────────────────────────────────────────────
+
+  const addStickerOverlay = useCallback(
+    (sticker: StickerOption) => {
+      const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const placed: PlacedSticker = {
+        id,
+        stickerId: sticker.id,
+        x: 200,
+        y: 300,
+        rotation: 0,
+        scale: 1,
+      };
+      setPlacedStickers((prev) => [...prev, placed]);
+      setSelectedStickerId(id);
+      setSelectedTextId(null);
+      state.markDirty(true);
+    },
+    [state],
+  );
+
+  const updateStickerOverlay = useCallback(
+    (next: PlacedSticker) => {
+      setPlacedStickers((prev) =>
+        prev.map((s) => (s.id === next.id ? next : s)),
+      );
       state.markDirty(true);
     },
     [state],
@@ -278,7 +334,7 @@ export const StoryComposer01 = forwardRef<
         },
         importFromGallery: noop,
         addText: (text?: string) => addTextOverlay(text),
-        addSticker: noop,
+        addSticker: (sticker) => addStickerOverlay(sticker),
         setAdjustments: (partial) =>
           setAdjustments((prev) => ({ ...prev, ...partial })),
         applyFilter: (name) => setActiveFilterId(name),
@@ -289,7 +345,15 @@ export const StoryComposer01 = forwardRef<
           ),
       };
     },
-    [acceptDraft, addTextOverlay, handlePhoto, handleVideo, onClose, state],
+    [
+      acceptDraft,
+      addStickerOverlay,
+      addTextOverlay,
+      handlePhoto,
+      handleVideo,
+      onClose,
+      state,
+    ],
   );
 
   const selectedText = useMemo(
@@ -297,7 +361,8 @@ export const StoryComposer01 = forwardRef<
     [textOverlays, selectedTextId],
   );
 
-  // Toggling the Text tool button creates a new overlay.
+  // Toggling tools: Text auto-adds an overlay if none selected; non-text
+  // tools clear text selection. Stickers keeps the picker open.
   const handleToolSelect = useCallback(
     (tool: EditTool | null) => {
       setActiveTool(tool);
@@ -306,6 +371,9 @@ export const StoryComposer01 = forwardRef<
       }
       if (tool !== "text") {
         setSelectedTextId(null);
+      }
+      if (tool !== "stickers") {
+        setSelectedStickerId(null);
       }
     },
     [addTextOverlay, selectedText],
@@ -406,13 +474,38 @@ export const StoryComposer01 = forwardRef<
                   onTextChange={updateTextOverlay}
                   onTextSelect={(id) => {
                     setSelectedTextId(id);
-                    if (id) setActiveTool("text");
+                    if (id) {
+                      setActiveTool("text");
+                      setSelectedStickerId(null);
+                    }
+                  }}
+                  stickers={placedStickers}
+                  resolveSticker={(id) => stickerById.get(id)}
+                  selectedStickerId={selectedStickerId}
+                  onStickerChange={updateStickerOverlay}
+                  onStickerSelect={(id) => {
+                    setSelectedStickerId(id);
+                    if (id) {
+                      setActiveTool("stickers");
+                      setSelectedTextId(null);
+                    }
                   }}
                 />
               </Suspense>
             )}
           </div>
-          {/* Active tool panel (text / filters / adjust — draw/stickers/crop land C9-C11) */}
+          {/* Active tool panel (text / stickers / filters / adjust — draw/crop land C10-C11) */}
+          {draft.kind === "image" && activeTool === "stickers" ? (
+            <div
+              className="shrink-0 px-3 pt-2"
+              style={{ paddingBottom: "0.5rem" }}
+            >
+              <ToolStickerPicker
+                sets={stickerSets}
+                onPick={addStickerOverlay}
+              />
+            </div>
+          ) : null}
           {draft.kind === "image" && activeTool === "text" && selectedText ? (
             <div
               className="shrink-0 px-3 pt-2"
@@ -486,7 +579,7 @@ export const StoryComposer01 = forwardRef<
               <ComposerToolbar
                 activeTool={activeTool}
                 enabledTools={enabledTools}
-                pendingTools={["draw", "stickers", "crop"]}
+                pendingTools={["draw", "crop"]}
                 labels={labels}
                 onSelect={handleToolSelect}
               />
