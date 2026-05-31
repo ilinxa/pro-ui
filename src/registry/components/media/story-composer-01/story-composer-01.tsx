@@ -13,9 +13,11 @@ import { X } from "lucide-react";
 import { ComposerShell } from "./parts/composer-shell";
 import { ModeTogglePill } from "./parts/mode-toggle-pill";
 import { ComposerCamera } from "./parts/composer-camera";
+import { VideoTrimBar } from "./parts/video-trim-bar";
 import { useStoryComposerState } from "./hooks/use-story-composer-state";
 import {
   type CapturedPhoto,
+  type CapturedVideo,
   type UseMediaCaptureResult,
 } from "./hooks/use-media-capture";
 import {
@@ -33,7 +35,14 @@ interface DraftMedia {
   url: string;
   width?: number;
   height?: number;
+  durationMs?: number;
   mimeType: string;
+}
+
+interface TrimRange {
+  startSec: number;
+  endSec: number;
+  durationSec: number;
 }
 
 export const StoryComposer01 = forwardRef<
@@ -64,6 +73,7 @@ export const StoryComposer01 = forwardRef<
   const state = useStoryComposerState({ defaultMode, hideModes });
   const captureRef = useRef<UseMediaCaptureResult | null>(null);
   const [draft, setDraft] = useState<DraftMedia | null>(null);
+  const [trim, setTrim] = useState<TrimRange | null>(null);
 
   // Set draft + revoke prior object URL.
   const acceptDraft = useCallback((next: DraftMedia | null) => {
@@ -71,6 +81,7 @@ export const StoryComposer01 = forwardRef<
       if (prev?.url) URL.revokeObjectURL(prev.url);
       return next;
     });
+    if (!next || next.kind !== "video") setTrim(null);
   }, []);
 
   const handlePhoto = useCallback(
@@ -86,6 +97,23 @@ export const StoryComposer01 = forwardRef<
         mimeType: photo.mimeType,
       });
       // Transition to edit stage — actual editor surface lands C6.
+      state.setStage("edit");
+      state.markDirty(true);
+    },
+    [acceptDraft, state],
+  );
+
+  const handleVideo = useCallback(
+    (video: CapturedVideo) => {
+      const url = URL.createObjectURL(video.blob);
+      acceptDraft({
+        source: "camera",
+        kind: "video",
+        blob: video.blob,
+        url,
+        durationMs: video.durationMs,
+        mimeType: video.mimeType,
+      });
       state.setStage("edit");
       state.markDirty(true);
     },
@@ -146,8 +174,13 @@ export const StoryComposer01 = forwardRef<
           const photo = await captureRef.current?.takePhoto();
           if (photo) handlePhoto(photo);
         },
-        startRecording: notReady,
-        stopRecording: notReady,
+        startRecording: async () => {
+          await captureRef.current?.startRecording();
+        },
+        stopRecording: async () => {
+          const video = await captureRef.current?.stopRecording();
+          if (video) handleVideo(video);
+        },
         importFromGallery: noop,
         addText: noop,
         addSticker: noop,
@@ -160,7 +193,7 @@ export const StoryComposer01 = forwardRef<
           ),
       };
     },
-    [acceptDraft, handlePhoto, onClose, state],
+    [acceptDraft, handlePhoto, handleVideo, onClose, state],
   );
 
   const captureActive = state.stage === "capture" && state.mode !== "text";
@@ -201,8 +234,10 @@ export const StoryComposer01 = forwardRef<
           defaultFacing={defaultFacing}
           recordAudio={recordAudio}
           maxFileSizeMb={maxFileSizeMb}
+          maxVideoDurationSec={30}
           labels={labels}
           onPhoto={handlePhoto}
+          onVideo={handleVideo}
           onGalleryFile={handleGalleryFile}
           onValidationError={onValidationError}
           onPermissionDenied={onPermissionDenied}
@@ -218,27 +253,65 @@ export const StoryComposer01 = forwardRef<
 
       {/* Edit-stage placeholder (real editor lands C6) */}
       {state.stage === "edit" && draft ? (
-        <div className="flex-1 relative bg-black">
-          {draft.kind === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={draft.url}
-              alt="Captured story preview"
-              className="absolute inset-0 w-full h-full object-contain"
-            />
-          ) : (
-            <video
-              src={draft.url}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-contain"
-            />
-          )}
-          <div className="absolute bottom-4 left-0 right-0 text-center text-xs text-white/60">
-            Editor lands C6 · {draft.source} · {draft.kind}
+        <div className="flex-1 relative bg-black flex flex-col">
+          <div className="flex-1 relative">
+            {draft.kind === "image" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={draft.url}
+                alt="Captured story preview"
+                className="absolute inset-0 w-full h-full object-contain"
+              />
+            ) : (
+              <video
+                src={draft.url}
+                autoPlay
+                loop
+                muted
+                playsInline
+                onLoadedMetadata={(e) => {
+                  const v = e.currentTarget;
+                  // Initialize trim range when metadata first arrives.
+                  if (
+                    !trim &&
+                    Number.isFinite(v.duration) &&
+                    v.duration > 0
+                  ) {
+                    setTrim({
+                      startSec: 0,
+                      endSec: v.duration,
+                      durationSec: v.duration,
+                    });
+                  }
+                }}
+                className="absolute inset-0 w-full h-full object-contain"
+              />
+            )}
           </div>
+          {/* Trim bar — video only */}
+          {draft.kind === "video" && trim ? (
+            <div
+              className="shrink-0 px-4 pt-3"
+              style={{
+                paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+              }}
+            >
+              <VideoTrimBar
+                videoUrl={draft.url}
+                startSec={trim.startSec}
+                endSec={trim.endSec}
+                durationSec={trim.durationSec}
+                labels={labels}
+                onChange={(next) =>
+                  setTrim((prev) => (prev ? { ...prev, ...next } : prev))
+                }
+              />
+            </div>
+          ) : (
+            <div className="text-center text-xs text-white/60 pb-3">
+              Editor lands C6 · {draft.source} · {draft.kind}
+            </div>
+          )}
         </div>
       ) : null}
     </ComposerShell>

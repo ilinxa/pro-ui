@@ -7,6 +7,10 @@ import {
   useState,
   type RefObject,
 } from "react";
+import {
+  containerFor,
+  selectRecorderMime,
+} from "../lib/mime-fallback";
 import type { ValidationError } from "../types";
 
 export type CaptureStatus =
@@ -26,13 +30,21 @@ export interface CapturedPhoto {
   mimeType: string;
 }
 
+export interface CapturedVideo {
+  blob: Blob;
+  durationMs: number;
+  mimeType: string;
+}
+
 export interface UseMediaCaptureOptions {
   /** Enabled while the composer is open; releasing flips back to "idle". */
   enabled: boolean;
   /** Initial camera facing. Auto-detected from UA touch capability if undefined. */
   defaultFacing?: FacingMode;
-  /** Capture audio (used by video mode in C5). C4 ignores this for photo. */
+  /** Capture audio. Default true (required for any usable video). */
   recordAudio?: boolean;
+  /** Hard cap on a single recording in seconds. Default 30. */
+  maxVideoDurationSec?: number;
 }
 
 export interface UseMediaCaptureResult {
@@ -42,7 +54,7 @@ export interface UseMediaCaptureResult {
   error: Error | null;
   /** True when ≥2 video input devices are enumerated (controls switch-camera visibility). */
   canSwitchCamera: boolean;
-  /** Currently active MediaStream (null until "ready"). Exposed for C5 MediaRecorder wiring. */
+  /** Currently active MediaStream (null until "ready"). Used by MediaRecorder. */
   stream: MediaStream | null;
   /** Re-acquire the camera (after permission grant or facing change). */
   acquire: () => Promise<void>;
@@ -52,6 +64,16 @@ export interface UseMediaCaptureResult {
   takePhoto: () => Promise<CapturedPhoto>;
   /** Flip facingMode and re-acquire. */
   switchCamera: () => Promise<void>;
+  // ─── Video recording ──────────────────────────────────────────────────
+  isRecording: boolean;
+  /** Elapsed recording time in ms (updates ~10×/s). */
+  recordingMs: number;
+  /** Selected MIME type — null if MediaRecorder is unsupported. */
+  recorderMime: string | null;
+  /** Begin recording. Throws if no stream or no supported codec. */
+  startRecording: () => Promise<void>;
+  /** Stop recording and return the assembled blob + duration. */
+  stopRecording: () => Promise<CapturedVideo>;
 }
 
 function isTouchUA(): boolean {
@@ -72,7 +94,12 @@ function isTouchUA(): boolean {
 export function useMediaCapture(
   options: UseMediaCaptureOptions,
 ): UseMediaCaptureResult {
-  const { enabled, defaultFacing, recordAudio = true } = options;
+  const {
+    enabled,
+    defaultFacing,
+    recordAudio = true,
+    maxVideoDurationSec = 30,
+  } = options;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -83,6 +110,24 @@ export function useMediaCapture(
     defaultFacing ?? (isTouchUA() ? "environment" : "user"),
   );
   const [canSwitchCamera, setCanSwitchCamera] = useState(false);
+
+  // ─── Recording state ────────────────────────────────────────────────
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const recordStartedAtRef = useRef<number>(0);
+  const tickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopResolverRef = useRef<{
+    resolve: (v: CapturedVideo) => void;
+    reject: (e: Error) => void;
+  } | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingMs, setRecordingMs] = useState(0);
+  const recorderMime = useRef<string | null>(null);
+  // Initialize on first client render
+  if (recorderMime.current === null && typeof window !== "undefined") {
+    recorderMime.current = selectRecorderMime();
+  }
 
   const release = useCallback(() => {
     const s = streamRef.current;
@@ -201,6 +246,110 @@ export function useMediaCapture(
     });
   }, [facing, recordAudio, release]);
 
+  // ─── Recording controls ─────────────────────────────────────────────
+
+  const clearRecordingTimers = useCallback(() => {
+    if (tickIntervalRef.current) {
+      clearInterval(tickIntervalRef.current);
+      tickIntervalRef.current = null;
+    }
+    if (autoStopTimeoutRef.current) {
+      clearTimeout(autoStopTimeoutRef.current);
+      autoStopTimeoutRef.current = null;
+    }
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    const s = streamRef.current;
+    if (!s) throw new Error("Camera not ready");
+    const mime = recorderMime.current ?? selectRecorderMime();
+    recorderMime.current = mime;
+    if (!mime) {
+      throw new Error("This browser does not support video recording");
+    }
+    if (recorderRef.current) return; // already recording
+
+    const rec = new MediaRecorder(s, { mimeType: mime });
+    recorderRef.current = rec;
+    chunksRef.current = [];
+    rec.ondataavailable = (ev) => {
+      if (ev.data && ev.data.size > 0) chunksRef.current.push(ev.data);
+    };
+    rec.onstop = () => {
+      const durationMs = Date.now() - recordStartedAtRef.current;
+      const blob = new Blob(chunksRef.current, { type: mime });
+      const resolver = stopResolverRef.current;
+      stopResolverRef.current = null;
+      recorderRef.current = null;
+      chunksRef.current = [];
+      clearRecordingTimers();
+      setIsRecording(false);
+      setRecordingMs(0);
+      resolver?.resolve({ blob, durationMs, mimeType: mime });
+    };
+    rec.onerror = (ev) => {
+      const e =
+        (ev as unknown as { error?: Error }).error ??
+        new Error("MediaRecorder failed");
+      const resolver = stopResolverRef.current;
+      stopResolverRef.current = null;
+      recorderRef.current = null;
+      chunksRef.current = [];
+      clearRecordingTimers();
+      setIsRecording(false);
+      setRecordingMs(0);
+      resolver?.reject(e);
+    };
+
+    recordStartedAtRef.current = Date.now();
+    setRecordingMs(0);
+    setIsRecording(true);
+    rec.start(250); // 250ms timeslice — smooth UI ticks
+
+    // Tick recording time for UI
+    tickIntervalRef.current = setInterval(() => {
+      setRecordingMs(Date.now() - recordStartedAtRef.current);
+    }, 100);
+
+    // Hard cap auto-stop
+    autoStopTimeoutRef.current = setTimeout(
+      () => {
+        if (recorderRef.current?.state === "recording") {
+          recorderRef.current.stop();
+        }
+      },
+      maxVideoDurationSec * 1000,
+    );
+  }, [clearRecordingTimers, maxVideoDurationSec]);
+
+  const stopRecording = useCallback((): Promise<CapturedVideo> => {
+    const rec = recorderRef.current;
+    if (!rec || rec.state !== "recording") {
+      return Promise.reject(new Error("Not recording"));
+    }
+    return new Promise<CapturedVideo>((resolve, reject) => {
+      stopResolverRef.current = { resolve, reject };
+      rec.stop();
+    });
+  }, []);
+
+  // Cleanup any in-flight recording when stream is released / hook unmounts.
+  useEffect(() => {
+    return () => {
+      const rec = recorderRef.current;
+      if (rec && rec.state !== "inactive") {
+        try {
+          rec.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+      recorderRef.current = null;
+      chunksRef.current = [];
+      clearRecordingTimers();
+    };
+  }, [clearRecordingTimers]);
+
   const takePhoto = useCallback(async (): Promise<CapturedPhoto> => {
     const v = videoRef.current;
     if (!v || !streamRef.current) {
@@ -238,7 +387,17 @@ export function useMediaCapture(
     release,
     takePhoto,
     switchCamera,
+    isRecording,
+    recordingMs,
+    recorderMime: recorderMime.current,
+    startRecording,
+    stopRecording,
   };
+}
+
+/** Suggested filename for a recorded clip — useful for the publish step. */
+export function suggestedVideoFilename(mime: string): string {
+  return `story-${Date.now()}.${containerFor(mime) === "unknown" ? "bin" : containerFor(mime)}`;
 }
 
 // ─── Validation helpers (used by gallery picker) ────────────────────────
