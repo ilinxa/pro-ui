@@ -39,7 +39,7 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["button", "dialog", "slider", "toggle-group"],
+    shadcn: ["button", "dialog", "popover", "slider", "toggle-group"],
     npm: {
       "lucide-react": "^1.11.0",
       konva: "^10.3.0",
