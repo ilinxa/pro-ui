@@ -72,6 +72,8 @@ export interface ComposerEditorProps {
   onCropChange?: (next: CropRect) => void;
   /** Surfaces stage dimensions to the parent (used to recompute crop rects on aspect change). */
   onStageSize?: (size: { width: number; height: number }) => void;
+  /** Surfaces the underlying Konva.Stage instance for export (C12). */
+  onStageReady?: (stage: Konva.Stage | null) => void;
   className?: string;
 }
 
@@ -113,9 +115,11 @@ export function ComposerEditor({
   cropAspectRatio,
   onCropChange,
   onStageSize,
+  onStageReady,
   className,
 }: ComposerEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
   const stageSize = useKonvaStageSize(containerRef);
   const selection = useKonvaSelection();
   const imageNodeRef = useRef<Konva.Image | null>(null);
@@ -233,6 +237,10 @@ export function ComposerEditor({
       {/* Stage requires non-zero dimensions; render only after size is measured. */}
       {stageSize.width > 0 && stageSize.height > 0 ? (
         <Stage
+          ref={(s) => {
+            stageRef.current = s;
+            onStageReady?.(s);
+          }}
           width={stageSize.width}
           height={stageSize.height}
           onMouseDown={handleStageMouseDown}
