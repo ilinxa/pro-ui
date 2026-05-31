@@ -761,6 +761,7 @@ export const StoryComposer01 = forwardRef<
       presentation={presentation}
       background={editorBackground}
       ariaLabel={labels.composerLabel}
+      ariaDescription={labels.composerDescription}
     >
       {/* Top bar.
             - Capture stage with photo/video mode: close + mode pill (publish
