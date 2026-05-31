@@ -178,6 +178,7 @@ export type Uploader = (
 
 export interface StoryComposer01Labels {
   composerLabel?: string;
+  composerDescription?: string;
 
   modePhoto?: string;
   modeVideo?: string;
@@ -239,6 +240,8 @@ export interface StoryComposer01Labels {
 
 export const DEFAULT_STORY_COMPOSER_LABELS: Required<StoryComposer01Labels> = {
   composerLabel: "Create story",
+  composerDescription:
+    "Create a new story by capturing a photo, recording a video, or composing a text-only message. Tap the close button to exit.",
 
   modePhoto: "Photo",
   modeVideo: "Video",

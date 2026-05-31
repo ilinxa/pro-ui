@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,11 @@ export interface ComposerShellProps {
   background?: string;
   /** Accessible label, fed into a visually-hidden DialogTitle. */
   ariaLabel: string;
+  /** Accessible description, fed into a visually-hidden DialogDescription.
+   * Radix logs a warning when DialogContent has no Description child + no
+   * aria-describedby. Default is generic — override via Story composer's
+   * labels.composerDescription. */
+  ariaDescription: string;
   children: ReactNode;
 }
 
@@ -33,6 +39,7 @@ export function ComposerShell({
   presentation = "auto",
   background = "#000",
   ariaLabel,
+  ariaDescription,
   children,
 }: ComposerShellProps) {
   const isFullscreenAlways = presentation === "fullscreen";
@@ -63,6 +70,9 @@ export function ComposerShell({
         style={{ background }}
       >
         <DialogTitle className="sr-only">{ariaLabel}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {ariaDescription}
+        </DialogDescription>
         {children}
       </DialogContent>
     </Dialog>
