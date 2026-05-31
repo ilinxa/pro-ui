@@ -1,67 +1,118 @@
 "use client";
 
-import { forwardRef, useImperativeHandle } from "react";
-import { cn } from "@/lib/utils";
-import type {
-  StoryComposer01Handle,
-  StoryComposer01Props,
+import { forwardRef, useCallback, useImperativeHandle, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import { ComposerShell } from "./parts/composer-shell";
+import { ModeTogglePill } from "./parts/mode-toggle-pill";
+import { useStoryComposerState } from "./hooks/use-story-composer-state";
+import {
+  DEFAULT_STORY_COMPOSER_LABELS,
+  type StoryComposer01Handle,
+  type StoryComposer01Labels,
+  type StoryComposer01Props,
 } from "./types";
 
-/**
- * Story composer — C2 placeholder.
- * Shell + state + tools land in C3 onwards per docs/procomps/story-composer-01-procomp/story-composer-01-procomp-plan.md.
- */
 export const StoryComposer01 = forwardRef<
   StoryComposer01Handle,
   StoryComposer01Props
 >(function StoryComposer01(
-  { isOpen, onClose, presentation = "auto" },
+  {
+    isOpen,
+    onClose,
+    defaultMode = "photo",
+    hideModes,
+    presentation = "auto",
+    editorBackground = "#000",
+    labels: labelOverrides,
+  },
   ref,
 ) {
-  useImperativeHandle(ref, () => {
-    const notReady = () =>
-      Promise.reject(new Error("story-composer-01: not yet implemented (C2)"));
-    const noop = () => {
-      throw new Error("story-composer-01: not yet implemented (C2)");
-    };
-    return {
-      open: noop,
-      close: noop,
-      reset: noop,
-      switchCamera: notReady,
-      takePhoto: notReady,
-      startRecording: notReady,
-      stopRecording: notReady,
-      importFromGallery: noop,
-      addText: noop,
-      addSticker: noop,
-      setAdjustments: noop,
-      applyFilter: noop,
-      publish: notReady,
-      exportBlob: () =>
-        Promise.reject(
-          new Error("story-composer-01: not yet implemented (C2)"),
-        ),
-    };
-  }, []);
+  const labels = useMemo<Required<StoryComposer01Labels>>(
+    () => ({ ...DEFAULT_STORY_COMPOSER_LABELS, ...labelOverrides }),
+    [labelOverrides],
+  );
 
-  if (!isOpen) return null;
+  const state = useStoryComposerState({ defaultMode, hideModes });
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) onClose();
+    },
+    [onClose],
+  );
+
+  useImperativeHandle(
+    ref,
+    () => {
+      const notReady = () =>
+        Promise.reject(new Error("story-composer-01: feature lands later"));
+      const noop = () => {
+        throw new Error("story-composer-01: feature lands later");
+      };
+      return {
+        open: () => {
+          /* host owns isOpen; no-op for now */
+        },
+        close: () => onClose(),
+        reset: () => state.reset(),
+        switchCamera: notReady,
+        takePhoto: notReady,
+        startRecording: notReady,
+        stopRecording: notReady,
+        importFromGallery: noop,
+        addText: noop,
+        addSticker: noop,
+        setAdjustments: noop,
+        applyFilter: noop,
+        publish: notReady,
+        exportBlob: () =>
+          Promise.reject(
+            new Error("story-composer-01: feature lands later"),
+          ),
+      };
+    },
+    [onClose, state],
+  );
 
   return (
-    <div
-      className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4",
-        presentation === "modal" && "md:p-8",
-      )}
-      role="dialog"
-      aria-label="Story composer (under construction)"
-      onClick={onClose}
+    <ComposerShell
+      isOpen={isOpen}
+      onOpenChange={handleOpenChange}
+      presentation={presentation}
+      background={editorBackground}
+      ariaLabel={labels.composerLabel}
     >
-      <div className="rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl">
-        <p className="text-sm text-muted-foreground">
-          story-composer-01 — C2 scaffold. Editor lands in C3.
-        </p>
+      {/* Top bar — close button (publish bar replaces this in C12) */}
+      <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 right-3 z-10 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          aria-label={labels.close}
+          className="text-white hover:bg-white/10 hover:text-white"
+        >
+          <X className="size-5" />
+        </Button>
+        <ModeTogglePill
+          mode={state.mode}
+          visibleModes={state.visibleModes}
+          labels={labels}
+          onModeChange={state.setMode}
+        />
+        {/* Right slot reserved for publish CTA / capture toggles in later commits */}
+        <div className="size-9" aria-hidden />
       </div>
-    </div>
+
+      {/* Capture surface placeholder — replaced by composer-camera in C4 */}
+      <div className="flex-1 flex items-center justify-center text-white/40 text-xs">
+        {state.stage === "capture"
+          ? `Capture surface · mode=${state.mode}`
+          : `Editor surface · stage=${state.stage}`}
+      </div>
+
+      {/* Bottom toolbar placeholder — replaced in C6 + C7+ */}
+      <div className="h-[max(4.5rem,env(safe-area-inset-bottom))] shrink-0" />
+    </ComposerShell>
   );
 });
