@@ -17,6 +17,12 @@ import { ModeTogglePill } from "./parts/mode-toggle-pill";
 import { ComposerCamera } from "./parts/composer-camera";
 import { ComposerToolbar } from "./parts/composer-toolbar";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
+import { ToolCropOverlay } from "./parts/tool-crop-overlay";
+import {
+  ASPECT_RATIO_VALUES,
+  fitCropToStage,
+  type CropRect,
+} from "./parts/tool-crop-overlay";
 import { ToolDrawControls } from "./parts/tool-draw-controls";
 import { ToolFilterStrip } from "./parts/tool-filter-strip";
 import { ToolStickerPicker } from "./parts/tool-sticker-picker";
@@ -96,6 +102,7 @@ export const StoryComposer01 = forwardRef<
     replaceBuiltinFilters,
     stickers: stickersProp,
     replaceBuiltinStickers,
+    cropAspects = ["9:16", "1:1", "4:5"],
     fonts = DEFAULT_FONTS,
     colorPresets = DEFAULT_COLOR_PRESETS,
     labels: labelOverrides,
@@ -145,6 +152,9 @@ export const StoryComposer01 = forwardRef<
   const [drawColor, setDrawColor] = useState("#ffffff");
   const [drawBrushSize, setDrawBrushSize] = useState(8);
   const [drawMode, setDrawMode] = useState<"draw" | "erase">("draw");
+  const [cropAspect, setCropAspect] = useState(cropAspects[0] ?? "9:16");
+  const [cropRect, setCropRect] = useState<CropRect | null>(null);
+  const stageSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   const history = useHistory({ capacity: 50, bindKeyboard: isOpen });
 
@@ -169,9 +179,11 @@ export const StoryComposer01 = forwardRef<
       setPlacedStickers([]);
       setSelectedStickerId(null);
       setDrawingStrokes([]);
+      setCropRect(null);
+      setCropAspect(cropAspects[0] ?? "9:16");
       history.reset();
     }
-  }, [history]);
+  }, [cropAspects, history]);
 
   // ─── Text-overlay commands (wrapped through history for C10 undo) ─────
 
@@ -457,7 +469,7 @@ export const StoryComposer01 = forwardRef<
   );
 
   // Toggling tools: Text auto-adds an overlay if none selected; non-text
-  // tools clear text selection. Stickers keeps the picker open.
+  // tools clear text selection. Crop seeds a centered max-fit rect on open.
   const handleToolSelect = useCallback(
     (tool: EditTool | null) => {
       setActiveTool(tool);
@@ -470,8 +482,21 @@ export const StoryComposer01 = forwardRef<
       if (tool !== "stickers") {
         setSelectedStickerId(null);
       }
+      if (tool === "crop" && !cropRect && stageSizeRef.current) {
+        const ss = stageSizeRef.current;
+        setCropRect(fitCropToStage(cropAspect, ss.width, ss.height));
+      }
     },
-    [addTextOverlay, selectedText],
+    [addTextOverlay, cropAspect, cropRect, selectedText],
+  );
+
+  const handleCropAspectChange = useCallback(
+    (next: typeof cropAspect) => {
+      setCropAspect(next);
+      const ss = stageSizeRef.current;
+      if (ss) setCropRect(fitCropToStage(next, ss.width, ss.height));
+    },
+    [],
   );
 
   const captureActive = state.stage === "capture" && state.mode !== "text";
@@ -591,11 +616,37 @@ export const StoryComposer01 = forwardRef<
                   onDrawBegin={drawing.beginAt}
                   onDrawExtend={drawing.extendTo}
                   onDrawEnd={drawing.end}
+                  cropRect={cropRect}
+                  cropActive={activeTool === "crop"}
+                  cropAspectRatio={ASPECT_RATIO_VALUES[cropAspect]}
+                  onCropChange={setCropRect}
+                  onStageSize={(size) => {
+                    stageSizeRef.current = size;
+                    // First-frame init if user opened crop before size was known.
+                    if (activeTool === "crop" && !cropRect) {
+                      setCropRect(
+                        fitCropToStage(cropAspect, size.width, size.height),
+                      );
+                    }
+                  }}
                 />
               </Suspense>
             )}
           </div>
-          {/* Active tool panel (text / draw / stickers / filters / adjust — crop lands C11) */}
+          {/* Active tool panel — all six tools */}
+          {draft.kind === "image" && activeTool === "crop" ? (
+            <div
+              className="shrink-0 px-3 pt-2"
+              style={{ paddingBottom: "0.5rem" }}
+            >
+              <ToolCropOverlay
+                activeAspect={cropAspect}
+                availableAspects={cropAspects}
+                labels={labels}
+                onAspectChange={handleCropAspectChange}
+              />
+            </div>
+          ) : null}
           {draft.kind === "image" && activeTool === "draw" ? (
             <div
               className="shrink-0 px-3 pt-2"
@@ -697,7 +748,7 @@ export const StoryComposer01 = forwardRef<
               <ComposerToolbar
                 activeTool={activeTool}
                 enabledTools={enabledTools}
-                pendingTools={["crop"]}
+                pendingTools={[]}
                 labels={labels}
                 onSelect={handleToolSelect}
               />
