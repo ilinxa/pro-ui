@@ -35,10 +35,10 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-05-31",
-  updatedAt: "2026-05-31",
+  updatedAt: "2026-06-01",
 
   author: { name: "ilinxa" },
 
