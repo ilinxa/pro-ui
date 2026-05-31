@@ -124,10 +124,10 @@ export function ToolTextInput({
 
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon"
           onClick={onDelete}
           aria-label="Delete text"
-          className="text-red-300 hover:bg-red-500/15 hover:text-red-200"
+          className="size-8 text-red-300 hover:bg-red-500/15 hover:text-red-200"
         >
           <Trash2 className="size-4" />
         </Button>

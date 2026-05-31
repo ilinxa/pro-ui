@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Popover, PopoverContent } from "@/components/ui/popover";
-import { Popover as PopoverPrimitive } from "radix-ui";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export interface ColorSwatchPickerProps {
@@ -20,8 +23,11 @@ export interface ColorSwatchPickerProps {
  * No native <input type="color"> (intentionally — it breaks design-system
  * consistency across OS pickers).
  *
- * Uses PopoverPrimitive.Trigger directly (no asChild) per F-cross-13:
- * Base UI's PopoverTrigger doesn't accept asChild + Slot mergeProps.
+ * F-cross-13 defense: PopoverTrigger renders as its own button without
+ * `asChild` — Base UI's PopoverTrigger doesn't accept Slot mergeProps,
+ * and the namespaced `radix-ui` package isn't portable across consumers
+ * (some have only @radix-ui/react-popover individually). Composing
+ * directly through PopoverTrigger works against either shape.
  */
 export function ColorSwatchPicker({
   value,
@@ -42,8 +48,7 @@ export function ColorSwatchPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverPrimitive.Trigger
-        type="button"
+      <PopoverTrigger
         aria-label={ariaLabel}
         className={cn(
           "inline-grid place-items-center size-7 rounded-full ring-2 ring-white/40 hover:ring-white transition-shadow",
@@ -53,7 +58,7 @@ export function ColorSwatchPicker({
         style={{ background: value }}
       >
         <span className="sr-only">{ariaLabel}</span>
-      </PopoverPrimitive.Trigger>
+      </PopoverTrigger>
       <PopoverContent
         sideOffset={8}
         className="w-56 p-3 bg-popover text-popover-foreground"

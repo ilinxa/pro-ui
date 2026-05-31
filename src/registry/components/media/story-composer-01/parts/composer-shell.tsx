@@ -41,11 +41,15 @@ export function ComposerShell({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
         // Beat shadcn's `sm:max-w-sm` + p-4 + gap-4 + rounded-xl + bg-popover with `!`.
+        // The `[&_[data-slot=dialog-close]]:hidden` selector hides shadcn's
+        // built-in close button — composer owns its own close in the publish
+        // bar. Inlined here (vs. `showCloseButton={false}`) because that prop
+        // is producer-side-only; older consumer dialog.tsx versions don't
+        // ship it. CSS-hide works against any shadcn dialog version.
         className={cn(
           // Reset
-          "!gap-0 !p-0 !bg-transparent !ring-0",
+          "!gap-0 !p-0 !bg-transparent !ring-0 [&_[data-slot=dialog-close]]:hidden",
           // Sizing
           isFullscreenAlways
             ? "!fixed !inset-0 !top-0 !left-0 !w-screen !h-[100dvh] !translate-x-0 !translate-y-0 !max-w-none !rounded-none"
