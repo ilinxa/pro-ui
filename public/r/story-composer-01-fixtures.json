@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "story-composer-01-fixtures",
+  "title": "Story Composer 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Story Composer 01 bundle including sample dummy-data (consumer-supplied sticker set + sample upload URL + sample PublishedStory shape for usage docs). Resolves the base story-composer-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/story-composer-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/story-composer-01/dummy-data.ts",
+      "content": "import type {\n  PublishedStory,\n  StickerOption,\n  StickerSet,\n} from \"./types\";\n\n// Re-export runtime defaults so docs-site demos that import from\n// dummy-data still have access to them. Production base ships the\n// originals in lib/defaults.ts.\nexport {\n  DEFAULT_TEXT_GRADIENTS,\n  DEFAULT_FONTS,\n  DEFAULT_COLOR_PRESETS,\n  type GradientPreset,\n} from \"./lib/defaults\";\n\n// ─── Sample consumer-supplied sticker set (demo only) ───────────────────\n\nconst sampleSticker: (id: string, alt: string) => StickerOption = (\n  id,\n  alt,\n) => ({\n  id,\n  src: `https://placehold.co/256x256/lime/black.png?text=${encodeURIComponent(alt)}`,\n  alt,\n  width: 256,\n  height: 256,\n});\n\nexport const SAMPLE_BRAND_STICKERS: StickerSet = {\n  id: \"ilinxa-brand\",\n  label: \"Ilinxa\",\n  stickers: [\n    sampleSticker(\"brand-logo\", \"Logo\"),\n    sampleSticker(\"brand-tag\", \"Tag\"),\n    sampleSticker(\"brand-arrow\", \"Arrow\"),\n    sampleSticker(\"brand-star\", \"Star\"),\n  ],\n};\n\n// ─── Sample upload destination (demo only — never hit at runtime) ───────\n\nexport const SAMPLE_UPLOAD_URL = \"https://example.com/upload/story\";\n\n// ─── Sample PublishedStory shape (for usage docs) ───────────────────────\n\nexport const SAMPLE_PUBLISHED_STORY: PublishedStory = {\n  id: \"story-demo-1\",\n  createdAt: \"2026-05-31T12:00:00.000Z\",\n  items: [\n    {\n      id: \"item-1\",\n      type: \"image\",\n      src: \"https://example.com/uploads/story-demo-1.jpg\",\n      duration: 5,\n    },\n  ],\n};\n",
+      "type": "registry:component",
+      "target": "components/story-composer-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
