@@ -17,6 +17,7 @@ import {
   type StageSize,
 } from "../hooks/use-konva-stage-size";
 import { useKonvaSelection } from "../hooks/use-konva-selection";
+import type { CropRect } from "./tool-crop-overlay";
 import type {
   DrawingStroke,
   FilterPreset,
@@ -62,6 +63,15 @@ export interface ComposerEditorProps {
   onDrawBegin?: (x: number, y: number) => void;
   onDrawExtend?: (x: number, y: number) => void;
   onDrawEnd?: () => void;
+  /** Crop rect in stage coordinates (C11). Editor renders a dim+frame overlay when active. */
+  cropRect?: CropRect | null;
+  /** When true, the crop overlay is interactive (drag handles + reposition). */
+  cropActive?: boolean;
+  /** Aspect ratio of crop — locks resize behavior. */
+  cropAspectRatio?: number | null;
+  onCropChange?: (next: CropRect) => void;
+  /** Surfaces stage dimensions to the parent (used to recompute crop rects on aspect change). */
+  onStageSize?: (size: { width: number; height: number }) => void;
   className?: string;
 }
 
@@ -98,6 +108,11 @@ export function ComposerEditor({
   onDrawBegin,
   onDrawExtend,
   onDrawEnd,
+  cropRect,
+  cropActive = false,
+  cropAspectRatio,
+  onCropChange,
+  onStageSize,
   className,
 }: ComposerEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -107,6 +122,12 @@ export function ComposerEditor({
 
   const [image, imageSize] = useImage(imageUrl);
   const fit = fitInto(imageSize, stageSize);
+
+  useEffect(() => {
+    if (stageSize.width > 0 && stageSize.height > 0) {
+      onStageSize?.(stageSize);
+    }
+  }, [stageSize, onStageSize]);
 
   // Apply filter chain + adjustments to the image node.
   // Konva requires .cache() before filters take effect. Re-cache when the
@@ -355,8 +376,207 @@ export function ComposerEditor({
           </Layer>
         </Stage>
       ) : null}
+
+      {/* Crop overlay (DOM over the Konva canvas). C11. */}
+      {cropActive && cropRect && stageSize.width > 0 ? (
+        <CropOverlay
+          rect={cropRect}
+          stageWidth={stageSize.width}
+          stageHeight={stageSize.height}
+          aspectRatio={cropAspectRatio ?? null}
+          onChange={onCropChange}
+        />
+      ) : null}
     </div>
   );
+}
+
+// ─── Crop overlay (DOM) ───────────────────────────────────────────────
+
+interface CropOverlayProps {
+  rect: CropRect;
+  stageWidth: number;
+  stageHeight: number;
+  aspectRatio: number | null;
+  onChange?: (next: CropRect) => void;
+}
+
+const HANDLE_SIZE = 14;
+const MIN_CROP = 40;
+
+function CropOverlay({
+  rect,
+  stageWidth,
+  stageHeight,
+  aspectRatio,
+  onChange,
+}: CropOverlayProps) {
+  const dragStateRef = useRef<{
+    mode: "move" | "ne" | "nw" | "se" | "sw";
+    startX: number;
+    startY: number;
+    startRect: CropRect;
+  } | null>(null);
+
+  const beginDrag = (
+    mode: "move" | "ne" | "nw" | "se" | "sw",
+  ) => (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    dragStateRef.current = {
+      mode,
+      startX: e.clientX,
+      startY: e.clientY,
+      startRect: { ...rect },
+    };
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const ds = dragStateRef.current;
+    if (!ds || !onChange) return;
+    const dx = e.clientX - ds.startX;
+    const dy = e.clientY - ds.startY;
+
+    let { x, y, width, height } = ds.startRect;
+    const r = aspectRatio; // null = free
+
+    if (ds.mode === "move") {
+      x = clamp(ds.startRect.x + dx, 0, stageWidth - ds.startRect.width);
+      y = clamp(ds.startRect.y + dy, 0, stageHeight - ds.startRect.height);
+    } else {
+      // Resize from a corner. Use the dominant axis to drive width when
+      // aspect-locked; otherwise both axes are free.
+      let nextWidth = ds.startRect.width;
+      let nextHeight = ds.startRect.height;
+
+      if (ds.mode === "se") {
+        nextWidth = ds.startRect.width + dx;
+        nextHeight = r ? nextWidth / r : ds.startRect.height + dy;
+      } else if (ds.mode === "ne") {
+        nextWidth = ds.startRect.width + dx;
+        nextHeight = r ? nextWidth / r : ds.startRect.height - dy;
+        y = ds.startRect.y + (ds.startRect.height - nextHeight);
+      } else if (ds.mode === "sw") {
+        nextWidth = ds.startRect.width - dx;
+        nextHeight = r ? nextWidth / r : ds.startRect.height + dy;
+        x = ds.startRect.x + (ds.startRect.width - nextWidth);
+      } else if (ds.mode === "nw") {
+        nextWidth = ds.startRect.width - dx;
+        nextHeight = r ? nextWidth / r : ds.startRect.height - dy;
+        x = ds.startRect.x + (ds.startRect.width - nextWidth);
+        y = ds.startRect.y + (ds.startRect.height - nextHeight);
+      }
+
+      // Enforce min size + stage bounds.
+      nextWidth = Math.max(MIN_CROP, Math.min(nextWidth, stageWidth));
+      nextHeight = Math.max(MIN_CROP, Math.min(nextHeight, stageHeight));
+      x = clamp(x, 0, stageWidth - nextWidth);
+      y = clamp(y, 0, stageHeight - nextHeight);
+
+      width = nextWidth;
+      height = nextHeight;
+    }
+
+    onChange({ x, y, width, height });
+  };
+
+  const endDrag = () => {
+    dragStateRef.current = null;
+  };
+
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ width: stageWidth, height: stageHeight }}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+    >
+      {/* Dim 4 quadrants outside the crop rect */}
+      <div
+        className="absolute inset-x-0 top-0 bg-black/60"
+        style={{ height: rect.y }}
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 bg-black/60"
+        style={{ height: stageHeight - rect.y - rect.height }}
+      />
+      <div
+        className="absolute left-0 bg-black/60"
+        style={{
+          top: rect.y,
+          height: rect.height,
+          width: rect.x,
+        }}
+      />
+      <div
+        className="absolute right-0 bg-black/60"
+        style={{
+          top: rect.y,
+          height: rect.height,
+          width: stageWidth - rect.x - rect.width,
+        }}
+      />
+
+      {/* Crop frame (movable) */}
+      <div
+        className="absolute border-2 border-white pointer-events-auto cursor-move"
+        style={{
+          left: rect.x,
+          top: rect.y,
+          width: rect.width,
+          height: rect.height,
+        }}
+        onPointerDown={beginDrag("move")}
+      >
+        {/* Rule-of-thirds grid */}
+        <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="border border-white/20" />
+          ))}
+        </div>
+
+        {/* Corner handles */}
+        {(["nw", "ne", "sw", "se"] as const).map((corner) => (
+          <button
+            type="button"
+            key={corner}
+            onPointerDown={beginDrag(corner)}
+            className="absolute bg-white rounded-full shadow"
+            style={{
+              width: HANDLE_SIZE,
+              height: HANDLE_SIZE,
+              left:
+                corner === "nw" || corner === "sw"
+                  ? -HANDLE_SIZE / 2
+                  : undefined,
+              right:
+                corner === "ne" || corner === "se"
+                  ? -HANDLE_SIZE / 2
+                  : undefined,
+              top:
+                corner === "nw" || corner === "ne"
+                  ? -HANDLE_SIZE / 2
+                  : undefined,
+              bottom:
+                corner === "sw" || corner === "se"
+                  ? -HANDLE_SIZE / 2
+                  : undefined,
+              cursor:
+                corner === "nw" || corner === "se"
+                  ? "nwse-resize"
+                  : "nesw-resize",
+            }}
+            aria-label={`Resize ${corner.toUpperCase()}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
 }
 
 // ─── Sticker rendering ────────────────────────────────────────────────
