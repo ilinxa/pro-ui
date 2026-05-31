@@ -31,17 +31,22 @@ import { ToolDrawControls } from "./parts/tool-draw-controls";
 import { ToolFilterStrip } from "./parts/tool-filter-strip";
 import { ToolStickerPicker } from "./parts/tool-sticker-picker";
 import { ToolTextInput } from "./parts/tool-text-input";
+import {
+  TextOnlyCanvas,
+  type TextOnlyCanvasState,
+} from "./parts/text-only-canvas";
 import { VideoTrimBar } from "./parts/video-trim-bar";
 import { useDrawingStroke } from "./hooks/use-drawing-stroke";
 import { useHistory } from "./hooks/use-history";
 import { useImageUploader } from "./hooks/use-image-uploader";
 import { compositeVideo } from "./lib/composite-video";
-import { exportPhotoBlob } from "./lib/export-blob";
+import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
 import { resolveFilterPresets } from "./lib/konva-filters";
 import { resolveStickerSets } from "./lib/built-in-stickers";
 import {
   DEFAULT_COLOR_PRESETS,
   DEFAULT_FONTS,
+  DEFAULT_TEXT_GRADIENTS,
 } from "./lib/defaults";
 
 // React.lazy defers the react-konva import to client-side render, avoiding
@@ -171,7 +176,21 @@ export const StoryComposer01 = forwardRef<
   const [cropRect, setCropRect] = useState<CropRect | null>(null);
   const stageSizeRef = useRef<{ width: number; height: number } | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
+  const textOnlyRef = useRef<HTMLDivElement | null>(null);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [announcement, setAnnouncement] = useState<string>("");
+  const [textOnlyState, setTextOnlyState] = useState<TextOnlyCanvasState>({
+    text: "",
+    fontFamily: DEFAULT_FONTS[0].family,
+    textColor: "#ffffff",
+    gradientId: DEFAULT_TEXT_GRADIENTS[0].id,
+  });
+
+  // Live-region announcer for screen readers — Konva canvas isn't in the a11y
+  // tree, so we announce edit events as text.
+  const announce = useCallback((msg: string) => {
+    setAnnouncement(msg);
+  }, []);
 
   const uploader_ = useImageUploader({ uploadUrl, uploader, uploadFields });
 
@@ -208,6 +227,7 @@ export const StoryComposer01 = forwardRef<
     acceptDraft(null);
     state.reset();
     uploader_.reset();
+    setTextOnlyState((prev) => ({ ...prev, text: "" }));
     onClose();
   }, [acceptDraft, onClose, state, uploader_]);
 
@@ -236,8 +256,9 @@ export const StoryComposer01 = forwardRef<
       });
       setSelectedTextId(id);
       state.markDirty(true);
+      announce("Text added");
     },
-    [fonts, history, labels.textPlaceholder, state],
+    [announce, fonts, history, labels.textPlaceholder, state],
   );
 
   const updateTextOverlay = useCallback(
@@ -317,8 +338,9 @@ export const StoryComposer01 = forwardRef<
       setSelectedStickerId(id);
       setSelectedTextId(null);
       state.markDirty(true);
+      announce(`Sticker added: ${sticker.alt}`);
     },
-    [history, state],
+    [announce, history, state],
   );
 
   const updateStickerOverlay = useCallback(
@@ -399,6 +421,34 @@ export const StoryComposer01 = forwardRef<
   );
 
   const handlePublish = useCallback(async () => {
+    // Text-only mode publishes from the DOM element, not from a captured draft.
+    if (state.mode === "text" && !draft) {
+      state.setStage("publishing");
+      try {
+        if (!textOnlyRef.current) throw new Error("Text canvas not mounted");
+        const rect = textOnlyRef.current.getBoundingClientRect();
+        const w = Math.round(rect.width);
+        const h = Math.round(rect.height);
+        const blob = await exportTextOnlyBlob(textOnlyRef.current, w, h);
+        const metadata = buildMetadata("text", w, h, "image/png");
+        const result = await uploader_.upload(blob, metadata);
+        const story: PublishedStory = {
+          id: `story-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          items: [
+            { id: `item-${Date.now()}`, type: "image", src: result.url },
+          ],
+        };
+        state.setStage("done");
+        onPublished(story);
+        setTimeout(performClose, 800);
+      } catch (err) {
+        state.setStage("error");
+        onPublishError?.(err as Error);
+      }
+      return;
+    }
+
     if (!draft) return;
     state.setStage("publishing");
     try {
@@ -512,6 +562,9 @@ export const StoryComposer01 = forwardRef<
     state,
     uploader_,
   ]);
+
+  // Text-only mode marks dirty when there's a non-empty text input.
+  const textOnlyDirty = state.mode === "text" && textOnlyState.text.length > 0;
 
   const handlePhoto = useCallback(
     (photo: CapturedPhoto) => {
@@ -709,8 +762,13 @@ export const StoryComposer01 = forwardRef<
       background={editorBackground}
       ariaLabel={labels.composerLabel}
     >
-      {/* Top bar — capture stage shows close + mode pill; edit stage shows publish bar. */}
-      {state.stage === "capture" ? (
+      {/* Top bar.
+            - Capture stage with photo/video mode: close + mode pill (publish
+              CTA isn't relevant until media is captured).
+            - Capture stage with text mode: publish-enabled top bar — text
+              mode publishes directly from the capture surface.
+            - Edit stage (photo/video): publish bar. */}
+      {state.stage === "capture" && state.mode !== "text" ? (
         <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 right-3 z-30 flex items-center justify-between">
           <Button
             variant="ghost"
@@ -732,7 +790,9 @@ export const StoryComposer01 = forwardRef<
       ) : (
         <ComposerPublishBar
           isPublishing={state.stage === "publishing"}
-          canPublish={!!draft}
+          canPublish={
+            state.mode === "text" ? textOnlyDirty : !!draft
+          }
           labels={labels}
           onPublish={handlePublish}
           onClose={() => handleOpenChange(false)}
@@ -757,11 +817,20 @@ export const StoryComposer01 = forwardRef<
         />
       ) : null}
 
-      {/* Text-only mode placeholder (lands C13) */}
+      {/* Text-only mode capture surface (C13) */}
       {state.stage === "capture" && state.mode === "text" ? (
-        <div className="flex-1 flex items-center justify-center text-white/50 text-xs">
-          Text mode · capture surface lands C13
-        </div>
+        <TextOnlyCanvas
+          ref={textOnlyRef}
+          gradients={DEFAULT_TEXT_GRADIENTS}
+          fonts={fonts}
+          colorPresets={colorPresets}
+          labels={labels}
+          value={textOnlyState}
+          onChange={(next) => {
+            setTextOnlyState(next);
+            state.markDirty(true);
+          }}
+        />
       ) : null}
 
       {/* Edit-stage — Konva canvas (image) + native video preview + trim bar */}
@@ -1007,6 +1076,22 @@ export const StoryComposer01 = forwardRef<
         />
       ) : null}
 
+      {/* Mode pill for text-only mode (capture+edit modes already have it in
+          the top bar; text-mode uses the publish bar instead so the pill
+          needs its own slot). */}
+      {state.stage === "capture" && state.mode === "text" ? (
+        <div className="absolute top-[max(3.5rem,calc(env(safe-area-inset-top)+3rem))] left-0 right-0 z-30 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto">
+            <ModeTogglePill
+              mode={state.mode}
+              visibleModes={state.visibleModes}
+              labels={labels}
+              onModeChange={state.setMode}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {/* Discard-confirm guard (Q-P10a) */}
       <DiscardConfirmDialog
         open={showDiscardConfirm}
@@ -1017,6 +1102,18 @@ export const StoryComposer01 = forwardRef<
           performClose();
         }}
       />
+
+      {/* Live-region edit-event announcer (sr-only) — Konva canvas is opaque
+          to screen readers so we surface "Added text", "Added sticker",
+          "Recording started" etc. as polite announcements. */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </ComposerShell>
   );
 });
