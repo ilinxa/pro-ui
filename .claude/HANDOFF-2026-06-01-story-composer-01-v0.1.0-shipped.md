@@ -45,7 +45,7 @@
 - ✅ `pnpm validate:meta-deps` — 50/50 slugs clean
 - ✅ `pnpm registry:build` — clean (`public/r/story-composer-01.json` 209KB · `-fixtures.json` 2.4KB)
 - ✅ `pnpm build` — 59 static pages generated, exit 0 (verifies SSR-safe React.lazy + Suspense boundary for `react-konva` works in production)
-- ⏳ Smoke harness path-b consumer-tsc — **deferred to post-push** (runs against deployed Vercel registry per the established ship→smoke→patch pattern)
+- ✅ Smoke harness path-b consumer-tsc — **green post-push** (against deployed v0.1.1 = `fb18b90`). 36/36 files installed via `pnpm dlx shadcn@4.6.0 add @ilinxa/story-composer-01`; consumer `pnpm tsc --noEmit` reports 0 errors in story-composer-01 paths. First-pass smoke surfaced 3 F-cross-13 sub-traps (radix-ui import / `showCloseButton` prop / `size="icon-sm"`); patched in v0.1.1; re-smoke clean. Fourth consecutive ship following the established `ship → smoke → patch → re-smoke clean` pattern.
 
 ## GATE 3 review
 
