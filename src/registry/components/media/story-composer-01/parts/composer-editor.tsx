@@ -3,14 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import Konva from "konva";
 import type { Filter as KonvaFilter } from "konva/lib/Node";
-import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Image as KonvaImage,
+  Text as KonvaText,
+  Transformer,
+} from "react-konva";
 import { cn } from "@/lib/utils";
 import {
   useKonvaStageSize,
   type StageSize,
 } from "../hooks/use-konva-stage-size";
 import { useKonvaSelection } from "../hooks/use-konva-selection";
-import type { FilterPreset, ImageAdjustments } from "../types";
+import type {
+  FilterPreset,
+  ImageAdjustments,
+  TextOverlay,
+} from "../types";
 
 export interface ComposerEditorProps {
   /** Image draft preview URL. For video drafts, the editor renders a <video> overlay instead (C7+). */
@@ -23,6 +33,14 @@ export interface ComposerEditorProps {
   adjustments?: ImageAdjustments;
   /** Active filter preset (C7). null = no preset. */
   activeFilter?: FilterPreset | null;
+  /** Text overlays (C8). */
+  textOverlays?: TextOverlay[];
+  /** Currently selected text overlay id (C8). */
+  selectedTextId?: string | null;
+  /** Fired on drag-end or transform-end of a text overlay. */
+  onTextChange?: (next: TextOverlay) => void;
+  /** Fired when a text overlay is tapped (selects it). */
+  onTextSelect?: (id: string | null) => void;
   className?: string;
 }
 
@@ -44,6 +62,10 @@ export function ComposerEditor({
   background = "#000",
   adjustments,
   activeFilter,
+  textOverlays,
+  selectedTextId,
+  onTextChange,
+  onTextSelect,
   className,
 }: ComposerEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -72,9 +94,28 @@ export function ComposerEditor({
     node.getLayer()?.batchDraw();
   }, [image, activeFilter, adjustments]);
 
-  // Click on bare Stage background → clear selection (UX: tap outside to deselect).
+  const textNodeRefs = useRef<Map<string, Konva.Text>>(new Map());
+
+  // Attach the Transformer to the currently-selected text node.
+  useEffect(() => {
+    const t = selection.transformerRef.current;
+    if (!t) return;
+    if (selectedTextId) {
+      const node = textNodeRefs.current.get(selectedTextId);
+      if (node) {
+        t.nodes([node]);
+        t.getLayer()?.batchDraw();
+        return;
+      }
+    }
+    t.nodes([]);
+    t.getLayer()?.batchDraw();
+  }, [selectedTextId, textOverlays, selection.transformerRef]);
+
+  // Click on bare Stage background → clear text selection.
   const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target === e.target.getStage()) {
+      onTextSelect?.(null);
       selection.clear();
     }
   };
@@ -123,8 +164,55 @@ export function ComposerEditor({
           <Layer />
           {/* sticker layer — empty in C6, populated C9 */}
           <Layer />
-          {/* text layer — empty in C6, populated C8 */}
-          <Layer />
+          {/* text layer (C8) */}
+          <Layer>
+            {textOverlays?.map((overlay) => (
+              <KonvaText
+                key={overlay.id}
+                ref={(node) => {
+                  if (node) textNodeRefs.current.set(overlay.id, node);
+                  else textNodeRefs.current.delete(overlay.id);
+                }}
+                x={overlay.x}
+                y={overlay.y}
+                text={overlay.text}
+                fontFamily={overlay.fontFamily}
+                fontSize={overlay.fontSize}
+                fill={overlay.fill}
+                align={overlay.align}
+                rotation={overlay.rotation}
+                scaleX={overlay.scale}
+                scaleY={overlay.scale}
+                draggable
+                onMouseDown={(e) => {
+                  e.cancelBubble = true;
+                  onTextSelect?.(overlay.id);
+                }}
+                onTouchStart={(e) => {
+                  e.cancelBubble = true;
+                  onTextSelect?.(overlay.id);
+                }}
+                onDragEnd={(e) => {
+                  onTextChange?.({
+                    ...overlay,
+                    x: e.target.x(),
+                    y: e.target.y(),
+                  });
+                }}
+                onTransformEnd={(e) => {
+                  const node = e.target as Konva.Text;
+                  const nextScale = node.scaleX();
+                  onTextChange?.({
+                    ...overlay,
+                    x: node.x(),
+                    y: node.y(),
+                    rotation: node.rotation(),
+                    scale: nextScale,
+                  });
+                }}
+              />
+            ))}
+          </Layer>
           {/* ui layer — Transformer attached on selection */}
           <Layer>
             <Transformer

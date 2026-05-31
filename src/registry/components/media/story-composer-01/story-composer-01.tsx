@@ -18,8 +18,13 @@ import { ComposerCamera } from "./parts/composer-camera";
 import { ComposerToolbar } from "./parts/composer-toolbar";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
 import { ToolFilterStrip } from "./parts/tool-filter-strip";
+import { ToolTextInput } from "./parts/tool-text-input";
 import { VideoTrimBar } from "./parts/video-trim-bar";
 import { resolveFilterPresets } from "./lib/konva-filters";
+import {
+  DEFAULT_COLOR_PRESETS,
+  DEFAULT_FONTS,
+} from "./lib/defaults";
 
 // React.lazy defers the react-konva import to client-side render, avoiding
 // SSR evaluation of konva's top-level `window` reference. Cannot use
@@ -43,6 +48,7 @@ import {
   type StoryComposer01Handle,
   type StoryComposer01Labels,
   type StoryComposer01Props,
+  type TextOverlay,
 } from "./types";
 
 interface DraftMedia {
@@ -80,6 +86,8 @@ export const StoryComposer01 = forwardRef<
     enabledTools = ["text", "draw", "stickers", "filters", "adjust", "crop"],
     filterPresets,
     replaceBuiltinFilters,
+    fonts = DEFAULT_FONTS,
+    colorPresets = DEFAULT_COLOR_PRESETS,
     labels: labelOverrides,
     onPermissionDenied,
     onValidationError,
@@ -104,6 +112,8 @@ export const StoryComposer01 = forwardRef<
     DEFAULT_ADJUSTMENTS,
   );
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
+  const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([]);
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
 
   const activeFilter = useMemo(
     () => presets.find((p) => p.id === activeFilterId) ?? null,
@@ -121,8 +131,53 @@ export const StoryComposer01 = forwardRef<
       setActiveTool(null);
       setAdjustments(DEFAULT_ADJUSTMENTS);
       setActiveFilterId(null);
+      setTextOverlays([]);
+      setSelectedTextId(null);
     }
   }, []);
+
+  // ─── Text-overlay commands (designed so C10 can wrap into history) ────
+
+  const addTextOverlay = useCallback(
+    (initialText?: string) => {
+      const id = `text-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const newOverlay: TextOverlay = {
+        id,
+        text: initialText ?? labels.textPlaceholder,
+        x: 100,
+        y: 200,
+        rotation: 0,
+        scale: 1,
+        fontFamily: fonts[0]?.family ?? "sans-serif",
+        fontSize: 40,
+        fill: "#ffffff",
+        align: "center",
+      };
+      setTextOverlays((prev) => [...prev, newOverlay]);
+      setSelectedTextId(id);
+      state.markDirty(true);
+    },
+    [fonts, labels.textPlaceholder, state],
+  );
+
+  const updateTextOverlay = useCallback(
+    (next: TextOverlay) => {
+      setTextOverlays((prev) =>
+        prev.map((o) => (o.id === next.id ? next : o)),
+      );
+      state.markDirty(true);
+    },
+    [state],
+  );
+
+  const deleteTextOverlay = useCallback(
+    (id: string) => {
+      setTextOverlays((prev) => prev.filter((o) => o.id !== id));
+      setSelectedTextId((prev) => (prev === id ? null : prev));
+      state.markDirty(true);
+    },
+    [state],
+  );
 
   const handlePhoto = useCallback(
     (photo: CapturedPhoto) => {
@@ -222,7 +277,7 @@ export const StoryComposer01 = forwardRef<
           if (video) handleVideo(video);
         },
         importFromGallery: noop,
-        addText: noop,
+        addText: (text?: string) => addTextOverlay(text),
         addSticker: noop,
         setAdjustments: (partial) =>
           setAdjustments((prev) => ({ ...prev, ...partial })),
@@ -234,7 +289,26 @@ export const StoryComposer01 = forwardRef<
           ),
       };
     },
-    [acceptDraft, handlePhoto, handleVideo, onClose, state],
+    [acceptDraft, addTextOverlay, handlePhoto, handleVideo, onClose, state],
+  );
+
+  const selectedText = useMemo(
+    () => textOverlays.find((o) => o.id === selectedTextId) ?? null,
+    [textOverlays, selectedTextId],
+  );
+
+  // Toggling the Text tool button creates a new overlay.
+  const handleToolSelect = useCallback(
+    (tool: EditTool | null) => {
+      setActiveTool(tool);
+      if (tool === "text" && !selectedText) {
+        addTextOverlay();
+      }
+      if (tool !== "text") {
+        setSelectedTextId(null);
+      }
+    },
+    [addTextOverlay, selectedText],
   );
 
   const captureActive = state.stage === "capture" && state.mode !== "text";
@@ -327,11 +401,33 @@ export const StoryComposer01 = forwardRef<
                   background={editorBackground}
                   adjustments={adjustments}
                   activeFilter={activeFilter}
+                  textOverlays={textOverlays}
+                  selectedTextId={selectedTextId}
+                  onTextChange={updateTextOverlay}
+                  onTextSelect={(id) => {
+                    setSelectedTextId(id);
+                    if (id) setActiveTool("text");
+                  }}
                 />
               </Suspense>
             )}
           </div>
-          {/* Active tool panel (filters / adjust — text/draw/stickers/crop land C8-C11) */}
+          {/* Active tool panel (text / filters / adjust — draw/stickers/crop land C9-C11) */}
+          {draft.kind === "image" && activeTool === "text" && selectedText ? (
+            <div
+              className="shrink-0 px-3 pt-2"
+              style={{ paddingBottom: "0.5rem" }}
+            >
+              <ToolTextInput
+                overlay={selectedText}
+                fonts={fonts}
+                colorPresets={colorPresets}
+                labels={labels}
+                onChange={updateTextOverlay}
+                onDelete={() => deleteTextOverlay(selectedText.id)}
+              />
+            </div>
+          ) : null}
           {draft.kind === "image" && activeTool === "filters" ? (
             <div
               className="shrink-0 px-3 pt-2"
@@ -390,9 +486,9 @@ export const StoryComposer01 = forwardRef<
               <ComposerToolbar
                 activeTool={activeTool}
                 enabledTools={enabledTools}
-                pendingTools={["text", "draw", "stickers", "crop"]}
+                pendingTools={["draw", "stickers", "crop"]}
                 labels={labels}
-                onSelect={setActiveTool}
+                onSelect={handleToolSelect}
               />
             </div>
           ) : null}
