@@ -15,7 +15,11 @@ import { X } from "lucide-react";
 import { ComposerShell } from "./parts/composer-shell";
 import { ModeTogglePill } from "./parts/mode-toggle-pill";
 import { ComposerCamera } from "./parts/composer-camera";
+import { ComposerToolbar } from "./parts/composer-toolbar";
+import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
+import { ToolFilterStrip } from "./parts/tool-filter-strip";
 import { VideoTrimBar } from "./parts/video-trim-bar";
+import { resolveFilterPresets } from "./lib/konva-filters";
 
 // React.lazy defers the react-konva import to client-side render, avoiding
 // SSR evaluation of konva's top-level `window` reference. Cannot use
@@ -32,7 +36,10 @@ import {
   type UseMediaCaptureResult,
 } from "./hooks/use-media-capture";
 import {
+  DEFAULT_ADJUSTMENTS,
   DEFAULT_STORY_COMPOSER_LABELS,
+  type EditTool,
+  type ImageAdjustments,
   type StoryComposer01Handle,
   type StoryComposer01Labels,
   type StoryComposer01Props,
@@ -70,12 +77,19 @@ export const StoryComposer01 = forwardRef<
     maxFileSizeMb = 50,
     presentation = "auto",
     editorBackground = "#000",
+    enabledTools = ["text", "draw", "stickers", "filters", "adjust", "crop"],
+    filterPresets,
+    replaceBuiltinFilters,
     labels: labelOverrides,
     onPermissionDenied,
     onValidationError,
   },
   ref,
 ) {
+  const presets = useMemo(
+    () => resolveFilterPresets(filterPresets, !!replaceBuiltinFilters),
+    [filterPresets, replaceBuiltinFilters],
+  );
   const labels = useMemo<Required<StoryComposer01Labels>>(
     () => ({ ...DEFAULT_STORY_COMPOSER_LABELS, ...labelOverrides }),
     [labelOverrides],
@@ -85,6 +99,16 @@ export const StoryComposer01 = forwardRef<
   const captureRef = useRef<UseMediaCaptureResult | null>(null);
   const [draft, setDraft] = useState<DraftMedia | null>(null);
   const [trim, setTrim] = useState<TrimRange | null>(null);
+  const [activeTool, setActiveTool] = useState<EditTool | null>(null);
+  const [adjustments, setAdjustments] = useState<ImageAdjustments>(
+    DEFAULT_ADJUSTMENTS,
+  );
+  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
+
+  const activeFilter = useMemo(
+    () => presets.find((p) => p.id === activeFilterId) ?? null,
+    [presets, activeFilterId],
+  );
 
   // Set draft + revoke prior object URL.
   const acceptDraft = useCallback((next: DraftMedia | null) => {
@@ -93,6 +117,11 @@ export const StoryComposer01 = forwardRef<
       return next;
     });
     if (!next || next.kind !== "video") setTrim(null);
+    if (!next) {
+      setActiveTool(null);
+      setAdjustments(DEFAULT_ADJUSTMENTS);
+      setActiveFilterId(null);
+    }
   }, []);
 
   const handlePhoto = useCallback(
@@ -195,8 +224,9 @@ export const StoryComposer01 = forwardRef<
         importFromGallery: noop,
         addText: noop,
         addSticker: noop,
-        setAdjustments: noop,
-        applyFilter: noop,
+        setAdjustments: (partial) =>
+          setAdjustments((prev) => ({ ...prev, ...partial })),
+        applyFilter: (name) => setActiveFilterId(name),
         publish: notReady,
         exportBlob: () =>
           Promise.reject(
@@ -295,10 +325,39 @@ export const StoryComposer01 = forwardRef<
                 <ComposerEditor
                   imageUrl={draft.url}
                   background={editorBackground}
+                  adjustments={adjustments}
+                  activeFilter={activeFilter}
                 />
               </Suspense>
             )}
           </div>
+          {/* Active tool panel (filters / adjust — text/draw/stickers/crop land C8-C11) */}
+          {draft.kind === "image" && activeTool === "filters" ? (
+            <div
+              className="shrink-0 px-3 pt-2"
+              style={{ paddingBottom: "0.5rem" }}
+            >
+              <ToolFilterStrip
+                presets={presets}
+                sourceUrl={draft.url}
+                activeId={activeFilterId}
+                onSelect={setActiveFilterId}
+              />
+            </div>
+          ) : null}
+          {draft.kind === "image" && activeTool === "adjust" ? (
+            <div
+              className="shrink-0 px-3 pt-2"
+              style={{ paddingBottom: "0.5rem" }}
+            >
+              <ToolAdjustSliders
+                value={adjustments}
+                onChange={setAdjustments}
+                labels={labels}
+              />
+            </div>
+          ) : null}
+
           {/* Trim bar — video only */}
           {draft.kind === "video" && trim ? (
             <div
@@ -316,6 +375,24 @@ export const StoryComposer01 = forwardRef<
                 onChange={(next) =>
                   setTrim((prev) => (prev ? { ...prev, ...next } : prev))
                 }
+              />
+            </div>
+          ) : null}
+
+          {/* Bottom toolbar — image drafts only (video trim has its own surface) */}
+          {draft.kind === "image" ? (
+            <div
+              className="shrink-0 px-3 pt-1"
+              style={{
+                paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+              }}
+            >
+              <ComposerToolbar
+                activeTool={activeTool}
+                enabledTools={enabledTools}
+                pendingTools={["text", "draw", "stickers", "crop"]}
+                labels={labels}
+                onSelect={setActiveTool}
               />
             </div>
           ) : null}
