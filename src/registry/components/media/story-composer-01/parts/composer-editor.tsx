@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Konva from "konva";
+import type { Filter as KonvaFilter } from "konva/lib/Node";
 import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
-import type Konva from "konva";
 import { cn } from "@/lib/utils";
 import {
   useKonvaStageSize,
   type StageSize,
 } from "../hooks/use-konva-stage-size";
 import { useKonvaSelection } from "../hooks/use-konva-selection";
+import type { FilterPreset, ImageAdjustments } from "../types";
 
 export interface ComposerEditorProps {
   /** Image draft preview URL. For video drafts, the editor renders a <video> overlay instead (C7+). */
@@ -17,6 +19,10 @@ export interface ComposerEditorProps {
   videoUrl?: string | null;
   /** Canvas surface background — usually composer's editorBackground. */
   background?: string;
+  /** Brightness/contrast/saturation/blur sliders (C7). */
+  adjustments?: ImageAdjustments;
+  /** Active filter preset (C7). null = no preset. */
+  activeFilter?: FilterPreset | null;
   className?: string;
 }
 
@@ -36,14 +42,35 @@ export function ComposerEditor({
   imageUrl,
   videoUrl,
   background = "#000",
+  adjustments,
+  activeFilter,
   className,
 }: ComposerEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageSize = useKonvaStageSize(containerRef);
   const selection = useKonvaSelection();
+  const imageNodeRef = useRef<Konva.Image | null>(null);
 
   const [image, imageSize] = useImage(imageUrl);
   const fit = fitInto(imageSize, stageSize);
+
+  // Apply filter chain + adjustments to the image node.
+  // Konva requires .cache() before filters take effect. Re-cache when the
+  // image source changes; re-apply filter params on every change.
+  useEffect(() => {
+    const node = imageNodeRef.current;
+    if (!node || !image) return;
+    const filterChain = buildKonvaFilterChain(
+      activeFilter ?? null,
+      adjustments,
+    );
+    node.cache();
+    // The Konva.Filters array type is loose; chain is a list of filter fns.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    node.filters(filterChain as any);
+    applyFilterParams(node, activeFilter ?? null, adjustments);
+    node.getLayer()?.batchDraw();
+  }, [image, activeFilter, adjustments]);
 
   // Click on bare Stage background → clear selection (UX: tap outside to deselect).
   const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -83,6 +110,7 @@ export function ComposerEditor({
           <Layer listening={false}>
             {image && imageUrl ? (
               <KonvaImage
+                ref={imageNodeRef}
                 image={image}
                 x={fit.x}
                 y={fit.y}
@@ -155,6 +183,83 @@ function useImage(
   }, [src]);
 
   return [image, size];
+}
+
+// ─── Filter helpers ───────────────────────────────────────────────────
+
+const KONVA_FILTER_MAP: Record<string, KonvaFilter | undefined> = {
+  Brighten: Konva.Filters.Brighten,
+  Contrast: Konva.Filters.Contrast,
+  HSL: Konva.Filters.HSL,
+  Sepia: Konva.Filters.Sepia,
+  Grayscale: Konva.Filters.Grayscale,
+  Blur: Konva.Filters.Blur,
+  Noise: Konva.Filters.Noise,
+};
+
+/** Build the KonvaFilter array for the active preset + adjust sliders. */
+function buildKonvaFilterChain(
+  preset: FilterPreset | null,
+  adjustments?: ImageAdjustments,
+): KonvaFilter[] {
+  const seen = new Set<string>();
+  const out: KonvaFilter[] = [];
+  const add = (name: string) => {
+    if (seen.has(name)) return;
+    const fn = KONVA_FILTER_MAP[name];
+    if (!fn) return;
+    seen.add(name);
+    out.push(fn);
+  };
+  if (preset) {
+    for (const spec of preset.konvaFilters) add(spec.name);
+  }
+  // Always include the adjustment filters so the sliders work over any preset.
+  if (adjustments) {
+    if (adjustments.brightness !== 0) add("Brighten");
+    if (adjustments.contrast !== 0) add("Contrast");
+    if (adjustments.saturation !== 0) add("HSL");
+    if (adjustments.blur > 0) add("Blur");
+  }
+  return out;
+}
+
+/** Push numeric filter params onto the image node. */
+function applyFilterParams(
+  node: Konva.Image,
+  preset: FilterPreset | null,
+  adjustments?: ImageAdjustments,
+) {
+  // Reset to neutral before applying.
+  node.brightness(0);
+  node.contrast(0);
+  node.saturation(0);
+  node.hue(0);
+  node.blurRadius(0);
+
+  // Apply preset values first.
+  if (preset) {
+    for (const spec of preset.konvaFilters) {
+      const p = spec.params ?? {};
+      if (spec.name === "Brighten" && p.brightness !== undefined) {
+        node.brightness(p.brightness);
+      } else if (spec.name === "Contrast" && p.contrast !== undefined) {
+        node.contrast(p.contrast);
+      } else if (spec.name === "HSL") {
+        if (p.saturation !== undefined) node.saturation(p.saturation);
+        if (p.hue !== undefined) node.hue(p.hue);
+      } else if (spec.name === "Blur" && p.blurRadius !== undefined) {
+        node.blurRadius(p.blurRadius);
+      }
+    }
+  }
+  // Adjustments add on top of preset values.
+  if (adjustments) {
+    node.brightness(node.brightness() + adjustments.brightness);
+    node.contrast(node.contrast() + adjustments.contrast);
+    node.saturation(node.saturation() + adjustments.saturation);
+    if (adjustments.blur > 0) node.blurRadius(adjustments.blur);
+  }
 }
 
 /** Object-fit: contain inside the stage. */
