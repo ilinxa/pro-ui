@@ -17,10 +17,13 @@ import { ModeTogglePill } from "./parts/mode-toggle-pill";
 import { ComposerCamera } from "./parts/composer-camera";
 import { ComposerToolbar } from "./parts/composer-toolbar";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
+import { ToolDrawControls } from "./parts/tool-draw-controls";
 import { ToolFilterStrip } from "./parts/tool-filter-strip";
 import { ToolStickerPicker } from "./parts/tool-sticker-picker";
 import { ToolTextInput } from "./parts/tool-text-input";
 import { VideoTrimBar } from "./parts/video-trim-bar";
+import { useDrawingStroke } from "./hooks/use-drawing-stroke";
+import { useHistory } from "./hooks/use-history";
 import { resolveFilterPresets } from "./lib/konva-filters";
 import { resolveStickerSets } from "./lib/built-in-stickers";
 import {
@@ -46,6 +49,7 @@ import {
   DEFAULT_ADJUSTMENTS,
   DEFAULT_STORY_COMPOSER_LABELS,
   type EditTool,
+  type DrawingStroke,
   type ImageAdjustments,
   type PlacedSticker,
   type StickerOption,
@@ -137,6 +141,12 @@ export const StoryComposer01 = forwardRef<
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(
     null,
   );
+  const [drawingStrokes, setDrawingStrokes] = useState<DrawingStroke[]>([]);
+  const [drawColor, setDrawColor] = useState("#ffffff");
+  const [drawBrushSize, setDrawBrushSize] = useState(8);
+  const [drawMode, setDrawMode] = useState<"draw" | "erase">("draw");
+
+  const history = useHistory({ capacity: 50, bindKeyboard: isOpen });
 
   const activeFilter = useMemo(
     () => presets.find((p) => p.id === activeFilterId) ?? null,
@@ -158,10 +168,12 @@ export const StoryComposer01 = forwardRef<
       setSelectedTextId(null);
       setPlacedStickers([]);
       setSelectedStickerId(null);
+      setDrawingStrokes([]);
+      history.reset();
     }
-  }, []);
+  }, [history]);
 
-  // ─── Text-overlay commands (designed so C10 can wrap into history) ────
+  // ─── Text-overlay commands (wrapped through history for C10 undo) ─────
 
   const addTextOverlay = useCallback(
     (initialText?: string) => {
@@ -178,33 +190,74 @@ export const StoryComposer01 = forwardRef<
         fill: "#ffffff",
         align: "center",
       };
-      setTextOverlays((prev) => [...prev, newOverlay]);
+      history.execute({
+        label: "Add text",
+        do: () => setTextOverlays((prev) => [...prev, newOverlay]),
+        undo: () =>
+          setTextOverlays((prev) => prev.filter((o) => o.id !== id)),
+      });
       setSelectedTextId(id);
       state.markDirty(true);
     },
-    [fonts, labels.textPlaceholder, state],
+    [fonts, history, labels.textPlaceholder, state],
   );
 
   const updateTextOverlay = useCallback(
     (next: TextOverlay) => {
-      setTextOverlays((prev) =>
-        prev.map((o) => (o.id === next.id ? next : o)),
-      );
+      // Capture the previous state once when this terminal action fires.
+      let prevOverlay: TextOverlay | undefined;
+      setTextOverlays((prev) => {
+        prevOverlay = prev.find((o) => o.id === next.id);
+        return prev;
+      });
+      if (!prevOverlay) return;
+      const before = prevOverlay;
+      history.execute({
+        label: "Edit text",
+        do: () =>
+          setTextOverlays((prev) =>
+            prev.map((o) => (o.id === next.id ? next : o)),
+          ),
+        undo: () =>
+          setTextOverlays((prev) =>
+            prev.map((o) => (o.id === before.id ? before : o)),
+          ),
+      });
       state.markDirty(true);
     },
-    [state],
+    [history, state],
   );
 
   const deleteTextOverlay = useCallback(
     (id: string) => {
-      setTextOverlays((prev) => prev.filter((o) => o.id !== id));
+      let removed: TextOverlay | undefined;
+      let index = -1;
+      setTextOverlays((prev) => {
+        index = prev.findIndex((o) => o.id === id);
+        removed = prev[index];
+        return prev;
+      });
+      if (!removed) return;
+      const item = removed;
+      const at = index;
+      history.execute({
+        label: "Delete text",
+        do: () =>
+          setTextOverlays((prev) => prev.filter((o) => o.id !== id)),
+        undo: () =>
+          setTextOverlays((prev) => {
+            const copy = [...prev];
+            copy.splice(at, 0, item);
+            return copy;
+          }),
+      });
       setSelectedTextId((prev) => (prev === id ? null : prev));
       state.markDirty(true);
     },
-    [state],
+    [history, state],
   );
 
-  // ─── Sticker commands ─────────────────────────────────────────────────
+  // ─── Sticker commands (wrapped through history) ──────────────────────
 
   const addStickerOverlay = useCallback(
     (sticker: StickerOption) => {
@@ -217,23 +270,65 @@ export const StoryComposer01 = forwardRef<
         rotation: 0,
         scale: 1,
       };
-      setPlacedStickers((prev) => [...prev, placed]);
+      history.execute({
+        label: "Add sticker",
+        do: () => setPlacedStickers((prev) => [...prev, placed]),
+        undo: () =>
+          setPlacedStickers((prev) => prev.filter((s) => s.id !== id)),
+      });
       setSelectedStickerId(id);
       setSelectedTextId(null);
       state.markDirty(true);
     },
-    [state],
+    [history, state],
   );
 
   const updateStickerOverlay = useCallback(
     (next: PlacedSticker) => {
-      setPlacedStickers((prev) =>
-        prev.map((s) => (s.id === next.id ? next : s)),
-      );
+      let prev: PlacedSticker | undefined;
+      setPlacedStickers((cur) => {
+        prev = cur.find((s) => s.id === next.id);
+        return cur;
+      });
+      if (!prev) return;
+      const before = prev;
+      history.execute({
+        label: "Move sticker",
+        do: () =>
+          setPlacedStickers((cur) =>
+            cur.map((s) => (s.id === next.id ? next : s)),
+          ),
+        undo: () =>
+          setPlacedStickers((cur) =>
+            cur.map((s) => (s.id === before.id ? before : s)),
+          ),
+      });
       state.markDirty(true);
     },
-    [state],
+    [history, state],
   );
+
+  // ─── Drawing-stroke command ───────────────────────────────────────────
+
+  const commitDrawingStroke = useCallback(
+    (stroke: DrawingStroke) => {
+      history.execute({
+        label: "Draw stroke",
+        do: () => setDrawingStrokes((prev) => [...prev, stroke]),
+        undo: () =>
+          setDrawingStrokes((prev) => prev.filter((s) => s.id !== stroke.id)),
+      });
+      state.markDirty(true);
+    },
+    [history, state],
+  );
+
+  const drawing = useDrawingStroke({
+    color: drawColor,
+    brushSize: drawBrushSize,
+    mode: drawMode,
+    onStrokeComplete: commitDrawingStroke,
+  });
 
   const handlePhoto = useCallback(
     (photo: CapturedPhoto) => {
@@ -490,11 +585,34 @@ export const StoryComposer01 = forwardRef<
                       setSelectedTextId(null);
                     }
                   }}
+                  drawingStrokes={drawingStrokes}
+                  currentDrawingStroke={drawing.currentStroke}
+                  isDrawing={activeTool === "draw"}
+                  onDrawBegin={drawing.beginAt}
+                  onDrawExtend={drawing.extendTo}
+                  onDrawEnd={drawing.end}
                 />
               </Suspense>
             )}
           </div>
-          {/* Active tool panel (text / stickers / filters / adjust — draw/crop land C10-C11) */}
+          {/* Active tool panel (text / draw / stickers / filters / adjust — crop lands C11) */}
+          {draft.kind === "image" && activeTool === "draw" ? (
+            <div
+              className="shrink-0 px-3 pt-2"
+              style={{ paddingBottom: "0.5rem" }}
+            >
+              <ToolDrawControls
+                color={drawColor}
+                brushSize={drawBrushSize}
+                mode={drawMode}
+                colorPresets={colorPresets}
+                labels={labels}
+                onColorChange={setDrawColor}
+                onBrushSizeChange={setDrawBrushSize}
+                onModeChange={setDrawMode}
+              />
+            </div>
+          ) : null}
           {draft.kind === "image" && activeTool === "stickers" ? (
             <div
               className="shrink-0 px-3 pt-2"
@@ -579,7 +697,7 @@ export const StoryComposer01 = forwardRef<
               <ComposerToolbar
                 activeTool={activeTool}
                 enabledTools={enabledTools}
-                pendingTools={["draw", "crop"]}
+                pendingTools={["crop"]}
                 labels={labels}
                 onSelect={handleToolSelect}
               />

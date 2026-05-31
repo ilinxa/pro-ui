@@ -7,6 +7,7 @@ import {
   Stage,
   Layer,
   Image as KonvaImage,
+  Line as KonvaLine,
   Text as KonvaText,
   Transformer,
 } from "react-konva";
@@ -17,6 +18,7 @@ import {
 } from "../hooks/use-konva-stage-size";
 import { useKonvaSelection } from "../hooks/use-konva-selection";
 import type {
+  DrawingStroke,
   FilterPreset,
   ImageAdjustments,
   PlacedSticker,
@@ -51,6 +53,15 @@ export interface ComposerEditorProps {
   selectedStickerId?: string | null;
   onStickerChange?: (next: PlacedSticker) => void;
   onStickerSelect?: (id: string | null) => void;
+  /** Completed drawing strokes (C10). */
+  drawingStrokes?: DrawingStroke[];
+  /** In-progress stroke (rendered live while pointer is down). */
+  currentDrawingStroke?: DrawingStroke | null;
+  /** When true, Stage pointer events feed the drawing pipeline. */
+  isDrawing?: boolean;
+  onDrawBegin?: (x: number, y: number) => void;
+  onDrawExtend?: (x: number, y: number) => void;
+  onDrawEnd?: () => void;
   className?: string;
 }
 
@@ -81,6 +92,12 @@ export function ComposerEditor({
   selectedStickerId,
   onStickerChange,
   onStickerSelect,
+  drawingStrokes,
+  currentDrawingStroke,
+  isDrawing = false,
+  onDrawBegin,
+  onDrawExtend,
+  onDrawEnd,
   className,
 }: ComposerEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -138,11 +155,40 @@ export function ComposerEditor({
 
   // Click on bare Stage background → clear all selection.
   const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isDrawing) {
+      // Drawing intercepts everything — see handleStagePointerDown below.
+      return;
+    }
     if (e.target === e.target.getStage()) {
       onTextSelect?.(null);
       onStickerSelect?.(null);
       selection.clear();
     }
+  };
+
+  // Drawing-mode pointer pipeline. We read the cursor position from the
+  // Stage so it's already in stage coordinates (not page coordinates).
+  const handleStagePointerDown = (
+    e: Konva.KonvaEventObject<PointerEvent>,
+  ) => {
+    if (!isDrawing) return;
+    const stage = e.target.getStage();
+    const pos = stage?.getPointerPosition();
+    if (pos) onDrawBegin?.(pos.x, pos.y);
+  };
+
+  const handleStagePointerMove = (
+    e: Konva.KonvaEventObject<PointerEvent>,
+  ) => {
+    if (!isDrawing || !currentDrawingStroke) return;
+    const stage = e.target.getStage();
+    const pos = stage?.getPointerPosition();
+    if (pos) onDrawExtend?.(pos.x, pos.y);
+  };
+
+  const handleStagePointerUp = () => {
+    if (!isDrawing) return;
+    onDrawEnd?.();
   };
 
   return (
@@ -170,7 +216,12 @@ export function ComposerEditor({
           height={stageSize.height}
           onMouseDown={handleStageMouseDown}
           onTouchStart={handleStageMouseDown as unknown as (e: Konva.KonvaEventObject<TouchEvent>) => void}
+          onPointerDown={handleStagePointerDown}
+          onPointerMove={handleStagePointerMove}
+          onPointerUp={handleStagePointerUp}
+          onPointerCancel={handleStagePointerUp}
           className="absolute inset-0"
+          style={isDrawing ? { cursor: "crosshair" } : undefined}
         >
           {/* image layer */}
           <Layer listening={false}>
@@ -185,8 +236,41 @@ export function ComposerEditor({
               />
             ) : null}
           </Layer>
-          {/* drawing layer — empty in C6, populated C10 */}
-          <Layer />
+          {/* drawing layer (C10) */}
+          <Layer listening={false}>
+            {drawingStrokes?.map((stroke) => (
+              <KonvaLine
+                key={stroke.id}
+                points={stroke.points}
+                stroke={stroke.color}
+                strokeWidth={stroke.brushSize}
+                lineCap="round"
+                lineJoin="round"
+                tension={0.4}
+                globalCompositeOperation={
+                  stroke.mode === "erase"
+                    ? "destination-out"
+                    : "source-over"
+                }
+              />
+            ))}
+            {currentDrawingStroke ? (
+              <KonvaLine
+                key="current"
+                points={currentDrawingStroke.points}
+                stroke={currentDrawingStroke.color}
+                strokeWidth={currentDrawingStroke.brushSize}
+                lineCap="round"
+                lineJoin="round"
+                tension={0.4}
+                globalCompositeOperation={
+                  currentDrawingStroke.mode === "erase"
+                    ? "destination-out"
+                    : "source-over"
+                }
+              />
+            ) : null}
+          </Layer>
           {/* sticker layer (C9) */}
           <Layer>
             {stickers?.map((placed) => {
