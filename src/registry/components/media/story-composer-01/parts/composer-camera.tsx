@@ -8,6 +8,7 @@ import {
   useMediaCapture,
   validateGalleryFile,
   type CapturedPhoto,
+  type CapturedVideo,
 } from "../hooks/use-media-capture";
 import { useCameraPermissions } from "../hooks/use-camera-permissions";
 import { CameraPermissionPrompt } from "./camera-permission-prompt";
@@ -26,8 +27,10 @@ export interface ComposerCameraProps {
   defaultFacing?: "user" | "environment";
   recordAudio?: boolean;
   maxFileSizeMb?: number;
+  maxVideoDurationSec?: number;
   labels: Required<StoryComposer01Labels>;
   onPhoto: (photo: CapturedPhoto) => void;
+  onVideo: (video: CapturedVideo) => void;
   /** Loads an image / video file picked from the gallery into the editor. */
   onGalleryFile: (file: File) => void;
   onValidationError?: (error: ValidationError) => void;
@@ -41,8 +44,10 @@ export function ComposerCamera({
   defaultFacing,
   recordAudio = true,
   maxFileSizeMb = 50,
+  maxVideoDurationSec = 30,
   labels,
   onPhoto,
+  onVideo,
   onGalleryFile,
   onValidationError,
   onPermissionDenied,
@@ -55,6 +60,7 @@ export function ComposerCamera({
     enabled,
     defaultFacing,
     recordAudio,
+    maxVideoDurationSec,
   });
 
   // Surface permission-denied to the consumer once.
@@ -71,14 +77,40 @@ export function ComposerCamera({
   // Front-camera preview is mirrored to match user expectation; rear is not.
   const mirrored = capture.facing === "user";
 
-  const handleShutter = async () => {
+  const handleShutterPhoto = async () => {
     if (busy || capture.status !== "ready") return;
     setBusy(true);
     try {
       const photo = await capture.takePhoto();
       onPhoto(photo);
     } catch {
-      // Could surface as ValidationError but for now silently fail; C5 logs.
+      /* swallow — could surface as ValidationError later */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleVideoStart = async () => {
+    if (busy || capture.status !== "ready") return;
+    try {
+      await capture.startRecording();
+    } catch (err) {
+      onValidationError?.({
+        kind: "unsupported-codec",
+        message:
+          (err as Error)?.message ?? "Video recording is not supported here",
+      });
+    }
+  };
+
+  const handleVideoStop = async () => {
+    if (!capture.isRecording) return;
+    setBusy(true);
+    try {
+      const video = await capture.stopRecording();
+      onVideo(video);
+    } catch {
+      /* swallow */
     } finally {
       setBusy(false);
     }
@@ -147,6 +179,21 @@ export function ComposerCamera({
         </div>
       )}
 
+      {/* Recording indicator — red dot + mm:ss top-center */}
+      {capture.isRecording && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md px-3 py-1.5 text-white"
+        >
+          <span className="size-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-xs font-mono tabular-nums">
+            {formatRecordingTime(capture.recordingMs)}
+          </span>
+          <span className="sr-only">{labels.recordingLabel}</span>
+        </div>
+      )}
+
       {/* Bottom control row — gallery / shutter / switch-camera */}
       <div
         className={cn(
@@ -165,16 +212,32 @@ export function ComposerCamera({
           <ImageIcon className="size-5" />
         </Button>
 
-        {/* Shutter — disabled until camera ready or in text-only mode */}
+        {/* Shutter — photo: tap | video: long-press hold OR tap-to-toggle */}
         <ShutterButton
-          onPress={handleShutter}
+          mode={mode === "video" ? "video" : "photo"}
+          onPress={handleShutterPhoto}
+          onStart={handleVideoStart}
+          onStop={handleVideoStop}
+          isRecording={capture.isRecording}
+          recordProgress={
+            capture.isRecording
+              ? Math.min(
+                  1,
+                  capture.recordingMs / (maxVideoDurationSec * 1000),
+                )
+              : 0
+          }
           disabled={
             busy ||
             capture.status !== "ready" ||
-            mode === "text" /* text-only mode has no shutter */
+            mode === "text"
           }
           ariaLabel={
-            mode === "video" ? labels.shutterVideoStart : labels.shutterPhoto
+            mode === "video"
+              ? capture.isRecording
+                ? labels.shutterVideoStop
+                : labels.shutterVideoStart
+              : labels.shutterPhoto
           }
         />
 
@@ -204,4 +267,11 @@ export function ComposerCamera({
       />
     </div>
   );
+}
+
+function formatRecordingTime(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
