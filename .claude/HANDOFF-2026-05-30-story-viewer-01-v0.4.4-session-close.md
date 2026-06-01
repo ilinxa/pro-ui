@@ -38,7 +38,7 @@
 - ✅ `registry:build` clean
 - ✅ Built artifact ships the 2 v0.4.0 cube files
 - ✅ Docs site returns 200 at `/components/story-viewer-01`
-- ⏳ **Post-push smoke harness** — should run against the live artifact once Vercel rebuilds (see Open follow-ups)
+- ✅ **Post-push smoke harness — PASS (2026-05-30 resume session).** `pnpm dlx shadcn@4.6.0 add @ilinxa/story-viewer-01` installed 28/28 files into `e:/tmp/ilinxa-smoke-consumer/` (incl. both v0.4.0 cube files `hooks/use-cube-transition.ts` + `parts/story-cube-face.tsx`); consumer-side `pnpm tsc --noEmit` clean (one orphan error in stranded `src/components/ui/command.tsx` from a previous smoke was unrelated and cleared after deletion). Harness baseline reset clean per `HARNESS.md`. Live registry tip = `b5fd8e6` deploy state (size diff vs local artifact was CRLF↔LF line endings only). Closes Open follow-up #2.
 
 ## Concurrent in-flight (untouched)
 
@@ -55,11 +55,11 @@
 
 ## Open follow-ups (carried forward)
 
-Both are **deferred** — not in-flight, not blocking. Top of queue when story-viewer-01 work resumes:
+One remaining, **deferred** — not in-flight, not blocking:
 
 1. **Smile-icon reaction polish** — needs `engagement-bar-01` upstream `defaultReactionIcon` prop. Same status as in the v0.3.9 handoff. The current dummy data uses ThumbsUp/Heart/Laugh icons which display fine; the polish would let consumers default-style their reaction picker without supplying icons.
 
-2. **Live smoke harness verification** — run `pnpm dlx shadcn add @ilinxa/story-viewer-01` into `e:/tmp/ilinxa-smoke-consumer/` once Vercel rebuilds + redeploys the registry. Confirm consumer-side `pnpm tsc --noEmit` is clean post-install. The local artifact at `public/r/story-viewer-01.json` already ships the 28-file roster; the verify confirms the path-rewriter handles them all cleanly through `shadcn add`.
+2. ~~**Live smoke harness verification**~~ — **CLOSED 2026-05-30 resume session.** See Verification status above.
 
 ## Top-of-queue alternatives
 

@@ -139,6 +139,14 @@ export function ComposerEditor({
   const [image, imageSize] = useImage(imageUrl);
   const fit = fitInto(imageSize, stageSize);
 
+  // Plain-<img> underlay: visible while Konva decodes the blob URL into its
+  // own HTMLImageElement and waits for the Stage's ResizeObserver to fire.
+  // Without this the user sees a black background between Suspense resolving
+  // and the KonvaImage actually rendering. Once `image` lands, hide the
+  // underlay so applied filters/adjustments aren't doubled by the unfiltered
+  // copy bleeding through Konva's transparent canvas.
+  const showUnderlay = !!imageUrl && !image;
+
   useEffect(() => {
     if (stageSize.width > 0 && stageSize.height > 0) {
       onStageSize?.(stageSize);
@@ -247,6 +255,16 @@ export function ComposerEditor({
       onPointerUp={panZoom.handlers.onPointerUp}
       onPointerCancel={panZoom.handlers.onPointerCancel}
     >
+      {/* Instant-photo underlay — see `showUnderlay` above. */}
+      {showUnderlay ? (
+        <img
+          src={imageUrl ?? undefined}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+        />
+      ) : null}
+
       {/* Video drafts render as plain <video> until C7+ wires overlays. */}
       {videoUrl ? (
         <video

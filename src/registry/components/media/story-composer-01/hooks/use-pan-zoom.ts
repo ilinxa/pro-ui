@@ -250,21 +250,24 @@ export function usePanZoom(
       ) {
         return;
       }
+      // Arrow keys move the IMAGE in the arrow's direction (the natural
+      // mental model when you're looking at media you want to reposition),
+      // not the viewport. ArrowRight ⇒ image shifts right ⇒ transform.x +.
       switch (e.key) {
         case "ArrowLeft":
-          panBy(panStep, 0);
-          e.preventDefault();
-          break;
-        case "ArrowRight":
           panBy(-panStep, 0);
           e.preventDefault();
           break;
+        case "ArrowRight":
+          panBy(panStep, 0);
+          e.preventDefault();
+          break;
         case "ArrowUp":
-          panBy(0, panStep);
+          panBy(0, -panStep);
           e.preventDefault();
           break;
         case "ArrowDown":
-          panBy(0, -panStep);
+          panBy(0, panStep);
           e.preventDefault();
           break;
         case "+":
