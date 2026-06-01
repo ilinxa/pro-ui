@@ -41,8 +41,17 @@ export interface UseMediaCaptureOptions {
   enabled: boolean;
   /** Initial camera facing. Auto-detected from UA touch capability if undefined. */
   defaultFacing?: FacingMode;
-  /** Capture audio. Default true (required for any usable video). */
-  recordAudio?: boolean;
+  /**
+   * Request an audio track alongside the video. Default false.
+   *
+   * **Critical:** only set true when the consumer actually needs audio
+   * (i.e. video-mode recording). Photo / text capture should always pass
+   * false — requesting mic permission for photo capture is the leading
+   * cause of the v0.1.3 flicker-loop: if the user grants camera but
+   * denies mic, getUserMedia({audio:true}) rejects, status becomes
+   * "denied", the auto-retry effect re-fires, repeat.
+   */
+  requestAudio?: boolean;
   /** Hard cap on a single recording in seconds. Default 30. */
   maxVideoDurationSec?: number;
 }
@@ -97,7 +106,7 @@ export function useMediaCapture(
   const {
     enabled,
     defaultFacing,
-    recordAudio = true,
+    requestAudio = false,
     maxVideoDurationSec = 30,
   } = options;
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -152,7 +161,7 @@ export function useMediaCapture(
     try {
       const next = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: facing } },
-        audio: recordAudio,
+        audio: requestAudio,
       });
       streamRef.current = next;
       setStream(next);
@@ -178,7 +187,7 @@ export function useMediaCapture(
       }
       setError(err as Error);
     }
-  }, [facing, recordAudio, release]);
+  }, [facing, requestAudio, release]);
 
   // Auto-acquire on mount when enabled; release on unmount / disable.
   useEffect(() => {
@@ -189,9 +198,12 @@ export function useMediaCapture(
     void acquire();
     return release;
     // We don't add `acquire` to deps directly because it changes when facing
-    // flips; the explicit switchCamera path handles re-acquisition.
+    // flips (handled by switchCamera). But we DO depend on `requestAudio` so
+    // toggling photo↔video correctly releases + re-acquires with/without an
+    // audio track (without it, video mode would inherit a video-only stream
+    // from a prior photo-mode acquire and record silent video).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, release]);
+  }, [enabled, requestAudio, release]);
 
   // Attach the stream to <video>. The <video> tag will be null on first render
   // (rendered in composer-camera), so this fires whenever stream becomes ready.
@@ -226,7 +238,7 @@ export function useMediaCapture(
           setStatus("acquiring");
           const s = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: { ideal: next } },
-            audio: recordAudio,
+            audio: requestAudio,
           });
           streamRef.current = s;
           setStream(s);
@@ -244,7 +256,7 @@ export function useMediaCapture(
         }
       })();
     });
-  }, [facing, recordAudio, release]);
+  }, [facing, requestAudio, release]);
 
   // ─── Recording controls ─────────────────────────────────────────────
 
