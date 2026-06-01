@@ -1,6 +1,6 @@
 # story-composer-01 — consumer guide
 
-> v0.1.0 alpha. Third (and final) component in the story-system trilogy:
+> v0.1.5 alpha. Third (and final) component in the story-system trilogy:
 > [`story-rail-01`](../story-rail-01-procomp/) (discovery), [`story-viewer-01`](../story-viewer-01-procomp/) (consumption),
 > **`story-composer-01`** (creation). Builds on `react-konva` v19 + `konva` v10. Camera-first.
 
@@ -10,7 +10,7 @@
 pnpm dlx shadcn@latest add @ilinxa/story-composer-01
 ```
 
-Adds: 35 source files, 2 peer deps (`konva ^10.3.0` + `react-konva ^19.2.4`), 6 shadcn primitives (`alert-dialog`, `button`, `dialog`, `popover`, `slider`, `toggle-group`).
+Adds: 37 source files, 2 peer deps (`konva ^10.3.0` + `react-konva ^19.2.4`), 6 shadcn primitives (`alert-dialog`, `button`, `dialog`, `popover`, `slider`, `toggle-group`).
 
 Optional fixtures item (`@ilinxa/story-composer-01-fixtures`) ships sample dummy data for demos.
 
@@ -50,20 +50,52 @@ export function CreateStoryButton() {
 
 Hide modes via `hideModes={["video", "text"]}`. Change default via `defaultMode="text"`.
 
-## Edit tools (all enabled by default)
+## Edit tools
 
-| Tool | Behavior |
-|---|---|
-| **Text** | Draggable, rotatable, scaleable text overlays. Font / size / color / align. Multiple overlays per story. |
-| **Draw** | Vector freehand strokes (Konva.Line) with eraser (composite-out). Color + brush size (1-60px). |
-| **Stickers** | 36 built-in emoji stickers + your own via `stickers={[…]}`. Draggable, rotatable, scaleable. |
-| **Filters** | 10 presets (Clarendon / Gingham / Moon / Lark / Reyes / Juno / Slumber / Crema / Ludwig + Original). Pre-rendered thumbnails on edit-mode entry. |
-| **Adjust** | Brightness / Contrast / Saturation / Blur sliders. Applied via Konva's filter chain on top of any preset. |
-| **Crop** | 3 aspect ratios (9:16, 1:1, 4:5). Crop is a viewport-export concern — overlays stay where they are; pixels outside the rect get clipped on publish. |
+Five tools ship enabled by default; **Crop is opt-in** (since v0.1.4) because stories are 9:16-locked by platform convention — most consumers don't need it. Default `enabledTools` is `["text","draw","stickers","filters","adjust"]`.
 
-Disable any subset via `enabledTools={["text","filters","adjust"]}`.
+| Tool | Default? | Behavior |
+|---|---|---|
+| **Text** | ✅ | Draggable, rotatable, scaleable text overlays. Font / size / color / align. Multiple overlays per story. |
+| **Draw** | ✅ | Vector freehand strokes (Konva.Line) with eraser (composite-out). Color + brush size (1-60px). |
+| **Stickers** | ✅ | 36 built-in emoji stickers + your own via `stickers={[…]}`. Draggable, rotatable, scaleable. |
+| **Filters** | ✅ | 10 presets (Clarendon / Gingham / Moon / Lark / Reyes / Juno / Slumber / Crema / Ludwig + Original). Pre-rendered thumbnails on edit-mode entry. |
+| **Adjust** | ✅ | Brightness / Contrast / Saturation / Blur sliders. Applied via Konva's filter chain on top of any preset. |
+| **Crop** | ❌ opt-in | 3 aspect ratios (9:16, 1:1, 4:5). Crop is a viewport-export concern — overlays stay where they are; pixels outside the rect get clipped on publish. Enable for post-style composers that aren't 9:16-locked. |
+
+Customize the toolbar via `enabledTools`:
+
+```tsx
+// Default — five tools, no crop (story flow)
+<StoryComposer01 isOpen={open} onClose={…} />
+
+// Post-style composer that lets users pick 9:16 / 1:1 / 4:5
+<StoryComposer01
+  enabledTools={["text", "draw", "stickers", "filters", "adjust", "crop"]}
+  cropAspects={["9:16", "1:1", "4:5"]}
+/>
+
+// Minimal — text + filters only
+<StoryComposer01 enabledTools={["text", "filters"]} />
+```
 
 Undo/redo on every overlay command + every drawing stroke. Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z. 50-deep stack, FIFO past cap.
+
+## Pan + pinch-zoom
+
+The editor canvas supports 1× → 4× zoom anchored to the cursor / pinch midpoint. Added in v0.1.3 and refined in v0.1.4 + v0.1.5.
+
+| Gesture | Behavior |
+|---|---|
+| **2-finger pinch** (touch) | Zoom anchored to the midpoint; simultaneous 2-finger drag pans |
+| **Mouse wheel** (desktop) | Zoom anchored to the cursor. Native non-passive listener so the canvas wins over the browser's Ctrl+wheel page-zoom |
+| **Arrow keys** | Pan in the arrow's direction (→ moves image right, ↓ moves image down, etc.) |
+| **`+` / `=` / `-` / `_`** | Zoom in / out |
+| **`0`** | Reset to 1× / origin |
+
+Single-finger touch is **not** consumed — text + sticker + drawing pipelines keep their pointer events; pan-zoom only engages when a second pointer joins. The hook auto-disables during drawing (pointer-pipeline conflict) and during crop (DOM overlay can't ride the Stage transform yet — v0.2 rewrite queued).
+
+A `Reset zoom (NNN%)` chip appears top-left while the canvas is zoomed or panned.
 
 ## Publish
 

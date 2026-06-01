@@ -46,7 +46,10 @@ export function Example() {
         <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
           <li>
             <strong>Photo</strong> — camera tap → instant editor with the
-            full toolbar (Text / Draw / Stickers / Filters / Adjust / Crop).
+            default toolbar (Text / Draw / Stickers / Filters / Adjust). Crop
+            is opt-in via{" "}
+            <code>enabledTools={'{[…, "crop"]}'}</code> — stories are 9:16-locked,
+            so default flows don't need it.
           </li>
           <li>
             <strong>Video</strong> — long-press hold OR tap-to-toggle shutter.
@@ -81,6 +84,18 @@ export function Example() {
             return <code>{"{ url, thumbnailUrl? }"}</code>.
           </li>
         </ul>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-base font-semibold">Pan + pinch-zoom</h3>
+        <p className="text-muted-foreground">
+          The editor canvas supports 1× → 4× zoom. 2-finger pinch (touch),
+          mouse wheel anchored to the cursor (desktop — native non-passive,
+          beats the browser&apos;s Ctrl+wheel page-zoom), and arrow keys to
+          pan in the arrow direction. <code>+</code> / <code>-</code> /{" "}
+          <code>0</code> to zoom in / out / reset. Disabled while drawing
+          or cropping.
+        </p>
       </section>
 
       <section>
