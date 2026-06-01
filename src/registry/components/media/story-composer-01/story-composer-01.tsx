@@ -867,7 +867,23 @@ export const StoryComposer01 = forwardRef<
                 className="absolute inset-0 w-full h-full object-contain"
               />
             ) : (
-              <Suspense fallback={<div className="absolute inset-0 bg-black" />}>
+              <Suspense
+                fallback={
+                  // Show the captured photo immediately as a plain <img> while
+                  // the lazy react-konva chunk resolves on first open. Without
+                  // this the user stares at a black box for the chunk + image
+                  // decode + Konva stage init — the captured pixels already
+                  // exist the moment we hand back the blob URL.
+                  <div className="absolute inset-0 bg-black">
+                    <img
+                      src={draft.url}
+                      alt=""
+                      className="w-full h-full object-contain"
+                      draggable={false}
+                    />
+                  </div>
+                }
+              >
                 <ComposerEditor
                   imageUrl={draft.url}
                   background={editorBackground}
