@@ -2275,6 +2275,7 @@
         { "path": "src/registry/components/media/story-composer-01/hooks/use-konva-selection.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-konva-selection.ts" },
         { "path": "src/registry/components/media/story-composer-01/hooks/use-konva-stage-size.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-konva-stage-size.ts" },
         { "path": "src/registry/components/media/story-composer-01/hooks/use-media-capture.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-media-capture.ts" },
+        { "path": "src/registry/components/media/story-composer-01/hooks/use-pan-zoom.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-pan-zoom.ts" },
         { "path": "src/registry/components/media/story-composer-01/hooks/use-story-composer-state.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-story-composer-state.ts" },
         { "path": "src/registry/components/media/story-composer-01/lib/built-in-stickers.ts", "type": "registry:component", "target": "components/story-composer-01/lib/built-in-stickers.ts" },
         { "path": "src/registry/components/media/story-composer-01/lib/composite-video.ts", "type": "registry:component", "target": "components/story-composer-01/lib/composite-video.ts" },

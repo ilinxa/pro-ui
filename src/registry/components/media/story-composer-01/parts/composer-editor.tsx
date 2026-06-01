@@ -17,6 +17,9 @@ import {
   type StageSize,
 } from "../hooks/use-konva-stage-size";
 import { useKonvaSelection } from "../hooks/use-konva-selection";
+import { usePanZoom } from "../hooks/use-pan-zoom";
+import { Button } from "@/components/ui/button";
+import { Maximize2 } from "lucide-react";
 import type { CropRect } from "./tool-crop-overlay";
 import type {
   DrawingStroke,
@@ -124,6 +127,14 @@ export function ComposerEditor({
   const selection = useKonvaSelection();
   const imageNodeRef = useRef<Konva.Image | null>(null);
 
+  // Pan + pinch-zoom (touch 2-finger / Ctrl+wheel / keyboard).
+  // Disabled when:
+  //   - drawing is active (Stage owns the pointer pipeline for strokes)
+  //   - cropping is active (crop overlay is DOM; can't follow stage transform)
+  const panZoom = usePanZoom({
+    enabled: !isDrawing && !cropActive,
+  });
+
   const [image, imageSize] = useImage(imageUrl);
   const fit = fitInto(imageSize, stageSize);
 
@@ -198,7 +209,10 @@ export function ComposerEditor({
   ) => {
     if (!isDrawing) return;
     const stage = e.target.getStage();
-    const pos = stage?.getPointerPosition();
+    // getRelativePointerPosition returns coords AFTER the Stage's own scale +
+    // position transform, which is what we want — strokes stick to the image
+    // regardless of zoom/pan state.
+    const pos = stage?.getRelativePointerPosition();
     if (pos) onDrawBegin?.(pos.x, pos.y);
   };
 
@@ -207,7 +221,10 @@ export function ComposerEditor({
   ) => {
     if (!isDrawing || !currentDrawingStroke) return;
     const stage = e.target.getStage();
-    const pos = stage?.getPointerPosition();
+    // getRelativePointerPosition returns coords AFTER the Stage's own scale +
+    // position transform, which is what we want — strokes stick to the image
+    // regardless of zoom/pan state.
+    const pos = stage?.getRelativePointerPosition();
     if (pos) onDrawExtend?.(pos.x, pos.y);
   };
 
@@ -219,8 +236,16 @@ export function ComposerEditor({
   return (
     <div
       ref={containerRef}
-      className={cn("relative w-full h-full overflow-hidden", className)}
+      className={cn(
+        "relative w-full h-full overflow-hidden touch-none",
+        className,
+      )}
       style={{ background }}
+      onPointerDown={panZoom.handlers.onPointerDown}
+      onPointerMove={panZoom.handlers.onPointerMove}
+      onPointerUp={panZoom.handlers.onPointerUp}
+      onPointerCancel={panZoom.handlers.onPointerCancel}
+      onWheel={panZoom.handlers.onWheel}
     >
       {/* Video drafts render as plain <video> until C7+ wires overlays. */}
       {videoUrl ? (
@@ -243,6 +268,10 @@ export function ComposerEditor({
           }}
           width={stageSize.width}
           height={stageSize.height}
+          scaleX={panZoom.transform.scale}
+          scaleY={panZoom.transform.scale}
+          x={panZoom.transform.x}
+          y={panZoom.transform.y}
           onMouseDown={handleStageMouseDown}
           onTouchStart={handleStageMouseDown as unknown as (e: Konva.KonvaEventObject<TouchEvent>) => void}
           onPointerDown={handleStagePointerDown}
@@ -383,6 +412,23 @@ export function ComposerEditor({
             />
           </Layer>
         </Stage>
+      ) : null}
+
+      {/* Reset-zoom CTA — only visible when zoomed/panned, hidden during crop */}
+      {!panZoom.isIdentity && !cropActive ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={panZoom.reset}
+          aria-label="Reset zoom"
+          className="absolute top-3 left-3 z-20 gap-1.5 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 hover:text-white"
+        >
+          <Maximize2 className="size-3.5" />
+          <span className="text-xs font-mono tabular-nums">
+            {Math.round(panZoom.transform.scale * 100)}%
+          </span>
+        </Button>
       ) : null}
 
       {/* Crop overlay (DOM over the Konva canvas). C11. */}
