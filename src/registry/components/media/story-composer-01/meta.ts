@@ -35,7 +35,7 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-05-31",
   updatedAt: "2026-06-01",

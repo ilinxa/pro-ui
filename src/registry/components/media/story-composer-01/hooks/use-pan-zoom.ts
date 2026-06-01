@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
   type PointerEvent,
-  type WheelEvent,
+  type RefObject,
 } from "react";
 
 export interface PanZoomTransform {
@@ -16,6 +16,13 @@ export interface PanZoomTransform {
 }
 
 export interface UsePanZoomOptions {
+  /**
+   * Container element receiving the gestures. The wheel listener is attached
+   * here as a NATIVE non-passive listener so `e.preventDefault()` actually
+   * blocks the browser's default Ctrl+wheel page-zoom. React's `onWheel` is
+   * registered as passive in modern browsers and can't preventDefault.
+   */
+  targetRef: RefObject<HTMLElement | null>;
   /** When false, all gestures + keys are no-ops. Default true. */
   enabled?: boolean;
   /** When true, the hook listens to window keydown (arrows / +/- / 0). Default true. */
@@ -40,7 +47,6 @@ export interface UsePanZoomResult {
     onPointerMove: (e: PointerEvent) => void;
     onPointerUp: (e: PointerEvent) => void;
     onPointerCancel: (e: PointerEvent) => void;
-    onWheel: (e: WheelEvent) => void;
   };
   reset: () => void;
   /** Programmatic zoom. `center` is in container coordinates. */
@@ -63,10 +69,13 @@ interface PointerInfo {
  *     events; pan-zoom only engages when a second pointer joins)
  *
  * Desktop:
- *   - Ctrl/Cmd + wheel → zoom anchored to the cursor (covers both Ctrl+wheel
- *     on a regular mouse AND the trackpad-pinch synthetic wheel event with
- *     ctrlKey=true that macOS + most browsers emit)
- *   - Plain wheel → ignored (pan via keyboard or 2-finger trackpad)
+ *   - Plain wheel over the canvas → zoom anchored to the cursor. The wheel
+ *     listener is attached natively with `passive: false` + always
+ *     preventDefaults, so the browser's Ctrl+wheel page-zoom doesn't ALSO
+ *     zoom the page when the cursor is over the canvas. Trackpad pinch
+ *     (which browsers report as wheel.ctrlKey=true) is covered too.
+ *   - Vertical scroll over non-canvas areas works normally — the listener
+ *     is scoped to the targetRef element.
  *
  * Keyboard (when bindKeyboard=true and no text input focused):
  *   - Arrow keys → pan (step = panStep)
@@ -78,9 +87,10 @@ interface PointerInfo {
  * scale + position props).
  */
 export function usePanZoom(
-  options: UsePanZoomOptions = {},
+  options: UsePanZoomOptions,
 ): UsePanZoomResult {
   const {
+    targetRef,
     enabled = true,
     bindKeyboard = true,
     minScale = 1,
@@ -204,25 +214,27 @@ export function usePanZoom(
 
   const onPointerCancel = onPointerUp;
 
-  // ─── Wheel (Ctrl/Cmd or trackpad pinch) ──────────────────────────────
+  // ─── Wheel (native non-passive — beats browser page-zoom) ────────────
+  // Plain wheel (no modifier) zooms when over the canvas. Always
+  // preventDefaults so the browser doesn't also zoom the page.
 
-  const onWheel = useCallback(
-    (e: WheelEvent) => {
-      if (!enabled) return;
-      // Trackpad pinch comes through with ctrlKey=true (browser convention).
-      // Plain wheel without modifier is left untouched (could be page scroll).
-      if (!e.ctrlKey && !e.metaKey) return;
+  useEffect(() => {
+    if (!enabled) return;
+    const el = targetRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
       e.preventDefault();
-      const rect = (e.currentTarget as Element).getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const center = {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
       const factor = e.deltaY < 0 ? zoomStep : 1 / zoomStep;
       zoomBy(factor, center);
-    },
-    [enabled, zoomBy, zoomStep],
-  );
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [enabled, targetRef, zoomBy, zoomStep]);
 
   // ─── Keyboard ────────────────────────────────────────────────────────
 
@@ -284,7 +296,6 @@ export function usePanZoom(
       onPointerMove,
       onPointerUp,
       onPointerCancel,
-      onWheel,
     },
     reset,
     zoomBy,

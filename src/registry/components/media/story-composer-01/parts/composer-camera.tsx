@@ -56,10 +56,14 @@ export function ComposerCamera({
   const [busy, setBusy] = useState(false);
 
   const perms = useCameraPermissions();
+  // Only request mic permission for video mode — requesting audio in photo
+  // mode caused the v0.1.3 flicker loop (user might have mic denied while
+  // camera is granted; getUserMedia rejects → status flips → auto-retry).
+  const requestAudio = mode === "video" && recordAudio;
   const capture = useMediaCapture({
     enabled,
     defaultFacing,
-    recordAudio,
+    requestAudio,
     maxVideoDurationSec,
   });
 
@@ -146,11 +150,26 @@ export function ComposerCamera({
 
   // Auto-retry on permission change (Q-P8a) — when the watcher flips to
   // "granted" but our capture is still in "denied", silently re-acquire.
+  //
+  // BOUNDED — fires AT MOST ONCE per granted-state transition. Without this
+  // bound, a stable denial (e.g. mic denied while photo mode requests it)
+  // makes acquire() → fail → status="denied" → effect re-fires → infinite
+  // loop. Resets when status becomes "ready" so a future denial can retry.
+  // Also gates on .status to avoid dep'ing on the whole capture object
+  // (which is a fresh ref every render).
+  const autoRetryAttemptedRef = useRef(false);
   useEffect(() => {
-    if (perms.state === "granted" && capture.status === "denied") {
-      void capture.acquire();
+    if (perms.state === "granted") {
+      if (capture.status === "denied" && !autoRetryAttemptedRef.current) {
+        autoRetryAttemptedRef.current = true;
+        void capture.acquire();
+      } else if (capture.status === "ready") {
+        autoRetryAttemptedRef.current = false;
+      }
+    } else {
+      autoRetryAttemptedRef.current = false;
     }
-  }, [perms.state, capture]);
+  }, [perms.state, capture.status, capture.acquire]);
 
   return (
     <div className="relative flex-1 flex flex-col overflow-hidden">

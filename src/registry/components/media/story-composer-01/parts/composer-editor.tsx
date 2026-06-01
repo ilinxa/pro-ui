@@ -127,11 +127,12 @@ export function ComposerEditor({
   const selection = useKonvaSelection();
   const imageNodeRef = useRef<Konva.Image | null>(null);
 
-  // Pan + pinch-zoom (touch 2-finger / Ctrl+wheel / keyboard).
+  // Pan + pinch-zoom (touch 2-finger / wheel / keyboard).
   // Disabled when:
   //   - drawing is active (Stage owns the pointer pipeline for strokes)
   //   - cropping is active (crop overlay is DOM; can't follow stage transform)
   const panZoom = usePanZoom({
+    targetRef: containerRef,
     enabled: !isDrawing && !cropActive,
   });
 
@@ -245,7 +246,6 @@ export function ComposerEditor({
       onPointerMove={panZoom.handlers.onPointerMove}
       onPointerUp={panZoom.handlers.onPointerUp}
       onPointerCancel={panZoom.handlers.onPointerCancel}
-      onWheel={panZoom.handlers.onWheel}
     >
       {/* Video drafts render as plain <video> until C7+ wires overlays. */}
       {videoUrl ? (

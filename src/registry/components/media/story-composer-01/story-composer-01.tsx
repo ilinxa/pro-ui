@@ -117,7 +117,11 @@ export const StoryComposer01 = forwardRef<
     uploadFields,
     onPublished,
     onPublishError,
-    enabledTools = ["text", "draw", "stickers", "filters", "adjust", "crop"],
+    // Stories are 9:16-locked by platform convention; crop only matters for
+    // post-style flows. Consumers can re-enable via `enabledTools` (e.g.
+    // ["text","draw","stickers","filters","adjust","crop"] for a feed-post
+    // composer that supports 9:16 + 1:1 + 4:5).
+    enabledTools = ["text", "draw", "stickers", "filters", "adjust"],
     filterPresets,
     replaceBuiltinFilters,
     stickers: stickersProp,
