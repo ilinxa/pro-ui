@@ -4,8 +4,8 @@ import { forwardRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ColorSwatchPicker } from "./color-swatch-picker";
-import type { GradientPreset } from "../lib/defaults";
-import type { FontOption, StoryComposer01Labels } from "../types";
+import type { GradientPreset, FontOption } from "../../media-editor-01";
+import type { StoryComposer01Labels } from "../types";
 
 export interface TextOnlyCanvasProps {
   gradients: GradientPreset[];

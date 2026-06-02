@@ -38,15 +38,16 @@ import {
 import { VideoTrimBar } from "./parts/video-trim-bar";
 import { useDrawingStroke, useHistory } from "../media-editor-01";
 import { useImageUploader } from "./hooks/use-image-uploader";
-import { compositeVideo } from "./lib/composite-video";
-import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
-import { resolveFilterPresets } from "./lib/konva-filters";
-import { resolveStickerSets } from "./lib/built-in-stickers";
 import {
+  compositeVideo,
+  exportPhotoBlob,
+  exportTextOnlyBlob,
+  resolveFilterPresets,
+  resolveStickerSets,
   DEFAULT_COLOR_PRESETS,
   DEFAULT_FONTS,
   DEFAULT_TEXT_GRADIENTS,
-} from "./lib/defaults";
+} from "../media-editor-01";
 
 // React.lazy defers the react-konva import to client-side render, avoiding
 // SSR evaluation of konva's top-level `window` reference. Cannot use

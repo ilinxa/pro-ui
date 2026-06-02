@@ -83,32 +83,20 @@ export {
 } from "./hooks/use-image-uploader";
 
 // ─── Lib helpers ───────────────────────────────────────────────────────
+// All lib helpers moved to media-editor-01 in v0.2.0.
+// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
 
 export {
   resolveFilterPresets,
   BUILT_IN_FILTER_PRESETS,
-} from "./lib/konva-filters";
-
-export {
   resolveStickerSets,
   BUILT_IN_STICKER_SETS,
-} from "./lib/built-in-stickers";
-
-export {
   exportPhotoBlob,
   exportTextOnlyBlob,
   type ExportPhotoOptions,
-} from "./lib/export-blob";
-
-export {
   compositeVideo,
   type CompositeVideoOptions,
   type CompositeVideoResult,
-} from "./lib/composite-video";
-
-// Re-export — mime-fallback moved to media-editor-01 in v0.2.0.
-// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
-export {
   selectRecorderMime,
   containerFor,
   PREFERRED_RECORDER_MIME_TYPES,
@@ -116,13 +104,15 @@ export {
 } from "../media-editor-01";
 
 // ─── Default tokens ────────────────────────────────────────────────────
+// Moved to media-editor-01/lib/defaults.ts in v0.2.0.
+// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
 
 export {
   DEFAULT_TEXT_GRADIENTS,
   DEFAULT_FONTS,
   DEFAULT_COLOR_PRESETS,
   type GradientPreset,
-} from "./lib/defaults";
+} from "../media-editor-01";
 
 // ─── Crop helpers (CropRect type lives here; helper functions too) ─────
 

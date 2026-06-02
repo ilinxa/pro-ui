@@ -1,5 +1,5 @@
 import type Konva from "konva";
-import type { CropRect } from "../parts/tool-crop-overlay";
+import type { CropRect } from "../types";
 
 export interface ExportPhotoOptions {
   stage: Konva.Stage;

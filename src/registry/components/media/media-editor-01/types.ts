@@ -130,15 +130,15 @@ export type MediaSource = "camera" | "upload";
 // "library" deferred to v0.2+ — see description §"Out of scope"
 
 // ─── Crop ───────────────────────────────────────────────────────────────
-// Originally in story-composer-01/parts/tool-crop-overlay.ts; lifted here as
-// it's editor-shaped and consumers may need the type.
+// Lifted from story-composer-01/parts/tool-crop-overlay.tsx (where v0.1.5
+// defined it). Shape preserved verbatim — 4 fields, no `aspect`. Adding fields
+// would break v0.1.5 consumers via type-narrowing.
 
 export interface CropRect {
   x: number;
   y: number;
   width: number;
   height: number;
-  aspect: AspectRatio;
 }
 
 // ─── Initial source (NEW — CMS re-edit / draft restore path) ────────────
@@ -166,8 +166,8 @@ export type SourceError =
 export interface GradientPreset {
   id: string;
   label: string;
-  /** CSS gradient declaration, e.g. "linear-gradient(135deg, ...)". */
-  css: string;
+  /** CSS background value — used directly on the text-only canvas. (Preserves v0.1.5 contract.) */
+  background: string;
 }
 
 export interface MediaEditorState {

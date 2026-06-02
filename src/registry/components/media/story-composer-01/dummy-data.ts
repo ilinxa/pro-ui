@@ -5,14 +5,14 @@ import type {
 } from "./types";
 
 // Re-export runtime defaults so docs-site demos that import from
-// dummy-data still have access to them. Production base ships the
-// originals in lib/defaults.ts.
+// dummy-data still have access to them. After C4 (v0.2.0 extraction),
+// the originals live in media-editor-01/lib/defaults.ts.
 export {
   DEFAULT_TEXT_GRADIENTS,
   DEFAULT_FONTS,
   DEFAULT_COLOR_PRESETS,
   type GradientPreset,
-} from "./lib/defaults";
+} from "../media-editor-01";
 
 // ─── Sample consumer-supplied sticker set (demo only) ───────────────────
 
