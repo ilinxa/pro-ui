@@ -154,22 +154,49 @@ export function MediumPart(props: ResolvedPartProps) {
       mediaBlock
     );
 
-  // Excerpt block
+  // Paywall scope: gate wraps just the media block, substitutes
+  // paywall.preview for item.excerpt in the body (Q-PG lock — title +
+  // author + footer all stay visible above/below the gate).
+  const isPaywalled =
+    !disablePaywallGate && Boolean(item.paywall?.isPaywalled) && !paywallRevealed;
+
+  const mediaWithPaywall = isPaywalled
+    ? renderPaywallGate
+      ? renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
+      : (
+          <NewsPaywallGate
+            paywall={item.paywall}
+            revealed={paywallRevealed}
+            onReveal={onRevealPaywallInternal}
+            linkComponent={LinkComponent}
+            labels={labels}
+          >
+            {gatedMedia}
+          </NewsPaywallGate>
+        )
+    : gatedMedia;
+
+  // Excerpt block — paywall.preview substitutes for item.excerpt when paywalled
+  const previewText =
+    isPaywalled && item.paywall?.preview
+      ? `${item.paywall.preview} ${labels.paywallPreviewSeparator}`
+      : null;
+  const displayExcerpt = previewText ?? item.excerpt;
+
   const excerptBlock =
-    !disableExcerptRender && item.excerpt ? (
+    !disableExcerptRender && displayExcerpt ? (
       renderExcerpt ? (
         renderExcerpt(item)
       ) : (
         <p className="mb-4 flex-1 text-sm text-muted-foreground line-clamp-3">
-          {item.excerpt}
+          {displayExcerpt}
         </p>
       )
     ) : null;
 
-  // Paywall gate wraps excerpt + media when paywalled
-  const paywallContent = (
+  const articleContent = (
     <>
-      {gatedMedia}
+      {mediaWithPaywall}
       <div className="flex flex-1 flex-col p-6">
         <div className="mb-2 flex items-start justify-between gap-2">
           <h3
@@ -296,24 +323,7 @@ export function MediumPart(props: ResolvedPartProps) {
         />
       ) : null}
 
-      {!disablePaywallGate && item.paywall?.isPaywalled ? (
-        renderPaywallGate ? (
-          renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
-        ) : (
-          <NewsPaywallGate
-            paywall={item.paywall}
-            revealed={paywallRevealed}
-            onReveal={onRevealPaywallInternal}
-            linkComponent={LinkComponent}
-            labels={labels}
-            className="contents"
-          >
-            {paywallContent}
-          </NewsPaywallGate>
-        )
-      ) : (
-        paywallContent
-      )}
+      {articleContent}
     </article>
   );
 }
