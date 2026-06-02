@@ -60,6 +60,9 @@ export {
   type UseStoryComposerStateResult,
 } from "./hooks/use-story-composer-state";
 
+// Re-exports — useMediaCapture + utilities moved to media-editor-01 in v0.2.0.
+// Preserved here for v0.1.5 consumer backward-compat per snapshot contract.
+// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
 export {
   useMediaCapture,
   validateGalleryFile,
@@ -70,7 +73,7 @@ export {
   type CapturedVideo,
   type CaptureStatus,
   type FacingMode,
-} from "./hooks/use-media-capture";
+} from "../media-editor-01";
 
 export {
   useImageUploader,
@@ -103,12 +106,14 @@ export {
   type CompositeVideoResult,
 } from "./lib/composite-video";
 
+// Re-export — mime-fallback moved to media-editor-01 in v0.2.0.
+// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
 export {
   selectRecorderMime,
   containerFor,
   PREFERRED_RECORDER_MIME_TYPES,
   type RecorderMimeType,
-} from "./lib/mime-fallback";
+} from "../media-editor-01";
 
 // ─── Default tokens ────────────────────────────────────────────────────
 

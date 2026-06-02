@@ -57,8 +57,8 @@ export const meta: ComponentMeta = {
       konva: "^10.3.0",
       "react-konva": "^19.2.4",
     },
-    internal: [],
+    internal: ["media-editor-01"],
   },
 
-  related: ["story-viewer-01", "story-rail-01", "post-card-01"],
+  related: ["story-viewer-01", "story-rail-01", "post-card-01", "media-editor-01"],
 };

@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 import {
   useMediaCapture,
   validateGalleryFile,
+  useCameraPermissions,
   type CapturedPhoto,
   type CapturedVideo,
-} from "../hooks/use-media-capture";
-import { useCameraPermissions } from "../hooks/use-camera-permissions";
+} from "../../media-editor-01";
 import { CameraPermissionPrompt } from "./camera-permission-prompt";
 import { ShutterButton } from "./shutter-button";
 import type {

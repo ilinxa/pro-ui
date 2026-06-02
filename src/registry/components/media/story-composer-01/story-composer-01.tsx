@@ -36,8 +36,7 @@ import {
   type TextOnlyCanvasState,
 } from "./parts/text-only-canvas";
 import { VideoTrimBar } from "./parts/video-trim-bar";
-import { useDrawingStroke } from "./hooks/use-drawing-stroke";
-import { useHistory } from "./hooks/use-history";
+import { useDrawingStroke, useHistory } from "../media-editor-01";
 import { useImageUploader } from "./hooks/use-image-uploader";
 import { compositeVideo } from "./lib/composite-video";
 import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
@@ -62,7 +61,7 @@ import {
   type CapturedPhoto,
   type CapturedVideo,
   type UseMediaCaptureResult,
-} from "./hooks/use-media-capture";
+} from "../media-editor-01";
 import {
   DEFAULT_ADJUSTMENTS,
   DEFAULT_STORY_COMPOSER_LABELS,

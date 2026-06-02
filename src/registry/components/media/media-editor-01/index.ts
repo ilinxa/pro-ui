@@ -70,12 +70,73 @@ export type {
 
 export { DEFAULT_ADJUSTMENTS, DEFAULT_LABELS } from "./types";
 
-// ─── Hooks (C3 + C6) ───────────────────────────────────────────────────
-// Re-exports added when the underlying files land via git mv (C3) or are
-// written NEW (C6).
+// ─── Hooks (C3 — moved from story-composer-01 v0.1.5 via git mv) ───────
 
-// ─── Lib helpers (C4) ──────────────────────────────────────────────────
-// Re-exports added when lib files land via git mv.
+export {
+  useMediaCapture,
+  validateGalleryFile,
+  suggestedVideoFilename,
+  type UseMediaCaptureOptions,
+  type UseMediaCaptureResult,
+  type CapturedPhoto,
+  type CapturedVideo,
+  type CaptureStatus,
+  type FacingMode,
+} from "./hooks/use-media-capture";
+
+export {
+  useCameraPermissions,
+  type CameraPermissionState,
+  type UseCameraPermissionsResult,
+} from "./hooks/use-camera-permissions";
+
+export {
+  useDrawingStroke,
+  type UseDrawingStrokeOptions,
+  type UseDrawingStrokeResult,
+} from "./hooks/use-drawing-stroke";
+
+export {
+  useHistory,
+  type Command,
+  type UseHistoryOptions,
+  type UseHistoryResult,
+} from "./hooks/use-history";
+
+export {
+  useKonvaSelection,
+  type SelectableKind,
+  type SelectedItem,
+  type UseKonvaSelectionResult,
+} from "./hooks/use-konva-selection";
+
+export {
+  useKonvaStageSize,
+  type StageSize,
+} from "./hooks/use-konva-stage-size";
+
+export {
+  usePanZoom,
+  type PanZoomTransform,
+  type UsePanZoomOptions,
+  type UsePanZoomResult,
+} from "./hooks/use-pan-zoom";
+
+// useMediaEditorState — written NEW in C6, not moved (replaces story-composer's
+// use-story-composer-state for editor-shaped concerns).
+
+// ─── Lib helpers ───────────────────────────────────────────────────────
+
+// mime-fallback (pulled into C3 to unblock use-media-capture's cross-dep):
+export {
+  selectRecorderMime,
+  containerFor,
+  PREFERRED_RECORDER_MIME_TYPES,
+  type RecorderMimeType,
+} from "./lib/mime-fallback";
+
+// Remaining lib files (konva-filters, composite-video, export-blob,
+// built-in-stickers, defaults) land in C4 via git mv.
 
 // ─── Parts (C5) ────────────────────────────────────────────────────────
 // Re-exports added when parts land via git mv + symbol renames.

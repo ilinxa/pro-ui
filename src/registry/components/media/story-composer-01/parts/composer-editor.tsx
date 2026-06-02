@@ -14,10 +14,10 @@ import {
 import { cn } from "@/lib/utils";
 import {
   useKonvaStageSize,
+  useKonvaSelection,
+  usePanZoom,
   type StageSize,
-} from "../hooks/use-konva-stage-size";
-import { useKonvaSelection } from "../hooks/use-konva-selection";
-import { usePanZoom } from "../hooks/use-pan-zoom";
+} from "../../media-editor-01";
 import { Button } from "@/components/ui/button";
 import { Maximize2 } from "lucide-react";
 import type { CropRect } from "./tool-crop-overlay";
