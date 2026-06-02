@@ -122,8 +122,13 @@ export {
   type UsePanZoomResult,
 } from "./hooks/use-pan-zoom";
 
-// useMediaEditorState — written NEW in C6, not moved (replaces story-composer's
-// use-story-composer-state for editor-shaped concerns).
+// useMediaEditorState (C6) — written NEW; replaces story-composer-01's
+// use-story-composer-state for editor-shaped concerns.
+export {
+  useMediaEditorState,
+  type UseMediaEditorStateOptions,
+  type UseMediaEditorStateResult,
+} from "./hooks/use-media-editor-state";
 
 // ─── Lib helpers (C3 + C4 — moved from story-composer-01 v0.1.5 via git mv) ──
 
