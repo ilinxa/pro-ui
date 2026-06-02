@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "media-editor-01-fixtures",
+  "title": "Media Editor 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Media Editor 01 bundle including sample dummy-data (sample news-hero + chat InitialSource URLs + a 3-sticker SAMPLE_BRAND_STICKERS pack illustrating the consumer extension point on top of the 36 built-in emoji stickers). Resolves the base media-editor-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/media-editor-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/media-editor-01/dummy-data.ts",
+      "content": "// Editor-shaped fixtures (C12) — ships via the `media-editor-01-fixtures`\n// registry item (sibling to the base) so consumers can `pnpm dlx shadcn add`\n// the fixtures and get a working seed without authoring their own.\n//\n// What's here:\n//   - Sample initial sources for news-hero (16:9) and chat (1:1 / 9:16) demos.\n//   - One small consumer-provided StickerSet illustrating the extension point\n//     — the library ships 36 built-in stickers via BUILT_IN_STICKER_SETS;\n//     this set demonstrates how a brand can layer a few custom stickers on\n//     top via the `stickerSets` prop.\n\nimport type { InitialSource, StickerSet } from \"./types\";\n\n// ─── Sample initial sources ───────────────────────────────────────────\n\n/** 16:9 landscape image suitable for the news-hero demo (CMS hero re-edit). */\nexport const SAMPLE_HERO_IMAGE_URL =\n  \"https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1600&auto=format&fit=crop\";\n\n/** 1:1 square image suitable for the chat / DM photo demo. */\nexport const SAMPLE_CHAT_IMAGE_URL =\n  \"https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=1200&auto=format&fit=crop\";\n\n/** Ready-to-pass InitialSource for the news-hero demo tab. */\nexport const SAMPLE_HERO_INITIAL_SOURCE: InitialSource = {\n  kind: \"url\",\n  url: SAMPLE_HERO_IMAGE_URL,\n  mode: \"photo\",\n};\n\n/** Ready-to-pass InitialSource for the chat demo tab. */\nexport const SAMPLE_CHAT_INITIAL_SOURCE: InitialSource = {\n  kind: \"url\",\n  url: SAMPLE_CHAT_IMAGE_URL,\n  mode: \"photo\",\n};\n\n// ─── Sample consumer-provided StickerSet ──────────────────────────────\n\nfunction svgStickerDataUrl(label: string, fill: string): string {\n  const svg =\n    `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\">` +\n    `<rect x=\"16\" y=\"16\" width=\"224\" height=\"224\" rx=\"32\" fill=\"${fill}\"/>` +\n    `<text x=\"128\" y=\"160\" font-size=\"80\" font-family=\"Onest, system-ui, sans-serif\" ` +\n    `font-weight=\"700\" text-anchor=\"middle\" fill=\"#fff\">${label}</text>` +\n    `</svg>`;\n  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;\n}\n\n/**\n * A tiny example \"brand pack\" of consumer-provided stickers. Pass alongside\n * the built-in sets via the `stickerSets` prop on MediaEditor01.\n *\n * The library merges consumer sets with `BUILT_IN_STICKER_SETS` — pass an\n * empty array to drop the built-ins entirely, or this array to layer one\n * brand pack on top.\n */\nexport const SAMPLE_BRAND_STICKERS: StickerSet = {\n  id: \"brand-pack-01\",\n  label: \"Brand\",\n  stickers: [\n    {\n      id: \"brand-logo\",\n      src: svgStickerDataUrl(\"LX\", \"oklch(0.55 0.20 264)\"),\n      alt: \"ilinxa logo\",\n      width: 256,\n      height: 256,\n    },\n    {\n      id: \"brand-new\",\n      src: svgStickerDataUrl(\"NEW\", \"oklch(0.78 0.20 132)\"),\n      alt: \"New badge\",\n      width: 256,\n      height: 256,\n    },\n    {\n      id: \"brand-hot\",\n      src: svgStickerDataUrl(\"HOT\", \"oklch(0.62 0.22 25)\"),\n      alt: \"Hot badge\",\n      width: 256,\n      height: 256,\n    },\n  ],\n};\n",
+      "type": "registry:component",
+      "target": "components/media-editor-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
