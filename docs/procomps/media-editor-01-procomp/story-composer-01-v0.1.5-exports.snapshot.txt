@@ -1,0 +1,157 @@
+# story-composer-01 v0.1.5 — public export surface snapshot
+# Captured: 2026-06-02 at C2 (pre-extraction)
+# Source: src/registry/components/media/story-composer-01/index.ts @ tip 849c577
+#
+# CONTRACT: every name listed below MUST still resolve via
+#   import { ... } from "@ilinxa/story-composer-01"
+# after the v0.2.0 wrapper refactor lands. Names that move to media-editor-01
+# require a re-export in story-composer-01 v0.2.0's barrel.
+#
+# Verification command (C18):
+#   1. Diff this snapshot against a fresh introspection of v0.2.0's index.ts
+#   2. Every name here MUST appear in v0.2.0's resolved surface
+#   3. Additions allowed (additive-only is OK); removals = breaking change
+
+# ─────────────────────────────────────────────────────────────────────────
+# MAIN COMPONENT (stays in story-composer-01)
+# ─────────────────────────────────────────────────────────────────────────
+StoryComposer01
+
+# ─────────────────────────────────────────────────────────────────────────
+# TYPES — story-shaped (stay in story-composer-01 v0.2.0/types.ts)
+# ─────────────────────────────────────────────────────────────────────────
+StoryComposer01Props
+StoryComposer01Handle
+StoryComposer01Labels
+PublishMetadata
+PublishResult
+PublishedStory
+PublishedStoryItem
+Uploader
+
+# ─────────────────────────────────────────────────────────────────────────
+# TYPES — editor-shaped (move to media-editor-01/types.ts; RE-EXPORT REQUIRED in story-composer-01 v0.2.0/types.ts)
+# ─────────────────────────────────────────────────────────────────────────
+ComposerMode
+ComposerStage
+ComposerCtx
+ValidationError
+StickerOption
+StickerSet
+FontOption
+FilterPreset
+KonvaFilterSpec
+ImageAdjustments
+TextOverlay
+PlacedSticker
+DrawingStroke
+AspectRatio
+EditTool
+
+# ─────────────────────────────────────────────────────────────────────────
+# CONSTANTS
+# ─────────────────────────────────────────────────────────────────────────
+DEFAULT_STORY_COMPOSER_LABELS    # stays in story-composer-01 (story-shaped labels)
+DEFAULT_ADJUSTMENTS              # moves to media-editor-01 (editor concern); RE-EXPORT required
+
+# ─────────────────────────────────────────────────────────────────────────
+# PARTS — sealed-folder exports
+# ─────────────────────────────────────────────────────────────────────────
+# Stay in story-composer-01 v0.2.0:
+ComposerPublishBar
+ComposerPublishBarProps
+
+# Move + symbol-rename + backward-compat alias required:
+ComposerCamera           # → media-editor-01: EditorCamera. Alias: `export { EditorCamera as ComposerCamera }`
+ComposerCameraProps      # → media-editor-01: EditorCameraProps. Alias: `export type { EditorCameraProps as ComposerCameraProps }`
+ComposerEditor           # → media-editor-01: EditorCanvas. Alias: `export { EditorCanvas as ComposerEditor }`
+ComposerEditorProps      # → media-editor-01: EditorCanvasProps. Alias.
+ComposerToolbar          # → media-editor-01: EditorToolbar. Alias.
+ComposerToolbarProps     # → media-editor-01: EditorToolbarProps. Alias.
+
+# Moves with same name + re-export:
+ColorSwatchPicker        # → media-editor-01; re-export same name from story-composer-01 v0.2.0
+ColorSwatchPickerProps
+
+# ─────────────────────────────────────────────────────────────────────────
+# HOOKS
+# ─────────────────────────────────────────────────────────────────────────
+# Stay in story-composer-01 (refactored internals):
+useStoryComposerState
+UseStoryComposerStateOptions
+UseStoryComposerStateResult
+
+# Stay in story-composer-01 (upload concern):
+useImageUploader
+UseImageUploaderOptions
+UseImageUploaderResult
+UploadStatus
+
+# Move to media-editor-01; story-composer-01 v0.2.0 re-exports with @deprecated JSDoc:
+useMediaCapture
+UseMediaCaptureOptions
+UseMediaCaptureResult
+CapturedPhoto
+CapturedVideo
+CaptureStatus
+FacingMode
+validateGalleryFile      # utility — moves with use-media-capture
+suggestedVideoFilename   # utility — moves with use-media-capture
+
+# ─────────────────────────────────────────────────────────────────────────
+# LIB HELPERS — all move to media-editor-01; re-export from story-composer-01 v0.2.0
+# ─────────────────────────────────────────────────────────────────────────
+# konva-filters:
+resolveFilterPresets
+BUILT_IN_FILTER_PRESETS
+
+# built-in-stickers:
+resolveStickerSets
+BUILT_IN_STICKER_SETS
+
+# export-blob:
+exportPhotoBlob
+exportTextOnlyBlob
+ExportPhotoOptions
+
+# composite-video:
+compositeVideo
+CompositeVideoOptions
+CompositeVideoResult
+
+# mime-fallback:
+selectRecorderMime
+containerFor
+PREFERRED_RECORDER_MIME_TYPES
+RecorderMimeType
+
+# ─────────────────────────────────────────────────────────────────────────
+# DEFAULT TOKENS (lib/defaults) — splits between editor-defaults (move) and story-defaults (stay)
+# ─────────────────────────────────────────────────────────────────────────
+# Move to media-editor-01:
+DEFAULT_TEXT_GRADIENTS
+DEFAULT_FONTS
+DEFAULT_COLOR_PRESETS
+GradientPreset
+
+# ─────────────────────────────────────────────────────────────────────────
+# CROP HELPERS (currently from parts/tool-crop-overlay) — move to media-editor-01
+# ─────────────────────────────────────────────────────────────────────────
+fitCropToStage
+ASPECT_RATIO_VALUES
+CropRect
+
+# ─────────────────────────────────────────────────────────────────────────
+# TOTALS (for audit)
+# ─────────────────────────────────────────────────────────────────────────
+# Main component:        1
+# Story-shaped types:    8
+# Editor-shaped types:   15
+# Constants:             2
+# Parts (5 trios):       11   # 5 components + 5 props types + 1 implied
+# Hooks:                 17   # 3 (story state) + 4 (uploader) + 9 (media-capture incl utilities)
+# Lib helpers:           13
+# Default tokens:        4
+# Crop helpers:          3
+# ───────────────────────────
+# TOTAL: ~74 named exports must remain resolvable from @ilinxa/story-composer-01 after v0.2.0.

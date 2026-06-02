@@ -1,5 +1,11 @@
+// Editor-shaped fixtures. Real fixtures (sample initial sources, stickers,
+// filter presets) land in C12 alongside demo.tsx.
+//
+// Per plan §"Sealed-folder file map", this file ships via the
+// `media-editor-01-fixtures` registry item (sibling to the base).
+
 export const MEDIA_EDITOR_01_DUMMY = {
-  title: "MediaEditor01 component",
-  description:
-    "Replace this dummy data with something representative of the real use case.",
+  // Placeholder — replaced in C12 with real fixtures
+  // (sampleImageUrl, sampleVideoUrl, sampleStickerSets, sampleFilterPresets, etc.)
+  placeholder: true,
 };
