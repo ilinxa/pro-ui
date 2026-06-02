@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -85,6 +86,7 @@ export const StoryComposer01 = forwardRef<
     renderTopBar,
     renderBottomToolbar,
     renderEmpty,
+    renderPermissionDenied,
     uploadUrl,
     uploader,
     uploadFields,
@@ -121,6 +123,14 @@ export const StoryComposer01 = forwardRef<
   const [publishStatus, setPublishStatus] = useState<PublishStatus>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Mirror uploader_.progress (0..1) into uploadProgress's upload half
+  // (0.5..1) so the progress bar advances smoothly through the upload phase
+  // instead of jumping from 0.5 to 1.
+  useEffect(() => {
+    if (publishStatus !== "uploading") return;
+    setUploadProgress(0.5 + uploader_.progress * 0.5);
+  }, [publishStatus, uploader_.progress]);
+
   const handlePublish = useCallback(async () => {
     if (!editorRef.current) return;
     try {
@@ -144,8 +154,9 @@ export const StoryComposer01 = forwardRef<
         adjustments: metadata.adjustments,
       };
       setPublishStatus("uploading");
+      // Upload runs the second half of the bar; uploader_.progress is mirrored
+      // into uploadProgress via the effect below.
       const result = await uploader_.upload(blob, publishMeta);
-      // The uploader hook surfaces its own progress; we just track final-state.
       setUploadProgress(1);
 
       const story: PublishedStory = {
@@ -281,6 +292,7 @@ export const StoryComposer01 = forwardRef<
         onValidationError={onValidationError}
         onPermissionDenied={onPermissionDenied}
         renderEmpty={renderEmpty}
+        renderPermissionDenied={renderPermissionDenied}
         renderTopBar={(ctx) =>
           renderTopBar ? (
             renderTopBar(toComposerCtx(ctx))
