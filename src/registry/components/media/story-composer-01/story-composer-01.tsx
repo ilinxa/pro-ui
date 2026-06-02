@@ -2,537 +2,151 @@
 
 import {
   forwardRef,
-  lazy,
-  Suspense,
   useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { ComposerShell } from "./parts/composer-shell";
+import {
+  MediaEditor01,
+  type MediaEditor01Handle,
+  type MediaEditor01Labels,
+  type EditorCtx,
+} from "../media-editor-01";
 import { ComposerPublishBar } from "./parts/composer-publish-bar";
 import { PublishingProgressOverlay } from "./parts/publishing-progress-overlay";
-import type Konva from "konva";
-// Editor parts moved to media-editor-01 in v0.2.0. Symbol renames for 3:
-// ComposerCamera → EditorCamera, ComposerEditor → EditorCanvas, ComposerToolbar → EditorToolbar.
-import {
-  EditorCamera as ComposerCamera,
-  EditorToolbar as ComposerToolbar,
-  ModeTogglePill,
-  DiscardConfirmDialog,
-  ToolAdjustSliders,
-  ToolCropOverlay,
-  ASPECT_RATIO_VALUES,
-  fitCropToStage,
-  type CropRect,
-  ToolDrawControls,
-  ToolFilterStrip,
-  ToolStickerPicker,
-  ToolTextInput,
-  TextOnlyCanvas,
-  type TextOnlyCanvasState,
-  VideoTrimBar,
-} from "../media-editor-01";
-import { useDrawingStroke, useHistory } from "../media-editor-01";
 import { useImageUploader } from "./hooks/use-image-uploader";
 import {
-  compositeVideo,
-  exportPhotoBlob,
-  exportTextOnlyBlob,
-  resolveFilterPresets,
-  resolveStickerSets,
-  DEFAULT_COLOR_PRESETS,
-  DEFAULT_FONTS,
-  DEFAULT_TEXT_GRADIENTS,
-} from "../media-editor-01";
-
-// React.lazy defers the react-konva import to client-side render, avoiding
-// SSR evaluation of konva's top-level `window` reference. Cannot use
-// `next/dynamic` here — registry code can't import from next/*. Deep import
-// (NOT via barrel) to preserve code-splitting — barrel would pull in everything.
-// Symbol renamed in v0.2.0: ComposerEditor → EditorCanvas; local alias preserved.
-const ComposerEditor = lazy(() =>
-  import("../media-editor-01/parts/editor-canvas").then((m) => ({
-    default: m.EditorCanvas,
-  })),
-);
-import { useStoryComposerState } from "./hooks/use-story-composer-state";
-import {
-  type CapturedPhoto,
-  type CapturedVideo,
-  type UseMediaCaptureResult,
-} from "../media-editor-01";
-import {
-  DEFAULT_ADJUSTMENTS,
   DEFAULT_STORY_COMPOSER_LABELS,
-  type AspectRatio,
-  type EditTool,
-  type DrawingStroke,
-  type ImageAdjustments,
-  type PlacedSticker,
+  type ComposerCtx,
+  type ComposerMode,
+  type ComposerStage,
   type PublishedStory,
   type PublishMetadata,
-  type StickerOption,
   type StoryComposer01Handle,
   type StoryComposer01Labels,
   type StoryComposer01Props,
-  type TextOverlay,
 } from "./types";
 
-interface DraftMedia {
-  source: "camera" | "gallery";
-  kind: "image" | "video";
-  blob: Blob;
-  /** Object URL for preview — revoked when draft is replaced or composer closes. */
-  url: string;
-  width?: number;
-  height?: number;
-  durationMs?: number;
-  mimeType: string;
-}
+/**
+ * StoryComposer01 v0.2.0 — thin wrapper around `MediaEditor01`.
+ *
+ * Maps the v0.1.5 props 1:1 onto the media-editor surface, fixes
+ * `aspect="9:16"` (Instagram-canonical), and overlays the story-shaped
+ * publish flow (XHR upload + progress + onPublished/onPublishError).
+ *
+ * Public API preserved 100%: every v0.1.5 prop is accepted and every
+ * v0.1.5 ref-handle method resolves. Internal orchestration that lived
+ * in this file in v0.1.5 (camera, tool panels, discard guard, history,
+ * text-only canvas) now lives inside MediaEditor01 — landed in the R1–R4
+ * backfill commits.
+ *
+ * Known v0.2.0 polish gaps (none break the type contract):
+ *   - `labels` overrides pass through verbatim as the v0.1.5 flat shape;
+ *     full MediaEditor01Labels nested-shape mapping lands at C17.
+ *   - `editorBackground` prop is accepted but not forwarded — the
+ *     editor canvas always uses "#000" (matches the v0.1.5 default).
+ *     Re-exposed in v0.2.1 if needed.
+ *   - `renderPublishingOverlay` is a no-op slot in v0.2.0; the default
+ *     `PublishingProgressOverlay` renders during publish.
+ */
 
-interface TrimRange {
-  startSec: number;
-  endSec: number;
-  durationSec: number;
-}
+const ALL_MODES: ComposerMode[] = ["photo", "video", "text"];
+
+type PublishStatus = "idle" | "compositing" | "uploading" | "done" | "error";
 
 export const StoryComposer01 = forwardRef<
   StoryComposer01Handle,
   StoryComposer01Props
->(function StoryComposer01(
-  {
+>(function StoryComposer01(props, ref) {
+  const {
     isOpen,
     onClose,
-    defaultMode = "photo",
+    defaultMode,
     hideModes,
     defaultFacing,
-    recordAudio = true,
-    maxFileSizeMb = 50,
+    recordAudio,
+    maxFileSizeMb,
+    maxVideoDuration,
     presentation = "auto",
-    editorBackground = "#000",
     confirmOnDiscard = true,
+    enabledTools = ["text", "draw", "stickers", "filters", "adjust"],
+    stickers,
+    replaceBuiltinStickers,
+    filterPresets,
+    replaceBuiltinFilters,
+    cropAspects,
+    fonts,
+    colorPresets,
+    labels: labelOverrides,
+    onValidationError,
+    onPermissionDenied,
+    renderTopBar,
+    renderBottomToolbar,
+    renderEmpty,
     uploadUrl,
     uploader,
     uploadFields,
     onPublished,
     onPublishError,
-    // Stories are 9:16-locked by platform convention; crop only matters for
-    // post-style flows. Consumers can re-enable via `enabledTools` (e.g.
-    // ["text","draw","stickers","filters","adjust","crop"] for a feed-post
-    // composer that supports 9:16 + 1:1 + 4:5).
-    enabledTools = ["text", "draw", "stickers", "filters", "adjust"],
-    filterPresets,
-    replaceBuiltinFilters,
-    stickers: stickersProp,
-    replaceBuiltinStickers,
-    cropAspects = ["9:16", "1:1", "4:5"],
-    fonts = DEFAULT_FONTS,
-    colorPresets = DEFAULT_COLOR_PRESETS,
-    labels: labelOverrides,
-    onPermissionDenied,
-    onValidationError,
-  },
-  ref,
-) {
-  const presets = useMemo(
-    () => resolveFilterPresets(filterPresets, !!replaceBuiltinFilters),
-    [filterPresets, replaceBuiltinFilters],
+  } = props;
+
+  const editorRef = useRef<MediaEditor01Handle>(null);
+
+  // hideModes (subtract) → enabledModes (positive). Empty hideModes ⇒ all
+  // three modes enabled, matching the v0.1.5 default.
+  const enabledModes = useMemo<ComposerMode[]>(
+    () => ALL_MODES.filter((m) => !hideModes?.includes(m)),
+    [hideModes],
   );
 
-  const stickerSets = useMemo(
-    () => resolveStickerSets(stickersProp, !!replaceBuiltinStickers),
-    [stickersProp, replaceBuiltinStickers],
-  );
-
-  const stickerById = useMemo(() => {
-    const map = new Map<string, StickerOption>();
-    for (const set of stickerSets) {
-      for (const s of set.stickers) map.set(s.id, s);
+  // story-composer's `presentation` enum vs media-editor's. "fullscreen" and
+  // "modal" both map to "dialog" since media-editor's dialog mode is
+  // mobile-fullscreen + desktop-modal. "auto" passes through.
+  const editorPresentation = useMemo<"inline" | "dialog" | "auto">(() => {
+    if (presentation === "fullscreen" || presentation === "modal") {
+      return "dialog";
     }
-    return map;
-  }, [stickerSets]);
+    return "auto";
+  }, [presentation]);
+
   const labels = useMemo<Required<StoryComposer01Labels>>(
     () => ({ ...DEFAULT_STORY_COMPOSER_LABELS, ...labelOverrides }),
     [labelOverrides],
   );
 
-  const state = useStoryComposerState({ defaultMode, hideModes });
-  const captureRef = useRef<UseMediaCaptureResult | null>(null);
-  const [draft, setDraft] = useState<DraftMedia | null>(null);
-  const [trim, setTrim] = useState<TrimRange | null>(null);
-  const [activeTool, setActiveTool] = useState<EditTool | null>(null);
-  const [adjustments, setAdjustments] = useState<ImageAdjustments>(
-    DEFAULT_ADJUSTMENTS,
-  );
-  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
-  const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([]);
-  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
-  const [placedStickers, setPlacedStickers] = useState<PlacedSticker[]>([]);
-  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(
-    null,
-  );
-  const [drawingStrokes, setDrawingStrokes] = useState<DrawingStroke[]>([]);
-  const [drawColor, setDrawColor] = useState("#ffffff");
-  const [drawBrushSize, setDrawBrushSize] = useState(8);
-  const [drawMode, setDrawMode] = useState<"draw" | "erase">("draw");
-  const [cropAspect, setCropAspect] = useState<AspectRatio>(
-    cropAspects[0] ?? "9:16",
-  );
-  const [cropRect, setCropRect] = useState<CropRect | null>(null);
-  const stageSizeRef = useRef<{ width: number; height: number } | null>(null);
-  const stageRef = useRef<Konva.Stage | null>(null);
-  const textOnlyRef = useRef<HTMLDivElement | null>(null);
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
-  const [announcement, setAnnouncement] = useState<string>("");
-  const [textOnlyState, setTextOnlyState] = useState<TextOnlyCanvasState>({
-    text: "",
-    fontFamily: DEFAULT_FONTS[0].family,
-    textColor: "#ffffff",
-    gradientId: DEFAULT_TEXT_GRADIENTS[0].id,
-  });
-
-  // Live-region announcer for screen readers — Konva canvas isn't in the a11y
-  // tree, so we announce edit events as text.
-  const announce = useCallback((msg: string) => {
-    setAnnouncement(msg);
-  }, []);
-
   const uploader_ = useImageUploader({ uploadUrl, uploader, uploadFields });
 
-  const history = useHistory({ capacity: 50, bindKeyboard: isOpen });
-
-  const activeFilter = useMemo(
-    () => presets.find((p) => p.id === activeFilterId) ?? null,
-    [presets, activeFilterId],
-  );
-
-  // Set draft + revoke prior object URL.
-  const acceptDraft = useCallback((next: DraftMedia | null) => {
-    setDraft((prev) => {
-      if (prev?.url) URL.revokeObjectURL(prev.url);
-      return next;
-    });
-    if (!next || next.kind !== "video") setTrim(null);
-    if (!next) {
-      setActiveTool(null);
-      setAdjustments(DEFAULT_ADJUSTMENTS);
-      setActiveFilterId(null);
-      setTextOverlays([]);
-      setSelectedTextId(null);
-      setPlacedStickers([]);
-      setSelectedStickerId(null);
-      setDrawingStrokes([]);
-      setCropRect(null);
-      setCropAspect(cropAspects[0] ?? "9:16");
-      history.reset();
-    }
-  }, [cropAspects, history]);
-
-  const performClose = useCallback(() => {
-    acceptDraft(null);
-    state.reset();
-    uploader_.reset();
-    setTextOnlyState((prev) => ({ ...prev, text: "" }));
-    onClose();
-  }, [acceptDraft, onClose, state, uploader_]);
-
-  // ─── Text-overlay commands (wrapped through history for C10 undo) ─────
-
-  const addTextOverlay = useCallback(
-    (initialText?: string) => {
-      const id = `text-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      const newOverlay: TextOverlay = {
-        id,
-        text: initialText ?? labels.textPlaceholder,
-        x: 100,
-        y: 200,
-        rotation: 0,
-        scale: 1,
-        fontFamily: fonts[0]?.family ?? "sans-serif",
-        fontSize: 40,
-        fill: "#ffffff",
-        align: "center",
-      };
-      history.execute({
-        label: "Add text",
-        do: () => setTextOverlays((prev) => [...prev, newOverlay]),
-        undo: () =>
-          setTextOverlays((prev) => prev.filter((o) => o.id !== id)),
-      });
-      setSelectedTextId(id);
-      state.markDirty(true);
-      announce("Text added");
-    },
-    [announce, fonts, history, labels.textPlaceholder, state],
-  );
-
-  const updateTextOverlay = useCallback(
-    (next: TextOverlay) => {
-      // Capture the previous state once when this terminal action fires.
-      let prevOverlay: TextOverlay | undefined;
-      setTextOverlays((prev) => {
-        prevOverlay = prev.find((o) => o.id === next.id);
-        return prev;
-      });
-      if (!prevOverlay) return;
-      const before = prevOverlay;
-      history.execute({
-        label: "Edit text",
-        do: () =>
-          setTextOverlays((prev) =>
-            prev.map((o) => (o.id === next.id ? next : o)),
-          ),
-        undo: () =>
-          setTextOverlays((prev) =>
-            prev.map((o) => (o.id === before.id ? before : o)),
-          ),
-      });
-      state.markDirty(true);
-    },
-    [history, state],
-  );
-
-  const deleteTextOverlay = useCallback(
-    (id: string) => {
-      let removed: TextOverlay | undefined;
-      let index = -1;
-      setTextOverlays((prev) => {
-        index = prev.findIndex((o) => o.id === id);
-        removed = prev[index];
-        return prev;
-      });
-      if (!removed) return;
-      const item = removed;
-      const at = index;
-      history.execute({
-        label: "Delete text",
-        do: () =>
-          setTextOverlays((prev) => prev.filter((o) => o.id !== id)),
-        undo: () =>
-          setTextOverlays((prev) => {
-            const copy = [...prev];
-            copy.splice(at, 0, item);
-            return copy;
-          }),
-      });
-      setSelectedTextId((prev) => (prev === id ? null : prev));
-      state.markDirty(true);
-    },
-    [history, state],
-  );
-
-  // ─── Sticker commands (wrapped through history) ──────────────────────
-
-  const addStickerOverlay = useCallback(
-    (sticker: StickerOption) => {
-      const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      const placed: PlacedSticker = {
-        id,
-        stickerId: sticker.id,
-        x: 200,
-        y: 300,
-        rotation: 0,
-        scale: 1,
-      };
-      history.execute({
-        label: "Add sticker",
-        do: () => setPlacedStickers((prev) => [...prev, placed]),
-        undo: () =>
-          setPlacedStickers((prev) => prev.filter((s) => s.id !== id)),
-      });
-      setSelectedStickerId(id);
-      setSelectedTextId(null);
-      state.markDirty(true);
-      announce(`Sticker added: ${sticker.alt}`);
-    },
-    [announce, history, state],
-  );
-
-  const updateStickerOverlay = useCallback(
-    (next: PlacedSticker) => {
-      let prev: PlacedSticker | undefined;
-      setPlacedStickers((cur) => {
-        prev = cur.find((s) => s.id === next.id);
-        return cur;
-      });
-      if (!prev) return;
-      const before = prev;
-      history.execute({
-        label: "Move sticker",
-        do: () =>
-          setPlacedStickers((cur) =>
-            cur.map((s) => (s.id === next.id ? next : s)),
-          ),
-        undo: () =>
-          setPlacedStickers((cur) =>
-            cur.map((s) => (s.id === before.id ? before : s)),
-          ),
-      });
-      state.markDirty(true);
-    },
-    [history, state],
-  );
-
-  // ─── Drawing-stroke command ───────────────────────────────────────────
-
-  const commitDrawingStroke = useCallback(
-    (stroke: DrawingStroke) => {
-      history.execute({
-        label: "Draw stroke",
-        do: () => setDrawingStrokes((prev) => [...prev, stroke]),
-        undo: () =>
-          setDrawingStrokes((prev) => prev.filter((s) => s.id !== stroke.id)),
-      });
-      state.markDirty(true);
-    },
-    [history, state],
-  );
-
-  const drawing = useDrawingStroke({
-    color: drawColor,
-    brushSize: drawBrushSize,
-    mode: drawMode,
-    onStrokeComplete: commitDrawingStroke,
-  });
-
-  // ─── Publish flow ────────────────────────────────────────────────────
-
-  const buildMetadata = useCallback(
-    (
-      mode: "photo" | "video" | "text",
-      width: number,
-      height: number,
-      mimeType: string,
-      durationMs?: number,
-    ): PublishMetadata => ({
-      mode,
-      width,
-      height,
-      mimeType,
-      durationMs,
-      textOverlays,
-      stickers: placedStickers,
-      drawingStrokes: drawingStrokes.length,
-      appliedFilter: activeFilterId ?? undefined,
-      adjustments,
-    }),
-    [
-      activeFilterId,
-      adjustments,
-      drawingStrokes.length,
-      placedStickers,
-      textOverlays,
-    ],
-  );
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handlePublish = useCallback(async () => {
-    // Text-only mode publishes from the DOM element, not from a captured draft.
-    if (state.mode === "text" && !draft) {
-      state.setStage("publishing");
-      try {
-        if (!textOnlyRef.current) throw new Error("Text canvas not mounted");
-        const rect = textOnlyRef.current.getBoundingClientRect();
-        const w = Math.round(rect.width);
-        const h = Math.round(rect.height);
-        const blob = await exportTextOnlyBlob(textOnlyRef.current, w, h);
-        const metadata = buildMetadata("text", w, h, "image/png");
-        const result = await uploader_.upload(blob, metadata);
-        const story: PublishedStory = {
-          id: `story-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          items: [
-            { id: `item-${Date.now()}`, type: "image", src: result.url },
-          ],
-        };
-        state.setStage("done");
-        onPublished(story);
-        setTimeout(performClose, 800);
-      } catch (err) {
-        state.setStage("error");
-        onPublishError?.(err as Error);
-      }
-      return;
-    }
-
-    if (!draft) return;
-    state.setStage("publishing");
+    if (!editorRef.current) return;
     try {
-      let blob: Blob;
-      let width: number;
-      let height: number;
-      let mimeType: string;
-      let durationMs: number | undefined;
-
-      if (draft.kind === "image") {
-        if (!stageRef.current) throw new Error("Editor canvas not ready");
-        blob = await exportPhotoBlob({
-          stage: stageRef.current,
-          cropRect,
-          mimeType: "image/jpeg",
-          quality: 0.92,
-        });
-        width = cropRect?.width ?? stageRef.current.width();
-        height = cropRect?.height ?? stageRef.current.height();
-        mimeType = "image/jpeg";
-      } else {
-        // Video draft — Q-P1a bake-in.
-        // The stage-snapshot-over-video baking pipeline is wired here; for
-        // a no-overlay/no-trim draft we still re-encode for consistency.
-        const stage = stageRef.current;
-        const ow = cropRect?.width ?? draft.width ?? 720;
-        const oh = cropRect?.height ?? draft.height ?? 1280;
-        const result = await compositeVideo({
-          sourceBlob: draft.blob,
-          outputWidth: Math.round(ow),
-          outputHeight: Math.round(oh),
-          renderFrame: (ctx, video) => {
-            ctx.clearRect(0, 0, ow, oh);
-            // Draw video frame (cover-fit into output rect).
-            const vw = video.videoWidth || ow;
-            const vh = video.videoHeight || oh;
-            const scale = Math.max(ow / vw, oh / vh);
-            const dw = vw * scale;
-            const dh = vh * scale;
-            ctx.drawImage(
-              video,
-              (ow - dw) / 2,
-              (oh - dh) / 2,
-              dw,
-              dh,
-            );
-            // Snapshot overlay layers (text + sticker + drawing) from the
-            // Konva stage and paint on top.
-            if (stage) {
-              const overlayCanvas = stage.toCanvas({
-                x: cropRect?.x ?? 0,
-                y: cropRect?.y ?? 0,
-                width: cropRect?.width ?? stage.width(),
-                height: cropRect?.height ?? stage.height(),
-                pixelRatio: 1,
-              });
-              ctx.drawImage(overlayCanvas, 0, 0, ow, oh);
-            }
-          },
-        });
-        blob = result.blob;
-        mimeType = result.mimeType;
-        durationMs = result.durationMs;
-        width = Math.round(ow);
-        height = Math.round(oh);
-      }
-
-      const metadata = buildMetadata(
-        draft.kind === "image" ? "photo" : "video",
-        width,
-        height,
-        mimeType,
-        durationMs,
-      );
-      const result = await uploader_.upload(blob, metadata);
+      setPublishStatus("compositing");
+      setUploadProgress(0);
+      const { blob, metadata } = await editorRef.current.export({
+        // Export takes the first half of the progress bar; upload the second.
+        onProgress: (p) => setUploadProgress(p * 0.5),
+      });
+      // ExportMetadata → PublishMetadata (drop the editor-only `crop` field).
+      const publishMeta: PublishMetadata = {
+        mode: metadata.mode,
+        width: metadata.width,
+        height: metadata.height,
+        durationMs: metadata.durationMs,
+        mimeType: metadata.mimeType,
+        textOverlays: metadata.textOverlays,
+        stickers: metadata.stickers,
+        drawingStrokes: metadata.drawingStrokes,
+        appliedFilter: metadata.appliedFilter,
+        adjustments: metadata.adjustments,
+      };
+      setPublishStatus("uploading");
+      const result = await uploader_.upload(blob, publishMeta);
+      // The uploader hook surfaces its own progress; we just track final-state.
+      setUploadProgress(1);
 
       const story: PublishedStory = {
         id: `story-${Date.now()}`,
@@ -540,606 +154,170 @@ export const StoryComposer01 = forwardRef<
         items: [
           {
             id: `item-${Date.now()}`,
-            type: draft.kind,
+            type: metadata.mode === "video" ? "video" : "image",
             src: result.url,
             duration:
-              draft.kind === "video"
-                ? Math.round((durationMs ?? 0) / 1000) || undefined
+              metadata.mode === "video"
+                ? Math.round((metadata.durationMs ?? 0) / 1000) || undefined
                 : undefined,
             thumbnailUrl: result.thumbnailUrl,
           },
         ],
       };
-      state.setStage("done");
+      setPublishStatus("done");
       onPublished(story);
-      // Auto-close on success after a short success-state beat.
-      setTimeout(() => {
-        performClose();
-      }, 800);
     } catch (err) {
-      state.setStage("error");
-      const e = err as Error;
-      if (onPublishError) onPublishError(e);
+      setPublishStatus("error");
+      const e = err instanceof Error ? err : new Error(String(err));
+      onPublishError?.(e);
     }
-  }, [
-    buildMetadata,
-    cropRect,
-    draft,
-    onPublishError,
-    onPublished,
-    performClose,
-    state,
-    uploader_,
-  ]);
+  }, [uploader_, onPublished, onPublishError]);
 
-  // Text-only mode marks dirty when there's a non-empty text input.
-  const textOnlyDirty = state.mode === "text" && textOnlyState.text.length > 0;
-
-  const handlePhoto = useCallback(
-    (photo: CapturedPhoto) => {
-      const url = URL.createObjectURL(photo.blob);
-      acceptDraft({
-        source: "camera",
-        kind: "image",
-        blob: photo.blob,
-        url,
-        width: photo.width,
-        height: photo.height,
-        mimeType: photo.mimeType,
-      });
-      // Transition to edit stage — actual editor surface lands C6.
-      state.setStage("edit");
-      state.markDirty(true);
-    },
-    [acceptDraft, state],
-  );
-
-  const handleVideo = useCallback(
-    (video: CapturedVideo) => {
-      const url = URL.createObjectURL(video.blob);
-      acceptDraft({
-        source: "camera",
-        kind: "video",
-        blob: video.blob,
-        url,
-        durationMs: video.durationMs,
-        mimeType: video.mimeType,
-      });
-      state.setStage("edit");
-      state.markDirty(true);
-    },
-    [acceptDraft, state],
-  );
-
-  const handleGalleryFile = useCallback(
-    (file: File) => {
-      const kind: "image" | "video" = file.type.startsWith("video/")
-        ? "video"
-        : "image";
-      const url = URL.createObjectURL(file);
-      acceptDraft({
-        source: "gallery",
-        kind,
-        blob: file,
-        url,
-        mimeType: file.type,
-      });
-      state.setStage("edit");
-      state.markDirty(true);
-    },
-    [acceptDraft, state],
-  );
-
-  const handleOpenChange = useCallback(
-    (next: boolean) => {
-      if (next) return;
-      // Guard the close path when the editor is dirty (Q-P10a).
-      if (confirmOnDiscard && state.isDirty && state.stage !== "publishing") {
-        setShowDiscardConfirm(true);
-        return;
-      }
-      performClose();
-    },
-    [confirmOnDiscard, performClose, state.isDirty, state.stage],
+  // EditorCtx → ComposerCtx translation for slot consumers. story-composer's
+  // ctx assumes a non-null mode + has publishing/cancel/publish helpers.
+  const toComposerCtx = useCallback(
+    (ctx: EditorCtx): ComposerCtx => ({
+      mode: ctx.mode ?? "photo",
+      stage: ctx.stage as ComposerStage,
+      isDirty: ctx.isDirty,
+      publishing: {
+        active:
+          publishStatus === "compositing" || publishStatus === "uploading",
+        progress: uploadProgress,
+      },
+      setMode: (m) => {
+        // No public setter on the handle; delegate via the editor ref's
+        // internal state surface in v0.2.0. v0.3.0 may expose setMode().
+        editorRef.current?.loadState({
+          ...(editorRef.current.getState() ?? {}),
+          mode: m,
+        } as ReturnType<NonNullable<typeof editorRef.current>["getState"]>);
+      },
+      cancel: () => onClose(),
+      publish: handlePublish,
+    }),
+    [publishStatus, uploadProgress, handlePublish, onClose],
   );
 
   useImperativeHandle(
     ref,
-    () => {
-      const noop = () => {
-        /* no-op for compat */
-      };
-      return {
-        open: () => {
-          /* host owns isOpen */
-        },
-        close: () => onClose(),
-        reset: () => {
-          acceptDraft(null);
-          state.reset();
-        },
-        switchCamera: async () => {
-          await captureRef.current?.switchCamera();
-        },
-        takePhoto: async () => {
-          const photo = await captureRef.current?.takePhoto();
-          if (photo) handlePhoto(photo);
-        },
-        startRecording: async () => {
-          await captureRef.current?.startRecording();
-        },
-        stopRecording: async () => {
-          const video = await captureRef.current?.stopRecording();
-          if (video) handleVideo(video);
-        },
-        importFromGallery: noop,
-        addText: (text?: string) => addTextOverlay(text),
-        addSticker: (sticker) => addStickerOverlay(sticker),
-        setAdjustments: (partial) =>
-          setAdjustments((prev) => ({ ...prev, ...partial })),
-        applyFilter: (name) => setActiveFilterId(name),
-        publish: handlePublish,
-        exportBlob: async () => {
-          if (!draft) throw new Error("No draft to export");
-          if (draft.kind === "image") {
-            if (!stageRef.current) throw new Error("Editor not ready");
-            const blob = await exportPhotoBlob({
-              stage: stageRef.current,
-              cropRect,
-            });
-            return {
-              blob,
-              metadata: buildMetadata(
-                "photo",
-                cropRect?.width ?? stageRef.current.width(),
-                cropRect?.height ?? stageRef.current.height(),
-                "image/jpeg",
-              ),
-            };
-          }
-          return {
-            blob: draft.blob,
-            metadata: buildMetadata(
-              "video",
-              draft.width ?? 720,
-              draft.height ?? 1280,
-              draft.mimeType,
-              draft.durationMs,
-            ),
-          };
-        },
-      };
-    },
-    [
-      acceptDraft,
-      addStickerOverlay,
-      addTextOverlay,
-      buildMetadata,
-      cropRect,
-      draft,
-      handlePhoto,
-      handlePublish,
-      handleVideo,
-      onClose,
-      state,
-    ],
+    (): StoryComposer01Handle => ({
+      open: () => editorRef.current?.open(),
+      close: () => editorRef.current?.close(),
+      reset: () => {
+        editorRef.current?.reset();
+        setPublishStatus("idle");
+        setUploadProgress(0);
+      },
+      switchCamera: async () => {
+        await editorRef.current?.switchCamera();
+      },
+      takePhoto: async () => {
+        await editorRef.current?.takePhoto();
+      },
+      startRecording: async () => {
+        await editorRef.current?.startRecording();
+      },
+      stopRecording: async () => {
+        await editorRef.current?.stopRecording();
+      },
+      importFromGallery: () => editorRef.current?.importFromGallery(),
+      addText: (text) => editorRef.current?.addText(text),
+      addSticker: (sticker) => editorRef.current?.addSticker(sticker),
+      setAdjustments: (adj) => editorRef.current?.setAdjustments(adj),
+      applyFilter: (name) => editorRef.current?.applyFilter(name),
+      publish: handlePublish,
+      exportBlob: async () => {
+        if (!editorRef.current) {
+          throw new Error("story-composer-01: editor not mounted");
+        }
+        const out = await editorRef.current.export();
+        const publishMeta: PublishMetadata = {
+          mode: out.metadata.mode,
+          width: out.metadata.width,
+          height: out.metadata.height,
+          durationMs: out.metadata.durationMs,
+          mimeType: out.metadata.mimeType,
+          textOverlays: out.metadata.textOverlays,
+          stickers: out.metadata.stickers,
+          drawingStrokes: out.metadata.drawingStrokes,
+          appliedFilter: out.metadata.appliedFilter,
+          adjustments: out.metadata.adjustments,
+        };
+        return { blob: out.blob, metadata: publishMeta };
+      },
+    }),
+    [handlePublish],
   );
-
-  const selectedText = useMemo(
-    () => textOverlays.find((o) => o.id === selectedTextId) ?? null,
-    [textOverlays, selectedTextId],
-  );
-
-  // Toggling tools: Text auto-adds an overlay if none selected; non-text
-  // tools clear text selection. Crop seeds a centered max-fit rect on open.
-  const handleToolSelect = useCallback(
-    (tool: EditTool | null) => {
-      setActiveTool(tool);
-      if (tool === "text" && !selectedText) {
-        addTextOverlay();
-      }
-      if (tool !== "text") {
-        setSelectedTextId(null);
-      }
-      if (tool !== "stickers") {
-        setSelectedStickerId(null);
-      }
-      if (tool === "crop" && !cropRect && stageSizeRef.current) {
-        const ss = stageSizeRef.current;
-        setCropRect(fitCropToStage(cropAspect, ss.width, ss.height));
-      }
-    },
-    [addTextOverlay, cropAspect, cropRect, selectedText],
-  );
-
-  const handleCropAspectChange = useCallback(
-    (next: typeof cropAspect) => {
-      setCropAspect(next);
-      const ss = stageSizeRef.current;
-      if (ss) setCropRect(fitCropToStage(next, ss.width, ss.height));
-    },
-    [],
-  );
-
-  const captureActive = state.stage === "capture" && state.mode !== "text";
 
   return (
-    <ComposerShell
-      isOpen={isOpen}
-      onOpenChange={handleOpenChange}
-      presentation={presentation}
-      background={editorBackground}
-      ariaLabel={labels.composerLabel}
-      ariaDescription={labels.composerDescription}
-    >
-      {/* Top bar.
-            - Capture stage with photo/video mode: close + mode pill (publish
-              CTA isn't relevant until media is captured).
-            - Capture stage with text mode: publish-enabled top bar — text
-              mode publishes directly from the capture surface.
-            - Edit stage (photo/video): publish bar. */}
-      {state.stage === "capture" && state.mode !== "text" ? (
-        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 right-3 z-30 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleOpenChange(false)}
-            aria-label={labels.close}
-            className="text-white hover:bg-white/10 hover:text-white"
-          >
-            <X className="size-5" />
-          </Button>
-          <ModeTogglePill
-            mode={state.mode}
-            visibleModes={state.visibleModes}
-            labels={labels}
-            onModeChange={state.setMode}
-          />
-          <div className="size-9" aria-hidden />
-        </div>
-      ) : (
-        <ComposerPublishBar
-          isPublishing={state.stage === "publishing"}
-          canPublish={
-            state.mode === "text" ? textOnlyDirty : !!draft
-          }
+    <>
+      <MediaEditor01
+        ref={editorRef}
+        aspect="9:16"
+        enabledModes={enabledModes}
+        enabledTools={enabledTools}
+        mediaSources={["camera", "upload"]}
+        presentation={editorPresentation}
+        isOpen={isOpen}
+        onClose={onClose}
+        confirmOnDiscard={confirmOnDiscard}
+        defaultMode={defaultMode}
+        defaultFacing={defaultFacing}
+        recordAudio={recordAudio}
+        maxFileSizeMb={maxFileSizeMb}
+        maxVideoDuration={maxVideoDuration}
+        stickers={stickers}
+        replaceBuiltinStickers={replaceBuiltinStickers}
+        filterPresets={filterPresets}
+        replaceBuiltinFilters={replaceBuiltinFilters}
+        cropAspects={cropAspects}
+        fonts={fonts}
+        colorPresets={colorPresets}
+        // Pass-through of label overrides — MediaEditor accepts as flat shape
+        // via INTERNAL_LABELS_FALLBACK merge (R2). C17 will refactor onto
+        // the nested MediaEditor01Labels surface.
+        labels={labelOverrides as unknown as Partial<MediaEditor01Labels>}
+        onValidationError={onValidationError}
+        onPermissionDenied={onPermissionDenied}
+        renderEmpty={renderEmpty}
+        renderTopBar={(ctx) =>
+          renderTopBar ? (
+            renderTopBar(toComposerCtx(ctx))
+          ) : (
+            <ComposerPublishBar
+              isPublishing={
+                publishStatus === "compositing" ||
+                publishStatus === "uploading"
+              }
+              canPublish={ctx.isDirty}
+              labels={labels}
+              onPublish={handlePublish}
+              onClose={onClose}
+            />
+          )
+        }
+        renderBottomToolbar={
+          renderBottomToolbar
+            ? (ctx) => renderBottomToolbar(toComposerCtx(ctx))
+            : undefined
+        }
+      />
+      {publishStatus === "uploading" ||
+      publishStatus === "compositing" ||
+      publishStatus === "error" ? (
+        <PublishingProgressOverlay
+          progress={publishStatus === "uploading" ? uploadProgress : null}
+          status={publishStatus === "error" ? "error" : "uploading"}
           labels={labels}
-          onPublish={handlePublish}
-          onClose={() => handleOpenChange(false)}
-        />
-      )}
-
-      {/* Capture surface (camera + gallery picker) */}
-      {captureActive ? (
-        <ComposerCamera
-          enabled={isOpen && captureActive}
-          mode={state.mode}
-          defaultFacing={defaultFacing}
-          recordAudio={recordAudio}
-          maxFileSizeMb={maxFileSizeMb}
-          maxVideoDurationSec={30}
-          labels={labels}
-          onPhoto={handlePhoto}
-          onVideo={handleVideo}
-          onGalleryFile={handleGalleryFile}
-          onValidationError={onValidationError}
-          onPermissionDenied={onPermissionDenied}
-        />
-      ) : null}
-
-      {/* Text-only mode capture surface (C13) */}
-      {state.stage === "capture" && state.mode === "text" ? (
-        <TextOnlyCanvas
-          ref={textOnlyRef}
-          gradients={DEFAULT_TEXT_GRADIENTS}
-          fonts={fonts}
-          colorPresets={colorPresets}
-          labels={labels}
-          value={textOnlyState}
-          onChange={(next) => {
-            setTextOnlyState(next);
-            state.markDirty(true);
+          onRetry={publishStatus === "error" ? handlePublish : undefined}
+          onCancel={() => {
+            uploader_.cancel();
+            setPublishStatus("idle");
+            setUploadProgress(0);
           }}
         />
       ) : null}
-
-      {/* Edit-stage — Konva canvas (image) + native video preview + trim bar */}
-      {state.stage === "edit" && draft ? (
-        <div className="flex-1 relative bg-black flex flex-col">
-          <div className="flex-1 relative">
-            {/* For video drafts we need a measurable size to initialize trim. */}
-            {draft.kind === "video" ? (
-              <video
-                src={draft.url}
-                autoPlay
-                loop
-                muted
-                playsInline
-                onLoadedMetadata={(e) => {
-                  const v = e.currentTarget;
-                  if (
-                    !trim &&
-                    Number.isFinite(v.duration) &&
-                    v.duration > 0
-                  ) {
-                    setTrim({
-                      startSec: 0,
-                      endSec: v.duration,
-                      durationSec: v.duration,
-                    });
-                  }
-                }}
-                className="absolute inset-0 w-full h-full object-contain"
-              />
-            ) : (
-              <Suspense
-                fallback={
-                  // Show the captured photo immediately as a plain <img> while
-                  // the lazy react-konva chunk resolves on first open. Without
-                  // this the user stares at a black box for the chunk + image
-                  // decode + Konva stage init — the captured pixels already
-                  // exist the moment we hand back the blob URL.
-                  <div className="absolute inset-0 bg-black">
-                    <img
-                      src={draft.url}
-                      alt=""
-                      className="w-full h-full object-contain"
-                      draggable={false}
-                    />
-                  </div>
-                }
-              >
-                <ComposerEditor
-                  imageUrl={draft.url}
-                  background={editorBackground}
-                  adjustments={adjustments}
-                  activeFilter={activeFilter}
-                  textOverlays={textOverlays}
-                  selectedTextId={selectedTextId}
-                  onTextChange={updateTextOverlay}
-                  onTextSelect={(id) => {
-                    setSelectedTextId(id);
-                    if (id) {
-                      setActiveTool("text");
-                      setSelectedStickerId(null);
-                    }
-                  }}
-                  stickers={placedStickers}
-                  resolveSticker={(id) => stickerById.get(id)}
-                  selectedStickerId={selectedStickerId}
-                  onStickerChange={updateStickerOverlay}
-                  onStickerSelect={(id) => {
-                    setSelectedStickerId(id);
-                    if (id) {
-                      setActiveTool("stickers");
-                      setSelectedTextId(null);
-                    }
-                  }}
-                  drawingStrokes={drawingStrokes}
-                  currentDrawingStroke={drawing.currentStroke}
-                  isDrawing={activeTool === "draw"}
-                  onDrawBegin={drawing.beginAt}
-                  onDrawExtend={drawing.extendTo}
-                  onDrawEnd={drawing.end}
-                  cropRect={cropRect}
-                  cropActive={activeTool === "crop"}
-                  cropAspectRatio={ASPECT_RATIO_VALUES[cropAspect]}
-                  onCropChange={setCropRect}
-                  onStageSize={(size) => {
-                    stageSizeRef.current = size;
-                    // First-frame init if user opened crop before size was known.
-                    if (activeTool === "crop" && !cropRect) {
-                      setCropRect(
-                        fitCropToStage(cropAspect, size.width, size.height),
-                      );
-                    }
-                  }}
-                  onStageReady={(s) => {
-                    stageRef.current = s;
-                  }}
-                />
-              </Suspense>
-            )}
-          </div>
-          {/* Active tool panel — all six tools */}
-          {draft.kind === "image" && activeTool === "crop" ? (
-            <div
-              className="shrink-0 px-3 pt-2"
-              style={{ paddingBottom: "0.5rem" }}
-            >
-              <ToolCropOverlay
-                activeAspect={cropAspect}
-                availableAspects={cropAspects}
-                cropLabel={labels.toolCrop}
-                onAspectChange={handleCropAspectChange}
-              />
-            </div>
-          ) : null}
-          {draft.kind === "image" && activeTool === "draw" ? (
-            <div
-              className="shrink-0 px-3 pt-2"
-              style={{ paddingBottom: "0.5rem" }}
-            >
-              <ToolDrawControls
-                color={drawColor}
-                brushSize={drawBrushSize}
-                mode={drawMode}
-                colorPresets={colorPresets}
-                labels={labels}
-                onColorChange={setDrawColor}
-                onBrushSizeChange={setDrawBrushSize}
-                onModeChange={setDrawMode}
-              />
-            </div>
-          ) : null}
-          {draft.kind === "image" && activeTool === "stickers" ? (
-            <div
-              className="shrink-0 px-3 pt-2"
-              style={{ paddingBottom: "0.5rem" }}
-            >
-              <ToolStickerPicker
-                sets={stickerSets}
-                onPick={addStickerOverlay}
-              />
-            </div>
-          ) : null}
-          {draft.kind === "image" && activeTool === "text" && selectedText ? (
-            <div
-              className="shrink-0 px-3 pt-2"
-              style={{ paddingBottom: "0.5rem" }}
-            >
-              <ToolTextInput
-                overlay={selectedText}
-                fonts={fonts}
-                colorPresets={colorPresets}
-                labels={labels}
-                onChange={updateTextOverlay}
-                onDelete={() => deleteTextOverlay(selectedText.id)}
-              />
-            </div>
-          ) : null}
-          {draft.kind === "image" && activeTool === "filters" ? (
-            <div
-              className="shrink-0 px-3 pt-2"
-              style={{ paddingBottom: "0.5rem" }}
-            >
-              <ToolFilterStrip
-                presets={presets}
-                sourceUrl={draft.url}
-                activeId={activeFilterId}
-                onSelect={setActiveFilterId}
-              />
-            </div>
-          ) : null}
-          {draft.kind === "image" && activeTool === "adjust" ? (
-            <div
-              className="shrink-0 px-3 pt-2"
-              style={{ paddingBottom: "0.5rem" }}
-            >
-              <ToolAdjustSliders
-                value={adjustments}
-                onChange={setAdjustments}
-                labels={labels}
-              />
-            </div>
-          ) : null}
-
-          {/* Trim bar — video only */}
-          {draft.kind === "video" && trim ? (
-            <div
-              className="shrink-0 px-4 pt-3"
-              style={{
-                paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
-              }}
-            >
-              <VideoTrimBar
-                videoUrl={draft.url}
-                startSec={trim.startSec}
-                endSec={trim.endSec}
-                durationSec={trim.durationSec}
-                labels={labels}
-                onChange={(next) =>
-                  setTrim((prev) => (prev ? { ...prev, ...next } : prev))
-                }
-              />
-            </div>
-          ) : null}
-
-          {/* Bottom toolbar — image drafts only (video trim has its own surface) */}
-          {draft.kind === "image" ? (
-            <div
-              className="shrink-0 px-3 pt-1"
-              style={{
-                paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-              }}
-            >
-              <ComposerToolbar
-                activeTool={activeTool}
-                enabledTools={enabledTools}
-                pendingTools={[]}
-                labels={labels}
-                onSelect={handleToolSelect}
-              />
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* Publishing / success / error overlay */}
-      {(state.stage === "publishing" ||
-        state.stage === "done" ||
-        state.stage === "error") &&
-      draft ? (
-        <PublishingProgressOverlay
-          progress={
-            uploader_.status === "uploading" ? uploader_.progress : null
-          }
-          status={
-            state.stage === "done"
-              ? "done"
-              : state.stage === "error"
-                ? "error"
-                : "uploading"
-          }
-          errorMessage={uploader_.error?.message}
-          labels={labels}
-          onRetry={
-            state.stage === "error"
-              ? () => {
-                  state.setStage("edit");
-                  void handlePublish();
-                }
-              : undefined
-          }
-          onCancel={
-            state.stage === "publishing"
-              ? () => {
-                  uploader_.cancel();
-                  state.setStage("edit");
-                }
-              : undefined
-          }
-        />
-      ) : null}
-
-      {/* Mode pill for text-only mode (capture+edit modes already have it in
-          the top bar; text-mode uses the publish bar instead so the pill
-          needs its own slot). */}
-      {state.stage === "capture" && state.mode === "text" ? (
-        <div className="absolute top-[max(3.5rem,calc(env(safe-area-inset-top)+3rem))] left-0 right-0 z-30 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto">
-            <ModeTogglePill
-              mode={state.mode}
-              visibleModes={state.visibleModes}
-              labels={labels}
-              onModeChange={state.setMode}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {/* Discard-confirm guard (Q-P10a) */}
-      <DiscardConfirmDialog
-        open={showDiscardConfirm}
-        labels={labels}
-        onCancel={() => setShowDiscardConfirm(false)}
-        onConfirm={() => {
-          setShowDiscardConfirm(false);
-          performClose();
-        }}
-      />
-
-      {/* Live-region edit-event announcer (sr-only) — Konva canvas is opaque
-          to screen readers so we surface "Added text", "Added sticker",
-          "Recording started" etc. as polite announcements. */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
-        {announcement}
-      </div>
-    </ComposerShell>
+    </>
   );
 });
