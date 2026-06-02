@@ -275,6 +275,42 @@ function EditOnlyDemo() {
   const editorRef = React.useRef<MediaEditor01Handle>(null);
   const [preset, setPreset] = React.useState<EditOnlyPreset>("url-photo");
   const [lastError, setLastError] = React.useState<SourceError | null>(null);
+  const [exportPreview, setExportPreview] = React.useState<{
+    url: string;
+    size: number;
+    mime: string;
+  } | null>(null);
+  const [exportProgress, setExportProgress] = React.useState<number | null>(
+    null,
+  );
+  const [exportFormat, setExportFormat] = React.useState<
+    "image/jpeg" | "image/png" | "image/webp"
+  >("image/jpeg");
+
+  // Revoke any previous preview blob URL when a new export lands.
+  React.useEffect(() => {
+    if (!exportPreview) return;
+    return () => URL.revokeObjectURL(exportPreview.url);
+  }, [exportPreview]);
+
+  const handleExport = async () => {
+    if (!editorRef.current) return;
+    setExportProgress(0);
+    try {
+      const { blob, metadata } = await editorRef.current.exportImage({
+        format: exportFormat,
+        quality: 0.9,
+        onProgress: setExportProgress,
+      });
+      const url = URL.createObjectURL(blob);
+      setExportPreview({ url, size: blob.size, mime: blob.type });
+      console.log("export metadata:", metadata);
+    } catch (e) {
+      console.error("export failed:", e);
+    } finally {
+      setExportProgress(null);
+    }
+  };
 
   // Build a tiny PNG blob lazily (1×1 white pixel) for the "blob-photo" case.
   // Memoized so flipping presets doesn't churn the source identity unless
@@ -387,25 +423,76 @@ function EditOnlyDemo() {
         onInitialSourceError={setLastError}
       />
 
-      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-        <button
-          type="button"
-          className="rounded-md border border-border bg-muted/40 px-3 py-1.5 hover:bg-muted"
-          onClick={() => {
-            console.log("getState:", editorRef.current?.getState());
-            console.log("isDirty:", editorRef.current?.getIsDirty());
-            console.log("mode:", editorRef.current?.getMode());
-          }}
-        >
-          Log state
-        </button>
-        <button
-          type="button"
-          className="rounded-md border border-border bg-muted/40 px-3 py-1.5 hover:bg-muted"
-          onClick={() => editorRef.current?.reset()}
-        >
-          Reset
-        </button>
+      <div className="grid gap-3 rounded-md border border-border bg-muted/20 p-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-28 shrink-0 font-medium text-muted-foreground">
+            Export format
+          </span>
+          {(
+            ["image/jpeg", "image/png", "image/webp"] as const
+          ).map((fmt) => (
+            <button
+              key={fmt}
+              type="button"
+              onClick={() => setExportFormat(fmt)}
+              className={
+                "rounded-md border px-2 py-0.5 transition-colors " +
+                (exportFormat === fmt
+                  ? "border-foreground/40 bg-foreground/10 text-foreground"
+                  : "border-border bg-muted/30 text-muted-foreground hover:bg-muted")
+              }
+            >
+              {fmt.replace("image/", "")}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={exportProgress !== null}
+            className="rounded-md border border-border bg-primary px-3 py-1.5 font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleExport}
+          >
+            {exportProgress === null
+              ? `Export as ${exportFormat.replace("image/", "")}`
+              : `Exporting… ${Math.round((exportProgress ?? 0) * 100)}%`}
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-border bg-muted/40 px-3 py-1.5 hover:bg-muted"
+            onClick={() => {
+              console.log("getState:", editorRef.current?.getState());
+              console.log("isDirty:", editorRef.current?.getIsDirty());
+              console.log("mode:", editorRef.current?.getMode());
+            }}
+          >
+            Log state
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-border bg-muted/40 px-3 py-1.5 hover:bg-muted"
+            onClick={() => {
+              setExportPreview(null);
+              editorRef.current?.reset();
+            }}
+          >
+            Reset
+          </button>
+        </div>
+        {exportPreview ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-muted-foreground">
+              Exported{" "}
+              <code>{Math.round(exportPreview.size / 1024)} KB</code> ·{" "}
+              <code>{exportPreview.mime}</code>
+            </p>
+            <img
+              src={exportPreview.url}
+              alt="Export preview"
+              className="max-h-48 max-w-xs rounded-md border border-border bg-card object-contain"
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

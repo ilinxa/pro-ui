@@ -15,6 +15,15 @@ export interface CompositeVideoOptions {
   outputHeight: number;
   /** Capture frame rate. Default 30. */
   fps?: number;
+  /** Override mime selection; falls back to selectRecorderMime() chain. */
+  mimeType?: string;
+  /** MediaRecorder bitsPerSecond (browser default if omitted). */
+  bitsPerSecond?: number;
+  /**
+   * 0..1; fires ~10× during re-encode keyed off video.currentTime /
+   * (endSec - startSec). Capped at 1 to avoid overshoot on slow ticks.
+   */
+  onProgress?: (progress: number) => void;
 }
 
 export interface CompositeVideoResult {
@@ -52,9 +61,12 @@ export async function compositeVideo(
     outputWidth,
     outputHeight,
     fps = 30,
+    mimeType,
+    bitsPerSecond,
+    onProgress,
   } = opts;
 
-  const mime = selectRecorderMime();
+  const mime = mimeType ?? selectRecorderMime();
   if (!mime) {
     throw new Error(
       "This browser does not support MediaRecorder — video publish unavailable.",
@@ -107,13 +119,22 @@ export async function compositeVideo(
       /* audio mixing best-effort; some browsers lock down crossorigin */
     }
 
-    const recorder = new MediaRecorder(canvasStream, { mimeType: mime });
+    const recorder = new MediaRecorder(canvasStream, {
+      mimeType: mime,
+      ...(bitsPerSecond !== undefined ? { bitsPerSecond } : {}),
+    });
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
 
     const startedAt = Date.now();
+
+    // Progress is bucketed into 10% steps to satisfy the ExportVideoOpts
+    // "fires ~10× during re-encode" contract without flooding the callback.
+    const duration = Math.max(end - begin, 0.001);
+    let lastBucket = -1;
+    onProgress?.(0);
 
     // RAF loop drives the canvas frames. We stop when the video crosses
     // `end`, or earlier if the video ends naturally.
@@ -124,6 +145,14 @@ export async function compositeVideo(
         return;
       }
       renderFrame(ctx, video);
+      if (onProgress) {
+        const elapsed = Math.max(video.currentTime - begin, 0);
+        const bucket = Math.min(9, Math.floor((elapsed / duration) * 10));
+        if (bucket > lastBucket) {
+          lastBucket = bucket;
+          onProgress((bucket + 1) / 10);
+        }
+      }
       raf = requestAnimationFrame(tick);
     };
 
@@ -131,6 +160,7 @@ export async function compositeVideo(
       recorder.onstop = () => {
         cancelAnimationFrame(raf);
         video.pause();
+        onProgress?.(1);
         const blob = new Blob(chunks, { type: mime });
         resolve({ blob, durationMs: Date.now() - startedAt, mimeType: mime });
       };

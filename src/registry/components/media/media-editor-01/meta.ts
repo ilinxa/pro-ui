@@ -41,11 +41,14 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    // Grows progressively as each commit's imports land (per `project_validate_meta_deps_lint`).
-    // Konva peer deps will be added in C8 when capture/canvas parts wire up (currently
-    // the moved hooks/lib reference konva but the root component doesn't import them yet).
+    // Konva peer deps landed in C10 when EditorCanvas was mounted in the
+    // root component for photo/video edit stages. Versions tracked against
+    // producer's package.json per validate:meta-deps F-cross-07.
     shadcn: ["dialog"],
-    npm: {},
+    npm: {
+      konva: "^10.3.0",
+      "react-konva": "^19.2.4",
+    },
     internal: [],
   },
 
