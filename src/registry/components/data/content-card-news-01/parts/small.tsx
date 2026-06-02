@@ -1,27 +1,79 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ResolvedPartProps } from "../types";
+import { NewsBadges } from "./news-badges";
+import { ContentSensitiveGate } from "./content-sensitive-gate";
 
 /**
- * Small variant — horizontal thumb tile. Compact 24px-thumb on the left,
- * badge + title + relative-date on the right. Sidebar-density.
+ * Small variant — horizontal thumb tile, compact sidebar density.
  *
- * No `actions` slot for `small` (intentional — too compact for nested buttons).
+ * Per Q-PA matrix: ONLY highest-priority badge (via `highestPriorityOnly`)
+ * + sensitive gate (graphic content must always warn). NO kebab, NO author,
+ * NO excerpt, NO engagement counts, NO paywall (no space + low engagement
+ * value at this density), NO publisher logo, NO quoted article. Just
+ * category chip + title + date + a single highest-priority badge.
  */
-export function SmallPart({
-  item,
-  formattedRelativeTime,
-  categoryStyle,
-  LinkComponent,
-  href,
-  onClick,
-  ariaLabel,
-  titleId,
-  titleClassName,
-  imageClassName,
-  className,
-  loading,
-}: ResolvedPartProps) {
+export function SmallPart(props: ResolvedPartProps) {
+  const {
+    item,
+    formattedRelativeTime,
+    categoryStyle,
+    labels,
+    LinkComponent,
+    href,
+    onClick,
+    ariaLabel,
+    titleId,
+    titleClassName,
+    imageClassName,
+    className,
+    loading,
+    viewerMode,
+    canModerate,
+    sensitiveRevealed,
+    onRevealSensitiveInternal,
+    renderBadges,
+    renderSensitiveGate,
+    disableBadgesRender,
+    disableSensitiveGate,
+    onCategoryClick,
+  } = props;
+
+  const isEditorMode = viewerMode === "editor";
+
+  const thumbImg = (
+    <img
+      src={item.image}
+      alt={item.title}
+      loading={loading}
+      decoding="async"
+      className={cn(
+        "h-24 w-24 shrink-0 rounded-lg object-cover",
+        imageClassName,
+      )}
+    />
+  );
+
+  const gatedThumb =
+    !disableSensitiveGate && item.sensitivity?.isSensitive ? (
+      renderSensitiveGate ? (
+        renderSensitiveGate(item, { onReveal: onRevealSensitiveInternal })
+      ) : (
+        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg">
+          <ContentSensitiveGate
+            sensitivity={item.sensitivity}
+            revealed={sensitiveRevealed}
+            onReveal={onRevealSensitiveInternal}
+            labels={labels}
+          >
+            {thumbImg}
+          </ContentSensitiveGate>
+        </div>
+      )
+    ) : (
+      thumbImg
+    );
+
   return (
     <article
       className={cn(
@@ -30,16 +82,7 @@ export function SmallPart({
         className,
       )}
     >
-      <img
-        src={item.image}
-        alt={item.title}
-        loading={loading}
-        decoding="async"
-        className={cn(
-          "h-24 w-24 shrink-0 rounded-lg object-cover",
-          imageClassName,
-        )}
-      />
+      {gatedThumb}
 
       {href ? (
         <LinkComponent
@@ -51,14 +94,47 @@ export function SmallPart({
         />
       ) : null}
 
+      {/* Single highest-priority badge — top-right corner */}
+      {!disableBadgesRender && (
+        <div className="absolute right-2 top-2 z-20">
+          {renderBadges ? (
+            renderBadges(item, { canModerate })
+          ) : (
+            <NewsBadges
+              item={item}
+              labels={labels}
+              isEditorMode={isEditorMode}
+              highestPriorityOnly
+            />
+          )}
+        </div>
+      )}
+
       <div className="flex min-w-0 flex-col justify-center">
         {item.category ? (
-          <Badge
-            className={cn(categoryStyle, "mb-2 w-fit text-xs")}
-            aria-label={`Category: ${item.category}`}
-          >
-            {item.category}
-          </Badge>
+          onCategoryClick ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onCategoryClick(item.category!);
+              }}
+              className="relative z-10 mb-2 w-fit"
+              aria-label={`Category: ${item.category}`}
+            >
+              <Badge className={cn(categoryStyle, "cursor-pointer text-xs")}>
+                {item.category}
+              </Badge>
+            </button>
+          ) : (
+            <Badge
+              className={cn(categoryStyle, "mb-2 w-fit text-xs")}
+              aria-label={`Category: ${item.category}`}
+            >
+              {item.category}
+            </Badge>
+          )
         ) : null}
         <h4
           id={titleId}
