@@ -10,10 +10,15 @@ export const defaultDateFormat = (date: Date): string =>
   });
 
 /**
- * Coerce a `string | Date` value to `Date`. Returns `undefined` if
- * the input is itself undefined or fails to parse.
+ * Coerce a `string | Date | number` value to `Date`. Returns `undefined`
+ * if the input is itself undefined or fails to parse.
+ *
+ * Accepts `number` (epoch millis) as of v0.3 — `publishedAt` / `updatedAt`
+ * / `scheduledFor` / `lastLiveUpdateAt` all support `number` per types.
  */
-export const toDate = (value: string | Date | undefined): Date | undefined => {
+export const toDate = (
+  value: string | Date | number | undefined,
+): Date | undefined => {
   if (value === undefined) return undefined;
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? undefined : value;

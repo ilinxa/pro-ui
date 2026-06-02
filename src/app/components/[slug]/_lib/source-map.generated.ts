@@ -1127,7 +1127,7 @@ export default function CommentThread01Demo() {
 `,
   },
   "content-card-news-01": {
-    demo: `﻿"use client";
+    demo: `"use client";
 
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
@@ -1136,8 +1136,15 @@ import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { ContentCardNews01 } from "./content-card-news-01";
 import {
+  breakingNewsItem,
+  draftItem,
   dummyCategoryStyles,
   dummyContentCardItems,
+  editorsPickItem,
+  paywalledItem,
+  quotingItem,
+  sensitiveItem,
+  sponsoredItem,
 } from "./dummy-data";
 
 const items = dummyContentCardItems;
@@ -1202,6 +1209,9 @@ export default function ContentCardNews01Demo() {
   const smalls = items.slice(2, 6);
   const lists = items.slice(0, 5);
 
+  const log = (label: string) => () =>
+    console.log(\`[content-card-news-01 demo] \${label}\`);
+
   return (
     <Tabs defaultValue="featured" className="w-full">
       <SwipeTabsList>
@@ -1212,6 +1222,11 @@ export default function ContentCardNews01Demo() {
         <TabsTrigger value="list">List</TabsTrigger>
         <TabsTrigger value="composed">Composed</TabsTrigger>
         <TabsTrigger value="actions">Actions slot</TabsTrigger>
+        <TabsTrigger value="editor">Editor mode</TabsTrigger>
+        <TabsTrigger value="paywall">Paywall</TabsTrigger>
+        <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
+        <TabsTrigger value="quoted">Quoted article</TabsTrigger>
+        <TabsTrigger value="engagement">Engagement</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="featured" className="mt-6">
@@ -1340,6 +1355,140 @@ export default function ContentCardNews01Demo() {
                   onToggle={toggleBookmark}
                 />
               }
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="editor" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          <strong>viewerMode=&quot;editor&quot;</strong> — kebab shows editor
+          actions (Edit / Publish / Schedule / Feature / Pin / Change visibility /
+          Change category / Mark sensitive / See analytics / Delete). Draft status
+          badge renders only in editor mode. Open the kebab on any card.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[editorsPickItem, draftItem, sponsoredItem].map((item) => (
+            <ContentCardNews01
+              key={item.id}
+              item={item}
+              variant="medium"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+              viewerMode="editor"
+              onEdit={log(\`onEdit(\${item.id})\`)}
+              onDelete={log(\`onDelete(\${item.id})\`)}
+              onPublish={log(\`onPublish(\${item.id})\`)}
+              onSchedule={log(\`onSchedule(\${item.id})\`)}
+              onFeature={log(\`onFeature(\${item.id})\`)}
+              onPin={log(\`onPin(\${item.id})\`)}
+              onChangeVisibility={log(\`onChangeVisibility(\${item.id})\`)}
+              onChangeCategory={log(\`onChangeCategory(\${item.id})\`)}
+              onMarkSensitive={log(\`onMarkSensitive(\${item.id})\`)}
+              onSeeAnalytics={log(\`onSeeAnalytics(\${item.id})\`)}
+              onShare={log(\`onShare(\${item.id})\`)}
+              onBookmark={log(\`onBookmark(\${item.id})\`)}
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="paywall" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Premium content gate. Excerpt + media blurred behind a Subscribe CTA.
+          Preview text shows above the gate. Open the console — clicking the CTA
+          fires <code>onRevealPaywall</code> as an analytics hook.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <ContentCardNews01
+            item={paywalledItem}
+            variant="medium"
+            href={\`/news/\${paywalledItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealPaywall={log(\`onRevealPaywall(\${paywalledItem.id})\`)}
+          />
+          <ContentCardNews01
+            item={paywalledItem}
+            variant="large"
+            href={\`/news/\${paywalledItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealPaywall={log(\`onRevealPaywall(\${paywalledItem.id})\`)}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="sensitive" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Sensitive content gate — media-only blur with reveal button. Distinct
+          from paywall (different motivation). Lists content warnings when set.
+          Reveal is per-session; reset via the handle&apos;s{" "}
+          <code>reset(item)</code>.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <ContentCardNews01
+            item={sensitiveItem}
+            variant="medium"
+            href={\`/news/\${sensitiveItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealSensitive={log(\`onRevealSensitive(\${sensitiveItem.id})\`)}
+          />
+          <ContentCardNews01
+            item={sensitiveItem}
+            variant="small"
+            href={\`/news/\${sensitiveItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealSensitive={log(\`onRevealSensitive(\${sensitiveItem.id})\`)}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="quoted" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Analysis pieces quoting source articles render a nested mini-card.
+          Recursion-stripped (a quoted article&apos;s own <code>quotedArticle</code>
+          is ignored). Renders in <code>medium</code> + <code>list</code> variants
+          only per the per-variant feature matrix.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <ContentCardNews01
+            item={quotingItem}
+            variant="medium"
+            href={\`/news/\${quotingItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onQuotedClick={(q) => log(\`onQuotedClick(\${q.id})\`)()}
+          />
+          <ContentCardNews01
+            item={quotingItem}
+            variant="list"
+            href={\`/news/\${quotingItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onQuotedClick={(q) => log(\`onQuotedClick(\${q.id})\`)()}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="engagement" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Light engagement counts — like / comment / bookmark / share chips with
+          handler-driven interactivity. For the news article{" "}
+          <strong>detail page</strong>, consumers pass{" "}
+          <code>renderEngagementCounts</code> to compose{" "}
+          <code>&lt;EngagementBar01&gt;</code> in this slot — see the description
+          doc §6.2 for the integration pattern. <code>isLive</code> badge +
+          updated-N-ago sub-line surface live-blog state.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[breakingNewsItem, editorsPickItem, quotingItem].map((item) => (
+            <ContentCardNews01
+              key={item.id}
+              item={item}
+              variant="medium"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+              onLike={(id, nextLiked) => log(\`onLike(\${id}, \${nextLiked})\`)()}
+              onCommentCountClick={(id) => log(\`onCommentCountClick(\${id})\`)()}
+              onBookmark={(id, next) => log(\`onBookmark(\${id}, \${next})\`)()}
+              onShare={(id) => log(\`onShare(\${id})\`)()}
             />
           ))}
         </div>
@@ -10755,11 +10904,19 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { StoryComposer01 } from "./story-composer-01";
-import {
-  SAMPLE_BRAND_STICKERS,
-  SAMPLE_UPLOAD_URL,
-} from "./dummy-data";
+import { SAMPLE_BRAND_STICKERS } from "./dummy-data";
 import type { PublishedStory } from "./types";
+
+// Demo-site uploader — pretends to upload (1.5s) and returns the blob's own
+// object URL. Keeps every tab able to round-trip Publish → Done without a
+// real backend; consumers wire \`uploadUrl\` or their own \`uploader\` for prod.
+async function demoUploader(blob: Blob) {
+  await new Promise((r) => setTimeout(r, 1500));
+  return {
+    url: URL.createObjectURL(blob),
+    thumbnailUrl: URL.createObjectURL(blob),
+  };
+}
 
 export default function StoryComposer01Demo() {
   return (
@@ -10774,8 +10931,8 @@ export default function StoryComposer01Demo() {
 
       <TabsContent value="default">
         <ComposerLauncher
-          description="All three modes (photo / video / text), 36 built-in emoji stickers, default upload to a sample URL."
-          props={{ uploadUrl: SAMPLE_UPLOAD_URL }}
+          description="All three modes (photo / video / text), 36 built-in emoji stickers. Wired to a fake uploader for the docs site — consumers pass \`uploadUrl\` or a real \`uploader\` for prod."
+          props={{ uploader: demoUploader }}
         />
       </TabsContent>
 
@@ -10783,7 +10940,7 @@ export default function StoryComposer01Demo() {
         <ComposerLauncher
           description="hideModes={['video','text']} — photo-only flow (useful for product or content surfaces that don't accept video)."
           props={{
-            uploadUrl: SAMPLE_UPLOAD_URL,
+            uploader: demoUploader,
             hideModes: ["video", "text"],
           }}
         />
@@ -10793,7 +10950,7 @@ export default function StoryComposer01Demo() {
         <ComposerLauncher
           description="Adds a consumer-supplied sticker set (Ilinxa brand) alongside the built-in catalog. Toggle replaceBuiltinStickers to ship consumer-only."
           props={{
-            uploadUrl: SAMPLE_UPLOAD_URL,
+            uploader: demoUploader,
             stickers: [SAMPLE_BRAND_STICKERS],
           }}
         />
@@ -10802,23 +10959,14 @@ export default function StoryComposer01Demo() {
       <TabsContent value="custom-uploader">
         <ComposerLauncher
           description="Custom async uploader — useful for S3 pre-signed PUT, Cloudinary direct upload, Mux. The composer hands the blob + metadata to your function and you return { url }."
-          props={{
-            uploader: async (blob: Blob) => {
-              // Demo only — pretend to upload and resolve after 1.5s.
-              await new Promise((r) => setTimeout(r, 1500));
-              return {
-                url: URL.createObjectURL(blob),
-                thumbnailUrl: URL.createObjectURL(blob),
-              };
-            },
-          }}
+          props={{ uploader: demoUploader }}
         />
       </TabsContent>
 
       <TabsContent value="no-confirm">
         <ComposerLauncher
           description="confirmOnDiscard={false} — silent discard on close, matching Instagram's behavior. Don't ship this in production unless you have a separate draft-recovery path."
-          props={{ uploadUrl: SAMPLE_UPLOAD_URL, confirmOnDiscard: false }}
+          props={{ uploader: demoUploader, confirmOnDiscard: false }}
         />
       </TabsContent>
     </Tabs>
