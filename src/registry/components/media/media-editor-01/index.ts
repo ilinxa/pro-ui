@@ -130,6 +130,12 @@ export {
   type UseMediaEditorStateResult,
 } from "./hooks/use-media-editor-state";
 
+// useMultiInstanceGuard (C11) — module-scoped counter + dev-warn for
+// 2+ capture-enabled instances mounted simultaneously (Q-P5 b).
+// Exported in case advanced consumers want to opt instances in/out
+// explicitly when composing media-editor-01 inside other procomps.
+export { useMultiInstanceGuard } from "./hooks/use-multi-instance-guard";
+
 // ─── Lib helpers (C3 + C4 — moved from story-composer-01 v0.1.5 via git mv) ──
 
 // mime-fallback (C3):
