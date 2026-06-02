@@ -51,10 +51,9 @@ export const meta: ComponentMeta = {
     shadcn: ["button", "dialog"],
     npm: {
       "lucide-react": "^1.11.0",
-      // konva still used as type-only import in story-composer-01.tsx (Konva.Stage refs).
-      konva: "^10.3.0",
-      // react-konva moved with editor-canvas to media-editor-01; cross-procomp
-      // dep handles the runtime resolution.
+      // konva + react-konva resolve transitively via the @ilinxa/media-editor-01
+      // registryDependency — the C16 wrapper refactor dropped the type-only
+      // Konva.Stage ref that v0.1.5 held directly.
     },
     internal: ["media-editor-01"],
   },
