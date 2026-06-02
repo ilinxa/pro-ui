@@ -35,22 +35,28 @@ export {
   DEFAULT_ADJUSTMENTS,
 } from "./types";
 
-// ─── Exported sealed-folder parts (plan §11) ───────────────────────────
+// ─── Exported sealed-folder parts ──────────────────────────────────────
 
-export { ComposerCamera } from "./parts/composer-camera";
-export type { ComposerCameraProps } from "./parts/composer-camera";
-
-export { ComposerEditor } from "./parts/composer-editor";
-export type { ComposerEditorProps } from "./parts/composer-editor";
-
-export { ComposerToolbar } from "./parts/composer-toolbar";
-export type { ComposerToolbarProps } from "./parts/composer-toolbar";
-
+// ComposerPublishBar STAYS in story-composer-01 (story-shaped publish UI).
 export { ComposerPublishBar } from "./parts/composer-publish-bar";
 export type { ComposerPublishBarProps } from "./parts/composer-publish-bar";
 
-export { ColorSwatchPicker } from "./parts/color-swatch-picker";
-export type { ColorSwatchPickerProps } from "./parts/color-swatch-picker";
+// 3 parts moved + renamed in v0.2.0; backward-compat aliases preserve v0.1.5 names.
+// @deprecated import EditorCamera/EditorCanvas/EditorToolbar from "@ilinxa/media-editor-01".
+export {
+  EditorCamera as ComposerCamera,
+  EditorCanvas as ComposerEditor,
+  EditorToolbar as ComposerToolbar,
+  ColorSwatchPicker,
+} from "../media-editor-01";
+
+// Props types for the renamed parts — also re-exported under old names.
+export type {
+  EditorCameraProps as ComposerCameraProps,
+  EditorCanvasProps as ComposerEditorProps,
+  EditorToolbarProps as ComposerToolbarProps,
+  ColorSwatchPickerProps,
+} from "../media-editor-01";
 
 // ─── Exported hooks (plan §10) ─────────────────────────────────────────
 
@@ -116,8 +122,10 @@ export {
 
 // ─── Crop helpers (CropRect type lives here; helper functions too) ─────
 
+// Crop helpers moved with tool-crop-overlay to media-editor-01 in v0.2.0.
+// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
 export {
   fitCropToStage,
   ASPECT_RATIO_VALUES,
   type CropRect,
-} from "./parts/tool-crop-overlay";
+} from "../media-editor-01";

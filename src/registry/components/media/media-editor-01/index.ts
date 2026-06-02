@@ -168,5 +168,45 @@ export {
   DEFAULT_COLOR_PRESETS,
 } from "./lib/defaults";
 
-// ─── Parts (C5) ────────────────────────────────────────────────────────
-// Re-exports added when parts land via git mv + symbol renames.
+// ─── Parts (C5 — moved from story-composer-01 v0.1.5 via git mv) ──────
+
+// Renamed public parts (Composer* → Editor*):
+export { EditorCamera } from "./parts/editor-camera";
+export type { EditorCameraProps } from "./parts/editor-camera";
+
+export { EditorCanvas } from "./parts/editor-canvas";
+export type { EditorCanvasProps } from "./parts/editor-canvas";
+
+export { EditorToolbar } from "./parts/editor-toolbar";
+export type { EditorToolbarProps } from "./parts/editor-toolbar";
+
+// Other public parts (per description §10):
+export { ColorSwatchPicker } from "./parts/color-swatch-picker";
+export type { ColorSwatchPickerProps } from "./parts/color-swatch-picker";
+
+export { DiscardConfirmDialog } from "./parts/discard-confirm-dialog";
+
+// Crop helpers (v0.1.5 public surface preserved):
+export {
+  ToolCropOverlay,
+  ASPECT_RATIO_VALUES,
+  fitCropToStage,
+} from "./parts/tool-crop-overlay";
+export type { ToolCropOverlayProps } from "./parts/tool-crop-overlay";
+
+// Internal-by-convention parts — re-exported for sealed-folder consumers + the
+// story-composer-01 v0.2.0 wrapper that still references these by name.
+export { CameraPermissionPrompt } from "./parts/camera-permission-prompt";
+export { ModeTogglePill } from "./parts/mode-toggle-pill";
+export { ShutterButton } from "./parts/shutter-button";
+export { VideoTrimBar } from "./parts/video-trim-bar";
+export { TextOnlyCanvas } from "./parts/text-only-canvas";
+export type {
+  TextOnlyCanvasProps,
+  TextOnlyCanvasState,
+} from "./parts/text-only-canvas";
+export { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
+export { ToolDrawControls } from "./parts/tool-draw-controls";
+export { ToolFilterStrip } from "./parts/tool-filter-strip";
+export { ToolStickerPicker } from "./parts/tool-sticker-picker";
+export { ToolTextInput } from "./parts/tool-text-input";

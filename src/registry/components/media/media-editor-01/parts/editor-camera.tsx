@@ -19,7 +19,7 @@ import type {
   ValidationError,
 } from "../types";
 
-export interface ComposerCameraProps {
+export interface EditorCameraProps {
   /** Composer is open + we should hold a live camera stream. */
   enabled: boolean;
   /** Drives mirror behavior, default facing, and the shutter aria-label. */
@@ -38,7 +38,7 @@ export interface ComposerCameraProps {
   onPermissionDenied?: () => void;
 }
 
-export function ComposerCamera({
+export function EditorCamera({
   enabled,
   mode,
   defaultFacing,
@@ -51,7 +51,7 @@ export function ComposerCamera({
   onGalleryFile,
   onValidationError,
   onPermissionDenied,
-}: ComposerCameraProps) {
+}: EditorCameraProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
 

@@ -1,12 +1,17 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { AspectRatio, StoryComposer01Labels } from "../types";
+import type { AspectRatio, CropRect } from "../types";
+
+// Decoupled from story-shaped labels post-extraction. Story-composer-01 v0.2.0
+// wrapper passes `cropLabel={labels.toolCrop}`; other consumers pass their own
+// label string directly.
 
 export interface ToolCropOverlayProps {
   activeAspect: AspectRatio;
   availableAspects: AspectRatio[];
-  labels: Required<StoryComposer01Labels>;
+  /** Raw "Crop" label text. Defaults to "Crop". */
+  cropLabel?: string;
   onAspectChange: (aspect: AspectRatio) => void;
   className?: string;
 }
@@ -14,6 +19,7 @@ export interface ToolCropOverlayProps {
 const ASPECT_LABEL: Record<AspectRatio, string> = {
   "9:16": "9:16",
   "1:1": "1:1",
+  "16:9": "16:9",
   "4:5": "4:5",
   free: "Free",
 };
@@ -21,7 +27,7 @@ const ASPECT_LABEL: Record<AspectRatio, string> = {
 export function ToolCropOverlay({
   activeAspect,
   availableAspects,
-  labels,
+  cropLabel = "Crop",
   onAspectChange,
   className,
 }: ToolCropOverlayProps) {
@@ -33,7 +39,7 @@ export function ToolCropOverlay({
       )}
     >
       <span className="text-[10px] uppercase tracking-wider text-white/60 px-2">
-        {labels.toolCrop}
+        {cropLabel}
       </span>
       {availableAspects.map((aspect) => {
         const isActive = activeAspect === aspect;
@@ -58,18 +64,18 @@ export function ToolCropOverlay({
   );
 }
 
-// ─── Geometry helpers (consumed by composer-editor) ───────────────────
+// ─── Geometry helpers (consumed by editor-canvas) ─────────────────────
 
-export interface CropRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+// CropRect now lives in ../types — single source of truth across the procomp.
+// Re-exported here for any v0.1.5 consumer of story-composer-01 that imported
+// `CropRect` from `parts/tool-crop-overlay` (story-composer-01 v0.2.0 barrel
+// preserves the re-export for backward-compat).
+export type { CropRect };
 
 export const ASPECT_RATIO_VALUES: Record<AspectRatio, number | null> = {
   "9:16": 9 / 16,
   "1:1": 1,
+  "16:9": 16 / 9,
   "4:5": 4 / 5,
   free: null,
 };
