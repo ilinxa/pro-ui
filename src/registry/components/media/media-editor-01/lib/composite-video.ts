@@ -1,4 +1,4 @@
-import { selectRecorderMime } from "../../media-editor-01";
+import { selectRecorderMime } from "./mime-fallback";
 
 export interface CompositeVideoOptions {
   sourceBlob: Blob;

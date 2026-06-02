@@ -1,13 +1,7 @@
-import type { FontOption } from "../types";
+import type { FontOption, GradientPreset } from "../types";
 
 // ─── Gradient presets for text-only mode ────────────────────────────────
-
-export interface GradientPreset {
-  id: string;
-  label: string;
-  /** CSS background value — used directly on the text-only canvas. */
-  background: string;
-}
+// GradientPreset type moved to ../types.ts in v0.1.0 of media-editor-01.
 
 export const DEFAULT_TEXT_GRADIENTS: GradientPreset[] = [
   {

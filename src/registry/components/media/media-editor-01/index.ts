@@ -125,9 +125,9 @@ export {
 // useMediaEditorState — written NEW in C6, not moved (replaces story-composer's
 // use-story-composer-state for editor-shaped concerns).
 
-// ─── Lib helpers ───────────────────────────────────────────────────────
+// ─── Lib helpers (C3 + C4 — moved from story-composer-01 v0.1.5 via git mv) ──
 
-// mime-fallback (pulled into C3 to unblock use-media-capture's cross-dep):
+// mime-fallback (C3):
 export {
   selectRecorderMime,
   containerFor,
@@ -135,8 +135,38 @@ export {
   type RecorderMimeType,
 } from "./lib/mime-fallback";
 
-// Remaining lib files (konva-filters, composite-video, export-blob,
-// built-in-stickers, defaults) land in C4 via git mv.
+// konva-filters (C4):
+export {
+  resolveFilterPresets,
+  BUILT_IN_FILTER_PRESETS,
+} from "./lib/konva-filters";
+
+// built-in-stickers (C4):
+export {
+  resolveStickerSets,
+  BUILT_IN_STICKER_SETS,
+} from "./lib/built-in-stickers";
+
+// export-blob (C4):
+export {
+  exportPhotoBlob,
+  exportTextOnlyBlob,
+  type ExportPhotoOptions,
+} from "./lib/export-blob";
+
+// composite-video (C4):
+export {
+  compositeVideo,
+  type CompositeVideoOptions,
+  type CompositeVideoResult,
+} from "./lib/composite-video";
+
+// defaults — editor tokens (C4):
+export {
+  DEFAULT_TEXT_GRADIENTS,
+  DEFAULT_FONTS,
+  DEFAULT_COLOR_PRESETS,
+} from "./lib/defaults";
 
 // ─── Parts (C5) ────────────────────────────────────────────────────────
 // Re-exports added when parts land via git mv + symbol renames.
