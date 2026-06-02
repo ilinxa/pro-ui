@@ -293,9 +293,11 @@ export default function ContentCardNews01Demo() {
           Sensitive content gate — media-only blur with reveal button. Distinct
           from paywall (different motivation). Lists content warnings when set.
           Reveal is per-session; reset via the handle&apos;s{" "}
-          <code>reset(item)</code>.
+          <code>reset(item)</code>. Small variant uses the gate&apos;s{" "}
+          <code>compact</code> mode (icon + tiny &quot;Show&quot; pill) since
+          its 96×96 thumb can&apos;t fit the full overlay.
         </p>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-6">
           <ContentCardNews01
             item={sensitiveItem}
             variant="medium"
