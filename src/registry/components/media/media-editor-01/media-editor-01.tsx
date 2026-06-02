@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
+import { resolvePresentation } from "./lib/presentation-resolver";
+import { dialogSizeForAspect } from "./lib/dialog-size-for-aspect";
 import type {
   ComposerMode,
   EditTool,
@@ -54,6 +57,31 @@ export const MediaEditor01 = React.forwardRef<
   });
 
   const warnedRef = React.useRef<Set<string>>(new Set());
+
+  // ─── Capability defaults ────────────────────────────────────────────
+
+  const enabledModes = props.enabledModes ?? (["photo", "video", "text"] as const);
+  const enabledTools =
+    props.enabledTools ??
+    (["text", "draw", "stickers", "filters", "adjust", "crop"] as const);
+  const aspect = props.aspect ?? "free";
+
+  // ─── Presentation resolution (description §6) ───────────────────────
+
+  const resolved = resolvePresentation(props.presentation, enabledModes);
+
+  // Dev-only required-prop guard: dialog mode needs isOpen + onClose.
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (resolved !== "dialog") return;
+    if (props.isOpen === undefined || props.onClose === undefined) {
+      devWarnOnce(
+        warnedRef.current,
+        "dialog-requires-isOpen-onClose",
+        "media-editor-01: presentation='dialog' requires isOpen + onClose props. Falling back to uncontrolled-open behaviour for now.",
+      );
+    }
+  }, [resolved, props.isOpen, props.onClose]);
 
   // ─── Imperative handle ──────────────────────────────────────────────
   // Most methods are stubs in C6. Real wiring lands in C7-C12 per the plan.
@@ -129,10 +157,16 @@ export const MediaEditor01 = React.forwardRef<
       // === Lifecycle ===
       reset: () => editor.reset(),
       open: () => {
-        // No-op in inline; real wiring in C7 dialog mode.
+        // Dialog mode is controlled — consumer owns `isOpen`. open() is a no-op;
+        // the consumer must set isOpen=true. Documented in JSDoc / guide.
+        // Inline mode has nothing to open.
       },
       close: () => {
-        // No-op in inline; real wiring in C7 dialog mode.
+        // Fire onClose so dialog-mode consumers' state machine collapses.
+        // Inline-mode consumers don't pass onClose; no-op.
+        if (resolved === "dialog") {
+          props.onClose?.();
+        }
       },
     }),
     [editor],
@@ -148,49 +182,77 @@ export const MediaEditor01 = React.forwardRef<
       isCapturing: editor.state.stage === "capture",
       isExporting: editor.state.stage === "publishing",
       activeTool: editor.activeTool,
-      enabledTools: props.enabledTools ?? ([
-        "text",
-        "draw",
-        "stickers",
-        "filters",
-        "adjust",
-        "crop",
-      ] satisfies EditTool[]),
-      enabledModes: props.enabledModes ?? ([
-        "photo",
-        "video",
-        "text",
-      ] satisfies ComposerMode[]),
-      aspect: props.aspect ?? "free",
+      enabledTools: [...enabledTools] as EditTool[],
+      enabledModes: [...enabledModes] as ComposerMode[],
+      aspect,
     }),
-    [editor, props.enabledTools, props.enabledModes, props.aspect],
+    [editor, enabledTools, enabledModes, aspect],
   );
 
-  // ─── Render (C6: placeholder layout; C7 wires presentation chrome) ──
+  // ─── Render — inner surface (shared by inline + dialog branches) ──
 
-  return (
+  const inner = (
     <div
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm",
-        "min-h-[320px]",
+        "flex h-full w-full flex-col gap-4 p-6",
+        // Inline-only: gets its own card chrome. In dialog mode, DialogContent
+        // provides the chrome and we go edge-to-edge inside it.
+        resolved === "inline" &&
+          "rounded-2xl border border-border bg-card text-card-foreground shadow-sm min-h-[320px]",
       )}
       data-slot="media-editor-01"
       data-mode={editor.state.mode ?? "none"}
       data-stage={editor.state.stage}
+      data-presentation={resolved}
     >
       {props.renderTopBar?.(slotCtx)}
 
       <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-8 text-center text-sm text-muted-foreground">
-        <p className="font-medium text-foreground">media-editor-01 — C6 skeleton</p>
-        <p>State machine wired; capture/edit surface lands in C7-C12.</p>
+        <p className="font-medium text-foreground">media-editor-01 — C7 skeleton</p>
+        <p>State + presentation wired. Capture/edit surface lands in C8-C12.</p>
         <p className="text-xs">
           mode: <code>{editor.state.mode ?? "null"}</code> · stage:{" "}
           <code>{editor.state.stage}</code> · dirty:{" "}
-          <code>{editor.isDirty ? "yes" : "no"}</code>
+          <code>{editor.isDirty ? "yes" : "no"}</code> · presentation:{" "}
+          <code>{resolved}</code> · aspect: <code>{aspect}</code>
         </p>
       </div>
 
       {props.renderBottomToolbar?.(slotCtx)}
     </div>
+  );
+
+  // ─── Render — presentation branch ──
+
+  if (resolved === "inline") {
+    return inner;
+  }
+
+  // Dialog branch — size derived from aspect (description §6).
+  const { width, height } = dialogSizeForAspect(aspect);
+
+  return (
+    <Dialog open={props.isOpen ?? false} onOpenChange={(open) => {
+      if (!open) props.onClose?.();
+    }}>
+      <DialogContent
+        showCloseButton={false}
+        className={cn(
+          // Mobile: edge-to-edge fullscreen. Desktop: derived size from aspect.
+          "fixed inset-0 !max-w-none gap-0 overflow-hidden p-0 sm:rounded-2xl",
+          "h-[100dvh] w-screen !rounded-none",
+          "md:h-[var(--media-editor-dialog-h)] md:w-[var(--media-editor-dialog-w)] md:!rounded-2xl",
+          "md:max-h-[90dvh] md:max-w-[90vw]",
+        )}
+        style={{
+          // CSS vars consumed by md: classes above. Keeps Tailwind compile static.
+          ["--media-editor-dialog-w" as string]: `${width}px`,
+          ["--media-editor-dialog-h" as string]: `${height}px`,
+        }}
+      >
+        <DialogTitle className="sr-only">Media editor</DialogTitle>
+        {inner}
+      </DialogContent>
+    </Dialog>
   );
 });

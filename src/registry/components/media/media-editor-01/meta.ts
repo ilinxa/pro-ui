@@ -41,10 +41,10 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    // Grow progressively as each commit's imports land (per `project_validate_meta_deps_lint` memory + plan C1 lock).
-    // Verified at C1: konva ^10.3.0 + react-konva ^19.2.4 will be added when first source file imports them.
-    // shadcn primitives (dialog, slider, popover, button, input, select) added when corresponding parts land in C3-C12.
-    shadcn: [],
+    // Grows progressively as each commit's imports land (per `project_validate_meta_deps_lint`).
+    // Konva peer deps will be added in C8 when capture/canvas parts wire up (currently
+    // the moved hooks/lib reference konva but the root component doesn't import them yet).
+    shadcn: ["dialog"],
     npm: {},
     internal: [],
   },
