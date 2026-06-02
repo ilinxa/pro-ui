@@ -81,11 +81,13 @@ function DefaultsDemo() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">
-        Bare <code>&lt;MediaEditor01 /&gt;</code> with no prop overrides.
         Default capabilities — all three modes, all six edit tools, both
-        media sources, free aspect, inline presentation.
+        media sources, free aspect. The only override is{" "}
+        <code>presentation=&quot;inline&quot;</code> so the docs surface renders
+        on tab switch; auto-resolve would otherwise pick <code>dialog</code>{" "}
+        for capture-enabled instances and need an <code>isOpen</code> handler.
       </p>
-      <MediaEditor01 ref={editorRef} />
+      <MediaEditor01 ref={editorRef} presentation="inline" />
       <DemoActions editorRef={editorRef} />
     </div>
   );
@@ -374,7 +376,7 @@ function DarkDemo() {
         <code>globals.css</code> holds across the editor chrome + canvas
         placeholder + toolbar.
       </p>
-      <MediaEditor01 ref={editorRef} />
+      <MediaEditor01 ref={editorRef} presentation="inline" />
       <DemoActions editorRef={editorRef} />
     </div>
   );
