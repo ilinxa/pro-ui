@@ -14,6 +14,8 @@ import { exportPhotoBlob } from "./lib/export-blob";
 import { compositeVideo } from "./lib/composite-video";
 import { EditorCamera } from "./parts/editor-camera";
 import { EditorCanvas } from "./parts/editor-canvas";
+import { DiscardConfirmDialog } from "./parts/discard-confirm-dialog";
+import { TextOnlyCanvas } from "./parts/text-only-canvas";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
 import { ToolDrawControls } from "./parts/tool-draw-controls";
 import { ToolFilterStrip } from "./parts/tool-filter-strip";
@@ -24,7 +26,9 @@ import { resolveStickerSets } from "./lib/built-in-stickers";
 import {
   DEFAULT_COLOR_PRESETS,
   DEFAULT_FONTS,
+  DEFAULT_TEXT_GRADIENTS,
 } from "./lib/defaults";
+import { useHistory } from "./hooks/use-history";
 import type {
   ComposerMode,
   EditTool,
@@ -240,6 +244,31 @@ export const MediaEditor01 = React.forwardRef<
   );
   const cameraIntakeAvailable =
     mediaSources.includes("camera") && hasCaptureMode;
+
+  // ─── R4: Undo / redo history + discard guard ─────────────────────────
+
+  const history = useHistory({ capacity: 50, bindKeyboard: true });
+
+  const [showDiscardConfirm, setShowDiscardConfirm] = React.useState(false);
+  const textOnlyRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Run a clean reset that also drops the history stack.
+  const performReset = React.useCallback(() => {
+    editor.reset();
+    history.reset();
+  }, [editor, history]);
+
+  // Close path with confirm-on-discard. Mirrors v0.1.5 Q-P10a:
+  //   - In dialog mode, fires onClose unless dirty (then shows confirm).
+  //   - In inline mode, just lets the consumer know via onClose (no UI
+  //     close to perform).
+  const requestClose = React.useCallback(() => {
+    if (props.confirmOnDiscard !== false && editor.isDirty) {
+      setShowDiscardConfirm(true);
+      return;
+    }
+    props.onClose?.();
+  }, [editor.isDirty, props]);
 
   // ─── Konva stage handle (C10 export wiring) ─────────────────────────
   // EditorCanvas surfaces its Konva.Stage via onStageReady. The handle's
@@ -656,12 +685,8 @@ export const MediaEditor01 = React.forwardRef<
       applyFilter: (name: string | null) => editor.setFilter(name),
       clearLayer: (layer: "drawing" | "stickers" | "text") =>
         editor.clearLayer(layer),
-      undo: () => {
-        devWarnOnce(warnedRef.current, "undo", NOT_IMPLEMENTED_MARKER);
-      },
-      redo: () => {
-        devWarnOnce(warnedRef.current, "redo", NOT_IMPLEMENTED_MARKER);
-      },
+      undo: () => history.undo(),
+      redo: () => history.redo(),
 
       // === Export (C10) ===
       exportImage,
@@ -669,21 +694,31 @@ export const MediaEditor01 = React.forwardRef<
       export: exportPolymorphic,
 
       // === Lifecycle ===
-      reset: () => editor.reset(),
+      reset: () => performReset(),
       open: () => {
         // Dialog mode is controlled — consumer owns `isOpen`. open() is a no-op;
         // the consumer must set isOpen=true. Documented in JSDoc / guide.
         // Inline mode has nothing to open.
       },
       close: () => {
-        // Fire onClose so dialog-mode consumers' state machine collapses.
-        // Inline-mode consumers don't pass onClose; no-op.
+        // Routes through requestClose so confirm-on-discard guard fires
+        // if the editor is dirty. The dialog-mode branch in the wrapper
+        // also wires onOpenChange→requestClose for backdrop/Escape.
         if (resolved === "dialog") {
-          props.onClose?.();
+          requestClose();
         }
       },
     }),
-    [editor, exportImage, exportVideo, exportPolymorphic, resolved, props],
+    [
+      editor,
+      exportImage,
+      exportVideo,
+      exportPolymorphic,
+      resolved,
+      history,
+      performReset,
+      requestClose,
+    ],
   );
 
   // ─── Slot context for render* props ─────────────────────────────────
@@ -839,6 +874,18 @@ export const MediaEditor01 = React.forwardRef<
               }}
               className="h-full w-full"
             />
+          ) : editor.state.stage === "capture" &&
+            editor.state.mode === "text" &&
+            enabledModes.includes("text") ? (
+            <TextOnlyCanvas
+              ref={textOnlyRef}
+              gradients={DEFAULT_TEXT_GRADIENTS}
+              fonts={resolvedFonts}
+              colorPresets={resolvedColorPresets}
+              labels={mergedLabels}
+              value={editor.textOnly}
+              onChange={(next) => editor.setTextOnly(next)}
+            />
           ) : showCameraSurface ? (
             <EditorCamera
               enabled={true}
@@ -960,6 +1007,19 @@ export const MediaEditor01 = React.forwardRef<
 
       {props.renderBottomToolbar?.(slotCtx)}
 
+      {/* Discard confirm — fires from requestClose() when isDirty + close
+          attempt (backdrop / Escape / handle.close()). Q-P10a. */}
+      <DiscardConfirmDialog
+        open={showDiscardConfirm}
+        labels={mergedLabels}
+        onCancel={() => setShowDiscardConfirm(false)}
+        onConfirm={() => {
+          setShowDiscardConfirm(false);
+          performReset();
+          props.onClose?.();
+        }}
+      />
+
       {/* State inspector — visible during dev only */}
       {process.env.NODE_ENV !== "production" ? (
         <div className="rounded-md border border-dashed border-border/40 bg-muted/10 p-2 text-[10px] text-muted-foreground/80">
@@ -984,9 +1044,12 @@ export const MediaEditor01 = React.forwardRef<
   const { width, height } = dialogSizeForAspect(aspect);
 
   return (
-    <Dialog open={props.isOpen ?? false} onOpenChange={(open) => {
-      if (!open) props.onClose?.();
-    }}>
+    <Dialog
+      open={props.isOpen ?? false}
+      onOpenChange={(open) => {
+        if (!open) requestClose();
+      }}
+    >
       <DialogContent
         showCloseButton={false}
         className={cn(
