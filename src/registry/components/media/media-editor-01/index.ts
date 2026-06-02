@@ -48,6 +48,11 @@ export type {
   // Initial source
   InitialSource,
   SourceError,
+  // Draft + edit-working state
+  DraftMedia,
+  TrimRange,
+  DrawingToolConfig,
+  TextOnlyState,
   // Editor state + actions
   GradientPreset,
   MediaEditorState,

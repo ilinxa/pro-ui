@@ -148,6 +148,47 @@ export type InitialSource =
   | { kind: "blob"; blob: Blob; mode: "photo" | "video" }
   | { kind: "file"; file: File };
 
+// ─── Draft media (NEW — capture output before edit transition) ──────────
+
+/**
+ * Captured (or imported) media awaiting edit. Set by camera flow + gallery
+ * pick. Held in editor state so getState/loadState can round-trip draft
+ * restores (e.g., draft persisted to localStorage between sessions).
+ */
+export interface DraftMedia {
+  source: "camera" | "gallery" | "initial";
+  kind: "image" | "video";
+  blob: Blob;
+  /** Object URL for preview — caller owns revocation when draft is replaced. */
+  url: string;
+  width?: number;
+  height?: number;
+  durationMs?: number;
+  mimeType: string;
+}
+
+/** Video trim range, in seconds. */
+export interface TrimRange {
+  startSec: number;
+  endSec: number;
+  durationSec: number;
+}
+
+/** Drawing-tool UI configuration. Not content; not in MediaEditorState. */
+export interface DrawingToolConfig {
+  color: string;
+  brushSize: number;
+  mode: "draw" | "erase";
+}
+
+/** Text-only mode capture state. */
+export interface TextOnlyState {
+  text: string;
+  fontFamily: string;
+  textColor: string;
+  gradientId: string;
+}
+
 // ─── Source / load errors (NEW) ─────────────────────────────────────────
 
 export type SourceError =
