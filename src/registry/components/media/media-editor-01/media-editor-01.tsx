@@ -14,6 +14,17 @@ import { exportPhotoBlob } from "./lib/export-blob";
 import { compositeVideo } from "./lib/composite-video";
 import { EditorCamera } from "./parts/editor-camera";
 import { EditorCanvas } from "./parts/editor-canvas";
+import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
+import { ToolDrawControls } from "./parts/tool-draw-controls";
+import { ToolFilterStrip } from "./parts/tool-filter-strip";
+import { ToolStickerPicker } from "./parts/tool-sticker-picker";
+import { ToolTextInput } from "./parts/tool-text-input";
+import { resolveFilterPresets } from "./lib/konva-filters";
+import { resolveStickerSets } from "./lib/built-in-stickers";
+import {
+  DEFAULT_COLOR_PRESETS,
+  DEFAULT_FONTS,
+} from "./lib/defaults";
 import type {
   ComposerMode,
   EditTool,
@@ -322,6 +333,83 @@ export const MediaEditor01 = React.forwardRef<
         editor.setVideoBlob(file);
       }
       editor.setStage("edit");
+    },
+    [editor],
+  );
+
+  // ─── R3: Tool-panel resolved data ─────────────────────────────────
+  const resolvedStickerSets = React.useMemo(
+    () =>
+      resolveStickerSets(props.stickers, !!props.replaceBuiltinStickers),
+    [props.stickers, props.replaceBuiltinStickers],
+  );
+  const resolvedFilterPresets = React.useMemo(
+    () =>
+      resolveFilterPresets(
+        props.filterPresets,
+        !!props.replaceBuiltinFilters,
+      ),
+    [props.filterPresets, props.replaceBuiltinFilters],
+  );
+  const resolvedFonts = React.useMemo(
+    () => props.fonts ?? DEFAULT_FONTS,
+    [props.fonts],
+  );
+  const resolvedColorPresets = React.useMemo(
+    () => props.colorPresets ?? DEFAULT_COLOR_PRESETS,
+    [props.colorPresets],
+  );
+
+  const selectedText = React.useMemo(
+    () =>
+      editor.state.textOverlays.find((o) => o.id === editor.selectedTextId) ??
+      null,
+    [editor.state.textOverlays, editor.selectedTextId],
+  );
+
+  // Auto-add a text overlay when the text tool activates with nothing
+  // selected. Mirrors v0.1.5 behavior — tapping "Text" gives you something
+  // to edit immediately rather than presenting an empty inspector.
+  const lastSeededToolRef = React.useRef<EditTool | null>(null);
+  React.useEffect(() => {
+    if (editor.activeTool !== "text") {
+      lastSeededToolRef.current = null;
+      return;
+    }
+    if (selectedText) return;
+    if (lastSeededToolRef.current === "text") return;
+    lastSeededToolRef.current = "text";
+    const id = `text-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    editor.addTextOverlay({
+      id,
+      text: INTERNAL_LABELS_FALLBACK.textPlaceholder,
+      x: 100,
+      y: 200,
+      rotation: 0,
+      scale: 1,
+      fontFamily: resolvedFonts[0]?.family ?? "sans-serif",
+      fontSize: 40,
+      fill: "#ffffff",
+      align: "center",
+    });
+    editor.setSelectedTextId(id);
+    // editor methods are stable; only activeTool/selectedText/fonts drive seed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor.activeTool, selectedText, resolvedFonts]);
+
+  // Sticker pick → add at canvas center + select for the transformer.
+  const handleStickerPick = React.useCallback(
+    (sticker: StickerOption) => {
+      const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      editor.addSticker({
+        id,
+        stickerId: sticker.id,
+        x: 200,
+        y: 200,
+        rotation: 0,
+        scale: 1,
+      });
+      editor.setSelectedStickerId(id);
     },
     [editor],
   );
@@ -783,6 +871,64 @@ export const MediaEditor01 = React.forwardRef<
           )}
         </div>
       </div>
+
+      {/* Active tool panel — keyed by editor.activeTool. Renders above
+          the chip-row toolbar. Image-draft tools only show on image
+          drafts; video-draft trim/etc. land in R4. */}
+      {showEditCanvas && editor.draft?.kind === "image" ? (
+        <>
+          {editor.activeTool === "text" && selectedText ? (
+            <ToolTextInput
+              overlay={selectedText}
+              fonts={resolvedFonts}
+              colorPresets={resolvedColorPresets}
+              labels={mergedLabels}
+              onChange={(next) =>
+                editor.updateTextOverlay(next.id, next)
+              }
+              onDelete={() => {
+                editor.removeTextOverlay(selectedText.id);
+                editor.setSelectedTextId(null);
+              }}
+            />
+          ) : null}
+          {editor.activeTool === "stickers" ? (
+            <ToolStickerPicker
+              sets={resolvedStickerSets}
+              onPick={handleStickerPick}
+            />
+          ) : null}
+          {editor.activeTool === "filters" && editor.draft.url ? (
+            <ToolFilterStrip
+              presets={resolvedFilterPresets}
+              sourceUrl={editor.draft.url}
+              activeId={editor.state.filter}
+              onSelect={(id) => editor.setFilter(id)}
+            />
+          ) : null}
+          {editor.activeTool === "adjust" ? (
+            <ToolAdjustSliders
+              value={editor.state.adjustments}
+              onChange={(next) => editor.setAdjustments(next)}
+              labels={mergedLabels}
+            />
+          ) : null}
+          {editor.activeTool === "draw" ? (
+            <ToolDrawControls
+              color={editor.drawingTool.color}
+              brushSize={editor.drawingTool.brushSize}
+              mode={editor.drawingTool.mode}
+              colorPresets={resolvedColorPresets}
+              labels={mergedLabels}
+              onColorChange={(color) => editor.setDrawingTool({ color })}
+              onBrushSizeChange={(brushSize) =>
+                editor.setDrawingTool({ brushSize })
+              }
+              onModeChange={(mode) => editor.setDrawingTool({ mode })}
+            />
+          ) : null}
+        </>
+      ) : null}
 
       {/* Toolbar — filtered by enabledTools (description §4).
           Suppressed in empty-config: tools have nothing to act on. */}
