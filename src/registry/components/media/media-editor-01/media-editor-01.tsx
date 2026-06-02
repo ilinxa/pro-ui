@@ -5,6 +5,7 @@ import type Konva from "konva";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
+import { useMultiInstanceGuard } from "./hooks/use-multi-instance-guard";
 import { resolvePresentation } from "./lib/presentation-resolver";
 import { dialogSizeForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
@@ -183,6 +184,31 @@ export const MediaEditor01 = React.forwardRef<
     editor.state.imageSrc !== null || editor.state.videoBlob !== null;
   const showEditCanvas =
     !sourceError && editor.state.stage === "edit" && hasLoadedSource;
+
+  // ─── Multi-instance guard (C11 — Q-P5 (b)) ──────────────────────────
+  // Only engage the counter for capture-enabled instances. Edit-only
+  // instances have no camera contention so they're unconditionally fine.
+  useMultiInstanceGuard(cameraIntakeAvailable);
+
+  // ─── Empty-state footgun guard (C11 — description §1) ────────────────
+  // `enabledModes: []` AND no `initialSource` AND no current source loaded
+  // → editor has nothing to capture and nothing to edit. Render the
+  // renderEmpty slot output (or a default "No source provided" surface)
+  // and dev-warn the misconfiguration.
+  const isEmptyConfig =
+    enabledModes.length === 0 &&
+    props.initialSource === undefined &&
+    !hasLoadedSource;
+
+  React.useEffect(() => {
+    if (!isEmptyConfig) return;
+    if (process.env.NODE_ENV === "production") return;
+    devWarnOnce(
+      warnedRef.current,
+      "empty-config",
+      "media-editor-01: enabledModes=[] AND no initialSource — editor has nothing to capture or edit. Provide an initialSource or enable at least one capture mode.",
+    );
+  }, [isEmptyConfig]);
 
   // ─── Presentation resolution (description §6) ───────────────────────
 
@@ -510,6 +536,27 @@ export const MediaEditor01 = React.forwardRef<
               </p>
               {props.renderEmpty ? props.renderEmpty() : null}
             </div>
+          ) : isEmptyConfig ? (
+            <div
+              role="status"
+              aria-label="Media editor: no source provided. Pass initialSource or enable a capture mode."
+              className="flex flex-col items-center gap-2 p-6 text-muted-foreground"
+              data-empty-config=""
+            >
+              {props.renderEmpty ? (
+                props.renderEmpty()
+              ) : (
+                <>
+                  <p className="font-medium text-foreground">
+                    No source provided
+                  </p>
+                  <p className="text-[11px]">
+                    Pass <code>initialSource</code> or enable a capture mode
+                    in <code>enabledModes</code>.
+                  </p>
+                </>
+              )}
+            </div>
           ) : showEditCanvas ? (
             <EditorCanvas
               imageUrl={editor.state.imageSrc}
@@ -530,18 +577,13 @@ export const MediaEditor01 = React.forwardRef<
             <>
               <p className="font-medium text-foreground">
                 {cameraIntakeAvailable
-                  ? "Camera surface — C10"
-                  : "Upload dropzone — C10"}
+                  ? "Camera surface — C12"
+                  : "Upload dropzone — C12"}
               </p>
               <p>
                 aspect: <code>{aspect}</code> · sources:{" "}
                 <code>{mediaSources.join(",") || "(none)"}</code>
               </p>
-              {!cameraIntakeAvailable && mediaSources.length === 0 ? (
-                <p className="text-amber-600 dark:text-amber-400">
-                  No mediaSources + no initialSource → empty state (C11 footgun guard)
-                </p>
-              ) : null}
             </>
           )}
         </div>
