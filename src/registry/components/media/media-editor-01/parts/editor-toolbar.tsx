@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { EditTool, StoryComposer01Labels } from "../types";
 
-export interface ComposerToolbarProps {
+export interface EditorToolbarProps {
   activeTool: EditTool | null;
   enabledTools: EditTool[];
   /** Tools that aren't shipped yet — render disabled. */
@@ -37,14 +37,14 @@ const TOOL_ORDER: ToolConfig[] = [
   { key: "crop", icon: Crop, label: (l) => l.toolCrop },
 ];
 
-export function ComposerToolbar({
+export function EditorToolbar({
   activeTool,
   enabledTools,
   pendingTools = [],
   labels,
   onSelect,
   className,
-}: ComposerToolbarProps) {
+}: EditorToolbarProps) {
   const visible = TOOL_ORDER.filter((t) => enabledTools.includes(t.key));
 
   return (

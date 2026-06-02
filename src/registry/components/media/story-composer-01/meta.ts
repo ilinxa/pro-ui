@@ -44,18 +44,17 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: [
-      "alert-dialog",
-      "button",
-      "dialog",
-      "popover",
-      "slider",
-      "toggle-group",
-    ],
+    // Shadcn primitives still imported by story-composer-01 after C5 (button +
+    // dialog used by composer-shell / composer-publish-bar / publishing-progress-overlay
+    // + the wrapper). Other primitives (alert-dialog, popover, slider, toggle-group)
+    // moved with their consumer parts to media-editor-01.
+    shadcn: ["button", "dialog"],
     npm: {
       "lucide-react": "^1.11.0",
+      // konva still used as type-only import in story-composer-01.tsx (Konva.Stage refs).
       konva: "^10.3.0",
-      "react-konva": "^19.2.4",
+      // react-konva moved with editor-canvas to media-editor-01; cross-procomp
+      // dep handles the runtime resolution.
     },
     internal: ["media-editor-01"],
   },

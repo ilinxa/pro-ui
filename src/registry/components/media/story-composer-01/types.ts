@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import type { AspectRatio } from "../media-editor-01";
+export type { AspectRatio };
 
 // ─── Modes + stage ──────────────────────────────────────────────────────
 
@@ -110,7 +112,9 @@ export interface FontOption {
 
 // ─── Aspect ratios + tools ──────────────────────────────────────────────
 
-export type AspectRatio = "9:16" | "1:1" | "4:5" | "free";
+// AspectRatio moved to media-editor-01 in v0.2.0 (added "16:9" as additive
+// non-breaking extension — narrowing-style consumers unaffected).
+// Imported here so this types.ts can reference AspectRatio internally + re-exports it.
 
 export type EditTool =
   | "text"

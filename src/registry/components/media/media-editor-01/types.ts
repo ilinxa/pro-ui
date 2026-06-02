@@ -256,6 +256,65 @@ export interface EditorCtx {
   aspect: AspectRatio;
 }
 
+// ─── Compile-time shim for v0.1.5 part label deps (REMOVED IN C17) ──────
+// Several parts (camera-permission-prompt, discard-confirm-dialog, editor-camera,
+// editor-toolbar, mode-toggle-pill, text-only-canvas, tool-*) were authored
+// against story-composer-01's flat StoryComposer01Labels shape. Refactoring
+// each part to use MediaEditor01Labels is C17-territory (wrapper refactor).
+// This temporary alias mirrors the v0.1.5 shape verbatim so the parts compile
+// post-move. NOT exported via barrel — purely an internal compile shim.
+
+/** @internal — temporary shim; refactored to MediaEditor01Labels in C17. */
+export interface StoryComposer01Labels {
+  composerLabel?: string;
+  composerDescription?: string;
+  modePhoto?: string;
+  modeVideo?: string;
+  modeText?: string;
+  shutterPhoto?: string;
+  shutterVideoStart?: string;
+  shutterVideoStop?: string;
+  galleryPicker?: string;
+  switchCamera?: string;
+  permissionDeniedTitle?: string;
+  permissionDeniedBody?: string;
+  permissionRetry?: string;
+  permissionUsePicker?: string;
+  permissionRequesting?: string;
+  toolText?: string;
+  toolDraw?: string;
+  toolStickers?: string;
+  toolFilters?: string;
+  toolAdjust?: string;
+  toolCrop?: string;
+  adjustBrightness?: string;
+  adjustContrast?: string;
+  adjustSaturation?: string;
+  adjustBlur?: string;
+  drawColor?: string;
+  drawBrush?: string;
+  drawEraser?: string;
+  drawUndo?: string;
+  drawRedo?: string;
+  textPlaceholder?: string;
+  textFontFamily?: string;
+  textFontSize?: string;
+  textAlign?: string;
+  publish?: string;
+  publishing?: string;
+  published?: string;
+  close?: string;
+  discardConfirmTitle?: string;
+  discardConfirmBody?: string;
+  discardConfirm?: string;
+  discardCancel?: string;
+  uploadFailedTitle?: string;
+  uploadRetry?: string;
+  recordingLabel?: string;
+  trimStart?: string;
+  trimEnd?: string;
+}
+
 // ─── i18n labels (NEW — full key tree per description §11) ──────────────
 
 export interface MediaEditor01Labels {

@@ -13,29 +13,29 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { ComposerShell } from "./parts/composer-shell";
-import { ModeTogglePill } from "./parts/mode-toggle-pill";
-import type Konva from "konva";
-import { ComposerCamera } from "./parts/composer-camera";
 import { ComposerPublishBar } from "./parts/composer-publish-bar";
-import { ComposerToolbar } from "./parts/composer-toolbar";
-import { DiscardConfirmDialog } from "./parts/discard-confirm-dialog";
 import { PublishingProgressOverlay } from "./parts/publishing-progress-overlay";
-import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
-import { ToolCropOverlay } from "./parts/tool-crop-overlay";
+import type Konva from "konva";
+// Editor parts moved to media-editor-01 in v0.2.0. Symbol renames for 3:
+// ComposerCamera → EditorCamera, ComposerEditor → EditorCanvas, ComposerToolbar → EditorToolbar.
 import {
+  EditorCamera as ComposerCamera,
+  EditorToolbar as ComposerToolbar,
+  ModeTogglePill,
+  DiscardConfirmDialog,
+  ToolAdjustSliders,
+  ToolCropOverlay,
   ASPECT_RATIO_VALUES,
   fitCropToStage,
   type CropRect,
-} from "./parts/tool-crop-overlay";
-import { ToolDrawControls } from "./parts/tool-draw-controls";
-import { ToolFilterStrip } from "./parts/tool-filter-strip";
-import { ToolStickerPicker } from "./parts/tool-sticker-picker";
-import { ToolTextInput } from "./parts/tool-text-input";
-import {
+  ToolDrawControls,
+  ToolFilterStrip,
+  ToolStickerPicker,
+  ToolTextInput,
   TextOnlyCanvas,
   type TextOnlyCanvasState,
-} from "./parts/text-only-canvas";
-import { VideoTrimBar } from "./parts/video-trim-bar";
+  VideoTrimBar,
+} from "../media-editor-01";
 import { useDrawingStroke, useHistory } from "../media-editor-01";
 import { useImageUploader } from "./hooks/use-image-uploader";
 import {
@@ -51,10 +51,12 @@ import {
 
 // React.lazy defers the react-konva import to client-side render, avoiding
 // SSR evaluation of konva's top-level `window` reference. Cannot use
-// `next/dynamic` here — registry code can't import from next/*.
+// `next/dynamic` here — registry code can't import from next/*. Deep import
+// (NOT via barrel) to preserve code-splitting — barrel would pull in everything.
+// Symbol renamed in v0.2.0: ComposerEditor → EditorCanvas; local alias preserved.
 const ComposerEditor = lazy(() =>
-  import("./parts/composer-editor").then((m) => ({
-    default: m.ComposerEditor,
+  import("../media-editor-01/parts/editor-canvas").then((m) => ({
+    default: m.EditorCanvas,
   })),
 );
 import { useStoryComposerState } from "./hooks/use-story-composer-state";
@@ -66,6 +68,7 @@ import {
 import {
   DEFAULT_ADJUSTMENTS,
   DEFAULT_STORY_COMPOSER_LABELS,
+  type AspectRatio,
   type EditTool,
   type DrawingStroke,
   type ImageAdjustments,
@@ -176,7 +179,9 @@ export const StoryComposer01 = forwardRef<
   const [drawColor, setDrawColor] = useState("#ffffff");
   const [drawBrushSize, setDrawBrushSize] = useState(8);
   const [drawMode, setDrawMode] = useState<"draw" | "erase">("draw");
-  const [cropAspect, setCropAspect] = useState(cropAspects[0] ?? "9:16");
+  const [cropAspect, setCropAspect] = useState<AspectRatio>(
+    cropAspects[0] ?? "9:16",
+  );
   const [cropRect, setCropRect] = useState<CropRect | null>(null);
   const stageSizeRef = useRef<{ width: number; height: number } | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
@@ -945,7 +950,7 @@ export const StoryComposer01 = forwardRef<
               <ToolCropOverlay
                 activeAspect={cropAspect}
                 availableAspects={cropAspects}
-                labels={labels}
+                cropLabel={labels.toolCrop}
                 onAspectChange={handleCropAspectChange}
               />
             </div>

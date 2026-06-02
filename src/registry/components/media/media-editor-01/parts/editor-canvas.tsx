@@ -30,7 +30,7 @@ import type {
   TextOverlay,
 } from "../types";
 
-export interface ComposerEditorProps {
+export interface EditorCanvasProps {
   /** Image draft preview URL. For video drafts, the editor renders a <video> overlay instead (C7+). */
   imageUrl: string | null;
   /** Video draft preview URL (overlay edits land C7+; for now displays as background). */
@@ -92,7 +92,7 @@ export interface ComposerEditorProps {
  * subsequent commits land their items into the right z-order without
  * a substrate refactor.
  */
-export function ComposerEditor({
+export function EditorCanvas({
   imageUrl,
   videoUrl,
   background = "#000",
@@ -120,7 +120,7 @@ export function ComposerEditor({
   onStageSize,
   onStageReady,
   className,
-}: ComposerEditorProps) {
+}: EditorCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
   const stageSize = useKonvaStageSize(containerRef);
