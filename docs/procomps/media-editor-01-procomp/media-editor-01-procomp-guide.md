@@ -248,7 +248,7 @@ Data attributes on the editor root for CSS / DOM querying:
 - `data-presentation` — `inline` / `dialog`
 - `data-aspect` — `9:16` / `1:1` / `16:9` / `4:5` / `free`
 
-Inside, the canvas wrapper carries `data-canvas-placeholder` (no-source state) or `data-loaded-source` (loaded). Empty-state carries `data-empty-config=""`.
+Inside, the canvas wrapper always carries `data-canvas-placeholder=""` (regardless of state) and `data-stage`. The empty-state branch additionally carries `data-empty-config=""`.
 
 ## More
 
