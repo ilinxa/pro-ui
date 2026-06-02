@@ -317,12 +317,15 @@ export default function ContentCardNews01Demo() {
 
       <TabsContent value="quoted" className="mt-6">
         <p className="mb-4 text-sm text-muted-foreground">
-          Analysis pieces quoting source articles render a nested mini-card.
-          Recursion-stripped (a quoted article&apos;s own <code>quotedArticle</code>
-          is ignored). Renders in <code>medium</code> + <code>list</code> variants
-          only per the per-variant feature matrix.
+          Analysis pieces quoting source articles render a nested compact
+          mini-card (uses <code>variant=&quot;small&quot;</code> internally
+          for the horizontal thumb-left, body-right layout). Recursion-stripped
+          (a quoted article&apos;s own <code>quotedArticle</code> is ignored),
+          and the inner card&apos;s paywall + sensitive gates are suppressed
+          so the quote stays a clean attribution. Renders in <code>medium</code>{" "}
+          + <code>list</code> variants only per the per-variant feature matrix.
         </p>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-6">
           <ContentCardNews01
             item={quotingItem}
             variant="medium"

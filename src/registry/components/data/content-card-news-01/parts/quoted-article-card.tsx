@@ -29,19 +29,36 @@ export interface QuotedArticleCardProps {
 /**
  * Quoted article mini-card per Q-P32 + Q-PE.
  *
- * Renders a nested `<ContentCardNews01 variant="medium">` with:
+ * Renders a nested `<ContentCardNews01 variant="small">` with the compact
+ * horizontal thumb-left, body-right layout. The small variant is the right
+ * shape for a quote preview — full medium card recursion produced too much
+ * vertical stack (own image header + own paywall + own author cluster) and
+ * masked the parent card's own content.
+ *
+ * Defenses applied to the inner card:
  *  - `quotedArticle` stripped via {@link stripQuotedRecursion} (no infinite nesting)
  *  - `actions` undefined (no nested kebab; pointer-events-none wrapper blocks any leak)
  *  - `viewerMode` undefined (no role-aware UI in the nested card)
  *  - `disableQuotedRender` true (defense in depth — if recursion-strip ever drifts)
  *  - `disableEngagementCounts` true (no engagement on quoted articles)
- *  - `disableBadgesRender` false (quoted articles still show their own badges — important for "quoting a Breaking/Live piece")
+ *  - `disablePaywallGate` true — quoted articles surface their TITLE + IMAGE
+ *    for context. The paywall is a property of THIS reader's relationship to
+ *    the quoted article, not relevant when previewing the quote attribution.
+ *  - `disableSensitiveGate` true — same rationale (the quote preview is a
+ *    citation, not the actual sensitive content; warning gates again would
+ *    just hide what the reader needs to recognize the source).
+ *  - `disableBadgesRender` false — quoted articles still show their own
+ *    badges (Breaking / Live / Exclusive carry contextual meaning).
+ *
+ * Inner article's own border / bg / padding flattened via `className` so the
+ * QuotedArticleCard wrapper's `bg-muted/40 border border-border` styling is
+ * the only "card chrome" — no double-frames.
  *
  * The inner card is wrapped in `pointer-events-none` so any descendant
  * interactivity cannot conflict with the foreground click target at `z-10`.
  *
- * Per the Q-PA matrix, this part renders only in `medium` + `list` variants
- * — the integration at C11 enforces that.
+ * Per the Q-PA matrix, this part renders only in `medium` + `list` variants —
+ * the integration at C11 enforces that.
  */
 export function QuotedArticleCard({
   quotedArticle,
@@ -67,26 +84,30 @@ export function QuotedArticleCard({
   return (
     <div
       className={cn(
-        "relative rounded-md border border-border bg-card/40 p-3",
+        "relative rounded-md border border-border bg-muted/40",
         className,
       )}
     >
-      {/* Quote glyph */}
+      {/* Quote glyph — top-right context cue */}
       <Quote
-        className="absolute right-2 top-2 size-4 text-muted-foreground/40"
+        className="pointer-events-none absolute right-2 top-2 z-[1] size-4 text-muted-foreground/50"
         aria-hidden
       />
 
-      {/* Nested card — pointer-events-none stops nested interactives competing */}
+      {/* Nested card — pointer-events-none stops nested interactives competing
+          with the foreground click target below. Inner card's chrome flattened. */}
       <div className="pointer-events-none">
         <ContentCardNews01
           item={strippedItem}
-          variant="medium"
+          variant="small"
           labels={labels}
           actions={undefined}
           viewerMode={undefined}
           disableQuotedRender
           disableEngagementCounts
+          disablePaywallGate
+          disableSensitiveGate
+          className="border-0 bg-transparent p-3 rounded-md shadow-none hover:shadow-none transition-none"
         />
       </div>
 
