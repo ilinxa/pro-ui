@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
 import { resolvePresentation } from "./lib/presentation-resolver";
 import { dialogSizeForAspect } from "./lib/dialog-size-for-aspect";
+import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import type {
   ComposerMode,
   EditTool,
@@ -58,13 +59,31 @@ export const MediaEditor01 = React.forwardRef<
 
   const warnedRef = React.useRef<Set<string>>(new Set());
 
-  // ─── Capability defaults ────────────────────────────────────────────
+  // ─── Capability defaults (description §8 — Q-P-locked) ─────────────
 
   const enabledModes = props.enabledModes ?? (["photo", "video", "text"] as const);
   const enabledTools =
     props.enabledTools ??
     (["text", "draw", "stickers", "filters", "adjust", "crop"] as const);
+  const mediaSources = props.mediaSources ?? (["camera", "upload"] as const);
   const aspect = props.aspect ?? "free";
+
+  // Crop aspects derivation per description §4.
+  const resolvedCropAspects = React.useMemo(
+    () => resolveCropAspects(aspect, props.cropAspects),
+    [aspect, props.cropAspects],
+  );
+
+  // Mode pill is hidden when ≤1 mode enabled (per description §1).
+  const showModePill = enabledModes.length >= 2;
+
+  // Camera surface: show if camera intake allowed AND at least one capture mode
+  // is enabled; otherwise fall back to upload-only dropzone affordance.
+  const hasCaptureMode = enabledModes.some(
+    (m) => m === "photo" || m === "video",
+  );
+  const cameraIntakeAvailable =
+    mediaSources.includes("camera") && hasCaptureMode;
 
   // ─── Presentation resolution (description §6) ───────────────────────
 
@@ -194,31 +213,120 @@ export const MediaEditor01 = React.forwardRef<
   const inner = (
     <div
       className={cn(
-        "flex h-full w-full flex-col gap-4 p-6",
+        "flex h-full w-full flex-col gap-3 p-4",
         // Inline-only: gets its own card chrome. In dialog mode, DialogContent
         // provides the chrome and we go edge-to-edge inside it.
         resolved === "inline" &&
-          "rounded-2xl border border-border bg-card text-card-foreground shadow-sm min-h-[320px]",
+          "rounded-2xl border border-border bg-card text-card-foreground shadow-sm min-h-[400px]",
       )}
       data-slot="media-editor-01"
       data-mode={editor.state.mode ?? "none"}
       data-stage={editor.state.stage}
       data-presentation={resolved}
+      data-aspect={aspect}
     >
       {props.renderTopBar?.(slotCtx)}
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-8 text-center text-sm text-muted-foreground">
-        <p className="font-medium text-foreground">media-editor-01 — C7 skeleton</p>
-        <p>State + presentation wired. Capture/edit surface lands in C8-C12.</p>
-        <p className="text-xs">
-          mode: <code>{editor.state.mode ?? "null"}</code> · stage:{" "}
-          <code>{editor.state.stage}</code> · dirty:{" "}
-          <code>{editor.isDirty ? "yes" : "no"}</code> · presentation:{" "}
-          <code>{resolved}</code> · aspect: <code>{aspect}</code>
-        </p>
+      {/* Mode pill — top-center, hides if 1 or 0 modes enabled */}
+      {showModePill ? (
+        <div className="flex justify-center">
+          <div className="inline-flex gap-1 rounded-full border border-border bg-muted/50 p-1 text-xs">
+            {enabledModes.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => editor.setMode(m)}
+                className={cn(
+                  "rounded-full px-3 py-1 font-medium transition-colors",
+                  editor.state.mode === m
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+                data-mode={m}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Canvas — aspect-locked placeholder (real Konva stage lands in C9-C10) */}
+      <div className="flex flex-1 items-center justify-center">
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-6 text-center text-xs text-muted-foreground",
+            aspect === "free"
+              ? "h-full max-h-[400px] w-full max-w-[600px]"
+              : "max-h-full max-w-full",
+          )}
+          style={
+            aspect === "free"
+              ? undefined
+              : {
+                  aspectRatio: aspect.replace(":", " / "),
+                  width: "min(100%, 480px)",
+                }
+          }
+          data-canvas-placeholder=""
+        >
+          <p className="font-medium text-foreground">
+            {cameraIntakeAvailable
+              ? "Camera surface — C9"
+              : "Upload dropzone — C9"}
+          </p>
+          <p>
+            aspect: <code>{aspect}</code> · sources:{" "}
+            <code>{mediaSources.join(",")}</code>
+          </p>
+          {!cameraIntakeAvailable && mediaSources.length === 0 ? (
+            <p className="text-amber-600 dark:text-amber-400">
+              No mediaSources + no initialSource → empty state (C11 footgun guard)
+            </p>
+          ) : null}
+        </div>
       </div>
 
+      {/* Toolbar — filtered by enabledTools (description §4) */}
+      {enabledTools.length > 0 ? (
+        <div className="flex flex-wrap justify-center gap-1 rounded-md border border-border bg-muted/30 p-2">
+          {enabledTools.map((tool) => (
+            <button
+              key={tool}
+              type="button"
+              onClick={() => editor.setActiveTool(tool)}
+              className={cn(
+                "rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                editor.activeTool === tool
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+              data-tool={tool}
+            >
+              {tool}
+            </button>
+          ))}
+          {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
+            <span className="ml-2 self-center text-[10px] text-muted-foreground/70">
+              ({resolvedCropAspects.length} crop aspects)
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
       {props.renderBottomToolbar?.(slotCtx)}
+
+      {/* State inspector — visible during dev only */}
+      {process.env.NODE_ENV !== "production" ? (
+        <div className="rounded-md border border-dashed border-border/40 bg-muted/10 p-2 text-[10px] text-muted-foreground/80">
+          mode: <code>{editor.state.mode ?? "null"}</code> · stage:{" "}
+          <code>{editor.state.stage}</code> · dirty:{" "}
+          <code>{editor.isDirty ? "yes" : "no"}</code> · activeTool:{" "}
+          <code>{editor.activeTool ?? "none"}</code> · presentation:{" "}
+          <code>{resolved}</code> · cropAspects:{" "}
+          <code>{resolvedCropAspects.join(",")}</code>
+        </div>
+      ) : null}
     </div>
   );
 
