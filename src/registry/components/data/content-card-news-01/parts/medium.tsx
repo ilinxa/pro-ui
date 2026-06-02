@@ -298,9 +298,11 @@ export function MediumPart(props: ResolvedPartProps) {
         className,
       )}
     >
-      {/* Editorial badge stack — top-left overlay */}
+      {/* Editorial badge stack — top-right overlay (top-left belongs to the
+          category chip rendered inside mediaBlock). max-w + wrap-end so the
+          badges shrink + wrap inward if many fire at once. */}
       {showBadges && (
-        <div className="absolute left-2 top-2 z-20">
+        <div className="absolute right-2 top-2 z-20 flex max-w-[60%] flex-wrap justify-end gap-1">
           {renderBadges ? (
             renderBadges(item, { canModerate })
           ) : (
