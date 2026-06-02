@@ -6,9 +6,9 @@ export const meta: ComponentMeta = {
   category: "media",
 
   description:
-    "Instagram-canonical story creation surface: camera-first capture (photo/video/text), gallery pick, multi-layer Konva editor (text, stickers, drawing, filters, adjust, crop), built-in upload.",
+    "Instagram-canonical story creation surface — v0.2.0 is a thin wrapper around media-editor-01 that locks aspect=\"9:16\", overlays the story-shaped publish flow (XHR upload + progress + onPublished), and preserves the v0.1.5 public API verbatim.",
   context:
-    "Third and final component in the story-system trilogy alongside story-rail-01 (discovery) and story-viewer-01 (consumption). Composer publishes a PublishedStory (shape-compatible with viewer's Story) via onPublished callback OR built-in XHR upload to a consumer-supplied uploadUrl (with `uploader` escape hatch for signed-URL flows). Camera-first defaults: rear camera on mobile, front on desktop, microphone for video. Built on react-konva v19 for multi-layer canvas editing with filter presets and transformer handles.",
+    "Third and final component in the story-system trilogy alongside story-rail-01 (discovery) and story-viewer-01 (consumption). v0.2.0 delegates the capture + edit surface (camera, multi-layer Konva editor, all six tools, discard guard, history) to @ilinxa/media-editor-01 v0.1.0, then layers the story-specific publish pipeline on top: ComposerPublishBar in the renderTopBar slot, PublishingProgressOverlay during upload, and a 16-method handle whose publish/exportBlob methods bridge ExportMetadata → PublishMetadata → PublishedStory. Camera-first defaults: rear camera on mobile, front on desktop, microphone for video. Public API 100% preserved across the v0.1.5 → v0.2.0 boundary; the 73-name export snapshot at docs/procomps/media-editor-01-procomp/story-composer-01-v0.1.5-exports.snapshot.txt resolves through the v0.2.0 barrel without omission.",
   features: [
     "Camera capture (photo + video + text-only modes) via getUserMedia + MediaRecorder",
     "Gallery picker fallback when camera is denied or unavailable",
@@ -23,7 +23,8 @@ export const meta: ComponentMeta = {
     "Discard-confirm guard for unsaved edits (opt-out via confirmOnDiscard: false)",
     "Live-region announcer for screen readers (Konva canvas is opaque to SR)",
     "Five exported sealed-folder parts + three exported hooks for advanced compositions",
-    "15-method imperative handle (open / close / takePhoto / startRecording / addText / publish / exportBlob / …)",
+    "16-method imperative handle (open/close/reset, switchCamera/takePhoto/startRecording/stopRecording/importFromGallery, addText/addSticker/setAdjustments/applyFilter, publish/exportBlob)",
+    "v0.2.0 architecture: thin wrapper around @ilinxa/media-editor-01 — capture + edit surface delegated; story-shaped publish flow + ComposerPublishBar layered on top",
   ],
   tags: [
     "story-composer-01",
@@ -36,10 +37,10 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.1.5",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-31",
-  updatedAt: "2026-06-01",
+  updatedAt: "2026-06-02",
 
   author: { name: "ilinxa" },
 
