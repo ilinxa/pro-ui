@@ -5,18 +5,41 @@ import type { ContentCardItem, ContentCardNewsLabels } from "../types";
 import { StatusBadge } from "./status-badge";
 import { SponsorBadge } from "./sponsor-badge";
 
+/**
+ * Two logical groups inside the badge stack — they're conceptually different
+ * and editorial design wants them in different positions on the card:
+ *
+ *   - `"state"` — Breaking / Live / Pinned / Sponsored / Status: WHAT IS THE
+ *     STATE of this content (urgency / admin / commercial disclosure).
+ *     Belongs on the IMAGE overlay (top-right corner in medium / large; top
+ *     of the hero in featured) — they answer "should I look at this now?".
+ *
+ *   - `"curation"` — Exclusive / Featured: WHAT KIND OF EDITORIAL PRODUCT
+ *     is this (Exclusive scoop / Featured pick). Belongs as a KICKER above
+ *     the title in the body — they answer "what kind of journalism is this?".
+ *
+ * The priority order from Q-P42 is preserved within each group; the split
+ * is purely visual layout (not a re-prioritization).
+ */
+export type NewsBadgeGroup = "all" | "state" | "curation";
+
 interface NewsBadgesProps {
   item: ContentCardItem;
   labels: Required<ContentCardNewsLabels>;
   /**
    * When `true`, only the highest-priority badge renders. Used by the `small`
-   * variant per Q-PA matrix.
+   * variant per Q-PA matrix. Operates AFTER the group filter when both are set.
    */
   highestPriorityOnly?: boolean;
   /**
    * Whether the viewer is in editor mode — status badge only renders then.
    */
   isEditorMode?: boolean;
+  /**
+   * Which logical group to render. Default `"all"`. See {@link NewsBadgeGroup}
+   * for the split rationale.
+   */
+  group?: NewsBadgeGroup;
   className?: string;
 }
 
@@ -52,11 +75,15 @@ export function NewsBadges({
   labels,
   highestPriorityOnly = false,
   isEditorMode = false,
+  group = "all",
   className,
 }: NewsBadgesProps) {
   const candidates: ReactNode[] = [];
 
-  if (item.isBreaking) {
+  // ─── State-group candidates ────────────────────────────────────────────
+  const wantsState = group === "all" || group === "state";
+
+  if (wantsState && item.isBreaking) {
     candidates.push(
       <span
         key="breaking"
@@ -70,7 +97,7 @@ export function NewsBadges({
       </span>,
     );
   }
-  if (item.isLive) {
+  if (wantsState && item.isLive) {
     candidates.push(
       <span
         key="live"
@@ -87,7 +114,11 @@ export function NewsBadges({
       </span>,
     );
   }
-  if (item.isExclusive) {
+
+  // ─── Curation-group candidates ─────────────────────────────────────────
+  const wantsCuration = group === "all" || group === "curation";
+
+  if (wantsCuration && item.isExclusive) {
     candidates.push(
       <span
         key="exclusive"
@@ -101,7 +132,7 @@ export function NewsBadges({
       </span>,
     );
   }
-  if (item.isFeatured) {
+  if (wantsCuration && item.isFeatured) {
     candidates.push(
       <span
         key="featured"
@@ -115,7 +146,9 @@ export function NewsBadges({
       </span>,
     );
   }
-  if (item.isPinned) {
+
+  // ─── State-group continuation (Pinned / Sponsored / Status) ────────────
+  if (wantsState && item.isPinned) {
     candidates.push(
       <span
         key="pinned"
@@ -126,7 +159,7 @@ export function NewsBadges({
       </span>,
     );
   }
-  if (item.isSponsored) {
+  if (wantsState && item.isSponsored) {
     candidates.push(
       <SponsorBadge
         key="sponsored"
@@ -136,7 +169,12 @@ export function NewsBadges({
       />,
     );
   }
-  if (isEditorMode && item.status && item.status !== "published") {
+  if (
+    wantsState &&
+    isEditorMode &&
+    item.status &&
+    item.status !== "published"
+  ) {
     candidates.push(
       <StatusBadge key="status" status={item.status} labels={labels} />,
     );

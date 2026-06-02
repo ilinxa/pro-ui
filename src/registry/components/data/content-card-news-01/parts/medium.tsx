@@ -73,13 +73,15 @@ export function MediumPart(props: ResolvedPartProps) {
 
   const isEditorMode = viewerMode === "editor";
   const showKebab = kebabItems.length > 0;
-  const showBadges =
+  // State-group badges (top-right overlay): Breaking / Live / Pinned /
+  // Sponsored / Status. Curation-group badges (Exclusive / Featured) render
+  // as a kicker above the title — checked separately at the body where
+  // they render.
+  const showStateBadges =
     !disableBadgesRender &&
     (renderBadges ||
       item.isBreaking ||
       item.isLive ||
-      item.isExclusive ||
-      item.isFeatured ||
       item.isPinned ||
       item.isSponsored ||
       (isEditorMode && item.status && item.status !== "published"));
@@ -198,6 +200,19 @@ export function MediumPart(props: ResolvedPartProps) {
     <>
       {mediaWithPaywall}
       <div className="flex flex-1 flex-col p-6">
+        {/* Curation kicker — editorial product labels (Exclusive / Featured).
+            Render above the title as the newspaper convention dictates. */}
+        {!disableBadgesRender && !renderBadges && (item.isExclusive || item.isFeatured) && (
+          <div className="mb-2">
+            <NewsBadges
+              item={item}
+              labels={labels}
+              isEditorMode={isEditorMode}
+              group="curation"
+            />
+          </div>
+        )}
+
         <div className="mb-2 flex items-start justify-between gap-2">
           <h3
             id={titleId}
@@ -298,11 +313,12 @@ export function MediumPart(props: ResolvedPartProps) {
         className,
       )}
     >
-      {/* Editorial badge stack — top-right overlay (top-left belongs to the
-          category chip rendered inside mediaBlock). 75% max + wrap-end so up
-          to 3 tightened badges fit on a single line at the medium card
-          width (~280px); beyond that they wrap inward toward the title. */}
-      {showBadges && (
+      {/* State badge stack — top-right overlay (urgency / admin / commercial:
+          Breaking / Live / Pinned / Sponsored / Status). Top-left belongs to
+          the category chip rendered inside mediaBlock. Curation badges
+          (Exclusive / Featured) render as a separate kicker above the title
+          in the body — distinct semantic so they get distinct visual position. */}
+      {showStateBadges && (
         <div className="absolute right-2 top-2 z-20 flex max-w-[75%] flex-wrap justify-end gap-1">
           {renderBadges ? (
             renderBadges(item, { canModerate })
@@ -311,6 +327,7 @@ export function MediumPart(props: ResolvedPartProps) {
               item={item}
               labels={labels}
               isEditorMode={isEditorMode}
+              group="state"
             />
           )}
         </div>
