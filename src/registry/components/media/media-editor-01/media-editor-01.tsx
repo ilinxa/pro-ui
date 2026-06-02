@@ -12,6 +12,7 @@ import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
 import { exportPhotoBlob } from "./lib/export-blob";
 import { compositeVideo } from "./lib/composite-video";
+import { EditorCamera } from "./parts/editor-camera";
 import { EditorCanvas } from "./parts/editor-canvas";
 import type {
   ComposerMode,
@@ -26,7 +27,12 @@ import type {
   MediaEditorState,
   SourceError,
   StickerOption,
+  StoryComposer01Labels,
 } from "./types";
+import type {
+  CapturedPhoto,
+  CapturedVideo,
+} from "./hooks/use-media-capture";
 
 /**
  * media-editor-01 — black-box orchestrator (C6 skeleton).
@@ -46,6 +52,62 @@ import type {
  */
 
 const NOT_IMPLEMENTED_MARKER = "media-editor-01: C6 skeleton — implementation lands in C7-C12.";
+
+// English fallback for the v0.1.5-shaped StoryComposer01Labels that several
+// part files (EditorCamera, EditorToolbar, DiscardConfirmDialog, etc.) still
+// require until the C17 refactor moves them onto MediaEditor01Labels.
+// Module-scoped; not exported via the barrel. Consumers override individual
+// strings via the `labels` prop (mapped through DEFAULT_LABELS).
+const INTERNAL_LABELS_FALLBACK: Required<StoryComposer01Labels> = {
+  composerLabel: "Media editor",
+  composerDescription: "Capture a photo, record a video, or compose text-only content.",
+  modePhoto: "Photo",
+  modeVideo: "Video",
+  modeText: "Text",
+  shutterPhoto: "Take photo",
+  shutterVideoStart: "Start recording",
+  shutterVideoStop: "Stop recording",
+  galleryPicker: "Choose from gallery",
+  switchCamera: "Switch camera",
+  permissionDeniedTitle: "Camera access blocked",
+  permissionDeniedBody:
+    "We need camera permission to capture media. Enable it in your browser settings, or pick a file from your gallery.",
+  permissionRetry: "Try again",
+  permissionUsePicker: "Use gallery instead",
+  permissionRequesting: "Requesting camera…",
+  toolText: "Text",
+  toolDraw: "Draw",
+  toolStickers: "Stickers",
+  toolFilters: "Filters",
+  toolAdjust: "Adjust",
+  toolCrop: "Crop",
+  adjustBrightness: "Brightness",
+  adjustContrast: "Contrast",
+  adjustSaturation: "Saturation",
+  adjustBlur: "Blur",
+  drawColor: "Color",
+  drawBrush: "Brush size",
+  drawEraser: "Eraser",
+  drawUndo: "Undo",
+  drawRedo: "Redo",
+  textPlaceholder: "Type something…",
+  textFontFamily: "Font",
+  textFontSize: "Size",
+  textAlign: "Align",
+  publish: "Publish",
+  publishing: "Publishing…",
+  published: "Published",
+  close: "Close",
+  discardConfirmTitle: "Discard?",
+  discardConfirmBody: "You'll lose your captured media and edits.",
+  discardConfirm: "Discard",
+  discardCancel: "Keep editing",
+  uploadFailedTitle: "Upload failed",
+  uploadRetry: "Retry",
+  recordingLabel: "Recording",
+  trimStart: "Trim start",
+  trimEnd: "Trim end",
+};
 
 function devWarnOnce(memo: Set<string>, key: string, message: string) {
   if (process.env.NODE_ENV === "production") return;
@@ -137,6 +199,16 @@ export const MediaEditor01 = React.forwardRef<
       } else {
         editor.setVideoBlob(result.loaded.blob);
       }
+      // Also register as a draft so the canvas mounts via the unified
+      // draft path. Lifetime of the URL is governed by the cleanup below
+      // (which revokes on cancel/unmount), so we don't double-revoke.
+      editor.setDraft({
+        source: "initial",
+        kind: result.loaded.mode === "photo" ? "image" : "video",
+        blob: result.loaded.blob,
+        url: result.loaded.objectUrl,
+        mimeType: result.loaded.blob.type,
+      });
       editor.setStage("edit");
     })();
 
@@ -178,12 +250,112 @@ export const MediaEditor01 = React.forwardRef<
     return () => URL.revokeObjectURL(url);
   }, [videoBlob]);
 
-  // Edit canvas is mounted whenever we have a loaded source. The placeholder
-  // surface (capture / upload prompt) only renders when we don't.
+  // Edit canvas is mounted whenever we have a loaded source. Source can land
+  // via initialSource (sets imageSrc/videoBlob + draft) OR camera capture
+  // (sets draft only) OR gallery pick (sets draft only). The unified read
+  // is `editor.draft`.
   const hasLoadedSource =
-    editor.state.imageSrc !== null || editor.state.videoBlob !== null;
+    editor.draft !== null ||
+    editor.state.imageSrc !== null ||
+    editor.state.videoBlob !== null;
   const showEditCanvas =
     !sourceError && editor.state.stage === "edit" && hasLoadedSource;
+
+  // ─── R2: Capture flow handlers ─────────────────────────────────────
+  // Camera + gallery callbacks promote captured media to a draft and
+  // transition to the edit stage. EditorCanvas takes over from there.
+
+  const handlePhoto = React.useCallback(
+    (photo: CapturedPhoto) => {
+      const url = URL.createObjectURL(photo.blob);
+      editor.setDraft({
+        source: "camera",
+        kind: "image",
+        blob: photo.blob,
+        url,
+        width: photo.width,
+        height: photo.height,
+        mimeType: photo.mimeType,
+      });
+      editor.setMode("photo");
+      editor.setImageSrc(url);
+      editor.setStage("edit");
+    },
+    [editor],
+  );
+
+  const handleVideo = React.useCallback(
+    (video: CapturedVideo) => {
+      const url = URL.createObjectURL(video.blob);
+      editor.setDraft({
+        source: "camera",
+        kind: "video",
+        blob: video.blob,
+        url,
+        durationMs: video.durationMs,
+        mimeType: video.mimeType,
+      });
+      editor.setMode("video");
+      editor.setVideoBlob(video.blob);
+      editor.setStage("edit");
+    },
+    [editor],
+  );
+
+  const handleGalleryFile = React.useCallback(
+    (file: File) => {
+      const kind: "image" | "video" = file.type.startsWith("video/")
+        ? "video"
+        : "image";
+      const url = URL.createObjectURL(file);
+      editor.setDraft({
+        source: "gallery",
+        kind,
+        blob: file,
+        url,
+        mimeType: file.type,
+      });
+      editor.setMode(kind === "image" ? "photo" : "video");
+      if (kind === "image") {
+        editor.setImageSrc(url);
+      } else {
+        editor.setVideoBlob(file);
+      }
+      editor.setStage("edit");
+    },
+    [editor],
+  );
+
+  const mergedLabels: Required<StoryComposer01Labels> = React.useMemo(() => {
+    // The MediaEditor01Labels → StoryComposer01Labels mapping is C17 work.
+    // Until then, only string overrides at the keys that overlap with the
+    // flat shim flow through (e.g., `composerLabel`); everything else
+    // falls back to the English defaults.
+    const overrides = (props.labels ?? {}) as Partial<StoryComposer01Labels>;
+    return { ...INTERNAL_LABELS_FALLBACK, ...overrides };
+  }, [props.labels]);
+
+  // Capture surface is mounted when the editor is in capture stage AND the
+  // current mode is photo/video AND camera intake is allowed.
+  const showCameraSurface =
+    editor.state.stage === "capture" &&
+    cameraIntakeAvailable &&
+    (editor.state.mode === "photo" || editor.state.mode === "video");
+
+  // Auto-seed the active mode in capture stage so the camera knows what to
+  // do. Picks the first enabled capture-mode if none is set yet.
+  React.useEffect(() => {
+    if (editor.state.mode !== null) return;
+    if (editor.state.stage !== "capture") return;
+    const firstCaptureMode = enabledModes.find(
+      (m) => m === "photo" || m === "video",
+    );
+    if (firstCaptureMode) {
+      editor.setMode(firstCaptureMode);
+    }
+    // editor.setMode is stable per hook contract; mode/stage/modes drive it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor.state.mode, editor.state.stage, enabledModes]);
 
   // ─── Multi-instance guard (C11 — Q-P5 (b)) ──────────────────────────
   // Only engage the counter for capture-enabled instances. Edit-only
@@ -559,8 +731,14 @@ export const MediaEditor01 = React.forwardRef<
             </div>
           ) : showEditCanvas ? (
             <EditorCanvas
-              imageUrl={editor.state.imageSrc}
-              videoUrl={videoUrl}
+              imageUrl={
+                editor.draft?.kind === "image"
+                  ? editor.draft.url
+                  : editor.state.imageSrc
+              }
+              videoUrl={
+                editor.draft?.kind === "video" ? editor.draft.url : videoUrl
+              }
               textOverlays={editor.state.textOverlays}
               stickers={editor.state.stickers}
               drawingStrokes={editor.state.drawingStrokes}
@@ -573,12 +751,29 @@ export const MediaEditor01 = React.forwardRef<
               }}
               className="h-full w-full"
             />
+          ) : showCameraSurface ? (
+            <EditorCamera
+              enabled={true}
+              mode={editor.state.mode === "video" ? "video" : "photo"}
+              defaultFacing={props.defaultFacing}
+              recordAudio={props.recordAudio}
+              maxFileSizeMb={props.maxFileSizeMb}
+              maxVideoDurationSec={props.maxVideoDuration}
+              labels={mergedLabels}
+              onPhoto={handlePhoto}
+              onVideo={handleVideo}
+              onGalleryFile={handleGalleryFile}
+              onValidationError={props.onValidationError}
+              onPermissionDenied={props.onPermissionDenied}
+            />
           ) : (
             <>
               <p className="font-medium text-foreground">
                 {cameraIntakeAvailable
-                  ? "Camera surface — C12"
-                  : "Upload dropzone — C12"}
+                  ? "Initialising camera…"
+                  : mediaSources.includes("upload")
+                  ? "Upload dropzone (Phase B retrofit)"
+                  : "No capture source available"}
               </p>
               <p>
                 aspect: <code>{aspect}</code> · sources:{" "}
