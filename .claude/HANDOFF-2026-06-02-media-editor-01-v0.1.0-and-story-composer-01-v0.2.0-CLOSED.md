@@ -24,7 +24,7 @@ Black-box media capture + edit surface extracted from `story-composer-01` v0.1.5
 
 Refactored from 1145-line standalone implementation to **245-line thin wrapper** around `@ilinxa/media-editor-01`. Public API preserved 100% — 73-name C2 snapshot resolves through the v0.2.0 barrel via tsc-level probe.
 
-- **27 of 29 props forward 1:1** (after C16 + C21 review fixes; only `editorBackground` remains unforwarded — flagged for v0.2.1).
+- **All 32 v0.1.5 props accepted.** 5 publish-related (uploadUrl / uploader / uploadFields / onPublished / onPublishError) are handled by the wrapper's own publish flow (`useImageUploader` + handlePublish). 26 forward to MediaEditor01 (1:1 or transformed). 1 documented semantic gap: `editorBackground` not forwarded — F-01 v0.2.1.
 - **14-method handle** unchanged surface; capture/edit methods delegate to editor ref; publish wraps `editor.export()` + `useImageUploader`.
 - **`useStoryComposerState`** composes `useMediaEditorState` + augments with `publishStatus` / `uploadProgress` / `publishError`. Strict-superset return-shape verified.
 - **Cross-procomp registry-dep** — `@ilinxa/media-editor-01` declared as `registryDependency`; konva / react-konva drop from npm deps (resolve transitively). FIRST inter-procomp install path in the library.
