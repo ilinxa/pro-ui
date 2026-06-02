@@ -21,6 +21,20 @@ interface NewsBadgesProps {
 }
 
 /**
+ * Uniform editorial badge — same shape + sizing across all states (h-5,
+ * px-2, py-0, text-[10px], font-semibold, uppercase, tracking-wide). Visual
+ * hierarchy lives in saturation: vivid solid for breaking-tier (Breaking /
+ * Live); accent solid for editorial-curation (Featured / Exclusive); subtle
+ * card-tone for low-tier (Pinned / Sponsored / status). No border-tint mix.
+ * Drop-shadow on the vivid tier so they read against bright hero images.
+ *
+ * Sized for ~5 badges to fit on a single line at medium-card width (~280px)
+ * without wrapping. Beyond that, flex-wrap kicks in.
+ */
+const BADGE_BASE =
+  "inline-flex h-5 shrink-0 items-center gap-1 rounded px-1.5 text-[10px] font-semibold uppercase tracking-wide leading-none";
+
+/**
  * Ordered editorial badge stack per Q-P42 priority:
  *  1. isBreaking
  *  2. isLive
@@ -46,9 +60,12 @@ export function NewsBadges({
     candidates.push(
       <span
         key="breaking"
-        className="inline-flex items-center gap-1 rounded-md border border-red-600/40 bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+        className={cn(
+          BADGE_BASE,
+          "bg-red-600 text-white shadow-sm shadow-red-950/30 ring-1 ring-red-700/40",
+        )}
       >
-        <AlertTriangle className="size-3" aria-hidden />
+        <AlertTriangle className="size-2.5" aria-hidden />
         {labels.breakingBadgeLabel}
       </span>,
     );
@@ -57,10 +74,13 @@ export function NewsBadges({
     candidates.push(
       <span
         key="live"
-        className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-700 dark:text-red-400"
+        className={cn(
+          BADGE_BASE,
+          "bg-red-500 text-white shadow-sm shadow-red-950/30 ring-1 ring-red-700/40",
+        )}
       >
         <span
-          className="relative inline-flex size-1.5 rounded-full bg-red-500 motion-safe:animate-pulse"
+          className="relative inline-flex size-1.5 rounded-full bg-white motion-safe:animate-pulse"
           aria-hidden
         />
         {labels.liveBadgeLabel}
@@ -71,9 +91,12 @@ export function NewsBadges({
     candidates.push(
       <span
         key="exclusive"
-        className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400"
+        className={cn(
+          BADGE_BASE,
+          "bg-amber-500 text-amber-950 shadow-sm shadow-amber-950/20",
+        )}
       >
-        <ShieldCheck className="size-3" aria-hidden />
+        <ShieldCheck className="size-2.5" aria-hidden />
         {labels.exclusiveBadgeLabel}
       </span>,
     );
@@ -82,9 +105,12 @@ export function NewsBadges({
     candidates.push(
       <span
         key="featured"
-        className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary"
+        className={cn(
+          BADGE_BASE,
+          "bg-primary text-primary-foreground shadow-sm shadow-primary/20",
+        )}
       >
-        <Star className="size-3" aria-hidden />
+        <Star className="size-2.5 fill-current" aria-hidden />
         {labels.featuredBadgeLabel}
       </span>,
     );
@@ -93,9 +119,9 @@ export function NewsBadges({
     candidates.push(
       <span
         key="pinned"
-        className="inline-flex items-center gap-1 rounded-md border border-border bg-accent px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent-foreground"
+        className={cn(BADGE_BASE, "bg-card/95 text-foreground ring-1 ring-border")}
       >
-        <Pin className="size-3" aria-hidden />
+        <Pin className="size-2.5 fill-current" aria-hidden />
         {labels.pinnedBadgeLabel}
       </span>,
     );

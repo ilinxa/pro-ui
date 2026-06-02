@@ -32,11 +32,11 @@ export function SponsorBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border border-border bg-muted/80 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground",
+        "inline-flex h-5 shrink-0 items-center gap-1 rounded bg-card/95 px-1.5 text-[10px] font-semibold uppercase tracking-wide leading-none text-muted-foreground ring-1 ring-border",
         className,
       )}
     >
-      <Megaphone className="size-3" aria-hidden />
+      <Megaphone className="size-2.5" aria-hidden />
       {text}
     </span>
   );
