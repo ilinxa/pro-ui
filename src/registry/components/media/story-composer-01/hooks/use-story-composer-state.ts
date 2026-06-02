@@ -1,64 +1,80 @@
 "use client";
 
-import { useCallback, useMemo, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useMediaEditorState,
+  type UseMediaEditorStateResult,
+} from "../../media-editor-01";
 import type { ComposerMode, ComposerStage } from "../types";
+
+/**
+ * useStoryComposerState — v0.2.0.
+ *
+ * Composes `useMediaEditorState` (the editor-shaped state machine
+ * extracted to media-editor-01 v0.1.0) and augments with story-shaped
+ * publish state (publishStatus / uploadProgress / publishError).
+ *
+ * **Return-shape invariant.** Every v0.1.5 field is preserved with the
+ * same identifier and type. New fields are additive:
+ *   - All useMediaEditorState fields spread first (state / activeTool /
+ *     draft / trim / overlay setters / etc.).
+ *   - v0.1.5 fields override / augment: mode (non-null), stage,
+ *     visibleModes, setMode (wrapped to preserve switch-during-edit-
+ *     resets-stage semantics), markDirty (no-op + dev-warn — isDirty
+ *     is now derived).
+ *   - Publish-shaped additions tail-spread: publishStatus,
+ *     uploadProgress, publishError, and their setters.
+ *
+ * Consumers who only read v0.1.5 fields keep working unchanged. Consumers
+ * who want the new editor-shaped surface (draft, drawingTool, etc.) can
+ * access them directly.
+ */
+
+const ALL_MODES: ComposerMode[] = ["photo", "video", "text"];
+
+export type PublishStatus =
+  | "idle"
+  | "compositing"
+  | "uploading"
+  | "done"
+  | "error";
 
 export interface UseStoryComposerStateOptions {
   defaultMode?: ComposerMode;
   hideModes?: ComposerMode[];
+  /** Forwarded to useMediaEditorState onDirtyChange. */
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export interface UseStoryComposerStateResult {
+export interface UseStoryComposerStateResult
+  extends Omit<UseMediaEditorStateResult, "setMode"> {
+  // === v0.1.5 surface preserved ===
+  /** Non-null mode — defaults to first visible mode if editor state is null. */
   mode: ComposerMode;
   stage: ComposerStage;
-  isDirty: boolean;
   visibleModes: ComposerMode[];
+  /** v0.1.5 setMode preserved (non-null arg). Resets stage to "capture" + drops draft on a switch-during-edit. */
   setMode: (mode: ComposerMode) => void;
-  setStage: (stage: ComposerStage) => void;
+  /**
+   * @deprecated v0.2.0 — isDirty is now derived from useMediaEditorState.
+   * markDirty(true) is a no-op + dev console.warn. Override the derivation
+   * by writing to the editor state directly.
+   */
   markDirty: (dirty?: boolean) => void;
-  reset: () => void;
-}
 
-type State = {
-  mode: ComposerMode;
-  stage: ComposerStage;
-  isDirty: boolean;
-};
-
-type Action =
-  | { type: "set-mode"; mode: ComposerMode }
-  | { type: "set-stage"; stage: ComposerStage }
-  | { type: "mark-dirty"; dirty: boolean }
-  | { type: "reset"; initialMode: ComposerMode };
-
-const ALL_MODES: ComposerMode[] = ["photo", "video", "text"];
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "set-mode":
-      if (state.mode === action.mode) return state;
-      // Switching mode while editing resets to capture (Instagram parity).
-      return {
-        ...state,
-        mode: action.mode,
-        stage: state.stage === "edit" ? "capture" : state.stage,
-        isDirty: state.stage === "edit" ? false : state.isDirty,
-      };
-    case "set-stage":
-      if (state.stage === action.stage) return state;
-      return { ...state, stage: action.stage };
-    case "mark-dirty":
-      if (state.isDirty === action.dirty) return state;
-      return { ...state, isDirty: action.dirty };
-    case "reset":
-      return { mode: action.initialMode, stage: "capture", isDirty: false };
-  }
+  // === v0.2.0 publish-shaped additions ===
+  publishStatus: PublishStatus;
+  uploadProgress: number;
+  publishError: Error | null;
+  setPublishStatus: (status: PublishStatus) => void;
+  setUploadProgress: (progress: number) => void;
+  setPublishError: (error: Error | null) => void;
 }
 
 export function useStoryComposerState(
   options: UseStoryComposerStateOptions = {},
 ): UseStoryComposerStateResult {
-  const { defaultMode = "photo", hideModes = [] } = options;
+  const { defaultMode = "photo", hideModes = [], onDirtyChange } = options;
 
   const visibleModes = useMemo(
     () => ALL_MODES.filter((m) => !hideModes.includes(m)),
@@ -70,36 +86,81 @@ export function useStoryComposerState(
     ? defaultMode
     : (visibleModes[0] ?? "photo");
 
-  const [state, dispatch] = useReducer(reducer, {
-    mode: initialMode,
-    stage: "capture",
-    isDirty: false,
+  const editor = useMediaEditorState({
+    defaultMode: initialMode,
+    onDirtyChange,
   });
 
-  const setMode = useCallback((mode: ComposerMode) => {
-    dispatch({ type: "set-mode", mode });
+  // v0.1.5 semantics: switching mode while editing drops back to capture +
+  // discards the draft. useMediaEditorState's bare setMode doesn't do that.
+  const setMode = useCallback(
+    (mode: ComposerMode) => {
+      if (mode === editor.state.mode) return;
+      if (editor.state.stage === "edit") {
+        editor.setStage("capture");
+        editor.setDraft(null);
+      }
+      editor.setMode(mode);
+    },
+    [editor],
+  );
+
+  // markDirty: v0.1.5 manually toggled an isDirty flag. v0.2.0 derives
+  // isDirty from useMediaEditorState. Preserved as a no-op + dev warn so
+  // existing callers compile and run; visual behavior is governed by the
+  // derived value.
+  const warnedRef = useRef(false);
+  const markDirty = useCallback((dirty: boolean = true) => {
+    if (process.env.NODE_ENV === "production") return;
+    if (warnedRef.current) return;
+    warnedRef.current = true;
+    console.warn(
+      "useStoryComposerState.markDirty(" +
+        dirty +
+        ") is a no-op in v0.2.0 — isDirty is derived from useMediaEditorState. " +
+        "Drive dirty via setDraft / addTextOverlay / etc. instead. " +
+        "Removed in v0.3.0.",
+    );
   }, []);
 
-  const setStage = useCallback((stage: ComposerStage) => {
-    dispatch({ type: "set-stage", stage });
-  }, []);
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [publishError, setPublishError] = useState<Error | null>(null);
 
-  const markDirty = useCallback((dirty = true) => {
-    dispatch({ type: "mark-dirty", dirty });
-  }, []);
-
+  // Reset clears publish state alongside the editor state.
+  const baseReset = editor.reset;
   const reset = useCallback(() => {
-    dispatch({ type: "reset", initialMode });
-  }, [initialMode]);
+    baseReset();
+    setPublishStatus("idle");
+    setUploadProgress(0);
+    setPublishError(null);
+  }, [baseReset]);
+
+  // Avoid hold-over publish error/state between sessions when the editor
+  // resets externally (e.g. handle.reset on the consumer side).
+  useEffect(() => {
+    if (editor.state.stage === "capture" && publishStatus === "error") {
+      // Don't auto-clear — consumers need to see the error until they retry.
+      // This effect is here as a future hook point if we want to clear on a
+      // specific transition. Currently a no-op.
+    }
+  }, [editor.state.stage, publishStatus]);
 
   return {
-    mode: state.mode,
-    stage: state.stage,
-    isDirty: state.isDirty,
+    ...editor,
+    // v0.1.5 overrides — non-null mode, custom setMode, markDirty shim
+    mode: editor.state.mode ?? initialMode,
+    stage: editor.state.stage,
     visibleModes,
     setMode,
-    setStage,
     markDirty,
     reset,
+    // Publish-shaped additions
+    publishStatus,
+    uploadProgress,
+    publishError,
+    setPublishStatus,
+    setUploadProgress,
+    setPublishError,
   };
 }
