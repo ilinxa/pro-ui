@@ -49,8 +49,8 @@ import {
  *   - `editorBackground` prop is accepted but not forwarded — the
  *     editor canvas always uses "#000" (matches the v0.1.5 default).
  *     Re-exposed in v0.2.1 if needed.
- *   - `renderPublishingOverlay` is a no-op slot in v0.2.0; the default
- *     `PublishingProgressOverlay` renders during publish.
+ *   - `renderPublishingOverlay` honored — consumer slot replaces the default
+ *     `PublishingProgressOverlay` during publish (slot wiring at C21 review).
  */
 
 const ALL_MODES: ComposerMode[] = ["photo", "video", "text"];
@@ -87,6 +87,7 @@ export const StoryComposer01 = forwardRef<
     renderBottomToolbar,
     renderEmpty,
     renderPermissionDenied,
+    renderPublishingOverlay,
     uploadUrl,
     uploader,
     uploadFields,
@@ -318,17 +319,25 @@ export const StoryComposer01 = forwardRef<
       {publishStatus === "uploading" ||
       publishStatus === "compositing" ||
       publishStatus === "error" ? (
-        <PublishingProgressOverlay
-          progress={publishStatus === "uploading" ? uploadProgress : null}
-          status={publishStatus === "error" ? "error" : "uploading"}
-          labels={labels}
-          onRetry={publishStatus === "error" ? handlePublish : undefined}
-          onCancel={() => {
-            uploader_.cancel();
-            setPublishStatus("idle");
-            setUploadProgress(0);
-          }}
-        />
+        renderPublishingOverlay ? (
+          renderPublishingOverlay({
+            progress: uploadProgress,
+            mode: (editorRef.current?.getMode() ??
+              "photo") as ComposerMode,
+          })
+        ) : (
+          <PublishingProgressOverlay
+            progress={publishStatus === "uploading" ? uploadProgress : null}
+            status={publishStatus === "error" ? "error" : "uploading"}
+            labels={labels}
+            onRetry={publishStatus === "error" ? handlePublish : undefined}
+            onCancel={() => {
+              uploader_.cancel();
+              setPublishStatus("idle");
+              setUploadProgress(0);
+            }}
+          />
+        )
       ) : null}
     </>
   );
