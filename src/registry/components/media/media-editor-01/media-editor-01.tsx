@@ -7,6 +7,7 @@ import { useMediaEditorState } from "./hooks/use-media-editor-state";
 import { resolvePresentation } from "./lib/presentation-resolver";
 import { dialogSizeForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
+import { loadInitialSource } from "./lib/initial-source-loader";
 import type {
   ComposerMode,
   EditTool,
@@ -17,6 +18,7 @@ import type {
   MediaEditor01Handle,
   MediaEditor01Props,
   MediaEditorState,
+  SourceError,
   StickerOption,
 } from "./types";
 
@@ -76,6 +78,71 @@ export const MediaEditor01 = React.forwardRef<
 
   // Mode pill is hidden when ≤1 mode enabled (per description §1).
   const showModePill = enabledModes.length >= 2;
+
+  // ─── Initial source intake (description §5) ─────────────────────────
+  // When `initialSource` is set, fetch + validate, then land directly in
+  // the edit stage with mode + image/video pre-loaded. On error, surface
+  // via onInitialSourceError + sit in an empty state (no auto-fallback to
+  // capture — the consumer asked for a specific source and got an error).
+
+  const [sourceError, setSourceError] =
+    React.useState<SourceError | null>(null);
+
+  const onInitialSourceErrorRef = React.useRef(props.onInitialSourceError);
+  React.useEffect(() => {
+    onInitialSourceErrorRef.current = props.onInitialSourceError;
+  });
+
+  // Snapshot enabledModes into a ref so the load effect doesn't re-fire on
+  // array identity churn. enabledModes is read by the loader at the moment
+  // the source changes; subsequent toggles of enabledModes don't retrigger
+  // a re-fetch (which would be surprising — and slow on URL sources).
+  const enabledModesRef = React.useRef<readonly ComposerMode[]>(enabledModes);
+  React.useEffect(() => {
+    enabledModesRef.current = enabledModes;
+  });
+
+  React.useEffect(() => {
+    const source = props.initialSource;
+    if (!source) {
+      setSourceError(null);
+      return;
+    }
+
+    let cancelled = false;
+    let allocatedUrl: string | null = null;
+
+    (async () => {
+      const result = await loadInitialSource(source, enabledModesRef.current);
+      if (cancelled) {
+        if (result.ok) URL.revokeObjectURL(result.loaded.objectUrl);
+        return;
+      }
+      if (!result.ok) {
+        setSourceError(result.error);
+        onInitialSourceErrorRef.current?.(result.error);
+        return;
+      }
+      allocatedUrl = result.loaded.objectUrl;
+      setSourceError(null);
+      editor.setMode(result.loaded.mode);
+      if (result.loaded.mode === "photo") {
+        editor.setImageSrc(result.loaded.objectUrl);
+      } else {
+        editor.setVideoBlob(result.loaded.blob);
+      }
+      editor.setStage("edit");
+    })();
+
+    return () => {
+      cancelled = true;
+      if (allocatedUrl) URL.revokeObjectURL(allocatedUrl);
+    };
+    // editor methods are stable refs from the hook; only `initialSource`
+    // identity drives this effect. enabledModes is read via ref above so
+    // a tools-dial toggle doesn't refetch a URL source mid-edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.initialSource]);
 
   // Camera surface: show if camera intake allowed AND at least one capture mode
   // is enabled; otherwise fall back to upload-only dropzone affordance.
@@ -251,11 +318,11 @@ export const MediaEditor01 = React.forwardRef<
         </div>
       ) : null}
 
-      {/* Canvas — aspect-locked placeholder (real Konva stage lands in C9-C10) */}
+      {/* Canvas — aspect-locked placeholder (real Konva stage lands in C10) */}
       <div className="flex flex-1 items-center justify-center">
         <div
           className={cn(
-            "flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-6 text-center text-xs text-muted-foreground",
+            "flex flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-border/60 bg-muted/30 p-2 text-center text-xs text-muted-foreground",
             aspect === "free"
               ? "h-full max-h-[400px] w-full max-w-[600px]"
               : "max-h-full max-w-full",
@@ -269,21 +336,68 @@ export const MediaEditor01 = React.forwardRef<
                 }
           }
           data-canvas-placeholder=""
+          data-stage={editor.state.stage}
         >
-          <p className="font-medium text-foreground">
-            {cameraIntakeAvailable
-              ? "Camera surface — C9"
-              : "Upload dropzone — C9"}
-          </p>
-          <p>
-            aspect: <code>{aspect}</code> · sources:{" "}
-            <code>{mediaSources.join(",")}</code>
-          </p>
-          {!cameraIntakeAvailable && mediaSources.length === 0 ? (
-            <p className="text-amber-600 dark:text-amber-400">
-              No mediaSources + no initialSource → empty state (C11 footgun guard)
+          {sourceError ? (
+            <div className="flex flex-col items-center gap-1 p-4">
+              <p className="font-medium text-destructive">
+                Couldn&apos;t load source
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                <code>{sourceError.kind}</code>
+                {"url" in sourceError ? (
+                  <>
+                    {" · "}
+                    <code className="break-all">{sourceError.url}</code>
+                  </>
+                ) : null}
+                {sourceError.kind === "mode-not-enabled" ? (
+                  <>
+                    {" · attempted "}
+                    <code>{sourceError.attempted}</code>
+                    {" · enabled "}
+                    <code>{sourceError.enabled.join(",") || "(none)"}</code>
+                  </>
+                ) : null}
+                {sourceError.kind === "unsupported-file-type" ? (
+                  <>
+                    {" · type "}
+                    <code>{sourceError.fileType || "(blank)"}</code>
+                  </>
+                ) : null}
+              </p>
+              {props.renderEmpty ? props.renderEmpty() : null}
+            </div>
+          ) : editor.state.stage === "edit" && editor.state.imageSrc ? (
+            <img
+              src={editor.state.imageSrc}
+              alt=""
+              className="h-full w-full object-contain"
+              draggable={false}
+              data-loaded-source="photo"
+            />
+          ) : editor.state.stage === "edit" && editor.state.videoBlob ? (
+            <p className="font-medium text-foreground">
+              Loaded video ({Math.round(editor.state.videoBlob.size / 1024)} KB)
             </p>
-          ) : null}
+          ) : (
+            <>
+              <p className="font-medium text-foreground">
+                {cameraIntakeAvailable
+                  ? "Camera surface — C10"
+                  : "Upload dropzone — C10"}
+              </p>
+              <p>
+                aspect: <code>{aspect}</code> · sources:{" "}
+                <code>{mediaSources.join(",") || "(none)"}</code>
+              </p>
+              {!cameraIntakeAvailable && mediaSources.length === 0 ? (
+                <p className="text-amber-600 dark:text-amber-400">
+                  No mediaSources + no initialSource → empty state (C11 footgun guard)
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
       </div>
 
