@@ -46,7 +46,7 @@ Every editorial / news surface has **two conditional sets of UI affordances** de
 | Kebab — Unfollow topic                            | ✗                     | ✓                    |
 | Status badge (Draft / Scheduled / Archived)       | render in editor mode | not rendered         |
 | Scheduled-for timestamp                           | render in editor mode | not rendered         |
-| Paywall gate over excerpt                         | render if paywalled   | render if paywalled  |
+| Paywall gate over media (preview replaces excerpt)| render if paywalled   | render if paywalled  |
 | Sensitive content gate                            | render if sensitive   | render if sensitive  |
 | "Featured" / "Pinned" / "Breaking" / "Live" badge | render if flagged     | render if flagged    |
 
@@ -90,7 +90,7 @@ Missing from a baseline that any modern news/editorial backend would return:
 | `sponsorLabel?: string`                        | "Sponsored by X" — paired with `isSponsored`                               | **add (optional)**                                                  |
 | `liveUpdateCount?: number` + `lastLiveUpdateAt?` | live-blog "Updated 3m ago · 14 updates" sub-line                           | **add (both optional)**                                             |
 | `sensitivity?: ContentSensitivity`             | sensitive-content gate (per-card, not per-image)                           | **add (optional, sub-type `{ isSensitive, reason?, contentWarnings? }`)** |
-| `paywall?: ContentPaywall`                     | premium gate over excerpt + media                                          | **add (optional, sub-type — see §3.2)**                             |
+| `paywall?: ContentPaywall`                     | premium gate over media + preview-replaces-excerpt in body                 | **add (optional, sub-type — see §3.2)**                             |
 | `commentsEnabled?: boolean`                    | when false, comment count chip suppressed                                  | **add (optional, default true semantics)**                          |
 | `commentCount?: number`                        | engagement count chip                                                      | **add (optional)**                                                  |
 | `likeCount?: number` + `isLiked?: boolean`     | engagement-counter pattern                                                 | **add (optional, both)**                                            |
@@ -105,7 +105,7 @@ v0.3.0 grows the type to **40 fields total** (9 existing + 31 new), all new ones
 Magazine cards in 2026 need to render up to 5 sub-features within the card body:
 
 1. Editorial **badge stack** (Pinned / Breaking / Live / Exclusive / Sponsored / Featured / status)
-2. **Paywall gate** over the excerpt + media when `paywall.isPaywalled`
+2. **Paywall gate** over the media when `paywall.isPaywalled` (preview substitutes for excerpt in the body — title + author + footer stay visible per Q-PG)
 3. **Sensitive-content gate** over the media when `sensitivity.isSensitive` (separate motivation from paywall)
 4. **Quoted article mini-card** for opinion / commentary pieces
 5. **Author byline cluster** with publisher logo + verified badge + role
@@ -289,7 +289,7 @@ Both render a "gate over content" overlay, but motivations diverge:
 |--------------------|-----------------------------------------------|------------------------------------|
 | **Motivation**     | Monetization — content costs money to access  | Content warning — graphic/upsetting |
 | **Default CTA**    | "Subscribe to read" / "Unlock"                | "Show" / "Reveal anyway"           |
-| **Gates what**     | Excerpt + media                               | Media only (excerpt visible)       |
+| **Gates what**     | Media block (preview replaces excerpt)        | Media only (excerpt + title visible) |
 | **Resolved by**    | Subscription tier change / login              | Per-view dismissal                 |
 | **Analytics hook** | `onRevealPaywall` → conversion event          | `onRevealSensitive` → warning-accepted event |
 
@@ -669,13 +669,27 @@ These need an answer before GATE 2 plan. Each has a recommended default (marked 
   7. `status === "draft" | "scheduled" | "archived"` (editor mode only)
   - **`(rec)` confirm.**
 
+- **Q-PC2 (locked 2026-06-02 post-ship — design split)** Badge **placement** splits the 7 badges into two semantic groups rendered in two physical positions on the card:
+
+  - **State group** (Breaking / Live / Pinned / Sponsored / Status) — render as the **top-right overlay** on the media. They answer *"should I look at this NOW?"* (urgency / admin / commercial disclosure).
+  - **Curation group** (Exclusive / Featured) — render as a **kicker row above the title** in the body. They answer *"what kind of journalism is this?"* (editorial product label, canonical newspaper convention).
+
+  Priority order from Q-PC is preserved *within each group* — the split is purely visual layout, not a re-prioritization. `NewsBadges` accepts `group: "all" | "state" | "curation"` (default `"all"` for backward compat with the `small` variant + any consumer rendering the standalone sub-export). v0.3.0 `medium` variant uses the split; `featured` / `large` / `list` keep `group="all"` for now and can adopt the kicker pattern in v0.3.1 if the same conflict surfaces there. **`(rec)` confirm.**
+
 - **Q-PD** Kebab item order in editor mode (§5.2) — **`(rec)` confirm as drafted.**
 
 - **Q-PE** Quoted article render — render in `medium` + `list` only (variants with text-column space). Skip in `featured` (visual focus is the hero), `large` (excerpt takes that space), `small` (no room). **`(rec)` confirm.**
 
 - **Q-PF** Sensitive gate scope — gates the **media only** (excerpt + title still visible above the gated image). Mirrors post-card-01 v0.2 sensitive-gate scope. **`(rec)` confirm.**
 
-- **Q-PG** Paywall gate scope — gates **excerpt + media** (title + author byline + date still visible above the gate; preview shows `paywall.preview` words before the gate when set). **`(rec)` confirm.**
+- **Q-PG** Paywall gate scope — gates **the media block only**. Title + author byline + footer + engagement counts stay visible above and below the gate. `paywall.preview` substitutes for `item.excerpt` in the body so it reads naturally inline with the rest of the card. (Initial v0.3.0 impl wrapped the whole card body which caused the preview text to overlap the badge stack at the top — corrected in post-ship fix `b9c5447` 2026-06-02; the spec now formally locks the media-only scope. The Q-PG addendum below carries the rationale.) **`(rec)` confirm.**
+
+  **Q-PG addendum (locked 2026-06-02 post-ship):** the per-variant gate placement is:
+   - **featured** — gate covers full hero (`absolute inset-0`); content overlay div bumped to `z-20` so title + meta stay visible above the gate's `z-10`
+   - **large / medium** — gate wraps just the media block in normal flow above the title-bearing body
+   - **list** — list has no image; gate wraps the excerpt block directly (the excerpt IS the media equivalent in list density)
+
+  All four variants substitute `paywall.preview` for `item.excerpt` so consumers don't render a paywall preview AND the full excerpt twice.
 
 - **Q-PH** Locale of default kebab labels — English defaults via `DEFAULT_CONTENT_CARD_NEWS_LABELS`, host overrides via `labels` prop. Same pattern as post-card-01. **`(rec)` confirm.**
 

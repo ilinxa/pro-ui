@@ -398,7 +398,7 @@
       "name": "content-card-news-01",
       "type": "registry:block",
       "title": "Content Card (News 01)",
-      "description": "Backend-shaped news card with 5 variants and the full A+ procomp surface: role-aware editor/viewer mode, 19-capability permissions matrix, kebab system with moderator section, paywall + sensitive gates, editorial badge stack (Breaking/Live/Featured/Pinned/Sponsored), quoted-article mini-card, light engagement counts with slot-based engagement-bar-01 composition for detail pages, 11-method imperative handle, ~50 i18n keys. Strictly additive on v0.2.",
+      "description": "Backend-shaped news card with 5 variants and the full A+ procomp surface: role-aware editor/viewer mode, 19-capability permissions matrix, kebab system with moderator section, paywall gate (media-only, preview replaces excerpt) + sensitive gate (with compact mode for tight thumbs), editorial badge stack with state/curation placement split (Breaking/Live/Pinned/Sponsored/Status as overlay + Exclusive/Featured as kicker above title), quoted-article compact preview via inner variant=small with all gates suppressed, light engagement counts with slot-based engagement-bar-01 composition for detail pages, 11-method imperative handle, ~50 i18n keys. Strictly additive on v0.2.",
       "author": "ilinxa",
       "categories": ["data", "news"],
       "registryDependencies": ["badge", "dropdown-menu", "@ilinxa/comment-thread-01"],

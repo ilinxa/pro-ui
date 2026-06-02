@@ -232,10 +232,11 @@ Resolution order: predicate → matrix → mode → legacy. Returning `undefined
 ```tsx
 const paywalledArticle: ContentCardItem = {
   // ...
+  excerpt: "Full free excerpt — not shown when paywalled (preview takes over).",
   paywall: {
     isPaywalled: true,
     tier: "subscribers",
-    preview: "The first 30 words show above the gate to entice a click",
+    preview: "The first 30 words become the excerpt — title + author + footer remain visible.",
     ctaLabel: "Subscribe to read",
     ctaHref: "/subscribe",  // optional — when set, CTA renders as <a href>
   },
@@ -249,7 +250,11 @@ const paywalledArticle: ContentCardItem = {
 />
 ```
 
-The gate over excerpt + media renders automatically when `paywall.isPaywalled === true`. When `ctaHref` is set, the CTA is an `<a>` and fires `onRevealPaywall` BEFORE navigation (analytics fires first). When unset, the CTA is a `<button>` that fires `onRevealPaywall` only — host shows their own paywall UI in response.
+**Gate scope (Q-PG):** the gate covers the **media block only** — title + author byline + footer + engagement counts stay visible above and below. `paywall.preview` SUBSTITUTES for `item.excerpt` in the body so the preview reads naturally inline with the rest of the card (don't worry about both rendering — variants compute `displayExcerpt = paywall.preview ?? item.excerpt`).
+
+**CTA element:** when `ctaHref` is set, the CTA is an `<a>` and fires `onRevealPaywall` BEFORE navigation (analytics fires first). When unset, the CTA is a `<button>` that fires `onRevealPaywall` only — host shows their own paywall UI in response.
+
+**Per-variant placement:** `featured` gates the full-bleed hero (content overlay div at `z-20` keeps title visible above the gate's `z-10`); `large` + `medium` wrap just the media block in normal flow above the title; `list` has no image and wraps the excerpt block directly.
 
 ### Sensitive content gate
 
@@ -278,6 +283,22 @@ const ref = useRef<ContentCardNews01Handle>(null);
 ref.current?.reset(article);  // clears sensitiveRevealed + paywallRevealed
 ```
 
+**Compact mode for tight containers:** the `small` variant's 96×96 thumb is too small for the full overlay (heading + warnings list + 44px reveal button = ~180px of content). The `<ContentSensitiveGate>` sub-export accepts a `compact: boolean` prop that drops the heading + warnings list, shrinks the icon `size-6 → size-5`, and replaces the 44px button with a 24px "Show" pill (aria-label carries the full heading + reveal copy for screen readers). The `small` variant passes `compact` automatically. If you're wrapping a custom small thumbnail with the gate yourself:
+
+```tsx
+import { ContentSensitiveGate } from "@ilinxa/content-card-news-01";
+
+<ContentSensitiveGate
+  sensitivity={article.sensitivity}
+  onReveal={() => setRevealed(true)}
+  revealed={revealed}
+  labels={DEFAULT_LABELS}
+  compact   // <-- for any container < ~160×160
+>
+  {thumbnail}
+</ContentSensitiveGate>
+```
+
 ### Editorial badge stack
 
 ```tsx
@@ -298,6 +319,28 @@ const article: ContentCardItem = {
 
 Frozen priority order: Breaking → Live → Exclusive → Featured → Pinned → Sponsored → status (editor mode only). The `small` variant shows only the highest-priority badge per the per-variant feature matrix.
 
+**Placement split (Q-PC2):** the 7 badges split into two semantic groups rendered in two physical positions on the card:
+
+- **State group** (Breaking / Live / Pinned / Sponsored / Status) — render as **top-right overlay** on the media. They answer *"should I look at this NOW?"* (urgency / admin / commercial disclosure).
+- **Curation group** (Exclusive / Featured) — render as a **kicker row above the title** in the body. They answer *"what kind of journalism is this?"* (editorial product label, canonical newspaper convention).
+
+Priority order is preserved within each group. v0.3.0 `medium` variant uses the split; `featured` / `large` / `list` keep `group="all"` for now. When using the sub-exported `<NewsBadges>` standalone, pass `group="state"` or `group="curation"` to filter:
+
+```tsx
+import { NewsBadges } from "@ilinxa/content-card-news-01";
+
+// State indicators only (top-right overlay pattern)
+<NewsBadges item={article} labels={DEFAULT_LABELS} group="state" isEditorMode />
+
+// Curation labels only (kicker above title pattern)
+<NewsBadges item={article} labels={DEFAULT_LABELS} group="curation" />
+
+// All (default — used by the small variant + standalone consumers)
+<NewsBadges item={article} labels={DEFAULT_LABELS} highestPriorityOnly />
+```
+
+**Uniform shape + saturation hierarchy:** all badges share `h-5 px-1.5 text-[10px] uppercase rounded` (so they read as a stack instead of unrelated chips). Hierarchy via saturation: vivid solids (Breaking/Live red) → accent solids (Exclusive amber / Featured primary) → subtle solids (Pinned card-tone / Sponsored / Status). Drop-shadow on the vivid tier keeps them legible against bright hero images.
+
 ### Quoted article mini-card (analysis pieces)
 
 ```tsx
@@ -313,7 +356,9 @@ const analysisItem: ContentCardItem = {
 />
 ```
 
-Renders in `medium` + `list` variants only. Recursion-strip applies — a quoted article's own `quotedArticle` is ignored.
+Renders in `medium` + `list` variants only. Internally the quoted preview uses `variant="small"` (compact thumb-left, body-right layout) with all gates suppressed (paywall / sensitive / badges / engagement) so a paywalled or sensitive source article shows as a clean citation — title + image + author + date only. Recursion-strip applies — a quoted article's own `quotedArticle` is ignored.
+
+If the host needs to flag the quoted article's special state (e.g. "we're quoting a BREAKING piece"), they can render their own indicator on the QuotedArticleCard wrapper via `className`.
 
 ### Engagement counts → engagement-bar-01 composition
 

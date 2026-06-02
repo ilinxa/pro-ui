@@ -114,11 +114,48 @@ Enforced at the part level — each variant explicitly opts in/out per the matri
 - F-03 (Low, working as designed) — featured byline soft-compat surface area.
 - F-04 (Low, v0.4) — `openKebab` handle method is a no-op stub.
 
+## Post-ship visual-review polish arc (8 commits between GATE 3 and push)
+
+After the GATE 3 spotcheck closed on `7b67bae`, the author ran the rendered demo through visual review with the user. 8 follow-up commits landed before push to master; all are part of the v0.3.0 ship:
+
+1. **`02a255f` fix — small sensitive-gate compact mode** — `<ContentSensitiveGate>` gains `compact: boolean` prop. When `true`: heading + warnings list dropped, icon `size-6 → size-5`, 44px reveal button → 24px "Show" pill (aria-label preserves heading + reveal copy). Total content ~60px — fits 96×96 thumb. Small variant passes `compact`. Plan Q-P34 amended.
+
+2. **`b5bb2fa` fix — small article stretch + sensitive demo pairing** — small article gains `items-start` defense against ambient grid-row stretch (the `align-items: stretch` default was pulling the thumb gate wrapper vertically when paired with taller siblings in `grid-cols-2`). Demo sensitive tab: `grid-cols-2` → `space-y-6` so medium + small don't share a grid row. Plan Q-P34b added.
+
+3. **`7000a21` fix — quoted-article compact preview** — `QuotedArticleCard` inner variant: `"medium"` → `"small"` (compact thumb-left, body-right). Added `disablePaywallGate` + `disableSensitiveGate` (paywalled quoted articles were showing "Premium content" inside the quote instead of the title). Inner article chrome flattened via className override. Demo quoted tab: `grid-cols-2` → `space-y-6`. Plan Q-P32 amended.
+
+4. **`b9c5447` fix — paywall scope correction (load-bearing)** — initial impl wrapped the entire `paywallContent` (media + body), causing `paywall.preview` to render above the badge stack overlapping the Exclusive badge AND the whole card content blurred behind the gate. Per Q-PG: gate covers media only. Restructured all 4 variants:
+   - **`NewsPaywallGate`** — removed separate preview-text rendering. Pure "blur children + overlay with CTA" component.
+   - **featured** — gate wraps `sensitiveGatedHero` with `className="absolute inset-0"` so it covers the full hero; content overlay div bumped to `z-20` so title + meta stay visible above the gate's `z-10`.
+   - **large + medium** — gate wraps only the media block in normal flow. Title + author + footer all visible. `displayExcerpt = paywall.preview ?? item.excerpt` rendered in the body excerpt slot.
+   - **list** — no image; gate wraps the excerpt block directly. Title + author visible.
+   Plan Q-P33 amended with media-only scope + per-variant placement.
+
+5. **`3ddbb7a` fix — medium badge stack overlap with category chip** — medium variant rendered both the badge stack (`absolute left-2 top-2 z-20` on article) AND the category chip (`absolute left-4 top-4` inside mediaBlock) at top-left. Moved badge stack to `right-2 top-2` with `max-w-[75%] flex-wrap justify-end gap-1` so 3 tightened badges fit a single line at medium card width (~280px) and wrap inward toward the title beyond that. Top-left of the image area belongs exclusively to the category chip. Other variants don't have this conflict (featured: category in bottom content overlay; large: category in right body column; list: badges + category inline in same meta row; small: badges already top-right). Plan Q-P42c added.
+
+6. **`558954c` fix — disable badges in quoted-article preview** — QuotedArticleCard's inner small variant rendered its own badge stack (`right-2 top-2`) which in the compact quote preview overlapped the title text in the body column (EXCLUSIVE badge sat right on top of "Inside the Smart-City…"). Added `disableBadgesRender` to the inner card. Quote preview becomes a clean citation (image + title + author + date). If host needs to flag the quoted article's special state, they render their own indicator on the QuotedArticleCard wrapper via className.
+
+7. **`444b9db` polish — uniform badge shape + saturation hierarchy** — 7-tier badge stack mixed 7 different style mixes (border-tint + opacity-N bg + outline + solid). Redesigned to uniform shape (`BADGE_BASE` const: `h-5 px-1.5 text-[10px] font-semibold uppercase tracking-wide leading-none rounded shrink-0`). Hierarchy via saturation:
+   - **Vivid solid** (breaking urgency): Breaking → `bg-red-600 text-white ring-red-700/40 shadow`; Live → `bg-red-500 text-white ring-red-700/40 shadow` + white pulse dot
+   - **Accent solid** (editorial curation): Exclusive → `bg-amber-500 text-amber-950 shadow`; Featured → `bg-primary text-primary-foreground shadow` + filled star
+   - **Subtle solid** (status): Pinned → `bg-card/95 text-foreground ring-border` + filled pin; Sponsored + Status → matching tone
+   SponsorBadge + StatusBadge aligned to same shape. Drop-shadow on vivid tier keeps badges legible against bright hero images.
+
+8. **`9eab176` design — badge placement split (state overlay vs curation kicker)** — 7-badge stack mixed two semantically different concepts:
+   - **State indicators** (Breaking / Live / Pinned / Sponsored / Status) — "should I look at this NOW?" → top-right overlay (where the eye is drawn first)
+   - **Curation labels** (Exclusive / Featured) — "what kind of journalism is this?" → kicker above the title (canonical newspaper convention: NYT, WSJ, Bloomberg all use this pattern)
+   `NewsBadges` gains `group: "all" | "state" | "curation"` (default `"all"` for backward compat with `small` variant + standalone consumers). Medium variant renders TWO `<NewsBadges>` instances: state at top-right overlay + curation as kicker row above title. Priority order from Q-PC preserved within each group. Description Q-PC2 added; Plan Q-P42b added. Other variants (featured / large / list / small) keep `group="all"` — can adopt the kicker pattern in v0.3.1 if needed.
+
+**All 8 commits strictly additive** — `compact` and `group` are new optional props; paywall scope correction is a bug fix (not API change); badge style refresh is purely visual. Backward-compat drop-in test re-verified post-fixes; v0.2.x consumers see zero behavioral or visual delta. Description + plan + meta + registry.json description + guide.md all amended; GATE 3 review file appended with the post-ship findings-closed section.
+
+**Documentation alignment commit (this one)** — bumps `meta.updatedAt`, updates description + plan + guide + GATE 3 review + STATUS.md + component-versions.md to match the post-ship state. Registry artifacts regenerated via `pnpm registry:build`.
+
 ## Next steps
 
-1. Push v0.3.0 to master.
+1. Push v0.3.0 to master (= `9eab176` + this docs-alignment commit).
 2. Vercel auto-deploys; v0.3.0 becomes installable via `pnpm dlx shadcn@latest add @ilinxa/content-card-news-01`.
 3. Run smoke harness path-b consumer-tsc against the deployed artifact.
 4. If sub-traps surface (likely against `dropdown-menu` per F-cross-13 expectation), patch as v0.3.1 same-day per established `ship → smoke → patch → re-smoke clean` 4-ship pattern.
 5. Land F-02 / F-04 in v0.3.1 sweep (or stay open as deferred).
 6. (Future) `related-articles-ribbon-01` sibling — queued, no GATE 1 yet.
+7. (Future) extend the badge split (state overlay + curation kicker) to featured / large / list variants if the visual conflict surfaces there too. v0.3.0 only applies it to medium.
