@@ -59,16 +59,16 @@ export function SmallPart(props: ResolvedPartProps) {
       renderSensitiveGate ? (
         renderSensitiveGate(item, { onReveal: onRevealSensitiveInternal })
       ) : (
-        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg">
-          <ContentSensitiveGate
-            sensitivity={item.sensitivity}
-            revealed={sensitiveRevealed}
-            onReveal={onRevealSensitiveInternal}
-            labels={labels}
-          >
-            {thumbImg}
-          </ContentSensitiveGate>
-        </div>
+        <ContentSensitiveGate
+          sensitivity={item.sensitivity}
+          revealed={sensitiveRevealed}
+          onReveal={onRevealSensitiveInternal}
+          labels={labels}
+          compact
+          className="shrink-0 overflow-hidden rounded-lg"
+        >
+          {thumbImg}
+        </ContentSensitiveGate>
       )
     ) : (
       thumbImg

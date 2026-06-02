@@ -23,6 +23,15 @@ interface ContentSensitiveGateProps {
    */
   children: ReactNode;
   labels: Required<ContentCardNewsLabels>;
+  /**
+   * Compact rendering for tight containers (used by the `small` variant's
+   * 96×96 thumb per Q-PA matrix). Drops the heading + warnings list +
+   * 44px reveal button in favor of a single icon + tiny `<button>` pill
+   * sized to fit a 96×96 container. The full overlay is too tall to fit a
+   * sidebar-density thumb (~180px content height vs 96px container) — fall
+   * back to compact when wrapping anything narrower than ~160×160.
+   */
+  compact?: boolean;
   className?: string;
 }
 
@@ -48,6 +57,7 @@ export function ContentSensitiveGate({
   onReveal,
   children,
   labels,
+  compact = false,
   className,
 }: ContentSensitiveGateProps) {
   if (!sensitivity?.isSensitive || revealed) return <>{children}</>;
@@ -69,24 +79,42 @@ export function ContentSensitiveGate({
         {children}
       </div>
 
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-md bg-card/90 p-4 text-center backdrop-blur-md">
-        <AlertOctagon
-          className="size-6 text-amber-600 dark:text-amber-400"
-          aria-hidden
-        />
-        <p className="text-sm font-semibold">{labels.sensitiveHeading}</p>
-        {warningText && (
-          <p className="text-xs text-muted-foreground">{warningText}</p>
-        )}
-        <button
-          type="button"
-          onClick={onReveal}
-          className="relative z-20 mt-1 inline-flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <Eye className="size-4" aria-hidden />
-          {labels.sensitiveRevealLabel}
-        </button>
-      </div>
+      {compact ? (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1.5 rounded-md bg-card/95 p-2 text-center backdrop-blur-md">
+          <AlertOctagon
+            className="size-5 text-amber-600 dark:text-amber-400"
+            aria-hidden
+          />
+          <button
+            type="button"
+            onClick={onReveal}
+            aria-label={`${labels.sensitiveHeading}: ${labels.sensitiveRevealLabel}`}
+            className="relative z-20 inline-flex cursor-pointer items-center gap-1 rounded-full bg-foreground/90 px-2 py-1 text-[11px] font-medium text-background transition-colors hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          >
+            <Eye className="size-3" aria-hidden />
+            {labels.sensitiveRevealLabel}
+          </button>
+        </div>
+      ) : (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-md bg-card/90 p-4 text-center backdrop-blur-md">
+          <AlertOctagon
+            className="size-6 text-amber-600 dark:text-amber-400"
+            aria-hidden
+          />
+          <p className="text-sm font-semibold">{labels.sensitiveHeading}</p>
+          {warningText && (
+            <p className="text-xs text-muted-foreground">{warningText}</p>
+          )}
+          <button
+            type="button"
+            onClick={onReveal}
+            className="relative z-20 mt-1 inline-flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <Eye className="size-4" aria-hidden />
+            {labels.sensitiveRevealLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
