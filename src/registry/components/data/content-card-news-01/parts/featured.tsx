@@ -84,27 +84,59 @@ export function FeaturedPart(props: ResolvedPartProps) {
     </>
   );
 
+  // Paywall scope: gate wraps just the hero media. Title + meta in the
+  // content overlay stay visible above the gate via z-20 (per Q-PG).
+  // Substitute paywall.preview for item.excerpt when paywalled.
+  const isPaywalled =
+    !disablePaywallGate && Boolean(item.paywall?.isPaywalled) && !paywallRevealed;
+
+  const previewText =
+    isPaywalled && item.paywall?.preview
+      ? `${item.paywall.preview} ${labels.paywallPreviewSeparator}`
+      : null;
+  const displayExcerpt = previewText ?? item.excerpt;
+
+  const sensitiveGatedHero =
+    !disableSensitiveGate && item.sensitivity?.isSensitive ? (
+      renderSensitiveGate ? (
+        renderSensitiveGate(item, { onReveal: onRevealSensitiveInternal })
+      ) : (
+        <ContentSensitiveGate
+          sensitivity={item.sensitivity}
+          revealed={sensitiveRevealed}
+          onReveal={onRevealSensitiveInternal}
+          labels={labels}
+          className="contents"
+        >
+          {heroMedia}
+        </ContentSensitiveGate>
+      )
+    ) : (
+      heroMedia
+    );
+
+  const mediaWithPaywall = isPaywalled
+    ? renderPaywallGate
+      ? renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
+      : (
+          <NewsPaywallGate
+            paywall={item.paywall}
+            revealed={paywallRevealed}
+            onReveal={onRevealPaywallInternal}
+            linkComponent={LinkComponent}
+            labels={labels}
+            className="absolute inset-0"
+          >
+            {sensitiveGatedHero}
+          </NewsPaywallGate>
+        )
+    : sensitiveGatedHero;
+
   const content = (
     <>
-      {!disableSensitiveGate && item.sensitivity?.isSensitive ? (
-        renderSensitiveGate ? (
-          renderSensitiveGate(item, { onReveal: onRevealSensitiveInternal })
-        ) : (
-          <ContentSensitiveGate
-            sensitivity={item.sensitivity}
-            revealed={sensitiveRevealed}
-            onReveal={onRevealSensitiveInternal}
-            labels={labels}
-            className="contents"
-          >
-            {heroMedia}
-          </ContentSensitiveGate>
-        )
-      ) : (
-        heroMedia
-      )}
+      {mediaWithPaywall}
 
-      <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
+      <div className="absolute inset-0 z-20 flex flex-col justify-end p-8 md:p-12">
         {/* Top-row: publisher logo (left) + kebab/visibility (right) */}
         {(item.publisher || showKebab || item.visibility) && (
           <div className="absolute left-8 right-8 top-8 flex items-start justify-between md:left-12 md:right-12 md:top-12">
@@ -159,12 +191,12 @@ export function FeaturedPart(props: ResolvedPartProps) {
           {item.title}
         </h2>
 
-        {!disableExcerptRender && item.excerpt
+        {!disableExcerptRender && displayExcerpt
           ? renderExcerpt
             ? renderExcerpt(item)
             : (
                 <p className="mb-6 max-w-3xl text-lg text-white/80 line-clamp-3 md:text-xl">
-                  {item.excerpt}
+                  {displayExcerpt}
                 </p>
               )
           : null}
@@ -295,24 +327,7 @@ export function FeaturedPart(props: ResolvedPartProps) {
         />
       ) : null}
 
-      {!disablePaywallGate && item.paywall?.isPaywalled ? (
-        renderPaywallGate ? (
-          renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
-        ) : (
-          <NewsPaywallGate
-            paywall={item.paywall}
-            revealed={paywallRevealed}
-            onReveal={onRevealPaywallInternal}
-            linkComponent={LinkComponent}
-            labels={labels}
-            className="contents"
-          >
-            {content}
-          </NewsPaywallGate>
-        )
-      ) : (
-        content
-      )}
+      {content}
     </article>
   );
 }

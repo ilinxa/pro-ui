@@ -62,18 +62,31 @@ export function ListPart(props: ResolvedPartProps) {
   const isEditorMode = viewerMode === "editor";
   const showKebab = kebabItems.length > 0;
 
+  // Paywall scope: list has no image, so the gate wraps the excerpt area
+  // (Q-PG — gates excerpt + media; in list there's only excerpt).
+  // Substitute paywall.preview for item.excerpt as the body text when
+  // paywalled — title stays visible above, author/quoted/engagement below.
+  const isPaywalled =
+    !disablePaywallGate && Boolean(item.paywall?.isPaywalled) && !paywallRevealed;
+
+  const previewText =
+    isPaywalled && item.paywall?.preview
+      ? `${item.paywall.preview} ${labels.paywallPreviewSeparator}`
+      : null;
+  const displayExcerpt = previewText ?? item.excerpt;
+
   const excerptBlock =
-    !disableExcerptRender && item.excerpt ? (
+    !disableExcerptRender && displayExcerpt ? (
       renderExcerpt ? (
         renderExcerpt(item)
       ) : (
         <p className="mt-1 text-sm text-muted-foreground line-clamp-1">
-          {item.excerpt}
+          {displayExcerpt}
         </p>
       )
     ) : null;
 
-  const gatedExcerpt =
+  const sensitiveGatedExcerpt =
     !disableSensitiveGate && item.sensitivity?.isSensitive ? (
       renderSensitiveGate ? (
         renderSensitiveGate(item, { onReveal: onRevealSensitiveInternal })
@@ -90,6 +103,22 @@ export function ListPart(props: ResolvedPartProps) {
     ) : (
       excerptBlock
     );
+
+  const gatedExcerpt = isPaywalled
+    ? renderPaywallGate
+      ? renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
+      : (
+          <NewsPaywallGate
+            paywall={item.paywall}
+            revealed={paywallRevealed}
+            onReveal={onRevealPaywallInternal}
+            linkComponent={LinkComponent}
+            labels={labels}
+          >
+            {sensitiveGatedExcerpt}
+          </NewsPaywallGate>
+        )
+    : sensitiveGatedExcerpt;
 
   const innerContent = (
     <>
@@ -233,25 +262,7 @@ export function ListPart(props: ResolvedPartProps) {
         />
       ) : null}
 
-      <div className="min-w-0 flex-1">
-        {!disablePaywallGate && item.paywall?.isPaywalled ? (
-          renderPaywallGate ? (
-            renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
-          ) : (
-            <NewsPaywallGate
-              paywall={item.paywall}
-              revealed={paywallRevealed}
-              onReveal={onRevealPaywallInternal}
-              linkComponent={LinkComponent}
-              labels={labels}
-            >
-              {innerContent}
-            </NewsPaywallGate>
-          )
-        ) : (
-          innerContent
-        )}
-      </div>
+      <div className="min-w-0 flex-1">{innerContent}</div>
 
       <div className="flex shrink-0 items-center gap-1 self-center">
         {actions ? (

@@ -108,9 +108,38 @@ export function LargePart(props: ResolvedPartProps) {
       mediaBlock
     );
 
+  // Paywall scope: gate wraps just the media (Q-PG); substitute
+  // paywall.preview for item.excerpt in the body so title + author +
+  // footer stay visible.
+  const isPaywalled =
+    !disablePaywallGate && Boolean(item.paywall?.isPaywalled) && !paywallRevealed;
+
+  const mediaWithPaywall = isPaywalled
+    ? renderPaywallGate
+      ? renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
+      : (
+          <NewsPaywallGate
+            paywall={item.paywall}
+            revealed={paywallRevealed}
+            onReveal={onRevealPaywallInternal}
+            linkComponent={LinkComponent}
+            labels={labels}
+            className="md:h-full md:min-h-75"
+          >
+            {gatedMedia}
+          </NewsPaywallGate>
+        )
+    : gatedMedia;
+
+  const previewText =
+    isPaywalled && item.paywall?.preview
+      ? `${item.paywall.preview} ${labels.paywallPreviewSeparator}`
+      : null;
+  const displayExcerpt = previewText ?? item.excerpt;
+
   const content = (
     <>
-      {gatedMedia}
+      {mediaWithPaywall}
 
       <div className="flex flex-col justify-center p-6 md:p-8">
         {/* Top: publisher + kebab/visibility */}
@@ -163,12 +192,12 @@ export function LargePart(props: ResolvedPartProps) {
           {item.title}
         </h3>
 
-        {!disableExcerptRender && item.excerpt
+        {!disableExcerptRender && displayExcerpt
           ? renderExcerpt
             ? renderExcerpt(item)
             : (
                 <p className="mb-4 text-muted-foreground line-clamp-3">
-                  {item.excerpt}
+                  {displayExcerpt}
                 </p>
               )
           : null}
@@ -264,24 +293,7 @@ export function LargePart(props: ResolvedPartProps) {
         />
       ) : null}
 
-      {!disablePaywallGate && item.paywall?.isPaywalled ? (
-        renderPaywallGate ? (
-          renderPaywallGate(item, { onReveal: onRevealPaywallInternal })
-        ) : (
-          <NewsPaywallGate
-            paywall={item.paywall}
-            revealed={paywallRevealed}
-            onReveal={onRevealPaywallInternal}
-            linkComponent={LinkComponent}
-            labels={labels}
-            className="contents"
-          >
-            {content}
-          </NewsPaywallGate>
-        )
-      ) : (
-        content
-      )}
+      {content}
     </article>
   );
 }
