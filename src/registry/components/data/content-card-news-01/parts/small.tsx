@@ -77,7 +77,7 @@ export function SmallPart(props: ResolvedPartProps) {
   return (
     <article
       className={cn(
-        "group relative flex gap-4 rounded-xl border border-border/50 bg-card p-4 transition-all duration-300 hover:shadow-md",
+        "group relative flex items-start gap-4 rounded-xl border border-border/50 bg-card p-4 transition-all duration-300 hover:shadow-md",
         "has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring has-[a:focus-visible]:ring-offset-2",
         className,
       )}
