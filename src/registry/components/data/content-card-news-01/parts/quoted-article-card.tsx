@@ -47,8 +47,14 @@ export interface QuotedArticleCardProps {
  *  - `disableSensitiveGate` true — same rationale (the quote preview is a
  *    citation, not the actual sensitive content; warning gates again would
  *    just hide what the reader needs to recognize the source).
- *  - `disableBadgesRender` false — quoted articles still show their own
- *    badges (Breaking / Live / Exclusive carry contextual meaning).
+ *  - `disableBadgesRender` true — initially we kept badges so quoted
+ *    articles could surface their contextual state (Breaking / Live /
+ *    Exclusive), but the small variant's top-right badge position
+ *    overlapped the title in the compact preview. The quote should be a
+ *    clean citation — if the host needs to indicate the quoted article's
+ *    state, they render their own badge on the QuotedArticleCard wrapper
+ *    via `className`. (v0.3 follow-up — reconsider if a quote variant
+ *    with badge-on-thumb-corner lands later.)
  *
  * Inner article's own border / bg / padding flattened via `className` so the
  * QuotedArticleCard wrapper's `bg-muted/40 border border-border` styling is
@@ -107,6 +113,7 @@ export function QuotedArticleCard({
           disableEngagementCounts
           disablePaywallGate
           disableSensitiveGate
+          disableBadgesRender
           className="border-0 bg-transparent p-3 rounded-md shadow-none hover:shadow-none transition-none"
         />
       </div>
