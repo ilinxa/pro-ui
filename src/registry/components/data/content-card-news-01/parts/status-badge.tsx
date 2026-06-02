@@ -23,19 +23,19 @@ export function StatusBadge({ status, labels, className }: StatusBadgeProps) {
         return {
           label: labels.statusDraft,
           Icon: FileEdit,
-          tone: "bg-muted text-muted-foreground border-muted-foreground/20",
+          tone: "bg-muted text-muted-foreground ring-border",
         };
       case "scheduled":
         return {
           label: labels.statusScheduled,
           Icon: CalendarClock,
-          tone: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
+          tone: "bg-amber-500 text-amber-950 ring-amber-700/40",
         };
       case "archived":
         return {
           label: labels.statusArchived,
           Icon: Archive,
-          tone: "bg-secondary text-secondary-foreground border-secondary",
+          tone: "bg-secondary text-secondary-foreground ring-border",
         };
     }
   })();
@@ -46,12 +46,12 @@ export function StatusBadge({ status, labels, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+        "inline-flex h-5 shrink-0 items-center gap-1 rounded px-1.5 text-[10px] font-semibold uppercase tracking-wide leading-none ring-1",
         tone,
         className,
       )}
     >
-      <Icon className="size-3" aria-hidden />
+      <Icon className="size-2.5" aria-hidden />
       {label}
     </span>
   );

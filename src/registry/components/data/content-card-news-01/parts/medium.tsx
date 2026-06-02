@@ -299,10 +299,11 @@ export function MediumPart(props: ResolvedPartProps) {
       )}
     >
       {/* Editorial badge stack — top-right overlay (top-left belongs to the
-          category chip rendered inside mediaBlock). max-w + wrap-end so the
-          badges shrink + wrap inward if many fire at once. */}
+          category chip rendered inside mediaBlock). 75% max + wrap-end so up
+          to 3 tightened badges fit on a single line at the medium card
+          width (~280px); beyond that they wrap inward toward the title. */}
       {showBadges && (
-        <div className="absolute right-2 top-2 z-20 flex max-w-[60%] flex-wrap justify-end gap-1">
+        <div className="absolute right-2 top-2 z-20 flex max-w-[75%] flex-wrap justify-end gap-1">
           {renderBadges ? (
             renderBadges(item, { canModerate })
           ) : (
