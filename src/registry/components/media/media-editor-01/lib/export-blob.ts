@@ -6,8 +6,12 @@ export interface ExportPhotoOptions {
   cropRect?: CropRect | null;
   /** Pixel ratio multiplier. Default 2 for retina sharpness. */
   pixelRatio?: number;
-  mimeType?: "image/jpeg" | "image/png";
+  /** Default "image/jpeg" per Q-P3 lock. PNG and WebP also supported. */
+  mimeType?: "image/jpeg" | "image/png" | "image/webp";
+  /** 0..1; default 0.9 per Q-P3. Only meaningful for jpeg / webp. */
   quality?: number;
+  /** Fires (0) at start and (1) at end. Two-tick contract for image export. */
+  onProgress?: (progress: number) => void;
 }
 
 /**
@@ -16,6 +20,10 @@ export interface ExportPhotoOptions {
  * Uses stage.toCanvas() with x/y/width/height to write only the crop region.
  * stage.toBlob() is not available in all Konva versions; the canvas →
  * toBlob() path is more portable.
+ *
+ * Progress emits twice for jpeg/png/webp (start=0, end=1) per the
+ * ExportImageOpts.onProgress contract. WebP encoders in some browsers may
+ * yield mid-encode but we don't expose those intermediate ticks.
  */
 export function exportPhotoBlob(opts: ExportPhotoOptions): Promise<Blob> {
   const {
@@ -23,7 +31,8 @@ export function exportPhotoBlob(opts: ExportPhotoOptions): Promise<Blob> {
     cropRect,
     pixelRatio = 2,
     mimeType = "image/jpeg",
-    quality = 0.92,
+    quality = 0.9,
+    onProgress,
   } = opts;
 
   const region = cropRect ?? {
@@ -32,6 +41,8 @@ export function exportPhotoBlob(opts: ExportPhotoOptions): Promise<Blob> {
     width: stage.width(),
     height: stage.height(),
   };
+
+  onProgress?.(0);
 
   const canvas = stage.toCanvas({
     x: region.x,
@@ -43,10 +54,14 @@ export function exportPhotoBlob(opts: ExportPhotoOptions): Promise<Blob> {
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
-      (b) =>
-        b
-          ? resolve(b)
-          : reject(new Error("Canvas.toBlob returned null")),
+      (b) => {
+        if (b) {
+          onProgress?.(1);
+          resolve(b);
+        } else {
+          reject(new Error("Canvas.toBlob returned null"));
+        }
+      },
       mimeType,
       quality,
     );

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type Konva from "konva";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
@@ -8,10 +9,14 @@ import { resolvePresentation } from "./lib/presentation-resolver";
 import { dialogSizeForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
+import { exportPhotoBlob } from "./lib/export-blob";
+import { compositeVideo } from "./lib/composite-video";
+import { EditorCanvas } from "./parts/editor-canvas";
 import type {
   ComposerMode,
   EditTool,
   ExportImageOpts,
+  ExportMetadata,
   ExportOpts,
   ExportVideoOpts,
   ImageAdjustments,
@@ -152,6 +157,33 @@ export const MediaEditor01 = React.forwardRef<
   const cameraIntakeAvailable =
     mediaSources.includes("camera") && hasCaptureMode;
 
+  // ─── Konva stage handle (C10 export wiring) ─────────────────────────
+  // EditorCanvas surfaces its Konva.Stage via onStageReady. The handle's
+  // export methods read this ref to snapshot the canvas at publish time.
+  const stageRef = React.useRef<Konva.Stage | null>(null);
+
+  // Derive a stable object URL from the loaded video blob so EditorCanvas
+  // can play it. Allocated lazily and revoked when the blob identity
+  // changes or the component unmounts.
+  const videoBlob = editor.state.videoBlob;
+  const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (!videoBlob) {
+      setVideoUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(videoBlob);
+    setVideoUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [videoBlob]);
+
+  // Edit canvas is mounted whenever we have a loaded source. The placeholder
+  // surface (capture / upload prompt) only renders when we don't.
+  const hasLoadedSource =
+    editor.state.imageSrc !== null || editor.state.videoBlob !== null;
+  const showEditCanvas =
+    !sourceError && editor.state.stage === "edit" && hasLoadedSource;
+
   // ─── Presentation resolution (description §6) ───────────────────────
 
   const resolved = resolvePresentation(props.presentation, enabledModes);
@@ -168,6 +200,124 @@ export const MediaEditor01 = React.forwardRef<
       );
     }
   }, [resolved, props.isOpen, props.onClose]);
+
+  // ─── Export implementations (C10) ───────────────────────────────────
+  // Factored out of the handle factory so the polymorphic export() can
+  // dispatch by mode without a `this`-binding gotcha.
+
+  const exportImage = React.useCallback(
+    async (opts?: ExportImageOpts) => {
+      const stage = stageRef.current;
+      if (!stage) throw new Error("media-editor-01: editor canvas not ready");
+      const format = opts?.format ?? "image/jpeg";
+      const quality = opts?.quality ?? 0.9;
+      const pixelRatio = opts?.pixelRatio ?? 2;
+      const cropRect = editor.state.crop;
+      const blob = await exportPhotoBlob({
+        stage,
+        cropRect,
+        mimeType: format,
+        quality,
+        pixelRatio,
+        onProgress: opts?.onProgress,
+      });
+      const width = cropRect?.width ?? stage.width();
+      const height = cropRect?.height ?? stage.height();
+      return {
+        blob,
+        metadata: buildExportMetadata(
+          editor.state,
+          "photo",
+          width,
+          height,
+          format,
+        ),
+      };
+    },
+    [editor.state],
+  );
+
+  const exportVideo = React.useCallback(
+    async (opts?: ExportVideoOpts) => {
+      const videoBlob = editor.state.videoBlob;
+      if (!videoBlob) {
+        throw new Error("media-editor-01: no video blob loaded");
+      }
+      // Perf-shortcut: no overlays AND no crop → return the raw blob.
+      // Skips the expensive MediaRecorder re-encode for the
+      // "captured then immediately published" path (chat / DM flows).
+      const shortcut = !hasAnyOverlay(editor.state) && !editor.state.crop;
+      if (shortcut) {
+        opts?.onProgress?.(0);
+        opts?.onProgress?.(1);
+        return {
+          blob: videoBlob,
+          metadata: buildExportMetadata(
+            editor.state,
+            "video",
+            editor.state.crop?.width ?? 720,
+            editor.state.crop?.height ?? 1280,
+            videoBlob.type || "video/webm",
+          ),
+        };
+      }
+      // Full re-encode path: bake Konva overlays into each video frame.
+      const stage = stageRef.current;
+      const cropRect = editor.state.crop;
+      const ow = cropRect?.width ?? stage?.width() ?? 720;
+      const oh = cropRect?.height ?? stage?.height() ?? 1280;
+      const result = await compositeVideo({
+        sourceBlob: videoBlob,
+        outputWidth: Math.round(ow),
+        outputHeight: Math.round(oh),
+        mimeType: opts?.mimeType,
+        bitsPerSecond: opts?.bitsPerSecond,
+        onProgress: opts?.onProgress,
+        renderFrame: (ctx, video) => {
+          ctx.clearRect(0, 0, ow, oh);
+          const vw = video.videoWidth || ow;
+          const vh = video.videoHeight || oh;
+          const scale = Math.max(ow / vw, oh / vh);
+          const dw = vw * scale;
+          const dh = vh * scale;
+          ctx.drawImage(video, (ow - dw) / 2, (oh - dh) / 2, dw, dh);
+          if (stage) {
+            const overlay = stage.toCanvas({
+              x: cropRect?.x ?? 0,
+              y: cropRect?.y ?? 0,
+              width: cropRect?.width ?? stage.width(),
+              height: cropRect?.height ?? stage.height(),
+              pixelRatio: 1,
+            });
+            ctx.drawImage(overlay, 0, 0, ow, oh);
+          }
+        },
+      });
+      return {
+        blob: result.blob,
+        metadata: buildExportMetadata(
+          editor.state,
+          "video",
+          Math.round(ow),
+          Math.round(oh),
+          result.mimeType,
+          result.durationMs,
+        ),
+      };
+    },
+    [editor.state],
+  );
+
+  const exportPolymorphic = React.useCallback(
+    async (opts?: ExportOpts) => {
+      const mode = editor.state.mode;
+      if (mode === "video") {
+        return exportVideo(opts as ExportVideoOpts | undefined);
+      }
+      return exportImage(opts as ExportImageOpts | undefined);
+    },
+    [editor.state.mode, exportImage, exportVideo],
+  );
 
   // ─── Imperative handle ──────────────────────────────────────────────
   // Most methods are stubs in C6. Real wiring lands in C7-C12 per the plan.
@@ -227,18 +377,10 @@ export const MediaEditor01 = React.forwardRef<
         devWarnOnce(warnedRef.current, "redo", NOT_IMPLEMENTED_MARKER);
       },
 
-      // === Export (real wiring in C10) ===
-      exportImage: async (_opts?: ExportImageOpts) => {
-        throw new Error(NOT_IMPLEMENTED_MARKER + " (exportImage lands in C10)");
-      },
-      exportVideo: async (_opts?: ExportVideoOpts) => {
-        throw new Error(NOT_IMPLEMENTED_MARKER + " (exportVideo lands in C10)");
-      },
-      export: async (_opts?: ExportOpts) => {
-        throw new Error(
-          NOT_IMPLEMENTED_MARKER + " (polymorphic export lands in C10)",
-        );
-      },
+      // === Export (C10) ===
+      exportImage,
+      exportVideo,
+      export: exportPolymorphic,
 
       // === Lifecycle ===
       reset: () => editor.reset(),
@@ -255,7 +397,7 @@ export const MediaEditor01 = React.forwardRef<
         }
       },
     }),
-    [editor],
+    [editor, exportImage, exportVideo, exportPolymorphic, resolved, props],
   );
 
   // ─── Slot context for render* props ─────────────────────────────────
@@ -368,18 +510,22 @@ export const MediaEditor01 = React.forwardRef<
               </p>
               {props.renderEmpty ? props.renderEmpty() : null}
             </div>
-          ) : editor.state.stage === "edit" && editor.state.imageSrc ? (
-            <img
-              src={editor.state.imageSrc}
-              alt=""
-              className="h-full w-full object-contain"
-              draggable={false}
-              data-loaded-source="photo"
+          ) : showEditCanvas ? (
+            <EditorCanvas
+              imageUrl={editor.state.imageSrc}
+              videoUrl={videoUrl}
+              textOverlays={editor.state.textOverlays}
+              stickers={editor.state.stickers}
+              drawingStrokes={editor.state.drawingStrokes}
+              cropRect={editor.state.crop}
+              cropActive={editor.activeTool === "crop"}
+              adjustments={editor.state.adjustments}
+              activeFilter={null}
+              onStageReady={(s) => {
+                stageRef.current = s;
+              }}
+              className="h-full w-full"
             />
-          ) : editor.state.stage === "edit" && editor.state.videoBlob ? (
-            <p className="font-medium text-foreground">
-              Loaded video ({Math.round(editor.state.videoBlob.size / 1024)} KB)
-            </p>
           ) : (
             <>
               <p className="font-medium text-foreground">
@@ -478,3 +624,48 @@ export const MediaEditor01 = React.forwardRef<
     </Dialog>
   );
 });
+
+// ─── Export-time helpers ──────────────────────────────────────────────
+
+/**
+ * Returns true if the edit state has any overlay / mutation that would
+ * change the output vs the raw source. Drives the video perf-shortcut:
+ * if nothing's been changed, skip the MediaRecorder re-encode.
+ *
+ * Adjustments are checked by ALL three default values — any deviation
+ * counts as "modified."
+ */
+function hasAnyOverlay(state: MediaEditorState): boolean {
+  if (state.textOverlays.length > 0) return true;
+  if (state.stickers.length > 0) return true;
+  if (state.drawingStrokes.length > 0) return true;
+  if (state.filter !== null) return true;
+  const a = state.adjustments;
+  if (a.brightness !== 0 || a.contrast !== 0 || a.saturation !== 0 || a.blur !== 0) {
+    return true;
+  }
+  return false;
+}
+
+function buildExportMetadata(
+  state: MediaEditorState,
+  mode: ComposerMode,
+  width: number,
+  height: number,
+  mimeType: string,
+  durationMs?: number,
+): ExportMetadata {
+  return {
+    mode,
+    width,
+    height,
+    durationMs,
+    mimeType,
+    textOverlays: state.textOverlays,
+    stickers: state.stickers,
+    drawingStrokes: state.drawingStrokes.length,
+    appliedFilter: state.filter ?? undefined,
+    adjustments: state.adjustments,
+    crop: state.crop ?? undefined,
+  };
+}
