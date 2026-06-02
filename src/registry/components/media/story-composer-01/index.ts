@@ -68,7 +68,7 @@ export {
 
 // Re-exports — useMediaCapture + utilities moved to media-editor-01 in v0.2.0.
 // Preserved here for v0.1.5 consumer backward-compat per snapshot contract.
-// @deprecated import from "@ilinxa/media-editor-01" — removed in v0.3.0.
+/** @deprecated v0.2.0 — import from `@ilinxa/media-editor-01` directly. Removed in v0.3.0. */
 export {
   useMediaCapture,
   validateGalleryFile,
