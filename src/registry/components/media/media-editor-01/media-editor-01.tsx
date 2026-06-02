@@ -589,8 +589,9 @@ export const MediaEditor01 = React.forwardRef<
         </div>
       </div>
 
-      {/* Toolbar — filtered by enabledTools (description §4) */}
-      {enabledTools.length > 0 ? (
+      {/* Toolbar — filtered by enabledTools (description §4).
+          Suppressed in empty-config: tools have nothing to act on. */}
+      {enabledTools.length > 0 && !isEmptyConfig ? (
         <div className="flex flex-wrap justify-center gap-1 rounded-md border border-border bg-muted/30 p-2">
           {enabledTools.map((tool) => (
             <button
