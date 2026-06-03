@@ -112,7 +112,8 @@ export function ShutterButton({
       aria-label={ariaLabel}
       aria-pressed={mode === "video" ? isRecording : undefined}
       className={cn(
-        "relative grid place-items-center size-[68px] rounded-full",
+        // Responsive size — min 48px on narrow viewports, max 68px on wide.
+        "relative grid place-items-center size-[clamp(3rem,12vw,4.25rem)] rounded-full",
         "transition-transform active:scale-95",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
@@ -123,18 +124,18 @@ export function ShutterButton({
       {/* Outer ring (idle white border; conic on record) */}
       {mode === "video" && isRecording ? (
         // Filled ring is the gradient on the button itself; inner stop-square sits inside
-        <span className="grid place-items-center size-14 rounded-full bg-black/60">
-          <span className="size-6 rounded-md bg-red-500" />
+        <span className="grid place-items-center size-[80%] rounded-full bg-black/60">
+          <span className="size-[36%] rounded-md bg-red-500" />
         </span>
       ) : (
         <span
           className={cn(
-            "size-[68px] rounded-full ring-4 ring-white/30 ring-offset-2 ring-offset-transparent grid place-items-center",
+            "size-full rounded-full ring-4 ring-white/30 ring-offset-2 ring-offset-transparent grid place-items-center",
             "bg-white",
           )}
         >
           {mode === "video" ? (
-            <span className="size-5 rounded-full bg-red-500" />
+            <span className="size-[30%] rounded-full bg-red-500" />
           ) : null}
         </span>
       )}

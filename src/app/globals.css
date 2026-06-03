@@ -3,10 +3,12 @@
 @import "shadcn/tailwind.css";
 
 /* Scope Tailwind class detection to actual source files. Without this, prose
-   in `docs/` (procomp planning docs) leaks literal class snippets — including
-   template-literal placeholders like `var(--{cssVar})` — into the generated
-   stylesheet, producing invalid CSS at build time. */
+   in `docs/` (procomp planning docs) and `.claude/` (handoffs, decisions,
+   memory) leaks literal class snippets — including template-literal
+   placeholders like `var(--{cssVar})` — into the generated stylesheet,
+   producing invalid CSS at build time. */
 @source not "../../docs";
+@source not "../../.claude";
 
 @custom-variant dark (&:is(.dark *));
 

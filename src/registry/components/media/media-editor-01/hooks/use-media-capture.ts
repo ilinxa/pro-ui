@@ -54,6 +54,14 @@ export interface UseMediaCaptureOptions {
   requestAudio?: boolean;
   /** Hard cap on a single recording in seconds. Default 30. */
   maxVideoDurationSec?: number;
+  /**
+   * When true (default), automatically call `acquire()` on mount and when
+   * `enabled` flips on. Set to false to require an explicit user gesture
+   * (e.g. a "Tap to enable camera" button) before the camera starts —
+   * recommended when the user hasn't previously granted permission, since
+   * browser permission prompts are jarring without a triggering interaction.
+   */
+  autoAcquire?: boolean;
 }
 
 export interface UseMediaCaptureResult {
@@ -69,8 +77,16 @@ export interface UseMediaCaptureResult {
   acquire: () => Promise<void>;
   /** Stop tracks + release the stream. */
   release: () => void;
-  /** Snap a still frame from the current video preview. */
-  takePhoto: () => Promise<CapturedPhoto>;
+  /**
+   * Snap a still frame from the current video preview.
+   *
+   * When `aspectRatio` is provided, the captured frame is center-cropped to
+   * match — mirroring the CSS `object-cover` crop the user saw in the
+   * preview. Pass the dialog/viewport aspect (e.g. `9/16`) to keep
+   * what-you-see-is-what-you-get parity; pass `null`/omit to capture the
+   * full native frame.
+   */
+  takePhoto: (opts?: { aspectRatio?: number | null }) => Promise<CapturedPhoto>;
   /** Flip facingMode and re-acquire. */
   switchCamera: () => Promise<void>;
   // ─── Video recording ──────────────────────────────────────────────────
@@ -108,6 +124,7 @@ export function useMediaCapture(
     defaultFacing,
     requestAudio = false,
     maxVideoDurationSec = 30,
+    autoAcquire = true,
   } = options;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -189,13 +206,16 @@ export function useMediaCapture(
     }
   }, [facing, requestAudio, release]);
 
-  // Auto-acquire on mount when enabled; release on unmount / disable.
+  // Auto-acquire on mount when enabled AND autoAcquire is allowed; release
+  // on unmount / disable. When autoAcquire is false the consumer is expected
+  // to call `acquire()` in response to an explicit user gesture (avoids
+  // jarring permission prompts on first paint).
   useEffect(() => {
     if (!enabled) {
       release();
       return;
     }
-    void acquire();
+    if (autoAcquire) void acquire();
     return release;
     // We don't add `acquire` to deps directly because it changes when facing
     // flips (handled by switchCamera). But we DO depend on `requestAudio` so
@@ -203,7 +223,7 @@ export function useMediaCapture(
     // audio track (without it, video mode would inherit a video-only stream
     // from a prior photo-mode acquire and record silent video).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, requestAudio, release]);
+  }, [enabled, requestAudio, release, autoAcquire]);
 
   // Attach the stream to <video>. The <video> tag will be null on first render
   // (rendered in composer-camera), so this fires whenever stream becomes ready.
@@ -362,31 +382,60 @@ export function useMediaCapture(
     };
   }, [clearRecordingTimers]);
 
-  const takePhoto = useCallback(async (): Promise<CapturedPhoto> => {
-    const v = videoRef.current;
-    if (!v || !streamRef.current) {
-      throw new Error("Camera not ready");
-    }
-    const width = v.videoWidth;
-    const height = v.videoHeight;
-    if (width === 0 || height === 0) {
-      throw new Error("Video has no frame yet");
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("2D canvas context unavailable");
-    ctx.drawImage(v, 0, 0, width, height);
-    const blob: Blob = await new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (b) => (b ? resolve(b) : reject(new Error("toBlob returned null"))),
-        "image/jpeg",
-        0.92,
-      );
-    });
-    return { blob, width, height, mimeType: "image/jpeg" };
-  }, []);
+  const takePhoto = useCallback(
+    async (opts?: { aspectRatio?: number | null }): Promise<CapturedPhoto> => {
+      const v = videoRef.current;
+      if (!v || !streamRef.current) {
+        throw new Error("Camera not ready");
+      }
+      const nativeW = v.videoWidth;
+      const nativeH = v.videoHeight;
+      if (nativeW === 0 || nativeH === 0) {
+        throw new Error("Video has no frame yet");
+      }
+
+      // Determine the source-rect to capture. With aspectRatio provided, we
+      // center-crop the native frame to match — mirroring CSS object-cover:
+      // scale-to-fill + center-crop. videoAspect > target → crop horizontal;
+      // videoAspect < target → crop vertical; equal → no crop.
+      const target =
+        opts?.aspectRatio && opts.aspectRatio > 0 ? opts.aspectRatio : null;
+      let sx = 0;
+      let sy = 0;
+      let sw = nativeW;
+      let sh = nativeH;
+      if (target !== null) {
+        const videoAspect = nativeW / nativeH;
+        if (videoAspect > target) {
+          // Video is wider than target — crop horizontal sides.
+          sw = nativeH * target;
+          sx = (nativeW - sw) / 2;
+        } else if (videoAspect < target) {
+          // Video is taller than target — crop top/bottom.
+          sh = nativeW / target;
+          sy = (nativeH - sh) / 2;
+        }
+      }
+
+      const outW = Math.round(sw);
+      const outH = Math.round(sh);
+      const canvas = document.createElement("canvas");
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("2D canvas context unavailable");
+      ctx.drawImage(v, sx, sy, sw, sh, 0, 0, outW, outH);
+      const blob: Blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("toBlob returned null"))),
+          "image/jpeg",
+          0.92,
+        );
+      });
+      return { blob, width: outW, height: outH, mimeType: "image/jpeg" };
+    },
+    [],
+  );
 
   return {
     videoRef,

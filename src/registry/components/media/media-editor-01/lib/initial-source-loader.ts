@@ -81,7 +81,10 @@ export async function loadInitialSource(
     // kind === "url"
     mode = source.mode;
     // Pre-check enabledModes before paying the network cost.
-    if (!enabledModes.includes(mode)) {
+    // Empty enabledModes signals the edit-only path (initialSource without
+    // capture); the mode gate only applies when the consumer has explicitly
+    // enabled at least one capture mode.
+    if (enabledModes.length > 0 && !enabledModes.includes(mode)) {
       return {
         ok: false,
         error: {
@@ -125,8 +128,9 @@ export async function loadInitialSource(
   }
 
   // Step 2 — validate against enabledModes (file/blob paths only; url path
-  // pre-checked above to avoid a wasted fetch).
-  if (!enabledModes.includes(mode)) {
+  // pre-checked above to avoid a wasted fetch). Empty enabledModes = edit-only
+  // path, same exemption as the url pre-check.
+  if (enabledModes.length > 0 && !enabledModes.includes(mode)) {
     return {
       ok: false,
       error: {
