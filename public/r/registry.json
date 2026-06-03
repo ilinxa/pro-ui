@@ -2266,13 +2266,12 @@
       "name": "story-composer-01",
       "type": "registry:block",
       "title": "Story Composer 01",
-      "description": "Instagram-canonical story creation surface — camera-first capture, multi-layer Konva editor, 6 edit tools, pan + pinch-zoom, video record + trim + overlay bake, publish via XHR + uploader escape hatch, undo/redo, permission-denied auto-retry, discard-confirm guard. As of the media-editor-01 extraction (C3–C5), the capture + canvas + edit-tool surface is delegated to @ilinxa/media-editor-01 via backward-compat re-exports; story-composer-01 ships only the story-shaped wrapper (publish bar, publish progress, shell, story state) at this version. The Phase B wrapper refactor (C16+) finalizes story-composer-01 v0.2.0 on top of media-editor-01.",
+      "description": "Instagram-canonical story creation surface — camera-first capture, multi-layer Konva editor, 6 edit tools, single-pointer drag-to-pan + pinch/wheel zoom, an Instagram-style top bar (capture mode tabs swap to a back arrow in the edit stage), video record + trim + overlay bake, publish via XHR + uploader escape hatch, undo/redo, permission-denied auto-retry, discard-confirm guard. The capture + canvas + edit-tool surface is delegated to @ilinxa/media-editor-01; story-composer-01 ships only the story-shaped wrapper (publish bar, publish progress, story state) on top.",
       "author": "ilinxa",
       "categories": ["media"],
       "registryDependencies": [
         "@ilinxa/media-editor-01",
-        "https://ui.shadcn.com/r/styles/new-york/button.json",
-        "https://ui.shadcn.com/r/styles/new-york/dialog.json"
+        "https://ui.shadcn.com/r/styles/new-york/button.json"
       ],
       "dependencies": ["lucide-react"],
       "files": [
@@ -2282,7 +2281,6 @@
         { "path": "src/registry/components/media/story-composer-01/hooks/use-image-uploader.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-image-uploader.ts" },
         { "path": "src/registry/components/media/story-composer-01/hooks/use-story-composer-state.ts", "type": "registry:component", "target": "components/story-composer-01/hooks/use-story-composer-state.ts" },
         { "path": "src/registry/components/media/story-composer-01/parts/composer-publish-bar.tsx", "type": "registry:component", "target": "components/story-composer-01/parts/composer-publish-bar.tsx" },
-        { "path": "src/registry/components/media/story-composer-01/parts/composer-shell.tsx", "type": "registry:component", "target": "components/story-composer-01/parts/composer-shell.tsx" },
         { "path": "src/registry/components/media/story-composer-01/parts/publishing-progress-overlay.tsx", "type": "registry:component", "target": "components/story-composer-01/parts/publishing-progress-overlay.tsx" }
       ]
     },

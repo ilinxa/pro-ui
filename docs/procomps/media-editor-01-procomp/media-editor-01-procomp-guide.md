@@ -1,15 +1,18 @@
 # media-editor-01 — consumer guide
 
-> v0.1.0 alpha. The reusable capture + edit surface lifted out of
+> v0.1.1 alpha. The reusable capture + edit surface lifted out of
 > [`story-composer-01`](../story-composer-01-procomp/) v0.1.5. Four
 > controllable capability dials let you pull as little or as much editor
-> surface as your context needs. `story-composer-01` v0.2.0 becomes a thin
+> surface as your context needs. `story-composer-01` v0.2.x is a thin
 > wrapper around this; `content-composer-01`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
-> Initial draft authored at C15 (Phase A close). Subject to refinement
-> through Phase B (story-composer-01 v0.2.0 wrapper refactor) and the
-> GATE 3 review at C20.
+> v0.1.1 (2026-06-03) landed a post-walkthrough UX sweep: single-pointer
+> drag-to-pan, an Instagram-style chrome model (capture-only mode tabs that
+> swap to a back-to-capture arrow once a draft exists; bottom edit tools
+> overlay a full-bleed canvas), container-query-sized capture controls, and a
+> min/max size clamp so the surface can't collapse. See
+> [Capture vs edit chrome](#capture-vs-edit-chrome) and [Pan & zoom](#pan--zoom).
 
 ## Install
 
@@ -93,10 +96,14 @@ Four orthogonal props. Pass arrays narrower than the default to gate the surface
 
 | Value | Effect |
 |---|---|
-| `["photo", "video", "text"]` (default) | Mode pill shown; all modes selectable |
-| Two values, e.g. `["photo", "video"]` | Mode pill shown; only listed modes selectable |
-| One value, e.g. `["photo"]` | Mode pill **hidden** (no ambiguity to resolve) |
+| `["photo", "video", "text"]` (default) | Mode tabs shown in the capture stage; all modes selectable |
+| Two values, e.g. `["photo", "video"]` | Mode tabs shown in the capture stage; only listed modes selectable |
+| One value, e.g. `["photo"]` | Mode tabs **hidden** (no ambiguity to resolve) |
 | `[]` | Capture surface gone. Pair with `initialSource`, or the empty-state footgun guard fires |
+
+> The mode tabs only render in the **capture** stage. Once a draft exists (edit
+> stage) they're replaced by a back-to-capture arrow — see
+> [Capture vs edit chrome](#capture-vs-edit-chrome).
 
 ### `enabledTools`
 
@@ -170,17 +177,46 @@ While in the error state the canvas renders the default "Couldn't load source" s
 
 **Dialog mode requires `isOpen` + `onClose`.** A dev-only `console.error` fires once per instance when either is missing — runtime falls back to keeping the dialog closed until you wire both.
 
-Desktop dialog dimensions by aspect:
+Desktop dialog sizing is viewport-relative and aspect-locked, with a min/max **clamp** so it can't collapse on a short window or overflow a tall one. Only the *driver* dimension is sized; the other follows from the aspect ratio:
 
-| Aspect | Dimensions |
+| Aspect family | Driver | Clamp |
+|---|---|---|
+| Portrait (`9:16`, `4:5`, `1:1`) | height | `clamp(24rem, 85dvh, 44rem)` |
+| Landscape (`16:9`, `free`) | width | `clamp(28rem, 85vw, 60rem)` |
+
+Mobile breakpoint is always fullscreen (`h-[100dvh] w-screen`). The canvas fills the dialog edge-to-edge and the bottom edit tools **overlay** it (see [Capture vs edit chrome](#capture-vs-edit-chrome)). Use `presentation="inline"` if you need custom sizing — inline is width-driven with `min-h` / `max-h` bounds, so it stays responsive between a small chat embed and a full surface.
+
+## Capture vs edit chrome
+
+The editor follows an Instagram-style chrome model that changes between the two
+stages. You don't configure this — it's automatic — but consumers wiring their
+own top bar (via `renderTopBar`) need to know the contract:
+
+| | **Capture stage** (no draft yet) | **Edit stage** (draft captured/loaded) |
+|---|---|---|
+| Mode tabs (Photo/Video/Text) | Shown, top-center (if ≥2 modes) | **Hidden** |
+| Top-left | consumer's close, if any | **Back-to-capture arrow** (icon-only) — when a capture mode exists |
+| Canvas | camera/text surface, full-bleed | media, full-bleed |
+| Bottom controls | camera shutter / gallery / switch (overlay) | edit-tool row + active tool panel (**overlay**, IG scrim) |
+
+- **Mode tabs are capture-only.** Switching modes mid-edit is meaningless, so once a draft exists they're replaced by a back-to-capture arrow that clears the draft and reopens capture in the same mode.
+- **Bottom tools overlay the canvas** (they don't sit in flow below it), so the media fills the whole frame and nothing crops on a 9:16 surface.
+- The **back arrow is rendered by this component** in the edit stage (top-left) when `enabledModes` includes a capture mode. If you supply `renderTopBar`, hide your own close in the edit stage so it doesn't collide — `story-composer-01`'s `ComposerPublishBar` does this via a `showClose` prop driven off the slot-context (`!ctx.isCapturing && hasCaptureMode → hide`). Edit-only configs (no capture mode) keep their close, since there's no Back to fall back to.
+- Capture controls (shutter / gallery / switch) are **container-query sized** — they scale with the camera width, not the viewport, so they stay proportional in a dialog or a small chat embed.
+
+## Pan & zoom
+
+The edit canvas pans and zooms (1×–4×), disabled while drawing or cropping:
+
+| Gesture | Action |
 |---|---|
-| `9:16` | 400 × 711 (true 9:16) |
-| `1:1` | 600 × 600 |
-| `16:9` | 800 × 450 |
-| `4:5` | 500 × 625 |
-| `free` | 800 × 600 |
+| **Drag** (single pointer — mouse or 1 finger) | **Pan.** Yields to draggable text/sticker overlays: a drag that starts on an overlay moves that overlay instead. A tap (< ~4px) never pans, so selection/placement still works. |
+| 2-finger pinch (touch) | Zoom anchored to the pinch midpoint |
+| Wheel / trackpad-pinch over the canvas | Zoom anchored to the cursor (native non-passive — beats browser page-zoom) |
+| Arrow keys | Pan in the image's direction (ArrowRight → image shifts right) |
+| `+` / `=` , `-` / `_` , `0` | Zoom in / out / reset |
 
-Mobile breakpoint always fullscreen (`h-[100dvh] w-screen !rounded-none`). Use `presentation="inline"` if you need custom sizing — own the wrapper yourself.
+A "reset zoom" chip appears (with the current %) whenever the transform isn't at the identity. The transform is applied to the Konva stage, so overlays and strokes stay pinned to the image at any zoom/pan.
 
 ## Export
 
@@ -217,12 +253,19 @@ const out = await editorRef.current.export();
 | Group | Methods |
 |---|---|
 | Inspect | `getIsDirty`, `getMode`, `getState`, `loadState` |
-| Capture | `switchCamera`, `takePhoto`, `startRecording`, `stopRecording`, `importFromGallery` |
+| Capture ⚠️ | `switchCamera`, `takePhoto`, `startRecording`, `stopRecording`, `importFromGallery` |
 | Edit | `addText`, `addSticker`, `setAdjustments`, `applyFilter`, `clearLayer`, `undo`, `redo` |
 | Export | `exportImage`, `exportVideo`, `export` |
 | Lifecycle | `reset`, `open`, `close` |
 
 `getState()` returns a serializable `MediaEditorState` snapshot for draft persistence; `loadState()` restores it.
+
+> ⚠️ **Capture group — deferred to v0.2.** The imperative capture methods
+> (`takePhoto` / `startRecording` / `stopRecording` / `switchCamera` /
+> `importFromGallery`) currently dev-warn and no-op. Drive capture through the
+> in-UI camera controls in v0.1.x; programmatic capture lands in v0.2. Everything
+> else on the handle (inspect / state / edit-overlay mutation / export /
+> lifecycle) is fully wired.
 
 ## Footguns
 
@@ -244,7 +287,7 @@ Data attributes on the editor root for CSS / DOM querying:
 
 - `data-slot="media-editor-01"`
 - `data-mode` — `photo` / `video` / `text` / `none`
-- `data-stage` — `capture` / `edit` / `publishing` / `done` / `error`
+- `data-stage` — `capture` / `edit` / `publishing`
 - `data-presentation` — `inline` / `dialog`
 - `data-aspect` — `9:16` / `1:1` / `16:9` / `4:5` / `free`
 
@@ -257,12 +300,17 @@ Inside, the canvas wrapper always carries `data-canvas-placeholder=""` (regardle
 - Commit chain + implementation notes: see [`media-editor-01-procomp-plan.md`](./media-editor-01-procomp-plan.md).
 - Extraction lessons (Phase A): see the decision file at `.claude/decisions/2026-06-02-media-editor-01-extraction-c1-c8-phase-a-half.md`.
 
-## Known gaps (v0.1.0 alpha)
+## Known gaps (v0.1.1 alpha)
 
-The shipped surface stops at the capability + state machine + export contract. Some leaves are still wired as stubs that warn in dev:
+The full visual pipeline is wired — camera viewfinder + shutter, all six tool
+panels (text / draw / stickers / filters / adjust / crop), undo/redo, drag-pan,
+and export all work end-to-end (the `story-composer-01` wrapper exercises them in
+production). The remaining gaps are narrow:
 
-- Capture surface UI (camera viewfinder, dropzone, shutter) — placeholder text until C12+ of Phase B / a v0.1.x patch.
-- Tool panels (sticker picker, color swatch, adjust sliders, text input, draw controls, filter strip) — exported via the barrel but not composed into the root toolbar yet.
-- Undo / redo — handle methods exist but are stubs.
+- **Imperative capture handle** — `takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery` dev-warn and no-op; programmatic capture lands in v0.2. The in-UI camera controls are the supported capture path. (See [Imperative handle](#imperative-handle).)
+- **Library media source** — `mediaSources` supports `camera` + `upload`; a device-library picker is deferred to v0.2.
+- **Nested `labels` prop** — the public `labels` shape is in transition; some nested keys are not yet honored end-to-end (tracked as the C17 label-flattening refactor). Mode/tool/Back strings are correct.
+- **Analytics slots** — `onModeChange` / `onEditAction` are declared but not yet emitted (v0.1.2). `renderPermissionDenied` is declared but the built-in `CameraPermissionPrompt` is always used (v0.1.2).
+- **Keyboard scope** — arrow/`+`/`-`/`0` pan-zoom keys are bound at the window level; a focus-scoped binding lands in v0.1.2.
 
-These don't block consumer-side type-correct use of the public API surface; they affect what shows up visually. The Phase B story-composer-01 v0.2.0 wrapper exercises the full edit pipeline, which is the integration smoke for these leaves landing.
+None block type-correct use of the public API.

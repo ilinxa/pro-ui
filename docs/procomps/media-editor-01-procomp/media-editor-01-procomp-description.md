@@ -55,7 +55,7 @@ This is the most important section of the description. The split is what makes t
 - Konva canvas + multi-layer architecture (image / drawing / stickers / text / ui)
 - All 6 edit tools (text / draw / stickers / filters / adjust / crop)
 - Undo/redo + Ctrl+Z
-- Pan + pinch-zoom
+- Pan (single-pointer drag + 2-finger pinch + wheel + keyboard) + zoom
 - Filter preset library (10 built-in) + sticker library (36 built-in emoji)
 - Compositing (image: `stage.toDataURL`; video: `captureStream` + `MediaRecorder` overlay re-encode)
 - Discard-with-confirm guard
@@ -356,7 +356,7 @@ Carries forward from story-composer-01 — manual matrix per the `feedback_brows
 | Video overlay compositing (`captureStream` + re-encode) | ✅ | ⚠️ test thoroughly — codec quirks | ✅ |
 | Gallery picker (`<input type="file">`) | ✅ | ✅ | ✅ |
 | Konva canvas + transformer + multi-layer | ✅ | ✅ | ✅ |
-| Pan + pinch-zoom | wheel + keyboard | 2-finger touch | 2-finger touch |
+| Pan + zoom | drag-pan + wheel + keyboard | drag-pan + 2-finger pinch | drag-pan + 2-finger pinch |
 | Color picker keyboard nav | ✅ | partial (Safari focus quirks) | ✅ |
 | Discard confirm (Escape, backdrop) | ✅ | ✅ | ✅ |
 | Dialog mobile-fullscreen | n/a | ✅ verify safe-area | ✅ |
