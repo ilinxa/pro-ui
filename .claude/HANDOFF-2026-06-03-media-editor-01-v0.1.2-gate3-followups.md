@@ -1,8 +1,8 @@
 # HANDOFF — media-editor-01 v0.1.2 (GATE 3 follow-up batch)
 
 **Date:** 2026-06-03
-**Status:** ✅ Implemented + all gates green + docs updated + **committed**. **Push pending user confirmation** (push = Vercel deploy = consumer-installable).
-**Resume mode:** Fresh chat — read this handoff. The next decision is whether to push, then the v0.2 cohort.
+**Status:** ✅ SHIPPED + PUSHED to `master` (commit `95b21ae`; `112b68f..95b21ae`). Working tree clean; local tip == origin/master. Vercel auto-deploys → v0.1.2 installable.
+**Resume mode:** Fresh chat — read this handoff. Nothing is blocked; the next work is the v0.2 cohort when the user reopens.
 
 ---
 
@@ -60,8 +60,8 @@ rule patch exemption).
 
 ## To resume
 
-1. Decide on **push** (deploys via Vercel → consumer-installable). If yes: `git push origin master` then optionally live-smoke.
-2. The dev server `.next` was NOT cleared this session; if you live-test, the prior session's note about restarting `pnpm dev` no longer applies unless you cleared it.
+1. Already pushed (`95b21ae`) — Vercel auto-deploys. Optionally live-smoke the focus-scoped keyboard + `onModeChange`/`onEditAction` emissions + the `renderPermissionDenied` slot once deployed.
+2. The dev server `.next` was NOT cleared this session; restart `pnpm dev` only if you cleared it.
 3. cms-panel-01 GATE 1 remains the other in-flight item (unchanged).
 
 **Decision:** [`.claude/decisions/2026-06-03-media-editor-01-v0.1.2-followup-fixes.md`](decisions/2026-06-03-media-editor-01-v0.1.2-followup-fixes.md).

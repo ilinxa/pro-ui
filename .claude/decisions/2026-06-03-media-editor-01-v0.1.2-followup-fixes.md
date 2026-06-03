@@ -3,10 +3,10 @@ date: 2026-06-03
 session: media-editor-01-v0.1.2-gate3-followup-batch
 phase: shipped
 type: patch-bump — GATE 3 follow-up batch (no new review required)
-commits: ["<media-editor-01 v0.1.2 patch commit — this batch>"]
+commits: ["95b21ae"]
 components: ["media-editor-01"]
 findings: 4 v0.1.1-review follow-ups closed + 1 housekeeping nit + 1 stale-artifact correction
-status: shipped-pending-push
+status: shipped-pushed
 ---
 
 # Decision: media-editor-01 v0.1.2 — GATE 3 follow-up batch
