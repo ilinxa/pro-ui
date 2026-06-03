@@ -181,12 +181,12 @@ const out = await editorRef.current.export()`}</code>
       <section>
         <h3 className="mb-2 text-base font-semibold">More</h3>
         <p className="text-muted-foreground">
-          Full reference, accessibility notes, and integration patterns
-          live in{" "}
+          Full reference, the capture-vs-edit chrome model, pan &amp; zoom
+          gestures, accessibility notes, and integration patterns live in{" "}
           <code>
             docs/procomps/media-editor-01-procomp/media-editor-01-procomp-guide.md
-          </code>{" "}
-          (lands at C15).
+          </code>
+          .
         </p>
       </section>
     </div>

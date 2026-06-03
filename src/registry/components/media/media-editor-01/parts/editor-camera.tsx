@@ -28,6 +28,20 @@ export interface EditorCameraProps {
   recordAudio?: boolean;
   maxFileSizeMb?: number;
   maxVideoDurationSec?: number;
+  /**
+   * Numeric aspect-ratio (width/height) of the visible preview region. When
+   * provided, the captured photo is center-cropped to match — mirroring the
+   * preview's CSS `object-cover` crop. Pass `null` for free (no crop).
+   */
+  captureAspectRatio?: number | null;
+  /**
+   * When true, force auto-acquire of the camera on mount even if browser
+   * permission isn't pre-granted — used after an explicit user gesture (e.g.
+   * the "Connect to camera" entry button or a mode-tab click) so the
+   * subsequent permission prompt fires in the same gesture-credited tick.
+   * Default behavior auto-acquires only when `perms.state === "granted"`.
+   */
+  autoAcquireOverride?: boolean;
   labels: Required<StoryComposer01Labels>;
   onPhoto: (photo: CapturedPhoto) => void;
   onVideo: (video: CapturedVideo) => void;
@@ -45,6 +59,8 @@ export function EditorCamera({
   recordAudio = true,
   maxFileSizeMb = 50,
   maxVideoDurationSec = 30,
+  captureAspectRatio,
+  autoAcquireOverride,
   labels,
   onPhoto,
   onVideo,
@@ -60,11 +76,16 @@ export function EditorCamera({
   // mode caused the v0.1.3 flicker loop (user might have mic denied while
   // camera is granted; getUserMedia rejects → status flips → auto-retry).
   const requestAudio = mode === "video" && recordAudio;
+  // Auto-acquire only if the browser has already granted camera permission;
+  // otherwise wait for an explicit user gesture (the "Enable camera" button
+  // on the idle prompt). Avoids surprising users with a permission prompt
+  // the moment they open the composer.
   const capture = useMediaCapture({
     enabled,
     defaultFacing,
     requestAudio,
     maxVideoDurationSec,
+    autoAcquire: autoAcquireOverride || perms.state === "granted",
   });
 
   // Surface permission-denied to the consumer once.
@@ -85,7 +106,9 @@ export function EditorCamera({
     if (busy || capture.status !== "ready") return;
     setBusy(true);
     try {
-      const photo = await capture.takePhoto();
+      const photo = await capture.takePhoto({
+        aspectRatio: captureAspectRatio ?? null,
+      });
       onPhoto(photo);
     } catch {
       /* swallow — could surface as ValidationError later */
@@ -137,7 +160,13 @@ export function EditorCamera({
   };
 
   // ─── Permission UI ────────────────────────────────────────────────────
-  const permissionVariant: null | "pending" | "denied" | "no-camera" | "error" =
+  const permissionVariant:
+    | null
+    | "idle"
+    | "pending"
+    | "denied"
+    | "no-camera"
+    | "error" =
     capture.status === "acquiring"
       ? "pending"
       : capture.status === "denied"
@@ -146,7 +175,9 @@ export function EditorCamera({
           ? "no-camera"
           : capture.status === "error"
             ? "error"
-            : null;
+            : capture.status === "idle"
+              ? "idle"
+              : null;
 
   // Auto-retry on permission change (Q-P8a) — when the watcher flips to
   // "granted" but our capture is still in "denied", silently re-acquire.
@@ -172,7 +203,7 @@ export function EditorCamera({
   }, [perms.state, capture.status, capture.acquire]);
 
   return (
-    <div className="relative flex-1 flex flex-col overflow-hidden">
+    <div className="@container relative flex-1 flex flex-col overflow-hidden">
       {/* Live preview — black fallback shows when no stream */}
       <video
         ref={capture.videoRef}
@@ -226,14 +257,18 @@ export function EditorCamera({
           size="icon"
           onClick={handleGalleryClick}
           aria-label={labels.galleryPicker}
-          className="size-11 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
+          className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
         >
-          <ImageIcon className="size-5" />
+          <ImageIcon className="size-[55%]" />
         </Button>
 
         {/* Shutter — photo: tap | video: long-press hold OR tap-to-toggle */}
         <ShutterButton
           mode={mode === "video" ? "video" : "photo"}
+          // Sized to the camera width (container query) — not the viewport — so
+          // it stays proportional in the dialog / chat embeds instead of
+          // ballooning when the browser window is wide.
+          className="size-[clamp(2.75rem,15cqw,3.5rem)]"
           onPress={handleShutterPhoto}
           onStart={handleVideoStart}
           onStop={handleVideoStop}
@@ -267,12 +302,12 @@ export function EditorCamera({
             size="icon"
             onClick={() => void capture.switchCamera()}
             aria-label={labels.switchCamera}
-            className="size-11 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
+            className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
           >
-            <SwitchCamera className="size-5" />
+            <SwitchCamera className="size-[55%]" />
           </Button>
         ) : (
-          <div className="size-11" aria-hidden />
+          <div className="size-[clamp(2rem,9cqw,2.5rem)]" aria-hidden />
         )}
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Konva from "konva";
 import type { Filter as KonvaFilter } from "konva/lib/Node";
 import {
@@ -127,13 +127,29 @@ export function EditorCanvas({
   const selection = useKonvaSelection();
   const imageNodeRef = useRef<Konva.Image | null>(null);
 
-  // Pan + pinch-zoom (touch 2-finger / wheel / keyboard).
+  // Single-pointer drag-pan must yield to draggable overlays. Hit-test the
+  // stage on pointer-down: if a listening node (text / sticker / transformer
+  // handle) is under the pointer, don't pan — let Konva drag that node. The
+  // image layer is listening={false}, so background/image hits return null →
+  // pan engages.
+  const shouldStartPan = useCallback((e: { clientX: number; clientY: number }) => {
+    const stage = stageRef.current;
+    if (!stage) return true;
+    const rect = stage.container().getBoundingClientRect();
+    return !stage.getIntersection({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  }, []);
+
+  // Pan + pinch-zoom (single-pointer drag / touch 2-finger / wheel / keyboard).
   // Disabled when:
   //   - drawing is active (Stage owns the pointer pipeline for strokes)
   //   - cropping is active (crop overlay is DOM; can't follow stage transform)
   const panZoom = usePanZoom({
     targetRef: containerRef,
     enabled: !isDrawing && !cropActive,
+    shouldStartPan,
   });
 
   const [image, imageSize] = useImage(imageUrl);
@@ -152,6 +168,37 @@ export function EditorCanvas({
       onStageSize?.(stageSize);
     }
   }, [stageSize, onStageSize]);
+
+  // Auto-initialize cropRect when the crop tool activates without an existing
+  // rect. Default = centered, 80% of stage dimensions, respecting cropAspectRatio
+  // if set (rect aspect = min of stage-fit + crop-lock). Without this, clicking
+  // the crop button activates the tool but leaves the overlay invisible because
+  // it gates on `cropRect != null`.
+  useEffect(() => {
+    if (!cropActive) return;
+    if (cropRect) return;
+    if (stageSize.width <= 0 || stageSize.height <= 0) return;
+    if (!onCropChange) return;
+    const sw = stageSize.width;
+    const sh = stageSize.height;
+    let rw = sw * 0.8;
+    let rh = sh * 0.8;
+    if (cropAspectRatio && cropAspectRatio > 0) {
+      // Fit the largest centered rect with cropAspectRatio inside 80%-of-stage.
+      const boxAspect = rw / rh;
+      if (boxAspect > cropAspectRatio) {
+        rw = rh * cropAspectRatio;
+      } else {
+        rh = rw / cropAspectRatio;
+      }
+    }
+    onCropChange({
+      x: (sw - rw) / 2,
+      y: (sh - rh) / 2,
+      width: rw,
+      height: rh,
+    });
+  }, [cropActive, cropRect, stageSize, cropAspectRatio, onCropChange]);
 
   // Apply filter chain + adjustments to the image node.
   // Konva requires .cache() before filters take effect. Re-cache when the
@@ -516,32 +563,68 @@ function CropOverlay({
       x = clamp(ds.startRect.x + dx, 0, stageWidth - ds.startRect.width);
       y = clamp(ds.startRect.y + dy, 0, stageHeight - ds.startRect.height);
     } else {
-      // Resize from a corner. Use the dominant axis to drive width when
-      // aspect-locked; otherwise both axes are free.
-      let nextWidth = ds.startRect.width;
-      let nextHeight = ds.startRect.height;
+      // Resize from a corner. Compute signed "growth" for each axis (positive
+      // = corner drag enlarges the rect). When aspect-locked, the rect must
+      // stay locked end-to-end — including when it hits a stage edge: growth
+      // stops cleanly, never breaks ratio. We compute max-allowable next
+      // dimensions given the anchor position + stage bounds, then clamp the
+      // drive to the most-restrictive of (candidate-from-drag, max-from-X,
+      // max-from-Y-mapped-through-r). When free, axes are independent.
+      const growX =
+        ds.mode === "se" || ds.mode === "ne" ? dx : -dx;
+      const growY =
+        ds.mode === "se" || ds.mode === "sw" ? dy : -dy;
+      // Max additional growth allowed in each axis, given the anchor.
+      const maxGrowX =
+        ds.mode === "ne" || ds.mode === "se"
+          ? stageWidth - (ds.startRect.x + ds.startRect.width)
+          : ds.startRect.x;
+      const maxGrowY =
+        ds.mode === "sw" || ds.mode === "se"
+          ? stageHeight - (ds.startRect.y + ds.startRect.height)
+          : ds.startRect.y;
+      const maxNextW = ds.startRect.width + maxGrowX;
+      const maxNextH = ds.startRect.height + maxGrowY;
 
-      if (ds.mode === "se") {
-        nextWidth = ds.startRect.width + dx;
-        nextHeight = r ? nextWidth / r : ds.startRect.height + dy;
-      } else if (ds.mode === "ne") {
-        nextWidth = ds.startRect.width + dx;
-        nextHeight = r ? nextWidth / r : ds.startRect.height - dy;
-        y = ds.startRect.y + (ds.startRect.height - nextHeight);
-      } else if (ds.mode === "sw") {
-        nextWidth = ds.startRect.width - dx;
-        nextHeight = r ? nextWidth / r : ds.startRect.height + dy;
+      let nextWidth: number;
+      let nextHeight: number;
+      if (r) {
+        // User drives EITHER axis. Pick the axis with larger signed growth.
+        const xEquivFromY = growY * r;
+        const drive =
+          Math.abs(xEquivFromY) > Math.abs(growX) ? xEquivFromY : growX;
+        let candidateW = ds.startRect.width + drive;
+        // Aspect-respecting upper bound: width can't exceed maxNextW OR
+        // maxNextH * r (whichever binds first). Lower bound: MIN_CROP.
+        const aspectCappedMaxW = Math.min(maxNextW, maxNextH * r);
+        candidateW = Math.min(candidateW, aspectCappedMaxW);
+        candidateW = Math.max(candidateW, MIN_CROP);
+        // Same for shrink direction — width derived height must be >= MIN_CROP.
+        candidateW = Math.max(candidateW, MIN_CROP * r);
+        nextWidth = candidateW;
+        nextHeight = nextWidth / r;
+      } else {
+        // Free resize — each axis clamped independently.
+        nextWidth = Math.max(
+          MIN_CROP,
+          Math.min(ds.startRect.width + growX, maxNextW),
+        );
+        nextHeight = Math.max(
+          MIN_CROP,
+          Math.min(ds.startRect.height + growY, maxNextH),
+        );
+      }
+
+      // Anchor: the corner opposite to the dragged one stays fixed.
+      if (ds.mode === "nw" || ds.mode === "sw") {
         x = ds.startRect.x + (ds.startRect.width - nextWidth);
-      } else if (ds.mode === "nw") {
-        nextWidth = ds.startRect.width - dx;
-        nextHeight = r ? nextWidth / r : ds.startRect.height - dy;
-        x = ds.startRect.x + (ds.startRect.width - nextWidth);
+      }
+      if (ds.mode === "nw" || ds.mode === "ne") {
         y = ds.startRect.y + (ds.startRect.height - nextHeight);
       }
 
-      // Enforce min size + stage bounds.
-      nextWidth = Math.max(MIN_CROP, Math.min(nextWidth, stageWidth));
-      nextHeight = Math.max(MIN_CROP, Math.min(nextHeight, stageHeight));
+      // Stage-bound clamp (safety; aspect-respecting cap above should make
+      // these no-ops in normal cases).
       x = clamp(x, 0, stageWidth - nextWidth);
       y = clamp(y, 0, stageHeight - nextHeight);
 

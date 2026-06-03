@@ -35,6 +35,16 @@ export interface UsePanZoomOptions {
   panStep?: number;
   /** Keyboard zoom step (multiplicative). Default 1.15. */
   zoomStep?: number;
+  /**
+   * Called on single-pointer pointer-down to decide whether this gesture should
+   * drag-pan the canvas. Return false to yield the pointer to whatever is
+   * underneath (e.g. a draggable text/sticker overlay). Receives only the
+   * pointer's viewport coordinates — enough to hit-test — so callers needn't
+   * accept a full React event. Default: always pan.
+   */
+  shouldStartPan?: (point: { clientX: number; clientY: number }) => boolean;
+  /** Movement in px before a single-pointer drag counts as a pan (tap tolerance). Default 4. */
+  panThreshold?: number;
 }
 
 export interface UsePanZoomResult {
@@ -65,10 +75,13 @@ interface PointerInfo {
  * Touch:
  *   - 2-finger pinch → zoom anchored to the midpoint
  *   - 2-finger pan → translate by the midpoint delta
- *   - Single finger is NOT consumed (text/sticker/drawing keep their pointer
- *     events; pan-zoom only engages when a second pointer joins)
+ *   - Single finger → drag-pan the canvas, UNLESS `shouldStartPan` vetoes the
+ *     gesture (the consumer hit-tests so a finger landing on a draggable
+ *     text/sticker overlay drags that overlay instead). A tap (movement under
+ *     `panThreshold`) never pans, so selection/placement still works.
  *
  * Desktop:
+ *   - Click-drag over the canvas → pan (same `shouldStartPan` gate).
  *   - Plain wheel over the canvas → zoom anchored to the cursor. The wheel
  *     listener is attached natively with `passive: false` + always
  *     preventDefaults, so the browser's Ctrl+wheel page-zoom doesn't ALSO
@@ -97,6 +110,8 @@ export function usePanZoom(
     maxScale = 4,
     panStep = 32,
     zoomStep = 1.15,
+    shouldStartPan,
+    panThreshold = 4,
   } = options;
 
   const [transform, setTransform] = useState<PanZoomTransform>({
@@ -110,6 +125,17 @@ export function usePanZoom(
     midX: number;
     midY: number;
     transform: PanZoomTransform;
+  } | null>(null);
+  // Single-pointer drag-pan bookkeeping. `active` flips once movement crosses
+  // panThreshold (so a tap stays a tap); `allowed` is the shouldStartPan verdict.
+  const panStateRef = useRef<{
+    id: number;
+    lastX: number;
+    lastY: number;
+    startX: number;
+    startY: number;
+    active: boolean;
+    allowed: boolean;
   } | null>(null);
 
   const clamp = useCallback(
@@ -167,9 +193,25 @@ export function usePanZoom(
           midY: (a.y + b.y) / 2,
           transform,
         };
+        // A second pointer joined → pinch owns the gesture; cancel any
+        // single-pointer pan in progress.
+        panStateRef.current = null;
+      } else if (pointersRef.current.length === 1) {
+        // Arm a single-pointer drag-pan. Whether it engages is decided by
+        // shouldStartPan (so overlay drags can claim the pointer) and by
+        // crossing panThreshold (so taps still register as taps).
+        panStateRef.current = {
+          id: e.pointerId,
+          lastX: e.clientX,
+          lastY: e.clientY,
+          startX: e.clientX,
+          startY: e.clientY,
+          active: false,
+          allowed: shouldStartPan ? shouldStartPan(e) : true,
+        };
       }
     },
-    [enabled, transform],
+    [enabled, transform, shouldStartPan],
   );
 
   const onPointerMove = useCallback(
@@ -179,6 +221,32 @@ export function usePanZoom(
       const idx = ptrs.findIndex((p) => p.id === e.pointerId);
       if (idx === -1) return;
       ptrs[idx] = { id: e.pointerId, x: e.clientX, y: e.clientY };
+
+      // Single-pointer drag-pan (desktop click-drag + touch one-finger).
+      const ps = panStateRef.current;
+      if (ptrs.length === 1 && ps && ps.id === e.pointerId && ps.allowed) {
+        if (!ps.active) {
+          if (
+            Math.hypot(e.clientX - ps.startX, e.clientY - ps.startY) <
+            panThreshold
+          ) {
+            return;
+          }
+          // Crossing the threshold: anchor the pan to HERE so the first frame
+          // doesn't jump by the accumulated pre-threshold distance (up to
+          // panThreshold px). Subsequent frames compute incremental deltas.
+          ps.active = true;
+          ps.lastX = e.clientX;
+          ps.lastY = e.clientY;
+          return;
+        }
+        const dx = e.clientX - ps.lastX;
+        const dy = e.clientY - ps.lastY;
+        ps.lastX = e.clientX;
+        ps.lastY = e.clientY;
+        panBy(dx, dy);
+        return;
+      }
 
       if (ptrs.length === 2 && pinchStartRef.current) {
         const [a, b] = ptrs;
@@ -202,7 +270,7 @@ export function usePanZoom(
         });
       }
     },
-    [clamp, enabled],
+    [clamp, enabled, panBy, panThreshold],
   );
 
   const onPointerUp = useCallback((e: PointerEvent) => {
@@ -210,6 +278,7 @@ export function usePanZoom(
       (p) => p.id !== e.pointerId,
     );
     if (pointersRef.current.length < 2) pinchStartRef.current = null;
+    if (panStateRef.current?.id === e.pointerId) panStateRef.current = null;
   }, []);
 
   const onPointerCancel = onPointerUp;

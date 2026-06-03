@@ -2,12 +2,18 @@
 
 import * as React from "react";
 import type Konva from "konva";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
 import { useMultiInstanceGuard } from "./hooks/use-multi-instance-guard";
 import { resolvePresentation } from "./lib/presentation-resolver";
-import { dialogSizeForAspect } from "./lib/dialog-size-for-aspect";
+import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
 import { exportPhotoBlob } from "./lib/export-blob";
@@ -30,6 +36,7 @@ import {
 } from "./lib/defaults";
 import { useHistory } from "./hooks/use-history";
 import type {
+  AspectRatio,
   ComposerMode,
   EditTool,
   ExportImageOpts,
@@ -50,23 +57,22 @@ import type {
 } from "./hooks/use-media-capture";
 
 /**
- * media-editor-01 — black-box orchestrator (C6 skeleton).
+ * media-editor-01 — black-box orchestrator.
  *
- * Grows progressively:
- *   - C6  (this commit) — root + state machine + ref handle wired with stubs
- *   - C7              — presentation (inline / dialog / auto) + isOpen guard
- *   - C8              — capability gating (enabledModes/Tools/Sources/aspect)
- *   - C9              — initialSource intake + validation
- *   - C10             — ExportOpts + onProgress + perf-shortcut
- *   - C11             — multi-instance guard + empty-state footgun
- *   - C12             — demo tabs + dummy-data + popover wiring
+ * Owns the editor state machine, capability gating
+ * (enabledModes/Tools/Sources/aspect), presentation (inline / dialog / auto),
+ * initial-source intake, the Konva editor surface (EditorCamera / EditorCanvas /
+ * tool panels), export pipeline, and the imperative ref handle.
  *
- * C6 ships a placeholder layout (centered card mounting nothing real). The
- * actual editor surface (EditorCamera + EditorCanvas + EditorToolbar) wires
- * up incrementally in C7-C9.
+ * Known v0.1.x gap: the imperative *capture* handle methods (takePhoto,
+ * startRecording, stopRecording, switchCamera, importFromGallery) are deferred
+ * to v0.2 — they dev-warn if called. The in-UI camera controls are the
+ * supported capture path in v0.1.x; everything else on the handle (inspect /
+ * state / export / edit-overlay mutation) is fully wired.
  */
 
-const NOT_IMPLEMENTED_MARKER = "media-editor-01: C6 skeleton — implementation lands in C7-C12.";
+const NOT_IMPLEMENTED_MARKER =
+  "media-editor-01: imperative capture (takePhoto / startRecording / stopRecording / switchCamera / importFromGallery) is deferred to v0.2 — drive capture via the in-UI controls for now.";
 
 // English fallback for the v0.1.5-shaped StoryComposer01Labels that several
 // part files (EditorCamera, EditorToolbar, DiscardConfirmDialog, etc.) still
@@ -137,8 +143,15 @@ export const MediaEditor01 = React.forwardRef<
 >(function MediaEditor01(props, ref) {
   const { defaultMode } = props;
 
+  // Seed the editor's cropAspect with the first allowed option (the hook's
+  // "free" fallback may not be in the consumer-derived list). Computed
+  // inline here — the memoized version below covers the render path.
+  const initialCropAspect =
+    resolveCropAspects(props.aspect ?? "free", props.cropAspects)[0] ?? "free";
+
   const editor = useMediaEditorState({
     defaultMode,
+    defaultCropAspect: initialCropAspect,
     onDirtyChange: props.onDirtyChange,
   });
 
@@ -188,6 +201,7 @@ export const MediaEditor01 = React.forwardRef<
   React.useEffect(() => {
     const source = props.initialSource;
     if (!source) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSourceError(null);
       return;
     }
@@ -282,6 +296,7 @@ export const MediaEditor01 = React.forwardRef<
   const [videoUrl, setVideoUrl] = React.useState<string | null>(null);
   React.useEffect(() => {
     if (!videoBlob) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVideoUrl(null);
       return;
     }
@@ -389,6 +404,87 @@ export const MediaEditor01 = React.forwardRef<
     [props.colorPresets],
   );
 
+  // Flatten resolved sticker sets into a Map<id, StickerOption> for the
+  // canvas-side resolveSticker(stickerId) lookup. Memoized — only rebuilds
+  // when the sets change.
+  const stickerIndex = React.useMemo(() => {
+    const m = new Map<string, StickerOption>();
+    for (const set of resolvedStickerSets) {
+      for (const sticker of set.stickers) m.set(sticker.id, sticker);
+    }
+    return m;
+  }, [resolvedStickerSets]);
+  const resolveSticker = React.useCallback(
+    (stickerId: string) => stickerIndex.get(stickerId),
+    [stickerIndex],
+  );
+
+  // In-progress drawing stroke kept locally — committed to editor state on
+  // pointer-up via addDrawingStroke. Lives outside MediaEditorState because
+  // it's transient render-only data.
+  const [currentDrawingStroke, setCurrentDrawingStroke] = React.useState<
+    import("./types").DrawingStroke | null
+  >(null);
+  const handleDrawBegin = React.useCallback(
+    (x: number, y: number) => {
+      setCurrentDrawingStroke({
+        id: `stroke-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        points: [x, y],
+        color: editor.drawingTool.color,
+        brushSize: editor.drawingTool.brushSize,
+        mode: editor.drawingTool.mode,
+      });
+    },
+    [editor.drawingTool],
+  );
+  const handleDrawExtend = React.useCallback((x: number, y: number) => {
+    setCurrentDrawingStroke((prev) =>
+      prev ? { ...prev, points: [...prev.points, x, y] } : prev,
+    );
+  }, []);
+  const handleDrawEnd = React.useCallback(() => {
+    // Commit OUTSIDE the setState updater — React 19 strict mode invokes the
+    // updater twice in dev, which would call addDrawingStroke twice with the
+    // same id and produce duplicate-key warnings. setState updaters must be
+    // pure. Closure-read of the current stroke is fine here.
+    if (currentDrawingStroke && currentDrawingStroke.points.length >= 4) {
+      editor.addDrawingStroke(currentDrawingStroke);
+    }
+    setCurrentDrawingStroke(null);
+  }, [currentDrawingStroke, editor]);
+
+  // Tool-panel state snapshot: captures editor.state at the moment the user
+  // enters a tool (activeTool flips from null → tool) so a "Back" button can
+  // revert any in-tool changes. Cleared on tool exit so re-entering captures
+  // a fresh baseline.
+  const toolEntrySnapshot = React.useRef<MediaEditorState | null>(null);
+  const prevActiveToolRef = React.useRef<EditTool | null>(null);
+  React.useEffect(() => {
+    const prev = prevActiveToolRef.current;
+    const curr = editor.activeTool;
+    if (prev === null && curr !== null) {
+      toolEntrySnapshot.current = editor.state;
+    } else if (curr === null) {
+      toolEntrySnapshot.current = null;
+    }
+    prevActiveToolRef.current = curr;
+    // editor.state is read intentionally at entry; deps only on activeTool.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor.activeTool]);
+
+  const handleApplyTool = React.useCallback(() => {
+    editor.setSelectedTextId(null);
+    editor.setSelectedStickerId(null);
+    editor.setActiveTool(null);
+  }, [editor]);
+  const handleBackTool = React.useCallback(() => {
+    const snap = toolEntrySnapshot.current;
+    if (snap) editor.loadState(snap);
+    editor.setSelectedTextId(null);
+    editor.setSelectedStickerId(null);
+    editor.setActiveTool(null);
+  }, [editor]);
+
   const selectedText = React.useMemo(
     () =>
       editor.state.textOverlays.find((o) => o.id === editor.selectedTextId) ??
@@ -459,20 +555,43 @@ export const MediaEditor01 = React.forwardRef<
     cameraIntakeAvailable &&
     (editor.state.mode === "photo" || editor.state.mode === "video");
 
-  // Auto-seed the active mode in capture stage so the camera knows what to
-  // do. Picks the first enabled capture-mode if none is set yet.
+  // Mode auto-seed removed — initial state is intentionally mode:null so the
+  // canvas can render a clean "Connect to camera" entry-point button instead
+  // of jumping straight into a permission prompt. The button + mode tabs are
+  // the user gestures that move the editor out of the empty state. Only the
+  // text-only fallback (no capture modes available) does NOT need a gesture.
   React.useEffect(() => {
     if (editor.state.mode !== null) return;
     if (editor.state.stage !== "capture") return;
-    const firstCaptureMode = enabledModes.find(
+    const captureModesEnabled = enabledModes.some(
       (m) => m === "photo" || m === "video",
     );
-    if (firstCaptureMode) {
-      editor.setMode(firstCaptureMode);
+    if (!captureModesEnabled && enabledModes.includes("text")) {
+      editor.setMode("text");
     }
     // editor.setMode is stable per hook contract; mode/stage/modes drive it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor.state.mode, editor.state.stage, enabledModes]);
+
+  // Tracks whether the user has explicitly clicked a button that should kick
+  // off the camera-acquire flow. When true, EditorCamera receives autoAcquire
+  // and the browser permission prompt fires inside the same user-gesture
+  // tick — avoiding spontaneous prompts on first paint.
+  const [userInitiatedCamera, setUserInitiatedCamera] = React.useState(false);
+
+  // "Back" from the edit stage → return to the capture surface so the user can
+  // re-take. Clears the captured draft + edits + history (via performReset),
+  // then restores the capture mode so the camera reopens in the same mode —
+  // gesture-credited through userInitiatedCamera so there's no fresh permission
+  // friction. Only offered when a capture mode exists (see hasCaptureMode).
+  const backToCapture = React.useCallback(() => {
+    const mode = editor.state.mode;
+    performReset();
+    if (mode === "photo" || mode === "video") {
+      editor.setMode(mode);
+      setUserInitiatedCamera(true);
+    }
+  }, [editor, performReset]);
 
   // ─── Multi-instance guard (C11 — Q-P5 (b)) ──────────────────────────
   // Only engage the counter for capture-enabled instances. Edit-only
@@ -635,7 +754,10 @@ export const MediaEditor01 = React.forwardRef<
   );
 
   // ─── Imperative handle ──────────────────────────────────────────────
-  // Most methods are stubs in C6. Real wiring lands in C7-C12 per the plan.
+  // Inspect / state / export / edit-overlay methods are fully wired. The
+  // imperative CAPTURE methods (takePhoto / startRecording / stopRecording /
+  // switchCamera / importFromGallery) are deferred to v0.2 — they dev-warn
+  // until then; the in-UI camera controls are the supported capture path.
   React.useImperativeHandle(
     ref,
     (): MediaEditor01Handle => ({
@@ -645,7 +767,7 @@ export const MediaEditor01 = React.forwardRef<
       getState: () => editor.state,
       loadState: (state: MediaEditorState) => editor.loadState(state),
 
-      // === Capture (real wiring in C8) ===
+      // === Capture (imperative path deferred to v0.2 — dev-warns; see note above) ===
       switchCamera: async () => {
         devWarnOnce(warnedRef.current, "switchCamera", NOT_IMPLEMENTED_MARKER);
       },
@@ -662,7 +784,7 @@ export const MediaEditor01 = React.forwardRef<
         devWarnOnce(warnedRef.current, "importFromGallery", NOT_IMPLEMENTED_MARKER);
       },
 
-      // === Edit (gated wiring in C8; real overlays in C10/C11) ===
+      // === Edit ===
       addText: (text?: string) => {
         if (text !== undefined) {
           editor.setTextContent(text);
@@ -743,7 +865,10 @@ export const MediaEditor01 = React.forwardRef<
   const inner = (
     <div
       className={cn(
-        "flex h-full w-full flex-col gap-3 p-4",
+        // `relative` anchors the floating top-center control (mode pill / Back)
+        // and the consumer's renderTopBar (X / Publish) to the SAME box so they
+        // share one row instead of stacking.
+        "relative flex h-full w-full flex-col gap-3 p-4",
         // Inline-only: gets its own card chrome. In dialog mode, DialogContent
         // provides the chrome and we go edge-to-edge inside it.
         resolved === "inline" &&
@@ -757,15 +882,23 @@ export const MediaEditor01 = React.forwardRef<
     >
       {props.renderTopBar?.(slotCtx)}
 
-      {/* Mode pill — top-center, hides if 1 or 0 modes enabled */}
-      {showModePill ? (
-        <div className="flex justify-center">
-          <div className="inline-flex gap-1 rounded-full border border-border bg-muted/50 p-1 text-xs">
+      {/* Top-center control — absolutely centered so it shares the consumer
+          top-bar's row (X left / Publish right) instead of stacking under it.
+          Capture stage → mode pill (choose what to capture). Hidden once a
+          draft exists: switching modes mid-edit is meaningless. */}
+      {editor.state.stage === "capture" && showModePill ? (
+        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-1/2 z-30 -translate-x-1/2">
+          <div className="inline-flex gap-1 rounded-full border border-border bg-muted/50 p-1 text-xs backdrop-blur">
             {enabledModes.map((m) => (
               <button
                 key={m}
                 type="button"
-                onClick={() => editor.setMode(m)}
+                onClick={() => {
+                  editor.setMode(m);
+                  if (m === "photo" || m === "video") {
+                    setUserInitiatedCamera(true);
+                  }
+                }}
                 className={cn(
                   "rounded-full px-3 py-1 font-medium transition-colors",
                   editor.state.mode === m
@@ -774,30 +907,61 @@ export const MediaEditor01 = React.forwardRef<
                 )}
                 data-mode={m}
               >
-                {m}
+                {m === "photo"
+                  ? mergedLabels.modePhoto
+                  : m === "video"
+                    ? mergedLabels.modeVideo
+                    : mergedLabels.modeText}
               </button>
             ))}
           </div>
         </div>
       ) : null}
 
-      {/* Canvas — aspect-locked placeholder (real Konva stage lands in C10) */}
-      <div className="flex flex-1 items-center justify-center">
+      {/* Edit stage → Back-to-capture (icon-only, top-left), taking the close
+          button's slot. The consumer's renderTopBar hides its own close here so
+          Back is the single left-corner action (Instagram convention). Only
+          when a capture mode exists to return to — edit-only consumers
+          (initialSource, no capture modes) keep their close button instead. */}
+      {editor.state.stage === "edit" && hasCaptureMode ? (
+        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-30">
+          <button
+            type="button"
+            onClick={backToCapture}
+            aria-label="Back to capture"
+            className="inline-flex size-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition-colors hover:bg-black/45"
+          >
+            <ArrowLeft className="size-5" />
+          </button>
+        </div>
+      ) : null}
+
+      {/* Canvas — aspect-locked placeholder (real Konva stage lands in C10).
+          min-h-0 lets this flex-1 region shrink below the aspect-locked card's
+          intrinsic height so the bottom tool row keeps its space instead of
+          being pushed past the dialog's clipped (overflow-hidden) bottom edge. */}
+      <div className="relative flex flex-1 min-h-0 items-center justify-center">
         <div
           className={cn(
-            "flex flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-border/60 bg-muted/30 p-2 text-center text-xs text-muted-foreground",
-            aspect === "free"
-              ? "h-full max-h-[400px] w-full max-w-[600px]"
-              : "max-h-full max-w-full",
+            "flex flex-col items-stretch justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-border/60 bg-muted/30 text-center text-xs text-muted-foreground",
+            // Fixed aspect ratio, sized to fill the frame (no side letterbox).
+            resolved === "dialog"
+              ? // Dialog: fill the region edge-to-edge. The dialog itself is
+                // aspect-locked, so the canvas fills full width + height and the
+                // bottom controls OVERLAY the canvas (like the camera shutter)
+                // rather than taking flow space — so nothing shifts or crops.
+                "h-full w-full max-h-full max-w-full"
+              : // Inline has no guaranteed definite height, so drive by WIDTH
+                // with min/max bounds — responsive between a chat-embed (small)
+                // and a full surface (large) without breaking the ratio.
+                aspect === "free"
+                ? "w-full min-h-64 min-w-50 max-w-150 max-h-[70vh]"
+                : "w-full min-h-64 min-w-50 max-w-120 max-h-[70vh]",
           )}
-          style={
-            aspect === "free"
-              ? undefined
-              : {
-                  aspectRatio: aspect.replace(":", " / "),
-                  width: "min(100%, 480px)",
-                }
-          }
+          style={{
+            aspectRatio:
+              aspect === "free" ? "16 / 9" : aspect.replace(":", " / "),
+          }}
           data-canvas-placeholder=""
           data-stage={editor.state.stage}
         >
@@ -863,12 +1027,30 @@ export const MediaEditor01 = React.forwardRef<
                 editor.draft?.kind === "video" ? editor.draft.url : videoUrl
               }
               textOverlays={editor.state.textOverlays}
+              selectedTextId={editor.selectedTextId}
+              onTextChange={(next) => editor.updateTextOverlay(next.id, next)}
+              onTextSelect={editor.setSelectedTextId}
               stickers={editor.state.stickers}
+              resolveSticker={resolveSticker}
+              selectedStickerId={editor.selectedStickerId}
+              onStickerChange={(next) => editor.updateSticker(next.id, next)}
+              onStickerSelect={editor.setSelectedStickerId}
               drawingStrokes={editor.state.drawingStrokes}
+              currentDrawingStroke={currentDrawingStroke}
+              isDrawing={editor.activeTool === "draw"}
+              onDrawBegin={handleDrawBegin}
+              onDrawExtend={handleDrawExtend}
+              onDrawEnd={handleDrawEnd}
               cropRect={editor.state.crop}
               cropActive={editor.activeTool === "crop"}
+              cropAspectRatio={aspectAsRatio(editor.cropAspect)}
+              onCropChange={editor.setCrop}
               adjustments={editor.state.adjustments}
-              activeFilter={null}
+              activeFilter={
+                resolvedFilterPresets.find(
+                  (f) => f.id === editor.state.filter,
+                ) ?? null
+              }
               onStageReady={(s) => {
                 stageRef.current = s;
               }}
@@ -894,6 +1076,8 @@ export const MediaEditor01 = React.forwardRef<
               recordAudio={props.recordAudio}
               maxFileSizeMb={props.maxFileSizeMb}
               maxVideoDurationSec={props.maxVideoDuration}
+              captureAspectRatio={aspectAsRatio(aspect)}
+              autoAcquireOverride={userInitiatedCamera}
               labels={mergedLabels}
               onPhoto={handlePhoto}
               onVideo={handleVideo}
@@ -901,12 +1085,31 @@ export const MediaEditor01 = React.forwardRef<
               onValidationError={props.onValidationError}
               onPermissionDenied={props.onPermissionDenied}
             />
+          ) : cameraIntakeAvailable ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Pick a mode above, or jump straight to the camera.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const firstCapture = enabledModes.find(
+                    (m) => m === "photo" || m === "video",
+                  );
+                  if (firstCapture) {
+                    editor.setMode(firstCapture);
+                    setUserInitiatedCamera(true);
+                  }
+                }}
+                className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Connect to camera
+              </button>
+            </div>
           ) : (
             <>
               <p className="font-medium text-foreground">
-                {cameraIntakeAvailable
-                  ? "Initialising camera…"
-                  : mediaSources.includes("upload")
+                {mediaSources.includes("upload")
                   ? "Upload dropzone (Phase B retrofit)"
                   : "No capture source available"}
               </p>
@@ -919,88 +1122,253 @@ export const MediaEditor01 = React.forwardRef<
         </div>
       </div>
 
-      {/* Active tool panel — keyed by editor.activeTool. Renders above
-          the chip-row toolbar. Image-draft tools only show on image
-          drafts; video-draft trim/etc. land in R4. */}
-      {showEditCanvas && editor.draft?.kind === "image" ? (
-        <>
+      {/* Bottom control overlay — edit stage only. Floats over the bottom of
+          the full-bleed canvas (mirrors the camera's overlaid shutter) with a
+          scrim, so the tool panel + chip row never steal the canvas's space or
+          get clipped by the dialog's bottom edge. */}
+      {showEditCanvas ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col items-stretch gap-2 bg-linear-to-t from-black/70 via-black/30 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-10 *:pointer-events-auto">
+          {/* Active tool panel — keyed by editor.activeTool. Renders above the
+              chip-row toolbar. Image-draft tools only show on image drafts;
+              video-draft trim/etc. land in R4. */}
+          {editor.draft?.kind === "image" ? (
+            <>
           {editor.activeTool === "text" && selectedText ? (
-            <ToolTextInput
-              overlay={selectedText}
-              fonts={resolvedFonts}
-              colorPresets={resolvedColorPresets}
-              labels={mergedLabels}
-              onChange={(next) =>
-                editor.updateTextOverlay(next.id, next)
-              }
-              onDelete={() => {
-                editor.removeTextOverlay(selectedText.id);
-                editor.setSelectedTextId(null);
-              }}
-            />
+            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+              <ToolTextInput
+                overlay={selectedText}
+                fonts={resolvedFonts}
+                colorPresets={resolvedColorPresets}
+                labels={mergedLabels}
+                onChange={(next) =>
+                  editor.updateTextOverlay(next.id, next)
+                }
+                onDelete={() => {
+                  editor.removeTextOverlay(selectedText.id);
+                  editor.setSelectedTextId(null);
+                }}
+              />
+            </ToolPanelFrame>
           ) : null}
           {editor.activeTool === "stickers" ? (
-            <ToolStickerPicker
-              sets={resolvedStickerSets}
-              onPick={handleStickerPick}
-            />
+            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+              <ToolStickerPicker
+                sets={resolvedStickerSets}
+                onPick={handleStickerPick}
+              />
+            </ToolPanelFrame>
           ) : null}
           {editor.activeTool === "filters" && editor.draft.url ? (
-            <ToolFilterStrip
-              presets={resolvedFilterPresets}
-              sourceUrl={editor.draft.url}
-              activeId={editor.state.filter}
-              onSelect={(id) => editor.setFilter(id)}
-            />
+            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+              <ToolFilterStrip
+                presets={resolvedFilterPresets}
+                sourceUrl={editor.draft.url}
+                activeId={editor.state.filter}
+                onSelect={(id) => editor.setFilter(id)}
+              />
+            </ToolPanelFrame>
           ) : null}
           {editor.activeTool === "adjust" ? (
-            <ToolAdjustSliders
-              value={editor.state.adjustments}
-              onChange={(next) => editor.setAdjustments(next)}
-              labels={mergedLabels}
-            />
+            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+              <ToolAdjustSliders
+                value={editor.state.adjustments}
+                onChange={(next) => editor.setAdjustments(next)}
+                labels={mergedLabels}
+              />
+            </ToolPanelFrame>
           ) : null}
           {editor.activeTool === "draw" ? (
-            <ToolDrawControls
-              color={editor.drawingTool.color}
-              brushSize={editor.drawingTool.brushSize}
-              mode={editor.drawingTool.mode}
-              colorPresets={resolvedColorPresets}
-              labels={mergedLabels}
-              onColorChange={(color) => editor.setDrawingTool({ color })}
-              onBrushSizeChange={(brushSize) =>
-                editor.setDrawingTool({ brushSize })
-              }
-              onModeChange={(mode) => editor.setDrawingTool({ mode })}
-            />
+            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+              <ToolDrawControls
+                color={editor.drawingTool.color}
+                brushSize={editor.drawingTool.brushSize}
+                mode={editor.drawingTool.mode}
+                colorPresets={resolvedColorPresets}
+                labels={mergedLabels}
+                onColorChange={(color) => editor.setDrawingTool({ color })}
+                onBrushSizeChange={(brushSize) =>
+                  editor.setDrawingTool({ brushSize })
+                }
+                onModeChange={(mode) => editor.setDrawingTool({ mode })}
+              />
+            </ToolPanelFrame>
+          ) : null}
+          {editor.activeTool === "crop" ? (
+            <div className="flex flex-wrap items-center justify-center gap-2 rounded-md border border-border bg-muted/30 p-2">
+              {resolvedCropAspects.length > 1 ? (
+                <div className="flex flex-wrap items-center gap-1 border-r border-border pr-2">
+                  {resolvedCropAspects.map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      onClick={() => {
+                        editor.setCropAspect(a);
+                        editor.setCrop(null);
+                      }}
+                      className={cn(
+                        "rounded px-2 py-0.5 text-xs font-medium transition-colors",
+                        editor.cropAspect === a
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={async () => {
+                  // Apply crop = burn the cropRect into the source image at
+                  // NATIVE resolution. We can't use stage.toCanvas() — that
+                  // captures the displayed stage size (typically smaller than
+                  // source), so output would be down-sampled. Instead: load
+                  // the source image as <img>, map cropRect from stage coords
+                  // → image natural coords via the object-contain fit region,
+                  // then drawImage into a new canvas at natural resolution.
+                  const stage = stageRef.current;
+                  const crop = editor.state.crop;
+                  const sourceUrl =
+                    editor.draft?.url ?? editor.state.imageSrc;
+                  if (!stage || !crop || !sourceUrl) {
+                    editor.setActiveTool(null);
+                    return;
+                  }
+                  try {
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    await new Promise<void>((resolve, reject) => {
+                      img.onload = () => resolve();
+                      img.onerror = () =>
+                        reject(new Error("image load failed"));
+                      img.src = sourceUrl;
+                    });
+                    // Compute the image's object-contain fit region in stage
+                    // coords (mirrors the Konva canvas's fitInto helper).
+                    const stageW = stage.width();
+                    const stageH = stage.height();
+                    const fitScale = Math.min(
+                      stageW / img.naturalWidth,
+                      stageH / img.naturalHeight,
+                    );
+                    const fitW = img.naturalWidth * fitScale;
+                    const fitH = img.naturalHeight * fitScale;
+                    const fitX = (stageW - fitW) / 2;
+                    const fitY = (stageH - fitH) / 2;
+                    // Intersect crop with fit (clip letterbox area out).
+                    const ix = Math.max(crop.x, fitX);
+                    const iy = Math.max(crop.y, fitY);
+                    const iw =
+                      Math.min(crop.x + crop.width, fitX + fitW) - ix;
+                    const ih =
+                      Math.min(crop.y + crop.height, fitY + fitH) - iy;
+                    if (iw <= 0 || ih <= 0) {
+                      editor.setActiveTool(null);
+                      return;
+                    }
+                    // Map intersection to natural image coords.
+                    const natScale = img.naturalWidth / fitW;
+                    const sx = (ix - fitX) * natScale;
+                    const sy = (iy - fitY) * natScale;
+                    const sw = iw * natScale;
+                    const sh = ih * natScale;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = Math.round(sw);
+                    canvas.height = Math.round(sh);
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) {
+                      editor.setActiveTool(null);
+                      return;
+                    }
+                    ctx.drawImage(
+                      img,
+                      sx,
+                      sy,
+                      sw,
+                      sh,
+                      0,
+                      0,
+                      canvas.width,
+                      canvas.height,
+                    );
+                    const blob = await new Promise<Blob | null>((res) => {
+                      canvas.toBlob(res, "image/jpeg", 0.92);
+                    });
+                    if (!blob) {
+                      editor.setActiveTool(null);
+                      return;
+                    }
+                    const newUrl = URL.createObjectURL(blob);
+                    // Replace draft + imageSrc with the cropped image so the
+                    // tool sub-panel gate (editor.draft?.kind === "image")
+                    // stays true and re-crop works on the new image.
+                    editor.setDraft({
+                      source: editor.draft?.source ?? "initial",
+                      kind: "image",
+                      blob,
+                      url: newUrl,
+                      width: canvas.width,
+                      height: canvas.height,
+                      mimeType: "image/jpeg",
+                    });
+                    editor.setImageSrc(newUrl);
+                    editor.setCrop(null);
+                    editor.setActiveTool(null);
+                  } catch {
+                    editor.setActiveTool(null);
+                  }
+                }}
+                className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
+              >
+                Apply
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.setCrop(null);
+                  editor.setActiveTool(null);
+                }}
+                className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
           ) : null}
         </>
       ) : null}
 
-      {/* Toolbar — filtered by enabledTools (description §4).
-          Suppressed in empty-config: tools have nothing to act on. */}
-      {enabledTools.length > 0 && !isEmptyConfig ? (
-        <div className="flex flex-wrap justify-center gap-1 rounded-md border border-border bg-muted/30 p-2">
-          {enabledTools.map((tool) => (
-            <button
-              key={tool}
-              type="button"
-              onClick={() => editor.setActiveTool(tool)}
-              className={cn(
-                "rounded px-2.5 py-1 text-xs font-medium transition-colors",
-                editor.activeTool === tool
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-              data-tool={tool}
-            >
-              {tool}
-            </button>
-          ))}
-          {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
-            <span className="ml-2 self-center text-[10px] text-muted-foreground/70">
-              ({resolvedCropAspects.length} crop aspects)
-            </span>
+      {/* Edit-tool chip row — filtered by enabledTools (description §4). Only
+          in the edit stage: the tools act on a captured draft, so they have
+          nothing to do during capture / text-only / empty-config. Centered when
+          the chips fit, horizontally scrollable when they don't, so they never
+          crop on narrow (9:16) widths. */}
+          {enabledTools.length > 0 && !isEmptyConfig ? (
+            <div className="max-w-full self-center overflow-x-auto rounded-full border border-border bg-background/80 backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto flex w-max items-center gap-1 p-1">
+            {enabledTools.map((tool) => (
+              <button
+                key={tool}
+                type="button"
+                onClick={() => editor.setActiveTool(tool)}
+                className={cn(
+                  "shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors",
+                  editor.activeTool === tool
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+                data-tool={tool}
+              >
+                {tool}
+              </button>
+            ))}
+            {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
+              <span className="ml-2 shrink-0 self-center text-[10px] text-muted-foreground/70">
+                ({resolvedCropAspects.length} crop aspects)
+              </span>
+            ) : null}
+          </div>
+        </div>
           ) : null}
         </div>
       ) : null}
@@ -1019,18 +1387,6 @@ export const MediaEditor01 = React.forwardRef<
           props.onClose?.();
         }}
       />
-
-      {/* State inspector — visible during dev only */}
-      {process.env.NODE_ENV !== "production" ? (
-        <div className="rounded-md border border-dashed border-border/40 bg-muted/10 p-2 text-[10px] text-muted-foreground/80">
-          mode: <code>{editor.state.mode ?? "null"}</code> · stage:{" "}
-          <code>{editor.state.stage}</code> · dirty:{" "}
-          <code>{editor.isDirty ? "yes" : "no"}</code> · activeTool:{" "}
-          <code>{editor.activeTool ?? "none"}</code> · presentation:{" "}
-          <code>{resolved}</code> · cropAspects:{" "}
-          <code>{resolvedCropAspects.join(",")}</code>
-        </div>
-      ) : null}
     </div>
   );
 
@@ -1040,8 +1396,12 @@ export const MediaEditor01 = React.forwardRef<
     return inner;
   }
 
-  // Dialog branch — size derived from aspect (description §6).
-  const { width, height } = dialogSizeForAspect(aspect);
+  // Dialog branch — sizing derived from aspect (description §6). On desktop
+  // the dialog is a viewport-relative box constrained by aspect-ratio:
+  // height-driven for portrait aspects, width-driven for landscape. The
+  // unspecified dimension is computed from CSS aspect-ratio; max-* clamps
+  // the secondary axis when the driver would force overflow.
+  const { aspectRatio, orientation } = dialogDimsForAspect(aspect);
 
   return (
     <Dialog
@@ -1053,19 +1413,38 @@ export const MediaEditor01 = React.forwardRef<
       <DialogContent
         showCloseButton={false}
         className={cn(
-          // Mobile: edge-to-edge fullscreen. Desktop: derived size from aspect.
-          "fixed inset-0 !max-w-none gap-0 overflow-hidden p-0 sm:rounded-2xl",
+          // Mobile: edge-to-edge fullscreen. Defeat shadcn base centering
+          // (top-1/2 left-1/2 + -translate-x/y-1/2) so the dialog anchors at 0,0.
+          "!fixed !inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0",
+          "!max-w-none gap-0 overflow-hidden p-0",
           "h-[100dvh] w-screen !rounded-none",
-          "md:h-[var(--media-editor-dialog-h)] md:w-[var(--media-editor-dialog-w)] md:!rounded-2xl",
-          "md:max-h-[90dvh] md:max-w-[90vw]",
+          // Desktop: restore viewport-centered positioning. !inset-auto cancels
+          // the mobile !inset-0 so top/left:50% can land.
+          "md:!inset-auto md:!top-1/2 md:!left-1/2",
+          "md:!-translate-x-1/2 md:!-translate-y-1/2",
+          "md:!rounded-2xl",
+          // Aspect-ratio-driven sizing. Only the DRIVER dimension is sized; the
+          // other follows from the inline aspectRatio. Using clamp() on the
+          // driver gives a min + max floor/ceiling WITHOUT breaking the ratio
+          // (the derived dimension still tracks it) — so the dialog can't
+          // collapse to an unusable thumbnail on a short window. portrait drives
+          // height (clamped 24rem–44rem around 85dvh); landscape drives width
+          // (clamped 28rem–60rem around 85vw). max-w/max-h clamp the derived
+          // axis if it would exceed the viewport.
+          orientation === "portrait"
+            ? "md:h-[clamp(24rem,85dvh,44rem)] md:w-auto md:max-w-[90vw]"
+            : "md:w-[clamp(28rem,85vw,60rem)] md:h-auto md:max-h-[85dvh]",
         )}
         style={{
-          // CSS vars consumed by md: classes above. Keeps Tailwind compile static.
-          ["--media-editor-dialog-w" as string]: `${width}px`,
-          ["--media-editor-dialog-h" as string]: `${height}px`,
+          // aspect-ratio is driven inline (Tailwind v4's md:aspect-[…] doesn't
+          // support runtime values without a JIT-friendly literal).
+          aspectRatio,
         }}
       >
-        <DialogTitle className="sr-only">Media editor</DialogTitle>
+        <DialogTitle className="sr-only">{mergedLabels.composerLabel}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {mergedLabels.composerDescription}
+        </DialogDescription>
         {inner}
       </DialogContent>
     </Dialog>
@@ -1082,6 +1461,65 @@ export const MediaEditor01 = React.forwardRef<
  * Adjustments are checked by ALL three default values — any deviation
  * counts as "modified."
  */
+/** Default display ratio used for `aspect="free"` — chosen to match the
+ * typical webcam frame so preview ↔ capture stay consistent and the canvas
+ * doesn't render as a too-wide / too-short box. */
+const FREE_ASPECT_FALLBACK = 16 / 9;
+
+/**
+ * Convert an `AspectRatio` string ("9:16", "1:1", etc.) to a numeric ratio
+ * (width / height) for capture-time cropping. For `"free"`, returns
+ * `FREE_ASPECT_FALLBACK` so the captured frame is cropped to the same shape
+ * the canvas is displayed at (avoiding the "captured photo doesn't match
+ * preview" mismatch the canvas-placeholder uses the same ratio).
+ */
+function aspectAsRatio(aspect: AspectRatio): number {
+  if (aspect === "free") return FREE_ASPECT_FALLBACK;
+  const [w, h] = aspect.split(":").map(Number);
+  if (!w || !h) return FREE_ASPECT_FALLBACK;
+  return w / h;
+}
+
+/**
+ * Shared chrome for tool sub-panels: wraps the tool's own UI with a Back +
+ * Apply button row so every tool follows the same Apply/revert contract.
+ * Back calls `onBack` which restores the state snapshot captured at tool
+ * entry. Apply just closes the panel, keeping all in-tool changes.
+ * Crop has its own custom panel chrome because Apply burns the cropped
+ * image into a new blob — that's outside the generic snapshot/restore model.
+ */
+function ToolPanelFrame({
+  onBack,
+  onApply,
+  children,
+}: {
+  onBack: () => void;
+  onApply: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-end gap-2 px-1">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          onClick={onApply}
+          className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
+        >
+          Apply
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function hasAnyOverlay(state: MediaEditorState): boolean {
   if (state.textOverlays.length > 0) return true;
   if (state.stickers.length > 0) return true;

@@ -102,7 +102,7 @@ export function ColorSwatchPicker({
               }
             }}
             placeholder="#ffffff"
-            className="flex-1 h-7 rounded-md border border-input bg-background px-2 text-xs font-mono"
+            className="flex-1 min-w-0 h-7 rounded-md border border-input bg-background px-2 text-xs font-mono"
           />
         </div>
       </PopoverContent>
