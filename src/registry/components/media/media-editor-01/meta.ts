@@ -36,7 +36,7 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-06-02",
   updatedAt: "2026-06-03",

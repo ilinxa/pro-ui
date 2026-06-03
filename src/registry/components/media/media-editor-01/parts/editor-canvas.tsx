@@ -245,8 +245,11 @@ export function EditorCanvas({
     selection.transformerRef,
   ]);
 
-  // Click on bare Stage background → clear all selection.
-  const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  // Click/tap on bare Stage background → clear all selection. Accepts mouse OR
+  // touch events so it can wire to both onMouseDown + onTouchStart without a cast.
+  const handleStageMouseDown = (
+    e: Konva.KonvaEventObject<MouseEvent | TouchEvent>,
+  ) => {
     if (isDrawing) {
       // Drawing intercepts everything — see handleStagePointerDown below.
       return;
@@ -292,8 +295,15 @@ export function EditorCanvas({
   return (
     <div
       ref={containerRef}
+      // Focusable so usePanZoom's keyboard listener (bound to this element, not
+      // window) is focus-scoped — arrow/zoom keys only act when the canvas holds
+      // focus. role/aria-label name the region for AT.
+      tabIndex={0}
+      role="group"
+      aria-label="Media editor canvas — arrow keys pan, +/- zoom, 0 resets"
       className={cn(
         "relative w-full h-full overflow-hidden touch-none",
+        "outline-hidden focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-inset",
         className,
       )}
       style={{ background }}
@@ -338,7 +348,7 @@ export function EditorCanvas({
           x={panZoom.transform.x}
           y={panZoom.transform.y}
           onMouseDown={handleStageMouseDown}
-          onTouchStart={handleStageMouseDown as unknown as (e: Konva.KonvaEventObject<TouchEvent>) => void}
+          onTouchStart={handleStageMouseDown}
           onPointerDown={handleStagePointerDown}
           onPointerMove={handleStagePointerMove}
           onPointerUp={handleStagePointerUp}

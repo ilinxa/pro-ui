@@ -50,6 +50,16 @@ export interface EditorCameraProps {
   onValidationError?: (error: ValidationError) => void;
   /** Fires when permission is denied so the host can show its own help. */
   onPermissionDenied?: () => void;
+  /**
+   * Replaces the built-in denied-permission UI. Receives `retry` (re-request
+   * the camera) + `usePicker` (open the gallery file picker). Only substitutes
+   * the `denied` state — the pending / no-camera / error states keep the
+   * built-in prompt.
+   */
+  renderPermissionDenied?: (ctx: {
+    retry: () => void;
+    usePicker: () => void;
+  }) => React.ReactNode;
 }
 
 export function EditorCamera({
@@ -67,6 +77,7 @@ export function EditorCamera({
   onGalleryFile,
   onValidationError,
   onPermissionDenied,
+  renderPermissionDenied,
 }: EditorCameraProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
@@ -202,6 +213,31 @@ export function EditorCamera({
     }
   }, [perms.state, capture.status, capture.acquire]);
 
+  // Resolve the permission-overlay body once. The consumer's
+  // renderPermissionDenied slot replaces the built-in prompt for the `denied`
+  // state only; pending / no-camera / error keep the built-in prompt.
+  let permissionOverlay: React.ReactNode = null;
+  if (permissionVariant === "denied" && renderPermissionDenied) {
+    // `usePicker` reads fileInputRef only when the CONSUMER invokes it from an
+    // event handler — never during this render — so the ref-during-render rule
+    // is a false positive here (same deferred-invocation contract as the
+    // CameraPermissionPrompt `onUsePicker` prop below, which isn't flagged).
+    // eslint-disable-next-line react-hooks/refs
+    permissionOverlay = renderPermissionDenied({
+      retry: () => void capture.acquire(),
+      usePicker: handleGalleryClick,
+    });
+  } else if (permissionVariant !== null) {
+    permissionOverlay = (
+      <CameraPermissionPrompt
+        variant={permissionVariant}
+        labels={labels}
+        onRetry={() => void capture.acquire()}
+        onUsePicker={handleGalleryClick}
+      />
+    );
+  }
+
   return (
     <div className="@container relative flex-1 flex flex-col overflow-hidden">
       {/* Live preview — black fallback shows when no stream */}
@@ -217,15 +253,12 @@ export function EditorCamera({
         )}
       />
 
-      {/* Permission overlay (denied / pending / no-camera / error) */}
-      {permissionVariant !== null && (
+      {/* Permission overlay (denied / pending / no-camera / error). Body
+          resolved above — the renderPermissionDenied slot can replace the
+          denied state. */}
+      {permissionOverlay !== null && (
         <div className="absolute inset-0 flex items-center justify-center bg-black">
-          <CameraPermissionPrompt
-            variant={permissionVariant}
-            labels={labels}
-            onRetry={() => void capture.acquire()}
-            onUsePicker={handleGalleryClick}
-          />
+          {permissionOverlay}
         </div>
       )}
 

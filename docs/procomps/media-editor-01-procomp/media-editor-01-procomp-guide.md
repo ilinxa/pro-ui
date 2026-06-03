@@ -1,6 +1,6 @@
 # media-editor-01 — consumer guide
 
-> v0.1.1 alpha. The reusable capture + edit surface lifted out of
+> v0.1.2 alpha. The reusable capture + edit surface lifted out of
 > [`story-composer-01`](../story-composer-01-procomp/) v0.1.5. Four
 > controllable capability dials let you pull as little or as much editor
 > surface as your context needs. `story-composer-01` v0.2.x is a thin
@@ -13,6 +13,11 @@
 > overlay a full-bleed canvas), container-query-sized capture controls, and a
 > min/max size clamp so the surface can't collapse. See
 > [Capture vs edit chrome](#capture-vs-edit-chrome) and [Pan & zoom](#pan--zoom).
+>
+> v0.1.2 (2026-06-03) wired the GATE 3 follow-ups: `onModeChange` +
+> `onEditAction` now emit (navigation + lifecycle actions); the
+> `renderPermissionDenied` slot is honored for the denied state; and the
+> pan-zoom keyboard is **focus-scoped to the canvas** (no longer window-bound).
 
 ## Install
 
@@ -216,6 +221,8 @@ The edit canvas pans and zooms (1×–4×), disabled while drawing or cropping:
 | Arrow keys | Pan in the image's direction (ArrowRight → image shifts right) |
 | `+` / `=` , `-` / `_` , `0` | Zoom in / out / reset |
 
+The keyboard gestures are **focus-scoped** (v0.1.2): the canvas is focusable (`tabIndex`), and the keys only act while it holds focus — they never hijack arrow keys/zoom elsewhere on the page. Click or tab to the canvas to drive it from the keyboard; a focus ring marks it.
+
 A "reset zoom" chip appears (with the current %) whenever the transform isn't at the identity. The transform is applied to the Konva stage, so overlays and strokes stay pinned to the image at any zoom/pan.
 
 ## Export
@@ -300,7 +307,7 @@ Inside, the canvas wrapper always carries `data-canvas-placeholder=""` (regardle
 - Commit chain + implementation notes: see [`media-editor-01-procomp-plan.md`](./media-editor-01-procomp-plan.md).
 - Extraction lessons (Phase A): see the decision file at `.claude/decisions/2026-06-02-media-editor-01-extraction-c1-c8-phase-a-half.md`.
 
-## Known gaps (v0.1.1 alpha)
+## Known gaps (v0.1.2 alpha)
 
 The full visual pipeline is wired — camera viewfinder + shutter, all six tool
 panels (text / draw / stickers / filters / adjust / crop), undo/redo, drag-pan,
@@ -310,7 +317,10 @@ production). The remaining gaps are narrow:
 - **Imperative capture handle** — `takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery` dev-warn and no-op; programmatic capture lands in v0.2. The in-UI camera controls are the supported capture path. (See [Imperative handle](#imperative-handle).)
 - **Library media source** — `mediaSources` supports `camera` + `upload`; a device-library picker is deferred to v0.2.
 - **Nested `labels` prop** — the public `labels` shape is in transition; some nested keys are not yet honored end-to-end (tracked as the C17 label-flattening refactor). Mode/tool/Back strings are correct.
-- **Analytics slots** — `onModeChange` / `onEditAction` are declared but not yet emitted (v0.1.2). `renderPermissionDenied` is declared but the built-in `CameraPermissionPrompt` is always used (v0.1.2).
-- **Keyboard scope** — arrow/`+`/`-`/`0` pan-zoom keys are bound at the window level; a focus-scoped binding lands in v0.1.2.
+- **`onEditAction` coverage** — v0.1.2 emits the navigation + lifecycle actions (`mode-change`, `tool-open`, `tool-close`, `reset`). The fine-grained content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`, `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are emitted from v0.2 when the per-mutation instrumentation lands — the `EditAction` union is already complete so you can switch exhaustively today.
+
+**Closed in v0.1.2:** `onModeChange` + `onEditAction` now emit; the
+`renderPermissionDenied` slot is honored for the denied state; the pan-zoom
+keyboard is focus-scoped to the canvas (was window-bound).
 
 None block type-correct use of the public API.

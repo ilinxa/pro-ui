@@ -450,8 +450,18 @@ export interface MediaEditor01Props {
   labels?: Partial<MediaEditor01Labels>;
 
   // === State change observability ===
+  /** Fires whenever the active capture mode changes (tab switch, gallery pick,
+   *  initialSource load, programmatic). Skips the initial mount. */
   onModeChange?: (mode: ComposerMode | null) => void;
   onDirtyChange?: (isDirty: boolean) => void;
+  /**
+   * Analytics/undo-sync hook. v0.1.x emits the navigation + lifecycle actions:
+   * `mode-change`, `tool-open`, `tool-close`, and `reset`. The fine-grained
+   * content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`,
+   * `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) land in v0.2
+   * when the per-mutation instrumentation layer ships — the `EditAction` union
+   * is already complete so consumers can switch exhaustively today.
+   */
   onEditAction?: (action: EditAction) => void;
 
   // === Slots (escape hatches) ===
