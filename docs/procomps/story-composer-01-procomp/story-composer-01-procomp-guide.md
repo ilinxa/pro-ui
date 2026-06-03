@@ -81,19 +81,32 @@ Customize the toolbar via `enabledTools`:
 
 Undo/redo on every overlay command + every drawing stroke. Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z. 50-deep stack, FIFO past cap.
 
-## Pan + pinch-zoom
+## Pan + zoom
 
-The editor canvas supports 1× → 4× zoom anchored to the cursor / pinch midpoint. Added in v0.1.3 and refined in v0.1.4 + v0.1.5.
+The editor canvas supports 1× → 4× zoom anchored to the cursor / pinch midpoint. Single-pointer **drag-to-pan** landed in v0.2.1; zoom landed in v0.1.3 and was refined through v0.1.5.
 
 | Gesture | Behavior |
 |---|---|
+| **Drag** (single pointer — mouse or 1 finger) | **Pan.** Yields to draggable text/sticker overlays — a drag that starts on an overlay moves that overlay instead. A tap (< ~4px) never pans, so selection/placement still works. |
 | **2-finger pinch** (touch) | Zoom anchored to the midpoint; simultaneous 2-finger drag pans |
 | **Mouse wheel** (desktop) | Zoom anchored to the cursor. Native non-passive listener so the canvas wins over the browser's Ctrl+wheel page-zoom |
 | **Arrow keys** | Pan in the arrow's direction (→ moves image right, ↓ moves image down, etc.) |
 | **`+` / `=` / `-` / `_`** | Zoom in / out |
 | **`0`** | Reset to 1× / origin |
 
-Single-finger touch is **not** consumed — text + sticker + drawing pipelines keep their pointer events; pan-zoom only engages when a second pointer joins. The hook auto-disables during drawing (pointer-pipeline conflict) and during crop (DOM overlay can't ride the Stage transform yet — v0.2 rewrite queued).
+A drag that lands on a text/sticker overlay is yielded to that overlay (hit-tested on pointer-down), so dragging overlays still works. The hook auto-disables pan/zoom during drawing (pointer-pipeline conflict) and during crop (DOM overlay can't ride the Stage transform yet — v0.2 rewrite queued).
+
+## Top bar behavior
+
+The composer's top bar follows the Instagram chrome model (delegated to `media-editor-01`):
+
+| | **Capture stage** | **Edit stage** (after capture) |
+|---|---|---|
+| Top-left | **✕ Close** | **← Back to capture** (replaces Close) |
+| Top-center | Photo / Video / Text tabs | — (tabs hidden) |
+| Top-right | Publish — **hidden** during photo/video capture; shown for text | **Publish** |
+
+`ComposerPublishBar` drives this from the slot-context: `showPublish = !isCapturing || mode === "text"` and `showClose = isCapturing || !hasCaptureMode`. Back is rendered by `media-editor-01` (it clears the draft and reopens the camera in the same mode); the publish bar hides its own ✕ in the edit stage so the two don't collide.
 
 A `Reset zoom (NNN%)` chip appears top-left while the canvas is zoomed or panned.
 
