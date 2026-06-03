@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Check, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { StoryComposer01Labels } from "../types";
@@ -8,7 +8,12 @@ import type { StoryComposer01Labels } from "../types";
 export interface PublishingProgressOverlayProps {
   /** 0..1 — null when indeterminate (no length-computable from server). */
   progress: number | null;
-  status: "uploading" | "done" | "error";
+  /**
+   * "done" is intentionally NOT a state here — the composer dismisses the
+   * overlay on success (onPublished), so only the in-flight + error states
+   * render. Kept narrow so the dead "published" arm can't drift back in.
+   */
+  status: "uploading" | "error";
   errorMessage?: string;
   labels: Required<StoryComposer01Labels>;
   onRetry?: () => void;
@@ -61,13 +66,6 @@ export function PublishingProgressOverlay({
                 {labels.discardCancel /* reuses "Keep editing" copy */}
               </Button>
             ) : null}
-          </>
-        ) : status === "done" ? (
-          <>
-            <div className="grid place-items-center size-12 rounded-full bg-emerald-500 text-white">
-              <Check className="size-7" />
-            </div>
-            <p className="text-base font-medium">{labels.published}</p>
           </>
         ) : (
           <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   useMediaEditorState,
   type UseMediaEditorStateResult,
@@ -135,16 +135,6 @@ export function useStoryComposerState(
     setUploadProgress(0);
     setPublishError(null);
   }, [baseReset]);
-
-  // Avoid hold-over publish error/state between sessions when the editor
-  // resets externally (e.g. handle.reset on the consumer side).
-  useEffect(() => {
-    if (editor.state.stage === "capture" && publishStatus === "error") {
-      // Don't auto-clear — consumers need to see the error until they retry.
-      // This effect is here as a future hook point if we want to clear on a
-      // specific transition. Currently a no-op.
-    }
-  }, [editor.state.stage, publishStatus]);
 
   return {
     ...editor,

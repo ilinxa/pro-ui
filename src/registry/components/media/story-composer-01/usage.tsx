@@ -87,14 +87,15 @@ export function Example() {
       </section>
 
       <section>
-        <h3 className="mb-2 text-base font-semibold">Pan + pinch-zoom</h3>
+        <h3 className="mb-2 text-base font-semibold">Pan + zoom</h3>
         <p className="text-muted-foreground">
-          The editor canvas supports 1× → 4× zoom. 2-finger pinch (touch),
-          mouse wheel anchored to the cursor (desktop — native non-passive,
-          beats the browser&apos;s Ctrl+wheel page-zoom), and arrow keys to
-          pan in the arrow direction. <code>+</code> / <code>-</code> /{" "}
-          <code>0</code> to zoom in / out / reset. Disabled while drawing
-          or cropping.
+          Drag (single pointer — mouse or 1 finger) to pan; a drag that starts
+          on a text/sticker overlay moves that overlay instead, and a tap never
+          pans. Zoom 1× → 4× via 2-finger pinch (touch) or mouse wheel anchored
+          to the cursor (desktop — native non-passive, beats the
+          browser&apos;s Ctrl+wheel page-zoom). Arrow keys pan in the arrow
+          direction; <code>+</code> / <code>-</code> / <code>0</code> zoom in /
+          out / reset. Disabled while drawing or cropping.
         </p>
       </section>
 
@@ -105,7 +106,7 @@ export function Example() {
           <code>takePhoto</code>, <code>switchCamera</code>,{" "}
           <code>startRecording</code>, <code>addText</code>,{" "}
           <code>addSticker</code>, <code>applyFilter</code>,{" "}
-          <code>publish</code>, <code>exportBlob</code>, and more (15
+          <code>publish</code>, <code>exportBlob</code>, and more (14
           methods total).
         </p>
       </section>
