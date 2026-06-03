@@ -22,7 +22,6 @@ import {
   DEFAULT_STORY_COMPOSER_LABELS,
   type ComposerCtx,
   type ComposerMode,
-  type ComposerStage,
   type PublishedStory,
   type PublishMetadata,
   type StoryComposer01Handle,
@@ -190,7 +189,7 @@ export const StoryComposer01 = forwardRef<
   const toComposerCtx = useCallback(
     (ctx: EditorCtx): ComposerCtx => ({
       mode: ctx.mode ?? "photo",
-      stage: ctx.stage as ComposerStage,
+      stage: ctx.stage,
       isDirty: ctx.isDirty,
       publishing: {
         active:
@@ -198,12 +197,11 @@ export const StoryComposer01 = forwardRef<
         progress: uploadProgress,
       },
       setMode: (m) => {
-        // No public setter on the handle; delegate via the editor ref's
-        // internal state surface in v0.2.0. v0.3.0 may expose setMode().
-        editorRef.current?.loadState({
-          ...(editorRef.current.getState() ?? {}),
-          mode: m,
-        } as ReturnType<NonNullable<typeof editorRef.current>["getState"]>);
+        // No public setter on the handle yet (v0.3.0 may expose setMode());
+        // round-trip through the editor's typed state surface to flip just the
+        // mode. getState() is non-null, so no cast/fallback is needed.
+        const editor = editorRef.current;
+        if (editor) editor.loadState({ ...editor.getState(), mode: m });
       },
       cancel: () => onClose(),
       publish: handlePublish,
@@ -304,6 +302,20 @@ export const StoryComposer01 = forwardRef<
                 publishStatus === "uploading"
               }
               canPublish={ctx.isDirty}
+              // Hide Publish only during photo/video capture (nothing captured
+              // yet → a disabled CTA just crowds the mode pill). Text mode lives
+              // in the capture stage too but IS publishable, so keep it there.
+              showPublish={!ctx.isCapturing || ctx.mode === "text"}
+              // Hide the close X in the edit stage when the editor shows its own
+              // Back arrow in that corner (capture modes enabled). Keep it during
+              // capture, and for edit-only configs that have no Back.
+              showClose={
+                ctx.isCapturing ||
+                !(
+                  ctx.enabledModes.includes("photo") ||
+                  ctx.enabledModes.includes("video")
+                )
+              }
               labels={labels}
               onPublish={handlePublish}
               onClose={onClose}
