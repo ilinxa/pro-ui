@@ -38,6 +38,7 @@ import { useHistory } from "./hooks/use-history";
 import type {
   AspectRatio,
   ComposerMode,
+  EditAction,
   EditTool,
   ExportImageOpts,
   ExportMetadata,
@@ -157,6 +158,50 @@ export const MediaEditor01 = React.forwardRef<
 
   const warnedRef = React.useRef<Set<string>>(new Set());
 
+  // ─── Observability emitters (onModeChange / onEditAction) ──────────
+  // Latest-callback refs so the emit effects below depend only on the state
+  // they watch — never on parent-supplied callback identity (which churns on
+  // every parent render and would refire the effects spuriously).
+  const onModeChangeRef = React.useRef(props.onModeChange);
+  const onEditActionRef = React.useRef(props.onEditAction);
+  React.useEffect(() => {
+    onModeChangeRef.current = props.onModeChange;
+    onEditActionRef.current = props.onEditAction;
+  });
+  const emitEditAction = React.useCallback((action: EditAction) => {
+    onEditActionRef.current?.(action);
+  }, []);
+
+  // Emit mode changes to onModeChange + onEditAction. Effect-driven so it
+  // catches EVERY transition source (mode tab, gallery pick, initialSource
+  // load, programmatic) rather than threading the callback through each call
+  // site. Skips the initial mount so a seeded defaultMode doesn't fire.
+  const prevEmitModeRef = React.useRef<ComposerMode | null | undefined>(
+    undefined,
+  );
+  React.useEffect(() => {
+    const mode = editor.state.mode;
+    const prev = prevEmitModeRef.current;
+    if (prev !== undefined && prev !== mode) {
+      onModeChangeRef.current?.(mode);
+      emitEditAction({ kind: "mode-change", from: prev, to: mode });
+    }
+    prevEmitModeRef.current = mode;
+  }, [editor.state.mode, emitEditAction]);
+
+  // Emit tool-open / tool-close as the active tool changes. A tool→tool switch
+  // emits a close for the old then an open for the new. Skips the initial mount.
+  const prevEmitToolRef = React.useRef<EditTool | null | undefined>(undefined);
+  React.useEffect(() => {
+    const curr = editor.activeTool;
+    const prev = prevEmitToolRef.current;
+    if (prev !== undefined && prev !== curr) {
+      if (prev !== null) emitEditAction({ kind: "tool-close", tool: prev });
+      if (curr !== null) emitEditAction({ kind: "tool-open", tool: curr });
+    }
+    prevEmitToolRef.current = curr;
+  }, [editor.activeTool, emitEditAction]);
+
   // ─── Capability defaults (description §8 — Q-P-locked) ─────────────
 
   const enabledModes = props.enabledModes ?? (["photo", "video", "text"] as const);
@@ -266,11 +311,14 @@ export const MediaEditor01 = React.forwardRef<
   const [showDiscardConfirm, setShowDiscardConfirm] = React.useState(false);
   const textOnlyRef = React.useRef<HTMLDivElement | null>(null);
 
-  // Run a clean reset that also drops the history stack.
+  // Run a clean reset that also drops the history stack. Emits the `reset`
+  // edit-action centrally so every reset path (handle.reset, back-to-capture,
+  // discard-confirm) reports it once.
   const performReset = React.useCallback(() => {
     editor.reset();
     history.reset();
-  }, [editor, history]);
+    emitEditAction({ kind: "reset" });
+  }, [editor, history, emitEditAction]);
 
   // Close path with confirm-on-discard. Mirrors v0.1.5 Q-P10a:
   //   - In dialog mode, fires onClose unless dirty (then shows confirm).
@@ -1084,6 +1132,7 @@ export const MediaEditor01 = React.forwardRef<
               onGalleryFile={handleGalleryFile}
               onValidationError={props.onValidationError}
               onPermissionDenied={props.onPermissionDenied}
+              renderPermissionDenied={props.renderPermissionDenied}
             />
           ) : cameraIntakeAvailable ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center">
@@ -1133,210 +1182,210 @@ export const MediaEditor01 = React.forwardRef<
               video-draft trim/etc. land in R4. */}
           {editor.draft?.kind === "image" ? (
             <>
-          {editor.activeTool === "text" && selectedText ? (
-            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
-              <ToolTextInput
-                overlay={selectedText}
-                fonts={resolvedFonts}
-                colorPresets={resolvedColorPresets}
-                labels={mergedLabels}
-                onChange={(next) =>
-                  editor.updateTextOverlay(next.id, next)
-                }
-                onDelete={() => {
-                  editor.removeTextOverlay(selectedText.id);
-                  editor.setSelectedTextId(null);
-                }}
-              />
-            </ToolPanelFrame>
-          ) : null}
-          {editor.activeTool === "stickers" ? (
-            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
-              <ToolStickerPicker
-                sets={resolvedStickerSets}
-                onPick={handleStickerPick}
-              />
-            </ToolPanelFrame>
-          ) : null}
-          {editor.activeTool === "filters" && editor.draft.url ? (
-            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
-              <ToolFilterStrip
-                presets={resolvedFilterPresets}
-                sourceUrl={editor.draft.url}
-                activeId={editor.state.filter}
-                onSelect={(id) => editor.setFilter(id)}
-              />
-            </ToolPanelFrame>
-          ) : null}
-          {editor.activeTool === "adjust" ? (
-            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
-              <ToolAdjustSliders
-                value={editor.state.adjustments}
-                onChange={(next) => editor.setAdjustments(next)}
-                labels={mergedLabels}
-              />
-            </ToolPanelFrame>
-          ) : null}
-          {editor.activeTool === "draw" ? (
-            <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
-              <ToolDrawControls
-                color={editor.drawingTool.color}
-                brushSize={editor.drawingTool.brushSize}
-                mode={editor.drawingTool.mode}
-                colorPresets={resolvedColorPresets}
-                labels={mergedLabels}
-                onColorChange={(color) => editor.setDrawingTool({ color })}
-                onBrushSizeChange={(brushSize) =>
-                  editor.setDrawingTool({ brushSize })
-                }
-                onModeChange={(mode) => editor.setDrawingTool({ mode })}
-              />
-            </ToolPanelFrame>
-          ) : null}
-          {editor.activeTool === "crop" ? (
-            <div className="flex flex-wrap items-center justify-center gap-2 rounded-md border border-border bg-muted/30 p-2">
-              {resolvedCropAspects.length > 1 ? (
-                <div className="flex flex-wrap items-center gap-1 border-r border-border pr-2">
-                  {resolvedCropAspects.map((a) => (
-                    <button
-                      key={a}
-                      type="button"
-                      onClick={() => {
-                        editor.setCropAspect(a);
+              {editor.activeTool === "text" && selectedText ? (
+                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                  <ToolTextInput
+                    overlay={selectedText}
+                    fonts={resolvedFonts}
+                    colorPresets={resolvedColorPresets}
+                    labels={mergedLabels}
+                    onChange={(next) =>
+                      editor.updateTextOverlay(next.id, next)
+                    }
+                    onDelete={() => {
+                      editor.removeTextOverlay(selectedText.id);
+                      editor.setSelectedTextId(null);
+                    }}
+                  />
+                </ToolPanelFrame>
+              ) : null}
+              {editor.activeTool === "stickers" ? (
+                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                  <ToolStickerPicker
+                    sets={resolvedStickerSets}
+                    onPick={handleStickerPick}
+                  />
+                </ToolPanelFrame>
+              ) : null}
+              {editor.activeTool === "filters" && editor.draft.url ? (
+                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                  <ToolFilterStrip
+                    presets={resolvedFilterPresets}
+                    sourceUrl={editor.draft.url}
+                    activeId={editor.state.filter}
+                    onSelect={(id) => editor.setFilter(id)}
+                  />
+                </ToolPanelFrame>
+              ) : null}
+              {editor.activeTool === "adjust" ? (
+                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                  <ToolAdjustSliders
+                    value={editor.state.adjustments}
+                    onChange={(next) => editor.setAdjustments(next)}
+                    labels={mergedLabels}
+                  />
+                </ToolPanelFrame>
+              ) : null}
+              {editor.activeTool === "draw" ? (
+                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                  <ToolDrawControls
+                    color={editor.drawingTool.color}
+                    brushSize={editor.drawingTool.brushSize}
+                    mode={editor.drawingTool.mode}
+                    colorPresets={resolvedColorPresets}
+                    labels={mergedLabels}
+                    onColorChange={(color) => editor.setDrawingTool({ color })}
+                    onBrushSizeChange={(brushSize) =>
+                      editor.setDrawingTool({ brushSize })
+                    }
+                    onModeChange={(mode) => editor.setDrawingTool({ mode })}
+                  />
+                </ToolPanelFrame>
+              ) : null}
+              {editor.activeTool === "crop" ? (
+                <div className="flex flex-wrap items-center justify-center gap-2 rounded-md border border-border bg-muted/30 p-2">
+                  {resolvedCropAspects.length > 1 ? (
+                    <div className="flex flex-wrap items-center gap-1 border-r border-border pr-2">
+                      {resolvedCropAspects.map((a) => (
+                        <button
+                          key={a}
+                          type="button"
+                          onClick={() => {
+                            editor.setCropAspect(a);
+                            editor.setCrop(null);
+                          }}
+                          className={cn(
+                            "rounded px-2 py-0.5 text-xs font-medium transition-colors",
+                            editor.cropAspect === a
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                          )}
+                        >
+                          {a}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      // Apply crop = burn the cropRect into the source image at
+                      // NATIVE resolution. We can't use stage.toCanvas() — that
+                      // captures the displayed stage size (typically smaller than
+                      // source), so output would be down-sampled. Instead: load
+                      // the source image as <img>, map cropRect from stage coords
+                      // → image natural coords via the object-contain fit region,
+                      // then drawImage into a new canvas at natural resolution.
+                      const stage = stageRef.current;
+                      const crop = editor.state.crop;
+                      const sourceUrl =
+                        editor.draft?.url ?? editor.state.imageSrc;
+                      if (!stage || !crop || !sourceUrl) {
+                        editor.setActiveTool(null);
+                        return;
+                      }
+                      try {
+                        const img = new Image();
+                        img.crossOrigin = "anonymous";
+                        await new Promise<void>((resolve, reject) => {
+                          img.onload = () => resolve();
+                          img.onerror = () =>
+                            reject(new Error("image load failed"));
+                          img.src = sourceUrl;
+                        });
+                        // Compute the image's object-contain fit region in stage
+                        // coords (mirrors the Konva canvas's fitInto helper).
+                        const stageW = stage.width();
+                        const stageH = stage.height();
+                        const fitScale = Math.min(
+                          stageW / img.naturalWidth,
+                          stageH / img.naturalHeight,
+                        );
+                        const fitW = img.naturalWidth * fitScale;
+                        const fitH = img.naturalHeight * fitScale;
+                        const fitX = (stageW - fitW) / 2;
+                        const fitY = (stageH - fitH) / 2;
+                        // Intersect crop with fit (clip letterbox area out).
+                        const ix = Math.max(crop.x, fitX);
+                        const iy = Math.max(crop.y, fitY);
+                        const iw =
+                          Math.min(crop.x + crop.width, fitX + fitW) - ix;
+                        const ih =
+                          Math.min(crop.y + crop.height, fitY + fitH) - iy;
+                        if (iw <= 0 || ih <= 0) {
+                          editor.setActiveTool(null);
+                          return;
+                        }
+                        // Map intersection to natural image coords.
+                        const natScale = img.naturalWidth / fitW;
+                        const sx = (ix - fitX) * natScale;
+                        const sy = (iy - fitY) * natScale;
+                        const sw = iw * natScale;
+                        const sh = ih * natScale;
+                        const canvas = document.createElement("canvas");
+                        canvas.width = Math.round(sw);
+                        canvas.height = Math.round(sh);
+                        const ctx = canvas.getContext("2d");
+                        if (!ctx) {
+                          editor.setActiveTool(null);
+                          return;
+                        }
+                        ctx.drawImage(
+                          img,
+                          sx,
+                          sy,
+                          sw,
+                          sh,
+                          0,
+                          0,
+                          canvas.width,
+                          canvas.height,
+                        );
+                        const blob = await new Promise<Blob | null>((res) => {
+                          canvas.toBlob(res, "image/jpeg", 0.92);
+                        });
+                        if (!blob) {
+                          editor.setActiveTool(null);
+                          return;
+                        }
+                        const newUrl = URL.createObjectURL(blob);
+                        // Replace draft + imageSrc with the cropped image so the
+                        // tool sub-panel gate (editor.draft?.kind === "image")
+                        // stays true and re-crop works on the new image.
+                        editor.setDraft({
+                          source: editor.draft?.source ?? "initial",
+                          kind: "image",
+                          blob,
+                          url: newUrl,
+                          width: canvas.width,
+                          height: canvas.height,
+                          mimeType: "image/jpeg",
+                        });
+                        editor.setImageSrc(newUrl);
                         editor.setCrop(null);
-                      }}
-                      className={cn(
-                        "rounded px-2 py-0.5 text-xs font-medium transition-colors",
-                        editor.cropAspect === a
-                          ? "bg-primary text-primary-foreground"
-                          : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
-                      )}
-                    >
-                      {a}
-                    </button>
-                  ))}
+                        editor.setActiveTool(null);
+                      } catch {
+                        editor.setActiveTool(null);
+                      }
+                    }}
+                    className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
+                  >
+                    Apply
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      editor.setCrop(null);
+                      editor.setActiveTool(null);
+                    }}
+                    className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
                 </div>
               ) : null}
-              <button
-                type="button"
-                onClick={async () => {
-                  // Apply crop = burn the cropRect into the source image at
-                  // NATIVE resolution. We can't use stage.toCanvas() — that
-                  // captures the displayed stage size (typically smaller than
-                  // source), so output would be down-sampled. Instead: load
-                  // the source image as <img>, map cropRect from stage coords
-                  // → image natural coords via the object-contain fit region,
-                  // then drawImage into a new canvas at natural resolution.
-                  const stage = stageRef.current;
-                  const crop = editor.state.crop;
-                  const sourceUrl =
-                    editor.draft?.url ?? editor.state.imageSrc;
-                  if (!stage || !crop || !sourceUrl) {
-                    editor.setActiveTool(null);
-                    return;
-                  }
-                  try {
-                    const img = new Image();
-                    img.crossOrigin = "anonymous";
-                    await new Promise<void>((resolve, reject) => {
-                      img.onload = () => resolve();
-                      img.onerror = () =>
-                        reject(new Error("image load failed"));
-                      img.src = sourceUrl;
-                    });
-                    // Compute the image's object-contain fit region in stage
-                    // coords (mirrors the Konva canvas's fitInto helper).
-                    const stageW = stage.width();
-                    const stageH = stage.height();
-                    const fitScale = Math.min(
-                      stageW / img.naturalWidth,
-                      stageH / img.naturalHeight,
-                    );
-                    const fitW = img.naturalWidth * fitScale;
-                    const fitH = img.naturalHeight * fitScale;
-                    const fitX = (stageW - fitW) / 2;
-                    const fitY = (stageH - fitH) / 2;
-                    // Intersect crop with fit (clip letterbox area out).
-                    const ix = Math.max(crop.x, fitX);
-                    const iy = Math.max(crop.y, fitY);
-                    const iw =
-                      Math.min(crop.x + crop.width, fitX + fitW) - ix;
-                    const ih =
-                      Math.min(crop.y + crop.height, fitY + fitH) - iy;
-                    if (iw <= 0 || ih <= 0) {
-                      editor.setActiveTool(null);
-                      return;
-                    }
-                    // Map intersection to natural image coords.
-                    const natScale = img.naturalWidth / fitW;
-                    const sx = (ix - fitX) * natScale;
-                    const sy = (iy - fitY) * natScale;
-                    const sw = iw * natScale;
-                    const sh = ih * natScale;
-                    const canvas = document.createElement("canvas");
-                    canvas.width = Math.round(sw);
-                    canvas.height = Math.round(sh);
-                    const ctx = canvas.getContext("2d");
-                    if (!ctx) {
-                      editor.setActiveTool(null);
-                      return;
-                    }
-                    ctx.drawImage(
-                      img,
-                      sx,
-                      sy,
-                      sw,
-                      sh,
-                      0,
-                      0,
-                      canvas.width,
-                      canvas.height,
-                    );
-                    const blob = await new Promise<Blob | null>((res) => {
-                      canvas.toBlob(res, "image/jpeg", 0.92);
-                    });
-                    if (!blob) {
-                      editor.setActiveTool(null);
-                      return;
-                    }
-                    const newUrl = URL.createObjectURL(blob);
-                    // Replace draft + imageSrc with the cropped image so the
-                    // tool sub-panel gate (editor.draft?.kind === "image")
-                    // stays true and re-crop works on the new image.
-                    editor.setDraft({
-                      source: editor.draft?.source ?? "initial",
-                      kind: "image",
-                      blob,
-                      url: newUrl,
-                      width: canvas.width,
-                      height: canvas.height,
-                      mimeType: "image/jpeg",
-                    });
-                    editor.setImageSrc(newUrl);
-                    editor.setCrop(null);
-                    editor.setActiveTool(null);
-                  } catch {
-                    editor.setActiveTool(null);
-                  }
-                }}
-                className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
-              >
-                Apply
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  editor.setCrop(null);
-                  editor.setActiveTool(null);
-                }}
-                className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Cancel
-              </button>
-            </div>
+            </>
           ) : null}
-        </>
-      ) : null}
 
       {/* Edit-tool chip row — filtered by enabledTools (description §4). Only
           in the edit stage: the tools act on a captured draft, so they have
@@ -1345,30 +1394,30 @@ export const MediaEditor01 = React.forwardRef<
           crop on narrow (9:16) widths. */}
           {enabledTools.length > 0 && !isEmptyConfig ? (
             <div className="max-w-full self-center overflow-x-auto rounded-full border border-border bg-background/80 backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="mx-auto flex w-max items-center gap-1 p-1">
-            {enabledTools.map((tool) => (
-              <button
-                key={tool}
-                type="button"
-                onClick={() => editor.setActiveTool(tool)}
-                className={cn(
-                  "shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors",
-                  editor.activeTool === tool
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-                data-tool={tool}
-              >
-                {tool}
-              </button>
-            ))}
-            {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
-              <span className="ml-2 shrink-0 self-center text-[10px] text-muted-foreground/70">
-                ({resolvedCropAspects.length} crop aspects)
-              </span>
-            ) : null}
-          </div>
-        </div>
+              <div className="mx-auto flex w-max items-center gap-1 p-1">
+                {enabledTools.map((tool) => (
+                  <button
+                    key={tool}
+                    type="button"
+                    onClick={() => editor.setActiveTool(tool)}
+                    className={cn(
+                      "shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors",
+                      editor.activeTool === tool
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                    data-tool={tool}
+                  >
+                    {tool}
+                  </button>
+                ))}
+                {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
+                  <span className="ml-2 shrink-0 self-center text-[10px] text-muted-foreground/70">
+                    ({resolvedCropAspects.length} crop aspects)
+                  </span>
+                ) : null}
+              </div>
+            </div>
           ) : null}
         </div>
       ) : null}

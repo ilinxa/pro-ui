@@ -25,7 +25,13 @@ export interface UsePanZoomOptions {
   targetRef: RefObject<HTMLElement | null>;
   /** When false, all gestures + keys are no-ops. Default true. */
   enabled?: boolean;
-  /** When true, the hook listens to window keydown (arrows / +/- / 0). Default true. */
+  /**
+   * When true, the hook listens for keydown (arrows / +/- / 0) ON THE
+   * `targetRef` element — NOT on `window` — so the keys only act while the
+   * canvas (or a child) holds focus and never hijack arrow keys elsewhere on
+   * the page. The target must be focusable (e.g. `tabIndex={0}`) to receive
+   * them. Default true.
+   */
   bindKeyboard?: boolean;
   /** Min zoom. Default 1 (full-screen fit baseline). */
   minScale?: number;
@@ -90,7 +96,9 @@ interface PointerInfo {
  *   - Vertical scroll over non-canvas areas works normally — the listener
  *     is scoped to the targetRef element.
  *
- * Keyboard (when bindKeyboard=true and no text input focused):
+ * Keyboard (when bindKeyboard=true, the targetRef element is focused, and no
+ * text input is focused). Bound to the target element (not window) so the keys
+ * are focus-scoped to the canvas:
  *   - Arrow keys → pan (step = panStep)
  *   - + / =  → zoom in
  *   - - / _  → zoom out
@@ -308,9 +316,14 @@ export function usePanZoom(
   // ─── Keyboard ────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!enabled || !bindKeyboard || typeof window === "undefined") return;
+    if (!enabled || !bindKeyboard) return;
+    // Focus-scoped: listen on the target element, not window, so the keys only
+    // act while the canvas holds focus and never hijack arrow keys/zoom on the
+    // rest of the page. Requires the target to be focusable (tabIndex).
+    const el = targetRef.current;
+    if (!el) return;
     const handler = (e: KeyboardEvent) => {
-      // Don't hijack while typing.
+      // Don't hijack while typing into a nested input.
       const tgt = e.target as HTMLElement | null;
       if (
         tgt?.tagName === "INPUT" ||
@@ -355,9 +368,9 @@ export function usePanZoom(
           break;
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [bindKeyboard, enabled, panBy, panStep, reset, zoomBy, zoomStep]);
+    el.addEventListener("keydown", handler);
+    return () => el.removeEventListener("keydown", handler);
+  }, [bindKeyboard, enabled, targetRef, panBy, panStep, reset, zoomBy, zoomStep]);
 
   return {
     transform,
