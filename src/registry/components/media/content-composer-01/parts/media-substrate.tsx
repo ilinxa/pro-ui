@@ -86,6 +86,15 @@ export function MediaSubstrateMount({
           } satisfies MediaEditorState);
         }
       },
+      // mediaSlot-only — pull-only export for the shell's upload-on-publish.
+      export: async () => {
+        if (!mediaRef.current) {
+          throw new Error(
+            "content-composer-01: media export requested before the editor mounted.",
+          );
+        }
+        return mediaRef.current.export();
+      },
     };
     assignRef(handleRef, handle);
   }, [handleRef]);
