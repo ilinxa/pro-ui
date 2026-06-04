@@ -1,6 +1,7 @@
 "use client";
 
 import type { SlotSubstrate, SlotSubstrateMap, FindSubstrate } from "../types";
+import { JsonFormSubstrateMount } from "../parts/json-form-substrate";
 
 /**
  * The three default substrate records. Each maps a closed `SlotKind` to a
@@ -18,7 +19,7 @@ import type { SlotSubstrate, SlotSubstrateMap, FindSubstrate } from "../types";
 
 export const jsonFormSubstrate: SlotSubstrate<"metadataFields"> = {
   kind: "metadataFields",
-  render: () => null, // C6: mounts <JsonForm>
+  render: (args) => <JsonFormSubstrateMount {...args} />,
 };
 
 export const articleBodySubstrate: SlotSubstrate<"bodySlot"> = {
