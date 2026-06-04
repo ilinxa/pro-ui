@@ -2,6 +2,7 @@
 
 import type { SlotSubstrate, SlotSubstrateMap, FindSubstrate } from "../types";
 import { JsonFormSubstrateMount } from "../parts/json-form-substrate";
+import { BodySubstrateMount } from "../parts/body-substrate";
 
 /**
  * The three default substrate records. Each maps a closed `SlotKind` to a
@@ -24,7 +25,7 @@ export const jsonFormSubstrate: SlotSubstrate<"metadataFields"> = {
 
 export const articleBodySubstrate: SlotSubstrate<"bodySlot"> = {
   kind: "bodySlot",
-  render: () => null, // C7: lazy <ArticleBodyEditor> or eager <Textarea>
+  render: (args) => <BodySubstrateMount {...args} />,
 };
 
 export const mediaEditorSubstrate: SlotSubstrate<"mediaSlot"> = {
