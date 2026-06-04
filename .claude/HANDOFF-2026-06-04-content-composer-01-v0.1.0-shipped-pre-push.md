@@ -52,21 +52,27 @@ demo/usage/meta).
 git push origin master
 ```
 
-Then **run the consumer-tsc smoke** (F-01) once Vercel redeploys — this is the
-SECOND inter-procomp registry-dep install (json-form + article-body-01 +
-media-editor-01); expect F-cross-13 sub-traps per the 4-ship pattern → likely a
-v0.1.1 patch. Don't poll Vercel artifacts faster than 60s (see
-`feedback_vercel_bot_mitigation_on_polling`); manual-copy + local consumer-tsc is
-the fallback.
+✅ **DONE** — v0.1.0 (`c95a8e5`) + v0.1.1 (`0c55016`/`8255280`) are pushed and synced
+(0 ahead / 0 behind). content-composer-01 is **fully shipped + smoke-verified**; nothing
+about it is pending for a resume. The deployed-artifact re-smoke is optional confirmation
+only — the local-registry re-smoke (which tests the exact same artifacts through the
+rewriter) already returned 0 content-composer errors. Don't poll Vercel artifacts faster
+than 60s (`feedback_vercel_bot_mitigation_on_polling`).
 
-## Open follow-ups (GATE 3, all deferred — none blocking)
+## Open follow-ups (GATE 3 — all Low, none blocking; candidates for a future patch)
 
-- **F-01 (Med, v0.1.1):** consumer-tsc smoke (post-deploy).
+- ~~**F-01** consumer-tsc smoke~~ — ✅ **CLOSED in v0.1.1** (`0c55016`): cross-procomp
+  `/types` rewriter mangling → `.tsx`-path imports + `content-card-news-01` registryDependency;
+  local re-smoke 34→0.
 - **F-02 (Low):** non-active-step metadata gate is required-presence-only.
-- **F-03 (Low, v0.1.1):** inline body-image upload unwired (ExportMetadata mismatch).
-- **F-04 (Low, v0.2):** `export?` leaks into the uniform `SlotHandle` → `MediaSlotHandle` subtype.
-- **F-05 (Low, v0.2):** video re-edit blob re-attach (news is photo-only).
+- **F-03 (Low, → v0.1.2):** inline body-image upload unwired (ExportMetadata mismatch). *(Was
+  tagged v0.1.1 in the GATE 3 review; v0.1.1 was spent on the smoke fix, so this rolls to v0.1.2.)*
+- **F-04 (Low, → v0.2):** `export?` leaks into the uniform `SlotHandle` → `MediaSlotHandle` subtype.
+- **F-05 (Low, → v0.2):** video re-edit blob re-attach (news is photo-only).
 - **post backend adapter** ships behind media-editor-01 v0.2 `"library"`.
+
+There is **no required next action** for content-composer-01. A fresh session can pick up the
+above follow-ups (all optional), the concurrent cms-panel-01 GATE 1 sign-off, or new work.
 
 ## Key pointers
 
