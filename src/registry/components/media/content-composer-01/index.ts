@@ -33,6 +33,16 @@ export {
   type AuthorSourceConfig,
 } from "./parts/field-author-picker";
 
+// Default substrate registry + lookup — spreadable + overridable via the
+// `substrates` prop. The three records map each closed SlotKind to its mount.
+export {
+  DEFAULT_SUBSTRATES,
+  findSubstrate,
+  jsonFormSubstrate,
+  articleBodySubstrate,
+  mediaEditorSubstrate,
+} from "./lib/substrates";
+
 // Public type surface (description §9/§10). Implementation-internal hooks +
 // substrate records (useComposerState, default substrates, findSubstrate, …)
 // are added to this barrel as they land across the C3–C12 chain.
