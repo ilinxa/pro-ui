@@ -2362,6 +2362,77 @@
       "files": [
         { "path": "src/registry/components/media/media-editor-01/dummy-data.ts", "type": "registry:component", "target": "components/media-editor-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "content-composer-01",
+      "type": "registry:block",
+      "title": "Content Composer 01",
+      "description": "Multi-step content-authoring shell that composes json-form (metadata), article-body-01/Plate (body), and media-editor-01 (hero) into one configurable surface. Each content type is one declarative ComposerConfig — the news config ships first. The shell owns step navigation, blocking gates, autosave, the draft → publish → schedule lifecycle, lazy upload-on-publish, and per-content-type adapters to the backend ContentCardItem.",
+      "author": "ilinxa",
+      "categories": ["media"],
+      "registryDependencies": [
+        "@ilinxa/json-form",
+        "@ilinxa/article-body-01",
+        "@ilinxa/media-editor-01",
+        "https://ui.shadcn.com/r/styles/new-york/badge.json",
+        "https://ui.shadcn.com/r/styles/new-york/button.json",
+        "https://ui.shadcn.com/r/styles/new-york/command.json",
+        "https://ui.shadcn.com/r/styles/new-york/dialog.json",
+        "https://ui.shadcn.com/r/styles/new-york/input.json",
+        "https://ui.shadcn.com/r/styles/new-york/popover.json",
+        "https://ui.shadcn.com/r/styles/new-york/separator.json",
+        "https://ui.shadcn.com/r/styles/new-york/textarea.json"
+      ],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/media/content-composer-01/content-composer-01.tsx", "type": "registry:component", "target": "components/content-composer-01/content-composer-01.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/index.ts", "type": "registry:component", "target": "components/content-composer-01/index.ts" },
+        { "path": "src/registry/components/media/content-composer-01/types.ts", "type": "registry:component", "target": "components/content-composer-01/types.ts" },
+        { "path": "src/registry/components/media/content-composer-01/adapters/adapter-registry.ts", "type": "registry:component", "target": "components/content-composer-01/adapters/adapter-registry.ts" },
+        { "path": "src/registry/components/media/content-composer-01/configs/news-composer.config.ts", "type": "registry:component", "target": "components/content-composer-01/configs/news-composer.config.ts" },
+        { "path": "src/registry/components/media/content-composer-01/configs/post-composer.config.ts", "type": "registry:component", "target": "components/content-composer-01/configs/post-composer.config.ts" },
+        { "path": "src/registry/components/media/content-composer-01/hooks/use-autosave.ts", "type": "registry:component", "target": "components/content-composer-01/hooks/use-autosave.ts" },
+        { "path": "src/registry/components/media/content-composer-01/hooks/use-body-dirty.ts", "type": "registry:component", "target": "components/content-composer-01/hooks/use-body-dirty.ts" },
+        { "path": "src/registry/components/media/content-composer-01/hooks/use-composer-context.ts", "type": "registry:component", "target": "components/content-composer-01/hooks/use-composer-context.ts" },
+        { "path": "src/registry/components/media/content-composer-01/hooks/use-composer-state.ts", "type": "registry:component", "target": "components/content-composer-01/hooks/use-composer-state.ts" },
+        { "path": "src/registry/components/media/content-composer-01/hooks/use-slot-handles.ts", "type": "registry:component", "target": "components/content-composer-01/hooks/use-slot-handles.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/assign-ref.ts", "type": "registry:component", "target": "components/content-composer-01/lib/assign-ref.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/clamp-media-sources.ts", "type": "registry:component", "target": "components/content-composer-01/lib/clamp-media-sources.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/gates.ts", "type": "registry:component", "target": "components/content-composer-01/lib/gates.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/hydration.ts", "type": "registry:component", "target": "components/content-composer-01/lib/hydration.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/phase-reducer.ts", "type": "registry:component", "target": "components/content-composer-01/lib/phase-reducer.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/publish-cta.ts", "type": "registry:component", "target": "components/content-composer-01/lib/publish-cta.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/reducer.ts", "type": "registry:component", "target": "components/content-composer-01/lib/reducer.ts" },
+        { "path": "src/registry/components/media/content-composer-01/lib/substrates.tsx", "type": "registry:component", "target": "components/content-composer-01/lib/substrates.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/lib/upload.ts", "type": "registry:component", "target": "components/content-composer-01/lib/upload.ts" },
+        { "path": "src/registry/components/media/content-composer-01/parts/body-substrate-plaintext.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/body-substrate-plaintext.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/body-substrate-plate.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/body-substrate-plate.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/body-substrate.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/body-substrate.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/composer-dialog.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/composer-dialog.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/composer-shell.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/composer-shell.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/field-author-picker.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/field-author-picker.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/field-tags.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/field-tags.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/json-form-substrate.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/json-form-substrate.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/media-substrate.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/media-substrate.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/missing-substrate.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/missing-substrate.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/publish-bar.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/publish-bar.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/slot-mount.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/slot-mount.tsx" },
+        { "path": "src/registry/components/media/content-composer-01/parts/step-indicator.tsx", "type": "registry:component", "target": "components/content-composer-01/parts/step-indicator.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "content-composer-01-fixtures",
+      "type": "registry:block",
+      "title": "Content Composer 01 — fixtures",
+      "description": "Content Composer 01 bundle including sample dummy-data (sample authors + a published ContentCardItem with live engagement counts + the persisted article body) for the re-edit round-trip demo. Resolves the base content-composer-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["media", "fixtures"],
+      "registryDependencies": ["@ilinxa/content-composer-01"],
+      "files": [
+        { "path": "src/registry/components/media/content-composer-01/dummy-data.ts", "type": "registry:component", "target": "components/content-composer-01/dummy-data.ts" }
+      ]
     }
   ]
 }
