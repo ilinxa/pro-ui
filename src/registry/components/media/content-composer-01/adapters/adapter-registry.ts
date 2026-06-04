@@ -3,14 +3,17 @@ import type {
   ContentCardItem,
   ContentTypeAdapter,
 } from "../types";
+import { newsContentItemAdapter } from "../configs/news-composer.config";
 
 /**
  * Runtime adapter registry keyed by `config.adapterId`. Each content-type config
- * module contributes its adapter pair here (the news adapter lands in C12). The
- * shell resolves `getAdapter(config.adapterId)` to map the draft ↔ the backend
- * item at the lifecycle exits.
+ * module contributes its adapter pair here. The shell resolves
+ * `getAdapter(config.adapterId)` to map the draft ↔ the backend item at the
+ * lifecycle exits.
  */
-export const ADAPTER_REGISTRY: AdapterRegistry = {};
+export const ADAPTER_REGISTRY: AdapterRegistry = {
+  "news-content-item": newsContentItemAdapter,
+};
 
 export function getAdapter(
   adapterId: string,
