@@ -6,6 +6,13 @@ export {
   type UseComposerStateReturn,
 } from "./hooks/use-composer-state";
 
+// Per-mount + per-step context hooks (throw outside their subtree). Exposed so
+// consumers' custom field/slot renderers can read the live composer state.
+export {
+  useComposerContext,
+  useComposerStep,
+} from "./hooks/use-composer-context";
+
 // Public type surface (description §9/§10). Implementation-internal hooks +
 // substrate records (useComposerState, default substrates, findSubstrate, …)
 // are added to this barrel as they land across the C3–C12 chain.
