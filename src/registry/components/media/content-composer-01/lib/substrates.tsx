@@ -3,6 +3,7 @@
 import type { SlotSubstrate, SlotSubstrateMap, FindSubstrate } from "../types";
 import { JsonFormSubstrateMount } from "../parts/json-form-substrate";
 import { BodySubstrateMount } from "../parts/body-substrate";
+import { MediaSubstrateMount } from "../parts/media-substrate";
 
 /**
  * The three default substrate records. Each maps a closed `SlotKind` to a
@@ -30,7 +31,7 @@ export const articleBodySubstrate: SlotSubstrate<"bodySlot"> = {
 
 export const mediaEditorSubstrate: SlotSubstrate<"mediaSlot"> = {
   kind: "mediaSlot",
-  render: () => null, // C8: mounts <MediaEditor01> + clampMediaSources
+  render: (args) => <MediaSubstrateMount {...args} />,
 };
 
 export const DEFAULT_SUBSTRATES: SlotSubstrateMap = {
