@@ -26,7 +26,7 @@ import type { FormSchema, Condition } from "@/registry/components/forms/json-for
 // import them from the content-composer barrel without reaching into the
 // substrate procomps directly. Centralizing the content-card-news-01 type
 // import here keeps the cross-procomp `/types` reference in ONE place (the
-// config + adapter then import these from "../types", not cross-procomp).
+// config + adapter then read these via the local barrel, not cross-procomp).
 export type { MediaEditorState, ExportMetadata, InitialSource, ArticleBodyValue, ContentCardItem, ContentStatus };
 export type { MediaEditor01Props, MediaEditor01Handle };
 export type {

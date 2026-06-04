@@ -38,11 +38,20 @@ export const meta: ComponentMeta = {
   author: { name: "ilinxa" },
 
   dependencies: {
-    // Skeleton (C1/C2): types.ts type-imports the three substrate procomps +
-    // the adapter target. shadcn primitives + lucide land as the slots/chrome
-    // are wired across C3–C12; meta deps are re-audited per commit via
-    // validate:meta-deps (F-cross-07).
-    shadcn: [],
+    // shadcn primitives used by the shell chrome + custom field renderers.
+    // Plate / Konva / RHF / Zod arrive transitively through the three substrate
+    // procomps (registryDependencies), not re-declared here. react + lucide-react
+    // are baseline (audit-whitelisted). Re-audited via validate:meta-deps (F-cross-07).
+    shadcn: [
+      "badge",
+      "button",
+      "command",
+      "dialog",
+      "input",
+      "popover",
+      "separator",
+      "textarea",
+    ],
     npm: {},
     internal: [
       "media-editor-01",
