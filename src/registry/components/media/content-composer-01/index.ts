@@ -1,5 +1,11 @@
 export { ContentComposer01 } from "./content-composer-01";
 
+// Headless state (description §10) — for consumers building a custom shell.
+export {
+  useComposerState,
+  type UseComposerStateReturn,
+} from "./hooks/use-composer-state";
+
 // Public type surface (description §9/§10). Implementation-internal hooks +
 // substrate records (useComposerState, default substrates, findSubstrate, …)
 // are added to this barrel as they land across the C3–C12 chain.

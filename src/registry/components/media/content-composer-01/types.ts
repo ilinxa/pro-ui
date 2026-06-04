@@ -20,7 +20,7 @@ import type { FormSchema, Condition } from "@/registry/components/forms/json-for
 // Re-export the substrate types the public surface leans on, so consumers
 // import them from the content-composer barrel without reaching into the
 // substrate procomps directly.
-export type { MediaEditorState, ExportMetadata, InitialSource, ArticleBodyValue, ContentCardItem };
+export type { MediaEditorState, ExportMetadata, InitialSource, ArticleBodyValue, ContentCardItem, ContentStatus };
 export type { MediaEditor01Props, MediaEditor01Handle };
 
 // ─── Slot kinds + config (description §15) ──────────────────────────────
