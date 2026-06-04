@@ -10,7 +10,7 @@ import {
   ARTICLE_BODY_EMPTY_VALUE,
   type ArticleBodyValue,
 } from "@/registry/components/data/article-body-01/article-body-01";
-import type { ImageUploader } from "@/registry/components/data/article-body-01/types";
+import type { ImageUploader } from "@/registry/components/data/article-body-01/article-body-01";
 
 export interface BodySubstratePlateProps {
   value: ArticleBodyValue;

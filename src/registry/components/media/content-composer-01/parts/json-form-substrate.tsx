@@ -5,7 +5,7 @@ import { JsonForm } from "@/registry/components/forms/json-form/json-form";
 import type {
   FieldRenderer,
   JsonFormHandle,
-} from "@/registry/components/forms/json-form/types";
+} from "@/registry/components/forms/json-form/json-form";
 import type { SlotHandle, SlotRenderArgs } from "../types";
 import { assignRef } from "../lib/assign-ref";
 import { tagsFieldRenderer } from "./field-tags";

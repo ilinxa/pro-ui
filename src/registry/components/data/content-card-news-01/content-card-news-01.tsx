@@ -399,3 +399,17 @@ export const ContentCardNews01 = memo(ContentCardNews01Impl);
 ContentCardNews01.displayName = "ContentCardNews01";
 
 export default ContentCardNews01;
+
+// ─── Tail type re-exports (cross-procomp consumers) ──────────────────────────
+// Procomps that adapt to ContentCardItem must import these types from THIS
+// component-file path, not `./types`: the shadcn path rewriter preserves the
+// component-file path but mangles `/types` cross-procomp imports (F-S1).
+export type {
+  ContentCardItem,
+  ContentStatus,
+  NewsArticleAuthor,
+  NewsPublisher,
+  NewsVisibility,
+  ContentSensitivity,
+  ContentPaywall,
+} from "./types";

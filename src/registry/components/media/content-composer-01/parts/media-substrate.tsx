@@ -6,7 +6,7 @@ import type {
   InitialSource,
   MediaEditor01Handle,
   MediaEditorState,
-} from "@/registry/components/media/media-editor-01/types";
+} from "@/registry/components/media/media-editor-01/media-editor-01";
 import type { MediaSlotValue, SlotHandle, SlotRenderArgs } from "../types";
 import { assignRef } from "../lib/assign-ref";
 import { clampMediaSources } from "../lib/clamp-media-sources";

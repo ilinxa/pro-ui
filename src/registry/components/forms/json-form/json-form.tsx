@@ -444,3 +444,18 @@ function stableStringify(input: unknown): string {
     .map((k) => `${JSON.stringify(k)}:${stableStringify((input as Record<string, unknown>)[k])}`)
     .join(",")}}`;
 }
+
+// ─── Tail type re-exports (cross-procomp consumers) ──────────────────────────
+// Procomps that compose json-form must import these types from THIS component-
+// file path, not `./types`: the shadcn path rewriter preserves the component-
+// file path but mangles `/types` cross-procomp imports (F-S1).
+export type {
+  FormSchema,
+  Condition,
+  ConditionOrFn,
+  FieldDefinition,
+  FieldOptionsResolver,
+  FieldRenderer,
+  JsonFormHandle,
+  FieldConfig,
+} from "./types";

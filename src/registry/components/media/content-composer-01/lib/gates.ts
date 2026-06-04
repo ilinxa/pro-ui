@@ -1,4 +1,4 @@
-import type { FormSchema } from "@/registry/components/forms/json-form/types";
+import type { FormSchema } from "@/registry/components/forms/json-form/json-form";
 import { evaluateCondition } from "@/registry/components/forms/json-form/lib/condition-evaluator";
 import { getByPath } from "@/registry/components/forms/json-form/lib/path";
 import type {

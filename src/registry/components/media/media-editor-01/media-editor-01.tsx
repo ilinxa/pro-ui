@@ -1603,3 +1603,19 @@ function buildExportMetadata(
     crop: state.crop ?? undefined,
   };
 }
+
+// ─── Tail type re-exports (cross-procomp consumers) ──────────────────────────
+// Procomps that compose media-editor-01 must import these types from THIS
+// component-file path, not `./types`: the shadcn path rewriter preserves the
+// component-file path but mangles `/types` cross-procomp imports (F-S1).
+export type {
+  MediaEditor01Props,
+  MediaEditor01Handle,
+  MediaEditorState,
+  ExportMetadata,
+  InitialSource,
+  ComposerMode,
+  EditTool,
+  MediaSource,
+  AspectRatio,
+} from "./types";

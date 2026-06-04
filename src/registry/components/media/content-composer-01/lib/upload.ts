@@ -1,4 +1,4 @@
-import type { ExportMetadata } from "@/registry/components/media/media-editor-01/types";
+import type { ExportMetadata } from "@/registry/components/media/media-editor-01/media-editor-01";
 
 export type Uploader = (
   blob: Blob,

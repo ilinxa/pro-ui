@@ -1,4 +1,4 @@
-import type { FieldConfig, FormSchema } from "@/registry/components/forms/json-form/types";
+import type { FieldConfig, FormSchema } from "@/registry/components/forms/json-form/json-form";
 import type {
   ComposerConfig,
   ComposerDraft,
