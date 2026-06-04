@@ -51,6 +51,8 @@ export {
   newsContentItemAdapter,
   type NewsComposerConfigOptions,
 } from "./configs/news-composer.config";
+// post config — modeled + deferred (clamp proof; ships behind media-editor v0.2).
+export { postComposerConfig } from "./configs/post-composer.config";
 export { getAdapter, ADAPTER_REGISTRY } from "./adapters/adapter-registry";
 
 // Public type surface (description §9/§10). Implementation-internal hooks +
