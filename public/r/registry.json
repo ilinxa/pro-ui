@@ -2434,6 +2434,55 @@
       "files": [
         { "path": "src/registry/components/media/content-composer-01/dummy-data.ts", "type": "registry:component", "target": "components/content-composer-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-carousel-editor-01",
+      "type": "registry:block",
+      "title": "Media Carousel Editor 01",
+      "description": "Multi-item media composer (Instagram-feed-post semantics): drag-drop / browse one-or-more mixed photo+video files into an ordered, reorderable rail with a main preview, and edit any item through a single shared media-editor-01 panel (loaded serially, never N at once). Composes media-editor-01 without modifying it; edits flatten on apply and export() is pull-only. The authoring counterpart to the media-carousel-01 viewer.",
+      "author": "ilinxa",
+      "categories": ["media"],
+      "registryDependencies": [
+        "@ilinxa/media-editor-01",
+        "https://ui.shadcn.com/r/styles/new-york/button.json",
+        "https://ui.shadcn.com/r/styles/new-york/scroll-area.json"
+      ],
+      "dependencies": [
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities",
+        "lucide-react"
+      ],
+      "files": [
+        { "path": "src/registry/components/media/media-carousel-editor-01/media-carousel-editor-01.tsx", "type": "registry:component", "target": "components/media-carousel-editor-01/media-carousel-editor-01.tsx" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/index.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/index.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/types.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/types.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/hooks/use-carousel-state.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/hooks/use-carousel-state.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/hooks/use-controllable-state.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/hooks/use-controllable-state.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/lib/aspect.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/lib/aspect.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/lib/clamp-sources.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/lib/clamp-sources.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/lib/file-intake.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/lib/file-intake.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/lib/validate-media-file.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/lib/validate-media-file.ts" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/parts/media-dropzone.tsx", "type": "registry:component", "target": "components/media-carousel-editor-01/parts/media-dropzone.tsx" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/parts/preview-rail.tsx", "type": "registry:component", "target": "components/media-carousel-editor-01/parts/preview-rail.tsx" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/parts/rail-thumb.tsx", "type": "registry:component", "target": "components/media-carousel-editor-01/parts/rail-thumb.tsx" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/parts/main-preview.tsx", "type": "registry:component", "target": "components/media-carousel-editor-01/parts/main-preview.tsx" },
+        { "path": "src/registry/components/media/media-carousel-editor-01/parts/edit-panel.tsx", "type": "registry:component", "target": "components/media-carousel-editor-01/parts/edit-panel.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-carousel-editor-01-fixtures",
+      "type": "registry:block",
+      "title": "Media Carousel Editor 01 — fixtures",
+      "description": "Media Carousel Editor 01 bundle including sample dummy-data (a mixed photo + video carousel seeded from remote URLs, the CMS re-edit shape) for the demo. Resolves the base media-carousel-editor-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["media", "fixtures"],
+      "registryDependencies": ["@ilinxa/media-carousel-editor-01"],
+      "files": [
+        { "path": "src/registry/components/media/media-carousel-editor-01/dummy-data.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/dummy-data.ts" }
+      ]
     }
   ]
 }
