@@ -72,7 +72,15 @@ export function ComposerShell({
 
       {renderStepChrome?.(ctx)}
 
-      <div key={step?.id} className="reveal-up min-h-0">
+      <div key={step?.id} className="reveal-up flex min-h-0 flex-col gap-3">
+        {step && (
+          <h3
+            id={`composer-step-${step.id}-label`}
+            className="font-heading text-sm font-medium text-foreground"
+          >
+            {step.title}
+          </h3>
+        )}
         <ComposerStepContext.Provider value={stepCtx}>
           {children}
         </ComposerStepContext.Provider>
