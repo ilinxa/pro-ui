@@ -177,6 +177,9 @@ import { meta as storyComposer01Meta } from "./components/media/story-composer-0
 import MediaEditor01Demo from "./components/media/media-editor-01/demo";
 import MediaEditor01Usage from "./components/media/media-editor-01/usage";
 import { meta as mediaEditor01Meta } from "./components/media/media-editor-01/meta";
+import ContentComposer01Demo from "./components/media/content-composer-01/demo";
+import ContentComposer01Usage from "./components/media/content-composer-01/usage";
+import { meta as contentComposer01Meta } from "./components/media/content-composer-01/meta";
 
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
@@ -465,6 +468,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: mediaEditor01Meta,
     Demo: MediaEditor01Demo,
     Usage: MediaEditor01Usage,
+  },
+  {
+    meta: contentComposer01Meta,
+    Demo: ContentComposer01Demo,
+    Usage: ContentComposer01Usage,
   },
 ];
 
