@@ -1,16 +1,19 @@
-# HANDOFF — content-composer-01 v0.1.0 SHIPPED (pre-push, push user-gated)
+# HANDOFF — content-composer-01 v0.1.0 SHIPPED+PUSHED → v0.1.1 SMOKE-FIX (DONE)
 
 **Date:** 2026-06-04
-**Status:** ✅ v0.1.0 complete through GATE 3 — all gates green. **18 local commits UNPUSHED, push awaiting user confirmation.**
+**Status:** ✅ v0.1.0 shipped + PUSHED (`c95a8e5`) → post-deploy smoke confirmed F-01 → **v0.1.1 fix (`0c55016`) re-smoke CLEAN (34→0)**. The 4-ship pattern is complete. v0.1.1 + docs push once committed.
+
+> **v0.1.1 update (smoke fix):** the post-deploy consumer-tsc smoke confirmed F-01 — the shadcn rewriter mangles cross-procomp `@/registry/.../types` imports. Fixed by (a) tail `export type {…}` re-exports on json-form/media-editor-01/content-card-news-01 `.tsx` + repointing the composer's imports to the `.tsx` path, and (b) **adding `content-card-news-01` as a registryDependency** (a type-only dep STILL needs the module installed for consumer-tsc). Local-registry re-smoke → 0 content-composer errors. See the [decision §v0.1.1](decisions/2026-06-04-content-composer-01-v0.1.0-first-ship.md) + [GATE 3 F-01](../docs/procomps/content-composer-01-procomp/reviews/2026-06-04-v0.1.0-spotcheck.md).
 
 ---
 
 ## TL;DR
 
-Resumed the C3-pause and drained the full **C4→C18** chain. `content-composer-01`
-v0.1.0 (52nd procomp, category `media`) is the multi-step content-authoring SHELL
-that `media-editor-01` was extracted for. **News ships first.** GATE 3 verdict
-**Pass with follow-ups**. Nothing is deployed — the push is user-gated.
+Resumed the C3-pause and drained the full **C4→C18** chain, pushed v0.1.0, then ran
+the post-deploy smoke → confirmed + fixed F-01 in **v0.1.1**. `content-composer-01`
+(52nd procomp, category `media`) is the multi-step content-authoring SHELL that
+`media-editor-01` was extracted for. **News ships first.** GATE 3 **Pass with
+follow-ups** (F-01 now closed).
 
 ## Git state
 
