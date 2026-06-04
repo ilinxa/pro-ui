@@ -4,8 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type { ComposerCtx, ComposerStepCtx } from "../types";
-import { ComposerStepContext } from "../hooks/use-composer-context";
+import type { ComposerCtx } from "../types";
 import { StepIndicator } from "./step-indicator";
 
 export interface ComposerShellProps {
@@ -24,10 +23,11 @@ export interface ComposerShellProps {
 
 /**
  * The inline presentation frame: step nav + the active step's slot + a footer
- * with backward/forward navigation and the publish region. Provides the per-step
- * context so custom fields/slots can read `useComposerStep()`. The orchestrated
- * `reveal-up` fires once per step transition (keyed on the active step id) — the
- * single reveal per surface mandated by the design system.
+ * with backward/forward navigation and the publish region. The root wraps the
+ * `children` (the active `<SlotMount>`) in the per-step context, so this frame
+ * only renders chrome. The orchestrated `reveal-up` fires once per step
+ * transition (keyed on the active step id) — the single reveal per surface
+ * mandated by the design system.
  */
 export function ComposerShell({
   ctx,
@@ -42,20 +42,6 @@ export function ComposerShell({
   const step = steps[cursor];
   const isFirst = cursor <= 0;
   const isLast = cursor >= steps.length - 1;
-
-  const stepCtx = React.useMemo<ComposerStepCtx | null>(
-    () =>
-      step
-        ? {
-            stepId: step.id,
-            contentType: ctx.contentType,
-            mode,
-            isDirty: ctx.isDirty,
-            stepErrors: ctx.stepErrors[step.id] ?? [],
-          }
-        : null,
-    [step, ctx.contentType, mode, ctx.isDirty, ctx.stepErrors],
-  );
 
   return (
     <div
@@ -72,7 +58,11 @@ export function ComposerShell({
 
       {renderStepChrome?.(ctx)}
 
-      <div key={step?.id} className="reveal-up flex min-h-0 flex-col gap-3">
+      <div
+        key={step?.id}
+        data-composer-step-body
+        className="reveal-up flex min-h-0 flex-col gap-3"
+      >
         {step && (
           <h3
             id={`composer-step-${step.id}-label`}
@@ -81,9 +71,7 @@ export function ComposerShell({
             {step.title}
           </h3>
         )}
-        <ComposerStepContext.Provider value={stepCtx}>
-          {children}
-        </ComposerStepContext.Provider>
+        {children}
       </div>
 
       {/* gate-failure / save-ack announcements */}

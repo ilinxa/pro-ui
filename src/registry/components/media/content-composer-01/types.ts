@@ -206,6 +206,12 @@ export interface SlotHandle<TValue = unknown> {
   validate: () => Promise<boolean>;
   /** re-seed on autosave-restore / re-edit. RESETS the dirty baseline */
   loadValue: (value: TValue) => void;
+  /**
+   * mediaSlot ONLY — pull-only export so the shell can upload the captured hero
+   * at publish/schedule (QP-10 lazy upload). Other slots omit it; the shell
+   * duck-types its presence.
+   */
+  export?: () => Promise<{ blob: Blob; metadata: ExportMetadata }>;
 }
 
 // ─── Adapter (description §5) — pure forward+inverse fns, NOT components ──
