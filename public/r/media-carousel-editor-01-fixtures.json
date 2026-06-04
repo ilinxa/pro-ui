@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "media-carousel-editor-01-fixtures",
+  "title": "Media Carousel Editor 01 — fixtures",
+  "author": "ilinxa",
+  "description": "Media Carousel Editor 01 bundle including sample dummy-data (a mixed photo + video carousel seeded from remote URLs, the CMS re-edit shape) for the demo. Resolves the base media-carousel-editor-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/media-carousel-editor-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/media-carousel-editor-01/dummy-data.ts",
+      "content": "import type { MediaCarouselItem } from \"./types\";\n\n/**\n * Sample carousel — a \"re-edit\" seed shape (remote URLs, no local blobs), as a\n * CMS would hydrate an existing post's media. Mixed photo + video proves the\n * collection doesn't separate kinds. Items have NO `blob`/`editorState`, so the\n * carousel treats them as unedited remote sources.\n *\n * Square (1:1) image sources so the demo's `aspect=\"auto\"` resolves to a clean\n * 1:1 frame.\n */\nexport const dummyCarouselItems: MediaCarouselItem[] = [\n  {\n    id: \"seed-1\",\n    kind: \"image\",\n    url: \"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1080&h=1080&fit=crop\",\n    width: 1080,\n    height: 1080,\n    fileName: \"ridge-light.jpg\",\n  },\n  {\n    id: \"seed-2\",\n    kind: \"image\",\n    url: \"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1080&h=1080&fit=crop\",\n    width: 1080,\n    height: 1080,\n    fileName: \"city-dusk.jpg\",\n  },\n  {\n    id: \"seed-3\",\n    kind: \"video\",\n    url: \"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4\",\n    width: 1280,\n    height: 720,\n    fileName: \"clip.mp4\",\n  },\n  {\n    id: \"seed-4\",\n    kind: \"image\",\n    url: \"https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1080&h=1080&fit=crop\",\n    width: 1080,\n    height: 1080,\n    fileName: \"press.jpg\",\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/media-carousel-editor-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

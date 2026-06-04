@@ -181,6 +181,10 @@ import ContentComposer01Demo from "./components/media/content-composer-01/demo";
 import ContentComposer01Usage from "./components/media/content-composer-01/usage";
 import { meta as contentComposer01Meta } from "./components/media/content-composer-01/meta";
 
+import MediaCarouselEditor01Demo from "./components/media/media-carousel-editor-01/demo";
+import MediaCarouselEditor01Usage from "./components/media/media-carousel-editor-01/usage";
+import { meta as mediaCarouselEditor01Meta } from "./components/media/media-carousel-editor-01/meta";
+
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
 import { meta as codeBlockMeta } from "./components/code/code-block/meta";
@@ -473,6 +477,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: contentComposer01Meta,
     Demo: ContentComposer01Demo,
     Usage: ContentComposer01Usage,
+  },
+  {
+    meta: mediaCarouselEditor01Meta,
+    Demo: MediaCarouselEditor01Demo,
+    Usage: MediaCarouselEditor01Usage,
   },
 ];
 
