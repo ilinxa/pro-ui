@@ -1,4 +1,4 @@
-import type { MediaSource } from "@/registry/components/media/media-editor-01/types";
+import type { MediaSource } from "@/registry/components/media/media-editor-01/media-editor-01";
 
 const KNOWN: readonly MediaSource[] = ["camera", "upload"];
 

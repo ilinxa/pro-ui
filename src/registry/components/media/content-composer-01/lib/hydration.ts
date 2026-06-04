@@ -2,7 +2,7 @@ import type {
   FieldDefinition,
   FormSchema,
   FieldOptionsResolver,
-} from "@/registry/components/forms/json-form/types";
+} from "@/registry/components/forms/json-form/json-form";
 
 /**
  * Config hydration layer (QP-6). A `ComposerConfig` stays a pure `.json` file

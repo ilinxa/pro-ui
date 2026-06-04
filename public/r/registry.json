@@ -2375,6 +2375,7 @@
         "@ilinxa/json-form",
         "@ilinxa/article-body-01",
         "@ilinxa/media-editor-01",
+        "@ilinxa/content-card-news-01",
         "https://ui.shadcn.com/r/styles/new-york/badge.json",
         "https://ui.shadcn.com/r/styles/new-york/button.json",
         "https://ui.shadcn.com/r/styles/new-york/command.json",

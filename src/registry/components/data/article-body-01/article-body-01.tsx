@@ -158,4 +158,8 @@ function serializeValueKey(value: ArticleBodyValue): string {
 // source get rewritten by shadcn 4.6.0 to `./types` of the CURRENT slug
 // (F-S1 cross-procomp `/types` bug), so cross-procomp imports must come from
 // this component file instead — its path the rewriter handles correctly.
-export { ARTICLE_BODY_EMPTY_VALUE, type ArticleBodyValue } from "./types";
+export {
+  ARTICLE_BODY_EMPTY_VALUE,
+  type ArticleBodyValue,
+  type ImageUploader,
+} from "./types";

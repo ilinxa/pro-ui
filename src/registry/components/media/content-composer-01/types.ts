@@ -9,7 +9,7 @@ import type {
   EditTool,
   MediaSource,
   AspectRatio,
-} from "@/registry/components/media/media-editor-01/types";
+} from "@/registry/components/media/media-editor-01/media-editor-01";
 import type { ArticleBodyValue } from "@/registry/components/data/article-body-01/article-body-01";
 import type {
   ContentCardItem,
@@ -19,8 +19,8 @@ import type {
   NewsVisibility,
   ContentSensitivity,
   ContentPaywall,
-} from "@/registry/components/data/content-card-news-01/types";
-import type { FormSchema, Condition } from "@/registry/components/forms/json-form/types";
+} from "@/registry/components/data/content-card-news-01/content-card-news-01";
+import type { FormSchema, Condition } from "@/registry/components/forms/json-form/json-form";
 
 // Re-export the substrate types the public surface leans on, so consumers
 // import them from the content-composer barrel without reaching into the
