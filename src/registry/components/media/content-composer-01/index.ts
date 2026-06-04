@@ -13,6 +13,26 @@ export {
   useComposerStep,
 } from "./hooks/use-composer-context";
 
+// Config hydration layer (QP-6) — for consumers deserializing JSON configs and
+// re-attaching function escape-hatches before building a ComposerConfig.
+export {
+  hydrateSchema,
+  stripHydration,
+  type ComposerConfigHydration,
+  type FieldHydration,
+  type SchemaHydration,
+  type ConditionFn,
+} from "./lib/hydration";
+
+// Composer-owned custom json-form field renderers (the two json-form gaps).
+// Exported for `fieldRegistry` reuse in consumer schemas.
+export { tagsFieldRenderer } from "./parts/field-tags";
+export {
+  authorPickerFieldRenderer,
+  type AuthorEntity,
+  type AuthorSourceConfig,
+} from "./parts/field-author-picker";
+
 // Public type surface (description §9/§10). Implementation-internal hooks +
 // substrate records (useComposerState, default substrates, findSubstrate, …)
 // are added to this barrel as they land across the C3–C12 chain.
