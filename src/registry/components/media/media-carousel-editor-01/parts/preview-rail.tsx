@@ -32,7 +32,7 @@ export interface PreviewRailProps {
   };
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
-  onFiles: (files: FileList) => void;
+  onFiles: (files: File[] | FileList) => void;
 }
 
 /**

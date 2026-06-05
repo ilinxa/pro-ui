@@ -19,7 +19,7 @@ export interface MediaDropzoneProps {
     dropzoneHint: string;
     addMore: string;
   };
-  onFiles: (files: FileList) => void;
+  onFiles: (files: File[] | FileList) => void;
 }
 
 function acceptAttr(accept: MediaKind[]): string {
@@ -60,9 +60,12 @@ export function MediaDropzone({
   };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+    // Snapshot into an array BEFORE resetting `value`: clearing a file input's
+    // value empties its live `FileList` in place, so the captured reference
+    // would otherwise reach `onFiles` already empty (silent no-add on browse).
+    const files = e.target.files ? Array.from(e.target.files) : [];
     e.target.value = ""; // allow re-picking the same file
-    if (files?.length) onFiles(files);
+    if (files.length) onFiles(files);
   };
 
   const input = (
