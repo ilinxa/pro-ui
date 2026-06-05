@@ -4,6 +4,7 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import type { MediaCarouselItem, MediaKind } from "../types";
 import { MediaDropzone } from "./media-dropzone";
@@ -15,6 +16,8 @@ export interface PreviewRailProps {
   /** Editing in progress → the whole rail is read-only. */
   disabled: boolean;
   canAddMore: boolean;
+  /** Ingestion in progress — spinner on the add-more tile. */
+  busy?: boolean;
   accept: MediaKind[];
   maxItems: number;
   labels: {
@@ -25,6 +28,7 @@ export interface PreviewRailProps {
     dropzoneBrowse: string;
     dropzoneHint: string;
     addMore: string;
+    finishEditingHint: string;
   };
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
@@ -41,6 +45,7 @@ export function PreviewRail({
   selectedId,
   disabled,
   canAddMore,
+  busy,
   accept,
   maxItems,
   labels,
@@ -50,7 +55,17 @@ export function PreviewRail({
 }: PreviewRailProps) {
   return (
     <ScrollArea className="w-full">
-      <div className="flex items-center gap-2 p-1">
+      {disabled ? (
+        <p className="px-1 pb-1 text-xs text-muted-foreground">
+          {labels.finishEditingHint}
+        </p>
+      ) : null}
+      <div
+        className={cn(
+          "flex items-center gap-2 p-1 transition-opacity",
+          disabled && "pointer-events-none opacity-60",
+        )}
+      >
         <SortableContext
           items={items.map((it) => it.id)}
           strategy={horizontalListSortingStrategy}
@@ -74,6 +89,7 @@ export function PreviewRail({
             variant="add-more"
             accept={accept}
             maxItems={maxItems}
+            busy={busy}
             labels={labels}
             onFiles={onFiles}
           />

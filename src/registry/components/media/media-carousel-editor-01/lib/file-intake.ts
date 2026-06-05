@@ -1,12 +1,15 @@
 import type { MediaCarouselError, MediaCarouselItem, MediaKind } from "../types";
 import { validateMediaFile } from "./validate-media-file";
 
+// Per-module-load random prefix so the counter fallback can't collide with ids
+// reconstructed from a prior draft after a navigation re-evaluates the module.
+const ID_PREFIX = `mci-${Math.floor(Math.random() * 1e9).toString(36)}`;
 let idCounter = 0;
 function nextId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
-  return `mci-${(idCounter++).toString(36)}`;
+  return `${ID_PREFIX}-${(idCounter++).toString(36)}`;
 }
 
 function readImageDims(url: string): Promise<{ width: number; height: number }> {
@@ -33,24 +36,19 @@ function readVideoDims(url: string): Promise<{ width: number; height: number }> 
 export interface FilesToItemsOptions {
   accept: MediaKind[];
   maxFileSizeMb: number;
-  maxItems: number;
-  existingCount: number;
 }
 
 export interface FilesToItemsResult {
   items: MediaCarouselItem[];
   errors: MediaCarouselError[];
-  /** True if the input would have exceeded `maxItems` (overflow dropped). */
-  exceeded: boolean;
-  /** Number of valid files the caller TRIED to add (incl. dropped overflow). */
-  attempted: number;
 }
 
 /**
- * Validate + ingest dropped/picked files into committed `MediaCarouselItem`s.
- * Creates object URLs and reads natural dimensions (async) so the resolved
- * aspect is correct on first paint. Overflow beyond `maxItems` is dropped and
- * flagged via `exceeded`; invalid files surface as `errors`.
+ * Validate + ingest dropped/picked files into `MediaCarouselItem`s. Creates
+ * object URLs and reads natural dimensions (async) so the resolved aspect is
+ * correct on first paint. The `maxItems` cap is enforced downstream in the
+ * state hook (`addItems`), synchronously against the latest items — so two rapid
+ * drops can't each compute room against a stale count.
  */
 export async function filesToItems(
   fileList: File[] | FileList,
@@ -59,19 +57,11 @@ export async function filesToItems(
   const files = Array.from(fileList);
   const errors: MediaCarouselError[] = [];
   const accepted: File[] = [];
-  const room = Math.max(0, opts.maxItems - opts.existingCount);
-  let attempted = 0;
-  let exceeded = false;
 
   for (const file of files) {
     const err = validateMediaFile(file, opts.maxFileSizeMb, opts.accept);
     if (err) {
       errors.push(err);
-      continue;
-    }
-    attempted += 1;
-    if (accepted.length >= room) {
-      exceeded = true;
       continue;
     }
     accepted.push(file);
@@ -97,5 +87,5 @@ export async function filesToItems(
     }),
   );
 
-  return { items, errors, exceeded, attempted };
+  return { items, errors };
 }

@@ -12,12 +12,20 @@ export interface CarouselStateCallbacks {
   onEditOpen?: (id: string) => void;
   onEditApply?: (item: MediaCarouselItem) => void;
   onEditCancel?: (id: string) => void;
+  onMaxItemsExceeded?: (attempted: number, max: number) => void;
 }
 
 export interface UseCarouselStateOptions extends CarouselStateCallbacks {
   value?: MediaCarouselItem[];
   defaultValue?: MediaCarouselItem[];
   onChange?: (items: MediaCarouselItem[]) => void;
+  maxItems: number;
+  /**
+   * Revoke owned object URLs when the component unmounts. Default true. A host
+   * that persists the live items across remounts (e.g. content-composer's
+   * carousel cache) sets this false and owns the final cleanup itself.
+   */
+  revokeOnUnmount?: boolean;
 }
 
 export interface ApplyEditPatch {
@@ -53,13 +61,17 @@ function isOwnable(url: string): boolean {
 /**
  * Owns the carousel model: a controllable `items` array (value/defaultValue/
  * onChange) plus internal `selectedId` / `editingId`, and the object-URL
- * lifecycle (revoke on remove / edit-apply / reset / unmount). Granular events
- * fire from here via a ref so mutator identities stay stable.
+ * lifecycle. `itemsRef` is updated SYNCHRONOUSLY inside every mutator (not via an
+ * effect) so async/batched intakes can't read a stale base. An orphan-revoke
+ * effect catches URLs dropped by any path — including a wholesale controlled
+ * `value` swap (e.g. the host's `loadValue`) that bypasses removeItem.
  */
 export function useCarouselState(
   opts: UseCarouselStateOptions,
 ): UseCarouselStateResult {
-  const [items, setItems] = useControllableState<MediaCarouselItem[]>({
+  const { maxItems, revokeOnUnmount = true } = opts;
+
+  const [items, setItemsRaw] = useControllableState<MediaCarouselItem[]>({
     value: opts.value,
     defaultValue: opts.defaultValue ?? [],
     onChange: opts.onChange,
@@ -71,9 +83,6 @@ export function useCarouselState(
   );
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Derived selection — always valid against the current items (handles
-  // controlled removals + auto-selects the first item). Computed, not stored
-  // via a reconcile effect, so there's no setState-in-effect cascade.
   const selectedId =
     rawSelectedId != null && items.some((it) => it.id === rawSelectedId)
       ? rawSelectedId
@@ -84,6 +93,8 @@ export function useCarouselState(
     cbRef.current = opts;
   });
 
+  // itemsRef tracks committed render state; mutators below ALSO write it
+  // synchronously so a second mutation in the same tick reads the latest base.
   const itemsRef = useRef(items);
   const selectedIdRef = useRef(selectedId);
   const editingIdRef = useRef(editingId);
@@ -93,6 +104,15 @@ export function useCarouselState(
     editingIdRef.current = editingId;
   });
 
+  /** Synchronous-ref write + state set, so chained mutators compose correctly. */
+  const setItems = useCallback(
+    (next: MediaCarouselItem[]) => {
+      itemsRef.current = next;
+      setItemsRaw(next);
+    },
+    [setItemsRaw],
+  );
+
   // Object-URL ownership.
   const ownedUrls = useRef<Set<string>>(new Set());
   const revoke = useCallback((url: string) => {
@@ -101,24 +121,54 @@ export function useCarouselState(
       ownedUrls.current.delete(url);
     }
   }, []);
+
+  // Catch-all: revoke any owned URL no longer present in items — including
+  // drops via a controlled `value` swap that never went through removeItem.
+  useEffect(() => {
+    const present = new Set(items.map((it) => it.url));
+    ownedUrls.current.forEach((u) => {
+      if (!present.has(u)) {
+        URL.revokeObjectURL(u);
+        ownedUrls.current.delete(u);
+      }
+    });
+  }, [items]);
+
   useEffect(() => {
     const owned = ownedUrls.current;
     return () => {
+      if (!revokeOnUnmount) return;
       owned.forEach((u) => URL.revokeObjectURL(u));
       owned.clear();
     };
-  }, []);
+  }, [revokeOnUnmount]);
 
   const addItems = useCallback(
-    (next: MediaCarouselItem[]) => {
-      if (next.length === 0) return;
-      next.forEach((it) => {
-        if (isOwnable(it.url)) ownedUrls.current.add(it.url);
+    (incoming: MediaCarouselItem[]) => {
+      if (incoming.length === 0) return;
+      // Cap synchronously against the latest items (race-safe).
+      const room = Math.max(0, maxItems - itemsRef.current.length);
+      const toAdd = incoming.slice(0, room);
+      const dropped = incoming.slice(room);
+      // Revoke object URLs of items we won't keep (intake created them).
+      dropped.forEach((it) => {
+        if (isOwnable(it.url)) URL.revokeObjectURL(it.url);
       });
-      setItems([...itemsRef.current, ...next]);
-      next.forEach((it) => cbRef.current.onItemAdd?.(it));
+      if (toAdd.length > 0) {
+        toAdd.forEach((it) => {
+          if (isOwnable(it.url)) ownedUrls.current.add(it.url);
+        });
+        setItems([...itemsRef.current, ...toAdd]);
+        toAdd.forEach((it) => cbRef.current.onItemAdd?.(it));
+      }
+      if (dropped.length > 0) {
+        cbRef.current.onMaxItemsExceeded?.(
+          itemsRef.current.length + dropped.length,
+          maxItems,
+        );
+      }
     },
-    [setItems],
+    [maxItems, setItems],
   );
 
   const removeItem = useCallback(

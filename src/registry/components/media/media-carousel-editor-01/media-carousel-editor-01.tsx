@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import {
   DndContext,
@@ -14,9 +15,11 @@ import {
   closestCenter,
   useSensor,
   useSensors,
+  type Announcements,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_CAROUSEL_LABELS,
@@ -55,6 +58,7 @@ function MediaCarouselEditor01Impl(
     editorProps,
     labels: labelOverrides,
     className,
+    revokeOnUnmount,
     onItemAdd,
     onItemRemove,
     onReorder,
@@ -80,17 +84,37 @@ function MediaCarouselEditor01Impl(
     [sources],
   );
 
+  const [ingesting, setIngesting] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [announce, setAnnounce] = useState("");
+
+  const fillTemplate = (tpl: string) => tpl.replace("{max}", String(maxItems));
+
   const state = useCarouselState({
     value,
     defaultValue,
     onChange,
+    maxItems,
+    revokeOnUnmount,
     onItemAdd,
-    onItemRemove,
-    onReorder,
+    onItemRemove: (id) => {
+      onItemRemove?.(id);
+      setAnnounce(labels.remove);
+    },
+    onReorder: (items) => {
+      onReorder?.(items);
+      setAnnounce(labels.reorderHint);
+    },
     onSelect,
     onEditOpen,
     onEditApply,
     onEditCancel,
+    onMaxItemsExceeded: (attempted, max) => {
+      onMaxItemsExceeded?.(attempted, max);
+      const msg = fillTemplate(labels.maxReached);
+      setErrors((prev) => (prev.includes(msg) ? prev : [...prev, msg]));
+      setAnnounce(msg);
+    },
   });
 
   // Latest items for stable async reads (file intake + imperative handle).
@@ -104,21 +128,28 @@ function MediaCarouselEditor01Impl(
     [state.items, aspect],
   );
 
-  // Not memoized on purpose — closes over the latest items count so the
-  // `maxItems` room is accurate even across rapid adds.
   const addFiles = async (files: File[] | FileList) => {
-    const existingCount = itemsRef.current.length;
-    const res = await filesToItems(files, {
-      accept: acceptKinds,
-      maxFileSizeMb,
-      maxItems,
-      existingCount,
-    });
-    res.errors.forEach((err) => onValidationError?.(err));
-    if (res.exceeded) {
-      onMaxItemsExceeded?.(existingCount + res.attempted, maxItems);
+    setErrors([]);
+    setIngesting(true);
+    try {
+      const res = await filesToItems(files, {
+        accept: acceptKinds,
+        maxFileSizeMb,
+      });
+      res.errors.forEach((err) => onValidationError?.(err));
+      if (res.errors.length > 0) {
+        setErrors((prev) => [...prev, ...res.errors.map((e) => e.message)]);
+      }
+      // addItems caps to maxItems synchronously + fires onMaxItemsExceeded.
+      if (res.items.length > 0) {
+        state.addItems(res.items);
+        setAnnounce(
+          `${res.items.length} item${res.items.length === 1 ? "" : "s"} added`,
+        );
+      }
+    } finally {
+      setIngesting(false);
     }
-    if (res.items.length > 0) state.addItems(res.items);
   };
 
   const sensors = useSensors(
@@ -127,6 +158,23 @@ function MediaCarouselEditor01Impl(
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
+
+  const dndAnnouncements: Announcements = useMemo(() => {
+    const pos = (id: string | number) =>
+      itemsRef.current.findIndex((it) => it.id === id) + 1;
+    const total = () => itemsRef.current.length;
+    return {
+      onDragStart: ({ active }) => `Picked up item ${pos(active.id)}.`,
+      onDragOver: ({ active, over }) =>
+        over ? `Item ${pos(active.id)} over position ${pos(over.id)}.` : "",
+      onDragEnd: ({ active, over }) =>
+        over
+          ? `Item dropped at position ${pos(over.id)} of ${total()}.`
+          : `Item ${pos(active.id)} dropped.`,
+      onDragCancel: ({ active }) =>
+        `Reorder cancelled; item ${pos(active.id)} returned.`,
+    };
+  }, []);
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -160,61 +208,108 @@ function MediaCarouselEditor01Impl(
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-        {isEmpty ? (
-          uploadEnabled ? (
-            <MediaDropzone
-              variant="empty"
-              accept={acceptKinds}
-              maxItems={maxItems}
-              labels={labels}
-              onFiles={addFiles}
-            />
-          ) : null
-        ) : isEditing ? (
-          <EditPanel
-            key={state.editingItem!.id}
-            item={state.editingItem!}
-            aspect={resolvedAspect}
-            editorProps={editorProps}
+      {isEmpty ? (
+        uploadEnabled ? (
+          <MediaDropzone
+            variant="empty"
+            accept={acceptKinds}
+            maxItems={maxItems}
+            busy={ingesting}
             labels={labels}
-            onApply={state.applyEdit}
-            onCancel={state.cancelEdit}
+            onFiles={addFiles}
           />
-        ) : (
-          <MainPreview
-            item={state.selectedItem}
-            aspectCss={aspectToCss(resolvedAspect)}
-            canEdit={state.selectedItem?.kind === "image"}
-            labels={labels}
-            onEdit={() =>
-              state.selectedItem && state.openEditor(state.selectedItem.id)
-            }
-          />
-        )}
+        ) : null
+      ) : isEditing ? (
+        <EditPanel
+          key={state.editingItem!.id}
+          item={state.editingItem!}
+          aspect={resolvedAspect}
+          editorProps={editorProps}
+          labels={labels}
+          onApply={state.applyEdit}
+          onCancel={state.cancelEdit}
+        />
+      ) : (
+        <MainPreview
+          item={state.selectedItem}
+          aspectCss={aspectToCss(resolvedAspect)}
+          canEdit={state.selectedItem?.kind === "image"}
+          labels={labels}
+          onEdit={() =>
+            state.selectedItem && state.openEditor(state.selectedItem.id)
+          }
+        />
+      )}
 
-        {!isEmpty ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={onDragEnd}
+      {errors.length > 0 ? (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-foreground"
+        >
+          <AlertCircle
+            className="mt-0.5 size-4 shrink-0 text-destructive"
+            aria-hidden
+          />
+          <ul className="flex-1 space-y-0.5">
+            {errors.map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={() => setErrors([])}
+            className="shrink-0 rounded p-0.5 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <PreviewRail
-              items={state.items}
-              selectedId={state.selectedId}
-              disabled={isEditing}
-              canAddMore={canAddMore}
-              accept={acceptKinds}
-              maxItems={maxItems}
-              labels={labels}
-              onSelect={state.select}
-              onRemove={state.removeItem}
-              onFiles={addFiles}
-            />
-          </DndContext>
-        ) : null}
+            <X className="size-4" aria-hidden />
+          </button>
+        </div>
+      ) : null}
+
+      {!isEmpty ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          accessibility={{ announcements: dndAnnouncements }}
+          onDragEnd={onDragEnd}
+        >
+          <PreviewRail
+            items={state.items}
+            selectedId={state.selectedId}
+            disabled={isEditing}
+            canAddMore={canAddMore}
+            busy={ingesting}
+            accept={acceptKinds}
+            maxItems={maxItems}
+            labels={labels}
+            onSelect={state.select}
+            onRemove={state.removeItem}
+            onFiles={addFiles}
+          />
+        </DndContext>
+      ) : null}
+
+      <output aria-live="polite" className="sr-only">
+        {announce}
+      </output>
     </div>
   );
 }
 
 export const MediaCarouselEditor01 = forwardRef(MediaCarouselEditor01Impl);
 MediaCarouselEditor01.displayName = "MediaCarouselEditor01";
+
+// ─── Tail type re-exports (cross-procomp consumers) ──────────────────────────
+// Procomps that compose media-carousel-editor-01 must import these types from
+// THIS component-file path, not `./types`: the shadcn path rewriter resolves a
+// barrel/directory import to this `.tsx` file but mangles `/types` subpaths
+// (F-01). Mirrors media-editor-01's tail band.
+export type {
+  MediaCarouselItem,
+  MediaKind,
+  MediaCarouselSource,
+  MediaCarouselError,
+  MediaCarouselEditor01Props,
+  MediaCarouselEditor01Handle,
+  MediaCarouselEditor01Labels,
+} from "./types";

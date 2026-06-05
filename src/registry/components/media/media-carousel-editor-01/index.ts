@@ -11,6 +11,16 @@ export type {
 } from "./types";
 export { DEFAULT_CAROUSEL_LABELS } from "./types";
 
+// Headless state primitive — for consumers that recompose the surface from the
+// parts below and need the model (items / selection / editing / URL lifecycle).
+export { useCarouselState } from "./hooks/use-carousel-state";
+export type {
+  UseCarouselStateOptions,
+  UseCarouselStateResult,
+  CarouselStateCallbacks,
+  ApplyEditPatch,
+} from "./hooks/use-carousel-state";
+
 // Public parts — for sealed-folder consumers that want to recompose the surface.
 export { MediaDropzone } from "./parts/media-dropzone";
 export type { MediaDropzoneProps } from "./parts/media-dropzone";

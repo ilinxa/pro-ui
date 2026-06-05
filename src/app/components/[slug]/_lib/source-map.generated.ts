@@ -1582,7 +1582,7 @@ export default function ContentComposer01Demo() {
       <SwipeTabsList>
         <TabsTrigger value="news">News</TabsTrigger>
         <TabsTrigger value="re-edit">Re-edit</TabsTrigger>
-        <TabsTrigger value="post">Post (clamp)</TabsTrigger>
+        <TabsTrigger value="post">Post (carousel)</TabsTrigger>
         <TabsTrigger value="dialog">Dialog</TabsTrigger>
         <TabsTrigger value="dark">Dark</TabsTrigger>
       </SwipeTabsList>
@@ -1602,9 +1602,11 @@ export default function ContentComposer01Demo() {
 
       <TabsContent value="post" className="mt-4">
         <p className="mb-3 text-sm text-muted-foreground">
-          The post config declares <code>mediaSources: [&quot;upload&quot;,&quot;library&quot;]</code>;
-          the substrate clamps <code>&quot;library&quot;</code> to upload-only. Publishing is
-          deferred (no <code>post-content-item</code> adapter in v0.1).
+          The post config&apos;s media step is a <code>mediaCarouselSlot</code> backed by
+          <code> media-carousel-editor-01</code> — drop / browse one or more mixed
+          photo+video files, reorder, and edit any photo (news keeps the single{" "}
+          <code>mediaSlot</code>). Publishing is still deferred (no{" "}
+          <code>post-content-item</code> adapter yet).
         </p>
         <ContentComposer01
           config={postComposerConfig}
