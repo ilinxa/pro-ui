@@ -4,6 +4,7 @@ import type { SlotSubstrate, SlotSubstrateMap, FindSubstrate } from "../types";
 import { JsonFormSubstrateMount } from "../parts/json-form-substrate";
 import { BodySubstrateMount } from "../parts/body-substrate";
 import { MediaSubstrateMount } from "../parts/media-substrate";
+import { MediaCarouselSubstrateMount } from "../parts/media-carousel-substrate";
 
 /**
  * The three default substrate records. Each maps a closed `SlotKind` to a
@@ -34,10 +35,16 @@ export const mediaEditorSubstrate: SlotSubstrate<"mediaSlot"> = {
   render: (args) => <MediaSubstrateMount {...args} />,
 };
 
+export const mediaCarouselSubstrate: SlotSubstrate<"mediaCarouselSlot"> = {
+  kind: "mediaCarouselSlot",
+  render: (args) => <MediaCarouselSubstrateMount {...args} />,
+};
+
 export const DEFAULT_SUBSTRATES: SlotSubstrateMap = {
   metadataFields: jsonFormSubstrate,
   bodySlot: articleBodySubstrate,
   mediaSlot: mediaEditorSubstrate,
+  mediaCarouselSlot: mediaCarouselSubstrate,
 };
 
 /**

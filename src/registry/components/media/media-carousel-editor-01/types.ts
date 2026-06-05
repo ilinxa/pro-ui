@@ -30,7 +30,9 @@ export type MediaCarouselSource = "upload" | "library"; // "library" clamped in 
  * its `.tsx` entry, and we keep media-editor-01 untouched. Structurally aligned.
  */
 export interface MediaCarouselError {
-  kind: "unsupported-type" | "file-too-large" | "max-items";
+  // The cap has its own `onMaxItemsExceeded` channel — this type is per-file
+  // validation only.
+  kind: "unsupported-type" | "file-too-large";
   message: string;
   file?: File;
 }
@@ -64,10 +66,13 @@ export interface MediaCarouselEditor01Labels {
   edit?: string;
   editDone?: string;
   editCancel?: string;
+  editSaving?: string;
+  editError?: string;
   remove?: string;
   reorderHint?: string;
   maxReached?: string;
   videoNotEditable?: string;
+  finishEditingHint?: string;
   /** Template with `{n}` / `{total}` / `{kind}`. */
   itemAria?: string;
 }
@@ -80,10 +85,13 @@ export const DEFAULT_CAROUSEL_LABELS: Required<MediaCarouselEditor01Labels> = {
   edit: "Edit",
   editDone: "Done",
   editCancel: "Cancel",
+  editSaving: "Saving…",
+  editError: "Couldn't save your edit. Try again.",
   remove: "Remove",
   reorderHint: "Drag to reorder",
   maxReached: "Maximum {max} items reached",
   videoNotEditable: "Video editing arrives in v0.2",
+  finishEditingHint: "Finish editing to reorder or add media",
   itemAria: "Media item {n} of {total}, {kind}",
 };
 
@@ -109,6 +117,12 @@ export interface MediaCarouselEditor01Props {
 
   labels?: Partial<MediaCarouselEditor01Labels>;
   className?: string;
+  /**
+   * Revoke object URLs this component created when it unmounts. Default true.
+   * Set false ONLY when a host preserves the live items across remounts and
+   * takes over final cleanup (e.g. content-composer's carousel cache).
+   */
+  revokeOnUnmount?: boolean;
 
   // events
   onItemAdd?: (item: MediaCarouselItem) => void;

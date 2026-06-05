@@ -2,17 +2,19 @@ import type { FormSchema } from "@/registry/components/forms/json-form/json-form
 import type { ComposerConfig } from "../types";
 
 /**
- * The `post` content type — MODELED but DEFERRED. It proves that adding a content
- * type is config-only divergence: a different step set, a plaintext body, no
- * gates step, and a `mediaSources` declaration (`["upload","library"]`) that
- * includes `"library"` ahead of media-editor-01 v0.2. The mediaSlot substrate
- * CLAMPS `"library"` to `["upload"]` at runtime (no crash, no cosmetic leak), so
- * the SAME shell stays valid until media-editor-01 v0.2 lands the real source.
+ * The `post` content type. Adding a content type is mostly config-only
+ * divergence: a different step set, a plaintext body, no gates step, and — the
+ * Instagram-feed difference — a MULTI-media step backed by
+ * media-carousel-editor-01 (`mediaCarouselSlot`) instead of news's single
+ * `mediaSlot`. Authoring (drop/browse N mixed photo+video → reorder → per-item
+ * edit) is fully live in the media step.
  *
- * `adapterId: "post-content-item"` is intentionally NOT registered in v0.1 — the
- * post → backend mapping (against a social-post item) ships fully behind
- * media-editor-01 v0.2. Publishing a post in v0.1 surfaces a "no adapter" error;
- * the config + clamp are the proof here.
+ * `adapterId: "post-content-item"` is intentionally NOT registered yet — the
+ * post → backend mapping (a social-post item) and the durable upload-at-publish
+ * of the carousel's N blobs ship together behind the post backend. Publishing a
+ * post today surfaces a "no adapter" error; the media STEP is live (the draft
+ * persists each item's structure + editorState; local-only blobs that aren't yet
+ * uploaded don't survive a full reload — that rides with the upload-at-publish).
  */
 
 const captionSchema: FormSchema = {
@@ -41,20 +43,21 @@ export const postComposerConfig: ComposerConfig = {
     {
       id: "media",
       title: "Media",
-      slot: "mediaSlot",
+      // Posts are multi-media (Instagram-feed semantics) → the carousel slot,
+      // backed by media-carousel-editor-01. News keeps the single mediaSlot.
+      slot: "mediaCarouselSlot",
       slotConfig: {
         fieldName: "media",
-        enabledModes: ["photo", "video"],
-        enabledTools: ["crop", "filters", "adjust", "text", "stickers", "draw"],
-        // "library" is declared ahead of media-editor-01 v0.2 — the substrate
-        // clamps it to ["upload"] (clamp proof).
-        mediaSources: ["upload", "library"],
-        aspect: "1:1",
-        presentation: "inline",
+        maxItems: 10,
+        accept: ["image", "video"],
+        aspect: "auto",
+        enabledTools: ["crop", "filters", "adjust", "text", "stickers"],
       },
       validation: {
         mode: "custom",
-        rules: [{ field: "media", mediaRequired: true, message: "Add a photo or video." }],
+        rules: [
+          { field: "media", mediaRequired: true, message: "Add at least one photo or video." },
+        ],
       },
     },
     {

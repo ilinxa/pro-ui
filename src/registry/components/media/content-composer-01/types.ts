@@ -39,7 +39,11 @@ export type {
 
 // ─── Slot kinds + config (description §15) ──────────────────────────────
 
-export type SlotKind = "metadataFields" | "bodySlot" | "mediaSlot";
+export type SlotKind =
+  | "metadataFields"
+  | "bodySlot"
+  | "mediaSlot"
+  | "mediaCarouselSlot";
 
 export interface ComposerConfig {
   /** "news" | "post" | "event" | "project" */
@@ -62,7 +66,11 @@ export interface ComposerStep {
   /** substrate-registry lookup key */
   slot: SlotKind;
   /** discriminated by `slot` at the consumer site (JSON — no TS narrowing) */
-  slotConfig: MetadataSlotConfig | BodySlotConfig | MediaSlotConfig;
+  slotConfig:
+    | MetadataSlotConfig
+    | BodySlotConfig
+    | MediaSlotConfig
+    | MediaCarouselSlotConfig;
   /** BLOCKING gate before advance/publish */
   validation?: StepValidation;
   optional?: boolean;
@@ -155,10 +163,50 @@ export interface MediaSlotValue {
   editorState?: SerializableMediaEditorState;
 }
 
+// ─── mediaCarouselSlot (content-composer v0.2) ──────────────────────────
+// A multi-item media step backed by media-carousel-editor-01. The post config
+// uses this instead of the single mediaSlot. `news` keeps the single mediaSlot
+// — this kind is strictly additive.
+
+/** mediaCarouselSlot → media-carousel-editor-01 dials (subset). */
+export interface MediaCarouselSlotConfig {
+  fieldName: string;
+  /** default 10 (Instagram parity). */
+  maxItems?: number;
+  maxFileSizeMb?: number;
+  /** default ["image","video"]. */
+  accept?: ("image" | "video")[];
+  /** "auto" derives the shared aspect from item 1. Default "auto". */
+  aspect?: AspectRatio | "auto";
+  /** forwarded to the per-item edit panel. */
+  enabledTools?: EditTool[];
+}
+
+/**
+ * One serializable carousel item in the draft (NO blob — JSON-clean, mirroring
+ * MediaSlotValue). Local (not-yet-uploaded) items carry `editorState` but no
+ * `exportedUrl`; the durable upload-at-publish of N blobs rides with the post
+ * backend adapter (deferred, same as the single mediaSlot's `"library"` source).
+ */
+export interface MediaCarouselItemRef {
+  id: string;
+  kind: "image" | "video";
+  /** durable https URL once uploaded / when re-edit-seeded from the backend. */
+  exportedUrl?: string;
+  /** blob-free editor snapshot for re-edit (photo path). */
+  editorState?: SerializableMediaEditorState;
+  exportMetadata?: ExportMetadata;
+}
+
+export interface MediaCarouselSlotValue {
+  items: MediaCarouselItemRef[];
+}
+
 export type ComposerStepValue =
   | { slot: "metadataFields"; value: Record<string, unknown> }
   | { slot: "bodySlot"; value: BodySlotValue }
-  | { slot: "mediaSlot"; value: MediaSlotValue };
+  | { slot: "mediaSlot"; value: MediaSlotValue }
+  | { slot: "mediaCarouselSlot"; value: MediaCarouselSlotValue };
 
 export interface ComposerDraft {
   contentType: string;
@@ -182,7 +230,9 @@ export type SlotConfigFor<K extends SlotKind> = K extends "metadataFields"
     ? BodySlotConfig
     : K extends "mediaSlot"
       ? MediaSlotConfig
-      : never;
+      : K extends "mediaCarouselSlot"
+        ? MediaCarouselSlotConfig
+        : never;
 
 export type SlotValueFor<K extends SlotKind> = K extends "metadataFields"
   ? Record<string, unknown>
@@ -190,7 +240,9 @@ export type SlotValueFor<K extends SlotKind> = K extends "metadataFields"
     ? BodySlotValue
     : K extends "mediaSlot"
       ? MediaSlotValue
-      : never;
+      : K extends "mediaCarouselSlot"
+        ? MediaCarouselSlotValue
+        : never;
 
 export interface SlotRenderArgs<K extends SlotKind = SlotKind> {
   slotConfig: SlotConfigFor<K>;

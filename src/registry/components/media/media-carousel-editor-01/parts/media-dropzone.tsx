@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Plus } from "lucide-react";
+import { ImagePlus, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { MediaKind } from "../types";
@@ -11,6 +11,8 @@ export interface MediaDropzoneProps {
   accept: MediaKind[];
   maxItems: number;
   disabled?: boolean;
+  /** Ingestion in progress — show a spinner + block input. */
+  busy?: boolean;
   labels: {
     dropzoneTitle: string;
     dropzoneBrowse: string;
@@ -27,26 +29,33 @@ function acceptAttr(accept: MediaKind[]): string {
 /**
  * File intake surface. `variant="empty"` is the full-bleed first-run dropzone;
  * `variant="add-more"` is a compact rail-sized tile. Both wrap a hidden
- * `<input type="file" multiple>` — drag-and-drop is an enhancement layered on
- * top of the always-present Browse button (a11y: keyboard reaches the button).
+ * `<input type="file" multiple>`, both accept drag-and-drop with hover feedback,
+ * and both surface a `busy` spinner during ingestion. Drag-and-drop is an
+ * enhancement on top of the always-present Browse button (keyboard path).
  */
 export function MediaDropzone({
   variant,
   accept,
   maxItems,
   disabled,
+  busy,
   labels,
   onFiles,
 }: MediaDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const blocked = disabled || busy;
 
   const open = () => inputRef.current?.click();
 
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!blocked) setDragging(true);
+  };
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    if (disabled) return;
+    if (blocked) return;
     if (e.dataTransfer.files?.length) onFiles(e.dataTransfer.files);
   };
 
@@ -74,13 +83,22 @@ export function MediaDropzone({
       <button
         type="button"
         onClick={open}
-        disabled={disabled}
+        onDragOver={onDragOver}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        disabled={blocked}
         aria-label={labels.addMore}
+        aria-busy={busy || undefined}
         className={cn(
-          "grid size-16 shrink-0 place-items-center rounded-md border border-dashed border-border bg-muted/40 text-muted-foreground transition hover:border-ring hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "grid size-16 shrink-0 place-items-center rounded-md border border-dashed bg-muted/40 text-muted-foreground transition hover:border-ring hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          dragging ? "border-ring bg-accent/40 text-foreground" : "border-border",
         )}
       >
-        <Plus className="size-5" />
+        {busy ? (
+          <Loader2 className="size-5 animate-spin" aria-hidden />
+        ) : (
+          <Plus className="size-5" aria-hidden />
+        )}
         {input}
       </button>
     );
@@ -88,30 +106,30 @@ export function MediaDropzone({
 
   return (
     <div
-      onDragOver={(e) => {
-        e.preventDefault();
-        if (!disabled) setDragging(true);
-      }}
+      onDragOver={onDragOver}
       onDragLeave={() => setDragging(false)}
       onDrop={onDrop}
       aria-label={labels.dropzoneTitle}
+      aria-busy={busy || undefined}
       className={cn(
         "flex w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-10 text-center transition",
-        dragging
-          ? "border-ring bg-accent/40"
-          : "border-border bg-muted/30",
+        dragging ? "border-ring bg-accent/40" : "border-border bg-muted/30",
       )}
     >
-      <ImagePlus className="size-8 text-muted-foreground" aria-hidden />
+      {busy ? (
+        <Loader2 className="size-8 animate-spin text-muted-foreground" aria-hidden />
+      ) : (
+        <ImagePlus className="size-8 text-muted-foreground" aria-hidden />
+      )}
       <div className="flex flex-col gap-1">
         <p className="text-sm font-medium text-foreground">
-          {labels.dropzoneTitle}
+          {busy ? "Adding media…" : labels.dropzoneTitle}
         </p>
         <p className="text-xs text-muted-foreground">
           {labels.dropzoneHint.replace("{max}", String(maxItems))}
         </p>
       </div>
-      <Button type="button" size="sm" onClick={open} disabled={disabled}>
+      <Button type="button" size="sm" onClick={open} disabled={blocked}>
         {labels.dropzoneBrowse}
       </Button>
       {input}

@@ -7,6 +7,7 @@ import type {
   ComposerDraft,
   ComposerStep,
   GateResult,
+  MediaCarouselSlotValue,
   MediaSlotValue,
   MetadataSlotConfig,
   SlotHandle,
@@ -27,6 +28,11 @@ import { bodyMinLengthValid, isBodyEmpty } from "../hooks/use-body-dirty";
  * the value-based required-presence check (they were fully validated when the
  * user last left them forward).
  */
+
+/** Compile-time exhaustiveness: a new SlotKind without a switch arm fails here. */
+function assertNever(value: never): void {
+  void value; // purely a type-level guard — no runtime effect
+}
 
 function isValueEmpty(v: unknown): boolean {
   if (v == null) return true;
@@ -79,6 +85,16 @@ export function evaluateMediaValue(
   return !!value?.exportedUrl || isDirty;
 }
 
+/** mediaCarouselSlot gate — value-based (the draft is always current). When
+ *  `mediaRequired`, at least one item must be present. */
+export function evaluateMediaCarouselValue(
+  value: MediaCarouselSlotValue | undefined,
+  validation: StepValidation | undefined,
+): boolean {
+  if (!validation?.rules?.some((r) => r.mediaRequired)) return true;
+  return (value?.items?.length ?? 0) > 0;
+}
+
 /** Whole-step visibility (serializable Condition object form only). */
 export function isStepVisible(
   step: ComposerStep,
@@ -102,7 +118,10 @@ export function isStepEmpty(step: ComposerStep, draft: ComposerDraft): boolean {
       return isBodyEmpty(sv.value);
     case "mediaSlot":
       return !sv.value.exportedUrl && !sv.value.editorState;
+    case "mediaCarouselSlot":
+      return (sv.value.items?.length ?? 0) === 0;
     default:
+      assertNever(sv);
       return true;
   }
 }
@@ -151,7 +170,14 @@ export async function evaluateStep(
         ? { ok: true }
         : fail();
     }
+    case "mediaCarouselSlot": {
+      const value = sv?.slot === "mediaCarouselSlot" ? sv.value : undefined;
+      return evaluateMediaCarouselValue(value, step.validation)
+        ? { ok: true }
+        : fail();
+    }
     default:
+      assertNever(step.slot);
       return { ok: true };
   }
 }

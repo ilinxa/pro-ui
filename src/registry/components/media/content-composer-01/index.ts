@@ -41,7 +41,9 @@ export {
   jsonFormSubstrate,
   articleBodySubstrate,
   mediaEditorSubstrate,
+  mediaCarouselSubstrate,
 } from "./lib/substrates";
+export { CarouselLiveCacheContext } from "./parts/media-carousel-substrate";
 
 // Content-type configs + the runtime adapter registry. The news config is a
 // factory (inject `authorSource`); `newsComposerConfig` is the default instance.
@@ -71,11 +73,14 @@ export type {
   MetadataSlotConfig,
   BodySlotConfig,
   MediaSlotConfig,
+  MediaCarouselSlotConfig,
   // Draft + values
   ComposerDraft,
   ComposerStepValue,
   BodySlotValue,
   MediaSlotValue,
+  MediaCarouselSlotValue,
+  MediaCarouselItemRef,
   SerializableMediaEditorState,
   // Substrate registry
   SlotSubstrate,

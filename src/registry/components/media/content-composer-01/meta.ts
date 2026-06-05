@@ -19,6 +19,7 @@ export const meta: ComponentMeta = {
     "Per-content-type adapters: collected draft ↔ ContentCardItem (CMS re-edit round-trip)",
     "Shell owns upload (uploader / uploadUrl); lazy upload-on-publish",
     "Inline / dialog / auto presentation",
+    "Multi-media post step (v0.2): `mediaCarouselSlot` backed by media-carousel-editor-01 — drop/browse N mixed photo+video, reorder, per-item edit (news keeps the single mediaSlot)",
   ],
   tags: [
     "content-composer-01",
@@ -30,10 +31,10 @@ export const meta: ComponentMeta = {
     "shell",
   ],
 
-  version: "0.1.1",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-06-04",
-  updatedAt: "2026-06-04",
+  updatedAt: "2026-06-05",
 
   author: { name: "ilinxa" },
 
@@ -55,11 +56,18 @@ export const meta: ComponentMeta = {
     npm: {},
     internal: [
       "media-editor-01",
+      "media-carousel-editor-01",
       "article-body-01",
       "json-form",
       "content-card-news-01",
     ],
   },
 
-  related: ["media-editor-01", "article-body-01", "json-form", "content-card-news-01"],
+  related: [
+    "media-editor-01",
+    "media-carousel-editor-01",
+    "article-body-01",
+    "json-form",
+    "content-card-news-01",
+  ],
 };

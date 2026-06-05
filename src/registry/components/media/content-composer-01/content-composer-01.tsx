@@ -28,6 +28,8 @@ import { ComposerContext, ComposerStepContext } from "./hooks/use-composer-conte
 import { ComposerShell } from "./parts/composer-shell";
 import { ComposerDialog } from "./parts/composer-dialog";
 import { SlotMount } from "./parts/slot-mount";
+import { CarouselLiveCacheContext } from "./parts/media-carousel-substrate";
+import type { MediaCarouselItem } from "@/registry/components/media/media-carousel-editor-01/media-carousel-editor-01";
 import { PublishBar } from "./parts/publish-bar";
 
 function errorMessage(e: unknown): string {
@@ -103,6 +105,21 @@ export const ContentComposer01 = React.forwardRef<
   });
 
   const blobMap = React.useRef(new Map<string, Blob>());
+  // Live carousel items (with blobs) per step — keeps mediaCarouselSlot media
+  // across step navigation (the carousel runs with revokeOnUnmount={false}, so
+  // its object URLs outlive a step unmount; we revoke them on composer unmount).
+  const carouselCache = React.useRef(new Map<string, MediaCarouselItem[]>());
+  React.useEffect(() => {
+    const cache = carouselCache.current;
+    return () => {
+      cache.forEach((items) =>
+        items.forEach((it) => {
+          if (it.url.startsWith("blob:")) URL.revokeObjectURL(it.url);
+        }),
+      );
+      cache.clear();
+    };
+  }, []);
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [announcement, setAnnouncement] = React.useState("");
   const [stepErrors, setStepErrors] = React.useState<Record<string, string[]>>({});
@@ -468,6 +485,7 @@ export const ContentComposer01 = React.forwardRef<
   const dialogDescription = `${config.steps.length}-step ${config.title} composer. Use the step navigation, then save, publish, or schedule.`;
 
   return (
+    <CarouselLiveCacheContext.Provider value={carouselCache}>
     <ComposerContext.Provider value={ctx}>
       {resolvedMode === "dialog" ? (
         <ComposerDialog
@@ -507,5 +525,6 @@ export const ContentComposer01 = React.forwardRef<
         </div>
       )}
     </ComposerContext.Provider>
+    </CarouselLiveCacheContext.Provider>
   );
 });

@@ -69,7 +69,17 @@ export function RailThumb({
             <video
               src={item.url}
               muted
+              playsInline
               preload="metadata"
+              onLoadedMetadata={(e) => {
+                // Nudge to a frame so the thumb isn't a black box (Safari/Chrome
+                // won't paint frame 0 of an unplayed inline video otherwise).
+                try {
+                  e.currentTarget.currentTime = 0.1;
+                } catch {
+                  /* seeking unsupported — leave as-is */
+                }
+              }}
               className="size-full object-cover"
             />
             <span className="absolute bottom-0.5 right-0.5 grid place-items-center rounded-sm bg-black/60 p-0.5 text-white">
@@ -92,9 +102,9 @@ export function RailThumb({
             aria-label={labels.reorderHint}
             {...attributes}
             {...listeners}
-            className="absolute bottom-0.5 left-0.5 grid size-5 cursor-grab touch-none place-items-center rounded bg-black/55 text-white opacity-80 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+            className="absolute bottom-0.5 left-0.5 grid size-6 cursor-grab touch-none place-items-center rounded bg-black/55 text-white opacity-90 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
           >
-            <GripVertical className="size-3.5" aria-hidden />
+            <GripVertical className="size-4" aria-hidden />
           </button>
           <button
             type="button"
@@ -103,9 +113,9 @@ export function RailThumb({
               e.stopPropagation();
               onRemove(item.id);
             }}
-            className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <X className="size-3" aria-hidden />
+            <X className="size-3.5" aria-hidden />
           </button>
         </>
       ) : null}

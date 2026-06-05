@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { ImageIcon, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { MediaCarouselItem } from "../types";
 
@@ -17,7 +17,9 @@ export interface MainPreviewProps {
 /**
  * The large preview of the currently-selected item, with an Edit affordance.
  * Images fill the shared-aspect frame (`object-cover`); videos keep their own
- * aspect on a black mat (`object-contain`) and are not croppable in v0.1.
+ * aspect on a black mat (`object-contain`). Video isn't editable in v0.1 — instead
+ * of a disabled (unfocusable, unreadable) button we show a static caption that
+ * IS in the reading order, so keyboard + screen-reader users get the reason.
  */
 export function MainPreview({
   item,
@@ -26,7 +28,16 @@ export function MainPreview({
   labels,
   onEdit,
 }: MainPreviewProps) {
-  if (!item) return null;
+  if (!item) {
+    return (
+      <div
+        className="grid w-full place-items-center rounded-lg border border-dashed border-border bg-muted/30 text-muted-foreground"
+        style={{ aspectRatio: aspectCss }}
+      >
+        <ImageIcon className="size-8" aria-hidden />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -37,6 +48,15 @@ export function MainPreview({
         <video
           src={item.url}
           controls
+          playsInline
+          preload="metadata"
+          onLoadedMetadata={(e) => {
+            try {
+              e.currentTarget.currentTime = 0.1;
+            } catch {
+              /* seeking unsupported — leave as-is */
+            }
+          }}
           className="size-full bg-black object-contain"
         />
       ) : (
@@ -54,18 +74,8 @@ export function MainPreview({
             {labels.edit}
           </Button>
         ) : (
-          // Native `title` (not the Tooltip primitive) — consumer-safe across
-          // the radix/Base-UI primitive split (F-cross-13); no extra dep.
-          <span title={labels.videoNotEditable} className="inline-flex">
-            <Button
-              type="button"
-              size="sm"
-              disabled
-              aria-label={labels.videoNotEditable}
-            >
-              <Pencil className="size-4" aria-hidden />
-              {labels.edit}
-            </Button>
+          <span className="rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium text-white">
+            {labels.videoNotEditable}
           </span>
         )}
       </div>
