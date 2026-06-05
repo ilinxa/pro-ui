@@ -7,9 +7,10 @@
 
 ## STATE LOCKED
 
-- **Tip `f8a734b`** · **2 commits ahead of `origin/master`** (`92d5eec`) · **working tree CLEAN.**
+- **Everything from `fc8e469` onward is UNPUSHED** (origin/master is at `92d5eec`). Run `git log --oneline origin/master..HEAD` to see them. **`git push origin master` ships the lot.** Working tree CLEAN.
   - `fc8e469` — fix(rich-card): v0.4.3 SSR-stable auto-ids
   - `f8a734b` — feat(docs): live JSON playgrounds on config-driven detail pages
+  - `76a5fc5` (+ this reconcile) — docs(session-close) lock
 - Gates: **tsc 0 · lint 81-22 baseline (no new) · meta-deps 53/53 · registry:build ✓ · full `pnpm build` ✓** · all 4 playground pages SSR 200; validators accept their starters; rich-card deterministic ids confirmed across requests.
 - Dev server was **stopped** for the final build — restart with `pnpm dev` on resume.
 
