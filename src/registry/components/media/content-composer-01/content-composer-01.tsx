@@ -120,8 +120,19 @@ export const ContentComposer01 = React.forwardRef<
       cache.clear();
     };
   }, []);
+  // Enter the editing phase on mount (FSM `idle → editing`, T0). Without this the
+  // phase stays "idle" and every gate-guarded action silently no-ops: `goToStep`
+  // refuses (`phase !== "editing"`), and save/publish never leave idle. `start`
+  // is idempotent (only acts on "idle"), so the dev double-invoke is harmless.
+  React.useEffect(() => {
+    dispatchPhase({ type: "start" });
+  }, [dispatchPhase]);
+
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [announcement, setAnnouncement] = React.useState("");
+  // Visible (not just sr-only) lifecycle error — e.g. a save/publish that hits an
+  // unregistered adapter or a rejected callback. Cleared on the next nav/save.
+  const [lifecycleError, setLifecycleError] = React.useState<string | null>(null);
   const [stepErrors, setStepErrors] = React.useState<Record<string, string[]>>({});
   const [scheduleValue, setScheduleValue] = React.useState("");
 
@@ -181,6 +192,7 @@ export const ContentComposer01 = React.forwardRef<
   const goToStep = React.useCallback(
     async (target: number): Promise<GateResult> => {
       if (phase !== "editing") return { ok: false };
+      setLifecycleError(null);
       const max = config.steps.length - 1;
       const clamped = Math.max(0, Math.min(target, max));
       const from = draft.cursor;
@@ -297,6 +309,7 @@ export const ContentComposer01 = React.forwardRef<
     const cb = props.onSaveDraft;
     if (!cb) return;
     const snapshot: ComposerDraft = { ...draft, status: "draft" };
+    setLifecycleError(null);
     dispatchPhase({ type: "validate-begin" });
     dispatchPhase({ type: "intent-accepted", intent: { mode: "draft" } });
     try {
@@ -306,6 +319,7 @@ export const ContentComposer01 = React.forwardRef<
       setAnnouncement("Draft saved.");
     } catch (e) {
       setAnnouncement(errorMessage(e));
+      setLifecycleError(errorMessage(e));
     } finally {
       dispatchPhase({ type: "draft-ack" });
     }
@@ -314,6 +328,7 @@ export const ContentComposer01 = React.forwardRef<
   const publish = React.useCallback(async () => {
     const cb = props.onPublish;
     if (!cb) return;
+    setLifecycleError(null);
     dispatchPhase({ type: "validate-begin" });
     const gate = await runAllGates();
     if (!gate.ok) {
@@ -330,6 +345,7 @@ export const ContentComposer01 = React.forwardRef<
       dispatchPhase({ type: "publish-resolved" });
     } catch (e) {
       setAnnouncement(errorMessage(e));
+      setLifecycleError(errorMessage(e));
       dispatchPhase({ type: "publish-rejected" });
     }
   }, [props.onPublish, draft, runAllGates, assembleItem, dispatchPhase, markSaved]);
@@ -342,6 +358,7 @@ export const ContentComposer01 = React.forwardRef<
         setAnnouncement("Pick a future time to schedule.");
         return;
       }
+      setLifecycleError(null);
       dispatchPhase({ type: "validate-begin" });
       const gate = await runAllGates();
       if (!gate.ok) {
@@ -362,6 +379,7 @@ export const ContentComposer01 = React.forwardRef<
         dispatchPhase({ type: "schedule-resolved" });
       } catch (e) {
         setAnnouncement(errorMessage(e));
+        setLifecycleError(errorMessage(e));
         dispatchPhase({ type: "publish-rejected" });
       }
     },
@@ -445,12 +463,20 @@ export const ContentComposer01 = React.forwardRef<
     scheduleReady,
   });
 
+  // Publish / Schedule are terminal actions → only on the final step. Save draft
+  // stays on every step (save progress anytime). The shell renders a Next button
+  // on non-final steps; the footer sits beside it.
+  const isLastStep = draft.cursor >= config.steps.length - 1;
+  const placedArms = isLastStep
+    ? arms
+    : arms.filter((a) => a.mode === "draft");
+
   const footer = props.renderPublishCTA
     ? props.renderPublishCTA(ctx)
-    : arms.length > 0
+    : placedArms.length > 0
       ? (
           <PublishBar
-            arms={arms}
+            arms={placedArms}
             onSaveDraft={() => void saveDraft()}
             onPublish={() => void publish()}
             onSchedule={() => void schedule(new Date(scheduleValue))}
@@ -502,6 +528,8 @@ export const ContentComposer01 = React.forwardRef<
               mode="dialog"
               footer={footer}
               announcement={announcement}
+              error={lifecycleError}
+              onDismissError={() => setLifecycleError(null)}
             >
               {slotNode}
             </ComposerShell>
@@ -518,6 +546,8 @@ export const ContentComposer01 = React.forwardRef<
             mode="inline"
             footer={footer}
             announcement={announcement}
+            error={lifecycleError}
+            onDismissError={() => setLifecycleError(null)}
             renderStepChrome={props.renderStepChrome}
           >
             {slotNode}
