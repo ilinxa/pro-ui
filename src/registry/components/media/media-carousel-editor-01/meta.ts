@@ -32,7 +32,7 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-06-05",
   updatedAt: "2026-06-05",
