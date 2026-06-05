@@ -44,7 +44,9 @@ error (no silent loss). Cross-RELOAD durable persistence of local blobs rides wi
 
 ## STATE LOCKED (2026-06-05 session close)
 
-- **Committed `75e9f68`** (30 files), **NOT pushed** — `master` is ahead of origin by 1.
+- **Work commit `75e9f68`** (30 files: carousel v0.1.1 + content-composer v0.2.0) + a
+  docs-reconcile commit on top. **NOT pushed** — `master` is ahead of origin by these
+  local commits (run `git log origin/master..HEAD --oneline` to see them). Push ships both.
 - Working tree CLEAN. tsc 0 · lint 81-22 baseline · meta-deps 53/53 · build 62 pages ·
   registry:build ✓ (carousel 14+1, content-composer 34+1). Artifacts carry the tail band.
 
