@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -5,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CATEGORIES } from "@/registry/categories";
 import { getAllSlugs, getEntry } from "@/registry/manifest";
+import { ComposerPlayground } from "./_components/composer-playground";
+import { FlowCanvasPlayground } from "./_components/flow-canvas-playground";
+import { JsonFormPlayground } from "./_components/json-form-playground";
+import { RichCardPlayground } from "./_components/rich-card-playground";
 import { DemoSourceBlock } from "./_components/demo-source-block";
 import { InstallationBlock } from "./_components/installation-block";
 import { ViewCodeDialog } from "./_components/view-code-dialog";
@@ -12,6 +17,73 @@ import { getDemoSource } from "./_lib/source-map.generated";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
+};
+
+/**
+ * Slug → live JSON playground. Each config-driven component renders a
+ * `<JsonPlayground>` on its detail page: write the component's JSON config on
+ * the left, Submit, see it render live on the right.
+ */
+const PLAYGROUNDS: Record<
+  string,
+  { description: ReactNode; render: () => ReactNode }
+> = {
+  "content-composer-01": {
+    description: (
+      <>
+        This composer is defined entirely by a JSON{" "}
+        <code className="font-mono text-foreground">ComposerConfig</code>. Edit
+        it on the left — when it&apos;s valid, press{" "}
+        <strong className="text-foreground">Submit</strong> to render a
+        fully-functional composer from your config on the right (step nav,
+        gates, autosave, and the metadata / body / media / carousel slots all
+        live). Publish/Save assemble a result via a playground adapter.
+      </>
+    ),
+    render: () => <ComposerPlayground />,
+  },
+  "json-form": {
+    description: (
+      <>
+        json-form renders a form entirely from a JSON{" "}
+        <code className="font-mono text-foreground">FormSchema</code>. Edit it on
+        the left — when it&apos;s valid, press{" "}
+        <strong className="text-foreground">Submit</strong> to render the live
+        form on the right (fields, validators, conditional visibility all
+        working). Submitting the form shows the collected values.
+      </>
+    ),
+    render: () => <JsonFormPlayground />,
+  },
+  "rich-card": {
+    description: (
+      <>
+        rich-card renders a recursive card tree from a JSON{" "}
+        <code className="font-mono text-foreground">RichCardJsonNode</code>{" "}
+        (scalar keys are fields, nested objects are subcards,{" "}
+        <code className="font-mono text-foreground">__rcmeta</code> holds
+        metadata). Edit it on the left, press{" "}
+        <strong className="text-foreground">Submit</strong>, and the editable
+        card renders on the right.
+      </>
+    ),
+    render: () => <RichCardPlayground />,
+  },
+  "flow-canvas-01": {
+    description: (
+      <>
+        flow-canvas renders a node graph from a JSON{" "}
+        <code className="font-mono text-foreground">CanvasData</code> (
+        <code className="font-mono text-foreground">nodes</code> +{" "}
+        <code className="font-mono text-foreground">edges</code>). Nodes use a{" "}
+        <code className="font-mono text-foreground">card</code> renderer or fall
+        back to the built-in custom-JSON node; edges connect{" "}
+        <code className="font-mono text-foreground">nodeId:portId</code> refs.
+        Submit to render the live, interactive canvas.
+      </>
+    ),
+    render: () => <FlowCanvasPlayground />,
+  },
 };
 
 export async function generateStaticParams() {
@@ -137,6 +209,20 @@ export default async function ComponentDetailPage({ params }: PageProps) {
           <Demo />
         </div>
       </section>
+
+      {PLAYGROUNDS[slug] ? (
+        <section className="mb-10">
+          <div className="mb-3 flex flex-col gap-1">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Live playground
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              {PLAYGROUNDS[slug].description}
+            </p>
+          </div>
+          {PLAYGROUNDS[slug].render()}
+        </section>
+      ) : null}
 
       {demoSource ? (
         <section className="mb-10">
