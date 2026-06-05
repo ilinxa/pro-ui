@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,10 @@ export interface ComposerShellProps {
   footer?: React.ReactNode;
   /** screen-reader announcement (gate failures, save acks) — managed by the root */
   announcement?: string;
+  /** visible lifecycle error (save/publish failure) — rendered as a dismissable alert */
+  error?: string | null;
+  /** dismiss handler for the visible error alert */
+  onDismissError?: () => void;
   /** escape hatch — extra chrome above the step body */
   renderStepChrome?: (ctx: ComposerCtx) => React.ReactNode;
   className?: string;
@@ -35,6 +40,8 @@ export function ComposerShell({
   children,
   footer,
   announcement,
+  error,
+  onDismissError,
   renderStepChrome,
   className,
 }: ComposerShellProps) {
@@ -79,6 +86,29 @@ export function ComposerShell({
         {announcement}
       </div>
 
+      {error ? (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-foreground"
+        >
+          <AlertCircle
+            className="mt-0.5 size-4 shrink-0 text-destructive"
+            aria-hidden
+          />
+          <p className="flex-1">{error}</p>
+          {onDismissError ? (
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={onDismissError}
+              className="shrink-0 rounded p-0.5 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="size-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <Separator />
 
       <div className="flex items-center justify-between gap-2">
@@ -91,12 +121,12 @@ export function ComposerShell({
           Back
         </Button>
         <div className="flex items-center gap-2">
+          {footer}
           {!isLast && (
             <Button type="button" onClick={() => void goToStep(cursor + 1)}>
               Next
             </Button>
           )}
-          {footer}
         </div>
       </div>
     </div>

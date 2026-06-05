@@ -31,7 +31,7 @@ export const meta: ComponentMeta = {
     "shell",
   ],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-06-04",
   updatedAt: "2026-06-05",
