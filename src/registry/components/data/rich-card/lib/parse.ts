@@ -68,15 +68,18 @@ export type ParseResult = {
 
 /* ───────── helpers ───────── */
 
-function generateId(): string {
-  if (
-    typeof globalThis.crypto !== "undefined" &&
-    typeof globalThis.crypto.randomUUID === "function"
-  ) {
-    return globalThis.crypto.randomUUID();
-  }
-  // Fallback (shouldn't happen in supported environments).
-  return `rc-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+/**
+ * Deterministic auto-id from a card's tree path, for cards that don't supply an
+ * `__rcid`. MUST be deterministic (not a random UUID): parse runs at render-time
+ * state-init, so an SSR pass and the client hydration pass both parse the same
+ * input tree in the same order — a random id would differ between them and
+ * trip a hydration mismatch (`data-rcid` / `aria-labelledby`). Path is unique
+ * per node, so these ids are collision-free within a tree. Runtime edits mint
+ * random ids elsewhere (client-only, post-hydration — safe).
+ */
+function autoId(path: string): string {
+  const safe = path.replace(/[^a-zA-Z0-9_-]/g, "-");
+  return `rc-auto-${safe || "root"}`;
 }
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
@@ -250,13 +253,15 @@ function parseNode(
   let id =
     typeof node.__rcid === "string" && node.__rcid.length > 0
       ? node.__rcid
-      : generateId();
+      : autoId(path);
   if (seenIds.has(id)) {
     errors.push({
       message: `duplicate __rcid "${id}"; regenerated`,
       path,
     });
-    id = generateId();
+    // Path is unique, so the path-derived id deterministically resolves the
+    // collision (and stays SSR-stable).
+    id = autoId(path);
   }
   seenIds.add(id);
 
