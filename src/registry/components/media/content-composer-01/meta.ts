@@ -8,10 +8,10 @@ export const meta: ComponentMeta = {
   description:
     "Multi-step content-authoring shell that composes json-form, article-body-01 (Plate), and media-editor-01 into one configurable surface — each content type (news / post / event / project) is a JSON config, not a new component.",
   context:
-    "A single procomp shell for CMS content authoring. It owns the cross-cutting lifecycle — step navigation, dialog/inline presentation, autosave, dirty tracking, the draft → publish → schedule state machine, and the between-step validation gates — and mounts three substrate slots per step: metadataFields → json-form, bodySlot → article-body-01/Plate (or a plaintext fallback), mediaSlot → media-editor-01. Each content type is one declarative ComposerConfig; per-type adapters map the collected draft to/from the backend ContentItem (content-card-news-01's ContentCardItem). The wrapping CMS pro-page owns routing, data, permissions, and the upload implementation. v0.1 ships the news config first; post/event/project follow as JSON files.",
+    "A single procomp shell for CMS content authoring. It owns the cross-cutting lifecycle — step navigation, dialog/inline presentation, autosave, dirty tracking, the draft → publish → schedule state machine, and the between-step validation gates — and mounts four substrate slots per step: metadataFields → json-form, bodySlot → article-body-01/Plate (or a plaintext fallback), mediaSlot → media-editor-01 (single hero), mediaCarouselSlot → media-carousel-editor-01 (multi-media post). Each content type is one declarative ComposerConfig; per-type adapters map the collected draft to/from the backend ContentItem (content-card-news-01's ContentCardItem). The wrapping CMS pro-page owns routing, data, permissions, and the upload implementation. v0.2 ships news (single hero) + post (multi-media carousel) configs; post authoring is live, its publish/upload deferred to the v0.3 post backend; event/project follow as JSON files.",
   features: [
     "Single configurable shell — a new content type is one JSON config, not a new component",
-    "Three substrate slots per step: metadataFields (json-form) / bodySlot (article-body-01 Plate or plaintext) / mediaSlot (media-editor-01)",
+    "Four substrate slots per step: metadataFields (json-form) / bodySlot (article-body-01 Plate or plaintext) / mediaSlot (media-editor-01 single hero) / mediaCarouselSlot (media-carousel-editor-01 multi-media)",
     "Draft → publish → schedule state machine (schedule = publish with a future publishAt)",
     "Blocking between-step validation gates (forward-gated, backward-free; publish re-runs all)",
     "Autosave split: per-mutation onDraftChange vs debounced onAutosave; aggregated dirty across three asymmetric slots",
@@ -40,8 +40,8 @@ export const meta: ComponentMeta = {
 
   dependencies: {
     // shadcn primitives used by the shell chrome + custom field renderers.
-    // Plate / Konva / RHF / Zod arrive transitively through the three substrate
-    // procomps (registryDependencies), not re-declared here. react + lucide-react
+    // Plate / Konva / RHF / Zod / @dnd-kit arrive transitively through the
+    // substrate procomps (registryDependencies), not re-declared here. react + lucide-react
     // are baseline (audit-whitelisted). Re-audited via validate:meta-deps (F-cross-07).
     shadcn: [
       "badge",

@@ -1,6 +1,6 @@
 # media-editor-01 — consumer guide
 
-> v0.1.2 alpha. The reusable capture + edit surface lifted out of
+> v0.1.3 alpha. The reusable capture + edit surface lifted out of
 > [`story-composer-01`](../story-composer-01-procomp/) v0.1.5. Four
 > controllable capability dials let you pull as little or as much editor
 > surface as your context needs. `story-composer-01` v0.2.x is a thin
@@ -18,6 +18,12 @@
 > `onEditAction` now emit (navigation + lifecycle actions); the
 > `renderPermissionDenied` slot is honored for the denied state; and the
 > pan-zoom keyboard is **focus-scoped to the canvas** (no longer window-bound).
+>
+> v0.1.3 (2026-06-05) fixed a crop-layout bug: in crop mode the bottom control
+> bar (Apply/Cancel + tool tabs) floated over the canvas and covered the crop
+> frame's bottom drag-handles. The controls now drop **into flow** below the
+> canvas while cropping (the canvas region shrinks to reserve the space), so
+> every handle stays reachable; other tools keep the space-saving overlay.
 
 ## Install
 

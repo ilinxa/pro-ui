@@ -62,11 +62,13 @@ export function NewsComposer() {
       <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>
-          <strong>Configs are data.</strong> News ships first (
-          <code>newsComposerConfig</code> / <code>createNewsComposerConfig</code>).
-          The <code>post</code> config is modeled but deferred — it proves the
-          <code>library</code>→<code>upload</code> source clamp; its backend
-          mapping ships behind <code>media-editor-01</code> v0.2.
+          <strong>Configs are data.</strong> Two ship: <code>news</code> (single
+          hero via <code>mediaSlot</code>) and <code>post</code> (multi-media via
+          <code>mediaCarouselSlot</code> → <code>media-carousel-editor-01</code> —
+          drop/browse N photo+video, reorder, per-item edit). Post authoring is
+          fully live; only its publish path (the <code>post-content-item</code>{" "}
+          adapter + multi-blob upload-at-publish) is deferred to the v0.3 post
+          backend. Adding a type is a JSON file, not a new component.
         </li>
         <li>
           <strong>Upload is lazy.</strong> The hero blob is captured when you
