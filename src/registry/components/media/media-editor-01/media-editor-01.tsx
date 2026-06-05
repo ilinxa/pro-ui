@@ -1174,9 +1174,24 @@ export const MediaEditor01 = React.forwardRef<
       {/* Bottom control overlay — edit stage only. Floats over the bottom of
           the full-bleed canvas (mirrors the camera's overlaid shutter) with a
           scrim, so the tool panel + chip row never steal the canvas's space or
-          get clipped by the dialog's bottom edge. */}
+          get clipped by the dialog's bottom edge.
+
+          EXCEPTION — crop: the crop frame's bottom drag-handles live at the
+          image's bottom edge, so a floating overlay would cover them (you
+          couldn't grab the bottom handles). When the crop tool is active the
+          controls drop INTO FLOW below the canvas instead — the canvas region
+          (flex-1) shrinks to reserve the space, keeping every handle reachable.
+          Other tools are sliders/inputs (no canvas-edge handles), so they keep
+          the space-saving overlay. */}
       {showEditCanvas ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col items-stretch gap-2 bg-linear-to-t from-black/70 via-black/30 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-10 *:pointer-events-auto">
+        <div
+          className={cn(
+            "flex flex-col items-stretch gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] *:pointer-events-auto",
+            editor.activeTool === "crop"
+              ? "relative pt-2"
+              : "pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-black/70 via-black/30 to-transparent pt-10",
+          )}
+        >
           {/* Active tool panel — keyed by editor.activeTool. Renders above the
               chip-row toolbar. Image-draft tools only show on image drafts;
               video-draft trim/etc. land in R4. */}
