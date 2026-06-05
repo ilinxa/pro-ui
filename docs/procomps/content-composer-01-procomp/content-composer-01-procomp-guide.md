@@ -2,7 +2,7 @@
 
 > Stage 3: how to *use* it. Companion to the [description](./content-composer-01-procomp-description.md) (what & why) and the [plan](./content-composer-01-procomp-plan.md) (how it's built).
 >
-> **Status:** v0.1.0 alpha. News config ships first; post is modeled but deferred (clamp proof). Install: `pnpm dlx shadcn@latest add @ilinxa/content-composer-01`.
+> **Status:** v0.2.1 alpha. News **and** post configs both ship. News authors a single hero (`mediaSlot` → media-editor-01); post authors **multi-media** (`mediaCarouselSlot` → media-carousel-editor-01 — drop/browse N mixed photo+video → reorder → per-item edit). Post **authoring is fully live**; only its publish path (the `post-content-item` adapter + durable multi-blob upload-at-publish) is deferred to the v0.3 post backend — publishing a post today surfaces a visible "no adapter" message, no silent loss. Install: `pnpm dlx shadcn@latest add @ilinxa/content-composer-01`.
 
 ---
 
@@ -15,12 +15,13 @@ authoring lifecycle:
 ```
 ComposerConfig (steps) ──▶  ContentComposer01 shell  ──▶  ContentCardItem (via adapter)
                               │
-       metadataFields ───────▶ json-form
-       bodySlot       ───────▶ article-body-01 (Plate) | <Textarea>
-       mediaSlot      ───────▶ media-editor-01
+       metadataFields    ───────▶ json-form
+       bodySlot          ───────▶ article-body-01 (Plate) | <Textarea>
+       mediaSlot         ───────▶ media-editor-01            (single hero)
+       mediaCarouselSlot ───────▶ media-carousel-editor-01   (multi-media post)
 ```
 
-Each step names a **slot kind**; a **substrate** renders it. The three default
+Each step names a **slot kind**; a **substrate** renders it. The four default
 substrates ship; you can override them via the `substrates` prop. Adding a new
 content type is a new config object — not a new component.
 
@@ -69,6 +70,13 @@ The news config has five steps: **Headline** (title required) → **Cover image*
 
 **Forward navigation is gated; backward is free.** A blocked gate keeps you on
 the step, focuses the first field, and announces the error via a live region.
+
+**Footer button placement.** Intermediate steps show **Save draft + Next**;
+the **last** step shows **Save draft + Publish** (and **Schedule** when wired) —
+Publish/Schedule are terminal actions, so they only appear on the final step,
+while Save draft stays available on every step. A save/publish failure (e.g. an
+unregistered adapter, or a rejected callback) is surfaced as a **visible,
+dismissable alert** above the footer (not just a screen-reader announcement).
 
 **Upload is lazy** (QP-10): the hero blob is captured when you leave the media
 step and uploaded only at save/publish/schedule — it never enters the draft JSON.
@@ -148,15 +156,28 @@ const eventConfig: ComposerConfig = {
 }
 ```
 
-The `post` config (`postComposerConfig`) is shipped as a **modeled-but-deferred**
-example: it declares `mediaSources: ["upload","library"]`, and the media
-substrate clamps the not-yet-supported `"library"` to upload-only at runtime (no
-crash). Its backend mapping ships once `media-editor-01` v0.2 lands `"library"`.
+The `post` config (`postComposerConfig`) is a second, **live** content type that
+proves config-only divergence. Instead of news's single `mediaSlot`, its media
+step is a **`mediaCarouselSlot`** backed by media-carousel-editor-01: drop/browse
+N mixed photo+video, reorder them, and edit any photo through the carousel's
+shared editor. Step navigation is **lossless within a session** — the shell caches
+the live carousel items (blobs included) across step unmounts.
+
+**Post authoring is fully live.** Only the publish path is deferred: the
+`post-content-item` adapter and the durable **multi-blob upload-at-publish** ship
+together behind the v0.3 post backend. Publishing a post today surfaces a visible
+"no adapter registered for `post-content-item`" message (no silent loss); local
+blobs that haven't been uploaded don't survive a full page reload — that rides
+with the upload-at-publish backend.
 
 ---
 
-## v0.1 scope notes & known limits
+## Scope notes & known limits (as of v0.2.1)
 
+- **Post publish is deferred to the v0.3 post backend** — the `post-content-item`
+  adapter + durable multi-blob upload-at-publish ship together. Post *authoring*
+  (the `mediaCarouselSlot` step) is fully live; only the terminal publish/upload
+  is stubbed (surfaces a visible "no adapter" alert).
 - **Inline body images** fall back to Plate's URL-prompt — the composer
   `uploader` is `ExportMetadata`-shaped (media-specific), so it isn't wired to
   Plate's image upload in v0.1. A dedicated body-image uploader is a v0.1.x

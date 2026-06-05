@@ -3,7 +3,7 @@
   "name": "content-composer-01",
   "title": "Content Composer 01",
   "author": "ilinxa",
-  "description": "Multi-step content-authoring shell that composes json-form (metadata), article-body-01/Plate (body), and media-editor-01 (hero) into one configurable surface. Each content type is one declarative ComposerConfig — the news config ships first. The shell owns step navigation, blocking gates, autosave, the draft → publish → schedule lifecycle, lazy upload-on-publish, and per-content-type adapters to the backend ContentCardItem.",
+  "description": "Multi-step content-authoring shell that composes json-form (metadata), article-body-01/Plate (body), media-editor-01 (single hero), and media-carousel-editor-01 (multi-media post) into one configurable surface. Each content type is one declarative ComposerConfig — news (single hero) and post (multi-media carousel: drop/browse N photo+video, reorder, per-item edit) both ship; post authoring is live, its publish/upload deferred to the v0.3 post backend. The shell owns step navigation, blocking gates (forward-gated, backward-free), autosave, the draft → publish → schedule lifecycle, lazy upload-on-publish, and per-content-type adapters to the backend ContentCardItem.",
   "dependencies": [
     "lucide-react"
   ],
