@@ -6,6 +6,7 @@ type: feature + bugfix
 commits:
   - fc8e469  # fix(rich-card): v0.4.3 SSR-stable auto-ids
   - f8a734b  # feat(docs): live JSON playgrounds on config-driven detail pages
+  - 6bf1be6  # fix(docs): flow-canvas starter — explicit data.ports
 components:
   - content-composer-01   # playground (no code change)
   - json-form             # playground (no code change)
@@ -71,6 +72,16 @@ later.
 - **flow-canvas**: node *renderers* are functions (can't be JSON), so the JSON
   is the `CanvasData` (nodes+edges referencing renderer `__type`s); the built-in
   custom-JSON fallback renders any unknown `__type`.
+- **flow-canvas starter must list `data.ports` EXPLICITLY** (commit `6bf1be6`).
+  `inflateDefaultPorts` (which seeds `data.ports` from a renderer's
+  `defaultPorts`) runs ONLY in the drop pipeline — NOT for nodes loaded from
+  `defaultData`. The first starter relied on `defaultPorts` → nodes had no ports
+  → `PortsAt` rendered nothing → edges had nothing to anchor (no ports/edges
+  visible). Fixed by listing explicit ports per node (matches the demo fixtures)
+  + made the starter richer (multi out-port fan-out, passthrough chain, terminal
+  nodes, custom-JSON fallback node, 3 edges). **Lesson: for any node-graph/data
+  playground, the starter must include the full explicit shape — defaultData is
+  taken verbatim, not inflated.**
 
 ## rich-card v0.4.3 — SSR-stable auto-ids (the bug the playground surfaced)
 
@@ -97,11 +108,12 @@ mismatches.
 
 ## State / resume
 
-- Tip `f8a734b`, **2 commits ahead of origin** (`fc8e469` rich-card fix +
-  `f8a734b` playgrounds), **NOT pushed**. Working tree clean.
+- **Everything from `fc8e469` onward is UNPUSHED** (origin at `92d5eec`):
+  `fc8e469` (rich-card fix) + `f8a734b` (playgrounds) + `6bf1be6` (flow-canvas
+  starter fix) + session-close docs. Working tree clean.
 - Gates: tsc 0 · lint 81-22 baseline · meta-deps 53/53 · registry:build ✓ ·
   **full `pnpm build` ✓** · all 4 playground pages SSR 200; validators accept
-  their starters; deterministic rich-card ids confirmed.
-- **Resume:** browser-verify the rich-card + flow-canvas playgrounds (Submit →
-  renders, interact), confirm the rich-card hydration error is gone, then
-  `git push origin master`. Optionally add data-driven-tier playgrounds.
+  their starters; deterministic rich-card ids confirmed; **all 4 playgrounds
+  user-confirmed working in the browser.**
+- **Resume:** `git push origin master` (the only pending step). Optionally add
+  data-driven-tier playgrounds.
