@@ -57,29 +57,84 @@ export function validateCanvasData(text: string): ValidateCanvasResult {
   return { ok: true, value: parsed as CanvasData };
 }
 
-/** Pre-loaded starter — two typed `card` nodes joined by an edge, plus one
- *  untyped node that lands on the built-in custom-JSON fallback renderer. */
+/**
+ * Pre-loaded starter — a small graph exercising the JSON-authorable features:
+ * typed `card` nodes, in/out ports with labels, a `multi` out port that fans out
+ * to two nodes, a passthrough chain, and an untyped node on the built-in
+ * custom-JSON fallback renderer.
+ *
+ * NOTE the load-bearing detail: ports must be listed EXPLICITLY in each node's
+ * `data.ports` — a renderer's `defaultPorts` is only inflated for nodes created
+ * via the drop pipeline, NOT for nodes loaded from `defaultData`. Without
+ * explicit ports, no handles render and edges have nothing to anchor to.
+ */
 export const STARTER_CANVAS = `{
   "version": 1,
   "nodes": [
     {
-      "id": "a",
-      "position": { "x": 40, "y": 70 },
-      "data": { "__type": "card", "title": "Source", "body": "Edit me, then drag my right handle →" }
+      "id": "source",
+      "position": { "x": 20, "y": 130 },
+      "data": {
+        "__type": "card",
+        "title": "Source",
+        "body": "A multi out-port fans out to two nodes.",
+        "ports": [
+          { "id": "out", "side": "right", "dir": "out", "type": "text", "multi": true, "label": "out" }
+        ]
+      }
     },
     {
-      "id": "b",
-      "position": { "x": 380, "y": 70 },
-      "data": { "__type": "card", "title": "Target", "body": "Connected from JSON via an edge." }
+      "id": "transform",
+      "position": { "x": 320, "y": 30 },
+      "data": {
+        "__type": "card",
+        "title": "Transform",
+        "body": "in → out passthrough.",
+        "ports": [
+          { "id": "in", "side": "left", "dir": "in", "type": "text", "label": "in" },
+          { "id": "out", "side": "right", "dir": "out", "type": "text", "label": "out" }
+        ]
+      }
     },
     {
-      "id": "c",
-      "position": { "x": 380, "y": 250 },
-      "data": { "__type": "note", "label": "Untyped → custom-JSON fallback", "value": 42, "tags": ["a", "b"] }
+      "id": "preview",
+      "position": { "x": 320, "y": 240 },
+      "data": {
+        "__type": "card",
+        "title": "Preview",
+        "body": "Terminal — a single in-port.",
+        "ports": [
+          { "id": "in", "side": "left", "dir": "in", "type": "text", "label": "in" }
+        ]
+      }
+    },
+    {
+      "id": "sink",
+      "position": { "x": 620, "y": 30 },
+      "data": {
+        "__type": "card",
+        "title": "Sink",
+        "body": "Receives from Transform.",
+        "ports": [
+          { "id": "in", "side": "left", "dir": "in", "type": "text", "label": "in" }
+        ]
+      }
+    },
+    {
+      "id": "note",
+      "position": { "x": 620, "y": 240 },
+      "data": {
+        "__type": "note",
+        "label": "Untyped __type → built-in custom-JSON fallback node",
+        "value": 42,
+        "tags": ["json", "fallback"]
+      }
     }
   ],
   "edges": [
-    { "id": "e1", "source": "a:out", "target": "b:in" }
+    { "id": "e1", "source": "source:out", "target": "transform:in" },
+    { "id": "e2", "source": "source:out", "target": "preview:in" },
+    { "id": "e3", "source": "transform:out", "target": "sink:in" }
   ]
 }
 `;
