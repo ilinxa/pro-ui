@@ -7,20 +7,22 @@
 
 ## STATE LOCKED
 
-- **Everything from `fc8e469` onward is UNPUSHED** (origin/master is at `92d5eec`). Run `git log --oneline origin/master..HEAD` to see them. **`git push origin master` ships the lot.** Working tree CLEAN.
+- **Everything from `fc8e469` onward is UNPUSHED** (origin/master is at `92d5eec`). Run `git log --oneline origin/master..HEAD` to see them. **`git push origin master` ships the lot.** Working tree CLEAN; full `pnpm build` ✓.
   - `fc8e469` — fix(rich-card): v0.4.3 SSR-stable auto-ids
   - `f8a734b` — feat(docs): live JSON playgrounds on config-driven detail pages
-  - `76a5fc5` (+ this reconcile) — docs(session-close) lock
+  - `6bf1be6` — fix(docs): flow-canvas starter — explicit data.ports so edges/handles render
+  - `76a5fc5` / `f3d6725` (+ this reconcile) — docs(session-close) lock
+- **Both newly-built playgrounds are USER-CONFIRMED working** (rich-card hydration gone + renders; flow-canvas ports + edges + fan-out render after the starter fix). content-composer-01 + json-form were confirmed earlier.
 - Gates: **tsc 0 · lint 81-22 baseline (no new) · meta-deps 53/53 · registry:build ✓ · full `pnpm build` ✓** · all 4 playground pages SSR 200; validators accept their starters; rich-card deterministic ids confirmed across requests.
 - Dev server was **stopped** for the final build — restart with `pnpm dev` on resume.
 
 ## NEXT ACTION (resume here)
 
-1. `pnpm dev`, then **browser-verify the two unconfirmed playgrounds** (the user confirmed composer + json-form already):
-   - **http://localhost:3000/components/rich-card** → the hydration console error should be **gone**; Live playground → **Submit** → editable card renders.
-   - **http://localhost:3000/components/flow-canvas-01** → Live playground → **Submit** → interactive node graph renders (drag nodes, connect a port; untyped node shows the custom-JSON fallback).
-2. If good: **`git push origin master`** (ships rich-card v0.4.3 + the playgrounds; Vercel auto-deploys). No post-deploy smoke needed (docs-site feature + a parse-only rich-card patch; not a new registry surface).
-3. Optional: add more playgrounds — the reusable `<JsonPlayground>` makes the data-driven tier (media-carousel-01, pricing-table-01, kanban-board-01, tree/list family) ~10-line wrappers each.
+All 4 playgrounds are USER-CONFIRMED working — the only pending step is the push.
+
+1. **`git push origin master`** (ships rich-card v0.4.3 + the playgrounds + the flow-canvas starter fix; Vercel auto-deploys). No post-deploy smoke needed (docs-site feature + a parse-only rich-card patch; not a new registry surface).
+2. `pnpm dev` if you want to re-look first (dev was stopped for the final build). All 4: `/components/{content-composer-01,json-form,rich-card,flow-canvas-01}` → Live playground → Submit.
+3. Optional: add more playgrounds — the reusable `<JsonPlayground>` makes the data-driven tier (media-carousel-01, pricing-table-01, kanban-board-01, tree/list family) ~10-line wrappers each. **Gotcha for any node-graph/data playground: list ports/items EXPLICITLY in the starter — `defaultData` doesn't inflate a renderer's `defaultPorts` (that only runs in the drop pipeline).**
 
 ## What shipped this session (committed, not pushed)
 
@@ -29,7 +31,7 @@ Reusable **`<JsonPlayground<T>>`** at `src/app/components/[slug]/_components/jso
 - `composer-playground.tsx` + `composer-config-schema.ts` — `ComposerConfig`; registers a generic `playground` adapter (mutates the exported `ADAPTER_REGISTRY`) + fake uploader so Publish/Save assemble a visible item.
 - `json-form-playground.tsx` + `form-schema-schema.ts` — `FormSchema`; onSubmit shows values.
 - `rich-card-playground.tsx` + `rich-card-schema.ts` — `RichCardJsonNode`, rendered `editable`.
-- `flow-canvas-playground.tsx` + `flow-canvas-schema.ts` — `CanvasData`; **module-scope** `card` renderer + built-in custom-JSON fallback; fixed-height frame.
+- `flow-canvas-playground.tsx` + `flow-canvas-schema.ts` — `CanvasData`; **module-scope** `card` renderer + built-in custom-JSON fallback; fixed-height frame. Starter lists **explicit `data.ports`** (defaultData doesn't inflate `defaultPorts`) + is rich (multi out-port fan-out, chain, terminal nodes, fallback node, 3 edges).
 - `page.tsx` routes per slug via a `PLAYGROUNDS` map. **Docs-site only — shipped components unchanged.**
 
 **Impl lesson:** validators run zod for ERROR MESSAGES but return the ORIGINAL `JSON.parse` result (zod strips unmodelled keys; the components need them).
