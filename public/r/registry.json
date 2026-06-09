@@ -2485,6 +2485,79 @@
       "files": [
         { "path": "src/registry/components/media/media-carousel-editor-01/dummy-data.ts", "type": "registry:component", "target": "components/media-carousel-editor-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-library-01",
+      "type": "registry:block",
+      "title": "Media Library 01",
+      "description": "A Google-Drive-style media library: folders + files with lazy loading, drag-drop upload, drag-to-move, right-click menus, and multi-type file preview (image / video / PDF / code / JSON / text / Markdown). Composition-first — it owns the Drive shell (quota bar, type-filter chips, folder-card row, thumbnail grid, upload pipeline, preview dispatcher) and delegates every file render to the shipped viewers (pdf-viewer, code-block, markdown-editor, video-player-01) plus a folder file-tree. Ships shadcn-style: one batteries-included <MediaLibrary01> plus a headless <MediaLibraryRoot> + à-la-carte parts, so consumers drop what they don't need and tree-shake the unused viewers away.",
+      "author": "ilinxa",
+      "categories": ["media"],
+      "registryDependencies": [
+        "@ilinxa/file-tree",
+        "@ilinxa/pdf-viewer",
+        "@ilinxa/code-block",
+        "@ilinxa/markdown-editor",
+        "@ilinxa/video-player-01",
+        "https://ui.shadcn.com/r/styles/new-york/button.json",
+        "https://ui.shadcn.com/r/styles/new-york/context-menu.json",
+        "https://ui.shadcn.com/r/styles/new-york/dialog.json",
+        "https://ui.shadcn.com/r/styles/new-york/input.json",
+        "https://ui.shadcn.com/r/styles/new-york/progress.json",
+        "https://ui.shadcn.com/r/styles/new-york/skeleton.json"
+      ],
+      "dependencies": [
+        "@dnd-kit/core",
+        "date-fns",
+        "lucide-react"
+      ],
+      "files": [
+        { "path": "src/registry/components/media/media-library-01/media-library-01.tsx", "type": "registry:component", "target": "components/media-library-01/media-library-01.tsx" },
+        { "path": "src/registry/components/media/media-library-01/index.ts", "type": "registry:component", "target": "components/media-library-01/index.ts" },
+        { "path": "src/registry/components/media/media-library-01/types.ts", "type": "registry:component", "target": "components/media-library-01/types.ts" },
+        { "path": "src/registry/components/media/media-library-01/hooks/use-controllable-state.ts", "type": "registry:component", "target": "components/media-library-01/hooks/use-controllable-state.ts" },
+        { "path": "src/registry/components/media/media-library-01/hooks/use-lazy-children.ts", "type": "registry:component", "target": "components/media-library-01/hooks/use-lazy-children.ts" },
+        { "path": "src/registry/components/media/media-library-01/hooks/use-media-library.ts", "type": "registry:component", "target": "components/media-library-01/hooks/use-media-library.ts" },
+        { "path": "src/registry/components/media/media-library-01/hooks/use-selection.ts", "type": "registry:component", "target": "components/media-library-01/hooks/use-selection.ts" },
+        { "path": "src/registry/components/media/media-library-01/hooks/use-text-content.ts", "type": "registry:component", "target": "components/media-library-01/hooks/use-text-content.ts" },
+        { "path": "src/registry/components/media/media-library-01/hooks/use-upload.ts", "type": "registry:component", "target": "components/media-library-01/hooks/use-upload.ts" },
+        { "path": "src/registry/components/media/media-library-01/lib/drag.ts", "type": "registry:component", "target": "components/media-library-01/lib/drag.ts" },
+        { "path": "src/registry/components/media/media-library-01/lib/filter-category.ts", "type": "registry:component", "target": "components/media-library-01/lib/filter-category.ts" },
+        { "path": "src/registry/components/media/media-library-01/lib/format.ts", "type": "registry:component", "target": "components/media-library-01/lib/format.ts" },
+        { "path": "src/registry/components/media/media-library-01/lib/preview-kind.ts", "type": "registry:component", "target": "components/media-library-01/lib/preview-kind.ts" },
+        { "path": "src/registry/components/media/media-library-01/parts/breadcrumbs.tsx", "type": "registry:component", "target": "components/media-library-01/parts/breadcrumbs.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/context-menu.tsx", "type": "registry:component", "target": "components/media-library-01/parts/context-menu.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/details-pane.tsx", "type": "registry:component", "target": "components/media-library-01/parts/details-pane.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/file-card.tsx", "type": "registry:component", "target": "components/media-library-01/parts/file-card.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/file-grid.tsx", "type": "registry:component", "target": "components/media-library-01/parts/file-grid.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/file-preview.tsx", "type": "registry:component", "target": "components/media-library-01/parts/file-preview.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/file-visuals.tsx", "type": "registry:component", "target": "components/media-library-01/parts/file-visuals.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/folder-card.tsx", "type": "registry:component", "target": "components/media-library-01/parts/folder-card.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/folder-row.tsx", "type": "registry:component", "target": "components/media-library-01/parts/folder-row.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/library-toolbar.tsx", "type": "registry:component", "target": "components/media-library-01/parts/library-toolbar.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/media-library-root.tsx", "type": "registry:component", "target": "components/media-library-01/parts/media-library-root.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/preview-lightbox.tsx", "type": "registry:component", "target": "components/media-library-01/parts/preview-lightbox.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/quota-bar.tsx", "type": "registry:component", "target": "components/media-library-01/parts/quota-bar.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/rename-input.tsx", "type": "registry:component", "target": "components/media-library-01/parts/rename-input.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/sidebar.tsx", "type": "registry:component", "target": "components/media-library-01/parts/sidebar.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/type-filters.tsx", "type": "registry:component", "target": "components/media-library-01/parts/type-filters.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/upload-overlay.tsx", "type": "registry:component", "target": "components/media-library-01/parts/upload-overlay.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/upload-progress.tsx", "type": "registry:component", "target": "components/media-library-01/parts/upload-progress.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-library-01-fixtures",
+      "type": "registry:block",
+      "title": "Media Library 01 — fixtures",
+      "description": "Media Library 01 bundle including sample dummy-data (a CMS-style folder tree + files spanning every previewable type, lazy children, and a storage quota) for the demo. Resolves the base media-library-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["media", "fixtures"],
+      "registryDependencies": ["@ilinxa/media-library-01"],
+      "files": [
+        { "path": "src/registry/components/media/media-library-01/dummy-data.ts", "type": "registry:component", "target": "components/media-library-01/dummy-data.ts" }
+      ]
     }
   ]
 }
