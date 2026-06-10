@@ -71,8 +71,10 @@ export function MediaItemContextMenu({
         {can.delete ? (
           <>
             <ContextMenuSeparator />
+            {/* F-cross-13: style destructive via className, not a `variant`
+                prop — consumer primitives (base-nova / Base UI) may lack it. */}
             <ContextMenuItem
-              variant="destructive"
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
               onSelect={() => ctx.requestDelete(ids)}
             >
               {labels.delete}

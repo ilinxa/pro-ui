@@ -20,10 +20,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["media", "library", "files", "drive", "upload", "preview", "drag-drop", "folders", "cms"],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-06-09",
-  updatedAt: "2026-06-09",
+  updatedAt: "2026-06-10",
 
   author: { name: "ilinxa" },
 

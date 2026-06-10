@@ -15,22 +15,25 @@ import {
 import { PreviewKindIcon } from "./file-visuals";
 
 // Lazy viewers — code-split so a consumer who never previews a PDF/code/markdown
-// file never ships pdf.js / CodeMirror / shiki / marked. Imported from each
-// procomp's `.tsx` entry (the F-01-safe value-import path).
+// file never ships pdf.js / CodeMirror / shiki / marked. Import convention
+// (VERIFIED by consumer smoke):
+//   • SAME-category procomps (media→media) → dynamic-import a RELATIVE path. The
+//     `media/` segment is implied by `../../`, so it survives the consumer's
+//     flat layout; relative also dodges the F-S1 same-category slug bug.
+//   • CROSS-category procomps → dynamic-import a LOCAL re-export wrapper
+//     (`./lazy-*`). shadcn's rewriter strips the category for STATIC
+//     `@/registry/...` imports (inside the wrapper) but NOT for dynamic
+//     import() calls — so a direct dynamic cross-category import keeps a dead
+//     `code/`/`forms/` segment and breaks the install. The local indirection
+//     fixes it while preserving the code-split.
 const LazyPdf = lazy(() =>
   import("../../pdf-viewer/pdf-viewer").then((m) => ({ default: m.PdfViewer })),
 );
 const LazyVideo = lazy(() =>
   import("../../video-player-01/video-player-01").then((m) => ({ default: m.default })),
 );
-const LazyCode = lazy(() =>
-  import("../../../code/code-block/code-block").then((m) => ({ default: m.CodeBlock })),
-);
-const LazyMarkdown = lazy(() =>
-  import("../../../forms/markdown-editor/markdown-editor").then((m) => ({
-    default: m.MarkdownEditor,
-  })),
-);
+const LazyCode = lazy(() => import("./lazy-code-block"));
+const LazyMarkdown = lazy(() => import("./lazy-markdown-editor"));
 
 const NOOP = () => {};
 

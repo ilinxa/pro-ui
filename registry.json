@@ -2543,7 +2543,9 @@
         { "path": "src/registry/components/media/media-library-01/parts/sidebar.tsx", "type": "registry:component", "target": "components/media-library-01/parts/sidebar.tsx" },
         { "path": "src/registry/components/media/media-library-01/parts/type-filters.tsx", "type": "registry:component", "target": "components/media-library-01/parts/type-filters.tsx" },
         { "path": "src/registry/components/media/media-library-01/parts/upload-overlay.tsx", "type": "registry:component", "target": "components/media-library-01/parts/upload-overlay.tsx" },
-        { "path": "src/registry/components/media/media-library-01/parts/upload-progress.tsx", "type": "registry:component", "target": "components/media-library-01/parts/upload-progress.tsx" }
+        { "path": "src/registry/components/media/media-library-01/parts/upload-progress.tsx", "type": "registry:component", "target": "components/media-library-01/parts/upload-progress.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/lazy-code-block.tsx", "type": "registry:component", "target": "components/media-library-01/parts/lazy-code-block.tsx" },
+        { "path": "src/registry/components/media/media-library-01/parts/lazy-markdown-editor.tsx", "type": "registry:component", "target": "components/media-library-01/parts/lazy-markdown-editor.tsx" }
       ]
     },
     {

@@ -1272,6 +1272,18 @@ Tier 1 audit (sweep close): no Tier 1 components carry the violation.
 
 > **Why this is doc-only mitigation, not a code-level lint:** the brittleness reaches users only when they `pnpm dlx shadcn add` an offending component, by which point it's too late. A consumer-tsc smoke harness extension that simulates shadcn's rewrite + tries to compile the result would catch this at producer-side commit time. That harness is a v0.2 follow-up; for v0.1.x, this section is the contract.
 
+#### The exact rewriter rules (proven by the `media-library-01` v0.1.1 consumer smoke)
+
+The rewriter turns `@/registry/components/<category>/<slug>/...` → `@/components/<slug>/...` (strips `registry/components/` **and** the category) — **but ONLY for static `import` declarations.** It does NOT rewrite: relative paths, dynamic `import()` calls, or `export … from` re-exports. So the safe form depends on category + static/lazy:
+
+| Case | Safe import form | Why |
+|---|---|---|
+| **Same-category** (e.g. media→media) | **relative** `../../<slug>/<slug>` (static or lazy) | the category is implied by `../../`, never named → survives the consumer's flat layout; also dodges the F-S1 same-category `/types` slug bug |
+| **Cross-category, static** (e.g. media→navigation) | **`@/registry/...` static `import`** | rewriter strips the category → `@/components/<slug>/...`. A relative cross-category path keeps the dead `<category>/` segment and 404s |
+| **Cross-category, lazy** (`React.lazy`) | a **local re-export wrapper** + `lazy(() => import("./wrapper"))` | dynamic `import()` is NOT rewritten, so import the cross-category procomp *statically* inside a local wrapper file and lazy-import that local file. Code-split preserved |
+
+The wrapper MUST use `import X; export default X` — **not** `export { X as default } from "..."` (the rewriter doesn't touch `export … from`). Reference impl: `media-library-01/parts/{lazy-code-block,sidebar,file-preview}.tsx`.
+
 ---
 
 ## 12. Anti-patterns
