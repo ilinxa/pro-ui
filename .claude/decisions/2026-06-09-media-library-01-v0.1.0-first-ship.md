@@ -38,8 +38,15 @@ Quota bar · type chips with live counts · FOLDERS card row · FILES thumbnail 
 ## Gates
 tsc 0 · lint clean (fixed: sync-setState-in-effect → microtask yield; `react-hooks/refs` false-positive on dnd returns → destructure per kanban precedent; `aria-selected`→`aria-pressed`; `aspect-4/3`) · meta-deps 54-54 · build 54 slugs · registry:build (31 files, no demo/usage/meta; 11 registryDeps). GATE 3 **Pass with follow-ups** ([review](../../docs/procomps/media-library-01-procomp/reviews/2026-06-09-v0.1.0-spotcheck.md)).
 
+## v0.1.1 (2026-06-10) — F-01 consumer smoke PASSED (4 cross-procomp install bugs fixed)
+Local-registry consumer smoke (base-nova/Base-UI consumer, `shadcn@4.6.0 add` → `tsc`) found 4 install bugs invisible to the dev gates; fixed; re-smoke **0 consumer-tsc errors**. The precise shadcn-rewriter rules (the lasting lesson):
+1. **Cross-category RELATIVE imports break** (keep the dev-only category segment); same-category relative is fine. → cross-category must use `@/registry/...` alias.
+2. **`export … from` re-exports are NOT rewritten** (only `import` declarations are). → wrapper uses `import X; export default X`.
+3. **Dynamic `import()` is NOT rewritten** (only static). → lazy a **local re-export wrapper** (`./lazy-code-block`) whose static import gets stripped.
+4. **F-cross-13** — `context-menu` `variant="destructive"` absent on base-nova → style via `className`.
+Net rule: same-cat → relative; cross-cat static → `@/registry/...` `import`; cross-cat lazy → local wrapper (`import`+`export default`) + `lazy(() => import("./wrapper"))`. Added 2 wrapper files (registry 31→33); meta 0.1.0→0.1.1. All gates re-green. See GATE 3 review §"F-01 smoke (v0.1.1)" + plan §3.
+
 ## Open follow-ups
-- **F-01 (Med, v0.1.1):** post-deploy consumer-tsc local-registry smoke not yet run — expect F-cross-13 sub-traps across 5 internal + 6 shadcn deps (context-menu asChild, dialog close-button). 4-ship pattern.
 - **F-02 (Low, v0.2):** file-grid virtualization (prop reserved; plain grid ships).
 - **F-03 (Low, v0.2):** copy/duplicate (cut→paste-move only today).
 - **F-04 (Low, v0.2):** sidebar lazy-expand (file-tree composed without onLoadChildren).

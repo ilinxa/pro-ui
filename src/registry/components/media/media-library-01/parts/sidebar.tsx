@@ -2,9 +2,12 @@
 
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-// VALUE import from file-tree's .tsx entry (F-01-safe); structural typing bridges
-// MediaNode[] → FsNode[] at the `nodes` boundary (no cross-procomp type import).
-import { FileTree } from "../../../navigation/file-tree/file-tree";
+// VALUE import from file-tree's .tsx entry. CROSS-category (media→navigation) →
+// `@/registry/...` ALIAS so shadcn's rewriter strips the category in the consumer
+// (`@/components/file-tree/file-tree`); a relative `../../../navigation/...` would
+// keep the dead `navigation/` segment and break the install (consumer-smoke proven).
+// Structural typing bridges MediaNode[] → FsNode[] (no cross-procomp type import).
+import { FileTree } from "@/registry/components/navigation/file-tree/file-tree";
 import { findNode } from "../lib/drag";
 import { useMediaLibrary } from "../hooks/use-media-library";
 import type { MediaNode } from "../types";
