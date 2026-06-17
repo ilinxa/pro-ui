@@ -2560,6 +2560,72 @@
       "files": [
         { "path": "src/registry/components/media/media-library-01/dummy-data.ts", "type": "registry:component", "target": "components/media-library-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "blackboard-01",
+      "type": "registry:block",
+      "title": "Blackboard",
+      "description": "A dark-navy chalkboard widget where a team writes handwritten notes — per-note ink color, chalk width, and handwriting font, with auto-save, scroll-up lazy loading, inline author-on-hover, pin, @mentions, and a handwritten red unread marker. The board surface is themeable (color or custom image). Ships shadcn-style: a batteries-included <Blackboard01> plus a headless <BlackboardRoot> + flat à-la-carte parts, so dropping the composer yields a free read-only board. Portable — all persistence, real-time transport, and notifications are the consumer's via callbacks.",
+      "author": "ilinxa",
+      "categories": ["data"],
+      "registryDependencies": [
+        "https://ui.shadcn.com/r/styles/new-york/button.json",
+        "https://ui.shadcn.com/r/styles/new-york/textarea.json"
+      ],
+      "dependencies": [
+        "@fontsource/kalam",
+        "@fontsource-variable/caveat",
+        "@fontsource/patrick-hand",
+        "@fontsource/shadows-into-light",
+        "date-fns",
+        "lucide-react"
+      ],
+      "files": [
+        { "path": "src/registry/components/data/blackboard-01/blackboard-01.tsx", "type": "registry:component", "target": "components/blackboard-01/blackboard-01.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/blackboard-fonts.ts", "type": "registry:component", "target": "components/blackboard-01/blackboard-fonts.ts" },
+        { "path": "src/registry/components/data/blackboard-01/index.ts", "type": "registry:component", "target": "components/blackboard-01/index.ts" },
+        { "path": "src/registry/components/data/blackboard-01/types.ts", "type": "registry:component", "target": "components/blackboard-01/types.ts" },
+        { "path": "src/registry/components/data/blackboard-01/hooks/use-autosave.ts", "type": "registry:component", "target": "components/blackboard-01/hooks/use-autosave.ts" },
+        { "path": "src/registry/components/data/blackboard-01/hooks/use-blackboard.ts", "type": "registry:component", "target": "components/blackboard-01/hooks/use-blackboard.ts" },
+        { "path": "src/registry/components/data/blackboard-01/hooks/use-blackboard-state.ts", "type": "registry:component", "target": "components/blackboard-01/hooks/use-blackboard-state.ts" },
+        { "path": "src/registry/components/data/blackboard-01/hooks/use-controllable-state.ts", "type": "registry:component", "target": "components/blackboard-01/hooks/use-controllable-state.ts" },
+        { "path": "src/registry/components/data/blackboard-01/hooks/use-lazy-older.ts", "type": "registry:component", "target": "components/blackboard-01/hooks/use-lazy-older.ts" },
+        { "path": "src/registry/components/data/blackboard-01/hooks/use-mentions.ts", "type": "registry:component", "target": "components/blackboard-01/hooks/use-mentions.ts" },
+        { "path": "src/registry/components/data/blackboard-01/lib/mentions.ts", "type": "registry:component", "target": "components/blackboard-01/lib/mentions.ts" },
+        { "path": "src/registry/components/data/blackboard-01/lib/palette.ts", "type": "registry:component", "target": "components/blackboard-01/lib/palette.ts" },
+        { "path": "src/registry/components/data/blackboard-01/lib/unread.ts", "type": "registry:component", "target": "components/blackboard-01/lib/unread.ts" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-background-editor.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-background-editor.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-composer.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-composer.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-note-item.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-note-item.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-note-stream.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-note-stream.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-notification-badge.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-notification-badge.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-pinned-row.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-pinned-row.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-root.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-root.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/blackboard-surface.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/blackboard-surface.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/board-background.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/board-background.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/chalk-width-picker.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/chalk-width-picker.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/handwriting-font-picker.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/handwriting-font-picker.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/handwritten-note.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/handwritten-note.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/ink-color-picker.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/ink-color-picker.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/mention-picker.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/mention-picker.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/mention-text.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/mention-text.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/note-composer.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/note-composer.tsx" },
+        { "path": "src/registry/components/data/blackboard-01/parts/unread-count.tsx", "type": "registry:component", "target": "components/blackboard-01/parts/unread-count.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "blackboard-01-fixtures",
+      "type": "registry:block",
+      "title": "Blackboard — fixtures",
+      "description": "Blackboard bundle including sample dummy-data (a team roster, seed notes with @mentions and a pinned note, plus a deterministic older-notes generator for the lazy-load demo). Resolves the base blackboard-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["data", "fixtures"],
+      "registryDependencies": ["@ilinxa/blackboard-01"],
+      "files": [
+        { "path": "src/registry/components/data/blackboard-01/dummy-data.ts", "type": "registry:component", "target": "components/blackboard-01/dummy-data.ts" }
+      ]
     }
   ]
 }
