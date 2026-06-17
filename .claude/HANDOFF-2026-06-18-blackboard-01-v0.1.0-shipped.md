@@ -21,7 +21,7 @@ tsc 0 · eslint (blackboard scoped) 0 · `validate:meta-deps` 55-55 · `pnpm bui
 
 ## ⚠️ Working-tree note (IMPORTANT)
 
-There is an **unrelated `kanban-board-01` v0.4.0 WIP** in the working tree (8 source + 3 doc files, `meta` bumped 0.3.0→0.4.0, `updatedAt` 2026-06-18) — **NOT authored this session** (concurrent session / user). It was deliberately **left UNSTAGED** and is NOT part of the blackboard ship. **Do not commit it as part of blackboard work** — it's someone else's in-flight v0.4.0.
+There is **unrelated concurrent WIP** in the working tree — **`kanban-board-01` v0.4.0** (8 source + 3 doc files, `meta` 0.3.0→0.4.0, `updatedAt` 2026-06-18) plus **`todo-rich-card`** (~12 files) and **`todo-tree`** (~7 files), all `data`-category, all edited today and appearing mid-session — **NOT authored this session** (a concurrent session / the user). All of it was deliberately **left UNSTAGED** and is NOT part of the blackboard ship (verified: the blackboard commit `96ebd5b` touched only blackboard + its own docs/config; `git show --stat 96ebd5b`). **Do not commit that WIP as part of blackboard work** — it's someone else's in-flight work.
 
 ## Docs
 
