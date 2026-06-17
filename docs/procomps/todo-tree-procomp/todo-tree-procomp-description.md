@@ -88,7 +88,9 @@ User direction: **no v0.2 / v0.3 deferrals.** Every capability that belongs in t
 - Cross-procomp drag semantics: **copy by default** — source row stays in the tree when dragged out. Consumer can listen to `onItemDropped` with `from: "external"` and remove the source themselves for move semantics.
 
 **Permissions**
-- Reuses todo-rich-card's `TodoPermissions` shape. Same `{default, byLevel, byItem, inherit}` matrix with predicate functions. Tree gates:
+- Reuses todo-rich-card's `TodoPermissions` shape — the `{default, byLevel, byItem, inherit}` matrix.
+- > **Shipped API note (v0.2):** todo-tree exposes ONLY the `permissions` matrix + `onPermissionDenied`; there are **no** separate `canX` predicate props (unlike todo-rich-card). The labels below are the six matrix-gated *actions*; their matrix rule keys are `edit` / `toggleActive` / `drag` / `dropIntoChildren` / `dropAsSibling` / `remove` (the two drop actions reuse the `drag` / `addChildren` rule keys). All six are now honored on BOTH the keyboard and mouse/DnD paths. Defer to `types.ts` on any naming difference.
+- Tree gates:
   - **canEditItem** — gates click-to-open-edit (row stays selectable but the click is a no-op + fires `onPermissionDenied`).
   - **canToggleActive** — gates the checkbox (rendered but `aria-disabled` + no interaction).
   - **canDragItem** — gates drag-source for that row (grip strip not rendered).

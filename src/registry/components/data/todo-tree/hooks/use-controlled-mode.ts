@@ -76,52 +76,27 @@ export function useControlledMode(
     [],
   );
 
-  // Defense 2.
+  // Defense 2 — full-field echo guard (TT2/TT11). Serialize the incoming value
+  // once and compare to the last applied snapshot + the current internal state.
+  // Replaces the partial 5-field structural walk (id/name/status/active/children
+  // only), which silently DROPPED external changes to assignee / description /
+  // dates, and removes the unbounded recursive compare on every value change.
+  const lastAppliedRef = useRef<string | null>(null);
   useEffect(() => {
     if (!isControlled) return;
     if (value === internalItems) return;
-    if (treesMatchStructurally(value!, internalItems)) return;
+    const incoming = JSON.stringify(value);
+    if (incoming === lastAppliedRef.current) return;
+    if (incoming === JSON.stringify(internalItems)) {
+      lastAppliedRef.current = incoming;
+      return;
+    }
+    lastAppliedRef.current = incoming;
     applyExternalItems(value!);
-    // applyExternalItems' identity is stable (the host wraps dispatch in a
-    // useCallback with stable deps), so omit it from the dep list to avoid
-    // re-running on every internal mutation.
+    // applyExternalItems' identity is stable; `internalItems` is read for the
+    // echo compare but intentionally NOT a dep (only react to `value` changes).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, isControlled]);
 
   return { isControlled, isDraggingRef, fireOnChange };
-}
-
-/**
- * Reference-equality fast path, then DFS structural compare on the fields
- * round-tripped through value → onChange echoes: id, name, status, active,
- * children length + descendants. Stops on first mismatch.
- */
-function treesMatchStructurally(
-  a: ReadonlyArray<TodoItem>,
-  b: ReadonlyArray<TodoItem>,
-): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (!itemMatches(a[i], b[i])) return false;
-  }
-  return true;
-}
-
-function itemMatches(a: TodoItem, b: TodoItem): boolean {
-  if (a === b) return true;
-  if (a.id !== b.id) return false;
-  if (a.name !== b.name) return false;
-  if (a.status !== b.status) return false;
-  if (a.active !== b.active) return false;
-  const ac = a.children;
-  const bc = b.children;
-  if (ac === bc) return true;
-  if (!ac && !bc) return true;
-  if (!ac || !bc) return (ac?.length ?? 0) === (bc?.length ?? 0);
-  if (ac.length !== bc.length) return false;
-  for (let i = 0; i < ac.length; i++) {
-    if (!itemMatches(ac[i], bc[i])) return false;
-  }
-  return true;
 }

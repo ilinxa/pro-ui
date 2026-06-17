@@ -1426,8 +1426,7 @@
         "dropdown-menu",
         "input",
         "popover",
-        "textarea",
-        "tooltip"
+        "textarea"
       ],
       "dependencies": [
         "@dnd-kit/core",
@@ -2018,7 +2017,7 @@
       "name": "todo-rich-card",
       "type": "registry:block",
       "title": "Todo Rich Card",
-      "description": "Time-aware task card with OKLCH border-color engine (urgency green→red ramp), dual edit modes (popup + inline-toggle), JSON I/O, clipboard, DnD payload, granular events, permission predicates. Standalone-usable and registerable in kanban-board-01 via the included KanbanCardRenderer export.",
+      "description": "Time-aware task card with OKLCH border-color engine (urgency green→red ramp), dual edit modes (popup + inline-toggle), controlled or uncontrolled state, JSON I/O, clipboard, DnD payload, granular events, permission predicates. Standalone-usable and registerable in kanban-board-01 via the included KanbanCardRenderer export.",
       "author": "ilinxa",
       "categories": ["data", "task-management"],
       "registryDependencies": [

@@ -1,6 +1,6 @@
 # `todo-tree` — Pro-component Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** Authored alongside v0.1.0 / v0.1.1 / v0.1.2 implementation
+> **Stage:** 3 of 3 · **Status:** v0.2.0 (alpha)
 > **Slug:** `todo-tree` · **Category:** `data`
 > **Version:** 0.1.2 (alpha) · **Shipped:** 2026-05-21
 > Consumer-facing usage notes. The description doc explains "why," the plan doc explains "how"; this doc explains "use it."
@@ -246,10 +246,13 @@ The bar is invoked via slot if you want full custom rendering:
 ```tsx
 <TodoTree
   defaultValue={items}
-  renderToolbar={({ selectedCount, handle }) =>
-    selectedCount > 0 ? (
-      <MyBulkBar count={selectedCount} onArchive={() => handle.bulkRemove(handle.getSelection())} />
-    ) : null
+  renderToolbar={({ defaultToolbar, state }) =>
+    state.selectedIds.size > 0 ? (
+      <MyBulkBar
+        count={state.selectedIds.size}
+        onArchive={() => state.removeItems([...state.getSelectedIds()])}
+      />
+    ) : defaultToolbar
   }
 />
 ```
@@ -308,84 +311,75 @@ The MIME payload is shared with `todo-rich-card`, so consumers can drag rows fro
 
 ## Permissions
 
-Mirrors `todo-rich-card`'s shape. Two layers:
-
-**Declarative matrix:**
+Mirrors `todo-rich-card`'s declarative matrix. **The only permission API is the `permissions` prop + `onPermissionDenied`** — there are no per-action predicate props (`canEditItem`, `canDragItem`, … do not exist).
 
 ```tsx
 <TodoTree
   permissions={{
     default: { edit: true, remove: false, drag: true, addChildren: true, toggleActive: true },
-    byLevel: { 1: { remove: true } },              // root level can remove
+    byLevel: { 0: { remove: true } },              // top-level items (level 0) can be removed
     byItem: { "task-001": { drag: false } },       // pin one item
     inherit: true,                                  // cascade through descendants
   }}
-/>
-```
-
-**Per-action predicates (override the matrix per call):**
-
-```tsx
-<TodoTree
-  canEditItem={(id) => userIs("admin") || id.startsWith("draft-")}
-  canRemoveItem={(id) => !id.startsWith("locked-")}
-  canDragItem={() => isDesktop}
-  canDropAsSibling={(id, targetId) => /* … */}
-  canDropIntoChildren={(id, targetId) => /* … */}
-  canToggleActive={() => true}
   onPermissionDenied={({ action, itemId, reason }) => {
     analytics.track("todo_permission_denied", { action, itemId, reason });
   }}
 />
 ```
 
-The permission `action` codes for tree-only events map to rule keys as follows: `dropAsSibling` → `drag` rule key, `dropIntoChildren` → `addChildren` rule key.
+The matrix gates six actions: `edit`, `toggleActive`, `drag`, `dropAsSibling`, `dropIntoChildren`, `remove`. The two drop actions map onto `todo-rich-card`'s rule keys: `dropAsSibling` → `drag`, `dropIntoChildren` → `addChildren`. `byLevel` keys are 0-indexed (top-level = `0`).
 
-> **✅ v0.1.2 closed F-perm.** Keyboard Space (toggleActive) and Delete/Backspace (remove) now consult the declarative `permissions` matrix + `item.locked` + `readOnly` and fire `onPermissionDenied` on denial with one of `denied-by-rule` / `denied-by-lock` / `denied-by-readOnly`. The DnD path continues to consult its own `canDropAsSibling` / `canDropIntoChildren` predicates as before.
+> **v0.2 — the matrix is now honored on the mouse/DnD path too.** Earlier versions enforced it only on the keyboard path; v0.2 wires it into the drag grip + native HTML5 drag (`drag`), the active checkbox (`toggleActive`), the drop targets (`dropAsSibling` / `dropIntoChildren`), and the toolbar "+ New" root-create button (level-0 `addChildren`). Denials fire `onPermissionDenied` with `denied-by-rule` / `denied-by-lock` / `denied-by-readOnly` / `circular-drop`.
 >
-> **Imperative handle methods do NOT gate.** `handle.removeItem(id)` / `handle.toggleActive(id, next)` mutate regardless of permissions, by design. The handle is the raw mutation surface for advanced consumers (controlled-mode orchestrators, server-side reconcilers) who enforce their own policy. UI affordances (keyboard, toolbar, DnD) ARE the gates.
+> **Imperative handle methods do NOT gate.** `handle.removeItem(id)` / `handle.toggleActive(id, next)` mutate regardless of permissions, by design — the handle is the raw mutation surface for advanced consumers (controlled-mode orchestrators, server-side reconcilers) who enforce their own policy. UI affordances (keyboard, toolbar, DnD) ARE the gates.
 
 ---
 
 ## Imperative handle (26 methods)
 
-`<TodoTree>` forwards a `ref` of type `TodoTreeHandle`. Selected highlights:
+`<TodoTree>` forwards a `ref` of type `TodoTreeHandle`. The full surface:
 
 ```tsx
 const ref = useRef<TodoTreeHandle>(null);
+const h = ref.current!;
 
-// Read state
-ref.current!.getValue();          // ReadonlyArray<TodoItem>
-ref.current!.getItem("task-001"); // TodoItem | undefined
-ref.current!.getSelection();      // ReadonlyArray<string>
-ref.current!.getVisible();        // ReadonlyArray<TodoTreeVisibleRow>
+// Tree state (2)
+h.getValue();                                  // TodoItem[]
+h.setValue(nextItems);
 
-// Write
-ref.current!.setValue(nextItems);
-ref.current!.addItem(parentId, item);
-ref.current!.removeItem(itemId);
-ref.current!.updateItem(itemId, (item) => ({ ...item, name: "New name" }));
-ref.current!.toggleActive(itemId);
-ref.current!.bulkToggleActive(ids, true);
-ref.current!.bulkRemove(ids);
+// Item ops (6)
+h.addItem(item, { parentId, index });          // opts optional → appends at root
+h.removeItem(itemId);
+h.addChild(parentId, item, index);             // index optional
+h.removeItems(ids);
+h.toggleActive(itemId, nextActive);            // nextActive is REQUIRED
+h.toggleActiveBulk(ids, nextActive);
 
-// Selection
-ref.current!.selectItem(itemId);
-ref.current!.selectItems(ids);
-ref.current!.deselectItem(itemId);
-ref.current!.clearSelection();
-ref.current!.selectAll();
+// Focus / lookup (2)
+h.focusItem(itemId);
+h.getItemById(itemId);                         // TodoItem | undefined
 
-// Focus + collapse
-ref.current!.focusItem(itemId);
-ref.current!.setCollapsed(itemId, true);
-ref.current!.expandAll();
-ref.current!.collapseAll();
+// Collapse (6)
+h.expandItem(itemId);
+h.collapseItem(itemId);
+h.toggleCollapse(itemId);
+h.expandAll();
+h.collapseAll();
+h.isCollapsed(itemId);                         // boolean
 
-// Query / sort / filter (mirrors toolbar state)
-ref.current!.setSort({ key: "name", direction: "asc" });
-ref.current!.setFilter({ active: true });
-ref.current!.setSearch("review");
+// Selection (6)
+h.selectItem(itemId);
+h.deselectItem(itemId);
+h.selectRange(idA, idB);
+h.selectAll();
+h.clearSelection();
+h.getSelectedIds();                            // ReadonlySet<string>
+
+// Query / sort / filter (4)
+h.setQuery("review");
+h.setSort({ kind: "name", direction: "asc" }); // discriminated by `kind`, not `key`
+h.setFilter({ active: "inactive" });
+h.clearAllFilters();
 ```
 
 For headless consumers, prefer the `useTodoTreeState` hook — same surface plus live state values and a `dispatch` escape hatch.
@@ -404,17 +398,17 @@ function Custom() {
     <div>
       <input
         type="search"
-        onChange={(e) => state.setSearch(e.target.value)}
+        onChange={(e) => state.setQuery(e.target.value)}
         placeholder="Search"
       />
-      <MyCustomList rows={state.getVisible()} onRowClick={state.handleRowClick} />
-      <pre>{JSON.stringify(state.selection, null, 2)}</pre>
+      <MyCustomList rows={state.visibleItems} onRowClick={state.handleRowClick} />
+      <pre>{JSON.stringify([...state.selectedIds], null, 2)}</pre>
     </div>
   );
 }
 ```
 
-The hook returns a superset of `TodoTreeHandle` plus live state values (`items` / `selection` / `focusedItemId` / `collapsedIds` / `sort` / `filter` / `search`) and a `dispatch` escape hatch (raw reducer access; use sparingly — the action types are public but the reducer's invariants are easier to break than the wrapped methods).
+The hook returns a superset of `TodoTreeHandle` plus live state values (`items` / `visibleItems` / `selectedIds` / `focusedItemId` / `collapsedIds` / `sort` / `filter` / `query`) and a `dispatch` escape hatch (raw reducer access; use sparingly — the action types are public but the reducer's invariants are easier to break than the wrapped methods).
 
 ---
 
@@ -429,7 +423,7 @@ Slot wins over the matching prop variant. Pass `undefined` to fall back to the d
 | `renderDescription` | `TodoTreeFieldRenderArgs` | Replace just the second-line description. |
 | `renderPerson` | `TodoTreeFieldRenderArgs` | Replace the right-side person label (good fit for avatars). |
 | `renderStatusIndicator` | `TodoTreeStatusRenderArgs` | Replace the status dot (e.g. icon, colored ring). |
-| `renderToolbar` | `TodoTreeToolbarRenderArgs` | Replace the top toolbar (search + sort + filter + bulk-action bar). Get `{ handle, selectedCount, items, … }`. |
+| `renderToolbar` | `TodoTreeToolbarRenderArgs` | Replace the top toolbar (search + sort + filter + bulk-action bar). Get `{ defaultToolbar, state }` (compose the built-in toolbar or read live state). |
 | `renderEmptyState` | `TodoTreeEmptyRenderArgs` | Replace the empty-state when the visible-items pipeline returns 0 rows. |
 | `renderDragOverlay` | `TodoTreeDragOverlayArgs` | Replace the floating overlay shown during `@dnd-kit` drag. Defaults to a thin row preview. |
 
@@ -444,8 +438,9 @@ To override:
 ```tsx
 <TodoTree
   defaultValue={items}
-  virtualization={{ mode: "always", rowHeight: 56 }}   // force-on
-  // or { mode: "never" }                              // force-off
+  virtualize={true}                       // force-on
+  // or virtualize={false}                // force-off
+  // or virtualize={{ threshold: 100 }}   // change the auto-enable threshold
 />
 ```
 
@@ -509,22 +504,29 @@ This is the same pattern locked in `flow-canvas-01` v0.2.2 + v0.2.3 + v0.2.4. Se
 
 ---
 
-## Events (16 typed callbacks)
+## Events (17 typed callbacks)
 
-All callbacks use object-args convention (post-F-cross-12):
+All callbacks use object-args convention (post-F-cross-12). The set is `onChange` + `onPermissionDenied` + 15 `on*` events:
 
 | Event | Args shape | When |
 |---|---|---|
-| `onChange` | `{ items, reason }` | Any tree mutation. `reason` is one of: `'set-items' \| 'add' \| 'remove' \| 'update' \| 'toggle-active' \| 'bulk-toggle-active' \| 'bulk-remove' \| 'move' \| 'drop-as-sibling' \| 'drop-into-children' \| 'external-drop'` |
-| `onItemClick` | `{ item, event }` | Row click. `event` is `MouseEvent \| KeyboardEvent` (Enter fires this too). |
-| `onItemFocus` | `{ item }` | Keyboard focus moved to a row. |
-| `onItemSelect` / `onItemDeselect` | `{ item }` | Multi-select change. |
-| `onSelectionChange` | `{ ids, items }` | Any selection change (single or multi). |
-| `onItemAdded` / `onItemRemoved` / `onItemMoved` | `{ item, parentId?, index? }` | Per-action structural events. |
-| `onBulkToggleActive` / `onBulkRemove` / `onBulkEdit` | `{ ids, items }` | Bulk bar actions. |
-| `onDropFromExternal` | `{ payload, targetId, items }` | HTML5 drop from another procomp. |
-| `onPermissionDenied` | `{ action, itemId, reason }` | Any predicate denial. `reason` is `'permission' \| 'locked' \| 'circular-drop' \| 'invalid-target'`. |
-| `onExpandChange` | `{ itemId, expanded }` | Per-row chevron toggle. |
+| `onChange` | `{ items, reason }` | Any tree mutation (`reason: TodoTreeChangeReason`). |
+| `onItemClick` | `TodoTreeItemEvent` (`{ item, level, event }`) | Row click. `event` is `MouseEvent \| KeyboardEvent` (Enter fires this too). |
+| `onItemContextMenu` | `TodoTreeItemEvent` | Right-click / context-menu on a row. |
+| `onActiveToggled` | `{ item, nextActive }` | Active checkbox toggled. |
+| `onCollapseToggled` | `{ item, collapsed }` | Per-row chevron toggle. |
+| `onItemMoved` | `TodoTreeMoveEvent` | `@dnd-kit` internal move (reorder / reparent). |
+| `onItemDropped` | `TodoTreeDropEvent` | HTML5 drop from another procomp. |
+| `onItemAdded` | `TodoTreeAddEvent` | Item added (handle, toolbar, or drop). |
+| `onItemRemoved` | `TodoTreeRemoveEvent` | Item removed. |
+| `onBulkToggleActive` | `{ ids, nextActive }` | Bulk activate / deactivate. |
+| `onBulkRemove` | `{ ids }` | Bulk delete. |
+| `onBulkEdit` | `{ ids }` | Bulk-edit button (consumer wires their own dialog). |
+| `onSelectionChanged` | `{ selectedIds }` | Any selection change (single or multi). |
+| `onSearchChanged` | `{ query }` | Search query changed. |
+| `onSortChanged` | `{ sort }` | Sort spec changed. |
+| `onFilterChanged` | `{ filter }` | Filter spec changed. |
+| `onPermissionDenied` | `{ action, itemId, reason }` | A gated action was denied. `reason` is `denied-by-rule \| denied-by-readOnly \| denied-by-lock \| circular-drop`. |
 
 ---
 
@@ -546,13 +548,13 @@ Both resolve to the same type.
 
 ## Gotchas
 
-- **Permissions are fully wired through the UI surface as of v0.1.2.** DnD predicates, bulk action bar, and keyboard Space/Delete shortcuts all consult the declarative `permissions` matrix + `item.locked` + `readOnly`, and fire `onPermissionDenied` on denial. **Imperative handle methods do NOT gate** — `handle.removeItem(id)` / `handle.toggleActive(id, next)` will mutate regardless of permissions, by design. The handle is the raw mutation surface; consumers driving the tree imperatively are expected to enforce their own policy. UI affordances (keyboard, toolbar, DnD) ARE the gates.
+- **Permissions are fully wired through the UI surface as of v0.2.** The drag grip + native HTML5 drag (`drag`), the active checkbox (`toggleActive`), the drop targets (`dropAsSibling` / `dropIntoChildren`), the toolbar "+ New" root-create (level-0 `addChildren`), and keyboard Space/Delete all consult the declarative `permissions` matrix + `item.locked` + `readOnly`, and fire `onPermissionDenied` on denial. (Before v0.2 only the keyboard path was gated.) **Imperative handle methods do NOT gate** — `handle.removeItem(id)` / `handle.toggleActive(id, next)` mutate regardless of permissions, by design. UI affordances ARE the gates.
 - **External (HTML5) drops always land as last child.** No edge-zone for the HTML5 transport; only `@dnd-kit` gets top/middle/bottom. If you need sibling drops from another procomp, use the `@dnd-kit` transport (same page, both endpoints).
-- **Virtualization auto-disables under <200 items.** That's intentional — short trees don't pay for it. If you want a fixed mode, pass `virtualization={{ mode: "always" | "never" }}`.
-- **Echo guard is structural** — only (`id`, `name`, `status`, `active`, `children`) compared. Mutations to other fields from outside the tree fall through as echoes. Remount via `key` or include a structural field change to force a resync.
-- **Grip is `absolute -left-4`** (cosmetic — F-grip-clip). Narrow containers may clip the grip; pad the container or render the tree inside a wrapper with `pl-4`.
+- **Virtualization auto-disables under <200 items.** That's intentional — short trees don't pay for it. Force a mode with `virtualize={true}` / `virtualize={false}`, or retune the auto threshold with `virtualize={{ threshold: N }}`.
+- **Controlled echo guard compares the full serialized tree** (v0.2). External `value` changes to ANY persisted field (assignee / description / dates) apply correctly — the earlier 5-field structural compare silently dropped them. Round-trip echoes (value === onChange output) are still skipped.
+- **Grip is a leading flex item** inside the row's bounding box (it used to be `absolute -left-4`, which clipped inside `overflow` containers). It hover-reveals on desktop and stays present on touch for long-press drag.
 - **TodoTreeStateValue identity changes per render.** The `useTodoTreeState` hook returns a fresh object every render — don't destructure into a dep array. The inner imperative methods are stable; if you need a stable selector, useMemo it yourself.
-- **Inline editing is not in v0.1.** The tree is read-only on click; consumer-owned dialogs (or `<TodoTreeWithEditor>`) provide the edit surface. Inline rename / status pickers may land in v0.2 if consumers ask.
+- **Inline editing is not built in.** The tree is read-only on click; consumer-owned dialogs (or `<TodoTreeWithEditor>`) provide the edit surface. Inline rename / status pickers remain deferred to a future minor.
 - **`<TodoTreeWithEditor>` is state-transparent.** It owns only the dialog open/close — your `value` / `defaultValue` / `onChange` flow through unchanged. Saves inside the dialog route through the tree's imperative handle so controlled-mode consumers see them through their normal `onChange`.
 
 ---
@@ -567,6 +569,7 @@ This is a new component — no migration path. If you're coming from a custom tr
 
 - ~~**v0.1.2 (patch)** — Thread `permissions` matrix end-to-end through `useTodoTreeState` + `useTreeKeyboard` so Space/Delete shortcuts honor predicates (F-perm).~~ ✅ Closed in v0.1.2.
 - ~~**v0.1.x cosmetic** — Move the grip from `absolute -left-4` to an in-flow column so it never clips against narrow containers (F-grip-clip).~~ ✅ Closed in v0.1.2.
-- **v0.2** — Inline-rename mode (Enter-to-rename, Esc-to-cancel); sibling-drop edge zone for HTML5 transport; per-row collapse animations (gated on framer-motion adoption); slot props for the bulk-action-bar individual buttons.
+- ~~**v0.2** — Wire the `permissions` matrix into the mouse/DnD path (grip, active checkbox, drop targets, root-create); native `CSS.escape` for focus-sync; scroll/wheel tracking during drag; full-field controlled echo guard.~~ ✅ Closed in v0.2.0 (review fixes TT1/TT2/TT4/TT6/TT7).
+- **Future** — Inline-rename mode (Enter-to-rename, Esc-to-cancel); sibling-drop edge zone for HTML5 transport; per-row collapse animations (gated on framer-motion adoption); slot props for the bulk-action-bar individual buttons; gated `try*` imperative-handle variants (TT5).
 - **v0.3** — Server-rendered initial state with deferred hydration (currently full client-side); per-tree theming via `--todo-tree-*` CSS variables.
 - **Test runner** — Vitest landing is project-wide. Pure `lib/` modules (`visible-items`, `flatten-tree`, `tree-walker`, `tree-mutators`, `circular-drop`, `edge-zone`) are the highest-priority test targets — they're all pure functions with no DOM dependencies.

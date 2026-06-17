@@ -10,9 +10,22 @@ import { TodoTreeFilterActiveToggle } from "./todo-tree-filter-active-toggle";
 import { TodoTreeBulkActionBar } from "./todo-tree-bulk-action-bar";
 import type {
   TodoItem,
+  TodoPermissions,
   TodoStatusOption,
 } from "../../todo-rich-card/types";
+import { evalPermission } from "../lib/permissions";
 import { cn } from "@/lib/utils";
+
+// Synthetic level-0 item used only to evaluate the root-create gate against
+// `permissions.default` / `byLevel[0]` (there's no real root node to attach a
+// rule to). Its empty id never matches a `byItem` rule.
+const ROOT_CREATE_SENTINEL: TodoItem = {
+  id: "",
+  name: "",
+  status: "",
+  active: true,
+  setAt: "",
+};
 
 export interface TodoTreeToolbarProps {
   statusOptions?: ReadonlyArray<TodoStatusOption>;
@@ -47,6 +60,12 @@ export interface TodoTreeToolbarProps {
    * interact with — so we hide both.
    */
   editable?: boolean;
+  /**
+   * Permission matrix. The "+ New" (root-create) button also honors
+   * `default` / `byLevel[0]` `addChildren` so root creation can be denied via
+   * the matrix (there's no root node to attach a `byItem` rule to).
+   */
+  permissions?: TodoPermissions;
   className?: string;
 }
 
@@ -71,6 +90,7 @@ export function TodoTreeToolbar({
   onCreateRequest,
   readOnly,
   editable = false,
+  permissions,
   className,
 }: TodoTreeToolbarProps) {
   const state = useTodoTreeStateContext();
@@ -97,7 +117,15 @@ export function TodoTreeToolbar({
         })
       : null);
 
-  const canAdd = editable && !readOnly && factory !== null;
+  // Root-create gate: honor the matrix's level-0 `addChildren` rule (mapped via
+  // the dropIntoChildren action) so consumers can deny root creation.
+  const canCreateRoot = evalPermission(
+    permissions,
+    "dropIntoChildren",
+    ROOT_CREATE_SENTINEL,
+    0,
+  );
+  const canAdd = editable && !readOnly && factory !== null && canCreateRoot;
   const canBulkRemove = editable && !readOnly;
 
   return (

@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useCallback,
   useId,
   useImperativeHandle,
   useMemo,
@@ -29,6 +30,8 @@ import {
 } from "./hooks/use-todo-tree-context";
 import { useTreeDndInternal } from "./hooks/use-tree-dnd-internal";
 import { useTreeDndHtml5 } from "./hooks/use-tree-dnd-html5";
+import { evalPermission } from "./lib/permissions";
+import { forEachItem } from "./lib/tree-walker";
 import { TodoTreeList } from "./parts/todo-tree-list";
 import { TodoTreeDragOverlay } from "./parts/todo-tree-drag-overlay";
 import { TodoTreeToolbar } from "./parts/todo-tree-toolbar";
@@ -173,6 +176,32 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       ],
     );
 
+    // Resolve a drop-target's permission against the live tree, mirroring the
+    // keyboard path's evalPermission gate. Predicates are target-keyed to match
+    // the DnD hook's enforcement signature (TT1 — previously left undefined so
+    // the matrix only applied on the keyboard path).
+    const resolveDropPermission = useCallback(
+      (targetId: string, action: "dropIntoChildren" | "dropAsSibling"): boolean => {
+        let allowed = true;
+        forEachItem(stateValue.items, (item, level) => {
+          if (item.id === targetId) {
+            allowed = evalPermission(permissions, action, item, level);
+            return false;
+          }
+        });
+        return allowed;
+      },
+      [permissions, stateValue.items],
+    );
+    const canDropIntoChildren = useCallback(
+      (targetId: string) => resolveDropPermission(targetId, "dropIntoChildren"),
+      [resolveDropPermission],
+    );
+    const canDropAsSibling = useCallback(
+      (targetId: string) => resolveDropPermission(targetId, "dropAsSibling"),
+      [resolveDropPermission],
+    );
+
     // DnD wiring.
     const dndInternal = useTreeDndInternal({
       items: stateValue.items,
@@ -182,6 +211,8 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         onPermissionDenied?.(args),
       isDraggingRef,
       isInternalDragRef,
+      canDropIntoChildren,
+      canDropAsSibling,
     });
 
     const dndHtml5 = useTreeDndHtml5({
@@ -230,6 +261,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
           onCreateRequest={onCreateRequest}
           readOnly={readOnly}
           editable={editable}
+          permissions={permissions}
         />
       ) : null;
     const customNodeToolbar: ReactNode =
