@@ -26,8 +26,8 @@ export function CardHeader({
       ctx.reportPermissionDenied("edit", id, perms.reason);
       return;
     }
-    ctx.dispatch({ type: "open-edit", itemId: id, mode });
-    ctx.fireEvent("editRequest", { itemId: id, mode });
+    // requestEdit consults the veto BEFORE opening (no flash-open-then-close).
+    ctx.requestEdit(id, mode);
   }
 
   function handlePrimaryEdit() {

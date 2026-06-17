@@ -1,6 +1,6 @@
 # `todo-rich-card` — Pro-component Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** Authored alongside v0.1.0 implementation
+> **Stage:** 3 of 3 · **Status:** v0.2.0 (alpha)
 > **Slug:** `todo-rich-card` · **Category:** `data`
 > **Version:** 0.1.0 (alpha) · **Shipped:** 2026-05-20
 > Consumer-facing usage notes. The description doc explains "why," the plan doc explains "how"; this doc explains "use it."
@@ -142,6 +142,25 @@ When `editable=true`, a secondary "Edit in dialog…" icon also appears next to 
   }}
 />
 ```
+
+---
+
+## Controlled vs uncontrolled (v0.2)
+
+Two mutually-exclusive ways to feed the tree:
+
+| Prop | Mode | Who owns the data |
+|---|---|---|
+| `defaultValue` | **Uncontrolled** (default) | The card. Seeds once; later prop changes ignored. Read out via `onChange` / the handle. |
+| `value` | **Controlled** | You. The card reconciles to `value` and reports every edit via `onChange` for you to echo back. |
+
+```tsx
+// Controlled: you hold the tree in state and echo onChange back into value.
+const [tree, setTree] = useState(initialTree);
+<TodoRichCard value={tree} onChange={setTree} editable />
+```
+
+The reconcile is guarded against the `onChange → value → reconcile` echo loop, so a straight `onChange={setValue}` won't thrash. Internal edits apply optimistically and then reconcile; if your `value` authority transforms the data (e.g. stamps a server id), the card adopts the transformed tree. This is what the kanban adapter uses to persist in-place edits back to the board.
 
 ---
 
@@ -318,7 +337,9 @@ Status values not matching any option render as-is (raw string in `secondary` va
 
 ## Gotchas
 
-- **Images and links are read-only in inline edit mode** (v0.1). Use the popup to add/remove. Slot-prop renderers for these fields land in v0.2.
+- **Images and links are read-only in BOTH edit modes.** Neither the inline editor nor the popup edits them — the schema carries them but no editor UI exists yet. Slot-prop renderers land in a later minor.
+- **Person fields (`targetPerson` / `creatorPerson`) are render-only.** They display as chips but no built-in editor edits them (they're intentionally excluded from `TodoEditableField`); a `renderPersonEditor` slot is a later-minor follow-up.
+- **`duration` is stored in milliseconds but the popup edits it in whole minutes** (rounded). Sub-minute values are lossy on an edit round-trip (e.g. 90 000 ms → "2 min" → 120 000 ms). Use `expireAt` when you need sub-minute precision.
 - **No undo/redo in v0.1.** Wire optimistic-undo yourself via `onChange` if you need it, or wait for v0.2+.
 - **One item edits at a time.** Opening a new edit closes any open one. The reducer enforces this.
 - **`id` collisions** auto-recover by minting a fresh UUID + console warning. Don't rely on this — fix your input data.

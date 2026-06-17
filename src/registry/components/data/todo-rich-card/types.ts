@@ -52,7 +52,11 @@ export type TodoItem = {
   startAt?: string;
   /** ISO-8601; wins over duration when both are set. */
   expireAt?: string;
-  /** Milliseconds; used only if expireAt is absent. */
+  /**
+   * Milliseconds; used only if expireAt is absent. NOTE: stored in ms, but the
+   * popup editor displays + edits this in WHOLE MINUTES (rounded), so sub-minute
+   * values are lossy on edit round-trips.
+   */
   duration?: number;
   targetPerson?: TodoPerson;
   creatorPerson?: TodoPerson;
@@ -83,14 +87,19 @@ export type TodoStatusOption = {
 
 /* ───────── editable-field union ─────────
  *
- * Field union for the GENERIC `onFieldEdited` event. Excludes fields with
- * dedicated events:
+ * Field union for the GENERIC `onFieldEdited` event — limited to the scalar
+ * fields the built-in editors actually edit. Excludes fields with dedicated
+ * events:
  *   - borderColor → fires `onColorOverridden`
  *   - locked      → fires `onLockedToggled`
  *   - active      → ALSO fires `onActiveToggled` in addition to `onFieldEdited`
  *
  * Structural keys (id, children) are excluded entirely — those are tree
  * operations covered by onItemAdded / onItemRemoved / onItemMoved.
+ *
+ * `targetPerson` / `creatorPerson` / `images` / `links` are intentionally NOT
+ * here: the schema carries them but no built-in editor edits them, so they are
+ * render-only (a future `renderPersonEditor` slot would add them back).
  */
 export type TodoEditableField =
   | "name"
@@ -100,11 +109,7 @@ export type TodoEditableField =
   | "setAt"
   | "startAt"
   | "expireAt"
-  | "duration"
-  | "targetPerson"
-  | "creatorPerson"
-  | "images"
-  | "links";
+  | "duration";
 
 /* ───────── permissions ───────── */
 
@@ -202,7 +207,17 @@ export type TodoEditRequestEvent = {
 /* ───────── component props ───────── */
 
 export type TodoRichCardProps = {
-  defaultValue: TodoItem;
+  /**
+   * Initial tree for UNCONTROLLED mode (seeds once; later changes ignored).
+   * Provide either `defaultValue` (uncontrolled) or `value` (controlled).
+   */
+  defaultValue?: TodoItem;
+  /**
+   * Controlled tree. When provided, `value` is the source of truth: the card
+   * reconciles to it and `onChange` reports edits for you to echo back. Falls
+   * back to `defaultValue` when omitted.
+   */
+  value?: TodoItem;
 
   // Auto-color
   colorRamp?: TodoColorRamp;
@@ -312,6 +327,7 @@ export type State = {
 
 export type Action =
   | { type: "replace-tree"; tree: TodoItem }
+  | { type: "sync-tree"; tree: TodoItem }
   | { type: "open-edit"; itemId: string; mode: "popup" | "inline" }
   | { type: "close-edit" }
   | {
@@ -363,6 +379,14 @@ export type TodoCardContextValue = {
 
   /** Closure that dispatches AND fires the matching on* callback. */
   fireEvent: <K extends keyof TodoEventMap>(name: K, event: TodoEventMap[K]) => void;
+
+  /**
+   * Consult `onEditRequest` (veto) BEFORE opening the editor, then dispatch
+   * `open-edit` only if not vetoed. The single edit entry point shared by the
+   * header, keyboard, and imperative handle — prevents the flash-open-then-close
+   * a retroactive veto caused.
+   */
+  requestEdit: (itemId: string, mode: "popup" | "inline") => void;
 
   /** For permission predicates that can't be cleanly closed-over. */
   reportPermissionDenied: (
