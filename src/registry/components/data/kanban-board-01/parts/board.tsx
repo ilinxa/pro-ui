@@ -25,6 +25,7 @@ export function Board({
   onItemUpdate,
   onItemDelete,
   onItemClick,
+  onItemDataChange,
   onColumnCreate,
   onColumnUpdate,
   onColumnDelete,
@@ -43,6 +44,7 @@ export function Board({
   onItemUpdate?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
   onItemClick?: (item: KanbanItem) => void;
+  onItemDataChange?: (item: KanbanItem) => void;
   onColumnCreate?: (column: KanbanColumn) => void;
   onColumnUpdate?: (column: KanbanColumn) => void;
   onColumnDelete?: (columnId: string) => void;
@@ -75,6 +77,7 @@ export function Board({
             onItemUpdate={onItemUpdate}
             onItemDelete={onItemDelete}
             onItemClick={onItemClick}
+            onItemDataChange={onItemDataChange}
             onColumnUpdate={onColumnUpdate}
             onColumnDelete={onColumnDelete}
             onSetColor={(color) => onSetColor(column.id, color)}

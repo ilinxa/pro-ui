@@ -1,6 +1,6 @@
 # `kanban-board-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** v0.2.0 (alpha)
+> **Stage:** 3 of 3 · **Status:** v0.4.0 (alpha)
 > **Slug:** `kanban-board-01` · **Category:** `data`
 > **In-app docs:** [`usage.tsx`](../../../src/registry/components/data/kanban-board-01/usage.tsx) renders at `/components/kanban-board-01`. This doc covers the bits that don't belong in the in-app surface.
 
@@ -11,7 +11,7 @@ pnpm dlx shadcn@latest add @ilinxa/kanban-board-01
 pnpm dlx shadcn@latest add @ilinxa/kanban-board-01-fixtures   # optional — adds dummy data
 ```
 
-The base item depends on 8 shadcn primitives (`avatar`, `badge`, `button`, `dropdown-menu`, `input`, `popover`, `textarea`, `tooltip`) and 4 npm packages (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `lucide-react`). The shadcn CLI resolves all of them automatically. Column-body scroll uses native `overflow-y-auto` (no scroll-area dep).
+The base item depends on 7 shadcn primitives (`avatar`, `badge`, `button`, `dropdown-menu`, `input`, `popover`, `textarea`) and 4 npm packages (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `lucide-react`). The shadcn CLI resolves all of them automatically. Column-body scroll uses native `overflow-y-auto` (no scroll-area dep).
 
 ## Mental model in one paragraph
 
@@ -175,14 +175,14 @@ Affordances render only when their callback is supplied:
 
 | Callback | What renders | What you receive |
 |---|---|---|
-| `onItemCreate` | Inline `+ Add` row at column footer | `(columnId, item)` — item is fully formed (id + rendererId + data) |
+| `onItemCreate` | Inline `+ Add` row at column footer | `({ columnId, item })` — item is fully formed (id + rendererId + data) |
 | `onItemUpdate` | Edit affordance on item hover | `(item)` |
 | `onItemDelete` | Delete affordance on item hover | `(itemId)` |
 | `onColumnCreate` | Right-edge `+ Add column` button | `(column)` — column is fully formed (id + title + empty items) |
 | `onColumnUpdate` | Column kebab menu → Rename | `(column)` *(currently the menu just calls back; render your own modal)* |
 | `onColumnDelete` | Column kebab menu → Delete | `(columnId)` |
 | `onItemClick` | (no affordance — just behavior) | `(item)` on click |
-| `onItemMove` | (no affordance — just behavior) | `(item, from, to)` after a successful move |
+| `onItemMove` | (no affordance — just behavior) | `({ item, from, to })` after a successful move |
 
 **Reducer also runs on every callback.** In uncontrolled mode the board's state already reflects the change before your callback fires — useful for "fire-and-forget" persistence.
 
@@ -201,12 +201,18 @@ dnd-kit's announcer publishes drag start / over / end / cancel events to a live 
 
 ## Versioning
 
-`v0.2.0` is alpha. v0.2 added the `dragHandle` field on renderers, the rich-card adapter pattern in the demo, and replaced the radix `<ScrollArea>` column body with native `overflow-y-auto` for reliability inside flex chains. v0.1 → v0.2 is **non-breaking** — the new `dragHandle` field is optional with `"shell"` default, and the column-body swap is internal. Future feature additions (multi-select drag, hard WIP, virtualization, swimlane reorder, undo/redo) land in v0.3+. Breaking API changes go to `v1.0.0` only after external consumers and a 30-day no-break window.
+`v0.4.0` is alpha. Changelog:
+
+- **v0.4.0** — **callback shape (consumers most need this):** `onItemCreate` / `onItemMove` are **object-shape** (`({ columnId, item })` / `({ item, from, to })`); the breaking cutover landed in **v0.3.0** — update any positional handlers. `onColumnCreate` now types its arg as a full `KanbanColumn` (was `Partial<KanbanColumn>` but always called with a full column). `KanbanCardData.meta[].value` narrowed `ReactNode` → `string | number` (keeps item data serializable — put nodes behind a renderer's `render` fn). New optional `KanbanRenderContext.onDataChange` lets a renderer persist edits back to the board (additive). Dependency cleanup: removed an unused `tooltip` dependency (hover hints use the native `title` attribute).
+- **v0.3.0** — cut `onItemCreate` / `onItemMove` over to object-shape callbacks.
+- **v0.2.0** — added the `dragHandle` field on renderers, the rich-card adapter pattern, and replaced the radix `<ScrollArea>` column body with native `overflow-y-auto`.
+
+Future feature additions (multi-select drag, hard WIP, virtualization, swimlane reorder, undo/redo) land in later minors. Breaking API changes go to `v1.0.0` only after external consumers and a 30-day no-break window.
 
 ## Caveats
 
 - **No backend.** Board state is serializable JSON; persistence is your job. Wire `onChange` to your store / API.
 - **No card-detail modal.** Click a card → fire `onItemClick(item)` → consumer routes to a detail surface of their choice.
 - **No per-card comment thread.** The `kanban-note` renderer covers between-cards annotations; for full per-card threads, embed `comment-thread-01` inside your detail surface.
-- **`maxItems` is soft.** Renders an overflow chip; does NOT block drops. Hard enforcement is a v0.2 ask.
-- **No virtualization.** v0.1 budgets to ~50 items / 5 columns. Beyond that, file an issue or wait for v0.2 (`@tanstack/react-virtual` is already a project dep).
+- **`maxItems` is soft, by design.** Renders an overflow chip; does NOT block drops. There is no hard-enforcement mode — gate over-capacity drops in your own `onItemMove` handler if you need it.
+- **No virtualization.** Budgets to ~50 items / 5 columns. Beyond that, file an issue (`@tanstack/react-virtual` is already a project dep).

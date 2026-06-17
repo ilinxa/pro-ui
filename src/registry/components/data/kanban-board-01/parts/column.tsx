@@ -30,6 +30,7 @@ export function Column({
   onItemUpdate,
   onItemDelete,
   onItemClick,
+  onItemDataChange,
   onColumnUpdate,
   onColumnDelete,
   onSetColor,
@@ -46,6 +47,7 @@ export function Column({
   onItemUpdate?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
   onItemClick?: (item: KanbanItem) => void;
+  onItemDataChange?: (item: KanbanItem) => void;
   onColumnUpdate?: (column: KanbanColumn) => void;
   onColumnDelete?: (columnId: string) => void;
   onSetColor: (color: string | undefined) => void;
@@ -140,6 +142,7 @@ export function Column({
         onItemClick={onItemClick}
         onItemDelete={readOnly ? undefined : onItemDelete}
         onItemEdit={readOnly ? undefined : handleEdit}
+        onItemDataChange={readOnly ? undefined : onItemDataChange}
       />
 
       {!readOnly && onItemCreate ? (

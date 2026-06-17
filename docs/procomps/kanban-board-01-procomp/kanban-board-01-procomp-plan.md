@@ -1,6 +1,6 @@
 # `kanban-board-01` — Pro-component Plan (Stage 2)
 
-> **Stage:** 2 of 3 · **Status:** Signed off · v0.2.0 (alpha)
+> **Stage:** 2 of 3 · **Status:** Signed off · v0.4.0 (alpha)
 > **Slug:** `kanban-board-01` · **Category:** `data`
 > **Inputs:** description signed off ([kanban-board-01-procomp-description.md](kanban-board-01-procomp-description.md)). All fifteen description-stage decisions (Q1–Q15) are inherited as fixed inputs.
 
@@ -113,20 +113,20 @@ export type KanbanBoardProps = {
   onChange?: (next: KanbanData) => void;
 
   // CRUD — affordances render only when supplied
-  onItemCreate?: (columnId: string, item: KanbanItem) => void;
+  onItemCreate?: (args: { columnId: string; item: KanbanItem }) => void;
   onItemUpdate?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
-  onColumnCreate?: (draft: Partial<KanbanColumn>) => void;
+  onColumnCreate?: (column: KanbanColumn) => void;
   onColumnUpdate?: (column: KanbanColumn) => void;
   onColumnDelete?: (columnId: string) => void;
 
   // Interaction
   onItemClick?: (item: KanbanItem) => void;
-  onItemMove?: (
-    item: KanbanItem,
-    from: { columnId: string; swimlaneId?: string },
-    to: { columnId: string; swimlaneId?: string },
-  ) => void;                                // fires after a successful move; useful even in uncontrolled mode
+  onItemMove?: (args: {
+    item: KanbanItem;
+    from: { columnId: string; swimlaneId?: string };
+    to: { columnId: string; swimlaneId?: string };
+  }) => void;                               // fires after a successful move; useful even in uncontrolled mode
 
   // Visual
   palette?: KanbanPaletteSwatch[];          // default: built-in 6-swatch palette
@@ -385,7 +385,7 @@ Pointer/keyboard sensor → `onDragStart` sets `activeItemId` → user drags →
 
 Same `onDragStart`. As the cursor moves over a different `<SortableContext>` (different column or different swimlane cell), `onDragOver` fires with the new context. `canDrop` is checked; if invalid, the target's `<SortableContext>` is rendered with a red ring and the cursor changes to `not-allowed` (via a CSS class on the document body during drag).
 
-On `pointerup`, `onDragEnd` re-validates and dispatches `move-item` with `{ toColumnId, toIndex, toSwimlaneId }`. The board calls `onItemMove(item, from, to)` for consumers wanting a high-level event.
+On `pointerup`, `onDragEnd` re-validates and dispatches `move-item` with `{ toColumnId, toIndex, toSwimlaneId }`. The board calls `onItemMove({ item, from, to })` for consumers wanting a high-level event.
 
 The `<DragOverlay>` ensures the cursor stays attached to a visually consistent item throughout the gesture, even as the item is internally re-parented in the data tree.
 
@@ -497,16 +497,14 @@ Everything else stays server-safe:
 |---|---|
 | `popover` | Color picker, column menu |
 | `dropdown-menu` | Renderer picker on "+ Add", column kebab menu |
-| `scroll-area` | Per-column scrollable body |
 | `button` | Affordance buttons |
 | `input` / `textarea` | Inline edit forms |
-| `tooltip` | Color swatch labels, lock indicator hover |
 | `avatar` | Assignee avatars in built-in `kanban-card` |
 | `badge` | Tag chips in built-in `kanban-card` |
 
-No `pnpm dlx shadcn@latest add` step needed before scaffolding.
+No `pnpm dlx shadcn@latest add` step needed before scaffolding. (Column-body scroll uses native `overflow-y-auto`, not `scroll-area`; hover hints use the native `title` attribute, not `tooltip`.)
 
-`meta.ts` `dependencies.shadcn`: `["avatar", "badge", "button", "dropdown-menu", "input", "popover", "scroll-area", "textarea", "tooltip"]`.
+`meta.ts` `dependencies.shadcn`: `["avatar", "badge", "button", "dropdown-menu", "input", "popover", "textarea"]`.
 
 ### npm peer deps
 

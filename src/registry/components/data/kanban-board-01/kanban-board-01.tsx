@@ -73,9 +73,9 @@ export function KanbanBoard({
         console.warn(`[kanban-board-01] ${err}`);
       }
     }
-    // Run once per session-equivalent — re-run if renderers change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [renderers]);
+    // Re-validate when renderers OR data change, so duplicate-id / unknown-renderer
+    // problems introduced by later (controlled) `data` updates are still surfaced.
+  }, [renderers, state]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -200,6 +200,9 @@ export function KanbanBoard({
           onItemUpdate={onItemUpdate ? handleItemUpdate : undefined}
           onItemDelete={onItemDelete ? handleItemDelete : undefined}
           onItemClick={onItemClick}
+          // Ungated: a self-editing renderer (e.g. the rich-card adapter) must persist
+          // its in-place edits to board state even when the consumer wires no onItemUpdate.
+          onItemDataChange={handleItemUpdate}
           onColumnCreate={onColumnCreate ? handleColumnCreate : undefined}
           onColumnUpdate={onColumnUpdate ? handleColumnUpdate : undefined}
           onColumnDelete={onColumnDelete ? handleColumnDelete : undefined}

@@ -17,6 +17,7 @@ export function ColumnBody({
   onItemClick,
   onItemDelete,
   onItemEdit,
+  onItemDataChange,
 }: {
   column: KanbanColumn;
   swimlanes: KanbanSwimlane[] | undefined;
@@ -26,6 +27,7 @@ export function ColumnBody({
   onItemClick?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
   onItemEdit?: (item: KanbanItem) => void;
+  onItemDataChange?: (item: KanbanItem) => void;
 }) {
   // A drop is rejected if there's an active drag and this column doesn't accept that renderer.
   const rejectDrop =
@@ -63,6 +65,7 @@ export function ColumnBody({
                 onItemClick={onItemClick}
                 onItemDelete={onItemDelete}
                 onItemEdit={onItemEdit}
+                onItemDataChange={onItemDataChange}
               />
             </div>
           );
