@@ -32,7 +32,7 @@ type Args = {
   fireCopy: (payload: { itemId: string; payload: import("../types").TodoItem }) => void;
   firePaste: (payload: { parentId: string; payload: import("../types").TodoItem }) => void;
   fireItemAdded: (payload: { parentId: string; item: import("../types").TodoItem }) => void;
-  fireEditRequest: (payload: { itemId: string; mode: "popup" | "inline" }) => void;
+  requestEdit: (itemId: string, mode: "popup" | "inline") => void;
   reportPermissionDenied: (
     action: keyof TodoPermissionRule,
     itemId: string,
@@ -105,8 +105,7 @@ export function useKeyboard(args: Args) {
         }
         e.preventDefault();
         const mode: "popup" | "inline" = args.editable ? "inline" : "popup";
-        args.dispatch({ type: "open-edit", itemId: focusedNode.item.id, mode });
-        args.fireEditRequest({ itemId: focusedNode.item.id, mode });
+        args.requestEdit(focusedNode.item.id, mode);
       }
     },
     [args],

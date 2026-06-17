@@ -82,7 +82,7 @@ Each step is independently shippable: v0.1 alone is a registerable card.
 **Edit button**
 - Always rendered on the card chrome (top-trailing).
 - Hidden only when fully view-only — i.e., no edit-capable callback is wired AND `editable` is `false` AND no `onEdit` handler.
-- Consumers can force-hide via `editButtonVisible={false}` (escape hatch for hosts that ship their own edit affordance, e.g. a flow-canvas adapter that wires its own toolbar).
+- Consumers can force-hide via `showEditButton={false}` (escape hatch for hosts that ship their own edit affordance, e.g. a flow-canvas adapter that wires its own toolbar).
 
 **JSON I/O surface** (mirrors rich-card v0.3 patterns)
 - `defaultValue: TodoItem` — uncontrolled seed; remount via `key` prop to reset.
@@ -94,7 +94,7 @@ Each step is independently shippable: v0.1 alone is a registerable card.
 - `onChange(tree)` (master), `onFieldEdited(event)`, `onStatusChanged(event)`, `onItemAdded(event)`, `onItemRemoved(event)`, `onItemMoved(event)` (within own subtree), `onColorOverridden(event)`, `onActiveToggled(event)`, `onPaste(event)`, `onCopy(event)`.
 
 **Permission predicates** (mirrors rich-card's per-action predicate pattern)
-- `canEditItem?(id)`, `canRemoveItem?(id)`, `canAddChild?(id)`, `canDragItem?(id)`, `canToggleActive?(id)`, `canOverrideColor?(id)`.
+- `canEditItem?(id)`, `canRemoveItem?(id)`, `canAddChildren?(id)`, `canDragItem?(id)`, `canToggleActive?(id)`, `canOverrideColor?(id)`.
 - Declarative shortcut: `permissions?: { default?, byLevel?, byItem?, inherit? }` — same shape as rich-card's `RichCardPermissions` (the `inherit` flag controls whether child rules cascade from their parent's effective rule).
 - `onPermissionDenied?(action, itemId, reason)` fires for analytics when an action would have been blocked (mirrors rich-card's [`onPermissionDenied`](../../src/registry/components/data/rich-card/types.ts) pattern).
 
@@ -149,7 +149,7 @@ Non-targets: free-form prose docs, calendar grid layouts (use a calendar primiti
 
 ## 4. Rough API sketch (NOT final — that's the plan stage)
 
-This is illustrative. Plan doc will lock the final shape.
+This is illustrative. **The canonical, shipped shape lives in [`src/registry/components/data/todo-rich-card/types.ts`](../../../src/registry/components/data/todo-rich-card/types.ts)** — defer to it on any naming difference (sketch updated to current names: `addChildren`, `showEditButton`, `key: TodoEditableField`, non-null event `parentId`).
 
 ```ts
 // ─── Data shape ───
@@ -206,7 +206,7 @@ export type TodoColorRamp = TodoColorRampPreset | ((elapsed: number) => string);
 export type TodoPermissionRule = {
   edit?: boolean;
   remove?: boolean;
-  addChild?: boolean;
+  addChildren?: boolean;
   drag?: boolean;
   toggleActive?: boolean;
   overrideColor?: boolean;
@@ -223,7 +223,7 @@ export type TodoPermissions = {
 
 export type TodoFieldEditedEvent = {
   itemId: string;
-  key: keyof TodoItem;
+  key: TodoEditableField;
   oldValue: unknown;
   newValue: unknown;
 };
@@ -235,20 +235,20 @@ export type TodoStatusChangedEvent = {
 };
 
 export type TodoItemAddedEvent = {
-  parentId: string | null;             // null when added as sibling of root (not allowed in v0.1)
+  parentId: string;                    // always set — adds are scoped under an existing node
   item: TodoItem;
 };
 
 export type TodoItemRemovedEvent = {
   itemId: string;
   removed: TodoItem;
-  parentId: string | null;
+  parentId: string;
 };
 
 export type TodoItemMovedEvent = {
   itemId: string;
-  oldParentId: string | null;
-  newParentId: string | null;
+  oldParentId: string;
+  newParentId: string;
   oldIndex: number;
   newIndex: number;
 };
@@ -286,13 +286,13 @@ export type TodoRichCardProps = {
 
   // Edit modes
   editable?: boolean;                  // default false (popup-only)
-  editButtonVisible?: boolean;         // default true; auto-hides when no edit handler wired
+  showEditButton?: boolean;         // default true; auto-hides when no edit handler wired
 
   // Permissions (declarative + predicate escape hatches)
   permissions?: TodoPermissions;
   canEditItem?: (id: string) => boolean;
   canRemoveItem?: (id: string) => boolean;
-  canAddChild?: (id: string) => boolean;
+  canAddChildren?: (id: string) => boolean;
   canDragItem?: (id: string) => boolean;
   canToggleActive?: (id: string) => boolean;
   canOverrideColor?: (id: string) => boolean;
@@ -452,7 +452,7 @@ Decisions reached during the GATE 1 conversation. Each row records the question 
 | Q9 | **Nesting — status & color rollup** | **Independent per item.** Each item paints from its own dates; no parent-child color/status aggregation in v0.1. Consumers can compute rollup externally via public helpers if they want it. |
 | Q10 | **Person / link / image field shape** | **Structured objects with sensible defaults**: `person {id, name, avatar?}`, `link {url, label?, icon?}`, `image {src, alt?, caption?}`. Minimal shapes (just `name` / `url` / `src`) get a sensible default render. Slot-prop renderers deferred to v0.2 (additive, non-breaking). |
 | Q11 | **JSON I/O surface** | **Mirror rich-card v0.3** — `defaultValue` for seed, imperative handle with `getValue(): string` (canonical JSON) + `getTree(): TodoItem`. Clipboard via `copy() / paste()` methods + Cmd/Ctrl+C / Cmd/Ctrl+V when focused. DnD as source + target with `application/x-ilinxa-todo+json` MIME. Cross-card moves are list-shell concern; intra-card child paste is in-scope here. |
-| Q12 | **Permission model** | **Mirror rich-card's pattern** — declarative `permissions?: { default?, byLevel?, byItem?, inherit? }` + per-action predicates (`canEditItem`, `canRemoveItem`, `canAddChild`, `canDragItem`, `canToggleActive`, `canOverrideColor`). |
+| Q12 | **Permission model** | **Mirror rich-card's pattern** — declarative `permissions?: { default?, byLevel?, byItem?, inherit? }` + per-action predicates (`canEditItem`, `canRemoveItem`, `canAddChildren`, `canDragItem`, `canToggleActive`, `canOverrideColor`). |
 | Q13 | **Standalone vs embedded** | **Both.** Standalone usable as `<TodoRichCard />`. Registerable in `kanban-board-01` via a `KanbanCardRenderer<TodoItem>` named export with `dragHandle: "header"` (the kanban-board pattern for renderers with internal pointer interactions, e.g., inline editors). Registerable in `flow-canvas-01` via a sibling adapter procomp `todo-rich-card-in-flow` (mirrors `rich-card-in-flow` shape exactly — separate procomp, separate PR, separate v0.1). |
 | Q14 | **Color refresh cadence** | `colorRefreshIntervalMs` prop, **default 60s**. `0` disables the interval. First paint uses props-derived static state to stay SSR-safe; client interval re-renders on mount. |
 | Q15 | **Tree-variant treatment of color** | **N/A here** — tree variant lives on `todo-list`, not on this card. Locked: tree variant **opts out** of auto-color (lightweight rows, no border-color ramp). This card always carries color; tree consumers use the row primitive, not this card. |

@@ -33,6 +33,8 @@ type KanbanRenderContext = {
   swimlaneId?: string;
   isDragging: boolean;
   isLocked: boolean;
+  /** Persist an in-place edit back to the board (kanban-board-01 v0.4+). */
+  onDataChange?: (nextData: unknown) => void;
 };
 
 type KanbanCardRenderer<TData> = {
@@ -52,7 +54,17 @@ export const todoRichCardKanbanRenderer: KanbanCardRenderer<TodoItem> = {
   id: "todo-rich-card",
   label: "Todo (rich)",
   dragHandle: "header",
-  render: (data) => <TodoRichCard defaultValue={data} editable />,
+  // Controlled: the board's item data is the source of truth. Edits flow back
+  // via onChange → ctx.onDataChange so they persist; a locked item is read-only;
+  // `key` resets card state when the board swaps the item in this slot.
+  render: (data, ctx) => (
+    <TodoRichCard
+      key={ctx.itemId}
+      value={data}
+      editable={!ctx.isLocked}
+      onChange={(next) => ctx.onDataChange?.(next)}
+    />
+  ),
   newItem: () => ({
     id: `todo-${Date.now().toString(36)}`,
     name: "New task",

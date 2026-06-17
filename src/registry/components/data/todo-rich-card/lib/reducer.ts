@@ -14,9 +14,9 @@ import type {
   TodoItem,
   TodoNode,
 } from "../types";
-import { findNode, normalize, reindex } from "./normalize";
+import { findNode, normalize, reassignIds, reindex } from "./normalize";
 
-export function createInitialState(input: TodoItem): State {
+export function createInitialState(input: TodoItem | undefined): State {
   const { root } = normalize(input);
   return {
     root,
@@ -190,9 +190,19 @@ export function reducer(state: State, action: Action): State {
     }
 
     case "add-child": {
-      const newNode = todoItemToNode(action.item, 0, action.parentId, 0);
+      // Re-id the incoming subtree: paste/drop payloads may carry ids that
+      // already exist in this tree, which would corrupt id-keyed lookup/focus/
+      // permissions. Re-iding here covers all add-child entry points at once.
+      const newNode = todoItemToNode(reassignIds(action.item), 0, action.parentId, 0);
       const rootWithInsert = insertChild(state.root, action.parentId, newNode, action.index);
       return { ...state, root: reindex(rootWithInsert), dirty: true };
+    }
+
+    case "sync-tree": {
+      // Controlled-mode reconcile: replace the tree from an external `value`
+      // while preserving UI-only state (edit / focus / collapse / dirty).
+      const { root } = normalize(action.tree);
+      return { ...state, root };
     }
 
     case "remove-item": {

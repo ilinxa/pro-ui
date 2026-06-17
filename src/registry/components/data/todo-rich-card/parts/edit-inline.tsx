@@ -130,8 +130,7 @@ function StatusField({
     return (
       <Select
         value={value}
-        onValueChange={(v: string | null) => {
-          const next = v ?? "";
+        onValueChange={(next: string) => {
           setValue(next);
           commit("status", item.status, next);
         }}

@@ -18,7 +18,7 @@ import {
   copyToClipboard as copyToClipboardFn,
   readFromClipboard,
 } from "./lib/json-io";
-import { denormalize, findNode } from "./lib/normalize";
+import { denormalize, findNode, normalize } from "./lib/normalize";
 import { buildResolver } from "./lib/permissions";
 import { resolveRamp } from "./lib/ramp";
 import { resolveNowFactory } from "./lib/time";
@@ -36,6 +36,7 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
   function TodoRichCard(props, ref) {
     const {
       defaultValue,
+      value,
       colorRamp,
       colorRefreshIntervalMs = 60_000,
       now: nowProp,
@@ -43,12 +44,15 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
       showEditButton = true,
       statusOptions,
       permissions,
-      onEditRequest,
       className,
       "aria-label": ariaLabel,
     } = props;
 
-    const [state, dispatch] = useReducer(reducer, defaultValue, createInitialState);
+    const [state, dispatch] = useReducer(
+      reducer,
+      value ?? defaultValue,
+      createInitialState,
+    );
 
     /* ───────── derive context inputs ───────── */
 
@@ -96,12 +100,6 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
           case "change":
             p.onChange?.(event as TodoEventMap["change"]);
             break;
-          case "editRequest": {
-            const e = event as TodoEventMap["editRequest"];
-            const veto = p.onEditRequest?.(e);
-            if (veto === false) dispatch({ type: "close-edit" });
-            break;
-          }
           case "fieldEdited":
             p.onFieldEdited?.(event as TodoEventMap["fieldEdited"]);
             break;
@@ -137,16 +135,51 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
       [],
     );
 
+    /* ───────── edit veto (single entry point for header/keyboard/handle) ───────── */
+
+    const requestEdit = useCallback(
+      (itemId: string, mode: "popup" | "inline") => {
+        // Consult the veto BEFORE dispatching, so a vetoed edit never flash-opens.
+        const veto = propsRef.current.onEditRequest?.({ itemId, mode });
+        if (veto === false) return;
+        dispatch({ type: "open-edit", itemId, mode });
+      },
+      [],
+    );
+
     /* ───────── fire onChange after structural mutations ───────── */
 
+    // A root change from reconciling an external `value` sets this flag so the
+    // controlled consumer isn't notified of its own update (avoids double-fire).
+    const suppressChangeRef = useRef(false);
     const initialMount = useRef(true);
     useEffect(() => {
       if (initialMount.current) {
         initialMount.current = false;
         return;
       }
+      if (suppressChangeRef.current) {
+        suppressChangeRef.current = false;
+        return;
+      }
       fireEvent("change", denormalize(state.root));
     }, [state.root, fireEvent]);
+
+    /* ───────── controlled-mode reconcile ─────────
+     * When `value` is provided the card is controlled. Reconcile ONLY on a
+     * genuine external `value` change (deps = [value]); the echo guard skips
+     * no-op syncs. `state.root` is read for comparison but deliberately NOT a
+     * dep, so internal optimistic mutations don't revert themselves.
+     */
+    useEffect(() => {
+      if (value === undefined) return;
+      const incoming = JSON.stringify(denormalize(normalize(value).root));
+      const current = JSON.stringify(denormalize(state.root));
+      if (incoming === current) return;
+      suppressChangeRef.current = true;
+      dispatch({ type: "sync-tree", tree: value });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value]);
 
     /* ───────── context value ───────── */
 
@@ -165,6 +198,7 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
         editable,
         showEditButton,
         fireEvent,
+        requestEdit,
         reportPermissionDenied,
       }),
       [
@@ -180,6 +214,7 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
         editable,
         showEditButton,
         fireEvent,
+        requestEdit,
         reportPermissionDenied,
       ],
     );
@@ -248,16 +283,10 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
             newLocked: locked,
           });
         },
-        openEdit: (itemId, mode = "popup") => {
-          if (onEditRequest) {
-            const veto = onEditRequest({ itemId, mode });
-            if (veto === false) return;
-          }
-          dispatch({ type: "open-edit", itemId, mode });
-        },
+        openEdit: (itemId, mode = "popup") => requestEdit(itemId, mode),
         closeEdit: () => dispatch({ type: "close-edit" }),
       }),
-      [state.root, state.dirty, fireEvent, onEditRequest],
+      [state.root, state.dirty, fireEvent, requestEdit],
     );
 
     /* ───────── root keyboard ───────── */
@@ -272,7 +301,7 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
       fireCopy: (p) => fireEvent("copy", p),
       firePaste: (p) => fireEvent("paste", p),
       fireItemAdded: (p) => fireEvent("itemAdded", p),
-      fireEditRequest: (p) => fireEvent("editRequest", p),
+      requestEdit,
       reportPermissionDenied,
     });
 

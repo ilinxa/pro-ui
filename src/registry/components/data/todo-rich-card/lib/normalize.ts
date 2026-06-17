@@ -321,8 +321,8 @@ export function denormalize(node: TodoNode): TodoItem {
 }
 
 /**
- * Walks the tree mutating in place: useful for the reducer's structural ops
- * (add-child / remove / move). Returns the node, or null if id not found.
+ * Read-only lookup: walks the tree to find a node by id (no mutation).
+ * Returns the node, or null if not found.
  */
 export function findNode(root: TodoNode, id: string): TodoNode | null {
   if (root.item.id === id) return root;
@@ -331,6 +331,21 @@ export function findNode(root: TodoNode, id: string): TodoNode | null {
     if (found) return found;
   }
   return null;
+}
+
+/**
+ * Return a structural copy of `item` with a fresh id on every node in the
+ * subtree. Used when an external payload (paste / drop) is grafted into a tree
+ * that may already contain its ids — re-iding prevents duplicate-id corruption
+ * of the id-keyed lookup / focus / permission maps and keeps `getValue()` JSON
+ * canonical.
+ */
+export function reassignIds(item: TodoItem): TodoItem {
+  return {
+    ...item,
+    id: freshId(),
+    children: item.children?.map(reassignIds),
+  };
 }
 
 /** Recompute level/parentId/index from a freshly-restructured tree. */

@@ -181,7 +181,20 @@ export function buildResolver(
   return (node: TodoNode) => {
     const cached = cache.get(node.item.id);
     if (cached) return cached;
-    // Cache miss (newly-added node not in pre-walk): fall back to direct compute.
-    return resolveForNode(node, allTrue(), props);
+    // Cache miss (node added between memo rebuilds, e.g. a fresh paste/drop):
+    // resolve against the PARENT's cached effective rule so inherited rules
+    // still cascade — instead of assuming an all-true ancestry.
+    const parentCached = node.parentId ? cache.get(node.parentId) : undefined;
+    const ancestorRule: TodoPermissionRule = parentCached
+      ? {
+          edit: parentCached.edit,
+          remove: parentCached.remove,
+          addChildren: parentCached.addChildren,
+          drag: parentCached.drag,
+          toggleActive: parentCached.toggleActive,
+          overrideColor: parentCached.overrideColor,
+        }
+      : allTrue();
+    return resolveForNode(node, ancestorRule, props);
   };
 }
