@@ -6,6 +6,14 @@ export type KanbanRenderContext = {
   swimlaneId?: string;
   isDragging: boolean;
   isLocked: boolean;
+  /**
+   * Persist an edit to this item's `data` back into the board (additive, v0.4).
+   * A renderer that owns its own edit UI (e.g. the rich-card adapter) calls this
+   * with the next data; the board dispatches `update-item` and notifies `onItemUpdate`.
+   * Undefined in read-only mode or when the item is locked. The renderer is
+   * responsible for passing data of its own `TData` shape.
+   */
+  onDataChange?: (nextData: unknown) => void;
 };
 
 export type KanbanCardRenderer<TData = unknown> = {
@@ -88,7 +96,7 @@ export type KanbanBoardProps = {
   onItemCreate?: (args: { columnId: string; item: KanbanItem }) => void;
   onItemUpdate?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
-  onColumnCreate?: (draft: Partial<KanbanColumn>) => void;
+  onColumnCreate?: (column: KanbanColumn) => void;
   onColumnUpdate?: (column: KanbanColumn) => void;
   onColumnDelete?: (columnId: string) => void;
 
@@ -112,7 +120,8 @@ export type KanbanCardData = {
   description?: string;
   tags?: { label: string; color?: string }[];
   assignees?: { id: string; name: string; avatarUrl?: string }[];
-  meta?: { key: string; label: string; value: ReactNode }[];
+  /** Serializable cell value. Arbitrary nodes belong behind a renderer's `render` fn, not in JSON data. */
+  meta?: { key: string; label: string; value: string | number }[];
 };
 
 export type KanbanNoteData = {

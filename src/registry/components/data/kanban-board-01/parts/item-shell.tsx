@@ -23,6 +23,7 @@ export function ItemShell({
   onClick,
   onDelete,
   onEdit,
+  onItemDataChange,
 }: {
   item: KanbanItem;
   columnId: string;
@@ -33,6 +34,8 @@ export function ItemShell({
   onClick?: (item: KanbanItem) => void;
   onDelete?: (itemId: string) => void;
   onEdit?: (item: KanbanItem) => void;
+  /** Persist an in-place data edit from a self-editing renderer back to the board. */
+  onItemDataChange?: (item: KanbanItem) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -55,6 +58,10 @@ export function ItemShell({
     swimlaneId,
     isDragging,
     isLocked: item.locked === true,
+    onDataChange:
+      onItemDataChange && !readOnly && item.locked !== true
+        ? (nextData: unknown) => onItemDataChange({ ...item, data: nextData })
+        : undefined,
   };
 
   function handleClick(e: MouseEvent) {

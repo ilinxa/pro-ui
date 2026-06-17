@@ -1,6 +1,6 @@
 # `kanban-board-01` — Pro-component Description (Stage 1)
 
-> **Stage:** 1 of 3 · **Status:** Signed off · v0.2.0 (alpha)
+> **Stage:** 1 of 3 · **Status:** Signed off · v0.4.0 (alpha)
 > **Slug:** `kanban-board-01` · **Category:** `data`
 > **Conceptual lineage:** Trello / Linear / GitHub Projects board view, JIRA swimlane boards. **Not a clone of any of them.** A reusable React surface for column-based, drag-and-drop work-in-progress visualization.
 
@@ -58,7 +58,7 @@ The registry already has a strong rich-card system (`post-card-01`, `project-car
 
 ### Out of scope (deliberate non-goals)
 
-- **WIP limits with enforcement** — `column.maxItems` is exposed as a SOFT cap (renders a warning chip when over) but does **not** block drops. Hard enforcement is v0.2.
+- **WIP limits with enforcement** — `column.maxItems` is exposed as a SOFT cap (renders a warning chip when over) but does **not** block drops. There is no hard-enforcement mode; gate over-capacity drops in your own `onItemMove` handler if needed.
 - **Filters / search inside the board** — consumers wrap the board with their own filter UI and pass already-filtered data.
 - **Card detail modal / drawer** — out of scope. The item click event is exposed via `onItemClick`; consumers route to a detail view of their choice.
 - **Persistence to a backend** — board data is serializable; saving is the consumer's job (mirrors workspace).
@@ -170,10 +170,10 @@ type KanbanBoardProps = {
   onChange?: (next: KanbanData) => void;
 
   // CRUD — affordances render only when supplied
-  onItemCreate?: (columnId: string, item: KanbanItem) => void;
+  onItemCreate?: (args: { columnId: string; item: KanbanItem }) => void;
   onItemUpdate?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
-  onColumnCreate?: (draft: Partial<KanbanColumn>) => void;
+  onColumnCreate?: (column: KanbanColumn) => void;
   onColumnUpdate?: (column: KanbanColumn) => void;
   onColumnDelete?: (columnId: string) => void;
 
@@ -344,7 +344,7 @@ Stable (`1.0.0`) is gated separately and includes external consumers + 30-day no
 | Q9 | **Notes between cards** — separate item kind or part of card chrome? | **Built-in renderer `kanban-note`**, registered the same way as `kanban-card`. Data shape: `{ title, body?, color? }`. Reorderable like any other item; subject to the same column-level controls (`acceptsRendererIds: ["kanban-note"]` makes a notes-only column). | User said "very simple … like a simple text boxes with title" — that's a different render, not a different mechanism. Under the renderer-registry model (Q3), notes are just one more renderer. No special discriminated union needed. |
 | Q10 | **Collapsible columns — collapsed UI?** | **~40px vertical strip** showing column title (rotated or written vertically) + item count. Items still occupy logical state. Drop-onto-collapsed expands the column. | Matches sidebar-collapse pattern user referenced. |
 | Q11 | **Controlled vs uncontrolled state** | **Both,** mirroring workspace: `data` / `defaultData` / `onChange`. | Standard React pattern. |
-| Q12 | **WIP limits** — v0.1 hard, v0.1 soft, or v0.2? | **v0.1 SOFT** — `column.maxItems` renders a warning chip when over capacity but does NOT block drops. **v0.2 HARD** mode if consumers ask. | Soft cap is the common ask. Hard enforcement adds UX complexity (rejection animation, block/queue UX). |
+| Q12 | **WIP limits** — v0.1 hard, v0.1 soft, or v0.2? | **SOFT** — `column.maxItems` renders a warning chip when over capacity but does NOT block drops. Hard mode was never shipped and is out of scope (gate over-capacity in a consumer `onItemMove` handler). | Soft cap is the common ask. Hard enforcement adds UX complexity (rejection animation, block/queue UX). |
 | Q13 | **Touch / pen DnD in v0.1?** | **Yes,** via dnd-kit's pointer sensor. Long-press lift, drag, release drop. Not pixel-perfect; functional. | Kanban without touch on tablets is a known gap. dnd-kit gets us 80% for free. |
 | Q14 | **Card detail modal** | **Out of scope.** `onItemClick` exposed; consumers route to their own detail view. | Avoids modal-design rabbit hole. Detail surfaces vary too much per app to standardize. |
 | Q15 | **Comment thread per card?** | **Out of scope.** The note item handles between-cards annotation; per-card threads use `comment-thread-01` inside a consumer-built card-detail surface. | Two different patterns; conflating them bloats the kanban surface. |

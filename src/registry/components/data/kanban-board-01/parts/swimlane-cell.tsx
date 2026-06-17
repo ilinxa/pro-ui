@@ -24,6 +24,7 @@ export function SwimlaneCell({
   onItemClick,
   onItemDelete,
   onItemEdit,
+  onItemDataChange,
 }: {
   column: KanbanColumn;
   swimlaneId: string | undefined;
@@ -34,6 +35,7 @@ export function SwimlaneCell({
   onItemClick?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
   onItemEdit?: (item: KanbanItem) => void;
+  onItemDataChange?: (item: KanbanItem) => void;
 }) {
   const cellId = makeCellId(column.id, swimlaneId);
   const { setNodeRef, isOver } = useDroppable({
@@ -67,6 +69,7 @@ export function SwimlaneCell({
               onClick={onItemClick}
               onDelete={onItemDelete}
               onEdit={onItemEdit}
+              onItemDataChange={onItemDataChange}
             />
           );
         })}
