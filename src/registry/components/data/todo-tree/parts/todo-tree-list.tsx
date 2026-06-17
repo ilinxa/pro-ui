@@ -15,6 +15,7 @@ import { useTreeKeyboard } from "../hooks/use-tree-keyboard";
 import { TodoTreeRow } from "./todo-tree-row";
 import { TodoTreeEmptyState } from "./todo-tree-empty-state";
 import { isFilterActive } from "../lib/filter-items";
+import { evalPermission } from "../lib/permissions";
 import { cn } from "@/lib/utils";
 
 export interface TodoTreeListProps {
@@ -96,7 +97,7 @@ export function TodoTreeList({
   useEffect(() => {
     if (!state.focusedItemId || !scrollRef.current) return;
     const el = scrollRef.current.querySelector<HTMLElement>(
-      `[data-treeitem-id="${cssEscape(state.focusedItemId)}"]`,
+      `[data-treeitem-id="${CSS.escape(state.focusedItemId)}"]`,
     );
     if (el && document.activeElement !== el) {
       el.focus({ preventScroll: false });
@@ -177,6 +178,11 @@ export function TodoTreeList({
                   isSelected={state.selectedIds.has(row.item.id)}
                   isCollapsed={state.collapsedIds.has(row.item.id)}
                   dimmed={row.dimmed}
+                  canDrag={!readOnly && evalPermission(permissions, "drag", row.item, row.level)}
+                  canToggleActive={
+                    !readOnly &&
+                    evalPermission(permissions, "toggleActive", row.item, row.level)
+                  }
                 />
               </div>
             );
@@ -222,19 +228,15 @@ export function TodoTreeList({
               isSelected={state.selectedIds.has(row.item.id)}
               isCollapsed={state.collapsedIds.has(row.item.id)}
               dimmed={row.dimmed}
+              canDrag={!readOnly && evalPermission(permissions, "drag", row.item, row.level)}
+              canToggleActive={
+                !readOnly &&
+                evalPermission(permissions, "toggleActive", row.item, row.level)
+              }
             />
           </div>
         ))}
       </div>
     </div>
   );
-}
-
-/**
- * Minimal CSS-attribute-value escape for IDs containing characters
- * meaningful to a CSS selector (e.g., colons, brackets, quotes). Avoids
- * needing the full CSS.escape polyfill for the data-attribute path.
- */
-function cssEscape(value: string): string {
-  return value.replace(/(["\\\]])/g, "\\$1");
 }

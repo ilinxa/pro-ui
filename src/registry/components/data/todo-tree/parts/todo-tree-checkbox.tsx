@@ -15,9 +15,14 @@ export interface TodoTreeCheckboxProps {
 
 /**
  * Wrapper around the shadcn `<Checkbox>` primitive that bridges the boolean
- * `checked` + `onChange` API the row expects. The primitive's `onCheckedChange`
- * argument can be `boolean | "indeterminate"`; we coerce indeterminate to
- * `true` (the only state we transition to when a partial check is committed).
+ * `checked` + `onChange` API the row expects.
+ *
+ * This is a PER-ROW boolean toggle bound to a single item's `active` — never a
+ * tri-state group selector, so `checked` is always a real boolean and the box
+ * never renders an "indeterminate"/mixed state. The `typeof next === "boolean"`
+ * guard below exists ONLY to bridge the two checkbox backends (producer's Radix
+ * passes `boolean | "indeterminate"`; consumer-installed Base UI passes only
+ * `boolean`); the `: true` fallback is therefore unreachable in practice.
  */
 export function TodoTreeCheckbox({
   checked,
@@ -34,11 +39,10 @@ export function TodoTreeCheckbox({
       aria-disabled={disabled || undefined}
       onCheckedChange={(next) => {
         if (disabled) return;
-        // F-cross-13 defensive coerce. Producer's Radix Checkbox primitive
-        // passes `boolean | "indeterminate"`; consumer-installed Base UI
-        // Checkbox passes only `boolean`. A `=== "indeterminate"` check
-        // fails type-narrowing against the narrower signature. typeof gates
-        // through both backends without an `unknown` cast.
+        // Cross-backend type guard (F-cross-13): Radix passes
+        // `boolean | "indeterminate"`, Base UI passes only `boolean`. Since
+        // `checked` is always a real boolean here, `next` is always a boolean
+        // and the `: true` branch is unreachable — kept only for type-narrowing.
         const value: boolean = typeof next === "boolean" ? next : true;
         onChange?.(value);
       }}

@@ -96,26 +96,69 @@ export function useTreeDndInternal(
   const [activeLevel, setActiveLevel] = useState<number>(0);
   const [over, setOver] = useState<TreeDndOverInfo | null>(null);
 
-  // Pointer Y tracker — @dnd-kit's onDragOver provides over.rect but not
-  // the current pointer; install a global mousemove listener while drag is
-  // active to read the pointer position.
+  // Pointer tracker — @dnd-kit's onDragOver provides over.rect but not the
+  // current pointer; install a global mousemove/touchmove listener while drag
+  // is active to read the pointer position (viewport coords).
   const pointerYRef = useRef<number>(0);
+  const pointerXRef = useRef<number>(0);
+
+  // Keep activeItem + items reachable from the scroll/wheel listener without
+  // re-subscribing on every change. Synced in an effect (refs must not be
+  // written during render).
+  const activeItemRef = useRef<TodoItem | null>(null);
+  const itemsRef = useRef<TodoItem[]>(items);
+  useEffect(() => {
+    activeItemRef.current = activeItem;
+    itemsRef.current = items;
+  });
+
+  // Recompute the over-target + zone from a pointer position, using
+  // getBoundingClientRect (viewport coords, consistent with clientY). Shared by
+  // the scroll/wheel handler so the indicator stays correct when the list
+  // scrolls under a stationary pointer (TT7).
+  const applyOverAt = useCallback((clientX: number, clientY: number) => {
+    const active = activeItemRef.current;
+    if (!active) return;
+    const el = document.elementFromPoint(clientX, clientY);
+    const rowEl = el?.closest<HTMLElement>("[data-todo-tree-row]");
+    const targetId = rowEl?.getAttribute("data-todo-tree-row");
+    if (!rowEl || !targetId || targetId === active.id) {
+      setOver(null);
+      return;
+    }
+    const rect = rowEl.getBoundingClientRect();
+    const zone = computeEdgeZone(clientY, rect.top, rect.height);
+    const circular =
+      zone === "middle" && isAncestor(itemsRef.current, active.id, targetId);
+    setOver({ overId: targetId, zone, circular });
+  }, []);
+
   useEffect(() => {
     if (!activeItem) return;
     const onMove = (e: MouseEvent | TouchEvent) => {
       if ("clientY" in e) {
         pointerYRef.current = e.clientY;
+        pointerXRef.current = e.clientX;
       } else if (e.touches && e.touches.length > 0) {
         pointerYRef.current = e.touches[0].clientY;
+        pointerXRef.current = e.touches[0].clientX;
       }
     };
+    // On scroll/wheel without pointer movement, a different row sits under the
+    // stationary pointer — recompute from the cached pointer so the zone +
+    // indicator don't go stale (TT7).
+    const onScroll = () => applyOverAt(pointerXRef.current, pointerYRef.current);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("touchmove", onMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    window.addEventListener("wheel", onScroll, { passive: true });
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("scroll", onScroll, { capture: true });
+      window.removeEventListener("wheel", onScroll);
     };
-  }, [activeItem]);
+  }, [activeItem, applyOverAt]);
 
   const onDragStart = useCallback(
     (event: DragStartEvent) => {

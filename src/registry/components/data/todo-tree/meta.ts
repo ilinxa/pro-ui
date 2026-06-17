@@ -20,15 +20,15 @@ export const meta: ComponentMeta = {
     "Edge-zone drops: top 25% / middle 50% / bottom 25% (capped 8px); top/bottom = sibling adjacent; middle = reparent as last child + auto-expand target",
     "Circular-drop prevention (hit-test ban; onPermissionDenied fires with reason 'circular-drop')",
     "Virtualization via @tanstack/react-virtual; auto-enables at ≥200 total items; suspends during drag",
-    "Permission matrix mirroring todo-rich-card; 6 tree-side gates (canEditItem / canToggleActive / canDragItem / canDropAsSibling / canDropIntoChildren / canRemoveItem)",
+    "Permission matrix mirroring todo-rich-card (the `permissions` prop: default / byLevel / byItem with inherit cascade, + onPermissionDenied) gating 6 actions (edit / toggleActive / drag / dropAsSibling / dropIntoChildren / remove) — honored on BOTH the keyboard AND mouse/DnD paths (grip, active checkbox, drop targets, root-create)",
     "8 slot props: renderRow / renderName / renderDescription / renderPerson / renderStatusIndicator / renderToolbar / renderEmptyState / renderDragOverlay (slot wins over prop variant)",
     "Headless useTodoTreeState hook — superset of TodoTreeHandle plus live state values + dispatch escape hatch",
-    "Controlled (value + onChange) and uncontrolled (defaultValue) modes; controlled mode uses the three-defenses pattern (microtask-defer + structural resync guard + suppress mid-drag onChange)",
+    "Controlled (value + onChange) and uncontrolled (defaultValue) modes; controlled mode uses the three-defenses pattern (microtask-defer + full-field resync guard + suppress mid-drag onChange)",
     "26-method imperative handle: tree state / item ops / single + bulk active-toggle + remove / focus / collapse / selection / query/sort/filter",
     "17 object-args events (post-F-cross-12 convention)",
     "Full WAI-ARIA tree pattern: role=tree + role=treeitem + aria-level + aria-expanded + aria-selected; arrow nav + Home/End + Space + Enter + Delete/Backspace + Cmd-A + Escape",
     "Companion: <TodoTreeWithEditor> convenience export wires todo-rich-card edit popup inside a Dialog automatically",
-    "Toolbar '+ New' button (createItem factory + statusOptions[0] fallback); gated behind editable + !readOnly. Wrapper opens the edit panel on a pending item; commit deferred until Submit (onCreateRequest hook)",
+    "Toolbar '+ New' button (createItem factory + statusOptions[0] fallback); gated behind editable + !readOnly + the matrix's level-0 addChildren rule. Wrapper opens the edit panel on a pending item; commit deferred until Submit (onCreateRequest hook)",
     "Keyboard Space + Delete honor the permissions matrix + item.locked + readOnly; fire onPermissionDenied on denial (F-perm closed)",
   ],
   tags: [
@@ -43,10 +43,10 @@ export const meta: ComponentMeta = {
     "virtualization",
   ],
 
-  version: "0.1.3",
+  version: "0.2.0",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-05-21",
+  updatedAt: "2026-06-18",
 
   author: { name: "ilinxa" },
 
