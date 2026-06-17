@@ -189,6 +189,10 @@ import MediaLibrary01Demo from "./components/media/media-library-01/demo";
 import MediaLibrary01Usage from "./components/media/media-library-01/usage";
 import { meta as mediaLibrary01Meta } from "./components/media/media-library-01/meta";
 
+import Blackboard01Demo from "./components/data/blackboard-01/demo";
+import Blackboard01Usage from "./components/data/blackboard-01/usage";
+import { meta as blackboard01Meta } from "./components/data/blackboard-01/meta";
+
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
 import { meta as codeBlockMeta } from "./components/code/code-block/meta";
@@ -491,6 +495,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: mediaLibrary01Meta,
     Demo: MediaLibrary01Demo,
     Usage: MediaLibrary01Usage,
+  },
+  {
+    meta: blackboard01Meta,
+    Demo: Blackboard01Demo,
+    Usage: Blackboard01Usage,
   },
 ];
 
