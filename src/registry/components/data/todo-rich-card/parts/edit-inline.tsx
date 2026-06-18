@@ -130,7 +130,12 @@ function StatusField({
     return (
       <Select
         value={value}
-        onValueChange={(next: string) => {
+        // Cross-backend signature: the producer's Radix Select passes `(string)`,
+        // but a Base UI (base-nova) consumer's Select passes
+        // `(string | null, eventDetails)`. Keep the nullable param + `?? ""` guard
+        // so this handler stays assignable to BOTH backends (smoke-proven).
+        onValueChange={(v: string | null) => {
+          const next = v ?? "";
           setValue(next);
           commit("status", item.status, next);
         }}
