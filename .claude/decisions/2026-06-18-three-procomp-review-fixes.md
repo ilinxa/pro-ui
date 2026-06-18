@@ -3,10 +3,10 @@ date: 2026-06-18
 session: consumer-issue-report fixes (kanban-board-01 / todo-rich-card / todo-tree)
 phase: maintenance — public-API-touching minor bumps
 type: bug-fix + feature + docs-alignment
-commits: [pending — 3 per-component commits, tip recorded at push]
+commits: [a946c6f kanban-board-01 v0.4.0, 9eff784 todo-rich-card v0.2.0, a1bc6e0 todo-tree v0.2.0, ec77cfc todo-rich-card v0.2.1 smoke-patch]
 components: [kanban-board-01, todo-rich-card, todo-tree]
 findings: 35 (all validated real) — K1–K10, R1–R14, TT1–TT11
-status: closed pending push (3× GATE 3 Pass-with-follow-ups)
+status: SHIPPED + PUSHED + post-deploy smoke CLEAN (tip ec77cfc; 3× GATE 3 Pass-with-follow-ups)
 ---
 
 # Three-procomp consumer-issue-report fixes (35 findings)
@@ -95,9 +95,28 @@ GATE 3 spotchecks authored for all three, each **Pass with follow-ups**:
 [todo-rich-card](../../docs/procomps/todo-rich-card-procomp/reviews/2026-06-18-v0.2.0-spotcheck.md),
 [todo-tree](../../docs/procomps/todo-tree-procomp/reviews/2026-06-18-v0.2.0-spotcheck.md).
 
+## Post-deploy smoke (F-cross-11 path-b) — CLEAN, caught a real regression
+
+Ran `pnpm dlx shadcn add @ilinxa/<slug>` from the base-nova / **Base UI** consumer
+(`e:/tmp/ilinxa-smoke-consumer`) against the live registry + consumer `tsc --noEmit`:
+
+- **kanban-board-01 v0.4.0** — install pass, **0 errors** (dead `tooltip` gone from the graph).
+- **todo-tree v0.2.0** — install pass (pulls todo-rich-card), **0 errors** (relative import held).
+- **todo-rich-card v0.2.0** — install pass, but **2 consumer-tsc errors** → the smoke caught a real
+  regression my **R10 fix introduced**, fixed in **v0.2.1** (`ec77cfc`); canonical re-install from the
+  live URL → **0 errors**.
+
+**The R10 lesson (the one finding where the report was wrong):** R10 said the status `Select`'s
+`(v: string | null)` annotation was "dead defensive code." It was analyzed against the **producer's
+Radix** Select (`onValueChange: (string) => void`). But a **Base UI** consumer's Select passes
+`(value: string | null, eventDetails)` — so the nullable annotation is **load-bearing cross-backend**,
+not dead. Narrowing it to `(next: string)` broke every Base-UI consumer. **Producer-tsc + build pass
+this; only the cross-backend consumer-tsc smoke catches it.** This is the canonical reason the
+post-deploy smoke exists, and a reminder that a consumer-report finding analyzed against one backend
+can be wrong for the other. (Folded into the `project_shadcn_primitive_radix_baseui_divergence` memory.)
+
 ## Open follow-ups (all Low / deferred)
 
-- Post-deploy cross-procomp consumer-tsc smoke for the kanban × todo-rich-card pair.
 - v0.3: person/image/link editors (re-add to the union); SSR deterministic-first-paint; gated
   `try*` imperative-handle variants (todo-tree); inline rename (todo-tree).
 - Vitest infra (policy-blessed defer; trigger now arguably met).
