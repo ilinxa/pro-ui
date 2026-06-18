@@ -174,7 +174,9 @@ export function EditPopup({ node }: { node: TodoNode }) {
               {ctx.statusOptions && ctx.statusOptions.length > 0 ? (
                 <Select
                   value={draft.status}
-                  onValueChange={(next: string) => setField("status", next)}
+                  // Cross-backend: Radix passes `(string)`, Base UI passes
+                  // `(string | null, eventDetails)` — keep the nullable guard.
+                  onValueChange={(v: string | null) => setField("status", v ?? "")}
                 >
                   {/* w-full override per F-cross-13 / shadcn v4 Select w-fit lock */}
                   <SelectTrigger id="todo-status" className="w-full">

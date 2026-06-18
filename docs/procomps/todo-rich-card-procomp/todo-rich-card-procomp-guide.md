@@ -1,6 +1,8 @@
 # `todo-rich-card` — Pro-component Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** v0.2.0 (alpha)
+> **Stage:** 3 of 3 · **Status:** v0.2.1 (alpha)
+>
+> v0.2.1 — smoke patch: kept the status `Select` `onValueChange` nullable (`string | null`) so the handler stays assignable across both the Radix (producer) and Base UI (consumer) backends — a base-nova consumer-tsc smoke caught the v0.2.0 narrowing.
 > **Slug:** `todo-rich-card` · **Category:** `data`
 > **Version:** 0.1.0 (alpha) · **Shipped:** 2026-05-20
 > Consumer-facing usage notes. The description doc explains "why," the plan doc explains "how"; this doc explains "use it."
