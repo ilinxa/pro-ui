@@ -6,8 +6,11 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCenter,
+  pointerWithin,
+  rectIntersection,
   useSensor,
   useSensors,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
@@ -25,6 +28,23 @@ import type {
   KanbanColumn,
   KanbanItem,
 } from "./types";
+
+// Pointer-based collision detection so an item drops wherever the cursor is —
+// onto a card (reorder) or anywhere in a column's empty space / the column
+// wrapper (append to end), not only when a droppable's *center* is nearest.
+// Column reorder branches to center-of-columns-only so a card inside the target
+// column can't swallow the column drop. `rectIntersection` is a fling fallback
+// when the pointer isn't within any droppable.
+const kanbanCollisionDetection: CollisionDetection = (args) => {
+  if (args.active.data.current?.kind === "column") {
+    const columnsOnly = args.droppableContainers.filter(
+      (c) => c.data.current?.kind === "column",
+    );
+    return closestCenter({ ...args, droppableContainers: columnsOnly });
+  }
+  const pointer = pointerWithin(args);
+  return pointer.length > 0 ? pointer : rectIntersection(args);
+};
 
 export function KanbanBoard({
   renderers,
@@ -177,7 +197,7 @@ export function KanbanBoard({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={kanbanCollisionDetection}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}

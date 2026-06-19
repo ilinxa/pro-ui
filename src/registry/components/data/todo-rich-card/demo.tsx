@@ -6,12 +6,18 @@ import { Label } from "@/components/ui/label";
 import { TodoRichCard } from "./todo-rich-card";
 import { todoRichCardKanbanRenderer } from "./parts/kanban-adapter";
 import {
+  BLOCKED_TASK,
   DEMO_ITEMS,
+  DEMO_LABEL_OPTIONS,
   DEMO_NOW,
+  DEMO_PRIORITY_OPTIONS,
   DEMO_STATUS_OPTIONS,
+  DEMO_STATUS_OPTIONS_TONED,
+  DONE_TASK,
   FRESH_TASK,
   NESTED_FAMILY,
   OVERDUE_TASK,
+  PRIORITIZED_TASK,
   URGENT_TASK,
 } from "./dummy-data";
 import type { TodoColorRampPreset, TodoItem } from "./types";
@@ -54,7 +60,7 @@ const KANBAN_INITIAL: KanbanData = {
           rendererId: "kanban-note",
           data: {
             title: "Demo note",
-            body: "Note + todo renderers co-exist on the same board. Drag the todo cards to reorder; the renderer's `dragHandle:'header'` keeps the body fully interactive.",
+            body: "Note + todo renderers co-exist on the same board. Grab a todo card anywhere to drag it (shell-drag), and drop it anywhere in a column. The card body keeps full edit / collapse semantics.",
           },
         },
       ],
@@ -161,6 +167,48 @@ export default function TodoRichCardDemo() {
         />
       </section>
 
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">
+          v0.3 — priority &amp; labels meta row + status tones
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          The header gains a priority badge + label chips (border/text color only). The{" "}
+          <code>done</code> / <code>blocked</code> statuses carry a <code>tone</code> so terminal
+          cards get a gray border, a dimmed overlay, and auto-collapse. Turn on{" "}
+          <strong>editable</strong> above, then use the status badge (or the overlay&apos;s badge)
+          to change status — changing a terminal status clears the overlay.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <TodoRichCard
+            defaultValue={PRIORITIZED_TASK}
+            editable={editable}
+            colorRamp={ramp}
+            now={DEMO_NOW}
+            statusOptions={DEMO_STATUS_OPTIONS_TONED}
+            priorityOptions={DEMO_PRIORITY_OPTIONS}
+            labelOptions={DEMO_LABEL_OPTIONS}
+          />
+          <TodoRichCard
+            defaultValue={DONE_TASK}
+            editable={editable}
+            colorRamp={ramp}
+            now={DEMO_NOW}
+            statusOptions={DEMO_STATUS_OPTIONS_TONED}
+            priorityOptions={DEMO_PRIORITY_OPTIONS}
+            labelOptions={DEMO_LABEL_OPTIONS}
+          />
+          <TodoRichCard
+            defaultValue={BLOCKED_TASK}
+            editable={editable}
+            colorRamp={ramp}
+            now={DEMO_NOW}
+            statusOptions={DEMO_STATUS_OPTIONS_TONED}
+            priorityOptions={DEMO_PRIORITY_OPTIONS}
+            labelOptions={DEMO_LABEL_OPTIONS}
+          />
+        </div>
+      </section>
+
       <p className="text-xs text-muted-foreground">
         {`${DEMO_ITEMS.length} demos · click the pencil icon (or the action menu) to edit · Cmd/Ctrl+C / Cmd/Ctrl+V on a focused card copies / pastes as child · drag a card onto another's children area to paste.`}
       </p>
@@ -172,7 +220,7 @@ export default function TodoRichCardDemo() {
         <p className="text-xs text-muted-foreground">
           {`The same TodoRichCard slots into a kanban column via the exported `}
           <code>todoRichCardKanbanRenderer</code>
-          {`. Drag cards across columns by the grip strip; the card body keeps full edit / collapse / DnD semantics intact (renderer's dragHandle:"header").`}
+          {`. Grab a card anywhere to drag it across columns and drop it anywhere in a column; the card body keeps full edit / collapse semantics (renderer's dragHandle:"shell" + canDragItem disabled so the two drag systems don't fight).`}
         </p>
         <KanbanBoard
           renderers={[

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useCardContext } from "../hooks/use-card-context";
 import type { TodoNode } from "../types";
 import { ActionMenu } from "./action-menu";
+import { CardMeta } from "./card-meta";
 import { StatusBadge } from "./status-badge";
 
 export function CardHeader({
@@ -67,63 +68,73 @@ export function CardHeader({
   }
 
   return (
-    <header className="flex items-center justify-between gap-2">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="-ms-1 size-6 shrink-0 text-muted-foreground hover:text-foreground"
-          aria-label={collapsed ? "Expand card" : "Collapse card"}
-          aria-expanded={!collapsed}
-          onClick={toggleCollapse}
-        >
-          {collapsed ? (
-            <ChevronRight className="size-3.5" />
-          ) : (
-            <ChevronDown className="size-3.5" />
-          )}
-        </Button>
-        <h3 className="truncate font-medium text-foreground">{node.item.name}</h3>
-        <StatusBadge status={node.item.status} />
-      </div>
-      <div className="flex shrink-0 items-center gap-1">
-        <Switch
-          checked={node.item.active}
-          onCheckedChange={handleToggleActive}
-          aria-label="Active"
-          disabled={!perms.toggleActive}
-        />
-        {ctx.showEditButton ? (
+    <header className="flex flex-col gap-2">
+      {/* row 1 — controls (status + toggles); kept on its own line so the title
+          never has to share horizontal space and truncate to nothing. */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
           <Button
             variant="ghost"
             size="icon"
-            className={cn(
-              "size-7",
-              isInlineActive && "bg-muted text-foreground",
+            className="-ms-1 size-6 shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label={collapsed ? "Expand card" : "Collapse card"}
+            aria-expanded={!collapsed}
+            onClick={toggleCollapse}
+          >
+            {collapsed ? (
+              <ChevronRight className="size-3.5" />
+            ) : (
+              <ChevronDown className="size-3.5" />
             )}
-            aria-label={ctx.editable ? "Toggle inline edit" : "Edit"}
-            aria-haspopup={ctx.editable ? undefined : "dialog"}
-            aria-pressed={ctx.editable ? isInlineActive : undefined}
-            disabled={!perms.edit}
-            onClick={handlePrimaryEdit}
-          >
-            <Pencil className="size-3.5" />
           </Button>
-        ) : null}
-        {ctx.showEditButton && ctx.editable ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            aria-label="Edit in dialog"
-            disabled={!perms.edit}
-            onClick={() => tryOpenEdit("popup")}
-          >
-            <PanelTop className="size-3.5" />
-          </Button>
-        ) : null}
-        <ActionMenu node={node} onOverrideColor={onOverrideColor} />
+          <StatusBadge node={node} className="shrink-0" />
+        </div>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <Switch
+            size="sm"
+            checked={node.item.active}
+            onCheckedChange={handleToggleActive}
+            aria-label="Active"
+            disabled={!perms.toggleActive}
+          />
+          {ctx.showEditButton ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "size-6",
+                isInlineActive && "bg-muted text-foreground",
+              )}
+              aria-label={ctx.editable ? "Toggle inline edit" : "Edit"}
+              aria-haspopup={ctx.editable ? undefined : "dialog"}
+              aria-pressed={ctx.editable ? isInlineActive : undefined}
+              disabled={!perms.edit}
+              onClick={handlePrimaryEdit}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
+          ) : null}
+          {ctx.showEditButton && ctx.editable ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6"
+              aria-label="Edit in dialog"
+              disabled={!perms.edit}
+              onClick={() => tryOpenEdit("popup")}
+            >
+              <PanelTop className="size-3.5" />
+            </Button>
+          ) : null}
+          <ActionMenu node={node} onOverrideColor={onOverrideColor} />
+        </div>
       </div>
+      {/* row 2 — title, always readable (wraps up to 3 lines, never truncates to 0). */}
+      <h3 className="line-clamp-3 text-sm font-medium leading-snug text-foreground">
+        {node.item.name}
+      </h3>
+      {/* row 3 — priority + labels (renders nothing when the item has neither). */}
+      <CardMeta item={node.item} />
     </header>
   );
 }

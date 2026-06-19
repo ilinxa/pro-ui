@@ -29,7 +29,7 @@ export function AddColumnButton({
           e.preventDefault();
           handleSave();
         }}
-        className="flex h-fit w-72 shrink-0 flex-col gap-2 rounded-md border border-border bg-card p-2.5"
+        className="flex h-fit w-80 shrink-0 flex-col gap-2 rounded-md border border-border bg-card p-2.5"
       >
         <Input
           value={title}
@@ -69,7 +69,7 @@ export function AddColumnButton({
       type="button"
       variant="outline"
       size="sm"
-      className="h-fit w-72 shrink-0 justify-start py-2.5 text-muted-foreground hover:text-foreground"
+      className="h-fit w-80 shrink-0 justify-start py-2.5 text-muted-foreground hover:text-foreground"
       onClick={() => setEditing(true)}
     >
       <Plus className="size-4" />

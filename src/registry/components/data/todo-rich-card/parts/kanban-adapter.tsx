@@ -6,10 +6,18 @@
  * Exposes `todoRichCardKanbanRenderer`: a `KanbanCardRenderer<TodoItem>` that
  * `kanban-board-01` can register and use as the body for each card slot.
  *
- * `dragHandle: "header"` per kanban-board-01's documented pattern for
- * renderers with internal pointer interactions (inline editors, nested DnD).
- * The grip strip stays interactive-free; the rest of the card preserves its
- * own click/drag semantics.
+ * `dragHandle: "shell"` (v0.3): the whole card is the drag activator. The rich
+ * card normally marks its root `draggable` (HTML5 DnD, for copy/move payload +
+ * nested drop), which would hijack the kanban PointerSensor gesture — so the
+ * adapter passes `canDragItem={() => false}` to disable the root `draggable`
+ * while embedded, letting the two DnD systems coexist. The board's
+ * `activationConstraint: { distance: 5 }` keeps a click on an inner control
+ * (status, edit, switch) from becoming a drag, and the inline editor stops
+ * pointer propagation so text selection in a field doesn't drag the card.
+ *
+ * Trade-off: with the root drag disabled, subtasks can't be reordered by native
+ * DnD *inside a kanban column* — acceptable since the kanban owns movement
+ * there; the standalone (list) card keeps its internal DnD.
  *
  * NOTE: this adapter renders a SINGLE TodoRichCard per kanban item. The item's
  * own `children` still recurse internally — kanban "items" are not the same
@@ -53,15 +61,18 @@ type KanbanCardRenderer<TData> = {
 export const todoRichCardKanbanRenderer: KanbanCardRenderer<TodoItem> = {
   id: "todo-rich-card",
   label: "Todo (rich)",
-  dragHandle: "header",
+  dragHandle: "shell",
   // Controlled: the board's item data is the source of truth. Edits flow back
   // via onChange → ctx.onDataChange so they persist; a locked item is read-only;
   // `key` resets card state when the board swaps the item in this slot.
+  // `canDragItem={() => false}` disables the card's own root `draggable` so it
+  // can't hijack the board's pointer drag (see file header).
   render: (data, ctx) => (
     <TodoRichCard
       key={ctx.itemId}
       value={data}
       editable={!ctx.isLocked}
+      canDragItem={() => false}
       onChange={(next) => ctx.onDataChange?.(next)}
     />
   ),
