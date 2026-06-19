@@ -66,6 +66,10 @@ export type TodoItem = {
   borderColor?: string;
   /** When true, edit + drag are blocked for this item. */
   locked?: boolean;
+  /** Priority/urgency bucket key. Single-valued; consumer supplies display metadata via `priorityOptions`. */
+  priority?: string;
+  /** Label/tag keys (many-to-many). Consumer supplies display metadata via `labelOptions`. */
+  labels?: string[];
   /** Infinite recursive nesting. */
   children?: TodoItem[];
 };
@@ -83,6 +87,32 @@ export type TodoStatusOption = {
   value: string;
   label: string;
   variant?: "default" | "secondary" | "destructive" | "outline";
+  /**
+   * Semantic treatment of a card in this status (v0.3):
+   *  - `active` (default): the time-driven border color applies; normal card.
+   *  - `done`: gray border + a dimmed green overlay; the card auto-collapses.
+   *  - `blocked`: gray border + a reddish overlay; the card auto-collapses.
+   * Decouples the *status* signal from the time-driven *urgency* border.
+   */
+  tone?: "active" | "done" | "blocked";
+  /** Emoji/glyph shown above the tag in the done/blocked overlay. */
+  icon?: string;
+};
+
+/** Display metadata for a priority bucket; pair with `TodoItem.priority` (v0.3). */
+export type TodoPriorityOption = {
+  value: string;
+  label: string;
+  /** Any CSS color string — applied to border + text only (never a filled background). */
+  color?: string;
+};
+
+/** Display metadata for a label/tag; pair with `TodoItem.labels` (v0.3). */
+export type TodoLabelOption = {
+  value: string;
+  label: string;
+  /** Any CSS color string — applied to border + text only (never a filled background). */
+  color?: string;
 };
 
 /* ───────── editable-field union ─────────
@@ -229,6 +259,19 @@ export type TodoRichCardProps = {
   editable?: boolean;
   showEditButton?: boolean;
   statusOptions?: TodoStatusOption[];
+  /**
+   * Render the status badge as a dropdown that changes the item's status
+   * (default true). The dropdown only appears when `editable`, the item's
+   * `edit` permission is granted, and `statusOptions` is non-empty; otherwise
+   * the badge stays read-only. Set false where status is changed another way —
+   * e.g. inside a kanban column, where moving the card between columns sets the
+   * status.
+   */
+  statusEditable?: boolean;
+  /** Display metadata for `TodoItem.priority`; enables the priority badge in the meta row. */
+  priorityOptions?: TodoPriorityOption[];
+  /** Display metadata for `TodoItem.labels`; chips fall back to the raw key when unmatched. */
+  labelOptions?: TodoLabelOption[];
 
   // Permissions
   permissions?: TodoPermissions;
@@ -374,6 +417,10 @@ export type TodoCardContextValue = {
 
   // Display config
   statusOptions?: TodoStatusOption[];
+  /** Whether the status badge becomes a status-change dropdown (B3). */
+  statusEditable: boolean;
+  priorityOptions?: TodoPriorityOption[];
+  labelOptions?: TodoLabelOption[];
   editable: boolean;
   showEditButton: boolean;
 

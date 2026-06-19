@@ -14,7 +14,7 @@ export const meta: ComponentMeta = {
     "Two built-in renderers: kanban-card (title + meta + tags + assignees) and kanban-note (title + body)",
     "Pluggable rich-card adapter pattern — wrap any sibling component (e.g. rich-card) as a renderer with full feature passthrough",
     "Per-renderer dragHandle mode — `shell` (whole-card grab) or `header` (top grip strip; body stays interactive for renderers with internal pointer interactions)",
-    "Drag-and-drop reorder within column, across columns, and across swimlane cells",
+    "Drag-and-drop reorder within column, across columns, and across swimlane cells — drop anywhere in a column, not only onto a card",
     "Column reorder by dragging the column header",
     "Per-column movement flags (allowReorder, allowIncoming, allowOutgoing, acceptsRendererIds)",
     "Per-item lock pins an item against any movement",
@@ -26,14 +26,14 @@ export const meta: ComponentMeta = {
     "Controlled and uncontrolled state",
     "Keyboard accessible drag (Space lift, arrows, Space drop, Escape cancel)",
     "Read-only mode disables all DnD and CRUD, leaves clicks active",
-    "Native vertical column scroll when content overflows",
+    "Native vertical column scroll when content overflows; vertical mouse-wheel scrolls the board horizontally",
   ],
   tags: ["kanban", "board", "drag-and-drop", "dnd-kit", "swimlanes", "columns", "tasks", "rich-card"],
 
-  version: "0.4.0",
+  version: "0.4.1",
   status: "alpha",
   createdAt: "2026-05-05",
-  updatedAt: "2026-06-18",
+  updatedAt: "2026-06-19",
 
   author: { name: "ilinxa" },
 

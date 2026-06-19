@@ -130,10 +130,10 @@ export function ActionMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="size-7"
+          className="size-6"
           aria-label="Card actions"
         >
-          <MoreHorizontal className="size-4" />
+          <MoreHorizontal className="size-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">

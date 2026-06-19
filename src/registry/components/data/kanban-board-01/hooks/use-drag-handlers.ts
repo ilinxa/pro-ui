@@ -96,7 +96,15 @@ export function useDragHandlers({
         if (!targetCol) return;
         toIndex = targetCol.items.findIndex((it) => it.id === over.id);
         if (toIndex < 0) toIndex = targetCol.items.length;
-      } else if (overData.kind === "cell" || overData.kind === "collapsed-column") {
+      } else if (
+        overData.kind === "cell" ||
+        overData.kind === "collapsed-column" ||
+        // An item released over a column's empty space (or onto the column
+        // wrapper) lands at the end of that column. `kind: "column"` reaches
+        // here only for an item drag — column reorder is handled above and
+        // requires `activeData.kind === "column"`.
+        overData.kind === "column"
+      ) {
         toColumnId = overData.columnId;
         toSwimlaneId = "swimlaneId" in overData ? overData.swimlaneId : undefined;
         const targetCol = data.columns.find((c) => c.id === toColumnId);

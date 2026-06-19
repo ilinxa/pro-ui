@@ -1,10 +1,11 @@
 # `todo-rich-card` — Pro-component Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** v0.2.1 (alpha)
+> **Stage:** 3 of 3 · **Status:** v0.3.0 (alpha)
 >
+> v0.3.0 — consumer-integration-note additions: a **two-line header** (the title wraps up to 3 lines and never truncates to nothing in a narrow column); an **editable status badge** that becomes a status-change dropdown (`statusEditable`, default `true`); **status tones** (`TodoStatusOption.tone` `done`/`blocked` → gray border + dimmed overlay + auto-collapse); and a **priority + labels** model extension (`TodoItem.priority` / `labels` with `priorityOptions` / `labelOptions`) rendered as a header meta row. The kanban adapter now uses `dragHandle:"shell"` (grab anywhere) + disables the card's own drag.
 > v0.2.1 — smoke patch: kept the status `Select` `onValueChange` nullable (`string | null`) so the handler stays assignable across both the Radix (producer) and Base UI (consumer) backends — a base-nova consumer-tsc smoke caught the v0.2.0 narrowing.
 > **Slug:** `todo-rich-card` · **Category:** `data`
-> **Version:** 0.1.0 (alpha) · **Shipped:** 2026-05-20
+> **Version:** 0.3.0 (alpha) · **Shipped:** 2026-05-20 (v0.1.0)
 > Consumer-facing usage notes. The description doc explains "why," the plan doc explains "how"; this doc explains "use it."
 
 ---
@@ -174,6 +175,8 @@ Every card carries a chevron icon at the left of its header. Clicking it toggles
 
 **UI-only state.** The collapsed-or-not flag lives in the component's internal reducer (`collapsedIds: ReadonlySet<string>`); it is **not** stored in the `TodoItem` schema. JSON I/O round-trips ignore it. Remounting via `key` resets all collapse state to expanded.
 
+**(v0.3) Terminal-tone auto-collapse.** A card whose status has `tone: "done"` or `"blocked"` is force-collapsed (and overlaid) regardless of the manual chevron state — `collapsed = isTerminal || isCollapsed(id)`. It's a derived render value, not a dispatched change, so it doesn't perturb the manual collapse set.
+
 ```tsx
 // Programmatic control is not exposed on v0.1's handle — the affordance is
 // user-driven via the header chevron. v0.2 may add `setCollapsed(id, bool)` /
@@ -293,7 +296,9 @@ import { todoRichCardKanbanRenderer } from "@/components/todo-rich-card";
 />
 ```
 
-The renderer uses `dragHandle: "header"` — the kanban-board attaches its drag listeners to a thin grip strip above the card body so internal pointer interactions (inline editors, color picker, action menu) work cleanly.
+**(v0.3) The renderer now uses `dragHandle: "shell"`** — you grab the **whole card** to move it across columns (no grip strip), and you can drop it anywhere in a column (kanban-board-01 v0.4.1). To make this work, the adapter passes `canDragItem={() => false}` to the embedded card, disabling its own HTML5 `draggable` so the card's drag and the board's pointer drag don't fight. The board's `activationConstraint: { distance: 5 }` keeps a click on an inner control (status badge, edit, switch) from becoming a drag, and the inline editor stops pointer propagation so selecting text in a field doesn't start a drag.
+
+**Trade-off:** with the card's own drag disabled inside a kanban column, nested subtasks can't be reordered by native DnD *there* — the kanban owns movement. The standalone (list) card keeps its internal DnD. If columns map to status, also pass `statusEditable={false}` so the in-card dropdown doesn't disagree with the column.
 
 ---
 
@@ -334,6 +339,70 @@ By default, `status` renders as a `<Badge variant="secondary">` with the raw str
 ```
 
 Status values not matching any option render as-is (raw string in `secondary` variant). No constraint enforcement — the schema's `status: string` is intentionally open.
+
+### Editable status badge (v0.3)
+
+When the card is `editable`, the item's `edit` permission is granted, and `statusOptions` is non-empty, the badge becomes a **status-change dropdown** — clicking it lets the user switch status inline. It dispatches the exact same `edit-field` action + fires `onFieldEdited` + `onStatusChanged`, identical to changing status in the inline editor.
+
+It's on by default (`statusEditable: true`). Turn it off where status is set another way — e.g. inside a kanban column whose columns map to status:
+
+```tsx
+<TodoRichCard editable statusOptions={...} statusEditable={false} />
+```
+
+### Status tones (v0.3)
+
+Give a status a `tone` to make terminal states read at a glance — independent of the time-driven *urgency* border:
+
+```tsx
+statusOptions={[
+  { value: "todo",        label: "To do",       variant: "outline" },
+  { value: "in-progress", label: "In progress", variant: "default" },
+  { value: "blocked",     label: "Blocked",     variant: "destructive", tone: "blocked", icon: "🚫" },
+  { value: "done",        label: "Done",        variant: "secondary",   tone: "done",    icon: "✅" },
+]}
+```
+
+| `tone` | Treatment |
+|---|---|
+| `"active"` (default) | Normal card; the time-driven border color applies. |
+| `"done"` | Gray border + a dimmed **green** overlay (title + icon + status badge); the card **auto-collapses**. |
+| `"blocked"` | Gray border + a dimmed **red** overlay; the card auto-collapses. |
+
+A terminal card is compact under its overlay. When `editable`, the overlay's own status badge is a dropdown — changing the status to a non-terminal one clears the overlay. Omit `tone`/`icon` and the card behaves exactly as before (time border, no overlay, no auto-collapse).
+
+---
+
+## Priority + labels (v0.3)
+
+Two optional task axes beyond `status`. Add them to the item and supply display metadata; they render as a header meta row (and render nothing when both are absent, so existing cards are unchanged):
+
+```tsx
+<TodoRichCard
+  defaultValue={{
+    id: "task-001",
+    name: "Migrate auth",
+    status: "in-progress",
+    active: true,
+    setAt: "2026-05-19T09:00:00Z",
+    priority: "high",
+    labels: ["frontend", "security"],
+  }}
+  priorityOptions={[
+    { value: "urgent", label: "Urgent", color: "oklch(0.62 0.21 25)" },
+    { value: "high",   label: "High",   color: "oklch(0.70 0.17 60)" },
+    { value: "normal", label: "Normal" },  // no color → themeable `outline` variant
+  ]}
+  labelOptions={[
+    { value: "frontend", label: "Frontend", color: "oklch(0.65 0.16 250)" },
+    { value: "security", label: "Security", color: "oklch(0.62 0.21 25)" },
+  ]}
+/>
+```
+
+- `priority` is single-valued; `labels` is many-to-many. Keys not matched in the option lists fall back to rendering the raw key.
+- `color` (any CSS color string) is applied to **border + text only**, never a filled background — so it works with any palette and a missing `color` falls back to the themeable `outline` Badge variant.
+- **Closed-schema note:** `priority` / `labels` are part of the canonical `TodoItem` schema, so they round-trip through JSON I/O and controlled-mode reconcile. (Internally this required teaching `lib/normalize.ts`'s allow-list — if you fork the schema to add a field, add it there too or it's silently dropped.)
 
 ---
 

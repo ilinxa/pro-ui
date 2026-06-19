@@ -116,6 +116,27 @@ function validateLinks(
   return out;
 }
 
+function validateLabels(
+  raw: unknown,
+  path: string,
+  errors: NormalizationError[],
+): TodoItem["labels"] {
+  if (raw == null) return undefined;
+  if (!Array.isArray(raw)) {
+    errors.push({ path, message: "labels must be an array of strings" });
+    return undefined;
+  }
+  const out: string[] = [];
+  raw.forEach((entry, i) => {
+    if (typeof entry !== "string" || entry.length === 0) {
+      errors.push({ path: `${path}[${i}]`, message: "label must be a non-empty string" });
+      return;
+    }
+    out.push(entry);
+  });
+  return out.length > 0 ? out : undefined;
+}
+
 /** Generate a fresh id for items that arrived without one. */
 function freshId(): string {
   if (typeof globalThis.crypto !== "undefined" && globalThis.crypto.randomUUID) {
@@ -210,6 +231,11 @@ function normalizeNode(
     }
   }
 
+  // AUTHORITATIVE ALLOW-LIST: this literal is the canonical-schema guard — any
+  // key NOT constructed here is silently dropped on the way in (and, in
+  // controlled mode, on every `sync-tree` reconcile). When adding a field to
+  // the TodoItem type you MUST add it here too, and to denormalize()'s
+  // optionalKeys below, or the field never reaches the card.
   const item: TodoItem = {
     id,
     name,
@@ -228,6 +254,8 @@ function normalizeNode(
     borderColor:
       typeof raw.borderColor === "string" ? raw.borderColor : undefined,
     locked: typeof raw.locked === "boolean" ? raw.locked : undefined,
+    priority: typeof raw.priority === "string" ? raw.priority : undefined,
+    labels: validateLabels(raw.labels, `${path}.labels`, ctx.errors),
   };
 
   // Children — recurse.
@@ -312,6 +340,8 @@ export function denormalize(node: TodoNode): TodoItem {
     "links",
     "borderColor",
     "locked",
+    "priority",
+    "labels",
     "children",
   ];
   optionalKeys.forEach((k) => {

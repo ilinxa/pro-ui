@@ -103,7 +103,7 @@ export function Column({
       style={style}
       data-dragging={isDragging || undefined}
       className={cn(
-        "flex h-full min-h-0 max-h-full w-72 shrink-0 flex-col rounded-md border-l-4 border-y border-r border-border bg-card/40",
+        "flex h-full min-h-0 max-h-full w-80 shrink-0 flex-col rounded-md border-l-4 border-y border-r border-border bg-card/40",
         isDragging && "opacity-60",
       )}
     >

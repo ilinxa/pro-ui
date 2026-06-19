@@ -1,8 +1,10 @@
 # `kanban-board-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Status:** v0.4.0 (alpha)
+> **Stage:** 3 of 3 · **Status:** v0.4.1 (alpha)
 > **Slug:** `kanban-board-01` · **Category:** `data`
 > **In-app docs:** [`usage.tsx`](../../../src/registry/components/data/kanban-board-01/usage.tsx) renders at `/components/kanban-board-01`. This doc covers the bits that don't belong in the in-app surface.
+>
+> **v0.4.1 (consumer-integration-note A-series, patch):** **drop anywhere in a column** — release a card in a column's empty space (or an empty column), not only onto another card (pointer-based collision detection); **vertical mouse-wheel scrolls the board horizontally** (yields to a column that can still scroll vertically); the **drag ghost is portaled to `<body>`** so a transformed ancestor (entrance animations, sticky shells, CSS `contain`) can't offset it from the pointer; wider columns (`w-80`); header-mode grip strip no longer pokes past the card's rounded corners. No API change. Pair with a height-constrained board wrapper (e.g. `h-[calc(100dvh-15rem)]`) so columns overflow and wheel-scroll engages.
 
 ## Install
 

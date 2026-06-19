@@ -21,6 +21,7 @@ export function SwimlaneCell({
   rendererMap,
   readOnly,
   rejectDrop,
+  grow,
   onItemClick,
   onItemDelete,
   onItemEdit,
@@ -32,6 +33,8 @@ export function SwimlaneCell({
   rendererMap: Map<string, AnyKanbanCardRenderer>;
   readOnly: boolean;
   rejectDrop: boolean;
+  /** Fill the available column height so the whole empty area is a drop target (single-lane mode). */
+  grow?: boolean;
   onItemClick?: (item: KanbanItem) => void;
   onItemDelete?: (itemId: string) => void;
   onItemEdit?: (item: KanbanItem) => void;
@@ -50,6 +53,7 @@ export function SwimlaneCell({
         data-cell-id={cellId}
         className={cn(
           "flex min-h-12 flex-col gap-2 rounded-sm p-1.5 transition-colors",
+          grow && "flex-1",
           isOver && !rejectDrop && "bg-accent/40 ring-1 ring-ring/30",
           isOver && rejectDrop && "bg-destructive/10 ring-1 ring-destructive/40",
         )}

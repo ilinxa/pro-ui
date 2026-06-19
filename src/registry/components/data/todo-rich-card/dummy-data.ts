@@ -6,7 +6,12 @@
  *   4. Nested family (3 levels) — exercises recursion + mixed-color
  */
 
-import type { TodoItem, TodoStatusOption } from "./types";
+import type {
+  TodoItem,
+  TodoLabelOption,
+  TodoPriorityOption,
+  TodoStatusOption,
+} from "./types";
 
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
@@ -22,6 +27,32 @@ export const DEMO_STATUS_OPTIONS: TodoStatusOption[] = [
   { value: "in-progress", label: "In progress", variant: "default" },
   { value: "blocked", label: "Blocked", variant: "destructive" },
   { value: "done", label: "Done", variant: "secondary" },
+];
+
+/**
+ * v0.3 — same statuses with `tone` so done/blocked become terminal (gray
+ * border + dimmed overlay + auto-collapse). Kept separate from
+ * DEMO_STATUS_OPTIONS so the other demos keep their time-driven borders.
+ */
+export const DEMO_STATUS_OPTIONS_TONED: TodoStatusOption[] = [
+  { value: "todo", label: "To do", variant: "outline" },
+  { value: "in-progress", label: "In progress", variant: "default" },
+  { value: "blocked", label: "Blocked", variant: "destructive", tone: "blocked", icon: "🚫" },
+  { value: "done", label: "Done", variant: "secondary", tone: "done", icon: "✅" },
+];
+
+/** v0.3 — priority bucket display metadata; colors paint border + text only. */
+export const DEMO_PRIORITY_OPTIONS: TodoPriorityOption[] = [
+  { value: "urgent", label: "Urgent", color: "oklch(0.62 0.21 25)" },
+  { value: "high", label: "High", color: "oklch(0.70 0.17 60)" },
+  { value: "normal", label: "Normal" },
+];
+
+/** v0.3 — label/tag display metadata. */
+export const DEMO_LABEL_OPTIONS: TodoLabelOption[] = [
+  { value: "frontend", label: "Frontend", color: "oklch(0.65 0.16 250)" },
+  { value: "security", label: "Security", color: "oklch(0.62 0.21 25)" },
+  { value: "q3", label: "Q3" },
 ];
 
 export const FRESH_TASK: TodoItem = {
@@ -156,6 +187,44 @@ export const NESTED_FAMILY: TodoItem = {
       expireAt: new Date(NOW.getTime() + 8 * DAY).toISOString(),
     },
   ],
+};
+
+/* ───────── v0.3 fixtures — priority/labels meta row + status tones ───────── */
+
+export const PRIORITIZED_TASK: TodoItem = {
+  id: "task-prioritized",
+  name: "Migrate auth to the new session service",
+  description: "Priority + labels surface in the header meta row.",
+  status: "in-progress",
+  active: true,
+  setAt: new Date(NOW.getTime() - 6 * HOUR).toISOString(),
+  expireAt: new Date(NOW.getTime() + 2 * DAY).toISOString(),
+  priority: "high",
+  labels: ["frontend", "security", "q3"],
+  targetPerson: { id: "hessam", name: "Hessam", avatar: "https://i.pravatar.cc/64?u=hessam" },
+};
+
+export const DONE_TASK: TodoItem = {
+  id: "task-done",
+  name: "Wire up the analytics dashboard",
+  description: "Terminal `done` tone — gray border, dimmed overlay, auto-collapsed.",
+  status: "done",
+  active: true,
+  setAt: new Date(NOW.getTime() - 3 * DAY).toISOString(),
+  expireAt: new Date(NOW.getTime() - 1 * DAY).toISOString(),
+  priority: "normal",
+};
+
+export const BLOCKED_TASK: TodoItem = {
+  id: "task-blocked",
+  name: "Deploy to the EU region",
+  description: "Terminal `blocked` tone — reddish overlay; change status to clear it.",
+  status: "blocked",
+  active: true,
+  setAt: new Date(NOW.getTime() - 1 * DAY).toISOString(),
+  expireAt: new Date(NOW.getTime() + 1 * DAY).toISOString(),
+  priority: "urgent",
+  labels: ["security"],
 };
 
 export const DEMO_ITEMS = [FRESH_TASK, URGENT_TASK, OVERDUE_TASK, NESTED_FAMILY];

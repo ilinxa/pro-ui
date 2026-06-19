@@ -117,9 +117,13 @@ export function ItemShell({
       {/* Header drag handle — appears above the item body in "header" mode.
           Click/tap on the grip activates dnd-kit drag; rest of the body is unaffected. */}
       {handleMode === "header" && !dragDisabled ? (
+        // The strip extends a little below the grip (`pb-2`) and the card body
+        // below is pulled up over that extension (`-mt-2 z-10`, see the
+        // ItemRenderer wrapper) so the card's rounded top + opaque surface cover
+        // the strip's square bottom corners — no "notch" beside the rounded card.
         <div
           {...headerListeners}
-          className="flex h-7 cursor-grab items-center justify-center gap-1 rounded-t-md border border-b-0 border-border bg-muted/70 text-[10px] font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:bg-muted active:cursor-grabbing"
+          className="relative z-0 flex h-9 cursor-grab items-center justify-center gap-1 rounded-t-xl border border-b-0 border-border bg-muted/70 pb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:bg-muted active:cursor-grabbing"
           aria-label="Drag to move"
           title="Drag to move"
         >
@@ -176,7 +180,11 @@ export function ItemShell({
         ) : null}
       </div>
 
-      <ItemRenderer item={item} rendererMap={rendererMap} ctx={ctx} />
+      {/* In header mode, overlap the strip's bottom extension so the card body
+          (with its own rounded top + surface) masks the strip's square corners. */}
+      <div className={cn("relative", handleMode === "header" && !dragDisabled && "z-10 -mt-2")}>
+        <ItemRenderer item={item} rendererMap={rendererMap} ctx={ctx} />
+      </div>
 
       {handleMode === "shell" && !readOnly && !item.locked ? (
         <span

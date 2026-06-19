@@ -2053,6 +2053,7 @@
         { "path": "src/registry/components/data/todo-rich-card/parts/card.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card.tsx" },
         { "path": "src/registry/components/data/todo-rich-card/parts/card-header.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card-header.tsx" },
         { "path": "src/registry/components/data/todo-rich-card/parts/card-body.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card-body.tsx" },
+        { "path": "src/registry/components/data/todo-rich-card/parts/card-meta.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/card-meta.tsx" },
         { "path": "src/registry/components/data/todo-rich-card/parts/status-badge.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/status-badge.tsx" },
         { "path": "src/registry/components/data/todo-rich-card/parts/person-chip.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/person-chip.tsx" },
         { "path": "src/registry/components/data/todo-rich-card/parts/link-chip.tsx", "type": "registry:component", "target": "components/todo-rich-card/parts/link-chip.tsx" },

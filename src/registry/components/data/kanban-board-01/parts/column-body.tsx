@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import type {
   AnyKanbanCardRenderer,
   KanbanColumn,
@@ -35,11 +36,16 @@ export function ColumnBody({
     column.acceptsRendererIds !== undefined &&
     !column.acceptsRendererIds.includes(activeRendererId);
 
-  const lanes: (KanbanSwimlane | undefined)[] = swimlanes && swimlanes.length > 0 ? swimlanes : [undefined];
+  const hasSwimlanes = !!(swimlanes && swimlanes.length > 0);
+  const lanes: (KanbanSwimlane | undefined)[] =
+    swimlanes && swimlanes.length > 0 ? swimlanes : [undefined];
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5">
-      <div className="flex flex-col gap-2 py-1.5">
+      {/* In single-lane mode the lone cell grows to fill the column so the whole
+          empty area below the cards is a (highlighted) drop target. In swimlane
+          mode each lane cell stays content-sized so the lanes stack + scroll. */}
+      <div className={cn("flex flex-col gap-2 py-1.5", !hasSwimlanes && "min-h-full")}>
         {lanes.map((lane) => {
           const items = column.items.filter((it) => {
             if (!swimlanes || swimlanes.length === 0) return true;
@@ -49,7 +55,10 @@ export function ColumnBody({
             return it.swimlaneId === lane?.id;
           });
           return (
-            <div key={lane?.id ?? "_"} className="flex flex-col gap-1">
+            <div
+              key={lane?.id ?? "_"}
+              className={cn("flex flex-col gap-1", !hasSwimlanes && "flex-1")}
+            >
               {lane ? (
                 <span className="px-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
                   {lane.title}
@@ -62,6 +71,7 @@ export function ColumnBody({
                 rendererMap={rendererMap}
                 readOnly={readOnly}
                 rejectDrop={rejectDrop}
+                grow={!hasSwimlanes}
                 onItemClick={onItemClick}
                 onItemDelete={onItemDelete}
                 onItemEdit={onItemEdit}

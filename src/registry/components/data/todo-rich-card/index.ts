@@ -17,6 +17,8 @@ export type {
   TodoColorRamp,
   TodoColorRampPreset,
   TodoStatusOption,
+  TodoPriorityOption,
+  TodoLabelOption,
   TodoEditableField,
 } from "./types";
 

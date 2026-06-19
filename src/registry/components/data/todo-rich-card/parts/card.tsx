@@ -21,6 +21,7 @@ import { CardBody } from "./card-body";
 import { CardHeader } from "./card-header";
 import { EditInline } from "./edit-inline";
 import { EditPopup } from "./edit-popup";
+import { StatusBadge } from "./status-badge";
 
 const PALETTE_SWATCHES = [
   "oklch(0.78 0.18 142)", // green
@@ -50,9 +51,25 @@ export function Card({ node }: { node: TodoNode }) {
   const elapsed = computeElapsed(node.item, ctx.now());
   const computedBorder = resolveBorderColor(node.item, elapsed, ctx.ramp);
 
-  const style: CSSProperties = computedBorder
-    ? { borderColor: computedBorder, transition: "border-color 0.4s ease" }
-    : {};
+  // Status tone (v0.3) — decouples the *status* signal from the time-driven
+  // *urgency* border. Terminal statuses (done/blocked) drop the time color for a
+  // neutral gray border, auto-collapse the card, and show a dimmed overlay.
+  const matchedStatus = (ctx.statusOptions ?? []).find(
+    (o) => o.value === node.item.status,
+  );
+  const tone = matchedStatus?.tone ?? "active";
+  const isTerminal = tone === "done" || tone === "blocked";
+  const statusIcon = matchedStatus?.icon ?? (tone === "done" ? "✅" : "🚫");
+
+  // Time color drives the border ONLY for active statuses; terminal → gray
+  // (the default `border-border` class on the article wins when style is empty).
+  const style: CSSProperties =
+    !isTerminal && computedBorder
+      ? { borderColor: computedBorder, transition: "border-color 0.4s ease" }
+      : {};
+
+  // Terminal cards stay compact under the overlay regardless of manual collapse.
+  const collapsed = isTerminal || ctx.isCollapsed(node.item.id);
 
   /* ───────── focus management ───────── */
 
@@ -150,8 +167,9 @@ export function Card({ node }: { node: TodoNode }) {
       onFocus={() => ctx.dispatch({ type: "set-focus", itemId: node.item.id })}
       style={style}
       className={cn(
-        "rounded-2xl border-2 border-border bg-card p-4 text-card-foreground shadow-sm",
+        "relative rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        isTerminal && "min-h-28",
         node.item.locked && "opacity-70",
         !node.item.active && "opacity-50 saturate-50",
         isDragging && "opacity-40",
@@ -160,7 +178,7 @@ export function Card({ node }: { node: TodoNode }) {
       suppressHydrationWarning
     >
       <CardHeader node={node} onOverrideColor={() => setColorPickerOpen(true)} />
-      {!ctx.isCollapsed(node.item.id) ? (
+      {!collapsed ? (
         <>
           <CardBody item={node.item} />
           {isInlineActive ? (
@@ -169,6 +187,27 @@ export function Card({ node }: { node: TodoNode }) {
             </div>
           ) : null}
         </>
+      ) : null}
+
+      {/* Terminal-status overlay (done/blocked). The same StatusBadge dropdown
+          lets an editable consumer change the status, which clears the overlay. */}
+      {isTerminal ? (
+        <div
+          className={cn(
+            "absolute inset-0 z-20 flex flex-col items-center justify-center gap-1.5 rounded-2xl px-3 text-center backdrop-blur-sm",
+            tone === "done"
+              ? "bg-emerald-500/15 dark:bg-emerald-950/45"
+              : "bg-rose-500/15 dark:bg-rose-950/70",
+          )}
+        >
+          <p className="line-clamp-2 text-sm font-medium text-foreground" aria-hidden>
+            {node.item.name}
+          </p>
+          <span className="text-2xl leading-none" aria-hidden>
+            {statusIcon}
+          </span>
+          <StatusBadge node={node} />
+        </div>
       ) : null}
 
       <EditPopup node={node} />
@@ -235,7 +274,7 @@ export function Card({ node }: { node: TodoNode }) {
         </DialogContent>
       </Dialog>
 
-      {node.childNodes.length > 0 && !ctx.isCollapsed(node.item.id) ? (
+      {node.childNodes.length > 0 && !collapsed ? (
         <div
           role="group"
           aria-label={`Children of ${node.item.name}`}
@@ -251,7 +290,7 @@ export function Card({ node }: { node: TodoNode }) {
             <Card key={child.item.id} node={child} />
           ))}
         </div>
-      ) : !ctx.isCollapsed(node.item.id) ? (
+      ) : !collapsed ? (
         <div
           role="group"
           aria-label={`Drop zone for ${node.item.name}`}

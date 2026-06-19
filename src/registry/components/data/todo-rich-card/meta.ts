@@ -8,7 +8,7 @@ export const meta: ComponentMeta = {
   description:
     "Fixed-schema task card with time-driven OKLCH border-color engine, dual edit modes (popup default + inline-toggle), JSON I/O, clipboard, DnD payload, granular events, and permission predicates. Standalone-usable and registerable in kanban-board-01 (named export) or flow-canvas-01 (via sibling adapter).",
   context:
-    "Todo Rich Card is a time-aware task renderer for workflow apps, content schedulers, and agent run-queues. It carries the standard task fields (name, description, status, active, target/creator person, multi-image, multi-link, dates) and paints urgency onto the card border via an OKLCH ramp (green → red, urgency direction; past expireAt pins full red). The engine accepts setAt + startAt + expireAt OR duration with deterministic precedence (expireAt wins). Two edit modes ship in v0.1: a popup dialog form (default) and an inline-toggle mode (editable=true) where fields swap to inputs in place. JSON I/O mirrors rich-card patterns — controlled (value) or uncontrolled (defaultValue), 12-method imperative handle (getValue / getTree / isDirty / markClean / focusItem / copy / paste / setBorderColor / toggleActive / setLocked / openEdit / closeEdit), clipboard via application/x-ilinxa-todo+json MIME + Cmd/Ctrl+C/V, HTML5 DnD with the same payload. Granular events (onFieldEdited / onStatusChanged / onItemAdded / onItemRemoved / onItemMoved / onColorOverridden / onActiveToggled / onLockedToggled / onCopy / onPaste / onChange) cover every mutation. Permissions mirror rich-card: declarative permissions matrix (default / byLevel / byItem with inherit cascade) + six per-action predicates + onPermissionDenied for analytics. Companion: ships todoRichCardKanbanRenderer for kanban-board-01 with dragHandle:'header' (the documented pattern for renderers with internal pointer interactions). Per-card collapsibility (chevron in header) hides body + nested children to compact deep trees. Color override surfaces as a centered Dialog with palette swatches + custom CSS color input + an Auto button that clears the override and hands control back to the time engine.",
+    "Todo Rich Card is a time-aware task renderer for workflow apps, content schedulers, and agent run-queues. It carries the standard task fields (name, description, status, active, target/creator person, multi-image, multi-link, dates) and paints urgency onto the card border via an OKLCH ramp (green → red, urgency direction; past expireAt pins full red). The engine accepts setAt + startAt + expireAt OR duration with deterministic precedence (expireAt wins). Two edit modes ship in v0.1: a popup dialog form (default) and an inline-toggle mode (editable=true) where fields swap to inputs in place. JSON I/O mirrors rich-card patterns — controlled (value) or uncontrolled (defaultValue), 12-method imperative handle (getValue / getTree / isDirty / markClean / focusItem / copy / paste / setBorderColor / toggleActive / setLocked / openEdit / closeEdit), clipboard via application/x-ilinxa-todo+json MIME + Cmd/Ctrl+C/V, HTML5 DnD with the same payload. Granular events (onFieldEdited / onStatusChanged / onItemAdded / onItemRemoved / onItemMoved / onColorOverridden / onActiveToggled / onLockedToggled / onCopy / onPaste / onChange) cover every mutation. Permissions mirror rich-card: declarative permissions matrix (default / byLevel / byItem with inherit cascade) + six per-action predicates + onPermissionDenied for analytics. Companion: ships todoRichCardKanbanRenderer for kanban-board-01 with dragHandle:'shell' (v0.3 — the whole card is the drag activator; the adapter passes canDragItem={()=>false} to disable the card's own HTML5 drag so the two DnD systems don't fight). Per-card collapsibility (chevron in header) hides body + nested children to compact deep trees. v0.3 adds: a two-line header so the title never truncates to nothing; an editable status badge that becomes a status-change dropdown (statusEditable, default true); status tones (TodoStatusOption.tone done/blocked → gray border + dimmed overlay + auto-collapse) that decouple the status signal from the time-driven urgency border; and a priority + labels model extension (TodoItem.priority / labels with priorityOptions / labelOptions) rendered as a header meta row. Color override surfaces as a centered Dialog with palette swatches + custom CSS color input + an Auto button that clears the override and hands control back to the time engine.",
   features: [
     "Fixed TodoItem schema (closed; consumer-defined status enum)",
     "Time-driven OKLCH border-color engine (green → red urgency ramp, four named presets + custom-fn escape hatch)",
@@ -25,10 +25,14 @@ export const meta: ComponentMeta = {
     "Permission matrix: declarative permissions {default, byLevel, byItem, inherit} + 6 per-action predicates + onPermissionDenied with typed reason",
     "Infinite recursive nesting; children carry the same action affordances as parents",
     "Per-card collapsibility — chevron in the header toggles body + children visibility (UI-only state; not part of TodoItem schema)",
+    "Two-line header (v0.3) — title wraps up to 3 lines and never truncates to nothing, even in a narrow kanban column",
+    "Editable status badge (v0.3) — becomes a status-change dropdown when editable (statusEditable, default true) reusing the inline editor's reducer action + events",
+    "Status tones (v0.3) — TodoStatusOption.tone done/blocked gets a gray border + dimmed overlay + auto-collapse, decoupling status from the time-driven urgency border",
+    "Priority + labels (v0.3) — optional TodoItem.priority / labels with priorityOptions / labelOptions render a header meta row (border/text color only; renders nothing when unset)",
     "Color override via centered Dialog (palette swatches + custom CSS color input + Auto button to hand control back to the engine)",
     "ARIA: role='region' root + role='article' per card + role='group' for children; full a11y on edit affordances",
     "SSR hydration mitigated via `suppressHydrationWarning` on the article root (sub-frame visual flash; data consistent server→client); pass frozen `now` for deterministic SSR",
-    "Companion: todoRichCardKanbanRenderer named export for kanban-board-01 with dragHandle:'header'",
+    "Companion: todoRichCardKanbanRenderer named export for kanban-board-01 with dragHandle:'shell' (v0.3) + canDragItem disabled so the card and board DnD don't fight",
   ],
   tags: [
     "todo",
@@ -43,10 +47,10 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.2.1",
+  version: "0.3.0",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-06-18",
+  updatedAt: "2026-06-19",
 
   author: { name: "ilinxa" },
 

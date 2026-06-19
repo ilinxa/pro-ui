@@ -45,7 +45,12 @@ export function EditInline({ node }: { node: TodoNode }) {
   }
 
   return (
-    <div className="space-y-2 rounded-md border border-dashed border-border bg-muted/30 p-3">
+    // Stop pointer propagation so dragging to select text inside a field doesn't
+    // start a kanban/HTML5 card drag when this card is embedded with shell-drag.
+    <div
+      className="space-y-2 rounded-md border border-dashed border-border bg-muted/30 p-3"
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       <NameField item={node.item} commit={commit} />
       <DescriptionField item={node.item} commit={commit} />
       <StatusField item={node.item} commit={commit} />

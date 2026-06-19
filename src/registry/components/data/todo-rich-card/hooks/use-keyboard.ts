@@ -17,6 +17,7 @@ import type {
   Action,
   EditState,
   ResolvedPermissions,
+  TodoItem,
   TodoNode,
   TodoPermissionReason,
   TodoPermissionRule,
@@ -29,9 +30,9 @@ type Args = {
   editable: boolean;
   dispatch: (action: Action) => void;
   resolvePermissions: (node: TodoNode) => ResolvedPermissions;
-  fireCopy: (payload: { itemId: string; payload: import("../types").TodoItem }) => void;
-  firePaste: (payload: { parentId: string; payload: import("../types").TodoItem }) => void;
-  fireItemAdded: (payload: { parentId: string; item: import("../types").TodoItem }) => void;
+  fireCopy: (payload: { itemId: string; payload: TodoItem }) => void;
+  firePaste: (payload: { parentId: string; payload: TodoItem }) => void;
+  fireItemAdded: (payload: { parentId: string; item: TodoItem }) => void;
   requestEdit: (itemId: string, mode: "popup" | "inline") => void;
   reportPermissionDenied: (
     action: keyof TodoPermissionRule,
