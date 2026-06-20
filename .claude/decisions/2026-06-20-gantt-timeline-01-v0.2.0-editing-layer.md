@@ -3,10 +3,10 @@ date: 2026-06-20
 session: gantt-timeline-01 v0.2.0 editing layer ("Phase 2")
 phase: procomp v0.2.0 (minor, public-API-touching)
 type: feature-minor
-commits: []   # built on 144afd7; awaiting user commit/push
+commits: [db2e2d5]   # pushed to master 2026-06-20 (ff over 64fddd8)
 components: [gantt-timeline-01]
-findings: [F-01-postdeploy-smoke, F-02-reorder-offbyone-FIXED, F-03-virt-suspend-drag, F-04-drawcreate-gate]
-status: built-reviewed-uncommitted
+findings: [F-01-postdeploy-smoke-CLEAN, F-02-reorder-offbyone-FIXED, F-03-virt-suspend-drag, F-04-drawcreate-gate]
+status: shipped-pushed-smoke-clean
 ---
 
 # gantt-timeline-01 v0.2.0 — the editable Gantt ("Phase 2")
@@ -41,6 +41,10 @@ tsc 0 · scoped ESLint **0 err** (1 known virtualizer warn) · validate:meta-dep
 4. **Custom overlay > primitive for an embedded editor** — the detail editor uses a plain backdrop+panel, not `popover`, reducing the new-primitive (F-cross-13) surface. Same move v1 made for the tooltip. Reach for the primitive only when you need its focus-trap/positioning behavior.
 5. **@dnd-kit three-zone droppables** (`before:`/`into:`/`after:` per row) give tree reparent without manual rect math — `over.id` names the zone. Mirror todo-tree's edge model. Always render the DndContext (draggables self-disable) so per-row `useDraggable` always has a provider.
 
+## Shipped + F-01 smoke CLEAN (2026-06-20)
+
+Committed `db2e2d5` → ff-merged to `master` → pushed (`64fddd8..db2e2d5`). Vercel redeployed; v0.2.0 artifact live (markers: `@dnd-kit/core`, `context-menu`, `use-gantt-edit`, `edit-mutations`). **F-01 ran CLEAN** in the base-nova/**Base UI** consumer: `shadcn add @ilinxa/gantt-timeline-01 --overwrite` installed all 5 new files + the 2 new primitives; consumer `tsc --noEmit` had **0 gantt / todo-rich-card errors** (rest is pre-existing unrelated noise). **The `context-menu` `asChild` — the F-cross-13 watch item — compiled clean cross-backend: no regression on first ship.** (Runtime asChild behavior on Base UI isn't covered by tsc; the historical F-cross-13 failures were type-level, which this clears.)
+
 ## Open / RESUME
 
-**Uncommitted** (built on `144afd7`). RESUME = commit + push → run **F-01** post-deploy F-cross-11 path-b cross-backend smoke — **two new shadcn primitives (`context-menu`, `input`) re-arm F-cross-13**, so expect the standard 4-ship pattern (smoke → patch v0.2.1 if `asChild`/callback divergence bites → re-smoke). Then F-03 (virt-suspend-on-drag) + F-04 (draw-create gate-at-start) + v0.2.1 marquee/bulk — all Low. Carried v0.1.0 follow-ups still open (chart `height`, context-split perf, Vitest — the new pure libs are now test-ready).
+**Shipped + pushed + smoke CLEAN.** Nothing pending. Open follow-ups all Low: **F-03** (suspend virtualization during a gutter drag) · **F-04** (gate draw-create at start) · **v0.2.1** (marquee/multi-select + bulk; calendar-aware snap). Carried v0.1.0: chart `height` prop, context-split perf, Vitest (the new pure `edit-mutations`/`edit-permissions` are test-ready). The other named procomp, **`calendar-01`**, remains unstarted (fresh GATE 1).
