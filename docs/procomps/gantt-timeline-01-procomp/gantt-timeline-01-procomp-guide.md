@@ -144,7 +144,7 @@ const [tasks, setTasks] = useState(initial);
 
 **Events** (shapes reused from `todo-rich-card`): `onItemAdded` · `onItemRemoved` · `onItemMoved` · `onFieldEdited` · `onStatusChanged` · `onTaskReschedule` (bar move/resize sugar). All are also reflected in `onChange(TodoItem[])` — that's the source of truth.
 
-**Permissions** — the same matrix as `todo-rich-card` / `todo-tree`: `permissions={{ default, byLevel, byItem, inherit }}` over `edit / remove / addChildren / drag` rules, plus `canMoveItem` / `canResizeItem` / `canDeleteItem` / `canCreateChild` / `canEditItem` predicates and `onPermissionDenied`. `item.locked` blocks everything; **summary (parent) bars are non-manipulable** (edit the children; the summary recomputes).
+**Permissions** — the same matrix as `todo-rich-card` / `todo-tree`: `permissions={{ default, byLevel, byItem, inherit }}` over `edit / remove / addChildren / drag` rules, plus `canMoveItem` / `canResizeItem` / `canDeleteItem` / `canCreateChild` / `canEditItem` predicates and `onPermissionDenied`. `item.locked` blocks everything; **summary (parent) bars are non-manipulable** — they're derived from `min(child start) → max(child end)`, so editing a child re-spans the bracket (the child that owns an edge moves that edge); dragging *on* a bracket pans the canvas rather than creating a task. (v0.2.1)
 
 **Undo/redo is yours.** Because data is controlled, a plain history stack of the forests `onChange` emits gives undo/redo for free:
 

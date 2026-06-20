@@ -206,10 +206,13 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       return false;
     }
 
-    // empty row area → draw-create a sibling of that row's item
+    // empty row area → draw-create a sibling of that row's item.
+    // Summary (parent) rows are read-only (their bar is derived from children),
+    // so dragging on a bracket pans the canvas instead of spawning a stray task.
     const rowEl = target.closest<HTMLElement>("[data-rowid]");
     if (rowEl) {
       const rowId = rowEl.dataset.rowid!;
+      if (ctx.rows.find((r) => r.item.id === rowId)?.isSummary) return false;
       const info = ctx.nodeInfo(rowId);
       const snapped = snapTo(tMs, snapUnitRef.current);
       const drag: EditDrag = {

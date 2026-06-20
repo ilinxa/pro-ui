@@ -58,7 +58,7 @@ Phase A landed 2026-05-25 (charter + rule restructure + tier dir READMEs + STATU
 | `todo-rich-card` | data | alpha | 0.3.0 |
 | `todo-tree` | data | alpha | 0.2.0 |
 | `blackboard-01` | data | alpha | 0.1.0 |
-| `gantt-timeline-01` | data | alpha | 0.2.0 |
+| `gantt-timeline-01` | data | alpha | 0.2.1 |
 | `workspace` | layout | alpha | 0.1.3 |
 | `grid-layout-news-01` | layout | alpha | 0.2.0 |
 | `markdown-editor` | forms | alpha | 0.1.1 |
