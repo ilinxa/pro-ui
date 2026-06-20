@@ -19,10 +19,19 @@ import type {
   TodoPriorityOption,
   TodoLabelOption,
   TodoColorRamp,
+  TodoPermissions,
+  TodoPermissionRule,
+  TodoPermissionReason,
+  TodoItemAddedEvent,
+  TodoItemRemovedEvent,
+  TodoItemMovedEvent,
+  TodoFieldEditedEvent,
+  TodoStatusChangedEvent,
 } from "../todo-rich-card";
 
-// Re-export the consumed data language so a consumer importing the gantt gets
-// the item + option types without a second import (same-category, rewriter-safe).
+// Re-export the consumed data + editing language (v0.2.0) so a consumer importing
+// the gantt gets the item, option, permission, and event types without a second
+// import (same-category barrel import; rewriter-safe).
 export type {
   TodoItem,
   TodoPerson,
@@ -30,6 +39,14 @@ export type {
   TodoPriorityOption,
   TodoLabelOption,
   TodoColorRamp,
+  TodoPermissions,
+  TodoPermissionRule,
+  TodoPermissionReason,
+  TodoItemAddedEvent,
+  TodoItemRemovedEvent,
+  TodoItemMovedEvent,
+  TodoFieldEditedEvent,
+  TodoStatusChangedEvent,
 };
 
 /* ───────── zoom + time ───────── */
@@ -48,6 +65,19 @@ export type GanttTimeUnit =
 export type GanttViewport = { originMs: number; pxPerMs: number };
 
 export type GanttStatusTone = "active" | "done" | "blocked";
+
+/* ───────── editing (v0.2.0) ───────── */
+
+/** Snap granularity for drag / resize / create; default `"minor"` (active axis unit). */
+export type GanttSnap = "minor" | "hour" | "day" | "week" | "off" | number;
+
+/** The edit actions the permission matrix gates. */
+export type GanttEditAction =
+  | "move"
+  | "resize"
+  | "delete"
+  | "create"
+  | "editDetails";
 
 /* ───────── derived row + geometry ───────── */
 
@@ -131,12 +161,40 @@ export type GanttTimelineProps = {
   /** Override the hover tooltip; default = lightweight summary. */
   renderTooltip?: GanttTooltipRenderer;
 
-  /** @reserved v2 — fires when a bar is dragged/resized to a new window. NOT wired in v1. */
+  // ── Editing (v0.2.0) — all opt-in; default surface is the v1 read-only Gantt ──
+  /** Master switch. Default false → byte-identical v1 read-only behavior. */
+  editable?: boolean;
+  /** The full mutated forest after ANY edit; controlled consumer echoes into `data`. */
+  onChange?: (data: TodoItem[]) => void;
+  /** Snap granularity for drags/resizes/create; default "minor"; Alt = free-drag. */
+  snap?: GanttSnap;
+
+  /** Bar move/resize sugar — kept from v1; fires alongside onChange/onFieldEdited. */
   onTaskReschedule?: (next: {
     itemId: string;
     startAt: string;
     expireAt?: string;
   }) => void;
+
+  // CRUD + field events (shapes reused from todo-rich-card)
+  onItemAdded?: (event: TodoItemAddedEvent) => void;
+  onItemRemoved?: (event: TodoItemRemovedEvent) => void;
+  onItemMoved?: (event: TodoItemMovedEvent) => void;
+  onFieldEdited?: (event: TodoFieldEditedEvent) => void;
+  onStatusChanged?: (event: TodoStatusChangedEvent) => void;
+
+  // Permissions (reused from todo-rich-card; mirrors todo-tree)
+  permissions?: TodoPermissions;
+  canMoveItem?: (id: string) => boolean;
+  canResizeItem?: (id: string) => boolean;
+  canDeleteItem?: (id: string) => boolean;
+  canCreateChild?: (id: string) => boolean;
+  canEditItem?: (id: string) => boolean;
+  onPermissionDenied?: (
+    action: keyof TodoPermissionRule,
+    itemId: string,
+    reason: TodoPermissionReason,
+  ) => void;
 
   className?: string;
   "aria-label"?: string;
@@ -160,6 +218,15 @@ export type GanttTimelineHandle = {
   zoomBy(factor: number): void;
   /** Frame all bars + padding. */
   zoomToFit(): void;
+
+  // Editing (v0.2.0) — no-ops when `editable` is false / permission denied.
+  /** Create a task under `parentId` (null = root); a partial seeds the rest. */
+  addTask(parentId: string | null, item?: Partial<TodoItem>): void;
+  deleteTask(itemId: string): void;
+  /** Open the detail editor (embedded card) for an item. */
+  editTask(itemId: string): void;
+  /** Start inline rename of a gutter row. */
+  beginRename(itemId: string): void;
 };
 
 /* ───────── context (internal; constructed in the Root) ───────── */
@@ -225,4 +292,50 @@ export type GanttContextValue = {
   renderTooltip?: GanttTooltipRenderer;
   focusedId: string | null;
   setFocusedId: (id: string | null) => void;
+
+  // ── editing (v0.2.0) — always present; dispatchers are no-ops when !editable ──
+  editable: boolean;
+  snap: GanttSnap;
+  /** The raw permission matrix (threaded into the embedded edit card). */
+  permissions?: TodoPermissions;
+  /** Look up any item in the forest by id (incl. collapsed). */
+  getItem: (id: string) => TodoItem | undefined;
+  /** Effective permission for an action on an item (matrix + can* predicate + locked). */
+  can: (action: GanttEditAction, item: TodoItem) => boolean;
+  /** parentId / index / level lookup over the current forest. */
+  nodeInfo: (
+    id: string,
+  ) => { parentId: string | null; index: number; level: number } | undefined;
+
+  // mutation dispatchers — compute the next forest, fire the typed event + onChange
+  rescheduleItem: (
+    id: string,
+    patch: { startAt?: string; expireAt?: string; duration?: number },
+    kind: "move" | "resize",
+  ) => void;
+  createItem: (
+    parentId: string | null,
+    seed?: Partial<TodoItem>,
+    index?: number,
+  ) => void;
+  deleteItem: (id: string) => void;
+  renameItemAction: (id: string, name: string) => void;
+  moveItemAction: (
+    id: string,
+    newParentId: string | null,
+    newIndex: number,
+  ) => void;
+  changeStatus: (id: string, status: string) => void;
+
+  // detail editor (popover) target
+  editingId: string | null;
+  openEditor: (id: string) => void;
+  closeEditor: () => void;
+  /** Splice an edited subtree (same root id) back into the forest. */
+  applyEditedSubtree: (next: TodoItem) => void;
+
+  // inline rename (gutter) target
+  renamingId: string | null;
+  beginRename: (id: string) => void;
+  endRename: () => void;
 };

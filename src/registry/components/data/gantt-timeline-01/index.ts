@@ -21,6 +21,10 @@ export { GutterRow } from "./parts/gantt-timeline-gutter";
 export { GanttTimelineSkeleton } from "./parts/gantt-timeline-skeleton";
 export { GanttFullCardTooltip } from "./parts/bar-tooltip-full";
 
+// Editing (v0.2.0)
+export { GanttContextMenu } from "./parts/gantt-context-menu";
+export { GanttEditPopover } from "./parts/gantt-edit-popover";
+
 // Hook
 export { useGanttTimeline } from "./hooks/use-gantt-context";
 
@@ -38,10 +42,19 @@ export type {
   GanttColorResolver,
   GanttTooltipRenderer,
   GanttStatusTone,
+  GanttSnap,
+  GanttEditAction,
   TodoItem,
   TodoPerson,
   TodoStatusOption,
   TodoPriorityOption,
   TodoLabelOption,
   TodoColorRamp,
+  TodoPermissions,
+  TodoPermissionRule,
+  TodoItemAddedEvent,
+  TodoItemRemovedEvent,
+  TodoItemMovedEvent,
+  TodoFieldEditedEvent,
+  TodoStatusChangedEvent,
 } from "./types";

@@ -1,7 +1,7 @@
 # `gantt-timeline-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Version:** v0.1.0 · **Status:** alpha
-> Install: `pnpm dlx shadcn@latest add @ilinxa/gantt-timeline-01` (pulls `@ilinxa/todo-rich-card` + `@tanstack/react-virtual` + `lucide-react`).
+> **Stage:** 3 of 3 · **Version:** v0.2.0 · **Status:** alpha
+> Install: `pnpm dlx shadcn@latest add @ilinxa/gantt-timeline-01` (pulls `@ilinxa/todo-rich-card` + `@tanstack/react-virtual` + `@dnd-kit/core` + `lucide-react`).
 
 A read-only, fully-navigable project timeline (Gantt) over the canonical `TodoItem[]`. The time-axis sibling of `todo-rich-card` (cards) and `kanban-board-01` (columns).
 
@@ -17,7 +17,7 @@ A read-only, fully-navigable project timeline (Gantt) over the canonical `TodoIt
 ## When NOT to use
 
 - You need a **date-grid calendar** (month/week/day cells) → that's the planned `calendar-01`, not this.
-- You need to **edit** a task → that's `todo-rich-card`. v1 here is read-only display + navigation (drag-to-reschedule is v2).
+- You need a **rich single-card editor** as the primary surface → that's `todo-rich-card`. (This gantt *embeds* it for detail edits when `editable`, but it's a timeline first; editing is opt-in.)
 - You need **dependency arrows / critical path** → deferred (v3 / v4).
 
 ---
@@ -111,6 +111,55 @@ import { GanttFullCardTooltip } from "@/components/gantt-timeline-01";
 
 ---
 
+## Editing (v0.2)
+
+Opt in with `editable` (default **off** → byte-identical v1 read-only). Data stays **controlled** — every edit fires a typed event **and** `onChange(next)` with the full mutated `TodoItem[]`; echo it back into `data`.
+
+```tsx
+const [tasks, setTasks] = useState(initial);
+
+<GanttTimeline01
+  data={tasks}
+  editable
+  statusOptions={STATUS_OPTIONS}
+  onChange={setTasks}                              // controlled echo — the source of truth
+  permissions={{ byItem: { "epic-1": { remove: false } } }}
+  onItemRemoved={(e) => toast(`Deleted ${e.removed.name}`)}
+/>
+```
+
+**Surfaces** (all permission-gated):
+
+| Gesture | Action |
+|---|---|
+| Drag a bar | Move (reschedule); snaps to the active unit, **Alt** = free-drag |
+| Drag a bar edge | Resize start / end |
+| Drag on an empty row | Draw-create a sibling |
+| Drag the gutter grip | Reparent / reorder (drop above / inside / below a row) |
+| Double-click a bar | Open the detail editor (embedded `<TodoRichCard editable>`) |
+| Right-click a bar / row | Context menu — Edit / Rename / Add / Status / Delete |
+| Row hover ＋ / 🗑 | Add child / delete |
+| `F2` / `Delete` on a row | Rename / delete |
+| Bar selected + `←/→` | Nudge move; `Shift+←/→` resize; `Enter` edit; `Delete` delete |
+
+**Events** (shapes reused from `todo-rich-card`): `onItemAdded` · `onItemRemoved` · `onItemMoved` · `onFieldEdited` · `onStatusChanged` · `onTaskReschedule` (bar move/resize sugar). All are also reflected in `onChange(TodoItem[])` — that's the source of truth.
+
+**Permissions** — the same matrix as `todo-rich-card` / `todo-tree`: `permissions={{ default, byLevel, byItem, inherit }}` over `edit / remove / addChildren / drag` rules, plus `canMoveItem` / `canResizeItem` / `canDeleteItem` / `canCreateChild` / `canEditItem` predicates and `onPermissionDenied`. `item.locked` blocks everything; **summary (parent) bars are non-manipulable** (edit the children; the summary recomputes).
+
+**Undo/redo is yours.** Because data is controlled, a plain history stack of the forests `onChange` emits gives undo/redo for free:
+
+```tsx
+const [hist, setHist] = useState({ stack: [initial], cursor: 0 });
+const data = hist.stack[hist.cursor];
+const onChange = (next) =>
+  setHist((h) => ({ stack: [...h.stack.slice(0, h.cursor + 1), next], cursor: h.cursor + 1 }));
+// undo → cursor − 1 · redo → cursor + 1
+```
+
+**Imperative:** `addTask(parentId, partial?)` · `deleteTask(id)` · `editTask(id)` · `beginRename(id)` (alongside the v1 scroll/zoom handle).
+
+---
+
 ## Gotchas
 
 - **SSR determinism:** pass `now` (a `Date` or `() => Date`) for a deterministic first paint. If omitted, the today line + urgency tint resolve **after mount** (no hydration mismatch) and refresh on `colorRefreshIntervalMs` (default 60s; `0` disables).
@@ -128,9 +177,9 @@ The gutter is a WAI-ARIA `tree` (`treeitem` + `aria-level` / `aria-expanded` / `
 
 ---
 
-## Open follow-ups (v0.2+)
+## Open follow-ups
 
-- **v2:** drag-to-reschedule + edge-resize (`onTaskReschedule` is already typed; data is controlled, so it's additive).
+- **v2.1:** marquee + multi-select + bulk move/delete; calendar-aware snap (currently epoch-grid); suspend virtualization during a gutter drag; sibling-reorder off-by-one polish.
 - **v3:** dependency arrows (`dependsOn?: string[]`).
 - **v4:** progress %, baselines, critical path, resource swimlanes.
 - A configurable chart `height` prop (currently assembly-fixed).

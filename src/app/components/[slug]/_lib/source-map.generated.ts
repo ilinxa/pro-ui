@@ -5314,6 +5314,7 @@ export default function GanttTimeline01Demo() {
     <Tabs defaultValue="timeline" className="w-full gap-4">
       <SwipeTabsList>
         <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        <TabsTrigger value="editable">Editable</TabsTrigger>
         <TabsTrigger value="composed">Composed (lighter)</TabsTrigger>
         <TabsTrigger value="states">States</TabsTrigger>
         <TabsTrigger value="full-card">Full-card tooltip</TabsTrigger>
@@ -5353,6 +5354,11 @@ export default function GanttTimeline01Demo() {
           onTaskClick={setClicked}
           aria-label="Q3 plan timeline"
         />
+      </TabsContent>
+
+      {/* 1b — editable: full CRUD + drag/resize + reparent + a consumer-owned undo stack */}
+      <TabsContent value="editable">
+        <EditableDemo />
       </TabsContent>
 
       {/* 2 — hand-assembled subset proving the compound (Root + parts, no toolbar) */}
@@ -5418,6 +5424,70 @@ export default function GanttTimeline01Demo() {
         />
       </TabsContent>
     </Tabs>
+  );
+}
+
+/**
+ * Editable example. Data is controlled — the host owns it and echoes \`onChange\`.
+ * Undo/redo is therefore free: a plain history stack of the forests \`onChange\`
+ * hands over (the v0.2 D19 recipe).
+ */
+function EditableDemo() {
+  const [hist, setHist] = useState<{ stack: TodoItem[][]; cursor: number }>({
+    stack: [GANTT_DUMMY],
+    cursor: 0,
+  });
+  const data = hist.stack[hist.cursor];
+  const push = (next: TodoItem[]) =>
+    setHist((h) => ({
+      stack: [...h.stack.slice(0, h.cursor + 1), next],
+      cursor: h.cursor + 1,
+    }));
+  const undo = () =>
+    setHist((h) => ({ ...h, cursor: Math.max(0, h.cursor - 1) }));
+  const redo = () =>
+    setHist((h) => ({
+      ...h,
+      cursor: Math.min(h.stack.length - 1, h.cursor + 1),
+    }));
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={hist.cursor === 0}
+          onClick={undo}
+        >
+          Undo
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={hist.cursor === hist.stack.length - 1}
+          onClick={redo}
+        >
+          Redo
+        </Button>
+        <span className="ml-auto text-xs text-muted-foreground">
+          Drag a bar to move · drag edges to resize · double-click or right-click
+          a bar to edit · drag the gutter grip to reparent · ＋ / trash on row
+          hover · Delete key
+        </span>
+      </div>
+      <GanttTimeline01
+        data={data}
+        editable
+        statusOptions={GANTT_STATUS_OPTIONS}
+        priorityOptions={GANTT_PRIORITY_OPTIONS}
+        labelOptions={GANTT_LABEL_OPTIONS}
+        defaultZoom="week"
+        now={new Date("2026-06-20T12:00:00.000Z")}
+        onChange={push}
+        aria-label="Editable Q3 plan timeline"
+      />
+    </div>
   );
 }
 `,

@@ -7,8 +7,9 @@ export default function GanttTimeline01Usage() {
         <code>TodoItem[]</code> as cards (<code>todo-rich-card</code>) or columns (
         <code>kanban-board-01</code>) and want a third surface that answers{" "}
         <em>&ldquo;what runs when, and what overlaps?&rdquo;</em> — a time axis the other
-        surfaces can&apos;t provide. v1 is read-only display + navigation; drag-to-reschedule
-        is v2.
+        surfaces can&apos;t provide. Editing (drag-to-reschedule, resize, create, delete,
+        reparent, detail-edit) is opt-in via <code>editable</code> — off by default, so it
+        stays a clean read-only timeline until you want more.
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
@@ -42,6 +43,24 @@ export function TasksTimeline({ tasks }) {
     <GanttTimelineBody />
   </div>
 </GanttTimelineRoot>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Editing (v0.2, opt-in)</h3>
+      <p className="text-muted-foreground">
+        Set <code>editable</code> and wire <code>onChange</code> — data is controlled, so you
+        echo the mutated <code>TodoItem[]</code> back (and get undo/redo for free from a history
+        stack). Drag bars to move, drag edges to resize, draw on an empty row to create,
+        double-click or right-click to edit, drag the gutter grip to reparent. Gated by the
+        same <code>permissions</code> matrix as todo-rich-card / todo-tree.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<GanttTimeline01
+  data={tasks}
+  editable
+  onChange={setTasks}                 // controlled echo (source of truth)
+  permissions={{ byItem: { "epic-1": { remove: false } } }}
+  onItemMoved={(e) => persist(e)}
+/>`}</code>
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>
