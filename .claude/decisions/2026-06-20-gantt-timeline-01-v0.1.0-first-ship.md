@@ -3,10 +3,10 @@ date: 2026-06-20
 session: gantt-timeline-01 first ship
 phase: procomp v0.1.0
 type: first-ship
-commits: []   # uncommitted — built on top of 2c3bc24, awaiting user commit/push
+commits: [144afd7]   # pushed to master 2026-06-20 (ff over 2c3bc24)
 components: [gantt-timeline-01]
-findings: [F-01-postdeploy-smoke, F-02-chart-height-prop, F-03-vitest-defer, F-04-context-split-perf]
-status: built-reviewed-fixed-uncommitted
+findings: [F-01-postdeploy-smoke-CLEAN, F-02-chart-height-prop, F-03-vitest-defer, F-04-context-split-perf]
+status: shipped-pushed-smoke-clean
 ---
 
 # gantt-timeline-01 v0.1.0 — first ship (56th procomp)
@@ -48,6 +48,11 @@ Gates re-run after the fixes: **tsc 0 · lint 0 err (1 known virtualizer warning
 
 - **F-04 (Low, deferred — tracked):** the `GanttContext` value isn't split, so Gutter + Toolbar re-render on every pan/momentum frame. **Bounded by row virtualization → cheap**; deferred deliberately (a context split touches every part and is a regression risk disproportionate to the marginal gain right before first ship). Revisit if a perf profile shows it.
 
+## Shipped + F-01 smoke CLEAN (2026-06-20)
+
+Committed `144afd7` → merged ff to `master` → pushed (`cf7cd72..144afd7`; the push also carried the prior local-only `2c3bc24`). Vercel redeployed; production artifact `https://ilinxa-proui.vercel.app/r/gantt-timeline-01.json` live (carries `@ilinxa/todo-rich-card` + the `prefersReducedMotion` fix). **F-01 (F-cross-11 path-b) ran CLEAN** in the base-nova / **Base UI** smoke consumer: `pnpm dlx shadcn add @ilinxa/gantt-timeline-01` installed the component + its `todo-rich-card` dep tree; consumer `tsc --noEmit` produced **zero `gantt-timeline-01` / `todo-rich-card` errors** (remaining errors are pre-existing unrelated noise — code-block/json-form/story-composer/media-editor/pdf-viewer missing heavy optional deps). No cross-backend regression; nothing to escalate. As predicted: no new shadcn primitive + relative `../../todo-rich-card` is rewriter-safe.
+
 ## Open / RESUME
 
-**Uncommitted (fixes applied above).** RESUME = commit + push → run **F-01** post-deploy F-cross-11 path-b consumer smoke (`shadcn add @ilinxa/gantt-timeline-01` + cross-backend consumer-tsc; expected clean — no new shadcn primitive, relative import rewriter-safe). Then F-02 (chart `height` prop, v0.2) + F-03 (Vitest, defer). Prior-session open item still standing: **blackboard-01 v0.1.0** F-01 post-deploy smoke.
+**Shipped + pushed + smoke CLEAN.** Remaining follow-ups are all Low / future-minor. RESUME = nothing pending here.
+~~commit + push → run **F-01** post-deploy F-cross-11 path-b consumer smoke~~ (`shadcn add @ilinxa/gantt-timeline-01` + cross-backend consumer-tsc; expected clean — no new shadcn primitive, relative import rewriter-safe). Then F-02 (chart `height` prop, v0.2) + F-03 (Vitest, defer). Prior-session open item still standing: **blackboard-01 v0.1.0** F-01 post-deploy smoke.
