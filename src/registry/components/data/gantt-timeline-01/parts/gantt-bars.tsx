@@ -39,6 +39,10 @@ export type GanttBarProps = {
   locked?: boolean;
   priorityColor?: string;
   selected?: boolean;
+  /** v0.2.0 — grab cursor for drag-to-reschedule. */
+  movable?: boolean;
+  /** v0.2.0 — render left/right edge resize handles (`data-edge`). */
+  resizable?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function GanttBar({
@@ -51,6 +55,8 @@ export function GanttBar({
   locked,
   priorityColor,
   selected,
+  movable,
+  resizable,
   className,
   style,
   ...rest
@@ -60,7 +66,8 @@ export function GanttBar({
     <div
       data-selected={selected || undefined}
       className={cn(
-        "absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-[5px] shadow-sm ring-offset-background transition-shadow",
+        "absolute top-1/2 -translate-y-1/2 rounded-[5px] shadow-sm ring-offset-background transition-shadow",
+        movable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
         "data-[selected]:ring-2 data-[selected]:ring-foreground/70 data-[selected]:ring-offset-1",
         inactive && "opacity-50",
@@ -95,6 +102,20 @@ export function GanttBar({
         >
           🔒
         </span>
+      ) : null}
+      {resizable ? (
+        <>
+          <span
+            data-edge="start"
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-1.5 cursor-col-resize rounded-l-[5px] hover:bg-foreground/25"
+          />
+          <span
+            data-edge="end"
+            aria-hidden
+            className="absolute inset-y-0 right-0 w-1.5 cursor-col-resize rounded-r-[5px] hover:bg-foreground/25"
+          />
+        </>
       ) : null}
     </div>
   );
@@ -147,12 +168,15 @@ export type MilestoneDiamondProps = {
   leftPx: number;
   fill: string;
   selected?: boolean;
+  /** v0.2.0 — grab cursor for drag-to-move the instant. */
+  movable?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function MilestoneDiamond({
   leftPx,
   fill,
   selected,
+  movable,
   className,
   style,
   ...rest
@@ -162,7 +186,8 @@ export function MilestoneDiamond({
     <div
       data-selected={selected || undefined}
       className={cn(
-        "absolute top-1/2 cursor-pointer rounded-[3px] shadow-sm",
+        "absolute top-1/2 rounded-[3px] shadow-sm",
+        movable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring",
         "data-[selected]:ring-2 data-[selected]:ring-foreground/70",
         className,

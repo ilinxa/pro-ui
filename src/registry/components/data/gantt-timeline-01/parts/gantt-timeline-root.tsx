@@ -28,7 +28,9 @@ import { barFill, resolveRamp, toneFor } from "../lib/color";
 import { useColorTick } from "../hooks/use-color-tick";
 import { useGanttViewport } from "../hooks/use-gantt-viewport";
 import { useGanttVirtual } from "../hooks/use-gantt-virtual";
+import { useGanttEdit } from "../hooks/use-gantt-edit";
 import { GanttContext } from "../hooks/use-gantt-context";
+import { GanttEditPopover } from "./gantt-edit-popover";
 
 export const GanttTimelineRoot = forwardRef<
   GanttTimelineHandle,
@@ -60,6 +62,23 @@ export const GanttTimelineRoot = forwardRef<
     onSelect,
     onTaskClick,
     renderTooltip,
+    // editing (v0.2.0)
+    editable = false,
+    onChange,
+    snap = "minor",
+    onTaskReschedule,
+    onItemAdded,
+    onItemRemoved,
+    onItemMoved,
+    onFieldEdited,
+    onStatusChanged,
+    permissions,
+    canMoveItem,
+    canResizeItem,
+    canDeleteItem,
+    canCreateChild,
+    canEditItem,
+    onPermissionDenied,
     className,
     children,
   } = props;
@@ -167,6 +186,28 @@ export const GanttTimelineRoot = forwardRef<
     [],
   );
 
+  /* ── editing (v0.2.0) — controlled-echo dispatchers + edit-UI targets ── */
+  const edit = useGanttEdit({
+    data,
+    editable,
+    snap,
+    statusOptions,
+    onChange,
+    onTaskReschedule,
+    onItemAdded,
+    onItemRemoved,
+    onItemMoved,
+    onFieldEdited,
+    onStatusChanged,
+    permissions,
+    canMoveItem,
+    canResizeItem,
+    canDeleteItem,
+    canCreateChild,
+    canEditItem,
+    onPermissionDenied,
+  });
+
   /* ── vertical scroll sync (body drives, gutter mirrors) ── */
   const onBodyScroll = useCallback((scrollTop: number) => {
     if (gutterTrackRef.current) {
@@ -211,8 +252,12 @@ export const GanttTimelineRoot = forwardRef<
       setZoom: (z) => vp.setZoomLevel(z),
       zoomBy: (f) => vp.zoomBy(f),
       zoomToFit: () => vp.zoomToFit(),
+      addTask: (parentId, item) => edit.createItem(parentId, item),
+      deleteTask: (id) => edit.deleteItem(id),
+      editTask: (id) => edit.openEditor(id),
+      beginRename: (id) => edit.beginRename(id),
     }),
-    [vp, scrollToItemId, setCollapsed, data],
+    [vp, scrollToItemId, setCollapsed, data, edit],
   );
 
   const ctx: GanttContextValue = {
@@ -258,6 +303,27 @@ export const GanttTimelineRoot = forwardRef<
     renderTooltip,
     focusedId,
     setFocusedId,
+
+    // editing (v0.2.0)
+    editable,
+    snap,
+    permissions,
+    getItem: (id: string) => itemIndex.get(id),
+    can: edit.can,
+    nodeInfo: edit.nodeInfo,
+    rescheduleItem: edit.rescheduleItem,
+    createItem: edit.createItem,
+    deleteItem: edit.deleteItem,
+    renameItemAction: edit.renameItemAction,
+    moveItemAction: edit.moveItemAction,
+    changeStatus: edit.changeStatus,
+    editingId: edit.editingId,
+    openEditor: edit.openEditor,
+    closeEditor: edit.closeEditor,
+    applyEditedSubtree: edit.applyEditedSubtree,
+    renamingId: edit.renamingId,
+    beginRename: edit.beginRename,
+    endRename: edit.endRename,
   };
 
   return (
@@ -269,6 +335,7 @@ export const GanttTimelineRoot = forwardRef<
       >
         {children}
       </div>
+      {editable ? <GanttEditPopover /> : null}
     </GanttContext.Provider>
   );
 });
