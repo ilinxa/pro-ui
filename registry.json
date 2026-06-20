@@ -2626,6 +2626,58 @@
       "files": [
         { "path": "src/registry/components/data/blackboard-01/dummy-data.ts", "type": "registry:component", "target": "components/blackboard-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "gantt-timeline-01",
+      "type": "registry:block",
+      "title": "Gantt Timeline 01",
+      "description": "Read-only project timeline (Gantt) over the canonical TodoItem[] — one bar per task from effective start→end, collapsible WBS summary rows from children, milestone diamonds, a continuous-zoom two-tier axis (hour→quarter), today line, filled status/urgency bars (ramp imported from todo-rich-card), and a pan/swipe/zoom canvas with momentum + pinch. Ships shadcn-style: a batteries-included <GanttTimeline01> plus a headless <GanttTimelineRoot> + flat à-la-carte parts (Toolbar / Axis / Gutter / Body) + Tier-C primitives, so dropping the toolbar or hand-assembling a subset works. The full-card tooltip lazy-loads todo-rich-card, keeping it out of the default bundle. v1 is read-only; the state model is architected so v2 drag-to-reschedule drops in additively.",
+      "author": "ilinxa",
+      "categories": ["data", "task-management"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "button",
+        "separator",
+        "skeleton",
+        "@ilinxa/todo-rich-card"
+      ],
+      "dependencies": ["lucide-react", "@tanstack/react-virtual"],
+      "files": [
+        { "path": "src/registry/components/data/gantt-timeline-01/gantt-timeline-01.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/gantt-timeline-01.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/index.ts", "type": "registry:component", "target": "components/gantt-timeline-01/index.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/types.ts", "type": "registry:component", "target": "components/gantt-timeline-01/types.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/lib/color.ts", "type": "registry:component", "target": "components/gantt-timeline-01/lib/color.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/lib/flatten.ts", "type": "registry:component", "target": "components/gantt-timeline-01/lib/flatten.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/lib/geometry.ts", "type": "registry:component", "target": "components/gantt-timeline-01/lib/geometry.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/lib/time-scale.ts", "type": "registry:component", "target": "components/gantt-timeline-01/lib/time-scale.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/hooks/use-color-tick.ts", "type": "registry:component", "target": "components/gantt-timeline-01/hooks/use-color-tick.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/hooks/use-gantt-context.ts", "type": "registry:component", "target": "components/gantt-timeline-01/hooks/use-gantt-context.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/hooks/use-gantt-viewport.ts", "type": "registry:component", "target": "components/gantt-timeline-01/hooks/use-gantt-viewport.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/hooks/use-gantt-virtual.ts", "type": "registry:component", "target": "components/gantt-timeline-01/hooks/use-gantt-virtual.ts" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/bar-tooltip-full.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/bar-tooltip-full.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-bars.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-bars.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-axis.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-axis.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-body.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-body.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-gutter.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-gutter.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-root.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-root.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-skeleton.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-skeleton.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-toolbar.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-toolbar.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "gantt-timeline-01-fixtures",
+      "type": "registry:block",
+      "title": "Gantt Timeline 01 — fixtures",
+      "description": "Gantt Timeline bundle including the demo fixture (a deep epics→tasks→subtasks tree exercising overdue/blocked/done/milestone/inactive/locked/borderColor states) plus shared status / priority / label option presets. Resolves the base gantt-timeline-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["data", "task-management", "fixtures"],
+      "registryDependencies": ["@ilinxa/gantt-timeline-01"],
+      "files": [
+        { "path": "src/registry/components/data/gantt-timeline-01/dummy-data.ts", "type": "registry:component", "target": "components/gantt-timeline-01/dummy-data.ts" }
+      ]
     }
   ]
 }
