@@ -217,6 +217,10 @@ import TodoTreeDemo from "./components/data/todo-tree/demo";
 import TodoTreeUsage from "./components/data/todo-tree/usage";
 import { meta as todoTreeMeta } from "./components/data/todo-tree/meta";
 
+import GanttTimeline01Demo from "./components/data/gantt-timeline-01/demo";
+import GanttTimeline01Usage from "./components/data/gantt-timeline-01/usage";
+import { meta as ganttTimeline01Meta } from "./components/data/gantt-timeline-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -500,6 +504,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: blackboard01Meta,
     Demo: Blackboard01Demo,
     Usage: Blackboard01Usage,
+  },
+  {
+    meta: ganttTimeline01Meta,
+    Demo: GanttTimeline01Demo,
+    Usage: GanttTimeline01Usage,
   },
 ];
 
