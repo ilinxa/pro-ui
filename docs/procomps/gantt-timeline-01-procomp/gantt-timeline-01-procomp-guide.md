@@ -1,6 +1,6 @@
 # `gantt-timeline-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Version:** v0.2.1 · **Status:** alpha
+> **Stage:** 3 of 3 · **Version:** v0.3.0 · **Status:** alpha
 > Install: `pnpm dlx shadcn@latest add @ilinxa/gantt-timeline-01` (pulls `@ilinxa/todo-rich-card` + `@tanstack/react-virtual` + `@dnd-kit/core` + `lucide-react`).
 
 A read-only, fully-navigable project timeline (Gantt) over the canonical `TodoItem[]`. The time-axis sibling of `todo-rich-card` (cards) and `kanban-board-01` (columns).
@@ -111,7 +111,7 @@ import { GanttFullCardTooltip } from "@/components/gantt-timeline-01";
 
 ---
 
-## Editing (v0.2)
+## Editing (v0.2 + v0.3)
 
 Opt in with `editable` (default **off** → byte-identical v1 read-only). Data stays **controlled** — every edit fires a typed event **and** `onChange(next)` with the full mutated `TodoItem[]`; echo it back into `data`.
 
@@ -134,6 +134,7 @@ const [tasks, setTasks] = useState(initial);
 |---|---|
 | Drag a bar | Move (reschedule); snaps to the active unit, **Alt** = free-drag |
 | Drag a bar edge | Resize start / end |
+| **Drag a summary bracket** *(v0.3)* | **Group-move** — rigidly shift the whole subtree; snaps, **Alt** = free; requires every leaf movable, else it pans |
 | Drag on an empty row | Draw-create a sibling |
 | Drag the gutter grip | Reparent / reorder (drop above / inside / below a row) |
 | Double-click a bar | Open the detail editor (embedded `<TodoRichCard editable>`) |
@@ -142,9 +143,9 @@ const [tasks, setTasks] = useState(initial);
 | `F2` / `Delete` on a row | Rename / delete |
 | Bar selected + `←/→` | Nudge move; `Shift+←/→` resize; `Enter` edit; `Delete` delete |
 
-**Events** (shapes reused from `todo-rich-card`): `onItemAdded` · `onItemRemoved` · `onItemMoved` · `onFieldEdited` · `onStatusChanged` · `onTaskReschedule` (bar move/resize sugar). All are also reflected in `onChange(TodoItem[])` — that's the source of truth.
+**Events** (shapes reused from `todo-rich-card`): `onItemAdded` · `onItemRemoved` · `onItemMoved` · `onFieldEdited` · `onStatusChanged` · `onTaskReschedule` (bar move/resize sugar). All are also reflected in `onChange(TodoItem[])` — that's the source of truth. **Group-move (v0.3)** is a bulk reschedule: it fires `onFieldEdited` (+ `onTaskReschedule`) **once per shifted leaf**, then a single `onChange` (= one undo step) — no new event type.
 
-**Permissions** — the same matrix as `todo-rich-card` / `todo-tree`: `permissions={{ default, byLevel, byItem, inherit }}` over `edit / remove / addChildren / drag` rules, plus `canMoveItem` / `canResizeItem` / `canDeleteItem` / `canCreateChild` / `canEditItem` predicates and `onPermissionDenied`. `item.locked` blocks everything; **summary (parent) bars are non-manipulable** — they're derived from `min(child start) → max(child end)`, so editing a child re-spans the bracket (the child that owns an edge moves that edge); dragging *on* a bracket pans the canvas rather than creating a task. (v0.2.1)
+**Permissions** — the same matrix as `todo-rich-card` / `todo-tree`: `permissions={{ default, byLevel, byItem, inherit }}` over `edit / remove / addChildren / drag` rules, plus `canMoveItem` / `canResizeItem` / `canDeleteItem` / `canCreateChild` / `canEditItem` predicates and `onPermissionDenied`. `item.locked` blocks everything; **summary (parent) bars are not individually editable** (no resize / CRUD) — they're derived from `min(child start) → max(child end)`, so editing a child re-spans the bracket (the child that owns an edge moves that edge). **v0.3 group-move:** dragging *on* a bracket rigidly shifts the **whole subtree** when the group is movable — **atomic**: the summary must be unlocked **and every descendant leaf** must pass the `drag` rule (`canMoveItem` / not `locked`); if any leaf is blocked the drag **falls back to panning** the canvas and `onPermissionDenied("drag", …)` fires. (A non-movable group panning on bracket-drag is the v0.2.1 behavior, preserved.)
 
 **Undo/redo is yours.** Because data is controlled, a plain history stack of the forests `onChange` emits gives undo/redo for free:
 
@@ -156,7 +157,7 @@ const onChange = (next) =>
 // undo → cursor − 1 · redo → cursor + 1
 ```
 
-**Imperative:** `addTask(parentId, partial?)` · `deleteTask(id)` · `editTask(id)` · `beginRename(id)` (alongside the v1 scroll/zoom handle).
+**Imperative:** `addTask(parentId, partial?)` · `deleteTask(id)` · `editTask(id)` · `beginRename(id)` · `shiftTaskGroup(summaryId, deltaMs)` *(v0.3 — group-move; no-op unless the group is movable)* (alongside the v1 scroll/zoom handle).
 
 ---
 
@@ -179,6 +180,7 @@ The gutter is a WAI-ARIA `tree` (`treeitem` + `aria-level` / `aria-expanded` / `
 
 ## Open follow-ups
 
+- **v0.3.x:** richer group-move preview (per-leaf ghost bars, not just the shifted bracket); **resize-the-group** (drag a bracket *edge* → proportional subtree rescale); optional `groupMoveMode: "atomic" | "partial"`.
 - **v2.1:** marquee + multi-select + bulk move/delete; calendar-aware snap (currently epoch-grid); suspend virtualization during a gutter drag; sibling-reorder off-by-one polish.
 - **v3:** dependency arrows (`dependsOn?: string[]`).
 - **v4:** progress %, baselines, critical path, resource swimlanes.

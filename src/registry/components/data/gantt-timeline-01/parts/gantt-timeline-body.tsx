@@ -62,6 +62,16 @@ type EditDrag =
       fromMs: number;
       toMs: number;
       topPx: number;
+    }
+  | {
+      // v0.3.0 — group-move: rigidly shift a summary's whole subtree by deltaMs.
+      kind: "groupmove";
+      id: string;
+      grabMs: number;
+      deltaMs: number;
+      spanStart: number;
+      spanEnd: number;
+      topPx: number;
     };
 
 const MIN_MS = 60_000;
@@ -162,6 +172,30 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     const tMs = timeAtPointer(e.clientX, surface);
     snapUnitRef.current = e.altKey ? 0 : snapUnitMs(ctx.snap, minor);
 
+    // Summary bracket → group-move the whole subtree when movable (D22/D23).
+    // A non-movable group (or empty summary-row area) falls through to v1 pan.
+    const summaryEl = target.closest<HTMLElement>("[data-summaryid]");
+    if (summaryEl) {
+      const sid = summaryEl.dataset.summaryid!;
+      const sitem = ctx.getItem(sid);
+      if (!sitem || !ctx.canGroupMove(sitem)) return false;
+      const span = ctx.summarySpanFor(sitem);
+      if (!span) return false;
+      const drag: EditDrag = {
+        kind: "groupmove",
+        id: sid,
+        grabMs: tMs,
+        deltaMs: 0,
+        spanStart: span.startMs,
+        spanEnd: span.endMs,
+        topPx: rowTopOf(sid),
+      };
+      editDragRef.current = drag;
+      setEditDrag(drag);
+      e.currentTarget.setPointerCapture(e.pointerId);
+      return true;
+    }
+
     const barEl = target.closest<HTMLElement>("[data-itemid]");
     if (barEl) {
       const id = barEl.dataset.itemid!;
@@ -254,6 +288,10 @@ export function GanttTimelineBody({ className }: { className?: string }) {
         const ne = Math.max(snapTo(tMs, u), d.origStart + MIN_MS);
         nextDrag = { ...d, curStart: d.origStart, curEnd: ne };
       }
+    } else if (d.kind === "groupmove") {
+      // Snap the leading edge of the span; delta is the realized shift.
+      const newStart = snapTo(d.spanStart + (tMs - d.grabMs), u);
+      nextDrag = { ...d, deltaMs: newStart - d.spanStart };
     } else {
       nextDrag = { ...d, toMs: snapTo(tMs, u) };
     }
@@ -266,6 +304,10 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     editDragRef.current = null;
     setEditDrag(null);
     if (!d) return;
+    if (d.kind === "groupmove") {
+      if (d.deltaMs !== 0) ctx.moveSubtree(d.id, d.deltaMs);
+      return;
+    }
     if (d.kind === "create") {
       const a = Math.min(d.fromMs, d.toMs);
       const b = Math.max(d.fromMs, d.toMs);
@@ -515,9 +557,11 @@ export function GanttTimelineBody({ className }: { className?: string }) {
               labelLeft = left + Math.max(w, 8) + 6;
               shape = (
                 <SummaryBar
+                  data-summaryid={item.id}
                   leftPx={left}
                   widthPx={w}
                   selected={selected}
+                  groupMovable={editable && ctx.canGroupMove(item)}
                   aria-hidden
                   onClick={() => activate(item)}
                   onMouseEnter={() => enter(left)}
@@ -655,6 +699,12 @@ function EditPreview({
     left = x(viewport, a);
     width = Math.max(x(viewport, b) - left, 2);
     label = `${new Date(a).toLocaleDateString()} → ${new Date(b).toLocaleDateString()}`;
+  } else if (drag.kind === "groupmove") {
+    const s = drag.spanStart + drag.deltaMs;
+    const e = drag.spanEnd + drag.deltaMs;
+    left = x(viewport, s);
+    width = Math.max(x(viewport, e) - left, 8);
+    label = `${new Date(s).toLocaleDateString()} → ${new Date(e).toLocaleDateString()}`;
   } else {
     const start = drag.curStart;
     const end = drag.curEnd ?? drag.curStart;

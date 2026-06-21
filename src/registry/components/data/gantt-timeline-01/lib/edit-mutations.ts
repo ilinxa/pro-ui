@@ -9,6 +9,7 @@
  */
 
 import type { TodoItem } from "../types";
+import { effEndMs, effStartMs } from "./geometry";
 
 /** Minimum bar span (ms) so a resize/drag can't collapse a bar to zero width. */
 export const MIN_DURATION_MS = 60_000;
@@ -157,4 +158,55 @@ export function moveItem(
   const { next: pruned, removed } = removeItem(data, id);
   if (!removed) return data;
   return addItem(pruned, newParentId, removed, newIndex);
+}
+
+/* ───────── group-move (v0.3.0) ───────── */
+
+/**
+ * The scheduled LEAF descendants of `root`. Derived summaries — `root` itself and
+ * any nested parent — are never returned; only leaves carry a real schedule.
+ * Walks `root.children` directly (no index rebuild), so it's cheap enough for the
+ * render-hot `canGroupMove` path. A leaf root yields `[]`.
+ */
+export function subtreeLeaves(root: TodoItem): TodoItem[] {
+  const out: TodoItem[] = [];
+  const walk = (n: TodoItem) => {
+    if (n.children?.length) n.children.forEach(walk);
+    else out.push(n);
+  };
+  root.children?.forEach(walk); // a summary root ⇒ recurses, never pushes itself
+  return out;
+}
+
+/**
+ * Rigidly shift a subtree by `deltaMs` (group-move). Every LEAF descendant's
+ * window translates by the same delta; derived summaries (the root + any nested
+ * parent) keep their own latent dates and re-derive their brackets from the moved
+ * leaves (WBS-consistent — the gantt ignores a parent's own window). Writes
+ * `startAt` (+ `expireAt` for expireAt-driven leaves); `duration`/`setAt`
+ * untouched; milestones shift `startAt` only. The span is invariant under a rigid
+ * shift, so no MIN_DURATION clamp is needed. Structural sharing; returns the same
+ * ref when `deltaMs` is 0 / non-finite.
+ */
+export function shiftSubtree(
+  data: TodoItem[],
+  rootId: string,
+  deltaMs: number,
+): TodoItem[] {
+  if (!Number.isFinite(deltaMs) || deltaMs === 0) return data;
+  const shiftLeaf = (item: TodoItem): TodoItem => {
+    const next: TodoItem = {
+      ...item,
+      startAt: new Date(effStartMs(item) + deltaMs).toISOString(),
+    };
+    if (item.expireAt != null) {
+      next.expireAt = new Date((effEndMs(item) ?? effStartMs(item)) + deltaMs).toISOString();
+    }
+    return next;
+  };
+  const shiftDeep = (item: TodoItem): TodoItem =>
+    item.children?.length
+      ? { ...item, children: item.children.map(shiftDeep) }
+      : shiftLeaf(item);
+  return replace(data, rootId, shiftDeep);
 }
