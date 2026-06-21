@@ -3,9 +3,9 @@ date: 2026-06-20
 session: gantt-timeline-01 v0.2.0 editing layer ("Phase 2")
 phase: procomp v0.2.0 (minor, public-API-touching)
 type: feature-minor
-commits: [db2e2d5]   # pushed to master 2026-06-20 (ff over 64fddd8)
+commits: [db2e2d5, abb2aaf]   # v0.2.0 2026-06-20 (ff over 64fddd8) + v0.2.1 polish 2026-06-21
 components: [gantt-timeline-01]
-findings: [F-01-postdeploy-smoke-CLEAN, F-02-reorder-offbyone-FIXED, F-03-virt-suspend-drag, F-04-drawcreate-gate]
+findings: [F-01-postdeploy-smoke-CLEAN, F-02-reorder-offbyone-FIXED, F-03-virt-suspend-drag, F-04-drawcreate-gate, bracket-tracks-correct-WBS, group-move-OPEN]
 status: shipped-pushed-smoke-clean
 ---
 
@@ -45,6 +45,14 @@ tsc 0 · scoped ESLint **0 err** (1 known virtualizer warn) · validate:meta-dep
 
 Committed `db2e2d5` → ff-merged to `master` → pushed (`64fddd8..db2e2d5`). Vercel redeployed; v0.2.0 artifact live (markers: `@dnd-kit/core`, `context-menu`, `use-gantt-edit`, `edit-mutations`). **F-01 ran CLEAN** in the base-nova/**Base UI** consumer: `shadcn add @ilinxa/gantt-timeline-01 --overwrite` installed all 5 new files + the 2 new primitives; consumer `tsc --noEmit` had **0 gantt / todo-rich-card errors** (rest is pre-existing unrelated noise). **The `context-menu` `asChild` — the F-cross-13 watch item — compiled clean cross-backend: no regression on first ship.** (Runtime asChild behavior on Base UI isn't covered by tsc; the historical F-cross-13 failures were type-level, which this clears.)
 
+## v0.2.1 — bracket investigation + summary-drag polish (2026-06-21, `abb2aaf`)
+
+User reported the summary bracket "doesn't track" after moving a child ("Design system audit") right. **Investigated → the bracket is CORRECT.** A WBS summary spans `min(child start) → max(child end)`. "Design system audit" is the *earliest* child, so it owns the bracket's **left** edge; moving it right pulled the left edge right (verified by a px-level repro: left 77px → 245px → 413px across moves). The **right** edge is pinned by "Build component library" (Jun 28), so it didn't follow — which is what made it look frozen. The parent's own window (Jul 10) is intentionally ignored (standard WBS). No bug; the render path recomputes the span every frame.
+
+**One genuine wart fixed (v0.2.1, logic-only patch):** the summary bar has no drag identity, so a drag *on a bracket* fell through to the row's draw-to-create surface and spawned a stray sibling task. Now a drag landing on a summary row returns to the canvas-pan path (summaries are read-only, D20). No new primitive/API/dep → patch bump, no consumer smoke required (the F-cross-13 smoke trigger is new primitives — none here).
+
+**⏭️ OPEN THREAD (user deciding at session close): group-move.** The behavior the user *intuited* — drag a summary bracket → shift the **whole subtree** by one delta (snap + permission-gated, one `onChange`). Not built (summaries are read-only today). This is the likely next task. **Lesson:** "bracket doesn't track" was a WBS-semantics perception, not a defect — but the user's intuition points at a real missing feature (group-move). Investigate-then-explain-with-evidence beats assuming a bug; the repro at the px level was what made the explanation land.
+
 ## Open / RESUME
 
-**Shipped + pushed + smoke CLEAN.** Nothing pending. Open follow-ups all Low: **F-03** (suspend virtualization during a gutter drag) · **F-04** (gate draw-create at start) · **v0.2.1** (marquee/multi-select + bulk; calendar-aware snap). Carried v0.1.0: chart `height` prop, context-split perf, Vitest (the new pure `edit-mutations`/`edit-permissions` are test-ready). The other named procomp, **`calendar-01`**, remains unstarted (fresh GATE 1).
+**Shipped + pushed + smoke CLEAN (v0.2.0) + v0.2.1 polish pushed.** **The open thread is the group-move decision** (drag-bracket-moves-subtree) — the user is weighing it; likely the next task on resume. Otherwise nothing pending. Open follow-ups all Low: **F-03** (suspend virtualization during a gutter drag) · **F-04** (gate draw-create at start) · **v0.2.1** (marquee/multi-select + bulk; calendar-aware snap). Carried v0.1.0: chart `height` prop, context-split perf, Vitest (the new pure `edit-mutations`/`edit-permissions` are test-ready). The other named procomp, **`calendar-01`**, remains unstarted (fresh GATE 1).
