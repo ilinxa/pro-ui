@@ -227,6 +227,11 @@ export type GanttTimelineHandle = {
   editTask(itemId: string): void;
   /** Start inline rename of a gutter row. */
   beginRename(itemId: string): void;
+  /**
+   * v0.3.0 — group-move a summary's whole subtree by `deltaMs` (signed epoch-ms).
+   * No-op unless `editable` and the group is movable (summary + every leaf).
+   */
+  shiftTaskGroup(summaryId: string, deltaMs: number): void;
 };
 
 /* ───────── context (internal; constructed in the Root) ───────── */
@@ -302,6 +307,12 @@ export type GanttContextValue = {
   getItem: (id: string) => TodoItem | undefined;
   /** Effective permission for an action on an item (matrix + can* predicate + locked). */
   can: (action: GanttEditAction, item: TodoItem) => boolean;
+  /**
+   * v0.3.0 — can this summary's whole subtree be group-moved? Atomic: the summary
+   * must be movable AND every descendant leaf must pass `can("move")`. Drives both
+   * the bracket-drag gate and the grab cursor.
+   */
+  canGroupMove: (item: TodoItem) => boolean;
   /** parentId / index / level lookup over the current forest. */
   nodeInfo: (
     id: string,
@@ -325,6 +336,8 @@ export type GanttContextValue = {
     newParentId: string | null,
     newIndex: number,
   ) => void;
+  /** v0.3.0 — group-move: shift a summary's whole subtree by `deltaMs` (atomic-gated). */
+  moveSubtree: (id: string, deltaMs: number) => void;
   changeStatus: (id: string, status: string) => void;
 
   // detail editor (popover) target

@@ -127,12 +127,15 @@ export type SummaryBarProps = {
   leftPx: number;
   widthPx: number;
   selected?: boolean;
+  /** v0.3.0 — grab cursor + enlarged hit area for group-move (drag → shift subtree). */
+  groupMovable?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function SummaryBar({
   leftPx,
   widthPx,
   selected,
+  groupMovable,
   className,
   style,
   ...rest
@@ -141,7 +144,8 @@ export function SummaryBar({
     <div
       data-selected={selected || undefined}
       className={cn(
-        "absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-sm bg-foreground/85",
+        "absolute top-1/2 -translate-y-1/2 rounded-sm bg-foreground/85",
+        groupMovable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring",
         "data-[selected]:ring-2 data-[selected]:ring-foreground",
         className,
@@ -149,6 +153,10 @@ export function SummaryBar({
       style={{ left: leftPx, width: Math.max(widthPx, 8), height: 7, ...style }}
       {...rest}
     >
+      {/* enlarged pointer hit area (visual stays a thin 7px bar) */}
+      {groupMovable ? (
+        <span aria-hidden className="absolute -inset-y-2 inset-x-0" />
+      ) : null}
       {/* bracket end-caps */}
       <span
         aria-hidden

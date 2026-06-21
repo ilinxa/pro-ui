@@ -33,6 +33,8 @@ import {
   removeItem,
   renameItem,
   setWindow,
+  shiftSubtree,
+  subtreeLeaves,
 } from "../lib/edit-mutations";
 import { evalGanttPermission } from "../lib/edit-permissions";
 
@@ -287,6 +289,79 @@ export function useGanttEdit(args: Args) {
     [data, guard, index, onItemMoved, onChange],
   );
 
+  /* ── group-move (v0.3.0) ── */
+
+  /** Atomic gate: the summary is movable AND every descendant leaf is movable. */
+  const canGroupMove = useCallback(
+    (item: TodoItem): boolean => {
+      if (!editable || !can("move", item)) return false;
+      const leaves = subtreeLeaves(item);
+      return leaves.length > 0 && leaves.every((l) => can("move", l));
+    },
+    [editable, can],
+  );
+
+  /** Shift a summary's whole subtree by `deltaMs` — single-move applied per leaf. */
+  const moveSubtree = useCallback(
+    (id: string, deltaMs: number) => {
+      const summary = guard("move", id); // reports denial if the summary itself is blocked
+      if (!summary) return;
+      const leaves = subtreeLeaves(summary);
+      if (leaves.length === 0) return;
+      // Atomic (D23): a single blocked leaf vetoes the whole group; report + abort.
+      for (const leaf of leaves) {
+        if (!can("move", leaf)) {
+          const reason: TodoPermissionReason = leaf.locked
+            ? "locked"
+            : canMoveItem?.(leaf.id) === false
+              ? "predicate"
+              : "default";
+          onPermissionDenied?.("drag", leaf.id, reason);
+          return;
+        }
+      }
+      if (deltaMs === 0) return;
+      const next = shiftSubtree(data, id, deltaMs);
+      if (next === data) return;
+      const nextIndex = buildIndex(next);
+      // D25 — per-leaf field events (parity with single-move) + one onChange (= one undo step).
+      for (const leaf of leaves) {
+        const updated = nextIndex.get(leaf.id)?.item;
+        if (!updated) continue;
+        onFieldEdited?.({
+          itemId: leaf.id,
+          key: "startAt",
+          oldValue: leaf.startAt,
+          newValue: updated.startAt,
+        });
+        if (updated.expireAt !== leaf.expireAt) {
+          onFieldEdited?.({
+            itemId: leaf.id,
+            key: "expireAt",
+            oldValue: leaf.expireAt,
+            newValue: updated.expireAt,
+          });
+        }
+        onTaskReschedule?.({
+          itemId: leaf.id,
+          startAt: updated.startAt ?? updated.setAt,
+          expireAt: updated.expireAt,
+        });
+      }
+      onChange?.(next);
+    },
+    [
+      data,
+      can,
+      guard,
+      canMoveItem,
+      onPermissionDenied,
+      onFieldEdited,
+      onTaskReschedule,
+      onChange,
+    ],
+  );
+
   const changeStatus = useCallback(
     (id: string, status: string) => {
       const item = guard("editDetails", id);
@@ -355,12 +430,14 @@ export function useGanttEdit(args: Args) {
     editable,
     snap,
     can,
+    canGroupMove,
     nodeInfo,
     rescheduleItem,
     createItem,
     deleteItem,
     renameItemAction,
     moveItemAction,
+    moveSubtree,
     changeStatus,
     editingId,
     openEditor,
