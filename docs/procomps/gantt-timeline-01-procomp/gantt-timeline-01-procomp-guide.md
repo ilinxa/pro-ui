@@ -1,6 +1,6 @@
 # `gantt-timeline-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Version:** v0.2.0 · **Status:** alpha
+> **Stage:** 3 of 3 · **Version:** v0.2.1 · **Status:** alpha
 > Install: `pnpm dlx shadcn@latest add @ilinxa/gantt-timeline-01` (pulls `@ilinxa/todo-rich-card` + `@tanstack/react-virtual` + `@dnd-kit/core` + `lucide-react`).
 
 A read-only, fully-navigable project timeline (Gantt) over the canonical `TodoItem[]`. The time-axis sibling of `todo-rich-card` (cards) and `kanban-board-01` (columns).
