@@ -2685,6 +2685,65 @@
       "files": [
         { "path": "src/registry/components/data/gantt-timeline-01/dummy-data.ts", "type": "registry:component", "target": "components/gantt-timeline-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "calendar-01",
+      "type": "registry:block",
+      "title": "Calendar 01",
+      "description": "Read-only calendar over the canonical TodoItem[] — the date-grid sibling of gantt-timeline-01. Four views: a month grid (multi-day spanning bars + chips + \"+N more\" overflow), week & day hour time-grids (all-day band + lane-packed timed blocks + now-line), and a day-grouped agenda. Period navigation, view switching, an optional jump-to-date mini-nav, native-title hover tooltips (renderTooltip lazy-embeds the full TodoRichCard), selection, and keyboard shortcuts. All-day vs timed vs milestone is derived (consumer predicate → date-only strings parsed floating-local → span heuristic); status/urgency color is imported from todo-rich-card so it matches the card + gantt. The v0.2 editing surface is declared but inert in v1. Ships shadcn-style: a batteries-included <Calendar01> plus a headless <Calendar01Root> + flat à-la-carte view parts + Tier-C primitives, so a month-only subset drops the week/day time-grid code.",
+      "author": "ilinxa",
+      "categories": ["data", "task-management"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "button",
+        "calendar",
+        "popover",
+        "skeleton",
+        "toggle-group",
+        "tooltip",
+        "@ilinxa/todo-rich-card"
+      ],
+      "dependencies": ["date-fns", "lucide-react"],
+      "files": [
+        { "path": "src/registry/components/data/calendar-01/calendar-01.tsx", "type": "registry:component", "target": "components/calendar-01/calendar-01.tsx" },
+        { "path": "src/registry/components/data/calendar-01/index.ts", "type": "registry:component", "target": "components/calendar-01/index.ts" },
+        { "path": "src/registry/components/data/calendar-01/types.ts", "type": "registry:component", "target": "components/calendar-01/types.ts" },
+        { "path": "src/registry/components/data/calendar-01/lib/classify.ts", "type": "registry:component", "target": "components/calendar-01/lib/classify.ts" },
+        { "path": "src/registry/components/data/calendar-01/lib/color.ts", "type": "registry:component", "target": "components/calendar-01/lib/color.ts" },
+        { "path": "src/registry/components/data/calendar-01/lib/date-range.ts", "type": "registry:component", "target": "components/calendar-01/lib/date-range.ts" },
+        { "path": "src/registry/components/data/calendar-01/lib/occurrences.ts", "type": "registry:component", "target": "components/calendar-01/lib/occurrences.ts" },
+        { "path": "src/registry/components/data/calendar-01/lib/segments.ts", "type": "registry:component", "target": "components/calendar-01/lib/segments.ts" },
+        { "path": "src/registry/components/data/calendar-01/lib/lane-pack.ts", "type": "registry:component", "target": "components/calendar-01/lib/lane-pack.ts" },
+        { "path": "src/registry/components/data/calendar-01/hooks/use-calendar-context.ts", "type": "registry:component", "target": "components/calendar-01/hooks/use-calendar-context.ts" },
+        { "path": "src/registry/components/data/calendar-01/hooks/use-calendar-cursor.ts", "type": "registry:component", "target": "components/calendar-01/hooks/use-calendar-cursor.ts" },
+        { "path": "src/registry/components/data/calendar-01/hooks/use-now-tick.ts", "type": "registry:component", "target": "components/calendar-01/hooks/use-now-tick.ts" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-root.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-root.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-toolbar.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-toolbar.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-month-view.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-month-view.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-time-grid.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-time-grid.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-week-view.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-week-view.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-day-view.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-day-view.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-agenda-view.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-agenda-view.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-mini-nav.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-mini-nav.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-event.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-event.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/event-tooltip-full.tsx", "type": "registry:component", "target": "components/calendar-01/parts/event-tooltip-full.tsx" },
+        { "path": "src/registry/components/data/calendar-01/parts/calendar-skeleton.tsx", "type": "registry:component", "target": "components/calendar-01/parts/calendar-skeleton.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "calendar-01-fixtures",
+      "type": "registry:block",
+      "title": "Calendar 01 — fixtures",
+      "description": "Calendar 01 bundle including the demo fixture (a TodoItem[] generator + static dataset exercising timed/overlapping, multi-day spanning, single all-day (date-only), milestone, overdue, inactive, a dense day, and a nested parent) plus shared status / priority / label option presets. Resolves the base calendar-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["data", "task-management", "fixtures"],
+      "registryDependencies": ["@ilinxa/calendar-01"],
+      "files": [
+        { "path": "src/registry/components/data/calendar-01/dummy-data.ts", "type": "registry:component", "target": "components/calendar-01/dummy-data.ts" }
+      ]
     }
   ]
 }
