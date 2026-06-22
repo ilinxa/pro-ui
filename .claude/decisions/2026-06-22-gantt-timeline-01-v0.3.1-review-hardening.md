@@ -3,10 +3,10 @@ date: 2026-06-22
 session: gantt-timeline-01 v0.3.1 external-review hardening
 phase: procomp v0.3.1 (patch — non-breaking; skips GATE 3 per readiness rule)
 type: bugfix-hardening
-commits: []   # SHIPPED locally; commit + push user-gated
+commits: [8235917]
 components: [gantt-timeline-01]
 findings: [G1-keyboard-scroll-High, G2-finite-guards-Med, G3-calendar-snap-Med, G4-phantom-expireAt, G5-stale-wheel-tooltip, G6-add-below-gating, G7-renamingId-on-delete, G8-resizeobserver-loop, G9-positional-aria, G10-deleted-edit-bail, F-01-live-walkthrough-OWED]
-status: shipped-local-unpushed
+status: shipped-pushed
 ---
 
 # gantt-timeline-01 v0.3.1 — external-review hardening
@@ -47,4 +47,4 @@ The G1 body-scroll write tripped the React Compiler's `react-hooks/immutability`
 ## Open / carried
 
 - **F-01 (Medium, carried from v0.3.0):** live drag-walkthrough OWED post-deploy. This patch is verified by code-reasoning + green gates only; the gesture surface (drag-move / edge-resize / draw-create / @dnd-kit reparent / group-move) is the part static review can't cover — it needs a browser pass. The visual walkthrough is the project's de-facto gate.
-- **Resume:** commit + push to `master` → Vercel auto-deploy → optional F-cross-11 cross-backend consumer-tsc smoke (no new primitive this bump, so the F-cross-13 risk is unchanged from v0.3.0).
+- **Shipped + pushed** to `master` (`8235917`, `495fb71..8235917`) — Vercel auto-deploys. Optional next: F-cross-11 cross-backend consumer-tsc smoke (no new primitive this bump, so the F-cross-13 risk is unchanged from v0.3.0).
