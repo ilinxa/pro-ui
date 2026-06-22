@@ -1,13 +1,16 @@
 "use client";
 
-import { forwardRef } from "react";
+import { Fragment, forwardRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import { format, isSameDay } from "date-fns";
+import { Flag } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
 import { agendaDays } from "../lib/date-range";
 import { occurrencesOnDay } from "../lib/segments";
+import { CalendarEventContextMenu } from "./calendar-context-menu";
 import type { CalendarOccurrence, TodoStatusOption } from "../types";
 
 function timeLabel(occ: CalendarOccurrence): string {
@@ -24,27 +27,28 @@ function initials(name: string): string {
     .join("");
 }
 
-/** One agenda row (Tier C). */
+/** One agenda row (Tier C). Spreads `...rest` so the context menu can inject
+ *  `onContextMenu` (parity with the other event primitives). */
 export const AgendaRow = forwardRef<
   HTMLButtonElement,
   {
     occ: CalendarOccurrence;
     selected?: boolean;
-    onClick?: () => void;
     statusOptions?: TodoStatusOption[];
-  }
->(function AgendaRow({ occ, selected, onClick, statusOptions }, ref) {
+  } & Omit<ComponentPropsWithoutRef<"button">, "type">
+>(function AgendaRow({ occ, selected, statusOptions, className, ...rest }, ref) {
   const status = statusOptions?.find((o) => o.value === occ.item.status);
   const person = occ.item.targetPerson;
   return (
     <button
       ref={ref}
       type="button"
-      onClick={onClick}
+      {...rest}
       data-selected={selected || undefined}
       className={cn(
         "flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring data-[selected=true]:bg-muted",
         occ.inactive && "opacity-50",
+        className,
       )}
     >
       <span className="w-20 shrink-0 text-xs tabular-nums text-muted-foreground">
@@ -55,6 +59,13 @@ export const AgendaRow = forwardRef<
         style={{ backgroundColor: occ.color.fill }}
         aria-hidden
       />
+      {occ.flagColor ? (
+        <Flag
+          className="size-3 shrink-0 fill-current"
+          style={{ color: occ.flagColor }}
+          aria-label="High priority"
+        />
+      ) : null}
       <span className="flex-1 truncate text-sm text-foreground">
         {occ.item.name}
       </span>
@@ -86,6 +97,7 @@ export function CalendarAgendaView({ className }: { className?: string }) {
     selectedId,
     select,
     onTaskClick,
+    editable,
   } = useCalendar();
 
   const days = agendaDays(focusDate, agendaRangeDays);
@@ -127,18 +139,26 @@ export function CalendarAgendaView({ className }: { className?: string }) {
             {format(day, "EEEE, MMMM d")}
             {isSameDay(day, nowDate) ? " · Today" : ""}
           </h3>
-          {items.map((occ) => (
-            <AgendaRow
-              key={occ.id}
-              occ={occ}
-              selected={selectedId === occ.id}
-              statusOptions={statusOptions}
-              onClick={() => {
-                select(occ.id);
-                onTaskClick?.(occ.item);
-              }}
-            />
-          ))}
+          {items.map((occ) => {
+            const row = (
+              <AgendaRow
+                occ={occ}
+                selected={selectedId === occ.id}
+                statusOptions={statusOptions}
+                onClick={() => {
+                  select(occ.id);
+                  onTaskClick?.(occ.item);
+                }}
+              />
+            );
+            return editable ? (
+              <CalendarEventContextMenu key={occ.id} item={occ.item}>
+                {row}
+              </CalendarEventContextMenu>
+            ) : (
+              <Fragment key={occ.id}>{row}</Fragment>
+            );
+          })}
         </section>
       ))}
     </div>

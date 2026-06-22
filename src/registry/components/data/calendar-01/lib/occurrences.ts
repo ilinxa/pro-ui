@@ -12,6 +12,7 @@ import type {
   EventKind,
   TodoColorRamp,
   TodoItem,
+  TodoPriorityOption,
   TodoStatusOption,
 } from "../types";
 
@@ -19,7 +20,14 @@ export type OccurrenceContext = {
   nowMs: number;
   classifyEvent?: (item: TodoItem) => EventKind | undefined;
   statusOptions?: TodoStatusOption[];
+  priorityOptions?: TodoPriorityOption[];
   colorRamp?: TodoColorRamp;
+  /** Per-status accent color; drives the event color in "status" mode. */
+  statusColors?: Record<string, string>;
+  /** "status" (default) or "urgency" (time ramp). */
+  colorBy?: "status" | "urgency";
+  /** Predicate → events that show a priority flag. */
+  flagPriority?: (item: TodoItem) => boolean;
 };
 
 export function toOccurrences(
@@ -48,7 +56,21 @@ export function toOccurrences(
     const tone = toneFor(item, ctx.statusOptions);
     const overdue =
       Number.isFinite(endMs) && endMs < ctx.nowMs && tone !== "done";
-    const color = eventColor(item, tone, startMs, endMs, ctx.nowMs, ramp);
+    const statusColor = ctx.statusColors?.[item.status];
+    const color = eventColor(
+      item,
+      tone,
+      startMs,
+      endMs,
+      ctx.nowMs,
+      ramp,
+      statusColor,
+      ctx.colorBy,
+    );
+    const flagColor = ctx.flagPriority?.(item)
+      ? (ctx.priorityOptions?.find((o) => o.value === item.priority)?.color ??
+        "var(--destructive)")
+      : undefined;
 
     out.push({
       item,
@@ -61,6 +83,7 @@ export function toOccurrences(
       color,
       overdue,
       inactive: item.active === false,
+      flagColor,
       invalid: invalid || undefined,
     });
 

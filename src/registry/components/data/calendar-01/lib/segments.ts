@@ -40,14 +40,19 @@ export type MonthWeekLayout = {
   laneCount: number; // lanes actually rendered (≤ cap)
 };
 
-/** Lay one week (7 startOfDay dates) into ≤ `cap` lanes. */
+/**
+ * Lay a run of `startOfDay` dates into ≤ `cap` lanes. Used by the month grid
+ * (7-day weeks) AND the week/day all-day band (1–7 columns) — hence generalized
+ * to `weekDays.length` rather than a hardcoded 7 (F-03).
+ */
 export function layoutMonthWeek(
   weekDays: Date[],
   occurrences: CalendarOccurrence[],
   cap: number,
 ): MonthWeekLayout {
+  const lastCol = weekDays.length - 1;
   const weekStart = startOfDay(weekDays[0]).getTime();
-  const weekEnd = startOfDay(weekDays[6]).getTime();
+  const weekEnd = startOfDay(weekDays[lastCol]).getTime();
 
   type Placed = { occ: CalendarOccurrence; startCol: number; endCol: number };
   const placed: Placed[] = [];
@@ -60,7 +65,7 @@ export function layoutMonthWeek(
       differenceInCalendarDays(new Date(Math.max(firstMs, weekStart)), weekDays[0]),
     );
     const endCol = Math.min(
-      6,
+      lastCol,
       differenceInCalendarDays(new Date(Math.min(lastMs, weekEnd)), weekDays[0]),
     );
     placed.push({ occ, startCol, endCol });
@@ -76,14 +81,15 @@ export function layoutMonthWeek(
   });
 
   const laneOccupancy: boolean[][] = []; // [lane][col]
-  const overflow = new Array(7).fill(0);
+  const overflow = new Array(weekDays.length).fill(0);
   const segments: MonthSegment[] = [];
   let laneCount = 0;
 
   for (const p of placed) {
     let lane = 0;
     for (;;) {
-      if (!laneOccupancy[lane]) laneOccupancy[lane] = new Array(7).fill(false);
+      if (!laneOccupancy[lane])
+        laneOccupancy[lane] = new Array(weekDays.length).fill(false);
       let free = true;
       for (let c = p.startCol; c <= p.endCol; c++) {
         if (laneOccupancy[lane][c]) {

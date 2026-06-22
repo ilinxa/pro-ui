@@ -72,6 +72,7 @@ export function buildCalendarDummyData(base: Date): TodoItem[] {
       name: "Design review",
       status: "in-progress",
       active: true,
+      priority: "high",
       setAt: iso(at(base, 0, 10, 0)),
       expireAt: iso(at(base, 0, 11, 30)),
       labels: ["design"],
@@ -90,15 +91,16 @@ export function buildCalendarDummyData(base: Date): TodoItem[] {
       name: "Launch week",
       status: "in-progress",
       active: true,
+      priority: "high",
       setAt: dateOnly(addDays(base, 2)), // multi-day all-day spanning bar
       expireAt: dateOnly(addDays(base, 6)),
-      borderColor: "#8b5cf6",
     },
     {
       id: "4",
       name: "Spec deadline",
       status: "blocked",
       active: true,
+      priority: "high",
       setAt: iso(at(base, 4, 17, 0)), // milestone (no end / duration)
       labels: ["eng"],
     },
