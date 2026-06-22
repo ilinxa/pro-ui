@@ -11,7 +11,13 @@ export function flatten(
   isCollapsed: (id: string) => boolean,
 ): GanttRow[] {
   const out: GanttRow[] = [];
-  const walk = (item: TodoItem, depth: number, parentId: string | null) => {
+  const walk = (
+    item: TodoItem,
+    depth: number,
+    parentId: string | null,
+    posInSet: number,
+    setSize: number,
+  ) => {
     const hasChildren = !!item.children && item.children.length > 0;
     const collapsed = hasChildren && isCollapsed(item.id);
     out.push({
@@ -21,12 +27,17 @@ export function flatten(
       hasChildren,
       isSummary: hasChildren,
       collapsed,
+      posInSet,
+      setSize,
     });
     if (hasChildren && !collapsed) {
-      for (const child of item.children!) walk(child, depth + 1, item.id);
+      const kids = item.children!;
+      kids.forEach((child, i) =>
+        walk(child, depth + 1, item.id, i + 1, kids.length),
+      );
     }
   };
-  for (const item of data) walk(item, 0, null);
+  data.forEach((item, i) => walk(item, 0, null, i + 1, data.length));
   return out;
 }
 

@@ -38,10 +38,10 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   createdAt: "2026-06-20",
-  updatedAt: "2026-06-21",
+  updatedAt: "2026-06-22",
 
   author: { name: "ilinxa" },
 

@@ -91,6 +91,10 @@ export type GanttRow = {
   /** A parent renders a summary bar. */
   isSummary: boolean;
   collapsed: boolean;
+  /** 1-based position among same-parent siblings (for `aria-posinset`). */
+  posInSet: number;
+  /** Sibling count under the same parent (for `aria-setsize`). */
+  setSize: number;
 };
 
 /** Resolved bar geometry for one item. `endMs === null` ⇒ milestone. */
