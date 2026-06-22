@@ -10,16 +10,26 @@ import {
   useState,
 } from "react";
 import type { KeyboardEvent } from "react";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CalendarContext } from "../hooks/use-calendar-context";
 import { useCalendarCursor } from "../hooks/use-calendar-cursor";
+import { useCalendarEdit } from "../hooks/use-calendar-edit";
 import { useNowTick } from "../hooks/use-now-tick";
 import { visibleRange as computeVisibleRange } from "../lib/date-range";
 import { toOccurrences } from "../lib/occurrences";
 import type {
   CalendarContextValue,
   CalendarHandle,
+  CalendarOccurrence,
   CalendarRootProps,
   CalendarView,
 } from "../types";
@@ -40,6 +50,9 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       priorityOptions,
       labelOptions,
       colorRamp,
+      statusColors,
+      colorBy,
+      flagPriority,
       classifyEvent,
       now,
       colorRefreshIntervalMs = 60_000,
@@ -55,6 +68,26 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       onShowMore,
       onRangeChange,
       renderTooltip,
+      // editing (v0.2.0)
+      editable = false,
+      snap = "15min",
+      quickCompose = true,
+      onChange,
+      onTaskReschedule,
+      onItemAdded,
+      onItemRemoved,
+      onItemMoved,
+      onFieldEdited,
+      onStatusChanged,
+      permissions,
+      canMoveItem,
+      canResizeItem,
+      canDeleteItem,
+      canCreateChild,
+      canEditItem,
+      onPermissionDenied,
+      onExternalDrop,
+      renderQuickComposer,
       className,
       children,
     } = props;
@@ -84,9 +117,23 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
           nowMs,
           classifyEvent,
           statusOptions,
+          priorityOptions,
           colorRamp,
+          statusColors,
+          colorBy,
+          flagPriority,
         }),
-      [data, nowMs, classifyEvent, statusOptions, colorRamp],
+      [
+        data,
+        nowMs,
+        classifyEvent,
+        statusOptions,
+        priorityOptions,
+        colorRamp,
+        statusColors,
+        colorBy,
+        flagPriority,
+      ],
     );
 
     const visibleRange = useMemo(
@@ -108,6 +155,83 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
         onSelect?.(id);
       },
       [selectionControlled, onSelect],
+    );
+
+    // ── editing (v0.2.0) — the dispatcher chokepoints; all no-op when !editable ──
+    const edit = useCalendarEdit({
+      data,
+      editable,
+      snap,
+      statusOptions,
+      select,
+      onChange,
+      onTaskReschedule,
+      onItemAdded,
+      onItemRemoved,
+      onItemMoved,
+      onFieldEdited,
+      onStatusChanged,
+      permissions,
+      canMoveItem,
+      canResizeItem,
+      canDeleteItem,
+      canCreateChild,
+      canEditItem,
+      onPermissionDenied,
+    });
+    const {
+      can,
+      getItem,
+      rescheduleItem,
+      createItem,
+      deleteItem,
+      renameItemAction,
+      changeStatus,
+      changePriority,
+      applyEditedSubtree,
+      editingId,
+      openEditor,
+      closeEditor,
+      renamingId,
+      beginRename,
+      endRename,
+      composerTarget,
+      openComposer,
+      closeComposer,
+      resizePreview,
+      setResizePreview,
+    } = edit;
+
+    // Drag-to-reschedule across the grid. A draggable event carries `{ occ }`; a
+    // droppable day cell carries `{ dayMs }`. We shift by whole CALENDAR days
+    // (date-fns `addDays`, DST-safe) and only carry the end when the item has a
+    // real span (point events / milestones keep no end).
+    const sensors = useSensors(
+      useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    );
+    const onDragEnd = useCallback(
+      (e: DragEndEvent) => {
+        const occ = e.active.data.current?.occ as CalendarOccurrence | undefined;
+        const targetDayMs = e.over?.data.current?.dayMs as number | undefined;
+        if (!occ || targetDayMs == null) return;
+        const sourceDayMs = startOfDay(occ.startMs).getTime();
+        const deltaDays = differenceInCalendarDays(
+          new Date(targetDayMs),
+          new Date(sourceDayMs),
+        );
+        if (deltaDays === 0) return;
+        const newStart = addDays(new Date(occ.startMs), deltaDays).getTime();
+        const hasSpan = occ.endMs > occ.startMs;
+        const newEnd = hasSpan
+          ? addDays(new Date(occ.endMs), deltaDays).getTime()
+          : undefined;
+        rescheduleItem(
+          occ.id,
+          { startMs: newStart, endMs: newEnd, allDay: occ.allDay },
+          "move",
+        );
+      },
+      [rescheduleItem],
     );
 
     // onRangeChange — fire on mount + when the visible window changes. The
@@ -139,12 +263,38 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
           start: new Date(rangeStartMs),
           end: new Date(rangeEndMs),
         }),
-        // Editing (v0.2.0) — no-ops in v1.
-        addTask: () => {},
-        deleteTask: () => {},
-        editTask: () => {},
+        // Editing (v0.2.0) — live; still no-op when !editable / permission denied.
+        addTask: (date, item) =>
+          createItem(null, item, {
+            startMs: startOfDay(date).getTime(),
+            allDay: true,
+          }),
+        deleteTask: (id) => deleteItem(id),
+        editTask: (id) => openEditor(id),
+        beginRename: (id) => beginRename(id),
+        openQuickComposer: (date, allDay = true) =>
+          openComposer({
+            date: startOfDay(date),
+            allDay,
+            defaultEnd: allDay
+              ? startOfDay(date)
+              : new Date(date.getTime() + 3_600_000),
+          }),
       }),
-      [goToDate, goToToday, setView, next, prev, rangeStartMs, rangeEndMs],
+      [
+        goToDate,
+        goToToday,
+        setView,
+        next,
+        prev,
+        rangeStartMs,
+        rangeEndMs,
+        createItem,
+        deleteItem,
+        openEditor,
+        beginRename,
+        openComposer,
+      ],
     );
 
     const ctx = useMemo<CalendarContextValue>(
@@ -173,6 +323,33 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
         onDateClick,
         onShowMore,
         renderTooltip,
+        // editing (v0.2.0)
+        editable,
+        snap,
+        quickCompose,
+        permissions,
+        getItem,
+        can,
+        rescheduleItem,
+        createItem,
+        deleteItem,
+        renameItemAction,
+        changeStatus,
+        changePriority,
+        applyEditedSubtree,
+        editingId,
+        openEditor,
+        closeEditor,
+        renamingId,
+        beginRename,
+        endRename,
+        composerTarget,
+        openComposer,
+        closeComposer,
+        resizePreview,
+        setResizePreview,
+        onExternalDrop,
+        renderQuickComposer,
       }),
       [
         view,
@@ -199,6 +376,32 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
         onDateClick,
         onShowMore,
         renderTooltip,
+        editable,
+        snap,
+        quickCompose,
+        permissions,
+        getItem,
+        can,
+        rescheduleItem,
+        createItem,
+        deleteItem,
+        renameItemAction,
+        changeStatus,
+        changePriority,
+        applyEditedSubtree,
+        editingId,
+        openEditor,
+        closeEditor,
+        renamingId,
+        beginRename,
+        endRename,
+        composerTarget,
+        openComposer,
+        closeComposer,
+        resizePreview,
+        setResizePreview,
+        onExternalDrop,
+        renderQuickComposer,
       ],
     );
 
@@ -240,6 +443,15 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       }
     };
 
+    // DnD only mounts when editable — the read-only path stays DnD-free.
+    const body = editable ? (
+      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+        {children}
+      </DndContext>
+    ) : (
+      children
+    );
+
     return (
       <CalendarContext.Provider value={ctx}>
         <TooltipProvider delayDuration={250}>
@@ -252,7 +464,7 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
               className,
             )}
           >
-            {children}
+            {body}
           </div>
         </TooltipProvider>
       </CalendarContext.Provider>

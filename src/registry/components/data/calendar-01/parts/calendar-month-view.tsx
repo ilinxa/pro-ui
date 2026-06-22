@@ -1,7 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { format, isSameDay, isSameMonth } from "date-fns";
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
+import { useRef } from "react";
+import { format, isSameDay, isSameMonth, startOfDay } from "date-fns";
+import { useDroppable } from "@dnd-kit/core";
 import {
   Popover,
   PopoverContent,
@@ -16,13 +18,16 @@ import {
   CalendarEventChip,
   EventHoverWrap,
 } from "./calendar-event";
+import { DraggableEventWrap } from "./calendar-edit-affordances";
 import type { CalendarOccurrence, TodoItem } from "../types";
 
 const DEFAULT_CAP = 3;
 const LANE_H = "1.3rem";
 
 /** One month-grid day cell (Tier C). Renders the cell chrome + day number +
- *  the "+N more" affordance; spanning events are overlaid by the view. */
+ *  the "+N more" affordance; spanning events are overlaid by the view. The
+ *  editable view passes `dropRef`/`isOver` (a @dnd-kit droppable) + a create
+ *  click; read-only consumers omit them and the cell stays context-free. */
 export function MonthDayCell({
   day,
   outside,
@@ -30,7 +35,11 @@ export function MonthDayCell({
   hidden,
   hiddenItems,
   onDayClick,
+  onDayDoubleClick,
   onShowMore,
+  dropRef,
+  isOver,
+  creatable,
 }: {
   day: Date;
   outside: boolean;
@@ -38,16 +47,23 @@ export function MonthDayCell({
   hidden: number;
   hiddenItems: CalendarOccurrence[];
   onDayClick?: (d: Date) => void;
+  onDayDoubleClick?: (d: Date, e: ReactMouseEvent) => void;
   onShowMore?: (d: Date, items: TodoItem[]) => void;
+  dropRef?: (el: HTMLElement | null) => void;
+  isOver?: boolean;
+  creatable?: boolean;
 }) {
   return (
     <div
+      ref={dropRef}
       role="gridcell"
       onClick={onDayClick ? () => onDayClick(day) : undefined}
+      onDoubleClick={onDayDoubleClick ? (e) => onDayDoubleClick(day, e) : undefined}
       className={cn(
         "relative min-h-27 border-r border-border last:border-r-0",
-        onDayClick && "cursor-pointer",
+        (onDayClick || creatable) && "cursor-pointer",
         outside && "bg-muted/30",
+        isOver && "bg-primary/10 ring-1 ring-inset ring-primary/40",
       )}
     >
       <div className="flex items-center justify-end p-1">
@@ -122,8 +138,48 @@ function DayList({
   );
 }
 
+/** Editable droppable wrapper around a day cell (Tier B — editable only). */
+function DroppableDayCell(props: {
+  day: Date;
+  outside: boolean;
+  today: boolean;
+  hidden: number;
+  hiddenItems: CalendarOccurrence[];
+  onShowMore?: (d: Date, items: TodoItem[]) => void;
+}) {
+  const { createItem, quickCompose, openComposer } = useCalendar();
+  const dayMs = startOfDay(props.day).getTime();
+  const { setNodeRef, isOver } = useDroppable({
+    id: `day:${dayMs}`,
+    data: { dayMs },
+  });
+  return (
+    <MonthDayCell
+      {...props}
+      dropRef={setNodeRef}
+      isOver={isOver}
+      creatable
+      onDayDoubleClick={(d, e) => {
+        const startMs = startOfDay(d).getTime();
+        if (quickCompose) {
+          openComposer({
+            date: new Date(startMs),
+            allDay: true,
+            defaultEnd: new Date(startMs),
+            x: e.clientX,
+            y: e.clientY,
+          });
+        } else {
+          createItem(null, undefined, { startMs, allDay: true });
+        }
+      }}
+    />
+  );
+}
+
 /** Month view (Tier B). 7-column weekday grid; multi-day spanning bars + chips
- *  in lanes, "+N more" overflow per day. */
+ *  in lanes, "+N more" overflow per day. Editable: drag-to-reschedule (whole
+ *  days), all-day bar resize, click-to-create, hover-delete. */
 export function CalendarMonthView({ className }: { className?: string }) {
   const ctx = useCalendar();
   const {
@@ -138,11 +194,22 @@ export function CalendarMonthView({ className }: { className?: string }) {
     onDateClick,
     onShowMore,
     renderTooltip,
+    editable,
+    can,
+    resizePreview,
   } = ctx;
 
   const cap = maxEventsPerCell ?? DEFAULT_CAP;
   const weeks = monthGrid(focusDate, weekStartsOn);
   const nowDate = new Date(nowMs);
+  // Apply the live resize preview to the occurrence being dragged.
+  const occs = resizePreview
+    ? occurrences.map((o) =>
+        o.id === resizePreview.id
+          ? { ...o, startMs: resizePreview.startMs, endMs: resizePreview.endMs }
+          : o,
+      )
+    : occurrences;
 
   const activate = (occ: CalendarOccurrence) => {
     select(occ.id);
@@ -165,79 +232,154 @@ export function CalendarMonthView({ className }: { className?: string }) {
       </div>
 
       {/* week rows */}
-      {weeks.map((week) => {
-        const layout = layoutMonthWeek(week, occurrences, cap);
-        return (
-          <div
-            key={week[0].toISOString()}
-            role="row"
-            className="relative grid grid-cols-7 border-b border-border last:border-b-0"
-          >
-            {week.map((day, col) => {
-              const onDay = occurrencesOnDay(occurrences, day);
-              const hiddenItems = onDay.filter(
-                (o) => !layout.segments.some((s) => s.occ.id === o.id),
-              );
-              return (
-                <MonthDayCell
-                  key={day.toISOString()}
-                  day={day}
-                  outside={!isSameMonth(day, focusDate)}
-                  today={isSameDay(day, nowDate)}
-                  hidden={layout.overflow[col]}
-                  hiddenItems={hiddenItems}
-                  onDayClick={onDateClick}
-                  onShowMore={onShowMore}
-                />
-              );
-            })}
+      {weeks.map((week) => (
+        <MonthWeekRow
+          key={week[0].toISOString()}
+          week={week}
+          cap={cap}
+          occurrences={occs}
+          focusDate={focusDate}
+          nowDate={nowDate}
+          selectedId={selectedId}
+          editable={editable}
+          can={can}
+          onTaskClick={onTaskClick}
+          onDateClick={onDateClick}
+          onShowMore={onShowMore}
+          renderTooltip={renderTooltip}
+          activate={activate}
+        />
+      ))}
+    </div>
+  );
+}
 
-            {/* events overlay (bars + chips), placed by lane */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-8 grid grid-cols-7 gap-x-px gap-y-0.5 px-px"
-              style={
-                {
-                  gridTemplateRows: `repeat(${cap}, minmax(0, ${LANE_H}))`,
-                } as CSSProperties
-              }
-            >
-              {layout.segments.map((seg) => {
-                const tooltip = renderTooltip
-                  ? renderTooltip(seg.occ.item, seg.occ)
-                  : undefined;
-                const Event =
-                  seg.spanning || seg.occ.allDay ? (
-                    <CalendarEventBar
-                      occ={seg.occ}
-                      selected={selectedId === seg.occ.id}
-                      continuesLeft={seg.continuesLeft}
-                      continuesRight={seg.continuesRight}
-                      onClick={() => activate(seg.occ)}
-                    />
-                  ) : (
-                    <CalendarEventChip
-                      occ={seg.occ}
-                      selected={selectedId === seg.occ.id}
-                      onClick={() => activate(seg.occ)}
-                    />
-                  );
-                return (
-                  <div
-                    key={seg.occ.id}
-                    className="pointer-events-auto min-w-0"
-                    style={{
-                      gridColumn: `${seg.startCol + 1} / ${seg.endCol + 2}`,
-                      gridRow: seg.lane + 1,
-                    }}
-                  >
-                    <EventHoverWrap tooltip={tooltip}>{Event}</EventHoverWrap>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+/** One week row — split out so it can own a stable ref for resize geometry. */
+function MonthWeekRow({
+  week,
+  cap,
+  occurrences,
+  focusDate,
+  nowDate,
+  selectedId,
+  editable,
+  can,
+  onDateClick,
+  onShowMore,
+  renderTooltip,
+  activate,
+}: {
+  week: Date[];
+  cap: number;
+  occurrences: CalendarOccurrence[];
+  focusDate: Date;
+  nowDate: Date;
+  selectedId: string | null;
+  editable: boolean;
+  can: ReturnType<typeof useCalendar>["can"];
+  onTaskClick?: (item: TodoItem) => void;
+  onDateClick?: (d: Date) => void;
+  onShowMore?: (d: Date, items: TodoItem[]) => void;
+  renderTooltip?: ReturnType<typeof useCalendar>["renderTooltip"];
+  activate: (occ: CalendarOccurrence) => void;
+}) {
+  const weekRef = useRef<HTMLDivElement | null>(null);
+  const layout = layoutMonthWeek(week, occurrences, cap);
+
+  return (
+    <div
+      ref={weekRef}
+      role="row"
+      className="relative grid grid-cols-7 border-b border-border last:border-b-0"
+    >
+      {week.map((day, col) => {
+        const onDay = occurrencesOnDay(occurrences, day);
+        const hiddenItems = onDay.filter(
+          (o) => !layout.segments.some((s) => s.occ.id === o.id),
+        );
+        const cellProps = {
+          day,
+          outside: !isSameMonth(day, focusDate),
+          today: isSameDay(day, nowDate),
+          hidden: layout.overflow[col],
+          hiddenItems,
+          onShowMore,
+        };
+        return editable ? (
+          <DroppableDayCell key={day.toISOString()} {...cellProps} />
+        ) : (
+          <MonthDayCell
+            key={day.toISOString()}
+            {...cellProps}
+            onDayClick={onDateClick}
+          />
         );
       })}
+
+      {/* events overlay (bars + chips), placed by lane */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-8 grid grid-cols-7 gap-x-px gap-y-0.5 px-px"
+        style={
+          {
+            gridTemplateRows: `repeat(${cap}, minmax(0, ${LANE_H}))`,
+          } as CSSProperties
+        }
+      >
+        {layout.segments.map((seg) => {
+          const tooltip = renderTooltip
+            ? renderTooltip(seg.occ.item, seg.occ)
+            : undefined;
+          const isBar = seg.spanning || seg.occ.allDay;
+          const Event = isBar ? (
+            <CalendarEventBar
+              occ={seg.occ}
+              selected={selectedId === seg.occ.id}
+              continuesLeft={seg.continuesLeft}
+              continuesRight={seg.continuesRight}
+              onClick={() => activate(seg.occ)}
+            />
+          ) : (
+            <CalendarEventChip
+              occ={seg.occ}
+              selected={selectedId === seg.occ.id}
+              onClick={() => activate(seg.occ)}
+            />
+          );
+          const canDrag = editable && can("move", seg.occ.item);
+          // All-day bars (incl. single-day) get day-resize grips → drag an edge
+          // to extend across days. Clipped (continues-left/right) bars can't.
+          const resizable =
+            editable &&
+            seg.occ.allDay &&
+            !seg.continuesLeft &&
+            !seg.continuesRight &&
+            can("resize", seg.occ.item);
+          return (
+            <div
+              key={seg.occ.id}
+              className="pointer-events-auto min-w-0"
+              style={{
+                gridColumn: `${seg.startCol + 1} / ${seg.endCol + 2}`,
+                gridRow: seg.lane + 1,
+              }}
+            >
+              {editable ? (
+                <DraggableEventWrap
+                  occ={seg.occ}
+                  canDrag={canDrag}
+                  resizable={resizable}
+                  containerRef={weekRef}
+                  cols={week}
+                >
+                  {Event}
+                </DraggableEventWrap>
+              ) : (
+                <EventHoverWrap tooltip={tooltip}>{Event}</EventHoverWrap>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

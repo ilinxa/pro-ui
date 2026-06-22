@@ -46,14 +46,17 @@ export function elapsedFraction(
 }
 
 /**
- * Resolve the accent color for an event:
- *   borderColor override → that color (skips the engine)
- *   tone "done"          → muted-foreground
- *   tone "blocked"       → destructive
- *   tone "active"        → time-urgency ramp (fresh → red)
+ * Resolve the accent color for an event. Precedence:
+ *   item.borderColor override → that color (skips the engine)
+ *   statusColor (statusColors[item.status]) → that color (status-driven)
+ *   tone "done"    → muted-foreground
+ *   tone "blocked" → destructive
+ *   colorBy "urgency" → time-elapsed ramp (the v1 behavior, matches card + gantt)
+ *   otherwise (status mode, active, no explicit color) → primary
  *
- * The accent is used as the chip/block border + text; the surface tints it
- * (color-mix) for the background — same accent, light fill.
+ * The accent is the chip/block border + text; the surface tints it (color-mix)
+ * for the background — same accent, light fill. Default `colorBy` is "status",
+ * so changing an item's status changes its color (use "urgency" for the ramp).
  */
 export function eventColor(
   item: TodoItem,
@@ -62,11 +65,15 @@ export function eventColor(
   endMs: number,
   nowMs: number,
   ramp: (t: number) => string,
+  statusColor?: string,
+  colorBy: "status" | "urgency" = "status",
 ): CalendarEventColor {
   let accent: string;
   if (item.borderColor) accent = item.borderColor;
+  else if (statusColor) accent = statusColor;
   else if (tone === "done") accent = "var(--muted-foreground)";
   else if (tone === "blocked") accent = "var(--destructive)";
-  else accent = ramp(elapsedFraction(startMs, endMs, nowMs));
+  else if (colorBy === "urgency") accent = ramp(elapsedFraction(startMs, endMs, nowMs));
+  else accent = "var(--primary)";
   return { fill: accent, foreground: accent, border: accent };
 }

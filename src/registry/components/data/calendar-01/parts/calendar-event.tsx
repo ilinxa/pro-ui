@@ -1,8 +1,14 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { CSSProperties, ReactElement, ReactNode } from "react";
+import type {
+  ComponentPropsWithoutRef,
+  CSSProperties,
+  ReactElement,
+  ReactNode,
+} from "react";
 import { format } from "date-fns";
+import { Flag } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +17,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { CalendarOccurrence, TodoStatusOption } from "../types";
+
+/** A small solid priority flag (color = the item's priority color). */
+function PriorityFlag({ color }: { color?: string }) {
+  if (!color) return null;
+  return (
+    <Flag
+      className="size-3 shrink-0 fill-current"
+      style={{ color }}
+      aria-label="High priority"
+    />
+  );
+}
 
 /**
  * Inline CSS var carrying the resolved accent. The tint / border / text / ring
@@ -72,19 +90,19 @@ export function EventHoverWrap({
 type ChipProps = {
   occ: CalendarOccurrence;
   selected?: boolean;
-  onClick?: () => void;
   className?: string;
-};
+} & Omit<ComponentPropsWithoutRef<"button">, "style" | "title" | "type" | "children">;
 
-/** Month single-day / timed chip (Tier C). */
+/** Month single-day / timed chip (Tier C). Spreads `...rest` so wrappers like
+ *  the context menu (`ContextMenuTrigger asChild`) can inject `onContextMenu`. */
 export const CalendarEventChip = forwardRef<HTMLButtonElement, ChipProps>(
-  function CalendarEventChip({ occ, selected, onClick, className }, ref) {
+  function CalendarEventChip({ occ, selected, className, ...rest }, ref) {
     const milestone = occ.kind === "milestone";
     return (
       <button
         ref={ref}
         type="button"
-        onClick={onClick}
+        {...rest}
         title={eventTitle(occ)}
         data-selected={selected || undefined}
         style={accentStyle(occ)}
@@ -97,6 +115,7 @@ export const CalendarEventChip = forwardRef<HTMLButtonElement, ChipProps>(
           className,
         )}
       >
+        <PriorityFlag color={occ.flagColor} />
         {milestone ? (
           <span
             className="size-1.5 shrink-0 rotate-45 bg-(--cal-accent)"
@@ -121,14 +140,14 @@ type BarProps = ChipProps & {
 /** Month multi-day spanning bar segment (Tier C). */
 export const CalendarEventBar = forwardRef<HTMLButtonElement, BarProps>(
   function CalendarEventBar(
-    { occ, selected, onClick, continuesLeft, continuesRight, className },
+    { occ, selected, continuesLeft, continuesRight, className, ...rest },
     ref,
   ) {
     return (
       <button
         ref={ref}
         type="button"
-        onClick={onClick}
+        {...rest}
         title={eventTitle(occ)}
         data-selected={selected || undefined}
         style={accentStyle(occ)}
@@ -145,6 +164,11 @@ export const CalendarEventBar = forwardRef<HTMLButtonElement, BarProps>(
           className,
         )}
       >
+        {!continuesLeft ? (
+          <span className="mr-1 inline-flex shrink-0">
+            <PriorityFlag color={occ.flagColor} />
+          </span>
+        ) : null}
         <span className="truncate">
           {continuesLeft ? "◀ " : ""}
           {occ.item.name}
@@ -166,7 +190,7 @@ type TimeBlockProps = ChipProps & {
 /** Week/Day positioned timed block (Tier C). */
 export const CalendarTimeBlock = forwardRef<HTMLButtonElement, TimeBlockProps>(
   function CalendarTimeBlock(
-    { occ, selected, onClick, top, height, left, width, className },
+    { occ, selected, top, height, left, width, className, ...rest },
     ref,
   ) {
     const milestone = occ.kind === "milestone";
@@ -174,7 +198,7 @@ export const CalendarTimeBlock = forwardRef<HTMLButtonElement, TimeBlockProps>(
       <button
         ref={ref}
         type="button"
-        onClick={onClick}
+        {...rest}
         title={eventTitle(occ)}
         data-selected={selected || undefined}
         style={accentStyle(occ, {
@@ -193,7 +217,10 @@ export const CalendarTimeBlock = forwardRef<HTMLButtonElement, TimeBlockProps>(
           className,
         )}
       >
-        <span className="truncate font-medium">{occ.item.name}</span>
+        <span className="flex items-center gap-1">
+          <PriorityFlag color={occ.flagColor} />
+          <span className="truncate font-medium">{occ.item.name}</span>
+        </span>
         {!milestone && height > 0.04 ? (
           <span className="truncate tabular-nums opacity-75">
             {compactTime(occ.startMs)}–{compactTime(occ.endMs)}

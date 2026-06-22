@@ -9,6 +9,9 @@ export { CalendarWeekView } from "./parts/calendar-week-view";
 export { CalendarDayView } from "./parts/calendar-day-view";
 export { CalendarAgendaView } from "./parts/calendar-agenda-view";
 export { CalendarMiniNav } from "./parts/calendar-mini-nav";
+export { CalendarEventInspector } from "./parts/calendar-event-inspector";
+export { CalendarQuickComposer } from "./parts/calendar-quick-composer";
+export { CalendarEventContextMenu } from "./parts/calendar-context-menu";
 
 // Standalone primitives (Tier C)
 export {
@@ -39,6 +42,10 @@ export type {
   CalendarEventColor,
   CalendarStatusTone,
   CalendarTooltipRenderer,
+  CalendarSnap,
+  CalendarEditAction,
+  CalendarComposerTarget,
+  CalendarQuickComposerRenderer,
   TodoItem,
   TodoPerson,
   TodoStatusOption,

@@ -9,6 +9,8 @@ import { CalendarMonthView } from "./parts/calendar-month-view";
 import { CalendarWeekView } from "./parts/calendar-week-view";
 import { CalendarDayView } from "./parts/calendar-day-view";
 import { CalendarAgendaView } from "./parts/calendar-agenda-view";
+import { CalendarEventInspector } from "./parts/calendar-event-inspector";
+import { CalendarQuickComposer } from "./parts/calendar-quick-composer";
 import type { CalendarHandle, CalendarProps } from "./types";
 
 /** Renders the active view (must live inside the Root to read context). */
@@ -39,6 +41,7 @@ export const Calendar01 = forwardRef<CalendarHandle, CalendarProps>(
     const {
       showToolbar = true,
       showMiniNav = false,
+      showInspector = false,
       className,
       ...rootProps
     } = props;
@@ -47,6 +50,9 @@ export const Calendar01 = forwardRef<CalendarHandle, CalendarProps>(
       <Calendar01Root ref={ref} className={className} {...rootProps}>
         {showToolbar ? <CalendarToolbar /> : null}
         <div className="flex min-h-0 flex-1">
+          {showInspector ? (
+            <CalendarEventInspector className="hidden w-64 shrink-0 border-r border-border sm:flex" />
+          ) : null}
           {showMiniNav ? (
             <CalendarMiniNav className="hidden border-r border-border p-2 sm:block" />
           ) : null}
@@ -54,6 +60,7 @@ export const Calendar01 = forwardRef<CalendarHandle, CalendarProps>(
             <ActiveView />
           </div>
         </div>
+        <CalendarQuickComposer />
       </Calendar01Root>
     );
   },

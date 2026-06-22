@@ -15,7 +15,21 @@ import {
   useCalendar,
 } from "./";
 import type { CalendarHandle, TodoItem } from "./";
-import { buildCalendarDummyData, CALENDAR_STATUS_OPTIONS } from "./dummy-data";
+import {
+  buildCalendarDummyData,
+  CALENDAR_LABEL_OPTIONS,
+  CALENDAR_PRIORITY_OPTIONS,
+  CALENDAR_STATUS_OPTIONS,
+} from "./dummy-data";
+
+/** Distinct accent per status → the event color tracks the status (not time). */
+const STATUS_COLORS: Record<string, string> = {
+  todo: "oklch(0.62 0.13 255)", // blue — not started
+  "in-progress": "var(--primary)", // signal-lime — active
+  blocked: "var(--destructive)", // red — blocked
+  done: "var(--muted-foreground)", // grey — done
+};
+const isHighPriority = (item: TodoItem) => item.priority === "high";
 
 /** Inline view switcher for the hand-assembled "lighter" subset. */
 function ComposedBody() {
@@ -28,11 +42,17 @@ export default function Calendar01Demo() {
   const [clicked, setClicked] = useState<TodoItem | null>(null);
   const [today] = useState(() => new Date());
   const data = useMemo(() => buildCalendarDummyData(today), [today]);
+  // Editable tab is controlled: edits echo back into local state.
+  const [editData, setEditData] = useState<TodoItem[]>(() =>
+    buildCalendarDummyData(today),
+  );
+  const [lastEdit, setLastEdit] = useState<string>("");
 
   return (
     <Tabs defaultValue="calendar" className="w-full gap-4">
       <SwipeTabsList>
         <TabsTrigger value="calendar">Calendar</TabsTrigger>
+        <TabsTrigger value="editable">Editable</TabsTrigger>
         <TabsTrigger value="composed">Lighter (composed)</TabsTrigger>
         <TabsTrigger value="fullcard">Full-card tooltip</TabsTrigger>
         <TabsTrigger value="states">States</TabsTrigger>
@@ -72,10 +92,45 @@ export default function Calendar01Demo() {
           ref={handle}
           data={data}
           statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
           defaultView="month"
           now={today}
           showMiniNav
           onTaskClick={setClicked}
+        />
+      </TabsContent>
+
+      {/* 1b — EDITABLE (v0.2.0): controlled data echoed via onChange */}
+      <TabsContent value="editable" className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            <strong>Drag</strong> to reschedule · <strong>drag an edge</strong> to
+            resize · <strong>double-click</strong> (or drag) empty space →
+            quick-create · <strong>right-click</strong> an event for actions ·
+            select → <strong>Edit</strong> in the panel. Switch to{" "}
+            <strong>Week/Day</strong> for time editing.
+          </span>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {lastEdit || `${editData.length} root items`}
+          </span>
+        </div>
+        <Calendar01
+          editable
+          data={editData}
+          onChange={setEditData}
+          statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          labelOptions={CALENDAR_LABEL_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
+          defaultView="month"
+          now={today}
+          showInspector
+          onItemAdded={(e) => setLastEdit(`Added: ${e.item.name}`)}
+          onItemRemoved={(e) => setLastEdit(`Removed: ${e.removed.name}`)}
+          onFieldEdited={(e) => setLastEdit(`Edited ${e.key} on ${e.itemId}`)}
         />
       </TabsContent>
 
@@ -89,6 +144,9 @@ export default function Calendar01Demo() {
         <Calendar01Root
           data={data}
           statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
           now={today}
           defaultView="month"
           views={["month", "agenda"]}
@@ -107,6 +165,9 @@ export default function Calendar01Demo() {
         <Calendar01
           data={data}
           statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
           now={today}
           defaultView="month"
           renderTooltip={(item) => (
