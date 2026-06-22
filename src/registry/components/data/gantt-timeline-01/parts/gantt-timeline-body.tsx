@@ -76,6 +76,25 @@ type EditDrag =
     };
 
 const MIN_MS = 60_000;
+const DRAG_THRESHOLD = 4; // px the pointer must travel before a press becomes a gesture
+const EDGE_PX = 8; // resize hot-zone at each bar edge (needs a center move zone to coexist)
+
+/** What sits under a press — classified once on pointerdown, acted on in `resolvePending`. */
+type Candidate =
+  | { kind: "summary"; id: string }
+  | { kind: "barEdge"; id: string; edge: "start" | "end" }
+  | { kind: "barBody"; id: string }
+  | { kind: "emptyRow"; rowId: string; parentId: string | null; index: number }
+  | { kind: "void" };
+
+/** A deferred press: nothing has committed yet; intent is resolved on the first move. */
+type Pending = {
+  pointerId: number;
+  x0: number;
+  y0: number;
+  ms0: number;
+  candidate: Candidate;
+};
 
 function snapUnitMs(snap: GanttSnap, minor: GanttTimeUnit): number {
   if (snap === "off") return 0;
@@ -133,6 +152,7 @@ export function GanttTimelineBody({ className }: { className?: string }) {
   const [hover, setHover] = useState<HoverState | null>(null);
   const [editDrag, setEditDrag] = useState<EditDrag | null>(null);
   const editDragRef = useRef<EditDrag | null>(null);
+  const pendingRef = useRef<Pending | null>(null);
   const snapUnitRef = useRef(0);
   const snapCalRef = useRef<GanttTimeUnit | null>(null);
 
@@ -204,106 +224,85 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     return ri?.start ?? 0;
   }
 
-  /* ── edit gesture: hit-test BEFORE pan (only when editable) ── */
-  function tryStartEdit(e: PointerEvent<HTMLDivElement>): boolean {
-    if (!editable) return false;
-    const target = e.target as HTMLElement;
-    const surface = e.currentTarget;
-    const tMs = timeAtPointer(e.clientX, surface);
-    snapUnitRef.current = e.altKey ? 0 : snapUnitMs(ctx.snap, minor);
-    snapCalRef.current = e.altKey ? null : snapCalUnit(ctx.snap, minor);
+  /* ── press classification (deferred; the gesture is chosen on the first move) ── */
 
-    // Summary bracket → group-move the whole subtree when movable (D22/D23).
-    // A non-movable group (or empty summary-row area) falls through to v1 pan.
+  /**
+   * Which edge of a bar (if any) the press is near — by PIXEL proximity to the
+   * bar's geometric edges, not a DOM `[data-edge]` hit. A center move zone must
+   * remain, so a narrow bar exposes no resize edges (it moves as a whole) instead
+   * of being all-handle with no body to grab. Milestones / non-finite geometry
+   * have no edges.
+   */
+  function edgeAt(
+    e: PointerEvent<HTMLDivElement>,
+    item: TodoItem,
+  ): "start" | "end" | null {
+    const geo = ctx.geometryFor(item);
+    if (geo.endMs == null) return null;
+    if (!Number.isFinite(geo.startMs) || !Number.isFinite(geo.endMs)) return null;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const left = x(viewport, geo.startMs);
+    const right = x(viewport, geo.endMs);
+    if (right - left < EDGE_PX * 3) return null; // too narrow → whole-bar move
+    if (px - left <= EDGE_PX) return "start";
+    if (right - px <= EDGE_PX) return "end";
+    return null;
+  }
+
+  /**
+   * Classify what's under a press WITHOUT starting anything. The gesture is chosen
+   * later in `resolvePending`, once the drag direction is known — so a click (no
+   * movement) selects, a vertical drag scrolls, and neither is hijacked into an
+   * edit. Read-only, or anything not movable/resizable, classifies as `void` → pan.
+   */
+  function classifyTarget(e: PointerEvent<HTMLDivElement>): Candidate {
+    if (!editable) return { kind: "void" };
+    const target = e.target as HTMLElement;
+
+    // summary bracket → group-move when the whole subtree is movable; else pan.
     const summaryEl = target.closest<HTMLElement>("[data-summaryid]");
     if (summaryEl) {
       const sid = summaryEl.dataset.summaryid!;
       const sitem = ctx.getItem(sid);
-      if (!sitem || !ctx.canGroupMove(sitem)) return false;
-      const span = ctx.summarySpanFor(sitem);
-      if (!span) return false;
-      const drag: EditDrag = {
-        kind: "groupmove",
-        id: sid,
-        grabMs: tMs,
-        deltaMs: 0,
-        spanStart: span.startMs,
-        spanEnd: span.endMs,
-        topPx: rowTopOf(sid),
-      };
-      editDragRef.current = drag;
-      setEditDrag(drag);
-      e.currentTarget.setPointerCapture(e.pointerId);
-      return true;
+      if (sitem && ctx.canGroupMove(sitem) && ctx.summarySpanFor(sitem)) {
+        return { kind: "summary", id: sid };
+      }
+      return { kind: "void" };
     }
 
+    // bar → resize (near a wide-enough edge) or move; else pan.
     const barEl = target.closest<HTMLElement>("[data-itemid]");
     if (barEl) {
       const id = barEl.dataset.itemid!;
       const item = ctx.rows.find((r) => r.item.id === id)?.item;
-      if (!item) return false;
-      const geo = ctx.geometryFor(item);
-      const edge = (target.closest<HTMLElement>("[data-edge]")?.dataset.edge ??
-        null) as "start" | "end" | null;
-      const topPx = rowTopOf(id);
-      if (edge && geo.endMs != null && ctx.can("resize", item)) {
-        const drag: EditDrag = {
-          kind: "resize",
-          id,
-          edge,
-          origStart: geo.startMs,
-          origEnd: geo.endMs,
-          curStart: geo.startMs,
-          curEnd: geo.endMs,
-          topPx,
-        };
-        editDragRef.current = drag;
-        setEditDrag(drag);
-        e.currentTarget.setPointerCapture(e.pointerId);
-        return true;
+      if (item) {
+        const edge = edgeAt(e, item);
+        if (edge && ctx.can("resize", item)) return { kind: "barEdge", id, edge };
+        if (ctx.can("move", item)) return { kind: "barBody", id };
       }
-      if (ctx.can("move", item)) {
-        const drag: EditDrag = {
-          kind: "move",
-          id,
-          origStart: geo.startMs,
-          origEnd: geo.endMs,
-          grabMs: tMs,
-          curStart: geo.startMs,
-          curEnd: geo.endMs,
-          topPx,
-        };
-        editDragRef.current = drag;
-        setEditDrag(drag);
-        e.currentTarget.setPointerCapture(e.pointerId);
-        return true;
-      }
-      return false;
+      return { kind: "void" };
     }
 
-    // empty row area → draw-create a sibling of that row's item.
-    // Summary (parent) rows are read-only (their bar is derived from children),
-    // so dragging on a bracket pans the canvas instead of spawning a stray task.
-    const rowEl = target.closest<HTMLElement>("[data-rowid]");
-    if (rowEl) {
-      const rowId = rowEl.dataset.rowid!;
-      if (ctx.rows.find((r) => r.item.id === rowId)?.isSummary) return false;
-      const info = ctx.nodeInfo(rowId);
-      const snapped = snapPos(tMs, snapUnitRef.current, snapCalRef.current);
-      const drag: EditDrag = {
-        kind: "create",
-        parentId: info?.parentId ?? null,
-        index: (info?.index ?? 0) + 1,
-        fromMs: snapped,
-        toMs: snapped,
-        topPx: rowTopOf(rowId),
-      };
-      editDragRef.current = drag;
-      setEditDrag(drag);
-      e.currentTarget.setPointerCapture(e.pointerId);
-      return true;
+    // empty row area → draw a sibling, but ONLY in draw mode; otherwise pan.
+    // Summary rows are derived (read-only), so they always pan.
+    if (ctx.drawMode) {
+      const rowEl = target.closest<HTMLElement>("[data-rowid]");
+      if (rowEl) {
+        const rowId = rowEl.dataset.rowid!;
+        const row = ctx.rows.find((r) => r.item.id === rowId);
+        if (row && !row.isSummary) {
+          const info = ctx.nodeInfo(rowId);
+          return {
+            kind: "emptyRow",
+            rowId,
+            parentId: info?.parentId ?? null,
+            index: (info?.index ?? 0) + 1,
+          };
+        }
+      }
     }
-    return false;
+    return { kind: "void" };
   }
 
   function moveEdit(e: PointerEvent<HTMLDivElement>) {
@@ -387,23 +386,143 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     }
   }
 
+  function startDrag(d: EditDrag) {
+    editDragRef.current = d;
+    setEditDrag(d);
+  }
+
+  /**
+   * First significant move after a press picks exactly one gesture. Vertical-dominant
+   * → scroll the list (edit gestures are all horizontal-intent). Horizontal-dominant
+   * → the candidate decides: resize / move / group-move / draw, or pan for `void`.
+   * Below the threshold the press stays pending, so a click just selects.
+   */
+  function resolvePending(e: PointerEvent<HTMLDivElement>) {
+    const p = pendingRef.current;
+    if (!p || p.pointerId !== e.pointerId) return;
+    const dx = e.clientX - p.x0;
+    const dy = e.clientY - p.y0;
+    if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+
+    pendingRef.current = null;
+
+    // Vertical-dominant → scroll (works over bars and empty space alike).
+    if (Math.abs(dy) > Math.abs(dx)) {
+      lockRef.current = "v";
+      lastRef.current = { x: e.clientX, t: e.timeStamp };
+      return;
+    }
+
+    const c = p.candidate;
+    if (c.kind === "barEdge") {
+      const item = ctx.rows.find((r) => r.item.id === c.id)?.item;
+      const geo = item ? ctx.geometryFor(item) : null;
+      if (geo && geo.endMs != null) {
+        startDrag({
+          kind: "resize",
+          id: c.id,
+          edge: c.edge,
+          origStart: geo.startMs,
+          origEnd: geo.endMs,
+          curStart: geo.startMs,
+          curEnd: geo.endMs,
+          topPx: rowTopOf(c.id),
+        });
+        return;
+      }
+    } else if (c.kind === "barBody") {
+      const item = ctx.rows.find((r) => r.item.id === c.id)?.item;
+      if (item) {
+        const geo = ctx.geometryFor(item);
+        startDrag({
+          kind: "move",
+          id: c.id,
+          origStart: geo.startMs,
+          origEnd: geo.endMs,
+          grabMs: p.ms0,
+          curStart: geo.startMs,
+          curEnd: geo.endMs,
+          topPx: rowTopOf(c.id),
+        });
+        return;
+      }
+    } else if (c.kind === "summary") {
+      const sitem = ctx.getItem(c.id);
+      const span = sitem ? ctx.summarySpanFor(sitem) : null;
+      if (span) {
+        startDrag({
+          kind: "groupmove",
+          id: c.id,
+          grabMs: p.ms0,
+          deltaMs: 0,
+          spanStart: span.startMs,
+          spanEnd: span.endMs,
+          topPx: rowTopOf(c.id),
+        });
+        return;
+      }
+    } else if (c.kind === "emptyRow") {
+      const snapped = snapPos(p.ms0, snapUnitRef.current, snapCalRef.current);
+      startDrag({
+        kind: "create",
+        parentId: c.parentId,
+        index: c.index,
+        fromMs: snapped,
+        toMs: snapped,
+        topPx: rowTopOf(c.rowId),
+      });
+      return;
+    }
+
+    // void (or any fall-through) → horizontal pan.
+    ctx.beginPan();
+    lockRef.current = "h";
+    lastRef.current = { x: e.clientX, t: e.timeStamp };
+    velRef.current = 0;
+  }
+
   function onPointerDown(e: PointerEvent<HTMLDivElement>) {
+    // The context-menu content is portaled to document.body but is still a React
+    // child of this scroll surface, so its pointer events bubble here through the
+    // React tree. Ignore any event whose real target isn't a DOM descendant of
+    // this surface, else a menu-item click would start a gesture here and swallow
+    // the item's own pointerup (the "menu opens but items do nothing" bug).
+    if (!e.currentTarget.contains(e.target as Node)) return;
     if (disableGestures) return;
     if (e.button === 2) return; // right-click → context menu, not a gesture
-    if (tryStartEdit(e)) return;
+
     e.currentTarget.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     setHover(null);
+    ctx.beginPan(); // touching the canvas halts any momentum fling
+
     if (pointers.current.size === 2) {
+      // second finger → pinch-zoom; abandon any pending or in-flight single gesture
+      pendingRef.current = null;
+      if (editDragRef.current) {
+        editDragRef.current = null;
+        setEditDrag(null);
+      }
       const [a, b] = [...pointers.current.values()];
       pinchRef.current = Math.hypot(a.x - b.x, a.y - b.y);
       lockRef.current = null;
-    } else {
-      ctx.beginPan();
-      lockRef.current = null;
-      lastRef.current = { x: e.clientX, t: e.timeStamp };
-      velRef.current = 0;
+      return;
     }
+
+    // Single pointer → DEFER. Capture snap settings + classify what's under the
+    // press; the gesture itself is chosen on the first move (`resolvePending`).
+    snapUnitRef.current = e.altKey ? 0 : snapUnitMs(ctx.snap, minor);
+    snapCalRef.current = e.altKey ? null : snapCalUnit(ctx.snap, minor);
+    pendingRef.current = {
+      pointerId: e.pointerId,
+      x0: e.clientX,
+      y0: e.clientY,
+      ms0: timeAtPointer(e.clientX, e.currentTarget),
+      candidate: classifyTarget(e),
+    };
+    lockRef.current = null;
+    lastRef.current = null;
+    velRef.current = 0;
   }
 
   function onPointerMove(e: PointerEvent<HTMLDivElement>) {
@@ -412,13 +531,10 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       return;
     }
     if (disableGestures) return;
-    const prev = pointers.current.get(e.pointerId);
-    if (!prev) return;
-    const dx = e.clientX - prev.x;
-    const dy = e.clientY - prev.y;
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+    // pinch-zoom (two active pointers)
     if (pointers.current.size >= 2 && pinchRef.current != null) {
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       const [a, b] = [...pointers.current.values()];
       const dist = Math.hypot(a.x - b.x, a.y - b.y);
       if (dist > 0 && pinchRef.current > 0) {
@@ -428,39 +544,46 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       pinchRef.current = dist;
       return;
     }
-    if (pointers.current.size === 1) {
-      if (!lockRef.current) {
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 3) lockRef.current = "h";
-        else if (Math.abs(dy) > 3) lockRef.current = "v";
-      }
-      if (lockRef.current === "h") {
-        onPan(dx);
-        const last = lastRef.current;
-        const t = e.timeStamp;
-        if (last && t > last.t)
-          velRef.current = (e.clientX - last.x) / (t - last.t);
-        lastRef.current = { x: e.clientX, t };
-      } else if (lockRef.current === "v" && e.pointerType === "mouse") {
-        const el = scrollRef.current;
-        if (el) el.scrollTop -= dy;
-      }
+
+    // a press is still pending → update its position and try to resolve intent
+    if (pendingRef.current && pendingRef.current.pointerId === e.pointerId) {
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      resolvePending(e);
+      return;
+    }
+
+    // resolved pan / vertical-scroll
+    const prev = pointers.current.get(e.pointerId);
+    if (!prev) return;
+    const dx = e.clientX - prev.x;
+    const dy = e.clientY - prev.y;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (lockRef.current === "h") {
+      onPan(dx);
+      const last = lastRef.current;
+      const t = e.timeStamp;
+      if (last && t > last.t) velRef.current = (e.clientX - last.x) / (t - last.t);
+      lastRef.current = { x: e.clientX, t };
+    } else if (lockRef.current === "v" && e.pointerType === "mouse") {
+      const el = scrollRef.current;
+      if (el) el.scrollTop -= dy;
     }
   }
 
   function endPointer(e: PointerEvent<HTMLDivElement>) {
-    if (editDragRef.current) {
-      commitEdit();
-      return;
-    }
-    if (!pointers.current.has(e.pointerId)) return;
-    pointers.current.delete(e.pointerId);
+    const wasEdit = editDragRef.current != null;
+    if (wasEdit) commitEdit();
+    pendingRef.current = null; // never crossed threshold → a click; onClick handles select
+
+    if (pointers.current.has(e.pointerId)) pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinchRef.current = null;
+
+    if (!wasEdit && pointers.current.size === 0 && lockRef.current === "h") {
+      const last = lastRef.current;
+      const fresh = last != null && e.timeStamp - last.t <= 100;
+      ctx.endPanWithVelocity(fresh ? velRef.current : 0);
+    }
     if (pointers.current.size === 0) {
-      if (lockRef.current === "h") {
-        const last = lastRef.current;
-        const fresh = last != null && e.timeStamp - last.t <= 100;
-        ctx.endPanWithVelocity(fresh ? velRef.current : 0);
-      }
       lockRef.current = null;
       lastRef.current = null;
     }
@@ -468,6 +591,9 @@ export function GanttTimelineBody({ className }: { className?: string }) {
 
   /* ── keyboard editing (body-focused + a selected item) ── */
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // Ignore keys bubbling from the portaled context menu (see onPointerDown) so
+    // menu navigation/select doesn't double-trigger body reschedule/delete/open.
+    if (!e.currentTarget.contains(e.target as Node)) return;
     if (!editable || !ctx.selectedId) return;
     const item = ctx.rows.find((r) => r.item.id === ctx.selectedId)?.item;
     if (!item) return;
@@ -555,8 +681,12 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       style={{ touchAction: disableGestures ? undefined : "pan-y" }}
       className={cn(
         "relative h-full grow overflow-x-hidden overflow-y-auto bg-background outline-none",
-        !disableGestures && !editDrag && "cursor-grab active:cursor-grabbing",
-        editDrag?.kind === "create" && "cursor-crosshair",
+        !disableGestures &&
+          !editDrag &&
+          !(editable && ctx.drawMode) &&
+          "cursor-grab active:cursor-grabbing",
+        (editDrag?.kind === "create" || (editable && ctx.drawMode)) &&
+          "cursor-crosshair",
         className,
       )}
     >

@@ -305,6 +305,13 @@ export type GanttContextValue = {
   // ── editing (v0.2.0) — always present; dispatchers are no-ops when !editable ──
   editable: boolean;
   snap: GanttSnap;
+  /**
+   * v0.4.0 — draw mode. When true, dragging a task row's empty area draws a new
+   * bar; when false (default) that drag pans the dates. Toolbar-toggled; only
+   * meaningful while `editable`.
+   */
+  drawMode: boolean;
+  setDrawMode: (on: boolean) => void;
   /** The raw permission matrix (threaded into the embedded edit card). */
   permissions?: TodoPermissions;
   /** Look up any item in the forest by id (incl. collapsed). */

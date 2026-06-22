@@ -336,6 +336,10 @@ export function GanttTimelineGutter({ className }: { className?: string }) {
   }, [ctx.focusedId, bodyScrollRef]);
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // The context menu portals its content but is still a React child of this
+    // tree, so its keydowns bubble here. Ignore events that didn't originate
+    // inside the tree, else menu navigation double-triggers row nav/select/delete.
+    if (!e.currentTarget.contains(e.target as Node)) return;
     if (ctx.renamingId) return; // rename input owns the keys
     const i = rows.findIndex((r) => r.item.id === activeId);
     const focusAt = (j: number) => {

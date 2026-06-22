@@ -45,14 +45,16 @@ export function TasksTimeline({ tasks }) {
 </GanttTimelineRoot>`}</code>
       </pre>
 
-      <h3 className="mb-2 mt-6 text-base font-semibold">Editing (v0.2–v0.3, opt-in)</h3>
+      <h3 className="mb-2 mt-6 text-base font-semibold">Editing (v0.2–v0.4, opt-in)</h3>
       <p className="text-muted-foreground">
         Set <code>editable</code> and wire <code>onChange</code> — data is controlled, so you
         echo the mutated <code>TodoItem[]</code> back (and get undo/redo for free from a history
-        stack). Drag bars to move, drag edges to resize, draw on an empty row to create,
-        double-click or right-click to edit, drag the gutter grip to reparent, and{" "}
-        <strong>drag a summary bracket to group-move the whole subtree</strong> (v0.3). Gated by
-        the same <code>permissions</code> matrix as todo-rich-card / todo-tree.
+        stack). Drag bars to move, drag edges to resize, double-click or right-click to edit,
+        drag the gutter grip to reparent, and{" "}
+        <strong>drag a summary bracket to group-move the whole subtree</strong> (v0.3). To draw a
+        new task, flip the toolbar <strong>Draw</strong> toggle (v0.4) and drag on an empty
+        row — with Draw off, an empty-row drag pans instead. Gated by the same{" "}
+        <code>permissions</code> matrix as todo-rich-card / todo-tree.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<GanttTimeline01

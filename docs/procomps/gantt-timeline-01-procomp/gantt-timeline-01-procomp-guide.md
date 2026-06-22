@@ -1,6 +1,6 @@
 # `gantt-timeline-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Version:** v0.3.1 · **Status:** alpha
+> **Stage:** 3 of 3 · **Version:** v0.4.0 · **Status:** alpha
 > Install: `pnpm dlx shadcn@latest add @ilinxa/gantt-timeline-01` (pulls `@ilinxa/todo-rich-card` + `@tanstack/react-virtual` + `@dnd-kit/core` + `lucide-react`).
 
 A read-only, fully-navigable project timeline (Gantt) over the canonical `TodoItem[]`. The time-axis sibling of `todo-rich-card` (cards) and `kanban-board-01` (columns).
@@ -111,7 +111,7 @@ import { GanttFullCardTooltip } from "@/components/gantt-timeline-01";
 
 ---
 
-## Editing (v0.2 + v0.3)
+## Editing (v0.2–v0.4)
 
 Opt in with `editable` (default **off** → byte-identical v1 read-only). Data stays **controlled** — every edit fires a typed event **and** `onChange(next)` with the full mutated `TodoItem[]`; echo it back into `data`.
 
@@ -135,13 +135,15 @@ const [tasks, setTasks] = useState(initial);
 | Drag a bar | Move (reschedule); snaps to the active unit, **Alt** = free-drag |
 | Drag a bar edge | Resize start / end |
 | **Drag a summary bracket** *(v0.3)* | **Group-move** — rigidly shift the whole subtree; snaps, **Alt** = free; requires every leaf movable, else it pans |
-| Drag on an empty row | Draw-create a sibling |
+| Drag on an empty row | Draw-create a sibling — **only in Draw mode** *(v0.4)*; with Draw off, an empty-row drag pans |
 | Drag the gutter grip | Reparent / reorder (drop above / inside / below a row) |
 | Double-click a bar | Open the detail editor (embedded `<TodoRichCard editable>`) |
 | Right-click a bar / row | Context menu — Edit / Rename / Add / Status / Delete |
 | Row hover ＋ / 🗑 | Add child / delete |
 | `F2` / `Delete` on a row | Rename / delete |
 | Bar selected + `←/→` | Nudge move; `Shift+←/→` resize; `Enter` edit; `Delete` delete |
+
+**Draw mode (v0.4).** Drawing a new task by dragging on empty canvas used to fight panning — every empty-row drag spawned a bar. v0.4 makes drawing an **explicit mode**: an `editable` gantt's toolbar shows a **Draw** toggle (✏️); with it **off** (default) an empty-row drag pans the dates, and only with it **on** does an empty-row drag draw a sibling task (the cursor turns to a crosshair). Bars, edges, and brackets still move/resize/group-move directly regardless of the toggle. Under the hood the whole gesture pipeline now **defers intent to the first move** — a press classifies what's under it, then a click selects, a vertical drag scrolls the list, and a horizontal drag resolves to resize / move / group-move / draw / pan — so no gesture is hijacked at press-time. The Draw toggle is internal UI state on `GanttTimelineRoot`; there's no prop to force it (a consumer hand-assembling parts reads `drawMode` / `setDrawMode` off context if they want their own control).
 
 **Events** (shapes reused from `todo-rich-card`): `onItemAdded` · `onItemRemoved` · `onItemMoved` · `onFieldEdited` · `onStatusChanged` · `onTaskReschedule` (bar move/resize sugar). All are also reflected in `onChange(TodoItem[])` — that's the source of truth. **Group-move (v0.3)** is a bulk reschedule: it fires `onFieldEdited` (+ `onTaskReschedule`) **once per shifted leaf**, then a single `onChange` (= one undo step) — no new event type.
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, Maximize2, Minus, Plus } from "lucide-react";
+import { CalendarClock, Maximize2, Minus, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -16,8 +16,16 @@ const ZOOMS: { value: GanttZoom; label: string }[] = [
 ];
 
 export function GanttTimelineToolbar({ className }: { className?: string }) {
-  const { namedZoom, setZoomLevel, zoomBy, zoomToFit, scrollToToday } =
-    useGanttTimeline();
+  const {
+    namedZoom,
+    setZoomLevel,
+    zoomBy,
+    zoomToFit,
+    scrollToToday,
+    editable,
+    drawMode,
+    setDrawMode,
+  } = useGanttTimeline();
   return (
     <div
       className={cn(
@@ -87,6 +95,22 @@ export function GanttTimelineToolbar({ className }: { className?: string }) {
           </button>
         ))}
       </div>
+      {editable ? (
+        <>
+          <Separator orientation="vertical" className="mx-0.5 h-5" />
+          <Button
+            type="button"
+            size="sm"
+            variant={drawMode ? "default" : "ghost"}
+            aria-pressed={drawMode}
+            title="Draw mode — drag an empty row to create a task (off = drag to pan)"
+            className="h-7 gap-1.5 px-2 text-xs"
+            onClick={() => setDrawMode(!drawMode)}
+          >
+            <Pencil className="size-3.5" /> Draw
+          </Button>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -138,6 +138,9 @@ export const GanttTimelineRoot = forwardRef<
 
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
+  /* ── draw mode (v0.4.0) — empty-row drag draws vs pans; toolbar-toggled ── */
+  const [drawMode, setDrawMode] = useState(false);
+
   /* ── rows + virtualization ── */
   const rows = useMemo(() => flatten(data, (id) => collapsedSet.has(id)), [data, collapsedSet]);
   const rowsRef = useRef(rows);
@@ -308,6 +311,8 @@ export const GanttTimelineRoot = forwardRef<
     // editing (v0.2.0)
     editable,
     snap,
+    drawMode,
+    setDrawMode,
     permissions,
     getItem: (id: string) => itemIndex.get(id),
     can: edit.can,
