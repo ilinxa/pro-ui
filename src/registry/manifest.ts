@@ -221,6 +221,10 @@ import GanttTimeline01Demo from "./components/data/gantt-timeline-01/demo";
 import GanttTimeline01Usage from "./components/data/gantt-timeline-01/usage";
 import { meta as ganttTimeline01Meta } from "./components/data/gantt-timeline-01/meta";
 
+import Calendar01Demo from "./components/data/calendar-01/demo";
+import Calendar01Usage from "./components/data/calendar-01/usage";
+import { meta as calendar01Meta } from "./components/data/calendar-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -509,6 +513,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: ganttTimeline01Meta,
     Demo: GanttTimeline01Demo,
     Usage: GanttTimeline01Usage,
+  },
+  {
+    meta: calendar01Meta,
+    Demo: Calendar01Demo,
+    Usage: Calendar01Usage,
   },
 ];
 
