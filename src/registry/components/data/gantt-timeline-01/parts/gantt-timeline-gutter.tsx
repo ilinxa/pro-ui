@@ -87,7 +87,7 @@ export function GutterRow({
   onRenameCommit?: (name: string) => void;
   onRenameCancel?: () => void;
 }) {
-  const { item, depth, hasChildren, collapsed } = row;
+  const { item, depth, hasChildren, collapsed, posInSet, setSize } = row;
   const statusOpt = statusOptions?.find((o) => o.value === item.status);
   const dots = (item.labels ?? [])
     .map((key) => labelOptions?.find((o) => o.value === key))
@@ -98,6 +98,8 @@ export function GutterRow({
     <div
       role="treeitem"
       aria-level={depth + 1}
+      aria-setsize={setSize}
+      aria-posinset={posInSet}
       aria-expanded={hasChildren ? !collapsed : undefined}
       aria-selected={selected || undefined}
       aria-label={rowAriaLabel(row, statusOpt)}
@@ -275,8 +277,18 @@ function DropZones({ id }: { id: string }) {
 export function GanttTimelineGutter({ className }: { className?: string }) {
   const ctx = useGanttTimeline();
   const treeRef = useRef<HTMLDivElement | null>(null);
+  // Alias the bundled ref object to a local so the compiler tracks it as a
+  // RefObject (mutating `.current.scrollTop` is then a legal ref mutation, not a
+  // forbidden modification of a context value — same pattern as the body).
+  const bodyScrollRef = ctx.bodyScrollRef;
 
   const rows = ctx.rows;
+  // Refs so the focus effect can read the latest rows/rowHeight without widening
+  // its dependency to "any data change" (which would steal focus on every edit).
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  const rowHeightRef = useRef(ctx.rowHeight);
+  rowHeightRef.current = ctx.rowHeight;
   const activeId = ctx.focusedId ?? rows[0]?.item.id ?? null;
 
   const sensors = useSensors(
@@ -284,17 +296,44 @@ export function GanttTimelineGutter({ className }: { className?: string }) {
     useSensor(KeyboardSensor),
   );
 
+  // Move DOM focus to the focused row. A virtualized row outside the scroll
+  // window isn't in the DOM, so we first scroll the body to bring it into view
+  // (the gutter mirrors body scroll via translateY) — otherwise focus() would
+  // no-op and keyboard nav would silently dead-end past the visible rows. The
+  // body re-renders the row asynchronously after the scroll, so retry across a
+  // few frames until the node exists.
   useEffect(() => {
-    if (!ctx.focusedId || !treeRef.current) return;
+    const fid = ctx.focusedId;
+    const track = treeRef.current;
+    if (!fid || !track) return;
+
+    const idx = rowsRef.current.findIndex((r) => r.item.id === fid);
+    const el = bodyScrollRef.current;
+    const rh = rowHeightRef.current;
+    if (idx >= 0 && el) {
+      const top = idx * rh;
+      const bottom = top + rh;
+      if (top < el.scrollTop) el.scrollTop = top;
+      else if (bottom > el.scrollTop + el.clientHeight)
+        el.scrollTop = bottom - el.clientHeight;
+    }
+
     const safe =
       typeof CSS !== "undefined" && CSS.escape
-        ? CSS.escape(ctx.focusedId)
-        : ctx.focusedId.replace(/"/g, '\\"');
-    const el = treeRef.current.querySelector<HTMLElement>(
-      `[data-rowid="${safe}"]`,
-    );
-    el?.focus();
-  }, [ctx.focusedId]);
+        ? CSS.escape(fid)
+        : fid.replace(/"/g, '\\"');
+    let raf = 0;
+    let tries = 0;
+    const focusRow = () => {
+      const node = track.querySelector<HTMLElement>(`[data-rowid="${safe}"]`);
+      if (node) node.focus();
+      else if (tries++ < 3) raf = requestAnimationFrame(focusRow);
+    };
+    focusRow();
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [ctx.focusedId, bodyScrollRef]);
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (ctx.renamingId) return; // rename input owns the keys

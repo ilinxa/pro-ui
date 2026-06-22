@@ -83,10 +83,16 @@ export function setWindow(
     const startMs = Date.parse(next.startAt ?? next.setAt);
     if (next.expireAt != null) {
       let endMs = Date.parse(next.expireAt);
-      if (Number.isFinite(startMs) && endMs < startMs + MIN_DURATION_MS) {
+      if (
+        Number.isFinite(startMs) &&
+        Number.isFinite(endMs) &&
+        endMs < startMs + MIN_DURATION_MS
+      ) {
         endMs = startMs + MIN_DURATION_MS;
       }
-      next.expireAt = new Date(endMs).toISOString();
+      // Guard: an unparseable date would make `new Date(NaN).toISOString()`
+      // throw. Leave a bad `expireAt` untouched rather than crashing the commit.
+      if (Number.isFinite(endMs)) next.expireAt = new Date(endMs).toISOString();
     } else if (next.duration != null) {
       next.duration = Math.max(MIN_DURATION_MS, next.duration);
     }
@@ -195,12 +201,18 @@ export function shiftSubtree(
 ): TodoItem[] {
   if (!Number.isFinite(deltaMs) || deltaMs === 0) return data;
   const shiftLeaf = (item: TodoItem): TodoItem => {
+    const s = effStartMs(item);
+    // Unparseable start — can't translate it; leave the leaf untouched rather
+    // than emitting `new Date(NaN).toISOString()` (which throws).
+    if (!Number.isFinite(s)) return item;
     const next: TodoItem = {
       ...item,
-      startAt: new Date(effStartMs(item) + deltaMs).toISOString(),
+      startAt: new Date(s + deltaMs).toISOString(),
     };
     if (item.expireAt != null) {
-      next.expireAt = new Date((effEndMs(item) ?? effStartMs(item)) + deltaMs).toISOString();
+      const e = effEndMs(item);
+      const base = e != null && Number.isFinite(e) ? e : s;
+      next.expireAt = new Date(base + deltaMs).toISOString();
     }
     return next;
   };

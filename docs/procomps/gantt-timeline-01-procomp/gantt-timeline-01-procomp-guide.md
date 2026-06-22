@@ -1,6 +1,6 @@
 # `gantt-timeline-01` — Consumer Guide (Stage 3)
 
-> **Stage:** 3 of 3 · **Version:** v0.3.0 · **Status:** alpha
+> **Stage:** 3 of 3 · **Version:** v0.3.1 · **Status:** alpha
 > Install: `pnpm dlx shadcn@latest add @ilinxa/gantt-timeline-01` (pulls `@ilinxa/todo-rich-card` + `@tanstack/react-virtual` + `@dnd-kit/core` + `lucide-react`).
 
 A read-only, fully-navigable project timeline (Gantt) over the canonical `TodoItem[]`. The time-axis sibling of `todo-rich-card` (cards) and `kanban-board-01` (columns).
@@ -174,14 +174,14 @@ const onChange = (next) =>
 
 ## Accessibility
 
-The gutter is a WAI-ARIA `tree` (`treeitem` + `aria-level` / `aria-expanded` / `aria-selected`); each row's `aria-label` carries name + dates + status, so screen-reader users get the full bar info there. Bars are mouse-decorative (`aria-hidden`). Arrow keys are tree navigation (a11y-correct); panning lives on gestures + toolbar. Overdue adds a *shape* (red end-cap) on the bar, and the gutter row carries the status as **badge text** — so state reads without relying on color. Momentum fling is suppressed under `prefers-reduced-motion`.
+The gutter is a WAI-ARIA `tree` (`treeitem` + `aria-level` / `aria-setsize` / `aria-posinset` / `aria-expanded` / `aria-selected`); each row's `aria-label` carries name + dates + status, so screen-reader users get the full bar info there. Bars are mouse-decorative (`aria-hidden`). Arrow keys are tree navigation (a11y-correct); panning lives on gestures + toolbar. Keyboard navigation **scrolls the focused row into view** (since v0.3.1) so arrowing past the virtualized window follows the list instead of dead-ending. Overdue adds a *shape* (red end-cap) on the bar, and the gutter row carries the status as **badge text** — so state reads without relying on color. Momentum fling is suppressed under `prefers-reduced-motion`.
 
 ---
 
 ## Open follow-ups
 
 - **v0.3.x:** richer group-move preview (per-leaf ghost bars, not just the shifted bracket); **resize-the-group** (drag a bracket *edge* → proportional subtree rescale); optional `groupMoveMode: "atomic" | "partial"`.
-- **v2.1:** marquee + multi-select + bulk move/delete; calendar-aware snap (currently epoch-grid); suspend virtualization during a gutter drag; sibling-reorder off-by-one polish.
+- **v2.1:** marquee + multi-select + bulk move/delete; suspend virtualization during a gutter drag; sibling-reorder off-by-one polish. *(Calendar-aware drag-snap landed in v0.3.1 — month/quarter/week edges now align to real calendar boundaries.)*
 - **v3:** dependency arrows (`dependsOn?: string[]`).
 - **v4:** progress %, baselines, critical path, resource swimlanes.
 - A configurable chart `height` prop (currently assembly-fixed).

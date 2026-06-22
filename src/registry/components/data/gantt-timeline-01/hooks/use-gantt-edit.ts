@@ -177,7 +177,15 @@ export function useGanttEdit(args: Args) {
       if (next === data) return;
       const updated = buildIndex(next).get(id)?.item;
       if (!updated) return;
-      if (patch.startAt != null && patch.startAt !== item.startAt) {
+      // Each field event is gated on the patch actually touching that key AND on
+      // the value really changing. `setWindow` re-serializes `expireAt` whenever
+      // the item has one (even on a start-only resize), so compare by instant —
+      // a non-canonical stored date (e.g. `+03:00` offset) must not fire a phantom
+      // event whose old/new are the same moment.
+      if (
+        patch.startAt != null &&
+        Date.parse(updated.startAt ?? "") !== Date.parse(item.startAt ?? "")
+      ) {
         onFieldEdited?.({
           itemId: id,
           key: "startAt",
@@ -185,7 +193,10 @@ export function useGanttEdit(args: Args) {
           newValue: updated.startAt,
         });
       }
-      if (updated.expireAt !== item.expireAt) {
+      if (
+        patch.expireAt != null &&
+        Date.parse(updated.expireAt ?? "") !== Date.parse(item.expireAt ?? "")
+      ) {
         onFieldEdited?.({
           itemId: id,
           key: "expireAt",
@@ -193,7 +204,7 @@ export function useGanttEdit(args: Args) {
           newValue: updated.expireAt,
         });
       }
-      if (updated.duration !== item.duration) {
+      if (patch.duration != null && updated.duration !== item.duration) {
         onFieldEdited?.({
           itemId: id,
           key: "duration",
@@ -241,8 +252,9 @@ export function useGanttEdit(args: Args) {
       onItemRemoved?.({ itemId: id, removed, parentId: parentId ?? "" });
       onChange?.(next);
       if (editingId === id) setEditingId(null);
+      if (renamingId === id) setRenamingId(null);
     },
-    [data, guard, onItemRemoved, onChange, editingId],
+    [data, guard, onItemRemoved, onChange, editingId, renamingId],
   );
 
   const renameItemAction = useCallback(
@@ -390,6 +402,13 @@ export function useGanttEdit(args: Args) {
   const applyEditedSubtree = useCallback(
     (nextItem: TodoItem) => {
       const prev = index.get(nextItem.id)?.item;
+      if (!prev) {
+        // The item was deleted (another path) while its editor was open. Splicing
+        // an absent id would be a no-op map and echo the UNCHANGED forest, silently
+        // dropping the edit. Drop the stale edit and close instead.
+        setEditingId(null);
+        return;
+      }
       const apply = (items: TodoItem[]): TodoItem[] =>
         items.map((it) =>
           it.id === nextItem.id
@@ -399,7 +418,7 @@ export function useGanttEdit(args: Args) {
               : it,
         );
       const forest = apply(data);
-      if (prev && prev.status !== nextItem.status) {
+      if (prev.status !== nextItem.status) {
         onStatusChanged?.({
           itemId: nextItem.id,
           oldStatus: prev.status,

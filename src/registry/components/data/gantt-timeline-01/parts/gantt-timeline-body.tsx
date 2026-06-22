@@ -19,6 +19,7 @@ import {
   addUnit,
   isWeekend,
   pickScales,
+  startOfUnit,
   ticks,
   timeAt,
   x,
@@ -96,8 +97,30 @@ function snapUnitMs(snap: GanttSnap, minor: GanttTimeUnit): number {
   }
 }
 
-function snapTo(t: number, unit: number): number {
-  return unit > 0 ? Math.round(t / unit) * unit : t;
+/**
+ * The calendar unit a snap setting resolves to, or null when snapping is off /
+ * a fixed-ms grid. A named unit snaps to real calendar boundaries (matching the
+ * axis ticks); `"minor"` follows the current minor unit (which can be month or
+ * quarter when zoomed out — where average-ms rounding visibly drifts off-grid).
+ */
+function snapCalUnit(snap: GanttSnap, minor: GanttTimeUnit): GanttTimeUnit | null {
+  if (snap === "off" || typeof snap === "number") return null;
+  return snap === "minor" ? minor : snap;
+}
+
+/**
+ * Snap `t` to the nearest boundary. A calendar `unit` lands on a real
+ * start-of-unit (so a snapped edge lines up with a gridline the axis drew);
+ * otherwise a positive `ms` grid rounds to the nearest multiple (numeric snap),
+ * and `ms <= 0` with no unit means snapping is off.
+ */
+function snapPos(t: number, ms: number, unit: GanttTimeUnit | null): number {
+  if (unit) {
+    const lo = startOfUnit(unit, t);
+    const hi = addUnit(unit, lo);
+    return t - lo <= hi - t ? lo : hi;
+  }
+  return ms > 0 ? Math.round(t / ms) * ms : t;
 }
 
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -111,6 +134,7 @@ export function GanttTimelineBody({ className }: { className?: string }) {
   const [editDrag, setEditDrag] = useState<EditDrag | null>(null);
   const editDragRef = useRef<EditDrag | null>(null);
   const snapUnitRef = useRef(0);
+  const snapCalRef = useRef<GanttTimeUnit | null>(null);
 
   /* ── measure width ── */
   const setBodyWidth = ctx.setBodyWidth;
@@ -119,9 +143,23 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     if (!el) return;
     const update = () => setBodyWidth(el.clientWidth);
     update();
-    const ro = new ResizeObserver(update);
+    // Coalesce observer callbacks into one rAF. We observe the same element we
+    // resize, so a vertical-scrollbar appearance shrinks clientWidth → relayout →
+    // re-fire; the rAF gate settles that in a single frame instead of tripping
+    // the "ResizeObserver loop completed" warning.
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    });
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
   }, [scrollRef, setBodyWidth]);
 
   /* ── wheel (non-passive) ── */
@@ -132,10 +170,12 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
+        setHover(null); // the bar moves under the frozen tooltip x — drop it
         const rect = el.getBoundingClientRect();
         onZoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - rect.left);
       } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         e.preventDefault();
+        setHover(null);
         onPan(-(e.deltaX || e.deltaY));
       }
     };
@@ -171,6 +211,7 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     const surface = e.currentTarget;
     const tMs = timeAtPointer(e.clientX, surface);
     snapUnitRef.current = e.altKey ? 0 : snapUnitMs(ctx.snap, minor);
+    snapCalRef.current = e.altKey ? null : snapCalUnit(ctx.snap, minor);
 
     // Summary bracket → group-move the whole subtree when movable (D22/D23).
     // A non-movable group (or empty summary-row area) falls through to v1 pan.
@@ -248,7 +289,7 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       const rowId = rowEl.dataset.rowid!;
       if (ctx.rows.find((r) => r.item.id === rowId)?.isSummary) return false;
       const info = ctx.nodeInfo(rowId);
-      const snapped = snapTo(tMs, snapUnitRef.current);
+      const snapped = snapPos(tMs, snapUnitRef.current, snapCalRef.current);
       const drag: EditDrag = {
         kind: "create",
         parentId: info?.parentId ?? null,
@@ -270,10 +311,11 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     if (!d) return;
     const tMs = timeAtPointer(e.clientX, e.currentTarget);
     const u = snapUnitRef.current;
+    const cu = snapCalRef.current;
     let nextDrag: EditDrag;
     if (d.kind === "move") {
       const delta = tMs - d.grabMs;
-      const newStart = snapTo(d.origStart + delta, u);
+      const newStart = snapPos(d.origStart + delta, u, cu);
       const shift = newStart - d.origStart;
       nextDrag = {
         ...d,
@@ -282,18 +324,18 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       };
     } else if (d.kind === "resize") {
       if (d.edge === "start") {
-        const ns = Math.min(snapTo(tMs, u), d.origEnd - MIN_MS);
+        const ns = Math.min(snapPos(tMs, u, cu), d.origEnd - MIN_MS);
         nextDrag = { ...d, curStart: ns, curEnd: d.origEnd };
       } else {
-        const ne = Math.max(snapTo(tMs, u), d.origStart + MIN_MS);
+        const ne = Math.max(snapPos(tMs, u, cu), d.origStart + MIN_MS);
         nextDrag = { ...d, curStart: d.origStart, curEnd: ne };
       }
     } else if (d.kind === "groupmove") {
       // Snap the leading edge of the span; delta is the realized shift.
-      const newStart = snapTo(d.spanStart + (tMs - d.grabMs), u);
+      const newStart = snapPos(d.spanStart + (tMs - d.grabMs), u, cu);
       nextDrag = { ...d, deltaMs: newStart - d.spanStart };
     } else {
-      nextDrag = { ...d, toMs: snapTo(tMs, u) };
+      nextDrag = { ...d, toMs: snapPos(tMs, u, cu) };
     }
     editDragRef.current = nextDrag;
     setEditDrag(nextDrag);
@@ -445,6 +487,11 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       case "ArrowLeft":
       case "ArrowRight": {
         e.preventDefault();
+        if (
+          !Number.isFinite(geo.startMs) ||
+          (geo.endMs != null && !Number.isFinite(geo.endMs))
+        )
+          break; // unparseable date — skip keyboard reschedule (Delete/Enter still work)
         const dir = e.key === "ArrowRight" ? 1 : -1;
         if (e.shiftKey && geo.endMs != null) {
           const ne = Math.max(geo.startMs + MIN_MS, geo.endMs + dir * u);
@@ -546,6 +593,13 @@ export function GanttTimelineBody({ className }: { className?: string }) {
             setHover({ item, leftPx, topPx: ri.start });
           const leave = () => setHover(null);
 
+          // A bad/unparseable date yields NaN geometry. Render no shape (the row
+          // label still shows) so we never position a bar at NaN→origin or throw
+          // on a later edit-commit. Summary rows use summarySpan, which is NaN-safe.
+          const geoOk =
+            Number.isFinite(geo.startMs) &&
+            (geo.endMs == null || Number.isFinite(geo.endMs));
+
           let shape: React.ReactNode = null;
           let labelLeft = 0;
 
@@ -569,6 +623,8 @@ export function GanttTimelineBody({ className }: { className?: string }) {
                 />
               );
             }
+          } else if (!geoOk) {
+            // unparseable date — label-only row, no draggable bar (see geoOk note)
           } else if (geo.isMilestone) {
             const left = x(viewport, geo.startMs);
             labelLeft = left + 10;

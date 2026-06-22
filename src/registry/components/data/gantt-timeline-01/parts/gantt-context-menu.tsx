@@ -33,11 +33,22 @@ export function GanttContextMenu({
   const ctx = useGanttTimeline();
 
   const canEdit = ctx.editable && ctx.can("editDetails", item);
+  // "Add child task" creates UNDER this item → gated on the item's own rule.
   const canCreate = ctx.editable && ctx.can("create", item);
+  // "Add task below" creates a SIBLING under this item's PARENT → must gate on the
+  // parent's rule (which is what `createItem` actually enforces), else the item
+  // shows then no-ops + fires onPermissionDenied. Root items (no parent) gate on
+  // `editable` only, matching `createItem`'s root-insert path.
+  const parentId = ctx.nodeInfo(item.id)?.parentId ?? null;
+  const parentNode = parentId != null ? ctx.getItem(parentId) : null;
+  const canCreateSibling =
+    ctx.editable &&
+    (parentId == null ? true : !!parentNode && ctx.can("create", parentNode));
   const canDelete = ctx.editable && ctx.can("delete", item);
   const statusOptions = ctx.statusOptions ?? [];
 
-  if (!canEdit && !canCreate && !canDelete) return <>{children}</>;
+  if (!canEdit && !canCreate && !canCreateSibling && !canDelete)
+    return <>{children}</>;
 
   return (
     <ContextMenu>
@@ -55,23 +66,24 @@ export function GanttContextMenu({
         ) : null}
 
         {canCreate ? (
-          <>
-            <ContextMenuItem onSelect={() => ctx.createItem(item.id)}>
-              Add child task
-            </ContextMenuItem>
-            <ContextMenuItem
-              onSelect={() => {
-                const info = ctx.nodeInfo(item.id);
-                ctx.createItem(
-                  info?.parentId ?? null,
-                  undefined,
-                  (info?.index ?? 0) + 1,
-                );
-              }}
-            >
-              Add task below
-            </ContextMenuItem>
-          </>
+          <ContextMenuItem onSelect={() => ctx.createItem(item.id)}>
+            Add child task
+          </ContextMenuItem>
+        ) : null}
+
+        {canCreateSibling ? (
+          <ContextMenuItem
+            onSelect={() => {
+              const info = ctx.nodeInfo(item.id);
+              ctx.createItem(
+                info?.parentId ?? null,
+                undefined,
+                (info?.index ?? 0) + 1,
+              );
+            }}
+          >
+            Add task below
+          </ContextMenuItem>
         ) : null}
 
         {canEdit && statusOptions.length > 0 ? (
