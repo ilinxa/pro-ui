@@ -108,12 +108,12 @@ export function GanttBar({
           <span
             data-edge="start"
             aria-hidden
-            className="absolute inset-y-0 left-0 w-1.5 cursor-col-resize rounded-l-[5px] hover:bg-foreground/25"
+            className="absolute inset-y-0 left-0 w-2 cursor-col-resize rounded-l-[5px] hover:bg-foreground/25"
           />
           <span
             data-edge="end"
             aria-hidden
-            className="absolute inset-y-0 right-0 w-1.5 cursor-col-resize rounded-r-[5px] hover:bg-foreground/25"
+            className="absolute inset-y-0 right-0 w-2 cursor-col-resize rounded-r-[5px] hover:bg-foreground/25"
           />
         </>
       ) : null}

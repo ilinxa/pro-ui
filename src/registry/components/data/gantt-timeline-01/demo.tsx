@@ -187,8 +187,9 @@ function EditableDemo() {
         </Button>
         <span className="ml-auto text-xs text-muted-foreground">
           Drag a bar to move · drag edges to resize · drag a summary bracket to
-          move the whole group · double-click or right-click a bar to edit · drag
-          the gutter grip to reparent · ＋ / trash on row hover · Delete key
+          move the whole group · toggle <strong>Draw</strong>, then drag an empty
+          row to create (off = pan) · double-click or right-click a bar to edit ·
+          drag the gutter grip to reparent · ＋ / trash on row hover · Delete key
         </span>
       </div>
       <GanttTimeline01
