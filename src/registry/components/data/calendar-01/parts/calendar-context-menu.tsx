@@ -21,6 +21,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useCalendar } from "../hooks/use-calendar-context";
+import { serializeTasks } from "../lib/clipboard";
 import type { TodoItem } from "../types";
 
 export function CalendarEventContextMenu({
@@ -36,7 +37,21 @@ export function CalendarEventContextMenu({
   const statusOptions = ctx.statusOptions ?? [];
   const priorityOptions = ctx.priorityOptions ?? [];
 
-  if (!canEdit && !canDelete) return <>{children}</>;
+  // When editable, the menu always offers Copy (reading data needs no edit/delete
+  // permission); other items are capability-gated. Read-only → child unwrapped.
+  if (!ctx.editable) return <>{children}</>;
+
+  const copy = () => {
+    void navigator.clipboard?.writeText(serializeTasks([item], "calendar-01"));
+  };
+  const cut = () => {
+    // Don't delete-without-copy: if the clipboard is unavailable (insecure
+    // context) the menu cut is a no-op (the keyboard Cut, which uses the sync
+    // clipboard event, still works).
+    if (!navigator.clipboard) return;
+    void navigator.clipboard.writeText(serializeTasks([item], "calendar-01"));
+    ctx.deleteItem(item.id);
+  };
 
   return (
     <ContextMenu>
@@ -45,6 +60,12 @@ export function CalendarEventContextMenu({
         {canEdit ? (
           <ContextMenuItem onSelect={() => ctx.openEditor(item.id)}>
             Edit…
+          </ContextMenuItem>
+        ) : null}
+
+        {canEdit ? (
+          <ContextMenuItem onSelect={() => ctx.beginRename(item.id)}>
+            Rename
           </ContextMenuItem>
         ) : null}
 
@@ -78,6 +99,12 @@ export function CalendarEventContextMenu({
               ))}
             </ContextMenuSubContent>
           </ContextMenuSub>
+        ) : null}
+
+        {canEdit ? <ContextMenuSeparator /> : null}
+        <ContextMenuItem onSelect={copy}>Copy</ContextMenuItem>
+        {canDelete ? (
+          <ContextMenuItem onSelect={cut}>Cut</ContextMenuItem>
         ) : null}
 
         {canDelete ? (

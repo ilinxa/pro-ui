@@ -105,6 +105,7 @@ export const CalendarEventChip = forwardRef<HTMLButtonElement, ChipProps>(
         {...rest}
         title={eventTitle(occ)}
         data-selected={selected || undefined}
+        data-occ-id={occ.id}
         style={accentStyle(occ)}
         className={cn(
           "flex w-full items-center gap-1 truncate rounded-sm border-l-2 border-(--cal-accent) px-1.5 py-0.5 text-left text-xs leading-tight",
@@ -150,6 +151,7 @@ export const CalendarEventBar = forwardRef<HTMLButtonElement, BarProps>(
         {...rest}
         title={eventTitle(occ)}
         data-selected={selected || undefined}
+        data-occ-id={occ.id}
         style={accentStyle(occ)}
         className={cn(
           "flex h-5 w-full items-center truncate px-1.5 text-left text-xs font-medium leading-none",
@@ -201,6 +203,7 @@ export const CalendarTimeBlock = forwardRef<HTMLButtonElement, TimeBlockProps>(
         {...rest}
         title={eventTitle(occ)}
         data-selected={selected || undefined}
+        data-occ-id={occ.id}
         style={accentStyle(occ, {
           top: `${top * 100}%`,
           height: milestone ? "0.5rem" : `${height * 100}%`,

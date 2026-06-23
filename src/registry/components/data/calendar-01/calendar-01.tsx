@@ -11,6 +11,10 @@ import { CalendarDayView } from "./parts/calendar-day-view";
 import { CalendarAgendaView } from "./parts/calendar-agenda-view";
 import { CalendarEventInspector } from "./parts/calendar-event-inspector";
 import { CalendarQuickComposer } from "./parts/calendar-quick-composer";
+import {
+  CalendarEventEditorOverlay,
+  CalendarRenameField,
+} from "./parts/calendar-edit-overlays";
 import type { CalendarHandle, CalendarProps } from "./types";
 
 /** Renders the active view (must live inside the Root to read context). */
@@ -61,6 +65,11 @@ export const Calendar01 = forwardRef<CalendarHandle, CalendarProps>(
           </div>
         </div>
         <CalendarQuickComposer />
+        {/* Inline rename popup (the inspector never hosted rename). */}
+        <CalendarRenameField />
+        {/* Detail editor — only when the inspector isn't mounted (it hosts the
+            editor inline; mounting both would double-render on `editingId`). */}
+        {showInspector ? null : <CalendarEventEditorOverlay />}
       </Calendar01Root>
     );
   },

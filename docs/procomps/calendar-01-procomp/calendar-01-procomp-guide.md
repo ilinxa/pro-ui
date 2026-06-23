@@ -1,10 +1,10 @@
-# `calendar-01` — Consumer Guide (Stage 3)
+# `calendar-01` — Consumer Guide
 
-> **Stage:** 3 of 3 · **Version:** v0.1.0 · **Status:** alpha
+> **Version:** v0.2.0 · **Status:** alpha
 > **Slug:** `calendar-01` · **Category:** `data` · **Tier:** pro-component (shadcn-style compound)
 > Install: `pnpm dlx shadcn@latest add @ilinxa/calendar-01` (base) or `@ilinxa/calendar-01-fixtures` (base + demo data).
 
-The read-only **date-grid** surface onto the canonical `TodoItem[]` — the discrete twin of [`gantt-timeline-01`](../gantt-timeline-01-procomp/). Month grid, week/day hour time-grids, and a day-grouped agenda, from the same task data your List / Board / Timeline tabs already render.
+The **date-grid** surface onto the canonical `TodoItem[]` — the discrete twin of [`gantt-timeline-01`](../gantt-timeline-01-procomp/). Month grid, week/day hour time-grids, and a day-grouped agenda, from the same task data your List / Board / Timeline tabs already render. **v0.2 adds an opt-in editing layer** (drag / resize / create / keyboard / copy-paste), additive over v0.1's read-only display.
 
 ---
 
@@ -12,19 +12,20 @@ The read-only **date-grid** surface onto the canonical `TodoItem[]` — the disc
 
 - You hold `TodoItem[]` (the data behind `todo-rich-card` / `todo-tree` / `kanban-board-01` / `gantt-timeline-01`) and want a **calendar tab** — month / week / day / agenda — with **no data adapter**.
 - You need a real **hour-resolution week/day** view (lane-packed overlapping events, all-day band, now-line), not just a month grid.
+- You want **in-place editing** (reschedule by drag/keyboard, resize, create, rename, detail-edit) and **cross-surface copy/paste** that moves tasks between the calendar and your other task views.
 - You want a **mobile-friendly agenda** and a **desktop month grid** from one component.
 
 ## When NOT to use
 
 - **You need a continuous, zoomable timeline with WBS roll-up** → that's `gantt-timeline-01` (the calendar deliberately has no summary rows; children are flattened).
-- **You need editing today** → v1 is read-only. Drag-to-reschedule / create / detail-edit land in **v0.2** (the API is already declared, so upgrading is additive).
 - **You need a date *picker*** (single/range input) → use the shadcn `Calendar` primitive directly; calendar-01 uses it only for its optional jump-to-date mini-nav.
+- **You want a read-only display** → just omit `editable` (default off). Note v0.2's read-only output differs from v0.1 in two intentional, opt-out-able ways — see *Gotchas → Upgrading from v0.1*.
 
 ---
 
 ## Composition patterns
 
-**Batteries-included (Tier A):**
+**Read-only (Tier A):**
 ```tsx
 <Calendar01
   data={tasks}
@@ -37,6 +38,24 @@ The read-only **date-grid** surface onto the canonical `TodoItem[]` — the disc
 />
 ```
 
+**Editable** (controlled-echo — edits come back via `onChange`; you own the data):
+```tsx
+const [tasks, setTasks] = useState<TodoItem[]>(initial);
+<Calendar01
+  editable
+  data={tasks}
+  onChange={setTasks}                    // every edit echoes the next forest
+  statusOptions={statusOptions}
+  priorityOptions={priorityOptions}
+  permissions={permissions}              // shared TodoPermissions matrix (optional)
+  statusColors={{ done: "...", blocked: "..." }}   // per-status accent (optional)
+  flagPriority={(i) => i.priority === "high"}       // on-grid flag (optional)
+  snap="15min"                           // keyboard/drag time granularity
+  quickCompose                           // default true: create opens the mini-composer
+  showInspector                          // a persistent details/edit panel beside the views
+/>
+```
+
 **Controlled cursor** (drive view + date yourself):
 ```tsx
 const [view, setView] = useState<CalendarView>("week");
@@ -44,18 +63,15 @@ const [date, setDate] = useState(new Date());
 <Calendar01 data={tasks} view={view} onViewChange={setView} date={date} onDateChange={setDate} />
 ```
 
-**Lighter, hand-assembled subset** (drops the week/day time-grid code from your bundle):
+**Lighter, hand-assembled subset** (drops the week/day time-grid code from your bundle). To keep editing working when you hand-assemble, mount the edit overlays + composer yourself:
 ```tsx
-<Calendar01Root data={tasks} statusOptions={statusOptions} views={["month", "agenda"]}>
+<Calendar01Root editable data={tasks} onChange={setTasks} statusOptions={statusOptions} views={["month", "agenda"]}>
   <CalendarToolbar />
-  {/* render the one view you want, or your own switcher */}
   <CalendarMonthView />
+  <CalendarQuickComposer />
+  <CalendarRenameField />
+  <CalendarEventEditorOverlay />   {/* OR mount <CalendarEventInspector /> instead — not both */}
 </Calendar01Root>
-```
-
-**Rich hover card** (lazy-loads `todo-rich-card`):
-```tsx
-<Calendar01 data={tasks} renderTooltip={(item) => <CalendarFullCardTooltip item={item} statusOptions={statusOptions} />} />
 ```
 
 **Imperative handle:**
@@ -63,39 +79,62 @@ const [date, setDate] = useState(new Date());
 const ref = useRef<CalendarHandle>(null);
 ref.current?.goToToday();
 ref.current?.setView("day");
-ref.current?.next();           // ref.current?.prev()
-ref.current?.getVisibleRange();
+ref.current?.next();                          // ref.current?.prev()
+ref.current?.addTask(date, { name: "…" });    // editable-only (no-ops otherwise)
+ref.current?.editTask(id); ref.current?.beginRename(id); ref.current?.deleteTask(id);
 ```
+
+---
+
+## Editing (v0.2)
+
+All editing is **opt-in via `editable`** (default off → read-only), **gated** by the shared `TodoPermissions` matrix (+ optional `canMoveItem`/`canResizeItem`/`canDeleteItem`/`canCreateChild`/`canEditItem` predicates), and **controlled-echo**: there is no internal data copy — each edit fires a typed event (`onTaskReschedule` / `onItemAdded` / `onItemRemoved` / `onFieldEdited` / `onStatusChanged`) **and** `onChange(nextForest)`. One `onChange` per gesture = one undo step for you.
+
+**Pointer:** drag an event to reschedule (whole days in month; time in week/day) · drag a bar/block edge to resize · drag across empty space (or double-click) to create · right-click for a menu (Edit / Rename / Status / Priority / **Copy** / **Cut** / Delete) · click selects (drives the inspector).
+
+**Keyboard** (scoped to focus, so it never collides with the toolbar keys):
+| Focus | Keys | Action |
+|---|---|---|
+| chrome | `M`/`W`/`D`/`A` · `←`/`→` · `T` | switch view · step period · today |
+| event | `←`/`→` | move by one unit (day in month/agenda; `snap` in week/day) |
+| event | `Shift`+`←`/`→` (+`↑`/`↓` in the time grid) | resize the end by one unit |
+| event | `Delete`/`Backspace` · `Enter` · `F2` | delete · open detail editor · rename |
+| empty day cell | `Enter` | open the quick-composer for that day |
+
+**Copy / cut / paste — cross-surface.** With the calendar focused, `⌘/Ctrl+C` / `X` / `V` copy/cut/paste the focused (or selected) event. Tasks travel as a portable `ilinxa/task` envelope on the OS clipboard, so a task copied in the calendar **pastes into gantt / kanban / tree** (as those surfaces adopt the same envelope) and back. **The paste target decides all-day vs timed** — paste onto a month day → all-day; paste in the week/day grid → timed (this is also how you convert). Pasted items are re-id'd (no collisions). Copying foreign clipboard text is ignored (native paste proceeds).
+
+**Detail editor & rename.** "Edit" (menu / `Enter`) opens the full `<TodoRichCard editable>`: **inline in `CalendarEventInspector`** when you mount it (`showInspector`), otherwise in a **centered modal overlay** (the assembly mounts `CalendarEventEditorOverlay` automatically when there's no inspector). `F2` / menu-Rename opens a small rename popup. The editor lazy-loads `todo-rich-card`, so a calendar that never opens it never bundles it.
 
 ---
 
 ## Gotchas
 
-- **All-day vs timed is *derived*, not stored.** `TodoItem` has no `allDay` flag. Resolution order (first match wins):
-  1. your `classifyEvent(item)` predicate (return `"all-day" | "timed" | "milestone"`, or `undefined` to defer);
-  2. a **date-only string** (`"2026-06-22"`, no `T`) ⇒ all-day; a full timestamp ⇒ timed;
-  3. span heuristic — no end ⇒ milestone (or all-day if the start is date-only); span ≥ 1 day ⇒ all-day; else timed.
-- **Date-only strings are floating-local.** `"2026-06-22"` is parsed as local midnight (not UTC) so all-day events never render a day early. Full timestamps go through `Date.parse` (matching the rest of the family).
-- **All-day end is exclusive** (iCal / Google semantics): `"2026-06-20" → "2026-06-22"` covers Jun 20–21 (two days). Use the day *after* the last covered day as `expireAt`.
-- **Pass `now` for SSR.** Without it the now-line/urgency seed to epoch on the server and resolve to the real clock one frame after mount (a brief settle, no hydration mismatch). With `now`, first paint is exact.
-- **Children are flattened — no roll-up.** Every dated item (and descendant) renders as its own event. A parent with its own dates renders alongside its children. Roll-up summaries are gantt's job.
-- **Default tooltip is a native `title`.** It's instant, accessible, and pulls no primitive. Pass `renderTooltip` for a rich card (that path lazy-loads `todo-rich-card`).
-- **Month overflow caps at 3 chips/day** (override with `maxEventsPerCell`); the rest collapse into "+N more" (a popover, or your `onShowMore`).
-- **Week/Day grids scroll** to `scrollToHour` (default 8) on mount; they show 24h.
+- **Upgrading from v0.1 — two intentional read-only-visible changes** (both opt-out-able):
+  1. **Event color is now status-driven** (`colorBy` defaults to `"status"`, using `statusColors`/the status tone). v0.1 colored active events by a deadline-urgency ramp. **Set `colorBy="urgency"` to restore v0.1 exactly.**
+  2. **Month overflow is now height-responsive** — the visible-event cap is derived from the cell height (a taller calendar shows more before "+N more"). **Set `maxEventsPerCell={3}` (or any number) to restore a fixed cap.** Unbounded-height calendars still cap ≈ 3.
+- **In `editable` mode, `onDateClick` does not fire** for month day single-click — editing takes it over (double-click / `Enter` composes there).
+- **All-day vs timed is *derived*, not stored.** `TodoItem` has no `allDay` flag. Order (first match wins): your `classifyEvent(item)` → a date-only string (`"2026-06-22"`, no `T`) ⇒ all-day, a full timestamp ⇒ timed → span heuristic (no end ⇒ milestone/all-day; ≥ 1 day ⇒ all-day; else timed).
+- **Date-only strings are floating-local** (local midnight, not UTC) so all-day events never render a day early; the all-day⇄timed round-trip (drag/paste) preserves the calendar date with no off-by-one.
+- **All-day end is exclusive** (iCal/Google): `"2026-06-20" → "2026-06-22"` covers Jun 20–21. Keyboard/drag resize honor this.
+- **Pass `now` for SSR.** Without it the now-line/urgency seed to epoch on the server and resolve to the real clock one frame after mount (no hydration mismatch).
+- **Children are flattened — no roll-up.** Every dated item (and descendant) renders as its own event. Roll-up summaries are gantt's job.
+- **Copy/paste needs the calendar to hold focus** and is skipped while you're typing in an input (so the composer/rename/editor keep native text copy/paste).
+- **Modal overlays are not focus-trapped** (Tab can leave the dialog) — consistent with gantt's editor; a `<dialog>` migration is a tracked follow-up.
 
 ---
 
 ## Migration notes
 
-New greenfield component (no predecessor). It is the fifth member of the task-management set and shares the `TodoItem` + `TodoStatusOption` + `TodoPermissions` vocabulary with the rest — moving data between the card / tree / board / gantt / calendar needs no transformation.
+New greenfield component (no predecessor). The fifth member of the task-management set; shares the `TodoItem` + `TodoStatusOption` + `TodoPermissions` vocabulary with the rest — moving data between card / tree / board / gantt / calendar needs no transformation. The cross-surface clipboard helpers (`serializeTasks` / `parseTasks` / `reassignTaskIds` / `TaskClipboardEnvelope`) are exported from the calendar barrel and are slated to hoist into `todo-rich-card` (the shared vocabulary) so every task surface reads the same envelope.
 
 ---
 
-## Open follow-ups (v0.1.x / v0.2)
+## Open follow-ups (v0.2.x)
 
-- **F-01 (live visual walkthrough)** — v0.1.0 was verified by build + SSR + code-path reasoning; the in-browser walkthrough (month lane layout, time-grid positioning, mini-nav, tooltip) is owed post-deploy.
-- **Cross-backend smoke** — calendar-01 introduces `toggle-group` / `popover` / `tooltip` / `calendar` primitives; a post-deploy consumer-tsc smoke (Radix + Base UI) is expected, with a likely v0.1.1 patch (the 4-ship pattern).
-- **Week/Day all-day band** shows all-day events as per-day chips; column-**spanning** bars in the band are a v0.1.x refinement (the month grid already spans).
-- **Month overflow** is a fixed cap (3); height-responsive counting is a v0.1.x refinement.
-- **Grid roving-tabindex** arrow-key cell navigation (v1 has period/view shortcuts + focusable event buttons).
-- **v0.2 — editing:** drag-to-reschedule, edge-resize, create-on-cell, detail popover (lazy `<TodoRichCard editable>`), context menu, delete, and the shared `TodoPermissions` matrix — all behind `editable` (the props are already declared, inert in v1).
+- **F-01 (live visual walkthrough)** — verified by build + SSR + 3-pass code review; the in-browser walkthrough (drag/resize/keyboard/copy-paste, overlays, F-04 responsive cap) is owed post-deploy.
+- **F-02 (cross-backend smoke)** — v0.2 adds the `context-menu` + `input` primitives (atop v0.1's `toggle-group`/`popover`/`tooltip`/`calendar`); a post-deploy consumer-tsc smoke (Radix + Base UI) is expected, with a possible patch (the 4-ship pattern).
+- **Modal focus-trap** — `aria-modal` overlays don't trap Tab yet (native `<dialog>` migration, with gantt, in a later bump).
+- **Hoist the clipboard** into `todo-rich-card` + wire gantt / kanban / tree (the "between all task tools" epic).
+- **Live-preview perf** — the resize preview rebuilds the whole context per pointermove (isolate to a preview-only context).
+- **Grid roving-tabindex** arrow-key cell navigation (editable cells are individual tab stops today).
+- **Deferred/reserved:** external HTML5 drop tray (`onExternalDrop` is declared but inert — copy/paste replaces it), agenda-row dragging, bespoke conversion-drag, time-grid empty-slot keyboard create.
