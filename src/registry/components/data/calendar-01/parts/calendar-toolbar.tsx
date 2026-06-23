@@ -3,10 +3,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
 import type { CalendarView } from "../types";
@@ -79,21 +75,35 @@ export function CalendarToolbar({ className }: { className?: string }) {
       </div>
 
       {availableViews.length > 1 ? (
-        <ToggleGroup
-          type="single"
-          value={view}
-          onValueChange={(v: string) => {
-            if (v) setView(v as CalendarView);
-          }}
-          variant="outline"
-          size="sm"
+        // Plain-button segmented control (NOT shadcn ToggleGroup): Base UI's
+        // ToggleGroup is a multi-value model (`value: string[]`, `onValueChange:
+        // (string[], details) => void`) while Radix's `type="single"` is a string
+        // — so the single-select view switcher fails consumer-tsc on Base UI
+        // (F-cross-13). Mirrors gantt-timeline-01's zoom switcher; drops the
+        // `toggle-group` dep entirely. (v0.2.1)
+        <div
+          role="group"
+          aria-label="Calendar view"
+          className="inline-flex overflow-hidden rounded-md border border-border"
         >
           {availableViews.map((v) => (
-            <ToggleGroupItem key={v} value={v} aria-label={VIEW_LABELS[v]}>
+            <button
+              key={v}
+              type="button"
+              aria-pressed={view === v}
+              aria-label={VIEW_LABELS[v]}
+              onClick={() => setView(v)}
+              className={cn(
+                "h-8 px-3 text-sm font-medium transition-colors",
+                view === v
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
               {VIEW_LABELS[v]}
-            </ToggleGroupItem>
+            </button>
           ))}
-        </ToggleGroup>
+        </div>
       ) : null}
     </div>
   );

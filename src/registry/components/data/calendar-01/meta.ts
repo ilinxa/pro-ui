@@ -32,7 +32,7 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-06-22",
   updatedAt: "2026-06-23",
@@ -49,7 +49,6 @@ export const meta: ComponentMeta = {
       "input",
       "popover",
       "skeleton",
-      "toggle-group",
       "tooltip",
     ],
     npm: {

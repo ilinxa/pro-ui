@@ -60,7 +60,7 @@ tsc **0** · lint **0 err** (1 pre-existing TanStack Virtual warning) · meta-de
 
 ## Open follow-ups
 
-- **F-01 (Medium) — live drag-walkthrough still OWED.** This environment has no X server, so Chrome can't launch (`Missing X server or $DISPLAY`). Verified by code-path reasoning + green gates + a clean dev-server SSR. Carried from v0.3.0/v0.3.1; now also covers the new Draw + right-click paths. **Run post-deploy.**
+- **F-01 (Medium) — live drag-walkthrough: ✅ CLOSED 2026-06-23.** Initially blocked (no X server). Run post-deploy against Production via the dockerized stealth-browser (`virtualbrowser-stealth-browser-1`, after reviving its dead Xvfb display). Both fixes validated live: the **Draw toggle** flips `aria-pressed` + active variant + crosshair cursor (draw-vs-pan), and the **right-click menu opens** with a real menu-item click ("Add task below") **creating a new task** (the swallowed-pointerup bug is gone). Discharges the owed item carried from v0.3.0/v0.3.1 for the rendered/interaction surface. (Pointer-drag reschedule/resize stays gesture-level.)
 - **F-02 (Low, v0.4.x):** no `defaultDrawMode` / controlled prop — the toolbar toggle is the only entry (context escape hatch exists for hand-assembly).
 - **F-03 (Low, v0.4.x / v2.1):** empty-row draw inserts the sibling at `index + 1`; position-on-draw refinement deferred.
 - **F-04 (Low, won't-fix):** snap/Alt captured at `pointerdown` — parity with single-move/group-move.

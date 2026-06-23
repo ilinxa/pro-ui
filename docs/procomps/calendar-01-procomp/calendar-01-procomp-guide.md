@@ -1,6 +1,6 @@
 # `calendar-01` — Consumer Guide
 
-> **Version:** v0.2.0 · **Status:** alpha
+> **Version:** v0.2.1 · **Status:** alpha
 > **Slug:** `calendar-01` · **Category:** `data` · **Tier:** pro-component (shadcn-style compound)
 > Install: `pnpm dlx shadcn@latest add @ilinxa/calendar-01` (base) or `@ilinxa/calendar-01-fixtures` (base + demo data).
 
@@ -131,8 +131,8 @@ New greenfield component (no predecessor). The fifth member of the task-manageme
 
 ## Open follow-ups (v0.2.x)
 
-- **F-01 (live visual walkthrough)** — verified by build + SSR + 3-pass code review; the in-browser walkthrough (drag/resize/keyboard/copy-paste, overlays, F-04 responsive cap) is owed post-deploy.
-- **F-02 (cross-backend smoke)** — v0.2 adds the `context-menu` + `input` primitives (atop v0.1's `toggle-group`/`popover`/`tooltip`/`calendar`); a post-deploy consumer-tsc smoke (Radix + Base UI) is expected, with a possible patch (the 4-ship pattern).
+- **F-01 (live visual walkthrough) — ✅ closed in v0.2.1.** Run live against Production via a virtual browser: renders, context menu, selection→inspector editor, Week time-grid, and the F-04 month overflow all verified; no visual bugs.
+- **F-02 (cross-backend smoke) — ✅ closed in v0.2.1.** The Base UI (`base-nova`) consumer-tsc smoke caught 3 real divergences (`ToggleGroup` is a multi-value model on Base UI; `TooltipProvider delayDuration` is Radix-only). Fixed: the view switcher is now a plain-button segmented control (**`toggle-group` dependency dropped**) and the tooltip uses the default delay. Base UI consumer-tsc is clean.
 - **Modal focus-trap** — `aria-modal` overlays don't trap Tab yet (native `<dialog>` migration, with gantt, in a later bump).
 - **Hoist the clipboard** into `todo-rich-card` + wire gantt / kanban / tree (the "between all task tools" epic).
 - **Live-preview perf** — the resize preview rebuilds the whole context per pointermove (isolate to a preview-only context).
