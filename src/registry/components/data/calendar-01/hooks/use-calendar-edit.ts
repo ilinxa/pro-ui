@@ -44,6 +44,7 @@ import {
   setWindow,
 } from "../lib/edit-mutations";
 import { evalCalendarPermission } from "../lib/edit-permissions";
+import { reassignTaskIds } from "../lib/clipboard";
 import { parseDateValue } from "../lib/classify";
 
 type Args = {
@@ -264,6 +265,49 @@ export function useCalendarEdit(args: Args) {
     [editable, guard, statusOptions, data, onItemAdded, onChange, select],
   );
 
+  /**
+   * Paste tasks from the cross-surface clipboard at a target window. Each root is
+   * re-id'd (no collision with the source), its dates are rewritten from the
+   * TARGET window (so paste lands where focus is AND converts all-day⇄timed by
+   * the target), then inserted. One `onChange` for the whole paste (one undo
+   * step); root-create gates on `editable`, child-paste on the parent's rule.
+   */
+  const pasteTasks = useCallback(
+    (
+      items: TodoItem[],
+      window: { startMs: number; endMs?: number; allDay: boolean },
+      parentId: string | null = null,
+    ) => {
+      if (!editable || items.length === 0) return;
+      if (parentId != null && !guard("create", parentId)) return;
+      let next = data;
+      const created: TodoItem[] = [];
+      for (const raw of items) {
+        // Re-id the (typed `TodoItem`) source, then the TARGET window overrides the
+        // dates — so the paste lands where focus is AND converts all-day⇄timed.
+        const root: TodoItem = {
+          ...reassignTaskIds(raw),
+          startAt: formatDateValue(window.startMs, window.allDay),
+        };
+        if (window.endMs != null && Number.isFinite(window.endMs)) {
+          root.expireAt = formatDateValue(window.endMs, window.allDay);
+        } else {
+          delete root.expireAt;
+        }
+        if (root.duration != null) delete root.duration; // canonicalize to expireAt-driven
+        next = addItem(next, parentId, root);
+        created.push(root);
+      }
+      if (next === data) return;
+      created.forEach((item) =>
+        onItemAdded?.({ parentId: parentId ?? "", item }),
+      );
+      onChange?.(next);
+      select?.(created[created.length - 1]?.id ?? null);
+    },
+    [editable, guard, data, onItemAdded, onChange, select],
+  );
+
   const deleteItem = useCallback(
     (id: string) => {
       if (!guard("delete", id)) return;
@@ -407,14 +451,22 @@ export function useCalendarEdit(args: Args) {
 
   const openEditor = useCallback(
     (id: string) => {
-      if (guard("editDetails", id)) setEditingId(id);
+      if (!guard("editDetails", id)) return;
+      setRenamingId(null); // editor + rename are mutually exclusive transients
+      // Select the item too: the inspector hosts the editor keyed on selection,
+      // so opening the editor (context-menu / Enter) without selecting first
+      // would otherwise be a no-op when the inspector is mounted.
+      select?.(id);
+      setEditingId(id);
     },
-    [guard],
+    [guard, select],
   );
   const closeEditor = useCallback(() => setEditingId(null), []);
   const beginRename = useCallback(
     (id: string) => {
-      if (guard("editDetails", id)) setRenamingId(id);
+      if (!guard("editDetails", id)) return;
+      setEditingId(null); // mutually exclusive with the editor
+      setRenamingId(id);
     },
     [guard],
   );
@@ -434,6 +486,7 @@ export function useCalendarEdit(args: Args) {
     getItem,
     rescheduleItem,
     createItem,
+    pasteTasks,
     deleteItem,
     renameItemAction,
     moveItemAction,

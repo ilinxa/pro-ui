@@ -45,6 +45,7 @@ export const AgendaRow = forwardRef<
       type="button"
       {...rest}
       data-selected={selected || undefined}
+      data-occ-id={occ.id}
       className={cn(
         "flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring data-[selected=true]:bg-muted",
         occ.inactive && "opacity-50",

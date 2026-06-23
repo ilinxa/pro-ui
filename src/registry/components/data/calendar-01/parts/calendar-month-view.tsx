@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format, isSameDay, isSameMonth, startOfDay } from "date-fns";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -57,11 +57,17 @@ export function MonthDayCell({
     <div
       ref={dropRef}
       role="gridcell"
+      // Editable cells are keyboard-focusable; the root's delegated handler reads
+      // `data-day-ms` so Enter on a focused empty day opens the quick-composer.
+      tabIndex={creatable ? 0 : undefined}
+      data-day-ms={creatable ? startOfDay(day).getTime() : undefined}
       onClick={onDayClick ? () => onDayClick(day) : undefined}
       onDoubleClick={onDayDoubleClick ? (e) => onDayDoubleClick(day, e) : undefined}
       className={cn(
-        "relative min-h-27 border-r border-border last:border-r-0",
+        "relative min-h-27 border-r border-border outline-none last:border-r-0",
         (onDayClick || creatable) && "cursor-pointer",
+        creatable &&
+          "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
         outside && "bg-muted/30",
         isOver && "bg-primary/10 ring-1 ring-inset ring-primary/40",
       )}
@@ -199,9 +205,40 @@ export function CalendarMonthView({ className }: { className?: string }) {
     resizePreview,
   } = ctx;
 
-  const cap = maxEventsPerCell ?? DEFAULT_CAP;
   const weeks = monthGrid(focusDate, weekStartsOn);
+  const weeksCount = weeks.length;
   const nowDate = new Date(nowMs);
+
+  // F-04 — height-responsive overflow cap: derive how many event lanes fit in a
+  // measured week-row, so a taller calendar shows more events before "+N more".
+  // `maxEventsPerCell` overrides (no measuring). rAF-coalesced ResizeObserver
+  // (gantt G8); state is set only inside the rAF (never directly in the effect).
+  const rowsRef = useRef<HTMLDivElement>(null);
+  const [responsiveCap, setResponsiveCap] = useState(DEFAULT_CAP);
+  useEffect(() => {
+    const el = rowsRef.current;
+    if (!el || maxEventsPerCell != null) return;
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const rowH = el.clientHeight / Math.max(1, weeksCount);
+        const root =
+          parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const laneH = root * 1.3 + 2; // LANE_H (1.3rem) + the grid's gap-y-0.5
+        const next = Math.max(1, Math.floor((rowH - 34) / laneH)); // 34 ≈ day-number row
+        setResponsiveCap((prev) => (prev === next ? prev : next));
+      });
+    });
+    ro.observe(el);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+  }, [maxEventsPerCell, weeksCount]);
+
+  const cap = maxEventsPerCell ?? responsiveCap;
   // Apply the live resize preview to the occurrence being dragged.
   const occs = resizePreview
     ? occurrences.map((o) =>
@@ -217,7 +254,7 @@ export function CalendarMonthView({ className }: { className?: string }) {
   };
 
   return (
-    <div role="grid" className={cn("flex flex-col", className)}>
+    <div role="grid" className={cn("flex h-full flex-col", className)}>
       {/* weekday header */}
       <div role="row" className="grid grid-cols-7 border-b border-border">
         {weeks[0].map((d) => (
@@ -231,25 +268,26 @@ export function CalendarMonthView({ className }: { className?: string }) {
         ))}
       </div>
 
-      {/* week rows */}
-      {weeks.map((week) => (
-        <MonthWeekRow
-          key={week[0].toISOString()}
-          week={week}
-          cap={cap}
-          occurrences={occs}
-          focusDate={focusDate}
-          nowDate={nowDate}
-          selectedId={selectedId}
-          editable={editable}
-          can={can}
-          onTaskClick={onTaskClick}
-          onDateClick={onDateClick}
-          onShowMore={onShowMore}
-          renderTooltip={renderTooltip}
-          activate={activate}
-        />
-      ))}
+      {/* week rows — share the available height so the overflow cap is responsive */}
+      <div ref={rowsRef} className="flex min-h-0 flex-1 flex-col">
+        {weeks.map((week) => (
+          <MonthWeekRow
+            key={week[0].toISOString()}
+            week={week}
+            cap={cap}
+            occurrences={occs}
+            focusDate={focusDate}
+            nowDate={nowDate}
+            selectedId={selectedId}
+            editable={editable}
+            can={can}
+            onDateClick={onDateClick}
+            onShowMore={onShowMore}
+            renderTooltip={renderTooltip}
+            activate={activate}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -277,7 +315,6 @@ function MonthWeekRow({
   selectedId: string | null;
   editable: boolean;
   can: ReturnType<typeof useCalendar>["can"];
-  onTaskClick?: (item: TodoItem) => void;
   onDateClick?: (d: Date) => void;
   onShowMore?: (d: Date, items: TodoItem[]) => void;
   renderTooltip?: ReturnType<typeof useCalendar>["renderTooltip"];
@@ -290,7 +327,7 @@ function MonthWeekRow({
     <div
       ref={weekRef}
       role="row"
-      className="relative grid grid-cols-7 border-b border-border last:border-b-0"
+      className="relative grid min-h-0 flex-1 grid-cols-7 border-b border-border last:border-b-0"
     >
       {week.map((day, col) => {
         const onDay = occurrencesOnDay(occurrences, day);

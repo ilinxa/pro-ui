@@ -26,15 +26,83 @@ import { useCalendarEdit } from "../hooks/use-calendar-edit";
 import { useNowTick } from "../hooks/use-now-tick";
 import { visibleRange as computeVisibleRange } from "../lib/date-range";
 import { toOccurrences } from "../lib/occurrences";
+import { coveredDays } from "../lib/segments";
+import { snapStepMs } from "../lib/edit-mutations";
+import { parseDateValue } from "../lib/classify";
+import {
+  readTasksFromClipboardEvent,
+  writeTasksToClipboardEvent,
+} from "../lib/clipboard";
 import type {
   CalendarContextValue,
   CalendarHandle,
   CalendarOccurrence,
   CalendarRootProps,
   CalendarView,
+  TodoItem,
 } from "../types";
 
 const ALL_VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
+const MS_PER_DAY = 86_400_000;
+
+/** Duration (ms) of a task from its dates; 0 when it has no real span. */
+function itemDurationMs(it: TodoItem): number {
+  const startMs = parseDateValue(it.startAt ?? it.setAt).ms;
+  const endMs = it.expireAt ? parseDateValue(it.expireAt).ms : NaN;
+  return Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs
+    ? endMs - startMs
+    : 0;
+}
+
+/**
+ * Where a paste lands. The TARGET decides all-day vs timed (so paste also
+ * converts): a focused day-cell → that day, all-day; a focused event → its
+ * day + all-day-ness; otherwise the current focus date (timed in week/day at
+ * `scrollToHour`, else all-day). Duration is carried from the copied item.
+ */
+function resolvePasteWindow(
+  items: TodoItem[],
+  opts: {
+    activeEl: Element | null;
+    occurrences: CalendarOccurrence[];
+    view: CalendarView;
+    focusDate: Date;
+    scrollToHour: number;
+  },
+): { startMs: number; endMs?: number; allDay: boolean } {
+  const { activeEl, occurrences, view, focusDate, scrollToHour } = opts;
+  const dur = itemDurationMs(items[0]);
+  const dayEl = activeEl?.closest?.("[data-day-ms]") as HTMLElement | null;
+  if (dayEl) {
+    const startMs = Number(dayEl.getAttribute("data-day-ms"));
+    return { startMs, endMs: dur > 0 ? startMs + dur : undefined, allDay: true };
+  }
+  const occEl = activeEl?.closest?.("[data-occ-id]") as HTMLElement | null;
+  if (occEl) {
+    const occ = occurrences.find(
+      (o) => o.id === occEl.getAttribute("data-occ-id"),
+    );
+    if (occ) {
+      const span = occ.endMs > occ.startMs ? occ.endMs - occ.startMs : 0;
+      const length = dur > 0 ? dur : span;
+      return {
+        startMs: occ.startMs,
+        endMs: length > 0 ? occ.startMs + length : undefined,
+        allDay: occ.allDay,
+      };
+    }
+  }
+  const base = startOfDay(focusDate).getTime();
+  if (view === "week" || view === "day") {
+    const startMs = base + Math.max(0, Math.min(23, scrollToHour)) * 3_600_000;
+    return {
+      startMs,
+      endMs: dur > 0 ? startMs + dur : startMs + 3_600_000,
+      allDay: false,
+    };
+  }
+  return { startMs: base, endMs: dur > 0 ? base + dur : undefined, allDay: true };
+}
 
 /**
  * Headless provider (Tier B). Owns ALL state — the cursor (view + focus date),
@@ -184,6 +252,7 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       getItem,
       rescheduleItem,
       createItem,
+      pasteTasks,
       deleteItem,
       renameItemAction,
       changeStatus,
@@ -201,6 +270,12 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       resizePreview,
       setResizePreview,
     } = edit;
+
+    // The root element (clipboard listeners fire only when it contains focus) and
+    // the id to refocus after a keyboard-opened transient (editor / rename /
+    // composer) closes (F-11).
+    const rootRef = useRef<HTMLDivElement>(null);
+    const restoreFocusRef = useRef<string | null>(null);
 
     // Drag-to-reschedule across the grid. A draggable event carries `{ occ }`; a
     // droppable day cell carries `{ dayMs }`. We shift by whole CALENDAR days
@@ -250,6 +325,108 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
         end: new Date(rangeEndMs),
       });
     }, [view, rangeStartMs, rangeEndMs]);
+
+    // Focus restore (F-11): when a keyboard-opened transient (editor / rename /
+    // composer) closes, return focus to the originating event/cell.
+    useEffect(() => {
+      if (editingId || renamingId || composerTarget) return;
+      const target = restoreFocusRef.current;
+      if (!target) return;
+      restoreFocusRef.current = null;
+      const raf = requestAnimationFrame(() => {
+        const sel = target.startsWith("day:")
+          ? `[data-day-ms="${target.slice(4)}"]`
+          : `[data-occ-id="${target}"]`;
+        (rootRef.current?.querySelector(sel) as HTMLElement | null)?.focus();
+      });
+      return () => cancelAnimationFrame(raf);
+    }, [editingId, renamingId, composerTarget]);
+
+    // Cross-surface clipboard — copy/cut/paste `TodoItem`s through the OS clipboard
+    // (the shared `ilinxa/task` envelope; foreign text is ignored). Document-level
+    // so it fires regardless of which focused element the UA targets; gated on the
+    // calendar containing focus, skipped over text inputs (so the composer / rename
+    // keep native text copy/paste).
+    useEffect(() => {
+      if (!editable) return;
+      const owns = () => {
+        const active = document.activeElement;
+        return !!rootRef.current && !!active && rootRef.current.contains(active);
+      };
+      const overText = () => {
+        const el = document.activeElement as HTMLElement | null;
+        return (
+          el?.tagName === "INPUT" ||
+          el?.tagName === "TEXTAREA" ||
+          el?.isContentEditable === true
+        );
+      };
+      // An open editor / rename / composer owns the clipboard (it may hold
+      // non-input controls), so defer to native copy/paste while one is up.
+      const busy = () =>
+        editingId != null || renamingId != null || composerTarget != null;
+      const targetId = (): string | null => {
+        const active = document.activeElement as HTMLElement | null;
+        const occId = active
+          ?.closest?.("[data-occ-id]")
+          ?.getAttribute("data-occ-id");
+        return occId ?? selectedId ?? null;
+      };
+      const onCopy = (e: ClipboardEvent) => {
+        if (!owns() || overText() || busy()) return;
+        const id = targetId();
+        const item = id ? getItem(id) : undefined;
+        if (!item) return;
+        writeTasksToClipboardEvent(e, [item], "calendar-01");
+        e.preventDefault();
+      };
+      const onCut = (e: ClipboardEvent) => {
+        if (!owns() || overText() || busy()) return;
+        const id = targetId();
+        const item = id ? getItem(id) : undefined;
+        if (!item) return;
+        writeTasksToClipboardEvent(e, [item], "calendar-01");
+        deleteItem(item.id);
+        e.preventDefault();
+      };
+      const onPaste = (e: ClipboardEvent) => {
+        if (!owns() || overText() || busy()) return;
+        const items = readTasksFromClipboardEvent(e);
+        if (!items) return;
+        pasteTasks(
+          items,
+          resolvePasteWindow(items, {
+            activeEl: document.activeElement,
+            occurrences,
+            view,
+            focusDate,
+            scrollToHour,
+          }),
+        );
+        e.preventDefault();
+      };
+      document.addEventListener("copy", onCopy);
+      document.addEventListener("cut", onCut);
+      document.addEventListener("paste", onPaste);
+      return () => {
+        document.removeEventListener("copy", onCopy);
+        document.removeEventListener("cut", onCut);
+        document.removeEventListener("paste", onPaste);
+      };
+    }, [
+      editable,
+      selectedId,
+      getItem,
+      deleteItem,
+      pasteTasks,
+      occurrences,
+      view,
+      focusDate,
+      scrollToHour,
+      editingId,
+      renamingId,
+      composerTarget,
+    ]);
 
     useImperativeHandle(
       ref,
@@ -405,9 +582,117 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       ],
     );
 
+    // Event-focused editing. `←/→` move by one unit (day in month/agenda, snap in
+    // the time grid), `Shift+←/→` (+ `↑/↓` in the time grid) resize the end,
+    // `Delete` removes, `Enter` opens the detail editor, `F2` renames. Returns
+    // true when it consumed the key (so chrome keys still fall through otherwise).
+    const handleEventKey = (
+      e: KeyboardEvent<HTMLDivElement>,
+      id: string,
+    ): boolean => {
+      const occ = occurrences.find((o) => o.id === id);
+      if (!occ) return false;
+      const timed = (view === "week" || view === "day") && !occ.allDay;
+      const moveUnit = timed ? snapStepMs(snap) || 900_000 : MS_PER_DAY;
+      const hasSpan = occ.endMs > occ.startMs;
+
+      // Resize the END by one unit. All-day events resize in whole days against
+      // the exclusive-end convention (same math as the drag grip, so keyboard and
+      // pointer agree — no off-by-one) and never collapse past their start;
+      // milestones are points in time and aren't resizable.
+      const resizeEnd = (dir: number) => {
+        if (occ.kind === "milestone") return;
+        if (occ.allDay) {
+          const cov = coveredDays(occ);
+          const curEnd = startOfDay(new Date(cov.lastMs)).getTime() + MS_PER_DAY;
+          const minEnd = startOfDay(new Date(cov.firstMs)).getTime() + MS_PER_DAY;
+          rescheduleItem(
+            id,
+            { endMs: Math.max(minEnd, curEnd + dir * MS_PER_DAY), allDay: true },
+            "resize",
+          );
+        } else {
+          const base = hasSpan ? occ.endMs : occ.startMs;
+          rescheduleItem(
+            id,
+            { endMs: base + dir * (snapStepMs(snap) || 900_000), allDay: false },
+            "resize",
+          );
+        }
+      };
+
+      switch (e.key) {
+        case "ArrowLeft":
+        case "ArrowRight": {
+          const dir = e.key === "ArrowRight" ? 1 : -1;
+          if (e.shiftKey) {
+            resizeEnd(dir);
+          } else {
+            rescheduleItem(
+              id,
+              {
+                startMs: occ.startMs + dir * moveUnit,
+                endMs: hasSpan ? occ.endMs + dir * moveUnit : undefined,
+                allDay: occ.allDay,
+              },
+              "move",
+            );
+          }
+          e.preventDefault();
+          return true;
+        }
+        case "ArrowUp":
+        case "ArrowDown": {
+          if (!timed || !e.shiftKey) return false; // resize-only, time grid only
+          resizeEnd(e.key === "ArrowDown" ? 1 : -1);
+          e.preventDefault();
+          return true;
+        }
+        case "Delete":
+        case "Backspace":
+          deleteItem(id);
+          e.preventDefault();
+          return true;
+        case "Enter":
+          restoreFocusRef.current = id;
+          openEditor(id);
+          e.preventDefault();
+          return true;
+        case "F2":
+          restoreFocusRef.current = id;
+          beginRename(id);
+          e.preventDefault();
+          return true;
+        default:
+          return false;
+      }
+    };
+
     const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-      const tag = (e.target as HTMLElement).tagName;
+      const targetEl = e.target as HTMLElement;
+      const tag = targetEl.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      // Route to event/cell editing when an event or editable day cell is focused;
+      // anything not consumed falls through to the v1 view/period keys below.
+      if (editable) {
+        const occId = targetEl
+          .closest?.("[data-occ-id]")
+          ?.getAttribute("data-occ-id");
+        if (occId) {
+          if (handleEventKey(e, occId)) return;
+        } else if (e.key === "Enter") {
+          const dayMsAttr = targetEl
+            .closest?.("[data-day-ms]")
+            ?.getAttribute("data-day-ms");
+          if (dayMsAttr) {
+            const d = startOfDay(new Date(Number(dayMsAttr)));
+            restoreFocusRef.current = `day:${dayMsAttr}`;
+            openComposer({ date: d, allDay: true, defaultEnd: d });
+            e.preventDefault();
+            return;
+          }
+        }
+      }
       switch (e.key) {
         case "ArrowLeft":
         case "PageUp":
@@ -456,6 +741,7 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       <CalendarContext.Provider value={ctx}>
         <TooltipProvider delayDuration={250}>
           <div
+            ref={rootRef}
             tabIndex={0}
             onKeyDown={handleKeyDown}
             aria-label={props["aria-label"] ?? "Calendar"}

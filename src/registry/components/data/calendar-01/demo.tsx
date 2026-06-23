@@ -108,9 +108,12 @@ export default function Calendar01Demo() {
           <span className="text-xs text-muted-foreground">
             <strong>Drag</strong> to reschedule · <strong>drag an edge</strong> to
             resize · <strong>double-click</strong> (or drag) empty space →
-            quick-create · <strong>right-click</strong> an event for actions ·
-            select → <strong>Edit</strong> in the panel. Switch to{" "}
-            <strong>Week/Day</strong> for time editing.
+            quick-create · <strong>right-click</strong> for actions (incl.
+            Copy/Cut) · select → <strong>Edit</strong>. <strong>Keyboard:</strong>{" "}
+            focus an event → arrows move, Shift+arrows resize, Enter edit, F2
+            rename, Del delete. <strong>Copy/paste</strong> (⌘/Ctrl+C·X·V) carries
+            tasks across task tools. Switch to <strong>Week/Day</strong> for time
+            editing.
           </span>
           <span className="ml-auto text-xs text-muted-foreground">
             {lastEdit || `${editData.length} root items`}

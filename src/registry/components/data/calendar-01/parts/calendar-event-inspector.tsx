@@ -1,26 +1,25 @@
 "use client";
 
-import { lazy, Suspense, useMemo } from "react";
+import { useMemo } from "react";
 import { format } from "date-fns";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
 import { coveredDays } from "../lib/segments";
+import { EventEditorPanel } from "./calendar-edit-overlays";
 import type { CalendarOccurrence } from "../types";
 
 /**
  * Selected-event inspector (Tier B). Shows a read-only preview of the selected
- * occurrence; when `editable`, an Edit button reveals the full lazy
- * `<TodoRichCard editable>` (all fields — title, status, priority, dates,
+ * occurrence; when `editable`, an Edit button reveals the shared `EventEditorPanel`
+ * (the full lazy `<TodoRichCard editable>` — title, status, priority, dates,
  * description) whose edits splice back via `applyEditedSubtree`, plus Delete.
  * Lives inside `Calendar01Root` (reads context). Place it beside the views for
- * a persistent details panel, or omit it entirely.
+ * a persistent details panel, or omit it (the editor also surfaces via the
+ * `CalendarEventEditorOverlay` the assembly mounts when there's no inspector).
  */
-const LazyTodoRichCard = lazy(() =>
-  import("../../todo-rich-card").then((m) => ({ default: m.TodoRichCard })),
-);
 
 function whenLabel(occ: CalendarOccurrence): string {
   const s = new Date(occ.startMs);
@@ -104,33 +103,15 @@ export function CalendarEventInspector({ className }: { className?: string }) {
       </div>
 
       {editing ? (
-        <div className="flex flex-col gap-2">
-          <Suspense
-            fallback={
-              <div className="p-3 text-xs text-muted-foreground">
-                Loading editor…
-              </div>
-            }
-          >
-            <LazyTodoRichCard
-              value={item}
-              editable
-              statusOptions={statusOptions}
-              priorityOptions={priorityOptions}
-              labelOptions={labelOptions}
-              permissions={permissions}
-              onChange={(tree) => applyEditedSubtree(tree)}
-            />
-          </Suspense>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="gap-1.5 self-start"
-            onClick={() => closeEditor()}
-          >
-            <Check className="size-3.5" /> Done editing
-          </Button>
-        </div>
+        <EventEditorPanel
+          item={item}
+          statusOptions={statusOptions}
+          priorityOptions={priorityOptions}
+          labelOptions={labelOptions}
+          permissions={permissions}
+          onChange={applyEditedSubtree}
+          onDone={closeEditor}
+        />
       ) : (
         <>
           <div className="space-y-1">

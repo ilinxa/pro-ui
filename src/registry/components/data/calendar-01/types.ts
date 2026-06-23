@@ -205,6 +205,8 @@ export type CalendarProps = {
   selectedId?: string | null;
   onSelect?: (itemId: string | null) => void;
   onTaskClick?: (item: TodoItem) => void;
+  /** Fires on a day click. NOTE: when `editable`, month day single-click is taken
+   *  over by editing (double-click / Enter composes), so this does not fire there. */
   onDateClick?: (date: Date) => void;
   onShowMore?: (date: Date, items: TodoItem[]) => void;
   /** Override the hover tooltip; default = lightweight summary. */
@@ -244,8 +246,10 @@ export type CalendarProps = {
   /** Create opens the Google-style quick mini-composer (default true when
    *  editable); false → create opens the full detail card directly. */
   quickCompose?: boolean;
-  /** Accept drops INTO the calendar from an external source (e.g. a task tray).
-   *  The component provides the typed drop targets; the consumer creates the item. */
+  /** RESERVED — not wired by any gesture in v0.2.0. Cross-surface task transfer
+   *  ships as copy/paste (the `ilinxa/task` clipboard envelope), so native HTML5
+   *  external drop targets are deferred; this callback stays declared for the
+   *  future opt-in but never fires today. */
   onExternalDrop?: (date: Date, allDay: boolean, data: DataTransfer) => void;
   /** Override the default quick-composer body. */
   renderQuickComposer?: CalendarQuickComposerRenderer;

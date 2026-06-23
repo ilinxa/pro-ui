@@ -12,6 +12,11 @@ export { CalendarMiniNav } from "./parts/calendar-mini-nav";
 export { CalendarEventInspector } from "./parts/calendar-event-inspector";
 export { CalendarQuickComposer } from "./parts/calendar-quick-composer";
 export { CalendarEventContextMenu } from "./parts/calendar-context-menu";
+export {
+  CalendarEventEditorOverlay,
+  CalendarRenameField,
+  EventEditorPanel,
+} from "./parts/calendar-edit-overlays";
 
 // Standalone primitives (Tier C)
 export {
@@ -30,6 +35,17 @@ export { CalendarFullCardTooltip } from "./parts/event-tooltip-full";
 // Hook
 export { useCalendar } from "./hooks/use-calendar-context";
 
+// Cross-surface task clipboard (copy / cut / paste interop across task surfaces)
+export {
+  TASK_CLIPBOARD_KIND,
+  TASK_CLIPBOARD_VERSION,
+  serializeTasks,
+  parseTasks,
+  reassignTaskIds,
+  writeTasksToClipboardEvent,
+  readTasksFromClipboardEvent,
+} from "./lib/clipboard";
+
 // Public types (+ the consumed todo-rich-card data language, re-exported)
 export type {
   CalendarProps,
@@ -47,6 +63,9 @@ export type {
   CalendarComposerTarget,
   CalendarQuickComposerRenderer,
   TodoItem,
+} from "./types";
+export type { TaskClipboardEnvelope } from "./lib/clipboard";
+export type {
   TodoPerson,
   TodoStatusOption,
   TodoPriorityOption,
