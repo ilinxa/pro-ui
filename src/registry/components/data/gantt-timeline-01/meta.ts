@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "data",
 
   description:
-    "Editable project timeline (Gantt) over the canonical TodoItem[] — one bar per task from effective start→end, collapsible WBS summary rows from children, milestone diamonds, a continuous-zoom two-tier axis (hour→quarter), today line, filled status/urgency bars (ramp imported from todo-rich-card), and a pan/swipe/zoom canvas with momentum + pinch. v0.2 adds drag-to-reschedule, edge-resize, draw-to-create, delete, inline rename, gutter reparent (DnD), detail editing via the embedded todo-rich-card, and the shared permission matrix — all opt-in behind `editable` (default off = byte-identical v1 read-only). v0.3 adds group-move: drag a WBS summary bracket to rigidly shift its whole subtree. v0.4 adds an explicit Draw-mode toggle: a deferred-classify gesture model where a press picks its gesture on the first move (click selects, vertical drag scrolls), so empty-row drag pans by default and draws a new task only when Draw is on — resolving the draw-vs-pan conflict; the right-click menu's portaled events no longer leak back into the canvas. Ships as a shadcn-style compound.",
+    "Editable project timeline (Gantt) over the canonical TodoItem[] — one bar per task from effective start→end, collapsible WBS summary rows from children, milestone diamonds, a continuous-zoom two-tier axis (hour→quarter), today line, filled status/urgency bars (ramp imported from todo-rich-card), and a pan/swipe/zoom canvas with momentum + pinch. v0.2 adds drag-to-reschedule, edge-resize, draw-to-create, delete, inline rename, gutter reparent (DnD), detail editing via the embedded todo-rich-card, and the shared permission matrix — all opt-in behind `editable` (default off = byte-identical v1 read-only). v0.3 adds group-move: drag a WBS summary bracket to rigidly shift its whole subtree. v0.4 adds an explicit Draw-mode toggle: a deferred-classify gesture model where a press picks its gesture on the first move (click selects, vertical drag scrolls), so empty-row drag pans by default and draws a new task only when Draw is on — resolving the draw-vs-pan conflict; the right-click menu's portaled events no longer leak back into the canvas. v0.5 brings calendar-parity authoring: double-click an empty row area → a lightweight quick-composer (name + status, Enter to create, More options → full editor); cross-surface copy / cut / paste of TodoItems through the shared `ilinxa/task` clipboard envelope (⌘/Ctrl+C·X·V + right-click Copy/Cut), so a bar copied here pastes into calendar / rich-card / tree and back; and a Priority submenu in the right-click menu. Ships as a shadcn-style compound.",
   context:
     "Gantt Timeline is the time-axis sibling of todo-rich-card (cards) and kanban-board-01 (columns): it consumes the SAME canonical TodoItem type and lays it on a horizontal time axis, so a 'Timeline' tab is literally the same task data the List + Board tabs show, on a third surface. v0.2 makes it editable: opt in with `editable` and edits fire todo-rich-card-shaped events + onChange(TodoItem[]) for the controlled consumer to echo (no internal data state). The permission matrix (TodoPermissions) + per-action predicates are reused from todo-rich-card — the gantt is the third consumer after the card and todo-tree. Use it for sprint/cycle planning, delivery roadmaps (collapse to epics), content embargo→sunset schedules, and agent/pipeline run windows. Compound structure: GanttTimelineRoot (headless provider) + flat parts (Toolbar/Axis/Gutter/Body) + Tier-C primitives (GanttBar/SummaryBar/MilestoneDiamond/TodayLine/GutterRow/AxisHeader/BarTooltip/GanttContextMenu) + the GanttTimeline01 assembly. The full-card tooltip and the edit editor lazy-load todo-rich-card, so the default read-only path keeps it out of the bundle.",
   features: [
@@ -27,6 +27,9 @@ export const meta: ComponentMeta = {
     "v0.2 permissions: reuses todo-rich-card's TodoPermissions matrix (default/byLevel/byItem/inherit) + canMove/Resize/Delete/CreateChild/EditItem predicates + onPermissionDenied; item.locked blocks all; summary bars non-manipulable for single-edit (group-move added in v0.3)",
     "v0.3 group-move: drag a WBS summary bracket → rigidly shift the whole subtree by one snapped delta (Alt = free); atomic permission (summary + every descendant leaf movable, else the drag pans); fires per-leaf onFieldEdited/onTaskReschedule + one onChange; imperative shiftTaskGroup(id, deltaMs)",
     "v0.4 Draw mode: a toolbar Draw toggle (editable only) gates draw-to-create — empty-row drag pans by default (off) and draws a new task only when on, ending the draw-vs-pan conflict; the whole gesture pipeline defers intent to the first move (a press classifies what's under it, then click→select, vertical→scroll, horizontal→resize/move/group-move/draw/pan); right-click menu fix — its portaled pointer/key events no longer bubble back into the canvas and swallow menu-item clicks",
+    "v0.5 double-click-to-create: double-click an empty row area → a lightweight quick-composer floats at the pointer (name autofocus + status pick, Enter creates a snapped sibling, More options → full editor); independent of Draw mode; `quickCompose` (default true) / `renderQuickComposer` override",
+    "v0.5 cross-surface clipboard: copy/cut/paste TodoItems through the shared `ilinxa/task` envelope (todo-rich-card/lib/clipboard) — ⌘/Ctrl+C·X·V (document-level, gated on focus + skipped over inputs) + right-click Copy/Cut; paste re-ids each subtree and lands as a sibling of the selection (dates preserved); interops with calendar / rich-card / tree",
+    "v0.5 Priority submenu: the right-click menu gains a Priority picker (when priorityOptions provided); changePriority mutates + onChange only (parity with calendar — 'priority' is not a typed field event)",
   ],
   tags: [
     "gantt-timeline-01",
@@ -39,10 +42,10 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  version: "0.4.0",
+  version: "0.5.0",
   status: "alpha",
   createdAt: "2026-06-20",
-  updatedAt: "2026-06-22",
+  updatedAt: "2026-06-23",
 
   author: { name: "ilinxa" },
 

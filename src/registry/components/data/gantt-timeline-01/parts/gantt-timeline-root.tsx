@@ -31,6 +31,11 @@ import { useGanttVirtual } from "../hooks/use-gantt-virtual";
 import { useGanttEdit } from "../hooks/use-gantt-edit";
 import { GanttContext } from "../hooks/use-gantt-context";
 import { GanttEditPopover } from "./gantt-edit-popover";
+import { GanttQuickComposer } from "./gantt-quick-composer";
+import {
+  readTasksFromClipboardEvent,
+  writeTasksToClipboardEvent,
+} from "../../todo-rich-card/lib/clipboard";
 
 export const GanttTimelineRoot = forwardRef<
   GanttTimelineHandle,
@@ -66,6 +71,8 @@ export const GanttTimelineRoot = forwardRef<
     editable = false,
     onChange,
     snap = "minor",
+    quickCompose = true,
+    renderQuickComposer,
     onTaskReschedule,
     onItemAdded,
     onItemRemoved,
@@ -149,6 +156,7 @@ export const GanttTimelineRoot = forwardRef<
 
   const bodyScrollRef = useRef<HTMLDivElement | null>(null);
   const gutterTrackRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const { renderItems, totalSize } = useGanttVirtual({
     count: rows.length,
     scrollRef: bodyScrollRef,
@@ -210,6 +218,92 @@ export const GanttTimelineRoot = forwardRef<
     canEditItem,
     onPermissionDenied,
   });
+
+  // Stable locals for the clipboard-effect deps (`edit` is a fresh object each
+  // render; its state fields + useCallback dispatchers are the real dependencies).
+  const {
+    editingId: editEditingId,
+    renamingId: editRenamingId,
+    composerTarget: editComposerTarget,
+    deleteItem: editDeleteItem,
+    nodeInfo: editNodeInfo,
+    pasteTasks: editPasteTasks,
+  } = edit;
+
+  /* ── cross-surface clipboard (v0.5.0) — copy/cut/paste TodoItems through the OS
+        clipboard (shared ilinxa/task envelope; foreign text ignored). Document-level
+        so it fires regardless of the focused element; gated on the gantt containing
+        focus, skipped over text inputs + while an editor/rename/composer is up. ── */
+  useEffect(() => {
+    if (!editable) return;
+    const owns = () => {
+      const active = document.activeElement;
+      return !!rootRef.current && !!active && rootRef.current.contains(active);
+    };
+    const overText = () => {
+      const el = document.activeElement as HTMLElement | null;
+      return (
+        el?.tagName === "INPUT" ||
+        el?.tagName === "TEXTAREA" ||
+        el?.isContentEditable === true
+      );
+    };
+    const busy = () =>
+      editEditingId != null ||
+      editRenamingId != null ||
+      editComposerTarget != null;
+    const targetId = (): string | null => selectedVal ?? focusedId;
+    const onCopy = (e: ClipboardEvent) => {
+      if (!owns() || overText() || busy()) return;
+      const id = targetId();
+      const item = id ? itemIndex.get(id) : undefined;
+      if (!item) return;
+      writeTasksToClipboardEvent(e, [item], "gantt-timeline-01");
+      e.preventDefault();
+    };
+    const onCut = (e: ClipboardEvent) => {
+      if (!owns() || overText() || busy()) return;
+      const id = targetId();
+      const item = id ? itemIndex.get(id) : undefined;
+      if (!item) return;
+      writeTasksToClipboardEvent(e, [item], "gantt-timeline-01");
+      editDeleteItem(item.id);
+      e.preventDefault();
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      if (!owns() || overText() || busy()) return;
+      const items = readTasksFromClipboardEvent(e);
+      if (!items) return;
+      // Paste as a sibling of the target (root if none); dates preserved.
+      const id = targetId();
+      const info = id ? editNodeInfo(id) : undefined;
+      editPasteTasks(
+        items,
+        info?.parentId ?? null,
+        info ? info.index + 1 : undefined,
+      );
+      e.preventDefault();
+    };
+    document.addEventListener("copy", onCopy);
+    document.addEventListener("cut", onCut);
+    document.addEventListener("paste", onPaste);
+    return () => {
+      document.removeEventListener("copy", onCopy);
+      document.removeEventListener("cut", onCut);
+      document.removeEventListener("paste", onPaste);
+    };
+  }, [
+    editable,
+    editEditingId,
+    editRenamingId,
+    editComposerTarget,
+    editDeleteItem,
+    editNodeInfo,
+    editPasteTasks,
+    selectedVal,
+    focusedId,
+    itemIndex,
+  ]);
 
   /* ── vertical scroll sync (body drives, gutter mirrors) ── */
   const onBodyScroll = useCallback((scrollTop: number) => {
@@ -325,6 +419,7 @@ export const GanttTimelineRoot = forwardRef<
     moveItemAction: edit.moveItemAction,
     moveSubtree: edit.moveSubtree,
     changeStatus: edit.changeStatus,
+    changePriority: edit.changePriority,
     editingId: edit.editingId,
     openEditor: edit.openEditor,
     closeEditor: edit.closeEditor,
@@ -332,11 +427,22 @@ export const GanttTimelineRoot = forwardRef<
     renamingId: edit.renamingId,
     beginRename: edit.beginRename,
     endRename: edit.endRename,
+    // quick-create composer (v0.5.0)
+    quickCompose,
+    renderQuickComposer,
+    composerTarget: edit.composerTarget,
+    openComposer: edit.openComposer,
+    closeComposer: edit.closeComposer,
+    // cross-surface clipboard (v0.5.0)
+    copyItem: edit.copyItem,
+    cutItem: edit.cutItem,
+    pasteTasks: edit.pasteTasks,
   };
 
   return (
     <GanttContext.Provider value={ctx}>
       <div
+        ref={rootRef}
         role="group"
         aria-label={ariaLabel ?? "Gantt timeline"}
         className={cn("text-foreground", className)}
@@ -344,6 +450,7 @@ export const GanttTimelineRoot = forwardRef<
         {children}
       </div>
       {editable ? <GanttEditPopover /> : null}
+      {editable ? <GanttQuickComposer /> : null}
     </GanttContext.Provider>
   );
 });

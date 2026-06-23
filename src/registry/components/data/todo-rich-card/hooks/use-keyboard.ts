@@ -11,8 +11,8 @@
  */
 
 import { useCallback } from "react";
-import { copyToClipboard, readFromClipboard } from "../lib/json-io";
-import { findNode } from "../lib/normalize";
+import { copyTasksToClipboard, readTasksFromClipboard } from "../lib/clipboard";
+import { denormalize, findNode } from "../lib/normalize";
 import type {
   Action,
   EditState,
@@ -70,8 +70,10 @@ export function useKeyboard(args: Args) {
       // Cmd/Ctrl + C
       if (mod && (e.key === "c" || e.key === "C")) {
         try {
-          await copyToClipboard(focusedNode.item);
-          args.fireCopy({ itemId: focusedNode.item.id, payload: focusedNode.item });
+          // Denormalize so the copied subtree's `children` is current.
+          const item = denormalize(focusedNode);
+          await copyTasksToClipboard([item], "todo-rich-card");
+          args.fireCopy({ itemId: item.id, payload: item });
         } catch {
           // browser blocked or unavailable — swallow
         }
@@ -85,15 +87,17 @@ export function useKeyboard(args: Args) {
           args.reportPermissionDenied("addChildren", focusedNode.item.id, perms.reason);
           return;
         }
-        const payload = await readFromClipboard();
-        if (!payload) return;
-        args.dispatch({
-          type: "add-child",
-          parentId: focusedNode.item.id,
-          item: payload,
-        });
-        args.firePaste({ parentId: focusedNode.item.id, payload });
-        args.fireItemAdded({ parentId: focusedNode.item.id, item: payload });
+        const items = await readTasksFromClipboard();
+        if (!items) return;
+        for (const payload of items) {
+          args.dispatch({
+            type: "add-child",
+            parentId: focusedNode.item.id,
+            item: payload,
+          });
+          args.firePaste({ parentId: focusedNode.item.id, payload });
+          args.fireItemAdded({ parentId: focusedNode.item.id, item: payload });
+        }
         return;
       }
 

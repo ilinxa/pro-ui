@@ -15,9 +15,9 @@ import { useKeyboard } from "./hooks/use-keyboard";
 import { TodoCardContext } from "./hooks/use-card-context";
 import { Card } from "./parts/card";
 import {
-  copyToClipboard as copyToClipboardFn,
-  readFromClipboard,
-} from "./lib/json-io";
+  copyTasksToClipboard,
+  readTasksFromClipboard,
+} from "./lib/clipboard";
 import { denormalize, findNode, normalize } from "./lib/normalize";
 import { buildResolver } from "./lib/permissions";
 import { resolveRamp } from "./lib/ramp";
@@ -241,23 +241,30 @@ export const TodoRichCard = forwardRef<TodoRichCardHandle, TodoRichCardProps>(
         copy: async (itemId) => {
           const target = itemId ? findNode(state.root, itemId) : state.root;
           if (!target) return;
-          await copyToClipboardFn(target.item);
-          fireEvent("copy", { itemId: target.item.id, payload: target.item });
+          // Denormalize so the copied subtree's `children` is current (item.children
+          // can be stale after in-session edits; childNodes is the source of truth).
+          const item = denormalize(target);
+          await copyTasksToClipboard([item], "todo-rich-card");
+          fireEvent("copy", { itemId: item.id, payload: item });
         },
         paste: async (parentId) => {
           const target = parentId
             ? findNode(state.root, parentId)
             : state.root;
           if (!target) return;
-          const payload = await readFromClipboard();
-          if (!payload) return;
-          dispatch({
-            type: "add-child",
-            parentId: target.item.id,
-            item: payload,
-          });
-          fireEvent("paste", { parentId: target.item.id, payload });
-          fireEvent("itemAdded", { parentId: target.item.id, item: payload });
+          const items = await readTasksFromClipboard();
+          if (!items) return;
+          // The shared envelope may carry N items (multi-select copy elsewhere);
+          // the reducer re-ids each grafted subtree.
+          for (const payload of items) {
+            dispatch({
+              type: "add-child",
+              parentId: target.item.id,
+              item: payload,
+            });
+            fireEvent("paste", { parentId: target.item.id, payload });
+            fireEvent("itemAdded", { parentId: target.item.id, item: payload });
+          }
         },
         setBorderColor: (itemId, color) => {
           const target = findNode(state.root, itemId);

@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent,
   type PointerEvent,
 } from "react";
 import { cn } from "@/lib/utils";
@@ -645,6 +646,53 @@ export function GanttTimelineBody({ className }: { className?: string }) {
     }
   }
 
+  /**
+   * v0.5.0 — double-click an empty row area → quick-create a sibling task at that
+   * time. A double-click ON a bar/summary opens the editor (handled on the shape),
+   * so ignore those targets here. Independent of draw mode (draw = drag a span).
+   */
+  function onDoubleClick(e: MouseEvent<HTMLDivElement>) {
+    if (!editable) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-itemid]") || target.closest("[data-summaryid]"))
+      return;
+    const rowEl = target.closest<HTMLElement>("[data-rowid]");
+    if (!rowEl) return;
+    const rowId = rowEl.dataset.rowid!;
+    const row = ctx.rows.find((r) => r.item.id === rowId);
+    if (!row || row.isSummary) return;
+    const info = ctx.nodeInfo(rowId);
+    const startMs = snapPos(
+      timeAtPointer(e.clientX, e.currentTarget),
+      snapUnitMs(ctx.snap, minor),
+      snapCalUnit(ctx.snap, minor),
+    );
+    const span = snapUnitMs(ctx.snap, minor) || MS.day;
+    const composerTarget = {
+      startMs,
+      endMs: startMs + span,
+      parentId: info?.parentId ?? null,
+      index: (info?.index ?? 0) + 1,
+      x: e.clientX,
+      y: e.clientY,
+    };
+    if (ctx.quickCompose) {
+      ctx.openComposer(composerTarget);
+    } else {
+      ctx.createItem(
+        composerTarget.parentId,
+        {
+          name: "New task",
+          startAt: iso(startMs),
+          expireAt: iso(startMs + span),
+          setAt: iso(startMs),
+        },
+        composerTarget.index,
+        { openEditor: true },
+      );
+    }
+  }
+
   /* ── weekend bands ── */
   const weekendsOn =
     ctx.showWeekendShading && (minor === "hour" || minor === "day");
@@ -677,6 +725,7 @@ export function GanttTimelineBody({ className }: { className?: string }) {
       onPointerMove={onPointerMove}
       onPointerUp={endPointer}
       onPointerCancel={endPointer}
+      onDoubleClick={onDoubleClick}
       onKeyDown={onKeyDown}
       style={{ touchAction: disableGestures ? undefined : "pan-y" }}
       className={cn(

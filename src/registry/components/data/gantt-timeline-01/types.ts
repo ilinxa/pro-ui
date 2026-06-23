@@ -79,6 +79,33 @@ export type GanttEditAction =
   | "create"
   | "editDetails";
 
+/**
+ * v0.5.0 — a pending quick-create. Set when a double-click on an empty row area
+ * requests a new task; the composer floats at (x,y) until commit/cancel.
+ */
+export type GanttComposerTarget = {
+  /** Anchor start (epoch-ms) for the new task. */
+  startMs: number;
+  /** Default end (epoch-ms); the composer seeds `expireAt` from it. */
+  endMs?: number;
+  /** Insert under this parent (null = root). */
+  parentId: string | null;
+  /** Insert index among siblings. */
+  index: number;
+  /** Pointer anchor for the floating panel. */
+  x?: number;
+  y?: number;
+};
+
+/** v0.5.0 — override the quick-composer UI (parity with calendar). */
+export type GanttQuickComposerRenderer = (args: {
+  startMs: number;
+  endMs?: number;
+  commit: (seed?: Partial<TodoItem>) => void;
+  cancel: () => void;
+  openFull: () => void;
+}) => ReactNode;
+
 /* ───────── derived row + geometry ───────── */
 
 /** A flattened, currently-visible row (respects collapse). */
@@ -172,6 +199,14 @@ export type GanttTimelineProps = {
   onChange?: (data: TodoItem[]) => void;
   /** Snap granularity for drags/resizes/create; default "minor"; Alt = free-drag. */
   snap?: GanttSnap;
+
+  /**
+   * v0.5.0 — when true (default while editable), double-clicking an empty row area
+   * opens a quick mini-composer; false → creates immediately + opens the full editor.
+   */
+  quickCompose?: boolean;
+  /** v0.5.0 — override the quick-composer UI. */
+  renderQuickComposer?: GanttQuickComposerRenderer;
 
   /** Bar move/resize sugar — kept from v1; fires alongside onChange/onFieldEdited. */
   onTaskReschedule?: (next: {
@@ -339,6 +374,7 @@ export type GanttContextValue = {
     parentId: string | null,
     seed?: Partial<TodoItem>,
     index?: number,
+    opts?: { openEditor?: boolean },
   ) => void;
   deleteItem: (id: string) => void;
   renameItemAction: (id: string, name: string) => void;
@@ -350,6 +386,8 @@ export type GanttContextValue = {
   /** v0.3.0 — group-move: shift a summary's whole subtree by `deltaMs` (atomic-gated). */
   moveSubtree: (id: string, deltaMs: number) => void;
   changeStatus: (id: string, status: string) => void;
+  /** v0.5.0 — set priority (mutate + onChange only; "priority" is not a typed field). */
+  changePriority: (id: string, priority: string) => void;
 
   // detail editor (popover) target
   editingId: string | null;
@@ -362,4 +400,23 @@ export type GanttContextValue = {
   renamingId: string | null;
   beginRename: (id: string) => void;
   endRename: () => void;
+
+  // ── quick-create composer (v0.5.0) ──
+  quickCompose: boolean;
+  renderQuickComposer?: GanttQuickComposerRenderer;
+  composerTarget: GanttComposerTarget | null;
+  openComposer: (target: GanttComposerTarget) => void;
+  closeComposer: () => void;
+
+  // ── cross-surface clipboard (v0.5.0) — copy/cut programmatic; paste from a parsed envelope ──
+  /** Copy an item's subtree to the OS clipboard (shared `ilinxa/task` envelope). */
+  copyItem: (id: string) => void;
+  /** Copy then delete (gated on delete). */
+  cutItem: (id: string) => void;
+  /** Insert pasted tasks (re-id'd) under `parentId` at `index` (append if omitted). */
+  pasteTasks: (
+    items: TodoItem[],
+    parentId: string | null,
+    index?: number,
+  ) => void;
 };

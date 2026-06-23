@@ -24,6 +24,8 @@ export { GanttFullCardTooltip } from "./parts/bar-tooltip-full";
 // Editing (v0.2.0)
 export { GanttContextMenu } from "./parts/gantt-context-menu";
 export { GanttEditPopover } from "./parts/gantt-edit-popover";
+// Quick-create composer (v0.5.0)
+export { GanttQuickComposer } from "./parts/gantt-quick-composer";
 
 // Hook
 export { useGanttTimeline } from "./hooks/use-gantt-context";
@@ -44,6 +46,8 @@ export type {
   GanttStatusTone,
   GanttSnap,
   GanttEditAction,
+  GanttComposerTarget,
+  GanttQuickComposerRenderer,
   TodoItem,
   TodoPerson,
   TodoStatusOption,

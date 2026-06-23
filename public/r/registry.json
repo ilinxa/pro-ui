@@ -2046,6 +2046,7 @@
         { "path": "src/registry/components/data/todo-rich-card/lib/color-engine.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/color-engine.ts" },
         { "path": "src/registry/components/data/todo-rich-card/lib/permissions.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/permissions.ts" },
         { "path": "src/registry/components/data/todo-rich-card/lib/json-io.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/json-io.ts" },
+        { "path": "src/registry/components/data/todo-rich-card/lib/clipboard.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/clipboard.ts" },
         { "path": "src/registry/components/data/todo-rich-card/lib/reducer.ts", "type": "registry:component", "target": "components/todo-rich-card/lib/reducer.ts" },
         { "path": "src/registry/components/data/todo-rich-card/hooks/use-card-context.ts", "type": "registry:component", "target": "components/todo-rich-card/hooks/use-card-context.ts" },
         { "path": "src/registry/components/data/todo-rich-card/hooks/use-color-engine.ts", "type": "registry:component", "target": "components/todo-rich-card/hooks/use-color-engine.ts" },
@@ -2095,7 +2096,8 @@
         "input",
         "popover",
         "select",
-        "separator"
+        "separator",
+        "@ilinxa/todo-rich-card"
       ],
       "dependencies": ["lucide-react", "@dnd-kit/core", "@tanstack/react-virtual"],
       "files": [
@@ -2664,6 +2666,7 @@
         { "path": "src/registry/components/data/gantt-timeline-01/parts/bar-tooltip-full.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/bar-tooltip-full.tsx" },
         { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-context-menu.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-context-menu.tsx" },
         { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-edit-popover.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-edit-popover.tsx" },
+        { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-quick-composer.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-quick-composer.tsx" },
         { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-bars.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-bars.tsx" },
         { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-axis.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-axis.tsx" },
         { "path": "src/registry/components/data/gantt-timeline-01/parts/gantt-timeline-body.tsx", "type": "registry:component", "target": "components/gantt-timeline-01/parts/gantt-timeline-body.tsx" },
@@ -2719,7 +2722,6 @@
         { "path": "src/registry/components/data/calendar-01/lib/lane-pack.ts", "type": "registry:component", "target": "components/calendar-01/lib/lane-pack.ts" },
         { "path": "src/registry/components/data/calendar-01/lib/edit-mutations.ts", "type": "registry:component", "target": "components/calendar-01/lib/edit-mutations.ts" },
         { "path": "src/registry/components/data/calendar-01/lib/edit-permissions.ts", "type": "registry:component", "target": "components/calendar-01/lib/edit-permissions.ts" },
-        { "path": "src/registry/components/data/calendar-01/lib/clipboard.ts", "type": "registry:component", "target": "components/calendar-01/lib/clipboard.ts" },
         { "path": "src/registry/components/data/calendar-01/hooks/use-calendar-context.ts", "type": "registry:component", "target": "components/calendar-01/hooks/use-calendar-context.ts" },
         { "path": "src/registry/components/data/calendar-01/hooks/use-calendar-cursor.ts", "type": "registry:component", "target": "components/calendar-01/hooks/use-calendar-cursor.ts" },
         { "path": "src/registry/components/data/calendar-01/hooks/use-calendar-edit.ts", "type": "registry:component", "target": "components/calendar-01/hooks/use-calendar-edit.ts" },

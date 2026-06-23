@@ -23,6 +23,11 @@ import {
 } from "../lib/reducer";
 import { computeVisibleItems } from "../lib/visible-items";
 import { findItemById } from "../lib/tree-walker";
+import {
+  copyTasksToClipboard,
+  readTasksFromClipboard,
+  reassignTaskIds,
+} from "../../todo-rich-card/lib/clipboard";
 import { useControlledMode } from "./use-controlled-mode";
 import { useTreeEvents, type TreeEventCallbacks } from "./use-tree-events";
 import { useSelection } from "./use-selection";
@@ -213,8 +218,18 @@ export function useTodoTreeState(
     fire,
   });
 
-  // Build the 26-method imperative handle.
+  // Build the imperative handle (26 base methods + 3 clipboard ops).
   const handle = useMemo<TodoTreeHandle>(() => {
+    // Resolve the operand id set: explicit ids → current selection → focused row.
+    const resolveTargetIds = (ids?: ReadonlyArray<string>): string[] => {
+      if (ids) return [...ids];
+      if (state.selectedIds.size > 0) return [...state.selectedIds];
+      return state.focusedItemId ? [state.focusedItemId] : [];
+    };
+    const collectItems = (ids: ReadonlyArray<string>): TodoItem[] =>
+      ids
+        .map((id) => findItemById(state.items, id))
+        .filter((it): it is TodoItem => !!it);
     return {
       getValue: () => state.items,
       setValue: (next) => {
@@ -338,11 +353,52 @@ export function useTodoTreeState(
       clearAllFilters: () => {
         dispatch({ type: "CLEAR_FILTERS" });
       },
+      copyItems: (ids) => {
+        const items = collectItems(resolveTargetIds(ids));
+        if (items.length === 0) return;
+        void copyTasksToClipboard(items, "todo-tree");
+      },
+      cutItems: (ids) => {
+        const targetIds = resolveTargetIds(ids);
+        const items = collectItems(targetIds);
+        if (items.length === 0) return;
+        void copyTasksToClipboard(items, "todo-tree");
+        dispatch({ type: "REMOVE_ITEMS", ids: targetIds });
+        fireRef.current("bulkRemove", { ids: targetIds });
+      },
+      pasteItems: (parentId) => {
+        // Match the keyboard path: omitted → paste under the focused row (root if none).
+        const target = parentId ?? state.focusedItemId ?? null;
+        void readTasksFromClipboard().then((items) => {
+          if (!items || items.length === 0) return;
+          // Re-id every grafted subtree so a paste can't collide.
+          for (const raw of items) {
+            const fresh = reassignTaskIds(raw);
+            if (target) {
+              dispatch({ type: "ADD_CHILD", parentId: target, item: fresh });
+            } else {
+              dispatch({
+                type: "ADD_ITEM",
+                item: fresh,
+                parentId: null,
+                via: "imperative",
+              });
+            }
+            fireRef.current("itemAdded", {
+              item: fresh,
+              parentId: target,
+              index: -1,
+              via: "imperative",
+            });
+          }
+        });
+      },
     };
   }, [
     state.items,
     state.collapsedIds,
     state.selectedIds,
+    state.focusedItemId,
     dispatch,
     selection.selectRange,
     selection.selectAllVisible,

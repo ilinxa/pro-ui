@@ -8,6 +8,21 @@ export { todoRichCardKanbanRenderer } from "./parts/kanban-adapter";
 export { RAMPS } from "./lib/ramp";
 export { TODO_RAMPS, TODO_CLIPBOARD_MIME } from "./types";
 
+// Unified cross-surface task clipboard (the canonical family envelope —
+// gantt / calendar / tree import from "./lib/clipboard" directly)
+export {
+  TASK_CLIPBOARD_KIND,
+  TASK_CLIPBOARD_VERSION,
+  serializeTasks,
+  parseTasks,
+  reassignTaskIds,
+  writeTasksToClipboardEvent,
+  readTasksFromClipboardEvent,
+  copyTasksToClipboard,
+  readTasksFromClipboard,
+} from "./lib/clipboard";
+export type { TaskClipboardEnvelope } from "./lib/clipboard";
+
 // Data types
 export type {
   TodoItem,
