@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useId,
   useImperativeHandle,
   useMemo,
@@ -14,7 +15,12 @@ import {
   type DndContextProps,
 } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import type { TodoStatusOption } from "../todo-rich-card/types";
+import type { TodoItem, TodoStatusOption } from "../todo-rich-card/types";
+import {
+  readTasksFromClipboardEvent,
+  writeTasksToClipboardEvent,
+  reassignTaskIds,
+} from "../todo-rich-card/lib/clipboard";
 import type {
   TodoTreeHandle,
   TodoTreePermissionDeniedEvent,
@@ -142,6 +148,82 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
     const stateValue = externalState ?? internalState;
 
     useImperativeHandle(ref, () => stateValue, [stateValue]);
+
+    // Latest state for the document clipboard listeners (kept in a ref so the
+    // listeners attach once, not on every tree mutation).
+    const treeRef = useRef<HTMLDivElement | null>(null);
+    const stateValueRef = useRef(stateValue);
+    useEffect(() => {
+      stateValueRef.current = stateValue;
+    }, [stateValue]);
+
+    /* ── cross-surface clipboard (v0.3.0) — copy/cut/paste TodoItems through the
+          OS clipboard (shared ilinxa/task envelope). Document-level, gated on the
+          tree containing focus + skipped over text inputs; mirrors gantt/calendar.
+          Operates on the current selection (or the focused row). ── */
+    useEffect(() => {
+      if (!editable || readOnly) return;
+      const owns = () => {
+        const active = document.activeElement;
+        return !!treeRef.current && !!active && treeRef.current.contains(active);
+      };
+      const overText = () => {
+        const el = document.activeElement as HTMLElement | null;
+        return (
+          el?.tagName === "INPUT" ||
+          el?.tagName === "TEXTAREA" ||
+          el?.tagName === "SELECT" ||
+          el?.isContentEditable === true
+        );
+      };
+      const targetIds = (): string[] => {
+        const s = stateValueRef.current;
+        const sel = s.getSelectedIds();
+        if (sel.size > 0) return [...sel];
+        return s.focusedItemId ? [s.focusedItemId] : [];
+      };
+      const collect = (ids: string[]): TodoItem[] =>
+        ids
+          .map((id) => stateValueRef.current.getItemById(id))
+          .filter((it): it is TodoItem => !!it);
+      const onCopy = (e: ClipboardEvent) => {
+        if (!owns() || overText()) return;
+        const items = collect(targetIds());
+        if (items.length === 0) return;
+        writeTasksToClipboardEvent(e, items, "todo-tree");
+        e.preventDefault();
+      };
+      const onCut = (e: ClipboardEvent) => {
+        if (!owns() || overText()) return;
+        const ids = targetIds();
+        const items = collect(ids);
+        if (items.length === 0) return;
+        writeTasksToClipboardEvent(e, items, "todo-tree");
+        stateValueRef.current.removeItems(ids);
+        e.preventDefault();
+      };
+      const onPaste = (e: ClipboardEvent) => {
+        if (!owns() || overText()) return;
+        const items = readTasksFromClipboardEvent(e);
+        if (!items) return;
+        const s = stateValueRef.current;
+        const parentId = s.focusedItemId;
+        for (const raw of items) {
+          const fresh = reassignTaskIds(raw);
+          if (parentId) s.addChild(parentId, fresh);
+          else s.addItem(fresh);
+        }
+        e.preventDefault();
+      };
+      document.addEventListener("copy", onCopy);
+      document.addEventListener("cut", onCut);
+      document.addEventListener("paste", onPaste);
+      return () => {
+        document.removeEventListener("copy", onCopy);
+        document.removeEventListener("cut", onCut);
+        document.removeEventListener("paste", onPaste);
+      };
+    }, [editable, readOnly]);
 
     const statusOptionMap = useMemo(() => {
       const map = new Map<string, TodoStatusOption>();
@@ -277,6 +359,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         <TodoTreeRenderContext.Provider value={renderContextValue}>
           <TodoTreeDndContext.Provider value={dndContextValue}>
             <div
+              ref={treeRef}
               aria-label={ariaLabel ?? "Todo tree"}
               className={cn("flex h-full flex-col", className)}
             >

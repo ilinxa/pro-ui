@@ -45,7 +45,7 @@ import {
   setWindow,
 } from "../lib/edit-mutations";
 import { evalCalendarPermission } from "../lib/edit-permissions";
-import { reassignTaskIds } from "../lib/clipboard";
+import { reassignTaskIds } from "../../todo-rich-card/lib/clipboard";
 import { parseDateValue } from "../lib/classify";
 
 type Args = {

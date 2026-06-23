@@ -19,7 +19,7 @@ export const meta: ComponentMeta = {
     "Multi-image + multi-link support with sensible default renderers (slot props for v0.2)",
     "Controlled (`value`) + uncontrolled (`defaultValue`) modes — onChange reports edits; controlled value reconciles with an echo guard",
     "JSON I/O mirroring rich-card v0.3 — defaultValue + imperative handle with getValue / getTree / isDirty / markClean / focusItem / copy / paste / setBorderColor / toggleActive / setLocked / openEdit / closeEdit",
-    "Clipboard ops with application/x-ilinxa-todo+json MIME + text/plain fallback + Cmd/Ctrl+C / Cmd/Ctrl+V keyboard bindings",
+    "Clipboard ops via the unified cross-surface task envelope (v0.4 — shared lib/clipboard.ts: ilinxa/task envelope on application/x-ilinxa-todo+json MIME + text/plain fallback) + Cmd/Ctrl+C / Cmd/Ctrl+V — a card copied here pastes into gantt / calendar / tree and vice-versa",
     "HTML5 DnD card-as-source + card-as-children-drop-target with the same payload",
     "Granular event surface — 11 typed events covering every mutation (mirrors rich-card)",
     "Permission matrix: declarative permissions {default, byLevel, byItem, inherit} + 6 per-action predicates + onPermissionDenied with typed reason",
@@ -47,10 +47,10 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.3.0",
+  version: "0.4.0",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-06-19",
+  updatedAt: "2026-06-23",
 
   author: { name: "ilinxa" },
 

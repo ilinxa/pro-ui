@@ -32,7 +32,7 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  version: "0.2.2",
+  version: "0.2.3",
   status: "alpha",
   createdAt: "2026-06-22",
   updatedAt: "2026-06-23",

@@ -24,7 +24,9 @@ export const meta: ComponentMeta = {
     "8 slot props: renderRow / renderName / renderDescription / renderPerson / renderStatusIndicator / renderToolbar / renderEmptyState / renderDragOverlay (slot wins over prop variant)",
     "Headless useTodoTreeState hook — superset of TodoTreeHandle plus live state values + dispatch escape hatch",
     "Controlled (value + onChange) and uncontrolled (defaultValue) modes; controlled mode uses the three-defenses pattern (microtask-defer + full-field resync guard + suppress mid-drag onChange)",
-    "26-method imperative handle: tree state / item ops / single + bulk active-toggle + remove / focus / collapse / selection / query/sort/filter",
+    "29-method imperative handle: tree state / item ops / single + bulk active-toggle + remove / focus / collapse / selection / query/sort/filter + v0.3 copy/cut/paste",
+    "v0.3 cross-surface clipboard: copy/cut/paste TodoItems through the shared `ilinxa/task` envelope (todo-rich-card/lib/clipboard) — ⌘/Ctrl+C·X·V (document-level, gated on focus + skipped over inputs, operates on the selection or focused row) + imperative copyItems/cutItems/pasteItems; paste re-ids each subtree under the focused row; interops with rich-card / gantt / calendar",
+    "v0.3 priorityOptions prop — threaded to the TodoTreeWithEditor edit card (parity with rich-card / gantt / calendar)",
     "17 object-args events (post-F-cross-12 convention)",
     "Full WAI-ARIA tree pattern: role=tree + role=treeitem + aria-level + aria-expanded + aria-selected; arrow nav + Home/End + Space + Enter + Delete/Backspace + Cmd-A + Escape",
     "Companion: <TodoTreeWithEditor> convenience export wires todo-rich-card edit popup inside a Dialog automatically",
@@ -43,10 +45,10 @@ export const meta: ComponentMeta = {
     "virtualization",
   ],
 
-  version: "0.2.0",
+  version: "0.3.0",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-06-18",
+  updatedAt: "2026-06-23",
 
   author: { name: "ilinxa" },
 

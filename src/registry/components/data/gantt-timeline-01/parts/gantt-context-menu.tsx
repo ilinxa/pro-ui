@@ -46,6 +46,7 @@ export function GanttContextMenu({
     (parentId == null ? true : !!parentNode && ctx.can("create", parentNode));
   const canDelete = ctx.editable && ctx.can("delete", item);
   const statusOptions = ctx.statusOptions ?? [];
+  const priorityOptions = ctx.priorityOptions ?? [];
 
   if (!canEdit && !canCreate && !canCreateSibling && !canDelete)
     return <>{children}</>;
@@ -104,6 +105,32 @@ export function GanttContextMenu({
               </ContextMenuSubContent>
             </ContextMenuSub>
           </>
+        ) : null}
+
+        {canEdit && priorityOptions.length > 0 ? (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>Priority</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              {priorityOptions.map((o) => (
+                <ContextMenuItem
+                  key={o.value}
+                  onSelect={() => ctx.changePriority(item.id, o.value)}
+                >
+                  {o.label}
+                </ContextMenuItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        ) : null}
+
+        <ContextMenuSeparator />
+        <ContextMenuItem onSelect={() => ctx.copyItem(item.id)}>
+          Copy
+        </ContextMenuItem>
+        {canDelete ? (
+          <ContextMenuItem onSelect={() => ctx.cutItem(item.id)}>
+            Cut
+          </ContextMenuItem>
         ) : null}
 
         {canDelete ? (

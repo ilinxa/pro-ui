@@ -184,6 +184,8 @@ export const TodoTreeWithEditor = forwardRef<TodoTreeHandle, TodoTreeProps>(
                     editable
                     defaultValue={editTarget}
                     onChange={handleEditedItemChange}
+                    statusOptions={props.statusOptions}
+                    priorityOptions={props.priorityOptions}
                   />
                 </div>
                 {pending && (

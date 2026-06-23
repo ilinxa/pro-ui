@@ -35,7 +35,8 @@ export { CalendarFullCardTooltip } from "./parts/event-tooltip-full";
 // Hook
 export { useCalendar } from "./hooks/use-calendar-context";
 
-// Cross-surface task clipboard (copy / cut / paste interop across task surfaces)
+// Cross-surface task clipboard (the unified family envelope, hosted in
+// todo-rich-card; re-exported here so calendar's public API is unchanged)
 export {
   TASK_CLIPBOARD_KIND,
   TASK_CLIPBOARD_VERSION,
@@ -44,7 +45,7 @@ export {
   reassignTaskIds,
   writeTasksToClipboardEvent,
   readTasksFromClipboardEvent,
-} from "./lib/clipboard";
+} from "../todo-rich-card/lib/clipboard";
 
 // Public types (+ the consumed todo-rich-card data language, re-exported)
 export type {
@@ -64,7 +65,7 @@ export type {
   CalendarQuickComposerRenderer,
   TodoItem,
 } from "./types";
-export type { TaskClipboardEnvelope } from "./lib/clipboard";
+export type { TaskClipboardEnvelope } from "../todo-rich-card/lib/clipboard";
 export type {
   TodoPerson,
   TodoStatusOption,

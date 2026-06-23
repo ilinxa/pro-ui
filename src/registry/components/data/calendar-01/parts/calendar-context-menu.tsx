@@ -21,7 +21,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useCalendar } from "../hooks/use-calendar-context";
-import { serializeTasks } from "../lib/clipboard";
+import { serializeTasks } from "../../todo-rich-card/lib/clipboard";
 import type { TodoItem } from "../types";
 
 export function CalendarEventContextMenu({

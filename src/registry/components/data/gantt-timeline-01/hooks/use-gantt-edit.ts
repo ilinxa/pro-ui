@@ -12,6 +12,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type {
+  GanttComposerTarget,
   GanttEditAction,
   GanttSnap,
   TodoFieldEditedEvent,
@@ -37,6 +38,10 @@ import {
   subtreeLeaves,
 } from "../lib/edit-mutations";
 import { evalGanttPermission } from "../lib/edit-permissions";
+import {
+  copyTasksToClipboard,
+  reassignTaskIds,
+} from "../../todo-rich-card/lib/clipboard";
 
 type Args = {
   data: TodoItem[];
@@ -107,6 +112,8 @@ export function useGanttEdit(args: Args) {
   const index = useMemo(() => buildIndex(data), [data]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [composerTarget, setComposerTarget] =
+    useState<GanttComposerTarget | null>(null);
 
   const nodeInfo = useCallback(
     (id: string) => {
@@ -223,7 +230,12 @@ export function useGanttEdit(args: Args) {
   );
 
   const createItem = useCallback(
-    (parentId: string | null, seed?: Partial<TodoItem>, at?: number) => {
+    (
+      parentId: string | null,
+      seed?: Partial<TodoItem>,
+      at?: number,
+      opts?: { openEditor?: boolean },
+    ) => {
       // Root create gates on `editable` only; child create gates the PARENT's
       // addChildren rule.
       if (!editable) return;
@@ -240,6 +252,8 @@ export function useGanttEdit(args: Args) {
       const next = addItem(data, parentId, item, at);
       onItemAdded?.({ parentId: parentId ?? "", item });
       onChange?.(next);
+      // v0.5.0 — quick-composer "More options" opens the detail editor on the new item.
+      if (opts?.openEditor) setEditingId(item.id);
     },
     [editable, guard, statusOptions, data, onItemAdded, onChange],
   );
@@ -398,6 +412,79 @@ export function useGanttEdit(args: Args) {
     [data, guard, onStatusChanged, onFieldEdited, onChange],
   );
 
+  const changePriority = useCallback(
+    (id: string, priority: string) => {
+      const item = guard("editDetails", id);
+      if (!item || priority === item.priority) return;
+      // "priority" is not a `TodoEditableField`, so no typed field event — the
+      // forest echo carries it (parity with calendar + the card).
+      const apply = (items: TodoItem[]): TodoItem[] =>
+        items.map((it) =>
+          it.id === id
+            ? { ...it, priority }
+            : it.children?.length
+              ? { ...it, children: apply(it.children) }
+              : it,
+        );
+      onChange?.(apply(data));
+    },
+    [data, guard, onChange],
+  );
+
+  /* ── quick-create composer (v0.5.0) ── */
+  const openComposer = useCallback(
+    (target: GanttComposerTarget) => {
+      if (!editable) return;
+      // Gate the create up-front so we never float a composer that will no-op.
+      if (target.parentId != null && !guard("create", target.parentId)) return;
+      setComposerTarget(target);
+    },
+    [editable, guard],
+  );
+  const closeComposer = useCallback(() => setComposerTarget(null), []);
+
+  /* ── cross-surface clipboard (v0.5.0) ── */
+  const copyItem = useCallback(
+    (id: string) => {
+      const item = index.get(id)?.item;
+      if (!item) return;
+      void copyTasksToClipboard([item], "gantt-timeline-01");
+    },
+    [index],
+  );
+  const cutItem = useCallback(
+    (id: string) => {
+      const item = guard("delete", id);
+      if (!item) return;
+      void copyTasksToClipboard([item], "gantt-timeline-01");
+      deleteItem(id);
+    },
+    [guard, deleteItem],
+  );
+  const pasteTasks = useCallback(
+    (items: TodoItem[], parentId: string | null, atIndex?: number) => {
+      if (!editable || items.length === 0) return;
+      if (parentId != null && !guard("create", parentId)) return;
+      let next = data;
+      const created: TodoItem[] = [];
+      let at = atIndex;
+      for (const raw of items) {
+        // Re-id every grafted subtree so a paste can't collide; dates preserved
+        // (gantt has no "drop window" — the bar lands where it was copied from).
+        const root = reassignTaskIds(raw);
+        next = addItem(next, parentId, root, at);
+        created.push(root);
+        if (at != null) at += 1;
+      }
+      if (next === data) return;
+      created.forEach((item) =>
+        onItemAdded?.({ parentId: parentId ?? "", item }),
+      );
+      onChange?.(next);
+    },
+    [editable, guard, data, onItemAdded, onChange],
+  );
+
   /** Splice an edited subtree (same root id) from the embedded card back in. */
   const applyEditedSubtree = useCallback(
     (nextItem: TodoItem) => {
@@ -458,6 +545,7 @@ export function useGanttEdit(args: Args) {
     moveItemAction,
     moveSubtree,
     changeStatus,
+    changePriority,
     editingId,
     openEditor,
     closeEditor,
@@ -465,5 +553,11 @@ export function useGanttEdit(args: Args) {
     renamingId,
     beginRename,
     endRename,
+    composerTarget,
+    openComposer,
+    closeComposer,
+    copyItem,
+    cutItem,
+    pasteTasks,
   };
 }

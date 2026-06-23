@@ -22,7 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCardContext } from "../hooks/use-card-context";
-import { copyToClipboard, readFromClipboard, serialize } from "../lib/json-io";
+import { copyTasksToClipboard, readTasksFromClipboard } from "../lib/clipboard";
+import { denormalize } from "../lib/normalize";
 import type { TodoNode } from "../types";
 
 export function ActionMenu({
@@ -47,17 +48,14 @@ export function ActionMenu({
   }
 
   async function handleCopy() {
+    // Denormalize so the copied subtree's `children` is current; the shared
+    // clipboard writes the typed MIME and falls back to text/plain.
     try {
-      await copyToClipboard(node.item);
-      ctx.fireEvent("copy", { itemId: id, payload: node.item });
+      const item = denormalize(node);
+      await copyTasksToClipboard([item], "todo-rich-card");
+      ctx.fireEvent("copy", { itemId: id, payload: item });
     } catch (err) {
-      // Clipboard rejected (permissions, browser). Fall back to a text/plain write attempt.
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(serialize(node.item));
-        ctx.fireEvent("copy", { itemId: id, payload: node.item });
-      } else {
-        console.warn("[todo-rich-card] copy failed", err);
-      }
+      console.warn("[todo-rich-card] copy failed", err);
     }
   }
 
@@ -66,11 +64,13 @@ export function ActionMenu({
       ctx.reportPermissionDenied("addChildren", id, perms.reason);
       return;
     }
-    const payload = await readFromClipboard();
-    if (!payload) return;
-    ctx.dispatch({ type: "add-child", parentId: id, item: payload });
-    ctx.fireEvent("paste", { parentId: id, payload });
-    ctx.fireEvent("itemAdded", { parentId: id, item: payload });
+    const items = await readTasksFromClipboard();
+    if (!items) return;
+    for (const payload of items) {
+      ctx.dispatch({ type: "add-child", parentId: id, item: payload });
+      ctx.fireEvent("paste", { parentId: id, payload });
+      ctx.fireEvent("itemAdded", { parentId: id, item: payload });
+    }
   }
 
   function handleToggleActive() {

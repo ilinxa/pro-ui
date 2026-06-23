@@ -1,5 +1,10 @@
 import type { ReactNode, MouseEvent, KeyboardEvent } from "react";
-import type { TodoItem, TodoStatusOption, TodoPermissions } from "../todo-rich-card/types";
+import type {
+  TodoItem,
+  TodoStatusOption,
+  TodoPriorityOption,
+  TodoPermissions,
+} from "../todo-rich-card/types";
 
 /**
  * Tree-position pointer used by onItemMoved.from / .to.
@@ -179,9 +184,9 @@ export interface TodoTreeVisibleRow {
 /* ---------------------------------- Imperative handle ---------------------------------- */
 
 /**
- * The full imperative handle exposed via ref. 26 methods covering tree
- * state, item ops, single + bulk active-toggle + remove, focus, collapse,
- * selection, and query/sort/filter.
+ * The full imperative handle exposed via ref. 29 methods (26 base + 3 v0.3
+ * clipboard) covering tree state, item ops, single + bulk active-toggle +
+ * remove, focus, collapse, selection, query/sort/filter, and copy/cut/paste.
  */
 export interface TodoTreeHandle {
   // Tree state (2)
@@ -221,6 +226,14 @@ export interface TodoTreeHandle {
   setSort(sort: TodoTreeSort): void;
   setFilter(filter: TodoTreeFilter): void;
   clearAllFilters(): void;
+
+  // Cross-surface clipboard (v0.3.0; shared ilinxa/task envelope) (3)
+  /** Copy items to the OS clipboard. Defaults to the current selection (or focus). */
+  copyItems(ids?: ReadonlyArray<string>): void;
+  /** Copy then remove. Defaults to the current selection (or focus). */
+  cutItems(ids?: ReadonlyArray<string>): void;
+  /** Paste clipboard tasks (re-id'd) under `parentId` (null/omitted = the focused row; root if none focused). */
+  pasteItems(parentId?: string | null): void;
 }
 
 /**
@@ -303,6 +316,8 @@ export interface TodoTreeProps {
 
   // Status enum
   statusOptions?: TodoStatusOption[];
+  /** Priority enum — threaded to the edit surface (TodoTreeWithEditor's card). */
+  priorityOptions?: TodoPriorityOption[];
 
   // Permissions
   permissions?: TodoPermissions;

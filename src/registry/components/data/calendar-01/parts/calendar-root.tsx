@@ -32,7 +32,7 @@ import { parseDateValue } from "../lib/classify";
 import {
   readTasksFromClipboardEvent,
   writeTasksToClipboardEvent,
-} from "../lib/clipboard";
+} from "../../todo-rich-card/lib/clipboard";
 import type {
   CalendarContextValue,
   CalendarHandle,
