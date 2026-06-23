@@ -14,17 +14,23 @@ import { CalendarEventContextMenu } from "./calendar-context-menu";
 import type { CalendarOccurrence, TodoStatusOption } from "../types";
 
 function timeLabel(occ: CalendarOccurrence): string {
+  // Milestones are precise instants (deadlines) and carry allDay=true, so check
+  // them BEFORE the all-day branch — otherwise they'd mislabel as "All day" and
+  // lose their time. A ◇ cue mirrors the diamond glyph the chips use.
+  if (occ.kind === "milestone") return `◇ ${format(new Date(occ.startMs), "p")}`;
   if (occ.allDay) return "All day";
-  if (occ.kind === "milestone") return format(new Date(occ.startMs), "p");
   return format(new Date(occ.startMs), "p");
 }
 
 function initials(name: string): string {
-  return name
+  const out = name
+    .trim()
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
+  return out || "?"; // never an empty avatar fallback (whitespace-only name)
 }
 
 /** One agenda row (Tier C). Spreads `...rest` so the context menu can inject

@@ -93,14 +93,3 @@ export function toOccurrences(
   data.forEach(walk);
   return out;
 }
-
-/** Occurrences whose covered span intersects [startMs, endMs). */
-export function occurrencesInRange(
-  occ: CalendarOccurrence[],
-  startMs: number,
-  endMs: number,
-): CalendarOccurrence[] {
-  return occ.filter(
-    (o) => !o.invalid && o.endMs >= startMs && o.startMs < endMs,
-  );
-}
