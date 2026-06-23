@@ -1,6 +1,8 @@
 # HANDOFF — `calendar-01` v0.2.0 editing layer — Stages 1–3 checkpoint (2026-06-23)
 
-> **Status:** committed WIP checkpoint, **NOT shipped**. Stages 1–3 of 4 built + gates green + self-reviewed (Pass w/ follow-ups, 0 blockers). **Resume = Stage 4 → ship.**
+> **⛔ SUPERSEDED — v0.2.0 is now SHIPPED + PUSHED (tip `c8b686d`).** This is the pre-ship checkpoint record (historical). For the current state + resume plan see [`HANDOFF-2026-06-23-calendar-01-v0.2.0-shipped.md`](HANDOFF-2026-06-23-calendar-01-v0.2.0-shipped.md). SHAs below (`cd75819`) are pre-reconcile.
+>
+> **Status (at the time):** committed WIP checkpoint, **NOT shipped**. Stages 1–3 of 4 built + gates green + self-reviewed (Pass w/ follow-ups, 0 blockers). **Resume = Stage 4 → ship.**
 
 ## TL;DR for the next session
 
