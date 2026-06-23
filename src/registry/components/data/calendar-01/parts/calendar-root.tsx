@@ -739,7 +739,10 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
 
     return (
       <CalendarContext.Provider value={ctx}>
-        <TooltipProvider delayDuration={250}>
+        {/* No `delayDuration`: it's a Radix-only prop (Base UI's TooltipProvider
+            takes `delay`), so passing it fails consumer-tsc on Base UI
+            (F-cross-13). The default delay is cross-backend-safe. (v0.2.1) */}
+        <TooltipProvider>
           <div
             ref={rootRef}
             tabIndex={0}

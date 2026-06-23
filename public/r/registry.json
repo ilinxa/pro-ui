@@ -2703,7 +2703,6 @@
         "input",
         "popover",
         "skeleton",
-        "toggle-group",
         "tooltip",
         "@ilinxa/todo-rich-card"
       ],
