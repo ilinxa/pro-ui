@@ -21,11 +21,12 @@ function periodLabel(
 ): string {
   if (view === "month") return format(focusDate, "MMMM yyyy");
   if (view === "day") return format(focusDate, "EEEE, MMMM d, yyyy");
-  // week + agenda → a range
+  // week + agenda → a range. Same year: show the year once, on the end
+  // ("Jun 1 – Jun 7, 2026"). Cross-year: show it on both ("Dec 28, 2025 – Jan 3, 2026").
   const sameYear = range.start.getFullYear() === range.end.getFullYear();
-  return `${format(range.start, "MMM d")} – ${format(
+  return `${format(range.start, sameYear ? "MMM d" : "MMM d, yyyy")} – ${format(
     range.end,
-    sameYear ? "MMM d, yyyy" : "MMM d, yyyy",
+    "MMM d, yyyy",
   )}`;
 }
 

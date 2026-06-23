@@ -24,6 +24,7 @@ import type {
   TodoPermissions,
   TodoPermissionRule,
   TodoPermissionReason,
+  TodoEditableField,
   TodoItemAddedEvent,
   TodoItemRemovedEvent,
   TodoItemMovedEvent,
@@ -44,6 +45,7 @@ export type {
   TodoPermissions,
   TodoPermissionRule,
   TodoPermissionReason,
+  TodoEditableField,
   TodoItemAddedEvent,
   TodoItemRemovedEvent,
   TodoItemMovedEvent,
@@ -227,6 +229,12 @@ export type CalendarProps = {
   onItemAdded?: (event: TodoItemAddedEvent) => void;
   onItemRemoved?: (event: TodoItemRemovedEvent) => void;
   onItemMoved?: (event: TodoItemMovedEvent) => void;
+  /** Granular per-field edit event. Fires for name / description / status /
+   *  active / setAt / startAt / expireAt / duration from drag-reschedule,
+   *  inline rename, context-menu status, AND the inspector / modal detail editor
+   *  (v0.2.2). NOTE: `priority` is intentionally absent — it is not a
+   *  `TodoEditableField`, so it cannot be carried by `TodoFieldEditedEvent`;
+   *  priority changes persist via `onChange` only. */
   onFieldEdited?: (event: TodoFieldEditedEvent) => void;
   onStatusChanged?: (event: TodoStatusChangedEvent) => void;
   // Permissions (reused from todo-rich-card; mirrors gantt + tree)

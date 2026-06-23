@@ -22,6 +22,7 @@ import type {
   CalendarComposerTarget,
   CalendarEditAction,
   CalendarSnap,
+  TodoEditableField,
   TodoFieldEditedEvent,
   TodoItem,
   TodoItemAddedEvent,
@@ -437,6 +438,30 @@ export function useCalendarEdit(args: Args) {
               : it,
         );
       const forest = apply(data);
+      // Emit a granular field event per changed editable field, so a consumer
+      // persisting via `onFieldEdited` sees modal / inspector detail-editor edits
+      // too — not only the consolidated forest echo (A1, v0.2.2). The embedded
+      // card's own granular events are not wired (EventEditorPanel passes only
+      // `onChange`), so there is no double-fire. `priority` is intentionally
+      // excluded — it is not a `TodoEditableField`, so it persists via `onChange`
+      // only (parity with `changePriority`).
+      const FIELDS: TodoEditableField[] = [
+        "name",
+        "description",
+        "status",
+        "active",
+        "setAt",
+        "startAt",
+        "expireAt",
+        "duration",
+      ];
+      for (const key of FIELDS) {
+        const oldValue = prev[key];
+        const newValue = nextItem[key];
+        if (!Object.is(oldValue, newValue)) {
+          onFieldEdited?.({ itemId: nextItem.id, key, oldValue, newValue });
+        }
+      }
       if (prev.status !== nextItem.status) {
         onStatusChanged?.({
           itemId: nextItem.id,
@@ -446,7 +471,7 @@ export function useCalendarEdit(args: Args) {
       }
       onChange?.(forest);
     },
-    [data, index, onStatusChanged, onChange],
+    [data, index, onFieldEdited, onStatusChanged, onChange],
   );
 
   const openEditor = useCallback(

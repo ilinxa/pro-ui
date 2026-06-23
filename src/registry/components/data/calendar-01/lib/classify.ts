@@ -48,7 +48,9 @@ export function effectiveEnd(
     return { ms: p.ms, dateOnly: p.dateOnly };
   }
   if (item.duration != null) {
-    return { ms: startMs + item.duration, dateOnly: false };
+    // Inherit the start's date-only-ness: a whole-day duration off a bare
+    // YYYY-MM-DD is conceptually all-day, so the derived end keeps the flag (C3).
+    return { ms: startMs + item.duration, dateOnly: effectiveStart(item).dateOnly };
   }
   return { ms: null, dateOnly: false };
 }

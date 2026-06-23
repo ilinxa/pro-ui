@@ -90,6 +90,8 @@ ref.current?.editTask(id); ref.current?.beginRename(id); ref.current?.deleteTask
 
 All editing is **opt-in via `editable`** (default off → read-only), **gated** by the shared `TodoPermissions` matrix (+ optional `canMoveItem`/`canResizeItem`/`canDeleteItem`/`canCreateChild`/`canEditItem` predicates), and **controlled-echo**: there is no internal data copy — each edit fires a typed event (`onTaskReschedule` / `onItemAdded` / `onItemRemoved` / `onFieldEdited` / `onStatusChanged`) **and** `onChange(nextForest)`. One `onChange` per gesture = one undo step for you.
 
+**Granular `onFieldEdited` coverage.** As of **v0.2.2**, `onFieldEdited` fires for `name` / `description` / `status` / `active` / `setAt` / `startAt` / `expireAt` / `duration` from **every** edit path — drag-reschedule, inline rename, context-menu status, **and the inspector / modal detail editor** (the modal previously echoed via `onChange` only). **One exception: `priority`.** `priority` is not a `TodoEditableField`, so a priority change (context-menu *or* modal) does **not** emit `onFieldEdited` — it persists via `onChange(nextForest)` only. If you persist purely through granular events, read `priority` off the forest in your `onChange`.
+
 **Pointer:** drag an event to reschedule (whole days in month; time in week/day) · drag a bar/block edge to resize · drag across empty space (or double-click) to create · right-click for a menu (Edit / Rename / Status / Priority / **Copy** / **Cut** / Delete) · click selects (drives the inspector).
 
 **Keyboard** (scoped to focus, so it never collides with the toolbar keys):

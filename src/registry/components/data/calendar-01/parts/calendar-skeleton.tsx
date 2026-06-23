@@ -12,7 +12,9 @@ export function CalendarSkeleton({ className }: { className?: string }) {
         <Skeleton className="h-8 w-52" />
       </div>
       <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: 35 }).map((_, i) => (
+        {/* 42 = 6 weeks × 7 — a month grid can return 6 rows, so reserve the max
+            to avoid a load→loaded layout jump (monthGrid is 5 or 6 weeks). */}
+        {Array.from({ length: 42 }).map((_, i) => (
           <Skeleton key={i} className="h-20 w-full" />
         ))}
       </div>
