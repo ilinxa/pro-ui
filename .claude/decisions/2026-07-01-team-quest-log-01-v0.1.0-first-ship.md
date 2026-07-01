@@ -37,7 +37,7 @@ Light shadcn-compound (plan §5), **no `React.lazy`** (no heavy dep). Pure `lib/
 
 | # | Sev | Item | Target |
 |---|---|---|---|
-| F-01 | 🔸 Med | post-deploy consumer smoke (simple input/button → low F-cross-13 risk) | v0.1.0 post-deploy |
+| F-01 | 🔸 Med | ✅ **CLOSED** — production `@ilinxa` install into the Base UI consumer + consumer `tsc` **0 errors** (batched with task-choice) | v0.1.0 post-deploy |
 | F-02 | 🔹 Low | live walkthrough (skip path + telemetry fire-once + focus) | v0.1.x post-deploy |
 | F-03 | 🔹 Low | horizontal rail + per-chapter blurbs | v0.2.0 |
 

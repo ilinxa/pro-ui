@@ -38,7 +38,7 @@ The **fifth** component of the [`gamification-system`](../../docs/systems/gamifi
 
 | # | Sev | Item | Target |
 |---|---|---|---|
-| F-01 | 🔸→🔹 | production round-trip smoke confirmation (pre-push Base UI smoke already CLEAN) | v0.1.0 post-deploy |
+| F-01 | 🔸→🔹 | ✅ **CLOSED** — production `@ilinxa` install into the Base UI consumer + consumer `tsc` **0 errors** (pre-push Base UI smoke was already clean; production round-trip confirms) | v0.1.0 post-deploy |
 | F-02 | 🔹 Low | live never-forced / no-penalty visual walkthrough | v0.1.x post-deploy |
 
 ## Resume
