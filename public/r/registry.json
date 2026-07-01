@@ -2841,6 +2841,7 @@
       "categories": ["gamification"],
       "registryDependencies": ["button"],
       "dependencies": ["canvas-confetti", "lucide-react"],
+      "devDependencies": ["@types/canvas-confetti"],
       "files": [
         { "path": "src/registry/components/gamification/team-feedback-loop-01/team-feedback-loop-01.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/team-feedback-loop-01.tsx" },
         { "path": "src/registry/components/gamification/team-feedback-loop-01/index.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/index.ts" },

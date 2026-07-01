@@ -6,8 +6,8 @@ type: first-ship
 commits: []   # built + gated; uncommitted on master at write time
 components:
   - team-feedback-loop-01
-findings: "GATE 3 Pass-with-follow-ups (rotating dim Accessibility/non-blocking). F-01 post-deploy 4-ship consumer smoke (Med — new canvas-confetti dep). F-02 live D-10 non-blocking walkthrough owed (Low). F-03 rapid-burst coalesce deferred to v0.2 (Low). D-10 non-blocking enforced structurally; confetti lazy chunk proven isolated (10.6KB); reduced-motion via useSyncExternalStore."
-status: built-uncommitted
+findings: "GATE 3 Pass-with-follow-ups (rotating dim Accessibility/non-blocking). F-01 post-deploy 4-ship smoke RAN + CAUGHT a real gap (consumer TS7016: canvas-confetti ships no types, artifact shipped only `dependencies:[canvas-confetti,lucide-react]`) → fixed in v0.1.1 (added `@types/canvas-confetti` to the registry item's devDependencies; re-smoke: consumer tsc 0). F-02 live D-10 non-blocking walkthrough owed (Low). F-03 rapid-burst coalesce deferred to v0.2 (Low). D-10 non-blocking enforced structurally; confetti lazy chunk proven isolated (10.6KB); reduced-motion via useSyncExternalStore."
+status: shipped
 ---
 
 # team-feedback-loop-01 v0.1.0 — 3rd gamification component (new confetti dep)
@@ -38,10 +38,21 @@ Full shadcn-compound (plan §4.1): pure `lib/clamp.ts` + headless `TeamFeedbackL
 
 | # | Sev | Item | Target |
 |---|---|---|---|
-| F-01 | 🔸 Med | post-deploy 4-ship consumer smoke (install pulls canvas-confetti; default path stays confetti-free) | v0.1.0 post-deploy |
-| F-02 | 🔹 Low | live D-10 non-blocking + reduced-motion + confetti walkthrough | v0.1.0 post-deploy |
+| F-01 | 🔸 Med | ✅ **CLOSED (v0.1.1)** — 4-ship smoke ran, caught the missing-types gap, fixed + re-smoked clean (see below) | v0.1.1 |
+| F-02 | 🔹 Low | live D-10 non-blocking + reduced-motion + confetti walkthrough | v0.1.x post-deploy |
 | F-03 | 🔹 Low | leading-edge coalesce for rapid bursts | v0.2.0 |
+
+## v0.1.1 — F-01 4-ship smoke: caught + fixed the `canvas-confetti` types gap
+
+The 4-ship pattern ran exactly as intended, against the **base-nova / Base UI** consumer (`e:/tmp/ilinxa-smoke-consumer`) pulling from the **live production** registry:
+
+- **Ship (v0.1.0):** `pnpm dlx shadcn add @ilinxa/team-feedback-loop-01 …` created 37 files; `canvas-confetti ^1.9.4` landed in the consumer's `dependencies` (from the item's `dependencies`).
+- **Smoke — CAUGHT:** consumer `tsc --noEmit` → **exactly 1 error**: `confetti-burst.tsx(7,22): error TS7016: Could not find a declaration file for module 'canvas-confetti'`. Root cause: `canvas-confetti` ships **no bundled types**, `confetti-burst.tsx` does a bare `import confetti from "canvas-confetti"` (no `@ts-ignore`/shim), and the registry item declared only `dependencies:["canvas-confetti","lucide-react"]` — so the consumer never got `@types/canvas-confetti`. **Producer tsc passed because the producer has `@types/canvas-confetti` in its own devDeps** — the exact class of gap only a cross-consumer smoke surfaces. (Progress-bar + trophy-shelf: **0 errors** — clean.)
+- **Patch (v0.1.1):** added `"devDependencies": ["@types/canvas-confetti"]` to the `team-feedback-loop-01` registry item (shadcn v4 installs a registry item's `devDependencies` into the consumer's devDeps — schema-confirmed via the `shadcn-registry-pro` skill). Bumped `meta.version` → `0.1.1`; `registry:build` regenerated the artifact (`devDependencies:["@types/canvas-confetti"]` present).
+- **Re-smoke — CLEAN:** local-registry re-add (served `public/r` on `localhost:5055`, `shadcn add http://localhost:5055/team-feedback-loop-01.json --overwrite`) installed `@types/canvas-confetti ^1.9.0` into the consumer's **devDependencies**, and consumer `tsc --noEmit` → **0 errors**. Mechanism proven pre-deploy; production redeploy carries the identical artifact bytes.
+
+**Lesson (reusable):** a genuinely-new npm dep that ships **no bundled types** needs its `@types/*` in the **registry item's `devDependencies`**, not only in the producer's `package.json`. Producer tsc is blind to this — it has the `@types` locally. This is the types-analogue of the content-composer/task-family "meta `internal:[]` ≠ registry.json `registryDependencies`" lesson: *the producer compiling clean ≠ the consumer compiling clean; only the cross-consumer smoke closes the gap.* First `@types/*` package the library has shipped.
 
 ## Resume
 
-Commit/push (branch off `master` first — note `package.json`/`pnpm-lock` now carry `canvas-confetti`) → run F-01 4-ship smoke → **component 4: `cooperative-challenge-01`** (E3 Relatedness) per its plan (build order = system §10). After it, the deferred shared `gamification-kit` (D-04) is worth revisiting — 3 components now share the resolve/diff/clamp + event-factory shape.
+**Done:** committed + pushed (v0.1.0 pack + v0.1.1 fix); F-01 CLOSED. **Next: component 4 `cooperative-challenge-01`** (E3 Relatedness) per its plan (build order = system §10). After it, the deferred shared `gamification-kit` (D-04) is worth revisiting — 3 components now share the resolve/diff/clamp + event-factory shape.
