@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "task-choice-control-01-fixtures",
+  "title": "Task Choice Control — fixtures",
+  "author": "ilinxa",
+  "description": "Task Choice Control bundle including sample dummy-data (one team's members + TaskChoiceState examples exercising every state: open / claimed / unassigned / the legal assigned-and-open edge / a stale assigneeId / a member with no avatar). Resolves the base task-choice-control-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/task-choice-control-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/gamification/task-choice-control-01/dummy-data.ts",
+      "content": "import type { TaskChoiceState, TeamMember } from \"./types\";\n\n/**\n * Fixtures for `task-choice-control-01` — one team's `members` + `TaskChoiceState`\n * examples exercising every state: open · claimed · unassigned · the legal\n * assigned-and-open edge · a stale `assigneeId` (not in `members`) · a member\n * with no `avatarUrl` (initials path). Team-scoped, no per-member ranking.\n */\n\nexport const TASK_TEAM: TeamMember[] = [\n  { id: \"u-mina\", displayName: \"Mina Devi\" },\n  { id: \"u-theo\", displayName: \"Theo Fischer\" },\n  { id: \"u-ama\", displayName: \"Ama Boateng\" },\n  { id: \"u-ravi\", displayName: \"Ravi Kapoor\" },\n  { id: \"u-sol\", displayName: \"Sol Reyes\" },\n];\n\nexport const CURRENT_MEMBER_ID = \"u-mina\";\n\n/** Open for anyone → invite + \"I'll take this\". */\nexport const CHOICE_OPEN: TaskChoiceState = {\n  taskId: \"T-open\",\n  openForAnyone: true,\n  assigneeId: undefined,\n};\n\n/** Claimed → assignee chip + neutral release + reassign. */\nexport const CHOICE_CLAIMED: TaskChoiceState = {\n  taskId: \"T-claimed\",\n  openForAnyone: false,\n  assigneeId: \"u-theo\",\n};\n\n/** Unassigned, not open → volunteer + open-for-anyone side by side. */\nexport const CHOICE_UNASSIGNED: TaskChoiceState = {\n  taskId: \"T-unassigned\",\n  openForAnyone: false,\n  assigneeId: undefined,\n};\n\n/** Legal edge: assigned AND open (resolves to \"claimed\"; the flag stays toggleable). */\nexport const CHOICE_ASSIGNED_AND_OPEN: TaskChoiceState = {\n  taskId: \"T-edge\",\n  openForAnyone: true,\n  assigneeId: \"u-ama\",\n};\n\n/** Stale assigneeId (not in TASK_TEAM) → id-initials fallback, no crash. */\nexport const CHOICE_STALE_ASSIGNEE: TaskChoiceState = {\n  taskId: \"T-stale\",\n  openForAnyone: false,\n  assigneeId: \"u-ghost\",\n};\n",
+      "type": "registry:component",
+      "target": "components/task-choice-control-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "gamification",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
