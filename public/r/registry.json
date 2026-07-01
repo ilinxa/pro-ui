@@ -2868,6 +2868,45 @@
       "files": [
         { "path": "src/registry/components/gamification/team-feedback-loop-01/dummy-data.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "cooperative-challenge-01",
+      "type": "registry:block",
+      "title": "Cooperative Challenge",
+      "description": "A safe-by-design cooperative team challenge card: one shared goal, a collective progress meter (current / target, never per-member), a whole-team reward chip (system D-08), and a penalty-free, team-level opt-in where opted-out is a neutral, first-class 'joinable' state — the never-forced rule made literal (joining is a prominent invite; leaving is one click with no confirm/guilt; a visible no-penalty hint states refusing is cost-free). On done, a lightweight inline 'Completed together' acknowledgement (non-blocking, no modal); the heavy celebration overlay belongs to team-feedback-loop-01 (E6), composed alongside — neither triggers the other. Opt-in is controlled-only; omitting onOptInChange collapses to a read-only card. Ships shadcn-style: a batteries-included <CooperativeChallenge01> plus a headless <CooperativeChallengeRoot> + flat parts (Header, Progress, Reward, OptIn) + context-free primitives (ChallengeProgressMeter, ChallengeRewardChip, OptInToggle, TeamMemberStack, CooperativeChallengeSkeleton). Emits challenge.opened (first mount, double-emit-guarded) + challenge.opt-in via onEvent. Cooperative + team-scoped: collective progress + whole-team reward only — no ranking, no per-member split, no public surface. Portable — zero next/*, SSR-safe, imports no other registry component. Third component of the gamification-system.",
+      "author": "ilinxa",
+      "categories": ["gamification"],
+      "registryDependencies": ["progress", "avatar", "button", "badge", "skeleton"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/cooperative-challenge-01.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/cooperative-challenge-01.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/index.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/index.ts" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/types.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/types.ts" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/lib/derive.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/lib/derive.ts" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/lib/events.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/lib/events.ts" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/hooks/use-cooperative-challenge.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/hooks/use-cooperative-challenge.ts" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/cooperative-challenge-root.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/cooperative-challenge-root.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/cooperative-challenge-header.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/cooperative-challenge-header.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/cooperative-challenge-progress.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/cooperative-challenge-progress.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/cooperative-challenge-reward.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/cooperative-challenge-reward.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/cooperative-challenge-optin.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/cooperative-challenge-optin.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/team-member-stack.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/team-member-stack.tsx" },
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/parts/cooperative-challenge-skeleton.tsx", "type": "registry:component", "target": "components/cooperative-challenge-01/parts/cooperative-challenge-skeleton.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "cooperative-challenge-01-fixtures",
+      "type": "registry:block",
+      "title": "Cooperative Challenge — fixtures",
+      "description": "Cooperative Challenge bundle including sample dummy-data (Team + Challenge fixtures exercising every state: joinable / active / completed / no-reward / target-0 edge / single-member / overflowing stack / long label). Resolves the base cooperative-challenge-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["gamification", "fixtures"],
+      "registryDependencies": ["@ilinxa/cooperative-challenge-01"],
+      "files": [
+        { "path": "src/registry/components/gamification/cooperative-challenge-01/dummy-data.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/dummy-data.ts" }
+      ]
     }
   ]
 }

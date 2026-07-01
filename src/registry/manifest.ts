@@ -237,6 +237,10 @@ import TeamFeedbackLoop01Demo from "./components/gamification/team-feedback-loop
 import TeamFeedbackLoop01Usage from "./components/gamification/team-feedback-loop-01/usage";
 import { meta as teamFeedbackLoop01Meta } from "./components/gamification/team-feedback-loop-01/meta";
 
+import CooperativeChallenge01Demo from "./components/gamification/cooperative-challenge-01/demo";
+import CooperativeChallenge01Usage from "./components/gamification/cooperative-challenge-01/usage";
+import { meta as cooperativeChallenge01Meta } from "./components/gamification/cooperative-challenge-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -545,6 +549,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: teamFeedbackLoop01Meta,
     Demo: TeamFeedbackLoop01Demo,
     Usage: TeamFeedbackLoop01Usage,
+  },
+  {
+    meta: cooperativeChallenge01Meta,
+    Demo: CooperativeChallenge01Demo,
+    Usage: CooperativeChallenge01Usage,
   },
 ];
 
