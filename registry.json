@@ -2907,6 +2907,40 @@
       "files": [
         { "path": "src/registry/components/gamification/cooperative-challenge-01/dummy-data.ts", "type": "registry:component", "target": "components/cooperative-challenge-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "task-choice-control-01",
+      "type": "registry:block",
+      "title": "Task Choice Control",
+      "description": "A small, droppable autonomy affordance for one team task (system E4): an 'open for anyone' toggle, an 'I'll take this' volunteer/claim action, and an assignee chip with a neutral, no-penalty release + a searchable reassign picker (popover + command). Renders three states — open / claimed / unassigned (plus the legal assigned-and-open edge) — deterministically from a controlled TaskChoiceState slice + this team's members. Choice is always available, never forced; releasing/reassigning never penalizes the previous assignee (never destructive/red, never a cold verb or penalty motion). Ships as a single-unit control (NOT a Root/context compound): flat à-la-carte sub-parts (OpenForAnyoneToggle, ClaimButton, AssigneeChip) under a logic-free <TaskChoiceControl01> assembly, so a host can drop just the toggle or just the chip. Emits task-choice.interaction via onEvent on meaningful interactions only. Controlled, capability-gated (omit a callback → that affordance hides), readOnly for display-only. Team-scoped: only this team's members, no ranking, no inter-team surface. Portable — zero next/*, SSR-safe, imports no other registry component. Fifth component of the gamification-system.",
+      "author": "ilinxa",
+      "categories": ["gamification"],
+      "registryDependencies": ["switch", "button", "avatar", "popover", "command"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/gamification/task-choice-control-01/task-choice-control-01.tsx", "type": "registry:component", "target": "components/task-choice-control-01/task-choice-control-01.tsx" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/index.ts", "type": "registry:component", "target": "components/task-choice-control-01/index.ts" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/types.ts", "type": "registry:component", "target": "components/task-choice-control-01/types.ts" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/lib/state.ts", "type": "registry:component", "target": "components/task-choice-control-01/lib/state.ts" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/lib/members.ts", "type": "registry:component", "target": "components/task-choice-control-01/lib/members.ts" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/parts/open-for-anyone-toggle.tsx", "type": "registry:component", "target": "components/task-choice-control-01/parts/open-for-anyone-toggle.tsx" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/parts/claim-button.tsx", "type": "registry:component", "target": "components/task-choice-control-01/parts/claim-button.tsx" },
+        { "path": "src/registry/components/gamification/task-choice-control-01/parts/assignee-chip.tsx", "type": "registry:component", "target": "components/task-choice-control-01/parts/assignee-chip.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "task-choice-control-01-fixtures",
+      "type": "registry:block",
+      "title": "Task Choice Control — fixtures",
+      "description": "Task Choice Control bundle including sample dummy-data (one team's members + TaskChoiceState examples exercising every state: open / claimed / unassigned / the legal assigned-and-open edge / a stale assigneeId / a member with no avatar). Resolves the base task-choice-control-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["gamification", "fixtures"],
+      "registryDependencies": ["@ilinxa/task-choice-control-01"],
+      "files": [
+        { "path": "src/registry/components/gamification/task-choice-control-01/dummy-data.ts", "type": "registry:component", "target": "components/task-choice-control-01/dummy-data.ts" }
+      ]
     }
   ]
 }

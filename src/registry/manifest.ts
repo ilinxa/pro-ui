@@ -241,6 +241,10 @@ import CooperativeChallenge01Demo from "./components/gamification/cooperative-ch
 import CooperativeChallenge01Usage from "./components/gamification/cooperative-challenge-01/usage";
 import { meta as cooperativeChallenge01Meta } from "./components/gamification/cooperative-challenge-01/meta";
 
+import TaskChoiceControl01Demo from "./components/gamification/task-choice-control-01/demo";
+import TaskChoiceControl01Usage from "./components/gamification/task-choice-control-01/usage";
+import { meta as taskChoiceControl01Meta } from "./components/gamification/task-choice-control-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -554,6 +558,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: cooperativeChallenge01Meta,
     Demo: CooperativeChallenge01Demo,
     Usage: CooperativeChallenge01Usage,
+  },
+  {
+    meta: taskChoiceControl01Meta,
+    Demo: TaskChoiceControl01Demo,
+    Usage: TaskChoiceControl01Usage,
   },
 ];
 
