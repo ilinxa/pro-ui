@@ -2941,6 +2941,43 @@
       "files": [
         { "path": "src/registry/components/gamification/task-choice-control-01/dummy-data.ts", "type": "registry:component", "target": "components/task-choice-control-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-quest-log-01",
+      "type": "registry:block",
+      "title": "Team Quest Log",
+      "description": "A light team narrative overlay (system E5): an editable, skippable quest name (a blank name falls back to the team's literal name — never forced) plus a milestone-chapter timeline with deterministic done / current / upcoming beats (current = the first not-done beat; an unresolved milestoneId renders gracefully + dev-warns, never crashes). Deliberately lighter than gantt/calendar — chapters, not a time axis. Emits narrative.chapter-viewed once per chapter per mount when a beat first scrolls into view (one IntersectionObserver, fire-once, SSR-guarded, click fallback). Ships shadcn-style: a batteries-included <TeamQuestLog01> plus a headless <TeamQuestLogRoot> (title resolution + draft/edit state + beat derivation + telemetry + a forwardRef handle: focusNameEditor / scrollToChapter) + flat parts (TeamQuestNameEditor, TeamQuestChapters) + context-free primitives (QuestTitle, QuestNameField, ChapterRail, ChapterBeat, EmptyNarrative), so a timeline-only or name-only subset falls out. Team-scoped, controlled. Portable — zero next/*, SSR-safe, imports no other registry component. Sixth and final component of the gamification-system.",
+      "author": "ilinxa",
+      "categories": ["gamification"],
+      "registryDependencies": ["button", "input"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-quest-log-01/team-quest-log-01.tsx", "type": "registry:component", "target": "components/team-quest-log-01/team-quest-log-01.tsx" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/index.ts", "type": "registry:component", "target": "components/team-quest-log-01/index.ts" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/types.ts", "type": "registry:component", "target": "components/team-quest-log-01/types.ts" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/lib/resolve-title.ts", "type": "registry:component", "target": "components/team-quest-log-01/lib/resolve-title.ts" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/lib/derive-beats.ts", "type": "registry:component", "target": "components/team-quest-log-01/lib/derive-beats.ts" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/hooks/use-team-quest-log.ts", "type": "registry:component", "target": "components/team-quest-log-01/hooks/use-team-quest-log.ts" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/hooks/use-chapter-view-telemetry.ts", "type": "registry:component", "target": "components/team-quest-log-01/hooks/use-chapter-view-telemetry.ts" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/parts/team-quest-log-root.tsx", "type": "registry:component", "target": "components/team-quest-log-01/parts/team-quest-log-root.tsx" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/parts/team-quest-name-editor.tsx", "type": "registry:component", "target": "components/team-quest-log-01/parts/team-quest-name-editor.tsx" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/parts/team-quest-chapters.tsx", "type": "registry:component", "target": "components/team-quest-log-01/parts/team-quest-chapters.tsx" },
+        { "path": "src/registry/components/gamification/team-quest-log-01/parts/chapter-beat.tsx", "type": "registry:component", "target": "components/team-quest-log-01/parts/chapter-beat.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-quest-log-01-fixtures",
+      "type": "registry:block",
+      "title": "Team Quest Log — fixtures",
+      "description": "Team Quest Log bundle including sample dummy-data (a team with + without a questName, milestones mixing done/not-done with some doneAt, and chapters exercising every beat state: done / current / upcoming / all-done / none-done / an unresolved-milestoneId beat). Resolves the base team-quest-log-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["gamification", "fixtures"],
+      "registryDependencies": ["@ilinxa/team-quest-log-01"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-quest-log-01/dummy-data.ts", "type": "registry:component", "target": "components/team-quest-log-01/dummy-data.ts" }
+      ]
     }
   ]
 }

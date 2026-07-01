@@ -245,6 +245,10 @@ import TaskChoiceControl01Demo from "./components/gamification/task-choice-contr
 import TaskChoiceControl01Usage from "./components/gamification/task-choice-control-01/usage";
 import { meta as taskChoiceControl01Meta } from "./components/gamification/task-choice-control-01/meta";
 
+import TeamQuestLog01Demo from "./components/gamification/team-quest-log-01/demo";
+import TeamQuestLog01Usage from "./components/gamification/team-quest-log-01/usage";
+import { meta as teamQuestLog01Meta } from "./components/gamification/team-quest-log-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -563,6 +567,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: taskChoiceControl01Meta,
     Demo: TaskChoiceControl01Demo,
     Usage: TaskChoiceControl01Usage,
+  },
+  {
+    meta: teamQuestLog01Meta,
+    Demo: TeamQuestLog01Demo,
+    Usage: TeamQuestLog01Usage,
   },
 ];
 
