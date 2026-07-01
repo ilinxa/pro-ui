@@ -30,13 +30,15 @@ export function ProgressTrack({
   const renderTicks = showTicks && ticks != null && ticks.length > 0;
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div className={cn("group relative w-full", className)}>
       <Progress
         value={pct}
         aria-label={ariaLabel}
         className={cn(
-          "h-2.5 bg-muted",
-          "motion-reduce:[&_[data-slot=progress-indicator]]:transition-none",
+          // Hover: the lime fill brightens + the bar gains a soft lime glow.
+          "h-2.5 bg-muted transition-shadow duration-200 group-hover:shadow-[0_0_10px] group-hover:shadow-primary/30",
+          "group-hover:**:data-[slot=progress-indicator]:brightness-110",
+          "motion-reduce:**:data-[slot=progress-indicator]:transition-none",
         )}
       />
       {renderTicks ? (

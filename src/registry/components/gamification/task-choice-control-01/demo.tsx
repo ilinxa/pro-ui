@@ -47,7 +47,7 @@ function LiveControl({
 }) {
   const [value, setValue] = React.useState<TaskChoiceState>(initial);
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
       <TaskChoiceControl01
         teamId="design-team"
         members={TASK_TEAM}
@@ -71,7 +71,7 @@ function LiveControl({
 
 export default function TaskChoiceControl01Demo() {
   return (
-    <div className="flex w-full max-w-lg flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
       <Section
         title="Three states — live"
         hint="Open (invite + I'll take this) · Claimed (chip + neutral Release + Reassign) · Unassigned (volunteer + open together). Try claiming, releasing, reassigning — nothing penalizes anyone."
@@ -104,7 +104,7 @@ export default function TaskChoiceControl01Demo() {
         title="Read-only (display-only)"
         hint="Omit the callbacks (or pass readOnly) → all actions hide; the state still shows. No dead buttons."
       >
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
           <TaskChoiceControl01
             teamId="design-team"
             members={TASK_TEAM}
@@ -118,7 +118,7 @@ export default function TaskChoiceControl01Demo() {
         title="À-la-carte sub-parts (no assembly)"
         hint="Each flat export mounts standalone — the toggle, the claim action, and the assignee chip on their own."
       >
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
           <OpenForAnyoneToggle open onOpenChange={() => {}} />
           <ClaimButton memberId={CURRENT_MEMBER_ID} onClaim={() => {}} />
           <AssigneeChip

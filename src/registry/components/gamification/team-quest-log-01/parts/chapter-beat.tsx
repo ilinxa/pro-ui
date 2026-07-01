@@ -52,11 +52,13 @@ export function ChapterBeat({
     <span
       aria-hidden
       className={cn(
-        "relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full border",
-        state === "done" && "border-primary bg-primary text-primary-foreground",
+        "relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full border transition-[transform,box-shadow,border-color,background-color,color] duration-200 ease-out motion-safe:group-hover:scale-110",
+        state === "done" &&
+          "border-primary bg-primary text-primary-foreground group-hover:shadow-md group-hover:shadow-primary/30",
         state === "current" &&
-          "border-primary bg-background text-primary ring-2 ring-primary/30",
-        state === "upcoming" && "border-border bg-muted text-muted-foreground",
+          "border-primary bg-background text-primary ring-2 ring-primary/30 group-hover:ring-primary/50",
+        state === "upcoming" &&
+          "border-border bg-muted text-muted-foreground group-hover:border-primary/40 group-hover:text-foreground",
       )}
     >
       {state === "done" ? (
@@ -110,7 +112,7 @@ export function ChapterBeat({
         aria-label={accessibleName}
         onClick={() => onClick?.(chapter)}
         className={cn(
-          "flex w-full items-start gap-3 rounded-md text-left outline-none",
+          "group flex w-full items-start gap-3 rounded-md text-left outline-none",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           className,
         )}
@@ -125,7 +127,7 @@ export function ChapterBeat({
       role="listitem"
       data-chapter-id={chapter.id}
       aria-label={accessibleName}
-      className={cn("flex items-start gap-3", className)}
+      className={cn("group flex items-start gap-3", className)}
     >
       {inner}
     </div>
