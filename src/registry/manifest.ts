@@ -225,6 +225,18 @@ import Calendar01Demo from "./components/data/calendar-01/demo";
 import Calendar01Usage from "./components/data/calendar-01/usage";
 import { meta as calendar01Meta } from "./components/data/calendar-01/meta";
 
+import TeamProgressBar01Demo from "./components/gamification/team-progress-bar-01/demo";
+import TeamProgressBar01Usage from "./components/gamification/team-progress-bar-01/usage";
+import { meta as teamProgressBar01Meta } from "./components/gamification/team-progress-bar-01/meta";
+
+import TeamTrophyShelf01Demo from "./components/gamification/team-trophy-shelf-01/demo";
+import TeamTrophyShelf01Usage from "./components/gamification/team-trophy-shelf-01/usage";
+import { meta as teamTrophyShelf01Meta } from "./components/gamification/team-trophy-shelf-01/meta";
+
+import TeamFeedbackLoop01Demo from "./components/gamification/team-feedback-loop-01/demo";
+import TeamFeedbackLoop01Usage from "./components/gamification/team-feedback-loop-01/usage";
+import { meta as teamFeedbackLoop01Meta } from "./components/gamification/team-feedback-loop-01/meta";
+
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
   CategoryMeta,
@@ -518,6 +530,21 @@ export const REGISTRY: RegistryEntry[] = [
     meta: calendar01Meta,
     Demo: Calendar01Demo,
     Usage: Calendar01Usage,
+  },
+  {
+    meta: teamProgressBar01Meta,
+    Demo: TeamProgressBar01Demo,
+    Usage: TeamProgressBar01Usage,
+  },
+  {
+    meta: teamTrophyShelf01Meta,
+    Demo: TeamTrophyShelf01Demo,
+    Usage: TeamTrophyShelf01Usage,
+  },
+  {
+    meta: teamFeedbackLoop01Meta,
+    Demo: TeamFeedbackLoop01Demo,
+    Usage: TeamFeedbackLoop01Usage,
   },
 ];
 

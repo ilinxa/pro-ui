@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "team-trophy-shelf-01-fixtures",
+  "title": "Team Trophy Shelf — fixtures",
+  "author": "ilinxa",
+  "description": "Team Trophy Shelf bundle including sample dummy-data (a mixed 9-badge shelf — 4 earned / 5 locked with award dates, a long label, and a stale milestoneId; an all-earned variant; an empty set; and the team identity). Resolves the base team-trophy-shelf-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/team-trophy-shelf-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/gamification/team-trophy-shelf-01/dummy-data.ts",
+      "content": "import type { Badge, Team } from \"./types\";\n\n/** The owning team (identity subset, D-15). */\nexport const TEAM_AURORA: Team = { id: \"T-001\", name: \"Team Aurora\" };\n\n/**\n * A mixed shelf — 4 earned, 5 locked (→ \"4 / 9\"), exercising earned/locked\n * states, an award date, a long label (truncation), and a stale `milestoneId`\n * (points at a milestone the host may no longer have — the badge still renders).\n */\nexport const TEAM_AURORA_BADGES: Badge[] = [\n  { id: \"b-1\", label: \"Kickoff\", awardedAt: \"2026-01-08T10:00:00Z\", milestoneId: \"m-1\" },\n  { id: \"b-2\", label: \"First playable build\", awardedAt: \"2026-02-03T16:30:00Z\", milestoneId: \"m-3\" },\n  { id: \"b-3\", label: \"Internal playtest\", awardedAt: \"2026-02-17T09:15:00Z\", milestoneId: \"m-4\" },\n  { id: \"b-4\", label: \"Vertical slice\", awardedAt: \"2026-03-02T12:00:00Z\", milestoneId: \"m-5\" },\n  { id: \"b-5\", label: \"Beta milestone\", milestoneId: \"m-6\" },\n  { id: \"b-6\", label: \"Content complete\", milestoneId: \"m-7\" },\n  { id: \"b-7\", label: \"Localization pass finished\", milestoneId: \"m-stale\" },\n  { id: \"b-8\", label: \"Launch candidate\", milestoneId: \"m-8\" },\n  { id: \"b-9\", label: \"Shipped\", milestoneId: \"m-9\" },\n];\n\n/** All earned — a fully-completed journey (\"9 / 9\"). */\nexport const TEAM_AURORA_ALL_EARNED: Badge[] = TEAM_AURORA_BADGES.map((b) => ({\n  ...b,\n  awardedAt: b.awardedAt ?? \"2026-03-20T12:00:00Z\",\n}));\n\n/** No badges defined yet — the always-designed empty state. */\nexport const EMPTY_BADGES: Badge[] = [];\n",
+      "type": "registry:component",
+      "target": "components/team-trophy-shelf-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "gamification",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
