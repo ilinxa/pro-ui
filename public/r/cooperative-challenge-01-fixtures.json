@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "cooperative-challenge-01-fixtures",
+  "title": "Cooperative Challenge — fixtures",
+  "author": "ilinxa",
+  "description": "Cooperative Challenge bundle including sample dummy-data (Team + Challenge fixtures exercising every state: joinable / active / completed / no-reward / target-0 edge / single-member / overflowing stack / long label). Resolves the base cooperative-challenge-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/cooperative-challenge-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/gamification/cooperative-challenge-01/dummy-data.ts",
+      "content": "import type { Challenge, Team } from \"./types\";\n\n/**\n * Fixtures for `cooperative-challenge-01` — exercise every state the card must\n * cover (description §10): joinable (opted-out) · active · complete · no-reward ·\n * target-0 edge · single-member · overflowing stack · long label. Team-scoped +\n * cooperative only — no per-member progress, no ranking (system §5).\n */\n\nexport const TEAM_AURORA: Team = {\n  id: \"team-aurora\",\n  name: \"Team Aurora\",\n  members: [\n    { id: \"m1\", displayName: \"Mara Ito\" },\n    { id: \"m2\", displayName: \"Devan Roy\" },\n    { id: \"m3\", displayName: \"Sana Okafor\" },\n    { id: \"m4\", displayName: \"Leo Fischer\" },\n    { id: \"m5\", displayName: \"Priya Nair\" },\n  ],\n};\n\nexport const TEAM_SOLO: Team = {\n  id: \"team-solo\",\n  name: \"Team Nimbus\",\n  members: [{ id: \"s1\", displayName: \"Ada Chen\" }],\n};\n\nexport const TEAM_LARGE: Team = {\n  id: \"team-large\",\n  name: \"Team Meridian\",\n  members: [\n    { id: \"l1\", displayName: \"Noah Park\" },\n    { id: \"l2\", displayName: \"Ivy Sol\" },\n    { id: \"l3\", displayName: \"Kofi Mensah\" },\n    { id: \"l4\", displayName: \"Rin Tanaka\" },\n    { id: \"l5\", displayName: \"Omar Haddad\" },\n    { id: \"l6\", displayName: \"Beatriz Luz\" },\n    { id: \"l7\", displayName: \"Yuki Mori\" },\n  ],\n};\n\n/** Opted-out → the neutral, joinable, penalty-free invitation (the load-bearing state). */\nexport const CHALLENGE_JOINABLE: Challenge = {\n  id: \"ch-joinable\",\n  label: \"All 5 members commit a task this morning\",\n  optedIn: false,\n  progress: { current: 2, target: 5 },\n  reward: \"A shared afternoon off\",\n  done: false,\n};\n\n/** Opted-in, in motion. */\nexport const CHALLENGE_ACTIVE: Challenge = {\n  id: \"ch-active\",\n  label: \"Close every stale review by Friday\",\n  optedIn: true,\n  progress: { current: 3, target: 5 },\n  reward: \"Team lunch on the house\",\n  done: false,\n};\n\n/** Completed → whole-team earned treatment. */\nexport const CHALLENGE_COMPLETE: Challenge = {\n  id: \"ch-complete\",\n  label: \"Ship the onboarding flow together\",\n  optedIn: true,\n  progress: { current: 5, target: 5 },\n  reward: \"Team lunch on the house\",\n  done: true,\n};\n\n/** Active, no reward → reward chip auto-hides. */\nexport const CHALLENGE_NO_REWARD: Challenge = {\n  id: \"ch-no-reward\",\n  label: \"Pair on one tricky bug this week\",\n  optedIn: true,\n  progress: { current: 1, target: 4 },\n  done: false,\n};\n\n/** Degenerate-but-safe: target 0 → 0% fill, \"0 / 0\", never NaN. */\nexport const CHALLENGE_TARGET_ZERO: Challenge = {\n  id: \"ch-target-zero\",\n  label: \"Warm-up challenge (no target set yet)\",\n  optedIn: false,\n  progress: { current: 0, target: 0 },\n  done: false,\n};\n\n/** Long label → truncation + `title` fallback. */\nexport const CHALLENGE_LONG_LABEL: Challenge = {\n  id: \"ch-long\",\n  label:\n    \"Every member records at least one asynchronous stand-up update before noon so nobody is blocked over the long weekend\",\n  optedIn: false,\n  progress: { current: 4, target: 7 },\n  reward: \"The team picks the next sprint's focus together\",\n  done: false,\n};\n",
+      "type": "registry:component",
+      "target": "components/cooperative-challenge-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "gamification",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}
