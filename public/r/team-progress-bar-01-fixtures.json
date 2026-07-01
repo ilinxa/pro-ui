@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "team-progress-bar-01-fixtures",
+  "title": "Team Progress Bar — fixtures",
+  "author": "ilinxa",
+  "description": "Team Progress Bar bundle including sample dummy-data (an 8-milestone team journey with 5 done → 63%, exercising tick ordering and labels; an empty milestone set for the 0% edge; and the team identity). Resolves the base team-progress-bar-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/team-progress-bar-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/gamification/team-progress-bar-01/dummy-data.ts",
+      "content": "import type { Milestone } from \"./types\";\n\n/**\n * A team's milestone journey — 5 of 8 done (→ 63%), exercising tick ordering\n * and labels. `order` is intentionally out of array order on a couple of rows\n * so the resolver's sort-by-order is visibly load-bearing.\n */\nexport const TEAM_AURORA_MILESTONES: Milestone[] = [\n  { id: \"m-1\", label: \"Kickoff & team charter\", done: true, order: 1, doneAt: \"2026-01-08\" },\n  { id: \"m-2\", label: \"Research synthesis\", done: true, order: 2, doneAt: \"2026-01-20\" },\n  { id: \"m-4\", label: \"Internal playtest\", done: true, order: 4, doneAt: \"2026-02-17\" },\n  { id: \"m-3\", label: \"First playable build\", done: true, order: 3, doneAt: \"2026-02-03\" },\n  { id: \"m-5\", label: \"Vertical slice\", done: true, order: 5, doneAt: \"2026-03-02\" },\n  { id: \"m-6\", label: \"Beta milestone\", done: false, order: 6 },\n  { id: \"m-7\", label: \"Content complete\", done: false, order: 7 },\n  { id: \"m-8\", label: \"Launch candidate\", done: false, order: 8 },\n];\n\n/** No milestones yet — the always-visible 0% edge case (`total === 0`). */\nexport const EMPTY_MILESTONES: Milestone[] = [];\n\n/** The team identity passed alongside the milestones (system D-15 subset). */\nexport const TEAM_AURORA = { id: \"T-001\", name: \"Team Aurora\" } as const;\n",
+      "type": "registry:component",
+      "target": "components/team-progress-bar-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "gamification",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

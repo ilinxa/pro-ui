@@ -2756,6 +2756,117 @@
       "files": [
         { "path": "src/registry/components/data/calendar-01/dummy-data.ts", "type": "registry:component", "target": "components/calendar-01/dummy-data.ts" }
       ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-progress-bar-01",
+      "type": "registry:block",
+      "title": "Team Progress Bar",
+      "description": "An always-visible, read-only progress bar showing one team's milestone-completion % — signal-lime fill on the shadcn progress primitive, optional per-milestone tick notches (filled = done, in order), a percent/fraction readout, a reduced-motion-aware fill transition, and a progress-bar.checked telemetry event emitted once per mount on first in-viewport reveal. Takes either a Milestone[] (computes done/total) or a direct value (0–100). Cooperative and team-scoped by design: one team's own % only — never another team's bar, a leaderboard, a ranking, or a per-member split. Ships shadcn-style: a batteries-included <TeamProgressBar01> plus a headless <TeamProgressBarRoot> + flat à-la-carte parts (TeamProgressBarTrack, TeamProgressBarLabel) + a context-free ProgressTrack primitive, so a bar-only header falls out by dropping the Label. Portable — zero next/*, no app context, no other registry import; SSR-safe; all data is the host's. First component of the gamification-system.",
+      "author": "ilinxa",
+      "categories": ["gamification"],
+      "registryDependencies": ["progress"],
+      "dependencies": [],
+      "files": [
+        { "path": "src/registry/components/gamification/team-progress-bar-01/team-progress-bar-01.tsx", "type": "registry:component", "target": "components/team-progress-bar-01/team-progress-bar-01.tsx" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/index.ts", "type": "registry:component", "target": "components/team-progress-bar-01/index.ts" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/types.ts", "type": "registry:component", "target": "components/team-progress-bar-01/types.ts" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/lib/resolve-progress.ts", "type": "registry:component", "target": "components/team-progress-bar-01/lib/resolve-progress.ts" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/lib/event.ts", "type": "registry:component", "target": "components/team-progress-bar-01/lib/event.ts" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/hooks/use-team-progress-bar.ts", "type": "registry:component", "target": "components/team-progress-bar-01/hooks/use-team-progress-bar.ts" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/hooks/use-progress-telemetry.ts", "type": "registry:component", "target": "components/team-progress-bar-01/hooks/use-progress-telemetry.ts" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/parts/team-progress-bar-root.tsx", "type": "registry:component", "target": "components/team-progress-bar-01/parts/team-progress-bar-root.tsx" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/parts/team-progress-bar-track.tsx", "type": "registry:component", "target": "components/team-progress-bar-01/parts/team-progress-bar-track.tsx" },
+        { "path": "src/registry/components/gamification/team-progress-bar-01/parts/team-progress-bar-label.tsx", "type": "registry:component", "target": "components/team-progress-bar-01/parts/team-progress-bar-label.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-progress-bar-01-fixtures",
+      "type": "registry:block",
+      "title": "Team Progress Bar — fixtures",
+      "description": "Team Progress Bar bundle including sample dummy-data (an 8-milestone team journey with 5 done → 63%, exercising tick ordering and labels; an empty milestone set for the 0% edge; and the team identity). Resolves the base team-progress-bar-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["gamification", "fixtures"],
+      "registryDependencies": ["@ilinxa/team-progress-bar-01"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-progress-bar-01/dummy-data.ts", "type": "registry:component", "target": "components/team-progress-bar-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-trophy-shelf-01",
+      "type": "registry:block",
+      "title": "Team Trophy Shelf",
+      "description": "A durable gallery of a team's earned milestone badges, with honest locked slots for what's ahead, an optional header count, an awarded-date tooltip, and a brief (<1s), skippable, non-blocking reveal when a badge is newly earned (diff-driven, SSR-safe, reduced-motion-aware). Ships shadcn-style: a batteries-included <TeamTrophyShelf01> plus a headless <TeamTrophyShelfRoot> + flat parts (Grid, Header, Empty) + the standalone Tier-C <TeamMilestoneBadge> token + a React.lazy <BadgeAwardOverlay>, so the bare token falls out for free and animateAward=false / the bare-token path never load the award chunk. D-16: a host routing badge events to team-feedback-loop-01 sets animateAward=false so the moment isn't celebrated twice. Cooperative and team-scoped: team-owned badges only — no ranking, no per-member split, no public surface. Portable — zero next/*, SSR-safe, imports no other registry component. Second component of the gamification-system.",
+      "author": "ilinxa",
+      "categories": ["gamification"],
+      "registryDependencies": ["tooltip", "badge", "separator"],
+      "dependencies": ["lucide-react"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/team-trophy-shelf-01.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/team-trophy-shelf-01.tsx" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/index.ts", "type": "registry:component", "target": "components/team-trophy-shelf-01/index.ts" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/types.ts", "type": "registry:component", "target": "components/team-trophy-shelf-01/types.ts" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/lib/resolve.ts", "type": "registry:component", "target": "components/team-trophy-shelf-01/lib/resolve.ts" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/lib/diff.ts", "type": "registry:component", "target": "components/team-trophy-shelf-01/lib/diff.ts" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/hooks/use-team-trophy-shelf.ts", "type": "registry:component", "target": "components/team-trophy-shelf-01/hooks/use-team-trophy-shelf.ts" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/parts/team-trophy-shelf-root.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/parts/team-trophy-shelf-root.tsx" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/parts/team-trophy-shelf-grid.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/parts/team-trophy-shelf-grid.tsx" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/parts/team-trophy-shelf-header.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/parts/team-trophy-shelf-header.tsx" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/parts/team-trophy-shelf-empty.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/parts/team-trophy-shelf-empty.tsx" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/parts/team-milestone-badge.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/parts/team-milestone-badge.tsx" },
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/parts/badge-award-overlay.tsx", "type": "registry:component", "target": "components/team-trophy-shelf-01/parts/badge-award-overlay.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-trophy-shelf-01-fixtures",
+      "type": "registry:block",
+      "title": "Team Trophy Shelf — fixtures",
+      "description": "Team Trophy Shelf bundle including sample dummy-data (a mixed 9-badge shelf — 4 earned / 5 locked with award dates, a long label, and a stale milestoneId; an all-earned variant; an empty set; and the team identity). Resolves the base team-trophy-shelf-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["gamification", "fixtures"],
+      "registryDependencies": ["@ilinxa/team-trophy-shelf-01"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-trophy-shelf-01/dummy-data.ts", "type": "registry:component", "target": "components/team-trophy-shelf-01/dummy-data.ts" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-feedback-loop-01",
+      "type": "registry:block",
+      "title": "Team Feedback Loop",
+      "description": "A host-triggered, NON-BLOCKING cooperative feedback layer: a brief (<1s), skippable celebration overlay when team progress advances (milestone / badge / task-complete) + a gentle, dismissible next-task nudge. The board stays fully interactive during a celebration (pointer-events:none except the skip button, no focus trap, timer clamped <1000ms — D-10); reduced-motion is a real static branch. The default flourish is token CSS reveal-up; an opt-in canvas-confetti burst is React.lazy for milestone/badge only, so the default consumer never loads it. Two trigger paths (controlled event prop + imperative celebrate()) funnel into one reducer — newest wins, never stack. Ships shadcn-style: a batteries-included <TeamFeedbackLoop01> plus a headless <TeamFeedbackLoopRoot> + flat parts (Celebration, Nudge) + Tier-C primitives (CelebrationOverlay, NextTaskNudge, lazy ConfettiBurst). D-16: neither this nor team-trophy-shelf-01 triggers the other; the host routes each event kind to one celebrator. Cooperative + team-scoped (D-08): team-subject copy only. Portable — zero next/*, SSR-safe, imports no other registry component. Third component of the gamification-system.",
+      "author": "ilinxa",
+      "categories": ["gamification"],
+      "registryDependencies": ["button"],
+      "dependencies": ["canvas-confetti", "lucide-react"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/team-feedback-loop-01.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/team-feedback-loop-01.tsx" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/index.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/index.ts" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/types.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/types.ts" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/lib/clamp.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/lib/clamp.ts" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/hooks/use-team-feedback-context.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/hooks/use-team-feedback-context.ts" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/parts/team-feedback-loop-root.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/parts/team-feedback-loop-root.tsx" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/parts/team-feedback-celebration.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/parts/team-feedback-celebration.tsx" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/parts/team-feedback-nudge.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/parts/team-feedback-nudge.tsx" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/parts/celebration-overlay.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/parts/celebration-overlay.tsx" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/parts/next-task-nudge.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/parts/next-task-nudge.tsx" },
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/parts/confetti-burst.tsx", "type": "registry:component", "target": "components/team-feedback-loop-01/parts/confetti-burst.tsx" }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "team-feedback-loop-01-fixtures",
+      "type": "registry:block",
+      "title": "Team Feedback Loop — fixtures",
+      "description": "Team Feedback Loop bundle including sample dummy-data (one team-scoped FeedbackEvent per kind — milestone with a narrative beat, badge, task-complete — plus a long-title event and inline/long next-task suggestions for the nudge). Resolves the base team-feedback-loop-01 item automatically.",
+      "author": "ilinxa",
+      "categories": ["gamification", "fixtures"],
+      "registryDependencies": ["@ilinxa/team-feedback-loop-01"],
+      "files": [
+        { "path": "src/registry/components/gamification/team-feedback-loop-01/dummy-data.ts", "type": "registry:component", "target": "components/team-feedback-loop-01/dummy-data.ts" }
+      ]
     }
   ]
 }

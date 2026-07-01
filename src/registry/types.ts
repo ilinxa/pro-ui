@@ -12,7 +12,8 @@ export type ComponentCategorySlug =
   | "media"
   | "code"
   | "overlays"
-  | "auth";
+  | "auth"
+  | "gamification";
 
 export type ComponentDependencies = {
   shadcn?: string[];

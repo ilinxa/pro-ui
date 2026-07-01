@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "team-feedback-loop-01-fixtures",
+  "title": "Team Feedback Loop — fixtures",
+  "author": "ilinxa",
+  "description": "Team Feedback Loop bundle including sample dummy-data (one team-scoped FeedbackEvent per kind — milestone with a narrative beat, badge, task-complete — plus a long-title event and inline/long next-task suggestions for the nudge). Resolves the base team-feedback-loop-01 item automatically.",
+  "registryDependencies": [
+    "@ilinxa/team-feedback-loop-01"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/gamification/team-feedback-loop-01/dummy-data.ts",
+      "content": "import type { FeedbackEvent, NextTaskSuggestion } from \"./types\";\n\n/** One event per kind — all copy TEAM-scoped, never an individual (D-08). */\nexport const FEEDBACK_EVENTS: Record<FeedbackEvent[\"kind\"], FeedbackEvent> = {\n  milestone: {\n    kind: \"milestone\",\n    title: \"Your team reached the first playable build!\",\n    detail: \"Chapter 3 of the journey is complete.\",\n    narrativeBeat: \"The prototype breathes\",\n  },\n  badge: {\n    kind: \"badge\",\n    title: \"Your team earned the Vertical Slice trophy\",\n    detail: \"A polished slice, end to end.\",\n  },\n  \"task-complete\": {\n    kind: \"task-complete\",\n    title: \"Your team cleared the backlog column\",\n  },\n};\n\n/** A long title to exercise graceful truncation. */\nexport const LONG_TITLE_EVENT: FeedbackEvent = {\n  kind: \"milestone\",\n  title:\n    \"Your team shipped the entire onboarding flow, the settings panel, and the localization pass all in one sprint\",\n  detail: \"An unusually big week — every planned milestone landed at once.\",\n  narrativeBeat: \"A season closes\",\n};\n\n/** The next-task suggestion for the nudge. */\nexport const NEXT_TASK: NextTaskSuggestion = {\n  taskId: \"task-42\",\n  label: \"Pick up: wire the win screen\",\n};\n\n/** A long-label suggestion to exercise the nudge's line-clamp + title fallback. */\nexport const LONG_NEXT_TASK: NextTaskSuggestion = {\n  taskId: \"task-99\",\n  label:\n    \"Pick up: reconcile the analytics events with the new milestone schema and backfill the last two weeks\",\n};\n",
+      "type": "registry:component",
+      "target": "components/team-feedback-loop-01/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "gamification",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

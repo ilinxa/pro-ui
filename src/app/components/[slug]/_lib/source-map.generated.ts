@@ -13246,6 +13246,426 @@ export default function StoryViewer01Demo() {
 }
 `,
   },
+  "team-feedback-loop-01": {
+    demo: `"use client";
+
+import * as React from "react";
+
+import { Button } from "@/components/ui/button";
+
+import { TeamFeedbackLoop01 } from "./team-feedback-loop-01";
+import { TeamFeedbackLoopRoot } from "./parts/team-feedback-loop-root";
+import { TeamFeedbackNudge } from "./parts/team-feedback-nudge";
+import {
+  FEEDBACK_EVENTS,
+  LONG_NEXT_TASK,
+  LONG_TITLE_EVENT,
+  NEXT_TASK,
+} from "./dummy-data";
+import type { FeedbackEvent, TeamFeedbackLoopHandle } from "./types";
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-5">
+      <div className="flex flex-col gap-0.5">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export default function TeamFeedbackLoop01Demo() {
+  const ref = React.useRef<TeamFeedbackLoopHandle>(null);
+  const [confetti, setConfetti] = React.useState(true);
+  const [placement, setPlacement] = React.useState<"inline" | "corner">("inline");
+  const [showNudge, setShowNudge] = React.useState(true);
+
+  const fire = (event: FeedbackEvent) => ref.current?.celebrate(event);
+  const rapid = () => {
+    // Newest wins — no stacking, single timer.
+    fire(FEEDBACK_EVENTS["task-complete"]);
+    window.setTimeout(() => fire(FEEDBACK_EVENTS.badge), 120);
+    window.setTimeout(() => fire(FEEDBACK_EVENTS.milestone), 240);
+  };
+
+  return (
+    <div className="flex w-full max-w-2xl flex-col gap-5">
+      <Section
+        title="Fire a celebration"
+        hint="Imperative celebrate() — a brief (<1s), skippable, NON-BLOCKING band at the bottom. Click behind it: the page stays fully interactive. Press Esc or ✕ to skip."
+      >
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => fire(FEEDBACK_EVENTS.milestone)}>
+            Milestone
+          </Button>
+          <Button size="sm" onClick={() => fire(FEEDBACK_EVENTS.badge)}>
+            Badge
+          </Button>
+          <Button size="sm" onClick={() => fire(FEEDBACK_EVENTS["task-complete"])}>
+            Task complete
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => fire(LONG_TITLE_EVENT)}>
+            Long title
+          </Button>
+          <Button size="sm" variant="outline" onClick={rapid}>
+            Rapid ×3 (newest wins)
+          </Button>
+        </div>
+      </Section>
+
+      <Section
+        title="Options"
+        hint="Confetti is opt-in + lazy (milestone/badge only, never under reduced motion). Toggle your OS reduced-motion setting to see the static branch."
+      >
+        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+          <label className="flex items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={confetti}
+              onChange={(e) => setConfetti(e.target.checked)}
+            />
+            enableConfetti
+          </label>
+          <label className="flex items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={showNudge}
+              onChange={(e) => setShowNudge(e.target.checked)}
+            />
+            show nudge
+          </label>
+          <label className="flex items-center gap-1.5">
+            nudge placement:
+            <select
+              value={placement}
+              onChange={(e) =>
+                setPlacement(e.target.value as "inline" | "corner")
+              }
+              className="rounded border border-border bg-background px-1.5 py-0.5"
+            >
+              <option value="inline">inline</option>
+              <option value="corner">corner</option>
+            </select>
+          </label>
+        </div>
+      </Section>
+
+      <Section
+        title="Live loop (celebration + nudge)"
+        hint="The inline nudge renders here; accept/dismiss are penalty-free. Watch the console for callbacks."
+      >
+        <div className="rounded-lg border border-dashed border-border p-4">
+          <TeamFeedbackLoop01
+            ref={ref}
+            teamId="T-001"
+            enableConfetti={confetti}
+            nextTask={
+              showNudge
+                ? placement === "corner"
+                  ? LONG_NEXT_TASK
+                  : NEXT_TASK
+                : undefined
+            }
+            nudgePlacement={placement}
+            onNextTask={(s) => console.info("[demo] accept next task", s.taskId)}
+            onNudgeDismiss={(s) => console.info("[demo] dismiss nudge", s.taskId)}
+            onCelebrationDismiss={(e, reason) =>
+              console.info("[demo] celebration dismissed", e.kind, reason)
+            }
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Composed / lighter (nudge only)"
+        hint="Hand-assembled Root + only TeamFeedbackNudge — no celebration, and the confetti chunk never loads."
+      >
+        <TeamFeedbackLoopRoot
+          teamId="T-001"
+          nextTask={NEXT_TASK}
+          onNextTask={(s) => console.info("[demo] accept", s.taskId)}
+        >
+          {/* Only the nudge is mounted — no celebration part, no confetti chunk. */}
+          <TeamFeedbackNudge />
+        </TeamFeedbackLoopRoot>
+      </Section>
+    </div>
+  );
+}
+`,
+  },
+  "team-progress-bar-01": {
+    demo: `"use client";
+
+import { TeamProgressBar01 } from "./team-progress-bar-01";
+import { TeamProgressBarRoot } from "./parts/team-progress-bar-root";
+import { TeamProgressBarTrack } from "./parts/team-progress-bar-track";
+import {
+  EMPTY_MILESTONES,
+  TEAM_AURORA,
+  TEAM_AURORA_MILESTONES,
+} from "./dummy-data";
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-border bg-card p-5">
+      <div className="flex flex-col gap-0.5">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export default function TeamProgressBar01Demo() {
+  return (
+    <div className="flex w-full max-w-xl flex-col gap-5">
+      <Section
+        title="From milestones, with ticks"
+        hint="% = done / total · per-milestone notches · fraction readout · emits progress-bar.checked on first view"
+      >
+        <TeamProgressBar01
+          team={TEAM_AURORA}
+          milestones={TEAM_AURORA_MILESTONES}
+          showTicks
+          labelFormat="fraction"
+          onEvent={(e) => console.info("[demo] gamification event", e)}
+        />
+      </Section>
+
+      <Section
+        title="Standalone, direct value"
+        hint="The simplest drop-in — a 0–100 number, no milestone infrastructure."
+      >
+        <TeamProgressBar01 team={TEAM_AURORA} value={62} />
+      </Section>
+
+      <Section
+        title="Composed / lighter (bar only, no label)"
+        hint="Hand-assembled Root + Track — drop the Label and it tree-shakes away."
+      >
+        <TeamProgressBarRoot team={TEAM_AURORA} milestones={TEAM_AURORA_MILESTONES}>
+          <TeamProgressBarTrack showTicks />
+        </TeamProgressBarRoot>
+      </Section>
+
+      <Section
+        title="Edge cases"
+        hint="Always visible — empty renders 0%, never nothing; 0% and 100%; no team name."
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">
+              No milestones yet (total === 0)
+            </span>
+            <TeamProgressBar01 team={TEAM_AURORA} milestones={EMPTY_MILESTONES} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Just started (0%)</span>
+            <TeamProgressBar01 team={TEAM_AURORA} value={0} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">Complete (100%)</span>
+            <TeamProgressBar01 team={TEAM_AURORA} value={100} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">No team name</span>
+            <TeamProgressBar01 team={{ id: "T-099" }} value={45} />
+          </div>
+        </div>
+      </Section>
+    </div>
+  );
+}
+`,
+  },
+  "team-trophy-shelf-01": {
+    demo: `"use client";
+
+import * as React from "react";
+
+import { TeamTrophyShelf01 } from "./team-trophy-shelf-01";
+import { TeamMilestoneBadge } from "./parts/team-milestone-badge";
+import { TeamTrophyShelfGrid } from "./parts/team-trophy-shelf-grid";
+import { TeamTrophyShelfRoot } from "./parts/team-trophy-shelf-root";
+import {
+  EMPTY_BADGES,
+  TEAM_AURORA,
+  TEAM_AURORA_ALL_EARNED,
+  TEAM_AURORA_BADGES,
+} from "./dummy-data";
+import type { Badge } from "./types";
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5">
+      <div className="flex flex-col gap-0.5">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Flips a locked badge → earned at runtime so the in-place reveal plays. */
+function AwardRevealDemo() {
+  const [badges, setBadges] = React.useState<Badge[]>(() =>
+    TEAM_AURORA_BADGES.map((b) => ({ ...b })),
+  );
+  const [animate, setAnimate] = React.useState(true);
+
+  const nextLocked = badges.find((b) => b.awardedAt == null);
+  const award = () => {
+    if (!nextLocked) return;
+    setBadges((prev) =>
+      prev.map((b) =>
+        b.id === nextLocked.id ? { ...b, awardedAt: "2026-04-01T12:00:00Z" } : b,
+      ),
+    );
+  };
+  const reset = () =>
+    setBadges(TEAM_AURORA_BADGES.map((b) => ({ ...b })));
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={award}
+          disabled={!nextLocked}
+          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50"
+        >
+          Award next milestone
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground"
+        >
+          Reset
+        </button>
+        <label className="ml-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={animate}
+            onChange={(e) => setAnimate(e.target.checked)}
+          />
+          animateAward
+        </label>
+      </div>
+      <TeamTrophyShelf01 team={TEAM_AURORA} badges={badges} animateAward={animate} />
+    </div>
+  );
+}
+
+export default function TeamTrophyShelf01Demo() {
+  return (
+    <div className="flex w-full max-w-2xl flex-col gap-5">
+      <Section
+        title="The trophy shelf"
+        hint="Earned + locked slots, header count, awarded-date on hover. Emits badges.viewed on first view."
+      >
+        <TeamTrophyShelf01
+          team={TEAM_AURORA}
+          badges={TEAM_AURORA_BADGES}
+          onEvent={(e) => console.info("[demo] gamification event", e)}
+          onBadgeOpen={(b) => console.info("[demo] open badge", b.id)}
+        />
+      </Section>
+
+      <Section
+        title="Award reveal (diff-driven, non-blocking)"
+        hint="Flip a locked badge → earned to play the < 1s in-place reveal. Toggle animateAward or your OS reduced-motion setting to suppress it."
+      >
+        <AwardRevealDemo />
+      </Section>
+
+      <Section title="States" hint="Empty · all-earned · earned-only (showLocked=false)">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">Empty (no badges)</span>
+            <TeamTrophyShelf01 team={TEAM_AURORA} badges={EMPTY_BADGES} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">All earned</span>
+            <TeamTrophyShelf01 team={TEAM_AURORA} badges={TEAM_AURORA_ALL_EARNED} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">Earned only (showLocked=false)</span>
+            <TeamTrophyShelf01
+              team={TEAM_AURORA}
+              badges={TEAM_AURORA_BADGES}
+              showLocked={false}
+              size="sm"
+            />
+          </div>
+        </div>
+      </Section>
+
+      <Section
+        title="Bare token, inline"
+        hint="TeamMilestoneBadge alone — no shelf chrome, no award overlay in the bundle."
+      >
+        <ul className="flex flex-col gap-2">
+          {TEAM_AURORA_BADGES.slice(0, 3).map((badge) => (
+            <li key={badge.id} className="flex items-center gap-3">
+              <TeamMilestoneBadge badge={badge} size="sm" />
+              <span className="text-sm text-muted-foreground">{badge.label}</span>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section
+        title="Composed / lighter (custom layout, no header)"
+        hint="Hand-assembled Root + Grid with animateAward={false} — the lazy award chunk never loads."
+      >
+        <TeamTrophyShelfRoot
+          team={TEAM_AURORA}
+          badges={TEAM_AURORA_BADGES}
+          animateAward={false}
+        >
+          <div className="rounded-xl border border-border p-4">
+            <h4 className="mb-3 font-mono text-xs uppercase tracking-wide text-muted-foreground">
+              Team trophies
+            </h4>
+            <TeamTrophyShelfGrid />
+          </div>
+        </TeamTrophyShelfRoot>
+      </Section>
+    </div>
+  );
+}
+`,
+  },
   "thumb-list-01": {
     demo: `﻿"use client";
 

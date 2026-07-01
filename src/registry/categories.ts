@@ -61,6 +61,13 @@ export const CATEGORIES: Record<ComponentCategorySlug, CategoryMeta> = {
     description: "Login, signup, account, multi-factor, session UI.",
     order: 10,
   },
+  gamification: {
+    slug: "gamification",
+    label: "Gamification",
+    description:
+      "Cooperative, team-scoped motivation surfaces — progress, badges, challenges, quests.",
+    order: 11,
+  },
 };
 
 export const ORDERED_CATEGORIES: CategoryMeta[] = Object.values(CATEGORIES).sort(
