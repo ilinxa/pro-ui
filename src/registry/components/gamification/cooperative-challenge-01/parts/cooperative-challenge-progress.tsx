@@ -18,7 +18,9 @@ function clamp01(current: number, target: number): number {
  * ranking, or "you still need to commit" framing — that would drift toward
  * per-individual tracking (excluded by design). The bar caps at 100%
  * (`clamp01`); the count shows the host's raw truth even past target. AT reads
- * the count via Radix `getValueLabel` (aria-valuetext "3 of 5"), not a bare "%".
+ * the count via the accessible name (`aria-label` carries "3 of 5") — we pass
+ * only `value` to the primitive, so this stays portable across the Radix ↔ Base
+ * UI `Progress` divergence (Base UI has no `getValueLabel`).
  */
 export function ChallengeProgressMeter({
   current,
@@ -33,8 +35,6 @@ export function ChallengeProgressMeter({
     <div className={cn("flex flex-col gap-1.5", className)}>
       <Progress
         value={pct}
-        max={100}
-        getValueLabel={() => `${current} of ${target}`}
         aria-label={ariaLabel ?? `Team progress: ${current} of ${target}`}
         className={cn(
           "h-2.5 bg-muted",
