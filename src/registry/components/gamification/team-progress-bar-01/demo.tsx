@@ -31,7 +31,7 @@ function Section({
 
 export default function TeamProgressBar01Demo() {
   return (
-    <div className="flex w-full max-w-xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-5">
       <Section
         title="From milestones, with ticks"
         hint="% = done / total · per-milestone notches · fraction readout · emits progress-bar.checked on first view"

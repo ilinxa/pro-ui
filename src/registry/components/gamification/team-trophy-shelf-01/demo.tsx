@@ -87,7 +87,7 @@ function AwardRevealDemo() {
 
 export default function TeamTrophyShelf01Demo() {
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <Section
         title="The trophy shelf"
         hint="Earned + locked slots, header count, awarded-date on hover. Emits badges.viewed on first view."
@@ -133,11 +133,10 @@ export default function TeamTrophyShelf01Demo() {
         title="Bare token, inline"
         hint="TeamMilestoneBadge alone — no shelf chrome, no award overlay in the bundle."
       >
-        <ul className="flex flex-col gap-2">
-          {TEAM_AURORA_BADGES.slice(0, 3).map((badge) => (
-            <li key={badge.id} className="flex items-center gap-3">
+        <ul className="flex flex-wrap gap-4">
+          {TEAM_AURORA_BADGES.slice(0, 4).map((badge) => (
+            <li key={badge.id}>
               <TeamMilestoneBadge badge={badge} size="sm" />
-              <span className="text-sm text-muted-foreground">{badge.label}</span>
             </li>
           ))}
         </ul>

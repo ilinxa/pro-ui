@@ -70,20 +70,22 @@ export function TeamMilestoneBadge({
     <>
       <span
         className={cn(
-          "flex items-center justify-center rounded-2xl transition-colors",
+          "flex items-center justify-center rounded-2xl transition-[transform,box-shadow,background-color,border-color] duration-200 ease-out",
           medallionSize,
           earned
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "border border-dashed border-border bg-muted text-muted-foreground",
+            ? "bg-primary text-primary-foreground shadow-sm group-hover:shadow-md group-hover:shadow-primary/25 motion-safe:group-hover:-translate-y-0.5"
+            : "border border-dashed border-border bg-muted text-muted-foreground group-hover:border-solid group-hover:bg-muted/70 motion-safe:group-hover:-translate-y-0.5",
         )}
       >
         {icon}
       </span>
       <span
         className={cn(
-          "max-w-32 truncate text-center text-xs",
-          size === "sm" && "max-w-24",
-          earned ? "text-foreground" : "text-muted-foreground",
+          // Fixed 2-line footprint so cells stay uniform regardless of name length.
+          "line-clamp-2 min-h-8 w-full wrap-break-word text-center text-xs leading-tight transition-colors",
+          earned
+            ? "text-foreground/90 group-hover:text-foreground"
+            : "text-muted-foreground",
         )}
       >
         {badge.label}
@@ -91,8 +93,11 @@ export function TeamMilestoneBadge({
     </>
   );
 
+  // Fixed, size-driven cell width → every token occupies the same footprint, so
+  // the shelf grid keeps an even rhythm no matter how long the label is.
   const wrapperCls = cn(
-    "inline-flex flex-col items-center gap-1.5 rounded-2xl outline-none",
+    "group inline-flex w-24 flex-col items-center gap-1.5 rounded-2xl p-1 outline-none",
+    size === "sm" && "w-20",
     interactive &&
       "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     className,

@@ -2062,7 +2062,7 @@ function InteractiveChallenge() {
 
 export default function CooperativeChallenge01Demo() {
   return (
-    <div className="flex w-full max-w-md flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <Section
         title="Interactive — join / leave (penalty-free)"
         hint="Controlled opt-in: joining is a prominent invite, leaving is one click with no guilt. Emits challenge.opened + challenge.opt-in."
@@ -13454,7 +13454,7 @@ function LiveControl({
 }) {
   const [value, setValue] = React.useState<TaskChoiceState>(initial);
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
       <TaskChoiceControl01
         teamId="design-team"
         members={TASK_TEAM}
@@ -13478,7 +13478,7 @@ function LiveControl({
 
 export default function TaskChoiceControl01Demo() {
   return (
-    <div className="flex w-full max-w-lg flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
       <Section
         title="Three states — live"
         hint="Open (invite + I'll take this) · Claimed (chip + neutral Release + Reassign) · Unassigned (volunteer + open together). Try claiming, releasing, reassigning — nothing penalizes anyone."
@@ -13511,7 +13511,7 @@ export default function TaskChoiceControl01Demo() {
         title="Read-only (display-only)"
         hint="Omit the callbacks (or pass readOnly) → all actions hide; the state still shows. No dead buttons."
       >
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
           <TaskChoiceControl01
             teamId="design-team"
             members={TASK_TEAM}
@@ -13525,7 +13525,7 @@ export default function TaskChoiceControl01Demo() {
         title="À-la-carte sub-parts (no assembly)"
         hint="Each flat export mounts standalone — the toggle, the claim action, and the assignee chip on their own."
       >
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
           <OpenForAnyoneToggle open onOpenChange={() => {}} />
           <ClaimButton memberId={CURRENT_MEMBER_ID} onClaim={() => {}} />
           <AssigneeChip
@@ -13556,7 +13556,11 @@ import {
   LONG_TITLE_EVENT,
   NEXT_TASK,
 } from "./dummy-data";
-import type { FeedbackEvent, TeamFeedbackLoopHandle } from "./types";
+import type {
+  FeedbackEvent,
+  NextTaskSuggestion,
+  TeamFeedbackLoopHandle,
+} from "./types";
 
 function Section({
   title,
@@ -13584,6 +13588,16 @@ export default function TeamFeedbackLoop01Demo() {
   const [placement, setPlacement] = React.useState<"inline" | "corner">("inline");
   const [showNudge, setShowNudge] = React.useState(true);
 
+  // Composed section: drive the nudge from local state so accepting/dismissing
+  // has a visible effect. In a real app \`onNextTask\` navigates to the task (a
+  // consumer hand-off) — here we mirror that by clearing the prompt.
+  const [composedTask, setComposedTask] = React.useState<
+    NextTaskSuggestion | undefined
+  >(NEXT_TASK);
+  const [composedStarted, setComposedStarted] = React.useState<string | null>(
+    null,
+  );
+
   const fire = (event: FeedbackEvent) => ref.current?.celebrate(event);
   const rapid = () => {
     // Newest wins — no stacking, single timer.
@@ -13593,7 +13607,7 @@ export default function TeamFeedbackLoop01Demo() {
   };
 
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <Section
         title="Fire a celebration"
         hint="Imperative celebrate() — a brief (<1s), skippable, NON-BLOCKING band at the bottom. Click behind it: the page stays fully interactive. Press Esc or ✕ to skip."
@@ -13684,14 +13698,46 @@ export default function TeamFeedbackLoop01Demo() {
         title="Composed / lighter (nudge only)"
         hint="Hand-assembled Root + only TeamFeedbackNudge — no celebration, and the confetti chunk never loads."
       >
-        <TeamFeedbackLoopRoot
-          teamId="T-001"
-          nextTask={NEXT_TASK}
-          onNextTask={(s) => console.info("[demo] accept", s.taskId)}
-        >
-          {/* Only the nudge is mounted — no celebration part, no confetti chunk. */}
-          <TeamFeedbackNudge />
-        </TeamFeedbackLoopRoot>
+        <div className="flex flex-col gap-2">
+          <TeamFeedbackLoopRoot
+            teamId="T-001"
+            nextTask={composedTask}
+            onNextTask={(s) => {
+              console.info("[demo] accept", s.taskId);
+              // Start = consumer hand-off (navigate to the task). We surface it
+              // by clearing the prompt and noting what was started.
+              setComposedStarted(s.label);
+              setComposedTask(undefined);
+            }}
+            onNudgeDismiss={() => {
+              setComposedStarted(null);
+              setComposedTask(undefined);
+            }}
+          >
+            {/* Only the nudge is mounted — no celebration part, no confetti chunk. */}
+            <TeamFeedbackNudge />
+          </TeamFeedbackLoopRoot>
+
+          {composedTask === undefined ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>
+                {composedStarted
+                  ? \`Started “\${composedStarted}” — onNextTask fired (the hand-off is the consumer's job).\`
+                  : "Nudge dismissed — penalty-free."}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setComposedStarted(null);
+                  setComposedTask(NEXT_TASK);
+                }}
+              >
+                Reset
+              </Button>
+            </div>
+          ) : null}
+        </div>
       </Section>
     </div>
   );
@@ -13732,7 +13778,7 @@ function Section({
 
 export default function TeamProgressBar01Demo() {
   return (
-    <div className="flex w-full max-w-xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-5">
       <Section
         title="From milestones, with ticks"
         hint="% = done / total · per-milestone notches · fraction readout · emits progress-bar.checked on first view"
@@ -13851,7 +13897,7 @@ function LiveQuestLog() {
 
 export default function TeamQuestLog01Demo() {
   return (
-    <div className="flex w-full max-w-lg flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
       <Section
         title="Full overlay — live (name your quest)"
         hint="Starts on the default team name. Name it, edit it, or clear it to revert — never forced. Beats emit narrative.chapter-viewed once when scrolled into view."
@@ -14024,7 +14070,7 @@ function AwardRevealDemo() {
 
 export default function TeamTrophyShelf01Demo() {
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <Section
         title="The trophy shelf"
         hint="Earned + locked slots, header count, awarded-date on hover. Emits badges.viewed on first view."
@@ -14070,11 +14116,10 @@ export default function TeamTrophyShelf01Demo() {
         title="Bare token, inline"
         hint="TeamMilestoneBadge alone — no shelf chrome, no award overlay in the bundle."
       >
-        <ul className="flex flex-col gap-2">
-          {TEAM_AURORA_BADGES.slice(0, 3).map((badge) => (
-            <li key={badge.id} className="flex items-center gap-3">
+        <ul className="flex flex-wrap gap-4">
+          {TEAM_AURORA_BADGES.slice(0, 4).map((badge) => (
+            <li key={badge.id}>
               <TeamMilestoneBadge badge={badge} size="sm" />
-              <span className="text-sm text-muted-foreground">{badge.label}</span>
             </li>
           ))}
         </ul>

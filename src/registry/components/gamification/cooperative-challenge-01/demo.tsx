@@ -55,7 +55,7 @@ function InteractiveChallenge() {
 
 export default function CooperativeChallenge01Demo() {
   return (
-    <div className="flex w-full max-w-md flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <Section
         title="Interactive — join / leave (penalty-free)"
         hint="Controlled opt-in: joining is a prominent invite, leaving is one click with no guilt. Emits challenge.opened + challenge.opt-in."

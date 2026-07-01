@@ -32,13 +32,15 @@ export function ChallengeProgressMeter({
   const pct = Math.round(clamp01(current, target) * 100);
 
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn("group flex flex-col gap-1.5", className)}>
       <Progress
         value={pct}
         aria-label={ariaLabel ?? `Team progress: ${current} of ${target}`}
         className={cn(
-          "h-2.5 bg-muted",
-          "motion-reduce:[&_[data-slot=progress-indicator]]:transition-none",
+          // Hover: the lime fill brightens + the bar gains a soft lime glow.
+          "h-2.5 bg-muted transition-shadow duration-200 group-hover:shadow-[0_0_10px] group-hover:shadow-primary/30",
+          "group-hover:**:data-[slot=progress-indicator]:brightness-110",
+          "motion-reduce:**:data-[slot=progress-indicator]:transition-none",
         )}
       />
       <span

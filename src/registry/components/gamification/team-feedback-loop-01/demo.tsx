@@ -13,7 +13,11 @@ import {
   LONG_TITLE_EVENT,
   NEXT_TASK,
 } from "./dummy-data";
-import type { FeedbackEvent, TeamFeedbackLoopHandle } from "./types";
+import type {
+  FeedbackEvent,
+  NextTaskSuggestion,
+  TeamFeedbackLoopHandle,
+} from "./types";
 
 function Section({
   title,
@@ -41,6 +45,16 @@ export default function TeamFeedbackLoop01Demo() {
   const [placement, setPlacement] = React.useState<"inline" | "corner">("inline");
   const [showNudge, setShowNudge] = React.useState(true);
 
+  // Composed section: drive the nudge from local state so accepting/dismissing
+  // has a visible effect. In a real app `onNextTask` navigates to the task (a
+  // consumer hand-off) — here we mirror that by clearing the prompt.
+  const [composedTask, setComposedTask] = React.useState<
+    NextTaskSuggestion | undefined
+  >(NEXT_TASK);
+  const [composedStarted, setComposedStarted] = React.useState<string | null>(
+    null,
+  );
+
   const fire = (event: FeedbackEvent) => ref.current?.celebrate(event);
   const rapid = () => {
     // Newest wins — no stacking, single timer.
@@ -50,7 +64,7 @@ export default function TeamFeedbackLoop01Demo() {
   };
 
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-5">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <Section
         title="Fire a celebration"
         hint="Imperative celebrate() — a brief (<1s), skippable, NON-BLOCKING band at the bottom. Click behind it: the page stays fully interactive. Press Esc or ✕ to skip."
@@ -141,14 +155,46 @@ export default function TeamFeedbackLoop01Demo() {
         title="Composed / lighter (nudge only)"
         hint="Hand-assembled Root + only TeamFeedbackNudge — no celebration, and the confetti chunk never loads."
       >
-        <TeamFeedbackLoopRoot
-          teamId="T-001"
-          nextTask={NEXT_TASK}
-          onNextTask={(s) => console.info("[demo] accept", s.taskId)}
-        >
-          {/* Only the nudge is mounted — no celebration part, no confetti chunk. */}
-          <TeamFeedbackNudge />
-        </TeamFeedbackLoopRoot>
+        <div className="flex flex-col gap-2">
+          <TeamFeedbackLoopRoot
+            teamId="T-001"
+            nextTask={composedTask}
+            onNextTask={(s) => {
+              console.info("[demo] accept", s.taskId);
+              // Start = consumer hand-off (navigate to the task). We surface it
+              // by clearing the prompt and noting what was started.
+              setComposedStarted(s.label);
+              setComposedTask(undefined);
+            }}
+            onNudgeDismiss={() => {
+              setComposedStarted(null);
+              setComposedTask(undefined);
+            }}
+          >
+            {/* Only the nudge is mounted — no celebration part, no confetti chunk. */}
+            <TeamFeedbackNudge />
+          </TeamFeedbackLoopRoot>
+
+          {composedTask === undefined ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>
+                {composedStarted
+                  ? `Started “${composedStarted}” — onNextTask fired (the hand-off is the consumer's job).`
+                  : "Nudge dismissed — penalty-free."}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setComposedStarted(null);
+                  setComposedTask(NEXT_TASK);
+                }}
+              >
+                Reset
+              </Button>
+            </div>
+          ) : null}
+        </div>
       </Section>
     </div>
   );

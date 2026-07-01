@@ -56,7 +56,7 @@ function LiveQuestLog() {
 
 export default function TeamQuestLog01Demo() {
   return (
-    <div className="flex w-full max-w-lg flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
       <Section
         title="Full overlay — live (name your quest)"
         hint="Starts on the default team name. Name it, edit it, or clear it to revert — never forced. Beats emit narrative.chapter-viewed once when scrolled into view."
