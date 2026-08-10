@@ -15,6 +15,12 @@
  *       code. Shipped source = everything in the slug folder EXCEPT
  *       `demo.tsx`, `usage.tsx`, `meta.ts`.
  *
+ *   (b2) Undeclared npm dep — shipped source imports a package that
+ *       `meta.npm` doesn't declare. The reverse of (b); added 2026-08-10
+ *       (review 3.2) after `radix-ui` and `lucide-react` imports shipped
+ *       undeclared, surviving only via transitive installs that Base-UI
+ *       consumers don't get.
+ *
  *   (c) Over-declared shadcn primitive — `meta.shadcn[i]` declared but no
  *       shipped file imports `@/components/ui/<name>`. Catches `tabs` /
  *       `badge` / `button` listed in `meta.shadcn` for demo-only usage.
@@ -159,14 +165,28 @@ function internalSlugFromImport(path) {
 // Find every import path in a source file.
 // Matches: import ... from "X" | export ... from "X" | import("X") | import "X"
 // ───────────────────────────────────────────────────────────────────────
+// First alternative is the precise declaration shape (no lazy [\s\S]*? bridge —
+// that used to let an `export function` + a string literal containing "from"
+// register a phantom import, e.g. pdf-viewer's thrown-Error message).
 const IMPORT_RE =
-  /(?:import|export)(?:\s+type)?(?:\s+[\s\S]*?)?\s+from\s+["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|^\s*import\s+["']([^"']+)["']/gm;
+  /(?:import|export)\s+(?:type\s+)?(?:\*(?:\s+as\s+[\w$]+)?|[\w$]+)?\s*,?\s*(?:\{[^}]*\})?\s*from\s+["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|^\s*import\s+["']([^"']+)["']/gm;
+
+// Strip whole-line // comments and /* */ blocks before scanning. Without
+// this, a comment containing the word `import`/`export` can bridge to a
+// later string literal and register a phantom "import" (review 3.8) —
+// masking real phantom-dep findings.
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^[ \t]*\/\/.*$/gm, "");
+}
 
 function findImports(content) {
   const paths = new Set();
+  const stripped = stripComments(content);
   let m;
   IMPORT_RE.lastIndex = 0;
-  while ((m = IMPORT_RE.exec(content)) !== null) {
+  while ((m = IMPORT_RE.exec(stripped)) !== null) {
     const path = m[1] || m[2] || m[3];
     if (path) paths.add(path);
   }
@@ -309,6 +329,19 @@ function validateSlug({ slug, category, dir }) {
         kind: "phantom-npm",
         pkg,
         detail: `meta declares ${pkg} but no shipped source file imports it.`,
+      });
+    }
+  }
+
+  // (b2) Undeclared npm dep — shipped source imports it, meta.npm doesn't declare it
+  for (const pkg of npmPkgs) {
+    if (ALWAYS_OK.has(pkg)) continue;
+    if (!(pkg in meta.npm)) {
+      findings.push({
+        severity: "high",
+        kind: "undeclared-npm",
+        pkg,
+        detail: `shipped source imports ${pkg} but meta.npm doesn't declare it — consumers relying on transitive installs break (Base-UI class).`,
       });
     }
   }

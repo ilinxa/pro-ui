@@ -4,7 +4,9 @@
   "title": "Rich Card in Flow",
   "author": "ilinxa",
   "description": "Read-only RichCardViewer renderer for flow-canvas-01 nodes + consumer-owned-dialog pattern for editing rich-card content inside canvas nodes. v0.2 adds PortEditorStrip — opt-in port editor (id / type / side / dir / multi / label) per card or subcard with live-save, [✓in][✓out] atomic-row create-flow, doc-type bottom-side enforcement, and orphan-doc-target tooltips. Canonical implementation of the popup-edit renderer convention from flow-canvas-01@v0.2.0 perf description Q33. Cross-registry deps on @ilinxa/rich-card (editor) and @ilinxa/flow-canvas-01@^0.2.5 (host; requires built-in 'doc' port type).",
-  "dependencies": [],
+  "dependencies": [
+    "lucide-react"
+  ],
   "registryDependencies": [
     "popover",
     "select",

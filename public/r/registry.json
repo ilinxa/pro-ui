@@ -1981,7 +1981,7 @@
         "@ilinxa/rich-card",
         "@ilinxa/flow-canvas-01"
       ],
-      "dependencies": [],
+      "dependencies": ["lucide-react"],
       "files": [
         { "path": "src/registry/components/data/rich-card-in-flow/index.ts", "type": "registry:component", "target": "components/rich-card-in-flow/index.ts" },
         { "path": "src/registry/components/data/rich-card-in-flow/types.ts", "type": "registry:component", "target": "components/rich-card-in-flow/types.ts" },
@@ -2310,7 +2310,7 @@
       "registryDependencies": [
         "https://ui.shadcn.com/r/styles/new-york/dialog.json"
       ],
-      "dependencies": ["konva", "react-konva"],
+      "dependencies": ["konva", "react-konva", "lucide-react"],
       "files": [
         { "path": "src/registry/components/media/media-editor-01/media-editor-01.tsx", "type": "registry:component", "target": "components/media-editor-01/media-editor-01.tsx" },
         { "path": "src/registry/components/media/media-editor-01/index.ts", "type": "registry:component", "target": "components/media-editor-01/index.ts" },
