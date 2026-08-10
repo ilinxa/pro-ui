@@ -140,7 +140,19 @@ export function setWindow(
   return replace(data, id, (item) => {
     const next: TodoItem = { ...item };
     if (patch.startMs != null && Number.isFinite(patch.startMs)) {
-      next.startAt = formatDateValue(patch.startMs, patch.allDay);
+      let startMs = patch.startMs;
+      // Start-side mirror of the end clamp below (defense in depth — the
+      // gesture layer clamps its commit too, v0.2.4): a timed start-only patch
+      // may not cross the item's existing end, else the persisted window
+      // inverts (startAt > expireAt). When the patch also carries an endMs the
+      // end clamp below owns the invariant instead.
+      if (!patch.allDay && patch.endMs == null) {
+        const endMs = parseDateValue(next.expireAt ?? "").ms;
+        if (Number.isFinite(endMs) && startMs > endMs - MIN_DURATION_MS) {
+          startMs = endMs - MIN_DURATION_MS;
+        }
+      }
+      next.startAt = formatDateValue(startMs, patch.allDay);
     }
     if (patch.endMs != null) {
       const startMs =

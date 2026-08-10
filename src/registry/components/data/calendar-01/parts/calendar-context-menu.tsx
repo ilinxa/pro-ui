@@ -42,15 +42,32 @@ export function CalendarEventContextMenu({
   if (!ctx.editable) return <>{children}</>;
 
   const copy = () => {
-    void navigator.clipboard?.writeText(serializeTasks([item], "calendar-01"));
+    void navigator.clipboard
+      ?.writeText(serializeTasks([item], "calendar-01"))
+      .catch((err) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[calendar-01] copy to clipboard failed:", err);
+        }
+      });
   };
   const cut = () => {
     // Don't delete-without-copy: if the clipboard is unavailable (insecure
     // context) the menu cut is a no-op (the keyboard Cut, which uses the sync
-    // clipboard event, still works).
+    // clipboard event, still works). The write is async — dispatch the delete
+    // ONLY on fulfillment, so a denied/failed write never destroys the item
+    // with nothing on the clipboard (v0.2.4).
     if (!navigator.clipboard) return;
-    void navigator.clipboard.writeText(serializeTasks([item], "calendar-01"));
-    ctx.deleteItem(item.id);
+    void navigator.clipboard
+      .writeText(serializeTasks([item], "calendar-01"))
+      .then(() => ctx.deleteItem(item.id))
+      .catch((err: unknown) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "[calendar-01] Cut aborted — clipboard write failed; item NOT deleted.",
+            err,
+          );
+        }
+      });
   };
 
   return (

@@ -43,7 +43,6 @@ import type {
 } from "../types";
 
 const ALL_VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
-const MS_PER_DAY = 86_400_000;
 
 /** Duration (ms) of a task from its dates; 0 when it has no real span. */
 function itemDurationMs(it: TodoItem): number {
@@ -593,29 +592,39 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
       const occ = occurrences.find((o) => o.id === id);
       if (!occ) return false;
       const timed = (view === "week" || view === "day") && !occ.allDay;
-      const moveUnit = timed ? snapStepMs(snap) || 900_000 : MS_PER_DAY;
+      const stepMs = snapStepMs(snap) || 900_000;
       const hasSpan = occ.endMs > occ.startMs;
+      // Day-granular ←/→ moves shift by CALENDAR days via `addDays` — the same
+      // math as the pointer drop path, DST-safe where a raw MS_PER_DAY add is a
+      // silent no-op across the fall-back day (v0.2.4). Timed moves in the time
+      // grid shift by the snap step.
+      const shiftMs = (ms: number, dir: number) =>
+        timed ? ms + dir * stepMs : addDays(new Date(ms), dir).getTime();
 
       // Resize the END by one unit. All-day events resize in whole days against
-      // the exclusive-end convention (same math as the drag grip, so keyboard and
-      // pointer agree — no off-by-one) and never collapse past their start;
-      // milestones are points in time and aren't resizable.
+      // the exclusive-end convention (same `addDays` midnight math as the drag
+      // grip, so keyboard and pointer agree — no off-by-one, no DST drift) and
+      // never collapse past their start; milestones are points in time and
+      // aren't resizable.
       const resizeEnd = (dir: number) => {
         if (occ.kind === "milestone") return;
         if (occ.allDay) {
           const cov = coveredDays(occ);
-          const curEnd = startOfDay(new Date(cov.lastMs)).getTime() + MS_PER_DAY;
-          const minEnd = startOfDay(new Date(cov.firstMs)).getTime() + MS_PER_DAY;
+          const curEnd = startOfDay(addDays(new Date(cov.lastMs), 1)).getTime();
+          const minEnd = startOfDay(addDays(new Date(cov.firstMs), 1)).getTime();
           rescheduleItem(
             id,
-            { endMs: Math.max(minEnd, curEnd + dir * MS_PER_DAY), allDay: true },
+            {
+              endMs: Math.max(minEnd, addDays(new Date(curEnd), dir).getTime()),
+              allDay: true,
+            },
             "resize",
           );
         } else {
           const base = hasSpan ? occ.endMs : occ.startMs;
           rescheduleItem(
             id,
-            { endMs: base + dir * (snapStepMs(snap) || 900_000), allDay: false },
+            { endMs: base + dir * stepMs, allDay: false },
             "resize",
           );
         }
@@ -631,8 +640,8 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
             rescheduleItem(
               id,
               {
-                startMs: occ.startMs + dir * moveUnit,
-                endMs: hasSpan ? occ.endMs + dir * moveUnit : undefined,
+                startMs: shiftMs(occ.startMs, dir),
+                endMs: hasSpan ? shiftMs(occ.endMs, dir) : undefined,
                 allDay: occ.allDay,
               },
               "move",

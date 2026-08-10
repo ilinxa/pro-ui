@@ -102,7 +102,10 @@ export function useMagazineFilter<T>({
 
   return {
     displayedItems,
-    featuredItem: page === 1 ? featuredItem : undefined,
+    // Always returned (v0.2.1): gating on `page === 1` made the lead story
+    // vanish after the first "load more". `regularItems` already excludes it,
+    // so it renders exactly once regardless of how many pages are shown.
+    featuredItem,
     hasMore,
     isLoading,
     filteredCount,

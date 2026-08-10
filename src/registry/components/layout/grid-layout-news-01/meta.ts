@@ -13,7 +13,7 @@ export const meta: ComponentMeta = {
     "Slot-based layout — `hero` / `filterBar` / `sidebar` / `renderItem` / `renderFeatured` / `emptyState`",
     "Generic over item type via `<GridLayoutNews01<T>>`",
     "Magazine-tower main column — 1 large + 2-up medium row + 3-up medium grid",
-    "Featured-only-on-page-1 semantics via `featuredItem` prop",
+    "Persistent featured slot via `featuredItem` prop — the companion hook keeps it out of the paged regular list, so it renders once and survives load-more",
     "Sticky sidebar (`sticky top-24`) with `<aside>` landmark",
     "IntersectionObserver-driven infinite scroll via internal `useInfiniteScroll` hook",
     "Bouncing-3-dots loader with `aria-live='polite'` and visually-hidden text label",
@@ -24,10 +24,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["grid-layout-news-01", "layout", "magazine", "feed", "infinite-scroll", "migration", "news"],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 

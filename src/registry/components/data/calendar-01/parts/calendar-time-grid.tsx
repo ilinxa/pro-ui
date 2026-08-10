@@ -11,7 +11,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
 import { HOURS } from "../lib/date-range";
-import { layoutMonthWeek } from "../lib/segments";
+import { coveredDays, layoutMonthWeek } from "../lib/segments";
 import { snapStepMs, snapToStep } from "../lib/edit-mutations";
 import { packLanes } from "../lib/lane-pack";
 import {
@@ -62,14 +62,27 @@ function startTimedMove(
   snap: CalendarSnap,
   reschedule: CalendarContextValue["rescheduleItem"],
   suppressClick: { current: boolean },
+  gestureCleanup: { current: (() => void) | null },
 ) {
   if (e.button !== 0) return;
   e.stopPropagation(); // keep the column's draw handler out of it
   const grid = gridRef.current;
   if (!grid) return;
+  // Capture on the source block (gantt's pattern) so the gesture keeps
+  // receiving events off-element and gets a proper pointercancel on
+  // touch scroll-takeover (v0.2.4).
+  e.currentTarget.setPointerCapture(e.pointerId);
+  const pointerId = e.pointerId;
   const startX = e.clientX;
   const startY = e.clientY;
-  const timeOfDay = occ.startMs - startOfDay(occ.startMs).getTime();
+  // Wall-clock time-of-day (H/M/…), NOT an ms offset from local midnight — the
+  // ms delta shifts the hour when the drop column crosses a DST transition (v0.2.4).
+  const startDate = new Date(occ.startMs);
+  const timeOfDay =
+    startDate.getHours() * 3_600_000 +
+    startDate.getMinutes() * 60_000 +
+    startDate.getSeconds() * 1_000 +
+    startDate.getMilliseconds();
   const dur = occ.endMs - occ.startMs;
   const step = snapStepMs(snap);
   let moved = false;
@@ -81,8 +94,7 @@ function startTimedMove(
       moved = true;
   };
   const onUp = (ev: PointerEvent) => {
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", onUp);
+    dispose();
     if (!moved) return; // a click selects; only a real drag reschedules
     suppressClick.current = true;
     const rect = grid.getBoundingClientRect();
@@ -96,8 +108,21 @@ function startTimedMove(
     const newStart = snapToStep(targetDayStart + timeOfDay + dyMs, targetDayStart, step);
     reschedule(occ.id, { startMs: newStart, endMs: newStart + dur, allDay: false }, "move");
   };
+  // Abort (browser gesture takeover): tear down, commit nothing (v0.2.4).
+  const onCancel = (ev: PointerEvent) => {
+    if (ev.pointerId !== pointerId) return;
+    dispose();
+  };
+  const dispose = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+    gestureCleanup.current = null;
+  };
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onCancel);
+  gestureCleanup.current = dispose;
 }
 
 /** Drag a block's top/bottom edge: set start/end time (snapped). Updates the
@@ -111,11 +136,14 @@ function startTimedResize(
   snap: CalendarSnap,
   reschedule: CalendarContextValue["rescheduleItem"],
   setPreview: CalendarContextValue["setResizePreview"],
+  gestureCleanup: { current: (() => void) | null },
 ) {
   e.stopPropagation();
   e.preventDefault();
   const col = colRef.current;
   if (!col) return;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  const pointerId = e.pointerId;
   const step = snapStepMs(snap);
   const MIN = 60_000;
   const tAt = (clientY: number) => {
@@ -135,15 +163,31 @@ function startTimedResize(
     }
   };
   const onUp = (ev: PointerEvent) => {
+    dispose();
+    const t = tAt(ev.clientY);
+    // Commit the SAME clamped window the preview showed — a raw `t` dragged
+    // past the opposite edge would persist an inverted startAt > expireAt (v0.2.4).
+    if (edge === "start")
+      reschedule(occ.id, { startMs: Math.min(t, occ.endMs - MIN), allDay: false }, "resize");
+    else
+      reschedule(occ.id, { endMs: Math.max(t, occ.startMs + MIN), allDay: false }, "resize");
+  };
+  // Abort (browser gesture takeover): drop the preview, commit nothing (v0.2.4).
+  const onCancel = (ev: PointerEvent) => {
+    if (ev.pointerId !== pointerId) return;
+    dispose();
+  };
+  const dispose = () => {
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
     setPreview(null);
-    const t = tAt(ev.clientY);
-    if (edge === "start") reschedule(occ.id, { startMs: t, allDay: false }, "resize");
-    else reschedule(occ.id, { endMs: t, allDay: false }, "resize");
+    gestureCleanup.current = null;
   };
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onCancel);
+  gestureCleanup.current = dispose;
 }
 
 const COL_MS = (clientY: number, rect: DOMRect, dayStartMs: number, step: number) =>
@@ -169,10 +213,13 @@ function startDraw(
   dayStartMs: number,
   snap: CalendarSnap,
   request: RequestCreate,
+  gestureCleanup: { current: (() => void) | null },
 ) {
   if (e.button !== 0) return;
   const col = colRef.current;
   if (!col) return;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  const pointerId = e.pointerId;
   const step = snapStepMs(snap) || 900_000;
   const startMs = COL_MS(e.clientY, col.getBoundingClientRect(), dayStartMs, step);
   const startY = e.clientY;
@@ -181,8 +228,7 @@ function startDraw(
     if (!moved && Math.abs(ev.clientY - startY) > 4) moved = true;
   };
   const onUp = (ev: PointerEvent) => {
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", onUp);
+    dispose();
     if (!moved) return; // a click selects/deselects; only a drag creates
     const endMs = COL_MS(ev.clientY, col.getBoundingClientRect(), dayStartMs, step);
     const lo = Math.min(startMs, endMs);
@@ -190,8 +236,21 @@ function startDraw(
     if (hi <= lo) hi = lo + (step || 900_000);
     request({ startMs: lo, endMs: hi, allDay: false }, ev.clientX, ev.clientY);
   };
+  // Abort (browser gesture takeover): tear down, create nothing (v0.2.4).
+  const onCancel = (ev: PointerEvent) => {
+    if (ev.pointerId !== pointerId) return;
+    dispose();
+  };
+  const dispose = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+    gestureCleanup.current = null;
+  };
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onCancel);
+  gestureCleanup.current = dispose;
 }
 
 /** Double-click an empty slot → create a default 1-hour timed event there. */
@@ -273,10 +332,16 @@ function AllDayBand({ columns }: { columns: Date[] }) {
       )
     : occurrences;
   const firstMs = startOfDay(columns[0]).getTime();
-  const lastMs = startOfDay(columns[n - 1]).getTime() + MS_PER_DAY;
-  const allDay = occs.filter(
-    (o) => !o.invalid && o.allDay && o.endMs > firstMs && o.startMs < lastMs,
-  );
+  const lastDayMs = startOfDay(columns[n - 1]).getTime();
+  // Inclusive coveredDays test (mirrors `layoutMonthWeek`'s own range check) —
+  // a bare `endMs > firstMs` drops zero-length point events sitting exactly on
+  // the first visible midnight, i.e. every single-day all-day event in Day
+  // view and on Week's first column (v0.2.4).
+  const allDay = occs.filter((o) => {
+    if (o.invalid || !o.allDay) return false;
+    const cov = coveredDays(o);
+    return cov.lastMs >= firstMs && cov.firstMs <= lastDayMs;
+  });
   const layout = layoutMonthWeek(columns, allDay, BAND_CAP);
   const laneCount = Math.max(1, layout.laneCount);
 
@@ -392,6 +457,11 @@ function DayColumn({
   } = useCalendar();
   const colRef = useRef<HTMLDivElement>(null);
   const suppressClick = useRef(false);
+  // Active native-pointer gesture teardown — run on unmount so a mid-gesture
+  // view switch can't leak window listeners or let a later, unrelated
+  // pointerup commit a stale reschedule (v0.2.4).
+  const gestureCleanup = useRef<(() => void) | null>(null);
+  useEffect(() => () => gestureCleanup.current?.(), []);
 
   const requestCreate: RequestCreate = (win, x, y) => {
     if (quickCompose) {
@@ -432,7 +502,7 @@ function DayColumn({
       style={{ height: DAY_PX }}
       onPointerDown={
         editable
-          ? (e) => startDraw(e, colRef, dayStartMs, snap, requestCreate)
+          ? (e) => startDraw(e, colRef, dayStartMs, snap, requestCreate, gestureCleanup)
           : undefined
       }
       onDoubleClick={
@@ -478,6 +548,7 @@ function DayColumn({
                         snap,
                         rescheduleItem,
                         suppressClick,
+                        gestureCleanup,
                       );
                   }
                 : undefined
@@ -513,7 +584,7 @@ function DayColumn({
                   role="button"
                   aria-label="Resize start"
                   onPointerDown={(e) =>
-                    startTimedResize(e, b.occ, "start", colRef, dayStartMs, snap, rescheduleItem, setResizePreview)
+                    startTimedResize(e, b.occ, "start", colRef, dayStartMs, snap, rescheduleItem, setResizePreview, gestureCleanup)
                   }
                   className="pointer-events-auto absolute inset-x-0 top-0 flex h-2 cursor-ns-resize items-center justify-center"
                 >
@@ -523,7 +594,7 @@ function DayColumn({
                   role="button"
                   aria-label="Resize end"
                   onPointerDown={(e) =>
-                    startTimedResize(e, b.occ, "end", colRef, dayStartMs, snap, rescheduleItem, setResizePreview)
+                    startTimedResize(e, b.occ, "end", colRef, dayStartMs, snap, rescheduleItem, setResizePreview, gestureCleanup)
                   }
                   className="pointer-events-auto absolute inset-x-0 bottom-0 flex h-2 cursor-ns-resize items-center justify-center"
                 >

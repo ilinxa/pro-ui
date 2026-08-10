@@ -13,6 +13,7 @@ import type {
   ReactNode,
   RefObject,
 } from "react";
+import { useEffect, useRef } from "react";
 import { addDays, startOfDay } from "date-fns";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -35,6 +36,10 @@ export function DayResizeGrip({
   cols: Date[];
 }) {
   const { rescheduleItem, setResizePreview } = useCalendar();
+  // Active gesture teardown — run on unmount so a mid-gesture removal can't
+  // leak window listeners or let a later, unrelated pointerup commit (v0.2.4).
+  const gestureCleanup = useRef<(() => void) | null>(null);
+  useEffect(() => () => gestureCleanup.current?.(), []);
   const colAt = (clientX: number): number => {
     const el = containerRef.current;
     if (!el) return 0;
@@ -47,6 +52,11 @@ export function DayResizeGrip({
   const onPointerDown = (e: ReactPointerEvent) => {
     e.stopPropagation(); // keep the @dnd-kit drag sensor + draw out of it
     e.preventDefault();
+    // Capture on the grip (gantt's pattern) so the gesture keeps receiving
+    // events off-element and gets a proper pointercancel on touch
+    // scroll-takeover (v0.2.4).
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const pointerId = e.pointerId;
     const span = coveredDays(occ);
     // Resolve the edit window (start ms or exclusive-end ms) for a target column.
     const windowAt = (clientX: number) => {
@@ -66,9 +76,7 @@ export function DayResizeGrip({
       setResizePreview({ id: occ.id, startMs: w.startMs, endMs: w.endMs });
     };
     const onUp = (ev: PointerEvent) => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      setResizePreview(null);
+      dispose();
       const w = windowAt(ev.clientX);
       rescheduleItem(
         occ.id,
@@ -78,8 +86,22 @@ export function DayResizeGrip({
         "resize",
       );
     };
+    // Abort (browser gesture takeover): drop the preview, commit nothing (v0.2.4).
+    const onCancel = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      dispose();
+    };
+    const dispose = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      setResizePreview(null);
+      gestureCleanup.current = null;
+    };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    gestureCleanup.current = dispose;
   };
   return (
     <button

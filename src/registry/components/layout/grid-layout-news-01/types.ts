@@ -19,7 +19,7 @@ export interface GridLayoutLabels {
 export interface GridLayoutNewsProps<T> {
   /** Current page of items (filtered + paged by the consumer or `useMagazineFilter`). */
   displayedItems: T[];
-  /** Optional featured item rendered above the main column on page 1. */
+  /** Optional featured item rendered above the main column (whenever provided). */
   featuredItem?: T;
 
   /** Whether more items are available beyond the current page. */
@@ -73,7 +73,7 @@ export interface UseMagazineFilterArgs<T> {
   items: T[];
   /** Per-page size. Default: 6. */
   pageSize?: number;
-  /** Predicate to derive the featured item (returns true for the one to feature on page 1). */
+  /** Predicate to derive the featured item (returns true for the one to feature). */
   isFeatured?: (item: T) => boolean;
   /** Filter / search predicate. Default: include everything. */
   filterPredicate?: (item: T) => boolean;
