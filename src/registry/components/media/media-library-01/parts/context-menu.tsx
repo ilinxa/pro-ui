@@ -37,7 +37,9 @@ export function MediaItemContextMenu({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+      {/* F-cross-13: no `asChild` — trigger is a display:contents wrapper;
+          right-click bubbles up from the card in both backends. */}
+      <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-44">
         {isFolder ? (
           <ContextMenuItem onSelect={() => ctx.navigateTo(node.id)}>

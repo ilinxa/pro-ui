@@ -35,20 +35,19 @@ export function CodeBlockAnnotationMarker({
   const Icon = ICON_BY_TYPE[annotation.type];
   const colorClass = COLOR_BY_TYPE[annotation.type];
 
+  // F-cross-13: no `asChild` — the trigger IS the marker button.
   const defaultMarker = (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "inline-flex size-3.5 items-center justify-center align-middle outline-none",
-            "focus-visible:ring-2 focus-visible:ring-ring rounded",
-            colorClass,
-          )}
-          aria-label={`${annotation.type}: ${annotation.message}`}
-        >
-          <Icon className="size-3.5" aria-hidden="true" />
-        </button>
+      <TooltipTrigger
+        type="button"
+        className={cn(
+          "inline-flex size-3.5 items-center justify-center align-middle outline-none",
+          "focus-visible:ring-2 focus-visible:ring-ring rounded",
+          colorClass,
+        )}
+        aria-label={`${annotation.type}: ${annotation.message}`}
+      >
+        <Icon className="size-3.5" aria-hidden="true" />
       </TooltipTrigger>
       <TooltipContent side="right" className="max-w-xs text-xs">
         {annotation.message}

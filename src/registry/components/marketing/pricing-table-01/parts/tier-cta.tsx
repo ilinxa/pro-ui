@@ -1,6 +1,6 @@
 import { isValidElement } from "react";
 import type { MouseEvent, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { CtaSpec, CtaVariant } from "../types";
 
@@ -43,16 +43,16 @@ export function TierCta({
   };
 
   if (href) {
+    // F-cross-13: no `<Button asChild>` — style the anchor with buttonVariants directly.
     return (
-      <Button
-        asChild
-        variant={buttonVariant}
-        className={cn("w-full", className)}
+      <a
+        href={href}
+        onClick={handleClick}
+        aria-label={ariaLabel}
+        className={cn(buttonVariants({ variant: buttonVariant }), "w-full", className)}
       >
-        <a href={href} onClick={handleClick} aria-label={ariaLabel}>
-          {label}
-        </a>
-      </Button>
+        {label}
+      </a>
     );
   }
 

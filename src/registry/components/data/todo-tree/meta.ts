@@ -45,10 +45,12 @@ export const meta: ComponentMeta = {
     "virtualization",
   ],
 
-  version: "0.3.1",
+  // 0.3.2 (2026-08-11): F-cross-13 path-b sweep — filter-popover trigger asChild →
+  // buttonVariants; zero public-API change.
+  version: "0.3.2",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

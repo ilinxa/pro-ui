@@ -1,19 +1,15 @@
 "use client";
 
-import { forwardRef } from "react";
+import { cloneElement, forwardRef, useEffect, useId, useState } from "react";
 import type {
   ComponentPropsWithoutRef,
   CSSProperties,
   ReactElement,
   ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { Flag } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { CalendarOccurrence, TodoStatusOption } from "../types";
@@ -68,7 +64,14 @@ export function eventTitle(occ: CalendarOccurrence): string {
   return `${name} — ${compactTime(occ.startMs)}–${compactTime(occ.endMs)}`;
 }
 
-/** Wrap an event trigger in a rich Tooltip when a `renderTooltip` node is given. */
+/** Wrap an event trigger in a rich hover/focus tooltip when a `renderTooltip`
+ *  node is given. Local implementation (F-cross-13 path-b, v0.2.5): shadcn
+ *  `TooltipTrigger` renders a native <button> in BOTH backends and `asChild`
+ *  is Radix-only — wrapping the chip (itself a <button>) is a compile error on
+ *  Base UI and invalid button-in-button nesting besides. So: clone hover/focus
+ *  handlers onto the chip and portal a fixed-position card to <body> (kanban
+ *  drag-overlay precedent). No wrapper box → absolutely-positioned time blocks
+ *  keep their day-column geometry; the portal dodges grid clipping. */
 export function EventHoverWrap({
   tooltip,
   children,
@@ -76,14 +79,81 @@ export function EventHoverWrap({
   tooltip?: ReactNode;
   children: ReactElement;
 }) {
+  const id = useId();
+  const [pos, setPos] = useState<{ x: number; y: number; below: boolean } | null>(
+    null,
+  );
+  // The fixed-position card can't track its anchor — hide on any scroll
+  // (capture phase catches the inner grid's scroller) like Radix's dismiss.
+  useEffect(() => {
+    if (!pos) return;
+    const dismiss = () => setPos(null);
+    window.addEventListener("scroll", dismiss, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", dismiss, { capture: true });
+  }, [pos]);
   if (!tooltip) return children;
+
+  const child = children as ReactElement<ComponentPropsWithoutRef<"button">>;
+  const props = child.props;
+  const show = (e: { currentTarget: Element }) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    // Near the viewport top there's no room above — flip below (Radix parity).
+    const below = r.top < 120;
+    setPos({
+      x: r.left + r.width / 2,
+      y: below ? r.bottom + 6 : r.top - 6,
+      below,
+    });
+  };
+  const hide = () => setPos(null);
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent className="max-w-xs border-border bg-popover p-0 text-popover-foreground">
-        {tooltip}
-      </TooltipContent>
-    </Tooltip>
+    <>
+      {cloneElement(child, {
+        "aria-describedby": pos ? id : props["aria-describedby"],
+        onPointerEnter: (e) => {
+          props.onPointerEnter?.(e);
+          // Radix parity: no hover tooltips for touch (tap would flash one).
+          if (e.pointerType !== "touch") show(e);
+        },
+        onPointerLeave: (e) => {
+          props.onPointerLeave?.(e);
+          hide();
+        },
+        // Radix parity: keyboard focus shows; click-focus + presses dismiss.
+        onFocus: (e) => {
+          props.onFocus?.(e);
+          if (e.currentTarget.matches(":focus-visible")) show(e);
+        },
+        onBlur: (e) => {
+          props.onBlur?.(e);
+          hide();
+        },
+        onPointerDown: (e) => {
+          props.onPointerDown?.(e);
+          hide();
+        },
+        onKeyDown: (e) => {
+          props.onKeyDown?.(e);
+          if (e.key === "Escape") hide(); // WAI-ARIA tooltip dismiss
+        },
+      })}
+      {pos
+        ? createPortal(
+            <span
+              id={id}
+              role="tooltip"
+              style={{ left: pos.x, top: pos.y }}
+              className={cn(
+                "pointer-events-none fixed z-50 max-w-xs -translate-x-1/2 rounded-md border border-border bg-popover text-popover-foreground shadow-md",
+                !pos.below && "-translate-y-full",
+              )}
+            >
+              {tooltip}
+            </span>,
+            document.body,
+          )
+        : null}
+    </>
   );
 }
 
@@ -93,8 +163,10 @@ type ChipProps = {
   className?: string;
 } & Omit<ComponentPropsWithoutRef<"button">, "style" | "title" | "type" | "children">;
 
-/** Month single-day / timed chip (Tier C). Spreads `...rest` so wrappers like
- *  the context menu (`ContextMenuTrigger asChild`) can inject `onContextMenu`. */
+/** Month single-day / timed chip (Tier C). Spreads `...rest` so wrappers can
+ *  inject handlers/aria (EventHoverWrap clones hover + focus props on). The
+ *  context menu injects nothing: right-click bubbles from this <button> to its
+ *  box-less `ContextMenuTrigger` span (F-cross-13 path-b, v0.2.5). */
 export const CalendarEventChip = forwardRef<HTMLButtonElement, ChipProps>(
   function CalendarEventChip({ occ, selected, className, ...rest }, ref) {
     const milestone = occ.kind === "milestone";

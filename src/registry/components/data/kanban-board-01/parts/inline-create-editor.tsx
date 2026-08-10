@@ -7,7 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { newItemId } from "../lib/ids";
 import type { AnyKanbanCardRenderer, KanbanItem } from "../types";
@@ -76,19 +77,21 @@ export function InlineCreateEditor({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 w-full justify-start text-xs text-muted-foreground hover:text-foreground"
-          aria-label={`Add item to column`}
-          data-stop-click
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <Plus className="size-3.5" />
-          Add
-        </Button>
+      {/* F-cross-13 path-b: trigger IS the button (native <button> in both
+          backends) — `asChild` is Radix-only; `buttonVariants` reproduces the
+          ghost/sm look. (v0.4.3) */}
+      <DropdownMenuTrigger
+        type="button"
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "h-8 w-full justify-start text-xs text-muted-foreground hover:text-foreground",
+        )}
+        aria-label={`Add item to column`}
+        data-stop-click
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <Plus className="size-3.5" />
+        Add
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {renderers.map((r) => (

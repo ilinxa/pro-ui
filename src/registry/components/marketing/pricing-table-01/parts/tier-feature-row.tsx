@@ -26,12 +26,15 @@ export function TierFeatureRow({
     ? labels.featureIncluded
     : labels.featureExcluded;
 
+  // F-cross-13: no `asChild` — the trigger IS the label (a keyboard-reachable
+  // <button> in both backends; text-start counters the UA's centered button text).
   const labelContent = feature.tooltip ? (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
-          {feature.label}
-        </span>
+      <TooltipTrigger
+        type="button"
+        className="cursor-help text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-2"
+      >
+        {feature.label}
       </TooltipTrigger>
       <TooltipContent>{feature.tooltip}</TooltipContent>
     </Tooltip>

@@ -32,10 +32,12 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  version: "0.2.4",
+  // 0.2.5 (2026-08-11): F-cross-13 path-b sweep — asChild eliminated (context-menu
+  // trigger → box-less span; hover tooltip → local portal card); zero public-API change.
+  version: "0.2.5",
   status: "alpha",
   createdAt: "2026-06-22",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 
@@ -49,7 +51,6 @@ export const meta: ComponentMeta = {
       "input",
       "popover",
       "skeleton",
-      "tooltip",
     ],
     npm: {
       "date-fns": "^4.1.0",

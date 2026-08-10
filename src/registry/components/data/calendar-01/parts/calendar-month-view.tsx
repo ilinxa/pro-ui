@@ -98,14 +98,14 @@ export function MonthDayCell({
             </button>
           ) : (
             <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-sm px-1 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  +{hidden} more
-                </button>
+              {/* F-cross-13 path-b: the trigger IS the button (native <button>
+                  in both backends) — `asChild` is Radix-only. (v0.2.5) */}
+              <PopoverTrigger
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                className="w-full rounded-sm px-1 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                +{hidden} more
               </PopoverTrigger>
               <PopoverContent align="start" className="w-56 p-2">
                 <p className="mb-1.5 px-1 text-xs font-medium text-muted-foreground">

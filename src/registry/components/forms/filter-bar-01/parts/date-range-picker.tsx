@@ -1,13 +1,14 @@
 "use client";
 
 import { Calendar as CalendarIcon, ChevronDown, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import type { DateRange } from "../types";
 
 /**
@@ -46,12 +47,15 @@ export function DateRangePicker({
   return (
     <div className="flex items-center gap-2">
       <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2 rounded-full">
-            <CalendarIcon aria-hidden="true" className="h-4 w-4" />
-            {triggerText}
-            <ChevronDown aria-hidden="true" className="h-4 w-4" />
-          </Button>
+        {/* F-cross-13: no `asChild` — render the trigger as the button directly
+            (both Radix + Base UI pass native props through to a <button>). */}
+        <PopoverTrigger
+          type="button"
+          className={cn(buttonVariants({ variant: "outline" }), "gap-2 rounded-full")}
+        >
+          <CalendarIcon aria-hidden="true" className="h-4 w-4" />
+          {triggerText}
+          <ChevronDown aria-hidden="true" className="h-4 w-4" />
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="center">
           <Calendar

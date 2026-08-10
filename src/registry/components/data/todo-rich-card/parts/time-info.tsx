@@ -33,14 +33,14 @@ export function TimeInfo({ item }: { item: TodoItem }) {
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {primary ? <span className="font-medium">{primary}</span> : null}
         <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex items-center text-muted-foreground/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-              aria-label="Show timing details"
-            >
-              <Info className="size-3" />
-            </button>
+          {/* F-cross-13 path-b: trigger IS the button (native <button> in both
+              backends) — `asChild` is Radix-only. (v0.4.2) */}
+          <TooltipTrigger
+            type="button"
+            className="inline-flex items-center text-muted-foreground/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            aria-label="Show timing details"
+          >
+            <Info className="size-3" />
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-xs">
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">

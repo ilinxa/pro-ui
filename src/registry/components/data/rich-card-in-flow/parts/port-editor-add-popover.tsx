@@ -102,17 +102,17 @@ export function PortEditorAddPopover({
         if (!o) reset();
       }}
     >
-      <PopoverTrigger asChild>
-        {/* Matches rich-card's "+ FIELD" / "+ BLOCK" pattern per description Q11.
-            See: rich-card/parts/predefined-add-menu.tsx:56-59 */}
-        <button
-          type="button"
-          disabled={disabled}
-          className="inline-flex items-center gap-1 rounded-md border border-dashed border-border/70 bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Plus className="size-3" aria-hidden="true" />
-          add port
-        </button>
+      {/* F-cross-13: no `asChild` — PopoverTrigger renders its own <button> in
+          both backends; the "+ add port" styling sits on the trigger directly.
+          Matches rich-card's "+ FIELD" / "+ BLOCK" pattern per description Q11.
+          See: rich-card/parts/predefined-add-menu.tsx:56-59 */}
+      <PopoverTrigger
+        type="button"
+        disabled={disabled}
+        className="inline-flex items-center gap-1 rounded-md border border-dashed border-border/70 bg-transparent px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <Plus className="size-3" aria-hidden="true" />
+        add port
       </PopoverTrigger>
       <PopoverContent
         align="start"

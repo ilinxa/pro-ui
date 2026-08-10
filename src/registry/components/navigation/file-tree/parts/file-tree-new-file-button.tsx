@@ -1,12 +1,13 @@
 "use client";
 
 import { FilePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { useFileTree } from "../hooks/use-file-tree-context";
 
 export interface FileTreeNewFileButtonProps {
@@ -34,19 +35,16 @@ export function FileTreeNewFileButton(props: FileTreeNewFileButtonProps) {
     return null;
   };
 
+  // F-cross-13: no `asChild` — Base UI triggers reject it; the trigger IS the button, styled via buttonVariants.
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={className}
-          onClick={() => actions.triggerCreate(resolveParent(), "file")}
-          aria-label={labels.newFile}
-        >
-          <FilePlus className="size-4" aria-hidden="true" />
-        </Button>
+      <TooltipTrigger
+        type="button"
+        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), className)}
+        onClick={() => actions.triggerCreate(resolveParent(), "file")}
+        aria-label={labels.newFile}
+      >
+        <FilePlus className="size-4" aria-hidden="true" />
       </TooltipTrigger>
       <TooltipContent>{labels.newFile}</TooltipContent>
     </Tooltip>

@@ -233,7 +233,7 @@ function V03RenderItemSlotDemo({
             }
           }}
           activeVariant={variant}
-          renderItem={({ defaultRender, item }) => (
+          renderItem={({ defaultRender, item, isCollapsed }) => (
             <TooltipWrapper
               content={
                 <div className="flex flex-col gap-0.5">
@@ -244,7 +244,9 @@ function V03RenderItemSlotDemo({
                 </div>
               }
               side="right"
-              disabled={false}
+              // collapsed rail already shows defaultRender's own tooltip —
+              // disable this one so the two don't stack
+              disabled={isCollapsed}
             >
               {defaultRender}
             </TooltipWrapper>

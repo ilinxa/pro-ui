@@ -19,8 +19,11 @@ export function ChipCluster<T extends EntityLike>({
   disabled,
 }: ChipClusterProps<T>) {
   if (value.length === 0) return null;
+  // F-cross-13 shape: paints above the field's trigger-button overlay
+  // (`relative`) but stays click-transparent (`pointer-events-none`) so field
+  // clicks fall through; only each chip's remove <button> re-enables pointers.
   return (
-    <div className="flex flex-1 flex-wrap items-center gap-1">
+    <div className="pointer-events-none relative flex flex-1 flex-wrap items-center gap-1">
       {value.map((entity) => (
         <Chip
           key={entity.id}

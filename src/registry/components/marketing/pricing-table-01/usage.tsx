@@ -30,20 +30,22 @@ export default function PricingTable01Usage() {
         (load-bearing — pass your router primitive, e.g. Next{" "}
         <code>&lt;Link&gt;</code>) or a <code>CtaSpec</code> convenience
         overload. Registry code can&apos;t import <code>next/*</code>, so for SPA
-        navigation you wrap the button yourself:
+        navigation you style your own element with <code>buttonVariants</code>:
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-// CtaSpec — renders a plain <a> wrapped by <Button asChild>
+// CtaSpec — renders a plain <a> styled with buttonVariants
 cta: { label: "Start free", href: "/signup", variant: "outline" }
 
-// ReactNode — load-bearing, consumer wraps for SPA navigation
+// ReactNode — load-bearing, consumer styles the router primitive directly
+// (no <Button asChild> — asChild is Radix-only and breaks Base UI installs)
 cta: (
-  <Button asChild>
-    <Link href="/signup?plan=pro">Start Pro trial</Link>
-  </Button>
+  <Link href="/signup?plan=pro" className={cn(buttonVariants(), "w-full")}>
+    Start Pro trial
+  </Link>
 )`}</code>
       </pre>
       <p className="mt-2 text-muted-foreground">

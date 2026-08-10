@@ -19,6 +19,7 @@ export const meta: ComponentMeta = {
     "Width-matches-trigger popover via --radix-popover-trigger-width",
     "Dev-warns: duplicate keys stripped; controlled↔uncontrolled transition flagged",
     "F-cross-13 pre-emption on Popover.onOpenChange from day one",
+    "v0.1.1 (2026-08-11) — F-cross-13 path-b sweep: no asChild — PopoverTrigger IS the combobox button (native DOM props only). Zero public-API change.",
     "Domain-agnostic — zero auth/membership/router imports",
   ],
   tags: [
@@ -31,10 +32,10 @@ export const meta: ComponentMeta = {
     "app-shell",
   ],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-05-23",
-  updatedAt: "2026-05-23",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

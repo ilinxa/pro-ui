@@ -75,26 +75,26 @@ export function StatusBadge({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        {/* native button + stop-propagation: keeps a click on the badge from
-            starting an HTML5/kanban drag or bubbling to the card; data-stop-click
-            is honored by the kanban ItemShell's click guard. */}
-        <button
-          type="button"
-          data-stop-click
-          onPointerDown={(e) => e.stopPropagation()}
-          aria-label={`Status: ${label}. Click to change`}
-          className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      {/* F-cross-13 path-b: trigger IS the button (native <button> in both
+          backends) — `asChild` is Radix-only. stop-propagation keeps a click on
+          the badge from starting an HTML5/kanban drag or bubbling to the card;
+          data-stop-click is honored by the kanban ItemShell's click guard.
+          (v0.4.2) */}
+      <DropdownMenuTrigger
+        type="button"
+        data-stop-click
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label={`Status: ${label}. Click to change`}
+        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Badge
+          variant={variant}
+          className={cn("cursor-pointer gap-1 pe-1.5 font-medium", toneClass, className)}
+          role="status"
         >
-          <Badge
-            variant={variant}
-            className={cn("cursor-pointer gap-1 pe-1.5 font-medium", toneClass, className)}
-            role="status"
-          >
-            {label}
-            <ChevronDown className="size-3 opacity-70" />
-          </Badge>
-        </button>
+          {label}
+          <ChevronDown className="size-3 opacity-70" />
+        </Badge>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-36">
         {options.map((opt) => (

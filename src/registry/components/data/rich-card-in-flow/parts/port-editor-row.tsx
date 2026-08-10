@@ -12,11 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 // F-S1 lock — RELATIVE cross-procomp imports
 import type {
   Port,
@@ -131,6 +126,14 @@ function PortEditorRowImpl({
     );
   }
 
+  // F-cross-13: the shadcn Tooltip trigger renders a <button> in BOTH backends
+  // and an <Input> cannot nest inside one — the error / rename-warning hint is
+  // a native `title` instead (also the accessible description; the styled
+  // signals — destructive border, aria-invalid, warning icon — stay).
+  const idEdgeWarning =
+    !idError && hasLiveEdges && idIsDirty
+      ? `Renaming this port will not auto-update ${totalLiveEdges} existing edge${totalLiveEdges === 1 ? "" : "s"} — consumer must update edge references.`
+      : null;
   const idField = (
     <div className="relative">
       <Input
@@ -140,6 +143,7 @@ function PortEditorRowImpl({
         disabled={!canEditField("id")}
         className={`h-7 pr-6 font-mono text-xs ${idError ? "border-destructive" : ""}`}
         aria-invalid={idError !== null}
+        title={idError ?? idEdgeWarning ?? undefined}
       />
       {hasLiveEdges && idIsDirty && !idError && (
         <AlertCircle
@@ -158,23 +162,8 @@ function PortEditorRowImpl({
     // Widths: id 220 / type 120 / side 100 / dir 80 / multi 80 / label 200 /
     // remove 36 = 836 + 6×4 gaps = 860.
     <div className="grid grid-cols-[220px_120px_100px_80px_80px_200px_36px] items-center gap-1 rounded-sm border border-border/40 bg-card/30 px-2 py-1.5">
-      {/* ID — commit on blur; tooltip when error OR live-edges warning */}
-      {idError ? (
-        <Tooltip>
-          <TooltipTrigger asChild>{idField}</TooltipTrigger>
-          <TooltipContent>{idError}</TooltipContent>
-        </Tooltip>
-      ) : hasLiveEdges && idIsDirty ? (
-        <Tooltip>
-          <TooltipTrigger asChild>{idField}</TooltipTrigger>
-          <TooltipContent>
-            Renaming this port will not auto-update {totalLiveEdges} existing edge
-            {totalLiveEdges === 1 ? "" : "s"} — consumer must update edge references.
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        idField
-      )}
+      {/* ID — commit on blur; native-title hint when error OR live-edges warning */}
+      {idField}
 
       {/* Type — live-save; auto-corrects side when switching to "doc" */}
       <Select

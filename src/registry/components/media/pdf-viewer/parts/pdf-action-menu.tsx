@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, MoreVertical, Printer, RotateCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,19 +28,21 @@ export function PdfActionMenu({ compact, className }: PdfActionMenuProps) {
   const useCompact = compact ?? ctx.compact;
   const disabled = status !== "ready";
 
+  // F-cross-13: no `asChild` — triggers render their own <button> in both
+  // backends; Button look inlined via buttonVariants.
   if (useCompact) {
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={disabled}
-            aria-label={typeof labels.more === "string" ? labels.more : "More actions"}
-            className={className}
-          >
-            <MoreVertical />
-          </Button>
+        <DropdownMenuTrigger
+          type="button"
+          disabled={disabled}
+          aria-label={typeof labels.more === "string" ? labels.more : "More actions"}
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "icon-sm" }),
+            className,
+          )}
+        >
+          <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => actions.rotate()}>
@@ -67,47 +69,41 @@ export function PdfActionMenu({ compact, className }: PdfActionMenuProps) {
   return (
     <div className={cn("flex items-center gap-0.5", className)}>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => actions.rotate()}
-            disabled={disabled}
-            aria-label={typeof labels.rotate === "string" ? labels.rotate : "Rotate"}
-          >
-            <RotateCw />
-          </Button>
+        <TooltipTrigger
+          type="button"
+          className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+          onClick={() => actions.rotate()}
+          disabled={disabled}
+          aria-label={typeof labels.rotate === "string" ? labels.rotate : "Rotate"}
+        >
+          <RotateCw />
         </TooltipTrigger>
         <TooltipContent>{labels.rotate}</TooltipContent>
       </Tooltip>
       {allowDownload ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => actions.download()}
-              disabled={disabled}
-              aria-label={typeof labels.download === "string" ? labels.download : "Download"}
-            >
-              <Download />
-            </Button>
+          <TooltipTrigger
+            type="button"
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            onClick={() => actions.download()}
+            disabled={disabled}
+            aria-label={typeof labels.download === "string" ? labels.download : "Download"}
+          >
+            <Download />
           </TooltipTrigger>
           <TooltipContent>{labels.download}</TooltipContent>
         </Tooltip>
       ) : null}
       {allowPrint ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => actions.print()}
-              disabled={disabled}
-              aria-label={typeof labels.print === "string" ? labels.print : "Print"}
-            >
-              <Printer />
-            </Button>
+          <TooltipTrigger
+            type="button"
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            onClick={() => actions.print()}
+            disabled={disabled}
+            aria-label={typeof labels.print === "string" ? labels.print : "Print"}
+          >
+            <Printer />
           </TooltipTrigger>
           <TooltipContent>{labels.print}</TooltipContent>
         </Tooltip>

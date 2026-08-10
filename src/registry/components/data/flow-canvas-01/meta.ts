@@ -20,6 +20,7 @@ export const meta: ComponentMeta = {
     "Typed connection validation, multi-edge per port, sub-object drag-extract (M2+)",
     "Read-only mode that preserves pan / zoom / select",
     "Popup-edit renderer convention (v0.2.1) — onEditRequest + updateNodeData helper",
+    "v0.2.7 — F-cross-13 path-b sweep: canvas ContextMenuTrigger drops `asChild` (`className=\"contents\"` wrapper; right-click bubbles children → resolver → trigger in both backends). Zero public-API change.",
   ],
   tags: [
     "flow-canvas-01",
@@ -34,10 +35,10 @@ export const meta: ComponentMeta = {
     "edges",
   ],
 
-  version: "0.2.6",
+  version: "0.2.7",
   status: "alpha",
   createdAt: "2026-05-06",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

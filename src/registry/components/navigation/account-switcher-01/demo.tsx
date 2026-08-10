@@ -8,7 +8,6 @@ import {
   ACCOUNT_SWITCHER_01_DUMMY_FALLBACK,
   ACCOUNT_SWITCHER_01_DUMMY_ITEMS,
 } from "./dummy-data";
-import type { SwitcherItem } from "./types";
 
 const TAB_KEYS = ["sidebar", "topbar", "collapsed", "fallback", "controlled"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
@@ -53,17 +52,6 @@ export default function AccountSwitcher01Demo() {
       </div>
     </div>
   );
-}
-
-function SelectionLog({
-  selected,
-  setSelected,
-}: {
-  selected: string | null;
-  setSelected: (key: string) => void;
-}) {
-  const handleSelect = (item: SwitcherItem) => setSelected(item.key);
-  return { handleSelect, selected };
 }
 
 function SidebarDemo() {

@@ -9,7 +9,11 @@ import { enforceUniqueKeys } from "./lib/enforce-unique-keys";
 import { resolveActiveItem } from "./lib/resolve-active-item";
 import { EmptyPlaceholder } from "./parts/empty-placeholder";
 import { SwitcherItemRow } from "./parts/switcher-item-row";
-import { SwitcherTrigger } from "./parts/switcher-trigger";
+import {
+  SwitcherTriggerContent,
+  composeSwitcherTriggerAriaLabel,
+  switcherTriggerClassName,
+} from "./parts/switcher-trigger";
 import type { AccountSwitcher01Props, SwitcherItem } from "./types";
 
 const DEFAULT_ARIA_LABEL = "Switch account context";
@@ -100,15 +104,19 @@ export function AccountSwitcher01(props: AccountSwitcher01Props) {
 
   return (
     <Popover open={open} onOpenChange={handlePrimitiveOpenChange}>
-      <PopoverTrigger asChild>
-        <SwitcherTrigger
-          activeItem={activeItem}
-          ariaLabel={ariaLabel}
-          ariaControls={listboxId}
-          isCollapsed={isCollapsed}
-          open={open}
-          className={className}
-        />
+      {/* v0.1.1 (F-cross-13 path-b): no `asChild` — Base UI's PopoverTrigger
+          rejects it. The trigger IS the combobox button: both backends render
+          a native <button> and pass native DOM props straight through. */}
+      <PopoverTrigger
+        type="button"
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-label={composeSwitcherTriggerAriaLabel(ariaLabel, activeItem)}
+        className={switcherTriggerClassName({ isCollapsed, className })}
+      >
+        <SwitcherTriggerContent activeItem={activeItem} isCollapsed={isCollapsed} />
       </PopoverTrigger>
       <PopoverContent
         side={popoverSide}

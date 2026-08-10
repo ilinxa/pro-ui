@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Palette } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { findSwatch, swatchCssColor } from "../lib/palette";
@@ -23,28 +23,27 @@ export function ColumnColorPicker({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-6"
-          disabled={disabled}
-          aria-label="Pick column color"
-          data-stop-click
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {currentColor ? (
-            <span
-              className="size-3.5 rounded-full border border-border"
-              style={{ backgroundColor: currentColor }}
-              aria-hidden="true"
-            />
-          ) : (
-            <Palette className="size-3.5 text-muted-foreground" aria-hidden="true" />
-          )}
-        </Button>
+      {/* F-cross-13 path-b: trigger IS the button (native <button> in both
+          backends) — `asChild` is Radix-only; `buttonVariants` reproduces the
+          ghost/icon look. (v0.4.3) */}
+      <PopoverTrigger
+        type="button"
+        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "size-6")}
+        disabled={disabled}
+        aria-label="Pick column color"
+        data-stop-click
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {currentColor ? (
+          <span
+            className="size-3.5 rounded-full border border-border"
+            style={{ backgroundColor: currentColor }}
+            aria-hidden="true"
+          />
+        ) : (
+          <Palette className="size-3.5 text-muted-foreground" aria-hidden="true" />
+        )}
       </PopoverTrigger>
       <PopoverContent
         className="w-auto p-2"

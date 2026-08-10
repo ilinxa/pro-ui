@@ -53,7 +53,7 @@ export function Chip<T extends EntityLike>({
           // Stop Enter/Space from bubbling to the parent trigger which would toggle the popover.
           if (e.key === "Enter" || e.key === " ") e.stopPropagation();
         }}
-        className="ml-0.5 rounded-sm p-0.5 hover:bg-foreground/10 disabled:opacity-50"
+        className="pointer-events-auto ml-0.5 rounded-sm p-0.5 hover:bg-foreground/10 disabled:opacity-50"
       >
         <X aria-hidden="true" className="size-3" />
       </button>

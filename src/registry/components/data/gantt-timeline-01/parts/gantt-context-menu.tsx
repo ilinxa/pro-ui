@@ -53,7 +53,12 @@ export function GanttContextMenu({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+      {/* F-cross-13 path-b: `asChild` is Radix-only (Base UI rejects it). The
+          trigger renders its own wrapper element (a <span> — non-button in both
+          backends); `contents` makes it box-less so layout is untouched, and
+          right-click / long-press bubble up from the child to the trigger's
+          listeners — no prop injection into `children` needed. (v0.5.2) */}
+      <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-48">
         {canEdit ? (
           <>

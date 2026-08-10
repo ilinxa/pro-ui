@@ -139,7 +139,10 @@ export function CanvasContextMenu({
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger asChild>
+        {/* F-cross-13: no `asChild` — trigger is a display:contents wrapper.
+            Right-click bubbles children → resolver div (sets target) →
+            trigger (opens menu) in both backends. */}
+        <ContextMenuTrigger className="contents">
           <div onContextMenu={handleContextMenu} className="contents">
             {children}
           </div>

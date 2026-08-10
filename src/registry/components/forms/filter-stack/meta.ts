@@ -12,7 +12,7 @@ export const meta: ComponentMeta = {
   features: [
     "Four built-in filter types — checkbox-list, toggle, text, custom",
     "AND-across-categories composition; host-defined within-category semantics",
-    "Mode toggle (Union / Intersection) on checkbox-list via shadcn ToggleGroup",
+    "Mode toggle (Union / Intersection) on checkbox-list via a plain-button segmented control",
     "Per-option solo button with tooltip on checkbox-list",
     "Debounced text input (default 250ms) with flush-on-blur, ESC-clears",
     "Custom render slot with error boundary and label-association via fieldId",
@@ -23,10 +23,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["filter-stack", "filter", "facets", "graph-system"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

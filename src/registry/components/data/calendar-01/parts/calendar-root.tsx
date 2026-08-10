@@ -18,7 +18,6 @@ import {
 } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CalendarContext } from "../hooks/use-calendar-context";
 import { useCalendarCursor } from "../hooks/use-calendar-cursor";
@@ -748,23 +747,18 @@ export const Calendar01Root = forwardRef<CalendarHandle, CalendarRootProps>(
 
     return (
       <CalendarContext.Provider value={ctx}>
-        {/* No `delayDuration`: it's a Radix-only prop (Base UI's TooltipProvider
-            takes `delay`), so passing it fails consumer-tsc on Base UI
-            (F-cross-13). The default delay is cross-backend-safe. (v0.2.1) */}
-        <TooltipProvider>
-          <div
-            ref={rootRef}
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
-            aria-label={props["aria-label"] ?? "Calendar"}
-            className={cn(
-              "flex flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              className,
-            )}
-          >
-            {body}
-          </div>
-        </TooltipProvider>
+        <div
+          ref={rootRef}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          aria-label={props["aria-label"] ?? "Calendar"}
+          className={cn(
+            "flex flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            className,
+          )}
+        >
+          {body}
+        </div>
       </CalendarContext.Provider>
     );
   },

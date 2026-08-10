@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -64,19 +64,20 @@ const FieldDateSingle: FieldRenderer = ({
         if (!o) onBlur();
       }}
     >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start gap-2 font-normal",
-            !display && "text-muted-foreground",
-          )}
-          {...ariaAttrs(ariaProps, true)}
-        >
-          <CalendarIcon className="size-4" />
-          {display || field.placeholder || "Pick a date"}
-        </Button>
+      {/* F-cross-13: no `asChild` — render the trigger as the button directly
+          (both Radix + Base UI pass native props through to a <button>). */}
+      <PopoverTrigger
+        type="button"
+        disabled={disabled}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full justify-start gap-2 font-normal",
+          !display && "text-muted-foreground",
+        )}
+        {...ariaAttrs(ariaProps, true)}
+      >
+        <CalendarIcon className="size-4" />
+        {display || field.placeholder || "Pick a date"}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <Calendar
@@ -147,19 +148,18 @@ const FieldDateTime: FieldRenderer = ({
         if (!o) onBlur();
       }}
     >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start gap-2 font-normal",
-            !display && "text-muted-foreground",
-          )}
-          {...ariaAttrs(ariaProps, true)}
-        >
-          <CalendarIcon className="size-4" />
-          {display || field.placeholder || "Pick a date & time"}
-        </Button>
+      <PopoverTrigger
+        type="button"
+        disabled={disabled}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full justify-start gap-2 font-normal",
+          !display && "text-muted-foreground",
+        )}
+        {...ariaAttrs(ariaProps, true)}
+      >
+        <CalendarIcon className="size-4" />
+        {display || field.placeholder || "Pick a date & time"}
       </PopoverTrigger>
       <PopoverContent className="w-auto space-y-2 p-2">
         <Calendar
@@ -205,19 +205,18 @@ const FieldDateRange: FieldRenderer = ({
         if (!o) onBlur();
       }}
     >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start gap-2 font-normal",
-            !display && "text-muted-foreground",
-          )}
-          {...ariaAttrs(ariaProps, true)}
-        >
-          <CalendarIcon className="size-4" />
-          {display || field.placeholder || "Pick a date range"}
-        </Button>
+      <PopoverTrigger
+        type="button"
+        disabled={disabled}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full justify-start gap-2 font-normal",
+          !display && "text-muted-foreground",
+        )}
+        {...ariaAttrs(ariaProps, true)}
+      >
+        <CalendarIcon className="size-4" />
+        {display || field.placeholder || "Pick a date range"}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <Calendar

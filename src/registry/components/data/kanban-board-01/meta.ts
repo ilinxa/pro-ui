@@ -30,10 +30,12 @@ export const meta: ComponentMeta = {
   ],
   tags: ["kanban", "board", "drag-and-drop", "dnd-kit", "swimlanes", "columns", "tasks", "rich-card"],
 
-  version: "0.4.2",
+  // 0.4.3 (2026-08-11): F-cross-13 path-b sweep — color-picker/inline-create/column-menu
+  // trigger asChild → buttonVariants; zero public-API change.
+  version: "0.4.3",
   status: "alpha",
   createdAt: "2026-05-05",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

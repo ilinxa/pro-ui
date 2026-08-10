@@ -156,11 +156,13 @@ export function ComparisonTable({
                 className="sticky start-0 bg-card p-3 text-start text-sm font-normal text-foreground"
               >
                 {row.tooltip ? (
+                  /* F-cross-13: no `asChild` — the trigger IS the label button. */
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
-                        {row.label}
-                      </span>
+                    <TooltipTrigger
+                      type="button"
+                      className="cursor-help text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-2"
+                    >
+                      {row.label}
                     </TooltipTrigger>
                     <TooltipContent>{row.tooltip}</TooltipContent>
                   </Tooltip>

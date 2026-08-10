@@ -363,9 +363,10 @@ export function CodeBlock(props: CodeBlockProps) {
     );
   })();
 
+  // No delayDuration — Radix-only prop; Base UI's TooltipProvider rejects it (F-cross-13).
   return (
     <CodeBlockProvider value={ctxValue}>
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider>
         <section
           role="region"
           aria-label={resolvedAriaLabel}

@@ -65,7 +65,9 @@ function startTimedMove(
   gestureCleanup: { current: (() => void) | null },
 ) {
   if (e.button !== 0) return;
-  e.stopPropagation(); // keep the column's draw handler out of it
+  // No stopPropagation: the column's draw handler ignores block-origin
+  // presses, and the context-menu trigger's long-press timer needs the
+  // bubble (Radix cancels it on pointermove, so drags don't open the menu).
   const grid = gridRef.current;
   if (!grid) return;
   // Capture on the source block (gantt's pattern) so the gesture keeps
@@ -502,7 +504,14 @@ function DayColumn({
       style={{ height: DAY_PX }}
       onPointerDown={
         editable
-          ? (e) => startDraw(e, colRef, dayStartMs, snap, requestCreate, gestureCleanup)
+          ? (e) => {
+              // Presses that start on a block must not start a draw. Guarded
+              // here (not via stopPropagation on the block) so pointerdown
+              // still bubbles to the box-less ContextMenuTrigger span — its
+              // touch long-press timer depends on it (F-cross-13 path-b).
+              if ((e.target as Element).closest("[data-occ-id]")) return;
+              startDraw(e, colRef, dayStartMs, snap, requestCreate, gestureCleanup);
+            }
           : undefined
       }
       onDoubleClick={
@@ -538,7 +547,9 @@ function DayColumn({
             onPointerDown={
               editable
                 ? (e) => {
-                    e.stopPropagation(); // don't let a block click start a draw
+                    // No stopPropagation: the column's draw handler ignores
+                    // block-origin presses itself, and the context-menu span
+                    // needs the bubble for touch long-press.
                     if (canMove)
                       startTimedMove(
                         e,

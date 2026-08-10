@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import {
   FilePlus,
   FolderPlus,
@@ -70,7 +70,6 @@ export function FileTreeContextMenu(props: FileTreeContextMenuProps) {
     node: FsNode | null;
     position: { x: number; y: number };
   } | null>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
 
   const captureTarget = (e: MouseEvent) => {
     const el = e.target as HTMLElement | null;
@@ -168,18 +167,15 @@ export function FileTreeContextMenu(props: FileTreeContextMenuProps) {
 
   return (
     <ContextMenu>
+      {/* F-cross-13: no `asChild` — Base UI triggers reject it. `display: contents`
+          keeps the trigger element out of layout (the wrapped div already used it);
+          right-clicks bubble up from children. */}
       <ContextMenuTrigger
-        asChild
-        ref={triggerRef}
+        role="presentation"
+        className="contents"
         onContextMenu={captureTarget}
       >
-        <div
-          role="presentation"
-          className="contents"
-          onContextMenu={captureTarget}
-        >
-          {children}
-        </div>
+        {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-[180px]">
         {renderContextMenu ? (

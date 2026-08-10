@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Command,
@@ -171,64 +171,68 @@ function ComboboxSelect({
         if (!o) onBlur();
       }}
     >
-      <PopoverTrigger asChild>
-        <Button
-          id={ariaProps.id}
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          aria-required={ariaProps["aria-required"]}
-          aria-invalid={ariaProps["aria-invalid"]}
-          aria-disabled={ariaProps["aria-disabled"]}
-          aria-describedby={ariaProps["aria-describedby"]}
-          disabled={disabled}
-          className="h-auto min-h-9 w-full justify-between gap-1.5 px-2.5 py-1.5 font-normal"
-        >
-          <span className="flex flex-1 flex-wrap items-center gap-1">
-            {selected.length === 0 ? (
-              <span className="text-muted-foreground">
-                {placeholder ?? "Select…"}
-              </span>
-            ) : isMulti ? (
-              selected.map((v) => {
-                const opt = options.find((o) => o.value === v);
-                return (
-                  <Badge
-                    key={String(v)}
-                    variant="secondary"
-                    className={cn("gap-1 pr-1")}
+      {/* F-cross-13: no `asChild` — render the trigger as the combobox button
+          directly (native props only; buttonVariants supplies the styling). */}
+      <PopoverTrigger
+        id={ariaProps.id}
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-required={ariaProps["aria-required"]}
+        aria-invalid={ariaProps["aria-invalid"]}
+        aria-disabled={ariaProps["aria-disabled"]}
+        aria-describedby={ariaProps["aria-describedby"]}
+        disabled={disabled}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "h-auto min-h-9 w-full justify-between gap-1.5 px-2.5 py-1.5 font-normal",
+        )}
+      >
+        <span className="flex flex-1 flex-wrap items-center gap-1">
+          {selected.length === 0 ? (
+            <span className="text-muted-foreground">
+              {placeholder ?? "Select…"}
+            </span>
+          ) : isMulti ? (
+            selected.map((v) => {
+              const opt = options.find((o) => o.value === v);
+              return (
+                <Badge
+                  key={String(v)}
+                  variant="secondary"
+                  className={cn("gap-1 pr-1")}
+                >
+                  <span>{opt?.label ?? String(v)}</span>
+                  <span
+                    role="button"
+                    aria-label={`Remove ${opt?.label ?? String(v)}`}
+                    tabIndex={0}
+                    onClick={(e) => removeChip(v, e)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onChange(selected.filter((x) => x !== v));
+                      }
+                    }}
+                    className="inline-flex size-3.5 cursor-pointer items-center justify-center rounded hover:bg-foreground/10"
                   >
-                    <span>{opt?.label ?? String(v)}</span>
-                    <span
-                      role="button"
-                      aria-label={`Remove ${opt?.label ?? String(v)}`}
-                      tabIndex={0}
-                      onClick={(e) => removeChip(v, e)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          onChange(selected.filter((x) => x !== v));
-                        }
-                      }}
-                      className="inline-flex size-3.5 cursor-pointer items-center justify-center rounded hover:bg-foreground/10"
-                    >
-                      <XIcon className="size-3" />
-                    </span>
-                  </Badge>
-                );
-              })
-            ) : (
-              <span>
-                {options.find((o) => o.value === selected[0])?.label ??
-                  String(selected[0])}
-              </span>
-            )}
-          </span>
-          <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
-        </Button>
+                    <XIcon className="size-3" />
+                  </span>
+                </Badge>
+              );
+            })
+          ) : (
+            <span>
+              {options.find((o) => o.value === selected[0])?.label ??
+                String(selected[0])}
+            </span>
+          )}
+        </span>
+        <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
+      {/* Radix: --radix-popover-trigger-width · Base UI: --anchor-width (F-cross-13) */}
+      <PopoverContent className="w-(--radix-popover-trigger-width,var(--anchor-width)) p-0">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search…"

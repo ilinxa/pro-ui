@@ -103,6 +103,28 @@ export function TeamMilestoneBadge({
     className,
   );
 
+  // Awarded-date tooltip only for earned badges (client-only render → SSR-safe).
+  // F-cross-13: no `asChild`. Interactive token → the TooltipTrigger IS the
+  // <button>. Passive token → a <button> trigger would be a dead affordance, so
+  // a local hover-only CSS tip stands in (the date already lives in aria-label).
+  if (earned && awardedText && interactive) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger
+            type="button"
+            onClick={() => onOpen?.(badge)}
+            aria-label={ariaLabel}
+            className={wrapperCls}
+          >
+            {inner}
+          </TooltipTrigger>
+          <TooltipContent>Earned {awardedText}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   const token = interactive ? (
     <button
       type="button"
@@ -118,15 +140,17 @@ export function TeamMilestoneBadge({
     </span>
   );
 
-  // Awarded-date tooltip only for earned badges (client-only render → SSR-safe).
   if (earned && awardedText) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>{token}</TooltipTrigger>
-          <TooltipContent>Earned {awardedText}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <span className="group/tip relative inline-flex">
+        {token}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-1.5 text-xs text-background group-hover/tip:inline-flex"
+        >
+          Earned {awardedText}
+        </span>
+      </span>
     );
   }
 

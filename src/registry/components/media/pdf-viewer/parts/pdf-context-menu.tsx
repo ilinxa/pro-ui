@@ -18,7 +18,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { cn } from "@/lib/utils";
 import { usePdfViewer } from "../hooks/use-pdf-viewer-context";
 import type { ReactNode } from "react";
 
@@ -56,7 +55,9 @@ export function PdfContextMenu({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>
+      {/* F-cross-13: no `asChild` — trigger is a display:contents wrapper;
+          right-click bubbles up from children in both backends. */}
+      <ContextMenuTrigger className="contents">
         <div className={className}>{children}</div>
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-44">
@@ -115,6 +116,3 @@ export function PdfContextMenu({
     </ContextMenu>
   );
 }
-
-// Suppress unused warning for cn in case future tweaks need it
-void cn;

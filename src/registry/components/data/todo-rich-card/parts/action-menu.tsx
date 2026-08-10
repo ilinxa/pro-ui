@@ -13,7 +13,7 @@ import {
   Unlock,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { useCardContext } from "../hooks/use-card-context";
 import { copyTasksToClipboard, readTasksFromClipboard } from "../lib/clipboard";
 import { denormalize } from "../lib/normalize";
@@ -126,15 +127,14 @@ export function ActionMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-6"
-          aria-label="Card actions"
-        >
-          <MoreHorizontal className="size-3.5" />
-        </Button>
+      {/* F-cross-13 path-b: trigger IS the button (native <button> in both
+          backends) — `asChild` is Radix-only; `buttonVariants` reproduces the
+          ghost/icon look. (v0.4.2) */}
+      <DropdownMenuTrigger
+        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "size-6")}
+        aria-label="Card actions"
+      >
+        <MoreHorizontal className="size-3.5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem

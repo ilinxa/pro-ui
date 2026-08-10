@@ -18,16 +18,16 @@ export const meta: ComponentMeta = {
     "Multi-mode chip cluster with per-chip remove buttons and Backspace-on-empty-search removal",
     "Controlled-or-uncontrolled open state mirroring Radix Popover convention",
     "id-set selection equality — onChange fires only when selection ids change",
-    "Trigger as `<div role=\"button\">` (not `<button>`) to allow nested chip remove buttons",
+    "Field trigger is a real full-field `<button>` overlay beneath a click-transparent chip layer (F-cross-13: no asChild) — chips keep their own nested remove buttons legally",
     "Imperative handle — focus / open / close / clear",
     "WAI-ARIA 1.2 combobox pattern; cmdk + Radix Popover handle most of the wiring",
   ],
   tags: ["entity-picker", "picker", "combobox", "graph-system"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-04-29",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

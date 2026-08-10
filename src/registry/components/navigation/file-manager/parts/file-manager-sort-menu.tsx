@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ArrowUpDown, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { useFileManager } from "../hooks/use-file-manager-context";
 import type { FileManagerSortKey } from "../types";
 
@@ -27,24 +23,20 @@ export function FileManagerSortMenu() {
     { key: "type", label: labels.sortByType },
   ];
 
+  // F-cross-13: no `asChild` — Base UI triggers reject it. The Tooltip wrapper
+  // is dropped: TooltipTrigger renders its own <button> in both backends, and
+  // nesting it with DropdownMenuTrigger would need asChild/render to fuse them
+  // into one element. `title` keeps a hover affordance natively.
   return (
     <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              aria-label={`Sort by ${state.sort.key}`}
-            >
-              <ArrowUpDown className="size-4" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Sort</TooltipContent>
-      </Tooltip>
+      <DropdownMenuTrigger
+        type="button"
+        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "size-7")}
+        aria-label={`Sort by ${state.sort.key}`}
+        title="Sort"
+      >
+        <ArrowUpDown className="size-4" aria-hidden="true" />
+      </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[160px]">
         <DropdownMenuLabel>Sort by</DropdownMenuLabel>
         {sortKeys.map(({ key, label }) => (

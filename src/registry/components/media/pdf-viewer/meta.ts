@@ -24,6 +24,7 @@ export const meta: ComponentMeta = {
     "Theme-aware (light + dark via design tokens)",
     "Object-shape callbacks (F-cross-12-correct from day one)",
     "WCAG 2.1 AA — toolbar role, aria-live page indicator, keyboard nav",
+    "v0.1.4 — F-cross-13 path-b sweep: toolbar parts drop `asChild` (Tooltip/DropdownMenu triggers render directly as buttons via `buttonVariants(…)`; ContextMenuTrigger wraps via `className=\"contents\"` — Base-UI consumer primitives lack Slot support). Zero public-API change.",
   ],
   tags: [
     "pdf",
@@ -36,10 +37,10 @@ export const meta: ComponentMeta = {
     "pdfjs",
   ],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-05-10",
-  updatedAt: "2026-05-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

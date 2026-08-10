@@ -30,10 +30,10 @@ export const meta: ComponentMeta = {
     "telemetry",
   ],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-07-01",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

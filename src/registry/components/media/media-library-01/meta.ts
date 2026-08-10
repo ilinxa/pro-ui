@@ -17,13 +17,14 @@ export const meta: ComponentMeta = {
     "Drag-to-move files/folders with self/cycle drop validation; right-click context menus; cut → paste move",
     "Storage-quota bar, type-filter chips with live counts, breadcrumb navigation, lazy onLoadChildren",
     "Controlled/uncontrolled selection + current folder; imperative handle; full label i18n",
+    "v0.1.2 — F-cross-13 path-b sweep: item context-menu trigger drops `asChild` (`className=\"contents\"` wrapper; right-click bubbles from the card in both backends). Zero public-API change.",
   ],
   tags: ["media", "library", "files", "drive", "upload", "preview", "drag-drop", "folders", "cms"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-06-09",
-  updatedAt: "2026-06-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

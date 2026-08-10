@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -32,13 +32,16 @@ const STATUS_DOT_CLASSES: Record<string, string> = {
  *
  * Collapse-aware: identity text hidden when sidebar collapsed; only the
  * avatar shows. Dropdown align flips center↔end based on collapsed state.
- * Tooltip exposes name/handle when collapsed.
  *
  * F-cross-13 defensive (R7 carrier #3 — DropdownMenu):
  *  - onOpenChange runtime-checks for boolean (Radix passes boolean;
  *    Base UI variants may pass undefined or different shape)
  *  - DropdownMenuItem.onSelect callbacks shaped to accept either Event
  *    (Radix) or undefined (Base UI fallback) — runtime-narrowed
+ *  - v0.3.2 (path-b): zero `asChild` — Base UI primitives reject it. The
+ *    DropdownMenuTrigger IS the footer button (native props only) and
+ *    href menu rows nest the anchor INSIDE the item (see
+ *    NavUserLinkMenuItem below).
  *
  * menuItems is a discriminated union (L15 + L22-b):
  *   { kind: "item"; ... } — clickable menu row
@@ -59,8 +62,11 @@ export function NavUser({
     ? STATUS_DOT_CLASSES[user.status]
     : null;
 
+  // v0.3.2 (F-cross-13 path-b): no `asChild` — Base UI's trigger rejects it.
+  // The DropdownMenuTrigger IS the footer button: both backends render a
+  // native <button> and pass native DOM props straight through.
   const trigger = (
-    <button
+    <DropdownMenuTrigger
       type="button"
       className={cn(
         "flex w-full items-center gap-3 rounded-md p-1.5",
@@ -102,7 +108,7 @@ export function NavUser({
           )}
         </span>
       )}
-    </button>
+    </DropdownMenuTrigger>
   );
 
   return (
@@ -116,7 +122,7 @@ export function NavUser({
         }
       }}
     >
-      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      {trigger}
       <DropdownMenuContent
         align={isCollapsed ? "center" : "end"}
         side="top"
@@ -127,6 +133,15 @@ export function NavUser({
             return <DropdownMenuSeparator key={`sep-${i}`} />;
           }
           const item = entry as NavUserMenuItem;
+          if (item.href) {
+            return (
+              <NavUserLinkMenuItem
+                key={item.label + i}
+                item={item}
+                href={item.href}
+              />
+            );
+          }
           return (
             <DropdownMenuItem
               key={item.label + i}
@@ -142,38 +157,99 @@ export function NavUser({
                 "gap-2",
                 item.variant === "destructive" && "text-destructive focus:text-destructive",
               )}
-              asChild={!!item.href}
             >
-              {item.href ? (
-                (() => {
-                  const LinkComponent = item.linkComponent ?? DefaultLink;
-                  return (
-                    <LinkComponent href={item.href}>
-                      <Icon icon={item.icon} className="h-4 w-4" />
-                      <span className="flex-1">{item.label}</span>
-                      {item.shortcut && (
-                        <span className="ml-auto font-mono text-xs text-muted-foreground">
-                          {item.shortcut}
-                        </span>
-                      )}
-                    </LinkComponent>
-                  );
-                })()
-              ) : (
-                <>
-                  <Icon icon={item.icon} className="h-4 w-4" />
-                  <span className="flex-1">{item.label}</span>
-                  {item.shortcut && (
-                    <span className="ml-auto font-mono text-xs text-muted-foreground">
-                      {item.shortcut}
-                    </span>
-                  )}
-                </>
+              <Icon icon={item.icon} className="h-4 w-4" />
+              <span className="flex-1">{item.label}</span>
+              {item.shortcut && (
+                <span className="ml-auto font-mono text-xs text-muted-foreground">
+                  {item.shortcut}
+                </span>
               )}
             </DropdownMenuItem>
           );
         })}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/**
+ * v0.3.2 (F-cross-13 path-b): link-flavored menu row. Previously
+ * `<DropdownMenuItem asChild>` made the anchor the [role=menuitem] itself —
+ * Base UI's DropdownMenuItem has no `asChild`, so the item stays the
+ * menuitem host and the anchor renders INSIDE it, filling the whole row
+ * (the item's padding moves onto the anchor via `p-0`). An anchor inside a
+ * div[role=menuitem] is valid HTML and keeps href semantics — middle-click,
+ * ctrl-click, copy-link — working in both backends. Keyboard activation
+ * dispatches the synthetic click on the ITEM, not the anchor, so onSelect
+ * forwards it via anchor.click() exactly once:
+ *   - nativeClickRef — the anchor's own onClick marks pointer activations
+ *     (navigation already happened natively; don't forward)
+ *   - forwardingRef — re-entrancy guard: the forwarded click bubbles back
+ *     into the item's select pipeline and would double-fire item.onClick
+ * The anchor is looked up via querySelector so custom linkComponents work
+ * whether or not they forward refs.
+ */
+function NavUserLinkMenuItem({
+  item,
+  href,
+}: {
+  item: NavUserMenuItem;
+  href: string;
+}) {
+  const itemRef = useRef<HTMLDivElement | null>(null);
+  const nativeClickRef = useRef(false);
+  const forwardingRef = useRef(false);
+  const LinkComponent = item.linkComponent ?? DefaultLink;
+  return (
+    <DropdownMenuItem
+      ref={itemRef}
+      disabled={item.disabled}
+      onSelect={(eventArg: NavUserMenuItemSelectEvent) => {
+        if (forwardingRef.current) return;
+        item.onClick?.(eventArg);
+        if (!nativeClickRef.current) {
+          // Fall back to the row's root element for linkComponents that
+          // render no <a> (their own onClick navigation still runs).
+          const anchor =
+            itemRef.current?.querySelector("a") ??
+            (itemRef.current?.firstElementChild instanceof HTMLElement
+              ? itemRef.current.firstElementChild
+              : null);
+          if (anchor) {
+            forwardingRef.current = true;
+            try {
+              anchor.click();
+            } finally {
+              forwardingRef.current = false;
+            }
+          }
+        }
+        nativeClickRef.current = false;
+      }}
+      className={cn(
+        // p-0 — padding moves onto the anchor so the whole row is the link
+        "p-0",
+        item.variant === "destructive" && "text-destructive focus:text-destructive",
+      )}
+    >
+      <LinkComponent
+        href={href}
+        // the menuitem is the focus stop; keep the anchor out of the tab order
+        tabIndex={-1}
+        onClick={() => {
+          nativeClickRef.current = true;
+        }}
+        className="flex w-full items-center gap-2 rounded-md px-1.5 py-1"
+      >
+        <Icon icon={item.icon} className="h-4 w-4" />
+        <span className="flex-1">{item.label}</span>
+        {item.shortcut && (
+          <span className="ml-auto font-mono text-xs text-muted-foreground">
+            {item.shortcut}
+          </span>
+        )}
+      </LinkComponent>
+    </DropdownMenuItem>
   );
 }

@@ -42,10 +42,12 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  version: "0.5.1",
+  // 0.5.2 (2026-08-11): F-cross-13 path-b sweep — context-menu trigger asChild →
+  // box-less span; zero public-API change.
+  version: "0.5.2",
   status: "alpha",
   createdAt: "2026-06-20",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

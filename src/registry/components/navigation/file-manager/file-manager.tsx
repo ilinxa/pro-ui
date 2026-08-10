@@ -628,7 +628,8 @@ export const FileManager = forwardRef<
 
   return (
     <FileManagerContext.Provider value={ctxValue}>
-      <TooltipProvider delayDuration={400}>
+      {/* No delayDuration — Radix-only prop; Base UI's TooltipProvider rejects it (F-cross-13). */}
+      <TooltipProvider>
         <div
           ref={rootElRef}
           role="region"

@@ -1676,7 +1676,6 @@
         "context-menu",
         "dropdown-menu",
         "input",
-        "toggle-group",
         "tooltip",
         "@ilinxa/file-clipboard"
       ],
@@ -1975,7 +1974,6 @@
         "select",
         "checkbox",
         "input",
-        "tooltip",
         "label",
         "button",
         "@ilinxa/rich-card",
@@ -2172,7 +2170,7 @@
       "description": "Registry-portable, framework-agnostic app-shell sidebar with mobile-drawer mode, 13-slot composition (incl. v0.2 topSlot for AccountSwitcher / context widgets), 4 prefab parts, 5 active-state variants, CSS-variable theme surface, headless useRichSidebarState hook, permissions + ownerOnly + minMembers three-gate filtering with diff-based onPermissionDenied, {key} href template substitution + resolveHref escape hatch, exported NavContext type, exported useFilteredNavSections hook (works standalone), localStorage persist, full WAI-ARIA keyboard nav + skip link, RichSidebarTrigger companion. Migration origin: kasder's SocialSidebar.tsx + socialmedia-adv-nav-system.",
       "author": "ilinxa",
       "categories": ["navigation", "app-shell"],
-      "registryDependencies": ["avatar", "button", "dropdown-menu", "sheet", "tooltip"],
+      "registryDependencies": ["avatar", "button", "dropdown-menu", "sheet"],
       "dependencies": ["lucide-react"],
       "files": [
         { "path": "src/registry/components/navigation/rich-sidebar/rich-sidebar.tsx", "type": "registry:component", "target": "components/rich-sidebar/rich-sidebar.tsx" },
@@ -2706,7 +2704,6 @@
         "input",
         "popover",
         "skeleton",
-        "tooltip",
         "@ilinxa/todo-rich-card"
       ],
       "dependencies": ["date-fns", "lucide-react", "@dnd-kit/core", "@dnd-kit/utilities"],

@@ -90,7 +90,7 @@ The mode determines the typing of `value` + `onChange` via TypeScript function o
 
 `<EntityPicker>` is **items + value + onChange**, with rendering layered on top. Internally:
 
-1. **Trigger** — a `<div role="button">` (not a `<button>`; chips need to be focusable inside) — clicked or Enter-keyed opens the popover. Built on shadcn `Popover`.
+1. **Trigger** — a real `PopoverTrigger` `<button>` rendered as a full-field overlay beneath a click-transparent chip layer (chips' remove `<button>`s sit above it, so there's no button-in-button nesting) — clicked or Enter-keyed opens the popover. Built on shadcn `Popover`. *(v0.1.2, F-cross-13: replaces the former `<div role="button">` + `asChild` shape, which broke Base-UI consumers.)*
 2. **Popover content** — shadcn `Command` (cmdk) for search + filtered items, with a default item renderer or a consumer-provided one.
 3. **Selection equality is id-based** — `onChange` only fires when the SET of selected IDs changes, not on identity-only changes (a re-fetched user with a different object reference but same id is treated as the same selection).
 4. **Multi mode** — selected items render as chips above (or alongside) the trigger. Each chip has a remove button. Backspace on an empty search input removes the last chip.
@@ -193,7 +193,7 @@ Built-in rendering is a single-line label + optional kind badge. For richer rows
 
 ### Pattern 5: custom trigger
 
-Default trigger is a `<div role="button">` showing chips (multi) or label (single). For a custom shape (e.g. an icon button that opens the popover), pass `renderTrigger`:
+Default trigger is a full-field overlay `<button>` showing chips (multi) or label (single). For a custom shape (e.g. an icon button that opens the popover), pass `renderTrigger`:
 
 ```tsx
 <EntityPicker<User>
@@ -216,6 +216,12 @@ Default trigger is a `<div role="button">` showing chips (multi) or label (singl
 ```
 
 The `triggerRef` MUST be attached to the focusable element — this is what `EntityPickerHandle.focus()` targets. Without it, `focus()` silently no-ops (dev-only `console.warn`).
+
+Since v0.1.2 (F-cross-13) your node is no longer slot-merged into the Popover trigger — the picker wraps it in an `inline-flex max-w-full` span that owns open-on-click, with a hidden anchor button providing popover positioning. Three consequences:
+
+- **Wire popup a11y yourself**: nothing injects `aria-haspopup` / `aria-expanded` into your node anymore — set `aria-haspopup="listbox"` and `aria-expanded={open}` from the render context (the example above should add them for screen-reader users).
+- **No `data-[state=open]:` styling** on your node — branch on the `open` flag instead (as the example's `ring-2` does).
+- **Full-width triggers** need their own width (`w-full` works against the wrapper's `max-w-full`, but the wrapper itself is `inline-flex` — give your node an explicit width if it must stretch).
 
 ### Pattern 6: imperative handle
 
@@ -285,9 +291,9 @@ TypeScript catches the mismatch via function overloads. At runtime, passing `Use
 
 If you use `renderTrigger` and forget to attach `triggerRef`, the imperative `focus()` silently no-ops. In development, you get a one-time `console.warn`; in production, no signal. Always attach it to your focusable root element (the `<button>` / `<div role="button">` / etc.).
 
-### The default trigger is `<div role="button">`, not `<button>`
+### The default trigger is a full-field overlay `<button>`
 
-This is deliberate — multi-mode chips have their own remove `<button>`s, and nesting `<button>` inside `<button>` is invalid HTML. The `<div role="button">` is keyboard-accessible (Enter / Space open the popover), focusable (`tabIndex={0}`), and screen-reader-announced as a button.
+Multi-mode chips have their own remove `<button>`s, and nesting `<button>` inside `<button>` is invalid HTML — so the field surface is a plain `<div>` fully covered by an absolutely-positioned real `PopoverTrigger` `<button>`, with the chip layer painting above it (click-transparent except each chip's remove button). The overlay carries the keyboard behavior (Enter / Space / ArrowDown open) and the aria wiring (`aria-haspopup="listbox"`, `aria-expanded`, `aria-controls`). *(v0.1.2, F-cross-13: replaces the `<div role="button">` + `asChild` shape, which broke Base-UI consumers.)*
 
 ### Selection equality is by id
 

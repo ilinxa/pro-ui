@@ -34,10 +34,10 @@ export const meta: ComponentMeta = {
     "form",
   ],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-05-22",
-  updatedAt: "2026-05-22",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

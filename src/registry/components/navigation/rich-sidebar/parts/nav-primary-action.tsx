@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRichSidebarContextOrNull } from "../contexts/sidebar-nav-context";
 import type { NavPrimaryActionConfig } from "../types";
@@ -52,18 +52,24 @@ export function NavPrimaryAction({
     className,
   );
 
-  // href present → render as <a> via linkComponent; otherwise <button>
+  // href present → render as <a> via linkComponent; otherwise <button>.
+  // v0.3.2 (F-cross-13 path-b): no `<Button asChild>` — Base UI's Button has
+  // no asChild (and the CLI's render-rewrite breaks mixed consumers). The
+  // link IS the button: buttonVariants classes applied to the anchor directly.
   const buttonEl = href ? (
-    <Button asChild variant={variant} className={buttonClasses}>
-      {(() => {
-        const LinkComponent = linkComponent ?? DefaultLink;
-        return (
-          <LinkComponent href={href} onClick={onClick} aria-label={isCollapsed ? label : undefined}>
-            {innerContent}
-          </LinkComponent>
-        );
-      })()}
-    </Button>
+    (() => {
+      const LinkComponent = linkComponent ?? DefaultLink;
+      return (
+        <LinkComponent
+          href={href}
+          onClick={onClick}
+          aria-label={isCollapsed ? label : undefined}
+          className={cn(buttonVariants({ variant }), buttonClasses)}
+        >
+          {innerContent}
+        </LinkComponent>
+      );
+    })()
   ) : (
     <Button
       type="button"

@@ -24,6 +24,7 @@ export const meta: ComponentMeta = {
     "Video-export perf shortcut: skips MediaRecorder re-encode when nothing has been overlaid on the source",
     "Multi-instance dev-warn guard for camera contention",
     "Sealed-folder parts exported (EditorCamera / EditorCanvas / EditorToolbar / ColorSwatchPicker / DiscardConfirmDialog) for advanced composition",
+    "v0.1.5 — F-cross-13 path-b sweep: ModeTogglePill swaps shadcn ToggleGroup for a plain-button segmented control (Radix single-string vs Base-UI string[] value model; filter-stack 0.1.1 / calendar-01 v0.2.1 precedent); pill styling + re-tap-noop semantics preserved. Zero public-API change.",
   ],
   tags: [
     "media-editor-01",
@@ -36,10 +37,10 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.1.4",
+  version: "0.1.5",
   status: "alpha",
   createdAt: "2026-06-02",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

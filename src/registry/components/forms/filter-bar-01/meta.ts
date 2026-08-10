@@ -25,10 +25,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["filter-bar-01", "forms", "filter", "search", "date-range", "migration"],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-05-02",
-  updatedAt: "2026-05-02",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

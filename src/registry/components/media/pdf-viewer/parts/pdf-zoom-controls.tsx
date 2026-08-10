@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,38 +31,39 @@ export function PdfZoomControls({ className }: PdfZoomControlsProps) {
   const { scale, fitMode, actions, labels, status } = usePdfViewer();
   const disabled = status !== "ready";
 
+  // F-cross-13: no `asChild` — triggers render their own <button> in both
+  // backends; Button look inlined via buttonVariants (Base-UI primitives
+  // lack Slot support).
   return (
     <div className={cn("flex items-center gap-0.5", className)}>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => actions.zoomOut()}
-            disabled={disabled || scale <= PDF_VIEWER_MIN_SCALE + 1e-3}
-            aria-label={typeof labels.zoomOut === "string" ? labels.zoomOut : "Zoom out"}
-          >
-            <Minus />
-          </Button>
+        <TooltipTrigger
+          type="button"
+          className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+          onClick={() => actions.zoomOut()}
+          disabled={disabled || scale <= PDF_VIEWER_MIN_SCALE + 1e-3}
+          aria-label={typeof labels.zoomOut === "string" ? labels.zoomOut : "Zoom out"}
+        >
+          <Minus />
         </TooltipTrigger>
         <TooltipContent>{labels.zoomOut}</TooltipContent>
       </Tooltip>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            className="min-w-[4.5rem] gap-1 font-mono tabular-nums"
-          >
-            {fitMode === "fit-width"
-              ? labels.fitWidth
-              : fitMode === "fit-page"
-                ? labels.fitPage
-                : labels.scalePercent(scale)}
-            <ChevronDown className="size-3 opacity-60" aria-hidden="true" />
-          </Button>
+        <DropdownMenuTrigger
+          type="button"
+          disabled={disabled}
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "min-w-[4.5rem] gap-1 font-mono tabular-nums",
+          )}
+        >
+          {fitMode === "fit-width"
+            ? labels.fitWidth
+            : fitMode === "fit-page"
+              ? labels.fitPage
+              : labels.scalePercent(scale)}
+          <ChevronDown className="size-3 opacity-60" aria-hidden="true" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="min-w-36">
           <DropdownMenuItem onSelect={() => actions.setScale("fit-width")}>
@@ -89,16 +90,14 @@ export function PdfZoomControls({ className }: PdfZoomControlsProps) {
       </DropdownMenu>
 
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => actions.zoomIn()}
-            disabled={disabled || scale >= PDF_VIEWER_MAX_SCALE - 1e-3}
-            aria-label={typeof labels.zoomIn === "string" ? labels.zoomIn : "Zoom in"}
-          >
-            <Plus />
-          </Button>
+        <TooltipTrigger
+          type="button"
+          className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+          onClick={() => actions.zoomIn()}
+          disabled={disabled || scale >= PDF_VIEWER_MAX_SCALE - 1e-3}
+          aria-label={typeof labels.zoomIn === "string" ? labels.zoomIn : "Zoom in"}
+        >
+          <Plus />
         </TooltipTrigger>
         <TooltipContent>{labels.zoomIn}</TooltipContent>
       </Tooltip>

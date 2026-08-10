@@ -186,10 +186,11 @@ export function FileManagerContextMenu(props: FileManagerContextMenuProps) {
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild onContextMenu={captureTarget}>
-        <div className="contents" onContextMenu={captureTarget}>
-          {children}
-        </div>
+      {/* F-cross-13: no `asChild` — Base UI triggers reject it. `display: contents`
+          keeps the trigger element out of layout (the wrapped div already used it);
+          right-clicks bubble up from children. */}
+      <ContextMenuTrigger className="contents" onContextMenu={captureTarget}>
+        {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-[180px]">
         {renderContextMenu ? (

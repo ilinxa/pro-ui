@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 // F-S1 lock — RELATIVE cross-procomp imports
 import { defaultPortTypes } from "../../flow-canvas-01/registries/port-type-registry";
@@ -114,65 +113,65 @@ export function PortEditorStrip({
     onChange(target!.updateIn(next));
   }
 
+  // F-cross-13: TooltipProvider dropped with the row tooltips (the id-field
+  // hint is a native `title` now — see port-editor-row.tsx).
   return (
-    <TooltipProvider>
-      <div
-        className={cn(
-          "space-y-2 rounded-md border border-border/60 bg-card/20 p-3",
-          className,
-        )}
-      >
-        <div className="flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Ports {target.ports.length > 0 ? `(${target.ports.length})` : ""}
-          </p>
-          {canAdd && (
-            <PortEditorAddPopover
-              cardRcid={target.cardRcid}
-              portTypes={portTypes}
-              onAdd={(newPorts) => commit([...target.ports, ...newPorts])}
-            />
-          )}
-        </div>
-
-        {target.ports.length === 0 ? (
-          <p className="py-2 text-center text-xs text-muted-foreground">
-            {editable
-              ? "No ports yet. Click + add port to begin."
-              : "No ports."}
-          </p>
-        ) : (
-          // Horizontal scroll wrapper — when the dialog or strip parent is
-          // narrower than the row's combined column min-widths, rows stay at
-          // their natural width and the strip becomes swipeable in x.
-          <div className="-mx-3 overflow-x-auto px-3">
-            <div className="min-w-max space-y-1.5">
-              {target.ports.map((port) => (
-                <PortEditorRow
-                  key={port.id}
-                  cardId={cardId}
-                  port={port}
-                  portTypes={portTypes}
-                  existingPorts={target.ports}
-                  liveEdgeCount={
-                    liveEdgesMap.get(`${target.node.id}:${port.id}`) ?? {
-                      asSource: 0,
-                      asTarget: 0,
-                    }
-                  }
-                  editable={editable}
-                  permissions={permissions}
-                  onUpdate={(mut) =>
-                    commit(updatePort(target.ports, port.id, mut))
-                  }
-                  onRemove={() => commit(removePort(target.ports, port.id))}
-                />
-              ))}
-            </div>
-          </div>
+    <div
+      className={cn(
+        "space-y-2 rounded-md border border-border/60 bg-card/20 p-3",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Ports {target.ports.length > 0 ? `(${target.ports.length})` : ""}
+        </p>
+        {canAdd && (
+          <PortEditorAddPopover
+            cardRcid={target.cardRcid}
+            portTypes={portTypes}
+            onAdd={(newPorts) => commit([...target.ports, ...newPorts])}
+          />
         )}
       </div>
-    </TooltipProvider>
+
+      {target.ports.length === 0 ? (
+        <p className="py-2 text-center text-xs text-muted-foreground">
+          {editable
+            ? "No ports yet. Click + add port to begin."
+            : "No ports."}
+        </p>
+      ) : (
+        // Horizontal scroll wrapper — when the dialog or strip parent is
+        // narrower than the row's combined column min-widths, rows stay at
+        // their natural width and the strip becomes swipeable in x.
+        <div className="-mx-3 overflow-x-auto px-3">
+          <div className="min-w-max space-y-1.5">
+            {target.ports.map((port) => (
+              <PortEditorRow
+                key={port.id}
+                cardId={cardId}
+                port={port}
+                portTypes={portTypes}
+                existingPorts={target.ports}
+                liveEdgeCount={
+                  liveEdgesMap.get(`${target.node.id}:${port.id}`) ?? {
+                    asSource: 0,
+                    asTarget: 0,
+                  }
+                }
+                editable={editable}
+                permissions={permissions}
+                onUpdate={(mut) =>
+                  commit(updatePort(target.ports, port.id, mut))
+                }
+                onRemove={() => commit(removePort(target.ports, port.id))}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

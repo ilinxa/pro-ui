@@ -47,10 +47,12 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.4.1",
+  // 0.4.2 (2026-08-11): F-cross-13 path-b sweep — tooltip/status/action-menu trigger
+  // asChild eliminated (triggers ARE the buttons); zero public-API change.
+  version: "0.4.2",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 

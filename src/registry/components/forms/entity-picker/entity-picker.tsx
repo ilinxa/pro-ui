@@ -4,6 +4,8 @@ import {
   useCallback,
   useId,
   useImperativeHandle,
+  useLayoutEffect,
+  useRef,
   useState,
   type KeyboardEvent,
   type Ref,
@@ -88,6 +90,18 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
   // The ref-fn is stable across renders (React guarantees setState identity).
   const [triggerNode, setTriggerNode] = useState<HTMLElement | null>(null);
 
+  // F-cross-13 consumer-trigger path: when a press lands while the popover is
+  // open, Radix/Base UI's outside-press dismiss closes it BEFORE the click
+  // event — the wrapper's click handler must not immediately re-open. The
+  // capture-phase pointerdown snapshots the pre-dismiss open state.
+  const openRef = useRef(open);
+  // Layout effect: the capture-phase pointerdown guard reads this ref, and a
+  // press can land between commit and a passive effect's flush.
+  useLayoutEffect(() => {
+    openRef.current = open;
+  });
+  const pointerDownWhileOpenRef = useRef(false);
+
   const handleSelect = useCallback(
     (item: T) => {
       if (mode === "multi") {
@@ -152,7 +166,7 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
   );
 
   const handleTriggerKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
+    (e: KeyboardEvent<HTMLButtonElement>) => {
       if (disabled) return;
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
@@ -207,12 +221,46 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
     [itemsById, match],
   );
 
+  // F-cross-13: no `asChild` on either path. Default path — TriggerButton
+  // renders the PopoverTrigger <button> internally. Consumer path — the node
+  // can no longer BE the trigger (Slot semantics need asChild), so a hidden
+  // full-size PopoverTrigger anchors the popover to the node's box while the
+  // wrapper span owns open-on-click; the consumer node keeps its own
+  // interactivity, hover styles, and the documented `triggerRef` contract.
   const renderTriggerNode = renderTrigger ? (
-    renderTrigger({
-      value,
-      open,
-      triggerRef: setTriggerNode,
-    })
+    <span
+      className="relative inline-flex max-w-full"
+      onPointerDownCapture={() => {
+        pointerDownWhileOpenRef.current = openRef.current;
+      }}
+      onClick={(e) => {
+        const wasOpen = pointerDownWhileOpenRef.current;
+        pointerDownWhileOpenRef.current = false;
+        if (disabled) return;
+        // Keyboard "clicks" (detail 0) have no preceding pointerdown, so no
+        // outside-press dismiss ran — toggle both ways here (Enter closes).
+        if (e.detail === 0) {
+          setOpen(!openRef.current);
+          return;
+        }
+        if (wasOpen) return;
+        setOpen(true);
+      }}
+    >
+      <PopoverTrigger
+        aria-hidden="true"
+        tabIndex={-1}
+        // Close-autofocus lands here (it's the backend's registered trigger);
+        // bounce it to the consumer's real trigger element.
+        onFocus={() => triggerNode?.focus()}
+        className="pointer-events-none absolute inset-0"
+      />
+      {renderTrigger({
+        value,
+        open,
+        triggerRef: setTriggerNode,
+      })}
+    </span>
   ) : (
     <TriggerButton<T>
       ref={setTriggerNode}
@@ -226,7 +274,6 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
       showKindBadges={showKindBadges}
       listboxId={listboxId}
       className={className}
-      onClick={() => setOpen(!open)}
       onKeyDown={handleTriggerKeyDown}
       onRemoveChip={handleRemoveChip}
     />
@@ -246,11 +293,13 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{renderTriggerNode}</PopoverTrigger>
+      {renderTriggerNode}
       <PopoverContent
         align="start"
         sideOffset={4}
-        className="w-(--radix-popover-trigger-width) min-w-60 p-0"
+        // Radix exposes --radix-popover-trigger-width, Base UI --anchor-width
+        // (F-cross-13) — cover both; min-w-60 is the last-resort floor.
+        className="w-(--radix-popover-trigger-width,var(--anchor-width)) min-w-60 p-0"
       >
         <Command filter={filterFn} loop>
           <CommandInput

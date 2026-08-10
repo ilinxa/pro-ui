@@ -5,8 +5,8 @@
  * Edit / Status / Priority / Delete. Every action routes through the same
  * `use-calendar-edit` dispatchers as the pointer paths (single chokepoint). When
  * editing is off or nothing is permitted, it renders the child unwrapped — zero
- * overhead in the read-only path. Mirrors gantt's `GanttContextMenu`
- * (`ContextMenuTrigger asChild` is the cross-backend-safe shape).
+ * overhead in the read-only path. Mirrors gantt's `GanttContextMenu` (same
+ * F-cross-13 path-b trigger shape — see the trigger comment below).
  */
 
 import type { ReactNode } from "react";
@@ -72,7 +72,12 @@ export function CalendarEventContextMenu({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+      {/* F-cross-13 path-b: `asChild` is Radix-only (Base UI rejects it). The
+          trigger renders its own wrapper element (a <span> — non-button in both
+          backends); `contents` makes it box-less so layout is untouched, and
+          right-click / long-press bubble up from the child to the trigger's
+          listeners — no prop injection into `children` needed. (v0.2.5) */}
+      <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-44">
         {canEdit ? (
           <ContextMenuItem onSelect={() => ctx.openEditor(item.id)}>

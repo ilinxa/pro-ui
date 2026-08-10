@@ -24,6 +24,7 @@ export const meta: ComponentMeta = {
     "v0.3 — onMobileOpenChange.reason discriminator correctly fires trigger / item-click / outside-click / escape / imperative",
     "v0.3 — openMobile / closeMobile / toggleMobile accept optional reason? param",
     "v0.3 — NavUserMenuItem.onClick widened to Event | React.MouseEvent (exported as NavUserMenuItemSelectEvent)",
+    "v0.3.2 (2026-08-11) — F-cross-13 path-b sweep: zero asChild on shadcn primitives (NavUser trigger IS the DropdownMenuTrigger; href menu rows nest the anchor inside the item; NavPrimaryAction href path uses buttonVariants on the link); collapsed-rail tooltip reimplemented locally — delay honored cross-backend, no Radix-only delayDuration. Zero public-API change.",
     "Active-route detection: currentPath + isActive predicate + per-item match",
     "linkComponent abstraction (router-agnostic — Next.js, React Router, TanStack)",
     "13 slots (named + render-prop, incl. v0.2 topSlot) + 4 prefab parts (NavBadge, NavBrand, NavPrimaryAction, NavUser)",
@@ -33,7 +34,7 @@ export const meta: ComponentMeta = {
     "Permissions membership gating + diff-based onPermissionDenied",
     "localStorage opt-in persist for collapse + collapsed-sections",
     "Full WAI-ARIA pattern, keyboard nav, skip-link, reduced-motion respect",
-    "F-cross-13 defensive: Tooltip + Sheet + DropdownMenu callbacks pre-emptively widened",
+    "F-cross-13 defensive: Sheet + DropdownMenu callbacks pre-emptively widened (Tooltip primitive dropped in v0.3.2 — local implementation)",
   ],
   tags: [
     "sidebar",
@@ -48,15 +49,17 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.3.1",
+  version: "0.3.2",
   status: "alpha",
   createdAt: "2026-05-22",
-  updatedAt: "2026-08-10",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 
   dependencies: {
-    shadcn: ["tooltip", "sheet", "avatar", "button", "dropdown-menu"],
+    // v0.3.2: "tooltip" dropped — collapsed-rail tooltips are a local
+    // implementation now (F-cross-13 path-b; see parts/tooltip-wrapper.tsx).
+    shadcn: ["sheet", "avatar", "button", "dropdown-menu"],
     npm: {
       "lucide-react": "^1.11.0",
     },

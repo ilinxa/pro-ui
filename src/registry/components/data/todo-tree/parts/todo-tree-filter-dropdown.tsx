@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import type {
@@ -65,22 +65,25 @@ export function TodoTreeFilterDropdown({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          aria-label="Filter"
-          className={cn("h-8 gap-1", className)}
-        >
-          <Filter className="size-3.5" />
-          <span>Filter</span>
-          {totalActive > 0 && (
-            <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
-              {totalActive}
-            </Badge>
-          )}
-        </Button>
+      {/* F-cross-13 path-b: trigger IS the button (native <button> in both
+          backends) — `asChild` is Radix-only; `buttonVariants` reproduces the
+          outline/sm look. (v0.3.2) */}
+      <PopoverTrigger
+        type="button"
+        aria-label="Filter"
+        className={cn(
+          buttonVariants({ variant: "outline", size: "sm" }),
+          "h-8 gap-1",
+          className,
+        )}
+      >
+        <Filter className="size-3.5" />
+        <span>Filter</span>
+        {totalActive > 0 && (
+          <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+            {totalActive}
+          </Badge>
+        )}
       </PopoverTrigger>
       <PopoverContent
         className="w-72 max-h-[60vh] overflow-y-auto p-3"
