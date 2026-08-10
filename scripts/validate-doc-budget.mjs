@@ -20,7 +20,7 @@ const BUDGETS = {
   ".claude/rules/component-readiness-review.md": 2 * 1024,
 };
 
-/** at most this many HANDOFF-* files may sit in .claude/ root (rest → handoffs-archive/) */
+/** at most this many HANDOFF* files may sit in .claude/ root (rest → handoffs-archive/) */
 const MAX_ACTIVE_HANDOFFS = 2;
 
 let failed = false;
@@ -44,7 +44,7 @@ for (const [file, budget] of Object.entries(BUDGETS)) {
 
 const handoffs = fs
   .readdirSync(path.join(root, ".claude"))
-  .filter((f) => f.startsWith("HANDOFF-") && f.endsWith(".md"));
+  .filter((f) => f.startsWith("HANDOFF") && f.endsWith(".md"));
 if (handoffs.length > MAX_ACTIVE_HANDOFFS) {
   console.error(`✗ .claude/: ${handoffs.length} HANDOFF files (max ${MAX_ACTIVE_HANDOFFS}) — archive older ones to .claude/handoffs-archive/.`);
   failed = true;
