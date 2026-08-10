@@ -9,6 +9,28 @@ Severity ladder: 🚫 Blocker · ⚠️ High · 🔸 Medium · 🔹 Low (project
 
 ---
 
+## 0. P1 outcome ledger (added 2026-08-10, post-fix-program)
+
+The P1 fix program (`9de7448..b035f51`, six batches) executed same-day. Every fix was adversarially re-reviewed by three independent verification passes (task/calendar · nav/misc · media) before ship; the media pass caught one real regression in the fixes themselves (N1 below), closed pre-ship.
+
+**FIXED (all verified CONFIRMED-FIXED by the adversarial passes):**
+- §1 broken flows: **1.1–1.6 all fixed** (composer gate + N1 content-aware hardening; text export; re-edit blob restore; step-revisit; calendar Day-view; grid-news featured).
+- §2 task family: **2.1–2.11 all fixed** (2.1's byte-identical round-trip proven by 25 runtime assertions + the cross-agent calendar⇄card seam traced clean). 2.12 (`now`-prop semantics) open → P3.4.
+- §3 distribution: **3.1–3.4 + 3.8 fixed** — `radix-ui` import replaced by a local SlotClone (merge semantics verified against Radix mergeProps); reverse-npm check (found 6 undeclared components beyond the review's 2: article-meta, content-composer, media-carousel×2 deps, media-carousel-editor + the known pair); `validate:registry-json` live in `registry:build`. 3.5 documented-warn; 3.6/3.7/3.9 → P2/P4.
+- §4 docs site: 4.1–4.3 + 10.1/10.2 fixed in P0.
+- §5 cross-cutting Highs: **5.1–5.12 all fixed** (XSS sanitizer survived a 22-vector adversarial smoke; flow-canvas coalescing verified compatible with all three locked defenses).
+- §6 Mediums riding their component batches: media items, workspace bundle, rich-sidebar storage/focus, file-manager marquee/ARIA/type-ahead, trophy-shelf union, quest-log roles, json-form flatten, share-bar mailto, blackboard purity, code-block fixture — fixed. Lint baseline (1E): **81 errors → 0** (3 documented suppressions, all named false-positive classes).
+
+**Adversarial-pass discoveries (beyond the original review):** N1 discard-resurrection regression (⚠️, **fixed**: content-aware `editorStateHasMedia` at 4 layers + pendingBlobRef/blob-cache eviction on discard) · kanban silent-veto ref divergence (🔸, **fixed**: microtask reset to committed state) · calendar Copy missing `.catch` (🔹, **fixed**).
+
+**OPEN with owner (deferred per the Medium/Low routing rule):**
+- 🔸 Re-edited heroes never re-export (media N2, pre-existing) — content-composer v0.2.3.
+- 🔸 Text-export webfonts fall back inside SVG rasterization (media N3) — media-editor v0.2 or doc note.
+- 🔸 §6 unowned remainders: detail-panel focus-steal + namespace compound; gamification viewed-telemetry drift / mounted-live-regions / lazy-barrel verification; task-choice cmdk value collision; fixture URL hygiene (rides P2.5) — P3.4 fix-on-touch channel.
+- 🔹 §7 Lows, media N4–N6, task N3–N6 (gantt DST date-only fallback, 3 date-only convention copies → P3.5 kit, multi-touch gesture ref, `_shared` residuals), markdown image-src scheme filtering (informational, not XSS), IMPORT_RE string-literal residual, rich-sidebar controlled+storageKey doc note, EditPanel durable-draft dead-URL (documented backend deferral) — P3.4 channel; each named here so nothing is silently dropped.
+
+---
+
 ## 1. Broken user flows (fix first)
 
 | # | Severity | Where | Finding |

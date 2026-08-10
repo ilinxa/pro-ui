@@ -64,6 +64,8 @@ P0 and P1 can interleave. P2 MUST precede P3 (feature-slice items inherit slugs 
 
 ## Phase 1 — Stabilize (fix the review) (≈4–6 sessions)
 
+> **✅ EXECUTED 2026-08-10** (same-day, single arc): 6 parallel fix batches + 3 adversarial verify passes; all §1/§2/§5 Blocker+High findings closed, 23 patch bumps, lint 81→0, reverse-npm + registry-json validators live. One fix-introduced regression (N1 discard-resurrection) caught by the adversarial pass and closed pre-ship. Verified live: browser walkthrough (category filter, calendar Day view, markdown XSS end-user path, rich-sidebar, content-composer v0.2.2) + Base-UI consumer smoke. Outcome ledger: review §0. Decision: [`.claude/decisions/2026-08-10-p1-fix-program.md`](../.claude/decisions/2026-08-10-p1-fix-program.md).
+
 **Goal:** zero known High findings on shipped components. Sequencing per review §9, executed as agent batches (see P5-L2):
 
 - **1A Broken flows:** composer publish gate + blob/editorState restore chain (1.1+1.3+1.4 — one design gap), text-mode export (1.2), calendar Day-view all-day (1.5), grid-news featured item (1.6).
