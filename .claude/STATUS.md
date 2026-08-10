@@ -101,6 +101,8 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 
 ## Open decisions / TODOs
 
+- **🔴 P1.5 — F-cross-13 path-b carrier sweep (NEXT, before P2):** ~45 `asChild` trigger sites (~20 components) + 5 ToggleGroup sites (file-manager) + 4 delayDuration sites don't compile on CURRENT base-nova/Base-UI primitives (quantified in review §0 post-ship discoveries; filter-stack/properties-form already patched as the pattern proof). One mechanical pattern; smoke with the REPAIRED harness.
+- **⚠️ shadcn CLI 4.6.0 corrupts consumer package.json on add** (version shuffle across names) — broke the smoke harness silently since ~July; harness re-aligned 2026-08-10. Verify newer CLI versions; smoke results between July and 2026-08-10 are unverified. Details: review §0.
 - **P1 follow-up cohort** (from the fix program's adversarial passes; owners in review §0 ledger): re-export-on-re-edit (composer v0.2.3) · text-export webfonts (media-editor v0.2) · §6/§7 remainders → P3.4 fix-on-touch.
 - **F-cross-13** Radix→Base-UI divergence — path (a) defensive-per-procomp is the standing default; path (b) producer-primitive refresh remains open hygiene. Tracker: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 - **F-S1** cross-procomp `/types` rewriter substitution — relative-imports lock in place; watch for a second trip.
