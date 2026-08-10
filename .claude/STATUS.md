@@ -1,12 +1,12 @@
 # ilinxa-ui-pro — Status
 
-> **Current snapshot — the *now*, not a changelog.** Size budget: ≤14KB (enforced by `pnpm validate:doc-budget`). Per-decision context: [`.claude/decisions/`](decisions/). Pre-2026-05-09 history: [`STATUS-archive.md`](STATUS-archive.md) (frozen). Older handoffs: [`handoffs-archive/`](handoffs-archive/).
+> **Current snapshot — the *now*, not a changelog.** Size budget: ≤14KB (enforced by `pnpm validate:doc-budget`). Per-decision context: [`.claude/decisions/`](decisions/). Pre-2026-05-09 history: [`STATUS-archive.md`](STATUS-archive.md) (frozen). Older handoffs: [`handoffs-archive/`](handoffs-archive/). **Active handoff: [`HANDOFF-2026-08-10-review-plan-p0-p1-complete.md`](HANDOFF-2026-08-10-review-plan-p0-p1-complete.md)** — the resume file for the production-readiness arc.
 >
 > **Last re-slim: 2026-08-10** (120KB → lean, plan P0.3 — third restoration of the lean-snapshot rule after 2026-05-09 and 2026-05-25). Banner-blockquotes are banned here; their content lives in decision files.
 
 ## Now (2026-08-10)
 
-- **Active master plan:** [`docs/production-readiness-plan.md`](../docs/production-readiness-plan.md) — signed off 2026-08-10. **P0 ✅ done · P1 ✅ done (same day)** → next: **P2 great rename** (drop `-NN`, catalog copy rewrite — rename table needs per-row user approval) → P3 feature-slicing → P4 polish/1.0. Locked: D1 drop `-NN` slugs · D2 order P1→P2→P3 · D3 STATUS one-line rows.
+- **Active master plan:** [`docs/production-readiness-plan.md`](../docs/production-readiness-plan.md) — signed off 2026-08-10. **P0 ✅ · P1 ✅ (same day)** → next: **P1.5 carrier sweep** (see Open decisions) then **P2 great rename** (drop `-NN`, catalog copy rewrite — rename table needs per-row user approval) → P3 feature-slicing → P4 polish/1.0. Locked: D1 drop `-NN` slugs · D2 order P1→P2→P3 · D3 STATUS one-line rows.
 - **Deep review 2026-08-10:** [`docs/reviews/2026-08-10-deep-codebase-review.md`](../docs/reviews/2026-08-10-deep-codebase-review.md) — ~90 findings; **all Blocker/High FIXED by P1** (outcome ledger in review §0; open Mediums/Lows have owners there). 23 components patch-bumped ([decision](decisions/2026-08-10-p1-fix-program.md)).
 - Library: **63 pro-components / 9 populated categories**.
 - Gates: tsc 0 · **lint 0 errors** (10 pre-existing warnings) · meta-deps 63/63 (now with reverse-npm check) · **registry-json validator live** · doc validators ✓ · build green.
