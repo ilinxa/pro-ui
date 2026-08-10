@@ -37,7 +37,11 @@ import {
 import { useTreeDndInternal } from "./hooks/use-tree-dnd-internal";
 import { useTreeDndHtml5 } from "./hooks/use-tree-dnd-html5";
 import { evalPermission } from "./lib/permissions";
-import { forEachItem } from "./lib/tree-walker";
+import {
+  findItemWithLevel,
+  forEachItem,
+  pruneNestedIds,
+} from "./lib/tree-walker";
 import { TodoTreeList } from "./parts/todo-tree-list";
 import { TodoTreeDragOverlay } from "./parts/todo-tree-drag-overlay";
 import { TodoTreeToolbar } from "./parts/todo-tree-toolbar";
@@ -143,6 +147,7 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       onSortChanged,
       onFilterChanged,
       onPermissionDenied,
+      permissions,
     });
 
     const stateValue = externalState ?? internalState;
@@ -156,6 +161,14 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
     useEffect(() => {
       stateValueRef.current = stateValue;
     }, [stateValue]);
+    // Permission matrix + denial callback mirrored to refs so the document
+    // clipboard listeners (attach-once) always gate against the live values.
+    const permissionsRef = useRef(permissions);
+    const onPermissionDeniedRef = useRef(onPermissionDenied);
+    useEffect(() => {
+      permissionsRef.current = permissions;
+      onPermissionDeniedRef.current = onPermissionDenied;
+    }, [permissions, onPermissionDenied]);
 
     /* ── cross-surface clipboard (v0.3.0) — copy/cut/paste TodoItems through the
           OS clipboard (shared ilinxa/task envelope). Document-level, gated on the
@@ -179,7 +192,9 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       const targetIds = (): string[] => {
         const s = stateValueRef.current;
         const sel = s.getSelectedIds();
-        if (sel.size > 0) return [...sel];
+        // Prune ids whose ancestor is also selected — a parent's payload
+        // already carries the subtree; keeping both duplicates it on paste.
+        if (sel.size > 0) return pruneNestedIds(s.items, [...sel]);
         return s.focusedItemId ? [s.focusedItemId] : [];
       };
       const collect = (ids: string[]): TodoItem[] =>
@@ -196,10 +211,30 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
       const onCut = (e: ClipboardEvent) => {
         if (!owns() || overText()) return;
         const ids = targetIds();
-        const items = collect(ids);
+        if (ids.length === 0) return;
+        // Gate each id on the remove rule + `locked`, mirroring keyboard
+        // Delete: blocked ids are reported + skipped, allowed ids are cut.
+        const allowed: string[] = [];
+        for (const id of ids) {
+          const found = findItemWithLevel(stateValueRef.current.items, id);
+          if (!found) continue;
+          if (
+            evalPermission(permissionsRef.current, "remove", found.item, found.level)
+          ) {
+            allowed.push(id);
+          } else {
+            onPermissionDeniedRef.current?.({
+              action: "remove",
+              itemId: id,
+              reason:
+                found.item.locked === true ? "denied-by-lock" : "denied-by-rule",
+            });
+          }
+        }
+        const items = collect(allowed);
         if (items.length === 0) return;
         writeTasksToClipboardEvent(e, items, "todo-tree");
-        stateValueRef.current.removeItems(ids);
+        stateValueRef.current.removeItems(allowed);
         e.preventDefault();
       };
       const onPaste = (e: ClipboardEvent) => {
@@ -208,6 +243,30 @@ export const TodoTree = forwardRef<TodoTreeHandle, TodoTreeProps>(
         if (!items) return;
         const s = stateValueRef.current;
         const parentId = s.focusedItemId;
+        if (parentId) {
+          // Gate the graft target on its dropIntoChildren (addChildren) rule +
+          // `locked` — same rule the DnD drop path enforces (TT1 parity).
+          const target = findItemWithLevel(s.items, parentId);
+          if (
+            target &&
+            !evalPermission(
+              permissionsRef.current,
+              "dropIntoChildren",
+              target.item,
+              target.level,
+            )
+          ) {
+            onPermissionDeniedRef.current?.({
+              action: "dropIntoChildren",
+              itemId: parentId,
+              reason:
+                target.item.locked === true ? "denied-by-lock" : "denied-by-rule",
+            });
+            // The payload was ours — consume the event, deny the graft.
+            e.preventDefault();
+            return;
+          }
+        }
         for (const raw of items) {
           const fresh = reassignTaskIds(raw);
           if (parentId) s.addChild(parentId, fresh);

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GanttViewport, GanttZoom } from "../types";
+import { parseGanttDate } from "../lib/geometry";
 import { MS, pxPerMsForZoom, timeAt, zoomForPxPerMs } from "../lib/time-scale";
 
 type Args = {
@@ -208,8 +209,9 @@ export function useGanttViewport(args: Args): GanttViewportApi {
     if (bodyWidth <= 0 || initializedRef.current) return;
     initializedRef.current = true;
     if (range) {
-      const from = Date.parse(range.from);
-      const to = Date.parse(range.to);
+      // Same parser as the bars: date-only range bounds are floating-local.
+      const from = parseGanttDate(range.from);
+      const to = parseGanttDate(range.to);
       if (Number.isFinite(from) && Number.isFinite(to) && to > from) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setViewport({ originMs: from, pxPerMs: clampPx(bodyWidth / (to - from)) });

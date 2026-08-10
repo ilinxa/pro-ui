@@ -10,12 +10,59 @@
 
 import type { GanttBarGeometry, GanttStatusTone, TodoItem } from "../types";
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Parse a TodoItem ISO date value. A bare calendar date (`YYYY-MM-DD`, no `T`)
+ * is the family's all-day form and parses as a FLOATING LOCAL date — NOT via
+ * `Date.parse`, which per spec reads "2026-06-22" as UTC midnight and renders
+ * the bar a day early in negative-UTC offsets (family convention; matches
+ * calendar-01's `parseDateValue`). Full timestamps go through `Date.parse`
+ * unchanged. Returns NaN for missing/unparseable input.
+ */
+export function parseGanttDate(value: string | undefined): number {
+  if (!value) return NaN;
+  if (DATE_ONLY_RE.test(value)) {
+    const [y, m, d] = value.split("-").map(Number);
+    return new Date(y, m - 1, d).getTime();
+  }
+  return Date.parse(value);
+}
+
+/** True for the family's bare `YYYY-MM-DD` all-day form. */
+export function isGanttDateOnly(value: string | undefined): boolean {
+  return typeof value === "string" && DATE_ONLY_RE.test(value);
+}
+
+/**
+ * Serialize an epoch-ms instant back to a stored field whose ORIGINAL value
+ * may have been date-only. When the original was `YYYY-MM-DD` AND the instant
+ * still sits on a floating-local midnight (a whole-day move), the date-only
+ * form is representable — keep it, so an edit never silently converts an
+ * all-day value into a UTC timestamp. Anything else serializes as full ISO.
+ */
+export function serializeGanttDate(ms: number, original: string | undefined): string {
+  if (original !== undefined && DATE_ONLY_RE.test(original)) {
+    const d = new Date(ms);
+    if (
+      d.getHours() === 0 &&
+      d.getMinutes() === 0 &&
+      d.getSeconds() === 0 &&
+      d.getMilliseconds() === 0
+    ) {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+  }
+  return new Date(ms).toISOString();
+}
+
 export function effStartMs(item: TodoItem): number {
-  return Date.parse(item.startAt ?? item.setAt);
+  return parseGanttDate(item.startAt ?? item.setAt);
 }
 
 export function effEndMs(item: TodoItem): number | null {
-  if (item.expireAt) return Date.parse(item.expireAt);
+  if (item.expireAt) return parseGanttDate(item.expireAt);
   if (item.duration != null) return effStartMs(item) + item.duration;
   return null;
 }

@@ -21,6 +21,7 @@ import {
   dataExtent as computeExtent,
   effStartMs,
   geometryFor as computeGeometry,
+  parseGanttDate,
   summarySpan,
 } from "../lib/geometry";
 import { ancestorsOf, flatten, indexById, parentIds } from "../lib/flatten";
@@ -341,7 +342,8 @@ export const GanttTimelineRoot = forwardRef<
   useImperativeHandle(
     ref,
     () => ({
-      scrollToDate: (d) => vp.scrollToMs(Date.parse(d)),
+      // Same parser as the bars: a date-only string is floating-local.
+      scrollToDate: (d) => vp.scrollToMs(parseGanttDate(d)),
       scrollToItem: (id) => scrollToItemId(id),
       scrollToToday: () => vp.scrollToToday(),
       expandAll: () => setCollapsed(new Set()),

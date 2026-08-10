@@ -30,10 +30,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["kanban", "board", "drag-and-drop", "dnd-kit", "swimlanes", "columns", "tasks", "rich-card"],
 
-  version: "0.4.1",
+  version: "0.4.2",
   status: "alpha",
   createdAt: "2026-05-05",
-  updatedAt: "2026-06-19",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 

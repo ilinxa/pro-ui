@@ -37,6 +37,7 @@ import {
   shiftSubtree,
   subtreeLeaves,
 } from "../lib/edit-mutations";
+import { parseGanttDate } from "../lib/geometry";
 import { evalGanttPermission } from "../lib/edit-permissions";
 import {
   copyTasksToClipboard,
@@ -191,7 +192,7 @@ export function useGanttEdit(args: Args) {
       // event whose old/new are the same moment.
       if (
         patch.startAt != null &&
-        Date.parse(updated.startAt ?? "") !== Date.parse(item.startAt ?? "")
+        parseGanttDate(updated.startAt) !== parseGanttDate(item.startAt)
       ) {
         onFieldEdited?.({
           itemId: id,
@@ -202,7 +203,7 @@ export function useGanttEdit(args: Args) {
       }
       if (
         patch.expireAt != null &&
-        Date.parse(updated.expireAt ?? "") !== Date.parse(item.expireAt ?? "")
+        parseGanttDate(updated.expireAt) !== parseGanttDate(item.expireAt)
       ) {
         onFieldEdited?.({
           itemId: id,
@@ -448,7 +449,14 @@ export function useGanttEdit(args: Args) {
     (id: string) => {
       const item = index.get(id)?.item;
       if (!item) return;
-      void copyTasksToClipboard([item], "gantt-timeline-01");
+      // `copyTasksToClipboard` rejects when `navigator.clipboard` is missing
+      // or the write is denied — swallow-and-report instead of leaking an
+      // unhandled rejection.
+      copyTasksToClipboard([item], "gantt-timeline-01").catch(() => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[gantt-timeline-01] copyItem: clipboard write failed");
+        }
+      });
     },
     [index],
   );
@@ -456,8 +464,19 @@ export function useGanttEdit(args: Args) {
     (id: string) => {
       const item = guard("delete", id);
       if (!item) return;
-      void copyTasksToClipboard([item], "gantt-timeline-01");
-      deleteItem(id);
+      // Await the async clipboard write; delete ONLY on fulfillment so a
+      // denied/unavailable clipboard can't destroy the item with nothing
+      // copied. On failure: report, don't throw — the cut is aborted.
+      copyTasksToClipboard([item], "gantt-timeline-01").then(
+        () => deleteItem(id),
+        () => {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              "[gantt-timeline-01] cutItem: clipboard write failed — cut aborted, item was NOT removed",
+            );
+          }
+        },
+      );
     },
     [guard, deleteItem],
   );
@@ -505,6 +524,30 @@ export function useGanttEdit(args: Args) {
               : it,
         );
       const forest = apply(data);
+      // Emit a granular field event per changed editable field, so a consumer
+      // persisting via `onFieldEdited` sees detail-editor edits too — not only
+      // the consolidated forest echo (parity with calendar's v0.2.2 A1 fix).
+      // The embedded card's own granular events are not wired (the editor
+      // passes only `onChange`), so there is no double-fire. `priority` is
+      // intentionally excluded — it is not a `TodoEditableField`, so it
+      // persists via `onChange` only (parity with `changePriority`).
+      const FIELDS: TodoFieldEditedEvent["key"][] = [
+        "name",
+        "description",
+        "status",
+        "active",
+        "setAt",
+        "startAt",
+        "expireAt",
+        "duration",
+      ];
+      for (const key of FIELDS) {
+        const oldValue = prev[key];
+        const newValue = nextItem[key];
+        if (!Object.is(oldValue, newValue)) {
+          onFieldEdited?.({ itemId: nextItem.id, key, oldValue, newValue });
+        }
+      }
       if (prev.status !== nextItem.status) {
         onStatusChanged?.({
           itemId: nextItem.id,
@@ -514,7 +557,7 @@ export function useGanttEdit(args: Args) {
       }
       onChange?.(forest);
     },
-    [data, index, onStatusChanged, onChange],
+    [data, index, onFieldEdited, onStatusChanged, onChange],
   );
 
   const openEditor = useCallback(

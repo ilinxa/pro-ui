@@ -98,8 +98,16 @@ export function parseTasks(text: string | null | undefined): TodoItem[] | null {
       parsed &&
       typeof parsed === "object" &&
       (parsed as Partial<TaskClipboardEnvelope>).kind === TASK_CLIPBOARD_KIND &&
+      // Version gate: only accept the envelope version this reader knows. A
+      // future v2 envelope must not be half-parsed by v1 code.
+      (parsed as Partial<TaskClipboardEnvelope>).version ===
+        TASK_CLIPBOARD_VERSION &&
       Array.isArray((parsed as TaskClipboardEnvelope).items) &&
-      (parsed as TaskClipboardEnvelope).items.length > 0
+      (parsed as TaskClipboardEnvelope).items.length > 0 &&
+      // Structural fence over EVERY item — a right-kind envelope with junk
+      // items (hand-crafted / corrupted JSON) must not paste garbage into a
+      // tree. Any invalid item ⇒ the whole payload is foreign.
+      (parsed as TaskClipboardEnvelope).items.every(looksLikeTodoItem)
     ) {
       return (parsed as TaskClipboardEnvelope).items;
     }

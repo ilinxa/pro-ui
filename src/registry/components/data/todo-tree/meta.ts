@@ -45,10 +45,10 @@ export const meta: ComponentMeta = {
     "virtualization",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   createdAt: "2026-05-20",
-  updatedAt: "2026-06-23",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 

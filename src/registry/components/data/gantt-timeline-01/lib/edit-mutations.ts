@@ -9,7 +9,13 @@
  */
 
 import type { TodoItem } from "../types";
-import { effEndMs, effStartMs } from "./geometry";
+import {
+  effEndMs,
+  effStartMs,
+  isGanttDateOnly,
+  parseGanttDate,
+  serializeGanttDate,
+} from "./geometry";
 
 /** Minimum bar span (ms) so a resize/drag can't collapse a bar to zero width. */
 export const MIN_DURATION_MS = 60_000;
@@ -80,9 +86,20 @@ export function setWindow(
 ): TodoItem[] {
   return replace(data, id, (item) => {
     const next: TodoItem = { ...item, ...patch };
-    const startMs = Date.parse(next.startAt ?? next.setAt);
+    const startMs = parseGanttDate(next.startAt ?? next.setAt);
+    // Date-only (all-day) preservation: when the ORIGINAL field was a bare
+    // YYYY-MM-DD and the patched instant still sits on a local midnight (a
+    // whole-day move), keep the date-only form instead of silently converting
+    // it to a UTC timestamp. Non-date-only originals keep the patch verbatim.
+    if (
+      patch.startAt != null &&
+      isGanttDateOnly(item.startAt) &&
+      Number.isFinite(startMs)
+    ) {
+      next.startAt = serializeGanttDate(startMs, item.startAt);
+    }
     if (next.expireAt != null) {
-      let endMs = Date.parse(next.expireAt);
+      let endMs = parseGanttDate(next.expireAt);
       if (
         Number.isFinite(startMs) &&
         Number.isFinite(endMs) &&
@@ -92,7 +109,9 @@ export function setWindow(
       }
       // Guard: an unparseable date would make `new Date(NaN).toISOString()`
       // throw. Leave a bad `expireAt` untouched rather than crashing the commit.
-      if (Number.isFinite(endMs)) next.expireAt = new Date(endMs).toISOString();
+      if (Number.isFinite(endMs)) {
+        next.expireAt = serializeGanttDate(endMs, item.expireAt);
+      }
     } else if (next.duration != null) {
       next.duration = Math.max(MIN_DURATION_MS, next.duration);
     }
@@ -207,12 +226,14 @@ export function shiftSubtree(
     if (!Number.isFinite(s)) return item;
     const next: TodoItem = {
       ...item,
-      startAt: new Date(s + deltaMs).toISOString(),
+      // Date-only originals keep the YYYY-MM-DD form on whole-day shifts
+      // (serializeGanttDate); anything else serializes as full ISO, as before.
+      startAt: serializeGanttDate(s + deltaMs, item.startAt),
     };
     if (item.expireAt != null) {
       const e = effEndMs(item);
       const base = e != null && Number.isFinite(e) ? e : s;
-      next.expireAt = new Date(base + deltaMs).toISOString();
+      next.expireAt = serializeGanttDate(base + deltaMs, item.expireAt);
     }
     return next;
   };

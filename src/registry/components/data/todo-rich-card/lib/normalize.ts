@@ -11,7 +11,7 @@
  */
 
 import type { TodoItem, TodoNode } from "../types";
-import { parseIso, toIso } from "./time";
+import { isDateOnly, normalizeIsoField, parseIso } from "./time";
 
 export type NormalizationError = {
   path: string;
@@ -195,10 +195,15 @@ function normalizeNode(
   const status = typeof raw.status === "string" ? raw.status : "";
   const active = typeof raw.active === "boolean" ? raw.active : true;
 
-  // setAt is required. Recover to now() ISO if missing/invalid.
+  // setAt is required. Recover to now() ISO if missing/invalid. A date-only
+  // `YYYY-MM-DD` round-trips VERBATIM (all-day form; see normalizeIsoField).
   const setAtRaw = typeof raw.setAt === "string" ? raw.setAt : "";
   const setAtDate = parseIso(setAtRaw);
-  const setAt = setAtDate ? setAtDate.toISOString() : new Date().toISOString();
+  const setAt = setAtDate
+    ? isDateOnly(setAtRaw)
+      ? setAtRaw
+      : setAtDate.toISOString()
+    : new Date().toISOString();
   if (!setAtDate) {
     ctx.errors.push({
       path: `${path}.setAt`,
@@ -208,11 +213,11 @@ function normalizeNode(
 
   const startAt =
     typeof raw.startAt === "string"
-      ? toIso(parseIso(raw.startAt))
+      ? normalizeIsoField(raw.startAt)
       : undefined;
   const expireAt =
     typeof raw.expireAt === "string"
-      ? toIso(parseIso(raw.expireAt))
+      ? normalizeIsoField(raw.expireAt)
       : undefined;
   const duration =
     typeof raw.duration === "number" && Number.isFinite(raw.duration) && raw.duration > 0

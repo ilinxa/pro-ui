@@ -5,6 +5,18 @@
 const ISO_8601_RE =
   /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?)?$/;
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * True for a bare `YYYY-MM-DD` calendar date (no time component). Date-only
+ * values are the family's all-day form and must round-trip VERBATIM — never
+ * re-serialized via `toISOString()`, which would rewrite them to a UTC
+ * timestamp and destroy all-day classification downstream (calendar).
+ */
+export function isDateOnly(value: string | undefined | null): boolean {
+  return typeof value === "string" && DATE_ONLY_RE.test(value);
+}
+
 /** Returns Date or null. Validates format AND parseability (rejects "2026-12-99"). */
 export function parseIso(value: string | undefined | null): Date | null {
   if (!value || typeof value !== "string") return null;
@@ -17,6 +29,19 @@ export function parseIso(value: string | undefined | null): Date | null {
 export function toIso(date: Date | null | undefined): string | undefined {
   if (!date || !Number.isFinite(date.getTime())) return undefined;
   return date.toISOString();
+}
+
+/**
+ * Validating normalizer for a stored ISO field. Invalid input → undefined
+ * (unchanged recovery behavior); a date-only `YYYY-MM-DD` passes through
+ * VERBATIM (the all-day form is part of the value, not a formatting detail);
+ * full timestamps canonicalize via `toISOString()` as before.
+ */
+export function normalizeIsoField(value: string): string | undefined {
+  const d = parseIso(value);
+  if (!d) return undefined;
+  if (isDateOnly(value)) return value;
+  return d.toISOString();
 }
 
 /**

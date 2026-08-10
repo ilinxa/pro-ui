@@ -7,7 +7,7 @@ import {
   useReducer,
   useRef,
 } from "react";
-import type { TodoItem } from "../../todo-rich-card/types";
+import type { TodoItem, TodoPermissions } from "../../todo-rich-card/types";
 import type {
   TodoTreeChangeArgs,
   TodoTreeFilter,
@@ -22,7 +22,12 @@ import {
   type State,
 } from "../lib/reducer";
 import { computeVisibleItems } from "../lib/visible-items";
-import { findItemById } from "../lib/tree-walker";
+import { evalPermission } from "../lib/permissions";
+import {
+  findItemById,
+  findItemWithLevel,
+  pruneNestedIds,
+} from "../lib/tree-walker";
 import {
   copyTasksToClipboard,
   readTasksFromClipboard,
@@ -48,6 +53,13 @@ export interface UseTodoTreeStateArgs extends TreeEventCallbacks {
    * hooks mutate. When omitted, controlled-mode allocates its own inert ref.
    */
   isDraggingRef?: React.MutableRefObject<boolean>;
+  /**
+   * Declarative permission matrix (defaults to allow-all when omitted).
+   * Gates the imperative clipboard ops — `cutItems` on the remove rule +
+   * `locked`, `pasteItems` on the target's addChildren rule — mirroring the
+   * keyboard / DnD paths. Denials fire `onPermissionDenied`.
+   */
+  permissions?: TodoPermissions;
 }
 
 /**
@@ -74,6 +86,7 @@ export function useTodoTreeState(
     defaultFilter,
     filterMode = "fade",
     isDraggingRef,
+    permissions,
     ...eventCallbacks
   } = args;
 
@@ -354,21 +367,77 @@ export function useTodoTreeState(
         dispatch({ type: "CLEAR_FILTERS" });
       },
       copyItems: (ids) => {
-        const items = collectItems(resolveTargetIds(ids));
+        // Prune ids whose ancestor is also targeted — the ancestor's payload
+        // already carries the subtree (a duplicate would re-paste it twice).
+        const items = collectItems(
+          pruneNestedIds(state.items, resolveTargetIds(ids)),
+        );
         if (items.length === 0) return;
-        void copyTasksToClipboard(items, "todo-tree");
+        copyTasksToClipboard(items, "todo-tree").catch(() => {
+          // Clipboard unavailable / write denied — nothing to roll back.
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("[todo-tree] copyItems: clipboard write failed");
+          }
+        });
       },
       cutItems: (ids) => {
-        const targetIds = resolveTargetIds(ids);
-        const items = collectItems(targetIds);
+        const targetIds = pruneNestedIds(state.items, resolveTargetIds(ids));
+        // Gate each id on the remove rule + `locked`, mirroring keyboard
+        // Delete: blocked ids are reported + skipped, allowed ids are cut.
+        const allowed: string[] = [];
+        for (const id of targetIds) {
+          const found = findItemWithLevel(state.items, id);
+          if (!found) continue;
+          if (evalPermission(permissions, "remove", found.item, found.level)) {
+            allowed.push(id);
+          } else {
+            fireRef.current("permissionDenied", {
+              action: "remove",
+              itemId: id,
+              reason:
+                found.item.locked === true ? "denied-by-lock" : "denied-by-rule",
+            });
+          }
+        }
+        const items = collectItems(allowed);
         if (items.length === 0) return;
-        void copyTasksToClipboard(items, "todo-tree");
-        dispatch({ type: "REMOVE_ITEMS", ids: targetIds });
-        fireRef.current("bulkRemove", { ids: targetIds });
+        // Await the async clipboard write; remove ONLY on fulfillment so a
+        // denied/unavailable clipboard can't destroy items with nothing copied.
+        copyTasksToClipboard(items, "todo-tree").then(
+          () => {
+            dispatch({ type: "REMOVE_ITEMS", ids: allowed });
+            fireRef.current("bulkRemove", { ids: allowed });
+          },
+          () => {
+            // Report, don't throw — the cut is aborted, items preserved.
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                "[todo-tree] cutItems: clipboard write failed — cut aborted, items were NOT removed",
+              );
+            }
+          },
+        );
       },
       pasteItems: (parentId) => {
         // Match the keyboard path: omitted → paste under the focused row (root if none).
         const target = parentId ?? state.focusedItemId ?? null;
+        if (target) {
+          // Gate the graft target on its addChildren (dropIntoChildren) rule +
+          // `locked` — same rule the DnD drop path enforces (TT1 parity).
+          const found = findItemWithLevel(state.items, target);
+          if (
+            found &&
+            !evalPermission(permissions, "dropIntoChildren", found.item, found.level)
+          ) {
+            fireRef.current("permissionDenied", {
+              action: "dropIntoChildren",
+              itemId: target,
+              reason:
+                found.item.locked === true ? "denied-by-lock" : "denied-by-rule",
+            });
+            return;
+          }
+        }
         void readTasksFromClipboard().then((items) => {
           if (!items || items.length === 0) return;
           // Re-id every grafted subtree so a paste can't collide.
@@ -402,6 +471,7 @@ export function useTodoTreeState(
     dispatch,
     selection.selectRange,
     selection.selectAllVisible,
+    permissions,
   ]);
 
   // Compose the public state value. Spread the handle so all 26 methods land

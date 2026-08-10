@@ -79,6 +79,41 @@ export function findIndexUnder(
   return parent.children.findIndex((i) => i.id === id);
 }
 
+/**
+ * Locate an item AND its depth (0-based, matching the visible-row `level`
+ * convention). Returns null when `id` is not in the tree. Used by the
+ * clipboard paths to evaluate level-keyed permission rules.
+ */
+export function findItemWithLevel(
+  items: ReadonlyArray<TodoItem>,
+  id: string,
+): { item: TodoItem; level: number } | null {
+  let out: { item: TodoItem; level: number } | null = null;
+  forEachItem(items, (item, level) => {
+    if (item.id === id) {
+      out = { item, level };
+      return false;
+    }
+  });
+  return out;
+}
+
+/**
+ * Prune ids whose ANCESTOR is also in the set. A copy/cut of a parent already
+ * carries its whole subtree, so serializing a selected descendant a second
+ * time would duplicate it on paste.
+ */
+export function pruneNestedIds(
+  items: ReadonlyArray<TodoItem>,
+  ids: ReadonlyArray<string>,
+): string[] {
+  if (ids.length <= 1) return [...ids];
+  const idSet = new Set(ids);
+  return ids.filter(
+    (id) => !findAncestors(items, id).some((a) => idSet.has(a.id)),
+  );
+}
+
 /** Visit every item depth-first. Stops when visitor returns false. */
 export function forEachItem(
   items: ReadonlyArray<TodoItem>,

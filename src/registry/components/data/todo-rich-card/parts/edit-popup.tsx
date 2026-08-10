@@ -23,10 +23,15 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useCardContext } from "../hooks/use-card-context";
+import { isDateOnly } from "../lib/time";
 import type { TodoEditableField, TodoItem, TodoNode } from "../types";
 
 function isoToDatetimeLocal(iso: string | undefined): string {
   if (!iso) return "";
+  // Date-only (all-day) value: seed the input at LOCAL midnight of that
+  // calendar day. `new Date("YYYY-MM-DD")` parses as UTC midnight, which
+  // renders on the previous local day in negative-UTC offsets.
+  if (isDateOnly(iso)) return `${iso}T00:00`;
   const d = new Date(iso);
   if (!Number.isFinite(d.getTime())) return "";
   // datetime-local expects "YYYY-MM-DDTHH:mm" in local time.
@@ -34,10 +39,24 @@ function isoToDatetimeLocal(iso: string | undefined): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function datetimeLocalToIso(local: string): string | undefined {
+/**
+ * Serialize an EDITED datetime-local input back to the stored form. When the
+ * field's original value was date-only (all-day) and the edited value still
+ * sits at a local midnight, the date-only form is representable — keep it
+ * (`YYYY-MM-DD`, never `toISOString()` for date-only). Anything else
+ * serializes as a full ISO timestamp, as before.
+ */
+function datetimeLocalToIso(
+  local: string,
+  original?: string,
+): string | undefined {
   if (!local) return undefined;
   const d = new Date(local);
-  return Number.isFinite(d.getTime()) ? d.toISOString() : undefined;
+  if (!Number.isFinite(d.getTime())) return undefined;
+  if (original !== undefined && isDateOnly(original) && /T00:00(:00)?$/.test(local)) {
+    return local.slice(0, 10);
+  }
+  return d.toISOString();
 }
 
 type Draft = {
@@ -120,9 +139,21 @@ export function EditPopup({ node }: { node: TodoNode }) {
       });
     }
 
-    emit("setAt", item.setAt, datetimeLocalToIso(draft.setAt) ?? item.setAt);
-    emit("startAt", item.startAt, datetimeLocalToIso(draft.startAt));
-    emit("expireAt", item.expireAt, datetimeLocalToIso(draft.expireAt));
+    // Date fields: only emit when the INPUT actually changed. The stored form
+    // (date-only / offset timestamp / seconds) doesn't survive the
+    // datetime-local round-trip, so re-serializing an untouched field would
+    // rewrite the stored value and fire a phantom fieldEdited on a name-only
+    // save. Untouched ⇒ skipped ⇒ the stored string stays byte-identical.
+    const baseline = itemToDraft(item);
+    if (draft.setAt !== baseline.setAt) {
+      emit("setAt", item.setAt, datetimeLocalToIso(draft.setAt, item.setAt) ?? item.setAt);
+    }
+    if (draft.startAt !== baseline.startAt) {
+      emit("startAt", item.startAt, datetimeLocalToIso(draft.startAt, item.startAt));
+    }
+    if (draft.expireAt !== baseline.expireAt) {
+      emit("expireAt", item.expireAt, datetimeLocalToIso(draft.expireAt, item.expireAt));
+    }
 
     const durMinutes = draft.duration === "" ? null : Number(draft.duration);
     const durMs =
