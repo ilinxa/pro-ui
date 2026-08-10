@@ -12,7 +12,6 @@
     "checkbox",
     "input",
     "switch",
-    "toggle-group",
     "tooltip"
   ],
   "files": [
@@ -108,7 +107,7 @@
     },
     {
       "path": "src/registry/components/forms/filter-stack/parts/mode-toggle.tsx",
-      "content": "\"use client\";\n\nimport { ToggleGroup, ToggleGroupItem } from \"@/components/ui/toggle-group\";\nimport type { FilterMode } from \"../types\";\n\ninterface ModeToggleProps {\n  value: FilterMode;\n  onChange: (mode: FilterMode) => void;\n  ariaLabel: string;\n}\n\nexport function ModeToggle({ value, onChange, ariaLabel }: ModeToggleProps) {\n  return (\n    <ToggleGroup\n      type=\"single\"\n      size=\"sm\"\n      value={value}\n      onValueChange={(next) => {\n        if (next === \"union\" || next === \"intersection\") onChange(next);\n      }}\n      aria-label={ariaLabel}\n      variant=\"outline\"\n      className=\"text-xs\"\n    >\n      <ToggleGroupItem value=\"union\" className=\"px-2 text-xs\">\n        Union\n      </ToggleGroupItem>\n      <ToggleGroupItem value=\"intersection\" className=\"px-2 text-xs\">\n        Intersection\n      </ToggleGroupItem>\n    </ToggleGroup>\n  );\n}\n",
+      "content": "\"use client\";\n\nimport { cn } from \"@/lib/utils\";\nimport type { FilterMode } from \"../types\";\n\ninterface ModeToggleProps {\n  value: FilterMode;\n  onChange: (mode: FilterMode) => void;\n  ariaLabel: string;\n}\n\nconst MODES: Array<{ mode: FilterMode; label: string }> = [\n  { mode: \"union\", label: \"Union\" },\n  { mode: \"intersection\", label: \"Intersection\" },\n];\n\n/**\n * Plain-button segmented control. Deliberately NOT shadcn ToggleGroup — its\n * value model diverges between Radix (single: string) and Base UI (string[]),\n * an F-cross-13 carrier that breaks Base-UI consumers (calendar-01 v0.2.1\n * precedent: same swap, toggle-group dep dropped).\n */\nexport function ModeToggle({ value, onChange, ariaLabel }: ModeToggleProps) {\n  return (\n    <div\n      role=\"group\"\n      aria-label={ariaLabel}\n      className=\"inline-flex overflow-hidden rounded-md border border-input\"\n    >\n      {MODES.map(({ mode, label }) => (\n        <button\n          key={mode}\n          type=\"button\"\n          aria-pressed={value === mode}\n          onClick={() => onChange(mode)}\n          className={cn(\n            \"px-2 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring\",\n            value === mode\n              ? \"bg-accent text-accent-foreground\"\n              : \"bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground\",\n          )}\n        >\n          {label}\n        </button>\n      ))}\n    </div>\n  );\n}\n",
       "type": "registry:component",
       "target": "components/filter-stack/parts/mode-toggle.tsx"
     },

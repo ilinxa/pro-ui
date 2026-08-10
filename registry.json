@@ -256,7 +256,7 @@
       "description": "Schema-driven controlled filter panel. Four built-in filter types (checkbox-list / toggle / text / custom), AND-across-categories with host-defined within-category semantics, mode toggle (Union/Intersection), per-option solo, debounced text with flush-on-blur + ESC-clears, custom-render slot with error boundary.",
       "author": "ilinxa",
       "categories": ["forms", "graph-system"],
-      "registryDependencies": ["button", "checkbox", "input", "switch", "toggle-group", "tooltip"],
+      "registryDependencies": ["button", "checkbox", "input", "switch", "tooltip"],
       "dependencies": ["lucide-react"],
       "files": [
         { "path": "src/registry/components/forms/filter-stack/filter-stack.tsx", "type": "registry:component", "target": "components/filter-stack/filter-stack.tsx" },

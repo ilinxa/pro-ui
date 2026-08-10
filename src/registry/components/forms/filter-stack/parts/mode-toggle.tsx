@@ -1,6 +1,6 @@
 "use client";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 import type { FilterMode } from "../types";
 
 interface ModeToggleProps {
@@ -9,25 +9,40 @@ interface ModeToggleProps {
   ariaLabel: string;
 }
 
+const MODES: Array<{ mode: FilterMode; label: string }> = [
+  { mode: "union", label: "Union" },
+  { mode: "intersection", label: "Intersection" },
+];
+
+/**
+ * Plain-button segmented control. Deliberately NOT shadcn ToggleGroup — its
+ * value model diverges between Radix (single: string) and Base UI (string[]),
+ * an F-cross-13 carrier that breaks Base-UI consumers (calendar-01 v0.2.1
+ * precedent: same swap, toggle-group dep dropped).
+ */
 export function ModeToggle({ value, onChange, ariaLabel }: ModeToggleProps) {
   return (
-    <ToggleGroup
-      type="single"
-      size="sm"
-      value={value}
-      onValueChange={(next) => {
-        if (next === "union" || next === "intersection") onChange(next);
-      }}
+    <div
+      role="group"
       aria-label={ariaLabel}
-      variant="outline"
-      className="text-xs"
+      className="inline-flex overflow-hidden rounded-md border border-input"
     >
-      <ToggleGroupItem value="union" className="px-2 text-xs">
-        Union
-      </ToggleGroupItem>
-      <ToggleGroupItem value="intersection" className="px-2 text-xs">
-        Intersection
-      </ToggleGroupItem>
-    </ToggleGroup>
+      {MODES.map(({ mode, label }) => (
+        <button
+          key={mode}
+          type="button"
+          aria-pressed={value === mode}
+          onClick={() => onChange(mode)}
+          className={cn(
+            "px-2 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            value === mode
+              ? "bg-accent text-accent-foreground"
+              : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }
