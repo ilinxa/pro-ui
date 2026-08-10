@@ -29,6 +29,25 @@ function getReducedMotionServerSnapshot(): boolean {
   return false;
 }
 
+// --- controlled-event content equality (v0.1.2, review 5.12) ---
+// The controlled `event` prop is diffed by CONTENT so an inline object literal
+// re-created each parent render doesn't re-dispatch `open`. `eventKey` is the
+// explicit escape hatch: bump it to force a re-open with identical copy.
+function sameEventContent(
+  a: FeedbackEvent | null,
+  b: FeedbackEvent | null,
+): boolean {
+  if (a === b) return true;
+  if (a === null || b === null) return false;
+  return (
+    a.kind === b.kind &&
+    a.title === b.title &&
+    a.detail === b.detail &&
+    a.narrativeBeat === b.narrativeBeat &&
+    a.eventKey === b.eventKey
+  );
+}
+
 // --- the single chokepoint reducer (both trigger paths funnel here, C3/C5) ---
 type FeedbackState = {
   current: FeedbackEvent | null;
@@ -139,10 +158,19 @@ export const TeamFeedbackLoopRoot = React.forwardRef<
   }, [current, epoch, celebrationDurationMs]);
 
   // --- controlled `event` prop → funnels into the reducer (undefined = imperative-only) ---
+  // v0.1.2 (review 5.12): compared by CONTENT, not identity. An inline object
+  // literal — the idiomatic React shape — used to re-dispatch `open` on every
+  // parent render: the auto-dismiss timer re-armed forever and a skipped
+  // celebration re-opened. Same content ⇒ no re-open; a changed `eventKey`
+  // (see types.ts) is part of the content and force-re-opens on demand.
   const lastEventRef = React.useRef<FeedbackEvent | null | undefined>(undefined);
   React.useEffect(() => {
     if (event === undefined) return; // uncontrolled: imperative handle only
-    if (event === lastEventRef.current) return;
+    const last = lastEventRef.current;
+    if (last !== undefined && sameEventContent(last, event)) {
+      lastEventRef.current = event; // track the latest reference, no dispatch
+      return;
+    }
     lastEventRef.current = event;
     if (event != null) {
       dispatch({ type: "open", event });

@@ -304,7 +304,7 @@ export function CodeBlock(props: CodeBlockProps) {
       const headerCtx = {
         filename,
         lang,
-        copyButton: showCopy ? <CodeBlockCopyButton /> : (null as never),
+        copyButton: showCopy ? <CodeBlockCopyButton /> : null,
         expandButton: showExpand ? <CodeBlockExpandButton /> : null,
         wrapButton: showWrap ? <CodeBlockWrapButton /> : null,
         downloadButton: showDownload ? <CodeBlockDownloadButton /> : null,
@@ -327,9 +327,14 @@ export function CodeBlock(props: CodeBlockProps) {
   })();
 
   // Modal body — same instance with expand off + maxLines undefined.
+  // `ref={undefined}` (v0.1.2, review 5.10): `{...props}` would re-pass the
+  // consumer's `ref` to this inner clone — the imperative handle would
+  // re-target the modal instance and go stale when the modal closes. The
+  // outer instance stays the sole handle owner.
   const expandedInner = (
     <CodeBlock
       {...props}
+      ref={undefined}
       header={true}
       showExpand={false}
       maxLines={undefined}

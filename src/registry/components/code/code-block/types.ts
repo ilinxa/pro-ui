@@ -79,7 +79,8 @@ export interface CodeBlockFilenameToLangArgs {
 export interface CodeBlockHeaderContext {
   filename: string | undefined;
   lang: string;
-  copyButton: ReactNode;
+  /** `null` when `showCopy` is false (v0.1.2 — widened; was an unsound `null as never`). */
+  copyButton: ReactNode | null;
   expandButton: ReactNode | null;
   wrapButton: ReactNode | null;
   downloadButton: ReactNode | null;
@@ -149,7 +150,17 @@ export interface CodeBlockProps {
   // Edit
   onChange?: (args: CodeBlockChangeArgs) => void;
   onSave?: (args: CodeBlockSaveArgs) => void;
+  /**
+   * Editor tab size. INITIAL-ONLY (v0.1.2): applied when the CodeMirror
+   * editor is created; later changes are not re-applied. Remount the block
+   * (React `key`) to change it after mount.
+   */
   tabSize?: number;
+  /**
+   * Extra CodeMirror extensions for edit mode. INITIAL-ONLY (v0.1.2): the
+   * array captured at editor creation is baked into the EditorState; identity
+   * or content changes after mount are ignored. Remount (React `key`) to swap.
+   */
   editorExtensions?: Extension[];
 
   // Header

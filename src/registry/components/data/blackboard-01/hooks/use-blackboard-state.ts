@@ -256,13 +256,18 @@ export function useBlackboardController(props: BlackboardRootProps): BlackboardC
 
   const retryPost = useCallback(
     (id: string) => {
-      setExtras((prev) => {
-        const note = prev.find((e) => e.id === id);
-        if (note) submit({ ...note, pending: true, failed: false });
-        return prev.map((e) => (e.id === id ? { ...e, pending: true, failed: false } : e));
-      });
+      // v0.1.1 (review §6 medium) — read the note BEFORE dispatch and submit
+      // OUTSIDE the updater. Calling `submit` (→ consumer `onPostNote`
+      // network call) inside the setExtras updater was impure: StrictMode's
+      // double-invoked updater posted the note to the server twice.
+      const note = extras.find((e) => e.id === id);
+      if (!note) return;
+      setExtras((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, pending: true, failed: false } : e)),
+      );
+      submit({ ...note, pending: true, failed: false });
     },
-    [submit],
+    [extras, submit],
   );
 
   // ── delete ───────────────────────────────────────────────

@@ -111,11 +111,19 @@ function fromXyEdge(e: XyEdge): EdgeRecord {
 // warning during the re-measurement window.
 //
 // Compares id / position.x / position.y / data-ref on nodes, id / source /
-// target on edges, viewport x/y/zoom. Width/height intentionally NOT
-// compared — those are xyflow-managed (`measured` field) and don't round-trip
-// through NodeRecord cleanly. O(N) over nodes + edges; short-circuits on
-// first mismatch. Fast enough for controlled-mode consumers at N up to a few
-// thousand; for larger canvases, prefer `defaultData` (uncontrolled).
+// target on edges. Width/height intentionally NOT compared — those are
+// xyflow-managed (`measured` field) and don't round-trip through NodeRecord
+// cleanly. O(N) over nodes + edges; short-circuits on first mismatch. Fast
+// enough for controlled-mode consumers at N up to a few thousand; for larger
+// canvases, prefer `defaultData` (uncontrolled).
+//
+// v0.2.6 — viewport intentionally NOT compared (it was in v0.2.3–v0.2.5):
+// the camera can only be set at mount (`defaultViewport`); a `data.viewport`
+// change cannot move it afterwards, while the internal viewport now
+// live-tracks the real camera via `onMoveEnd`. Comparing them would make
+// every consumer echo that raced a pan/zoom look like a genuine external
+// change and trigger exactly the wholesale replace (measured-wipe → xyflow
+// #015) this guard exists to prevent. Nodes + edges alone decide.
 //
 // v0.2.4 — this check alone wasn't sufficient against the stale-snapshot
 // race: mid-drag mixed batches (position + dimensions) queued microtasks
@@ -130,11 +138,7 @@ function canvasMatchesInternalState(
   data: CanvasData,
   internalNodes: XyNode<XyNodeData>[],
   internalEdges: XyEdge[],
-  internalViewport: CanvasData["viewport"],
 ): boolean {
-  if (data.viewport?.x !== internalViewport?.x) return false;
-  if (data.viewport?.y !== internalViewport?.y) return false;
-  if (data.viewport?.zoom !== internalViewport?.zoom) return false;
   if (data.nodes.length !== internalNodes.length) return false;
   if (data.edges.length !== internalEdges.length) return false;
   for (let i = 0; i < data.nodes.length; i++) {
@@ -171,6 +175,14 @@ export type UseCanvasDataResult = {
   // Internal only — not re-exported from index.ts.
   onNodeDragStart: () => void;
   onNodeDragStop: () => void;
+  // Camera tracking — bind to <ReactFlow>'s onMoveEnd prop. Syncs the real
+  // viewport into state/ref after every pan/zoom so snapshot()/export/onChange
+  // carry the actual camera (v0.2.6; previously the viewport slice stayed
+  // frozen at its mount-time value). Camera-only moves deliberately do NOT
+  // fire onChange — a pan is not a data edit (and mount-time fitView would
+  // otherwise mark consumer documents dirty); the tracked value rides along
+  // on the next data-driven fire. Internal only — not re-exported.
+  onMoveEnd: (event: unknown, viewport: { x: number; y: number; zoom: number }) => void;
   // Snapshot in our CanvasData shape (used by exportRef + viewport setters)
   snapshot: () => CanvasData;
   // Imperative helpers used by drop pipeline / sub-object extract / menus
@@ -236,6 +248,11 @@ export function useCanvasData({
   // see xyflow-react-pro skill "Performance" + "useCallback every event
   // handler". At 200 nodes, dep-changing handlers cascade into a full
   // ReactFlow reconciliation on every drag tick.
+  //
+  // v0.2.6 — every mutation site ALSO syncs its ref synchronously (inside
+  // its updater / before a direct set) so the coalesced fireOnChange
+  // microtask reads current state; the useEffect syncs below remain as the
+  // post-commit safety net (they also cover React discarding a render).
   const nodesRef = useRef(internalNodes);
   const edgesRef = useRef(internalEdges);
   const viewportRef = useRef(viewport);
@@ -297,19 +314,22 @@ export function useCanvasData({
     lastControlledData.current = data;
     if (
       data &&
-      canvasMatchesInternalState(
-        data,
-        nodesRef.current,
-        edgesRef.current,
-        viewportRef.current,
-      )
+      canvasMatchesInternalState(data, nodesRef.current, edgesRef.current)
     ) {
       // Round-trip echo — internal state already correct, no resync.
       return;
     }
-    setInternalNodes((data ?? EMPTY).nodes.map(toXyNode));
-    setInternalEdges((data ?? EMPTY).edges.map(toXyEdge));
-    setViewport(data?.viewport);
+    const nextNodes = (data ?? EMPTY).nodes.map(toXyNode);
+    const nextEdges = (data ?? EMPTY).edges.map(toXyEdge);
+    nodesRef.current = nextNodes;
+    edgesRef.current = nextEdges;
+    setInternalNodes(nextNodes);
+    setInternalEdges(nextEdges);
+    // v0.2.6 — viewport deliberately NOT adopted from `data`: the camera
+    // cannot be moved post-mount by the data prop (defaultViewport only) and
+    // the internal viewport tracks the REAL camera via onMoveEnd; overwriting
+    // it here would make snapshot()/onChange report a camera the user isn't
+    // seeing.
   }, [isControlled, data]);
 
   // v0.2.2 lock: notify the consumer in a microtask AFTER React commits the
@@ -333,47 +353,59 @@ export function useCanvasData({
   //   F-V4 still holds (all 13 sites get the SAME deferred behavior, not a
   //   mixed bag of one-microtask-deferred + twelve-still-synchronous).
   //
-  // - Capture semantics: `nodes` / `edges` / `vp` are captured in closure.
-  //   Post-`applyNodeChanges`/`applyEdgeChanges`/`xyAddEdge` arrays are
-  //   immutable; the `.map(fromXyNode)` runs at microtask time but reads
-  //   the captured references — consumer always sees the state that the
-  //   call site intended to notify about, not whatever state happens to be
-  //   current at microtask-execution time.
+  // - v0.2.6 lock — COALESCED, REF-READ-AT-FIRE-TIME (replaces the v0.2.2
+  //   "capture semantics" paragraph). Previously each call captured
+  //   (nodes, edges, vp) in closure; call sites inside one updater passed
+  //   their own `next` but read the SIBLING slice from its ref synchronously
+  //   — before the sibling's updater/commit effect had run — so multi-slice
+  //   mutations (node delete + edge cascade; keyboard delete's two change
+  //   batches) notified with half-stale snapshots that could resurrect
+  //   dangling edges through the controlled round-trip. Now:
+  //     * every mutation site syncs its ref SYNCHRONOUSLY (inside the
+  //       updater, or before a direct set) and calls the zero-arg
+  //       fireOnChange();
+  //     * multiple requests in one tick coalesce into ONE microtask
+  //       (pending flag), whose body reads nodesRef/edgesRef/viewportRef at
+  //       fire time — by then every same-tick ref sync has happened → one
+  //       complete, self-consistent snapshot;
+  //     * StrictMode's double-invoked updaters coalesce to a single fire for
+  //       free (the double-fire noted in the 2026-08-10 review).
+  //   The v0.2.4 drag guard below is unchanged and composes: fires requested
+  //   during a drag are dropped at microtask time; onNodeDragStop requests
+  //   the single authoritative post-drag fire.
   //
   // - Latency: one microtask. Imperceptible. React batches the consumer's
   //   resulting setState into the next paint either way.
-  const fireOnChange = useCallback(
-    (
-      nodes: XyNode<XyNodeData>[],
-      edges: XyEdge[],
-      vp: CanvasData["viewport"],
-    ) => {
-      queueMicrotask(() => {
-        // v0.2.4 lock — drop the microtask if a drag started between queue
-        // and fire. The captured `nodes` snapshot is from pre-drag (or an
-        // earlier drag tick) and is necessarily stale vs internal state by
-        // microtask time; sending it round-trips a stale data prop that the
-        // structural-equality check rejects → wholesale replace → measured
-        // wiped → xyflow #015. onNodeDragStop fires the authoritative post-
-        // drag snapshot.
-        if (isDraggingRef.current) return;
-        const cb = onChangeRef.current;
-        if (!cb) return;
-        cb({
-          version: 1,
-          nodes: nodes.map(fromXyNode),
-          edges: edges.map(fromXyEdge),
-          viewport: vp,
-        });
+  const firePendingRef = useRef(false);
+  const fireOnChange = useCallback(() => {
+    if (firePendingRef.current) return;
+    firePendingRef.current = true;
+    queueMicrotask(() => {
+      firePendingRef.current = false;
+      // v0.2.4 lock — drop the fire if a drag started between request and
+      // microtask. Mid-drag round-trips would fail the structural-equality
+      // check → wholesale replace → measured wiped → xyflow #015.
+      // onNodeDragStop fires the authoritative post-drag snapshot.
+      if (isDraggingRef.current) return;
+      const cb = onChangeRef.current;
+      if (!cb) return;
+      cb({
+        version: 1,
+        nodes: nodesRef.current.map(fromXyNode),
+        edges: edgesRef.current.map(fromXyEdge),
+        viewport: viewportRef.current,
       });
-    },
-    [],
-  );
+    });
+  }, []);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<XyNode<XyNodeData>>[]) => {
       setInternalNodes((prev) => {
         const next = applyNodeChanges(changes, prev);
+        // v0.2.6 — sync the ref inside the updater so the coalesced
+        // fireOnChange microtask reads current state (refs also stay live
+        // during drag; only the FIRE is suppressed).
+        nodesRef.current = next;
         // v0.2.4 lock — suppress ALL consumer onChange notifications during
         // drag, not just position-only batches. Mid-drag mixed batches
         // (position + dimensions for non-dragged nodes during multi-select
@@ -384,7 +416,7 @@ export function useCanvasData({
         // triggered wholesale replace → xyflow #015. onNodeDragStop flushes
         // a single authoritative fire at drag end.
         if (isDraggingRef.current) return next;
-        fireOnChange(next, edgesRef.current, viewportRef.current);
+        fireOnChange();
         return next;
       });
     },
@@ -403,23 +435,42 @@ export function useCanvasData({
 
   const onNodeDragStop = useCallback(() => {
     isDraggingRef.current = false;
-    // Flush a final onChange with the committed state. The setInternalNodes
-    // reducer reads the latest committed value synchronously and returns it
-    // unchanged (React bails out on identity-equal state, no re-render).
-    // The reducer-side-effect pattern (here + 12 other sites in this file)
-    // is now safe post-v0.2.2: `fireOnChange` is microtask-deferred in its
-    // definition above, so it never runs synchronously during a reducer.
+    // Flush a final onChange with the committed state. The identity-read
+    // updater runs AFTER any still-queued drag-tick updaters (React applies
+    // queued updaters in dispatch order), so `latestNodes` — and the ref
+    // sync — reflect the final position; returning the same reference bails
+    // out of a re-render. The reducer-side-effect pattern (here + the other
+    // sites in this file) is safe post-v0.2.2/v0.2.6: `fireOnChange` is
+    // microtask-deferred + coalesced, so it never runs synchronously during
+    // a reducer and double-invoked reducers request a single fire.
     setInternalNodes((latestNodes) => {
-      fireOnChange(latestNodes, edgesRef.current, viewportRef.current);
+      nodesRef.current = latestNodes;
+      fireOnChange();
       return latestNodes;
     });
   }, [fireOnChange]);
+
+  // v0.2.6 — live camera tracking (bound to <ReactFlow>'s onMoveEnd in
+  // canvas.tsx). See the UseCanvasDataResult comment for why camera-only
+  // moves don't fire onChange.
+  const onMoveEnd = useCallback(
+    (_event: unknown, vp: { x: number; y: number; zoom: number }) => {
+      const prev = viewportRef.current;
+      if (prev && prev.x === vp.x && prev.y === vp.y && prev.zoom === vp.zoom) {
+        return;
+      }
+      viewportRef.current = vp;
+      setViewport(vp);
+    },
+    [],
+  );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<XyEdge>[]) => {
       setInternalEdges((prev) => {
         const next = applyEdgeChanges(changes, prev);
-        fireOnChange(nodesRef.current, next, viewportRef.current);
+        edgesRef.current = next;
+        fireOnChange();
         return next;
       });
     },
@@ -470,7 +521,8 @@ export function useCanvasData({
           },
           prev,
         );
-        fireOnChange(nodesRef.current, next, viewportRef.current);
+        edgesRef.current = next;
+        fireOnChange();
         return next;
       });
       onEdgeCreateRef.current?.(candidate);
@@ -492,7 +544,8 @@ export function useCanvasData({
     (node: NodeRecord) => {
       setInternalNodes((prev) => {
         const next = [...prev, toXyNode(node)];
-        fireOnChange(next, edgesRef.current, viewportRef.current);
+        nodesRef.current = next;
+        fireOnChange();
         return next;
       });
       onNodeCreateRef.current?.(node);
@@ -502,18 +555,26 @@ export function useCanvasData({
 
   const updateNodeData = useCallback(
     (nodeId: string, mutate: (data: NodeData) => NodeData) => {
-      let updatedRecord: NodeRecord | undefined;
+      // v0.2.6 (review §6 medium) — compute the next record eagerly from the
+      // ref BEFORE dispatch; the updater only applies the precomputed data.
+      // Running `mutate` + record capture inside the updater tied the
+      // `onNodeUpdate` decision to WHEN React ran it (an eager first-updater
+      // ran it in time; a deferred/StrictMode-replayed one ran it after the
+      // `if (updatedRecord)` check → the callback silently never fired, and
+      // consumer `mutate` code executed twice under StrictMode).
+      const target = nodesRef.current.find((n) => n.id === nodeId);
+      if (!target) return;
+      const updatedData = mutate(target.data as NodeData);
+      const updatedRecord = fromXyNode({ ...target, data: updatedData });
       setInternalNodes((prev) => {
-        const next = prev.map((n) => {
-          if (n.id !== nodeId) return n;
-          const updated = mutate(n.data as NodeData);
-          updatedRecord = fromXyNode({ ...n, data: updated });
-          return { ...n, data: updated };
-        });
-        fireOnChange(next, edgesRef.current, viewportRef.current);
+        const next = prev.map((n) =>
+          n.id === nodeId ? { ...n, data: updatedData } : n,
+        );
+        nodesRef.current = next;
+        fireOnChange();
         return next;
       });
-      if (updatedRecord) onNodeUpdateRef.current?.(updatedRecord);
+      onNodeUpdateRef.current?.(updatedRecord);
     },
     [fireOnChange],
   );
@@ -534,13 +595,23 @@ export function useCanvasData({
 
   const deleteNode = useCallback(
     (nodeId: string) => {
-      // Cascade incident edges per Q15.
-      setInternalEdges((prev) =>
-        prev.filter((e) => e.source !== nodeId && e.target !== nodeId),
-      );
+      // Cascade incident edges per Q15. Both updaters sync their ref and
+      // request a fire — the single coalesced microtask (v0.2.6) sees the
+      // node removal AND the edge cascade in one snapshot (pre-v0.2.6 the
+      // node updater read a stale pre-cascade edgesRef → the notified data
+      // could resurrect dangling edges through the controlled round-trip).
+      setInternalEdges((prev) => {
+        const next = prev.filter(
+          (e) => e.source !== nodeId && e.target !== nodeId,
+        );
+        edgesRef.current = next;
+        fireOnChange();
+        return next;
+      });
       setInternalNodes((prev) => {
         const next = prev.filter((n) => n.id !== nodeId);
-        fireOnChange(next, edgesRef.current, viewportRef.current);
+        nodesRef.current = next;
+        fireOnChange();
         return next;
       });
       onNodeDeleteRef.current?.(nodeId);
@@ -552,7 +623,8 @@ export function useCanvasData({
     (edgeId: string) => {
       setInternalEdges((prev) => {
         const next = prev.filter((e) => e.id !== edgeId);
-        fireOnChange(nodesRef.current, next, viewportRef.current);
+        edgesRef.current = next;
+        fireOnChange();
         return next;
       });
       onEdgeDeleteRef.current?.(edgeId);
@@ -563,8 +635,9 @@ export function useCanvasData({
   const setNodes = useCallback(
     (nodes: NodeRecord[]) => {
       const next = nodes.map(toXyNode);
+      nodesRef.current = next;
       setInternalNodes(next);
-      fireOnChange(next, edgesRef.current, viewportRef.current);
+      fireOnChange();
     },
     [fireOnChange],
   );
@@ -572,8 +645,9 @@ export function useCanvasData({
   const setEdges = useCallback(
     (edges: EdgeRecord[]) => {
       const next = edges.map(toXyEdge);
+      edgesRef.current = next;
       setInternalEdges(next);
-      fireOnChange(nodesRef.current, next, viewportRef.current);
+      fireOnChange();
     },
     [fireOnChange],
   );
@@ -582,10 +656,13 @@ export function useCanvasData({
     (next: CanvasData) => {
       const xn = next.nodes.map(toXyNode);
       const xe = next.edges.map(toXyEdge);
+      nodesRef.current = xn;
+      edgesRef.current = xe;
+      viewportRef.current = next.viewport;
       setInternalNodes(xn);
       setInternalEdges(xe);
       setViewport(next.viewport);
-      fireOnChange(xn, xe, next.viewport);
+      fireOnChange();
     },
     [fireOnChange],
   );
@@ -605,21 +682,30 @@ export function useCanvasData({
       gesture: "copy" | "move";
       newNode: NodeRecord;
     }) => {
+      // v0.2.6 (review §6 medium) — same eager-compute rule as
+      // updateNodeData: the parent's post-removal record is derived from the
+      // ref BEFORE dispatch so `onNodeUpdate` cannot be skipped by updater
+      // timing; the updater only applies precomputed data.
+      let updatedParentData: NodeData | undefined;
       let updatedParentRecord: NodeRecord | undefined;
+      if (gesture === "move") {
+        const parent = nodesRef.current.find((n) => n.id === parentId);
+        if (parent) {
+          updatedParentData = removeAtPath(parent.data as NodeData, path);
+          updatedParentRecord = fromXyNode({ ...parent, data: updatedParentData });
+        }
+      }
       setInternalNodes((prev) => {
         const withChild = [...prev, toXyNode(newNode)];
-        if (gesture === "copy") {
-          fireOnChange(withChild, edgesRef.current, viewportRef.current);
-          return withChild;
-        }
-        // Move — remove the sub-object from parent.data at `path`.
-        const next = withChild.map((n) => {
-          if (n.id !== parentId) return n;
-          const nextData = removeAtPath(n.data as NodeData, path);
-          updatedParentRecord = fromXyNode({ ...n, data: nextData });
-          return { ...n, data: nextData };
-        });
-        fireOnChange(next, edgesRef.current, viewportRef.current);
+        const parentData = updatedParentData;
+        const next =
+          parentData === undefined
+            ? withChild
+            : withChild.map((n) =>
+                n.id === parentId ? { ...n, data: parentData } : n,
+              );
+        nodesRef.current = next;
+        fireOnChange();
         return next;
       });
       onNodeCreateRef.current?.(newNode);
@@ -648,6 +734,7 @@ export function useCanvasData({
       onConnect,
       onNodeDragStart,
       onNodeDragStop,
+      onMoveEnd,
       snapshot,
       appendNode,
       updateNodeData,
@@ -669,6 +756,7 @@ export function useCanvasData({
       onConnect,
       onNodeDragStart,
       onNodeDragStop,
+      onMoveEnd,
       snapshot,
       appendNode,
       updateNodeData,

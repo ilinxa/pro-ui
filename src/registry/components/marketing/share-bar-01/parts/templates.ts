@@ -41,10 +41,13 @@ export const SHARE_TEMPLATES: Record<ShareKind, Builder> = {
     return `https://t.me/share/url?${params.toString()}`;
   },
   email: ({ url, title, text }) => {
-    const params = new URLSearchParams();
-    if (title) params.set("subject", title);
-    params.set("body", [text, url].filter(Boolean).join("\n\n"));
-    return `mailto:?${params.toString()}`;
+    // v0.1.1 — mailto: is NOT an HTTP form target. URLSearchParams encodes
+    // spaces as `+`, which mail clients render literally ("Check+this+out").
+    // RFC 6068 wants percent-encoding → encodeURIComponent.
+    const query: string[] = [];
+    if (title) query.push(`subject=${enc(title)}`);
+    query.push(`body=${enc([text, url].filter(Boolean).join("\n\n"))}`);
+    return `mailto:?${query.join("&")}`;
   },
   threads: ({ url, title }) => {
     const text = [title, url].filter(Boolean).join(" ");

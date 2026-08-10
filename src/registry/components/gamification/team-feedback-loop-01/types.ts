@@ -17,6 +17,16 @@ export interface FeedbackEvent {
   detail?: string;
   /** Optional progression-loop chapter line (E5 overlap). */
   narrativeBeat?: string;
+  /**
+   * Optional explicit re-trigger key (v0.1.2, additive). The controlled
+   * `event` prop is compared by CONTENT (`kind` + `title` + `detail` +
+   * `narrativeBeat` + `eventKey`), NOT by object identity — an inline object
+   * literal with unchanged content does not re-open the celebration on parent
+   * re-renders, and a dismissed celebration stays dismissed. Change this key
+   * (e.g. a counter or the source record's id) to force a re-open when the
+   * SAME content should legitimately celebrate again.
+   */
+  eventKey?: string | number;
 }
 
 /** What to do next — drives the nudge. Closes the engagement loop. */

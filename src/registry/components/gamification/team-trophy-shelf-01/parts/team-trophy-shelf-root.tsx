@@ -48,9 +48,22 @@ export function TeamTrophyShelfRoot({
 
   if (badges !== prevBadges) {
     setPrevBadges(badges);
-    setNewAwards(
-      animateAward ? newlyEarned(badges, indexById(prevBadges)) : EMPTY_AWARDS,
-    );
+    if (!animateAward) {
+      setNewAwards(EMPTY_AWARDS);
+    } else {
+      // v0.1.2 (review §6 medium) — UNION the fresh diff with the ids still
+      // mid-reveal instead of replacing wholesale: a second `badges` update
+      // during a reveal (e.g. two awards landing in quick succession) used to
+      // cancel the first badge's animation. `onAwardDone` retires each id
+      // individually, so still-pending ids simply finish their reveal.
+      const fresh = newlyEarned(badges, indexById(prevBadges));
+      setNewAwards((pending) => {
+        if (fresh.size === 0) return pending;
+        const next = new Set(pending);
+        for (const id of fresh) next.add(id);
+        return next;
+      });
+    }
   }
 
   // --- Derived (pure) ---

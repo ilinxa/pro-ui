@@ -5,8 +5,8 @@ export default function PricingTable01Usage() {
       <p className="text-muted-foreground">
         Reach for <code>PricingTable01</code> for any marketing-page pricing
         block: 2–4 tier cards with an optional monthly/annual billing toggle
-        and a highlighted "Most popular" tier. Switch to{" "}
-        <code>layout="table"</code> for a feature-comparison grid when buyers
+        and a highlighted &quot;Most popular&quot; tier. Switch to{" "}
+        <code>layout=&quot;table&quot;</code> for a feature-comparison grid when buyers
         scroll deep before deciding.
       </p>
 
@@ -26,10 +26,10 @@ export default function PricingTable01Usage() {
 
       <h3 className="mb-2 mt-6 text-base font-semibold">CTA shape</h3>
       <p className="text-muted-foreground">
-        Each tier's <code>cta</code> accepts either a <code>ReactNode</code>{" "}
+        Each tier&apos;s <code>cta</code> accepts either a <code>ReactNode</code>{" "}
         (load-bearing — pass your router primitive, e.g. Next{" "}
         <code>&lt;Link&gt;</code>) or a <code>CtaSpec</code> convenience
-        overload. Registry code can't import <code>next/*</code>, so for SPA
+        overload. Registry code can&apos;t import <code>next/*</code>, so for SPA
         navigation you wrap the button yourself:
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
@@ -93,8 +93,8 @@ const [billing, setBilling] = useState<BillingPeriod>("monthly");
       </pre>
       <p className="mt-2 text-muted-foreground">
         Renders a real semantic <code>&lt;table&gt;</code> with{" "}
-        <code>&lt;th scope="col"&gt;</code> per tier and{" "}
-        <code>&lt;th scope="row"&gt;</code> per feature label. The first column
+        <code>&lt;th scope=&quot;col&quot;&gt;</code> per tier and{" "}
+        <code>&lt;th scope=&quot;row&quot;&gt;</code> per feature label. The first column
         is sticky-start on horizontal overflow.
       </p>
 
@@ -134,7 +134,7 @@ const [billing, setBilling] = useState<BillingPeriod>("monthly");
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>
           <code>primary</code> (default) — signal-lime accent on highlighted
-          tier ring + badge. Matches <code>newsletter-card-01</code>'s primary
+          tier ring + badge. Matches <code>newsletter-card-01</code>&apos;s primary
           tone.
         </li>
         <li>
@@ -154,17 +154,17 @@ const [billing, setBilling] = useState<BillingPeriod>("monthly");
           <code>aria-labelledby</code>; works for both layouts.
         </li>
         <li>
-          Billing toggle is a WAI-ARIA <code>role="radiogroup"</code>; segments
-          are <code>role="radio"</code>; arrow keys, Home, and End move
+          Billing toggle is a WAI-ARIA <code>role=&quot;radiogroup&quot;</code>; segments
+          are <code>role=&quot;radio&quot;</code>; arrow keys, Home, and End move
           focus + selection.
         </li>
         <li>
-          Tier cards are <code>&lt;article role="region"&gt;</code> with{" "}
-          <code>aria-labelledby</code> pointing at the tier name. The "Most
-          popular" badge announces via <code>aria-label</code>.
+          Tier cards are <code>&lt;article role=&quot;region&quot;&gt;</code> with{" "}
+          <code>aria-labelledby</code> pointing at the tier name. The &quot;Most
+          popular&quot; badge announces via <code>aria-label</code>.
         </li>
         <li>
-          Feature rows are an <code>&lt;ul role="list"&gt;</code>; check/x icons
+          Feature rows are an <code>&lt;ul role=&quot;list&quot;&gt;</code>; check/x icons
           are <code>aria-hidden</code>; state is announced via sr-only{" "}
           <code>labels.featureIncluded</code> / <code>featureExcluded</code>.
         </li>

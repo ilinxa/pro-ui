@@ -10,6 +10,7 @@ import type {
   UseJsonFormOptions,
   UseJsonFormReturn,
 } from "../types";
+import { flattenRhfErrorsToRecord } from "../lib/flatten-errors";
 import { compileStructural, injectStrings } from "../lib/schema-compiler";
 import { mergeStrings } from "../lib/strings";
 import { validateSchemaDev } from "../lib/validate-schema";
@@ -160,13 +161,13 @@ function useFormHandle<TValues extends Record<string, unknown>>(
         result = { ok: true, values: values as TValues };
       },
       (errors) => {
-        const flat: Record<string, string> = {};
-        for (const [k, v] of Object.entries(errors)) {
-          if (v && typeof v === "object" && "message" in v) {
-            flat[k] = String((v as { message?: unknown }).message ?? "");
-          }
-        }
-        result = { ok: false, errors: flat };
+        // v0.2.6 (review §6 medium) — use the shared recursive flattener: the
+        // previous inline loop only read TOP-LEVEL `message` fields, so a
+        // nested error tree (e.g. `address.city`) came back as `errors: {}`.
+        result = {
+          ok: false,
+          errors: flattenRhfErrorsToRecord(errors as Record<string, unknown>),
+        };
       },
     )();
     return result;

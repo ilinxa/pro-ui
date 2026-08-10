@@ -20,10 +20,21 @@ interface UseCodeMirrorArgs {
   lang: string;
   readOnly: boolean;
   wrap: "wrap" | "scroll";
+  /**
+   * INITIAL-ONLY (v0.1.2): applied when the editor is created; later changes
+   * are not re-applied. Remount the editor (e.g. via a React `key`) to change
+   * it after mount. Making it reactive needs a dedicated compartment — noted
+   * for a future minor.
+   */
   tabSize: number;
   showLineNumbers: boolean;
   onChange?: (value: string) => void;
   onSave?: (value: string) => void;
+  /**
+   * INITIAL-ONLY (v0.1.2): the array captured at editor creation is baked into
+   * the EditorState; identity or content changes after mount are ignored.
+   * Remount (React `key`) to swap extensions.
+   */
   editorExtensions?: Extension[];
 }
 
@@ -61,6 +72,25 @@ export function useCodeMirror({
   useEffect(() => {
     onSaveRef.current = onSave;
   }, [onSave]);
+
+  // v0.1.2 (review 5.8) — refs mirroring the reactive props. The mount effect
+  // awaits a dynamic lang import; props can change during that window. The
+  // editor is created from THESE refs (current at creation time), not the
+  // mount closure's stale first-render values; the per-prop sync effects
+  // below additionally re-run once `view` flips non-null, so nothing that
+  // changed mid-window is lost.
+  const valueRef = useRef(value);
+  const wrapRef = useRef(wrap);
+  const readOnlyRef = useRef(readOnly);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+  useEffect(() => {
+    wrapRef.current = wrap;
+  }, [wrap]);
+  useEffect(() => {
+    readOnlyRef.current = readOnly;
+  }, [readOnly]);
 
   const [view, setView] = useState<EditorView | null>(null);
 
@@ -101,13 +131,19 @@ export function useCodeMirror({
             },
           },
         ]),
+        // tabSize + editorExtensions are INITIAL-ONLY by contract (see the
+        // args JSDoc) — closure capture here is deliberate.
         EditorState.tabSize.of(tabSize),
         EditorState.allowMultipleSelections.of(true),
-        wrapCompartmentRef.current.of(wrap === "wrap" ? EditorView.lineWrapping : []),
+        // Reactive props read from refs — current at creation time even when
+        // they changed while the lang import above was in flight (5.8).
+        wrapCompartmentRef.current.of(
+          wrapRef.current === "wrap" ? EditorView.lineWrapping : [],
+        ),
         langCompartmentRef.current.of(langExt),
         readOnlyCompartmentRef.current.of([
-          EditorView.editable.of(!readOnly),
-          EditorState.readOnly.of(readOnly),
+          EditorView.editable.of(!readOnlyRef.current),
+          EditorState.readOnly.of(readOnlyRef.current),
         ]),
         ...(showLineNumbers ? [cmLineNumbers()] : []),
         EditorView.updateListener.of((u) => {
@@ -120,7 +156,7 @@ export function useCodeMirror({
       ];
 
       const v = new EditorView({
-        state: EditorState.create({ doc: value, extensions }),
+        state: EditorState.create({ doc: valueRef.current, extensions }),
         parent: container,
       });
       viewRef.current = v;
@@ -135,11 +171,14 @@ export function useCodeMirror({
       setView(null);
     };
     // Intentionally only depend on `showLineNumbers` for mount — value sync
-    // happens in its own effect below.
+    // happens in its own effect below; mid-mount prop changes are covered by
+    // the prop refs above (5.8).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showLineNumbers]);
 
-  // Controlled value sync
+  // Controlled value sync. Keyed on `view` too (5.8): when the async mount
+  // resolves, this re-runs against the fresh view and applies any value that
+  // changed while the editor was still being created.
   useEffect(() => {
     const v = viewRef.current;
     if (!v) return;
@@ -148,9 +187,9 @@ export function useCodeMirror({
     v.dispatch({
       changes: { from: 0, to: current.length, insert: value },
     });
-  }, [value]);
+  }, [value, view]);
 
-  // Wrap reconfigure
+  // Wrap reconfigure (view-keyed for the async-mount window, 5.8)
   useEffect(() => {
     const v = viewRef.current;
     if (!v) return;
@@ -159,9 +198,9 @@ export function useCodeMirror({
         wrap === "wrap" ? EditorView.lineWrapping : [],
       ),
     });
-  }, [wrap]);
+  }, [wrap, view]);
 
-  // Lang reconfigure (async — load lang package on change)
+  // Lang reconfigure (async — load lang package on change; view-keyed, 5.8)
   useEffect(() => {
     const v = viewRef.current;
     if (!v) return;
@@ -178,9 +217,9 @@ export function useCodeMirror({
     return () => {
       cancelled = true;
     };
-  }, [lang]);
+  }, [lang, view]);
 
-  // Read-only reconfigure
+  // Read-only reconfigure (view-keyed for the async-mount window, 5.8)
   useEffect(() => {
     const v = viewRef.current;
     if (!v) return;
@@ -190,7 +229,7 @@ export function useCodeMirror({
         EditorState.readOnly.of(readOnly),
       ]),
     });
-  }, [readOnly]);
+  }, [readOnly, view]);
 
   const focus = useCallback(() => viewRef.current?.focus(), []);
   const getValue = useCallback(

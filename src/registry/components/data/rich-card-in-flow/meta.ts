@@ -44,7 +44,9 @@ export const meta: ComponentMeta = {
     // The consumer-owned dialog (Dialog, Drawer, Sheet, etc.) is still the
     // consumer's choice and doesn't get auto-installed via this procomp.
     shadcn: ["popover", "select", "checkbox", "input", "tooltip", "label", "button"],
-    npm: {},
+    npm: {
+      "lucide-react": "^1.11.0",
+    },
     internal: ["rich-card", "flow-canvas-01"], // F-V3 lock; cross-registry deps
   },
 

@@ -104,21 +104,28 @@ export function ChapterBeat({
   );
 
   if (interactive) {
+    // v0.1.2 (review §6 medium) — the list-item role lives on a WRAPPER (the
+    // same structure as ChapterRail's renderChapter branch); the button keeps
+    // its native role. `role="listitem"` directly on the <button> overwrote
+    // the button role, so AT announced a list item instead of a button.
     return (
-      <button
-        type="button"
+      <div
         role="listitem"
         data-chapter-id={chapter.id}
-        aria-label={accessibleName}
-        onClick={() => onClick?.(chapter)}
-        className={cn(
-          "group flex w-full items-start gap-3 rounded-md text-left outline-none",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-          className,
-        )}
+        className={cn("w-full", className)}
       >
-        {inner}
-      </button>
+        <button
+          type="button"
+          aria-label={accessibleName}
+          onClick={() => onClick?.(chapter)}
+          className={cn(
+            "group flex w-full items-start gap-3 rounded-md text-left outline-none",
+            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+          )}
+        >
+          {inner}
+        </button>
+      </div>
     );
   }
 

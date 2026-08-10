@@ -104,7 +104,8 @@ export function Canvas({
     appendNode: canvas.appendNode,
     extractSubObject: canvas.extractSubObject,
     onBeforeDrop,
-    onNodeCreate,
+    // onNodeCreate deliberately NOT passed (v0.2.6, review 5.3):
+    // canvas.appendNode fires it internally; passing it here double-fired.
   });
 
   useExportHandle(exportRef, canvas.snapshot);
@@ -235,6 +236,7 @@ export function Canvas({
           onConnect={canvas.onConnect}
           onNodeDragStart={canvas.onNodeDragStart}
           onNodeDragStop={canvas.onNodeDragStop}
+          onMoveEnd={canvas.onMoveEnd}
           isValidConnection={isValidConnection}
           connectionMode={ConnectionMode.Strict}
           nodeTypes={NODE_TYPES}

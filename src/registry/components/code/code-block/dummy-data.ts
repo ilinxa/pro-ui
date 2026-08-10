@@ -57,13 +57,24 @@ for u in users:
     print(greet(u))
 `;
 
+// Deterministic pseudo-scatter (v0.1.2 — was module-scope Math.random(), a
+// hydration-mismatch + non-reproducible-fixture trap in a SHIPPED file).
+// Golden-angle stepping looks random enough for a demo and is stable across
+// server, client, and every consumer install.
+function fixtureLon(i: number): string {
+  return ((((i + 1) * 137.5077) % 360) - 180).toFixed(4);
+}
+function fixtureLat(i: number): string {
+  return ((((i + 1) * 73.1231) % 180) - 90).toFixed(4);
+}
+
 export const SAMPLE_LONG_JSON = `{
   "type": "FeatureCollection",
   "features": [
     ${Array.from(
       { length: 60 },
       (_, i) =>
-        `{ "type": "Feature", "id": ${i + 1}, "geometry": { "type": "Point", "coordinates": [${(Math.random() * 360 - 180).toFixed(4)}, ${(Math.random() * 180 - 90).toFixed(4)}] } }`,
+        `{ "type": "Feature", "id": ${i + 1}, "geometry": { "type": "Point", "coordinates": [${fixtureLon(i)}, ${fixtureLat(i)}] } }`,
     ).join(",\n    ")}
   ]
 }

@@ -32,7 +32,8 @@ type DropContext = {
     newNode: NodeRecord;
   }) => void;
   onBeforeDrop?: FlowCanvasProps["onBeforeDrop"];
-  onNodeCreate?: FlowCanvasProps["onNodeCreate"];
+  // v0.2.6 — no `onNodeCreate` here anymore: `appendNode` /
+  // `extractSubObject` fire it internally (review 5.3 double-fire fix).
 };
 
 // Build the drag-over / drop / paste handlers. The caller spreads these onto
@@ -45,7 +46,6 @@ export function useDropPipeline({
   appendNode,
   extractSubObject,
   onBeforeDrop,
-  onNodeCreate,
 }: DropContext) {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -69,12 +69,13 @@ export function useDropPipeline({
     (rawData: NodeData, point: { x: number; y: number }) => {
       const node = buildNode(rawData, point);
       if (!node) return;
-      // appendNode fires onNodeCreate internally now, but the prop hook also
-      // runs here for parity with paste-without-renderer paths.
+      // appendNode fires onNodeCreate internally — do NOT also call the prop
+      // here (v0.2.6, review 5.3: the extra call double-fired onNodeCreate on
+      // every drop/paste, so consumers creating backend records per create
+      // inserted duplicates).
       appendNode(node);
-      onNodeCreate?.(node);
     },
-    [buildNode, appendNode, onNodeCreate],
+    [buildNode, appendNode],
   );
 
   const dispatchExtraction = useCallback(

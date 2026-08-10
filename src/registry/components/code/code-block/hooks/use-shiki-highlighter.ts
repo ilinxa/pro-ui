@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { HighlighterCore } from "shiki/core";
+import type { HighlighterCore, ThemeRegistrationAny } from "shiki/core";
 import {
   DEFAULT_THEME_NAMES,
   ensureLangLoaded,
@@ -30,13 +30,28 @@ interface UseShikiHighlighterResult {
   resolvedLang: string;
 }
 
-function resolveThemeName(
+// v0.1.2 (review 5.9) — resolve AND register a theme entry. String entries
+// keep the ensureThemeLoaded dynamic-import path; OBJECT entries (the declared
+// `ShikiThemeObject` support) are registered directly via
+// `highlighter.loadTheme(entry)` — previously the object was dropped, a
+// `shiki/themes/<name>.mjs` import was attempted, and the subsequent
+// `codeToHtml` threw as an unhandled rejection, leaving the block blank.
+async function ensureThemeEntry(
+  highlighter: HighlighterCore,
   themes: CodeBlockThemes | undefined,
   variant: "light" | "dark",
-): string {
+): Promise<string> {
   const entry = themes?.[variant];
   if (!entry) return DEFAULT_THEME_NAMES[variant];
-  if (typeof entry === "string") return entry;
+  if (typeof entry === "string") {
+    await ensureThemeLoaded(highlighter, entry);
+    return entry;
+  }
+  if (!highlighter.getLoadedThemes().includes(entry.name)) {
+    // ShikiThemeObject is a structural subset of shiki's own registration
+    // shape; the cast hands the full object through.
+    await highlighter.loadTheme(entry as unknown as ThemeRegistrationAny);
+  }
   return entry.name;
 }
 
@@ -83,8 +98,6 @@ export function useShikiHighlighter({
 
   useEffect(() => {
     let cancelled = false;
-    const lightTheme = resolveThemeName(themes, "light");
-    const darkTheme = resolveThemeName(themes, "dark");
     const highlightedSet = rangeToLines(highlightedLines);
 
     const run = async () => {
@@ -92,10 +105,28 @@ export function useShikiHighlighter({
       if (cancelled) return;
       const langForRender = await ensureLangLoaded(highlighter, lang);
       if (cancelled) return;
-      await Promise.all([
-        ensureThemeLoaded(highlighter, lightTheme),
-        ensureThemeLoaded(highlighter, darkTheme),
-      ]);
+
+      // v0.1.2 (review 5.9) — theme resolution + tokenization are fallible
+      // (unknown theme name, malformed theme object). Fall back to the
+      // always-loaded defaults instead of throwing an unhandled rejection
+      // and leaving the block permanently blank.
+      let lightTheme: string;
+      let darkTheme: string;
+      try {
+        [lightTheme, darkTheme] = await Promise.all([
+          ensureThemeEntry(highlighter, themes, "light"),
+          ensureThemeEntry(highlighter, themes, "dark"),
+        ]);
+      } catch (err) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "[CodeBlock] Failed to load custom theme(s) — falling back to defaults.",
+            err,
+          );
+        }
+        lightTheme = DEFAULT_THEME_NAMES.light;
+        darkTheme = DEFAULT_THEME_NAMES.dark;
+      }
       if (cancelled) return;
       setResolvedLang(langForRender);
 
@@ -104,14 +135,34 @@ export function useShikiHighlighter({
       // Shiki caches grammars + themes, so warm-state tokenization is cheap
       // (<5 ms for typical view-mode blocks). Pure append-only diff path
       // is locked at lib/streaming-cache.ts and wired in for v0.2.
-      const full = highlight(
-        highlighter,
-        value,
-        langForRender,
-        lightTheme,
-        darkTheme,
-        highlightedSet,
-      );
+      let full: string;
+      try {
+        full = highlight(
+          highlighter,
+          value,
+          langForRender,
+          lightTheme,
+          darkTheme,
+          highlightedSet,
+        );
+      } catch (err) {
+        // Theme registered but unusable at tokenize time — retry once on the
+        // default pair (loaded with the highlighter core, cannot miss).
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "[CodeBlock] Highlighting failed with the configured themes — retrying with defaults.",
+            err,
+          );
+        }
+        full = highlight(
+          highlighter,
+          value,
+          langForRender,
+          DEFAULT_THEME_NAMES.light,
+          DEFAULT_THEME_NAMES.dark,
+          highlightedSet,
+        );
+      }
       if (streaming) {
         // Surface the cache helper so it isn't tree-shaken; v0.2 will diff
         // against it for the pure append optimisation.
@@ -126,7 +177,14 @@ export function useShikiHighlighter({
       cancelAnimationFrame(rafRef.current);
     }
     rafRef.current = requestAnimationFrame(() => {
-      void run();
+      // Final safety net (5.9): any residual rejection (network-failed wasm /
+      // grammar import, malformed default retry) must never surface as an
+      // unhandled rejection.
+      run().catch((err) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[CodeBlock] Highlighter initialization failed.", err);
+        }
+      });
     });
 
     return () => {
