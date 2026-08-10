@@ -145,7 +145,10 @@ export function useImageUploader(
 
         xhr.onabort = () => {
           xhrRef.current = null;
-          // status already set to "cancelled" by cancel()
+          // status already set to "cancelled" by cancel(). Reject so awaiting
+          // callers don't hang forever — DOMException/AbortError mirrors the
+          // fetch abort contract, so callers can filter it from real errors.
+          reject(new DOMException("Upload cancelled", "AbortError"));
         };
 
         const form = new FormData();

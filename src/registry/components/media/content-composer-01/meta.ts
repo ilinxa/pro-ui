@@ -31,18 +31,19 @@ export const meta: ComponentMeta = {
     "shell",
   ],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   createdAt: "2026-06-04",
-  updatedAt: "2026-06-05",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 
   dependencies: {
     // shadcn primitives used by the shell chrome + custom field renderers.
     // Plate / Konva / RHF / Zod / @dnd-kit arrive transitively through the
-    // substrate procomps (registryDependencies), not re-declared here. react + lucide-react
-    // are baseline (audit-whitelisted). Re-audited via validate:meta-deps (F-cross-07).
+    // substrate procomps (registryDependencies), not re-declared here.
+    // Directly-imported npm (lucide-react) IS declared — the b2 reverse
+    // check (validate:meta-deps) enforces it since 2026-08-10.
     shadcn: [
       "badge",
       "button",
@@ -53,7 +54,7 @@ export const meta: ComponentMeta = {
       "separator",
       "textarea",
     ],
-    npm: {},
+    npm: { "lucide-react": "^1.11.0" },
     internal: [
       "media-editor-01",
       "media-carousel-editor-01",

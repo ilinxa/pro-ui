@@ -36,10 +36,10 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-06-02",
-  updatedAt: "2026-06-03",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 
@@ -51,6 +51,7 @@ export const meta: ComponentMeta = {
     npm: {
       konva: "^10.3.0",
       "react-konva": "^19.2.4",
+      "lucide-react": "^1.11.0",
     },
     internal: [],
   },

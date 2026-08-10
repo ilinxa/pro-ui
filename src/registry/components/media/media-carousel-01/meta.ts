@@ -44,6 +44,7 @@ export const meta: ComponentMeta = {
   dependencies: {
     shadcn: ["button"],
     npm: {
+      "embla-carousel": "^8.6.0",
       "embla-carousel-react": "^8.6.0",
       "lucide-react": "^1.11.0",
     },

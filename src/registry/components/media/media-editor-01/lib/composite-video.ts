@@ -139,9 +139,24 @@ export async function compositeVideo(
     // RAF loop drives the canvas frames. We stop when the video crosses
     // `end`, or earlier if the video ends naturally.
     let raf = 0;
+
+    // Shared teardown for EVERY exit path (stop / recorder error / play
+    // rejection). Without it an error path leaves the hidden source video
+    // playing and the captureStream tracks (canvas video + mixed-in source
+    // audio) live until GC.
+    let cleanedUp = false;
+    const cleanup = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
+      cancelAnimationFrame(raf);
+      video.pause();
+      for (const track of canvasStream.getTracks()) track.stop();
+    };
+    let failed = false;
+
     const tick = () => {
       if (video.currentTime >= end || video.ended) {
-        recorder.state === "recording" && recorder.stop();
+        if (recorder.state === "recording") recorder.stop();
         return;
       }
       renderFrame(ctx, video);
@@ -158,14 +173,15 @@ export async function compositeVideo(
 
     return await new Promise<CompositeVideoResult>((resolve, reject) => {
       recorder.onstop = () => {
-        cancelAnimationFrame(raf);
-        video.pause();
+        cleanup();
+        if (failed) return; // stop forced by a failure path — already rejected
         onProgress?.(1);
         const blob = new Blob(chunks, { type: mime });
         resolve({ blob, durationMs: Date.now() - startedAt, mimeType: mime });
       };
       recorder.onerror = (ev) => {
-        cancelAnimationFrame(raf);
+        failed = true;
+        cleanup();
         const e =
           (ev as unknown as { error?: Error }).error ??
           new Error("MediaRecorder failed during composite");
@@ -178,7 +194,16 @@ export async function compositeVideo(
         .then(() => {
           tick();
         })
-        .catch(reject);
+        .catch((err) => {
+          failed = true;
+          try {
+            if (recorder.state !== "inactive") recorder.stop();
+          } catch {
+            /* already stopped */
+          }
+          cleanup();
+          reject(err instanceof Error ? err : new Error(String(err)));
+        });
     });
   } finally {
     URL.revokeObjectURL(sourceUrl);

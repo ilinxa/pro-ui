@@ -32,6 +32,8 @@ export interface ApplyEditPatch {
   url: string;
   blob?: Blob;
   editorState?: MediaEditorState;
+  /** Blob backing `editorState.imageSrc` — see MediaCarouselItem.sourceBlob. */
+  sourceBlob?: Blob;
   exportMeta?: ExportMetadata;
   width?: number;
   height?: number;
@@ -233,6 +235,7 @@ export function useCarouselState(
         url: patch.url,
         blob: patch.blob ?? prev.blob,
         editorState: patch.editorState ?? prev.editorState,
+        sourceBlob: patch.sourceBlob ?? prev.sourceBlob,
         exportMeta: patch.exportMeta ?? prev.exportMeta,
         width: patch.width ?? prev.width,
         height: patch.height ?? prev.height,

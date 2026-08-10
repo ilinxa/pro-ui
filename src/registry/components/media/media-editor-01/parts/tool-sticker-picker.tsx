@@ -72,7 +72,6 @@ export function ToolStickerPicker({
             aria-label={sticker.alt}
             className="aspect-square rounded-lg bg-white/5 hover:bg-white/15 active:scale-95 transition-transform p-1 grid place-items-center"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={sticker.src}
               alt={sticker.alt}

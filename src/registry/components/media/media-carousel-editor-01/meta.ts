@@ -32,23 +32,26 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-06-05",
-  updatedAt: "2026-06-05",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 
   dependencies: {
     // @dnd-kit drives the rail reorder (already a repo dep via kanban-board-01).
     // Konva/react-konva arrive transitively through media-editor-01's
-    // registryDependency, not re-declared here. react + lucide-react are
-    // baseline (audit-whitelisted). Re-audited via validate:meta-deps.
+    // registryDependency, not re-declared here. react is baseline
+    // (audit-whitelisted); lucide-react is declared explicitly (review 3.3 —
+    // transitive-only installs break Base-UI consumers). Re-audited via
+    // validate:meta-deps.
     shadcn: ["button", "scroll-area"],
     npm: {
       "@dnd-kit/core": "^6.3.1",
       "@dnd-kit/sortable": "^10.0.0",
       "@dnd-kit/utilities": "^3.2.2",
+      "lucide-react": "^1.11.0",
     },
     internal: ["media-editor-01"],
   },

@@ -149,13 +149,24 @@ export function useMediaCapture(
   } | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingMs, setRecordingMs] = useState(0);
-  const recorderMime = useRef<string | null>(null);
-  // Initialize on first client render
-  if (recorderMime.current === null && typeof window !== "undefined") {
-    recorderMime.current = selectRecorderMime();
-  }
+  // Recorder MIME probed once on the first client render via useState's lazy
+  // initializer (SSR yields null; selectRecorderMime is a deterministic
+  // capability check). Replaces the old write-a-ref-during-render init,
+  // which the React Compiler forbids.
+  const [recorderMime] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : selectRecorderMime(),
+  );
+
+  // Acquire epoch — a monotonically increasing token claimed per acquire().
+  // getUserMedia can resolve long after release()/unmount/a competing acquire
+  // (permission prompt open, slow device): a resolve under a stale epoch must
+  // stop its tracks and bail instead of orphaning a live camera stream (LED
+  // stays on) or clobbering the newer acquire's stream. (Review 5.11.)
+  const acquireEpochRef = useRef(0);
 
   const release = useCallback(() => {
+    // Invalidate any in-flight acquire before stopping the current stream.
+    acquireEpochRef.current += 1;
     const s = streamRef.current;
     if (s) {
       for (const track of s.getTracks()) track.stop();
@@ -165,46 +176,64 @@ export function useMediaCapture(
     setStatus("idle");
   }, []);
 
-  const acquire = useCallback(async () => {
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      setStatus("no-camera");
-      setError(new Error("MediaDevices.getUserMedia is not supported"));
-      return;
-    }
-    setStatus("acquiring");
-    setError(null);
-    // Release any prior stream before re-acquiring (switch-camera flow).
-    release();
-    try {
-      const next = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: facing } },
-        audio: requestAudio,
-      });
-      streamRef.current = next;
-      setStream(next);
-      setStatus("ready");
-
-      // Enumerate devices to decide if switch-camera should be offered.
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        setCanSwitchCamera(
-          devices.filter((d) => d.kind === "videoinput").length >= 2,
-        );
-      } catch {
-        setCanSwitchCamera(false);
-      }
-    } catch (err) {
-      const e = err as DOMException;
-      if (e?.name === "NotAllowedError" || e?.name === "SecurityError") {
-        setStatus("denied");
-      } else if (e?.name === "NotFoundError") {
+  // Shared acquire pipeline. `nextFacing` is explicit so switchCamera doesn't
+  // depend on the (stale-closure-prone) `facing` state committing first.
+  const acquireWith = useCallback(
+    async (nextFacing: FacingMode) => {
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
         setStatus("no-camera");
-      } else {
-        setStatus("error");
+        setError(new Error("MediaDevices.getUserMedia is not supported"));
+        return;
       }
-      setError(err as Error);
-    }
-  }, [facing, requestAudio, release]);
+      // Release any prior stream before re-acquiring (switch-camera flow,
+      // photo↔video mode flip), then claim a fresh epoch.
+      release();
+      const epoch = ++acquireEpochRef.current;
+      setStatus("acquiring");
+      setError(null);
+      try {
+        const next = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: nextFacing } },
+          audio: requestAudio,
+        });
+        if (epoch !== acquireEpochRef.current) {
+          // Superseded (released / re-acquired / unmounted) while the prompt
+          // or device was pending — don't adopt, don't leak.
+          for (const track of next.getTracks()) track.stop();
+          return;
+        }
+        streamRef.current = next;
+        setStream(next);
+        setStatus("ready");
+
+        // Enumerate devices to decide if switch-camera should be offered.
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          if (epoch === acquireEpochRef.current) {
+            setCanSwitchCamera(
+              devices.filter((d) => d.kind === "videoinput").length >= 2,
+            );
+          }
+        } catch {
+          if (epoch === acquireEpochRef.current) setCanSwitchCamera(false);
+        }
+      } catch (err) {
+        if (epoch !== acquireEpochRef.current) return; // stale failure — a newer acquire owns the status
+        const e = err as DOMException;
+        if (e?.name === "NotAllowedError" || e?.name === "SecurityError") {
+          setStatus("denied");
+        } else if (e?.name === "NotFoundError") {
+          setStatus("no-camera");
+        } else {
+          setStatus("error");
+        }
+        setError(err as Error);
+      }
+    },
+    [requestAudio, release],
+  );
+
+  const acquire = useCallback(() => acquireWith(facing), [acquireWith, facing]);
 
   // Auto-acquire on mount when enabled AND autoAcquire is allowed; release
   // on unmount / disable. When autoAcquire is false the consumer is expected
@@ -212,6 +241,12 @@ export function useMediaCapture(
   // jarring permission prompts on first paint).
   useEffect(() => {
     if (!enabled) {
+      // External-system sync (camera hardware): release() stops the live
+      // MediaStream tracks and mirrors the result into state. The epoch
+      // invalidation + track teardown + state reset must stay one atomic
+      // chokepoint — splitting the state writes out of the effect would fork
+      // the acquire-cancellation logic (v0.1.4 fix).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       release();
       return;
     }
@@ -243,40 +278,11 @@ export function useMediaCapture(
   const switchCamera = useCallback(async () => {
     const next: FacingMode = facing === "user" ? "environment" : "user";
     setFacing(next);
-    // acquire() will re-fire via the effect above? No — facing change updates
-    // state but the enabled-only effect won't re-run. So we call directly.
-    // But acquire reads from `facing` via closure — by the time React commits
-    // the new facing, our closure is stale. Use functional update + manual re-call.
-    // Simpler: stop now, then defer to a microtask so React commits state, then re-acquire.
-    release();
-    // The effect that depends on `acquire`/`facing` won't help; do it explicitly.
-    queueMicrotask(() => {
-      // facing is now next via setState — but acquire's closure binds old facing.
-      // To stay correct, re-derive the constraint here rather than calling acquire().
-      void (async () => {
-        try {
-          setStatus("acquiring");
-          const s = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: next } },
-            audio: requestAudio,
-          });
-          streamRef.current = s;
-          setStream(s);
-          setStatus("ready");
-        } catch (err) {
-          const e = err as DOMException;
-          setStatus(
-            e?.name === "NotAllowedError" || e?.name === "SecurityError"
-              ? "denied"
-              : e?.name === "NotFoundError"
-                ? "no-camera"
-                : "error",
-          );
-          setError(err as Error);
-        }
-      })();
-    });
-  }, [facing, requestAudio, release]);
+    // acquireWith takes the target facing explicitly, so there's no
+    // stale-closure microtask dance — and its epoch guard means a rapid
+    // double-flip can't interleave two live streams. (Review 5.11.)
+    await acquireWith(next);
+  }, [facing, acquireWith]);
 
   // ─── Recording controls ─────────────────────────────────────────────
 
@@ -294,8 +300,10 @@ export function useMediaCapture(
   const startRecording = useCallback(async () => {
     const s = streamRef.current;
     if (!s) throw new Error("Camera not ready");
-    const mime = recorderMime.current ?? selectRecorderMime();
-    recorderMime.current = mime;
+    // Defensive re-probe if the lazy init yielded null (matches the old
+    // ref-cached behavior — selectRecorderMime is deterministic, so a null
+    // here re-probes to null and throws below).
+    const mime = recorderMime ?? selectRecorderMime();
     if (!mime) {
       throw new Error("This browser does not support video recording");
     }
@@ -352,7 +360,7 @@ export function useMediaCapture(
       },
       maxVideoDurationSec * 1000,
     );
-  }, [clearRecordingTimers, maxVideoDurationSec]);
+  }, [clearRecordingTimers, maxVideoDurationSec, recorderMime]);
 
   const stopRecording = useCallback((): Promise<CapturedVideo> => {
     const rec = recorderRef.current;
@@ -450,7 +458,7 @@ export function useMediaCapture(
     switchCamera,
     isRecording,
     recordingMs,
-    recorderMime: recorderMime.current,
+    recorderMime,
     startRecording,
     stopRecording,
   };

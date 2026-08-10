@@ -51,6 +51,14 @@ export interface MediaCarouselItem {
   blob?: Blob;
   /** Present once edited (photo path; `videoBlob` is always nulled). */
   editorState?: MediaEditorState;
+  /**
+   * Internal — the blob backing `editorState.imageSrc`, persisted at
+   * edit-apply. `editorState.imageSrc` is an object URL that dies with the
+   * edit panel's editor instance; on re-edit the panel passes this blob to
+   * `loadState` so a fresh URL is minted (otherwise: black canvas). Not
+   * serializable; lives only in in-memory item arrays.
+   */
+  sourceBlob?: Blob;
   /** From the last `export()` of this item. */
   exportMeta?: ExportMetadata;
   width?: number;

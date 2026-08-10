@@ -29,6 +29,29 @@ export const CarouselLiveCacheContext = createContext<CarouselLiveCache | null>(
   null,
 );
 
+// Blob URLs displaced OUT of a live cache (an edit-apply replaced an item's
+// url). The carousel instance only revokes URLs it minted itself, so a
+// cache-RESTORED item's pre-edit URL belongs to a dead instance and would leak
+// (carousel F13). The substrate tombstones them here; the composer root
+// revokes + clears the set on unmount. WeakMap-keyed by the cache Map so the
+// registry dies with the composer that owns it.
+const displacedCacheUrls = new WeakMap<
+  Map<string, MediaCarouselItem[]>,
+  Set<string>
+>();
+
+/** Tombstone set for a given live cache — created on first access. */
+export function carouselDisplacedUrls(
+  cache: Map<string, MediaCarouselItem[]>,
+): Set<string> {
+  let set = displacedCacheUrls.get(cache);
+  if (!set) {
+    set = new Set();
+    displacedCacheUrls.set(cache, set);
+  }
+  return set;
+}
+
 /** Live carousel items → JSON-clean draft refs. Object URLs aren't durable, so
  *  only real (https/remote) URLs persist; local items keep no recoverable URL
  *  (and therefore no `editorState` — it would be unreconstructable bloat). */
@@ -121,9 +144,22 @@ export function MediaCarouselSubstrateMount({
   const dirtyRef = useRef(false);
 
   // Mirror live items into the shell cache so a step-revisit restores them
-  // exactly (blobs included), not just the durable subset.
+  // exactly (blobs included), not just the durable subset. Blob URLs that this
+  // update displaces from the cache are tombstoned for the composer root's
+  // unmount revoke (F13) — a re-revoke of a URL the carousel already released
+  // is a harmless no-op, but a cache-restored item's pre-edit URL has no other
+  // owner left.
   useEffect(() => {
-    cache?.current.set(stepId, items);
+    if (!cache) return;
+    const prev = cache.current.get(stepId);
+    if (prev && prev !== items) {
+      const next = new Set(items.map((it) => it.url));
+      const tombs = carouselDisplacedUrls(cache.current);
+      for (const it of prev) {
+        if (it.url.startsWith("blob:") && !next.has(it.url)) tombs.add(it.url);
+      }
+    }
+    cache.current.set(stepId, items);
   }, [cache, stepId, items]);
 
   useEffect(() => {

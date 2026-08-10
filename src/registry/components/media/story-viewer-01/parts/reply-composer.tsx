@@ -51,6 +51,23 @@ export interface ReplyComposerProps {
  * mounts `composerEmptyState` slot instead (sign-in CTA for unauth viewers).
  */
 function ReplyComposerInner(props: ReplyComposerProps) {
+  // Destructure ALL props to locals up front. `composerRef` is a ref-typed
+  // prop; reading it as `props.composerRef` inside the JSX makes the React
+  // Compiler's aliasing analysis treat the whole `props` object as a ref
+  // container and flag every later `props.*` read as "ref access during
+  // render" (known false-positive class — see blackboard-01 lesson:
+  // destructure to locals). Locals keep the analysis precise.
+  const {
+    story,
+    item,
+    currentUser,
+    onAddReply,
+    onSetPaused,
+    labels,
+    className,
+    composerRef,
+    onActiveChange,
+  } = props;
   // Track whether user has typed anything since last submit; auto-pause
   // fires only on the FIRST keystroke (cheap idempotent setPaused call).
   const pausedRef = useRef(false);
@@ -63,7 +80,6 @@ function ReplyComposerInner(props: ReplyComposerProps) {
   const [hasFocus, setHasFocus] = useState(false);
   const [hasContent, setHasContent] = useState(false);
   const active = hasFocus || hasContent;
-  const { onActiveChange } = props;
   useEffect(() => {
     onActiveChange?.(active);
   }, [active, onActiveChange]);
@@ -73,30 +89,30 @@ function ReplyComposerInner(props: ReplyComposerProps) {
       setHasContent(value.length > 0);
       if (value.length > 0 && !pausedRef.current) {
         pausedRef.current = true;
-        props.onSetPaused(true);
+        onSetPaused(true);
       } else if (value.length === 0 && pausedRef.current) {
         // User cleared the composer manually — resume the story.
         pausedRef.current = false;
-        props.onSetPaused(false);
+        onSetPaused(false);
       }
     },
-    [props.onSetPaused],
+    [onSetPaused],
   );
 
   const handleSubmit = useCallback(
     async (content: string) => {
       try {
-        await props.onAddReply?.(props.story.id, props.item.id, content);
+        await onAddReply?.(story.id, item.id, content);
       } finally {
         pausedRef.current = false;
         setHasContent(false);
-        props.onSetPaused(false);
+        onSetPaused(false);
       }
     },
-    [props.onAddReply, props.story.id, props.item.id, props.onSetPaused],
+    [onAddReply, story.id, item.id, onSetPaused],
   );
 
-  if (!props.currentUser) return null;
+  if (!currentUser) return null;
 
   // CommentComposer accepts a stricter currentUser shape (CommentThreadCurrentUser).
   // StoryCurrentUser is structurally identical — cast at the boundary.
@@ -114,14 +130,14 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // row (rendered by story-viewer-01.tsx at right-3 bottom-3).
         "absolute right-0 bottom-0 left-0 z-31 pl-4 pr-16 pt-3 pb-3 pointer-events-auto",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
-        props.className,
+        className,
       )}
     >
       <CommentComposer
-        ref={props.composerRef}
+        ref={composerRef}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        currentUser={props.currentUser as any}
-        placeholder={props.labels.replyComposerPlaceholder(props.story)}
+        currentUser={currentUser as any}
+        placeholder={labels.replyComposerPlaceholder(story)}
         onChange={handleChange}
         onSubmit={handleSubmit}
         // v0.3.3: Cancel button removed per UX feedback — Instagram-canonical
@@ -140,17 +156,17 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         submitOnEnter
         minRows={1}
         maxRows={3}
-        ariaLabel={props.labels.replyAriaLabel(props.story)}
+        ariaLabel={labels.replyAriaLabel(story)}
         labels={
-          props.labels.commentLabels
+          labels.commentLabels
             ? {
-                composerPlaceholder: props.labels.commentLabels.composerPlaceholder,
-                composerSend: props.labels.commentLabels.composerSend ?? props.labels.replyComposerSend,
-                composerCancel: props.labels.commentLabels.composerCancel ?? props.labels.replyComposerCancel,
+                composerPlaceholder: labels.commentLabels.composerPlaceholder,
+                composerSend: labels.commentLabels.composerSend ?? labels.replyComposerSend,
+                composerCancel: labels.commentLabels.composerCancel ?? labels.replyComposerCancel,
               }
             : {
-                composerSend: props.labels.replyComposerSend,
-                composerCancel: props.labels.replyComposerCancel,
+                composerSend: labels.replyComposerSend,
+                composerCancel: labels.replyComposerCancel,
               }
         }
       />

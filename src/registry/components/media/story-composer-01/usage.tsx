@@ -8,7 +8,7 @@ export default function StoryComposer01Usage() {
           Instagram-style stories. It composes with{" "}
           <code>StoryRail01</code> (discovery) and{" "}
           <code>StoryViewer01</code> (consumption) to form the full story
-          system, but doesn't depend on them. Use it whenever you need
+          system, but doesn&apos;t depend on them. Use it whenever you need
           camera-first capture + on-canvas editing + one-tap publish.
         </p>
       </section>
@@ -49,7 +49,7 @@ export function Example() {
             default toolbar (Text / Draw / Stickers / Filters / Adjust). Crop
             is opt-in via{" "}
             <code>enabledTools={'{[…, "crop"]}'}</code> — stories are 9:16-locked,
-            so default flows don't need it.
+            so default flows don&apos;t need it.
           </li>
           <li>
             <strong>Video</strong> — long-press hold OR tap-to-toggle shutter.
@@ -63,7 +63,7 @@ export function Example() {
           </li>
         </ul>
         <p className="mt-2 text-muted-foreground">
-          Hide modes you don't want via{" "}
+          Hide modes you don&apos;t want via{" "}
           <code>hideModes={'{["video","text"]}'}</code>.
         </p>
       </section>
@@ -75,7 +75,7 @@ export function Example() {
         </p>
         <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
           <li>
-            <code>uploadUrl="/api/upload"</code> — composer POSTs FormData
+            <code>uploadUrl=&quot;/api/upload&quot;</code> — composer POSTs FormData
             ({"{ file, metadata }"}) with progress events.
           </li>
           <li>

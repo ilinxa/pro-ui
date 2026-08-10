@@ -43,12 +43,21 @@ export function ToolFilterStrip({
   const [thumbs, setThumbs] = useState<ThumbnailEntry[]>([]);
   const cancelledRef = useRef(false);
 
+  // Clear stale thumbnails when the input empties — during render via the
+  // guarded prev-props pattern, so the effect below only does external-system
+  // work (image load + canvas rendering). Fires only on the →empty
+  // transition; a sourceUrl/presets change between non-empty values keeps the
+  // old thumbs visible until the re-render lands (existing behavior).
+  const inputEmpty = !sourceUrl || presets.length === 0;
+  const [prevInputEmpty, setPrevInputEmpty] = useState(inputEmpty);
+  if (inputEmpty !== prevInputEmpty) {
+    setPrevInputEmpty(inputEmpty);
+    if (inputEmpty) setThumbs([]);
+  }
+
   useEffect(() => {
     cancelledRef.current = false;
-    if (!sourceUrl || presets.length === 0) {
-      setThumbs([]);
-      return;
-    }
+    if (!sourceUrl || presets.length === 0) return;
 
     const img = new window.Image();
     img.crossOrigin = "anonymous";
@@ -124,7 +133,6 @@ export function ToolFilterStrip({
               )}
             >
               {url ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={url}
                   alt=""

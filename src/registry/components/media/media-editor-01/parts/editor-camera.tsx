@@ -91,7 +91,24 @@ export function EditorCamera({
   // otherwise wait for an explicit user gesture (the "Enable camera" button
   // on the idle prompt). Avoids surprising users with a permission prompt
   // the moment they open the composer.
-  const capture = useMediaCapture({
+  // Destructure the hook result to locals up front. `videoRef` is a ref-typed
+  // field; passing `capture.videoRef` as a JSX ref makes the React Compiler's
+  // aliasing analysis treat the whole result object as a ref container and
+  // flag every later `capture.*` read as "ref access during render" (known
+  // false-positive class — same fix as story-viewer-01/reply-composer).
+  const {
+    videoRef,
+    status: captureStatus,
+    facing: captureFacing,
+    canSwitchCamera,
+    acquire,
+    takePhoto,
+    switchCamera,
+    isRecording,
+    recordingMs,
+    startRecording,
+    stopRecording,
+  } = useMediaCapture({
     enabled,
     defaultFacing,
     requestAudio,
@@ -102,36 +119,40 @@ export function EditorCamera({
   // Surface permission-denied to the consumer once.
   const deniedFiredRef = useRef(false);
   useEffect(() => {
-    if (capture.status === "denied" && !deniedFiredRef.current) {
+    if (captureStatus === "denied" && !deniedFiredRef.current) {
       deniedFiredRef.current = true;
       onPermissionDenied?.();
-    } else if (capture.status !== "denied") {
+    } else if (captureStatus !== "denied") {
       deniedFiredRef.current = false;
     }
-  }, [capture.status, onPermissionDenied]);
+  }, [captureStatus, onPermissionDenied]);
 
   // Front-camera preview is mirrored to match user expectation; rear is not.
-  const mirrored = capture.facing === "user";
+  const mirrored = captureFacing === "user";
 
   const handleShutterPhoto = async () => {
-    if (busy || capture.status !== "ready") return;
+    if (busy || captureStatus !== "ready") return;
     setBusy(true);
     try {
-      const photo = await capture.takePhoto({
+      const photo = await takePhoto({
         aspectRatio: captureAspectRatio ?? null,
       });
       onPhoto(photo);
-    } catch {
-      /* swallow — could surface as ValidationError later */
+    } catch (err) {
+      // No ValidationError kind fits a transient shutter failure (no frame
+      // yet / toBlob null) — dev-warn instead of swallowing silently.
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("media-editor-01: takePhoto failed", err);
+      }
     } finally {
       setBusy(false);
     }
   };
 
   const handleVideoStart = async () => {
-    if (busy || capture.status !== "ready") return;
+    if (busy || captureStatus !== "ready") return;
     try {
-      await capture.startRecording();
+      await startRecording();
     } catch (err) {
       onValidationError?.({
         kind: "unsupported-codec",
@@ -142,13 +163,18 @@ export function EditorCamera({
   };
 
   const handleVideoStop = async () => {
-    if (!capture.isRecording) return;
+    if (!isRecording) return;
     setBusy(true);
     try {
-      const video = await capture.stopRecording();
+      const video = await stopRecording();
       onVideo(video);
-    } catch {
-      /* swallow */
+    } catch (err) {
+      // A failed stop means the recording is lost — surface it on the same
+      // channel handleVideoStart already uses.
+      onValidationError?.({
+        kind: "unsupported-codec",
+        message: (err as Error)?.message ?? "Video recording failed",
+      });
     } finally {
       setBusy(false);
     }
@@ -178,15 +204,15 @@ export function EditorCamera({
     | "denied"
     | "no-camera"
     | "error" =
-    capture.status === "acquiring"
+    captureStatus === "acquiring"
       ? "pending"
-      : capture.status === "denied"
+      : captureStatus === "denied"
         ? "denied"
-        : capture.status === "no-camera"
+        : captureStatus === "no-camera"
           ? "no-camera"
-          : capture.status === "error"
+          : captureStatus === "error"
             ? "error"
-            : capture.status === "idle"
+            : captureStatus === "idle"
               ? "idle"
               : null;
 
@@ -197,21 +223,21 @@ export function EditorCamera({
   // bound, a stable denial (e.g. mic denied while photo mode requests it)
   // makes acquire() → fail → status="denied" → effect re-fires → infinite
   // loop. Resets when status becomes "ready" so a future denial can retry.
-  // Also gates on .status to avoid dep'ing on the whole capture object
-  // (which is a fresh ref every render).
+  // Also deps on the destructured captureStatus/acquire locals, not the whole
+  // capture result object (which is a fresh ref every render).
   const autoRetryAttemptedRef = useRef(false);
   useEffect(() => {
     if (perms.state === "granted") {
-      if (capture.status === "denied" && !autoRetryAttemptedRef.current) {
+      if (captureStatus === "denied" && !autoRetryAttemptedRef.current) {
         autoRetryAttemptedRef.current = true;
-        void capture.acquire();
-      } else if (capture.status === "ready") {
+        void acquire();
+      } else if (captureStatus === "ready") {
         autoRetryAttemptedRef.current = false;
       }
     } else {
       autoRetryAttemptedRef.current = false;
     }
-  }, [perms.state, capture.status, capture.acquire]);
+  }, [perms.state, captureStatus, acquire]);
 
   // Resolve the permission-overlay body once. The consumer's
   // renderPermissionDenied slot replaces the built-in prompt for the `denied`
@@ -224,7 +250,7 @@ export function EditorCamera({
     // CameraPermissionPrompt `onUsePicker` prop below, which isn't flagged).
     // eslint-disable-next-line react-hooks/refs
     permissionOverlay = renderPermissionDenied({
-      retry: () => void capture.acquire(),
+      retry: () => void acquire(),
       usePicker: handleGalleryClick,
     });
   } else if (permissionVariant !== null) {
@@ -232,7 +258,7 @@ export function EditorCamera({
       <CameraPermissionPrompt
         variant={permissionVariant}
         labels={labels}
-        onRetry={() => void capture.acquire()}
+        onRetry={() => void acquire()}
         onUsePicker={handleGalleryClick}
       />
     );
@@ -242,7 +268,7 @@ export function EditorCamera({
     <div className="@container relative flex-1 flex flex-col overflow-hidden">
       {/* Live preview — black fallback shows when no stream */}
       <video
-        ref={capture.videoRef}
+        ref={videoRef}
         autoPlay
         playsInline
         muted
@@ -263,7 +289,7 @@ export function EditorCamera({
       )}
 
       {/* Recording indicator — red dot + mm:ss top-center */}
-      {capture.isRecording && (
+      {isRecording && (
         <div
           role="status"
           aria-live="polite"
@@ -271,7 +297,7 @@ export function EditorCamera({
         >
           <span className="size-2 rounded-full bg-red-500 animate-pulse" />
           <span className="text-xs font-mono tabular-nums">
-            {formatRecordingTime(capture.recordingMs)}
+            {formatRecordingTime(recordingMs)}
           </span>
           <span className="sr-only">{labels.recordingLabel}</span>
         </div>
@@ -305,23 +331,23 @@ export function EditorCamera({
           onPress={handleShutterPhoto}
           onStart={handleVideoStart}
           onStop={handleVideoStop}
-          isRecording={capture.isRecording}
+          isRecording={isRecording}
           recordProgress={
-            capture.isRecording
+            isRecording
               ? Math.min(
                   1,
-                  capture.recordingMs / (maxVideoDurationSec * 1000),
+                  recordingMs / (maxVideoDurationSec * 1000),
                 )
               : 0
           }
           disabled={
             busy ||
-            capture.status !== "ready" ||
+            captureStatus !== "ready" ||
             mode === "text"
           }
           ariaLabel={
             mode === "video"
-              ? capture.isRecording
+              ? isRecording
                 ? labels.shutterVideoStop
                 : labels.shutterVideoStart
               : labels.shutterPhoto
@@ -329,11 +355,11 @@ export function EditorCamera({
         />
 
         {/* Switch camera (only when ≥2 devices) */}
-        {capture.canSwitchCamera ? (
+        {canSwitchCamera ? (
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => void capture.switchCamera()}
+            onClick={() => void switchCamera()}
             aria-label={labels.switchCamera}
             className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
           >

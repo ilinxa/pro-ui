@@ -11,6 +11,7 @@ import type {
   ContentComposer01Props,
   ExportMetadata,
   GateResult,
+  MediaSlotValue,
   SlotHandle,
   SlotKind,
   SlotValueFor,
@@ -28,7 +29,11 @@ import { ComposerContext, ComposerStepContext } from "./hooks/use-composer-conte
 import { ComposerShell } from "./parts/composer-shell";
 import { ComposerDialog } from "./parts/composer-dialog";
 import { SlotMount } from "./parts/slot-mount";
-import { CarouselLiveCacheContext } from "./parts/media-carousel-substrate";
+import { MediaSourceBlobCacheContext } from "./parts/media-substrate";
+import {
+  CarouselLiveCacheContext,
+  carouselDisplacedUrls,
+} from "./parts/media-carousel-substrate";
 import type { MediaCarouselItem } from "@/registry/components/media/media-carousel-editor-01/media-carousel-editor-01";
 import { PublishBar } from "./parts/publish-bar";
 
@@ -105,6 +110,12 @@ export const ContentComposer01 = React.forwardRef<
   });
 
   const blobMap = React.useRef(new Map<string, Blob>());
+  // Source blob backing each mediaSlot step's editorState.imageSrc — lets a
+  // step-revisit re-mint the (revoked) object URL before loadState (1.3/1.4).
+  // Plain blobs, no revocation lifecycle; the map dies with the composer.
+  // Stable instance via lazy useState (a bare Map, not a ref — see
+  // MediaSourceBlobCacheContext).
+  const [mediaSourceBlobs] = React.useState(() => new Map<string, Blob>());
   // Live carousel items (with blobs) per step — keeps mediaCarouselSlot media
   // across step navigation (the carousel runs with revokeOnUnmount={false}, so
   // its object URLs outlive a step unmount; we revoke them on composer unmount).
@@ -117,6 +128,12 @@ export const ContentComposer01 = React.forwardRef<
           if (it.url.startsWith("blob:")) URL.revokeObjectURL(it.url);
         }),
       );
+      // F13: URLs displaced from the cache mid-session (re-edit of a
+      // cache-restored item) have no owner left — the substrate tombstoned
+      // them; revoke here. Re-revoking an already-released URL is a no-op.
+      const displaced = carouselDisplacedUrls(cache);
+      displaced.forEach((u) => URL.revokeObjectURL(u));
+      displaced.clear();
       cache.clear();
     };
   }, []);
@@ -173,12 +190,22 @@ export const ContentComposer01 = React.forwardRef<
       try {
         const { blob, metadata } = await handle.export();
         blobMap.current.set(stepId, blob);
+        // Pull the FRESH slot value (editorState included): the draft copy
+        // only refreshes on dirty flips, so overlay edits made since the last
+        // flip would otherwise be missing from the persisted snapshot the
+        // step-revisit restore (1.4) replays.
+        const fresh = handle.getValue() as MediaSlotValue | undefined;
         dispatch({
           type: "set-step-value",
           stepId,
           value: {
             slot: "mediaSlot",
-            value: { ...mv, pendingBlobRef: stepId, exportMetadata: metadata },
+            value: {
+              ...mv,
+              ...fresh,
+              pendingBlobRef: stepId,
+              exportMetadata: metadata,
+            },
           },
         });
       } catch {
@@ -396,9 +423,26 @@ export const ContentComposer01 = React.forwardRef<
       goToStep,
       getIsDirty: () => isDirty,
       getDraft: () => draft,
-      loadDraft: (d) => dispatch({ type: "replace", draft: d }),
+      loadDraft: (d) => {
+        dispatch({ type: "replace", draft: d });
+        // Re-seed the substrate that stays mounted (review 1.4 — the
+        // SlotHandle.loadValue contract had no caller): substrates seed from
+        // the draft only at mount, so a loadDraft that keeps the cursor on the
+        // same step would otherwise leave the visible slot showing the old
+        // value. A cursor change remounts the new step's substrate, which
+        // self-seeds from the replaced draft.
+        const clamped = Math.max(
+          0,
+          Math.min(d.cursor ?? 0, config.steps.length - 1),
+        );
+        if (clamped !== draft.cursor) return;
+        const step = config.steps[clamped];
+        const sv = d.steps[step.id];
+        const handle = getHandle(step.id);
+        if (handle && sv && sv.slot === step.slot) handle.loadValue(sv.value);
+      },
     }),
-    [saveDraft, publish, schedule, goToStep, isDirty, draft, dispatch],
+    [saveDraft, publish, schedule, goToStep, isDirty, draft, dispatch, config, getHandle],
   );
 
   // ── Context + active step ───────────────────────────────────────────────
@@ -511,6 +555,7 @@ export const ContentComposer01 = React.forwardRef<
   const dialogDescription = `${config.steps.length}-step ${config.title} composer. Use the step navigation, then save, publish, or schedule.`;
 
   return (
+    <MediaSourceBlobCacheContext.Provider value={mediaSourceBlobs}>
     <CarouselLiveCacheContext.Provider value={carouselCache}>
     <ComposerContext.Provider value={ctx}>
       {resolvedMode === "dialog" ? (
@@ -556,5 +601,6 @@ export const ContentComposer01 = React.forwardRef<
       )}
     </ComposerContext.Provider>
     </CarouselLiveCacheContext.Provider>
+    </MediaSourceBlobCacheContext.Provider>
   );
 });

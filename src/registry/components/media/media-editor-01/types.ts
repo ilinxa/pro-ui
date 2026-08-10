@@ -476,6 +476,18 @@ export interface MediaEditor01Props {
 
 // ─── Imperative handle (LOCKED in description §7) ──────────────────────
 
+export interface LoadStateOpts {
+  /**
+   * The blob backing `state.imageSrc` (photo path). A persisted snapshot's
+   * `imageSrc` is typically a dead object URL (revoked when the capturing
+   * editor instance unmounted) — when `sourceBlob` is provided, `loadState`
+   * re-mints a fresh object URL from it instead of trusting `imageSrc`, and
+   * rebuilds the internal draft so the edit tools work as they did pre-unmount.
+   * Obtain it from `getSourceBlob()` at snapshot time. (Review 1.3.)
+   */
+  sourceBlob?: Blob | null;
+}
+
 export interface MediaEditor01Handle {
   // === Inspect ===
   /** True iff the user has captured OR loaded OR edited something. Capture without edit IS dirty. */
@@ -483,7 +495,14 @@ export interface MediaEditor01Handle {
   getMode: () => ComposerMode | null;
   /** Serializable snapshot — for draft persistence. */
   getState: () => MediaEditorState;
-  loadState: (state: MediaEditorState) => void;
+  loadState: (state: MediaEditorState, opts?: LoadStateOpts) => void;
+  /**
+   * Blob backing the current photo draft / canvas image — persist it alongside
+   * `getState()` so a later `loadState(state, { sourceBlob })` can
+   * re-materialize the (revoked) object URL. Null when nothing is loaded, or
+   * in video mode (persist `getState().videoBlob` instead).
+   */
+  getSourceBlob: () => Blob | null;
 
   // === Capture (only if enabledModes includes capture modes; else dev-warn + no-op) ===
   switchCamera: () => Promise<void>;

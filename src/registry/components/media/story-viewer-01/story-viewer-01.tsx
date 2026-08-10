@@ -190,6 +190,14 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   const triggerLikeRef = useRef<() => void>(() => {});
   const triggerReactionRef = useRef<(kind?: string) => void>(() => {});
   const triggerShareRef = useRef<() => void>(() => {});
+  // ─── v0.2.0 reply composer ref (for focus + triggerReply handle method) ──
+  // Declared BEFORE the imperative handle: the handle's triggerReply /
+  // openKebab closures reference composerRef + setKebabOpen, and declaring
+  // them after the handle trips the React Compiler
+  // "cannot access variable before it is declared" check.
+  const composerRef = useRef<CommentComposerHandle | null>(null);
+  // ─── v0.2.0 kebab state (C6) — shared between engagement-overlay placement + header fallback ──
+  const [kebabOpen, setKebabOpen] = useState(false);
 
   useImperativeHandle(
     ref,
@@ -271,7 +279,22 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   // `pendingDragCommit` suppresses the auto trigger when the cursor change
   // was caused by a drag commit (we already played the cube animation
   // during the drag — no need to play it again).
-  const cube = useCubeTransition(storyTransitionDurationMs);
+  // Destructure the cube-hook container to locals up front. `setRotatorRef`
+  // closes over the hook's internal rotator ref, so once
+  // `ref={cube.setRotatorRef}` appears in JSX the React Compiler's aliasing
+  // analysis treats the whole `cube` container as a ref and flags every
+  // later `cube.state` read as "ref access during render" (known
+  // false-positive class — same destructure-to-locals fix as blackboard-01 /
+  // reply-composer). Locals keep the analysis precise; identities unchanged.
+  const {
+    state: cubeState,
+    setRotatorRef: cubeSetRotatorRef,
+    startAuto: cubeStartAuto,
+    beginDrag: cubeBeginDrag,
+    setDragAngle: cubeSetDragAngle,
+    releaseDrag: cubeReleaseDrag,
+    forceIdle: cubeForceIdle,
+  } = useCubeTransition(storyTransitionDurationMs);
   const [trackedCursor, setTrackedCursor] = useState({
     storyIndex: cursor.storyIndex,
     itemIndex: cursor.itemIndex,
@@ -295,7 +318,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   } else if (
     isOpen &&
     !disableStoryTransition &&
-    cube.state.phase === "idle" &&
+    cubeState.phase === "idle" &&
     cursor.storyIndex !== trackedCursor.storyIndex &&
     stories.length > 0
   ) {
@@ -304,7 +327,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     const leavingStory = stories[trackedCursor.storyIndex];
     const leavingItem = leavingStory?.items[trackedCursor.itemIndex];
     if (leavingStory && leavingItem) {
-      cube.startAuto({
+      cubeStartAuto({
         direction,
         leaving: {
           storyId: leavingStory.id,
@@ -330,10 +353,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     });
   }
   // Force idle on viewer close to clear any in-flight cube state.
-  // Dep only on the memoized `forceIdle` (stable identity) — depending on
-  // the whole `cube` object triggers an infinite loop because the hook
+  // Dep only on the memoized `cubeForceIdle` (stable identity) — depending
+  // on the whole hook container triggers an infinite loop because the hook
   // returns a fresh container object on every render.
-  const cubeForceIdle = cube.forceIdle;
   useEffect(() => {
     if (!isOpen) cubeForceIdle();
   }, [isOpen, cubeForceIdle]);
@@ -343,9 +365,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   // The CSS transition on the rotator is enabled in auto/releasing modes
   // (animated angle change) and DISABLED in dragging mode (pointer drives
   // it directly — any transition would lag the finger).
-  const cubeMounted = cube.state.phase !== "idle";
+  const cubeMounted = cubeState.phase !== "idle";
   const cubeUsesTransition =
-    cube.state.phase === "auto" || cube.state.phase === "releasing";
+    cubeState.phase === "auto" || cubeState.phase === "releasing";
   // Hoist narrowed snapshots out of the discriminated union for JSX use.
   let autoLeavingStory: Story | null = null;
   let autoLeavingItem: StoryItem | null = null;
@@ -354,8 +376,8 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   let autoDirection: CubeDirection | null = null;
   let dragPrev: { story: Story; item: StoryItem; itemIndex: number; progress: number } | null = null;
   let dragNext: { story: Story; item: StoryItem; itemIndex: number; progress: number } | null = null;
-  if (cube.state.phase === "auto") {
-    const cs = cube.state;
+  if (cubeState.phase === "auto") {
+    const cs = cubeState;
     autoDirection = cs.direction;
     autoLeavingItemIndex = cs.leaving.itemIndex;
     autoLeavingProgress = cs.leaving.progress;
@@ -363,10 +385,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     autoLeavingItem =
       autoLeavingStory?.items.find((i) => i.id === cs.leaving.itemId) ?? null;
   } else if (
-    cube.state.phase === "dragging" ||
-    cube.state.phase === "releasing"
+    cubeState.phase === "dragging" ||
+    cubeState.phase === "releasing"
   ) {
-    const cs = cube.state;
+    const cs = cubeState;
     if (cs.prev) {
       const ps = stories.find((s) => s.id === cs.prev!.storyId);
       const pi = ps?.items.find((i) => i.id === cs.prev!.itemId);
@@ -471,7 +493,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           longPress.handlePointerCancel();
           const prevStory = stories[cursor.storyIndex - 1];
           const nextStory = stories[cursor.storyIndex + 1];
-          cube.beginDrag({
+          cubeBeginDrag({
             prev:
               prevStory && prevStory.items[0]
                 ? {
@@ -509,9 +531,9 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       if (angle > 0 && !hasPrev) angle = angle * 0.25;
       if (angle < 0 && !hasNext) angle = angle * 0.25;
       angle = Math.max(-90, Math.min(90, angle));
-      cube.setDragAngle(angle);
+      cubeSetDragAngle(angle);
     },
-    [longPress, stories, cursor.storyIndex, cube],
+    [longPress, stories, cursor.storyIndex, cubeBeginDrag, cubeSetDragAngle],
   );
 
   const handlePointerEnd = useCallback(
@@ -551,7 +573,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       }
 
       if (snap === "next") {
-        cube.releaseDrag({
+        cubeReleaseDrag({
           targetDeg: -90,
           onComplete: () => {
             setPendingDragCommit(true);
@@ -559,7 +581,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           },
         });
       } else if (snap === "prev") {
-        cube.releaseDrag({
+        cubeReleaseDrag({
           targetDeg: 90,
           onComplete: () => {
             setPendingDragCommit(true);
@@ -567,10 +589,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           },
         });
       } else {
-        cube.releaseDrag({ targetDeg: 0 });
+        cubeReleaseDrag({ targetDeg: 0 });
       }
     },
-    [cube, cursor.storyIndex, goToNextStory, goToPrevStory, longPress, stories.length],
+    [cubeReleaseDrag, cursor.storyIndex, goToNextStory, goToPrevStory, longPress, stories.length],
   );
 
   const handleClickCapture = useCallback(
@@ -592,15 +614,10 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
       onSubscribeDelta: onSubscribeEngagementDelta,
     });
 
-  // ─── v0.2.0 reply composer ref (for focus + triggerReply handle method) ──
-  const composerRef = useRef<CommentComposerHandle | null>(null);
-
-  // ─── v0.2.0 kebab state (C6) — shared between engagement-overlay placement + header fallback ──
-  const [kebabOpen, setKebabOpen] = useState(false);
-  // Close kebab on cursor change (so it doesn't persist across story navigation).
-  useEffect(() => {
-    setKebabOpen(false);
-  }, [cursor.storyIndex, cursor.itemIndex]);
+  // (v0.2.0 `composerRef` + kebab state are declared earlier — above the
+  // imperative handle that closes over them; see the TDZ note there.
+  // Close-on-cursor-change for kebab lives in the consolidated render-time
+  // reset below, next to the panel resets.)
 
   // ─── v0.3.5 engagement bar expand/collapse state ─────────────────────
   // Default: collapsed (only the heart toggle visible). Tapping the toggle
@@ -610,10 +627,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   const [engagementExpanded, setEngagementExpanded] = useState(false);
   const engagementColumnRef = useRef<HTMLDivElement | null>(null);
   const engagementToggleRef = useRef<HTMLButtonElement | null>(null);
-  // Close engagement on cursor change.
-  useEffect(() => {
-    setEngagementExpanded(false);
-  }, [cursor.storyIndex, cursor.itemIndex]);
+  // (Close-on-cursor-change lives in the consolidated render-time reset below.)
   // Outside-click: any pointer event outside BOTH the engagement column
   // AND the inline toggle button collapses the column.
   useEffect(() => {
@@ -651,11 +665,30 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
     setPaused(true);
     return () => setPaused(false);
   }, [anyPanelOpen, setPaused]);
-  // Close panels on cursor change (next/prev nav).
-  useEffect(() => {
+  // Close transient chrome (kebab / engagement column / v0.3 panels) on
+  // cursor change (next/prev nav) — so none of it persists across story
+  // navigation. Render-time prev-state adjustment (the same guarded
+  // mid-render setState pattern as `trackedCursor` above; React docs
+  // "adjusting state when a prop changes") instead of setState-in-effect
+  // resets: the close lands in the SAME commit as the navigation, with no
+  // extra post-commit render showing stale-open chrome.
+  const [prevChromeCursor, setPrevChromeCursor] = useState({
+    storyIndex: cursor.storyIndex,
+    itemIndex: cursor.itemIndex,
+  });
+  if (
+    prevChromeCursor.storyIndex !== cursor.storyIndex ||
+    prevChromeCursor.itemIndex !== cursor.itemIndex
+  ) {
+    setPrevChromeCursor({
+      storyIndex: cursor.storyIndex,
+      itemIndex: cursor.itemIndex,
+    });
+    setKebabOpen(false);
+    setEngagementExpanded(false);
     setCommentsOpen(false);
     setShareOpen(false);
-  }, [cursor.storyIndex, cursor.itemIndex]);
+  }
   // Mutual exclusion — opening one closes the other.
   const openCommentsPanel = useCallback(() => {
     setShareOpen(false);
@@ -761,6 +794,12 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
   const engagementActions = useMemo(() => {
     if (!engagementOverlayMounted) return [];
     const state = getEngagementState(currentStory!.id, currentItem!.id);
+    // False-positive suppression (known class: ref-reading event closures
+    // passed to an opaque builder called during render — media-editor-01
+    // v0.1.2 precedent). The builder only STORES onCommentClick (which
+    // reads composerRef.current) in the returned actions array; the ref is
+    // read at click time, never during render.
+    // eslint-disable-next-line react-hooks/refs
     return buildStoryEngagementActionsWithMatrix({
       story: currentStory!,
       item: currentItem!,
@@ -934,7 +973,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             proper cube perspective behavior). The incoming face arrives
             at world z=0 at ∓90° and ends at scale 1.0× too. */}
         <div
-          ref={cube.setRotatorRef}
+          ref={cubeSetRotatorRef}
           className={cn(
             "absolute inset-0",
             cubeMounted && "transform-3d",
@@ -954,7 +993,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         {/* v0.4.0 auto-mode — Leaving face (ghost). Pre-placed at the
             front wall (`translateZ(50cqw)`). As the rotator swings ∓90deg
             the ghost rotates out of view to the side. */}
-        {cube.state.phase === "auto" && autoLeavingStory && autoLeavingItem ? (
+        {cubeState.phase === "auto" && autoLeavingStory && autoLeavingItem ? (
           <div
             className="absolute inset-0 backface-hidden pointer-events-none"
             style={{ transform: "translateZ(50cqw)" }}
@@ -973,7 +1012,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
         {/* v0.4.1 drag-mode — Prev ghost on the LEFT wall (rotateY -90deg).
             Mounted during dragging + releasing so the user can swipe to
             either neighbor. */}
-        {(cube.state.phase === "dragging" || cube.state.phase === "releasing") &&
+        {(cubeState.phase === "dragging" || cubeState.phase === "releasing") &&
         dragPrev ? (
           <div
             className="absolute inset-0 backface-hidden pointer-events-none"
@@ -991,7 +1030,7 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
           </div>
         ) : null}
         {/* v0.4.1 drag-mode — Next ghost on the RIGHT wall (rotateY +90deg). */}
-        {(cube.state.phase === "dragging" || cube.state.phase === "releasing") &&
+        {(cubeState.phase === "dragging" || cubeState.phase === "releasing") &&
         dragNext ? (
           <div
             className="absolute inset-0 backface-hidden pointer-events-none"
@@ -1021,15 +1060,15 @@ function StoryViewer01Inner(props: StoryViewer01InnerProps) {
             cubeMounted && "backface-hidden",
           )}
           style={
-            cube.state.phase === "auto" && autoDirection
+            cubeState.phase === "auto" && autoDirection
               ? {
                   transform:
                     autoDirection === "next"
                       ? "rotateY(90deg) translateZ(50cqw)"
                       : "rotateY(-90deg) translateZ(50cqw)",
                 }
-              : cube.state.phase === "dragging" ||
-                  cube.state.phase === "releasing"
+              : cubeState.phase === "dragging" ||
+                  cubeState.phase === "releasing"
                 ? { transform: "translateZ(50cqw)" }
                 : undefined
           }

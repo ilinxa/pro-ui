@@ -246,16 +246,18 @@ export function useMediaEditorState(
   );
   const [textOnly, setTextOnlyState] = useState<TextOnlyState>(INITIAL_TEXT_ONLY);
 
-  // Revoke draft object URL on replacement / unmount.
+  // Revoke draft object URL on replacement / unmount. The revoke runs OUTSIDE
+  // the setState updater — updaters must stay pure (React 19 StrictMode
+  // double-invokes them). draftUrlRef mirrors the last committed URL, and
+  // every draft write goes through setDraft, so it's always current.
   const draftUrlRef = useRef<string | null>(null);
   const setDraft = useCallback((next: DraftMedia | null) => {
-    setDraftState((prev) => {
-      if (prev?.url && prev.url !== next?.url) {
-        URL.revokeObjectURL(prev.url);
-      }
-      draftUrlRef.current = next?.url ?? null;
-      return next;
-    });
+    const prevUrl = draftUrlRef.current;
+    if (prevUrl && prevUrl !== next?.url) {
+      URL.revokeObjectURL(prevUrl);
+    }
+    draftUrlRef.current = next?.url ?? null;
+    setDraftState(next);
   }, []);
   useEffect(() => {
     return () => {

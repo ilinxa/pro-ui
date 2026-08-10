@@ -124,7 +124,12 @@ export function EditorCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
   const stageSize = useKonvaStageSize(containerRef);
-  const selection = useKonvaSelection();
+  // Destructure the selection hook result to locals up front. `transformerRef`
+  // is a ref-typed field; reading it as `selection.transformerRef` makes the
+  // React Compiler's aliasing analysis treat the whole result object as a ref
+  // container and flag every access (known false-positive class — same fix as
+  // story-viewer-01/reply-composer).
+  const { transformerRef, clear: clearSelection } = useKonvaSelection();
   const imageNodeRef = useRef<Konva.Image | null>(null);
 
   // Single-pointer drag-pan must yield to draggable overlays. Hit-test the
@@ -151,6 +156,16 @@ export function EditorCanvas({
     enabled: !isDrawing && !cropActive,
     shouldStartPan,
   });
+
+  // Crop maps stage-coordinate rects onto the source image assuming an
+  // identity stage transform, and the DOM crop overlay can't follow stage
+  // zoom/pan — normalize the view the moment the crop tool takes over.
+  // (Pan/zoom is merely DISABLED while cropping; without this reset a
+  // zoom-then-crop crops the wrong region.)
+  const panZoomReset = panZoom.reset;
+  useEffect(() => {
+    if (cropActive) panZoomReset();
+  }, [cropActive, panZoomReset]);
 
   const [image, imageSize] = useImage(imageUrl);
   const fit = fitInto(imageSize, stageSize);
@@ -223,7 +238,7 @@ export function EditorCanvas({
 
   // Attach the Transformer to the currently-selected node (text or sticker).
   useEffect(() => {
-    const t = selection.transformerRef.current;
+    const t = transformerRef.current;
     if (!t) return;
     let node: Konva.Node | undefined;
     if (selectedTextId) {
@@ -242,7 +257,7 @@ export function EditorCanvas({
     selectedStickerId,
     textOverlays,
     stickers,
-    selection.transformerRef,
+    transformerRef,
   ]);
 
   // Click/tap on bare Stage background → clear all selection. Accepts mouse OR
@@ -257,7 +272,7 @@ export function EditorCanvas({
     if (e.target === e.target.getStage()) {
       onTextSelect?.(null);
       onStickerSelect?.(null);
-      selection.clear();
+      clearSelection();
     }
   };
 
@@ -476,7 +491,7 @@ export function EditorCanvas({
           {/* ui layer — Transformer attached on selection */}
           <Layer>
             <Transformer
-              ref={selection.transformerRef}
+              ref={transformerRef}
               rotateEnabled
               keepRatio={false}
               boundBoxFunc={(_oldBox, newBox) => {
@@ -547,9 +562,14 @@ function CropOverlay({
     startRect: CropRect;
   } | null>(null);
 
+  // Plain two-arg handler invoked from inline arrows in the JSX props below.
+  // (The previous curried `beginDrag(mode)` builder ran during render, which
+  // made the compiler flag its ref write; the handler form only runs on the
+  // pointer event.)
   const beginDrag = (
     mode: "move" | "ne" | "nw" | "se" | "sw",
-  ) => (e: React.PointerEvent) => {
+    e: React.PointerEvent,
+  ) => {
     e.stopPropagation();
     e.currentTarget.setPointerCapture?.(e.pointerId);
     dragStateRef.current = {
@@ -692,7 +712,7 @@ function CropOverlay({
           width: rect.width,
           height: rect.height,
         }}
-        onPointerDown={beginDrag("move")}
+        onPointerDown={(e) => beginDrag("move", e)}
       >
         {/* Rule-of-thirds grid */}
         <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
@@ -706,7 +726,7 @@ function CropOverlay({
           <button
             type="button"
             key={corner}
-            onPointerDown={beginDrag(corner)}
+            onPointerDown={(e) => beginDrag(corner, e)}
             className="absolute bg-white rounded-full shadow"
             style={{
               width: HANDLE_SIZE,
@@ -820,12 +840,22 @@ function useImage(
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
 
-  useEffect(() => {
+  // Reset when the source is CLEARED — during render via the guarded
+  // prev-props pattern (React docs "adjusting state when props change"), so
+  // the effect below only does external-system work (image loading).
+  // Deliberately fires only on the →null transition: a src→src change keeps
+  // the old image visible until the replacement loads (existing behavior).
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     if (!src) {
       setImage(null);
       setSize({ width: 0, height: 0 });
-      return;
     }
+  }
+
+  useEffect(() => {
+    if (!src) return;
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     let cancelled = false;

@@ -131,8 +131,14 @@ export const StoryComposer01 = forwardRef<
     setUploadProgress(0.5 + uploader_.progress * 0.5);
   }, [publishStatus, uploader_.progress]);
 
+  // Cancel pressed while the export/composite is still running: export() can't
+  // be aborted, so when it eventually resolves this ref stops the flow from
+  // resurrecting the upload after the user already dismissed the overlay.
+  const publishCancelledRef = useRef(false);
+
   const handlePublish = useCallback(async () => {
     if (!editorRef.current) return;
+    publishCancelledRef.current = false;
     try {
       setPublishStatus("compositing");
       setUploadProgress(0);
@@ -140,6 +146,7 @@ export const StoryComposer01 = forwardRef<
         // Export takes the first half of the progress bar; upload the second.
         onProgress: (p) => setUploadProgress(p * 0.5),
       });
+      if (publishCancelledRef.current) return;
       // ExportMetadata → PublishMetadata (drop the editor-only `crop` field).
       const publishMeta: PublishMetadata = {
         mode: metadata.mode,
@@ -157,6 +164,7 @@ export const StoryComposer01 = forwardRef<
       // Upload runs the second half of the bar; uploader_.progress is mirrored
       // into uploadProgress via the effect below.
       const result = await uploader_.upload(blob, publishMeta);
+      if (publishCancelledRef.current) return;
       setUploadProgress(1);
 
       const story: PublishedStory = {
@@ -178,8 +186,11 @@ export const StoryComposer01 = forwardRef<
       setPublishStatus("done");
       onPublished(story);
     } catch (err) {
-      setPublishStatus("error");
       const e = err instanceof Error ? err : new Error(String(err));
+      // Cancellation isn't a failure: the overlay's Cancel already reset the
+      // status, and the aborted XHR now rejects with AbortError.
+      if (publishCancelledRef.current || e.name === "AbortError") return;
+      setPublishStatus("error");
       onPublishError?.(e);
     }
   }, [uploader_, onPublished, onPublishError]);
@@ -344,6 +355,7 @@ export const StoryComposer01 = forwardRef<
             labels={labels}
             onRetry={publishStatus === "error" ? handlePublish : undefined}
             onCancel={() => {
+              publishCancelledRef.current = true;
               uploader_.cancel();
               setPublishStatus("idle");
               setUploadProgress(0);

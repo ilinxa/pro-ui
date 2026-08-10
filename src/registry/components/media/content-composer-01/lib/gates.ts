@@ -76,13 +76,41 @@ export function evaluateBodyValue(
   return bodyMinLengthValid(value, rule.minLength);
 }
 
+/**
+ * Does a persisted editor snapshot actually CONTAIN media? The substrate
+ * snapshots editorState on every dirty flip — including the flip back to a
+ * post-reset empty state — so truthiness alone is not evidence (a discarded
+ * hero would sail through the gate and publish; adversarial-review N1).
+ * "Has media" = a canvas image, a video, or authored text-mode content.
+ */
+export function editorStateHasMedia(
+  es: MediaSlotValue["editorState"] | undefined,
+): boolean {
+  if (!es) return false;
+  if (es.imageSrc || es.videoBlob) return true;
+  return (
+    es.mode === "text" &&
+    (!!es.textContent?.trim() || (es.textOverlays?.length ?? 0) > 0)
+  );
+}
+
 export function evaluateMediaValue(
   value: MediaSlotValue | undefined,
   validation: StepValidation | undefined,
   isDirty: boolean,
 ): boolean {
   if (!validation?.rules?.some((r) => r.mediaRequired)) return true;
-  return !!value?.exportedUrl || isDirty;
+  // At publish the media step is re-gated WITHOUT an active handle (single-step
+  // mount → isDirty false), so a freshly captured hero must satisfy the gate
+  // via its persisted evidence: an exported blob awaiting upload
+  // (pendingBlobRef) or a CONTENT-BEARING capture snapshot count as "has
+  // media" just like an already-uploaded exportedUrl. (Review 1.1 + N1.)
+  return (
+    !!value?.exportedUrl ||
+    !!value?.pendingBlobRef ||
+    editorStateHasMedia(value?.editorState) ||
+    isDirty
+  );
 }
 
 /** mediaCarouselSlot gate — value-based (the draft is always current). When
@@ -117,7 +145,11 @@ export function isStepEmpty(step: ComposerStep, draft: ComposerDraft): boolean {
     case "bodySlot":
       return isBodyEmpty(sv.value);
     case "mediaSlot":
-      return !sv.value.exportedUrl && !sv.value.editorState;
+      return (
+        !sv.value.exportedUrl &&
+        !editorStateHasMedia(sv.value.editorState) &&
+        !sv.value.pendingBlobRef
+      );
     case "mediaCarouselSlot":
       return (sv.value.items?.length ?? 0) === 0;
     default:

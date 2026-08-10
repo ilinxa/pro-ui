@@ -69,6 +69,7 @@ export type {
   // Public component contracts
   MediaEditor01Props,
   MediaEditor01Handle,
+  LoadStateOpts,
 } from "./types";
 
 // ─── Constants ─────────────────────────────────────────────────────────

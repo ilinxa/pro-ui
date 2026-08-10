@@ -43,8 +43,20 @@ export function useHistory(
   const { capacity = 50, bindKeyboard = true } = options;
   const pastRef = useRef<Command[]>([]);
   const futureRef = useRef<Command[]>([]);
-  const [, force] = useState(0);
-  const tick = useCallback(() => force((n) => (n + 1) | 0), []);
+  // Stack-depth flags mirrored into state by `tick()` after every mutation
+  // (execute / undo / redo / reset all end with tick()), so render reads
+  // state — never the refs — while the fresh object identity still forces a
+  // re-render exactly like the old force-counter did.
+  const [stackFlags, setStackFlags] = useState({
+    canUndo: false,
+    canRedo: false,
+  });
+  const tick = useCallback(() => {
+    setStackFlags({
+      canUndo: pastRef.current.length > 0,
+      canRedo: futureRef.current.length > 0,
+    });
+  }, []);
 
   const execute = useCallback(
     (cmd: Command) => {
@@ -109,8 +121,8 @@ export function useHistory(
     execute,
     undo,
     redo,
-    canUndo: pastRef.current.length > 0,
-    canRedo: futureRef.current.length > 0,
+    canUndo: stackFlags.canUndo,
+    canRedo: stackFlags.canRedo,
     reset,
   };
 }

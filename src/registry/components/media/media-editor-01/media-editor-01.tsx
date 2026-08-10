@@ -16,7 +16,7 @@ import { resolvePresentation } from "./lib/presentation-resolver";
 import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
-import { exportPhotoBlob } from "./lib/export-blob";
+import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
 import { compositeVideo } from "./lib/composite-video";
 import { EditorCamera } from "./parts/editor-camera";
 import { EditorCanvas } from "./parts/editor-canvas";
@@ -45,6 +45,7 @@ import type {
   ExportOpts,
   ExportVideoOpts,
   ImageAdjustments,
+  LoadStateOpts,
   MediaEditor01Handle,
   MediaEditor01Props,
   MediaEditorState,
@@ -74,6 +75,9 @@ import type {
 
 const NOT_IMPLEMENTED_MARKER =
   "media-editor-01: imperative capture (takePhoto / startRecording / stopRecording / switchCamera / importFromGallery) is deferred to v0.2 — drive capture via the in-UI controls for now.";
+
+const NOT_WIRED_HISTORY_MARKER =
+  "media-editor-01: undo/redo is not wired in v0.1.x (no mutations are recorded as commands yet) — no-op. The per-mutation command layer lands in v0.2.";
 
 // English fallback for the v0.1.5-shaped StoryComposer01Labels that several
 // part files (EditorCamera, EditorToolbar, DiscardConfirmDialog, etc.) still
@@ -204,10 +208,18 @@ export const MediaEditor01 = React.forwardRef<
 
   // ─── Capability defaults (description §8 — Q-P-locked) ─────────────
 
-  const enabledModes = props.enabledModes ?? (["photo", "video", "text"] as const);
-  const enabledTools =
-    props.enabledTools ??
-    (["text", "draw", "stickers", "filters", "adjust", "crop"] as const);
+  // Memoized so the `??`-fallback arrays keep a stable identity across
+  // renders (both feed hook dependency arrays further down).
+  const enabledModes = React.useMemo(
+    () => props.enabledModes ?? (["photo", "video", "text"] as const),
+    [props.enabledModes],
+  );
+  const enabledTools = React.useMemo(
+    () =>
+      props.enabledTools ??
+      (["text", "draw", "stickers", "filters", "adjust", "crop"] as const),
+    [props.enabledTools],
+  );
   const mediaSources = props.mediaSources ?? (["camera", "upload"] as const);
   const aspect = props.aspect ?? "free";
 
@@ -242,6 +254,20 @@ export const MediaEditor01 = React.forwardRef<
   React.useEffect(() => {
     enabledModesRef.current = enabledModes;
   });
+
+  // Value-based effect key: url-kind sources are idiomatically passed as
+  // inline object literals (fresh identity every parent render) — keying the
+  // load effect on the object identity would cancel + revoke + refetch on
+  // every render, killing the loaded image mid-edit. url-kind keys by
+  // content; blob/file-kind keys by the payload's identity (the wrapper
+  // object may churn, the Blob/File itself doesn't).
+  const initialSourceDep: string | Blob | File | null = !props.initialSource
+    ? null
+    : props.initialSource.kind === "url"
+      ? `url|${props.initialSource.mode}|${props.initialSource.url}`
+      : props.initialSource.kind === "blob"
+        ? props.initialSource.blob
+        : props.initialSource.file;
 
   React.useEffect(() => {
     const source = props.initialSource;
@@ -290,11 +316,13 @@ export const MediaEditor01 = React.forwardRef<
       cancelled = true;
       if (allocatedUrl) URL.revokeObjectURL(allocatedUrl);
     };
-    // editor methods are stable refs from the hook; only `initialSource`
-    // identity drives this effect. enabledModes is read via ref above so
-    // a tools-dial toggle doesn't refetch a URL source mid-edit.
+    // editor methods are stable refs from the hook; only the VALUE-keyed
+    // `initialSourceDep` drives this effect (see derivation above). The
+    // effect body reads props.initialSource from the render that changed the
+    // key. enabledModes is read via ref above so a tools-dial toggle doesn't
+    // refetch a URL source mid-edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.initialSource]);
+  }, [initialSourceDep]);
 
   // Camera surface: show if camera intake allowed AND at least one capture mode
   // is enabled; otherwise fall back to upload-only dropzone affordance.
@@ -306,7 +334,12 @@ export const MediaEditor01 = React.forwardRef<
 
   // ─── R4: Undo / redo history + discard guard ─────────────────────────
 
-  const history = useHistory({ capacity: 50, bindKeyboard: true });
+  // Command-stack scaffolding — nothing calls history.execute() in v0.1.x, so
+  // the stack is always empty. bindKeyboard stays OFF until the per-mutation
+  // command layer lands (v0.2): a live window Ctrl/Cmd+Z listener that
+  // preventDefault()s page-wide while doing nothing is strictly worse than no
+  // listener. handle.undo/redo dev-warn accordingly (see the handle below).
+  const history = useHistory({ capacity: 50, bindKeyboard: false });
 
   const [showDiscardConfirm, setShowDiscardConfirm] = React.useState(false);
   const textOnlyRef = React.useRef<HTMLDivElement | null>(null);
@@ -695,14 +728,19 @@ export const MediaEditor01 = React.forwardRef<
       const quality = opts?.quality ?? 0.9;
       const pixelRatio = opts?.pixelRatio ?? 2;
       const cropRect = editor.state.crop;
-      const blob = await exportPhotoBlob({
-        stage,
-        cropRect,
-        mimeType: format,
-        quality,
-        pixelRatio,
-        onProgress: opts?.onProgress,
-      });
+      // Identity-transform guard: exporting while pan/zoomed would bake the
+      // viewport transform into the output (stage.toCanvas captures the
+      // rendered stage). Normalize, snapshot, restore.
+      const blob = await withStageIdentityTransform(stage, () =>
+        exportPhotoBlob({
+          stage,
+          cropRect,
+          mimeType: format,
+          quality,
+          pixelRatio,
+          onProgress: opts?.onProgress,
+        }),
+      );
       const width = cropRect?.width ?? stage.width();
       const height = cropRect?.height ?? stage.height();
       return {
@@ -713,6 +751,34 @@ export const MediaEditor01 = React.forwardRef<
           width,
           height,
           format,
+        ),
+      };
+    },
+    [editor.state],
+  );
+
+  // Text-only mode rasterizes the styled DOM surface (no Konva stage exists in
+  // text mode) — review 1.2: without this branch, publishing a text story
+  // threw "editor canvas not ready".
+  const exportText = React.useCallback(
+    async (opts?: ExportImageOpts) => {
+      const el = textOnlyRef.current;
+      if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) {
+        throw new Error("media-editor-01: text canvas not ready");
+      }
+      const width = el.offsetWidth;
+      const height = el.offsetHeight;
+      opts?.onProgress?.(0);
+      const blob = await exportTextOnlyBlob(el, width, height);
+      opts?.onProgress?.(1);
+      return {
+        blob,
+        metadata: buildExportMetadata(
+          editor.state,
+          "text",
+          width,
+          height,
+          "image/png",
         ),
       };
     },
@@ -748,7 +814,9 @@ export const MediaEditor01 = React.forwardRef<
       const cropRect = editor.state.crop;
       const ow = cropRect?.width ?? stage?.width() ?? 720;
       const oh = cropRect?.height ?? stage?.height() ?? 1280;
-      const result = await compositeVideo({
+      // Identity-transform guard for the per-frame overlay snapshot — same
+      // viewport-baking issue as exportImage, held for the whole re-encode.
+      const runComposite = () => compositeVideo({
         sourceBlob: videoBlob,
         outputWidth: Math.round(ow),
         outputHeight: Math.round(oh),
@@ -775,6 +843,9 @@ export const MediaEditor01 = React.forwardRef<
           }
         },
       });
+      const result = stage
+        ? await withStageIdentityTransform(stage, runComposite)
+        : await runComposite();
       return {
         blob: result.blob,
         metadata: buildExportMetadata(
@@ -796,9 +867,12 @@ export const MediaEditor01 = React.forwardRef<
       if (mode === "video") {
         return exportVideo(opts as ExportVideoOpts | undefined);
       }
+      if (mode === "text") {
+        return exportText(opts as ExportImageOpts | undefined);
+      }
       return exportImage(opts as ExportImageOpts | undefined);
     },
-    [editor.state.mode, exportImage, exportVideo],
+    [editor.state.mode, exportImage, exportVideo, exportText],
   );
 
   // ─── Imperative handle ──────────────────────────────────────────────
@@ -813,7 +887,31 @@ export const MediaEditor01 = React.forwardRef<
       getIsDirty: () => editor.isDirty,
       getMode: () => editor.state.mode,
       getState: () => editor.state,
-      loadState: (state: MediaEditorState) => editor.loadState(state),
+      loadState: (state: MediaEditorState, opts?: LoadStateOpts) => {
+        const sourceBlob = opts?.sourceBlob ?? null;
+        if (sourceBlob && state.mode !== "video") {
+          // Re-materialize (review 1.3): a persisted snapshot's imageSrc is a
+          // dead object URL once the capturing editor unmounted. Mint a fresh
+          // URL from the caller-persisted source blob and rebuild the draft so
+          // the canvas AND the draft-gated tool panels run as they did
+          // pre-unmount. setDraft's lifecycle owns revoking the minted URL.
+          const url = URL.createObjectURL(sourceBlob);
+          editor.loadState({ ...state, imageSrc: url });
+          editor.setDraft({
+            source: "initial",
+            kind: "image",
+            blob: sourceBlob,
+            url,
+            mimeType: sourceBlob.type || "image/jpeg",
+          });
+        } else {
+          editor.loadState(state);
+        }
+      },
+      getSourceBlob: () =>
+        editor.draft && editor.draft.kind === "image"
+          ? editor.draft.blob
+          : null,
 
       // === Capture (imperative path deferred to v0.2 — dev-warns; see note above) ===
       switchCamera: async () => {
@@ -855,8 +953,14 @@ export const MediaEditor01 = React.forwardRef<
       applyFilter: (name: string | null) => editor.setFilter(name),
       clearLayer: (layer: "drawing" | "stickers" | "text") =>
         editor.clearLayer(layer),
-      undo: () => history.undo(),
-      redo: () => history.redo(),
+      // No execute() callers exist yet (per-mutation commands land in v0.2) —
+      // the stack is always empty, so these are honest no-ops, not silent ones.
+      undo: () => {
+        devWarnOnce(warnedRef.current, "undo", NOT_WIRED_HISTORY_MARKER);
+      },
+      redo: () => {
+        devWarnOnce(warnedRef.current, "redo", NOT_WIRED_HISTORY_MARKER);
+      },
 
       // === Export (C10) ===
       exportImage,
@@ -885,7 +989,6 @@ export const MediaEditor01 = React.forwardRef<
       exportVideo,
       exportPolymorphic,
       resolved,
-      history,
       performReset,
       requestClose,
     ],
@@ -1416,14 +1519,14 @@ export const MediaEditor01 = React.forwardRef<
                     type="button"
                     onClick={() => editor.setActiveTool(tool)}
                     className={cn(
-                      "shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors",
+                      "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
                       editor.activeTool === tool
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                     data-tool={tool}
                   >
-                    {tool}
+                    {toolChipLabel(tool, mergedLabels)}
                   </button>
                 ))}
                 {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
@@ -1584,6 +1687,63 @@ function ToolPanelFrame({
   );
 }
 
+/** Chip label for an edit tool — routed through the labels prop (i18n). */
+function toolChipLabel(
+  tool: EditTool,
+  labels: Required<StoryComposer01Labels>,
+): string {
+  switch (tool) {
+    case "text":
+      return labels.toolText;
+    case "draw":
+      return labels.toolDraw;
+    case "stickers":
+      return labels.toolStickers;
+    case "filters":
+      return labels.toolFilters;
+    case "adjust":
+      return labels.toolAdjust;
+    case "crop":
+      return labels.toolCrop;
+  }
+}
+
+/**
+ * Run `fn` with the stage temporarily at the identity transform (scale 1,
+ * position 0,0), restoring the prior pan/zoom afterwards. Export snapshots
+ * (stage.toCanvas) capture the RENDERED stage — exporting while zoomed/panned
+ * would bake the viewport into the output.
+ */
+async function withStageIdentityTransform<T>(
+  stage: Konva.Stage,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const prior = {
+    x: stage.x(),
+    y: stage.y(),
+    scaleX: stage.scaleX(),
+    scaleY: stage.scaleY(),
+  };
+  if (
+    prior.x === 0 &&
+    prior.y === 0 &&
+    prior.scaleX === 1 &&
+    prior.scaleY === 1
+  ) {
+    return fn();
+  }
+  stage.scale({ x: 1, y: 1 });
+  stage.position({ x: 0, y: 0 });
+  stage.batchDraw();
+  try {
+    return await fn();
+  } finally {
+    stage.scale({ x: prior.scaleX, y: prior.scaleY });
+    stage.position({ x: prior.x, y: prior.y });
+    stage.batchDraw();
+  }
+}
+
 function hasAnyOverlay(state: MediaEditorState): boolean {
   if (state.textOverlays.length > 0) return true;
   if (state.stickers.length > 0) return true;
@@ -1633,4 +1793,5 @@ export type {
   EditTool,
   MediaSource,
   AspectRatio,
+  LoadStateOpts,
 } from "./types";

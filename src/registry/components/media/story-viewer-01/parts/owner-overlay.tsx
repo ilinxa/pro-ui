@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -55,12 +55,18 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
   const [loading, setLoading] = useState(false);
   const [didFetch, setDidFetch] = useState(false);
 
-  // Reset panel state when story changes (cursor navigation).
-  useEffect(() => {
+  // Reset panel state when story changes (cursor navigation). Render-time
+  // prev-props adjustment (React docs "adjusting state when a prop changes")
+  // instead of an effect — same reset semantics without the
+  // set-state-in-effect cascading-render re-render (and no one-frame stale
+  // panel while the effect waits to fire).
+  const [prevStoryId, setPrevStoryId] = useState(props.story.id);
+  if (prevStoryId !== props.story.id) {
+    setPrevStoryId(props.story.id);
     setOpen(false);
     setViewers(props.story.viewers ?? []);
     setDidFetch(false);
-  }, [props.story.id]);
+  }
 
   const handleToggle = useCallback(async () => {
     if (open) {

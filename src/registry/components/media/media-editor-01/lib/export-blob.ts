@@ -68,22 +68,66 @@ export function exportPhotoBlob(opts: ExportPhotoOptions): Promise<Blob> {
   });
 }
 
+/** Copy every computed style property from `src` onto `dst` inline. The
+ * serialized SVG has no stylesheet, so class-driven styles (Tailwind) would
+ * otherwise be lost in the rasterized output. The text-only surface is tiny
+ * (a handful of nodes), so the full property walk is cheap. */
+function inlineComputedStyles(src: Element, dst: HTMLElement): void {
+  const cs = window.getComputedStyle(src);
+  for (let i = 0; i < cs.length; i++) {
+    const prop = cs.item(i);
+    dst.style.setProperty(prop, cs.getPropertyValue(prop));
+  }
+}
+
+/** Clone `source` for serialization: inline computed styles on every element
+ * and swap textareas for divs carrying their live `.value` (a controlled
+ * textarea's value lives on the DOM property, which XMLSerializer drops). */
+function prepareExportClone(
+  source: HTMLElement,
+  width: number,
+  height: number,
+): HTMLElement {
+  const clone = source.cloneNode(true) as HTMLElement;
+  const srcNodes: Element[] = [source, ...source.querySelectorAll("*")];
+  const dstNodes: Element[] = [clone, ...clone.querySelectorAll("*")];
+  for (let i = 0; i < srcNodes.length; i++) {
+    const src = srcNodes[i];
+    const dst = dstNodes[i] as HTMLElement;
+    if (src instanceof HTMLTextAreaElement) {
+      const div = clone.ownerDocument.createElement("div");
+      div.textContent = src.value;
+      inlineComputedStyles(src, div);
+      div.style.whiteSpace = "pre-wrap";
+      div.style.overflow = "hidden";
+      dst.replaceWith(div);
+    } else {
+      inlineComputedStyles(src, dst);
+    }
+  }
+  // Pin the root to the export dimensions (the live element is positioned by
+  // its parent, which isn't serialized).
+  clone.style.position = "static";
+  clone.style.width = `${width}px`;
+  clone.style.height = `${height}px`;
+  return clone;
+}
+
 /**
- * Export a text-only mode capture from a DOM element using html-to-canvas?
- * No — text-mode renders via a styled <div> with the gradient + text. We
- * reuse the Konva editor when text-mode is captured-to-image. For now this
- * is a placeholder — text-only export lands fully in C13 alongside the
- * text-only canvas component.
+ * Export a text-only mode capture from the styled DOM surface.
+ *
+ * SVG-foreignObject technique: clone the element (computed styles inlined,
+ * textarea values materialized), serialise it into an SVG, then draw the SVG
+ * onto a 2× canvas. Avoids a third-party html-to-canvas dependency.
  */
 export async function exportTextOnlyBlob(
   source: HTMLElement,
   width: number,
   height: number,
 ): Promise<Blob> {
-  // SVG-foreignObject technique: serialise the element into an SVG with
-  // <foreignObject>, then draw the SVG onto a canvas. This avoids a
-  // third-party html-to-canvas dependency.
-  const xml = new XMLSerializer().serializeToString(source);
+  const xml = new XMLSerializer().serializeToString(
+    prepareExportClone(source, width, height),
+  );
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%">${xml}</foreignObject></svg>`;
   const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);

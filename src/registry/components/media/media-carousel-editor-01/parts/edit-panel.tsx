@@ -63,10 +63,15 @@ export function EditPanel({
   const seedSource = item.editorState ? undefined : initialSourceFor(item);
 
   // Restore prior editable layers for a re-edit (mount-only — `item` is fixed
-  // for this instance because the parent keys it by `item.id`).
+  // for this instance because the parent keys it by `item.id`). The snapshot's
+  // imageSrc is a DEAD object URL (revoked when the previous edit's editor
+  // unmounted) — pass the persisted source blob so loadState re-mints a live
+  // one instead of opening on a black canvas (review 1.3).
   useEffect(() => {
     if (item.editorState && editorRef.current) {
-      editorRef.current.loadState(item.editorState);
+      editorRef.current.loadState(item.editorState, {
+        sourceBlob: item.sourceBlob ?? null,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -83,6 +88,9 @@ export function EditPanel({
         url,
         blob,
         editorState: { ...editor.getState(), videoBlob: null },
+        // The blob backing editorState.imageSrc — persisted so the NEXT
+        // re-edit can re-materialize after this editor's URLs are revoked.
+        sourceBlob: editor.getSourceBlob() ?? item.sourceBlob,
         exportMeta: metadata,
         width: metadata.width,
         height: metadata.height,
