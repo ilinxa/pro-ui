@@ -255,6 +255,39 @@ export function RichSidebar(props: RichSidebarProps) {
   const finalVisibleEntries = externalState?.visibleEntries ?? visible.entries;
   const finalHandle: RichSidebarHandle = externalState ?? handle;
 
+  // F-cross-13 (v0.3.2): `onPointerDownOutside` / `onEscapeKeyDown` are
+  // Radix-only SheetContent props — Base UI's DialogPopup rejects them. The
+  // public `onMobileOpenChange.reason` discriminator ("outside-click" |
+  // "escape") survives via own attribution: capture-phase document listeners
+  // record the reason (with a freshness stamp so a non-closing Escape can't
+  // mis-tag a later close); the cross-backend onOpenChange dispatch reads it.
+  const mobilePanelRef = useRef<HTMLDivElement | null>(null);
+  const mobileCloseReasonRef = useRef<{
+    reason: RichSidebarMobileOpenReason;
+    t: number;
+  } | null>(null);
+  useEffect(() => {
+    if (!finalMobileOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const panel = mobilePanelRef.current;
+      if (panel && e.target instanceof Node && !panel.contains(e.target)) {
+        mobileCloseReasonRef.current = { reason: "outside-click", t: Date.now() };
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        mobileCloseReasonRef.current = { reason: "escape", t: Date.now() };
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown, true);
+      mobileCloseReasonRef.current = null;
+    };
+  }, [finalMobileOpen]);
+
   // Flattened keyboard traversal sequence (L37). Section headers (collapsible
   // only) interleave with their items; items hide when section is collapsed.
   const keyboardFlat = useMemo(
@@ -780,21 +813,27 @@ export function RichSidebar(props: RichSidebarProps) {
           // Routed through finalHandle so external state (when provided)
           // is the mutation target.
           //
-          // v0.3.0 (C2, L53): the dedicated <SheetContent onPointerDownOutside>
-          // and <SheetContent onEscapeKeyDown> handlers below fire FIRST and
-          // write the specific reason via finalHandle.closeMobile("outside-click"
-          // | "escape"). This onOpenChange dispatch then fires as a sanity
-          // re-confirm — the reducer's no-op guard at SET_MOBILE_OPEN returns
-          // the same state object (mobileOpen already false), preserving the
-          // specific lastMobileOpenReason for the Defense-1 callback. Net:
-          // callback fires ONCE with the most-specific reason.
+          // v0.3.2 (F-cross-13): close reasons come from the document-level
+          // attribution refs above (the Radix-only SheetContent props are
+          // gone). A stamp older than 500ms is stale — e.g. an Escape that
+          // didn't close — and falls back to the default reason.
           onOpenChange={(nextOpen: boolean | undefined) => {
             if (typeof nextOpen !== "boolean") return;
-            if (nextOpen) finalHandle.openMobile();
-            else finalHandle.closeMobile();
+            if (nextOpen) {
+              finalHandle.openMobile();
+              return;
+            }
+            const stamped = mobileCloseReasonRef.current;
+            mobileCloseReasonRef.current = null;
+            if (stamped && Date.now() - stamped.t < 500) {
+              finalHandle.closeMobile(stamped.reason);
+            } else {
+              finalHandle.closeMobile();
+            }
           }}
         >
           <SheetContent
+            ref={mobilePanelRef}
             side={drawerSide}
             // NOTE: do NOT add `relative` here — it would tailwind-merge
             // away Radix's `fixed inset-y-0 {side}-0`, leaving the panel
@@ -803,13 +842,6 @@ export function RichSidebar(props: RichSidebarProps) {
             style={cssVars}
             aria-describedby={undefined}
             onKeyDown={handleKeyDown}
-            // v0.3.0 (C2, L54): dedicated handlers for outside-click + escape
-            // so onMobileOpenChange.reason fires with the right discriminator.
-            // F-cross-13 graceful degradation: if shadcn migrates these prop
-            // names in a future version, the onOpenChange fallback above still
-            // closes the drawer (with reason: "imperative").
-            onPointerDownOutside={() => finalHandle.closeMobile("outside-click")}
-            onEscapeKeyDown={() => finalHandle.closeMobile("escape")}
           >
             <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
             {skipLinkTarget && (

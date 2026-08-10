@@ -146,12 +146,13 @@ export function NavUser({
             <DropdownMenuItem
               key={item.label + i}
               disabled={item.disabled}
-              // v0.3.0 (C4, F10, L56): callback signature widened to honestly
-              // accept Event | React.MouseEvent. Radix passes Event for keyboard
-              // activations and MouseEvent for clicks; consumers narrow at call
-              // site with `instanceof MouseEvent` if needed. No unsafe cast.
-              onSelect={(eventArg: NavUserMenuItemSelectEvent) => {
-                item.onClick?.(eventArg);
+              // v0.3.2 (F-cross-13): param is `unknown` — Radix types onSelect's
+              // arg as Event, Base UI as BaseUIEvent<SyntheticEvent>; naming
+              // either breaks the other backend's contravariance check. The
+              // runtime contract (v0.3.0 C4/F10 widening) is unchanged;
+              // consumers still narrow with `instanceof MouseEvent`.
+              onSelect={(eventArg: unknown) => {
+                item.onClick?.(eventArg as NavUserMenuItemSelectEvent);
               }}
               className={cn(
                 "gap-2",
@@ -205,9 +206,10 @@ function NavUserLinkMenuItem({
     <DropdownMenuItem
       ref={itemRef}
       disabled={item.disabled}
-      onSelect={(eventArg: NavUserMenuItemSelectEvent) => {
+      // F-cross-13: `unknown` param — see the plain-item handler above.
+      onSelect={(eventArg: unknown) => {
         if (forwardingRef.current) return;
-        item.onClick?.(eventArg);
+        item.onClick?.(eventArg as NavUserMenuItemSelectEvent);
         if (!nativeClickRef.current) {
           // Fall back to the row's root element for linkComponents that
           // render no <a> (their own onClick navigation still runs).

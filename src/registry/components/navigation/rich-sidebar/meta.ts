@@ -49,7 +49,7 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.3.2",
+  version: "0.3.3",
   status: "alpha",
   createdAt: "2026-05-22",
   updatedAt: "2026-08-11",

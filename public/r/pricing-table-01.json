@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/marketing/pricing-table-01/index.ts",
-      "content": "export { PricingTable01, default } from \"./pricing-table-01\";\nexport type {\n  BillingPeriod,\n  CtaSpec,\n  CtaVariant,\n  CurrencyDisplay,\n  PricingBillingToggle,\n  PricingFeature,\n  PricingHeadingLevel,\n  PricingLayout,\n  PricingTable01Props,\n  PricingTableLabels,\n  PricingTier,\n  PricingTone,\n} from \"./types\";\nexport { meta } from \"./meta\";\n",
+      "content": "export { PricingTable01, default } from \"./pricing-table-01\";\nexport type {\n  BillingPeriod,\n  CtaSpec,\n  CtaVariant,\n  CurrencyDisplay,\n  PricingBillingToggle,\n  PricingFeature,\n  PricingHeadingLevel,\n  PricingLayout,\n  PricingTable01Props,\n  PricingTableLabels,\n  PricingTier,\n  PricingTone,\n} from \"./types\";\n// No meta re-export: meta.ts never ships to consumers (locked registry\n// convention) — a barrel reference breaks consumer tsc (F-cross-13 smoke).\n",
       "type": "registry:component",
       "target": "components/pricing-table-01/index.ts"
     },

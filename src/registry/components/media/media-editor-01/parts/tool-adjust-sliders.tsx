@@ -84,7 +84,8 @@ export function ToolAdjustSliders({
             min={cfg.min}
             max={cfg.max}
             step={cfg.step}
-            onValueChange={(arr) => update(cfg.key, arr[0] ?? 0)}
+            // Radix emits number[]; Base UI number | readonly number[] (F-cross-13)
+            onValueChange={(v) => update(cfg.key, typeof v === "number" ? v : (v[0] ?? 0))}
             aria-label={cfg.label}
           />
         </div>

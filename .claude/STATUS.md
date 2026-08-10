@@ -74,21 +74,21 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 | `author-card-01` | marketing | 0.1.0 | alpha |
 | `newsletter-card-01` | marketing | 0.1.0 | alpha |
 | `page-hero-news-01` | marketing | 0.1.2 | alpha |
-| `pricing-table-01` | marketing | 0.1.1 | alpha |
+| `pricing-table-01` | marketing | 0.1.2 | alpha |
 | `share-bar-01` | marketing | 0.1.1 | alpha |
 | `content-composer-01` | media | 0.2.2 | alpha |
 | `media-carousel-01` | media | 0.1.3 | alpha |
 | `media-carousel-editor-01` | media | 0.1.3 | alpha |
-| `media-editor-01` | media | 0.1.5 | alpha |
+| `media-editor-01` | media | 0.1.6 | alpha |
 | `media-library-01` | media | 0.1.2 | alpha |
 | `pdf-viewer` | media | 0.1.4 | alpha |
 | `story-composer-01` | media | 0.2.2 | alpha |
 | `story-viewer-01` | media | 0.4.4 | alpha |
 | `video-player-01` | media | 0.1.2 | alpha |
-| `account-switcher-01` | navigation | 0.1.1 | alpha |
+| `account-switcher-01` | navigation | 0.1.2 | alpha |
 | `file-manager` | navigation | 0.1.2 | alpha |
 | `file-tree` | navigation | 0.1.2 | alpha |
-| `rich-sidebar` | navigation | 0.3.2 | alpha |
+| `rich-sidebar` | navigation | 0.3.3 | alpha |
 
 ## Queue & roadmap (re-dated 2026-08-10)
 

@@ -102,7 +102,10 @@ export function ToolDrawControls({
           min={MIN_BRUSH}
           max={MAX_BRUSH}
           step={1}
-          onValueChange={(arr) => onBrushSizeChange(arr[0] ?? brushSize)}
+          // Radix emits number[]; Base UI number | readonly number[] (F-cross-13)
+          onValueChange={(v) =>
+            onBrushSizeChange(typeof v === "number" ? v : (v[0] ?? brushSize))
+          }
           aria-label={labels.drawBrush}
           className="flex-1"
         />

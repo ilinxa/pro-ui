@@ -122,12 +122,14 @@ export function AccountSwitcher01(props: AccountSwitcher01Props) {
         side={popoverSide}
         align="start"
         sideOffset={4}
-        collisionPadding={8}
+        // No collisionPadding — Radix-only prop; Base UI's PopoverContent
+        // rejects it (F-cross-13). Both backends still collision-flip.
         style={popoverWidthStyle}
         className={cn(
           "w-auto min-w-56 gap-0 p-1",
-          // override the primitive's baked-in w-72
-          !isCollapsed && "w-(--radix-popover-trigger-width)",
+          // override the primitive's baked-in w-72; Radix exposes
+          // --radix-popover-trigger-width, Base UI --anchor-width (F-cross-13)
+          !isCollapsed && "w-(--radix-popover-trigger-width,var(--anchor-width))",
         )}
       >
         <ul id={listboxId} role="listbox" aria-label={ariaLabel} className="flex flex-col gap-0.5">

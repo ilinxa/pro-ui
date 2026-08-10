@@ -143,7 +143,10 @@ export function ToolTextInput({
           min={MIN_FONT_SIZE}
           max={MAX_FONT_SIZE}
           step={1}
-          onValueChange={(arr) => update({ fontSize: arr[0] ?? overlay.fontSize })}
+          // Radix emits number[]; Base UI number | readonly number[] (F-cross-13)
+          onValueChange={(v) =>
+            update({ fontSize: typeof v === "number" ? v : (v[0] ?? overlay.fontSize) })
+          }
           aria-label={labels.textFontSize}
           className="flex-1"
         />
