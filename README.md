@@ -98,22 +98,77 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 
 ---
 
+<!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
 ## Available components
 
-Eight components, each with an optional `-fixtures` sibling for example data:
+63 components across 9 categories, each with an optional `-fixtures` sibling for example data. Generated from [`registry.json`](registry.json) — run `pnpm build:llms` after registry changes.
 
 | Slug | Category | Description |
 |---|---|---|
-| `data-table` | data | Generic typed-columns data table — composable column definitions, host-owned data |
-| `rich-card` | data | JSON-driven recursive card-tree viewer + structural editor; drag-drop, virtualization, undo/redo |
-| `workspace` | layout | Splittable canvas with corner-drag split/merge, edge-drag resize, registry-driven content |
-| `properties-form` | forms | Schema-driven form — six field types, three-state permissions, sync validation |
-| `detail-panel` | feedback | Selection-aware compound container — Header / Body / Actions slots, lifecycle precedence |
-| `filter-stack` | forms | Schema-driven filter panel — checkbox-list / toggle / text / custom, AND-across-categories |
-| `entity-picker` | forms | Searchable typed picker — single or multi mode, kind badges, custom render slots |
-| `markdown-editor` | forms | CodeMirror 6 + GFM + [[wikilink]] autocomplete + decoration |
-
-> **Note:** `force-graph` is in alpha/preview on the [demo site](https://ilinxa-proui.vercel.app/components/force-graph) but not yet shipped via the registry. It will be added once stabilized — see [.claude/STATUS.md](.claude/STATUS.md).
+| `code-block` | code | Language-agnostic code surface with view / edit / terminal modes, Shiki syntax highlighting, dual-theme CSS-variable th… |
+| `article-body-01` | data | Plate-based WYSIWYG rich-text editor + RSC-friendly read-only viewer. |
+| `article-meta-01` | data | Horizontal strip of icon + value pairs surfacing key metadata (author / date / read-time / view-count) under an article… |
+| `blackboard-01` | data | A dark-navy chalkboard widget where a team writes handwritten notes — per-note ink color, chalk width, and handwriting… |
+| `calendar-01` | data | Editable calendar over the canonical TodoItem[] — the date-grid sibling of gantt-timeline-01. |
+| `comment-thread-01` | data | Recursive comment tree with composer + realtime. |
+| `content-card-news-01` | data | Backend-shaped news card with 5 variants and the full A+ procomp surface: role-aware editor/viewer mode, 19-capability… |
+| `data-table` | data | Generic typed-columns data table — composable column definitions, no client state, host-owned data. |
+| `engagement-bar-01` | data | Discriminated-union action row (like / comment / share / bookmark / view-count / custom / reaction) with realtime subsc… |
+| `event-card-01` | data | Event preview card with a 6-state status state machine (open / upcoming / lastSpots / ongoing / full / expired) and 4 v… |
+| `expandable-text-01` | data | Truncate-and-expand plain-text block — measure-based detection (toggle only renders when truncation actually occurs), c… |
+| `flow-canvas-01` | data | Node-and-edge canvas with typed ports, three keystone registries (renderer / port-type / edge-type), recursive sub-obje… |
+| `gantt-timeline-01` | data | Editable project timeline (Gantt) over the canonical TodoItem[] — one bar per task from effective start→end, collapsibl… |
+| `info-list-01` | data | Card-framed icon-prefixed details list — vertical rows of icon + primary + optional secondary + optional action. |
+| `kanban-board-01` | data | Column-based board with drag-and-drop, swimlanes, color-tinted columns, and a pluggable renderer registry that hosts an… |
+| `people-grid-01` | data | Section heading + responsive N-column grid of person cards (round avatar + name + title). |
+| `post-card-01` | data | Tier-2 social-post composite — composes expandable-text-01 + media-carousel-01 + engagement-bar-01 + comment-thread-01… |
+| `progress-timeline-01` | data | Horizontal progress bar with marker dot at current % + 3-caption row (start / dynamic state-aware center / end). |
+| `project-card-01` | data | Project / case-study preview card with 3-state editorial status (completed / ongoing / planned) and 2 visual variants (… |
+| `registration-card-01` | data | Card-framed registration status display — capacity progress + spots-left counter + status-aware primary CTA + optional… |
+| `rich-card` | data | JSON-driven recursive card-tree viewer + structural editor. |
+| `rich-card-in-flow` | data | Read-only RichCardViewer renderer for flow-canvas-01 nodes + consumer-owned-dialog pattern for editing rich-card conten… |
+| `schedule-list-01` | data | Vertical time-anchored agenda — time + title + optional description rows. |
+| `stat-card` | data | Single-metric dashboard widget — value + label + optional delta + optional sparkline. |
+| `story-rail-01` | data | Horizontal stories rail (kasder-exact) — gradient ring on unread, muted ring on read; AddStoryThumbnail standalone expo… |
+| `thumb-list-01` | data | Linked thumbnail-list block — small image + title + meta line per row, each row a single link target. |
+| `todo-rich-card` | data | Time-aware task card with OKLCH border-color engine (urgency green→red ramp), dual edit modes (popup + inline-toggle),… |
+| `todo-tree` | data | Lightweight tree-row renderer for TodoItem outlines. |
+| `detail-panel` | feedback | Selection-aware compound container — DetailPanel.Header / .Body / .Actions via React Context. |
+| `category-cloud-01` | forms | Always-visible flex-wrap of clickable category chips with optional inline counts. |
+| `entity-picker` | forms | Searchable typed picker — single OR multi mode via mode prop with TS function overloads, kind badges via kinds map, thr… |
+| `filter-bar-01` | forms | Composite filter bar with centered search + category pill row + date-range Popover + optional results count. |
+| `filter-stack` | forms | Schema-driven controlled filter panel. |
+| `json-form` | forms | Schema-driven form renderer — declarative field DSL compiled to Zod, 25 built-in field types (incl. |
+| `markdown-editor` | forms | CodeMirror 6 substrate with three view modes (edit / split / preview), default 8-item toolbar, [[wikilink]] autocomplet… |
+| `properties-form` | forms | Schema-driven controlled read/edit form. |
+| `registration-form-01` | forms | Email + password registration form with optional second-step profile fields, ToS-consent gate, OAuth row above, passwor… |
+| `cooperative-challenge-01` | gamification | A safe-by-design cooperative team challenge card: one shared goal, a collective progress meter (current / target, never… |
+| `task-choice-control-01` | gamification | A small, droppable autonomy affordance for one team task (system E4): an 'open for anyone' toggle, an 'I'll take this'… |
+| `team-feedback-loop-01` | gamification | A host-triggered, NON-BLOCKING cooperative feedback layer: a brief (<1s), skippable celebration overlay when team progr… |
+| `team-progress-bar-01` | gamification | An always-visible, read-only progress bar showing one team's milestone-completion % — signal-lime fill on the shadcn pr… |
+| `team-quest-log-01` | gamification | A light team narrative overlay (system E5): an editable, skippable quest name (a blank name falls back to the team's li… |
+| `team-trophy-shelf-01` | gamification | A durable gallery of a team's earned milestone badges, with honest locked slots for what's ahead, an optional header co… |
+| `grid-layout-news-01` | layout | Slot-based magazine layout — optional hero / filter bar / sidebar + a generic main-column tower (1 large + 2-up + N-up… |
+| `workspace` | layout | Splittable canvas — corner-drag split/merge, edge-drag resize, registry-driven content, responsive collapse with per-br… |
+| `author-card-01` | marketing | Card-framed person identity block — avatar (image OR icon fallback), name, role, optional bio. |
+| `newsletter-card-01` | marketing | Brand-tinted CTA card with email signup. |
+| `page-hero-news-01` | marketing | Full-bleed gradient hero band with badge / title / highlight / description / children slot. |
+| `pricing-table-01` | marketing | Side-by-side pricing tier cards (2–4 tiers) with optional monthly/annual toggle, highlighted-tier badge, per-feature in… |
+| `share-bar-01` | marketing | Horizontal cluster of social-share buttons + copy-link with success-state feedback. |
+| `content-composer-01` | media | Multi-step content-authoring shell that composes json-form (metadata), article-body-01/Plate (body), media-editor-01 (s… |
+| `media-carousel-01` | media | Embla-driven image+video carousel with two variants (gallery peek-scale / linear snap). |
+| `media-carousel-editor-01` | media | Multi-item media composer (Instagram-feed-post semantics): drag-drop / browse one-or-more mixed photo+video files into… |
+| `media-editor-01` | media | Black-box media capture + edit surface (photo / video / text) with four controllable capability dials (enabledModes, en… |
+| `media-library-01` | media | A Google-Drive-style media library: folders + files with lazy loading, drag-drop upload, drag-to-move, right-click menu… |
+| `pdf-viewer` | media | Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design… |
+| `story-composer-01` | media | Instagram-canonical story creation surface — camera-first capture, multi-layer Konva editor, 6 edit tools, single-point… |
+| `story-viewer-01` | media | Full-screen sequential story viewer — Radix Dialog modal with segmented progress, multi-story navigation via Instagram-… |
+| `video-player-01` | media | <video> wrapper with muted-autoplay-friendly defaults, slot-based controls via renderControls(state), isActive auto-pau… |
+| `account-switcher-01` | navigation | Popover-with-switchable-items primitive: active context label + chevron trigger that opens a list of contexts to switch… |
+| `file-manager` | navigation | Mac Finder-style file + folder browser with grid / list views, multi-select with marquee, cut/copy/paste, drag-and-drop… |
+| `file-tree` | navigation | VS Code-style hierarchical file tree with format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select. |
+| `rich-sidebar` | navigation | Registry-portable, framework-agnostic app-shell sidebar with mobile-drawer mode, 13-slot composition (incl. |
+<!-- END GENERATED CATALOG -->
 
 ---
 

@@ -7,6 +7,7 @@ import type {
   ComponentCategorySlug,
   ComponentStatus,
 } from "@/registry/types";
+import { CATEGORIES } from "@/registry/categories";
 import {
   EMPTY_FILTERS,
   activeCount as countActive,
@@ -24,17 +25,11 @@ const KEYS = {
   status: "status",
 } as const;
 
-const VALID_CATEGORIES = new Set<ComponentCategorySlug>([
-  "data",
-  "forms",
-  "navigation",
-  "feedback",
-  "marketing",
-  "layout",
-  "media",
-  "overlays",
-  "auth",
-]);
+// Derived from the single source of truth — a hand-maintained list here silently
+// broke filtering for every category added after it was written (code, gamification).
+const VALID_CATEGORIES = new Set<ComponentCategorySlug>(
+  Object.keys(CATEGORIES) as ComponentCategorySlug[],
+);
 
 const VALID_STATUSES = new Set<ComponentStatus>([
   "alpha",

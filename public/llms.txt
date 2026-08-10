@@ -47,20 +47,103 @@ The CLI auto-installs shadcn primitives (button, popover, etc.) and npm peer dep
 
 Files land at `components/<slug>/<sub-path>` (project-root-relative). This assumes the consumer's components dir is at `./components/`. If the consumer uses `./src/components/`, files will land at `./components/<slug>/...` (outside their alias) and will need to be moved post-install.
 
-## Available items (16 total — 8 base + 8 fixtures)
+<!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
+## Available items (126 total — 63 base + 63 fixtures)
 
-- `@ilinxa/data-table` — typed-columns data table; host-owned data, no client state. Deps: `table`.
-- `@ilinxa/rich-card` — JSON-driven recursive card-tree viewer + structural editor; drag-drop reordering, bulk multi-select, virtualization, native search, undo/redo. Deps: `popover`, lucide-react, @dnd-kit/{core,sortable,utilities}, @tanstack/react-virtual.
-- `@ilinxa/workspace` — splittable canvas; corner-drag split/merge, edge-drag resize, registry-driven content, responsive collapse. Deps: `dropdown-menu`, `scroll-area`, `tabs`, lucide-react.
-- `@ilinxa/properties-form` — schema-driven controlled form; six field types (string/number/boolean/date/select/textarea), three-state permissions, sync validation, custom-renderer slot. Deps: `button`, `input`, `switch`, `select`, `textarea`, `tooltip`, lucide-react.
-- `@ilinxa/detail-panel` — selection-aware compound container; `<Header />`, `<Body />`, `<Actions />` slots via React Context, lifecycle precedence error > loading > content > empty. Deps: `button`, `skeleton`, lucide-react.
-- `@ilinxa/filter-stack` — schema-driven filter panel; four built-in filter types, AND-across-categories, mode toggle (Union/Intersection), debounced text. Deps: `button`, `checkbox`, `input`, `switch`, `toggle-group`, `tooltip`, lucide-react.
-- `@ilinxa/entity-picker` — searchable typed picker; single or multi mode via `mode` prop, kind badges, three custom-render slots, multi-mode chip cluster. Deps: `badge`, `command`, `popover`, lucide-react.
-- `@ilinxa/markdown-editor` — CodeMirror 6 substrate; three view modes (edit/split/preview), default 8-item toolbar, [[wikilink]] autocomplete + decoration via CM6 StateField, Cmd/Ctrl+S onSave. Deps: `badge`, `button`, `tabs`, `tooltip`, lucide-react, marked, @codemirror/{state,view,commands,language,lang-markdown,autocomplete,search}, @lezer/{markdown,highlight}.
+63 components across 9 categories. Every item installs as `@ilinxa/<slug>`; each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only (fixtures depend on the base — installing fixtures pulls the base automatically).
 
-Note: force-graph is visible on the demo site as alpha/preview but is NOT yet in the registry. Do not suggest installing @ilinxa/force-graph — the URL will 404. It will be added once stabilized.
+### code
 
-Each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only.
+- `@ilinxa/code-block` — Language-agnostic code surface with view / edit / terminal modes, Shiki syntax highlighting, dual-theme CSS-variable theming, streaming-friendly tokenization,…
+
+### data
+
+- `@ilinxa/article-body-01` — Plate-based WYSIWYG rich-text editor + RSC-friendly read-only viewer.
+- `@ilinxa/article-meta-01` — Horizontal strip of icon + value pairs surfacing key metadata (author / date / read-time / view-count) under an article title.
+- `@ilinxa/blackboard-01` — A dark-navy chalkboard widget where a team writes handwritten notes — per-note ink color, chalk width, and handwriting font, with auto-save, scroll-up lazy loa…
+- `@ilinxa/calendar-01` — Editable calendar over the canonical TodoItem[] — the date-grid sibling of gantt-timeline-01.
+- `@ilinxa/comment-thread-01` — Recursive comment tree with composer + realtime.
+- `@ilinxa/content-card-news-01` — Backend-shaped news card with 5 variants and the full A+ procomp surface: role-aware editor/viewer mode, 19-capability permissions matrix, kebab system with mo…
+- `@ilinxa/data-table` — Generic typed-columns data table — composable column definitions, no client state, host-owned data.
+- `@ilinxa/engagement-bar-01` — Discriminated-union action row (like / comment / share / bookmark / view-count / custom / reaction) with realtime subscribe contract, sibling RSC heart-burst s…
+- `@ilinxa/event-card-01` — Event preview card with a 6-state status state machine (open / upcoming / lastSpots / ongoing / full / expired) and 4 visual variants (grid / feed / list / com…
+- `@ilinxa/expandable-text-01` — Truncate-and-expand plain-text block — measure-based detection (toggle only renders when truncation actually occurs), configurable maxLines, controlled-or-unco…
+- `@ilinxa/flow-canvas-01` — Node-and-edge canvas with typed ports, three keystone registries (renderer / port-type / edge-type), recursive sub-object rendering, and JSON-based save/load —…
+- `@ilinxa/gantt-timeline-01` — Editable project timeline (Gantt) over the canonical TodoItem[] — one bar per task from effective start→end, collapsible WBS summary rows from children, milest…
+- `@ilinxa/info-list-01` — Card-framed icon-prefixed details list — vertical rows of icon + primary + optional secondary + optional action.
+- `@ilinxa/kanban-board-01` — Column-based board with drag-and-drop, swimlanes, color-tinted columns, and a pluggable renderer registry that hosts any card kind as a first-class item.
+- `@ilinxa/people-grid-01` — Section heading + responsive N-column grid of person cards (round avatar + name + title).
+- `@ilinxa/post-card-01` — Tier-2 social-post composite — composes expandable-text-01 + media-carousel-01 + engagement-bar-01 + comment-thread-01 (detail) + video-player-01 (transitive).
+- `@ilinxa/progress-timeline-01` — Horizontal progress bar with marker dot at current % + 3-caption row (start / dynamic state-aware center / end).
+- `@ilinxa/project-card-01` — Project / case-study preview card with 3-state editorial status (completed / ongoing / planned) and 2 visual variants (grid / feature).
+- `@ilinxa/registration-card-01` — Card-framed registration status display — capacity progress + spots-left counter + status-aware primary CTA + optional share / actions slot.
+- `@ilinxa/rich-card` — JSON-driven recursive card-tree viewer + structural editor.
+- `@ilinxa/rich-card-in-flow` — Read-only RichCardViewer renderer for flow-canvas-01 nodes + consumer-owned-dialog pattern for editing rich-card content inside canvas nodes.
+- `@ilinxa/schedule-list-01` — Vertical time-anchored agenda — time + title + optional description rows.
+- `@ilinxa/stat-card` — Single-metric dashboard widget — value + label + optional delta + optional sparkline.
+- `@ilinxa/story-rail-01` — Horizontal stories rail (kasder-exact) — gradient ring on unread, muted ring on read; AddStoryThumbnail standalone export + leading slot; Embla used inline (dr…
+- `@ilinxa/thumb-list-01` — Linked thumbnail-list block — small image + title + meta line per row, each row a single link target.
+- `@ilinxa/todo-rich-card` — Time-aware task card with OKLCH border-color engine (urgency green→red ramp), dual edit modes (popup + inline-toggle), controlled or uncontrolled state, JSON I…
+- `@ilinxa/todo-tree` — Lightweight tree-row renderer for TodoItem outlines.
+
+### feedback
+
+- `@ilinxa/detail-panel` — Selection-aware compound container — DetailPanel.Header / .Body / .Actions via React Context.
+
+### forms
+
+- `@ilinxa/category-cloud-01` — Always-visible flex-wrap of clickable category chips with optional inline counts.
+- `@ilinxa/entity-picker` — Searchable typed picker — single OR multi mode via mode prop with TS function overloads, kind badges via kinds map, three custom-render slots, multi-mode chip…
+- `@ilinxa/filter-bar-01` — Composite filter bar with centered search + category pill row + date-range Popover + optional results count.
+- `@ilinxa/filter-stack` — Schema-driven controlled filter panel.
+- `@ilinxa/json-form` — Schema-driven form renderer — declarative field DSL compiled to Zod, 25 built-in field types (incl.
+- `@ilinxa/markdown-editor` — CodeMirror 6 substrate with three view modes (edit / split / preview), default 8-item toolbar, [[wikilink]] autocomplete + decoration via CM6 StateField, per-i…
+- `@ilinxa/properties-form` — Schema-driven controlled read/edit form.
+- `@ilinxa/registration-form-01` — Email + password registration form with optional second-step profile fields, ToS-consent gate, OAuth row above, password-strength meter, magic-link variant, an…
+
+### gamification
+
+- `@ilinxa/cooperative-challenge-01` — A safe-by-design cooperative team challenge card: one shared goal, a collective progress meter (current / target, never per-member), a whole-team reward chip (…
+- `@ilinxa/task-choice-control-01` — A small, droppable autonomy affordance for one team task (system E4): an 'open for anyone' toggle, an 'I'll take this' volunteer/claim action, and an assignee…
+- `@ilinxa/team-feedback-loop-01` — A host-triggered, NON-BLOCKING cooperative feedback layer: a brief (<1s), skippable celebration overlay when team progress advances (milestone / badge / task-c…
+- `@ilinxa/team-progress-bar-01` — An always-visible, read-only progress bar showing one team's milestone-completion % — signal-lime fill on the shadcn progress primitive, optional per-milestone…
+- `@ilinxa/team-quest-log-01` — A light team narrative overlay (system E5): an editable, skippable quest name (a blank name falls back to the team's literal name — never forced) plus a milest…
+- `@ilinxa/team-trophy-shelf-01` — A durable gallery of a team's earned milestone badges, with honest locked slots for what's ahead, an optional header count, an awarded-date tooltip, and a brie…
+
+### layout
+
+- `@ilinxa/grid-layout-news-01` — Slot-based magazine layout — optional hero / filter bar / sidebar + a generic main-column tower (1 large + 2-up + N-up medium grid) + IntersectionObserver-driv…
+- `@ilinxa/workspace` — Splittable canvas — corner-drag split/merge, edge-drag resize, registry-driven content, responsive collapse with per-breakpoint depth cap.
+
+### marketing
+
+- `@ilinxa/author-card-01` — Card-framed person identity block — avatar (image OR icon fallback), name, role, optional bio.
+- `@ilinxa/newsletter-card-01` — Brand-tinted CTA card with email signup.
+- `@ilinxa/page-hero-news-01` — Full-bleed gradient hero band with badge / title / highlight / description / children slot.
+- `@ilinxa/pricing-table-01` — Side-by-side pricing tier cards (2–4 tiers) with optional monthly/annual toggle, highlighted-tier badge, per-feature included rows with tooltips, and a feature…
+- `@ilinxa/share-bar-01` — Horizontal cluster of social-share buttons + copy-link with success-state feedback.
+
+### media
+
+- `@ilinxa/content-composer-01` — Multi-step content-authoring shell that composes json-form (metadata), article-body-01/Plate (body), media-editor-01 (single hero), and media-carousel-editor-0…
+- `@ilinxa/media-carousel-01` — Embla-driven image+video carousel with two variants (gallery peek-scale / linear snap).
+- `@ilinxa/media-carousel-editor-01` — Multi-item media composer (Instagram-feed-post semantics): drag-drop / browse one-or-more mixed photo+video files into an ordered, reorderable rail with a main…
+- `@ilinxa/media-editor-01` — Black-box media capture + edit surface (photo / video / text) with four controllable capability dials (enabledModes, enabledTools, mediaSources, aspect).
+- `@ilinxa/media-library-01` — A Google-Drive-style media library: folders + files with lazy loading, drag-drop upload, drag-to-move, right-click menus, and multi-type file preview (image /…
+- `@ilinxa/pdf-viewer` — Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design system, no commercial SDK.
+- `@ilinxa/story-composer-01` — Instagram-canonical story creation surface — camera-first capture, multi-layer Konva editor, 6 edit tools, single-pointer drag-to-pan + pinch/wheel zoom, an In…
+- `@ilinxa/story-viewer-01` — Full-screen sequential story viewer — Radix Dialog modal with segmented progress, multi-story navigation via Instagram-canonical 3D cube transition + finger-fo…
+- `@ilinxa/video-player-01` — <video> wrapper with muted-autoplay-friendly defaults, slot-based controls via renderControls(state), isActive auto-pause for carousel coordination, double-tap…
+
+### navigation
+
+- `@ilinxa/account-switcher-01` — Popover-with-switchable-items primitive: active context label + chevron trigger that opens a list of contexts to switch to, plus an arbitrary footer slot for c…
+- `@ilinxa/file-manager` — Mac Finder-style file + folder browser with grid / list views, multi-select with marquee, cut/copy/paste, drag-and-drop, and a shared clipboard primitive.
+- `@ilinxa/file-tree` — VS Code-style hierarchical file tree with format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select.
+- `@ilinxa/rich-sidebar` — Registry-portable, framework-agnostic app-shell sidebar with mobile-drawer mode, 13-slot composition (incl.
+
+Do not invent slugs or deps. This list is generated from registry.json at build time — re-fetch this llms.txt for updates.
+<!-- END GENERATED CATALOG -->
 
 ## Updating an installed component
 
@@ -91,7 +174,7 @@ shadcn-registry over static JSON on Vercel — the CLI fetches `/r/<slug>.json`,
 
 ## Per-component reference
 
-https://ilinxa-proui.vercel.app/components/<slug> renders preview, usage, and dependencies for each component. The `/components` index lists all eight.
+https://ilinxa-proui.vercel.app/components/<slug> renders preview, usage, and dependencies for each component. The `/components` index lists the full catalog.
 
 ## For AI agents specifically
 

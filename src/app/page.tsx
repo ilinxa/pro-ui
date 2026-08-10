@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getMetaList } from "@/registry/manifest";
-import { ORDERED_CATEGORIES } from "@/registry/categories";
 
 export default function Home() {
   const components = getMetaList();
-  const categoryCount = ORDERED_CATEGORIES.length;
+  // Count only categories that actually contain components — the category type
+  // union includes reserved slugs (overlays, auth) with nothing shipped yet.
+  const categoryCount = new Set(components.map((c) => c.category)).size;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-24">

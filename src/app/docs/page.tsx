@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ORDERED_CATEGORIES } from "@/registry/categories";
+import { getMetaList } from "@/registry/manifest";
 
 export const metadata = {
   title: "Developer documentation — ilinxa-proui",
@@ -8,6 +10,12 @@ export const metadata = {
 };
 
 export default function DocsPage() {
+  const metas = getMetaList();
+  const grouped = ORDERED_CATEGORIES.map((category) => ({
+    category,
+    list: metas.filter((m) => m.category === category.slug),
+  })).filter((g) => g.list.length > 0);
+
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-24">
       <header className="mb-16 flex flex-col gap-4">
@@ -95,48 +103,34 @@ export function TaskEditor() {
 
       <Section anchor="components" title="Available components" delay={360}>
         <p>
-          Eight components, each with an optional <Code>-fixtures</Code> sibling
-          for example data:
+          {metas.length} components across {grouped.length} categories, each
+          with an optional <Code>-fixtures</Code> sibling for example data.
+          This list renders from the live registry manifest, so it never goes
+          stale.
         </p>
-        <ul className="mt-4 grid gap-3 not-prose">
-          <Item
-            slug="data-table"
-            desc="Generic typed-columns data table — composable column definitions, host-owned data"
-          />
-          <Item
-            slug="rich-card"
-            desc="JSON-driven recursive card-tree viewer + structural editor with drag-drop, virtualization, undo/redo"
-          />
-          <Item
-            slug="workspace"
-            desc="Splittable canvas with corner-drag split/merge, edge-drag resize, registry-driven content"
-          />
-          <Item
-            slug="properties-form"
-            desc="Schema-driven form — six field types, three-state permissions, sync validation"
-          />
-          <Item
-            slug="detail-panel"
-            desc="Selection-aware compound container — Header / Body / Actions slots"
-          />
-          <Item
-            slug="filter-stack"
-            desc="Schema-driven filter panel — checkbox-list / toggle / text / custom"
-          />
-          <Item
-            slug="entity-picker"
-            desc="Searchable typed picker — single or multi mode, kind badges, custom render slots"
-          />
-          <Item
-            slug="markdown-editor"
-            desc="CodeMirror 6 + GFM + [[wikilink]] autocomplete + decoration"
-          />
-        </ul>
-        <p className="mt-4 text-sm">
-          <strong className="text-foreground">Note:</strong>{" "}
-          <Code>force-graph</Code> is in alpha/preview on the demo site but
-          not yet shipped via the registry. It will be added once stabilized.
-        </p>
+        <div className="not-prose mt-4 flex flex-col gap-5">
+          {grouped.map(({ category, list }) => (
+            <div key={category.slug}>
+              <p className="mb-2 text-sm font-medium text-foreground">
+                {category.label}{" "}
+                <span className="font-normal text-muted-foreground">
+                  · {list.length}
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {list.map((m) => (
+                  <Link
+                    key={m.slug}
+                    href={`/components/${m.slug}`}
+                    className="rounded-md border border-border bg-card px-2.5 py-1 font-mono text-xs text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                  >
+                    {m.slug}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
         <p className="mt-6">
           See per-component docs:{" "}
           <Link
@@ -327,25 +321,6 @@ function Code({ children }: { children: React.ReactNode }) {
     <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground">
       {children}
     </code>
-  );
-}
-
-function Item({ slug, desc }: { slug: string; desc: string }) {
-  return (
-    <li className="flex flex-col gap-1 rounded-md border border-border bg-card p-4">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <Link
-          href={`/components/${slug}`}
-          className="font-mono text-sm font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          @ilinxa/{slug}
-        </Link>
-        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          + @ilinxa/{slug}-fixtures
-        </span>
-      </div>
-      <p className="text-sm text-muted-foreground">{desc}</p>
-    </li>
   );
 }
 
