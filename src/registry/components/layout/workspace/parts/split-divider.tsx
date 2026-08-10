@@ -42,7 +42,10 @@ export function SplitDivider({
     <div
       ref={ref}
       role="separator"
-      tabIndex={-1}
+      // v0.1.4 (review): keyboard-reachable — the arrow-key resize handler
+      // below was previously dead for keyboard users (tabIndex={-1}).
+      tabIndex={0}
+      aria-label={isVertical ? "Resize areas (left/right)" : "Resize areas (up/down)"}
       aria-orientation={isVertical ? "vertical" : "horizontal"}
       aria-valuenow={Math.round(ratioPercent)}
       aria-valuemin={0}

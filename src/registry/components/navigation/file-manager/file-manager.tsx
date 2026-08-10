@@ -236,8 +236,33 @@ export const FileManager = forwardRef<
   });
 
   // Refs
+  const rootElRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const columnsRef = useRef<number>(1);
+
+  // ── Roving tabindex → real DOM focus (v0.1.1, review 5.6) ─────────────
+  // The roving tabindex was state-only: arrow keys updated `focusedId` but
+  // never moved DOM focus — invisible to screen readers, dead focus ring.
+  // Mirrors rich-sidebar's pattern; only steals focus while the user is
+  // already interacting inside the component.
+  useEffect(() => {
+    if (!focusedId) return;
+    if (typeof document === "undefined") return;
+    const root = rootElRef.current;
+    if (!root) return;
+    if (!root.contains(document.activeElement)) return;
+    const escaped = window.CSS.escape(focusedId);
+    const target = root.querySelector<HTMLElement>(
+      `[data-item-id="${escaped}"]`,
+    );
+    if (target) {
+      if (document.activeElement !== target) target.focus();
+    } else {
+      // Virtualized list mode: the focused row may not be mounted — fall
+      // back to the container so keyboard navigation keeps working.
+      root.focus({ preventScroll: true });
+    }
+  }, [focusedId]);
 
   // Marquee selection
   const marquee = useMarquee({
@@ -605,6 +630,7 @@ export const FileManager = forwardRef<
     <FileManagerContext.Provider value={ctxValue}>
       <TooltipProvider delayDuration={400}>
         <div
+          ref={rootElRef}
           role="region"
           aria-label={title ?? labels.title}
           tabIndex={focusedId === null ? 0 : -1}

@@ -62,7 +62,8 @@ export function useTreeKeyboard(
         }
         case "ArrowUp": {
           e.preventDefault();
-          const next = noFocus ? 0 : Math.max(0, idx - 1);
+          // APG: ArrowUp with no prior focus lands on the LAST row.
+          const next = noFocus ? rows.length - 1 : Math.max(0, idx - 1);
           if (rows[next]) actions.focusNode(rows[next].node.id);
           return;
         }

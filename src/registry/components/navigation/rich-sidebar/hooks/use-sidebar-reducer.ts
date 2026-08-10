@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useCallback } from "react";
+import { useReducer, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   type SidebarReducerAction,
   type SidebarReducerInitOptions,
@@ -72,16 +72,25 @@ export function useSidebarReducer(
   }, [options.isCollapsed, options.isMobileOpen]);
 
   // Defense 1 — fire change callbacks via microtask defer when state mutates.
-  // Skipped when state matches lastSyncedSnapshot (= the change came from
-  // EXTERNAL_SYNC, not an internal action → consumer already knows).
+  // Skipped when the transition was EXTERNAL_SYNC-originated (consumer already
+  // knows). v0.3.1 (review 5.4): "sync-originated" is now detected by snapshot
+  // IDENTITY (EXTERNAL_SYNC mints a new `lastSyncedSnapshot` object on every
+  // transition it causes) instead of comparing values against the snapshot —
+  // the old value-compare also swallowed INTERNAL toggles that happened to land
+  // back on the last-synced value (e.g. the 2nd click while a constant
+  // controlled prop holds the rendered value), so the consumer never got the
+  // change request.
   const prevCollapsedRef = useRef(state.collapsed);
   const prevMobileOpenRef = useRef(state.mobileOpen);
+  const prevSnapshotRef = useRef(state.lastSyncedSnapshot);
   useEffect(() => {
+    const syncOriginated = prevSnapshotRef.current !== state.lastSyncedSnapshot;
+    prevSnapshotRef.current = state.lastSyncedSnapshot;
     if (prevCollapsedRef.current !== state.collapsed) {
       const next = state.collapsed;
       prevCollapsedRef.current = next;
       // Skip if this transition came from EXTERNAL_SYNC (consumer originated it)
-      if (state.lastSyncedSnapshot.collapsed !== next) {
+      if (!(syncOriginated && state.lastSyncedSnapshot.collapsed === next)) {
         queueMicrotask(() => {
           onCollapsedChangeRef.current?.({ collapsed: next });
         });
@@ -90,7 +99,7 @@ export function useSidebarReducer(
     if (prevMobileOpenRef.current !== state.mobileOpen) {
       const next = state.mobileOpen;
       prevMobileOpenRef.current = next;
-      if (state.lastSyncedSnapshot.mobileOpen !== next) {
+      if (!(syncOriginated && state.lastSyncedSnapshot.mobileOpen === next)) {
         // v0.3.0 (C2, L53): read the reason the dispatching action wrote into
         // reducer state. EXTERNAL_SYNC resets to "imperative" on transition;
         // SET/TOGGLE write the explicit reason; the no-op guard in the reducer
@@ -112,5 +121,27 @@ export function useSidebarReducer(
     [],
   );
 
-  return { state, dispatch: stableDispatch };
+  // v0.3.1 (review 5.4) — controlled props win at READ time, not only on prop
+  // CHANGE. Previously a controlled `isCollapsed`/`isMobileOpen` was only
+  // honored via the EXTERNAL_SYNC effect above (which fires on prop change),
+  // so an internal toggle could diverge the rendered state from a CONSTANT
+  // controlled prop and the prop never won it back. The raw reducer state
+  // still mutates on internal dispatches (so the Defense-1 effect above still
+  // fires the change-request callbacks and the consumer can update its state);
+  // what the component RENDERS is the prop whenever the prop is defined.
+  const derivedState = useMemo<SidebarReducerState>(() => {
+    if (
+      options.isCollapsed === undefined &&
+      options.isMobileOpen === undefined
+    ) {
+      return state;
+    }
+    return {
+      ...state,
+      collapsed: options.isCollapsed ?? state.collapsed,
+      mobileOpen: options.isMobileOpen ?? state.mobileOpen,
+    };
+  }, [state, options.isCollapsed, options.isMobileOpen]);
+
+  return { state: derivedState, dispatch: stableDispatch };
 }

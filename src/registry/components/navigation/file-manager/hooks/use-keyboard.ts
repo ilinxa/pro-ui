@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { KeyboardEvent } from "react";
 import type {
   FileManagerActions,
@@ -44,6 +44,17 @@ export function useKeyboard(args: UseKeyboardArgs): UseKeyboardResult {
     prefix: "",
     timer: null,
   });
+
+  // v0.1.1 (review): clear the pending type-ahead reset timer on unmount.
+  // (The ref object's identity is stable — only its fields mutate.)
+  useEffect(() => {
+    const ta = typeAheadRef.current;
+    return () => {
+      if (ta.timer !== null) window.clearTimeout(ta.timer);
+      ta.timer = null;
+      ta.prefix = "";
+    };
+  }, []);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {

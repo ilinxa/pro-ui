@@ -139,7 +139,7 @@ export function FileTreeRowList(props: FileTreeRowListProps) {
         />
       );
       return (
-        <div key={row.node.id} style={outerStyle}>
+        <div key={row.node.id} role="presentation" style={outerStyle}>
           {renderRow({ row, defaultRow })}
         </div>
       );
@@ -189,12 +189,14 @@ export function FileTreeRowList(props: FileTreeRowListProps) {
       <div
         ref={scrollRef}
         data-file-tree-scroller
+        role="presentation"
         className="relative h-full overflow-y-auto overflow-x-hidden"
         onDragOver={onContainerDragOver}
         onDrop={onContainerDrop}
         onContextMenu={onContainerContextMenu}
       >
         <div
+          role="presentation"
           style={{
             height: `${totalHeight}px`,
             width: "100%",
@@ -222,12 +224,15 @@ export function FileTreeRowList(props: FileTreeRowListProps) {
   return (
     <div
       ref={scrollRef}
+      role="presentation"
       className="relative h-full overflow-y-auto overflow-x-hidden"
       onDragOver={onContainerDragOver}
       onDrop={onContainerDrop}
       onContextMenu={onContainerContextMenu}
     >
-      <div className="py-1">{rows.map((row) => buildRow(row))}</div>
+      <div role="presentation" className="py-1">
+        {rows.map((row) => buildRow(row))}
+      </div>
     </div>
   );
 }

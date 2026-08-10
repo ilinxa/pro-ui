@@ -203,6 +203,32 @@ export const FileTree = forwardRef<FileTreeHandle, FileTreeProps>(
     // ── Index for context-menu target lookup ───────────────────────────────
     const nodeIndex = useMemo(() => indexNodes(nodes), [nodes]);
 
+    // ── Roving tabindex → real DOM focus (v0.1.1, review 5.6) ──────────────
+    // The roving tabindex was state-only: arrow keys updated `focusedId` but
+    // never moved DOM focus, so screen readers heard nothing and the
+    // focus-visible ring never rendered. Mirrors rich-sidebar's pattern.
+    // Only steals focus while the user is already interacting with the tree.
+    const rootElRef = useRef<HTMLDivElement>(null);
+    const focusedIdForDom = stateHook.state.focusedId;
+    useEffect(() => {
+      if (!focusedIdForDom) return;
+      if (typeof document === "undefined") return;
+      const root = rootElRef.current;
+      if (!root) return;
+      if (!root.contains(document.activeElement)) return;
+      const escaped = window.CSS.escape(focusedIdForDom);
+      const target = root.querySelector<HTMLElement>(
+        `[data-row-id="${escaped}"]`,
+      );
+      if (target) {
+        if (document.activeElement !== target) target.focus();
+      } else {
+        // Virtualized mode: the focused row may not be mounted — fall back
+        // to the container so keyboard navigation keeps working.
+        root.focus({ preventScroll: true });
+      }
+    }, [focusedIdForDom]);
+
     // ── Row click + double-click + chevron + context-menu ──────────────────
     const onRowClick = useCallback(
       (e: MouseEvent, row: FileTreeRow) => {
@@ -362,7 +388,7 @@ export const FileTree = forwardRef<FileTreeHandle, FileTreeProps>(
         }) ?? <FileTreeEmpty />;
     } else {
       const list = (
-        <div className="relative h-full min-h-0 flex-1">
+        <div role="presentation" className="relative h-full min-h-0 flex-1">
           <FileTreeRowList
             rows={rows}
             rowHeight={rowHeight}
@@ -451,8 +477,10 @@ export const FileTree = forwardRef<FileTreeHandle, FileTreeProps>(
       <FileTreeContext.Provider value={ctxValue}>
        <TooltipProvider delayDuration={400}>
         <div
+          ref={rootElRef}
           role="tree"
           tabIndex={stateHook.state.focusedId === null ? 0 : -1}
+          aria-multiselectable={selectionMode === "multi" ? true : undefined}
           aria-label={title ?? labels.title}
           className={cn(
             "relative flex h-full w-full flex-col overflow-hidden rounded-md border border-border/60 bg-background text-foreground outline-none",

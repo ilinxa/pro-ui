@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { getItemRects, rectanglesIntersect, type Rect } from "../lib/intersect";
 
@@ -43,6 +43,25 @@ export function useMarquee(args: UseMarqueeArgs): UseMarqueeResult {
   // Stable refs to handlers so cleanup matches the registered listener.
   const moveHandlerRef = useRef<((e: PointerEvent) => void) | null>(null);
   const upHandlerRef = useRef<((e: PointerEvent) => void) | null>(null);
+
+  // v0.1.1 (review): unmount cleanup — the window listeners were only
+  // removed in handleUp, so unmounting mid-drag leaked all three listeners
+  // (and the leaked move handler kept calling setState on the unmounted
+  // component).
+  useEffect(() => {
+    return () => {
+      if (moveHandlerRef.current) {
+        window.removeEventListener("pointermove", moveHandlerRef.current);
+      }
+      if (upHandlerRef.current) {
+        window.removeEventListener("pointerup", upHandlerRef.current);
+        window.removeEventListener("pointercancel", upHandlerRef.current);
+      }
+      moveHandlerRef.current = null;
+      upHandlerRef.current = null;
+      startRef.current = null;
+    };
+  }, []);
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {

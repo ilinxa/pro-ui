@@ -174,6 +174,7 @@ export function FileTreeContextMenu(props: FileTreeContextMenuProps) {
         onContextMenu={captureTarget}
       >
         <div
+          role="presentation"
           className="contents"
           onContextMenu={captureTarget}
         >

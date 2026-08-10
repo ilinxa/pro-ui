@@ -1,5 +1,6 @@
 import type { ActiveItemResult } from "./compute-active-item";
 import type { VisibleEntriesResult } from "./derive-visible-entries";
+import { flattenEntriesForKeyboard } from "./flatten-entries";
 import type {
   SidebarReducerAction,
   SidebarReducerState,
@@ -95,10 +96,29 @@ export function buildHandle(deps: {
     getItemById: (id) => itemsLookup.get(id),
     getActiveItem: () => active.item ?? undefined,
 
-    // Focus
+    // Focus — v0.3.1 (review): focusFirstItem/focusLastItem were public
+    // no-ops (both dispatched `itemId: null`). Now resolved against the
+    // same flattened keyboard-traversal sequence the arrow keys use
+    // (visible entries minus collapsed-section items / disabled items).
     focusItem: (itemId) => dispatch({ type: "FOCUS_ITEM", itemId }),
-    focusFirstItem: () => dispatch({ type: "FOCUS_ITEM", itemId: null }),
-    focusLastItem: () => dispatch({ type: "FOCUS_ITEM", itemId: null }),
+    focusFirstItem: () => {
+      const flat = flattenEntriesForKeyboard(
+        visible.entries,
+        state.collapsedSectionIds,
+      );
+      if (flat.length > 0) {
+        dispatch({ type: "FOCUS_ITEM", itemId: flat[0].id });
+      }
+    },
+    focusLastItem: () => {
+      const flat = flattenEntriesForKeyboard(
+        visible.entries,
+        state.collapsedSectionIds,
+      );
+      if (flat.length > 0) {
+        dispatch({ type: "FOCUS_ITEM", itemId: flat[flat.length - 1].id });
+      }
+    },
   };
 
   const handleObj: RichSidebarHandle = {

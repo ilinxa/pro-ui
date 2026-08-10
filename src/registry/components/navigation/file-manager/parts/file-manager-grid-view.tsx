@@ -97,14 +97,21 @@ export function FileManagerGridView(props: FileManagerGridViewProps) {
             onDragEnd={onItemDragEnd}
           />
         );
+        // v0.1.1 (review): `role="row"` on each cell wrapper — the grid
+        // previously nested gridcells under unroled divs (invalid
+        // grid → gridcell without a row). Matches the list view's shape.
         if (renderItem) {
           return (
-            <div key={item.node.id}>
+            <div key={item.node.id} role="row">
               {renderItem({ item, defaultItem, viewMode: "grid" })}
             </div>
           );
         }
-        return <div key={item.node.id}>{defaultItem}</div>;
+        return (
+          <div key={item.node.id} role="row">
+            {defaultItem}
+          </div>
+        );
       })}
     </div>
   );

@@ -48,10 +48,10 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   createdAt: "2026-05-22",
-  updatedAt: "2026-05-23",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 

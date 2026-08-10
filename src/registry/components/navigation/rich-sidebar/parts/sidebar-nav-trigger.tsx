@@ -1,10 +1,58 @@
 "use client";
 
+import { cloneElement, isValidElement } from "react";
 import { PanelLeft } from "lucide-react";
-import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 import { useRichSidebarContextOrNull } from "../contexts/sidebar-nav-context";
 import type { RichSidebarHandle, RichSidebarTriggerProps } from "../types";
+
+type SlotCloneProps = React.HTMLAttributes<HTMLElement> & {
+  type?: "button";
+  children?: React.ReactNode;
+};
+
+/**
+ * Minimal local slot (v0.3.1 — replaces the former `radix-ui` Slot import,
+ * which was undeclared in meta/registry.json AND forbidden by the validator;
+ * it broke module resolution on Base-UI consumers). Clones the single child
+ * element and merges the trigger props onto it: `className` joined, `style`
+ * merged (child wins), event handlers composed (child first, then trigger),
+ * any other overlapping prop child-wins. The child's own `ref` is preserved
+ * by `cloneElement` — no ref is ever passed in `triggerProps`.
+ */
+function SlotClone({ children, ...slotProps }: SlotCloneProps) {
+  if (!isValidElement(children)) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        "[rich-sidebar] <RichSidebarTrigger asChild> expects a single React element child — got none. Rendering nothing.",
+      );
+    }
+    return null;
+  }
+  const childProps = children.props as Record<string, unknown>;
+  const merged: Record<string, unknown> = { ...slotProps };
+  for (const key of Object.keys(slotProps)) {
+    const slotValue = (slotProps as Record<string, unknown>)[key];
+    const childValue = childProps[key];
+    if (childValue === undefined) continue;
+    if (/^on[A-Z]/.test(key) && typeof slotValue === "function" && typeof childValue === "function") {
+      merged[key] = (...args: unknown[]) => {
+        (childValue as (...a: unknown[]) => void)(...args);
+        (slotValue as (...a: unknown[]) => void)(...args);
+      };
+    } else if (key === "className") {
+      merged[key] = cn(slotValue as string | undefined, childValue as string | undefined);
+    } else if (key === "style") {
+      merged[key] = {
+        ...(slotValue as React.CSSProperties),
+        ...(childValue as React.CSSProperties),
+      };
+    } else {
+      merged[key] = childValue;
+    }
+  }
+  return cloneElement(children, merged);
+}
 
 /**
  * Companion trigger — mount in your app header to open the mobile drawer.
@@ -29,7 +77,7 @@ import type { RichSidebarHandle, RichSidebarTriggerProps } from "../types";
  * reflection across React subtrees if needed.
  *
  * Override the icon entirely via `children` (custom node) or `asChild`
- * (compose onto consumer's own element via Radix Slot).
+ * (compose onto consumer's own element via the local SlotClone above).
  */
 export function RichSidebarTrigger({
   controls,
@@ -60,7 +108,6 @@ export function RichSidebarTrigger({
       // distinguish hamburger taps from other close paths.
       resolved.toggleMobile("trigger");
     } else if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
       console.warn(
         "[rich-sidebar] <RichSidebarTrigger> clicked with no <RichSidebar> in context and no `controls` prop — no-op.",
       );
@@ -83,7 +130,7 @@ export function RichSidebarTrigger({
   };
 
   if (asChild) {
-    return <Slot.Root {...triggerProps}>{children}</Slot.Root>;
+    return <SlotClone {...triggerProps}>{children}</SlotClone>;
   }
 
   return (

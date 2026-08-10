@@ -29,10 +29,10 @@ export function CornerHandle({
 }) {
   return (
     <div
-      role="button"
-      tabIndex={-1}
-      aria-label="Split or merge area"
-      aria-disabled={disabled || undefined}
+      // v0.1.4 (review): pointer-only affordance — hidden from AT. It was a
+      // keyboard-unreachable `role="button"` before; the accessible
+      // equivalent (split/merge) lives in the AreaHeader menu.
+      aria-hidden="true"
       onPointerDown={
         disabled
           ? undefined

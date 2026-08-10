@@ -168,7 +168,6 @@ export function RichSidebar(props: RichSidebarProps) {
     storageKey &&
     process.env.NODE_ENV !== "production"
   ) {
-    // eslint-disable-next-line no-console
     console.warn(
       "[rich-sidebar] `storageKey` is ignored when `state` (lifted hook) is provided — the hook owns persistence (L43). Move storageKey to useRichSidebarState() options.",
     );
@@ -485,8 +484,6 @@ export function RichSidebar(props: RichSidebarProps) {
 
   const desktopAccessory =
     navAccessorySlot === null ? null : (navAccessorySlot ?? defaultAccessory);
-  const showDesktopHeader =
-    !!headerSlot || !!resolvedBrand || desktopAccessory !== null;
   const showMobileHeader = !!drawerHeaderSlot || !!headerSlot || !!resolvedBrand;
 
   // L39 — loading/empty branching precedence:

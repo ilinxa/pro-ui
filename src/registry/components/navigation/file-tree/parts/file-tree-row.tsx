@@ -95,7 +95,7 @@ export function FileTreeRowComponent(props: FileTreeRowProps) {
         : defaultFileIcon(node);
 
   return (
-    <div className="relative" style={outerStyle}>
+    <div role="presentation" className="relative" style={outerStyle}>
       {/* before / after drop indicator (line) */}
       {dropPosition === "before" && !dropInvalid ? (
         <div

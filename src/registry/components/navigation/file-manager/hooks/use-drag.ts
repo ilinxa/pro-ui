@@ -244,6 +244,13 @@ export function useDrag(args: UseDragArgs): UseDragResult {
         e.preventDefault();
         e.dataTransfer.dropEffect = "copy";
       } else if (isInternalDraggingRef.current) {
+        // v0.1.1 (review 5.7): this handler sits on an ANCESTOR of the item
+        // elements, so every item dragover bubbled here and cleared the drop
+        // target the item handler had just set (highlight never rendered,
+        // cursor read "no-drop" over legal folders). Only treat the event as
+        // a whitespace hover when it did NOT originate inside an item.
+        const target = e.target as HTMLElement | null;
+        if (target?.closest("[data-item-id]")) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "none"; // dropping on whitespace internal = no-op
         setDragOver(null);

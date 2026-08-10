@@ -43,10 +43,14 @@ export function useStorageSync(
         collapsed: parsed.collapsed,
         mobileOpen: state.mobileOpen,
       });
-      // Replay collapsedSectionIds via individual SET actions so each
-      // section's state lands through the reducer cleanly.
-      parsed.collapsedSectionIds.forEach((id) => {
-        dispatch({ type: "SET_SECTION_COLLAPSED", sectionId: id, collapsed: true });
+      // v0.3.1 (review): whole-set REPLACE, not per-id collapse replay.
+      // The old per-id SET-collapsed loop could only ADD collapses — a
+      // section the user had EXPANDED (i.e. removed from the stored array,
+      // but present in defaultCollapsedSectionIds) re-collapsed on every
+      // reload because its default-collapsed state was never cleared.
+      dispatch({
+        type: "COLLAPSE_ALL_SECTIONS",
+        allSectionIds: parsed.collapsedSectionIds,
       });
     } catch {
       // Corrupted storage — silently fall back to defaults.

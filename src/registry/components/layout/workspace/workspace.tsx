@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useReducer,
   useRef,
@@ -64,8 +65,16 @@ function resolveResponsive<T>(
   return value as T;
 }
 
-function createInitialTree(defaultComponentId: string): AreaTree {
-  return { kind: "leaf", id: makeAreaId(), componentId: defaultComponentId };
+function createInitialTree(
+  defaultComponentId: string,
+  rootAreaId: string,
+): AreaTree {
+  // v0.1.4 (review): the root id is now deterministic (useId-derived, passed
+  // in) instead of `makeAreaId()` — the lazy initializer runs during render
+  // on BOTH server and client, and the old Date.now()-based id was emitted
+  // as `data-area-id`, guaranteeing an SSR hydration mismatch for the
+  // default tree. Event-driven splits still use `makeAreaId()` (client-only).
+  return { kind: "leaf", id: rootAreaId, componentId: defaultComponentId };
 }
 
 export function Workspace({
@@ -88,19 +97,34 @@ export function Workspace({
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  // SSR-stable seed for the default tree's root area id (see createInitialTree).
+  const reactId = useId();
+
   const [{ tree, focusedAreaId }, dispatchInternal] = useReducer(reducer, null, () => ({
-    tree: layout ?? defaultLayout ?? createInitialTree(defaultComponentId),
+    tree:
+      layout ??
+      defaultLayout ??
+      createInitialTree(defaultComponentId, `area-${reactId}`),
     focusedAreaId: null,
   }));
+
+  // v0.1.4 (review 5.5): tag prop-originated `replace-tree` dispatches so the
+  // notify effect below can skip them. Without the tag, a controlled parent
+  // that reverts (or hasn't yet accepted) an edit produced this sequence:
+  // user edit → onLayoutChange(T1) → prop-driven revert → onLayoutChange(L0)
+  // — the edit was announced and then un-announced.
+  const propReplaceRef = useRef<AreaTree | null>(null);
 
   // Sync controlled `layout` prop into reducer state by reference comparison.
   useEffect(() => {
     if (layout !== undefined && layout !== tree) {
+      propReplaceRef.current = layout;
       dispatchInternal({ type: "replace-tree", tree: layout });
     }
   }, [layout, tree]);
 
-  // Fire onLayoutChange when tree changes (excluding initial mount).
+  // Fire onLayoutChange when tree changes (excluding initial mount and
+  // prop-originated replaces — the consumer already knows about those).
   const onLayoutChangeRef = useRef(onLayoutChange);
   useEffect(() => {
     onLayoutChangeRef.current = onLayoutChange;
@@ -109,6 +133,10 @@ export function Workspace({
   useEffect(() => {
     if (prevTreeRef.current !== tree) {
       prevTreeRef.current = tree;
+      if (propReplaceRef.current === tree) {
+        propReplaceRef.current = null;
+        return;
+      }
       onLayoutChangeRef.current?.(tree);
     }
   }, [tree]);
@@ -148,7 +176,9 @@ export function Workspace({
     const componentIds = components.map((c) => c.id);
     const result = validateTree(tree, componentIds);
     if (!result.valid) {
-      console.error("[workspace] invalid tree:", result.errors);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[workspace] invalid tree:", result.errors);
+      }
       onErrorRef.current?.(result.errors);
     }
   }, [tree, components]);

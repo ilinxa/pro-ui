@@ -30,7 +30,6 @@ export function NavBrand({
     if (!logo) return null;
     if (typeof logo === "object" && logo !== null && "src" in logo) {
       return (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={logo.src}
           alt={logo.alt ?? label}

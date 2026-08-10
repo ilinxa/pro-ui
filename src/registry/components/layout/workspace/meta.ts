@@ -19,10 +19,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["workspace", "layout", "split", "panels", "tiling", "dashboard"],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-04-27",
-  updatedAt: "2026-05-25",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 

@@ -67,8 +67,14 @@ export function useCornerGesture(opts: {
     [rootRef],
   );
 
+  // v0.1.4 (review): key the listener effect on WHETHER a drag is active,
+  // not on the dragState object — every pointermove minted a new dragState,
+  // tearing down and re-binding all 4 listeners per move. The handlers read
+  // live drag data from `dragRef` anyway.
+  const dragActive = dragState !== null;
+
   useEffect(() => {
-    if (!dragState) return;
+    if (!dragActive) return;
     const root = rootRef.current;
     if (!root) return;
 
@@ -190,7 +196,7 @@ export function useCornerGesture(opts: {
       root.removeEventListener("pointercancel", handleCancel);
       window.removeEventListener("blur", handleCancel);
     };
-  }, [dragState, rootRef, dispatch, makeAreaId, cap, breakpoint]);
+  }, [dragActive, rootRef, dispatch, makeAreaId, cap, breakpoint]);
 
   return { dragState, beginCornerDrag };
 }
