@@ -58,10 +58,10 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 | `category-cloud-01` | forms | 0.1.0 | alpha |
 | `entity-picker` | forms | 0.1.1 | alpha |
 | `filter-bar-01` | forms | 0.1.0 | alpha |
-| `filter-stack` | forms | 0.1.0 | alpha |
+| `filter-stack` | forms | 0.1.1 | alpha |
 | `json-form` | forms | 0.2.6 | alpha |
 | `markdown-editor` | forms | 0.1.2 | alpha |
-| `properties-form` | forms | 0.1.1 | alpha |
+| `properties-form` | forms | 0.1.2 | alpha |
 | `registration-form-01` | forms | 0.1.1 | alpha |
 | `cooperative-challenge-01` | gamification | 0.1.2 | alpha |
 | `task-choice-control-01` | gamification | 0.1.0 | alpha |

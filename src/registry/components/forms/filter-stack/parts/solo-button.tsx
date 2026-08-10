@@ -16,8 +16,9 @@ interface SoloButtonProps {
 
 export function SoloButton({ optionLabel, onClick }: SoloButtonProps) {
   const ariaLabel = `Show only ${optionLabel}`;
+  // No delayDuration — Radix-only prop; Base UI's TooltipProvider rejects it (F-cross-13).
   return (
-    <TooltipProvider delayDuration={200}>
+    <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

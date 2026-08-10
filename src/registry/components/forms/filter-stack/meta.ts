@@ -23,10 +23,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["filter-stack", "filter", "facets", "graph-system"],
 
-  version: "0.1.0",
+  version: "0.1.1",
   status: "alpha",
   createdAt: "2026-04-29",
-  updatedAt: "2026-04-29",
+  updatedAt: "2026-08-10",
 
   author: { name: "ilinxa" },
 
