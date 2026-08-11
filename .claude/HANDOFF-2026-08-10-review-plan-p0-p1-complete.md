@@ -1,6 +1,8 @@
 # HANDOFF — 2026-08-10/11 · Deep review → Master plan → P0 + P1 executed & shipped
 
 > **Resume file for the production-readiness arc.** Everything from this session is committed + pushed (`master` == `origin` at `99ce6b1`, tree clean, Vercel deployed). Read this top-to-bottom, then start at **§NEXT ACTION**.
+>
+> **⚠️ STALENESS NOTE (added 2026-08-11):** §5's next action (P1.5) was **executed + smoke-verified 2026-08-11** — see [`decisions/2026-08-11-p1-5-carrier-sweep.md`](decisions/2026-08-11-p1-5-carrier-sweep.md); smoke = 63/63 installs · consumer tsc 0. STATUS.md is the live snapshot; the next action is now **P2 (great rename)** per §5's "Then P2" paragraph.
 
 ---
 
