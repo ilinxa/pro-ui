@@ -294,4 +294,4 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 
 ## License
 
-Private. Contact the team for licensing inquiries.
+[MIT](LICENSE) — open source since 2026-08-11.
