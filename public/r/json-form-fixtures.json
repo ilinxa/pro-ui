@@ -1,9 +1,9 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "json-form-fixtures",
-  "title": "Json Form — fixtures",
+  "title": "JSON Form — fixtures",
   "author": "ilinxa",
-  "description": "Json Form bundle including 6 named fixture schemas (registration / contact / conditional / computed / rich fields / admin user) plus the `mockFetchSchema` async helper for backend-driven demos.",
+  "description": "JSON Form plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/json-form"
   ],

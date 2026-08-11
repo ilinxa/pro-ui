@@ -92,7 +92,7 @@ Without this rule, tiering collapses into "one big god-thing with extra steps."
 
 | Tier | Slug shape | Example | Namespace |
 |---|---|---|---|
-| pro-component | `<noun>-<variant>-NN?` | `rich-sidebar`, `flow-canvas-01` | `@ilinxa/<slug>` |
+| pro-component | `<noun>-<variant>-NN?` | `app-sidebar`, `flow-canvas` | `@ilinxa/<slug>` |
 | pro-section | `<noun>-section-NN` | `stats-row-section-01`, `pricing-tier-section-01` | `@ilinxa/<slug>` |
 | pro-page | `<noun>-page-NN` | `dashboard-page-01`, `settings-page-01` | `@ilinxa/<slug>` |
 | pro-panel | `<noun>-panel-NN` | `cms-panel-01`, `admin-panel-01` | `@ilinxa/<slug>` |

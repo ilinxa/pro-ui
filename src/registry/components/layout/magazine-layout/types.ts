@@ -1,0 +1,94 @@
+import type { ReactNode } from "react";
+
+/**
+ * Slot identifier passed to `renderItem`. The layout always renders one
+ * or more `medium` slots; `large` is the lead slot in the main column
+ * when there are enough items.
+ */
+export type MagazineLayoutItemSlot = "large" | "medium";
+
+export interface MagazineLayoutLabels {
+  /** Visually-hidden loader announcement. Default: 'Loading more items…'. */
+  loadingLabel?: string;
+  /** Terminal end-of-list text. Default: 'All items shown'. */
+  endOfListText?: string;
+  /** Default empty-state body when `emptyState` slot is not provided. Default: 'No items to show.'. */
+  emptyStateText?: string;
+}
+
+export interface MagazineLayoutProps<T> {
+  /** Current page of items (filtered + paged by the consumer or `useMagazineFilter`). */
+  displayedItems: T[];
+  /** Optional featured item rendered above the main column (whenever provided). */
+  featuredItem?: T;
+
+  /** Whether more items are available beyond the current page. */
+  hasMore?: boolean;
+  /** Whether `onLoadMore` is currently fetching. */
+  isLoading?: boolean;
+  /** Callback fired when the loader sentinel enters the viewport. */
+  onLoadMore?: () => void;
+
+  /**
+   * How to render one item in a given slot. Receives the slot identifier
+   * plus the item's `index` in the displayed list. Featured-item call site
+   * passes `index: 0`. Required.
+   *
+   * v0.2 cutover from positional `(item, slot)`. The deprecated positional
+   * shape was kept as `renderItemArgs` during the v0.1.x transition and is
+   * now removed; the canonical name `renderItem` carries the object shape.
+   */
+  renderItem: (args: {
+    item: T;
+    slot: MagazineLayoutItemSlot;
+    index: number;
+  }) => ReactNode;
+  /** How to render the featured item. Defaults to `renderItem(featuredItem, 'large')`. */
+  renderFeatured?: (item: T) => ReactNode;
+
+  /** Optional hero band rendered full-width above the filter bar. */
+  hero?: ReactNode;
+  /** Optional filter bar rendered above the grid. */
+  filterBar?: ReactNode;
+  /** Optional sidebar rendered to the right (col-span-4) of the main column. */
+  sidebar?: ReactNode;
+
+  /** Optional empty-state node. Rendered when displayedItems is empty AND not loading. */
+  emptyState?: ReactNode;
+
+  labels?: MagazineLayoutLabels;
+  className?: string;
+  mainClassName?: string;
+  sidebarClassName?: string;
+}
+
+export const DEFAULT_GRID_LABELS: Required<MagazineLayoutLabels> = {
+  loadingLabel: "Loading more items…",
+  endOfListText: "All items shown",
+  emptyStateText: "No items to show.",
+};
+
+export interface UseMagazineFilterArgs<T> {
+  /** Source items (consumer's full dataset). */
+  items: T[];
+  /** Per-page size. Default: 6. */
+  pageSize?: number;
+  /** Predicate to derive the featured item (returns true for the one to feature). */
+  isFeatured?: (item: T) => boolean;
+  /** Filter / search predicate. Default: include everything. */
+  filterPredicate?: (item: T) => boolean;
+  /** Sort comparator. Default: no sort. */
+  sortComparator?: (a: T, b: T) => number;
+  /** Artificial loading delay in ms (for demos). Default: 0. */
+  simulatedLoadingMs?: number;
+}
+
+export interface UseMagazineFilterReturn<T> {
+  displayedItems: T[];
+  featuredItem: T | undefined;
+  hasMore: boolean;
+  isLoading: boolean;
+  filteredCount: number;
+  loadMore: () => void;
+  reset: () => void;
+}

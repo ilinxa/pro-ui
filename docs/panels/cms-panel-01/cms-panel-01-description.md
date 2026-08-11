@@ -22,15 +22,15 @@ The v0.1.0 panel ships 6 routes + the shell. The 5 deferred routes (v0.2.0 + v0.
 
 **v0.1.0 routes:**
 - `/dashboard` — overview (stats row + activity feed + page header)
-- `/posts` — bespoke posts CRUD (table + bespoke editor with `article-body-01` for rich content)
+- `/posts` — bespoke posts CRUD (table + bespoke editor with `rich-text-editor` for rich content)
 - `/pages` — bespoke static-page CRUD (table + bespoke editor with `json-form` settings)
 - `/taxonomies/[slug]` — generalized `entity-crud-page-01` parameterized by taxonomy (serves tags + categories + any custom taxonomy from one page)
 - `/library` — bespoke wrapping `file-manager` procomp
 - `/users` — generalized `entity-crud-page-01` parameterized for user entity
 
 **v0.1.0 shell:**
-- `rich-sidebar` v0.3.0 left navigation with section grouping, role-aware visibility, and persisted collapse state
-- `account-switcher-01` v0.1.0 as the sidebar's `topSlot` (current user + tenant switch placeholder)
+- `app-sidebar` v0.3.0 left navigation with section grouping, role-aware visibility, and persisted collapse state
+- `account-switcher` v0.1.0 as the sidebar's `topSlot` (current user + tenant switch placeholder)
 - `page-header-section-01` rendered at the top of every route (title + breadcrumbs + page-level actions slot)
 - Auth provider interface (`<CmsAuthProvider>`) — typed contract consumers wire NextAuth / Clerk / custom into
 - Theme provider (`next-themes` — already in project deps)
@@ -77,8 +77,8 @@ Each entry: route shape · one-line purpose · constituent procomps + sections �
 
 | # | Route | Purpose | Procomps used | Sections used | Page slug | v |
 |---|---|---|---|---|---|---|
-| 1 | `/dashboard` | Overview + recent activity + KPI snapshot | `stat-card`, `progress-timeline-01` | `stats-row-section-01`, `activity-feed-section-01`, `page-header-section-01` | `dashboard-page-01` | 0.1 |
-| 2 | `/posts` | Posts/blog CRUD with rich-content editor | `data-table`, `article-body-01`, `json-form` | `crud-table-section-01`, `crud-delete-confirm-section-01`, `page-header-section-01` | `posts-page-01` | 0.1 |
+| 1 | `/dashboard` | Overview + recent activity + KPI snapshot | `stat-card`, `progress-timeline` | `stats-row-section-01`, `activity-feed-section-01`, `page-header-section-01` | `dashboard-page-01` | 0.1 |
+| 2 | `/posts` | Posts/blog CRUD with rich-content editor | `data-table`, `rich-text-editor`, `json-form` | `crud-table-section-01`, `crud-delete-confirm-section-01`, `page-header-section-01` | `posts-page-01` | 0.1 |
 | 3 | `/pages` | Static-page CRUD with settings panel | `data-table`, `json-form` | `crud-table-section-01`, `crud-form-section-01`, `crud-delete-confirm-section-01`, `page-header-section-01` | `pages-page-01` | 0.1 |
 | 4 | `/taxonomies/[slug]` | Generalized CRUD for any taxonomy (tags, categories, custom) | `data-table`, `json-form` | `crud-table-section-01`, `crud-form-section-01`, `crud-delete-confirm-section-01`, `page-header-section-01` | `entity-crud-page-01` *(parameterized)* | 0.1 |
 | 5 | `/library` | Media library | `file-manager`, `file-tree`, `pdf-viewer` | `page-header-section-01` | `library-page-01` | 0.1 |
@@ -97,9 +97,9 @@ The shell is what wraps every route. It's owned by the panel itself (lives in th
 
 | Slot | Procomp / construct | Version | Notes |
 |---|---|---|---|
-| Left navigation | `rich-sidebar` | ≥0.3.0 | Section-grouped nav with role-aware visibility (`isOwner` + `currentMaxMembers` + permission gates); persisted collapse state via localStorage |
-| Sidebar `topSlot` | `account-switcher-01` | ≥0.1.0 | Current user + (optional) tenant switch placeholder; uses the sidebar's documented `topSlot` prop |
-| Sidebar footer | inline `<NavUser>` prefab + sign-out | — | Uses rich-sidebar's footer slot pattern |
+| Left navigation | `app-sidebar` | ≥0.3.0 | Section-grouped nav with role-aware visibility (`isOwner` + `currentMaxMembers` + permission gates); persisted collapse state via localStorage |
+| Sidebar `topSlot` | `account-switcher` | ≥0.1.0 | Current user + (optional) tenant switch placeholder; uses the sidebar's documented `topSlot` prop |
+| Sidebar footer | inline `<NavUser>` prefab + sign-out | — | Uses app-sidebar's footer slot pattern |
 | Top page header | `page-header-section-01` *(new)* | 0.1.0 | Rendered at the top of every page; title + breadcrumbs + page-level actions slot |
 | Auth boundary | `<CmsAuthProvider>` interface | — | Panel-owned TypeScript contract; consumer wires NextAuth / Clerk / custom. Provides `useCmsAuth()` returning `{ user, signOut, ... }` |
 | Permission boundary | `<CmsPermissionProvider>` | — | Panel-owned; surfaces the 5-role capability matrix via `useCmsPermissions()` returning `{ can(capability), role, ... }` |
@@ -113,7 +113,7 @@ The shell is what wraps every route. It's owned by the panel itself (lives in th
 ├── cms-panel-shell.tsx           ← root shell composition
 ├── cms-auth-provider.tsx         ← interface + context
 ├── cms-permission-provider.tsx   ← 5-role capability matrix
-├── cms-nav-config.ts             ← rich-sidebar NavSection[] declaration
+├── cms-nav-config.ts             ← app-sidebar NavSection[] declaration
 ├── cms-toaster.tsx               ← notification-system instance
 └── hooks/
     ├── use-cms-auth.ts
@@ -159,7 +159,7 @@ WordPress-canonical 5-role system. Roles map to a capability matrix derived from
 | `cms.site.delete` | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 **Permission enforcement:**
-- **Rich-sidebar:** routes the user can't access (`cms.posts.read = false` etc.) hide from the sidebar nav via `rich-sidebar`'s `isOwner` + `ownerOnly` + `minMembers` patterns (already supported in v0.3.0).
+- **Rich-sidebar:** routes the user can't access (`cms.posts.read = false` etc.) hide from the sidebar nav via `app-sidebar`'s `isOwner` + `ownerOnly` + `minMembers` patterns (already supported in v0.3.0).
 - **Per-page:** every page checks the relevant capability in its top-level component; renders a 403-style empty state if denied.
 - **Per-action:** row actions (Delete, Publish, etc.) hide or disable based on capability check via `useCmsPermissions().can('cms.posts.publish')`.
 
@@ -176,8 +176,8 @@ State that spans multiple routes and lives in the shell, not per-page:
 | Permission (current user's capability matrix) | `<CmsPermissionProvider>` | derived from auth at mount; recomputed on user change | ✅ (via auth) |
 | Theme (light/dark) | `next-themes` `<ThemeProvider>` | localStorage `theme` | ✅ |
 | Toaster (notifications) | `notification-system` provider | in-memory only; ephemeral | ❌ |
-| Sidebar collapse (left nav state) | rich-sidebar's `defaultCollapsed` + `onCollapsedChange` | localStorage `cms.sidebar.collapsed` | ✅ |
-| Current nav context (rich-sidebar's `NavContext`) | derived from `usePathname()` | URL is source of truth | ✅ (URL) |
+| Sidebar collapse (left nav state) | app-sidebar's `defaultCollapsed` + `onCollapsedChange` | localStorage `cms.sidebar.collapsed` | ✅ |
+| Current nav context (app-sidebar's `NavContext`) | derived from `usePathname()` | URL is source of truth | ✅ (URL) |
 
 **Page-local state stays page-local** — selection state in CRUD tables, draft form values, modal open state. The shell doesn't know or care.
 
@@ -195,12 +195,12 @@ Bottom-up build order. Each constituent must close its own GATE 3 before the nex
 5. `crud-table-section-01` (depends on `data-table` + lucide-react)
 6. `crud-form-section-01` (depends on `json-form`)
 7. `stats-row-section-01` (depends on `stat-card`)
-8. `activity-feed-section-01` (depends on `data-table` or `info-list-01`)
+8. `activity-feed-section-01` (depends on `data-table` or `info-list`)
 
 **Layer 2 — pages (depend on Layer 1 sections + procomps):**
 9. `entity-crud-page-01` — generalized; ship FIRST among pages because it validates the section composition + serves 2 v0.1 routes (`/taxonomies/[slug]` + `/users`)
 10. `dashboard-page-01` (depends on stats-row + activity-feed + page-header sections)
-11. `posts-page-01` (depends on crud-table + crud-delete + page-header sections + `article-body-01`)
+11. `posts-page-01` (depends on crud-table + crud-delete + page-header sections + `rich-text-editor`)
 12. `pages-page-01` (depends on crud-table + crud-form + crud-delete + page-header sections + `json-form`)
 13. `library-page-01` (depends on `file-manager` + page-header section)
 
@@ -249,7 +249,7 @@ Per the [charter](../../library-tiers-charter.md#versioning--update-story-for-sc
 - Color tokens (already in `globals.css`)
 
 **Out-of-band updates:**
-- Procomp + section upstream improvements (`@ilinxa/rich-sidebar` 0.3.0 → 0.4.0 etc.) DO flow to consumers through `pnpm dlx shadcn add @ilinxa/rich-sidebar` re-install. Panel's reference to constituent versions is loose by design.
+- Procomp + section upstream improvements (`@ilinxa/app-sidebar` 0.3.0 → 0.4.0 etc.) DO flow to consumers through `pnpm dlx shadcn add @ilinxa/app-sidebar` re-install. Panel's reference to constituent versions is loose by design.
 
 ## 12. Example consumer integration sketch
 
@@ -309,9 +309,9 @@ These need answers before GATE 2 (plan):
 - **Q4 — Permission denied UX:** 403-style empty state per page? Redirect to dashboard? Hide the route entirely from the nav so denied users never see it? Probably "hide from nav + 403 on direct URL access" — confirm.
 - **Q5 — Data hooks contract:** every page consumes data via consumer-supplied hooks (e.g. `useCmsPosts`). What's the minimum hook contract? Proposal: `{ data: T[], loading: boolean, error?: Error, refetch: () => void, mutate: { create, update, delete } }`. Should we ship a `CmsDataProvider` interface that bundles all hooks together vs. per-entity?
 - **Q6 — Bulk actions in CRUD tables:** v0.1 ships `entity-crud-page-01` with bulk-select + bulk actions slot? Or v0.1 ships single-row actions only, bulk in v0.2? `/comments` needs bulk approve/reject in v0.2 anyway.
-- **Q7 — Mobile / responsive behavior:** v0.1.0 sidebar collapses to off-canvas drawer on mobile (rich-sidebar already supports this) — anything panel-specific to plan? Tables on mobile — horizontal scroll, stacked card view, or just "use a desktop"?
+- **Q7 — Mobile / responsive behavior:** v0.1.0 sidebar collapses to off-canvas drawer on mobile (app-sidebar already supports this) — anything panel-specific to plan? Tables on mobile — horizontal scroll, stacked card view, or just "use a desktop"?
 - **Q8 — i18n callable signature:** `useTranslator()` returns `(key: string, params?: Record<string, unknown>) => string`. Default key-as-fallback ("posts.title" → "posts.title" if untranslated)? Or fail loud in dev?
-- **Q9 — Posts editor scope:** v0.1 `posts-page-01` editor — is it just title + body (`article-body-01`) + slug + status, or does it include cover image + tags + categories + scheduling + SEO meta in v0.1? Each additional field expands the page's GATE 1 surface.
+- **Q9 — Posts editor scope:** v0.1 `posts-page-01` editor — is it just title + body (`rich-text-editor`) + slug + status, or does it include cover image + tags + categories + scheduling + SEO meta in v0.1? Each additional field expands the page's GATE 1 surface.
 - **Q10 — `entity-crud-page-01` config shape:** the page is parameterized by `entityType`. What's the config object? Proposal: `{ slug, displayName, fields: FormFieldSpec[], columns: TableColumnSpec[], rowActions, bulkActions?, permissions: { read, create, edit, delete } }`. Locks in GATE 2.
 
 ## 15. Cross-references
@@ -320,7 +320,7 @@ These need answers before GATE 2 (plan):
 - Rule: [`.claude/rules/readiness-review.md`](../../../.claude/rules/readiness-review.md)
 - Tier README: [`docs/panels/README.md`](../README.md)
 - Active queue: [`.claude/STATUS.md`](../../../.claude/STATUS.md) (`notification-system` promote-ahead-of-panel; `multi-select` from roadmap)
-- Procomps composed: `rich-sidebar`, `account-switcher-01`, `data-table`, `article-body-01`, `json-form`, `file-manager`, `file-tree`, `stat-card`, `progress-timeline-01`, `pdf-viewer`, (Layer 0) `notification-system`
+- Procomps composed: `app-sidebar`, `account-switcher`, `data-table`, `rich-text-editor`, `json-form`, `file-manager`, `file-tree`, `stat-card`, `progress-timeline`, `pdf-viewer`, (Layer 0) `notification-system`
 - Reference panels in the wild: WordPress admin (5-role baseline), Sanity Studio (taxonomy CRUD reuse), Strapi (entity-CRUD generalization), Ghost (clean shell composition)
 
 ---

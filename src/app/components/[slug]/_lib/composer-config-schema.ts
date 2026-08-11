@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { ComposerConfig } from "@/registry/components/media/content-composer-01";
+import type { ComposerConfig } from "@/registry/components/media/content-composer";
 
 /**
- * Validation schema for the content-composer-01 playground. It mirrors
+ * Validation schema for the content-composer playground. It mirrors
  * `ComposerConfig` closely enough to give precise, line-relevant errors — but the
  * playground passes the ORIGINAL parsed JSON to the composer (not zod's output),
  * so unmodelled slotConfig keys (a json-form field's `rows` / `options` /

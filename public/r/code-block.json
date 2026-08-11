@@ -3,7 +3,7 @@
   "name": "code-block",
   "title": "Code Block",
   "author": "ilinxa",
-  "description": "Language-agnostic code surface with view / edit / terminal modes, Shiki syntax highlighting, dual-theme CSS-variable theming, streaming-friendly tokenization, line highlights, annotations, copy / wrap / expand / download chrome, and full keyboard a11y.",
+  "description": "Code surface with view, edit, and terminal modes — Shiki highlighting, dual-theme CSS variables, and chrome presets for docs, chat, and terminal UIs.",
   "dependencies": [
     "shiki@^4.0.2",
     "@codemirror/state@^6.6.0",

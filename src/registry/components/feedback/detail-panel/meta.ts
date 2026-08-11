@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "feedback",
 
   description:
-    "Selection-aware compound container with read/edit modes, lifecycle states, composite re-keying on selection change, sticky header + footer actions, and a slot-based body.",
+    "Selection-aware detail container with read and edit modes, lifecycle states, sticky header and footer actions, and a slot-based body.",
   context:
     "Tier 1 pro-component for the graph-system. Pairs with properties-form as the inline editing surface. Useful standalone wherever a selection-driven side panel is needed (file inspector, item drawer, settings detail). Generic over entity type via host-supplied children. Three mode configurations (controlled / uncontrolled / locked); composite re-key on `${type}:${id}` change so slotted forms remount cleanly without state bleed. Detail-panel does NOT import properties-form at the registry level (decision #35); composition lives at the host level.",
   features: [
@@ -25,10 +25,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["detail-panel", "feedback", "compound", "selection", "graph-system"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-04-29",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 
@@ -40,5 +40,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["properties-form", "rich-card"],
+  related: ["properties-form", "card-tree"],
 };

@@ -3,11 +3,11 @@
 import {
   FlowCanvas,
   PortsAt,
-} from "@/registry/components/data/flow-canvas-01";
+} from "@/registry/components/data/flow-canvas";
 import type {
   CanvasData,
   NodeRenderer,
-} from "@/registry/components/data/flow-canvas-01";
+} from "@/registry/components/data/flow-canvas";
 import {
   STARTER_CANVAS,
   validateCanvasData,

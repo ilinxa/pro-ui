@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "share-bar-fixtures",
+  "title": "Share Bar — fixtures",
+  "author": "ilinxa",
+  "description": "Share Bar plus the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "@ilinxa/share-bar"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/marketing/share-bar/dummy-data.ts",
+      "content": "import type { ShareTarget } from \"./types\";\n\nexport const SHARE_BAR_DUMMY_DEFAULT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_FULL: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"reddit\" },\n  { kind: \"whatsapp\" },\n  { kind: \"telegram\" },\n  { kind: \"threads\" },\n  { kind: \"bluesky\" },\n  { kind: \"email\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_COMPACT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_TR: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_URL =\n  \"https://ui.ilinxa.com/components/share-bar\";\nexport const SHARE_BAR_DUMMY_TITLE =\n  \"ShareBar — pro-ui share strip with 9 built-in platforms\";\n",
+      "type": "registry:component",
+      "target": "components/share-bar/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "marketing",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

@@ -3,7 +3,7 @@
   "name": "entity-picker",
   "title": "Entity Picker",
   "author": "ilinxa",
-  "description": "Searchable typed picker — single OR multi mode via mode prop with TS function overloads, kind badges via kinds map, three custom-render slots, multi-mode chip cluster with Backspace-on-empty-search-removes-last, controlled-or-uncontrolled open state, id-set selection equality.",
+  "description": "Searchable picker for typed entities — single or multi select, kind badges, chip cluster with removal, and custom render slots.",
   "dependencies": [
     "lucide-react"
   ],

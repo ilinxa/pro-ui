@@ -3,7 +3,7 @@
   "name": "pdf-viewer-fixtures",
   "title": "PDF Viewer — fixtures",
   "author": "ilinxa",
-  "description": "PDF Viewer bundle including the dummy-data fixtures used by the docs-site demo (sample PDF URL constants and Blob/ArrayBuffer fetch helpers).",
+  "description": "PDF Viewer plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/pdf-viewer"
   ],

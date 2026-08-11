@@ -3,7 +3,7 @@
   "name": "pdf-viewer",
   "title": "PDF Viewer",
   "author": "ilinxa",
-  "description": "Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design system, no commercial SDK.",
+  "description": "Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu. No commercial SDK.",
   "dependencies": [
     "react-pdf",
     "pdfjs-dist@5.4.296",

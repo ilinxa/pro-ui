@@ -243,7 +243,7 @@ export const FileManager = forwardRef<
   // ── Roving tabindex → real DOM focus (v0.1.1, review 5.6) ─────────────
   // The roving tabindex was state-only: arrow keys updated `focusedId` but
   // never moved DOM focus — invisible to screen readers, dead focus ring.
-  // Mirrors rich-sidebar's pattern; only steals focus while the user is
+  // Mirrors app-sidebar's pattern; only steals focus while the user is
   // already interacting inside the component.
   useEffect(() => {
     if (!focusedId) return;

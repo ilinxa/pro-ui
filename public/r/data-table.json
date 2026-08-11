@@ -3,7 +3,7 @@
   "name": "data-table",
   "title": "Data Table",
   "author": "ilinxa",
-  "description": "Generic typed-columns data table — composable column definitions, no client state, host-owned data.",
+  "description": "A typed, composable table primitive with column accessors and per-cell rendering.",
   "registryDependencies": [
     "table"
   ],

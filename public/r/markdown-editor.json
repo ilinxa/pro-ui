@@ -3,7 +3,7 @@
   "name": "markdown-editor",
   "title": "Markdown Editor",
   "author": "ilinxa",
-  "description": "CodeMirror 6 substrate with three view modes (edit / split / preview), default 8-item toolbar, [[wikilink]] autocomplete + decoration via CM6 StateField, per-instance Marked() preview parsing, Cmd/Ctrl+S onSave, echo-guarded value sync, container-query stacking.",
+  "description": "CodeMirror 6 markdown editor with GFM, wikilink autocomplete, a slot-able toolbar, and edit, split, and preview modes.",
   "dependencies": [
     "lucide-react",
     "marked",

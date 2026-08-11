@@ -206,7 +206,7 @@ export const FileTree = forwardRef<FileTreeHandle, FileTreeProps>(
     // ── Roving tabindex → real DOM focus (v0.1.1, review 5.6) ──────────────
     // The roving tabindex was state-only: arrow keys updated `focusedId` but
     // never moved DOM focus, so screen readers heard nothing and the
-    // focus-visible ring never rendered. Mirrors rich-sidebar's pattern.
+    // focus-visible ring never rendered. Mirrors app-sidebar's pattern.
     // Only steals focus while the user is already interacting with the tree.
     const rootElRef = useRef<HTMLDivElement>(null);
     const focusedIdForDom = stateHook.state.focusedId;

@@ -1,13 +1,13 @@
-import type { ArticleBodyValue } from "@/registry/components/data/article-body-01";
-import type { ScheduleListItem } from "@/registry/components/data/schedule-list-01";
-import type { PeopleGridItem } from "@/registry/components/data/people-grid-01";
+import type { RichTextValue } from "@/registry/components/data/rich-text-editor";
+import type { ScheduleListItem } from "@/registry/components/data/schedule-list";
+import type { PeopleGridItem } from "@/registry/components/data/people-grid";
 
 export interface EventDetailFixture {
   id: string;
   title: string;
   type: string;
   description: string;
-  body: ArticleBodyValue;
+  body: RichTextValue;
 
   date: string;
   endDate?: string;

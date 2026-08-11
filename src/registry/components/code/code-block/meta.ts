@@ -6,9 +6,9 @@ export const meta: ComponentMeta = {
   category: "code",
 
   description:
-    "Language-agnostic code surface with view / edit / terminal modes, Shiki syntax highlighting, dual-theme CSS-variable theming, streaming-friendly tokenization, and chat / docs / rich-card / terminal chrome.",
+    "Code surface with view, edit, and terminal modes — Shiki highlighting, dual-theme CSS variables, and chrome presets for docs, chat, and terminal UIs.",
   context:
-    "Substrate for every 'render code professionally' surface in the library — chat assistants, fenced markdown blocks, JSON / config viewers, rich-card code sections, virtual terminal walkthroughs, and snippet editors. View mode uses Shiki's GitHub Light + GitHub Dark Default themes (toggled via the active `.dark` class with zero re-tokenize). Edit mode wraps a CodeMirror 6 instance with a custom HighlightStyle approximating the same GitHub palette (near-match in v0.1.0; pixel-perfect Shiki → CodeMirror bridge defers to v0.2.0). Terminal mode renders structured `TerminalLine[]` rows with prompt detection on `$ `, `> `, `# ` prefixes and macOS-style traffic-light decoration. Streaming-friendly via an explicit `streaming` flag that batches re-tokenization to rAF and shows a blinking tail cursor. Filename → lang derivation works out of the box for ~30 extensions; consumer can override via `filenameToLang`. Object-shape callbacks throughout (per F-cross-12).",
+    "Substrate for every 'render code professionally' surface in the library — chat assistants, fenced markdown blocks, JSON / config viewers, card-tree code sections, virtual terminal walkthroughs, and snippet editors. View mode uses Shiki's GitHub Light + GitHub Dark Default themes (toggled via the active `.dark` class with zero re-tokenize). Edit mode wraps a CodeMirror 6 instance with a custom HighlightStyle approximating the same GitHub palette (near-match in v0.1.0; pixel-perfect Shiki → CodeMirror bridge defers to v0.2.0). Terminal mode renders structured `TerminalLine[]` rows with prompt detection on `$ `, `> `, `# ` prefixes and macOS-style traffic-light decoration. Streaming-friendly via an explicit `streaming` flag that batches re-tokenization to rAF and shows a blinking tail cursor. Filename → lang derivation works out of the box for ~30 extensions; consumer can override via `filenameToLang`. Object-shape callbacks throughout (per F-cross-12).",
   features: [
     "Three render modes (view / edit / terminal) in one component, switched by `mode` prop",
     "Shiki tokenization for view mode (GitHub Light + Dark Default by default; consumer overridable)",
@@ -36,7 +36,7 @@ export const meta: ComponentMeta = {
     "streaming",
   ],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-05-10",
   updatedAt: "2026-08-11",
@@ -64,5 +64,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["markdown-editor", "rich-card"],
+  related: ["markdown-editor", "card-tree"],
 };

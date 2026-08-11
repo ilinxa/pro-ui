@@ -28,15 +28,15 @@ export { defineFieldRenderer } from "./lib/define-field-renderer";
 // String dictionary + helpers
 export { defaultStrings as defaultJsonFormStrings, mergeStrings as mergeJsonFormStrings } from "./lib/strings";
 
-// Note: `ARTICLE_BODY_EMPTY_VALUE` (the canonical Plate "empty paragraph"
+// Note: `RICH_TEXT_EMPTY_VALUE` (the canonical Plate "empty paragraph"
 // default) is intentionally NOT re-exported from this barrel. Earlier
 // attempts (v0.1.3 + v0.1.4) hit a shadcn path-rewriter inconsistency
 // where cross-slug imports from `index.ts` (and `lib/*.ts`) didn't get
 // the same flattening as imports from `parts/*.tsx`. Consumers using
 // `richtext` fields should import the empty default directly from
-// `@ilinxa/article-body-01`:
+// `@ilinxa/rich-text-editor`:
 //
-//   import { ARTICLE_BODY_EMPTY_VALUE } from "@/components/article-body-01";
+//   import { RICH_TEXT_EMPTY_VALUE } from "@/components/rich-text-editor";
 //
 // (or whatever the consumer-side path is for their setup). Documented
 // in usage.tsx.

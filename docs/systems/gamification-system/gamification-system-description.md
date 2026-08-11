@@ -69,14 +69,14 @@ Component slugs follow the library `<noun>-<variant>-NN` convention. Proposed (c
 
 | Element | Slug | Renders |
 |---|---|---|
-| E1 | `team-progress-bar-01` | team milestone-completion bar |
-| E2 | `team-trophy-shelf-01` | earned team badges gallery (+ single badge primitive) |
-| E3 | `cooperative-challenge-01` | shared-goal challenge card (+ opt-in control) |
-| E4 | `task-choice-control-01` | "open for anyone" / volunteer affordance for a task |
-| E5 | `team-quest-log-01` | quest-name editor + milestone-chapter timeline |
-| E6 | `team-feedback-loop-01` | milestone celebration overlay + next-task nudge |
+| E1 | `team-progress-bar` | team milestone-completion bar |
+| E2 | `team-trophy-shelf` | earned team badges gallery (+ single badge primitive) |
+| E3 | `team-challenge` | shared-goal challenge card (+ opt-in control) |
+| E4 | `team-task-claim` | "open for anyone" / volunteer affordance for a task |
+| E5 | `team-quest-log` | quest-name editor + milestone-chapter timeline |
+| E6 | `team-feedback-loop` | milestone celebration overlay + next-task nudge |
 
-> Naming is a sign-off item (§12 Q1). `task-choice-control-01` and `team-feedback-loop-01` are the least-settled; alternatives noted there.
+> Naming is a sign-off item (§12 Q1). `team-task-claim` and `team-feedback-loop` are the least-settled; alternatives noted there.
 
 ---
 
@@ -90,12 +90,12 @@ Each is independently useful, ships through its own procomp gate, and honors the
 
 | # | Slug | Category | Element / SDT need | Role | Compound shape (rough) |
 |---|---|---|---|---|---|
-| 1 | `team-progress-bar-01` | gamification | E1 / Competence | % of team milestones complete; always visible; this-team-only | bar + ticks + label parts |
-| 2 | `team-trophy-shelf-01` | gamification | E2 / Competence + Relatedness | team-owned badge gallery | `Root` shelf + flat `Badge` primitive + award animation |
-| 3 | `cooperative-challenge-01` | gamification | E3 / Relatedness | optional shared-goal challenge; whole-team reward | card + progress + opt-in control parts |
-| 4 | `task-choice-control-01` | gamification | E4 / Autonomy | mark task "open for anyone" / self-assign; never forced | open-flag + claim/volunteer + assignee parts |
-| 5 | `team-quest-log-01` | gamification | E5 / Autonomy + Relatedness | quest name + milestone beats as chapters; skippable | quest-name editor part + chapter-timeline part |
-| 6 | `team-feedback-loop-01` | gamification | E6 / Competence | <1s skippable celebration on progress + next-task nudge | celebration overlay part + nudge part |
+| 1 | `team-progress-bar` | gamification | E1 / Competence | % of team milestones complete; always visible; this-team-only | bar + ticks + label parts |
+| 2 | `team-trophy-shelf` | gamification | E2 / Competence + Relatedness | team-owned badge gallery | `Root` shelf + flat `Badge` primitive + award animation |
+| 3 | `team-challenge` | gamification | E3 / Relatedness | optional shared-goal challenge; whole-team reward | card + progress + opt-in control parts |
+| 4 | `team-task-claim` | gamification | E4 / Autonomy | mark task "open for anyone" / self-assign; never forced | open-flag + claim/volunteer + assignee parts |
+| 5 | `team-quest-log` | gamification | E5 / Autonomy + Relatedness | quest name + milestone beats as chapters; skippable | quest-name editor part + chapter-timeline part |
+| 6 | `team-feedback-loop` | gamification | E6 / Competence | <1s skippable celebration on progress + next-task nudge | celebration overlay part + nudge part |
 
 Per the compound rule, each ships as `Root` + flat parts + a logic-free `<Name>` assembly with flat exports; single-unit pieces (e.g. a bare progress bar) are exempt where a subset is not reasonable. Tier inventory is locked per-component at each GATE 2.
 
@@ -157,7 +157,7 @@ interface NarrativeChapter {
 }
 
 // E4 augments a task; the component is generic over the host's task shape.
-interface TaskChoiceState {
+interface TaskClaimState {
   taskId: string;
   openForAnyone: boolean;
   assigneeId?: string;      // undefined → unassigned
@@ -168,7 +168,7 @@ interface TaskChoiceState {
 
 **Host keeps `Badge.awardedAt` in sync with its milestone.** A badge's "earned" state is driven by `Badge.awardedAt` (the trophy shelf), while progress (E1) and chapters (E5) derive from `Milestone.done`. The host owns both and sets `awardedAt` when the badge's milestone completes — the components do not enforce the linkage.
 
-**E6 trigger shapes are component-local, NOT part of this model.** `team-feedback-loop-01` (E6) is a stateless feedback *renderer*: the host pushes it pre-rendered view shapes — `FeedbackEvent { kind, title, detail?, narrativeBeat? }` and `NextTaskSuggestion { taskId, label }` — declared **locally in that component**, intentionally not added to the shared domain model above. They mirror the model (the host derives `title`/`narrativeBeat` from a milestone/badge/chapter) but the component never resolves a `milestoneId`/`Badge` itself.
+**E6 trigger shapes are component-local, NOT part of this model.** `team-feedback-loop` (E6) is a stateless feedback *renderer*: the host pushes it pre-rendered view shapes — `FeedbackEvent { kind, title, detail?, narrativeBeat? }` and `NextTaskSuggestion { taskId, label }` — declared **locally in that component**, intentionally not added to the shared domain model above. They mirror the model (the host derives `title`/`narrativeBeat` from a milestone/badge/chapter) but the component never resolves a `milestoneId`/`Badge` itself.
 
 ---
 
@@ -190,7 +190,7 @@ These are the constraints that make the layer safe by design. They are **hard re
 |---|---|
 | Challenges are **opt-in** at the team level; refusing has no penalty | E3 |
 | Quest name is **skippable**; empty → defaults to the team's literal name | E5 |
-| Task choice is **always available, never forced**; reassignment never penalizes the previous assignee | E4 |
+| Task claim is **always available, never forced**; reassignment never penalizes the previous assignee | E4 |
 | Feedback animations are **brief (< 1s), skippable, non-blocking** — no modal blocking | E6 (§8 D-10) |
 
 ### 5.3 Excluded by design — these components are NEVER built
@@ -212,7 +212,7 @@ type GamificationEvent =
   | { type: "challenge.opened";       teamId: string; challengeId: string }
   | { type: "challenge.opt-in";       teamId: string; challengeId: string; optedIn: boolean }
   | { type: "narrative.chapter-viewed"; teamId: string; chapterId: string }
-  | { type: "task-choice.interaction"; teamId: string; taskId: string };
+  | { type: "task-claim.interaction"; teamId: string; taskId: string };
 
 // Every component accepts (optionally):
 type WithTelemetry = { onEvent?: (e: GamificationEvent) => void };
@@ -238,7 +238,7 @@ Once 2–3 components are built and the recurring hooks/utils/types are concrete
 
 ### 7.4 Celebration ownership (cross-component)
 
-Two components can animate a "progress advanced" moment: `team-trophy-shelf-01`'s **in-place award reveal** (the durable surface — a badge pops in on its shelf) and `team-feedback-loop-01`'s **transient celebration overlay** (the moment — a brief flourish). They are complementary, but a host that BOTH mounts the trophy shelf AND routes `badge`/`milestone` events to the feedback-loop must avoid double-celebrating the same event. The contract (D-16): pick **one** path per event kind — keep the shelf's in-place reveal and don't push that kind to the feedback-loop, OR set the shelf's `animateAward={false}` and let the feedback-loop own the moment. **Neither component triggers the other**; the host wires exactly one.
+Two components can animate a "progress advanced" moment: `team-trophy-shelf`'s **in-place award reveal** (the durable surface — a badge pops in on its shelf) and `team-feedback-loop`'s **transient celebration overlay** (the moment — a brief flourish). They are complementary, but a host that BOTH mounts the trophy shelf AND routes `badge`/`milestone` events to the feedback-loop must avoid double-celebrating the same event. The contract (D-16): pick **one** path per event kind — keep the shelf's in-place reveal and don't push that kind to the feedback-loop, OR set the shelf's `animateAward={false}` and let the feedback-loop own the moment. **Neither component triggers the other**; the host wires exactly one.
 
 ---
 
@@ -263,7 +263,7 @@ Locked at the system level; every constituent procomp inherits these as constrai
 | D-13 | **Design-system mandate** honored by every component: Onest + JetBrains Mono, signal-lime accent, OKLCH, [globals.css](../../../src/app/globals.css) tokens, no hard-coded colors, `reveal-up` for reveals. | all plans; GATE 3 |
 | D-14 | **Rollout = "spec all, then build."** System description → all 6 component descriptions → all plans (signed off) → build in dependency order. | §10 |
 | D-15 | **Team prop convention.** A component that renders team-identity **text** (name / questName) accepts a `team` object — a subset of the §4 `Team`, declaring only the fields it renders. A component needing only team **identity** for telemetry/scope (optionally plus a `members` list) accepts a scalar `teamId` (+ `members`). Keeps host-page wiring predictable without forcing identity-only components to take a whole team object. | all component plans; §4 |
-| D-16 | **Celebration ownership.** `team-trophy-shelf-01` (in-place badge reveal) and `team-feedback-loop-01` (transient overlay) are complementary; a host using both routes each event kind to exactly **one** (shelf `animateAward={false}` to let the feedback-loop own it, or don't push that kind to the feedback-loop). Neither component triggers the other. | §7.4; trophy-shelf + feedback-loop plans |
+| D-16 | **Celebration ownership.** `team-trophy-shelf` (in-place badge reveal) and `team-feedback-loop` (transient overlay) are complementary; a host using both routes each event kind to exactly **one** (shelf `animateAward={false}` to let the feedback-loop own it, or don't push that kind to the feedback-loop). Neither component triggers the other. | §7.4; trophy-shelf + feedback-loop plans |
 
 ---
 
@@ -271,12 +271,12 @@ Locked at the system level; every constituent procomp inherits these as constrai
 
 | Pro-component | Description | Plan | Guide | Status |
 |---|---|---|---|---|
-| `team-progress-bar-01` | TBA | TBA | TBA | queued (after this doc signs off) |
-| `team-trophy-shelf-01` | TBA | TBA | TBA | queued |
-| `cooperative-challenge-01` | TBA | TBA | TBA | queued |
-| `task-choice-control-01` | TBA | TBA | TBA | queued |
-| `team-quest-log-01` | TBA | TBA | TBA | queued |
-| `team-feedback-loop-01` | TBA | TBA | TBA | queued |
+| `team-progress-bar` | TBA | TBA | TBA | queued (after this doc signs off) |
+| `team-trophy-shelf` | TBA | TBA | TBA | queued |
+| `team-challenge` | TBA | TBA | TBA | queued |
+| `team-task-claim` | TBA | TBA | TBA | queued |
+| `team-quest-log` | TBA | TBA | TBA | queued |
+| `team-feedback-loop` | TBA | TBA | TBA | queued |
 | **System-level** | this doc | `gamification-system-plan.md` (TBA) | `gamification-system-guide.md` (TBA) | **description DRAFT — pending sign-off** |
 
 Each procomp folder lives at `docs/procomps/<slug>-procomp/` per convention.
@@ -291,7 +291,7 @@ Per D-14 ("spec all, then build"):
 2. **All 6 component descriptions** (independent, contract-honoring) → sign off as a package.
 3. **`gamification` category plumbing** (D-01) — one-off PR.
 4. **All 6 component plans + the system plan** (GATE 2) → sign off; each plan locks its compound tier inventory + tree-shaking story.
-5. **Build in dependency order.** Suggested: `team-progress-bar-01` (simplest, standalone) → `team-trophy-shelf-01` → `team-feedback-loop-01` → `cooperative-challenge-01` → `team-quest-log-01` → `task-choice-control-01` (touches task-card patterns, highest blast radius). Each goes through GATE 3.
+5. **Build in dependency order.** Suggested: `team-progress-bar` (simplest, standalone) → `team-trophy-shelf` → `team-feedback-loop` → `team-challenge` → `team-quest-log` → `team-task-claim` (touches task-card patterns, highest blast radius). Each goes through GATE 3.
 6. **Tier-host page** wiring the set.
 7. **Revisit the deferred-kit decision** (§7.3) once 2–3 components are built.
 
@@ -313,9 +313,9 @@ Per D-14 ("spec all, then build"):
 
 | # | Question | Proposed resolution |
 |---|---|---|
-| Q1 | **Component slugs** (§2) — confirm names; `task-choice-control-01` (alt: `task-volunteer-control-01`) and `team-feedback-loop-01` (alt: `progress-celebration-01`) are least-settled. | accept as proposed unless you prefer the alts |
+| Q1 | **Component slugs** (§2) — confirm names; `team-task-claim` (alt: `task-volunteer-control-01`) and `team-feedback-loop` (alt: `progress-celebration-01`) are least-settled. | accept as proposed unless you prefer the alts |
 | Q2 | **Six components = one per element**, or split any further (e.g. E2 badge vs shelf as two procomps; E5 quest-name vs timeline as two)? | keep one-per-element; sub-parts live inside each compound |
-| Q3 | **`task-choice-control-01` as a standalone procomp** vs folding E4 into the existing `kanban-board-01` / `todo-rich-card`? | standalone procomp (keeps the pack self-contained + reusable); host can drop it into any task card |
+| Q3 | **`team-task-claim` as a standalone procomp** vs folding E4 into the existing `kanban-board` / `task-card`? | standalone procomp (keeps the pack self-contained + reusable); host can drop it into any task card |
 | Q4 | **Category** — confirm `gamification` as a new top-level category (vs nesting under `data`). | new `gamification` category (D-01) |
 | Q5 | **Tier-host page location** `src/app/systems/gamification-system/page.tsx` + "Systems" nav. | accept (mirrors graph-system #29) |
 

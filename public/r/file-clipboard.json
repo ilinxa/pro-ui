@@ -3,7 +3,7 @@
   "name": "file-clipboard",
   "title": "File Clipboard primitive",
   "author": "ilinxa",
-  "description": "Tiny shared clipboard primitive consumed by file-manager (and file-tree starting v0.2.0). Provides FileClipboardProvider + useFileClipboard hook. Wrap multiple file-* components under the provider to sync cut/copy/paste across instances.",
+  "description": "Shared clipboard provider and hook that sync cut, copy, and paste across multiple file components mounted under one provider.",
   "files": [
     {
       "path": "src/registry/components/navigation/_shared/file-clipboard.tsx",

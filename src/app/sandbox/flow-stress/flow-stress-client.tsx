@@ -9,16 +9,16 @@ import {
   PortsAt,
   type NodeRenderer,
   type PortType,
-} from "@/registry/components/data/flow-canvas-01";
+} from "@/registry/components/data/flow-canvas";
 import {
   makeHeavyStressData,
   makeStressData,
-} from "@/registry/components/data/flow-canvas-01/dummy-data";
+} from "@/registry/components/data/flow-canvas/dummy-data";
 
 // Heavy synthetic renderer — matches __type "heavy-stress" emitted by
 // makeHeavyStressData. 4 ports (left-in, right-out, top-doc-in, bottom-doc-out)
-// + 3 visible fields + 1 nested visual block. NOT coupled to ProjectCard01 or
-// rich-card by design (Q28). MUST be at module scope per the xyflow rule
+// + 3 visible fields + 1 nested visual block. NOT coupled to ProjectCard or
+// card-tree by design (Q28). MUST be at module scope per the xyflow rule
 // (recreating renderers each render tears down + remounts every node).
 type HeavyStressData = {
   __type: "heavy-stress";

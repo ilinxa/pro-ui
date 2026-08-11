@@ -17,10 +17,10 @@ export const meta: ComponentMeta = {
   ],
   tags: ["table", "data", "list", "typed"],
 
-  version: "0.1.1",
+  version: "0.1.2",
   status: "alpha",
   createdAt: "2026-04-26",
-  updatedAt: "2026-05-09",
+  updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
 
@@ -30,5 +30,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["kanban-board-01", "workspace", "rich-card"],
+  related: ["kanban-board", "split-workspace", "card-tree"],
 };

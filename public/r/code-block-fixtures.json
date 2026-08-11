@@ -3,7 +3,7 @@
   "name": "code-block-fixtures",
   "title": "Code Block — fixtures",
   "author": "ilinxa",
-  "description": "Code Block bundle including the dummy-data fixtures used by the docs-site demo (TS sample + JSON + Python + terminal lines + long-block + error trace + annotations).",
+  "description": "Code Block plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/code-block"
   ],

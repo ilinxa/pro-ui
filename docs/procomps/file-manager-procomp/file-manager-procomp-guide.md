@@ -26,7 +26,7 @@ Real cases:
 - **You need just a sidebar tree.** Use `<FileTree>` standalone — `<FileManager>` is the content pane.
 - **You need column / Miller view (Mac Finder's multi-pane drilldown).** Out of scope at v0.1.0; defer to v0.2.0.
 - **You want to drag files OUT to the OS desktop.** Out of scope at v0.1.0.
-- **You need built-in image / PDF / video previews.** Compose via the `details` slot using `pdf-viewer` / `media-carousel-01` etc.
+- **You need built-in image / PDF / video previews.** Compose via the `details` slot using `pdf-viewer` / `media-carousel` etc.
 - **You need cross-tab clipboard sync.** v0.1.0 syncs across instances on a single page (via `<FileClipboardProvider>`); cross-tab is out of scope.
 
 ## Composition patterns

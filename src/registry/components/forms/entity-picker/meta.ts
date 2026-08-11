@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "forms",
 
   description:
-    "Searchable typed picker — single or multi mode, kind badges, custom search, custom render slots, multi-mode chip cluster with chip-X removal.",
+    "Searchable picker for typed entities — single or multi select, kind badges, chip cluster with removal, and custom render slots.",
   context:
     "Tier 1 pro-component for the graph-system. Generic over the entity type via `<EntityPicker<T extends EntityLike>>` with mode-aware `value` typing via TypeScript function overloads. Built on shadcn `Command` (cmdk) for search and `Popover` for the dropdown. Composed inside force-graph from v0.3 onward (linking-mode UI) and inside properties-form custom field renderers. Generic standalone: any 'pick one or more typed things' surface. cmdk's a11y wiring + keyboard nav (↑/↓/Enter/Esc) is inherited; multi-mode adds chips with per-chip remove buttons + Backspace-on-empty-search-removes-last-chip.",
   features: [
@@ -24,7 +24,7 @@ export const meta: ComponentMeta = {
   ],
   tags: ["entity-picker", "picker", "combobox", "graph-system"],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-04-29",
   updatedAt: "2026-08-11",
@@ -39,5 +39,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["properties-form", "filter-stack", "detail-panel", "markdown-editor"],
+  related: ["properties-form", "filter-panel", "detail-panel", "markdown-editor"],
 };

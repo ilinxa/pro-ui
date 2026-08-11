@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getAllSlugs } from "@/registry/manifest";
 
-const BASE = "https://ilinxa-proui.vercel.app";
+const BASE = "https://ui.ilinxa.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

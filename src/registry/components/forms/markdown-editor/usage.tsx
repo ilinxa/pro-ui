@@ -147,7 +147,7 @@ const toolbar: ReadonlyArray<ToolbarItem> = [
 
       <Section
         title="Reference stability"
-        description="Same footgun as filter-stack categories and entity-picker items. React Compiler memoizes JSX-literal arrays in-repo, but NPM consumers without it must memoize manually."
+        description="Same footgun as filter-panel categories and entity-picker items. React Compiler memoizes JSX-literal arrays in-repo, but NPM consumers without it must memoize manually."
       >
         <CodeBlock>{`// ✓ Module-scope (preferred for static lists)
 const CANDIDATES = [/* ... */] satisfies WikilinkCandidate[];

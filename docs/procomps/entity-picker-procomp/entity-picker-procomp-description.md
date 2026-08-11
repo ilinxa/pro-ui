@@ -39,7 +39,7 @@ In the graph-system specifically, the linking-mode UI must show **both nodes AND
 - **Single OR multi select** via a `mode: "single" | "multi"` prop. In single mode, selection closes the dropdown; in multi mode, selection toggles and dropdown stays open. Selected entities render as chips (multi) or a single-line value (single) when collapsed.
 - **Search input** that filters by entity `label` (case-insensitive substring match by default). Host can override match logic via a `match(item, query)` predicate.
 - **Open/close state** controlled by the host (`open` + `onOpenChange`) for hosts that need imperative control, OR managed internally if those props are omitted.
-- **Selection state** controlled (`value` + `onChange`); pure-controlled like properties-form / filter-stack.
+- **Selection state** controlled (`value` + `onChange`); pure-controlled like properties-form / filter-panel.
 - **Keyboard navigation**: ↑/↓ moves through results, Enter selects, Esc closes, Backspace removes the last chip in multi mode, Tab moves focus in/out without losing selection.
 - **Empty states**: distinct UI for "no items match the search" (e.g., "No matches for '{query}'") vs. "no items provided" (e.g., "No entities to pick from").
 - **ARIA contract**: `combobox` pattern per WAI-ARIA 1.2 — `role="combobox"` on the input, `role="listbox"` on the dropdown, `aria-expanded`, `aria-activedescendant`, `aria-multiselectable` on the listbox in multi mode.
@@ -53,7 +53,7 @@ In the graph-system specifically, the linking-mode UI must show **both nodes AND
 ## 3. Out of scope (deferred)
 
 - **Async loading / paginated fetch.** v0.1 expects all items provided up front. v0.2 ships `loadItems(query, page)` for async. Hosts with large lists pre-filter or use the custom item renderer to indicate "loading."
-- **Virtualization for huge lists.** v0.1 renders all visible items; if the list is large (>500), perf may degrade. v0.2 adds opt-in virtualization (likely via `@tanstack/react-virtual`, already a registry dep from rich-card).
+- **Virtualization for huge lists.** v0.1 renders all visible items; if the list is large (>500), perf may degrade. v0.2 adds opt-in virtualization (likely via `@tanstack/react-virtual`, already a registry dep from card-tree).
 - **"Create new" affordance** (e.g., "+ Create '{query}'" inline in the dropdown). Useful pattern but not a v0.1 must-have. v0.2 adds via `onCreate?: (query) => Promise<T>` prop.
 - **Multi-section grouping** (e.g., "Nodes" header / list, "Groups" header / list). v0.1 ships flat list with kind badges; sectioning is v0.2.
 - **Recently-selected memory** across mounts. Out of scope; host's responsibility (use localStorage, prepend recent items to the `items` prop).
@@ -247,7 +247,7 @@ All 10 questions resolved at sign-off. The recommendations below are the locked 
 
 8. **`value` shape — locked: full `T` (or `T[]` in multi).** Storing IDs would require lookup against `items`, which breaks for async sources. Storing entities is robust.
 
-9. **Generic typing — locked: parameterized from v0.1**, defaulting to `T extends EntityLike = EntityLike`. Same answer as `properties-form` Q2 and `filter-stack` Q5.
+9. **Generic typing — locked: parameterized from v0.1**, defaulting to `T extends EntityLike = EntityLike`. Same answer as `properties-form` Q2 and `filter-panel` Q5.
 
 10. **Render-trigger slot — locked: ctx includes `value`, `open`, and a forwarded ref.** Plan stage locks the ref-forwarding mechanism (`forwardRef` vs callback ref via ctx).
 

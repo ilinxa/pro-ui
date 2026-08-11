@@ -8,18 +8,17 @@ export type SourceMapEntry = {
 };
 
 export const sourceMap: Record<string, SourceMapEntry> = {
-  "account-switcher-01": {
+  "account-switcher": {
     demo: `"use client";
 
 import { useMemo, useState } from "react";
 import { Plus, Building2, User } from "lucide-react";
-import { AccountSwitcher01 } from "./account-switcher-01";
+import { AccountSwitcher } from "./account-switcher";
 import {
-  ACCOUNT_SWITCHER_01_DUMMY_ACTIVE_KEY,
-  ACCOUNT_SWITCHER_01_DUMMY_FALLBACK,
-  ACCOUNT_SWITCHER_01_DUMMY_ITEMS,
+  ACCOUNT_SWITCHER_DUMMY_ACTIVE_KEY,
+  ACCOUNT_SWITCHER_DUMMY_FALLBACK,
+  ACCOUNT_SWITCHER_DUMMY_ITEMS,
 } from "./dummy-data";
-import type { SwitcherItem } from "./types";
 
 const TAB_KEYS = ["sidebar", "topbar", "collapsed", "fallback", "controlled"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
@@ -32,7 +31,7 @@ const TAB_LABELS: Record<TabKey, string> = {
   controlled: "Controlled open",
 };
 
-export default function AccountSwitcher01Demo() {
+export default function AccountSwitcherDemo() {
   const [tab, setTab] = useState<TabKey>("sidebar");
   return (
     <div className="flex flex-col gap-4">
@@ -66,26 +65,15 @@ export default function AccountSwitcher01Demo() {
   );
 }
 
-function SelectionLog({
-  selected,
-  setSelected,
-}: {
-  selected: string | null;
-  setSelected: (key: string) => void;
-}) {
-  const handleSelect = (item: SwitcherItem) => setSelected(item.key);
-  return { handleSelect, selected };
-}
-
 function SidebarDemo() {
   const [activeKey, setActiveKey] = useState<string>(
-    ACCOUNT_SWITCHER_01_DUMMY_ACTIVE_KEY ?? "personal",
+    ACCOUNT_SWITCHER_DUMMY_ACTIVE_KEY ?? "personal",
   );
   return (
     <div className="flex flex-col gap-4 md:flex-row md:gap-6">
       <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-3 md:w-64">
-        <AccountSwitcher01
-          items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
+        <AccountSwitcher
+          items={ACCOUNT_SWITCHER_DUMMY_ITEMS}
           activeKey={activeKey}
           onSelect={(item) => setActiveKey(item.key)}
           footerSlot={
@@ -104,7 +92,7 @@ function SidebarDemo() {
       </div>
       <div className="flex-1 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
         <p className="mb-2 font-medium text-foreground">Canonical use:</p>
-        <p>Mount the switcher inside a sidebar shell — it occupies the &ldquo;top zone&rdquo; (above the brand row in <code>rich-sidebar</code> v0.2.0&apos;s upcoming <code>topSlot</code>). Footer slot is the consumer-owned escape hatch for &ldquo;Create new&rdquo; / &ldquo;Request access&rdquo; / multi-state state machines.</p>
+        <p>Mount the switcher inside a sidebar shell — it occupies the &ldquo;top zone&rdquo; (above the brand row in <code>app-sidebar</code> v0.2.0&apos;s upcoming <code>topSlot</code>). Footer slot is the consumer-owned escape hatch for &ldquo;Create new&rdquo; / &ldquo;Request access&rdquo; / multi-state state machines.</p>
         <p className="mt-3">Active key: <code>{activeKey}</code></p>
       </div>
     </div>
@@ -120,8 +108,8 @@ function TopbarDemo() {
           <span className="text-base">○ MyApp</span>
         </div>
         <div className="order-3 w-full min-w-0 sm:order-0 sm:w-60">
-          <AccountSwitcher01
-            items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
+          <AccountSwitcher
+            items={ACCOUNT_SWITCHER_DUMMY_ITEMS}
             activeKey={activeKey}
             onSelect={(item) => setActiveKey(item.key)}
           />
@@ -144,8 +132,8 @@ function CollapsedDemo() {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:gap-6">
       <div className="flex w-16 flex-col items-center gap-3 self-start rounded-lg border border-border bg-card p-2">
-        <AccountSwitcher01
-          items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
+        <AccountSwitcher
+          items={ACCOUNT_SWITCHER_DUMMY_ITEMS}
           activeKey={activeKey}
           onSelect={(item) => setActiveKey(item.key)}
           isCollapsed
@@ -199,11 +187,11 @@ function FallbackDemo() {
         </span>
       </div>
       <div className="w-full max-w-sm">
-        <AccountSwitcher01
-          items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
+        <AccountSwitcher
+          items={ACCOUNT_SWITCHER_DUMMY_ITEMS}
           activeKey={activeKey}
           onSelect={(item) => setActiveKey(item.key)}
-          fallbackActiveItem={ACCOUNT_SWITCHER_01_DUMMY_FALLBACK}
+          fallbackActiveItem={ACCOUNT_SWITCHER_DUMMY_FALLBACK}
         />
       </div>
       <p className="text-sm text-muted-foreground">
@@ -244,8 +232,8 @@ function ControlledDemo() {
         </span>
       </div>
       <div className="w-full max-w-sm">
-        <AccountSwitcher01
-          items={ACCOUNT_SWITCHER_01_DUMMY_ITEMS}
+        <AccountSwitcher
+          items={ACCOUNT_SWITCHER_DUMMY_ITEMS}
           activeKey={activeKey}
           onSelect={(item) => {
             setActiveKey(item.key);
@@ -278,258 +266,543 @@ function ControlledDemo() {
 }
 `,
   },
-  "article-body-01": {
-    demo: `﻿"use client";
+  "app-sidebar": {
+    demo: `"use client";
 
-import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ArticleBodyEditor } from "./article-body-01";
-import { ArticleBodyViewer } from "./article-body-viewer";
 import {
-  ARTICLE_BODY_01_DUMMY_CODE,
-  ARTICLE_BODY_01_DUMMY_EMPTY,
-  ARTICLE_BODY_01_DUMMY_IMAGE,
-  ARTICLE_BODY_01_DUMMY_RICH,
-  ARTICLE_BODY_01_DUMMY_SIMPLE,
-  ARTICLE_BODY_01_DUMMY_TABLE,
+  BarChart3,
+  Bell,
+  Bookmark,
+  Briefcase,
+  Building2,
+  Crown,
+  FileText,
+  Globe,
+  Home,
+  LogOut,
+  PlusSquare,
+  Settings,
+  User as UserIcon,
+  Users,
+} from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { AccountSwitcher } from "../account-switcher/account-switcher";
+import type { SwitcherItem } from "../account-switcher/types";
+import { AppSidebar } from "./app-sidebar";
+import { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
+import { AppSidebarTrigger } from "./parts/sidebar-nav-trigger";
+import { TooltipWrapper } from "./parts/tooltip-wrapper";
+import {
+  SIDEBAR_NAV_DUMMY_ITEMS,
+  SIDEBAR_NAV_DUMMY_SECTIONED,
 } from "./dummy-data";
-import { serializeArticleBodyToHtml } from "./lib/serialize-html";
-import type { ArticleBodyValue, ImageUploader } from "./types";
+import type {
+  NavEntry,
+  AppSidebarHandle,
+  AppSidebarProps,
+} from "./types";
 
-const fakeUploader: ImageUploader = async (file) => {
-  await new Promise((r) => setTimeout(r, 400));
-  return {
-    src: URL.createObjectURL(file),
-    alt: file.name,
-  };
-};
+const KSquareLogo = () => (
+  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg) text-sm font-bold">
+    K
+  </span>
+);
 
-function HtmlExportPanel({ value }: { value: ArticleBodyValue }) {
-  const [html, setHtml] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+export default function AppSidebarDemo() {
+  const [path, setPath] = useState("/social/home");
+  const [sectionedPath, setSectionedPath] = useState("/projects");
+  const [recipePath, setRecipePath] = useState("/social/home");
+  const [variant, setVariant] =
+    useState<NonNullable<AppSidebarProps["activeVariant"]>>("fill");
+  const kasderRecipeRef = useRef<AppSidebarHandle>(null);
+  const flatListRef = useRef<AppSidebarHandle>(null);
+  const sectionedRef = useRef<AppSidebarHandle>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    serializeArticleBodyToHtml(value, { stripDataAttributes: true })
-      .then((result) => {
-        if (!cancelled) setHtml(result);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
+  const interceptClick =
+    (setter: (p: string) => void) =>
+    ({ item, event }: { item: { href?: string }; event: React.MouseEvent }) => {
+      if (item.href) {
+        event.preventDefault();
+        setter(item.href);
+      }
     };
-  }, [value]);
-
-  if (error) {
-    return (
-      <pre className="rounded-md border border-destructive/50 bg-destructive/5 p-4 font-mono text-xs text-destructive">
-        Serialization failed: {error}
-      </pre>
-    );
-  }
 
   return (
-    <pre className="max-h-96 overflow-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-      <code>{html || "(serializing…)"}</code>
-    </pre>
+    <div className="flex flex-col gap-6">
+      {/* Live activeVariant switcher */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          activeVariant:
+        </span>
+        {(
+          ["fill", "left-bar", "right-bar", "outline", "subtle"] as const
+        ).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setVariant(v)}
+            className={\`rounded-md px-2.5 py-1 text-xs font-medium transition-colors \${
+              variant === v
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            }\`}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
+      {/* Full kasder recipe — brand + items + primary action + footer */}
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Full kasder recipe — brand · items · primary action · user footer
+        </p>
+        <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
+          <AppSidebar
+            ref={kasderRecipeRef}
+            items={SIDEBAR_NAV_DUMMY_ITEMS}
+            currentPath={recipePath}
+            onItemClick={interceptClick(setRecipePath)}
+            activeVariant={variant}
+            brand={{ logo: <KSquareLogo />, label: "Kasder", href: "/" }}
+            primaryAction={{
+              icon: PlusSquare,
+              label: "Post",
+              onClick: () => alert("Open post composer"),
+            }}
+            footer={{
+              user: {
+                name: "Alex Morgan",
+                handle: "@alexmorgan",
+                status: "online",
+              },
+              menuItems: [
+                { kind: "item", icon: UserIcon, label: "Profile", onClick: () => alert("profile") },
+                { kind: "item", icon: Settings, label: "Settings", onClick: () => alert("settings") },
+                { kind: "item", icon: Briefcase, label: "Business", onClick: () => alert("business") },
+                { kind: "separator" },
+                { kind: "item", icon: LogOut, label: "Log out", variant: "destructive", onClick: () => alert("logout") },
+              ],
+            }}
+            aria-label="Full recipe"
+          />
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <AppSidebarTrigger
+              controls={kasderRecipeRef}
+              aria-label="Open navigation"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
+              Active path: <span className="font-mono">{recipePath}</span>
+              <br />
+              <span className="text-xs">
+                Toggle collapse (top-right at <code>lg</code>+) to see
+                brand/labels hide, badges flip to corner, tooltip shows on
+                hover, footer dropdown align flips to center. Below{" "}
+                <code>lg</code> the sidebar opens as a drawer — tap the
+                hamburger above.
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Flat list */}
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Flat list (no chrome)
+        </p>
+        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
+          <AppSidebar
+            ref={flatListRef}
+            items={SIDEBAR_NAV_DUMMY_ITEMS}
+            currentPath={path}
+            onItemClick={interceptClick(setPath)}
+            activeVariant={variant}
+            aria-label="Flat nav demo"
+          />
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <AppSidebarTrigger
+              controls={flatListRef}
+              aria-label="Open flat nav"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
+              Active path: <span className="font-mono">{path}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Sectioned variant */}
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Sections + separators + collapsible groups
+        </p>
+        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
+          <AppSidebar
+            ref={sectionedRef}
+            items={SIDEBAR_NAV_DUMMY_SECTIONED}
+            currentPath={sectionedPath}
+            onItemClick={interceptClick(setSectionedPath)}
+            activeVariant={variant}
+            aria-label="Sectioned nav demo"
+          />
+          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+            <AppSidebarTrigger
+              controls={sectionedRef}
+              aria-label="Open sectioned nav"
+              className="lg:hidden"
+            />
+            <p className="text-sm text-muted-foreground sm:text-center">
+              Active path: <span className="font-mono">{sectionedPath}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <V03RenderItemSlotDemo variant={variant} />
+      <V02MultiContextDemo />
+      <V02HeadlessFilterDemo />
+    </div>
   );
 }
 
-export default function ArticleBody01Demo() {
-  const [edited, setEdited] = useState<ArticleBodyValue>(
-    ARTICLE_BODY_01_DUMMY_RICH
+// ─────────────────────────────────────────────────────────────────────────
+// v0.3.0 — renderItem slot demo (C1 + C6 regression anchor)
+//
+// Demonstrates the load-bearing pattern: wrap the library's defaultRender
+// in a consumer-supplied affordance. Pre-v0.3.0, returning \`defaultRender\`
+// produced double-nested <li><li>...</li></li>. The C1 ownership inversion
+// fix means the <li> is always owned by the library — consumer's renderItem
+// return value goes inside that one <li>.
+// ─────────────────────────────────────────────────────────────────────────
+
+function V03RenderItemSlotDemo({
+  variant,
+}: {
+  variant: NonNullable<AppSidebarProps["activeVariant"]>;
+}) {
+  const [renderItemPath, setRenderItemPath] = useState("/social/home");
+  const renderItemRef = useRef<AppSidebarHandle>(null);
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.3.0 — renderItem slot (wraps defaultRender in TooltipWrapper)
+      </p>
+      <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
+        <AppSidebar
+          ref={renderItemRef}
+          items={SIDEBAR_NAV_DUMMY_ITEMS}
+          currentPath={renderItemPath}
+          onItemClick={({ item, event }) => {
+            if (item.href) {
+              event.preventDefault();
+              setRenderItemPath(item.href);
+            }
+          }}
+          activeVariant={variant}
+          renderItem={({ defaultRender, item, isCollapsed }) => (
+            <TooltipWrapper
+              content={
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{item.label}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    Slot-wrapped via renderItem
+                  </span>
+                </div>
+              }
+              side="right"
+              // collapsed rail already shows defaultRender's own tooltip —
+              // disable this one so the two don't stack
+              disabled={isCollapsed}
+            >
+              {defaultRender}
+            </TooltipWrapper>
+          )}
+          aria-label="renderItem slot demo"
+        />
+        <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
+          <AppSidebarTrigger
+            controls={renderItemRef}
+            aria-label="Open renderItem demo"
+            className="lg:hidden"
+          />
+          <p className="text-sm text-muted-foreground sm:text-center">
+            Hover any row — the consumer-supplied TooltipWrapper wraps the
+            library&apos;s default link. Inspect the DOM: each row is a
+            SINGLE <code>&lt;li&gt;</code> (no double-nesting).
+            <br />
+            Active path: <span className="font-mono">{renderItemPath}</span>
+          </p>
+        </div>
+      </div>
+    </div>
   );
-  const [savedAt, setSavedAt] = useState<string | null>(null);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v0.2.0 — Multi-context demo (topSlot + {slug} + ownerOnly + minMembers + bypass)
+//
+// Demonstrates the *real* v0.2 power: switching contexts in the topSlot
+// account-switcher changes BOTH the nav-item catalog AND the {slug} value
+// fed into href substitution. Each context has its own item set — matches
+// the source app-shell pattern (analysis §8.2 NavContext discriminant).
+// ─────────────────────────────────────────────────────────────────────────
+
+type V02ContextKey = "personal" | "biz-acme" | "biz-globex" | "platform";
+
+const V02_SWITCHER_ITEMS: ReadonlyArray<SwitcherItem> = [
+  { key: "personal", label: "Personal", icon: UserIcon, href: "/home" },
+  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/bconsole/acme" },
+  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/bconsole/globex" },
+  { key: "platform", label: "Platform", icon: Globe, href: "/pconsole/overview" },
+];
+
+// Per-context nav catalogs. Switching contexts swaps the entire item set;
+// {slug} substitution applies only when the context provides a slug.
+const V02_NAV_BY_CONTEXT: Record<V02ContextKey, ReadonlyArray<NavEntry>> = {
+  personal: [
+    { id: "home", label: "Home", icon: Home, href: "/home" },
+    { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
+    { id: "notifications", label: "Notifications", icon: Bell, href: "/notifications", badge: 3 },
+    { id: "saved", label: "Saved items", icon: Bookmark, href: "/saved" },
+  ],
+  "biz-acme": [
+    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
+    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
+    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+  ],
+  "biz-globex": [
+    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
+    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
+    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
+    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
+    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
+    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
+  ],
+  platform: [
+    { id: "overview", label: "Overview", icon: Globe, href: "/pconsole/overview" },
+    { id: "users", label: "All users", icon: Users, href: "/pconsole/users", ownerOnly: true },
+    { id: "audit", label: "Audit log", icon: FileText, href: "/pconsole/audit", ownerOnly: true },
+    { id: "platform-settings", label: "Platform settings", icon: Settings, href: "/pconsole/settings", ownerOnly: true },
+  ],
+};
+
+const V02_DEFAULT_PATH_BY_CONTEXT: Record<V02ContextKey, string> = {
+  personal: "/home",
+  "biz-acme": "/bconsole/acme/dashboard",
+  "biz-globex": "/bconsole/globex/dashboard",
+  platform: "/pconsole/overview",
+};
+
+function V02MultiContextDemo() {
+  const [activeContextKey, setActiveContextKey] = useState<V02ContextKey>("biz-acme");
+  const [isOwner, setIsOwner] = useState(true);
+  const [maxMembers, setMaxMembers] = useState(5);
+  const [bypass, setBypass] = useState(false);
+  const [currentPath, setCurrentPath] = useState(V02_DEFAULT_PATH_BY_CONTEXT["biz-acme"]);
+  // Lift collapsed state so it threads to BOTH <AppSidebar> AND the slotted
+  // <AccountSwitcher> — the canonical collapse-aware composition recipe.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const v02SidebarRef = useRef<AppSidebarHandle>(null);
+
+  // Items + slug derive purely from the current context.
+  const items = V02_NAV_BY_CONTEXT[activeContextKey];
+
+  const slug = activeContextKey.startsWith("biz-")
+    ? activeContextKey.slice(4)
+    : undefined;
+
+  const templateValues = useMemo(
+    () => (slug ? { slug } : undefined),
+    [slug],
+  );
+
+  const handleContextSwitch = (item: SwitcherItem) => {
+    const next = item.key as V02ContextKey;
+    setActiveContextKey(next);
+    setCurrentPath(V02_DEFAULT_PATH_BY_CONTEXT[next]);
+  };
 
   return (
-    <Tabs defaultValue="editor" className="w-full">
-      <SwipeTabsList>
-        <TabsTrigger value="editor">Editor</TabsTrigger>
-        <TabsTrigger value="viewer">Viewer</TabsTrigger>
-        <TabsTrigger value="roundtrip">Edit ↔ View</TabsTrigger>
-        <TabsTrigger value="code">Code (syntax)</TabsTrigger>
-        <TabsTrigger value="image">Image (resize + caption)</TabsTrigger>
-        <TabsTrigger value="export">HTML export</TabsTrigger>
-        <TabsTrigger value="empty">Empty</TabsTrigger>
-        <TabsTrigger value="json">JSON</TabsTrigger>
-      </SwipeTabsList>
-
-      <TabsContent value="editor" className="mt-6">
-        <ArticleBodyEditor
-          defaultValue={ARTICLE_BODY_01_DUMMY_RICH}
-          onImageUpload={fakeUploader}
-          onSave={(value) => {
-            setSavedAt(new Date().toLocaleTimeString());
-            setEdited(value);
-          }}
-        />
-        {savedAt ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Saved at {savedAt}. Select text to surface the floating toolbar.
-          </p>
-        ) : (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Press Cmd/Ctrl+S to fire <code>onSave</code>. Select text to
-            surface the floating toolbar.
-          </p>
-        )}
-      </TabsContent>
-
-      <TabsContent value="viewer" className="mt-6">
-        <div className="rounded-lg border border-border bg-card p-6">
-          <ArticleBodyViewer value={ARTICLE_BODY_01_DUMMY_RICH} />
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          The viewer is a pure server-renderable component — no editor instance
-          mounted.
-        </p>
-      </TabsContent>
-
-      <TabsContent value="roundtrip" className="mt-6 space-y-4">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Editor
-          </p>
-          <ArticleBodyEditor
-            value={edited}
-            onChange={setEdited}
-            onImageUpload={fakeUploader}
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.2.0 — multi-context: topSlot + &#123;slug&#125; templates + ownerOnly + minMembers + bypassFiltering
+      </p>
+      <div className="mb-3 flex flex-wrap items-center gap-4 rounded-md border border-border bg-card p-3 text-xs">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isOwner}
+            onChange={(e) => setIsOwner(e.target.checked)}
           />
-        </div>
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Viewer (live)
-          </p>
-          <div className="rounded-lg border border-border bg-card p-6">
-            <ArticleBodyViewer value={edited} />
-          </div>
-        </div>
-      </TabsContent>
-
-      <TabsContent value="code" className="mt-6 space-y-4">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Editor — code blocks with lowlight syntax highlighting
-          </p>
-          <ArticleBodyEditor defaultValue={ARTICLE_BODY_01_DUMMY_CODE} />
-        </div>
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Viewer (server-rendered, identical highlighting)
-          </p>
-          <div className="rounded-lg border border-border bg-card p-6">
-            <ArticleBodyViewer value={ARTICLE_BODY_01_DUMMY_CODE} />
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Languages registered: bash, css, diff, go, html, java, javascript,
-          json, markdown, python, rust, sql, typescript, xml, yaml. Token
-          colors map to the chart-1..5 palette in <code>globals.css</code>.
-        </p>
-      </TabsContent>
-
-      <TabsContent value="image" className="mt-6 space-y-4">
-        <p className="text-xs text-muted-foreground">
-          Hover the image to reveal the right-edge resize handle. Click the
-          caption text below it to edit. Both width and caption are stored on
-          the node and persist through the JSON.
-        </p>
-        <ArticleBodyEditor
-          defaultValue={ARTICLE_BODY_01_DUMMY_IMAGE}
-          onImageUpload={fakeUploader}
+          isOwner
+        </label>
+        <label className="flex items-center gap-2">
+          currentMaxMembers:
+          <input
+            type="number"
+            min={0}
+            max={50}
+            value={maxMembers}
+            onChange={(e) => setMaxMembers(Number(e.target.value) || 0)}
+            className="w-16 rounded border border-border bg-background px-2 py-0.5"
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={bypass}
+            onChange={(e) => setBypass(e.target.checked)}
+          />
+          bypassFiltering
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={sidebarCollapsed}
+            onChange={(e) => setSidebarCollapsed(e.target.checked)}
+          />
+          collapse sidebar
+        </label>
+        <span className="ml-auto font-mono text-muted-foreground">
+          context: <code>{activeContextKey}</code>
+          {slug ? (
+            <>
+              {" "}· slug: <code>{slug}</code>
+            </>
+          ) : null}
+        </span>
+      </div>
+      <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
+        <AppSidebar
+          ref={v02SidebarRef}
+          items={items}
+          currentPath={currentPath}
+          isCollapsed={sidebarCollapsed}
+          onCollapsedChange={({ collapsed }) => setSidebarCollapsed(collapsed)}
+          onItemClick={({ item, event }) => {
+            if (item.href) {
+              event.preventDefault();
+              setCurrentPath(item.href);
+            }
+          }}
+          topSlot={
+            <AccountSwitcher
+              items={V02_SWITCHER_ITEMS}
+              activeKey={activeContextKey}
+              onSelect={handleContextSwitch}
+              isCollapsed={sidebarCollapsed}
+            />
+          }
+          hrefTemplateValues={templateValues}
+          isOwner={isOwner}
+          currentMaxMembers={maxMembers}
+          bypassFiltering={bypass}
+          aria-label="v0.2 multi-context demo"
         />
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Viewer (preserves width + caption)
-          </p>
-          <div className="rounded-lg border border-border bg-card p-6">
-            <ArticleBodyViewer value={ARTICLE_BODY_01_DUMMY_IMAGE} />
-          </div>
+        <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-muted-foreground sm:p-6">
+          <AppSidebarTrigger
+            controls={v02SidebarRef}
+            aria-label="Open v0.2 multi-context nav"
+            className="self-start lg:hidden"
+          />
+          <p>Active context: <code className="font-mono">{activeContextKey}</code></p>
+          <p>Active path: <code className="font-mono break-all">{currentPath}</code></p>
+          <p className="text-xs">Items in this context: <code>{items.length}</code></p>
+          <ul className="ml-4 list-disc space-y-1 text-xs">
+            <li>Switch context in the popover — items + default path swap</li>
+            <li>Business contexts use <code>&#123;slug&#125;</code> in hrefs (Acme vs Globex)</li>
+            <li><code>Analytics</code> / <code>Settings</code> / <code>Billing</code> hide unless <code>isOwner</code></li>
+            <li><code>Team</code> hidden unless <code>currentMaxMembers ≥ 2</code></li>
+            <li><code>bypassFiltering</code> reveals everything (still respects <code>hidden:true</code>)</li>
+            <li>
+              <code>collapse sidebar</code> threads <code>isCollapsed</code> into BOTH
+              <code>&lt;AppSidebar&gt;</code> AND the slotted{" "}
+              <code>&lt;AccountSwitcher&gt;</code> — switcher trigger flips to
+              icon-only along with the rest of the sidebar
+            </li>
+          </ul>
         </div>
-      </TabsContent>
+      </div>
+    </div>
+  );
+}
 
-      <TabsContent value="export" className="mt-6 space-y-4">
+// ─────────────────────────────────────────────────────────────────────────
+// v0.2.0 — Headless useFilteredNavSections (standalone, no <AppSidebar>)
+// ─────────────────────────────────────────────────────────────────────────
+
+function V02HeadlessFilterDemo() {
+  const [isOwner, setIsOwner] = useState(false);
+  const filtered = useFilteredNavSections({
+    sections: V02_NAV_BY_CONTEXT["biz-acme"],
+    isOwner,
+    currentMaxMembers: 10,
+  });
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        v0.2.0 — headless useFilteredNavSections (no &lt;AppSidebar&gt;)
+      </p>
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 text-sm">
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={isOwner}
+            onChange={(e) => setIsOwner(e.target.checked)}
+          />
+          isOwner (toggle to flip Settings + Billing visibility)
+        </label>
+        <ul className="flex flex-col gap-1">
+          {filtered.map((entry, index) =>
+            entry.kind === "section" ? null : entry.kind === "separator" ? (
+              <li key={entry.id ?? \`sep-\${index}\`} className="my-1 h-px bg-border" />
+            ) : (
+              <li
+                key={entry.id}
+                className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
+                  <span>{entry.label}</span>
+                </span>
+                <span className="min-w-0 text-xs text-muted-foreground sm:ml-auto">
+                  href:{" "}
+                  <code className="break-all">{entry.href}</code>
+                </span>
+              </li>
+            ),
+          )}
+        </ul>
         <p className="text-xs text-muted-foreground">
-          Storage stays JSON (Plate <code>Value</code>). Call{" "}
-          <code>serializeArticleBodyToHtml(value)</code> at export boundaries
-          (RSS / email / OG tags) to get a clean HTML string. Async — uses
-          react-dom/server under the hood. Server-only.
+          Renders consumer-owned UI; library helper just does the filter math.
         </p>
-        <ArticleBodyEditor
-          value={edited}
-          onChange={setEdited}
-          onImageUpload={fakeUploader}
-        />
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Live HTML export
-          </p>
-          <HtmlExportPanel value={edited} />
-        </div>
-      </TabsContent>
-
-      <TabsContent value="empty" className="mt-6">
-        <ArticleBodyEditor defaultValue={ARTICLE_BODY_01_DUMMY_EMPTY} />
-        <p className="mt-2 text-xs text-muted-foreground">
-          Empty starting state. Type to begin.
-        </p>
-      </TabsContent>
-
-      <TabsContent value="json" className="mt-6 space-y-4">
-        <ArticleBodyEditor
-          defaultValue={ARTICLE_BODY_01_DUMMY_SIMPLE}
-          onChange={setEdited}
-        />
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Live JSON
-          </p>
-          <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-            <code>{JSON.stringify(edited, null, 2)}</code>
-          </pre>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Code-block fixture
-            </p>
-            <div className="rounded-lg border border-border bg-card p-6">
-              <ArticleBodyViewer value={ARTICLE_BODY_01_DUMMY_CODE} />
-            </div>
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Table fixture
-            </p>
-            <div className="rounded-lg border border-border bg-card p-6">
-              <ArticleBodyViewer value={ARTICLE_BODY_01_DUMMY_TABLE} />
-            </div>
-          </div>
-        </div>
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }
 `,
   },
-  "article-meta-01": {
+  "article-meta": {
     demo: `﻿"use client";
 
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ArticleMeta01 } from "./article-meta-01";
+import { ArticleMeta } from "./article-meta";
 import {
-  ARTICLE_META_01_DUMMY,
-  ARTICLE_META_01_DUMMY_CENTERED,
-  ARTICLE_META_01_DUMMY_DOCS,
-  ARTICLE_META_01_DUMMY_TEXT_ONLY,
-  ARTICLE_META_01_DUMMY_VIDEO,
+  ARTICLE_META_DUMMY,
+  ARTICLE_META_DUMMY_CENTERED,
+  ARTICLE_META_DUMMY_DOCS,
+  ARTICLE_META_DUMMY_TEXT_ONLY,
+  ARTICLE_META_DUMMY_VIDEO,
 } from "./dummy-data";
 
-export default function ArticleMeta01Demo() {
+export default function ArticleMetaDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -545,7 +818,7 @@ export default function ArticleMeta01Demo() {
         <h2 className="text-2xl font-serif font-bold text-foreground mb-4">
           How sustainable cities are rethinking density
         </h2>
-        <ArticleMeta01 items={ARTICLE_META_01_DUMMY} divider />
+        <ArticleMeta items={ARTICLE_META_DUMMY} divider />
         <p className="mt-6 text-sm text-muted-foreground">
           Lead paragraph would go here. The meta strip cleanly separates the
           headline from the body via the bottom rule.
@@ -556,14 +829,14 @@ export default function ArticleMeta01Demo() {
         <h2 className="text-2xl font-serif font-bold text-foreground text-center mb-4">
           Public transit on the rebound
         </h2>
-        <ArticleMeta01 items={ARTICLE_META_01_DUMMY_CENTERED} align="center" />
+        <ArticleMeta items={ARTICLE_META_DUMMY_CENTERED} align="center" />
       </TabsContent>
 
       <TabsContent value="end" className="mt-6 max-w-2xl">
         <h2 className="text-2xl font-serif font-bold text-foreground text-right mb-4">
           Sidebar dispatches: the data this week
         </h2>
-        <ArticleMeta01 items={ARTICLE_META_01_DUMMY} align="end" />
+        <ArticleMeta items={ARTICLE_META_DUMMY} align="end" />
         <p className="mt-3 text-xs text-muted-foreground">
           <code>align=&quot;end&quot;</code> right-aligns the meta strip — typical for
           sidebars where the headline is right-aligned, or for RTL layouts
@@ -572,7 +845,7 @@ export default function ArticleMeta01Demo() {
       </TabsContent>
 
       <TabsContent value="clickable" className="mt-6 max-w-2xl">
-        <ArticleMeta01 items={ARTICLE_META_01_DUMMY_DOCS} />
+        <ArticleMeta items={ARTICLE_META_DUMMY_DOCS} />
         <p className="mt-3 text-xs text-muted-foreground">
           Hover the byline (<code>@maya</code>) — color shifts on the
           clickable item; focus-visible ring shows on keyboard nav.
@@ -580,14 +853,14 @@ export default function ArticleMeta01Demo() {
       </TabsContent>
 
       <TabsContent value="text-only" className="mt-6 max-w-2xl">
-        <ArticleMeta01 items={ARTICLE_META_01_DUMMY_TEXT_ONLY} />
+        <ArticleMeta items={ARTICLE_META_DUMMY_TEXT_ONLY} />
         <p className="mt-3 text-xs text-muted-foreground">
           Items can omit <code>icon</code> entirely — pure label-value strip.
         </p>
       </TabsContent>
 
       <TabsContent value="video" className="mt-6 max-w-2xl">
-        <ArticleMeta01 items={ARTICLE_META_01_DUMMY_VIDEO} gapClass="gap-3" />
+        <ArticleMeta items={ARTICLE_META_DUMMY_VIDEO} gapClass="gap-3" />
         <p className="mt-3 text-xs text-muted-foreground">
           Tighter gap (<code>gap-3</code>) for video-player-style meta lines.
         </p>
@@ -597,16 +870,16 @@ export default function ArticleMeta01Demo() {
 }
 `,
   },
-  "author-card-01": {
+  "author-card": {
     demo: `﻿"use client";
 
 import { Users } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { AuthorCard01 } from "./author-card-01";
-import { AUTHOR_CARD_01_DUMMY } from "./dummy-data";
+import { AuthorCard } from "./author-card";
+import { AUTHOR_CARD_DUMMY } from "./dummy-data";
 
-export default function AuthorCard01Demo() {
+export default function AuthorCardDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -618,15 +891,15 @@ export default function AuthorCard01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
-        <AuthorCard01 {...AUTHOR_CARD_01_DUMMY.withoutImage} />
+        <AuthorCard {...AUTHOR_CARD_DUMMY.withoutImage} />
       </TabsContent>
 
       <TabsContent value="with-image" className="mt-6 max-w-md">
-        <AuthorCard01 {...AUTHOR_CARD_01_DUMMY.withImage} />
+        <AuthorCard {...AUTHOR_CARD_DUMMY.withImage} />
       </TabsContent>
 
       <TabsContent value="clickable" className="mt-6 max-w-md">
-        <AuthorCard01 {...AUTHOR_CARD_01_DUMMY.clickable} />
+        <AuthorCard {...AUTHOR_CARD_DUMMY.clickable} />
         <p className="mt-3 text-xs text-muted-foreground">
           Hover the card or focus it with the keyboard — the whole surface is a
           link to <code>/team/daniel-park</code>.
@@ -634,44 +907,44 @@ export default function AuthorCard01Demo() {
       </TabsContent>
 
       <TabsContent value="muted" className="mt-6 max-w-md">
-        <AuthorCard01
-          {...AUTHOR_CARD_01_DUMMY.collective}
+        <AuthorCard
+          {...AUTHOR_CARD_DUMMY.collective}
           tone="muted"
           fallbackIcon={Users}
         />
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6 max-w-md">
-        <AuthorCard01 {...AUTHOR_CARD_01_DUMMY.turkish} />
+        <AuthorCard {...AUTHOR_CARD_DUMMY.turkish} />
       </TabsContent>
     </Tabs>
   );
 }
 `,
   },
-  "blackboard-01": {
+  "blackboard": {
     demo: `"use client";
 
 import * as React from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { Blackboard01 } from "./blackboard-01";
+import { Blackboard } from "./blackboard";
 import { BlackboardRoot } from "./parts/blackboard-root";
 import { BlackboardSurface } from "./parts/blackboard-surface";
 import { BlackboardPinnedRow } from "./parts/blackboard-pinned-row";
 import { BlackboardNoteStream } from "./parts/blackboard-note-stream";
 import type { BlackboardNote, NoteDraft } from "./types";
 import {
-  BLACKBOARD_01_CURRENT_USER,
-  BLACKBOARD_01_MEMBERS,
-  BLACKBOARD_01_NOTES,
+  BLACKBOARD_CURRENT_USER,
+  BLACKBOARD_MEMBERS,
+  BLACKBOARD_NOTES,
   makeOlderNotes,
 } from "./dummy-data";
 
 const OLDER_PAGES = 3;
 
-export default function Blackboard01Demo() {
-  const [notes, setNotes] = React.useState<BlackboardNote[]>(BLACKBOARD_01_NOTES);
+export default function BlackboardDemo() {
+  const [notes, setNotes] = React.useState<BlackboardNote[]>(BLACKBOARD_NOTES);
   const [pinnedIds, setPinnedIds] = React.useState<string[]>(["n-101"]);
   const [lastSeenNoteId, setLastSeenNoteId] = React.useState<string | null>("n-104");
   const pageRef = React.useRef(0);
@@ -685,7 +958,7 @@ export default function Blackboard01Demo() {
           const real: BlackboardNote = {
             id: crypto.randomUUID(),
             text: draft.text,
-            author: BLACKBOARD_01_CURRENT_USER,
+            author: BLACKBOARD_CURRENT_USER,
             createdAt: new Date().toISOString(),
             style: draft.style,
             mentions: draft.mentions,
@@ -727,11 +1000,11 @@ export default function Blackboard01Demo() {
           up to lazy-load older notes; the red number marks unread.
         </p>
         <div className="h-135">
-          <Blackboard01
+          <Blackboard
             className="h-full"
             notes={notes}
-            currentUser={BLACKBOARD_01_CURRENT_USER}
-            members={BLACKBOARD_01_MEMBERS}
+            currentUser={BLACKBOARD_CURRENT_USER}
+            members={BLACKBOARD_MEMBERS}
             canWrite
             onPostNote={onPostNote}
             onLoadOlder={onLoadOlder}
@@ -758,7 +1031,7 @@ export default function Blackboard01Demo() {
           <BlackboardRoot
             className="h-full"
             notes={notes}
-            currentUser={BLACKBOARD_01_CURRENT_USER}
+            currentUser={BLACKBOARD_CURRENT_USER}
             pinnedNoteIds={pinnedIds}
           >
             <BlackboardSurface>
@@ -776,11 +1049,11 @@ export default function Blackboard01Demo() {
           uses <code>composerMode=&quot;always&quot;</code> to keep the composer docked.
         </p>
         <div className="h-135">
-          <Blackboard01
+          <Blackboard
             className="h-full"
             notes={notes}
-            currentUser={BLACKBOARD_01_CURRENT_USER}
-            members={BLACKBOARD_01_MEMBERS}
+            currentUser={BLACKBOARD_CURRENT_USER}
+            members={BLACKBOARD_MEMBERS}
             canWrite
             onPostNote={onPostNote}
             onDeleteNote={onDeleteNote}
@@ -796,224 +1069,651 @@ export default function Blackboard01Demo() {
 }
 `,
   },
-  "calendar-01": {
+  "card-tree": {
     demo: `"use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import {
-  Calendar01,
-  Calendar01Root,
-  CalendarAgendaView,
-  CalendarFullCardTooltip,
-  CalendarMonthView,
-  CalendarSkeleton,
-  CalendarToolbar,
-  useCalendar,
-} from "./";
-import type { CalendarHandle, TodoItem } from "./";
-import {
-  buildCalendarDummyData,
-  CALENDAR_LABEL_OPTIONS,
-  CALENDAR_PRIORITY_OPTIONS,
-  CALENDAR_STATUS_OPTIONS,
-} from "./dummy-data";
+  Copy,
+  Eye,
+  Move,
+  PanelRightClose,
+  PanelRightOpen,
+  Pencil,
+  ShieldCheck,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { CardTree } from "./card-tree";
+import { CardTreeSearchBar } from "./parts/search-bar";
+import { CardTreeUndoToolbar } from "./parts/undo-toolbar";
+import type {
+  CardTreeHandle,
+  CardTreeJsonNode,
+  CardTreeValidators,
+  SearchMatch,
+  SearchResult,
+  ValidationFailedEvent,
+} from "./types";
+import { RICH_DEMO } from "./dummy-data";
 
-/** Distinct accent per status → the event color tracks the status (not time). */
-const STATUS_COLORS: Record<string, string> = {
-  todo: "oklch(0.62 0.13 255)", // blue — not started
-  "in-progress": "var(--primary)", // signal-lime — active
-  blocked: "var(--destructive)", // red — blocked
-  done: "var(--muted-foreground)", // grey — done
+const STRICT_VALIDATORS: CardTreeValidators = {
+  fieldEdit: (event) => {
+    if (event.key === "priority" && typeof event.newValue === "number") {
+      if (event.newValue < 1 || event.newValue > 5) {
+        return {
+          ok: false,
+          errors: [
+            {
+              code: "host-priority-out-of-range",
+              message: "Priority must be 1–5.",
+            },
+          ],
+        };
+      }
+    }
+    return { ok: true };
+  },
+  cardRemove: (event) => {
+    if (event.removed.__rcmeta?.locked === true) {
+      return {
+        ok: false,
+        errors: [
+          {
+            code: "host-locked-removal",
+            message: "Cannot remove locked cards.",
+          },
+        ],
+      };
+    }
+    return { ok: true };
+  },
 };
-const isHighPriority = (item: TodoItem) => item.priority === "high";
 
-/** Inline view switcher for the hand-assembled "lighter" subset. */
-function ComposedBody() {
-  const { view } = useCalendar();
-  return view === "agenda" ? <CalendarAgendaView /> : <CalendarMonthView />;
-}
+export default function CardTreeDemo() {
+  const ref = useRef<CardTreeHandle>(null);
+  const initialJson = useMemo(() => JSON.stringify(RICH_DEMO, null, 2), []);
+  const [liveJson, setLiveJson] = useState<string>(initialJson);
+  const [copied, setCopied] = useState(false);
+  const [showJson, setShowJson] = useState(true);
+  const [editable, setEditable] = useState(false);
+  const [dndEnabled, setDndEnabled] = useState(true);
+  const [dirty, setDirty] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [validatorsEnabled, setValidatorsEnabled] = useState(false);
+  const [validationToast, setValidationToast] = useState<string | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
 
-export default function Calendar01Demo() {
-  const handle = useRef<CalendarHandle>(null);
-  const [clicked, setClicked] = useState<TodoItem | null>(null);
-  const [today] = useState(() => new Date());
-  const data = useMemo(() => buildCalendarDummyData(today), [today]);
-  // Editable tab is controlled: edits echo back into local state.
-  const [editData, setEditData] = useState<TodoItem[]>(() =>
-    buildCalendarDummyData(today),
-  );
-  const [lastEdit, setLastEdit] = useState<string>("");
+  const handleChange = (tree: CardTreeJsonNode) => {
+    setLiveJson(JSON.stringify(tree, null, 2));
+    setDirty(ref.current?.isDirty() ?? false);
+    setCanUndo(ref.current?.canUndo() ?? false);
+    setCanRedo(ref.current?.canRedo() ?? false);
+  };
+
+  const handleValidationFailed = (event: ValidationFailedEvent) => {
+    const message = event.errors.map((e) => e.message).join(" · ");
+    setValidationToast(\`\${event.layer}: \${message}\`);
+    setTimeout(() => setValidationToast(null), 3000);
+  };
+
+  const handleUndoOrRedo = () => {
+    setDirty(ref.current?.isDirty() ?? false);
+    setLiveJson(JSON.stringify(ref.current?.getTree() ?? RICH_DEMO, null, 2));
+    setCanUndo(ref.current?.canUndo() ?? false);
+    setCanRedo(ref.current?.canRedo() ?? false);
+  };
 
   return (
-    <Tabs defaultValue="calendar" className="w-full gap-4">
+    <div className="space-y-3">
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          v0.4 demo: validators + per-commit undo/redo on v0.3&apos;s structural
+          management foundation. Toggle edit mode to enable inline editing,
+          drag-drop reordering, multi-select (shift-click range, cmd/ctrl-click
+          toggle), the bulk toolbar (≥2 selected), and the undo toolbar
+          (Cmd+Z / Cmd+Shift+Z / Cmd+Y). Use the search bar to find content in
+          collapsed subtrees and meta entries.
+        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEditable((v) => !v)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              editable
+                ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+            aria-pressed={editable}
+          >
+            {editable ? <Pencil className="size-3.5" /> : <Eye className="size-3.5" />}
+            {editable ? "editing" : "view"}
+          </button>
+          {editable ? (
+            <button
+              type="button"
+              onClick={() => setDndEnabled((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                dndEnabled
+                  ? "border-border bg-muted/40 text-foreground hover:bg-muted"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+              aria-pressed={dndEnabled}
+            >
+              <Move className="size-3.5" aria-hidden="true" />
+              dnd {dndEnabled ? "on" : "off"}
+            </button>
+          ) : null}
+          {editable ? (
+            <button
+              type="button"
+              onClick={() => setValidatorsEnabled((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                validatorsEnabled
+                  ? "border-border bg-muted/40 text-foreground hover:bg-muted"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+              aria-pressed={validatorsEnabled}
+              title="Toggle host validators (priority must be 1–5; locked cards cannot be removed)"
+            >
+              <ShieldCheck className="size-3.5" aria-hidden="true" />
+              validators {validatorsEnabled ? "on" : "off"}
+            </button>
+          ) : null}
+          {editable ? (
+            <CardTreeUndoToolbar
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={() => {
+                ref.current?.undo();
+                handleUndoOrRedo();
+              }}
+              onRedo={() => {
+                ref.current?.redo();
+                handleUndoOrRedo();
+              }}
+            />
+          ) : null}
+          {dirty ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
+              dirty
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setShowJson((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-expanded={showJson}
+          >
+            {showJson ? <PanelRightClose className="size-3.5" /> : <PanelRightOpen className="size-3.5" />}
+            {showJson ? "Hide JSON" : "Show JSON"}
+          </button>
+        </div>
+      </header>
+
+      <div className="flex items-center gap-2">
+        <CardTreeSearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          matchCount={searchResult?.matches.length ?? 0}
+          activeIndex={searchResult?.activeIndex ?? null}
+          onNext={() => ref.current?.findNext()}
+          onPrevious={() => ref.current?.findPrevious()}
+          onClear={() => {
+            setSearchQuery("");
+            ref.current?.clearSearch();
+          }}
+        />
+        {selectedIds.length > 0 ? (
+          <span className="font-mono text-[11px] text-muted-foreground">
+            {selectedIds.length} selected
+          </span>
+        ) : null}
+      </div>
+
+      <div
+        className={cn(
+          "grid gap-4 transition-[grid-template-columns] duration-200 ease-out",
+          showJson
+            ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]"
+            : "grid-cols-1",
+        )}
+      >
+        <section className="min-w-0 space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              Preview
+            </h3>
+            <span className="font-mono text-[11px] text-muted-foreground">
+              v0.3 · 6 levels · all features
+            </span>
+          </div>
+          <CardTree
+            ref={ref}
+            aria-label="Thesis outline"
+            defaultValue={RICH_DEMO}
+            metaPresentation="popover"
+            editable={editable}
+            dndScopes={dndEnabled ? { sameLevel: true, crossLevel: true } : { sameLevel: false, crossLevel: false }}
+            search={{ query: searchQuery }}
+            validators={validatorsEnabled ? STRICT_VALIDATORS : undefined}
+            onValidationFailed={handleValidationFailed}
+            onSearchResults={setSearchResult}
+            onChange={handleChange}
+            onSelectionChange={setSelectedIds}
+          />
+          {validationToast ? (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="mt-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+            >
+              <strong>Validator rejected:</strong> {validationToast}
+            </div>
+          ) : null}
+        </section>
+
+        {showJson ? (
+          <aside className="min-w-0 space-y-2 lg:sticky lg:top-4 lg:self-start">
+            <div className="flex items-center justify-between">
+              <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                {dirty ? "Live JSON (unsaved)" : "Input JSON"}
+              </h3>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(
+                      ref.current?.getValue() ?? liveJson,
+                    );
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  } catch {
+                    // ignore
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Copy className="size-3" aria-hidden="true" />
+                {copied ? "copied" : "copy canonical"}
+              </button>
+            </div>
+            <pre className="max-h-[80vh] overflow-auto rounded-md border bg-muted/40 p-3 text-xs font-mono leading-relaxed">
+              {liveJson}
+            </pre>
+            {dirty ? (
+              <button
+                type="button"
+                onClick={() => {
+                  ref.current?.markClean();
+                  setDirty(false);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                mark clean
+              </button>
+            ) : null}
+          </aside>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// Keep the type import alive for editor hover-info
+void ({} as SearchMatch);
+`,
+  },
+  "card-tree-node": {
+    demo: `"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  FlowCanvas,
+  type NodeRenderer,
+  updateNodeData,
+} from "@/registry/components/data/flow-canvas";
+import {
+  CardTree,
+  type CardTreeHandle,
+  type CardTreeJsonNode,
+} from "@/registry/components/data/card-tree";
+import { PortEditorStrip } from "./parts/port-editor-strip";
+import { cardTreeViewerRenderer } from "./parts/card-tree-viewer";
+import { cardTreeNodeFixture } from "./dummy-data";
+
+// Module-scope renderers (per xyflow-react-pro skill: recreating renderer
+// arrays in render triggers teardown + remount on every render).
+const RENDERERS: NodeRenderer[] = [cardTreeViewerRenderer];
+
+// Reserved keys that belong to flow-canvas's NodeData shape (ports + the
+// \`__type\` discriminator) but not to card-tree's open-shape data model.
+// card-tree v0.1 logs warnings when it sees \`ports: Port[]\` arrays as
+// children (its parser only supports object-keyed children + the \`list\`
+// predefined key for scalar arrays). Strip these before handing to
+// \`<CardTree>\`; merge back on save so flow-canvas keeps its routing data.
+const FLOW_CANVAS_RESERVED_KEYS = new Set(["ports", "__type"]);
+
+function stripFlowCanvasFields(data: CardTreeJsonNode): CardTreeJsonNode {
+  const out: CardTreeJsonNode = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (FLOW_CANVAS_RESERVED_KEYS.has(key)) continue;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      out[key] = stripFlowCanvasFields(value as CardTreeJsonNode);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+function mergeFlowCanvasFields(
+  edited: CardTreeJsonNode,
+  original: CardTreeJsonNode,
+): CardTreeJsonNode {
+  const out: CardTreeJsonNode = { ...edited };
+  // Restore the reserved keys from the original at this level.
+  for (const key of FLOW_CANVAS_RESERVED_KEYS) {
+    if (original[key] !== undefined) {
+      out[key] = original[key];
+    }
+  }
+  // Recurse into nested object children (subcards) by key match. Subcards
+  // not present in \`edited\` are dropped (user deleted them via card-tree);
+  // new subcards in \`edited\` not in \`original\` are preserved as-is (they
+  // have no flow-canvas data to merge).
+  for (const [key, value] of Object.entries(edited)) {
+    if (FLOW_CANVAS_RESERVED_KEYS.has(key)) continue;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const origChild = original[key];
+      if (
+        origChild &&
+        typeof origChild === "object" &&
+        !Array.isArray(origChild)
+      ) {
+        out[key] = mergeFlowCanvasFields(
+          value as CardTreeJsonNode,
+          origChild as CardTreeJsonNode,
+        );
+      }
+    }
+  }
+  return out;
+}
+
+export default function CardTreeNodeDemo() {
+  // Controlled canvas state. onChange flows from flow-canvas (after drag /
+  // connect / delete) and from card-tree's onChange (live-save per Q2).
+  const [canvas, setCanvas] = useState(cardTreeNodeFixture);
+  const [editing, setEditing] = useState<
+    { nodeId: string; subPath?: string } | null
+  >(null);
+
+  // F-02 lock: imperative \`CardTreeHandle.focusCard(subPath)\` via ref. There's
+  // no \`initialFocusCardId\` prop on CardTree today, so this is how subcard-
+  // level edit targeting reaches the editor.
+  const cardTreeRef = useRef<CardTreeHandle>(null);
+
+  // Read the editing node's data once per open so CardTree's defaultValue is
+  // stable across keystrokes (avoids the "value resets on every keystroke"
+  // anti-pattern). Strips flow-canvas reserved keys before handing to CardTree.
+  // Re-derived only when editing.nodeId changes (dep array intentional —
+  // \`canvas\` is read at memo time but doesn't trigger re-derivation; CardTree
+  // is uncontrolled via defaultValue + key= remount).
+  const editingTree: CardTreeJsonNode | null = useMemo(() => {
+    if (!editing) return null;
+    const node = canvas.nodes.find((n) => n.id === editing.nodeId);
+    if (!node) return null;
+    return stripFlowCanvasFields(node.data as CardTreeJsonNode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing?.nodeId]);
+
+  // F-02 lock continued: focus the targeted subcard once CardTree has mounted.
+  // Runs after the dialog opens. If subPath is undefined (root-level edit),
+  // skip — card-tree opens at root by default.
+  useEffect(() => {
+    if (!editing?.subPath) return;
+    const handle = cardTreeRef.current;
+    if (!handle) return;
+    handle.focusCard(editing.subPath);
+  }, [editing?.subPath, editing?.nodeId]);
+
+  return (
+    <div className="flex h-150 flex-col gap-2">
+      <p className="text-xs text-muted-foreground">
+        Click any node to edit. Click a nested subcard to open the editor
+        pre-focused on it. Marquee-select or shift-click for multi-select
+        (canvas-level — bulk edit deferred to v0.2).
+      </p>
+
+      <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card/40">
+        <FlowCanvas
+          data={canvas}
+          onChange={setCanvas}
+          renderers={RENDERERS}
+          onEditRequest={(nodeId, subPath) => setEditing({ nodeId, subPath })}
+        />
+      </div>
+
+      <Dialog
+        open={editing !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+      >
+        {/* shadcn DialogContent defaults to \`sm:max-w-sm\` (384px) at the sm
+            breakpoint — must use the responsive variant to override it.
+            Plain \`max-w-N\` would be capped to 384px on sm+. */}
+        <DialogContent className="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Edit rich card</DialogTitle>
+            <DialogDescription>
+              Edits live-save back into the canvas. Close the dialog or click
+              another node to switch.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editing && editingTree && (
+            // key={editing.nodeId} forces a clean remount on CardTree when
+            // switching nodes — Plate re-initializes per open (plan §9 G3).
+            // PortEditorStrip is uncontrolled-by-design (Q9 lock); no key=
+            // remount needed — it re-reads ports on canvas-prop change.
+            <div className="max-h-[60vh] space-y-3 overflow-auto">
+              {/* v0.2 — port editor strip above the card-tree editor per Q1 lock */}
+              <PortEditorStrip
+                nodeId={editing.nodeId}
+                subPath={editing.subPath}
+                canvas={canvas}
+                onChange={setCanvas}
+                editable={true}
+              />
+              <CardTree
+                key={editing.nodeId}
+                ref={cardTreeRef}
+                defaultValue={editingTree}
+                editable={true}
+                onChange={(next) => {
+                  setCanvas((prev) => {
+                    const original = prev.nodes.find(
+                      (n) => n.id === editing.nodeId,
+                    )?.data as CardTreeJsonNode | undefined;
+                    if (!original) return prev;
+                    // Merge card-tree's edited tree with the prior data shape
+                    // so flow-canvas-only reserved keys (ports + __type) round-
+                    // trip through the edit cleanly.
+                    const merged = mergeFlowCanvasFields(next, original);
+                    return updateNodeData(
+                      prev,
+                      editing.nodeId,
+                      merged as CardTreeJsonNode & { __type: string },
+                    );
+                  });
+                }}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+`,
+  },
+  "carousel-composer": {
+    demo: `"use client";
+
+import * as React from "react";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import { Button } from "@/components/ui/button";
+import { CarouselComposer } from "./carousel-composer";
+import type {
+  CarouselComposerHandle,
+  MediaCarouselItem,
+} from "./types";
+import { dummyCarouselItems } from "./dummy-data";
+
+function Status({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-3 font-mono text-xs text-muted-foreground">{children}</p>
+  );
+}
+
+function EmptyTab() {
+  const [count, setCount] = React.useState(0);
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        onChange={(items) => setCount(items.length)}
+        editorProps={{ enabledTools: ["crop", "filters", "adjust", "text"] }}
+      />
+      <Status>
+        Drop or browse photos + videos. {count} item{count === 1 ? "" : "s"}.
+      </Status>
+    </div>
+  );
+}
+
+function SeededTab() {
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        defaultValue={dummyCarouselItems}
+        editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
+      />
+      <Status>
+        Seeded from remote URLs (CMS re-edit). Select a thumb, drag to reorder,
+        press Edit on a photo. Video Edit is deferred to v0.2.
+      </Status>
+    </div>
+  );
+}
+
+function ControlledTab() {
+  const [items, setItems] = React.useState<MediaCarouselItem[]>([]);
+  const ref = React.useRef<CarouselComposerHandle>(null);
+  const [exported, setExported] = React.useState<number | null>(null);
+
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        ref={ref}
+        value={items}
+        onChange={setItems}
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          onClick={async () => {
+            const out = await ref.current?.export();
+            setExported(out?.length ?? 0);
+          }}
+        >
+          Export (publish)
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => ref.current?.reset()}>
+          Reset
+        </Button>
+      </div>
+      <Status>
+        Controlled: {items.length} item{items.length === 1 ? "" : "s"} ·{" "}
+        {items.filter((i) => i.kind === "image").length} photo /{" "}
+        {items.filter((i) => i.kind === "video").length} video
+        {exported !== null ? \` · last export → \${exported} items\` : ""}
+      </Status>
+    </div>
+  );
+}
+
+function MaxTab() {
+  const [warn, setWarn] = React.useState<string | null>(null);
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        maxItems={3}
+        defaultValue={dummyCarouselItems.slice(0, 2)}
+        onMaxItemsExceeded={(attempted, max) =>
+          setWarn(\`Tried \${attempted}, cap is \${max}.\`)
+        }
+      />
+      <Status>
+        Cap is 3. {warn ?? "Add more until the tile disappears."}
+      </Status>
+    </div>
+  );
+}
+
+export default function CarouselComposerDemo() {
+  const [tab, setTab] = React.useState("seeded");
+  return (
+    <Tabs value={tab} onValueChange={setTab} className="w-full">
       <SwipeTabsList>
-        <TabsTrigger value="calendar">Calendar</TabsTrigger>
-        <TabsTrigger value="editable">Editable</TabsTrigger>
-        <TabsTrigger value="composed">Lighter (composed)</TabsTrigger>
-        <TabsTrigger value="fullcard">Full-card tooltip</TabsTrigger>
-        <TabsTrigger value="states">States</TabsTrigger>
+        <TabsTrigger value="empty">Empty</TabsTrigger>
+        <TabsTrigger value="seeded">Seeded (re-edit)</TabsTrigger>
+        <TabsTrigger value="controlled">Controlled + export</TabsTrigger>
+        <TabsTrigger value="max">Max 3</TabsTrigger>
       </SwipeTabsList>
 
-      {/* 1 — full assembly + imperative handle + mini-nav */}
-      <TabsContent value="calendar" className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handle.current?.goToToday()}
-          >
-            Today
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handle.current?.setView("week")}
-          >
-            Week
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handle.current?.setView("day")}
-          >
-            Day
-          </Button>
-          <span className="ml-auto text-xs text-muted-foreground">
-            {clicked
-              ? \`Clicked: \${clicked.name}\`
-              : "Switch views · M/W/D/A · ←/→ navigate · click an event"}
-          </span>
-        </div>
-        <Calendar01
-          ref={handle}
-          data={data}
-          statusOptions={CALENDAR_STATUS_OPTIONS}
-          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
-          statusColors={STATUS_COLORS}
-          flagPriority={isHighPriority}
-          defaultView="month"
-          now={today}
-          showMiniNav
-          onTaskClick={setClicked}
-        />
+      <TabsContent value="empty" className="pt-4">
+        <EmptyTab />
       </TabsContent>
-
-      {/* 1b — EDITABLE (v0.2.0): controlled data echoed via onChange */}
-      <TabsContent value="editable" className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            <strong>Drag</strong> to reschedule · <strong>drag an edge</strong> to
-            resize · <strong>double-click</strong> (or drag) empty space →
-            quick-create · <strong>right-click</strong> for actions (incl.
-            Copy/Cut) · select → <strong>Edit</strong>. <strong>Keyboard:</strong>{" "}
-            focus an event → arrows move, Shift+arrows resize, Enter edit, F2
-            rename, Del delete. <strong>Copy/paste</strong> (⌘/Ctrl+C·X·V) carries
-            tasks across task tools. Switch to <strong>Week/Day</strong> for time
-            editing.
-          </span>
-          <span className="ml-auto text-xs text-muted-foreground">
-            {lastEdit || \`\${editData.length} root items\`}
-          </span>
-        </div>
-        <Calendar01
-          editable
-          data={editData}
-          onChange={setEditData}
-          statusOptions={CALENDAR_STATUS_OPTIONS}
-          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
-          labelOptions={CALENDAR_LABEL_OPTIONS}
-          statusColors={STATUS_COLORS}
-          flagPriority={isHighPriority}
-          defaultView="month"
-          now={today}
-          showInspector
-          onItemAdded={(e) => setLastEdit(\`Added: \${e.item.name}\`)}
-          onItemRemoved={(e) => setLastEdit(\`Removed: \${e.removed.name}\`)}
-          onFieldEdited={(e) => setLastEdit(\`Edited \${e.key} on \${e.itemId}\`)}
-        />
+      <TabsContent value="seeded" className="pt-4">
+        <SeededTab />
       </TabsContent>
-
-      {/* 2 — hand-assembled subset (month + agenda; week/day time-grid never pulled) */}
-      <TabsContent value="composed" className="space-y-2">
-        <p className="text-xs text-muted-foreground">
-          Hand-assembled <code>Calendar01Root</code> + <code>CalendarToolbar</code>{" "}
-          + month/agenda only — the week/day time-grid code never enters this
-          bundle.
-        </p>
-        <Calendar01Root
-          data={data}
-          statusOptions={CALENDAR_STATUS_OPTIONS}
-          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
-          statusColors={STATUS_COLORS}
-          flagPriority={isHighPriority}
-          now={today}
-          defaultView="month"
-          views={["month", "agenda"]}
-        >
-          <CalendarToolbar />
-          <ComposedBody />
-        </Calendar01Root>
+      <TabsContent value="controlled" className="pt-4">
+        <ControlledTab />
       </TabsContent>
-
-      {/* 3 — rich full-card hover tooltip (lazy todo-rich-card) */}
-      <TabsContent value="fullcard" className="space-y-2">
-        <p className="text-xs text-muted-foreground">
-          Hover an event → the full <code>TodoRichCard</code> (lazy-loaded; the
-          default tooltip is a native title).
-        </p>
-        <Calendar01
-          data={data}
-          statusOptions={CALENDAR_STATUS_OPTIONS}
-          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
-          statusColors={STATUS_COLORS}
-          flagPriority={isHighPriority}
-          now={today}
-          defaultView="month"
-          renderTooltip={(item) => (
-            <CalendarFullCardTooltip
-              item={item}
-              statusOptions={CALENDAR_STATUS_OPTIONS}
-            />
-          )}
-        />
-      </TabsContent>
-
-      {/* 4 — empty + loading */}
-      <TabsContent value="states" className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">Empty</p>
-          <Calendar01
-            data={[]}
-            statusOptions={CALENDAR_STATUS_OPTIONS}
-            now={today}
-            defaultView="agenda"
-          />
-        </div>
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground">Loading</p>
-          <div className="rounded-lg border border-border bg-card">
-            <CalendarSkeleton />
-          </div>
-        </div>
+      <TabsContent value="max" className="pt-4">
+        <MaxTab />
       </TabsContent>
     </Tabs>
   );
 }
 `,
   },
-  "category-cloud-01": {
+  "category-cloud": {
     demo: `﻿"use client";
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { CategoryCloud01 } from "./category-cloud-01";
+import { CategoryCloud } from "./category-cloud";
 import { DUMMY_CATEGORIES_EN, DUMMY_CATEGORIES_TR } from "./dummy-data";
 
-export default function CategoryCloud01Demo() {
+export default function CategoryCloudDemo() {
   const [controlledValue, setControlledValue] = useState<string | null>(null);
 
   return (
@@ -1026,18 +1726,18 @@ export default function CategoryCloud01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6 max-w-md rounded-2xl border border-border/50 bg-card p-6">
-        <CategoryCloud01
+        <CategoryCloud
           items={["All", "Tech", "Design", "Engineering", "Marketing", "Operations"]}
           title="Filter by department"
         />
       </TabsContent>
 
       <TabsContent value="counts" className="mt-6 max-w-md rounded-2xl border border-border/50 bg-card p-6">
-        <CategoryCloud01 items={DUMMY_CATEGORIES_EN} title="Categories" />
+        <CategoryCloud items={DUMMY_CATEGORIES_EN} title="Categories" />
       </TabsContent>
 
       <TabsContent value="controlled" className="mt-6 max-w-md space-y-4 rounded-2xl border border-border/50 bg-card p-6">
-        <CategoryCloud01
+        <CategoryCloud
           items={DUMMY_CATEGORIES_EN}
           title="Categories"
           value={controlledValue}
@@ -1049,7 +1749,7 @@ export default function CategoryCloud01Demo() {
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6 max-w-md rounded-2xl border border-border/50 bg-card p-6">
-        <CategoryCloud01 items={DUMMY_CATEGORIES_TR} title="Kategoriler" ariaLabel="Kategori filtresi" />
+        <CategoryCloud items={DUMMY_CATEGORIES_TR} title="Kategoriler" ariaLabel="Kategori filtresi" />
       </TabsContent>
     </Tabs>
   );
@@ -1299,7 +1999,7 @@ export default function CodeBlockDemo() {
 }
 `,
   },
-  "comment-thread-01": {
+  "comment-thread": {
     demo: `﻿"use client";
 
 import { useMemo, useState } from "react";
@@ -1307,7 +2007,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { CommentThread01 } from "./comment-thread-01";
+import { CommentThread } from "./comment-thread";
 import {
   DUMMY_FLAT_COMMENTS,
   DUMMY_LARGE_THREAD,
@@ -1327,7 +2027,7 @@ function ConsoleSink({ tag, payload }: { tag: string; payload: unknown }) {
 
 function FlatTab() {
   return (
-    <CommentThread01
+    <CommentThread
       comments={DUMMY_FLAT_COMMENTS}
       currentUser={DUMMY_VIEWER}
       onAddComment={async (content) => {
@@ -1348,7 +2048,7 @@ function FlatTab() {
 
 function NestedDepth2Tab() {
   return (
-    <CommentThread01
+    <CommentThread
       comments={DUMMY_NESTED_DEPTH_2}
       currentUser={DUMMY_VIEWER}
       maxDepth={2}
@@ -1364,7 +2064,7 @@ function NestedDepth2Tab() {
 
 function NestedDepth3Tab() {
   return (
-    <CommentThread01
+    <CommentThread
       comments={DUMMY_NESTED_DEPTH_3}
       currentUser={DUMMY_VIEWER}
       maxDepth={2}
@@ -1377,7 +2077,7 @@ function NestedDepth3Tab() {
 
 function PaginatedTab() {
   return (
-    <CommentThread01
+    <CommentThread
       comments={DUMMY_LARGE_THREAD}
       currentUser={DUMMY_VIEWER}
       pageSize={10}
@@ -1395,7 +2095,7 @@ function PaginatedTab() {
 function RealtimeTab() {
   const subscribe = useMemo(() => createDummySubscribe(), []);
   return (
-    <CommentThread01
+    <CommentThread
       comments={DUMMY_FLAT_COMMENTS}
       currentUser={DUMMY_VIEWER}
       subscribe={subscribe}
@@ -1412,7 +2112,7 @@ function RealtimeTab() {
 
 function DisabledComposerTab() {
   return (
-    <CommentThread01
+    <CommentThread
       comments={DUMMY_FLAT_COMMENTS}
       currentUser={undefined}
       composerEmptyState={
@@ -1431,7 +2131,7 @@ function DisabledComposerTab() {
 
 function CompactVariantTab() {
   return (
-    <CommentThread01
+    <CommentThread
       variant="compact"
       comments={DUMMY_NESTED_DEPTH_2}
       currentUser={DUMMY_VIEWER}
@@ -1441,7 +2141,7 @@ function CompactVariantTab() {
   );
 }
 
-export default function CommentThread01Demo() {
+export default function CommentThreadDemo() {
   const [tab, setTab] = useState("flat");
   return (
     <Tabs value={tab} onValueChange={setTab} className="w-full">
@@ -1481,396 +2181,19 @@ export default function CommentThread01Demo() {
 }
 `,
   },
-  "content-card-news-01": {
-    demo: `"use client";
-
-import { useState } from "react";
-import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ContentCardNews01 } from "./content-card-news-01";
-import {
-  breakingNewsItem,
-  draftItem,
-  dummyCategoryStyles,
-  dummyContentCardItems,
-  editorsPickItem,
-  paywalledItem,
-  quotingItem,
-  sensitiveItem,
-  sponsoredItem,
-} from "./dummy-data";
-
-const items = dummyContentCardItems;
-
-function CardActions({
-  itemId,
-  bookmarked,
-  onToggle,
-}: {
-  itemId: string;
-  bookmarked: boolean;
-  onToggle: (id: string) => void;
-}) {
-  return (
-    <div className="flex gap-2">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          onToggle(itemId);
-        }}
-        aria-label={bookmarked ? "Remove bookmark" : "Bookmark article"}
-      >
-        {bookmarked ? (
-          <BookmarkCheck aria-hidden="true" className="size-4" />
-        ) : (
-          <Bookmark aria-hidden="true" className="size-4" />
-        )}
-      </Button>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-        aria-label="Share article"
-      >
-        <Share2 aria-hidden="true" className="size-4" />
-      </Button>
-    </div>
-  );
-}
-
-export default function ContentCardNews01Demo() {
-  const [bookmarks, setBookmarks] = useState<Set<string>>(() => new Set());
-
-  const toggleBookmark = (id: string) => {
-    setBookmarks((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const featured = items[0];
-  const large = items[1];
-  const mediums = items.slice(2, 6);
-  const smalls = items.slice(2, 6);
-  const lists = items.slice(0, 5);
-
-  const log = (label: string) => () =>
-    console.log(\`[content-card-news-01 demo] \${label}\`);
-
-  return (
-    <Tabs defaultValue="featured" className="w-full">
-      <SwipeTabsList>
-        <TabsTrigger value="featured">Featured</TabsTrigger>
-        <TabsTrigger value="large">Large</TabsTrigger>
-        <TabsTrigger value="medium">Medium</TabsTrigger>
-        <TabsTrigger value="small">Small</TabsTrigger>
-        <TabsTrigger value="list">List</TabsTrigger>
-        <TabsTrigger value="composed">Composed</TabsTrigger>
-        <TabsTrigger value="actions">Actions slot</TabsTrigger>
-        <TabsTrigger value="editor">Editor mode</TabsTrigger>
-        <TabsTrigger value="paywall">Paywall</TabsTrigger>
-        <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
-        <TabsTrigger value="quoted">Quoted article</TabsTrigger>
-        <TabsTrigger value="engagement">Engagement</TabsTrigger>
-      </SwipeTabsList>
-
-      <TabsContent value="featured" className="mt-6">
-        <ContentCardNews01
-          item={featured}
-          variant="featured"
-          href={\`/news/\${featured.id}\`}
-          categoryStyles={dummyCategoryStyles}
-        />
-      </TabsContent>
-
-      <TabsContent value="large" className="mt-6">
-        <ContentCardNews01
-          item={large}
-          variant="large"
-          href={\`/news/\${large.id}\`}
-          categoryStyles={dummyCategoryStyles}
-        />
-      </TabsContent>
-
-      <TabsContent value="medium" className="mt-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mediums.map((item) => (
-            <ContentCardNews01
-              key={item.id}
-              item={item}
-              variant="medium"
-              href={\`/news/\${item.id}\`}
-              categoryStyles={dummyCategoryStyles}
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="small" className="mt-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          {smalls.map((item) => (
-            <ContentCardNews01
-              key={item.id}
-              item={item}
-              variant="small"
-              href={\`/news/\${item.id}\`}
-              categoryStyles={dummyCategoryStyles}
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="list" className="mt-6">
-        <div className="rounded-2xl border border-border/50 bg-card p-4">
-          {lists.map((item) => (
-            <ContentCardNews01
-              key={item.id}
-              item={item}
-              variant="list"
-              href={\`/news/\${item.id}\`}
-              categoryStyles={dummyCategoryStyles}
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="composed" className="mt-6">
-        <div className="space-y-8">
-          <ContentCardNews01
-            item={featured}
-            variant="featured"
-            href={\`/news/\${featured.id}\`}
-            categoryStyles={dummyCategoryStyles}
-          />
-          <div className="grid gap-6 lg:grid-cols-12">
-            <div className="space-y-6 lg:col-span-8">
-              <ContentCardNews01
-                item={large}
-                variant="large"
-                href={\`/news/\${large.id}\`}
-                categoryStyles={dummyCategoryStyles}
-              />
-              <div className="grid gap-6 md:grid-cols-2">
-                {items.slice(2, 6).map((item) => (
-                  <ContentCardNews01
-                    key={item.id}
-                    item={item}
-                    variant="medium"
-                    href={\`/news/\${item.id}\`}
-                    categoryStyles={dummyCategoryStyles}
-                  />
-                ))}
-              </div>
-            </div>
-            <aside className="lg:col-span-4">
-              <div className="rounded-2xl border border-border/50 bg-card p-4">
-                {items.slice(2, 6).map((item) => (
-                  <ContentCardNews01
-                    key={item.id}
-                    item={item}
-                    variant="list"
-                    href={\`/news/\${item.id}\`}
-                    categoryStyles={dummyCategoryStyles}
-                  />
-                ))}
-              </div>
-            </aside>
-          </div>
-        </div>
-      </TabsContent>
-
-      <TabsContent value="actions" className="mt-6">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Click the bookmark or share buttons — they sit ABOVE the link
-          overlay (z-10) and don&apos;t trigger card navigation. Click anywhere
-          else on the card and you navigate normally.
-        </p>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {items.slice(0, 3).map((item) => (
-            <ContentCardNews01
-              key={item.id}
-              item={item}
-              variant="medium"
-              href={\`/news/\${item.id}\`}
-              categoryStyles={dummyCategoryStyles}
-              actions={
-                <CardActions
-                  itemId={item.id}
-                  bookmarked={bookmarks.has(item.id)}
-                  onToggle={toggleBookmark}
-                />
-              }
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="editor" className="mt-6">
-        <p className="mb-4 text-sm text-muted-foreground">
-          <strong>viewerMode=&quot;editor&quot;</strong> — kebab shows editor
-          actions (Edit / Publish / Schedule / Feature / Pin / Change visibility /
-          Change category / Mark sensitive / See analytics / Delete). Draft status
-          badge renders only in editor mode. Open the kebab on any card.
-        </p>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[editorsPickItem, draftItem, sponsoredItem].map((item) => (
-            <ContentCardNews01
-              key={item.id}
-              item={item}
-              variant="medium"
-              href={\`/news/\${item.id}\`}
-              categoryStyles={dummyCategoryStyles}
-              viewerMode="editor"
-              onEdit={log(\`onEdit(\${item.id})\`)}
-              onDelete={log(\`onDelete(\${item.id})\`)}
-              onPublish={log(\`onPublish(\${item.id})\`)}
-              onSchedule={log(\`onSchedule(\${item.id})\`)}
-              onFeature={log(\`onFeature(\${item.id})\`)}
-              onPin={log(\`onPin(\${item.id})\`)}
-              onChangeVisibility={log(\`onChangeVisibility(\${item.id})\`)}
-              onChangeCategory={log(\`onChangeCategory(\${item.id})\`)}
-              onMarkSensitive={log(\`onMarkSensitive(\${item.id})\`)}
-              onSeeAnalytics={log(\`onSeeAnalytics(\${item.id})\`)}
-              onShare={log(\`onShare(\${item.id})\`)}
-              onBookmark={log(\`onBookmark(\${item.id})\`)}
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="paywall" className="mt-6">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Premium content gate. Excerpt + media blurred behind a Subscribe CTA.
-          Preview text shows above the gate. Open the console — clicking the CTA
-          fires <code>onRevealPaywall</code> as an analytics hook.
-        </p>
-        <div className="grid gap-6 md:grid-cols-2">
-          <ContentCardNews01
-            item={paywalledItem}
-            variant="medium"
-            href={\`/news/\${paywalledItem.id}\`}
-            categoryStyles={dummyCategoryStyles}
-            onRevealPaywall={log(\`onRevealPaywall(\${paywalledItem.id})\`)}
-          />
-          <ContentCardNews01
-            item={paywalledItem}
-            variant="large"
-            href={\`/news/\${paywalledItem.id}\`}
-            categoryStyles={dummyCategoryStyles}
-            onRevealPaywall={log(\`onRevealPaywall(\${paywalledItem.id})\`)}
-          />
-        </div>
-      </TabsContent>
-
-      <TabsContent value="sensitive" className="mt-6">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Sensitive content gate — media-only blur with reveal button. Distinct
-          from paywall (different motivation). Lists content warnings when set.
-          Reveal is per-session; reset via the handle&apos;s{" "}
-          <code>reset(item)</code>. Small variant uses the gate&apos;s{" "}
-          <code>compact</code> mode (icon + tiny &quot;Show&quot; pill) since
-          its 96×96 thumb can&apos;t fit the full overlay.
-        </p>
-        <div className="space-y-6">
-          <ContentCardNews01
-            item={sensitiveItem}
-            variant="medium"
-            href={\`/news/\${sensitiveItem.id}\`}
-            categoryStyles={dummyCategoryStyles}
-            onRevealSensitive={log(\`onRevealSensitive(\${sensitiveItem.id})\`)}
-          />
-          <ContentCardNews01
-            item={sensitiveItem}
-            variant="small"
-            href={\`/news/\${sensitiveItem.id}\`}
-            categoryStyles={dummyCategoryStyles}
-            onRevealSensitive={log(\`onRevealSensitive(\${sensitiveItem.id})\`)}
-          />
-        </div>
-      </TabsContent>
-
-      <TabsContent value="quoted" className="mt-6">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Analysis pieces quoting source articles render a nested compact
-          mini-card (uses <code>variant=&quot;small&quot;</code> internally
-          for the horizontal thumb-left, body-right layout). Recursion-stripped
-          (a quoted article&apos;s own <code>quotedArticle</code> is ignored),
-          and the inner card&apos;s paywall + sensitive gates are suppressed
-          so the quote stays a clean attribution. Renders in <code>medium</code>{" "}
-          + <code>list</code> variants only per the per-variant feature matrix.
-        </p>
-        <div className="space-y-6">
-          <ContentCardNews01
-            item={quotingItem}
-            variant="medium"
-            href={\`/news/\${quotingItem.id}\`}
-            categoryStyles={dummyCategoryStyles}
-            onQuotedClick={(q) => log(\`onQuotedClick(\${q.id})\`)()}
-          />
-          <ContentCardNews01
-            item={quotingItem}
-            variant="list"
-            href={\`/news/\${quotingItem.id}\`}
-            categoryStyles={dummyCategoryStyles}
-            onQuotedClick={(q) => log(\`onQuotedClick(\${q.id})\`)()}
-          />
-        </div>
-      </TabsContent>
-
-      <TabsContent value="engagement" className="mt-6">
-        <p className="mb-4 text-sm text-muted-foreground">
-          Light engagement counts — like / comment / bookmark / share chips with
-          handler-driven interactivity. For the news article{" "}
-          <strong>detail page</strong>, consumers pass{" "}
-          <code>renderEngagementCounts</code> to compose{" "}
-          <code>&lt;EngagementBar01&gt;</code> in this slot — see the description
-          doc §6.2 for the integration pattern. <code>isLive</code> badge +
-          updated-N-ago sub-line surface live-blog state.
-        </p>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[breakingNewsItem, editorsPickItem, quotingItem].map((item) => (
-            <ContentCardNews01
-              key={item.id}
-              item={item}
-              variant="medium"
-              href={\`/news/\${item.id}\`}
-              categoryStyles={dummyCategoryStyles}
-              onLike={(id, nextLiked) => log(\`onLike(\${id}, \${nextLiked})\`)()}
-              onCommentCountClick={(id) => log(\`onCommentCountClick(\${id})\`)()}
-              onBookmark={(id, next) => log(\`onBookmark(\${id}, \${next})\`)()}
-              onShare={(id) => log(\`onShare(\${id})\`)()}
-            />
-          ))}
-        </div>
-      </TabsContent>
-    </Tabs>
-  );
-}
-`,
-  },
-  "content-composer-01": {
+  "content-composer": {
     demo: `"use client";
 
 import * as React from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
-import { ContentComposer01 } from "./content-composer-01";
+import { ContentComposer } from "./content-composer";
 import { createNewsComposerConfig } from "./configs/news-composer.config";
 import { postComposerConfig } from "./configs/post-composer.config";
 import { SAMPLE_AUTHORS, SAMPLE_NEWS_BODY, SAMPLE_NEWS_ITEM } from "./dummy-data";
 import type { AuthorSourceConfig } from "./parts/field-author-picker";
-import type { ContentCardItem } from "./types";
+import type { NewsCardItem } from "./types";
 
 const sampleAuthorSource: AuthorSourceConfig = async (query) => {
   const q = query.trim().toLowerCase();
@@ -1884,7 +2207,7 @@ const demoUploader = async (blob: Blob) => ({ url: URL.createObjectURL(blob) });
 const newsConfig = createNewsComposerConfig({ authorSource: sampleAuthorSource });
 
 type LastAction =
-  | { kind: "draft" | "publish" | "schedule"; item: ContentCardItem; at?: Date }
+  | { kind: "draft" | "publish" | "schedule"; item: NewsCardItem; at?: Date }
   | null;
 
 function ResultPanel({ last }: { last: LastAction }) {
@@ -1911,7 +2234,7 @@ function NewsComposerDemo({ reEdit }: { reEdit?: boolean }) {
   const [last, setLast] = React.useState<LastAction>(null);
   return (
     <div className="flex flex-col gap-4">
-      <ContentComposer01
+      <ContentComposer
         config={newsConfig}
         uploader={demoUploader}
         {...(reEdit
@@ -1927,7 +2250,7 @@ function NewsComposerDemo({ reEdit }: { reEdit?: boolean }) {
   );
 }
 
-export default function ContentComposer01Demo() {
+export default function ContentComposerDemo() {
   const [tab, setTab] = React.useState("news");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [dialogLast, setDialogLast] = React.useState<LastAction>(null);
@@ -1958,12 +2281,12 @@ export default function ContentComposer01Demo() {
       <TabsContent value="post" className="mt-4">
         <p className="mb-3 text-sm text-muted-foreground">
           The post config&apos;s media step is a <code>mediaCarouselSlot</code> backed by
-          <code> media-carousel-editor-01</code> — drop / browse one or more mixed
+          <code> carousel-composer</code> — drop / browse one or more mixed
           photo+video files, reorder, and edit any photo (news keeps the single{" "}
           <code>mediaSlot</code>). Publishing is still deferred (no{" "}
           <code>post-content-item</code> adapter yet).
         </p>
-        <ContentComposer01
+        <ContentComposer
           config={postComposerConfig}
           uploader={demoUploader}
           onAutosave={() => {}}
@@ -1976,7 +2299,7 @@ export default function ContentComposer01Demo() {
         <Button type="button" onClick={() => setDialogOpen(true)}>
           Open composer dialog
         </Button>
-        <ContentComposer01
+        <ContentComposer
           config={newsConfig}
           presentation="dialog"
           isOpen={dialogOpen}
@@ -2000,164 +2323,6 @@ export default function ContentComposer01Demo() {
         </div>
       </TabsContent>
     </Tabs>
-  );
-}
-`,
-  },
-  "cooperative-challenge-01": {
-    demo: `"use client";
-
-import * as React from "react";
-
-import { CooperativeChallenge01 } from "./cooperative-challenge-01";
-import { OptInToggle } from "./parts/cooperative-challenge-optin";
-import { TeamMemberStack } from "./parts/team-member-stack";
-import { CooperativeChallengeSkeleton } from "./parts/cooperative-challenge-skeleton";
-import {
-  CHALLENGE_ACTIVE,
-  CHALLENGE_COMPLETE,
-  CHALLENGE_JOINABLE,
-  CHALLENGE_LONG_LABEL,
-  CHALLENGE_NO_REWARD,
-  CHALLENGE_TARGET_ZERO,
-  TEAM_AURORA,
-  TEAM_LARGE,
-  TEAM_SOLO,
-} from "./dummy-data";
-import type { Challenge } from "./types";
-
-function Section({
-  title,
-  hint,
-  children,
-}: {
-  title: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-/** Controlled host — proves the opt-in echo + the penalty-free join/leave loop. */
-function InteractiveChallenge() {
-  const [optedIn, setOptedIn] = React.useState(false);
-  const challenge: Challenge = { ...CHALLENGE_JOINABLE, optedIn };
-  return (
-    <CooperativeChallenge01
-      challenge={challenge}
-      team={TEAM_AURORA}
-      onOptInChange={setOptedIn}
-      onEvent={(e) => console.info("[demo] gamification event", e)}
-    />
-  );
-}
-
-export default function CooperativeChallenge01Demo() {
-  return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-8">
-      <Section
-        title="Interactive — join / leave (penalty-free)"
-        hint="Controlled opt-in: joining is a prominent invite, leaving is one click with no guilt. Emits challenge.opened + challenge.opt-in."
-      >
-        <InteractiveChallenge />
-      </Section>
-
-      <Section
-        title="Joinable (opted-out)"
-        hint="A neutral, first-class invitation — the goal + reward shown as available if you join, never greyed-as-failure."
-      >
-        <CooperativeChallenge01
-          challenge={CHALLENGE_JOINABLE}
-          team={TEAM_AURORA}
-          onOptInChange={() => {}}
-        />
-      </Section>
-
-      <Section
-        title="Active + Completed"
-        hint="Opted-in and in motion → whole-team earned treatment on done (lightweight inline ack, no modal)."
-      >
-        <div className="flex flex-col gap-4">
-          <CooperativeChallenge01
-            challenge={CHALLENGE_ACTIVE}
-            team={TEAM_AURORA}
-            onOptInChange={() => {}}
-          />
-          <CooperativeChallenge01
-            challenge={CHALLENGE_COMPLETE}
-            team={TEAM_AURORA}
-            onOptInChange={() => {}}
-          />
-        </div>
-      </Section>
-
-      <Section
-        title="Read-only (omit onOptInChange)"
-        hint="Capability-gating — with no handler the opt-in control hides; a pure progress + reward card falls out for free."
-      >
-        <CooperativeChallenge01 challenge={CHALLENGE_ACTIVE} team={TEAM_AURORA} />
-      </Section>
-
-      <Section
-        title="Composed / lighter (bare parts, no card chrome)"
-        hint="Just the penalty-free toggle + the avatar pile — the compound tree-shakes to a subset (no Root, no card)."
-      >
-        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
-          <TeamMemberStack members={TEAM_AURORA.members} />
-          <OptInToggle optedIn={false} onOptInChange={() => {}} />
-        </div>
-      </Section>
-
-      <Section
-        title="Team sizes"
-        hint="Single-member (no +N) ↔ overflowing stack (+N chip)."
-      >
-        <div className="flex flex-col gap-4">
-          <CooperativeChallenge01
-            challenge={{ ...CHALLENGE_ACTIVE, id: "solo" }}
-            team={TEAM_SOLO}
-            onOptInChange={() => {}}
-          />
-          <CooperativeChallenge01
-            challenge={{ ...CHALLENGE_JOINABLE, id: "large" }}
-            team={TEAM_LARGE}
-            onOptInChange={() => {}}
-          />
-        </div>
-      </Section>
-
-      <Section
-        title="Edge cases"
-        hint="No reward (chip hides) · target 0 (0 / 0, never NaN) · long label (truncates) · loading skeleton."
-      >
-        <div className="flex flex-col gap-4">
-          <CooperativeChallenge01
-            challenge={CHALLENGE_NO_REWARD}
-            team={TEAM_AURORA}
-            onOptInChange={() => {}}
-          />
-          <CooperativeChallenge01
-            challenge={CHALLENGE_TARGET_ZERO}
-            team={TEAM_AURORA}
-            onOptInChange={() => {}}
-          />
-          <CooperativeChallenge01
-            challenge={CHALLENGE_LONG_LABEL}
-            team={TEAM_LARGE}
-            onOptInChange={() => {}}
-          />
-          <CooperativeChallengeSkeleton />
-        </div>
-      </Section>
-    </div>
   );
 }
 `,
@@ -2592,7 +2757,7 @@ export default function DetailPanelDemo() {
 }
 `,
   },
-  "engagement-bar-01": {
+  "engagement-bar": {
     demo: `﻿"use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -2611,16 +2776,16 @@ import {
 } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { EngagementBar01 } from "./engagement-bar-01";
+import { EngagementBar } from "./engagement-bar";
 import { EngagementHeartBurst } from "./parts/engagement-heart-burst";
 import { LikersStrip } from "./parts/likers-strip";
 import { ShareMenu } from "./parts/share-menu";
-import { CommentThread01 } from "@/registry/components/data/comment-thread-01";
-import type { Comment } from "@/registry/components/data/comment-thread-01";
+import { CommentThread } from "@/registry/components/data/comment-thread";
+import type { Comment } from "@/registry/components/data/comment-thread";
 import {
   DUMMY_FLAT_COMMENTS,
   DUMMY_VIEWER,
-} from "@/registry/components/data/comment-thread-01/dummy-data";
+} from "@/registry/components/data/comment-thread/dummy-data";
 import {
   DUMMY_LIKE_USERS,
   DUMMY_NEWS_CARD_ENGAGEMENT,
@@ -2630,7 +2795,7 @@ import {
 } from "./dummy-data";
 import type {
   EngagementAction,
-  EngagementBar01Handle,
+  EngagementBarHandle,
   EngagementReactionKind,
 } from "./types";
 
@@ -2666,8 +2831,8 @@ function LikersPile({ users }: { users: typeof DUMMY_LIKE_USERS }) {
  * to demonstrate the kasder-style inline panel pattern:
  *  - \`like.onCountClick\`  → toggle inline \`<LikersStrip>\` (v0.2.0 sub-export, swipable)
  *  - \`comment.onClick\`    → toggle a comment-panel placeholder (real comment thread
- *                            lives in the \`comment-thread-01\` sibling procomp; see
- *                            \`post-card-01\` for the full inline-panel pattern)
+ *                            lives in the \`comment-thread\` sibling procomp; see
+ *                            \`post-card\` for the full inline-panel pattern)
  *  - \`share.onClick\`      → toggle inline \`<ShareMenu>\` (v0.2.0 sub-export, searchable)
  *  - \`bookmark.onToggle\`  → uncontrolled, internal mirror flips the icon on click
  *
@@ -2712,7 +2877,7 @@ function InteractiveDefaultDemo() {
 
   return (
     <div className="space-y-3">
-      <EngagementBar01 actions={actions} />
+      <EngagementBar actions={actions} />
       {activePanel === "likers" ? (
         <LikersStrip
           totalCount={142}
@@ -2750,7 +2915,7 @@ function InteractiveDefaultDemo() {
               "Load older comments" button at the bottom of the thread once
               initial 5 are exhausted. Page-3 returns [] → button disappears. */}
           <div className="max-h-105 overflow-y-auto pr-1">
-            <CommentThread01
+            <CommentThread
               comments={INITIAL_COMMENTS}
               currentUser={DUMMY_VIEWER}
               pageSize={5}
@@ -2775,7 +2940,7 @@ function InteractiveDefaultDemo() {
             />
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Real <code>{"<CommentThread01>"}</code> sibling procomp (composer + recursive replies). Scrollable list capped at 5 visible rows; <code>pageSize=5</code> + <code>onLoadMore</code> drives the {'"Load older comments"'} lazy-load button. engagement-bar-01 only fires <code>comment.onClick</code>; the host composes this surface. <code>post-card-01</code> wires the same flow inline.
+            Real <code>{"<CommentThread>"}</code> sibling procomp (composer + recursive replies). Scrollable list capped at 5 visible rows; <code>pageSize=5</code> + <code>onLoadMore</code> drives the {'"Load older comments"'} lazy-load button. engagement-bar only fires <code>comment.onClick</code>; the host composes this surface. <code>post-card</code> wires the same flow inline.
           </p>
         </div>
       ) : null}
@@ -2786,7 +2951,7 @@ function InteractiveDefaultDemo() {
 function RealtimeDemo() {
   const subscribe = useMemo(() => createDummySubscribe(142), []);
   return (
-    <EngagementBar01
+    <EngagementBar
       actions={DUMMY_POST_ENGAGEMENT}
       subscribe={subscribe}
       onSubscribeDelta={(d) =>
@@ -2798,7 +2963,7 @@ function RealtimeDemo() {
 }
 
 function HeartBurstDemo() {
-  const barRef = useRef<EngagementBar01Handle>(null);
+  const barRef = useRef<EngagementBarHandle>(null);
   const [burstKey, setBurstKey] = useState(0);
 
   return (
@@ -2824,7 +2989,7 @@ function HeartBurstDemo() {
           className="absolute inset-0 z-10 flex items-center justify-center"
         />
       </div>
-      <EngagementBar01
+      <EngagementBar
         ref={barRef}
         actions={DUMMY_POST_ENGAGEMENT}
         likersPreview={<LikersPile users={DUMMY_LIKE_USERS} />}
@@ -2956,7 +3121,7 @@ function InteractiveReactionsDemo() {
 
   return (
     <div className="space-y-3">
-      <EngagementBar01
+      <EngagementBar
         actions={actions}
         reactionsPreview={<ReactorsPreview />}
       />
@@ -3000,7 +3165,7 @@ const OLDER_COMMENTS_PAGE_2: Comment[] = [
       id: "u7",
       name: "Owen Tanaka",
       username: "owent",
-      avatar: "https://i.pravatar.cc/100?img=8",
+      avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces&q=80",
     },
     content:
       "Late to this, but the section on slot-driven composition saved me a 3-day refactor. Bookmarked.",
@@ -3013,7 +3178,7 @@ const OLDER_COMMENTS_PAGE_2: Comment[] = [
       id: "u8",
       name: "Priya Raman",
       username: "priya",
-      avatar: "https://i.pravatar.cc/100?img=23",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces&q=80",
     },
     content: "I disagree with the cross-folder import constraint — but only mildly. Net-positive overall.",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
@@ -3025,7 +3190,7 @@ const OLDER_COMMENTS_PAGE_2: Comment[] = [
       id: "u9",
       name: "Mateo Ríos",
       username: "mateo",
-      avatar: "https://i.pravatar.cc/100?img=11",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces&q=80",
     },
     content: "Echoing what others said upstream — this is the right tradeoff.",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9),
@@ -3037,7 +3202,7 @@ const OLDER_COMMENTS_PAGE_2: Comment[] = [
       id: "u10",
       name: "Yuna Park",
       username: "yuna",
-      avatar: "https://i.pravatar.cc/100?img=20",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces&q=80",
     },
     content: "Saved. Will revisit when we tackle the same arc internally.",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12),
@@ -3061,14 +3226,14 @@ const DEMO_REACTORS: Reactor[] = [
   { id: "r3", name: "Linus Torvalds", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80", kind: REACTION_KINDS[1] },
   { id: "r4", name: "Margaret Hamilton", avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80", kind: REACTION_KINDS[0] },
   { id: "r5", name: "Alan Turing", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80", kind: REACTION_KINDS[2] },
-  { id: "r6", name: "Hedy Lamarr", avatar: "https://i.pravatar.cc/100?img=29", kind: REACTION_KINDS[0] },
-  { id: "r7", name: "Donald Knuth", avatar: "https://i.pravatar.cc/100?img=51", kind: REACTION_KINDS[1] },
-  { id: "r8", name: "Barbara Liskov", avatar: "https://i.pravatar.cc/100?img=21", kind: REACTION_KINDS[2] },
-  { id: "r9", name: "Edsger Dijkstra", avatar: "https://i.pravatar.cc/100?img=55", kind: REACTION_KINDS[3] },
-  { id: "r10", name: "Frances Allen", avatar: "https://i.pravatar.cc/100?img=18", kind: REACTION_KINDS[0] },
-  { id: "r11", name: "John Carmack", avatar: "https://i.pravatar.cc/100?img=33", kind: REACTION_KINDS[1] },
-  { id: "r12", name: "Anita Borg", avatar: "https://i.pravatar.cc/100?img=36", kind: REACTION_KINDS[4] },
-  { id: "r13", name: "Tim Berners-Lee", avatar: "https://i.pravatar.cc/100?img=57", kind: REACTION_KINDS[0] },
+  { id: "r6", name: "Hedy Lamarr", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[0] },
+  { id: "r7", name: "Donald Knuth", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[1] },
+  { id: "r8", name: "Barbara Liskov", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[2] },
+  { id: "r9", name: "Edsger Dijkstra", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[3] },
+  { id: "r10", name: "Frances Allen", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[0] },
+  { id: "r11", name: "John Carmack", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[1] },
+  { id: "r12", name: "Anita Borg", avatar: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[4] },
+  { id: "r13", name: "Tim Berners-Lee", avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&crop=faces&q=80", kind: REACTION_KINDS[0] },
 ];
 
 const REACTORS_PAGE_SIZE = 5;
@@ -3171,7 +3336,7 @@ function ReactorsPreview() {
   );
 }
 
-export default function EngagementBar01Demo() {
+export default function EngagementBarDemo() {
   return (
     <Tabs defaultValue="default">
       <SwipeTabsList>
@@ -3198,7 +3363,7 @@ export default function EngagementBar01Demo() {
             <strong>Like count</strong> — split-tap target via <code>like.onCountClick</code>; opens the v0.2.0 <code>{"<LikersStrip>"}</code> sub-export (swipable horizontal avatar row + {'"+N"'} pill).
           </li>
           <li>
-            <strong>Comment</strong> — opens a placeholder panel with input + Send. Atomic bar fires <code>onClick</code>; real comment thread comes from <code>comment-thread-01</code> (see <code>post-card-01</code> for the full inline pattern).
+            <strong>Comment</strong> — opens a placeholder panel with input + Send. Atomic bar fires <code>onClick</code>; real comment thread comes from <code>comment-thread</code> (see <code>post-card</code> for the full inline pattern).
           </li>
           <li>
             <strong>Share</strong> — opens the v0.2.0 <code>{"<ShareMenu>"}</code> sub-export (searchable user picker).
@@ -3212,14 +3377,14 @@ export default function EngagementBar01Demo() {
       <TabsContent value="compact" className="mt-6 space-y-3">
         <div className="max-w-md rounded-xl border border-border bg-card p-3">
           <p className="mb-2 text-sm font-medium">News card body...</p>
-          <EngagementBar01
+          <EngagementBar
             variant="compact"
             actions={DUMMY_NEWS_CARD_ENGAGEMENT}
           />
         </div>
         <p className="text-xs text-muted-foreground">
           Compact variant for tight surfaces. Drop into{" "}
-          <code>content-card-news-01</code>&apos;s <code>actions</code> slot
+          <code>news-card</code>&apos;s <code>actions</code> slot
           for an instant social upgrade — no framer-motion, no client-component
           boundary added (heart-burst not imported).
         </p>
@@ -3227,7 +3392,7 @@ export default function EngagementBar01Demo() {
 
       <TabsContent value="stacked" className="mt-6 space-y-3">
         <div className="flex justify-center rounded-2xl bg-zinc-900 p-6">
-          <EngagementBar01
+          <EngagementBar
             variant="stacked"
             actions={DUMMY_VIDEO_ENGAGEMENT_STACKED}
             className="text-white"
@@ -3256,7 +3421,7 @@ export default function EngagementBar01Demo() {
       </TabsContent>
 
       <TabsContent value="custom" className="mt-6 space-y-3">
-        <EngagementBar01 actions={CUSTOM_REMIX_ACTIONS} />
+        <EngagementBar actions={CUSTOM_REMIX_ACTIONS} />
         <p className="text-xs text-muted-foreground">
           Custom action via <code>{'kind: "custom"'}</code>: host
           provides <code>id</code>, <code>label</code>, <code>icon</code>,
@@ -3282,7 +3447,7 @@ export default function EngagementBar01Demo() {
       </TabsContent>
 
       <TabsContent value="hybrid" className="mt-6 space-y-3">
-        <EngagementBar01 actions={HYBRID_ACTIONS} />
+        <EngagementBar actions={HYBRID_ACTIONS} />
         <p className="text-xs text-muted-foreground">
           Hybrid layout per the Q-P3 lock — both <code>{'kind: "like"'}</code> AND <code>{'kind: "reaction"'}</code> in the same <code>actions</code> array. Library does NOT enforce mutual exclusion; both render in array order, both interact independently.
         </p>
@@ -3653,7 +3818,215 @@ export default function EntityPickerDemo() {
 }
 `,
   },
-  "event-card-01": {
+  "event-calendar": {
+    demo: `"use client";
+
+import { useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import {
+  EventCalendar,
+  EventCalendarRoot,
+  CalendarAgendaView,
+  CalendarFullCardTooltip,
+  CalendarMonthView,
+  CalendarSkeleton,
+  CalendarToolbar,
+  useCalendar,
+} from "./";
+import type { CalendarHandle, TaskItem } from "./";
+import {
+  buildCalendarDummyData,
+  CALENDAR_LABEL_OPTIONS,
+  CALENDAR_PRIORITY_OPTIONS,
+  CALENDAR_STATUS_OPTIONS,
+} from "./dummy-data";
+
+/** Distinct accent per status → the event color tracks the status (not time). */
+const STATUS_COLORS: Record<string, string> = {
+  todo: "oklch(0.62 0.13 255)", // blue — not started
+  "in-progress": "var(--primary)", // signal-lime — active
+  blocked: "var(--destructive)", // red — blocked
+  done: "var(--muted-foreground)", // grey — done
+};
+const isHighPriority = (item: TaskItem) => item.priority === "high";
+
+/** Inline view switcher for the hand-assembled "lighter" subset. */
+function ComposedBody() {
+  const { view } = useCalendar();
+  return view === "agenda" ? <CalendarAgendaView /> : <CalendarMonthView />;
+}
+
+export default function EventCalendarDemo() {
+  const handle = useRef<CalendarHandle>(null);
+  const [clicked, setClicked] = useState<TaskItem | null>(null);
+  const [today] = useState(() => new Date());
+  const data = useMemo(() => buildCalendarDummyData(today), [today]);
+  // Editable tab is controlled: edits echo back into local state.
+  const [editData, setEditData] = useState<TaskItem[]>(() =>
+    buildCalendarDummyData(today),
+  );
+  const [lastEdit, setLastEdit] = useState<string>("");
+
+  return (
+    <Tabs defaultValue="calendar" className="w-full gap-4">
+      <SwipeTabsList>
+        <TabsTrigger value="calendar">Calendar</TabsTrigger>
+        <TabsTrigger value="editable">Editable</TabsTrigger>
+        <TabsTrigger value="composed">Lighter (composed)</TabsTrigger>
+        <TabsTrigger value="fullcard">Full-card tooltip</TabsTrigger>
+        <TabsTrigger value="states">States</TabsTrigger>
+      </SwipeTabsList>
+
+      {/* 1 — full assembly + imperative handle + mini-nav */}
+      <TabsContent value="calendar" className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handle.current?.goToToday()}
+          >
+            Today
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handle.current?.setView("week")}
+          >
+            Week
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handle.current?.setView("day")}
+          >
+            Day
+          </Button>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {clicked
+              ? \`Clicked: \${clicked.name}\`
+              : "Switch views · M/W/D/A · ←/→ navigate · click an event"}
+          </span>
+        </div>
+        <EventCalendar
+          ref={handle}
+          data={data}
+          statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
+          defaultView="month"
+          now={today}
+          showMiniNav
+          onTaskClick={setClicked}
+        />
+      </TabsContent>
+
+      {/* 1b — EDITABLE (v0.2.0): controlled data echoed via onChange */}
+      <TabsContent value="editable" className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            <strong>Drag</strong> to reschedule · <strong>drag an edge</strong> to
+            resize · <strong>double-click</strong> (or drag) empty space →
+            quick-create · <strong>right-click</strong> for actions (incl.
+            Copy/Cut) · select → <strong>Edit</strong>. <strong>Keyboard:</strong>{" "}
+            focus an event → arrows move, Shift+arrows resize, Enter edit, F2
+            rename, Del delete. <strong>Copy/paste</strong> (⌘/Ctrl+C·X·V) carries
+            tasks across task tools. Switch to <strong>Week/Day</strong> for time
+            editing.
+          </span>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {lastEdit || \`\${editData.length} root items\`}
+          </span>
+        </div>
+        <EventCalendar
+          editable
+          data={editData}
+          onChange={setEditData}
+          statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          labelOptions={CALENDAR_LABEL_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
+          defaultView="month"
+          now={today}
+          showInspector
+          onItemAdded={(e) => setLastEdit(\`Added: \${e.item.name}\`)}
+          onItemRemoved={(e) => setLastEdit(\`Removed: \${e.removed.name}\`)}
+          onFieldEdited={(e) => setLastEdit(\`Edited \${e.key} on \${e.itemId}\`)}
+        />
+      </TabsContent>
+
+      {/* 2 — hand-assembled subset (month + agenda; week/day time-grid never pulled) */}
+      <TabsContent value="composed" className="space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Hand-assembled <code>EventCalendarRoot</code> + <code>CalendarToolbar</code>{" "}
+          + month/agenda only — the week/day time-grid code never enters this
+          bundle.
+        </p>
+        <EventCalendarRoot
+          data={data}
+          statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
+          now={today}
+          defaultView="month"
+          views={["month", "agenda"]}
+        >
+          <CalendarToolbar />
+          <ComposedBody />
+        </EventCalendarRoot>
+      </TabsContent>
+
+      {/* 3 — rich full-card hover tooltip (lazy task-card) */}
+      <TabsContent value="fullcard" className="space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Hover an event → the full <code>TaskCard</code> (lazy-loaded; the
+          default tooltip is a native title).
+        </p>
+        <EventCalendar
+          data={data}
+          statusOptions={CALENDAR_STATUS_OPTIONS}
+          priorityOptions={CALENDAR_PRIORITY_OPTIONS}
+          statusColors={STATUS_COLORS}
+          flagPriority={isHighPriority}
+          now={today}
+          defaultView="month"
+          renderTooltip={(item) => (
+            <CalendarFullCardTooltip
+              item={item}
+              statusOptions={CALENDAR_STATUS_OPTIONS}
+            />
+          )}
+        />
+      </TabsContent>
+
+      {/* 4 — empty + loading */}
+      <TabsContent value="states" className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">Empty</p>
+          <EventCalendar
+            data={[]}
+            statusOptions={CALENDAR_STATUS_OPTIONS}
+            now={today}
+            defaultView="agenda"
+          />
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">Loading</p>
+          <div className="rounded-lg border border-border bg-card">
+            <CalendarSkeleton />
+          </div>
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+}
+`,
+  },
+  "event-card": {
     demo: `﻿"use client";
 
 import { useState } from "react";
@@ -3661,7 +4034,7 @@ import { Bookmark, BookmarkCheck, CalendarPlus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { EventCard01 } from "./event-card-01";
+import { EventCard } from "./event-card";
 import {
   dummyCustomTypeStyles,
   dummyEvents,
@@ -3740,7 +4113,7 @@ const feedSlice = dummyEvents.filter((e) =>
 const featuredEvent = dummyEvents.find((e) => e.id === "evt-featured")!;
 const openEvent = dummyEvents.find((e) => e.id === "evt-open")!;
 
-export default function EventCard01Demo() {
+export default function EventCardDemo() {
   const [saved, setSaved] = useState<Set<string>>(() => new Set());
 
   const toggleSaved = (id: string) =>
@@ -3771,7 +4144,7 @@ export default function EventCard01Demo() {
       <TabsContent value="grid" className="mt-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dummyEvents.map((event) => (
-            <EventCard01
+            <EventCard
               key={event.id}
               event={event}
               variant="grid"
@@ -3787,7 +4160,7 @@ export default function EventCard01Demo() {
       <TabsContent value="feed" className="mt-6">
         <div className="flex flex-col gap-4 max-w-3xl mx-auto">
           {feedSlice.map((event) => (
-            <EventCard01
+            <EventCard
               key={event.id}
               event={event}
               variant="feed"
@@ -3809,7 +4182,7 @@ export default function EventCard01Demo() {
         </p>
         <div className="rounded-2xl border border-border/50 bg-card max-w-3xl mx-auto">
           {dummyEvents.map((event) => (
-            <EventCard01
+            <EventCard
               key={event.id}
               event={event}
               variant="list"
@@ -3833,7 +4206,7 @@ export default function EventCard01Demo() {
             </p>
             <div className="rounded-2xl border border-border/50 bg-card p-2 max-w-md">
               {dummyTrEvents.slice(0, 4).map((event) => (
-                <EventCard01
+                <EventCard
                   key={event.id}
                   event={event}
                   variant="compact"
@@ -3866,7 +4239,7 @@ export default function EventCard01Demo() {
             </p>
             <div className="rounded-2xl border border-border/50 bg-card p-2 max-w-md">
               {dummyEvents.slice(0, 4).map((event) => (
-                <EventCard01
+                <EventCard
                   key={event.id}
                   event={event}
                   variant="compact"
@@ -3896,14 +4269,14 @@ export default function EventCard01Demo() {
               Grid variant — top accent border + star prefix on title.
             </p>
             <div className="grid md:grid-cols-2 gap-6">
-              <EventCard01
+              <EventCard
                 event={featuredEvent}
                 variant="grid"
                 href={makeHref(featuredEvent)}
                 now={dummyNow}
                 typeStyles={dummyTypeStyles}
               />
-              <EventCard01
+              <EventCard
                 event={openEvent}
                 variant="grid"
                 href={makeHref(openEvent)}
@@ -3917,7 +4290,7 @@ export default function EventCard01Demo() {
               Feed variant — inset ring + star prefix.
             </p>
             <div className="max-w-3xl mx-auto">
-              <EventCard01
+              <EventCard
                 event={featuredEvent}
                 variant="feed"
                 href={makeHref(featuredEvent)}
@@ -3933,7 +4306,7 @@ export default function EventCard01Demo() {
       <TabsContent value="localized" className="mt-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dummyTrEvents.map((event) => (
-            <EventCard01
+            <EventCard
               key={event.id}
               event={event}
               variant="grid"
@@ -3951,7 +4324,7 @@ export default function EventCard01Demo() {
       <TabsContent value="custom-types" className="mt-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dummyEvents.map((event) => (
-            <EventCard01
+            <EventCard
               key={event.id}
               event={event}
               variant="grid"
@@ -3976,7 +4349,7 @@ export default function EventCard01Demo() {
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {dummyEvents.slice(0, 3).map((event) => (
-              <EventCard01
+              <EventCard
                 key={event.id}
                 event={event}
                 variant="grid"
@@ -4000,14 +4373,14 @@ export default function EventCard01Demo() {
 }
 `,
   },
-  "expandable-text-01": {
+  "expandable-text": {
     demo: `﻿"use client";
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ExpandableText01 } from "./expandable-text-01";
+import { ExpandableText } from "./expandable-text";
 import { LONG_EN, LONG_TR, SHORT_EN, SHORT_TR } from "./dummy-data";
 
 const TR_LABELS = {
@@ -4018,7 +4391,7 @@ const TR_LABELS = {
 function CustomToggleDemo() {
   const [expanded, setExpanded] = useState(false);
   return (
-    <ExpandableText01
+    <ExpandableText
       content={LONG_EN}
       maxLines={3}
       expanded={expanded}
@@ -4046,7 +4419,7 @@ function CustomToggleDemo() {
   );
 }
 
-export default function ExpandableText01Demo() {
+export default function ExpandableTextDemo() {
   return (
     <Tabs defaultValue="default">
       <SwipeTabsList>
@@ -4061,13 +4434,13 @@ export default function ExpandableText01Demo() {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Long content (toggle appears)
           </p>
-          <ExpandableText01 content={LONG_EN} />
+          <ExpandableText content={LONG_EN} />
         </div>
         <div className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Short content (no toggle — content fits)
           </p>
-          <ExpandableText01 content={SHORT_EN} />
+          <ExpandableText content={SHORT_EN} />
         </div>
       </TabsContent>
 
@@ -4076,13 +4449,13 @@ export default function ExpandableText01Demo() {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             maxLines=2
           </p>
-          <ExpandableText01 content={LONG_EN} maxLines={2} />
+          <ExpandableText content={LONG_EN} maxLines={2} />
         </div>
         <div className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             maxLines=6
           </p>
-          <ExpandableText01 content={LONG_EN} maxLines={6} />
+          <ExpandableText content={LONG_EN} maxLines={6} />
         </div>
       </TabsContent>
 
@@ -4091,13 +4464,13 @@ export default function ExpandableText01Demo() {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Long content + Turkish labels
           </p>
-          <ExpandableText01 content={LONG_TR} labels={TR_LABELS} />
+          <ExpandableText content={LONG_TR} labels={TR_LABELS} />
         </div>
         <div className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Short content + Turkish labels (no toggle rendered)
           </p>
-          <ExpandableText01 content={SHORT_TR} labels={TR_LABELS} />
+          <ExpandableText content={SHORT_TR} labels={TR_LABELS} />
         </div>
       </TabsContent>
 
@@ -4746,13 +5119,13 @@ export default function FileTreeDemo() {
 }
 `,
   },
-  "filter-bar-01": {
+  "filter-bar": {
     demo: `﻿"use client";
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { FilterBar01 } from "./filter-bar-01";
+import { FilterBar } from "./filter-bar";
 import {
   DUMMY_CATEGORIES_EN,
   DUMMY_LABELS_TR,
@@ -4760,7 +5133,7 @@ import {
 } from "./dummy-data";
 import type { FilterBarValue } from "./types";
 
-export default function FilterBar01Demo() {
+export default function FilterBarDemo() {
   const [controlledValue, setControlledValue] = useState<FilterBarValue>({
     search: "",
     category: null,
@@ -4777,14 +5150,14 @@ export default function FilterBar01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6">
-        <FilterBar01
+        <FilterBar
           categories={DUMMY_CATEGORIES_EN}
           resultsCount={42}
         />
       </TabsContent>
 
       <TabsContent value="controlled" className="mt-6 space-y-4">
-        <FilterBar01
+        <FilterBar
           categories={DUMMY_CATEGORIES_EN}
           search={controlledValue.search}
           onSearchChange={(search) =>
@@ -4821,7 +5194,7 @@ export default function FilterBar01Demo() {
           <p className="mb-2 text-sm font-semibold text-foreground">
             Search + chips only (date hidden)
           </p>
-          <FilterBar01
+          <FilterBar
             categories={DUMMY_CATEGORIES_EN}
             hideDateRange
             resultsCount={42}
@@ -4831,12 +5204,12 @@ export default function FilterBar01Demo() {
           <p className="mb-2 text-sm font-semibold text-foreground">
             Search + date only (categories hidden)
           </p>
-          <FilterBar01 hideCategories resultsCount={42} />
+          <FilterBar hideCategories resultsCount={42} />
         </div>
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6">
-        <FilterBar01
+        <FilterBar
           categories={DUMMY_CATEGORIES_EN}
           labels={DUMMY_LABELS_TR}
           formatDateRange={formatDateRangeTR}
@@ -4848,7 +5221,7 @@ export default function FilterBar01Demo() {
 }
 `,
   },
-  "filter-stack": {
+  "filter-panel": {
     demo: `﻿"use client";
 
 import { useCallback, useMemo, useState } from "react";
@@ -4856,7 +5229,7 @@ import { Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { FilterStack } from "./filter-stack";
+import { FilterPanel } from "./filter-panel";
 import {
   KIND_OPTIONS,
   NODE_FIXTURES,
@@ -4978,7 +5351,7 @@ function BasicDemo() {
   return (
     <PanelLayout
       panel={
-        <FilterStack<GraphNodeFixture>
+        <FilterPanel<GraphNodeFixture>
           items={NODE_FIXTURES}
           categories={categories}
           values={values}
@@ -5042,7 +5415,7 @@ function ModeToggleDemo() {
   return (
     <PanelLayout
       panel={
-        <FilterStack<GraphNodeFixture>
+        <FilterPanel<GraphNodeFixture>
           items={NODE_FIXTURES}
           categories={categories}
           values={values}
@@ -5091,7 +5464,7 @@ function SoloButtonsDemo() {
   return (
     <PanelLayout
       panel={
-        <FilterStack<GraphNodeFixture>
+        <FilterPanel<GraphNodeFixture>
           items={NODE_FIXTURES}
           categories={categories}
           values={values}
@@ -5187,7 +5560,7 @@ function CustomRangeDemo() {
   return (
     <PanelLayout
       panel={
-        <FilterStack<GraphNodeFixture>
+        <FilterPanel<GraphNodeFixture>
           items={NODE_FIXTURES}
           categories={categories}
           values={values}
@@ -5278,7 +5651,7 @@ function RichDemo() {
   return (
     <PanelLayout
       panel={
-        <FilterStack<GraphNodeFixture>
+        <FilterPanel<GraphNodeFixture>
           items={NODE_FIXTURES}
           categories={categories}
           values={values}
@@ -5343,13 +5716,13 @@ function OnFilteredChangeDemo() {
     <div className="flex flex-col gap-4">
       <PanelLayout
         panel={
-          <FilterStack<GraphNodeFixture>
+          <FilterPanel<GraphNodeFixture>
             items={NODE_FIXTURES}
             categories={categories}
             values={values}
             onChange={setValues}
             onFilteredChange={handleFilteredChange}
-            ariaLabel="Filter stack with onFilteredChange consumer"
+            ariaLabel="Filter panel with onFilteredChange consumer"
           />
         }
         list={<FilteredList items={filtered} />}
@@ -5366,7 +5739,7 @@ function OnFilteredChangeDemo() {
   );
 }
 
-export default function FilterStackDemo() {
+export default function FilterPanelDemo() {
   return (
     <Tabs defaultValue="basic">
       <SwipeTabsList>
@@ -5400,16 +5773,16 @@ export default function FilterStackDemo() {
 }
 `,
   },
-  "flow-canvas-01": {
+  "flow-canvas": {
     demo: `﻿"use client";
 
 import { useMemo } from "react";
 import { Bot, FileText, GripVertical, Sparkles, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ProjectCard01 } from "../project-card-01";
-import type { ProjectCardItem } from "../project-card-01/types";
-import { FlowCanvas } from "./flow-canvas-01";
+import { ProjectCard } from "../project-card";
+import type { ProjectCardItem } from "../project-card/types";
+import { FlowCanvas } from "./flow-canvas";
 import { FLOW_CANVAS_RICH, makeStressData } from "./dummy-data";
 import { emitSubObjectDrag } from "./lib/emit-sub-object-drag";
 import { PortsAt } from "./parts/ports-at";
@@ -5542,10 +5915,10 @@ const displayRenderer: NodeRenderer = {
   },
 };
 
-// Adapter — wraps the existing ProjectCard01 registry component as a node.
+// Adapter — wraps the existing ProjectCard registry component as a node.
 // The canonical "use any rich card from the registry as a node" pattern.
 const projectCardRenderer: NodeRenderer = {
-  type: "project-card-01",
+  type: "project-card",
   label: "Project",
   defaultPorts: () => [
     { id: "in", side: "left", dir: "in", type: "text" },
@@ -5555,7 +5928,7 @@ const projectCardRenderer: NodeRenderer = {
     const project = (data as unknown as { project: ProjectCardItem }).project;
     return (
       <div className="relative w-72">
-        <ProjectCard01 project={project} variant="grid" loading="eager" />
+        <ProjectCard project={project} variant="grid" loading="eager" />
         <PortsAt ports={data.ports} position="left" />
         <PortsAt ports={data.ports} position="right" />
       </div>
@@ -5648,7 +6021,7 @@ export default function FlowCanvasDemo() {
 }
 `,
   },
-  "gantt-timeline-01": {
+  "gantt-timeline": {
     demo: `"use client";
 
 import { useRef, useState } from "react";
@@ -5656,7 +6029,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import {
-  GanttTimeline01,
+  GanttTimeline,
   GanttTimelineAxis,
   GanttTimelineBody,
   GanttTimelineGutter,
@@ -5664,7 +6037,7 @@ import {
   GanttTimelineSkeleton,
   GanttFullCardTooltip,
 } from "./";
-import type { GanttTimelineHandle, TodoItem } from "./";
+import type { GanttTimelineHandle, TaskItem } from "./";
 import {
   GANTT_DUMMY,
   GANTT_LABEL_OPTIONS,
@@ -5672,9 +6045,9 @@ import {
   GANTT_STATUS_OPTIONS,
 } from "./dummy-data";
 
-export default function GanttTimeline01Demo() {
+export default function GanttTimelineDemo() {
   const handle = useRef<GanttTimelineHandle>(null);
-  const [clicked, setClicked] = useState<TodoItem | null>(null);
+  const [clicked, setClicked] = useState<TaskItem | null>(null);
 
   return (
     <Tabs defaultValue="timeline" className="w-full gap-4">
@@ -5708,7 +6081,7 @@ export default function GanttTimeline01Demo() {
             {clicked ? \`Clicked: \${clicked.name}\` : "Drag to pan · ⌘/ctrl-wheel or pinch to zoom · click a bar"}
           </span>
         </div>
-        <GanttTimeline01
+        <GanttTimeline
           ref={handle}
           data={GANTT_DUMMY}
           statusOptions={GANTT_STATUS_OPTIONS}
@@ -5759,13 +6132,13 @@ export default function GanttTimeline01Demo() {
         </div>
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">Empty</p>
-          <GanttTimeline01 data={[]} />
+          <GanttTimeline data={[]} />
         </div>
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">
             Gestures disabled (toolbar + keyboard still work)
           </p>
-          <GanttTimeline01
+          <GanttTimeline
             data={GANTT_DUMMY}
             statusOptions={GANTT_STATUS_OPTIONS}
             disableGestures
@@ -5774,13 +6147,13 @@ export default function GanttTimeline01Demo() {
         </div>
       </TabsContent>
 
-      {/* 4 — full-card tooltip (lazy-loads todo-rich-card) */}
+      {/* 4 — full-card tooltip (lazy-loads task-card) */}
       <TabsContent value="full-card" className="space-y-2">
         <p className="text-sm text-muted-foreground">
           Hover a bar — <code className="font-mono">renderTooltip</code> embeds the full
-          <code className="font-mono"> todo-rich-card</code> (lazy-loaded only here).
+          <code className="font-mono"> task-card</code> (lazy-loaded only here).
         </p>
-        <GanttTimeline01
+        <GanttTimeline
           data={GANTT_DUMMY}
           statusOptions={GANTT_STATUS_OPTIONS}
           labelOptions={GANTT_LABEL_OPTIONS}
@@ -5799,12 +6172,12 @@ export default function GanttTimeline01Demo() {
  * hands over (the v0.2 D19 recipe).
  */
 function EditableDemo() {
-  const [hist, setHist] = useState<{ stack: TodoItem[][]; cursor: number }>({
+  const [hist, setHist] = useState<{ stack: TaskItem[][]; cursor: number }>({
     stack: [GANTT_DUMMY],
     cursor: 0,
   });
   const data = hist.stack[hist.cursor];
-  const push = (next: TodoItem[]) =>
+  const push = (next: TaskItem[]) =>
     setHist((h) => ({
       stack: [...h.stack.slice(0, h.cursor + 1), next],
       cursor: h.cursor + 1,
@@ -5843,7 +6216,7 @@ function EditableDemo() {
           drag the gutter grip to reparent · ＋ / trash on row hover · Delete key
         </span>
       </div>
-      <GanttTimeline01
+      <GanttTimeline
         data={data}
         editable
         statusOptions={GANTT_STATUS_OPTIONS}
@@ -5859,203 +6232,13 @@ function EditableDemo() {
 }
 `,
   },
-  "grid-layout-news-01": {
-    demo: `﻿"use client";
-
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { GridLayoutNews01 } from "./grid-layout-news-01";
-import { useMagazineFilter } from "./hooks/use-magazine-filter";
-import { DEMO_ARTICLES, type DemoArticle } from "./dummy-data";
-import type { GridLayoutItemSlot } from "./types";
-
-/**
- * Demo cards inlined here (rather than importing sibling registry components)
- * to keep the registry's sealed-folder convention. The cards mimic the
- * visual rhythm consumers would compose using content-card-news-01 in real
- * applications.
- */
-function DemoCard({
-  article,
-  slot,
-}: {
-  article: DemoArticle;
-  slot: GridLayoutItemSlot;
-}) {
-  const isLarge = slot === "large";
-  return (
-    <article
-      className={\`group flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 bg-card transition-all duration-300 hover:shadow-xl \${
-        isLarge ? "md:flex-row" : ""
-      }\`}
-    >
-      <div
-        className={\`relative bg-linear-to-br from-primary/40 to-accent/40 \${
-          isLarge ? "h-48 md:h-auto md:w-1/2" : "h-48"
-        }\`}
-      >
-        <div className="absolute left-4 top-4">
-          <Badge variant="secondary">{article.category}</Badge>
-        </div>
-      </div>
-      <div className={\`flex flex-1 flex-col p-6 \${isLarge ? "md:p-8" : ""}\`}>
-        <h3
-          className={\`mb-2 font-bold transition-colors line-clamp-2 group-hover:text-primary \${
-            isLarge ? "text-2xl md:text-3xl" : "text-xl"
-          }\`}
-        >
-          {article.title}
-        </h3>
-        <p className="mb-4 flex-1 text-sm text-muted-foreground line-clamp-3">
-          {article.excerpt}
-        </p>
-        <p className="mt-auto pt-4 border-t border-border/50 text-xs text-muted-foreground">
-          {article.date}
-        </p>
-      </div>
-    </article>
-  );
-}
-
-function FeaturedCard({ article }: { article: DemoArticle }) {
-  return (
-    <article className="group relative h-80 overflow-hidden rounded-2xl bg-linear-to-br from-primary/60 via-primary/40 to-accent/40 md:h-96">
-      <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
-      <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
-        <Badge className="mb-4 w-fit bg-black/40 text-white backdrop-blur-sm">
-          {article.category}
-        </Badge>
-        <h2 className="mb-4 text-3xl font-bold leading-tight text-white md:text-4xl lg:text-5xl">
-          {article.title}
-        </h2>
-        <p className="max-w-3xl text-lg text-white/80 line-clamp-2">
-          {article.excerpt}
-        </p>
-      </div>
-    </article>
-  );
-}
-
-function DemoFilterBar({ onSearch }: { onSearch: (s: string) => void }) {
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative w-full max-w-xl">
-        <Input
-          placeholder="Search articles…"
-          onChange={(e) => onSearch(e.target.value.toLowerCase())}
-          className="h-12 rounded-xl"
-        />
-      </div>
-    </div>
-  );
-}
-
-function DemoSidebar() {
-  return (
-    <>
-      <div className="rounded-2xl border border-border/50 bg-card p-6">
-        <h3 className="mb-4 border-b border-border pb-2 font-bold text-foreground">
-          Categories
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {["Urban", "Sustainability", "Tech", "Events", "Research"].map((c) => (
-            <Badge key={c} variant="secondary" className="cursor-pointer">
-              {c}
-            </Badge>
-          ))}
-        </div>
-      </div>
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-        <h3 className="mb-2 font-bold text-foreground">Join our newsletter</h3>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Latest stories, weekly.
-        </p>
-        <Button className="w-full">Subscribe</Button>
-      </div>
-    </>
-  );
-}
-
-export default function GridLayoutNews01Demo() {
-  const [search, setSearch] = useState("");
-
-  const filtered = useMagazineFilter<DemoArticle>({
-    items: DEMO_ARTICLES,
-    pageSize: 6,
-    isFeatured: (a) => Boolean(a.featured),
-    filterPredicate: search
-      ? (a) => a.title.toLowerCase().includes(search)
-      : undefined,
-    simulatedLoadingMs: 500,
-  });
-
-  return (
-    <Tabs defaultValue="composed" className="w-full">
-      <SwipeTabsList>
-        <TabsTrigger value="composed">Slot composition</TabsTrigger>
-        <TabsTrigger value="bare">Bare layout</TabsTrigger>
-        <TabsTrigger value="empty">Empty state</TabsTrigger>
-      </SwipeTabsList>
-
-      <TabsContent value="composed" className="mt-6">
-        <GridLayoutNews01<DemoArticle>
-          displayedItems={filtered.displayedItems}
-          featuredItem={filtered.featuredItem}
-          hasMore={filtered.hasMore}
-          isLoading={filtered.isLoading}
-          onLoadMore={filtered.loadMore}
-          renderItem={({ item: article, slot }) => (
-            <DemoCard article={article} slot={slot} />
-          )}
-          renderFeatured={(article) => <FeaturedCard article={article} />}
-          filterBar={<DemoFilterBar onSearch={setSearch} />}
-          sidebar={<DemoSidebar />}
-        />
-      </TabsContent>
-
-      <TabsContent value="bare" className="mt-6">
-        <GridLayoutNews01<DemoArticle>
-          displayedItems={DEMO_ARTICLES.slice(0, 6)}
-          renderItem={({ item: article, slot }) => (
-            <DemoCard article={article} slot={slot} />
-          )}
-        />
-      </TabsContent>
-
-      <TabsContent value="empty" className="mt-6">
-        <GridLayoutNews01<DemoArticle>
-          displayedItems={[]}
-          renderItem={({ item: article, slot }) => (
-            <DemoCard article={article} slot={slot} />
-          )}
-          emptyState={
-            <div className="space-y-2">
-              <p className="text-lg font-semibold text-foreground">
-                No articles yet
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Check back soon — we publish weekly.
-              </p>
-            </div>
-          }
-        />
-      </TabsContent>
-    </Tabs>
-  );
-}
-`,
-  },
-  "info-list-01": {
+  "info-list": {
     demo: `﻿"use client";
 
 import { CircleUser } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { InfoList01 } from "./info-list-01";
+import { InfoList } from "./info-list";
 import {
   dummyContactItems,
   dummyContactItemsTr,
@@ -6095,7 +6278,7 @@ const peopleItemsAsInfoListItems: InfoListItem[] = peopleItems.map((p) => ({
   secondary: p.role,
 }));
 
-export default function InfoList01Demo() {
+export default function InfoListDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -6109,7 +6292,7 @@ export default function InfoList01Demo() {
       {/* 1. Default — kasder Etkinlik Bilgileri verbatim */}
       <TabsContent value="default" className="mt-6">
         <div className="max-w-md mx-auto">
-          <InfoList01
+          <InfoList
             heading="Etkinlik Bilgileri"
             variant="comfortable"
             items={dummyEventDetailsTr}
@@ -6120,7 +6303,7 @@ export default function InfoList01Demo() {
       {/* 2. Compact — kasder İletişim verbatim */}
       <TabsContent value="compact" className="mt-6">
         <div className="max-w-md mx-auto">
-          <InfoList01
+          <InfoList
             heading="İletişim"
             variant="compact"
             items={dummyContactItemsTr}
@@ -6131,12 +6314,12 @@ export default function InfoList01Demo() {
       {/* 3. Both stacked — full sidebar shape */}
       <TabsContent value="stacked" className="mt-6">
         <div className="max-w-md mx-auto space-y-6">
-          <InfoList01
+          <InfoList
             heading="Etkinlik Bilgileri"
             variant="comfortable"
             items={dummyEventDetailsTr}
           />
-          <InfoList01
+          <InfoList
             heading="İletişim"
             variant="compact"
             items={dummyContactItemsTr}
@@ -6149,7 +6332,7 @@ export default function InfoList01Demo() {
         <div className="max-w-md mx-auto rounded-2xl border border-border/50 bg-card p-6 space-y-6">
           <div>
             <h2 className="text-xl font-bold mb-4">Listing Details</h2>
-            <InfoList01
+            <InfoList
               framed={false}
               variant="comfortable"
               items={dummyEventDetails}
@@ -6157,7 +6340,7 @@ export default function InfoList01Demo() {
           </div>
           <div>
             <h2 className="text-xl font-bold mb-4">Contact</h2>
-            <InfoList01
+            <InfoList
               framed={false}
               variant="compact"
               items={dummyContactItems}
@@ -6173,7 +6356,7 @@ export default function InfoList01Demo() {
             <code>renderItem(item)</code> — full row takeover. Here: avatar
             replaces the icon column for a speaker list.
           </p>
-          <InfoList01
+          <InfoList
             heading="Konuşmacılar"
             variant="comfortable"
             items={peopleItemsAsInfoListItems}
@@ -6414,7 +6597,7 @@ function RichFieldsTab() {
   return (
     <Section
       title="Rich fields"
-      caption="\`code\` (lazy-loads CodeMirror via \`@ilinxa/code-block\`), \`richtext\` (lazy-loads Plate via \`@ilinxa/article-body-01\`), \`slider\`, and \`rating\`."
+      caption="\`code\` (lazy-loads CodeMirror via \`@ilinxa/code-block\`), \`richtext\` (lazy-loads Plate via \`@ilinxa/rich-text-editor\`), \`slider\`, and \`rating\`."
     >
       <JsonForm
         schema={richFieldsFormSchema}
@@ -6753,38 +6936,38 @@ export default function JsonFormDemo() {
 }
 `,
   },
-  "kanban-board-01": {
+  "kanban-board": {
     demo: `"use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { RichCard } from "@/registry/components/data/rich-card";
-import type { RichCardJsonNode } from "@/registry/components/data/rich-card";
-import { KanbanBoard } from "./kanban-board-01";
+import { CardTree } from "@/registry/components/data/card-tree";
+import type { CardTreeJsonNode } from "@/registry/components/data/card-tree";
+import { KanbanBoard } from "./kanban-board";
 import { kanbanCardRenderer } from "./parts/kanban-card";
 import { kanbanNoteRenderer } from "./parts/kanban-note";
 import type { KanbanCardRenderer, KanbanData } from "./types";
 
-// Rich-card adapter — registers the full <RichCard> as a kanban renderer.
-// Items with rendererId="rich-card" carry a RichCardJsonNode. We use
+// Rich-card adapter — registers the full <CardTree> as a kanban renderer.
+// Items with rendererId="card-tree" carry a CardTreeJsonNode. We use
 // dragHandle="header" so the kanban grip strip handles outer reorder while the
-// RichCard body keeps its click-to-edit + internal DnD intact.
-function makeRichCardRenderer(
-  onItemDataChange: (itemId: string, next: RichCardJsonNode) => void,
-): KanbanCardRenderer<RichCardJsonNode> {
+// CardTree body keeps its click-to-edit + internal DnD intact.
+function makeCardTreeRenderer(
+  onItemDataChange: (itemId: string, next: CardTreeJsonNode) => void,
+): KanbanCardRenderer<CardTreeJsonNode> {
   return {
-    id: "rich-card",
-    label: "Rich card",
+    id: "card-tree",
+    label: "Card tree",
     dragHandle: "header",
     render: (data, ctx) => (
       <div className="rounded-b-md border-x border-b border-border bg-card text-card-foreground shadow-xs">
-        <RichCard
+        <CardTree
           key={ctx.itemId}
           defaultValue={data}
           editable
           defaultCollapsed={(level) => level >= 1}
           metaPresentation="popover"
           onChange={(tree) => onItemDataChange(ctx.itemId, tree)}
-          aria-label={\`Rich card item \${ctx.itemId}\`}
+          aria-label={\`Card tree item \${ctx.itemId}\`}
           className="text-xs"
         />
       </div>
@@ -6825,7 +7008,7 @@ const INITIAL_DATA: KanbanData = {
         },
         {
           id: "item-rich-1",
-          rendererId: "rich-card",
+          rendererId: "card-tree",
           swimlaneId: "lane-product",
           data: {
             __rcid: "rich-onboarding",
@@ -6872,7 +7055,7 @@ const INITIAL_DATA: KanbanData = {
                 ],
               },
             },
-          } satisfies RichCardJsonNode,
+          } satisfies CardTreeJsonNode,
         },
         {
           id: "item-2",
@@ -6893,7 +7076,7 @@ const INITIAL_DATA: KanbanData = {
       items: [
         {
           id: "item-rich-2",
-          rendererId: "rich-card",
+          rendererId: "card-tree",
           swimlaneId: "lane-platform",
           data: {
             __rcid: "rich-migration",
@@ -6928,7 +7111,7 @@ const INITIAL_DATA: KanbanData = {
                   "ALTER TABLE sessions\\n  ADD COLUMN store_version SMALLINT NOT NULL DEFAULT 2;\\n\\nCREATE INDEX CONCURRENTLY idx_sessions_v2\\n  ON sessions (user_id, store_version);",
               },
             },
-          } satisfies RichCardJsonNode,
+          } satisfies CardTreeJsonNode,
         },
         {
           id: "item-4",
@@ -6950,7 +7133,7 @@ const INITIAL_DATA: KanbanData = {
       items: [
         {
           id: "item-rich-3",
-          rendererId: "rich-card",
+          rendererId: "card-tree",
           swimlaneId: "lane-product",
           data: {
             __rcid: "rich-spec",
@@ -6982,7 +7165,7 @@ const INITIAL_DATA: KanbanData = {
               },
             },
             notes: ["soft-deprecate v2 by EOY", "x-version header optional"],
-          } satisfies RichCardJsonNode,
+          } satisfies CardTreeJsonNode,
         },
         {
           id: "item-5",
@@ -7029,13 +7212,13 @@ const INITIAL_DATA: KanbanData = {
   ],
 };
 
-export default function KanbanBoard01Demo() {
+export default function KanbanBoardDemo() {
   const [data, setData] = useState<KanbanData>(INITIAL_DATA);
 
   // Rich-card renderer fires this whenever its inner state changes — we walk
   // the board and replace the matching item's data so kanban stays the source of truth.
-  const updateRichCardData = useCallback(
-    (itemId: string, next: RichCardJsonNode) => {
+  const updateCardTreeData = useCallback(
+    (itemId: string, next: CardTreeJsonNode) => {
       setData((prev) => ({
         ...prev,
         columns: prev.columns.map((col) => ({
@@ -7053,9 +7236,9 @@ export default function KanbanBoard01Demo() {
     () => [
       kanbanCardRenderer,
       kanbanNoteRenderer,
-      makeRichCardRenderer(updateRichCardData),
+      makeCardTreeRenderer(updateCardTreeData),
     ],
-    [updateRichCardData],
+    [updateCardTreeData],
   );
 
   return (
@@ -7066,6 +7249,196 @@ export default function KanbanBoard01Demo() {
         onChange={setData}
       />
     </div>
+  );
+}
+`,
+  },
+  "magazine-layout": {
+    demo: `﻿"use client";
+
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import { MagazineLayout } from "./magazine-layout";
+import { useMagazineFilter } from "./hooks/use-magazine-filter";
+import { DEMO_ARTICLES, type DemoArticle } from "./dummy-data";
+import type { MagazineLayoutItemSlot } from "./types";
+
+/**
+ * Demo cards inlined here (rather than importing sibling registry components)
+ * to keep the registry's sealed-folder convention. The cards mimic the
+ * visual rhythm consumers would compose using news-card in real
+ * applications.
+ */
+function DemoCard({
+  article,
+  slot,
+}: {
+  article: DemoArticle;
+  slot: MagazineLayoutItemSlot;
+}) {
+  const isLarge = slot === "large";
+  return (
+    <article
+      className={\`group flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 bg-card transition-all duration-300 hover:shadow-xl \${
+        isLarge ? "md:flex-row" : ""
+      }\`}
+    >
+      <div
+        className={\`relative bg-linear-to-br from-primary/40 to-accent/40 \${
+          isLarge ? "h-48 md:h-auto md:w-1/2" : "h-48"
+        }\`}
+      >
+        <div className="absolute left-4 top-4">
+          <Badge variant="secondary">{article.category}</Badge>
+        </div>
+      </div>
+      <div className={\`flex flex-1 flex-col p-6 \${isLarge ? "md:p-8" : ""}\`}>
+        <h3
+          className={\`mb-2 font-bold transition-colors line-clamp-2 group-hover:text-primary \${
+            isLarge ? "text-2xl md:text-3xl" : "text-xl"
+          }\`}
+        >
+          {article.title}
+        </h3>
+        <p className="mb-4 flex-1 text-sm text-muted-foreground line-clamp-3">
+          {article.excerpt}
+        </p>
+        <p className="mt-auto pt-4 border-t border-border/50 text-xs text-muted-foreground">
+          {article.date}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function FeaturedCard({ article }: { article: DemoArticle }) {
+  return (
+    <article className="group relative h-80 overflow-hidden rounded-2xl bg-linear-to-br from-primary/60 via-primary/40 to-accent/40 md:h-96">
+      <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
+      <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
+        <Badge className="mb-4 w-fit bg-black/40 text-white backdrop-blur-sm">
+          {article.category}
+        </Badge>
+        <h2 className="mb-4 text-3xl font-bold leading-tight text-white md:text-4xl lg:text-5xl">
+          {article.title}
+        </h2>
+        <p className="max-w-3xl text-lg text-white/80 line-clamp-2">
+          {article.excerpt}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function DemoFilterBar({ onSearch }: { onSearch: (s: string) => void }) {
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative w-full max-w-xl">
+        <Input
+          placeholder="Search articles…"
+          onChange={(e) => onSearch(e.target.value.toLowerCase())}
+          className="h-12 rounded-xl"
+        />
+      </div>
+    </div>
+  );
+}
+
+function DemoSidebar() {
+  return (
+    <>
+      <div className="rounded-2xl border border-border/50 bg-card p-6">
+        <h3 className="mb-4 border-b border-border pb-2 font-bold text-foreground">
+          Categories
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {["Urban", "Sustainability", "Tech", "Events", "Research"].map((c) => (
+            <Badge key={c} variant="secondary" className="cursor-pointer">
+              {c}
+            </Badge>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
+        <h3 className="mb-2 font-bold text-foreground">Join our newsletter</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Latest stories, weekly.
+        </p>
+        <Button className="w-full">Subscribe</Button>
+      </div>
+    </>
+  );
+}
+
+export default function MagazineLayoutDemo() {
+  const [search, setSearch] = useState("");
+
+  const filtered = useMagazineFilter<DemoArticle>({
+    items: DEMO_ARTICLES,
+    pageSize: 6,
+    isFeatured: (a) => Boolean(a.featured),
+    filterPredicate: search
+      ? (a) => a.title.toLowerCase().includes(search)
+      : undefined,
+    simulatedLoadingMs: 500,
+  });
+
+  return (
+    <Tabs defaultValue="composed" className="w-full">
+      <SwipeTabsList>
+        <TabsTrigger value="composed">Slot composition</TabsTrigger>
+        <TabsTrigger value="bare">Bare layout</TabsTrigger>
+        <TabsTrigger value="empty">Empty state</TabsTrigger>
+      </SwipeTabsList>
+
+      <TabsContent value="composed" className="mt-6">
+        <MagazineLayout<DemoArticle>
+          displayedItems={filtered.displayedItems}
+          featuredItem={filtered.featuredItem}
+          hasMore={filtered.hasMore}
+          isLoading={filtered.isLoading}
+          onLoadMore={filtered.loadMore}
+          renderItem={({ item: article, slot }) => (
+            <DemoCard article={article} slot={slot} />
+          )}
+          renderFeatured={(article) => <FeaturedCard article={article} />}
+          filterBar={<DemoFilterBar onSearch={setSearch} />}
+          sidebar={<DemoSidebar />}
+        />
+      </TabsContent>
+
+      <TabsContent value="bare" className="mt-6">
+        <MagazineLayout<DemoArticle>
+          displayedItems={DEMO_ARTICLES.slice(0, 6)}
+          renderItem={({ item: article, slot }) => (
+            <DemoCard article={article} slot={slot} />
+          )}
+        />
+      </TabsContent>
+
+      <TabsContent value="empty" className="mt-6">
+        <MagazineLayout<DemoArticle>
+          displayedItems={[]}
+          renderItem={({ item: article, slot }) => (
+            <DemoCard article={article} slot={slot} />
+          )}
+          emptyState={
+            <div className="space-y-2">
+              <p className="text-lg font-semibold text-foreground">
+                No articles yet
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Check back soon — we publish weekly.
+              </p>
+            </div>
+          }
+        />
+      </TabsContent>
+    </Tabs>
   );
 }
 `,
@@ -7399,29 +7772,29 @@ export default function MarkdownEditorDemo() {
 }
 `,
   },
-  "media-carousel-01": {
+  "media-carousel": {
     demo: `﻿"use client";
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { MediaCarousel01 } from "./media-carousel-01";
+import { MediaCarousel } from "./media-carousel";
 import {
   DUMMY_MIXED_MEDIA,
   DUMMY_PRODUCT_PHOTOS,
   DUMMY_SINGLE_IMAGE,
   DUMMY_SINGLE_VIDEO,
 } from "./dummy-data";
-import type { MediaCarousel01Handle } from "./types";
+import type { MediaCarouselHandle } from "./types";
 
 function ImperativeRefDemo() {
-  const ref = useRef<MediaCarousel01Handle>(null);
+  const ref = useRef<MediaCarouselHandle>(null);
   const [currentIdx, setCurrentIdx] = useState(0);
 
   return (
     <div className="space-y-3">
-      <MediaCarousel01
+      <MediaCarousel
         ref={ref}
         items={DUMMY_MIXED_MEDIA}
         variant="gallery"
@@ -7469,7 +7842,7 @@ function ImperativeRefDemo() {
   );
 }
 
-export default function MediaCarousel01Demo() {
+export default function MediaCarouselDemo() {
   return (
     <Tabs defaultValue="gallery">
       <SwipeTabsList>
@@ -7481,7 +7854,7 @@ export default function MediaCarousel01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="gallery" className="mt-6 space-y-3">
-        <MediaCarousel01
+        <MediaCarousel
           items={DUMMY_MIXED_MEDIA}
           variant="gallery"
           onDoubleTap={(item, idx) =>
@@ -7492,12 +7865,12 @@ export default function MediaCarousel01Demo() {
           Instagram-style peek-scale gallery. Double-tap any slide → console
           log. The video at index 3 auto-pauses when you swipe to other
           slides — that&apos;s the <code>isActive</code> contract from{" "}
-          <code>video-player-01</code>.
+          <code>video-player</code>.
         </p>
       </TabsContent>
 
       <TabsContent value="linear" className="mt-6 space-y-3">
-        <MediaCarousel01
+        <MediaCarousel
           items={DUMMY_PRODUCT_PHOTOS}
           variant="linear"
           aspect="video"
@@ -7514,7 +7887,7 @@ export default function MediaCarousel01Demo() {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Single image (no nav, no indicators, no scale)
           </p>
-          <MediaCarousel01
+          <MediaCarousel
             items={DUMMY_SINGLE_IMAGE}
             variant="gallery"
             onDoubleTap={(item) => console.log("[demo] single tap", item.id)}
@@ -7524,12 +7897,12 @@ export default function MediaCarousel01Demo() {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Single video (no nav, no indicators, no scale)
           </p>
-          <MediaCarousel01 items={DUMMY_SINGLE_VIDEO} variant="gallery" />
+          <MediaCarousel items={DUMMY_SINGLE_VIDEO} variant="gallery" />
         </div>
       </TabsContent>
 
       <TabsContent value="custom" className="mt-6 space-y-3">
-        <MediaCarousel01
+        <MediaCarousel
           items={DUMMY_MIXED_MEDIA}
           variant="gallery"
           renderItem={(item, ctx) => (
@@ -7578,143 +7951,11 @@ export default function MediaCarousel01Demo() {
 }
 `,
   },
-  "media-carousel-editor-01": {
+  "media-editor": {
     demo: `"use client";
 
 import * as React from "react";
-import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { Button } from "@/components/ui/button";
-import { MediaCarouselEditor01 } from "./media-carousel-editor-01";
-import type {
-  MediaCarouselEditor01Handle,
-  MediaCarouselItem,
-} from "./types";
-import { dummyCarouselItems } from "./dummy-data";
-
-function Status({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="mt-3 font-mono text-xs text-muted-foreground">{children}</p>
-  );
-}
-
-function EmptyTab() {
-  const [count, setCount] = React.useState(0);
-  return (
-    <div className="mx-auto max-w-md">
-      <MediaCarouselEditor01
-        onChange={(items) => setCount(items.length)}
-        editorProps={{ enabledTools: ["crop", "filters", "adjust", "text"] }}
-      />
-      <Status>
-        Drop or browse photos + videos. {count} item{count === 1 ? "" : "s"}.
-      </Status>
-    </div>
-  );
-}
-
-function SeededTab() {
-  return (
-    <div className="mx-auto max-w-md">
-      <MediaCarouselEditor01
-        defaultValue={dummyCarouselItems}
-        editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
-      />
-      <Status>
-        Seeded from remote URLs (CMS re-edit). Select a thumb, drag to reorder,
-        press Edit on a photo. Video Edit is deferred to v0.2.
-      </Status>
-    </div>
-  );
-}
-
-function ControlledTab() {
-  const [items, setItems] = React.useState<MediaCarouselItem[]>([]);
-  const ref = React.useRef<MediaCarouselEditor01Handle>(null);
-  const [exported, setExported] = React.useState<number | null>(null);
-
-  return (
-    <div className="mx-auto max-w-md">
-      <MediaCarouselEditor01
-        ref={ref}
-        value={items}
-        onChange={setItems}
-      />
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          onClick={async () => {
-            const out = await ref.current?.export();
-            setExported(out?.length ?? 0);
-          }}
-        >
-          Export (publish)
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => ref.current?.reset()}>
-          Reset
-        </Button>
-      </div>
-      <Status>
-        Controlled: {items.length} item{items.length === 1 ? "" : "s"} ·{" "}
-        {items.filter((i) => i.kind === "image").length} photo /{" "}
-        {items.filter((i) => i.kind === "video").length} video
-        {exported !== null ? \` · last export → \${exported} items\` : ""}
-      </Status>
-    </div>
-  );
-}
-
-function MaxTab() {
-  const [warn, setWarn] = React.useState<string | null>(null);
-  return (
-    <div className="mx-auto max-w-md">
-      <MediaCarouselEditor01
-        maxItems={3}
-        defaultValue={dummyCarouselItems.slice(0, 2)}
-        onMaxItemsExceeded={(attempted, max) =>
-          setWarn(\`Tried \${attempted}, cap is \${max}.\`)
-        }
-      />
-      <Status>
-        Cap is 3. {warn ?? "Add more until the tile disappears."}
-      </Status>
-    </div>
-  );
-}
-
-export default function MediaCarouselEditor01Demo() {
-  const [tab, setTab] = React.useState("seeded");
-  return (
-    <Tabs value={tab} onValueChange={setTab} className="w-full">
-      <SwipeTabsList>
-        <TabsTrigger value="empty">Empty</TabsTrigger>
-        <TabsTrigger value="seeded">Seeded (re-edit)</TabsTrigger>
-        <TabsTrigger value="controlled">Controlled + export</TabsTrigger>
-        <TabsTrigger value="max">Max 3</TabsTrigger>
-      </SwipeTabsList>
-
-      <TabsContent value="empty" className="pt-4">
-        <EmptyTab />
-      </TabsContent>
-      <TabsContent value="seeded" className="pt-4">
-        <SeededTab />
-      </TabsContent>
-      <TabsContent value="controlled" className="pt-4">
-        <ControlledTab />
-      </TabsContent>
-      <TabsContent value="max" className="pt-4">
-        <MaxTab />
-      </TabsContent>
-    </Tabs>
-  );
-}
-`,
-  },
-  "media-editor-01": {
-    demo: `"use client";
-
-import * as React from "react";
-import { MediaEditor01 } from "./media-editor-01";
+import { MediaEditor } from "./media-editor";
 import {
   SAMPLE_BRAND_STICKERS,
   SAMPLE_CHAT_IMAGE_URL,
@@ -7723,12 +7964,12 @@ import {
 } from "./dummy-data";
 import type {
   InitialSource,
-  MediaEditor01Handle,
+  MediaEditorHandle,
   SourceError,
 } from "./types";
 
 /**
- * media-editor-01 demo (C12) — five tabs covering the principal
+ * media-editor demo (C12) — five tabs covering the principal
  * consumer surfaces:
  *
  *   - Defaults   — bare editor with all default capabilities.
@@ -7749,7 +7990,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "dark", label: "Dark" },
 ];
 
-export default function MediaEditor01Demo() {
+export default function MediaEditorDemo() {
   const [tab, setTab] = React.useState<Tab>("defaults");
 
   return (
@@ -7790,7 +8031,7 @@ export default function MediaEditor01Demo() {
 // ─── Defaults ─────────────────────────────────────────────────────────
 
 function DefaultsDemo() {
-  const editorRef = React.useRef<MediaEditor01Handle>(null);
+  const editorRef = React.useRef<MediaEditorHandle>(null);
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">
@@ -7800,7 +8041,7 @@ function DefaultsDemo() {
         on tab switch; auto-resolve would otherwise pick <code>dialog</code>{" "}
         for capture-enabled instances and need an <code>isOpen</code> handler.
       </p>
-      <MediaEditor01 ref={editorRef} presentation="inline" />
+      <MediaEditor ref={editorRef} presentation="inline" />
       <DemoActions editorRef={editorRef} />
     </div>
   );
@@ -7809,7 +8050,7 @@ function DefaultsDemo() {
 // ─── News-hero ────────────────────────────────────────────────────────
 
 function NewsHeroDemo() {
-  const editorRef = React.useRef<MediaEditor01Handle>(null);
+  const editorRef = React.useRef<MediaEditorHandle>(null);
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">
@@ -7819,7 +8060,7 @@ function NewsHeroDemo() {
         <code>crop</code>) — no stickers, no drawing.
         <code>enabledModes</code> is empty so the capture surface is gone.
       </p>
-      <MediaEditor01
+      <MediaEditor
         ref={editorRef}
         aspect="16:9"
         presentation="inline"
@@ -7836,7 +8077,7 @@ function NewsHeroDemo() {
 // ─── Chat ─────────────────────────────────────────────────────────────
 
 function ChatDemo() {
-  const editorRef = React.useRef<MediaEditor01Handle>(null);
+  const editorRef = React.useRef<MediaEditorHandle>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <div className="flex flex-col gap-3">
@@ -7853,7 +8094,7 @@ function ChatDemo() {
       >
         Open editor
       </button>
-      <MediaEditor01
+      <MediaEditor
         ref={editorRef}
         aspect="9:16"
         presentation="dialog"
@@ -7879,7 +8120,7 @@ type EditOnlyPreset =
   | "file-unsupported";
 
 function EditOnlyDemo() {
-  const editorRef = React.useRef<MediaEditor01Handle>(null);
+  const editorRef = React.useRef<MediaEditorHandle>(null);
   const [preset, setPreset] = React.useState<EditOnlyPreset>("url-photo");
   const [lastError, setLastError] = React.useState<SourceError | null>(null);
   const [exportPreview, setExportPreview] = React.useState<{
@@ -8000,7 +8241,7 @@ function EditOnlyDemo() {
         ) : null}
       </div>
 
-      <MediaEditor01
+      <MediaEditor
         ref={editorRef}
         aspect="free"
         presentation="inline"
@@ -8080,7 +8321,7 @@ function EditOnlyDemo() {
 // ─── Dark ─────────────────────────────────────────────────────────────
 
 function DarkDemo() {
-  const editorRef = React.useRef<MediaEditor01Handle>(null);
+  const editorRef = React.useRef<MediaEditorHandle>(null);
   return (
     <div className="dark flex flex-col gap-3 rounded-xl border border-border bg-background p-4 text-foreground">
       <p className="text-xs text-muted-foreground">
@@ -8089,7 +8330,7 @@ function DarkDemo() {
         <code>globals.css</code> holds across the editor chrome + canvas
         placeholder + toolbar.
       </p>
-      <MediaEditor01 ref={editorRef} presentation="inline" />
+      <MediaEditor ref={editorRef} presentation="inline" />
       <DemoActions editorRef={editorRef} />
     </div>
   );
@@ -8100,7 +8341,7 @@ function DarkDemo() {
 function DemoActions({
   editorRef,
 }: {
-  editorRef: React.RefObject<MediaEditor01Handle | null>;
+  editorRef: React.RefObject<MediaEditorHandle | null>;
 }) {
   return (
     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -8166,13 +8407,13 @@ function replaceErrors(_key: string, value: unknown): unknown {
 }
 `,
   },
-  "media-library-01": {
+  "media-library": {
     demo: `"use client";
 
 import * as React from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { MediaLibrary01 } from "./media-library-01";
+import { MediaLibrary } from "./media-library";
 import { MediaLibraryRoot } from "./parts/media-library-root";
 import { MediaLibraryBreadcrumbs } from "./parts/breadcrumbs";
 import { MediaLibraryFolderRow } from "./parts/folder-row";
@@ -8295,7 +8536,7 @@ function useLibraryState() {
   return { nodes, onUpload, onMove, onRename, onDelete, onCreateFolder };
 }
 
-export default function MediaLibrary01Demo() {
+export default function MediaLibraryDemo() {
   const full = useLibraryState();
   const lighter = useLibraryState();
 
@@ -8309,7 +8550,7 @@ export default function MediaLibrary01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="full" className="pt-4">
-        <MediaLibrary01
+        <MediaLibrary
           nodes={full.nodes}
           storage={MEDIA_LIBRARY_STORAGE}
           pdfWorkerSrc={\`https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.296/build/pdf.worker.min.mjs\`}
@@ -8344,7 +8585,7 @@ export default function MediaLibrary01Demo() {
 
       <TabsContent value="readonly" className="pt-4">
         {/* No mutation handlers → every mutate affordance hides automatically. */}
-        <MediaLibrary01 nodes={FULL_TREE} storage={MEDIA_LIBRARY_STORAGE} showSidebar={false} />
+        <MediaLibrary nodes={FULL_TREE} storage={MEDIA_LIBRARY_STORAGE} showSidebar={false} />
       </TabsContent>
 
       <TabsContent value="dispatcher" className="pt-4">
@@ -8364,19 +8605,396 @@ export default function MediaLibrary01Demo() {
 }
 `,
   },
-  "newsletter-card-01": {
+  "news-card": {
+    demo: `"use client";
+
+import { useState } from "react";
+import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import { NewsCard } from "./news-card";
+import {
+  breakingNewsItem,
+  draftItem,
+  dummyCategoryStyles,
+  dummyNewsCardItems,
+  editorsPickItem,
+  paywalledItem,
+  quotingItem,
+  sensitiveItem,
+  sponsoredItem,
+} from "./dummy-data";
+
+const items = dummyNewsCardItems;
+
+function CardActions({
+  itemId,
+  bookmarked,
+  onToggle,
+}: {
+  itemId: string;
+  bookmarked: boolean;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <div className="flex gap-2">
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onToggle(itemId);
+        }}
+        aria-label={bookmarked ? "Remove bookmark" : "Bookmark article"}
+      >
+        {bookmarked ? (
+          <BookmarkCheck aria-hidden="true" className="size-4" />
+        ) : (
+          <Bookmark aria-hidden="true" className="size-4" />
+        )}
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        aria-label="Share article"
+      >
+        <Share2 aria-hidden="true" className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+export default function NewsCardDemo() {
+  const [bookmarks, setBookmarks] = useState<Set<string>>(() => new Set());
+
+  const toggleBookmark = (id: string) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const featured = items[0];
+  const large = items[1];
+  const mediums = items.slice(2, 6);
+  const smalls = items.slice(2, 6);
+  const lists = items.slice(0, 5);
+
+  const log = (label: string) => () =>
+    console.log(\`[news-card demo] \${label}\`);
+
+  return (
+    <Tabs defaultValue="featured" className="w-full">
+      <SwipeTabsList>
+        <TabsTrigger value="featured">Featured</TabsTrigger>
+        <TabsTrigger value="large">Large</TabsTrigger>
+        <TabsTrigger value="medium">Medium</TabsTrigger>
+        <TabsTrigger value="small">Small</TabsTrigger>
+        <TabsTrigger value="list">List</TabsTrigger>
+        <TabsTrigger value="composed">Composed</TabsTrigger>
+        <TabsTrigger value="actions">Actions slot</TabsTrigger>
+        <TabsTrigger value="editor">Editor mode</TabsTrigger>
+        <TabsTrigger value="paywall">Paywall</TabsTrigger>
+        <TabsTrigger value="sensitive">Sensitive</TabsTrigger>
+        <TabsTrigger value="quoted">Quoted article</TabsTrigger>
+        <TabsTrigger value="engagement">Engagement</TabsTrigger>
+      </SwipeTabsList>
+
+      <TabsContent value="featured" className="mt-6">
+        <NewsCard
+          item={featured}
+          variant="featured"
+          href={\`/news/\${featured.id}\`}
+          categoryStyles={dummyCategoryStyles}
+        />
+      </TabsContent>
+
+      <TabsContent value="large" className="mt-6">
+        <NewsCard
+          item={large}
+          variant="large"
+          href={\`/news/\${large.id}\`}
+          categoryStyles={dummyCategoryStyles}
+        />
+      </TabsContent>
+
+      <TabsContent value="medium" className="mt-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {mediums.map((item) => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              variant="medium"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="small" className="mt-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          {smalls.map((item) => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              variant="small"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="list" className="mt-6">
+        <div className="rounded-2xl border border-border/50 bg-card p-4">
+          {lists.map((item) => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              variant="list"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="composed" className="mt-6">
+        <div className="space-y-8">
+          <NewsCard
+            item={featured}
+            variant="featured"
+            href={\`/news/\${featured.id}\`}
+            categoryStyles={dummyCategoryStyles}
+          />
+          <div className="grid gap-6 lg:grid-cols-12">
+            <div className="space-y-6 lg:col-span-8">
+              <NewsCard
+                item={large}
+                variant="large"
+                href={\`/news/\${large.id}\`}
+                categoryStyles={dummyCategoryStyles}
+              />
+              <div className="grid gap-6 md:grid-cols-2">
+                {items.slice(2, 6).map((item) => (
+                  <NewsCard
+                    key={item.id}
+                    item={item}
+                    variant="medium"
+                    href={\`/news/\${item.id}\`}
+                    categoryStyles={dummyCategoryStyles}
+                  />
+                ))}
+              </div>
+            </div>
+            <aside className="lg:col-span-4">
+              <div className="rounded-2xl border border-border/50 bg-card p-4">
+                {items.slice(2, 6).map((item) => (
+                  <NewsCard
+                    key={item.id}
+                    item={item}
+                    variant="list"
+                    href={\`/news/\${item.id}\`}
+                    categoryStyles={dummyCategoryStyles}
+                  />
+                ))}
+              </div>
+            </aside>
+          </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="actions" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Click the bookmark or share buttons — they sit ABOVE the link
+          overlay (z-10) and don&apos;t trigger card navigation. Click anywhere
+          else on the card and you navigate normally.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {items.slice(0, 3).map((item) => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              variant="medium"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+              actions={
+                <CardActions
+                  itemId={item.id}
+                  bookmarked={bookmarks.has(item.id)}
+                  onToggle={toggleBookmark}
+                />
+              }
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="editor" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          <strong>viewerMode=&quot;editor&quot;</strong> — kebab shows editor
+          actions (Edit / Publish / Schedule / Feature / Pin / Change visibility /
+          Change category / Mark sensitive / See analytics / Delete). Draft status
+          badge renders only in editor mode. Open the kebab on any card.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[editorsPickItem, draftItem, sponsoredItem].map((item) => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              variant="medium"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+              viewerMode="editor"
+              onEdit={log(\`onEdit(\${item.id})\`)}
+              onDelete={log(\`onDelete(\${item.id})\`)}
+              onPublish={log(\`onPublish(\${item.id})\`)}
+              onSchedule={log(\`onSchedule(\${item.id})\`)}
+              onFeature={log(\`onFeature(\${item.id})\`)}
+              onPin={log(\`onPin(\${item.id})\`)}
+              onChangeVisibility={log(\`onChangeVisibility(\${item.id})\`)}
+              onChangeCategory={log(\`onChangeCategory(\${item.id})\`)}
+              onMarkSensitive={log(\`onMarkSensitive(\${item.id})\`)}
+              onSeeAnalytics={log(\`onSeeAnalytics(\${item.id})\`)}
+              onShare={log(\`onShare(\${item.id})\`)}
+              onBookmark={log(\`onBookmark(\${item.id})\`)}
+            />
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="paywall" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Premium content gate. Excerpt + media blurred behind a Subscribe CTA.
+          Preview text shows above the gate. Open the console — clicking the CTA
+          fires <code>onRevealPaywall</code> as an analytics hook.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <NewsCard
+            item={paywalledItem}
+            variant="medium"
+            href={\`/news/\${paywalledItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealPaywall={log(\`onRevealPaywall(\${paywalledItem.id})\`)}
+          />
+          <NewsCard
+            item={paywalledItem}
+            variant="large"
+            href={\`/news/\${paywalledItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealPaywall={log(\`onRevealPaywall(\${paywalledItem.id})\`)}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="sensitive" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Sensitive content gate — media-only blur with reveal button. Distinct
+          from paywall (different motivation). Lists content warnings when set.
+          Reveal is per-session; reset via the handle&apos;s{" "}
+          <code>reset(item)</code>. Small variant uses the gate&apos;s{" "}
+          <code>compact</code> mode (icon + tiny &quot;Show&quot; pill) since
+          its 96×96 thumb can&apos;t fit the full overlay.
+        </p>
+        <div className="space-y-6">
+          <NewsCard
+            item={sensitiveItem}
+            variant="medium"
+            href={\`/news/\${sensitiveItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealSensitive={log(\`onRevealSensitive(\${sensitiveItem.id})\`)}
+          />
+          <NewsCard
+            item={sensitiveItem}
+            variant="small"
+            href={\`/news/\${sensitiveItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onRevealSensitive={log(\`onRevealSensitive(\${sensitiveItem.id})\`)}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="quoted" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Analysis pieces quoting source articles render a nested compact
+          mini-card (uses <code>variant=&quot;small&quot;</code> internally
+          for the horizontal thumb-left, body-right layout). Recursion-stripped
+          (a quoted article&apos;s own <code>quotedArticle</code> is ignored),
+          and the inner card&apos;s paywall + sensitive gates are suppressed
+          so the quote stays a clean attribution. Renders in <code>medium</code>{" "}
+          + <code>list</code> variants only per the per-variant feature matrix.
+        </p>
+        <div className="space-y-6">
+          <NewsCard
+            item={quotingItem}
+            variant="medium"
+            href={\`/news/\${quotingItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onQuotedClick={(q) => log(\`onQuotedClick(\${q.id})\`)()}
+          />
+          <NewsCard
+            item={quotingItem}
+            variant="list"
+            href={\`/news/\${quotingItem.id}\`}
+            categoryStyles={dummyCategoryStyles}
+            onQuotedClick={(q) => log(\`onQuotedClick(\${q.id})\`)()}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="engagement" className="mt-6">
+        <p className="mb-4 text-sm text-muted-foreground">
+          Light engagement counts — like / comment / bookmark / share chips with
+          handler-driven interactivity. For the news article{" "}
+          <strong>detail page</strong>, consumers pass{" "}
+          <code>renderEngagementCounts</code> to compose{" "}
+          <code>&lt;EngagementBar&gt;</code> in this slot — see the description
+          doc §6.2 for the integration pattern. <code>isLive</code> badge +
+          updated-N-ago sub-line surface live-blog state.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[breakingNewsItem, editorsPickItem, quotingItem].map((item) => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              variant="medium"
+              href={\`/news/\${item.id}\`}
+              categoryStyles={dummyCategoryStyles}
+              onLike={(id, nextLiked) => log(\`onLike(\${id}, \${nextLiked})\`)()}
+              onCommentCountClick={(id) => log(\`onCommentCountClick(\${id})\`)()}
+              onBookmark={(id, next) => log(\`onBookmark(\${id}, \${next})\`)()}
+              onShare={(id) => log(\`onShare(\${id})\`)()}
+            />
+          ))}
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+}
+`,
+  },
+  "newsletter-signup": {
     demo: `﻿"use client";
 
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { NewsletterCard01 } from "./newsletter-card-01";
+import { NewsletterSignup } from "./newsletter-signup";
 import {
-  NEWSLETTER_CARD_LABELS_TR,
+  NEWSLETTER_SIGNUP_LABELS_TR,
   fakeSubmitError,
   fakeSubmitSuccess,
 } from "./dummy-data";
 
-export default function NewsletterCard01Demo() {
+export default function NewsletterSignupDemo() {
   return (
     <Tabs defaultValue="inline-form" className="w-full">
       <SwipeTabsList>
@@ -8388,11 +9006,11 @@ export default function NewsletterCard01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="inline-form" className="mt-6 max-w-md">
-        <NewsletterCard01 onSubmit={fakeSubmitSuccess} />
+        <NewsletterSignup onSubmit={fakeSubmitSuccess} />
       </TabsContent>
 
       <TabsContent value="cta-only" className="mt-6 max-w-md">
-        <NewsletterCard01
+        <NewsletterSignup
           variant="cta-only"
           onSubmit={() => {
             window.alert("Open signup modal (demo placeholder)");
@@ -8401,33 +9019,33 @@ export default function NewsletterCard01Demo() {
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6 max-w-md">
-        <NewsletterCard01
-          labels={NEWSLETTER_CARD_LABELS_TR}
+        <NewsletterSignup
+          labels={NEWSLETTER_SIGNUP_LABELS_TR}
           onSubmit={fakeSubmitSuccess}
         />
       </TabsContent>
 
       <TabsContent value="error" className="mt-6 max-w-md">
-        <NewsletterCard01 onSubmit={fakeSubmitError} />
+        <NewsletterSignup onSubmit={fakeSubmitError} />
       </TabsContent>
 
       <TabsContent value="tones" className="mt-6 grid gap-6 md:grid-cols-3">
-        <NewsletterCard01 tone="primary" onSubmit={fakeSubmitSuccess} />
-        <NewsletterCard01 tone="accent" onSubmit={fakeSubmitSuccess} />
-        <NewsletterCard01 tone="muted" onSubmit={fakeSubmitSuccess} />
+        <NewsletterSignup tone="primary" onSubmit={fakeSubmitSuccess} />
+        <NewsletterSignup tone="accent" onSubmit={fakeSubmitSuccess} />
+        <NewsletterSignup tone="muted" onSubmit={fakeSubmitSuccess} />
       </TabsContent>
     </Tabs>
   );
 }
 `,
   },
-  "page-hero-news-01": {
+  "page-hero": {
     demo: `﻿"use client";
 
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
-import { HeroStats, PageHeroNews01 } from "./page-hero-news-01";
+import { HeroStats, PageHero } from "./page-hero";
 import {
   NEWS_HERO_DEFAULTS,
   NEWS_HERO_DEFAULTS_TR,
@@ -8435,7 +9053,7 @@ import {
   NEWS_HERO_STATS_TR,
 } from "./dummy-data";
 
-export default function PageHeroNews01Demo() {
+export default function PageHeroDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -8447,7 +9065,7 @@ export default function PageHeroNews01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 overflow-hidden rounded-2xl border border-border/50">
-        <PageHeroNews01
+        <PageHero
           badge={NEWS_HERO_DEFAULTS.badge}
           badgeIcon={NEWS_HERO_DEFAULTS.badgeIcon}
           title={NEWS_HERO_DEFAULTS.title}
@@ -8457,7 +9075,7 @@ export default function PageHeroNews01Demo() {
       </TabsContent>
 
       <TabsContent value="stats" className="mt-6 overflow-hidden rounded-2xl border border-border/50">
-        <PageHeroNews01
+        <PageHero
           badge={NEWS_HERO_DEFAULTS.badge}
           badgeIcon={NEWS_HERO_DEFAULTS.badgeIcon}
           title={NEWS_HERO_DEFAULTS.title}
@@ -8465,11 +9083,11 @@ export default function PageHeroNews01Demo() {
           description={NEWS_HERO_DEFAULTS.description}
         >
           <HeroStats stats={NEWS_HERO_STATS_EN} />
-        </PageHeroNews01>
+        </PageHero>
       </TabsContent>
 
       <TabsContent value="cta" className="mt-6 overflow-hidden rounded-2xl border border-border/50">
-        <PageHeroNews01
+        <PageHero
           badge="New: v2.0"
           title="Build faster"
           titleHighlight="Ship sooner"
@@ -8483,7 +9101,7 @@ export default function PageHeroNews01Demo() {
               View docs
             </Button>
           </div>
-        </PageHeroNews01>
+        </PageHero>
       </TabsContent>
 
       <TabsContent value="density" className="mt-6 space-y-4">
@@ -8492,7 +9110,7 @@ export default function PageHeroNews01Demo() {
           Below: compact only (full-screen variants would dominate the demo).
         </p>
         <div className="overflow-hidden rounded-2xl border border-border/50">
-          <PageHeroNews01
+          <PageHero
             density="compact"
             headingAs="h2"
             title="Pricing"
@@ -8502,7 +9120,7 @@ export default function PageHeroNews01Demo() {
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6 overflow-hidden rounded-2xl border border-border/50">
-        <PageHeroNews01
+        <PageHero
           badge={NEWS_HERO_DEFAULTS_TR.badge}
           badgeIcon={NEWS_HERO_DEFAULTS_TR.badgeIcon}
           title={NEWS_HERO_DEFAULTS_TR.title}
@@ -8510,7 +9128,7 @@ export default function PageHeroNews01Demo() {
           description={NEWS_HERO_DEFAULTS_TR.description}
         >
           <HeroStats stats={NEWS_HERO_STATS_TR} />
-        </PageHeroNews01>
+        </PageHero>
       </TabsContent>
     </Tabs>
   );
@@ -8937,13 +9555,13 @@ export default function PdfViewerDemo() {
 }
 `,
   },
-  "people-grid-01": {
+  "people-grid": {
     demo: `﻿"use client";
 
 import { AtSign, Briefcase, Globe } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { PeopleGrid01 } from "./people-grid-01";
+import { PeopleGrid } from "./people-grid";
 import { dummyBoard, dummySpeakers, dummyTeam } from "./dummy-data";
 
 const speakerSocial: Record<
@@ -8955,7 +9573,7 @@ const speakerSocial: Record<
   s3: { handle: "#", site: "#" },
 };
 
-export default function PeopleGrid01Demo() {
+export default function PeopleGridDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -8969,7 +9587,7 @@ export default function PeopleGrid01Demo() {
       {/* 1. Default — kasder Konuşmacılar verbatim */}
       <TabsContent value="default" className="mt-6">
         <div className="max-w-4xl mx-auto">
-          <PeopleGrid01
+          <PeopleGrid
             heading="Konuşmacılar"
             items={dummySpeakers}
             columns={3}
@@ -8985,7 +9603,7 @@ export default function PeopleGrid01Demo() {
             <code>getInitials(name)</code>. Note titles
             (Dr./Prof./Mr./Ms./etc.) are skipped when computing initials.
           </p>
-          <PeopleGrid01
+          <PeopleGrid
             heading="Board of Directors"
             items={dummyBoard}
             columns={5}
@@ -9005,28 +9623,28 @@ export default function PeopleGrid01Demo() {
             <code>avatarSize=&quot;sm&quot;</code> or{" "}
             <code>&quot;md&quot;</code> for narrow containers.
           </p>
-          <PeopleGrid01
+          <PeopleGrid
             heading="2 columns (lg avatar)"
             headingAs="h3"
             items={dummyTeam}
             columns={2}
             avatarSize="lg"
           />
-          <PeopleGrid01
+          <PeopleGrid
             heading="3 columns (lg avatar — kasder default)"
             headingAs="h3"
             items={dummyTeam}
             columns={3}
             avatarSize="lg"
           />
-          <PeopleGrid01
+          <PeopleGrid
             heading="4 columns (md avatar)"
             headingAs="h3"
             items={dummyTeam}
             columns={4}
             avatarSize="md"
           />
-          <PeopleGrid01
+          <PeopleGrid
             heading="5 columns (sm avatar, start-aligned)"
             headingAs="h3"
             items={dummyTeam}
@@ -9047,7 +9665,7 @@ export default function PeopleGrid01Demo() {
             <code>linkComponent</code> works with NextLink / RemixLink /
             etc.
           </p>
-          <PeopleGrid01
+          <PeopleGrid
             heading="Speakers"
             items={dummySpeakers.map((s) => ({
               ...s,
@@ -9065,7 +9683,7 @@ export default function PeopleGrid01Demo() {
             <code>renderItem</code> — full per-card takeover. Here: append a
             social-link row beneath the title.
           </p>
-          <PeopleGrid01
+          <PeopleGrid
             heading="Konuşmacılar"
             items={dummySpeakers}
             columns={3}
@@ -9131,14 +9749,14 @@ export default function PeopleGrid01Demo() {
 }
 `,
   },
-  "post-card-01": {
+  "post-card": {
     demo: `"use client";
 
 import { useMemo, useRef, useState } from "react";
 import { Lock, Star, Trash2, Wand2 } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { PostCard01 } from "./post-card-01";
+import { PostCard } from "./post-card";
 import { defaultPostEngagementActions } from "./lib/defaults";
 import {
   DUMMY_DETAIL_THREAD,
@@ -9164,8 +9782,8 @@ import {
   createDummyEngagementSubscribe,
   generateMoreLikers,
 } from "./dummy-data";
-import type { CommentMenuItem } from "@/registry/components/data/comment-thread-01";
-import type { EngagementAction } from "@/registry/components/data/engagement-bar-01";
+import type { CommentMenuItem } from "@/registry/components/data/comment-thread";
+import type { EngagementAction } from "@/registry/components/data/engagement-bar";
 
 function log(tag: string, payload: unknown) {
   if (typeof console !== "undefined") {
@@ -9177,7 +9795,7 @@ function FeedTab() {
   const likersPageRef = useRef(1);
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_MULTI_IMAGE_POST}
         currentUser={DUMMY_VIEWER}
@@ -9207,7 +9825,7 @@ function FeedTab() {
 function VideoTab() {
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_VIDEO_POST}
         currentUser={DUMMY_VIEWER}
@@ -9225,7 +9843,7 @@ function VideoTab() {
 function CompactTab() {
   return (
     <div className="mx-auto max-w-sm">
-      <PostCard01
+      <PostCard
         variant="compact"
         post={DUMMY_SINGLE_IMAGE_POST}
         onLike={(id, liked) => log("like", { id, liked })}
@@ -9239,7 +9857,7 @@ function CompactTab() {
 function ListTab() {
   return (
     <div className="flex flex-col gap-3">
-      <PostCard01
+      <PostCard
         variant="list"
         post={DUMMY_FEATURED_POST}
         kebabActions={(p) => [
@@ -9252,7 +9870,7 @@ function ListTab() {
         ]}
         getHref={(p) => \`/posts/\${p.id}\`}
       />
-      <PostCard01
+      <PostCard
         variant="list"
         post={DUMMY_TEXT_ONLY_POST}
         kebabActions={(p) => [
@@ -9271,7 +9889,7 @@ function DetailTab() {
   // Bookmark / Share / Copy link / [sep] / Delete.
   return (
     <div className="mx-auto max-w-2xl">
-      <PostCard01
+      <PostCard
         variant="detail"
         post={DUMMY_PINNED_POST}
         currentUser={DUMMY_VIEWER}
@@ -9310,7 +9928,7 @@ function RepostTab() {
   // with engagementActions={()=>[]} suppressing the inner bar.
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_REPOST_POST}
         currentUser={DUMMY_VIEWER}
@@ -9330,7 +9948,7 @@ function PollTab() {
   // with viewer choice highlighted) → closed poll (results + closed label).
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_POLL_POST}
         currentUser={DUMMY_VIEWER}
@@ -9338,14 +9956,14 @@ function PollTab() {
         onVotePoll={(id, optionId) => log("vote-poll", { id, optionId })}
         onLike={(id, liked) => log("like", { id, liked })}
       />
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_POLL_VOTED_POST}
         currentUser={DUMMY_VIEWER}
         viewerMode="viewer"
         onLike={(id, liked) => log("like", { id, liked })}
       />
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_POLL_CLOSED_POST}
         currentUser={DUMMY_VIEWER}
@@ -9361,7 +9979,7 @@ function SensitiveTab() {
   // header (visibility / edited / location / mentions / tags).
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_SENSITIVE_POST}
         currentUser={DUMMY_VIEWER}
@@ -9369,7 +9987,7 @@ function SensitiveTab() {
         onLike={(id, liked) => log("like", { id, liked })}
         onRevealSensitive={(id) => log("reveal-sensitive", id)}
       />
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_LINK_PREVIEW_POST}
         currentUser={DUMMY_VIEWER}
@@ -9377,7 +9995,7 @@ function SensitiveTab() {
         onLike={(id, liked) => log("like", { id, liked })}
         onLinkPreviewClick={(url) => log("link-preview-click", url)}
       />
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_RICH_POST}
         currentUser={DUMMY_VIEWER}
@@ -9387,7 +10005,7 @@ function SensitiveTab() {
         onMentionClick={(mid) => log("mention-click", mid)}
         onTagClick={(tag) => log("tag-click", tag)}
       />
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_REPLY_POST}
         currentUser={DUMMY_VIEWER}
@@ -9402,7 +10020,7 @@ function SensitiveTab() {
 function TextOnlyTab() {
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_LONG_TEXT_POST}
         currentUser={DUMMY_VIEWER}
@@ -9423,7 +10041,7 @@ function RealtimeTab() {
   const commentSubscribe = useMemo(() => createDummyCommentSubscribe(), []);
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="detail"
         post={DUMMY_VIDEO_POST}
         currentUser={DUMMY_VIEWER}
@@ -9446,7 +10064,7 @@ function InlineEngagementTab() {
   const likersPageRef = useRef(1);
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_MULTI_IMAGE_POST}
         currentUser={DUMMY_VIEWER}
@@ -9492,7 +10110,7 @@ function ModeratorTab() {
   // unset so the role-aware default kebab assembly runs.
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_FEATURED_POST}
         currentUser={DUMMY_VIEWER}
@@ -9532,7 +10150,7 @@ function CustomActionsTab() {
   const [extras] = useState({ remixActive: false });
   return (
     <div className="mx-auto max-w-xl">
-      <PostCard01
+      <PostCard
         variant="feed"
         post={DUMMY_MIXED_MEDIA_POST}
         currentUser={DUMMY_VIEWER}
@@ -9569,7 +10187,7 @@ function CustomActionsTab() {
   );
 }
 
-export default function PostCard01Demo() {
+export default function PostCardDemo() {
   return (
     <Tabs defaultValue="feed" className="w-full">
       <SwipeTabsList>
@@ -9631,13 +10249,13 @@ export default function PostCard01Demo() {
 }
 `,
   },
-  "pricing-table-01": {
+  "pricing-table": {
     demo: `﻿"use client";
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { PricingTable01 } from "./pricing-table-01";
+import { PricingTable } from "./pricing-table";
 import {
   PRICING_DEMO_LABELS_TR,
   PRICING_DEMO_TIERS_THREE,
@@ -9651,7 +10269,7 @@ function ControlledDemo() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PricingTable01
+      <PricingTable
         heading="Plans"
         subheading="Controlled toggle + analytics example."
         billingToggle="monthly-annual"
@@ -9682,7 +10300,7 @@ function ControlledDemo() {
   );
 }
 
-export default function PricingTable01Demo() {
+export default function PricingTableDemo() {
   return (
     <Tabs defaultValue="cards" className="w-full">
       <SwipeTabsList>
@@ -9695,7 +10313,7 @@ export default function PricingTable01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="cards" className="mt-6">
-        <PricingTable01
+        <PricingTable
           heading="Plans for every team"
           subheading="Start free, scale when you're ready."
           billingToggle="monthly-annual"
@@ -9704,14 +10322,14 @@ export default function PricingTable01Demo() {
       </TabsContent>
 
       <TabsContent value="two-tier" className="mt-6">
-        <PricingTable01
+        <PricingTable
           heading="Simple, transparent pricing"
           tiers={PRICING_DEMO_TIERS_TWO}
         />
       </TabsContent>
 
       <TabsContent value="table" className="mt-6">
-        <PricingTable01
+        <PricingTable
           heading="Compare plans"
           subheading="Every feature, side by side."
           layout="table"
@@ -9725,7 +10343,7 @@ export default function PricingTable01Demo() {
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6">
-        <PricingTable01
+        <PricingTable
           heading="Her ekip için planlar"
           subheading="Ücretsiz başlayın, ihtiyacınız olduğunda büyüyün."
           billingToggle="monthly-annual"
@@ -9735,17 +10353,17 @@ export default function PricingTable01Demo() {
       </TabsContent>
 
       <TabsContent value="tones" className="mt-6 flex flex-col gap-12">
-        <PricingTable01
+        <PricingTable
           heading="Primary"
           tone="primary"
           tiers={PRICING_DEMO_TIERS_TWO}
         />
-        <PricingTable01
+        <PricingTable
           heading="Accent"
           tone="accent"
           tiers={PRICING_DEMO_TIERS_TWO}
         />
-        <PricingTable01
+        <PricingTable
           heading="Muted"
           tone="muted"
           tiers={PRICING_DEMO_TIERS_TWO}
@@ -9756,12 +10374,12 @@ export default function PricingTable01Demo() {
 }
 `,
   },
-  "progress-timeline-01": {
+  "progress-timeline": {
     demo: `﻿"use client";
 
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ProgressTimeline01 } from "./progress-timeline-01";
+import { ProgressTimeline } from "./progress-timeline";
 import {
   dummyNow,
   dummyTimelineActive,
@@ -9779,7 +10397,7 @@ const trLabels = {
   afterText: "Etkinlik Sona Erdi",
 };
 
-export default function ProgressTimeline01Demo() {
+export default function ProgressTimelineDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -9793,7 +10411,7 @@ export default function ProgressTimeline01Demo() {
       {/* 1. Default — Turkish, mirrors the kasder source verbatim */}
       <TabsContent value="default" className="mt-6">
         <div className="max-w-3xl mx-auto">
-          <ProgressTimeline01
+          <ProgressTimeline
             heading="Zaman Çizelgesi"
             start={dummyTimelineActive.start}
             end={dummyTimelineActive.end}
@@ -9806,19 +10424,19 @@ export default function ProgressTimeline01Demo() {
       {/* 2. 3 states — before / active / after stacked */}
       <TabsContent value="states" className="mt-6">
         <div className="max-w-3xl mx-auto space-y-4">
-          <ProgressTimeline01
+          <ProgressTimeline
             heading="Before — registration not open yet"
             start={dummyTimelineBefore.start}
             end={dummyTimelineBefore.end}
             now={dummyNow}
           />
-          <ProgressTimeline01
+          <ProgressTimeline
             heading="Active — currently in progress"
             start={dummyTimelineActive.start}
             end={dummyTimelineActive.end}
             now={dummyNow}
           />
-          <ProgressTimeline01
+          <ProgressTimeline
             heading="After — has ended"
             start={dummyTimelineAfter.start}
             end={dummyTimelineAfter.end}
@@ -9835,7 +10453,7 @@ export default function ProgressTimeline01Demo() {
             <code>marker=&quot;none&quot;</code>. Drop into a banner / dashboard
             tile.
           </p>
-          <ProgressTimeline01
+          <ProgressTimeline
             start={dummyTimelineActive.start}
             end={dummyTimelineActive.end}
             now={dummyNow}
@@ -9852,7 +10470,7 @@ export default function ProgressTimeline01Demo() {
             <code>renderCenterLabel(state)</code> — full control. Here:
             percent + days-left composed.
           </p>
-          <ProgressTimeline01
+          <ProgressTimeline
             heading="Project Sprint"
             start={dummyTimelineActive.start}
             end={dummyTimelineActive.end}
@@ -9880,7 +10498,7 @@ export default function ProgressTimeline01Demo() {
             State (and therefore center label) still derives from dates so the
             countdown stays meaningful.
           </p>
-          <ProgressTimeline01
+          <ProgressTimeline
             heading="Course Progress"
             start={dummyTimelineActive.start}
             end={dummyTimelineActive.end}
@@ -9899,7 +10517,7 @@ export default function ProgressTimeline01Demo() {
 }
 `,
   },
-  "project-card-01": {
+  "project-card": {
     demo: `﻿"use client";
 
 import { useState } from "react";
@@ -9907,7 +10525,7 @@ import { Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ProjectCard01 } from "./project-card-01";
+import { ProjectCard } from "./project-card";
 import {
   dummyCategoryStyles,
   dummyProjects,
@@ -9997,7 +10615,7 @@ function bentoClassFor(index: number, batchSize: number): string {
   }
 }
 
-export default function ProjectCard01Demo() {
+export default function ProjectCardDemo() {
   const [saved, setSaved] = useState<Set<string>>(() => new Set());
 
   const toggleSaved = (id: string) =>
@@ -10034,13 +10652,13 @@ export default function ProjectCard01Demo() {
           Grid variant — vertical image-on-top, hover-reveal &quot;View
           details&quot; CTA, lift-on-hover. Compose with{" "}
           <code className="text-xs px-1.5 py-0.5 rounded bg-muted">
-            grid-layout-news-01
+            magazine-layout
           </code>{" "}
           for the public projects-page assembly (see usage notes).
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dummyProjects.map((project) => (
-            <ProjectCard01
+            <ProjectCard
               key={project.id}
               project={project}
               variant="grid"
@@ -10070,7 +10688,7 @@ export default function ProjectCard01Demo() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-[180px] gap-4">
           {bentoBatches.flatMap(({ items, batchSize }) =>
             items.map((project, indexInBatch) => (
-              <ProjectCard01
+              <ProjectCard
                 key={project.id}
                 project={project}
                 variant="feature"
@@ -10091,13 +10709,13 @@ export default function ProjectCard01Demo() {
               Grid variant — top accent border + star prefix on title.
             </p>
             <div className="grid md:grid-cols-2 gap-6">
-              <ProjectCard01
+              <ProjectCard
                 project={featuredProject}
                 variant="grid"
                 href={makeHref(featuredProject)}
                 categoryStyles={dummyCategoryStyles}
               />
-              <ProjectCard01
+              <ProjectCard
                 project={ongoingProject}
                 variant="grid"
                 href={makeHref(ongoingProject)}
@@ -10110,13 +10728,13 @@ export default function ProjectCard01Demo() {
               Feature variant — inset ring + star prefix on title.
             </p>
             <div className="grid md:grid-cols-2 gap-4 auto-rows-[220px]">
-              <ProjectCard01
+              <ProjectCard
                 project={featuredProject}
                 variant="feature"
                 href={makeHref(featuredProject)}
                 categoryStyles={dummyCategoryStyles}
               />
-              <ProjectCard01
+              <ProjectCard
                 project={ongoingProject}
                 variant="feature"
                 href={makeHref(ongoingProject)}
@@ -10135,7 +10753,7 @@ export default function ProjectCard01Demo() {
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dummyTrProjects.map((project) => (
-            <ProjectCard01
+            <ProjectCard
               key={project.id}
               project={project}
               variant="grid"
@@ -10171,7 +10789,7 @@ export default function ProjectCard01Demo() {
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {dummyProjects.slice(0, 3).map((project) => (
-              <ProjectCard01
+              <ProjectCard
                 key={project.id}
                 project={project}
                 variant="grid"
@@ -10492,14 +11110,14 @@ export default function PropertiesFormDemo() {
 }
 `,
   },
-  "registration-card-01": {
+  "registration-card": {
     demo: `﻿"use client";
 
 import { Bookmark, CalendarPlus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { RegistrationCard01 } from "./registration-card-01";
+import { RegistrationCard } from "./registration-card";
 import {
   dummyRegistrationClosed,
   dummyRegistrationFull,
@@ -10512,7 +11130,7 @@ import {
 
 const noop = () => {};
 
-export default function RegistrationCard01Demo() {
+export default function RegistrationCardDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -10526,7 +11144,7 @@ export default function RegistrationCard01Demo() {
       {/* 1. Default (TR) — kasder Kayıt Durumu verbatim */}
       <TabsContent value="default" className="mt-6">
         <div className="max-w-sm mx-auto">
-          <RegistrationCard01
+          <RegistrationCard
             heading="Kayıt Durumu"
             capacity={dummyRegistrationLastSpots.capacity}
             registered={dummyRegistrationLastSpots.registered}
@@ -10540,35 +11158,35 @@ export default function RegistrationCard01Demo() {
       {/* 2. All states — open / lastSpots / urgent / full / closed stacked */}
       <TabsContent value="states" className="mt-6">
         <div className="max-w-sm mx-auto space-y-6">
-          <RegistrationCard01
+          <RegistrationCard
             heading="Open (142/500)"
             capacity={dummyRegistrationOpen.capacity}
             registered={dummyRegistrationOpen.registered}
             onRegister={noop}
             onShare={noop}
           />
-          <RegistrationCard01
+          <RegistrationCard
             heading="Last spots (423/500 — ≥80% full)"
             capacity={dummyRegistrationLastSpots.capacity}
             registered={dummyRegistrationLastSpots.registered}
             onRegister={noop}
             onShare={noop}
           />
-          <RegistrationCard01
+          <RegistrationCard
             heading="Urgent (95/100 — ≤10 spots → destructive color)"
             capacity={dummyRegistrationUrgent.capacity}
             registered={dummyRegistrationUrgent.registered}
             onRegister={noop}
             onShare={noop}
           />
-          <RegistrationCard01
+          <RegistrationCard
             heading="Full (50/50 — sold out)"
             capacity={dummyRegistrationFull.capacity}
             registered={dummyRegistrationFull.registered}
             onRegister={noop}
             onShare={noop}
           />
-          <RegistrationCard01
+          <RegistrationCard
             heading="Closed (host-driven — e.g. event expired)"
             capacity={dummyRegistrationClosed.capacity}
             registered={dummyRegistrationClosed.registered}
@@ -10587,7 +11205,7 @@ export default function RegistrationCard01Demo() {
             counter rows hide; CTA + share remain. Useful for unlimited /
             drop-in events.
           </p>
-          <RegistrationCard01
+          <RegistrationCard
             heading="Sign up"
             onRegister={noop}
             onShare={noop}
@@ -10601,9 +11219,9 @@ export default function RegistrationCard01Demo() {
           <p className="text-sm text-muted-foreground">
             <code>actions</code> slot — fully replaces the default share
             button. Drop in calendar + save + share cluster, or compose with{" "}
-            <code>share-bar-01</code>.
+            <code>share-bar</code>.
           </p>
-          <RegistrationCard01
+          <RegistrationCard
             heading="Registration"
             capacity={200}
             registered={172}
@@ -10653,7 +11271,7 @@ export default function RegistrationCard01Demo() {
             <code>framed=&#123;false&#125;</code> embedded inside an outer
             card + relabeled for a fundraising-goal context.
           </p>
-          <RegistrationCard01
+          <RegistrationCard
             heading="Fundraising Goal"
             capacity={50000}
             registered={32000}
@@ -10669,1295 +11287,250 @@ export default function RegistrationCard01Demo() {
 }
 `,
   },
-  "registration-form-01": {
+  "rich-text-editor": {
     demo: `﻿"use client";
 
-import { useCallback, useState } from "react";
-import { GitBranch, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { RegistrationForm01 } from "./registration-form-01";
+import { RichTextEditor } from "./rich-text-editor";
+import { RichTextViewer } from "./rich-text-viewer";
 import {
-  controlledRegistrationProps,
-  defaultRegistrationProps,
-  denseRegistrationProps,
-  magicLinkRegistrationProps,
-  oauthRegistrationProps,
-  twoStepRegistrationProps,
+  RICH_TEXT_DUMMY_CODE,
+  RICH_TEXT_DUMMY_EMPTY,
+  RICH_TEXT_DUMMY_IMAGE,
+  RICH_TEXT_DUMMY_RICH,
+  RICH_TEXT_DUMMY_SIMPLE,
+  RICH_TEXT_DUMMY_TABLE,
 } from "./dummy-data";
-import type {
-  RegistrationFormStatus,
-  RegistrationSubmitPayload,
-} from "./types";
+import { serializeRichTextToHtml } from "./lib/serialize-html";
+import type { RichTextValue, ImageUploader } from "./types";
 
-function Section({
-  title,
-  caption,
-  children,
-}: {
-  title: string;
-  caption?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mx-auto flex w-full max-w-md flex-col gap-3 rounded-lg border border-border bg-card p-6">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-medium text-foreground">{title}</h3>
-        {caption ? (
-          <p className="text-xs text-muted-foreground">{caption}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
+const fakeUploader: ImageUploader = async (file) => {
+  await new Promise((r) => setTimeout(r, 400));
+  return {
+    src: URL.createObjectURL(file),
+    alt: file.name,
+  };
+};
 
-function LastPayloadPanel({
-  payload,
-}: {
-  payload: RegistrationSubmitPayload | null;
-}) {
-  if (!payload) {
+function HtmlExportPanel({ value }: { value: RichTextValue }) {
+  const [html, setHtml] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    serializeRichTextToHtml(value, { stripDataAttributes: true })
+      .then((result) => {
+        if (!cancelled) setHtml(result);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [value]);
+
+  if (error) {
     return (
-      <p className="text-xs italic text-muted-foreground">
-        Submit any form to see the discriminated payload here.
-      </p>
+      <pre className="rounded-md border border-destructive/50 bg-destructive/5 p-4 font-mono text-xs text-destructive">
+        Serialization failed: {error}
+      </pre>
     );
   }
+
   return (
-    <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
-      {JSON.stringify(payload, null, 2)}
+    <pre className="max-h-96 overflow-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+      <code>{html || "(serializing…)"}</code>
     </pre>
   );
 }
 
-// ─── Tab 1: Default ──────────────────────────────────────────────────────────
-
-function DefaultTab() {
-  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
-  return (
-    <Section
-      title="Default — single-step"
-      caption="Email + password + consent gate. The simplest shape."
-    >
-      <RegistrationForm01
-        {...defaultRegistrationProps}
-        onSubmit={(payload) => setLast(payload)}
-      />
-      <LastPayloadPanel payload={last} />
-    </Section>
+export default function RichTextEditorDemo() {
+  const [edited, setEdited] = useState<RichTextValue>(
+    RICH_TEXT_DUMMY_RICH
   );
-}
-
-// ─── Tab 2: OAuth ────────────────────────────────────────────────────────────
-
-function OauthTab() {
-  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
-  return (
-    <Section
-      title="OAuth row + oauthIcons slot"
-      caption="The fixture leaves icons empty (text-only fallback). Here we wire lucide-react icons via the slot — Mail as a Google stand-in (no Google brand asset shipped) and Github for the github provider."
-    >
-      <RegistrationForm01
-        {...oauthRegistrationProps}
-        oauthIcons={{
-          // lucide-react v1.x dropped branded icons (Google / GitHub /
-          // Apple) to dodge licensing — these are generic stand-ins.
-          // Consumers swap in their own brand-compliant SVGs.
-          google: <Mail className="size-4" aria-hidden="true" />,
-          github: <GitBranch className="size-4" aria-hidden="true" />,
-        }}
-        onOAuthClick={({ provider }) =>
-          console.log(\`[registration-form-01 demo] OAuth click:\`, provider)
-        }
-        onSubmit={(payload) => setLast(payload)}
-      />
-      <LastPayloadPanel payload={last} />
-    </Section>
-  );
-}
-
-// ─── Tab 3: Two-step ─────────────────────────────────────────────────────────
-
-function TwoStepTab() {
-  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
-  return (
-    <Section
-      title="Two-step flow with skip"
-      caption="Step 1 = email/password/consent. Step 2 = optional profile (firstName required, lastName + company optional). Skip-for-now button submits with \`stepCompleted: 'step1'\` so consumers can switch on the discriminant."
-    >
-      <RegistrationForm01
-        {...twoStepRegistrationProps}
-        onSubmit={(payload) => setLast(payload)}
-      />
-      <LastPayloadPanel payload={last} />
-    </Section>
-  );
-}
-
-// ─── Tab 4: Magic-link ───────────────────────────────────────────────────────
-
-function MagicLinkTab() {
-  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
-  return (
-    <Section
-      title="Magic-link strategy"
-      caption="Drops the password input entirely; the form is email + consent + (optional) OAuth. Useful for low-friction sign-ups."
-    >
-      <RegistrationForm01
-        {...magicLinkRegistrationProps}
-        onSubmit={(payload) => setLast(payload)}
-      />
-      <LastPayloadPanel payload={last} />
-    </Section>
-  );
-}
-
-// ─── Tab 5: Dense ────────────────────────────────────────────────────────────
-
-function DenseTab() {
-  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
-  return (
-    <Section
-      title="Compact density"
-      caption="Narrower max-width, tighter vertical rhythm. For sidebars, modals, or dense onboarding flows."
-    >
-      <RegistrationForm01
-        {...denseRegistrationProps}
-        onSubmit={(payload) => setLast(payload)}
-      />
-      <LastPayloadPanel payload={last} />
-    </Section>
-  );
-}
-
-// ─── Tab 6: Controlled status ────────────────────────────────────────────────
-
-function ControlledTab() {
-  const [status, setStatus] = useState<RegistrationFormStatus>("idle");
-  const [last, setLast] = useState<RegistrationSubmitPayload | null>(null);
-
-  // Mutual-exclusion contract: while \`status\` is provided, the component
-  // is read-only on its own state. We own the transitions here.
-  const handleSubmit = useCallback(
-    async (payload: RegistrationSubmitPayload) => {
-      setLast(payload);
-      setStatus("submitting");
-      // Simulate a network round-trip.
-      await new Promise((r) => setTimeout(r, 800));
-      // 70% success rate for the demo
-      if (Math.random() > 0.3) {
-        setStatus("success");
-      } else {
-        setStatus("error");
-      }
-    },
-    [],
-  );
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   return (
-    <Section
-      title="Controlled status (mutual-exclusion contract)"
-      caption="\`status\` + \`onStatusChange\` controlled. The parent owns transitions; the component renders based on \`status\` and never self-transitions. 70% success rate so you can see both branches."
-    >
-      <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setStatus("idle")}
-        >
-          Reset to idle
-        </Button>
-        <span className="text-xs text-muted-foreground">
-          status: <span className="font-mono">{status}</span>
-        </span>
-      </div>
-      <RegistrationForm01
-        {...controlledRegistrationProps}
-        status={status}
-        onStatusChange={(next) =>
-          console.log(\`[registration-form-01 demo] status change requested:\`, next)
-        }
-        errorMessage={
-          status === "error"
-            ? "Demo error — your account already exists."
-            : undefined
-        }
-        onSubmit={handleSubmit}
-      />
-      <LastPayloadPanel payload={last} />
-    </Section>
-  );
-}
-
-// ─── Tab shell ───────────────────────────────────────────────────────────────
-
-export default function RegistrationForm01Demo() {
-  return (
-    <Tabs defaultValue="default" className="w-full">
+    <Tabs defaultValue="editor" className="w-full">
       <SwipeTabsList>
-        <TabsTrigger value="default">Default</TabsTrigger>
-        <TabsTrigger value="oauth">OAuth</TabsTrigger>
-        <TabsTrigger value="two-step">Two-step</TabsTrigger>
-        <TabsTrigger value="magic-link">Magic-link</TabsTrigger>
-        <TabsTrigger value="dense">Dense</TabsTrigger>
-        <TabsTrigger value="controlled">Controlled status</TabsTrigger>
+        <TabsTrigger value="editor">Editor</TabsTrigger>
+        <TabsTrigger value="viewer">Viewer</TabsTrigger>
+        <TabsTrigger value="roundtrip">Edit ↔ View</TabsTrigger>
+        <TabsTrigger value="code">Code (syntax)</TabsTrigger>
+        <TabsTrigger value="image">Image (resize + caption)</TabsTrigger>
+        <TabsTrigger value="export">HTML export</TabsTrigger>
+        <TabsTrigger value="empty">Empty</TabsTrigger>
+        <TabsTrigger value="json">JSON</TabsTrigger>
       </SwipeTabsList>
 
-      <TabsContent value="default" className="pt-3">
-        <DefaultTab />
+      <TabsContent value="editor" className="mt-6">
+        <RichTextEditor
+          defaultValue={RICH_TEXT_DUMMY_RICH}
+          onImageUpload={fakeUploader}
+          onSave={(value) => {
+            setSavedAt(new Date().toLocaleTimeString());
+            setEdited(value);
+          }}
+        />
+        {savedAt ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Saved at {savedAt}. Select text to surface the floating toolbar.
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Press Cmd/Ctrl+S to fire <code>onSave</code>. Select text to
+            surface the floating toolbar.
+          </p>
+        )}
       </TabsContent>
-      <TabsContent value="oauth" className="pt-3">
-        <OauthTab />
+
+      <TabsContent value="viewer" className="mt-6">
+        <div className="rounded-lg border border-border bg-card p-6">
+          <RichTextViewer value={RICH_TEXT_DUMMY_RICH} />
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          The viewer is a pure server-renderable component — no editor instance
+          mounted.
+        </p>
       </TabsContent>
-      <TabsContent value="two-step" className="pt-3">
-        <TwoStepTab />
+
+      <TabsContent value="roundtrip" className="mt-6 space-y-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Editor
+          </p>
+          <RichTextEditor
+            value={edited}
+            onChange={setEdited}
+            onImageUpload={fakeUploader}
+          />
+        </div>
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Viewer (live)
+          </p>
+          <div className="rounded-lg border border-border bg-card p-6">
+            <RichTextViewer value={edited} />
+          </div>
+        </div>
       </TabsContent>
-      <TabsContent value="magic-link" className="pt-3">
-        <MagicLinkTab />
+
+      <TabsContent value="code" className="mt-6 space-y-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Editor — code blocks with lowlight syntax highlighting
+          </p>
+          <RichTextEditor defaultValue={RICH_TEXT_DUMMY_CODE} />
+        </div>
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Viewer (server-rendered, identical highlighting)
+          </p>
+          <div className="rounded-lg border border-border bg-card p-6">
+            <RichTextViewer value={RICH_TEXT_DUMMY_CODE} />
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Languages registered: bash, css, diff, go, html, java, javascript,
+          json, markdown, python, rust, sql, typescript, xml, yaml. Token
+          colors map to the chart-1..5 palette in <code>globals.css</code>.
+        </p>
       </TabsContent>
-      <TabsContent value="dense" className="pt-3">
-        <DenseTab />
+
+      <TabsContent value="image" className="mt-6 space-y-4">
+        <p className="text-xs text-muted-foreground">
+          Hover the image to reveal the right-edge resize handle. Click the
+          caption text below it to edit. Both width and caption are stored on
+          the node and persist through the JSON.
+        </p>
+        <RichTextEditor
+          defaultValue={RICH_TEXT_DUMMY_IMAGE}
+          onImageUpload={fakeUploader}
+        />
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Viewer (preserves width + caption)
+          </p>
+          <div className="rounded-lg border border-border bg-card p-6">
+            <RichTextViewer value={RICH_TEXT_DUMMY_IMAGE} />
+          </div>
+        </div>
       </TabsContent>
-      <TabsContent value="controlled" className="pt-3">
-        <ControlledTab />
+
+      <TabsContent value="export" className="mt-6 space-y-4">
+        <p className="text-xs text-muted-foreground">
+          Storage stays JSON (Plate <code>Value</code>). Call{" "}
+          <code>serializeRichTextToHtml(value)</code> at export boundaries
+          (RSS / email / OG tags) to get a clean HTML string. Async — uses
+          react-dom/server under the hood. Server-only.
+        </p>
+        <RichTextEditor
+          value={edited}
+          onChange={setEdited}
+          onImageUpload={fakeUploader}
+        />
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Live HTML export
+          </p>
+          <HtmlExportPanel value={edited} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="empty" className="mt-6">
+        <RichTextEditor defaultValue={RICH_TEXT_DUMMY_EMPTY} />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Empty starting state. Type to begin.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="json" className="mt-6 space-y-4">
+        <RichTextEditor
+          defaultValue={RICH_TEXT_DUMMY_SIMPLE}
+          onChange={setEdited}
+        />
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Live JSON
+          </p>
+          <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+            <code>{JSON.stringify(edited, null, 2)}</code>
+          </pre>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Code-block fixture
+            </p>
+            <div className="rounded-lg border border-border bg-card p-6">
+              <RichTextViewer value={RICH_TEXT_DUMMY_CODE} />
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Table fixture
+            </p>
+            <div className="rounded-lg border border-border bg-card p-6">
+              <RichTextViewer value={RICH_TEXT_DUMMY_TABLE} />
+            </div>
+          </div>
+        </div>
       </TabsContent>
     </Tabs>
   );
 }
 `,
   },
-  "rich-card": {
-    demo: `"use client";
-
-import { useMemo, useRef, useState } from "react";
-import {
-  Copy,
-  Eye,
-  Move,
-  PanelRightClose,
-  PanelRightOpen,
-  Pencil,
-  ShieldCheck,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { RichCard } from "./rich-card";
-import { RichCardSearchBar } from "./parts/search-bar";
-import { RichCardUndoToolbar } from "./parts/undo-toolbar";
-import type {
-  RichCardHandle,
-  RichCardJsonNode,
-  RichCardValidators,
-  SearchMatch,
-  SearchResult,
-  ValidationFailedEvent,
-} from "./types";
-import { RICH_DEMO } from "./dummy-data";
-
-const STRICT_VALIDATORS: RichCardValidators = {
-  fieldEdit: (event) => {
-    if (event.key === "priority" && typeof event.newValue === "number") {
-      if (event.newValue < 1 || event.newValue > 5) {
-        return {
-          ok: false,
-          errors: [
-            {
-              code: "host-priority-out-of-range",
-              message: "Priority must be 1–5.",
-            },
-          ],
-        };
-      }
-    }
-    return { ok: true };
-  },
-  cardRemove: (event) => {
-    if (event.removed.__rcmeta?.locked === true) {
-      return {
-        ok: false,
-        errors: [
-          {
-            code: "host-locked-removal",
-            message: "Cannot remove locked cards.",
-          },
-        ],
-      };
-    }
-    return { ok: true };
-  },
-};
-
-export default function RichCardDemo() {
-  const ref = useRef<RichCardHandle>(null);
-  const initialJson = useMemo(() => JSON.stringify(RICH_DEMO, null, 2), []);
-  const [liveJson, setLiveJson] = useState<string>(initialJson);
-  const [copied, setCopied] = useState(false);
-  const [showJson, setShowJson] = useState(true);
-  const [editable, setEditable] = useState(false);
-  const [dndEnabled, setDndEnabled] = useState(true);
-  const [dirty, setDirty] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const [validatorsEnabled, setValidatorsEnabled] = useState(false);
-  const [validationToast, setValidationToast] = useState<string | null>(null);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
-
-  const handleChange = (tree: RichCardJsonNode) => {
-    setLiveJson(JSON.stringify(tree, null, 2));
-    setDirty(ref.current?.isDirty() ?? false);
-    setCanUndo(ref.current?.canUndo() ?? false);
-    setCanRedo(ref.current?.canRedo() ?? false);
-  };
-
-  const handleValidationFailed = (event: ValidationFailedEvent) => {
-    const message = event.errors.map((e) => e.message).join(" · ");
-    setValidationToast(\`\${event.layer}: \${message}\`);
-    setTimeout(() => setValidationToast(null), 3000);
-  };
-
-  const handleUndoOrRedo = () => {
-    setDirty(ref.current?.isDirty() ?? false);
-    setLiveJson(JSON.stringify(ref.current?.getTree() ?? RICH_DEMO, null, 2));
-    setCanUndo(ref.current?.canUndo() ?? false);
-    setCanRedo(ref.current?.canRedo() ?? false);
-  };
-
-  return (
-    <div className="space-y-3">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          v0.4 demo: validators + per-commit undo/redo on v0.3&apos;s structural
-          management foundation. Toggle edit mode to enable inline editing,
-          drag-drop reordering, multi-select (shift-click range, cmd/ctrl-click
-          toggle), the bulk toolbar (≥2 selected), and the undo toolbar
-          (Cmd+Z / Cmd+Shift+Z / Cmd+Y). Use the search bar to find content in
-          collapsed subtrees and meta entries.
-        </p>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setEditable((v) => !v)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              editable
-                ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
-                : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-            aria-pressed={editable}
-          >
-            {editable ? <Pencil className="size-3.5" /> : <Eye className="size-3.5" />}
-            {editable ? "editing" : "view"}
-          </button>
-          {editable ? (
-            <button
-              type="button"
-              onClick={() => setDndEnabled((v) => !v)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                dndEnabled
-                  ? "border-border bg-muted/40 text-foreground hover:bg-muted"
-                  : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-              aria-pressed={dndEnabled}
-            >
-              <Move className="size-3.5" aria-hidden="true" />
-              dnd {dndEnabled ? "on" : "off"}
-            </button>
-          ) : null}
-          {editable ? (
-            <button
-              type="button"
-              onClick={() => setValidatorsEnabled((v) => !v)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                validatorsEnabled
-                  ? "border-border bg-muted/40 text-foreground hover:bg-muted"
-                  : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-              aria-pressed={validatorsEnabled}
-              title="Toggle host validators (priority must be 1–5; locked cards cannot be removed)"
-            >
-              <ShieldCheck className="size-3.5" aria-hidden="true" />
-              validators {validatorsEnabled ? "on" : "off"}
-            </button>
-          ) : null}
-          {editable ? (
-            <RichCardUndoToolbar
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={() => {
-                ref.current?.undo();
-                handleUndoOrRedo();
-              }}
-              onRedo={() => {
-                ref.current?.redo();
-                handleUndoOrRedo();
-              }}
-            />
-          ) : null}
-          {dirty ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
-              dirty
-            </span>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setShowJson((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-expanded={showJson}
-          >
-            {showJson ? <PanelRightClose className="size-3.5" /> : <PanelRightOpen className="size-3.5" />}
-            {showJson ? "Hide JSON" : "Show JSON"}
-          </button>
-        </div>
-      </header>
-
-      <div className="flex items-center gap-2">
-        <RichCardSearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          matchCount={searchResult?.matches.length ?? 0}
-          activeIndex={searchResult?.activeIndex ?? null}
-          onNext={() => ref.current?.findNext()}
-          onPrevious={() => ref.current?.findPrevious()}
-          onClear={() => {
-            setSearchQuery("");
-            ref.current?.clearSearch();
-          }}
-        />
-        {selectedIds.length > 0 ? (
-          <span className="font-mono text-[11px] text-muted-foreground">
-            {selectedIds.length} selected
-          </span>
-        ) : null}
-      </div>
-
-      <div
-        className={cn(
-          "grid gap-4 transition-[grid-template-columns] duration-200 ease-out",
-          showJson
-            ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]"
-            : "grid-cols-1",
-        )}
-      >
-        <section className="min-w-0 space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-              Preview
-            </h3>
-            <span className="font-mono text-[11px] text-muted-foreground">
-              v0.3 · 6 levels · all features
-            </span>
-          </div>
-          <RichCard
-            ref={ref}
-            aria-label="Thesis outline"
-            defaultValue={RICH_DEMO}
-            metaPresentation="popover"
-            editable={editable}
-            dndScopes={dndEnabled ? { sameLevel: true, crossLevel: true } : { sameLevel: false, crossLevel: false }}
-            search={{ query: searchQuery }}
-            validators={validatorsEnabled ? STRICT_VALIDATORS : undefined}
-            onValidationFailed={handleValidationFailed}
-            onSearchResults={setSearchResult}
-            onChange={handleChange}
-            onSelectionChange={setSelectedIds}
-          />
-          {validationToast ? (
-            <div
-              role="alert"
-              aria-live="assertive"
-              className="mt-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-            >
-              <strong>Validator rejected:</strong> {validationToast}
-            </div>
-          ) : null}
-        </section>
-
-        {showJson ? (
-          <aside className="min-w-0 space-y-2 lg:sticky lg:top-4 lg:self-start">
-            <div className="flex items-center justify-between">
-              <h3 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                {dirty ? "Live JSON (unsaved)" : "Input JSON"}
-              </h3>
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(
-                      ref.current?.getValue() ?? liveJson,
-                    );
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1500);
-                  } catch {
-                    // ignore
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <Copy className="size-3" aria-hidden="true" />
-                {copied ? "copied" : "copy canonical"}
-              </button>
-            </div>
-            <pre className="max-h-[80vh] overflow-auto rounded-md border bg-muted/40 p-3 text-xs font-mono leading-relaxed">
-              {liveJson}
-            </pre>
-            {dirty ? (
-              <button
-                type="button"
-                onClick={() => {
-                  ref.current?.markClean();
-                  setDirty(false);
-                }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                mark clean
-              </button>
-            ) : null}
-          </aside>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-// Keep the type import alive for editor hover-info
-void ({} as SearchMatch);
-`,
-  },
-  "rich-card-in-flow": {
-    demo: `"use client";
-
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  FlowCanvas,
-  type NodeRenderer,
-  updateNodeData,
-} from "@/registry/components/data/flow-canvas-01";
-import {
-  RichCard,
-  type RichCardHandle,
-  type RichCardJsonNode,
-} from "@/registry/components/data/rich-card";
-import { PortEditorStrip } from "./parts/port-editor-strip";
-import { richCardViewerRenderer } from "./parts/rich-card-viewer";
-import { richCardInFlowFixture } from "./dummy-data";
-
-// Module-scope renderers (per xyflow-react-pro skill: recreating renderer
-// arrays in render triggers teardown + remount on every render).
-const RENDERERS: NodeRenderer[] = [richCardViewerRenderer];
-
-// Reserved keys that belong to flow-canvas-01's NodeData shape (ports + the
-// \`__type\` discriminator) but not to rich-card's open-shape data model.
-// rich-card v0.1 logs warnings when it sees \`ports: Port[]\` arrays as
-// children (its parser only supports object-keyed children + the \`list\`
-// predefined key for scalar arrays). Strip these before handing to
-// \`<RichCard>\`; merge back on save so flow-canvas-01 keeps its routing data.
-const FLOW_CANVAS_RESERVED_KEYS = new Set(["ports", "__type"]);
-
-function stripFlowCanvasFields(data: RichCardJsonNode): RichCardJsonNode {
-  const out: RichCardJsonNode = {};
-  for (const [key, value] of Object.entries(data)) {
-    if (FLOW_CANVAS_RESERVED_KEYS.has(key)) continue;
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-      out[key] = stripFlowCanvasFields(value as RichCardJsonNode);
-    } else {
-      out[key] = value;
-    }
-  }
-  return out;
-}
-
-function mergeFlowCanvasFields(
-  edited: RichCardJsonNode,
-  original: RichCardJsonNode,
-): RichCardJsonNode {
-  const out: RichCardJsonNode = { ...edited };
-  // Restore the reserved keys from the original at this level.
-  for (const key of FLOW_CANVAS_RESERVED_KEYS) {
-    if (original[key] !== undefined) {
-      out[key] = original[key];
-    }
-  }
-  // Recurse into nested object children (subcards) by key match. Subcards
-  // not present in \`edited\` are dropped (user deleted them via rich-card);
-  // new subcards in \`edited\` not in \`original\` are preserved as-is (they
-  // have no flow-canvas data to merge).
-  for (const [key, value] of Object.entries(edited)) {
-    if (FLOW_CANVAS_RESERVED_KEYS.has(key)) continue;
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-      const origChild = original[key];
-      if (
-        origChild &&
-        typeof origChild === "object" &&
-        !Array.isArray(origChild)
-      ) {
-        out[key] = mergeFlowCanvasFields(
-          value as RichCardJsonNode,
-          origChild as RichCardJsonNode,
-        );
-      }
-    }
-  }
-  return out;
-}
-
-export default function RichCardInFlowDemo() {
-  // Controlled canvas state. onChange flows from flow-canvas-01 (after drag /
-  // connect / delete) and from rich-card's onChange (live-save per Q2).
-  const [canvas, setCanvas] = useState(richCardInFlowFixture);
-  const [editing, setEditing] = useState<
-    { nodeId: string; subPath?: string } | null
-  >(null);
-
-  // F-02 lock: imperative \`RichCardHandle.focusCard(subPath)\` via ref. There's
-  // no \`initialFocusCardId\` prop on RichCard today, so this is how subcard-
-  // level edit targeting reaches the editor.
-  const richCardRef = useRef<RichCardHandle>(null);
-
-  // Read the editing node's data once per open so RichCard's defaultValue is
-  // stable across keystrokes (avoids the "value resets on every keystroke"
-  // anti-pattern). Strips flow-canvas reserved keys before handing to RichCard.
-  // Re-derived only when editing.nodeId changes (dep array intentional —
-  // \`canvas\` is read at memo time but doesn't trigger re-derivation; RichCard
-  // is uncontrolled via defaultValue + key= remount).
-  const editingTree: RichCardJsonNode | null = useMemo(() => {
-    if (!editing) return null;
-    const node = canvas.nodes.find((n) => n.id === editing.nodeId);
-    if (!node) return null;
-    return stripFlowCanvasFields(node.data as RichCardJsonNode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing?.nodeId]);
-
-  // F-02 lock continued: focus the targeted subcard once RichCard has mounted.
-  // Runs after the dialog opens. If subPath is undefined (root-level edit),
-  // skip — rich-card opens at root by default.
-  useEffect(() => {
-    if (!editing?.subPath) return;
-    const handle = richCardRef.current;
-    if (!handle) return;
-    handle.focusCard(editing.subPath);
-  }, [editing?.subPath, editing?.nodeId]);
-
-  return (
-    <div className="flex h-150 flex-col gap-2">
-      <p className="text-xs text-muted-foreground">
-        Click any node to edit. Click a nested subcard to open the editor
-        pre-focused on it. Marquee-select or shift-click for multi-select
-        (canvas-level — bulk edit deferred to v0.2).
-      </p>
-
-      <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card/40">
-        <FlowCanvas
-          data={canvas}
-          onChange={setCanvas}
-          renderers={RENDERERS}
-          onEditRequest={(nodeId, subPath) => setEditing({ nodeId, subPath })}
-        />
-      </div>
-
-      <Dialog
-        open={editing !== null}
-        onOpenChange={(open) => {
-          if (!open) setEditing(null);
-        }}
-      >
-        {/* shadcn DialogContent defaults to \`sm:max-w-sm\` (384px) at the sm
-            breakpoint — must use the responsive variant to override it.
-            Plain \`max-w-N\` would be capped to 384px on sm+. */}
-        <DialogContent className="sm:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Edit rich card</DialogTitle>
-            <DialogDescription>
-              Edits live-save back into the canvas. Close the dialog or click
-              another node to switch.
-            </DialogDescription>
-          </DialogHeader>
-
-          {editing && editingTree && (
-            // key={editing.nodeId} forces a clean remount on RichCard when
-            // switching nodes — Plate re-initializes per open (plan §9 G3).
-            // PortEditorStrip is uncontrolled-by-design (Q9 lock); no key=
-            // remount needed — it re-reads ports on canvas-prop change.
-            <div className="max-h-[60vh] space-y-3 overflow-auto">
-              {/* v0.2 — port editor strip above the rich-card editor per Q1 lock */}
-              <PortEditorStrip
-                nodeId={editing.nodeId}
-                subPath={editing.subPath}
-                canvas={canvas}
-                onChange={setCanvas}
-                editable={true}
-              />
-              <RichCard
-                key={editing.nodeId}
-                ref={richCardRef}
-                defaultValue={editingTree}
-                editable={true}
-                onChange={(next) => {
-                  setCanvas((prev) => {
-                    const original = prev.nodes.find(
-                      (n) => n.id === editing.nodeId,
-                    )?.data as RichCardJsonNode | undefined;
-                    if (!original) return prev;
-                    // Merge rich-card's edited tree with the prior data shape
-                    // so flow-canvas-only reserved keys (ports + __type) round-
-                    // trip through the edit cleanly.
-                    const merged = mergeFlowCanvasFields(next, original);
-                    return updateNodeData(
-                      prev,
-                      editing.nodeId,
-                      merged as RichCardJsonNode & { __type: string },
-                    );
-                  });
-                }}
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-`,
-  },
-  "rich-sidebar": {
-    demo: `"use client";
-
-import {
-  BarChart3,
-  Bell,
-  Bookmark,
-  Briefcase,
-  Building2,
-  Crown,
-  FileText,
-  Globe,
-  Home,
-  LogOut,
-  PlusSquare,
-  Settings,
-  User as UserIcon,
-  Users,
-} from "lucide-react";
-import { useMemo, useRef, useState } from "react";
-import { AccountSwitcher01 } from "../account-switcher-01/account-switcher-01";
-import type { SwitcherItem } from "../account-switcher-01/types";
-import { RichSidebar } from "./rich-sidebar";
-import { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
-import { RichSidebarTrigger } from "./parts/sidebar-nav-trigger";
-import { TooltipWrapper } from "./parts/tooltip-wrapper";
-import {
-  SIDEBAR_NAV_01_DUMMY_ITEMS,
-  SIDEBAR_NAV_01_DUMMY_SECTIONED,
-} from "./dummy-data";
-import type {
-  NavEntry,
-  RichSidebarHandle,
-  RichSidebarProps,
-} from "./types";
-
-const KSquareLogo = () => (
-  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg) text-sm font-bold">
-    K
-  </span>
-);
-
-export default function RichSidebarDemo() {
-  const [path, setPath] = useState("/social/home");
-  const [sectionedPath, setSectionedPath] = useState("/projects");
-  const [recipePath, setRecipePath] = useState("/social/home");
-  const [variant, setVariant] =
-    useState<NonNullable<RichSidebarProps["activeVariant"]>>("fill");
-  const kasderRecipeRef = useRef<RichSidebarHandle>(null);
-  const flatListRef = useRef<RichSidebarHandle>(null);
-  const sectionedRef = useRef<RichSidebarHandle>(null);
-
-  const interceptClick =
-    (setter: (p: string) => void) =>
-    ({ item, event }: { item: { href?: string }; event: React.MouseEvent }) => {
-      if (item.href) {
-        event.preventDefault();
-        setter(item.href);
-      }
-    };
-
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Live activeVariant switcher */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          activeVariant:
-        </span>
-        {(
-          ["fill", "left-bar", "right-bar", "outline", "subtle"] as const
-        ).map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => setVariant(v)}
-            className={\`rounded-md px-2.5 py-1 text-xs font-medium transition-colors \${
-              variant === v
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }\`}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
-
-      {/* Full kasder recipe — brand + items + primary action + footer */}
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Full kasder recipe — brand · items · primary action · user footer
-        </p>
-        <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
-          <RichSidebar
-            ref={kasderRecipeRef}
-            items={SIDEBAR_NAV_01_DUMMY_ITEMS}
-            currentPath={recipePath}
-            onItemClick={interceptClick(setRecipePath)}
-            activeVariant={variant}
-            brand={{ logo: <KSquareLogo />, label: "Kasder", href: "/" }}
-            primaryAction={{
-              icon: PlusSquare,
-              label: "Post",
-              onClick: () => alert("Open post composer"),
-            }}
-            footer={{
-              user: {
-                name: "Alex Morgan",
-                handle: "@alexmorgan",
-                status: "online",
-              },
-              menuItems: [
-                { kind: "item", icon: UserIcon, label: "Profile", onClick: () => alert("profile") },
-                { kind: "item", icon: Settings, label: "Settings", onClick: () => alert("settings") },
-                { kind: "item", icon: Briefcase, label: "Business", onClick: () => alert("business") },
-                { kind: "separator" },
-                { kind: "item", icon: LogOut, label: "Log out", variant: "destructive", onClick: () => alert("logout") },
-              ],
-            }}
-            aria-label="Full recipe"
-          />
-          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
-            <RichSidebarTrigger
-              controls={kasderRecipeRef}
-              aria-label="Open navigation"
-              className="lg:hidden"
-            />
-            <p className="text-sm text-muted-foreground sm:text-center">
-              Active path: <span className="font-mono">{recipePath}</span>
-              <br />
-              <span className="text-xs">
-                Toggle collapse (top-right at <code>lg</code>+) to see
-                brand/labels hide, badges flip to corner, tooltip shows on
-                hover, footer dropdown align flips to center. Below{" "}
-                <code>lg</code> the sidebar opens as a drawer — tap the
-                hamburger above.
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Flat list */}
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Flat list (no chrome)
-        </p>
-        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
-          <RichSidebar
-            ref={flatListRef}
-            items={SIDEBAR_NAV_01_DUMMY_ITEMS}
-            currentPath={path}
-            onItemClick={interceptClick(setPath)}
-            activeVariant={variant}
-            aria-label="Flat nav demo"
-          />
-          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
-            <RichSidebarTrigger
-              controls={flatListRef}
-              aria-label="Open flat nav"
-              className="lg:hidden"
-            />
-            <p className="text-sm text-muted-foreground sm:text-center">
-              Active path: <span className="font-mono">{path}</span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Sectioned variant */}
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Sections + separators + collapsible groups
-        </p>
-        <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
-          <RichSidebar
-            ref={sectionedRef}
-            items={SIDEBAR_NAV_01_DUMMY_SECTIONED}
-            currentPath={sectionedPath}
-            onItemClick={interceptClick(setSectionedPath)}
-            activeVariant={variant}
-            aria-label="Sectioned nav demo"
-          />
-          <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
-            <RichSidebarTrigger
-              controls={sectionedRef}
-              aria-label="Open sectioned nav"
-              className="lg:hidden"
-            />
-            <p className="text-sm text-muted-foreground sm:text-center">
-              Active path: <span className="font-mono">{sectionedPath}</span>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <V03RenderItemSlotDemo variant={variant} />
-      <V02MultiContextDemo />
-      <V02HeadlessFilterDemo />
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// v0.3.0 — renderItem slot demo (C1 + C6 regression anchor)
-//
-// Demonstrates the load-bearing pattern: wrap the library's defaultRender
-// in a consumer-supplied affordance. Pre-v0.3.0, returning \`defaultRender\`
-// produced double-nested <li><li>...</li></li>. The C1 ownership inversion
-// fix means the <li> is always owned by the library — consumer's renderItem
-// return value goes inside that one <li>.
-// ─────────────────────────────────────────────────────────────────────────
-
-function V03RenderItemSlotDemo({
-  variant,
-}: {
-  variant: NonNullable<RichSidebarProps["activeVariant"]>;
-}) {
-  const [renderItemPath, setRenderItemPath] = useState("/social/home");
-  const renderItemRef = useRef<RichSidebarHandle>(null);
-  return (
-    <div>
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        v0.3.0 — renderItem slot (wraps defaultRender in TooltipWrapper)
-      </p>
-      <div className="flex min-h-56 overflow-hidden rounded-lg border border-border bg-background lg:h-96">
-        <RichSidebar
-          ref={renderItemRef}
-          items={SIDEBAR_NAV_01_DUMMY_ITEMS}
-          currentPath={renderItemPath}
-          onItemClick={({ item, event }) => {
-            if (item.href) {
-              event.preventDefault();
-              setRenderItemPath(item.href);
-            }
-          }}
-          activeVariant={variant}
-          renderItem={({ defaultRender, item }) => (
-            <TooltipWrapper
-              content={
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{item.label}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Slot-wrapped via renderItem
-                  </span>
-                </div>
-              }
-              side="right"
-              disabled={false}
-            >
-              {defaultRender}
-            </TooltipWrapper>
-          )}
-          aria-label="renderItem slot demo"
-        />
-        <div className="flex flex-1 flex-col items-start gap-3 p-4 sm:items-center sm:justify-center sm:p-6">
-          <RichSidebarTrigger
-            controls={renderItemRef}
-            aria-label="Open renderItem demo"
-            className="lg:hidden"
-          />
-          <p className="text-sm text-muted-foreground sm:text-center">
-            Hover any row — the consumer-supplied TooltipWrapper wraps the
-            library&apos;s default link. Inspect the DOM: each row is a
-            SINGLE <code>&lt;li&gt;</code> (no double-nesting).
-            <br />
-            Active path: <span className="font-mono">{renderItemPath}</span>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// v0.2.0 — Multi-context demo (topSlot + {slug} + ownerOnly + minMembers + bypass)
-//
-// Demonstrates the *real* v0.2 power: switching contexts in the topSlot
-// account-switcher changes BOTH the nav-item catalog AND the {slug} value
-// fed into href substitution. Each context has its own item set — matches
-// the source app-shell pattern (analysis §8.2 NavContext discriminant).
-// ─────────────────────────────────────────────────────────────────────────
-
-type V02ContextKey = "personal" | "biz-acme" | "biz-globex" | "platform";
-
-const V02_SWITCHER_ITEMS: ReadonlyArray<SwitcherItem> = [
-  { key: "personal", label: "Personal", icon: UserIcon, href: "/home" },
-  { key: "biz-acme", label: "Acme Corp", icon: Building2, href: "/bconsole/acme" },
-  { key: "biz-globex", label: "Globex Industries", icon: Building2, href: "/bconsole/globex" },
-  { key: "platform", label: "Platform", icon: Globe, href: "/pconsole/overview" },
-];
-
-// Per-context nav catalogs. Switching contexts swaps the entire item set;
-// {slug} substitution applies only when the context provides a slug.
-const V02_NAV_BY_CONTEXT: Record<V02ContextKey, ReadonlyArray<NavEntry>> = {
-  personal: [
-    { id: "home", label: "Home", icon: Home, href: "/home" },
-    { id: "profile", label: "Profile", icon: UserIcon, href: "/profile" },
-    { id: "notifications", label: "Notifications", icon: Bell, href: "/notifications", badge: 3 },
-    { id: "saved", label: "Saved items", icon: Bookmark, href: "/saved" },
-  ],
-  "biz-acme": [
-    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
-    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
-    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
-    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
-    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
-    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
-  ],
-  "biz-globex": [
-    { id: "dashboard", label: "Dashboard", icon: Briefcase, href: "/bconsole/{slug}/dashboard" },
-    { id: "posts", label: "Posts", icon: FileText, href: "/bconsole/{slug}/posts" },
-    { id: "team", label: "Team", icon: Users, href: "/bconsole/{slug}/team", minMembers: 2 },
-    { id: "analytics", label: "Analytics", icon: BarChart3, href: "/bconsole/{slug}/analytics", ownerOnly: true },
-    { id: "settings", label: "Settings", icon: Settings, href: "/bconsole/{slug}/settings", ownerOnly: true },
-    { id: "billing", label: "Billing", icon: Crown, href: "/bconsole/{slug}/billing", ownerOnly: true },
-  ],
-  platform: [
-    { id: "overview", label: "Overview", icon: Globe, href: "/pconsole/overview" },
-    { id: "users", label: "All users", icon: Users, href: "/pconsole/users", ownerOnly: true },
-    { id: "audit", label: "Audit log", icon: FileText, href: "/pconsole/audit", ownerOnly: true },
-    { id: "platform-settings", label: "Platform settings", icon: Settings, href: "/pconsole/settings", ownerOnly: true },
-  ],
-};
-
-const V02_DEFAULT_PATH_BY_CONTEXT: Record<V02ContextKey, string> = {
-  personal: "/home",
-  "biz-acme": "/bconsole/acme/dashboard",
-  "biz-globex": "/bconsole/globex/dashboard",
-  platform: "/pconsole/overview",
-};
-
-function V02MultiContextDemo() {
-  const [activeContextKey, setActiveContextKey] = useState<V02ContextKey>("biz-acme");
-  const [isOwner, setIsOwner] = useState(true);
-  const [maxMembers, setMaxMembers] = useState(5);
-  const [bypass, setBypass] = useState(false);
-  const [currentPath, setCurrentPath] = useState(V02_DEFAULT_PATH_BY_CONTEXT["biz-acme"]);
-  // Lift collapsed state so it threads to BOTH <RichSidebar> AND the slotted
-  // <AccountSwitcher01> — the canonical collapse-aware composition recipe.
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const v02SidebarRef = useRef<RichSidebarHandle>(null);
-
-  // Items + slug derive purely from the current context.
-  const items = V02_NAV_BY_CONTEXT[activeContextKey];
-
-  const slug = activeContextKey.startsWith("biz-")
-    ? activeContextKey.slice(4)
-    : undefined;
-
-  const templateValues = useMemo(
-    () => (slug ? { slug } : undefined),
-    [slug],
-  );
-
-  const handleContextSwitch = (item: SwitcherItem) => {
-    const next = item.key as V02ContextKey;
-    setActiveContextKey(next);
-    setCurrentPath(V02_DEFAULT_PATH_BY_CONTEXT[next]);
-  };
-
-  return (
-    <div>
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        v0.2.0 — multi-context: topSlot + &#123;slug&#125; templates + ownerOnly + minMembers + bypassFiltering
-      </p>
-      <div className="mb-3 flex flex-wrap items-center gap-4 rounded-md border border-border bg-card p-3 text-xs">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={isOwner}
-            onChange={(e) => setIsOwner(e.target.checked)}
-          />
-          isOwner
-        </label>
-        <label className="flex items-center gap-2">
-          currentMaxMembers:
-          <input
-            type="number"
-            min={0}
-            max={50}
-            value={maxMembers}
-            onChange={(e) => setMaxMembers(Number(e.target.value) || 0)}
-            className="w-16 rounded border border-border bg-background px-2 py-0.5"
-          />
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={bypass}
-            onChange={(e) => setBypass(e.target.checked)}
-          />
-          bypassFiltering
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={sidebarCollapsed}
-            onChange={(e) => setSidebarCollapsed(e.target.checked)}
-          />
-          collapse sidebar
-        </label>
-        <span className="ml-auto font-mono text-muted-foreground">
-          context: <code>{activeContextKey}</code>
-          {slug ? (
-            <>
-              {" "}· slug: <code>{slug}</code>
-            </>
-          ) : null}
-        </span>
-      </div>
-      <div className="flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-136">
-        <RichSidebar
-          ref={v02SidebarRef}
-          items={items}
-          currentPath={currentPath}
-          isCollapsed={sidebarCollapsed}
-          onCollapsedChange={({ collapsed }) => setSidebarCollapsed(collapsed)}
-          onItemClick={({ item, event }) => {
-            if (item.href) {
-              event.preventDefault();
-              setCurrentPath(item.href);
-            }
-          }}
-          topSlot={
-            <AccountSwitcher01
-              items={V02_SWITCHER_ITEMS}
-              activeKey={activeContextKey}
-              onSelect={handleContextSwitch}
-              isCollapsed={sidebarCollapsed}
-            />
-          }
-          hrefTemplateValues={templateValues}
-          isOwner={isOwner}
-          currentMaxMembers={maxMembers}
-          bypassFiltering={bypass}
-          aria-label="v0.2 multi-context demo"
-        />
-        <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-muted-foreground sm:p-6">
-          <RichSidebarTrigger
-            controls={v02SidebarRef}
-            aria-label="Open v0.2 multi-context nav"
-            className="self-start lg:hidden"
-          />
-          <p>Active context: <code className="font-mono">{activeContextKey}</code></p>
-          <p>Active path: <code className="font-mono break-all">{currentPath}</code></p>
-          <p className="text-xs">Items in this context: <code>{items.length}</code></p>
-          <ul className="ml-4 list-disc space-y-1 text-xs">
-            <li>Switch context in the popover — items + default path swap</li>
-            <li>Business contexts use <code>&#123;slug&#125;</code> in hrefs (Acme vs Globex)</li>
-            <li><code>Analytics</code> / <code>Settings</code> / <code>Billing</code> hide unless <code>isOwner</code></li>
-            <li><code>Team</code> hidden unless <code>currentMaxMembers ≥ 2</code></li>
-            <li><code>bypassFiltering</code> reveals everything (still respects <code>hidden:true</code>)</li>
-            <li>
-              <code>collapse sidebar</code> threads <code>isCollapsed</code> into BOTH
-              <code>&lt;RichSidebar&gt;</code> AND the slotted{" "}
-              <code>&lt;AccountSwitcher01&gt;</code> — switcher trigger flips to
-              icon-only along with the rest of the sidebar
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// v0.2.0 — Headless useFilteredNavSections (standalone, no <RichSidebar>)
-// ─────────────────────────────────────────────────────────────────────────
-
-function V02HeadlessFilterDemo() {
-  const [isOwner, setIsOwner] = useState(false);
-  const filtered = useFilteredNavSections({
-    sections: V02_NAV_BY_CONTEXT["biz-acme"],
-    isOwner,
-    currentMaxMembers: 10,
-  });
-  return (
-    <div>
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        v0.2.0 — headless useFilteredNavSections (no &lt;RichSidebar&gt;)
-      </p>
-      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 text-sm">
-        <label className="flex items-center gap-2 text-xs">
-          <input
-            type="checkbox"
-            checked={isOwner}
-            onChange={(e) => setIsOwner(e.target.checked)}
-          />
-          isOwner (toggle to flip Settings + Billing visibility)
-        </label>
-        <ul className="flex flex-col gap-1">
-          {filtered.map((entry, index) =>
-            entry.kind === "section" ? null : entry.kind === "separator" ? (
-              <li key={entry.id ?? \`sep-\${index}\`} className="my-1 h-px bg-border" />
-            ) : (
-              <li
-                key={entry.id}
-                className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2"
-              >
-                <span className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">[{entry.id}]</span>
-                  <span>{entry.label}</span>
-                </span>
-                <span className="min-w-0 text-xs text-muted-foreground sm:ml-auto">
-                  href:{" "}
-                  <code className="break-all">{entry.href}</code>
-                </span>
-              </li>
-            ),
-          )}
-        </ul>
-        <p className="text-xs text-muted-foreground">
-          Renders consumer-owned UI; library helper just does the filter math.
-        </p>
-      </div>
-    </div>
-  );
-}
-`,
-  },
-  "schedule-list-01": {
+  "schedule-list": {
     demo: `﻿"use client";
 
 import { Mic } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ScheduleList01 } from "./schedule-list-01";
+import { ScheduleList } from "./schedule-list";
 import { dummySchedule, dummyScheduleTr } from "./dummy-data";
 import type { ScheduleListItem } from "./types";
 
@@ -12007,7 +11580,7 @@ function SpeakerAugmentedRow({ item }: { item: ScheduleListItem }) {
   );
 }
 
-export default function ScheduleList01Demo() {
+export default function ScheduleListDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -12021,21 +11594,21 @@ export default function ScheduleList01Demo() {
       {/* 1. Default — Turkish, mirrors the kasder source verbatim */}
       <TabsContent value="default" className="mt-6">
         <div className="max-w-3xl mx-auto">
-          <ScheduleList01 heading="Program" items={dummyScheduleTr} />
+          <ScheduleList heading="Program" items={dummyScheduleTr} />
         </div>
       </TabsContent>
 
       {/* 2. English — same shape, English content */}
       <TabsContent value="english" className="mt-6">
         <div className="max-w-3xl mx-auto">
-          <ScheduleList01 heading="Program" items={dummySchedule} />
+          <ScheduleList heading="Program" items={dummySchedule} />
         </div>
       </TabsContent>
 
       {/* 3. Bare rows — framed=false for sidebar/widget contexts */}
       <TabsContent value="bare" className="mt-6">
         <div className="max-w-md mx-auto rounded-2xl border border-border/50 bg-card p-4">
-          <ScheduleList01
+          <ScheduleList
             heading="Today"
             headingAs="h3"
             framed={false}
@@ -12052,7 +11625,7 @@ export default function ScheduleList01Demo() {
             row is wrapped in a polymorphic link when <code>href</code> is
             provided.
           </p>
-          <ScheduleList01
+          <ScheduleList
             heading="Conference Day 1"
             items={dummySchedule.map((item) => ({
               ...item,
@@ -12069,7 +11642,7 @@ export default function ScheduleList01Demo() {
             Custom <code>renderItem</code> slot — drops a speaker avatar
             adjacent to the time column on items 2 + 3.
           </p>
-          <ScheduleList01
+          <ScheduleList
             heading="Program with Speakers"
             items={dummySchedule}
             renderItem={(item) => <SpeakerAugmentedRow item={item} />}
@@ -12081,25 +11654,25 @@ export default function ScheduleList01Demo() {
 }
 `,
   },
-  "share-bar-01": {
+  "share-bar": {
     demo: `﻿"use client";
 
 import { useState } from "react";
 import { Send } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ShareBar01 } from "./share-bar-01";
+import { ShareBar } from "./share-bar";
 import {
-  SHARE_BAR_01_DUMMY_COMPACT,
-  SHARE_BAR_01_DUMMY_DEFAULT,
-  SHARE_BAR_01_DUMMY_FULL,
-  SHARE_BAR_01_DUMMY_TITLE,
-  SHARE_BAR_01_DUMMY_TR,
-  SHARE_BAR_01_DUMMY_URL,
+  SHARE_BAR_DUMMY_COMPACT,
+  SHARE_BAR_DUMMY_DEFAULT,
+  SHARE_BAR_DUMMY_FULL,
+  SHARE_BAR_DUMMY_TITLE,
+  SHARE_BAR_DUMMY_TR,
+  SHARE_BAR_DUMMY_URL,
 } from "./dummy-data";
 import type { ShareTarget } from "./types";
 
-export default function ShareBar01Demo() {
+export default function ShareBarDemo() {
   const [lastShared, setLastShared] = useState<string | null>(null);
   const [copyEvents, setCopyEvents] = useState(0);
   const [internalDialog, setInternalDialog] = useState<string | null>(null);
@@ -12128,10 +11701,10 @@ export default function ShareBar01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
-        <ShareBar01
-          targets={SHARE_BAR_01_DUMMY_DEFAULT}
-          url={SHARE_BAR_01_DUMMY_URL}
-          title={SHARE_BAR_01_DUMMY_TITLE}
+        <ShareBar
+          targets={SHARE_BAR_DUMMY_DEFAULT}
+          url={SHARE_BAR_DUMMY_URL}
+          title={SHARE_BAR_DUMMY_TITLE}
           headingAs="h4"
           divider
         />
@@ -12141,10 +11714,10 @@ export default function ShareBar01Demo() {
       </TabsContent>
 
       <TabsContent value="full" className="mt-6 max-w-2xl">
-        <ShareBar01
-          targets={SHARE_BAR_01_DUMMY_FULL}
-          url={SHARE_BAR_01_DUMMY_URL}
-          title={SHARE_BAR_01_DUMMY_TITLE}
+        <ShareBar
+          targets={SHARE_BAR_DUMMY_FULL}
+          url={SHARE_BAR_DUMMY_URL}
+          title={SHARE_BAR_DUMMY_TITLE}
           via="ilinxa_news"
           hashtags={["ilinxa", "shadcn", "react"]}
           headingAs="h4"
@@ -12165,10 +11738,10 @@ export default function ShareBar01Demo() {
       </TabsContent>
 
       <TabsContent value="custom" className="mt-6 max-w-md">
-        <ShareBar01
+        <ShareBar
           targets={customTargets}
-          url={SHARE_BAR_01_DUMMY_URL}
-          title={SHARE_BAR_01_DUMMY_TITLE}
+          url={SHARE_BAR_DUMMY_URL}
+          title={SHARE_BAR_DUMMY_TITLE}
         />
         <p className="mt-3 text-xs text-muted-foreground">
           Custom target with <code>onClick</code>:{" "}
@@ -12181,18 +11754,18 @@ export default function ShareBar01Demo() {
       </TabsContent>
 
       <TabsContent value="compact" className="mt-6 max-w-md">
-        <ShareBar01
-          targets={SHARE_BAR_01_DUMMY_COMPACT}
-          url={SHARE_BAR_01_DUMMY_URL}
-          title={SHARE_BAR_01_DUMMY_TITLE}
+        <ShareBar
+          targets={SHARE_BAR_DUMMY_COMPACT}
+          url={SHARE_BAR_DUMMY_URL}
+          title={SHARE_BAR_DUMMY_TITLE}
         />
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6 max-w-md">
-        <ShareBar01
-          targets={SHARE_BAR_01_DUMMY_TR}
-          url={SHARE_BAR_01_DUMMY_URL}
-          title="ShareBar01 — pro-ui paylaşım çubuğu"
+        <ShareBar
+          targets={SHARE_BAR_DUMMY_TR}
+          url={SHARE_BAR_DUMMY_URL}
+          title="ShareBar — pro-ui paylaşım çubuğu"
           headingAs="h4"
           divider
           labels={{
@@ -12204,6 +11777,478 @@ export default function ShareBar01Demo() {
         />
       </TabsContent>
     </Tabs>
+  );
+}
+`,
+  },
+  "signup-form": {
+    demo: `﻿"use client";
+
+import { useCallback, useState } from "react";
+import { GitBranch, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import { SignupForm } from "./signup-form";
+import {
+  controlledSignupProps,
+  defaultSignupProps,
+  denseSignupProps,
+  magicLinkSignupProps,
+  oauthSignupProps,
+  twoStepSignupProps,
+} from "./dummy-data";
+import type {
+  SignupFormStatus,
+  SignupSubmitPayload,
+} from "./types";
+
+function Section({
+  title,
+  caption,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mx-auto flex w-full max-w-md flex-col gap-3 rounded-lg border border-border bg-card p-6">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+        {caption ? (
+          <p className="text-xs text-muted-foreground">{caption}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function LastPayloadPanel({
+  payload,
+}: {
+  payload: SignupSubmitPayload | null;
+}) {
+  if (!payload) {
+    return (
+      <p className="text-xs italic text-muted-foreground">
+        Submit any form to see the discriminated payload here.
+      </p>
+    );
+  }
+  return (
+    <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+      {JSON.stringify(payload, null, 2)}
+    </pre>
+  );
+}
+
+// ─── Tab 1: Default ──────────────────────────────────────────────────────────
+
+function DefaultTab() {
+  const [last, setLast] = useState<SignupSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Default — single-step"
+      caption="Email + password + consent gate. The simplest shape."
+    >
+      <SignupForm
+        {...defaultSignupProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 2: OAuth ────────────────────────────────────────────────────────────
+
+function OauthTab() {
+  const [last, setLast] = useState<SignupSubmitPayload | null>(null);
+  return (
+    <Section
+      title="OAuth row + oauthIcons slot"
+      caption="The fixture leaves icons empty (text-only fallback). Here we wire lucide-react icons via the slot — Mail as a Google stand-in (no Google brand asset shipped) and Github for the github provider."
+    >
+      <SignupForm
+        {...oauthSignupProps}
+        oauthIcons={{
+          // lucide-react v1.x dropped branded icons (Google / GitHub /
+          // Apple) to dodge licensing — these are generic stand-ins.
+          // Consumers swap in their own brand-compliant SVGs.
+          google: <Mail className="size-4" aria-hidden="true" />,
+          github: <GitBranch className="size-4" aria-hidden="true" />,
+        }}
+        onOAuthClick={({ provider }) =>
+          console.log(\`[signup-form demo] OAuth click:\`, provider)
+        }
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 3: Two-step ─────────────────────────────────────────────────────────
+
+function TwoStepTab() {
+  const [last, setLast] = useState<SignupSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Two-step flow with skip"
+      caption="Step 1 = email/password/consent. Step 2 = optional profile (firstName required, lastName + company optional). Skip-for-now button submits with \`stepCompleted: 'step1'\` so consumers can switch on the discriminant."
+    >
+      <SignupForm
+        {...twoStepSignupProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 4: Magic-link ───────────────────────────────────────────────────────
+
+function MagicLinkTab() {
+  const [last, setLast] = useState<SignupSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Magic-link strategy"
+      caption="Drops the password input entirely; the form is email + consent + (optional) OAuth. Useful for low-friction sign-ups."
+    >
+      <SignupForm
+        {...magicLinkSignupProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 5: Dense ────────────────────────────────────────────────────────────
+
+function DenseTab() {
+  const [last, setLast] = useState<SignupSubmitPayload | null>(null);
+  return (
+    <Section
+      title="Compact density"
+      caption="Narrower max-width, tighter vertical rhythm. For sidebars, modals, or dense onboarding flows."
+    >
+      <SignupForm
+        {...denseSignupProps}
+        onSubmit={(payload) => setLast(payload)}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab 6: Controlled status ────────────────────────────────────────────────
+
+function ControlledTab() {
+  const [status, setStatus] = useState<SignupFormStatus>("idle");
+  const [last, setLast] = useState<SignupSubmitPayload | null>(null);
+
+  // Mutual-exclusion contract: while \`status\` is provided, the component
+  // is read-only on its own state. We own the transitions here.
+  const handleSubmit = useCallback(
+    async (payload: SignupSubmitPayload) => {
+      setLast(payload);
+      setStatus("submitting");
+      // Simulate a network round-trip.
+      await new Promise((r) => setTimeout(r, 800));
+      // 70% success rate for the demo
+      if (Math.random() > 0.3) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    },
+    [],
+  );
+
+  return (
+    <Section
+      title="Controlled status (mutual-exclusion contract)"
+      caption="\`status\` + \`onStatusChange\` controlled. The parent owns transitions; the component renders based on \`status\` and never self-transitions. 70% success rate so you can see both branches."
+    >
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setStatus("idle")}
+        >
+          Reset to idle
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          status: <span className="font-mono">{status}</span>
+        </span>
+      </div>
+      <SignupForm
+        {...controlledSignupProps}
+        status={status}
+        onStatusChange={(next) =>
+          console.log(\`[signup-form demo] status change requested:\`, next)
+        }
+        errorMessage={
+          status === "error"
+            ? "Demo error — your account already exists."
+            : undefined
+        }
+        onSubmit={handleSubmit}
+      />
+      <LastPayloadPanel payload={last} />
+    </Section>
+  );
+}
+
+// ─── Tab shell ───────────────────────────────────────────────────────────────
+
+export default function SignupFormDemo() {
+  return (
+    <Tabs defaultValue="default" className="w-full">
+      <SwipeTabsList>
+        <TabsTrigger value="default">Default</TabsTrigger>
+        <TabsTrigger value="oauth">OAuth</TabsTrigger>
+        <TabsTrigger value="two-step">Two-step</TabsTrigger>
+        <TabsTrigger value="magic-link">Magic-link</TabsTrigger>
+        <TabsTrigger value="dense">Dense</TabsTrigger>
+        <TabsTrigger value="controlled">Controlled status</TabsTrigger>
+      </SwipeTabsList>
+
+      <TabsContent value="default" className="pt-3">
+        <DefaultTab />
+      </TabsContent>
+      <TabsContent value="oauth" className="pt-3">
+        <OauthTab />
+      </TabsContent>
+      <TabsContent value="two-step" className="pt-3">
+        <TwoStepTab />
+      </TabsContent>
+      <TabsContent value="magic-link" className="pt-3">
+        <MagicLinkTab />
+      </TabsContent>
+      <TabsContent value="dense" className="pt-3">
+        <DenseTab />
+      </TabsContent>
+      <TabsContent value="controlled" className="pt-3">
+        <ControlledTab />
+      </TabsContent>
+    </Tabs>
+  );
+}
+`,
+  },
+  "split-workspace": {
+    demo: `"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangleIcon,
+  ClockIcon,
+  HashIcon,
+  NotebookIcon,
+  TableIcon,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useAreaContext } from "./hooks/use-area-context";
+import { SplitWorkspace } from "./split-workspace";
+import {
+  DEMO_INITIAL_LAYOUT,
+  DEMO_PRESETS,
+  DEMO_TABLE_ROWS,
+  type DemoTableRow,
+} from "./dummy-data";
+import type { SplitWorkspaceComponent } from "./types";
+
+function NotesPanel() {
+  const [text, setText] = useState(
+    "Take notes here. State persists across resize and split — try resizing the area or splitting it from a corner.",
+  );
+  return (
+    <div className="flex h-full flex-col gap-2 p-3">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="min-h-0 flex-1 resize-none rounded-md border border-border bg-background p-2 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+      <p className="text-[10px] text-muted-foreground">
+        {text.length} characters
+      </p>
+    </div>
+  );
+}
+
+function ClockPanel() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const ctx = useAreaContext();
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-2 p-3">
+      <span className="font-mono text-3xl tabular-nums text-foreground">
+        {now.toLocaleTimeString()}
+      </span>
+      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        {ctx.width.toFixed(0)} × {ctx.height.toFixed(0)} px
+      </span>
+    </div>
+  );
+}
+
+function CounterPanel() {
+  const [count, setCount] = useState(0);
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-3 p-3">
+      <span className="font-mono text-4xl tabular-nums text-foreground">
+        {count}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setCount((c) => c - 1)}
+          className="rounded-md border border-border bg-background px-3 py-1 text-xs font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          onClick={() => setCount(0)}
+          className="rounded-md border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          reset
+        </button>
+        <button
+          type="button"
+          onClick={() => setCount((c) => c + 1)}
+          className="rounded-md border border-border bg-background px-3 py-1 text-xs font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          +
+        </button>
+      </div>
+      <p className="max-w-56 text-center text-[10px] text-muted-foreground">
+        Increment, then split this area from a corner — the original keeps its
+        count, the new sibling starts at 0.
+      </p>
+    </div>
+  );
+}
+
+function statusVariant(
+  status: DemoTableRow["status"],
+): "default" | "secondary" | "destructive" {
+  if (status === "Done") return "default";
+  if (status === "In progress") return "secondary";
+  return "destructive";
+}
+
+function TablePanel() {
+  return (
+    <div className="flex h-full flex-col p-3">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-border text-left text-muted-foreground">
+            <th className="py-1 pr-2 font-medium">Task</th>
+            <th className="py-1 pr-2 font-medium">Owner</th>
+            <th className="py-1 font-medium">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {DEMO_TABLE_ROWS.map((row) => (
+            <tr key={row.id} className="border-b border-border/60 last:border-0">
+              <td className="py-1.5 pr-2 text-foreground">{row.task}</td>
+              <td className="py-1.5 pr-2 text-muted-foreground">{row.owner}</td>
+              <td className="py-1.5">
+                <Badge variant={statusVariant(row.status)} className="text-[10px]">
+                  {row.status}
+                </Badge>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const components: SplitWorkspaceComponent[] = [
+  {
+    id: "notes",
+    name: "Notes",
+    category: "Tools",
+    icon: <NotebookIcon className="size-3" />,
+    render: () => <NotesPanel />,
+  },
+  {
+    id: "clock",
+    name: "Clock",
+    category: "Tools",
+    icon: <ClockIcon className="size-3" />,
+    render: () => <ClockPanel />,
+  },
+  {
+    id: "counter",
+    name: "Counter",
+    category: "Tools",
+    icon: <HashIcon className="size-3" />,
+    render: () => <CounterPanel />,
+  },
+  {
+    id: "data-table",
+    name: "Data Table",
+    category: "Data",
+    icon: <TableIcon className="size-3" />,
+    render: () => <TablePanel />,
+  },
+];
+
+export default function SplitWorkspaceDemo() {
+  const [errors, setErrors] = useState<string[]>([]);
+  const handleError = useMemo(
+    () => (next: string[]) => setErrors(next),
+    [],
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        Try splitting an area by dragging from a corner, resize via the
+        boundary, or <strong>click a divider and press Arrow keys</strong> to
+        nudge it (new in v0.1.2). Mobile widths collapse to a card stack
+        whose item height you control via <code>cardStackItemHeight</code> —
+        420px in this demo. Validation issues surface via <code>onError</code>
+        below the canvas.
+      </p>
+      <div className="h-140 w-full">
+        <SplitWorkspace
+          components={components}
+          defaultComponentId="notes"
+          defaultLayout={DEMO_INITIAL_LAYOUT}
+          presets={DEMO_PRESETS}
+          cardStackItemHeight={420}
+          onError={handleError}
+          aria-label="SplitWorkspace demo"
+        />
+      </div>
+      {errors.length > 0 ? (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive"
+        >
+          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+          <div>
+            <p className="font-medium">SplitWorkspace validation</p>
+            <ul className="mt-1 ml-3 list-disc space-y-0.5">
+              {errors.map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 `,
@@ -12557,14 +12602,14 @@ export default function StatCardDemo() {
 }
 `,
   },
-  "story-composer-01": {
+  "story-composer": {
     demo: `"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { StoryComposer01 } from "./story-composer-01";
+import { StoryComposer } from "./story-composer";
 import { SAMPLE_BRAND_STICKERS } from "./dummy-data";
 import type { PublishedStory } from "./types";
 
@@ -12579,7 +12624,7 @@ async function demoUploader(blob: Blob) {
   };
 }
 
-export default function StoryComposer01Demo() {
+export default function StoryComposerDemo() {
   return (
     <Tabs defaultValue="default" className="flex flex-col gap-4">
       <SwipeTabsList>
@@ -12636,7 +12681,7 @@ export default function StoryComposer01Demo() {
 
 interface ComposerLauncherProps {
   description: string;
-  props: Partial<React.ComponentProps<typeof StoryComposer01>>;
+  props: Partial<React.ComponentProps<typeof StoryComposer>>;
 }
 
 function ComposerLauncher({ description, props }: ComposerLauncherProps) {
@@ -12651,7 +12696,7 @@ function ComposerLauncher({ description, props }: ComposerLauncherProps) {
         {description}
       </p>
       <Button onClick={() => setOpen(true)}>Open composer</Button>
-      <StoryComposer01
+      <StoryComposer
         isOpen={open}
         onClose={() => setOpen(false)}
         onPublished={(story) => {
@@ -12670,22 +12715,22 @@ function ComposerLauncher({ description, props }: ComposerLauncherProps) {
 }
 `,
   },
-  "story-rail-01": {
+  "story-rail": {
     demo: `﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { StoryViewer01 } from "../../media/story-viewer-01";
-import type { Story } from "../../media/story-viewer-01";
-import { StoryRail01 } from "./story-rail-01";
+import { StoryViewer } from "../../media/story-viewer";
+import type { Story } from "../../media/story-viewer";
+import { StoryRail } from "./story-rail";
 import { AddStoryThumbnail } from "./parts/add-story-thumbnail";
 import {
   DUMMY_STORIES,
   DUMMY_VIEWER_AVATAR,
   createDummyStoryRailSubscribe,
 } from "./dummy-data";
-import type { StoryRail01Handle, StoryRailItem } from "./types";
+import type { StoryRailHandle, StoryRailItem } from "./types";
 
 function log(tag: string, payload: unknown) {
   if (typeof console !== "undefined") {
@@ -12700,7 +12745,7 @@ const isoMinusMin = (min: number) =>
 /**
  * Real Unsplash + w3schools URLs (verified working) cycled across the 7 rail items
  * so the viewer's nav arrows + tap zones visibly advance to a different image
- * each time. Demo-only — NOT in dummy-data.ts (which ships via story-rail-01-fixtures
+ * each time. Demo-only — NOT in dummy-data.ts (which ships via story-rail-fixtures
  * and stays viewer-free).
  */
 const SECONDARY_IMAGES = [
@@ -12744,8 +12789,8 @@ const DUMMY_FULL_STORIES: Story[] = DUMMY_STORIES.map((rail, idx) => ({
 interface RailWithViewerProps {
   framed?: boolean;
   showAddLeading?: boolean;
-  renderThumbnail?: React.ComponentProps<typeof StoryRail01>["renderThumbnail"];
-  subscribe?: React.ComponentProps<typeof StoryRail01>["subscribe"];
+  renderThumbnail?: React.ComponentProps<typeof StoryRail>["renderThumbnail"];
+  subscribe?: React.ComponentProps<typeof StoryRail>["subscribe"];
 }
 
 /**
@@ -12759,12 +12804,12 @@ function RailWithViewer({
   renderThumbnail,
   subscribe,
 }: RailWithViewerProps) {
-  const railRef = useRef<StoryRail01Handle | null>(null);
+  const railRef = useRef<StoryRailHandle | null>(null);
   const [activeIdx, setActiveIdx] = useState(-1);
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-3">
-      <StoryRail01
+      <StoryRail
         ref={railRef}
         items={DUMMY_STORIES}
         framed={framed}
@@ -12786,7 +12831,7 @@ function RailWithViewer({
       />
 
       {activeIdx >= 0 ? (
-        <StoryViewer01
+        <StoryViewer
           stories={DUMMY_FULL_STORIES}
           initialStoryIndex={activeIdx}
           isOpen
@@ -12851,12 +12896,12 @@ function EmptyTab() {
   const [items] = useState<StoryRailItem[]>([]);
   return (
     <div className="mx-auto max-w-2xl">
-      <StoryRail01 items={items} />
+      <StoryRail items={items} />
     </div>
   );
 }
 
-export default function StoryRail01Demo() {
+export default function StoryRailDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -12894,27 +12939,27 @@ export default function StoryRail01Demo() {
 }
 `,
   },
-  "story-viewer-01": {
+  "story-viewer": {
     demo: `﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
-import { StoryViewer01 } from "./story-viewer-01";
+import { StoryViewer } from "./story-viewer";
 import {
-  STORY_VIEWER_01_DUMMY,
-  STORY_VIEWER_01_DUMMY_CURRENT_USER,
-  STORY_VIEWER_01_DUMMY_REACTION_KINDS,
-  STORY_VIEWER_01_DUMMY_VIEWERS,
+  STORY_VIEWER_DUMMY,
+  STORY_VIEWER_DUMMY_CURRENT_USER,
+  STORY_VIEWER_DUMMY_REACTION_KINDS,
+  STORY_VIEWER_DUMMY_VIEWERS,
 } from "./dummy-data";
-import { CommentThread01 } from "@/registry/components/data/comment-thread-01/comment-thread-01";
+import { CommentThread } from "@/registry/components/data/comment-thread/comment-thread";
 import {
   DUMMY_FLAT_COMMENTS,
   generateOlderPage,
-} from "@/registry/components/data/comment-thread-01/dummy-data";
-import { ShareMenu } from "@/registry/components/data/engagement-bar-01/parts/share-menu";
-import { DUMMY_LIKE_USERS } from "@/registry/components/data/engagement-bar-01/dummy-data";
+} from "@/registry/components/data/comment-thread/dummy-data";
+import { ShareMenu } from "@/registry/components/data/engagement-bar/parts/share-menu";
+import { DUMMY_LIKE_USERS } from "@/registry/components/data/engagement-bar/dummy-data";
 import type {
   Story,
   StoryItem,
@@ -12929,10 +12974,10 @@ function log(tag: string, payload: unknown) {
   }
 }
 
-const IMAGE_ONLY: Story[] = [STORY_VIEWER_01_DUMMY[0]];
-const VIDEO_ONLY: Story[] = [STORY_VIEWER_01_DUMMY[1]];
-const MIXED: Story[] = [STORY_VIEWER_01_DUMMY[2]];
-const ALL_STORIES: Story[] = STORY_VIEWER_01_DUMMY;
+const IMAGE_ONLY: Story[] = [STORY_VIEWER_DUMMY[0]];
+const VIDEO_ONLY: Story[] = [STORY_VIEWER_DUMMY[1]];
+const MIXED: Story[] = [STORY_VIEWER_DUMMY[2]];
+const ALL_STORIES: Story[] = STORY_VIEWER_DUMMY;
 
 function OpenButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
@@ -12947,7 +12992,7 @@ function ImageOnlyTab() {
   return (
     <>
       <OpenButton label="Open image-only story" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={IMAGE_ONLY}
         initialStoryIndex={0}
         isOpen={open}
@@ -12963,7 +13008,7 @@ function VideoOnlyTab() {
   return (
     <>
       <OpenButton label="Open video-only story" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={VIDEO_ONLY}
         initialStoryIndex={0}
         isOpen={open}
@@ -12979,7 +13024,7 @@ function MixedTab() {
   return (
     <>
       <OpenButton label="Open mixed (image + video)" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={MIXED}
         initialStoryIndex={0}
         isOpen={open}
@@ -13044,7 +13089,7 @@ function MultiStoryTab() {
           />
         </label>
       </div>
-      <StoryViewer01
+      <StoryViewer
         stories={ALL_STORIES}
         initialStoryIndex={initialIdx}
         isOpen={open}
@@ -13110,7 +13155,7 @@ function RealtimeTab() {
         Synthetic feed: new item every 8s, new story every 15s. Open the viewer to see them appear live.
       </p>
       <OpenButton label="Open realtime viewer" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={ALL_STORIES}
         initialStoryIndex={0}
         isOpen={open}
@@ -13144,7 +13189,7 @@ function CustomRenderItemTab() {
   return (
     <>
       <OpenButton label="Open with custom 'promo' item" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={customStories}
         initialStoryIndex={0}
         isOpen={open}
@@ -13194,14 +13239,14 @@ function ViewerModeTab() {
         viewer-side kebab.
       </p>
       <OpenButton label="Open viewer-mode story" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={ALL_STORIES}
         initialStoryIndex={0}
         isOpen={open}
         onClose={() => setOpen(false)}
         viewerMode="viewer"
-        currentUser={STORY_VIEWER_01_DUMMY_CURRENT_USER}
-        reactionKinds={STORY_VIEWER_01_DUMMY_REACTION_KINDS}
+        currentUser={STORY_VIEWER_DUMMY_CURRENT_USER}
+        reactionKinds={STORY_VIEWER_DUMMY_REACTION_KINDS}
         onLikeStory={(s, i, liked) => log("like", { s, i, liked })}
         onReactStory={(s, i, kind) => log("react", { s, i, kind })}
         onShareStory={(s, i) => log("share", { s, i })}
@@ -13211,12 +13256,12 @@ function ViewerModeTab() {
         onCopyLink={(s) => log("copy-link", s)}
         onAuthorClick={(s) => log("author-click", s.username)}
         renderCommentsPanel={(story, item) => (
-          <CommentThread01
+          <CommentThread
             comments={DUMMY_FLAT_COMMENTS}
             currentUser={{
-              id: STORY_VIEWER_01_DUMMY_CURRENT_USER.id,
-              name: STORY_VIEWER_01_DUMMY_CURRENT_USER.name,
-              avatar: STORY_VIEWER_01_DUMMY_CURRENT_USER.avatar,
+              id: STORY_VIEWER_DUMMY_CURRENT_USER.id,
+              name: STORY_VIEWER_DUMMY_CURRENT_USER.name,
+              avatar: STORY_VIEWER_DUMMY_CURRENT_USER.avatar,
             }}
             pageSize={5}
             onAddComment={(content) => {
@@ -13260,7 +13305,7 @@ function OwnerModeTab() {
     () => async (storyId: string): Promise<ViewerListItem[]> => {
       log("load-viewers", storyId);
       await new Promise((r) => setTimeout(r, 350));
-      return STORY_VIEWER_01_DUMMY_VIEWERS;
+      return STORY_VIEWER_DUMMY_VIEWERS;
     },
     [],
   );
@@ -13271,7 +13316,7 @@ function OwnerModeTab() {
         simulated fetch). Owner-side kebab (save / delete / share-to-feed).
       </p>
       <OpenButton label="Open owner-mode story" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={ALL_STORIES}
         initialStoryIndex={0}
         isOpen={open}
@@ -13297,14 +13342,14 @@ function CustomSlotsTab() {
         control of the viewer.
       </p>
       <OpenButton label="Open custom-slots story" onClick={() => setOpen(true)} />
-      <StoryViewer01
+      <StoryViewer
         stories={ALL_STORIES}
         initialStoryIndex={0}
         isOpen={open}
         onClose={() => setOpen(false)}
         viewerMode="viewer"
-        currentUser={STORY_VIEWER_01_DUMMY_CURRENT_USER}
-        reactionKinds={STORY_VIEWER_01_DUMMY_REACTION_KINDS}
+        currentUser={STORY_VIEWER_DUMMY_CURRENT_USER}
+        reactionKinds={STORY_VIEWER_DUMMY_REACTION_KINDS}
         renderHeader={(story, _item, helpers) => (
           <div className="absolute top-4 right-4 left-4 z-20 flex items-center justify-between rounded-lg bg-black/50 px-3 py-2 backdrop-blur-sm">
             <p className="text-sm font-semibold text-white">@{story.username}</p>
@@ -13359,14 +13404,14 @@ function LinkAndLongPressTab() {
         Hold-press anywhere on the viewer to pause; release to resume.
       </p>
       <OpenButton label="Open link + long-press story" onClick={() => setOpen(true)} />
-      <StoryViewer01
-        stories={[STORY_VIEWER_01_DUMMY[0]]}
+      <StoryViewer
+        stories={[STORY_VIEWER_DUMMY[0]]}
         initialStoryIndex={0}
         isOpen={open}
         onClose={() => setOpen(false)}
         viewerMode="viewer"
-        currentUser={STORY_VIEWER_01_DUMMY_CURRENT_USER}
-        reactionKinds={STORY_VIEWER_01_DUMMY_REACTION_KINDS}
+        currentUser={STORY_VIEWER_DUMMY_CURRENT_USER}
+        reactionKinds={STORY_VIEWER_DUMMY_REACTION_KINDS}
         onLinkClick={(s, i, url) => log("link-click", { s, i, url })}
         longPressThresholdMs={250}
       />
@@ -13374,7 +13419,7 @@ function LinkAndLongPressTab() {
   );
 }
 
-export default function StoryViewer01Demo() {
+export default function StoryViewerDemo() {
   return (
     <Tabs defaultValue="image" className="w-full">
       <SwipeTabsList>
@@ -13404,25 +13449,495 @@ export default function StoryViewer01Demo() {
 }
 `,
   },
-  "task-choice-control-01": {
+  "task-card": {
+    demo: `"use client";
+
+import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { TaskCard } from "./task-card";
+import { taskCardKanbanRenderer } from "./parts/kanban-adapter";
+import {
+  BLOCKED_TASK,
+  DEMO_ITEMS,
+  DEMO_LABEL_OPTIONS,
+  DEMO_NOW,
+  DEMO_PRIORITY_OPTIONS,
+  DEMO_STATUS_OPTIONS,
+  DEMO_STATUS_OPTIONS_TONED,
+  DONE_TASK,
+  FRESH_TASK,
+  NESTED_FAMILY,
+  OVERDUE_TASK,
+  PRIORITIZED_TASK,
+  URGENT_TASK,
+} from "./dummy-data";
+import type { TaskColorRampPreset, TaskItem } from "./types";
+import {
+  KanbanBoard,
+  kanbanCardRenderer,
+  kanbanNoteRenderer,
+  type KanbanData,
+} from "@/registry/components/data/kanban-board";
+
+const RAMPS: TaskColorRampPreset[] = ["default", "muted", "vivid", "monochrome"];
+
+const KANBAN_INITIAL: KanbanData = {
+  swimlanes: [],
+  columns: [
+    {
+      id: "col-todo",
+      title: "To do",
+      color: "slate",
+      items: [
+        {
+          id: \`kanban-\${FRESH_TASK.id}\`,
+          rendererId: "task-card",
+          data: FRESH_TASK satisfies TaskItem,
+        },
+      ],
+    },
+    {
+      id: "col-doing",
+      title: "In progress",
+      color: "lime",
+      items: [
+        {
+          id: \`kanban-\${URGENT_TASK.id}\`,
+          rendererId: "task-card",
+          data: URGENT_TASK satisfies TaskItem,
+        },
+        {
+          id: "kanban-note-1",
+          rendererId: "kanban-note",
+          data: {
+            title: "Demo note",
+            body: "Note + todo renderers co-exist on the same board. Grab a todo card anywhere to drag it (shell-drag), and drop it anywhere in a column. The card body keeps full edit / collapse semantics.",
+          },
+        },
+      ],
+    },
+    {
+      id: "col-done",
+      title: "Done",
+      color: "emerald",
+      items: [
+        {
+          id: \`kanban-\${OVERDUE_TASK.id}\`,
+          rendererId: "task-card",
+          data: OVERDUE_TASK satisfies TaskItem,
+        },
+      ],
+    },
+  ],
+};
+
+export default function TaskCardDemo() {
+  const [editable, setEditable] = useState(false);
+  const [ramp, setRamp] = useState<TaskColorRampPreset>("default");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-muted/40 p-3 text-sm">
+        <Label htmlFor="editable" className="flex items-center gap-2">
+          <Switch
+            id="editable"
+            checked={editable}
+            onCheckedChange={setEditable}
+          />
+          editable (inline-toggle mode)
+        </Label>
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">Ramp:</span>
+          <div className="flex gap-1">
+            {RAMPS.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRamp(r)}
+                className={
+                  "rounded border px-2 py-0.5 text-xs " +
+                  (ramp === r
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-card hover:bg-muted")
+                }
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Demo clock frozen at {DEMO_NOW.toISOString()} so the border colors
+          stay deterministic.
+        </p>
+      </div>
+
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">Fresh task — early ramp (green)</h3>
+        <TaskCard
+          defaultValue={FRESH_TASK}
+          editable={editable}
+          colorRamp={ramp}
+          now={DEMO_NOW}
+          statusOptions={DEMO_STATUS_OPTIONS}
+        />
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">Urgent task — late ramp (orange/red)</h3>
+        <TaskCard
+          defaultValue={URGENT_TASK}
+          editable={editable}
+          colorRamp={ramp}
+          now={DEMO_NOW}
+          statusOptions={DEMO_STATUS_OPTIONS}
+        />
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">Overdue — pinned full red, with images</h3>
+        <TaskCard
+          defaultValue={OVERDUE_TASK}
+          editable={editable}
+          colorRamp={ramp}
+          now={DEMO_NOW}
+          statusOptions={DEMO_STATUS_OPTIONS}
+        />
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">
+          Nested 3-level family — independent per-item dates, locked child, custom override
+        </h3>
+        <TaskCard
+          defaultValue={NESTED_FAMILY}
+          editable={editable}
+          colorRamp={ramp}
+          now={DEMO_NOW}
+          statusOptions={DEMO_STATUS_OPTIONS}
+        />
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">
+          v0.3 — priority &amp; labels meta row + status tones
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          The header gains a priority badge + label chips (border/text color only). The{" "}
+          <code>done</code> / <code>blocked</code> statuses carry a <code>tone</code> so terminal
+          cards get a gray border, a dimmed overlay, and auto-collapse. Turn on{" "}
+          <strong>editable</strong> above, then use the status badge (or the overlay&apos;s badge)
+          to change status — changing a terminal status clears the overlay.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <TaskCard
+            defaultValue={PRIORITIZED_TASK}
+            editable={editable}
+            colorRamp={ramp}
+            now={DEMO_NOW}
+            statusOptions={DEMO_STATUS_OPTIONS_TONED}
+            priorityOptions={DEMO_PRIORITY_OPTIONS}
+            labelOptions={DEMO_LABEL_OPTIONS}
+          />
+          <TaskCard
+            defaultValue={DONE_TASK}
+            editable={editable}
+            colorRamp={ramp}
+            now={DEMO_NOW}
+            statusOptions={DEMO_STATUS_OPTIONS_TONED}
+            priorityOptions={DEMO_PRIORITY_OPTIONS}
+            labelOptions={DEMO_LABEL_OPTIONS}
+          />
+          <TaskCard
+            defaultValue={BLOCKED_TASK}
+            editable={editable}
+            colorRamp={ramp}
+            now={DEMO_NOW}
+            statusOptions={DEMO_STATUS_OPTIONS_TONED}
+            priorityOptions={DEMO_PRIORITY_OPTIONS}
+            labelOptions={DEMO_LABEL_OPTIONS}
+          />
+        </div>
+      </section>
+
+      <p className="text-xs text-muted-foreground">
+        {\`\${DEMO_ITEMS.length} demos · click the pencil icon (or the action menu) to edit · Cmd/Ctrl+C / Cmd/Ctrl+V on a focused card copies / pastes as child · drag a card onto another's children area to paste.\`}
+      </p>
+
+      <section className="space-y-2 pt-4">
+        <h3 className="text-sm font-semibold">
+          Inside <code>kanban-board</code>
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          {\`The same TaskCard slots into a kanban column via the exported \`}
+          <code>taskCardKanbanRenderer</code>
+          {\`. Grab a card anywhere to drag it across columns and drop it anywhere in a column; the card body keeps full edit / collapse semantics (renderer's dragHandle:"shell" + canDragItem disabled so the two drag systems don't fight).\`}
+        </p>
+        <KanbanBoard
+          renderers={[
+            kanbanCardRenderer,
+            kanbanNoteRenderer,
+            taskCardKanbanRenderer,
+          ]}
+          defaultData={KANBAN_INITIAL}
+          aria-label="Task kanban demo"
+        />
+      </section>
+    </div>
+  );
+}
+`,
+  },
+  "task-tree": {
+    demo: `"use client";
+
+import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { TaskTree } from "./task-tree";
+import { TaskTreeWithEditor } from "./task-tree-with-editor";
+import {
+  TASK_TREE_DEMO_ITEMS,
+  TASK_TREE_DEMO_STATUS_OPTIONS,
+} from "./dummy-data";
+import type { TaskItem } from "../task-card/types";
+import type { TaskTreeHandle } from "./types";
+
+export default function TaskTreeDemo() {
+  return (
+    <div className="space-y-10">
+      <DemoSection
+        title="1 — Default tree"
+        description="Out-of-the-box behaviour: toolbar (search + sort + filter + bulk), recursive children, dot status indicator, click to select, Cmd-A to select all visible, Cmd/Ctrl-click to toggle, Shift-click to range-select, drag-from-grip to reorder, Delete to remove the focused row."
+      >
+        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+          <TaskTree
+            defaultValue={TASK_TREE_DEMO_ITEMS}
+            statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+            aria-label="Q3 planning tasks"
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="2 — With editor (TaskTreeWithEditor)"
+        description="Convenience wrapper. Clicking a row opens a Dialog containing the matching TaskCard in editable mode; live-saves propagate back into the tree."
+      >
+        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+          <TaskTreeWithEditor
+            defaultValue={TASK_TREE_DEMO_ITEMS}
+            statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+            aria-label="Q3 planning tasks (editor)"
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="3 — Strip status indicator + larger indent"
+        description="The status indicator can render as a left-edge color strip (variant=strip) instead of the default dot. Combined with a wider indent for hierarchical scanning."
+      >
+        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+          <TaskTree
+            defaultValue={TASK_TREE_DEMO_ITEMS}
+            statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+            statusIndicator="strip"
+            indentSize={28}
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="4 — Filter mode: hide (VSCode-style)"
+        description="When filterMode='hide', non-matching rows are omitted entirely; ancestors-of-match still render so the result keeps tree context. Try the search input."
+      >
+        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+          <TaskTree
+            defaultValue={TASK_TREE_DEMO_ITEMS}
+            statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+            filterMode="hide"
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="5 — Controlled + onChange logger"
+        description="The tree is controlled via \`value\` + \`onChange\`. Every mutation routes through the consumer's reducer. Watch the live log for each event's \`reason\` field."
+      >
+        <ControlledLoggerDemo />
+      </DemoSection>
+
+      <DemoSection
+        title="6 — Imperative handle"
+        description="Programmatic access via ref. Buttons drive the tree from outside its UI."
+      >
+        <ImperativeHandleDemo />
+      </DemoSection>
+
+      <DemoSection
+        title="7 — Custom row renderer"
+        description="Slot prop replaces the default row paint while keeping all DnD + click + drop-indicator wiring intact. \`defaultRender\` is available if you want to wrap rather than replace."
+      >
+        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+          <TaskTree
+            defaultValue={TASK_TREE_DEMO_ITEMS}
+            statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+            renderRow={({ item, level, isSelected }) => (
+              <div
+                className={\`flex items-center gap-2 px-3 py-2 text-sm \${
+                  isSelected ? "bg-primary/10" : ""
+                }\`}
+                style={{ paddingInlineStart: 8 + level * 20 }}
+              >
+                <span className="font-mono text-xs text-muted-foreground">
+                  #{level}
+                </span>
+                <span className="font-medium">{item.name}</span>
+                {item.targetPerson && (
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {item.targetPerson.name}
+                  </span>
+                )}
+              </div>
+            )}
+          />
+        </div>
+      </DemoSection>
+    </div>
+  );
+}
+
+function DemoSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">
+        {title}
+      </h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+      {children}
+    </section>
+  );
+}
+
+function ControlledLoggerDemo() {
+  const [items, setItems] = useState<TaskItem[]>(TASK_TREE_DEMO_ITEMS);
+  const [log, setLog] = useState<string[]>([]);
+
+  const append = (line: string) => {
+    setLog((prev) => [line, ...prev].slice(0, 8));
+  };
+
+  return (
+    <div className="grid gap-3 md:grid-cols-[1fr_280px]">
+      <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+        <TaskTree
+          value={items}
+          onChange={(args) => {
+            setItems(args.items);
+            append(\`onChange · reason=\${args.reason}\`);
+          }}
+          statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+          onActiveToggled={({ item, nextActive }) =>
+            append(\`active · \${item.name} → \${nextActive ? "on" : "off"}\`)
+          }
+          onItemMoved={({ item, to }) =>
+            append(\`moved · \${item.name} → \${to.parentId ?? "root"}/\${to.index}\`)
+          }
+        />
+      </div>
+      <div className="rounded-md border border-border bg-card p-3 text-xs">
+        <div className="mb-2 font-semibold text-foreground">Event log</div>
+        {log.length === 0 ? (
+          <div className="text-muted-foreground">
+            Interact with the tree to see events here.
+          </div>
+        ) : (
+          <ul className="space-y-1 font-mono text-[11px]">
+            {log.map((line, i) => (
+              <li key={i} className="text-muted-foreground">
+                {line}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ImperativeHandleDemo() {
+  const ref = useRef<TaskTreeHandle>(null);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" onClick={() => ref.current?.expandAll()}>
+          Expand all
+        </Button>
+        <Button size="sm" onClick={() => ref.current?.collapseAll()}>
+          Collapse all
+        </Button>
+        <Button size="sm" onClick={() => ref.current?.selectAll()}>
+          Select all visible
+        </Button>
+        <Button size="sm" onClick={() => ref.current?.clearSelection()}>
+          Clear selection
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => ref.current?.setQuery("review")}
+        >
+          Search &ldquo;review&rdquo;
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => ref.current?.clearAllFilters()}
+        >
+          Clear search + filter
+        </Button>
+      </div>
+      <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
+        <TaskTree
+          ref={ref}
+          defaultValue={TASK_TREE_DEMO_ITEMS}
+          statusOptions={TASK_TREE_DEMO_STATUS_OPTIONS}
+        />
+      </div>
+    </div>
+  );
+}
+`,
+  },
+  "team-challenge": {
     demo: `"use client";
 
 import * as React from "react";
 
-import { TaskChoiceControl01 } from "./task-choice-control-01";
-import { AssigneeChip } from "./parts/assignee-chip";
-import { ClaimButton } from "./parts/claim-button";
-import { OpenForAnyoneToggle } from "./parts/open-for-anyone-toggle";
+import { TeamChallenge } from "./team-challenge";
+import { OptInToggle } from "./parts/team-challenge-optin";
+import { TeamMemberStack } from "./parts/team-member-stack";
+import { TeamChallengeSkeleton } from "./parts/team-challenge-skeleton";
 import {
-  CHOICE_ASSIGNED_AND_OPEN,
-  CHOICE_CLAIMED,
-  CHOICE_OPEN,
-  CHOICE_STALE_ASSIGNEE,
-  CHOICE_UNASSIGNED,
-  CURRENT_MEMBER_ID,
-  TASK_TEAM,
+  CHALLENGE_ACTIVE,
+  CHALLENGE_COMPLETE,
+  CHALLENGE_JOINABLE,
+  CHALLENGE_LONG_LABEL,
+  CHALLENGE_NO_REWARD,
+  CHALLENGE_TARGET_ZERO,
+  TEAM_AURORA,
+  TEAM_LARGE,
+  TEAM_SOLO,
 } from "./dummy-data";
-import type { TaskChoiceControlProps, TaskChoiceState } from "./types";
+import type { Challenge } from "./types";
 
 function Section({
   title,
@@ -13444,95 +13959,115 @@ function Section({
   );
 }
 
-/** A controlled host — wires the callbacks so the never-forced loop is live. */
-function LiveControl({
-  initial,
-  density,
-}: {
-  initial: TaskChoiceState;
-  density?: TaskChoiceControlProps["density"];
-}) {
-  const [value, setValue] = React.useState<TaskChoiceState>(initial);
+/** Controlled host — proves the opt-in echo + the penalty-free join/leave loop. */
+function InteractiveChallenge() {
+  const [optedIn, setOptedIn] = React.useState(false);
+  const challenge: Challenge = { ...CHALLENGE_JOINABLE, optedIn };
   return (
-    <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
-      <TaskChoiceControl01
-        teamId="design-team"
-        members={TASK_TEAM}
-        value={value}
-        currentMemberId={CURRENT_MEMBER_ID}
-        density={density}
-        onOpenForAnyoneChange={(open) =>
-          setValue((v) => ({ ...v, openForAnyone: open }))
-        }
-        onClaim={(memberId) =>
-          setValue((v) => ({ ...v, assigneeId: memberId, openForAnyone: false }))
-        }
-        onAssigneeChange={(memberId) =>
-          setValue((v) => ({ ...v, assigneeId: memberId }))
-        }
-        onEvent={(e) => console.info("[demo] gamification event", e)}
-      />
-    </div>
+    <TeamChallenge
+      challenge={challenge}
+      team={TEAM_AURORA}
+      onOptInChange={setOptedIn}
+      onEvent={(e) => console.info("[demo] gamification event", e)}
+    />
   );
 }
 
-export default function TaskChoiceControl01Demo() {
+export default function TeamChallengeDemo() {
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <Section
-        title="Three states — live"
-        hint="Open (invite + I'll take this) · Claimed (chip + neutral Release + Reassign) · Unassigned (volunteer + open together). Try claiming, releasing, reassigning — nothing penalizes anyone."
+        title="Interactive — join / leave (penalty-free)"
+        hint="Controlled opt-in: joining is a prominent invite, leaving is one click with no guilt. Emits challenge.opened + challenge.opt-in."
+      >
+        <InteractiveChallenge />
+      </Section>
+
+      <Section
+        title="Joinable (opted-out)"
+        hint="A neutral, first-class invitation — the goal + reward shown as available if you join, never greyed-as-failure."
+      >
+        <TeamChallenge
+          challenge={CHALLENGE_JOINABLE}
+          team={TEAM_AURORA}
+          onOptInChange={() => {}}
+        />
+      </Section>
+
+      <Section
+        title="Active + Completed"
+        hint="Opted-in and in motion → whole-team earned treatment on done (lightweight inline ack, no modal)."
       >
         <div className="flex flex-col gap-4">
-          <LiveControl initial={CHOICE_OPEN} />
-          <LiveControl initial={CHOICE_CLAIMED} />
-          <LiveControl initial={CHOICE_UNASSIGNED} />
-        </div>
-      </Section>
-
-      <Section
-        title="Legal edge — assigned AND open"
-        hint="Resolves to claimed; the open-for-anyone flag stays visible and toggleable alongside the chip."
-      >
-        <LiveControl initial={CHOICE_ASSIGNED_AND_OPEN} />
-      </Section>
-
-      <Section
-        title="Density — compact (kanban) vs comfortable (rich card)"
-        hint="Compact collapses labels to icons + truncates the assignee name (avatar floor)."
-      >
-        <div className="flex flex-col gap-4">
-          <LiveControl initial={CHOICE_CLAIMED} density="compact" />
-          <LiveControl initial={CHOICE_CLAIMED} density="comfortable" />
-        </div>
-      </Section>
-
-      <Section
-        title="Read-only (display-only)"
-        hint="Omit the callbacks (or pass readOnly) → all actions hide; the state still shows. No dead buttons."
-      >
-        <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
-          <TaskChoiceControl01
-            teamId="design-team"
-            members={TASK_TEAM}
-            value={CHOICE_CLAIMED}
-            readOnly
+          <TeamChallenge
+            challenge={CHALLENGE_ACTIVE}
+            team={TEAM_AURORA}
+            onOptInChange={() => {}}
+          />
+          <TeamChallenge
+            challenge={CHALLENGE_COMPLETE}
+            team={TEAM_AURORA}
+            onOptInChange={() => {}}
           />
         </div>
       </Section>
 
       <Section
-        title="À-la-carte sub-parts (no assembly)"
-        hint="Each flat export mounts standalone — the toggle, the claim action, and the assignee chip on their own."
+        title="Read-only (omit onOptInChange)"
+        hint="Capability-gating — with no handler the opt-in control hides; a pure progress + reward card falls out for free."
       >
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
-          <OpenForAnyoneToggle open onOpenChange={() => {}} />
-          <ClaimButton memberId={CURRENT_MEMBER_ID} onClaim={() => {}} />
-          <AssigneeChip
-            value={CHOICE_STALE_ASSIGNEE}
-            members={TASK_TEAM}
-            onAssigneeChange={() => {}}
+        <TeamChallenge challenge={CHALLENGE_ACTIVE} team={TEAM_AURORA} />
+      </Section>
+
+      <Section
+        title="Composed / lighter (bare parts, no card chrome)"
+        hint="Just the penalty-free toggle + the avatar pile — the compound tree-shakes to a subset (no Root, no card)."
+      >
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
+          <TeamMemberStack members={TEAM_AURORA.members} />
+          <OptInToggle optedIn={false} onOptInChange={() => {}} />
+        </div>
+      </Section>
+
+      <Section
+        title="Team sizes"
+        hint="Single-member (no +N) ↔ overflowing stack (+N chip)."
+      >
+        <div className="flex flex-col gap-4">
+          <TeamChallenge
+            challenge={{ ...CHALLENGE_ACTIVE, id: "solo" }}
+            team={TEAM_SOLO}
+            onOptInChange={() => {}}
           />
+          <TeamChallenge
+            challenge={{ ...CHALLENGE_JOINABLE, id: "large" }}
+            team={TEAM_LARGE}
+            onOptInChange={() => {}}
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Edge cases"
+        hint="No reward (chip hides) · target 0 (0 / 0, never NaN) · long label (truncates) · loading skeleton."
+      >
+        <div className="flex flex-col gap-4">
+          <TeamChallenge
+            challenge={CHALLENGE_NO_REWARD}
+            team={TEAM_AURORA}
+            onOptInChange={() => {}}
+          />
+          <TeamChallenge
+            challenge={CHALLENGE_TARGET_ZERO}
+            team={TEAM_AURORA}
+            onOptInChange={() => {}}
+          />
+          <TeamChallenge
+            challenge={CHALLENGE_LONG_LABEL}
+            team={TEAM_LARGE}
+            onOptInChange={() => {}}
+          />
+          <TeamChallengeSkeleton />
         </div>
       </Section>
     </div>
@@ -13540,14 +14075,14 @@ export default function TaskChoiceControl01Demo() {
 }
 `,
   },
-  "team-feedback-loop-01": {
+  "team-feedback-loop": {
     demo: `"use client";
 
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 
-import { TeamFeedbackLoop01 } from "./team-feedback-loop-01";
+import { TeamFeedbackLoop } from "./team-feedback-loop";
 import { TeamFeedbackLoopRoot } from "./parts/team-feedback-loop-root";
 import { TeamFeedbackNudge } from "./parts/team-feedback-nudge";
 import {
@@ -13582,7 +14117,7 @@ function Section({
   );
 }
 
-export default function TeamFeedbackLoop01Demo() {
+export default function TeamFeedbackLoopDemo() {
   const ref = React.useRef<TeamFeedbackLoopHandle>(null);
   const [confetti, setConfetti] = React.useState(true);
   const [placement, setPlacement] = React.useState<"inline" | "corner">("inline");
@@ -13673,7 +14208,7 @@ export default function TeamFeedbackLoop01Demo() {
         hint="The inline nudge renders here; accept/dismiss are penalty-free. Watch the console for callbacks."
       >
         <div className="rounded-lg border border-dashed border-border p-4">
-          <TeamFeedbackLoop01
+          <TeamFeedbackLoop
             ref={ref}
             teamId="T-001"
             enableConfetti={confetti}
@@ -13744,10 +14279,10 @@ export default function TeamFeedbackLoop01Demo() {
 }
 `,
   },
-  "team-progress-bar-01": {
+  "team-progress-bar": {
     demo: `"use client";
 
-import { TeamProgressBar01 } from "./team-progress-bar-01";
+import { TeamProgressBar } from "./team-progress-bar";
 import { TeamProgressBarRoot } from "./parts/team-progress-bar-root";
 import { TeamProgressBarTrack } from "./parts/team-progress-bar-track";
 import {
@@ -13776,14 +14311,14 @@ function Section({
   );
 }
 
-export default function TeamProgressBar01Demo() {
+export default function TeamProgressBarDemo() {
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-5">
       <Section
         title="From milestones, with ticks"
         hint="% = done / total · per-milestone notches · fraction readout · emits progress-bar.checked on first view"
       >
-        <TeamProgressBar01
+        <TeamProgressBar
           team={TEAM_AURORA}
           milestones={TEAM_AURORA_MILESTONES}
           showTicks
@@ -13796,7 +14331,7 @@ export default function TeamProgressBar01Demo() {
         title="Standalone, direct value"
         hint="The simplest drop-in — a 0–100 number, no milestone infrastructure."
       >
-        <TeamProgressBar01 team={TEAM_AURORA} value={62} />
+        <TeamProgressBar team={TEAM_AURORA} value={62} />
       </Section>
 
       <Section
@@ -13817,19 +14352,19 @@ export default function TeamProgressBar01Demo() {
             <span className="text-xs text-muted-foreground">
               No milestones yet (total === 0)
             </span>
-            <TeamProgressBar01 team={TEAM_AURORA} milestones={EMPTY_MILESTONES} />
+            <TeamProgressBar team={TEAM_AURORA} milestones={EMPTY_MILESTONES} />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Just started (0%)</span>
-            <TeamProgressBar01 team={TEAM_AURORA} value={0} />
+            <TeamProgressBar team={TEAM_AURORA} value={0} />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Complete (100%)</span>
-            <TeamProgressBar01 team={TEAM_AURORA} value={100} />
+            <TeamProgressBar team={TEAM_AURORA} value={100} />
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">No team name</span>
-            <TeamProgressBar01 team={{ id: "T-099" }} value={45} />
+            <TeamProgressBar team={{ id: "T-099" }} value={45} />
           </div>
         </div>
       </Section>
@@ -13838,12 +14373,12 @@ export default function TeamProgressBar01Demo() {
 }
 `,
   },
-  "team-quest-log-01": {
+  "team-quest-log": {
     demo: `"use client";
 
 import * as React from "react";
 
-import { TeamQuestLog01 } from "./team-quest-log-01";
+import { TeamQuestLog } from "./team-quest-log";
 import { TeamQuestLogRoot } from "./parts/team-quest-log-root";
 import { TeamQuestChapters } from "./parts/team-quest-chapters";
 import { TeamQuestNameEditor } from "./parts/team-quest-name-editor";
@@ -13882,7 +14417,7 @@ function Section({
 function LiveQuestLog() {
   const [team, setTeam] = React.useState<Team>(TEAM_AURORA_DEFAULT);
   return (
-    <TeamQuestLog01
+    <TeamQuestLog
       team={team}
       milestones={MILESTONES}
       chapters={CHAPTERS}
@@ -13895,7 +14430,7 @@ function LiveQuestLog() {
   );
 }
 
-export default function TeamQuestLog01Demo() {
+export default function TeamQuestLogDemo() {
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
       <Section
@@ -13909,7 +14444,7 @@ export default function TeamQuestLog01Demo() {
         title="Custom quest name + in-progress narrative"
         hint="done · done · current (you are here) · upcoming — each visually distinct (icon + color)."
       >
-        <TeamQuestLog01
+        <TeamQuestLog
           team={TEAM_AURORA}
           milestones={MILESTONES}
           chapters={CHAPTERS}
@@ -13922,13 +14457,13 @@ export default function TeamQuestLog01Demo() {
         hint="All done → every beat completed, no 'current'. None done → the first beat is 'current'."
       >
         <div className="flex flex-col gap-6">
-          <TeamQuestLog01
+          <TeamQuestLog
             team={TEAM_AURORA}
             milestones={MILESTONES_ALL_DONE}
             chapters={CHAPTERS}
             editableName={false}
           />
-          <TeamQuestLog01
+          <TeamQuestLog
             team={{ ...TEAM_AURORA, questName: "Fresh Start" }}
             milestones={MILESTONES_NONE_DONE}
             chapters={CHAPTERS}
@@ -13942,13 +14477,13 @@ export default function TeamQuestLog01Demo() {
         hint="Empty narrative (quiet placeholder) · an unresolved-milestone beat (renders gracefully)."
       >
         <div className="flex flex-col gap-6">
-          <TeamQuestLog01
+          <TeamQuestLog
             team={TEAM_AURORA}
             milestones={MILESTONES}
             chapters={[]}
             editableName={false}
           />
-          <TeamQuestLog01
+          <TeamQuestLog
             team={TEAM_AURORA}
             milestones={MILESTONES}
             chapters={CHAPTERS_WITH_UNRESOLVED}
@@ -13980,12 +14515,148 @@ export default function TeamQuestLog01Demo() {
 }
 `,
   },
-  "team-trophy-shelf-01": {
+  "team-task-claim": {
     demo: `"use client";
 
 import * as React from "react";
 
-import { TeamTrophyShelf01 } from "./team-trophy-shelf-01";
+import { TeamTaskClaim } from "./team-task-claim";
+import { AssigneeChip } from "./parts/assignee-chip";
+import { ClaimButton } from "./parts/claim-button";
+import { OpenForAnyoneToggle } from "./parts/open-for-anyone-toggle";
+import {
+  CHOICE_ASSIGNED_AND_OPEN,
+  CHOICE_CLAIMED,
+  CHOICE_OPEN,
+  CHOICE_STALE_ASSIGNEE,
+  CHOICE_UNASSIGNED,
+  CURRENT_MEMBER_ID,
+  TASK_TEAM,
+} from "./dummy-data";
+import type { TeamTaskClaimProps, TaskClaimState } from "./types";
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-col gap-0.5">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** A controlled host — wires the callbacks so the never-forced loop is live. */
+function LiveControl({
+  initial,
+  density,
+}: {
+  initial: TaskClaimState;
+  density?: TeamTaskClaimProps["density"];
+}) {
+  const [value, setValue] = React.useState<TaskClaimState>(initial);
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
+      <TeamTaskClaim
+        teamId="design-team"
+        members={TASK_TEAM}
+        value={value}
+        currentMemberId={CURRENT_MEMBER_ID}
+        density={density}
+        onOpenForAnyoneChange={(open) =>
+          setValue((v) => ({ ...v, openForAnyone: open }))
+        }
+        onClaim={(memberId) =>
+          setValue((v) => ({ ...v, assigneeId: memberId, openForAnyone: false }))
+        }
+        onAssigneeChange={(memberId) =>
+          setValue((v) => ({ ...v, assigneeId: memberId }))
+        }
+        onEvent={(e) => console.info("[demo] gamification event", e)}
+      />
+    </div>
+  );
+}
+
+export default function TeamTaskClaimDemo() {
+  return (
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
+      <Section
+        title="Three states — live"
+        hint="Open (invite + I'll take this) · Claimed (chip + neutral Release + Reassign) · Unassigned (volunteer + open together). Try claiming, releasing, reassigning — nothing penalizes anyone."
+      >
+        <div className="flex flex-col gap-4">
+          <LiveControl initial={CHOICE_OPEN} />
+          <LiveControl initial={CHOICE_CLAIMED} />
+          <LiveControl initial={CHOICE_UNASSIGNED} />
+        </div>
+      </Section>
+
+      <Section
+        title="Legal edge — assigned AND open"
+        hint="Resolves to claimed; the open-for-anyone flag stays visible and toggleable alongside the chip."
+      >
+        <LiveControl initial={CHOICE_ASSIGNED_AND_OPEN} />
+      </Section>
+
+      <Section
+        title="Density — compact (kanban) vs comfortable (rich card)"
+        hint="Compact collapses labels to icons + truncates the assignee name (avatar floor)."
+      >
+        <div className="flex flex-col gap-4">
+          <LiveControl initial={CHOICE_CLAIMED} density="compact" />
+          <LiveControl initial={CHOICE_CLAIMED} density="comfortable" />
+        </div>
+      </Section>
+
+      <Section
+        title="Read-only (display-only)"
+        hint="Omit the callbacks (or pass readOnly) → all actions hide; the state still shows. No dead buttons."
+      >
+        <div className="rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
+          <TeamTaskClaim
+            teamId="design-team"
+            members={TASK_TEAM}
+            value={CHOICE_CLAIMED}
+            readOnly
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="À-la-carte sub-parts (no assembly)"
+        hint="Each flat export mounts standalone — the toggle, the claim action, and the assignee chip on their own."
+      >
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md">
+          <OpenForAnyoneToggle open onOpenChange={() => {}} />
+          <ClaimButton memberId={CURRENT_MEMBER_ID} onClaim={() => {}} />
+          <AssigneeChip
+            value={CHOICE_STALE_ASSIGNEE}
+            members={TASK_TEAM}
+            onAssigneeChange={() => {}}
+          />
+        </div>
+      </Section>
+    </div>
+  );
+}
+`,
+  },
+  "team-trophy-shelf": {
+    demo: `"use client";
+
+import * as React from "react";
+
+import { TeamTrophyShelf } from "./team-trophy-shelf";
 import { TeamMilestoneBadge } from "./parts/team-milestone-badge";
 import { TeamTrophyShelfGrid } from "./parts/team-trophy-shelf-grid";
 import { TeamTrophyShelfRoot } from "./parts/team-trophy-shelf-root";
@@ -14063,19 +14734,19 @@ function AwardRevealDemo() {
           animateAward
         </label>
       </div>
-      <TeamTrophyShelf01 team={TEAM_AURORA} badges={badges} animateAward={animate} />
+      <TeamTrophyShelf team={TEAM_AURORA} badges={badges} animateAward={animate} />
     </div>
   );
 }
 
-export default function TeamTrophyShelf01Demo() {
+export default function TeamTrophyShelfDemo() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <Section
         title="The trophy shelf"
         hint="Earned + locked slots, header count, awarded-date on hover. Emits badges.viewed on first view."
       >
-        <TeamTrophyShelf01
+        <TeamTrophyShelf
           team={TEAM_AURORA}
           badges={TEAM_AURORA_BADGES}
           onEvent={(e) => console.info("[demo] gamification event", e)}
@@ -14094,15 +14765,15 @@ export default function TeamTrophyShelf01Demo() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-1.5">
             <span className="text-xs text-muted-foreground">Empty (no badges)</span>
-            <TeamTrophyShelf01 team={TEAM_AURORA} badges={EMPTY_BADGES} />
+            <TeamTrophyShelf team={TEAM_AURORA} badges={EMPTY_BADGES} />
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-xs text-muted-foreground">All earned</span>
-            <TeamTrophyShelf01 team={TEAM_AURORA} badges={TEAM_AURORA_ALL_EARNED} />
+            <TeamTrophyShelf team={TEAM_AURORA} badges={TEAM_AURORA_ALL_EARNED} />
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-xs text-muted-foreground">Earned only (showLocked=false)</span>
-            <TeamTrophyShelf01
+            <TeamTrophyShelf
               team={TEAM_AURORA}
               badges={TEAM_AURORA_BADGES}
               showLocked={false}
@@ -14147,18 +14818,18 @@ export default function TeamTrophyShelf01Demo() {
 }
 `,
   },
-  "thumb-list-01": {
+  "thumbnail-list": {
     demo: `﻿"use client";
 
 import type { ComponentProps, ElementType } from "react";
 import { Bookmark } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { ThumbList01 } from "./thumb-list-01";
+import { ThumbnailList } from "./thumbnail-list";
 import {
-  THUMB_LIST_01_DUMMY,
-  THUMB_LIST_01_DUMMY_DATED,
-  THUMB_LIST_01_DUMMY_TR,
+  THUMBNAIL_LIST_DUMMY,
+  THUMBNAIL_LIST_DUMMY_DATED,
+  THUMBNAIL_LIST_DUMMY_TR,
 } from "./dummy-data";
 
 // Demo-only mock router-Link substitute. Real consumers pass NextLink /
@@ -14194,7 +14865,7 @@ function formatRelativeDays(dateStr: string): string {
   return RELATIVE_FORMATTER.format(days, "day");
 }
 
-export default function ThumbList01Demo() {
+export default function ThumbnailListDemo() {
   return (
     <Tabs defaultValue="default" className="w-full">
       <SwipeTabsList>
@@ -14207,7 +14878,7 @@ export default function ThumbList01Demo() {
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 max-w-md">
-        <ThumbList01 items={THUMB_LIST_01_DUMMY} />
+        <ThumbnailList items={THUMBNAIL_LIST_DUMMY} />
         <p className="mt-3 text-xs text-muted-foreground">
           Default chrome — framed card, default header icon, native anchors.
           Drop into any sidebar slot.
@@ -14215,7 +14886,7 @@ export default function ThumbList01Demo() {
       </TabsContent>
 
       <TabsContent value="no-frame" className="mt-6 max-w-md">
-        <ThumbList01 items={THUMB_LIST_01_DUMMY} framed={false} />
+        <ThumbnailList items={THUMBNAIL_LIST_DUMMY} framed={false} />
         <p className="mt-3 text-xs text-muted-foreground">
           <code>framed={"{false}"}</code> drops the card chrome — useful when
           the parent already provides padding / background / borders, or when
@@ -14224,11 +14895,11 @@ export default function ThumbList01Demo() {
       </TabsContent>
 
       <TabsContent value="custom-meta" className="mt-6 max-w-md">
-        <ThumbList01
-          items={THUMB_LIST_01_DUMMY_DATED}
+        <ThumbnailList
+          items={THUMBNAIL_LIST_DUMMY_DATED}
           labels={{ heading: "More from this author" }}
           renderMeta={(item) => {
-            const dated = item as (typeof THUMB_LIST_01_DUMMY_DATED)[number];
+            const dated = item as (typeof THUMBNAIL_LIST_DUMMY_DATED)[number];
             return (
               <time
                 className="text-xs text-muted-foreground mt-1 block"
@@ -14247,8 +14918,8 @@ export default function ThumbList01Demo() {
       </TabsContent>
 
       <TabsContent value="no-icon" className="mt-6 max-w-md">
-        <ThumbList01
-          items={THUMB_LIST_01_DUMMY}
+        <ThumbnailList
+          items={THUMBNAIL_LIST_DUMMY}
           headerIcon={null}
           linkComponent={MockRouterLinkAs}
           labels={{ heading: "Trending now" }}
@@ -14264,7 +14935,7 @@ export default function ThumbList01Demo() {
       </TabsContent>
 
       <TabsContent value="empty" className="mt-6 max-w-md">
-        <ThumbList01
+        <ThumbnailList
           items={[]}
           labels={{
             heading: "Recently viewed",
@@ -14280,8 +14951,8 @@ export default function ThumbList01Demo() {
       </TabsContent>
 
       <TabsContent value="i18n" className="mt-6 max-w-md">
-        <ThumbList01
-          items={THUMB_LIST_01_DUMMY_TR}
+        <ThumbnailList
+          items={THUMBNAIL_LIST_DUMMY_TR}
           headerIcon={Bookmark}
           labels={{ heading: "Kaydedilen Haberler" }}
         />
@@ -14296,475 +14967,7 @@ export default function ThumbList01Demo() {
 }
 `,
   },
-  "todo-rich-card": {
-    demo: `"use client";
-
-import { useState } from "react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { TodoRichCard } from "./todo-rich-card";
-import { todoRichCardKanbanRenderer } from "./parts/kanban-adapter";
-import {
-  BLOCKED_TASK,
-  DEMO_ITEMS,
-  DEMO_LABEL_OPTIONS,
-  DEMO_NOW,
-  DEMO_PRIORITY_OPTIONS,
-  DEMO_STATUS_OPTIONS,
-  DEMO_STATUS_OPTIONS_TONED,
-  DONE_TASK,
-  FRESH_TASK,
-  NESTED_FAMILY,
-  OVERDUE_TASK,
-  PRIORITIZED_TASK,
-  URGENT_TASK,
-} from "./dummy-data";
-import type { TodoColorRampPreset, TodoItem } from "./types";
-import {
-  KanbanBoard,
-  kanbanCardRenderer,
-  kanbanNoteRenderer,
-  type KanbanData,
-} from "@/registry/components/data/kanban-board-01";
-
-const RAMPS: TodoColorRampPreset[] = ["default", "muted", "vivid", "monochrome"];
-
-const KANBAN_INITIAL: KanbanData = {
-  swimlanes: [],
-  columns: [
-    {
-      id: "col-todo",
-      title: "To do",
-      color: "slate",
-      items: [
-        {
-          id: \`kanban-\${FRESH_TASK.id}\`,
-          rendererId: "todo-rich-card",
-          data: FRESH_TASK satisfies TodoItem,
-        },
-      ],
-    },
-    {
-      id: "col-doing",
-      title: "In progress",
-      color: "lime",
-      items: [
-        {
-          id: \`kanban-\${URGENT_TASK.id}\`,
-          rendererId: "todo-rich-card",
-          data: URGENT_TASK satisfies TodoItem,
-        },
-        {
-          id: "kanban-note-1",
-          rendererId: "kanban-note",
-          data: {
-            title: "Demo note",
-            body: "Note + todo renderers co-exist on the same board. Grab a todo card anywhere to drag it (shell-drag), and drop it anywhere in a column. The card body keeps full edit / collapse semantics.",
-          },
-        },
-      ],
-    },
-    {
-      id: "col-done",
-      title: "Done",
-      color: "emerald",
-      items: [
-        {
-          id: \`kanban-\${OVERDUE_TASK.id}\`,
-          rendererId: "todo-rich-card",
-          data: OVERDUE_TASK satisfies TodoItem,
-        },
-      ],
-    },
-  ],
-};
-
-export default function TodoRichCardDemo() {
-  const [editable, setEditable] = useState(false);
-  const [ramp, setRamp] = useState<TodoColorRampPreset>("default");
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-muted/40 p-3 text-sm">
-        <Label htmlFor="editable" className="flex items-center gap-2">
-          <Switch
-            id="editable"
-            checked={editable}
-            onCheckedChange={setEditable}
-          />
-          editable (inline-toggle mode)
-        </Label>
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Ramp:</span>
-          <div className="flex gap-1">
-            {RAMPS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRamp(r)}
-                className={
-                  "rounded border px-2 py-0.5 text-xs " +
-                  (ramp === r
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-card hover:bg-muted")
-                }
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Demo clock frozen at {DEMO_NOW.toISOString()} so the border colors
-          stay deterministic.
-        </p>
-      </div>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold">Fresh task — early ramp (green)</h3>
-        <TodoRichCard
-          defaultValue={FRESH_TASK}
-          editable={editable}
-          colorRamp={ramp}
-          now={DEMO_NOW}
-          statusOptions={DEMO_STATUS_OPTIONS}
-        />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold">Urgent task — late ramp (orange/red)</h3>
-        <TodoRichCard
-          defaultValue={URGENT_TASK}
-          editable={editable}
-          colorRamp={ramp}
-          now={DEMO_NOW}
-          statusOptions={DEMO_STATUS_OPTIONS}
-        />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold">Overdue — pinned full red, with images</h3>
-        <TodoRichCard
-          defaultValue={OVERDUE_TASK}
-          editable={editable}
-          colorRamp={ramp}
-          now={DEMO_NOW}
-          statusOptions={DEMO_STATUS_OPTIONS}
-        />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold">
-          Nested 3-level family — independent per-item dates, locked child, custom override
-        </h3>
-        <TodoRichCard
-          defaultValue={NESTED_FAMILY}
-          editable={editable}
-          colorRamp={ramp}
-          now={DEMO_NOW}
-          statusOptions={DEMO_STATUS_OPTIONS}
-        />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-semibold">
-          v0.3 — priority &amp; labels meta row + status tones
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          The header gains a priority badge + label chips (border/text color only). The{" "}
-          <code>done</code> / <code>blocked</code> statuses carry a <code>tone</code> so terminal
-          cards get a gray border, a dimmed overlay, and auto-collapse. Turn on{" "}
-          <strong>editable</strong> above, then use the status badge (or the overlay&apos;s badge)
-          to change status — changing a terminal status clears the overlay.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <TodoRichCard
-            defaultValue={PRIORITIZED_TASK}
-            editable={editable}
-            colorRamp={ramp}
-            now={DEMO_NOW}
-            statusOptions={DEMO_STATUS_OPTIONS_TONED}
-            priorityOptions={DEMO_PRIORITY_OPTIONS}
-            labelOptions={DEMO_LABEL_OPTIONS}
-          />
-          <TodoRichCard
-            defaultValue={DONE_TASK}
-            editable={editable}
-            colorRamp={ramp}
-            now={DEMO_NOW}
-            statusOptions={DEMO_STATUS_OPTIONS_TONED}
-            priorityOptions={DEMO_PRIORITY_OPTIONS}
-            labelOptions={DEMO_LABEL_OPTIONS}
-          />
-          <TodoRichCard
-            defaultValue={BLOCKED_TASK}
-            editable={editable}
-            colorRamp={ramp}
-            now={DEMO_NOW}
-            statusOptions={DEMO_STATUS_OPTIONS_TONED}
-            priorityOptions={DEMO_PRIORITY_OPTIONS}
-            labelOptions={DEMO_LABEL_OPTIONS}
-          />
-        </div>
-      </section>
-
-      <p className="text-xs text-muted-foreground">
-        {\`\${DEMO_ITEMS.length} demos · click the pencil icon (or the action menu) to edit · Cmd/Ctrl+C / Cmd/Ctrl+V on a focused card copies / pastes as child · drag a card onto another's children area to paste.\`}
-      </p>
-
-      <section className="space-y-2 pt-4">
-        <h3 className="text-sm font-semibold">
-          Inside <code>kanban-board-01</code>
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          {\`The same TodoRichCard slots into a kanban column via the exported \`}
-          <code>todoRichCardKanbanRenderer</code>
-          {\`. Grab a card anywhere to drag it across columns and drop it anywhere in a column; the card body keeps full edit / collapse semantics (renderer's dragHandle:"shell" + canDragItem disabled so the two drag systems don't fight).\`}
-        </p>
-        <KanbanBoard
-          renderers={[
-            kanbanCardRenderer,
-            kanbanNoteRenderer,
-            todoRichCardKanbanRenderer,
-          ]}
-          defaultData={KANBAN_INITIAL}
-          aria-label="Todo kanban demo"
-        />
-      </section>
-    </div>
-  );
-}
-`,
-  },
-  "todo-tree": {
-    demo: `"use client";
-
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { TodoTree } from "./todo-tree";
-import { TodoTreeWithEditor } from "./todo-tree-with-editor";
-import {
-  TODO_TREE_DEMO_ITEMS,
-  TODO_TREE_DEMO_STATUS_OPTIONS,
-} from "./dummy-data";
-import type { TodoItem } from "../todo-rich-card/types";
-import type { TodoTreeHandle } from "./types";
-
-export default function TodoTreeDemo() {
-  return (
-    <div className="space-y-10">
-      <DemoSection
-        title="1 — Default tree"
-        description="Out-of-the-box behaviour: toolbar (search + sort + filter + bulk), recursive children, dot status indicator, click to select, Cmd-A to select all visible, Cmd/Ctrl-click to toggle, Shift-click to range-select, drag-from-grip to reorder, Delete to remove the focused row."
-      >
-        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-          <TodoTree
-            defaultValue={TODO_TREE_DEMO_ITEMS}
-            statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-            aria-label="Q3 planning tasks"
-          />
-        </div>
-      </DemoSection>
-
-      <DemoSection
-        title="2 — With editor (TodoTreeWithEditor)"
-        description="Convenience wrapper. Clicking a row opens a Dialog containing the matching TodoRichCard in editable mode; live-saves propagate back into the tree."
-      >
-        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-          <TodoTreeWithEditor
-            defaultValue={TODO_TREE_DEMO_ITEMS}
-            statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-            aria-label="Q3 planning tasks (editor)"
-          />
-        </div>
-      </DemoSection>
-
-      <DemoSection
-        title="3 — Strip status indicator + larger indent"
-        description="The status indicator can render as a left-edge color strip (variant=strip) instead of the default dot. Combined with a wider indent for hierarchical scanning."
-      >
-        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-          <TodoTree
-            defaultValue={TODO_TREE_DEMO_ITEMS}
-            statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-            statusIndicator="strip"
-            indentSize={28}
-          />
-        </div>
-      </DemoSection>
-
-      <DemoSection
-        title="4 — Filter mode: hide (VSCode-style)"
-        description="When filterMode='hide', non-matching rows are omitted entirely; ancestors-of-match still render so the result keeps tree context. Try the search input."
-      >
-        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-          <TodoTree
-            defaultValue={TODO_TREE_DEMO_ITEMS}
-            statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-            filterMode="hide"
-          />
-        </div>
-      </DemoSection>
-
-      <DemoSection
-        title="5 — Controlled + onChange logger"
-        description="The tree is controlled via \`value\` + \`onChange\`. Every mutation routes through the consumer's reducer. Watch the live log for each event's \`reason\` field."
-      >
-        <ControlledLoggerDemo />
-      </DemoSection>
-
-      <DemoSection
-        title="6 — Imperative handle"
-        description="Programmatic access via ref. Buttons drive the tree from outside its UI."
-      >
-        <ImperativeHandleDemo />
-      </DemoSection>
-
-      <DemoSection
-        title="7 — Custom row renderer"
-        description="Slot prop replaces the default row paint while keeping all DnD + click + drop-indicator wiring intact. \`defaultRender\` is available if you want to wrap rather than replace."
-      >
-        <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-          <TodoTree
-            defaultValue={TODO_TREE_DEMO_ITEMS}
-            statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-            renderRow={({ item, level, isSelected }) => (
-              <div
-                className={\`flex items-center gap-2 px-3 py-2 text-sm \${
-                  isSelected ? "bg-primary/10" : ""
-                }\`}
-                style={{ paddingInlineStart: 8 + level * 20 }}
-              >
-                <span className="font-mono text-xs text-muted-foreground">
-                  #{level}
-                </span>
-                <span className="font-medium">{item.name}</span>
-                {item.targetPerson && (
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {item.targetPerson.name}
-                  </span>
-                )}
-              </div>
-            )}
-          />
-        </div>
-      </DemoSection>
-    </div>
-  );
-}
-
-function DemoSection({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="space-y-2">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">
-        {title}
-      </h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-      {children}
-    </section>
-  );
-}
-
-function ControlledLoggerDemo() {
-  const [items, setItems] = useState<TodoItem[]>(TODO_TREE_DEMO_ITEMS);
-  const [log, setLog] = useState<string[]>([]);
-
-  const append = (line: string) => {
-    setLog((prev) => [line, ...prev].slice(0, 8));
-  };
-
-  return (
-    <div className="grid gap-3 md:grid-cols-[1fr_280px]">
-      <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-        <TodoTree
-          value={items}
-          onChange={(args) => {
-            setItems(args.items);
-            append(\`onChange · reason=\${args.reason}\`);
-          }}
-          statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-          onActiveToggled={({ item, nextActive }) =>
-            append(\`active · \${item.name} → \${nextActive ? "on" : "off"}\`)
-          }
-          onItemMoved={({ item, to }) =>
-            append(\`moved · \${item.name} → \${to.parentId ?? "root"}/\${to.index}\`)
-          }
-        />
-      </div>
-      <div className="rounded-md border border-border bg-card p-3 text-xs">
-        <div className="mb-2 font-semibold text-foreground">Event log</div>
-        {log.length === 0 ? (
-          <div className="text-muted-foreground">
-            Interact with the tree to see events here.
-          </div>
-        ) : (
-          <ul className="space-y-1 font-mono text-[11px]">
-            {log.map((line, i) => (
-              <li key={i} className="text-muted-foreground">
-                {line}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ImperativeHandleDemo() {
-  const ref = useRef<TodoTreeHandle>(null);
-
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={() => ref.current?.expandAll()}>
-          Expand all
-        </Button>
-        <Button size="sm" onClick={() => ref.current?.collapseAll()}>
-          Collapse all
-        </Button>
-        <Button size="sm" onClick={() => ref.current?.selectAll()}>
-          Select all visible
-        </Button>
-        <Button size="sm" onClick={() => ref.current?.clearSelection()}>
-          Clear selection
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => ref.current?.setQuery("review")}
-        >
-          Search &ldquo;review&rdquo;
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => ref.current?.clearAllFilters()}
-        >
-          Clear search + filter
-        </Button>
-      </div>
-      <div className="h-105 overflow-hidden rounded-md border border-border bg-card">
-        <TodoTree
-          ref={ref}
-          defaultValue={TODO_TREE_DEMO_ITEMS}
-          statusOptions={TODO_TREE_DEMO_STATUS_OPTIONS}
-        />
-      </div>
-    </div>
-  );
-}
-`,
-  },
-  "video-player-01": {
+  "video-player": {
     demo: `﻿"use client";
 
 import { useState } from "react";
@@ -14773,7 +14976,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { cn } from "@/lib/utils";
-import { VideoPlayer01 } from "./video-player-01";
+import { VideoPlayer } from "./video-player";
 import {
   SAMPLE_LOOP_VIDEO_URL,
   SAMPLE_POSTER_URL,
@@ -14847,7 +15050,7 @@ function CarouselDemo() {
                 : "opacity-60 ring-transparent",
             )}
           >
-            <VideoPlayer01 src={src} isActive={idx === activeIdx} autoPlay />
+            <VideoPlayer src={src} isActive={idx === activeIdx} autoPlay />
           </div>
         ))}
       </div>
@@ -14868,13 +15071,13 @@ function CarouselDemo() {
       <p className="text-xs text-muted-foreground">
         Only the active slide plays. Switching pauses the previous video
         cleanly via the <code>isActive</code> prop — exactly the contract
-        that <code>media-carousel-01</code> will use.
+        that <code>media-carousel</code> will use.
       </p>
     </div>
   );
 }
 
-export default function VideoPlayer01Demo() {
+export default function VideoPlayerDemo() {
   return (
     <Tabs defaultValue="default">
       <SwipeTabsList>
@@ -14887,7 +15090,7 @@ export default function VideoPlayer01Demo() {
 
       <TabsContent value="default" className="mt-6">
         <div className="aspect-video overflow-hidden rounded-md">
-          <VideoPlayer01 src={SAMPLE_VIDEO_URL} poster={SAMPLE_POSTER_URL} />
+          <VideoPlayer src={SAMPLE_VIDEO_URL} poster={SAMPLE_POSTER_URL} />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Click the big play button → controls auto-hide after 2s during
@@ -14897,7 +15100,7 @@ export default function VideoPlayer01Demo() {
 
       <TabsContent value="custom-controls" className="mt-6">
         <div className="aspect-video overflow-hidden rounded-md">
-          <VideoPlayer01
+          <VideoPlayer
             src={SAMPLE_VIDEO_URL}
             poster={SAMPLE_POSTER_URL}
             renderControls={(state) => <CustomControlsRenderer {...state} />}
@@ -14913,7 +15116,7 @@ export default function VideoPlayer01Demo() {
 
       <TabsContent value="captions" className="mt-6">
         <div className="aspect-video overflow-hidden rounded-md">
-          <VideoPlayer01
+          <VideoPlayer
             src={SAMPLE_VIDEO_URL}
             poster={SAMPLE_POSTER_URL}
             tracks={SAMPLE_TRACKS_EN}
@@ -14929,7 +15132,7 @@ export default function VideoPlayer01Demo() {
 
       <TabsContent value="decorative" className="mt-6">
         <div className="aspect-video overflow-hidden rounded-md">
-          <VideoPlayer01
+          <VideoPlayer
             src={SAMPLE_LOOP_VIDEO_URL}
             controls={false}
             autoPlay
@@ -14948,219 +15151,6 @@ export default function VideoPlayer01Demo() {
         <CarouselDemo />
       </TabsContent>
     </Tabs>
-  );
-}
-`,
-  },
-  "workspace": {
-    demo: `"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import {
-  AlertTriangleIcon,
-  ClockIcon,
-  HashIcon,
-  NotebookIcon,
-  TableIcon,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useAreaContext } from "./hooks/use-area-context";
-import { Workspace } from "./workspace";
-import {
-  DEMO_INITIAL_LAYOUT,
-  DEMO_PRESETS,
-  DEMO_TABLE_ROWS,
-  type DemoTableRow,
-} from "./dummy-data";
-import type { WorkspaceComponent } from "./types";
-
-function NotesPanel() {
-  const [text, setText] = useState(
-    "Take notes here. State persists across resize and split — try resizing the area or splitting it from a corner.",
-  );
-  return (
-    <div className="flex h-full flex-col gap-2 p-3">
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="min-h-0 flex-1 resize-none rounded-md border border-border bg-background p-2 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      />
-      <p className="text-[10px] text-muted-foreground">
-        {text.length} characters
-      </p>
-    </div>
-  );
-}
-
-function ClockPanel() {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  const ctx = useAreaContext();
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 p-3">
-      <span className="font-mono text-3xl tabular-nums text-foreground">
-        {now.toLocaleTimeString()}
-      </span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-        {ctx.width.toFixed(0)} × {ctx.height.toFixed(0)} px
-      </span>
-    </div>
-  );
-}
-
-function CounterPanel() {
-  const [count, setCount] = useState(0);
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 p-3">
-      <span className="font-mono text-4xl tabular-nums text-foreground">
-        {count}
-      </span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setCount((c) => c - 1)}
-          className="rounded-md border border-border bg-background px-3 py-1 text-xs font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          −
-        </button>
-        <button
-          type="button"
-          onClick={() => setCount(0)}
-          className="rounded-md border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          reset
-        </button>
-        <button
-          type="button"
-          onClick={() => setCount((c) => c + 1)}
-          className="rounded-md border border-border bg-background px-3 py-1 text-xs font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          +
-        </button>
-      </div>
-      <p className="max-w-56 text-center text-[10px] text-muted-foreground">
-        Increment, then split this area from a corner — the original keeps its
-        count, the new sibling starts at 0.
-      </p>
-    </div>
-  );
-}
-
-function statusVariant(
-  status: DemoTableRow["status"],
-): "default" | "secondary" | "destructive" {
-  if (status === "Done") return "default";
-  if (status === "In progress") return "secondary";
-  return "destructive";
-}
-
-function TablePanel() {
-  return (
-    <div className="flex h-full flex-col p-3">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-border text-left text-muted-foreground">
-            <th className="py-1 pr-2 font-medium">Task</th>
-            <th className="py-1 pr-2 font-medium">Owner</th>
-            <th className="py-1 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {DEMO_TABLE_ROWS.map((row) => (
-            <tr key={row.id} className="border-b border-border/60 last:border-0">
-              <td className="py-1.5 pr-2 text-foreground">{row.task}</td>
-              <td className="py-1.5 pr-2 text-muted-foreground">{row.owner}</td>
-              <td className="py-1.5">
-                <Badge variant={statusVariant(row.status)} className="text-[10px]">
-                  {row.status}
-                </Badge>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-const components: WorkspaceComponent[] = [
-  {
-    id: "notes",
-    name: "Notes",
-    category: "Tools",
-    icon: <NotebookIcon className="size-3" />,
-    render: () => <NotesPanel />,
-  },
-  {
-    id: "clock",
-    name: "Clock",
-    category: "Tools",
-    icon: <ClockIcon className="size-3" />,
-    render: () => <ClockPanel />,
-  },
-  {
-    id: "counter",
-    name: "Counter",
-    category: "Tools",
-    icon: <HashIcon className="size-3" />,
-    render: () => <CounterPanel />,
-  },
-  {
-    id: "data-table",
-    name: "Data Table",
-    category: "Data",
-    icon: <TableIcon className="size-3" />,
-    render: () => <TablePanel />,
-  },
-];
-
-export default function WorkspaceDemo() {
-  const [errors, setErrors] = useState<string[]>([]);
-  const handleError = useMemo(
-    () => (next: string[]) => setErrors(next),
-    [],
-  );
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="text-xs text-muted-foreground">
-        Try splitting an area by dragging from a corner, resize via the
-        boundary, or <strong>click a divider and press Arrow keys</strong> to
-        nudge it (new in v0.1.2). Mobile widths collapse to a card stack
-        whose item height you control via <code>cardStackItemHeight</code> —
-        420px in this demo. Validation issues surface via <code>onError</code>
-        below the canvas.
-      </p>
-      <div className="h-140 w-full">
-        <Workspace
-          components={components}
-          defaultComponentId="notes"
-          defaultLayout={DEMO_INITIAL_LAYOUT}
-          presets={DEMO_PRESETS}
-          cardStackItemHeight={420}
-          onError={handleError}
-          aria-label="Workspace demo"
-        />
-      </div>
-      {errors.length > 0 ? (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive"
-        >
-          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          <div>
-            <p className="font-medium">Workspace validation</p>
-            <ul className="mt-1 ml-3 list-disc space-y-0.5">
-              {errors.map((msg, i) => (
-                <li key={i}>{msg}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ) : null}
-    </div>
   );
 }
 `,

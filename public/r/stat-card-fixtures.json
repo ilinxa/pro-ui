@@ -3,7 +3,7 @@
   "name": "stat-card-fixtures",
   "title": "Stat Card — fixtures",
   "author": "ilinxa",
-  "description": "Stat Card bundle including the dummy-data fixtures (revenue / errorRate / activeUsers / latency / signups / uptime).",
+  "description": "Stat Card plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/stat-card"
   ],

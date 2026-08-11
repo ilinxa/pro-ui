@@ -21,7 +21,7 @@
 - `<JsonFormDevtools>` no longer crashes when no `<JsonFormProvider>` is in scope — renders an explanatory fallback panel via internal `useJsonFormContextOptional()` (not exported).
 - `prettyReplacer` handles `BigInt` values (`${value.toString()}n`).
 
-**v0.2.3 (2026-05-21):** reverts v0.2.2's `useStableRichtextValue` consumer-side band-aid in `parts/field-richtext.tsx` (back to its v0.2.1 simple shape); the proper fix landed in `article-body-01@v0.2.2` (content-equality echo guard at the substrate). RHF-controlled `richtext` fields now work without keystroke focus-loss. No public-API change; the dropped helpers were file-local.
+**v0.2.3 (2026-05-21):** reverts v0.2.2's `useStableRichtextValue` consumer-side band-aid in `parts/field-richtext.tsx` (back to its v0.2.1 simple shape); the proper fix landed in `rich-text-editor@v0.2.2` (content-equality echo guard at the substrate). RHF-controlled `richtext` fields now work without keystroke focus-loss. No public-API change; the dropped helpers were file-local.
 
 **v0.2.4 (2026-05-21):** `<JsonFormProvider>` now wraps its children in `<FormProvider {...value.rhf}>` internally. The documented headless pattern (`<JsonFormProvider value={{ ...handle, rhf: form, ... }}>`) no longer requires consumers to also wrap with RHF's `<FormProvider>`. Pre-v0.2.4 code that wraps with both still works (the inner wins; same form instance). The fix closes a user-reported page-crash on the demo's Custom Registry tab — the Imperative tab's `<details>`-embedded `HeadlessExample` was missing the outer wrap and v0.2.0's watch-drop made FieldWrapper's `useFormContext()` load-bearing on first render.
 
@@ -38,7 +38,7 @@
 - **Devtools panel** (v0.1.7) — `<JsonFormDevtools>` floating-by-default panel with Schema / Values / Conditionals / Errors tabs. `Ctrl+Shift+J` toggle. Prod no-op via `process.env.NODE_ENV` gate; body chunk lazy-loaded via `React.lazy()`.
 - **Imperative handle** — `submit / reset / setValue / getValue / setError / clearErrors / trigger / focus / isDirty / isValid / isSubmitting`. Wire via `<JsonForm ref={...}>`.
 - **Headless factory** — `useJsonForm(schema, options)` returns `{ form, zodSchema, fieldList, isValid, isSubmitting, handle }`.
-- **Cross-registry deps** — `@ilinxa/code-block` (for `code`) + `@ilinxa/article-body-01` (for `richtext`), both lazy-loaded via `React.lazy` so the heavy bundles only ship when a form actually contains those fields.
+- **Cross-registry deps** — `@ilinxa/code-block` (for `code`) + `@ilinxa/rich-text-editor` (for `richtext`), both lazy-loaded via `React.lazy` so the heavy bundles only ship when a form actually contains those fields.
 - **Lifecycle callbacks** (v0.1.6) — `onSubmitAttempt` (fires on every submit press before validation) + `onReady` (fires once after mount + defaults applied).
 - **`dependsOn` typed metadata** (v0.1.7) — declare which field names a custom renderer's `allValues` access depends on. Schema-lint warns on dangling refs. **Runtime watch-gating live in v0.2.0** — the FieldWrapper resolves a per-field subscription mode (snapshot / narrow / fullbag) from this flag.
 - **`translatable` typed flag** (v0.1.6) — typed metadata for downstream per-locale renderer HOCs. Upstream `JsonForm` does NOT change behavior based on this flag.
@@ -50,7 +50,7 @@
 pnpm dlx shadcn@latest add @ilinxa/json-form
 ```
 
-This pulls the sealed-folder source AND auto-installs the npm dependencies (`react-hook-form@^7.75.0`, `@hookform/resolvers@^5.2.2`, `zod@^4.4.3`, `lucide-react@^1.11.0`) AND chain-installs `@ilinxa/code-block` (for the `code` field) and `@ilinxa/article-body-01` (for the `richtext` field).
+This pulls the sealed-folder source AND auto-installs the npm dependencies (`react-hook-form@^7.75.0`, `@hookform/resolvers@^5.2.2`, `zod@^4.4.3`, `lucide-react@^1.11.0`) AND chain-installs `@ilinxa/code-block` (for the `code` field) and `@ilinxa/rich-text-editor` (for the `richtext` field).
 
 The `@ilinxa/json-form-fixtures` sibling adds the 6 fixture schemas + `mockFetchSchema` async helper. Skip if you have your own schemas.
 
@@ -452,7 +452,7 @@ function MyForm() {
 | `date` / `time` / `datetime` | `string` (ISO 8601) |
 | `date-range` | `{ start: string; end: string }` |
 | `code` | `string` |
-| `richtext` | `Array<{ type, children }>` (Plate JSON). Canonical empty default: import `ARTICLE_BODY_EMPTY_VALUE` from `@ilinxa/article-body-01`. Serialize via `serializeArticleBodyToHtml` at export boundaries. |
+| `richtext` | `Array<{ type, children }>` (Plate JSON). Canonical empty default: import `RICH_TEXT_EMPTY_VALUE` from `@ilinxa/rich-text-editor`. Serialize via `serializeRichTextToHtml` at export boundaries. |
 | `computed` | whatever `expression` / `compute` returns |
 | `hidden` | the `defaultValue` (unchanged unless `setValue`'d) |
 | `section` / `divider` | excluded from submission |

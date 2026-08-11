@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ilinxa-ui-pro",
+  title: "ilinxa pro-ui",
   description:
     "Professional, fully-composed components built on shadcn/ui and Tailwind CSS v4.",
 };

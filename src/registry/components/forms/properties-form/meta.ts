@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "forms",
 
   description:
-    "Schema-driven, controlled read/edit form for typed records — six built-in field types, three-state permissions, sync validation, and a custom-renderer slot.",
+    "Schema-driven read and edit form for typed records — six field types, per-field permissions, sync validation, and a custom renderer slot.",
   context:
     "Tier 1 pro-component for the graph-system. Pairs with detail-panel as the inline editing surface for entity properties; useful standalone wherever a settings page or properties drawer needs typed fields without pulling in a full form library. Generic over the entity shape; the host owns the data and persistence; permission resolution is layered (host predicate → field declaration → default editable). Sync-only validation in two layers; async deferred to v0.2.",
   features: [
@@ -22,7 +22,7 @@ export const meta: ComponentMeta = {
   ],
   tags: ["properties-form", "form", "schema", "validation", "graph-system"],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-04-29",
   updatedAt: "2026-08-11",
@@ -37,5 +37,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["detail-panel", "entity-picker", "filter-stack", "markdown-editor", "rich-card"],
+  related: ["detail-panel", "entity-picker", "filter-panel", "markdown-editor", "card-tree"],
 };

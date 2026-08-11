@@ -81,7 +81,7 @@ These components are the **V2 (gamified) treatment** in a 2-arm between-subjects
 ---
 
 ### E3 — Cooperative Team Challenges · *Relatedness*
-**C4 — Cooperative Challenge Card/Panel**
+**C4 — Team Challenge Card/Panel**
 - Optional challenge with a **shared team goal** (e.g., "All 5 members commit a task this morning"); completion rewards the **whole team equally** (§4.1 E3).
 - Shows the challenge, progress toward it, and the team reward on completion.
 
@@ -135,7 +135,7 @@ These components are the **V2 (gamified) treatment** in a 2-arm between-subjects
 | C1 | Team progress bar | E1 | Competence | standalone (board header) | progress-bar checked |
 | C2 | Milestone badge | E2 | Comp + Relat | part of C3 | — |
 | C3 | Team trophy shelf | E2 | Comp + Relat | standalone (compound) | badges viewed |
-| C4 | Cooperative challenge card | E3 | Relatedness | standalone | challenge opened |
+| C4 | Team challenge card | E3 | Relatedness | standalone | challenge opened |
 | C5 | Challenge opt-in control | E3 | Relatedness | part of C4 | challenge opened |
 | C6 | Task open/volunteer affordance | E4 | Autonomy | augments task card | choice-interaction |
 | C7 | Quest-name prompt/editor | E5 | Auto + Relat | standalone | — |
@@ -183,11 +183,11 @@ Where these may reuse or extend the current library (49+ shipped procomps):
 
 | Catalogue component | Likely relationship |
 |---|---|
-| C6 task open/volunteer affordance | **Augments** `kanban-board-01` and/or `todo-rich-card` (task-card surfaces already exist) |
+| C6 task open/volunteer affordance | **Augments** `kanban-board` and/or `task-card` (task-card surfaces already exist) |
 | C3 team trophy shelf | New compound (`Root` + badge parts) per [.claude/rules/compound-component-structure.md](../../../.claude/rules/compound-component-structure.md) |
 | C1 team progress bar | New procomp; builds on shadcn `progress` primitive |
 | C4 cooperative challenge card | New procomp |
-| C8 narrative chapter timeline | New procomp; conceptually adjacent to `gantt-timeline-01` / `calendar-01` (date-ordered beats) |
+| C8 narrative chapter timeline | New procomp; conceptually adjacent to `gantt-timeline` / `event-calendar` (date-ordered beats) |
 | C9 / C10 feedback layer + nudge | Overlay utilities; check existing reveal/animation tokens in [globals.css](../../../src/app/globals.css) (`reveal-up`) |
 
 ---
@@ -197,7 +197,7 @@ Where these may reuse or extend the current library (49+ shipped procomps):
 1. **System vs. loose procomps.** These share a data model (milestones, badges, team scope) and cross-cutting telemetry — they qualify as a `gamification-system` per [docs/systems/README.md](../README.md). Confirm before scaffolding individual procomps.
 2. **Milestone data model.** C1, C2/C3, C8, C10 all depend on a shared "team milestone" concept. The catalogue does not define it; the system description must (what is a milestone, who defines them, completed/total source).
 3. **Telemetry contract.** Whether the library components *emit* events (callback props) or the host wires telemetry. Library code must stay portable (no env-specific code) — telemetry is almost certainly a host concern surfaced via callbacks.
-4. **C6 ownership.** Decide whether task-choice lands as a new prop on existing kanban/task-card procomps or a separate wrapper.
+4. **C6 ownership.** Decide whether task-claim lands as a new prop on existing kanban/task-card procomps or a separate wrapper.
 5. **Build order.** Suggested: C1 (simplest, standalone) → C2/C3 → C9/C10 → C4 → C7/C8 → C6 (touches existing components, highest blast radius).
 
 ---

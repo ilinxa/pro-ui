@@ -442,7 +442,7 @@ Breakdown (verified via grep on the tables above):
 - `hooks/`: 5
 - `lib/`: 7
 
-Comparable to: file-manager (32 files), code-block (42 files), rich-card (51 files). Sits at the upper end of the sealed-folder norm — appropriate for the surface size.
+Comparable to: file-manager (32 files), code-block (42 files), card-tree (51 files). Sits at the upper end of the sealed-folder norm — appropriate for the surface size.
 
 ---
 

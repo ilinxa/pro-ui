@@ -4,13 +4,13 @@
 > **Slug:** `entity-picker` · **Category:** `forms` · **Tier:** 1 (generic; no graph dependency)
 > **Parent description:** [entity-picker-procomp-description.md](entity-picker-procomp-description.md) (signed off 2026-04-28)
 > **Parent system:** [graph-system](../../systems/graph-system/graph-system-description.md) — Tier 1 (independent at the registry level per [decision #35](../../systems/graph-system/graph-system-description.md))
-> **Sibling completion:** doesn't gate any specific `force-graph` phase plan-lock, but is composed inside Tier 3 from `force-graph` v0.3 onward (linking-mode UI) + v0.4 (group-membership editor). Tier 1 plan-lock cascade after this: 4 of 5 done (with [`properties-form`](../properties-form-procomp/properties-form-procomp-plan.md), [`detail-panel`](../detail-panel-procomp/detail-panel-procomp-plan.md), [`filter-stack`](../filter-stack-procomp/filter-stack-procomp-plan.md) signed off 2026-04-29).
+> **Sibling completion:** doesn't gate any specific `force-graph` phase plan-lock, but is composed inside Tier 3 from `force-graph` v0.3 onward (linking-mode UI) + v0.4 (group-membership editor). Tier 1 plan-lock cascade after this: 4 of 5 done (with [`properties-form`](../properties-form-procomp/properties-form-procomp-plan.md), [`detail-panel`](../detail-panel-procomp/detail-panel-procomp-plan.md), [`filter-panel`](../filter-panel-procomp/filter-panel-procomp-plan.md) signed off 2026-04-29).
 
 ---
 
 ## 1. Inherited inputs (one paragraph)
 
-Builds against [entity-picker description §8 locked decisions](entity-picker-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) (10 questions; no refinements on re-validation) and [§8.5 plan-stage tightenings](entity-picker-procomp-description.md#85-plan-stage-tightenings-surfaced-during-description-review--re-validation) (6 surfaced). Inherits system constraints: [decision #25](../../systems/graph-system/graph-system-description.md) (per-component permission resolver — N/A; entity-picker has no permission concept), [#35](../../systems/graph-system/graph-system-description.md) (Tier 1 independence — entity-picker imports no other Tier 1 component; properties-form custom-field integration in §6.3 of description is host-side composition), [#37](../../systems/graph-system/graph-system-description.md) (design-system mandate — Onest + JetBrains Mono, OKLCH only). Pattern parity: mirrors [`properties-form` plan §3.3](../properties-form-procomp/properties-form-procomp-plan.md#33-component-props) controlled-state posture; mirrors [`filter-stack` plan §10.1.1](../filter-stack-procomp/filter-stack-procomp-plan.md#1011-categories-reference-stability-host-responsibility) `items` reference-stability footgun (entity-picker has it too via cmdk's filter cost); mirrors [`detail-panel` plan §4.3](../detail-panel-procomp/detail-panel-procomp-plan.md#43-react-context--the-compound-api-mechanism-q-p6) controlled-vs-uncontrolled posture for `open` state. **Composition with properties-form** (description §6.3): the `id` prop (added on validate pass per §3.2) wires properties-form's `fieldId` into entity-picker's trigger so `<label htmlFor={fieldId}>` works.
+Builds against [entity-picker description §8 locked decisions](entity-picker-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) (10 questions; no refinements on re-validation) and [§8.5 plan-stage tightenings](entity-picker-procomp-description.md#85-plan-stage-tightenings-surfaced-during-description-review--re-validation) (6 surfaced). Inherits system constraints: [decision #25](../../systems/graph-system/graph-system-description.md) (per-component permission resolver — N/A; entity-picker has no permission concept), [#35](../../systems/graph-system/graph-system-description.md) (Tier 1 independence — entity-picker imports no other Tier 1 component; properties-form custom-field integration in §6.3 of description is host-side composition), [#37](../../systems/graph-system/graph-system-description.md) (design-system mandate — Onest + JetBrains Mono, OKLCH only). Pattern parity: mirrors [`properties-form` plan §3.3](../properties-form-procomp/properties-form-procomp-plan.md#33-component-props) controlled-state posture; mirrors [`filter-panel` plan §10.1.1](../filter-panel-procomp/filter-panel-procomp-plan.md#1011-categories-reference-stability-host-responsibility) `items` reference-stability footgun (entity-picker has it too via cmdk's filter cost); mirrors [`detail-panel` plan §4.3](../detail-panel-procomp/detail-panel-procomp-plan.md#43-react-context--the-compound-api-mechanism-q-p6) controlled-vs-uncontrolled posture for `open` state. **Composition with properties-form** (description §6.3): the `id` prop (added on validate pass per §3.2) wires properties-form's `fieldId` into entity-picker's trigger so `<label htmlFor={fieldId}>` works.
 
 ---
 
@@ -23,7 +23,7 @@ The deliverable is a single Tier 1 pro-component at `src/registry/components/for
 - **Kind badges** — when items carry `kind`, results render with a small Badge prefix; host supplies `kinds: Record<string, KindMeta>` for label/color. `showKindBadges?: boolean` defaults to true iff any item has a kind.
 - **Default match** — case-insensitive substring match on `label` via `String.toLowerCase()` (Q-P2 lock; English-biased acceptable v0.1 trade-off; `Intl.Collator` upgrade is non-breaking). Host can override via `match?: (item, query) => boolean`.
 - **Open/close state** — controlled (`open` + `onOpenChange`) OR uncontrolled (managed internally) per description Q4; pass-through to shadcn Popover's controlled props per Q-P9.
-- **Selection state** — pure controlled (`value` + `onChange`); same posture as properties-form / filter-stack. `value: T | null` (single) or `value: T[]` (multi) per overload.
+- **Selection state** — pure controlled (`value` + `onChange`); same posture as properties-form / filter-panel. `value: T | null` (single) or `value: T[]` (multi) per overload.
 - **Selection equality** — id-based set-equality for v0.1 (Q-P4 lock); `onChange` only fires when the id-set changes; survives upstream item-array re-derivation. v0.2 drag-to-reorder will require ordered-array equality (non-breaking upgrade).
 - **Keyboard navigation** — cmdk handles ↑/↓ result navigation + Enter activation natively. Esc closes (Popover default). Tab moves focus in/out without losing selection. Backspace on empty search input removes the LAST chip in multi mode (Q-P3 lock).
 - **Empty states** — distinct UI for "no matches for query" vs "no items provided" via `renderEmpty?` slot with ctx (`{ query, itemCount }`); default copy is `"No results"` (Q-P5 lock).
@@ -466,7 +466,7 @@ src/registry/components/forms/entity-picker/
 └── index.ts                          # EntityPicker + types + (no other named exports)
 ```
 
-**File count: 18.** (Was 19 in draft; `parts/selected-indicator.tsx` was a single-`<Check>` wrapper — over-extracted; `<Check>` is now inlined directly into `result-row.tsx` per validate-pass refinement.) Comparable to detail-panel/filter-stack (17); smaller than properties-form (22).
+**File count: 18.** (Was 19 in draft; `parts/selected-indicator.tsx` was a single-`<Check>` wrapper — over-extracted; `<Check>` is now inlined directly into `result-row.tsx` per validate-pass refinement.) Comparable to detail-panel/filter-panel (17); smaller than properties-form (22).
 
 ### 7.2 Build order within v0.1
 
@@ -548,7 +548,7 @@ Focus management:
 | `open()` called when `disabled: true` | Dispatches `handleOpenChange(true)` regardless; the host can decide. Picker still renders dropdown (consistent with the `open: true && disabled: true` row above). |
 | Backspace in multi mode with empty search AND empty value | No-op (no chips to remove). |
 | Backspace in single mode | Standard text-input behavior (no chip removal in single mode). |
-| Hosts pass new `items` reference each render (inline literal) | Same footgun as filter-stack's `categories` and properties-form's `schema`. Cmdk re-derives filter on items change; if items are referentially unstable, cmdk re-runs filter on every render. Mitigated by React Compiler in-repo; documented in usage for NPM consumers. See §10.1.1. |
+| Hosts pass new `items` reference each render (inline literal) | Same footgun as filter-panel's `categories` and properties-form's `schema`. Cmdk re-derives filter on items change; if items are referentially unstable, cmdk re-runs filter on every render. Mitigated by React Compiler in-repo; documented in usage for NPM consumers. See §10.1.1. |
 | `match` is referentially unstable (inline arrow) | Same footgun. Documented. |
 | Very long entity labels in chips | Chip wraps via `flex-wrap` per Q6; long labels can produce a tall chip cluster. Acceptable; `overflowMode` is a v0.2 prop if real consumers need it. |
 | Properties-form custom-field integration: `id` prop omitted | `<label htmlFor={fieldId}>` becomes a dangling reference (label has nothing to associate with). Document in usage: "When composing entity-picker inside properties-form's `custom` field renderer, pass `id={fieldId}` from `FieldRendererProps`." Dev-only `console.warn` is overkill (id is optional outside this composition); rely on usage docs. |
@@ -567,7 +567,7 @@ Focus management:
 
 #### 10.1.1 `items` reference stability (host responsibility)
 
-Same footgun as [filter-stack's `categories`](../filter-stack-procomp/filter-stack-procomp-plan.md#1011-categories-reference-stability-host-responsibility) and [properties-form's `schema`](../properties-form-procomp/properties-form-procomp-plan.md#1111-schema-reference-stability-host-responsibility). Hosts that pass an inline `items={[...]}` literal create new entity object references on every parent render. Without reference stability, `useItemsById`'s memo invalidates and cmdk re-derives its internal index.
+Same footgun as [filter-panel's `categories`](../filter-panel-procomp/filter-panel-procomp-plan.md#1011-categories-reference-stability-host-responsibility) and [properties-form's `schema`](../properties-form-procomp/properties-form-procomp-plan.md#1111-schema-reference-stability-host-responsibility). Hosts that pass an inline `items={[...]}` literal create new entity object references on every parent render. Without reference stability, `useItemsById`'s memo invalidates and cmdk re-derives its internal index.
 
 **In-repo mitigation:** React Compiler ([CLAUDE.md tech stack](../../../CLAUDE.md)) auto-memoizes JSX-literal arrays at the call site. Inline `items={[...]}` is fine for in-repo consumers.
 
@@ -595,7 +595,7 @@ Budget: **≤ 8KB minified + gzipped** per description success #8.
 Realistic breakdown — entity-picker's *own* code:
 - Component code: ~5-6KB (18 files; 3 hooks; 3 lib helpers; 6 parts; main component ~1KB)
 - `lucide-react` icons: tree-shaken; ~1KB for `X` (chip remove) + `Check` (selected indicator, inlined into result-row) + `ChevronDown` (trigger).
-- **Entity-picker-attributable total: ~6-7KB**, ceiling 8KB with ~1-2KB headroom (tighter than filter-stack; comparable to detail-panel).
+- **Entity-picker-attributable total: ~6-7KB**, ceiling 8KB with ~1-2KB headroom (tighter than filter-panel; comparable to detail-panel).
 
 Newly-installed shadcn `Command` adds to the registry's overall bundle but is **shared infrastructure**, amortized across all current and future consumers — it's NOT entity-picker-attributable cost. cmdk peer dep is the dominant share of the install cost.
 

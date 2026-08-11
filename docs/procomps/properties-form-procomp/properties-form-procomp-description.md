@@ -21,7 +21,7 @@ Many UI surfaces in this library (and in any application built with it) need to 
 - A graph node's label, type, color, position (force-graph)
 - A graph edge's type, direction, label
 - User annotations on a read-only system-origin entity (the "hybrid documenter" use case)
-- A rich-card flat field's key, type, value (eventual rich-card refactor)
+- A card-tree flat field's key, type, value (eventual card-tree refactor)
 - A settings panel with typed knobs
 
 Today, every site that needs this pattern reimplements: layout, type-aware rendering (string vs number vs date vs select), per-field validation, dirty tracking, edit-mode toggle, save/cancel actions, error display, and ARIA wiring. Reimplementations diverge on small but visible details — *when does dirty state reset? does Cancel revert or stay dirty? do disabled fields explain why?* — which produces UX inconsistency across the product.
@@ -36,8 +36,8 @@ Worse: in the graph-system, the same form must render two **fundamentally differ
 
 - **Schema-driven rendering.** Host provides a list of field definitions (key, type, label, validation, permission); component renders typed inputs in the order given.
 - **Six built-in field types**: `string`, `number`, `boolean`, `date`, `select`, `textarea`. (See §8 open questions for date-picker library.)
-- **Read mode vs Edit mode** — toggleable via prop. Read mode shows formatted values (numbers right-aligned mono, booleans as icons, dates as ISO formatted) — same flat-field treatment as rich-card. Edit mode renders typed inputs.
-- **Per-field permission** with three levels: `editable`, `read-only`, `hidden`. Declarative on the schema; can be overridden per-render via a `resolvePermission` predicate (parallel to rich-card's resolver shape).
+- **Read mode vs Edit mode** — toggleable via prop. Read mode shows formatted values (numbers right-aligned mono, booleans as icons, dates as ISO formatted) — same flat-field treatment as card-tree. Edit mode renders typed inputs.
+- **Per-field permission** with three levels: `editable`, `read-only`, `hidden`. Declarative on the schema; can be overridden per-render via a `resolvePermission` predicate (parallel to card-tree's resolver shape).
 - **Sync per-field validation** via a `validate(value, allValues)` callback returning an error string or `undefined`. Errors render inline below the field with proper ARIA association.
 - **Sync form-level validation** via a `validate(values)` callback returning a `Record<key, string>` of errors.
 - **Dirty tracking** — counter-based (every commit increments; `markClean` snapshots), exposed via imperative ref. Save button auto-disables when not dirty.
@@ -74,7 +74,7 @@ In dependency order:
 1. **`detail-panel`** (Tier 1) — slots `properties-form` as the editable content for selected entities. The single most important integration; properties-form's inline-edit affordance must compose cleanly with detail-panel's read/edit toggle. (System decision #6 locks "DetailPanel Edit is inline".)
 2. **`force-graph` v0.3** (Tier 2) — composes `detail-panel` (which composes `properties-form`) for editing graph nodes and edges. Must support the **mixed-permission case**: a system-origin node where canonical fields are read-only and user annotations are editable side-by-side.
 3. **Tier 3 graph-system page** — the creation flow uses `properties-form` to build new user-origin nodes / edges before submitting.
-4. **rich-card eventual refactor** — rich-card's flat-field editing currently uses bespoke parts (`field-edit.tsx`, `card-title-edit.tsx`). When properties-form is mature, rich-card may consume it — but that's a future migration, not a v0.1 concern.
+4. **card-tree eventual refactor** — card-tree's flat-field editing currently uses bespoke parts (`field-edit.tsx`, `card-title-edit.tsx`). When properties-form is mature, card-tree may consume it — but that's a future migration, not a v0.1 concern.
 5. **Settings forms throughout the docs site** — opportunistic; would consume properties-form for any "edit these typed knobs" UI.
 
 Critically, **properties-form has zero graph dependency**. It is a generic form component that happens to be useful in the graph system. This is per [system decision #35](../../systems/graph-system/graph-system-description.md): Tier 1 components are independent.

@@ -26,75 +26,75 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 
 | Component | Category | Version | Status |
 |---|---|---|---|
-| `code-block` | code | 0.1.3 | alpha |
-| `article-body-01` | data | 0.2.2 | alpha |
-| `article-meta-01` | data | 0.1.0 | alpha |
-| `blackboard-01` | data | 0.1.1 | alpha |
-| `calendar-01` | data | 0.2.5 | alpha |
-| `comment-thread-01` | data | 0.2.1 | alpha |
-| `content-card-news-01` | data | 0.3.0 | alpha |
-| `data-table` | data | 0.1.1 | alpha |
-| `engagement-bar-01` | data | 0.3.2 | alpha |
-| `event-card-01` | data | 0.1.1 | alpha |
-| `expandable-text-01` | data | 0.1.0 | alpha |
-| `flow-canvas-01` | data | 0.2.7 | alpha |
-| `gantt-timeline-01` | data | 0.5.2 | alpha |
-| `info-list-01` | data | 0.1.0 | alpha |
-| `kanban-board-01` | data | 0.4.3 | alpha |
-| `people-grid-01` | data | 0.1.0 | alpha |
-| `post-card-01` | data | 0.3.2 | alpha |
-| `progress-timeline-01` | data | 0.1.2 | alpha |
-| `project-card-01` | data | 0.2.0 | alpha |
-| `registration-card-01` | data | 0.1.1 | alpha |
-| `rich-card` | data | 0.4.3 | beta |
-| `rich-card-in-flow` | data | 0.2.1 | alpha |
-| `schedule-list-01` | data | 0.1.0 | alpha |
-| `stat-card` | data | 0.1.1 | alpha |
-| `story-rail-01` | data | 0.2.1 | alpha |
-| `thumb-list-01` | data | 0.1.0 | alpha |
-| `todo-rich-card` | data | 0.4.2 | alpha |
-| `todo-tree` | data | 0.3.2 | alpha |
-| `detail-panel` | feedback | 0.1.1 | alpha |
-| `category-cloud-01` | forms | 0.1.0 | alpha |
-| `entity-picker` | forms | 0.1.2 | alpha |
-| `filter-bar-01` | forms | 0.1.1 | alpha |
-| `filter-stack` | forms | 0.1.2 | alpha |
-| `json-form` | forms | 0.2.7 | alpha |
-| `markdown-editor` | forms | 0.1.3 | alpha |
-| `properties-form` | forms | 0.1.3 | alpha |
-| `registration-form-01` | forms | 0.1.1 | alpha |
-| `cooperative-challenge-01` | gamification | 0.1.2 | alpha |
-| `task-choice-control-01` | gamification | 0.1.0 | alpha |
-| `team-feedback-loop-01` | gamification | 0.1.2 | alpha |
-| `team-progress-bar-01` | gamification | 0.1.1 | alpha |
-| `team-quest-log-01` | gamification | 0.1.2 | alpha |
-| `team-trophy-shelf-01` | gamification | 0.1.3 | alpha |
-| `grid-layout-news-01` | layout | 0.2.1 | alpha |
-| `workspace` | layout | 0.1.4 | alpha |
-| `author-card-01` | marketing | 0.1.0 | alpha |
-| `newsletter-card-01` | marketing | 0.1.0 | alpha |
-| `page-hero-news-01` | marketing | 0.1.2 | alpha |
-| `pricing-table-01` | marketing | 0.1.2 | alpha |
-| `share-bar-01` | marketing | 0.1.1 | alpha |
-| `content-composer-01` | media | 0.2.2 | alpha |
-| `media-carousel-01` | media | 0.1.3 | alpha |
-| `media-carousel-editor-01` | media | 0.1.3 | alpha |
-| `media-editor-01` | media | 0.1.6 | alpha |
-| `media-library-01` | media | 0.1.2 | alpha |
-| `pdf-viewer` | media | 0.1.4 | alpha |
-| `story-composer-01` | media | 0.2.2 | alpha |
-| `story-viewer-01` | media | 0.4.4 | alpha |
-| `video-player-01` | media | 0.1.2 | alpha |
-| `account-switcher-01` | navigation | 0.1.2 | alpha |
-| `file-manager` | navigation | 0.1.2 | alpha |
-| `file-tree` | navigation | 0.1.2 | alpha |
-| `rich-sidebar` | navigation | 0.3.3 | alpha |
+| `code-block` | code | 0.1.4 | alpha |
+| `article-meta` | data | 0.2.0 | alpha |
+| `blackboard` | data | 0.2.0 | alpha |
+| `card-tree` | data | 0.5.0 | beta |
+| `card-tree-node` | data | 0.3.0 | alpha |
+| `comment-thread` | data | 0.3.0 | alpha |
+| `data-table` | data | 0.1.2 | alpha |
+| `engagement-bar` | data | 0.4.0 | alpha |
+| `event-calendar` | data | 0.3.0 | alpha |
+| `event-card` | data | 0.2.0 | alpha |
+| `expandable-text` | data | 0.2.0 | alpha |
+| `flow-canvas` | data | 0.3.0 | alpha |
+| `gantt-timeline` | data | 0.6.0 | alpha |
+| `info-list` | data | 0.2.0 | alpha |
+| `kanban-board` | data | 0.5.0 | alpha |
+| `news-card` | data | 0.4.0 | alpha |
+| `people-grid` | data | 0.2.0 | alpha |
+| `post-card` | data | 0.4.0 | alpha |
+| `progress-timeline` | data | 0.2.0 | alpha |
+| `project-card` | data | 0.3.0 | alpha |
+| `registration-card` | data | 0.2.0 | alpha |
+| `rich-text-editor` | data | 0.3.0 | alpha |
+| `schedule-list` | data | 0.2.0 | alpha |
+| `stat-card` | data | 0.1.2 | alpha |
+| `story-rail` | data | 0.3.0 | alpha |
+| `task-card` | data | 0.5.0 | alpha |
+| `task-tree` | data | 0.4.0 | alpha |
+| `thumbnail-list` | data | 0.2.0 | alpha |
+| `detail-panel` | feedback | 0.1.2 | alpha |
+| `category-cloud` | forms | 0.2.0 | alpha |
+| `entity-picker` | forms | 0.1.3 | alpha |
+| `filter-bar` | forms | 0.2.0 | alpha |
+| `filter-panel` | forms | 0.2.0 | alpha |
+| `json-form` | forms | 0.2.8 | alpha |
+| `markdown-editor` | forms | 0.1.4 | alpha |
+| `properties-form` | forms | 0.1.4 | alpha |
+| `signup-form` | forms | 0.2.0 | alpha |
+| `team-challenge` | gamification | 0.2.0 | alpha |
+| `team-feedback-loop` | gamification | 0.2.0 | alpha |
+| `team-progress-bar` | gamification | 0.2.0 | alpha |
+| `team-quest-log` | gamification | 0.2.0 | alpha |
+| `team-task-claim` | gamification | 0.2.0 | alpha |
+| `team-trophy-shelf` | gamification | 0.2.0 | alpha |
+| `magazine-layout` | layout | 0.3.0 | alpha |
+| `split-workspace` | layout | 0.2.0 | alpha |
+| `author-card` | marketing | 0.2.0 | alpha |
+| `newsletter-signup` | marketing | 0.2.0 | alpha |
+| `page-hero` | marketing | 0.2.0 | alpha |
+| `pricing-table` | marketing | 0.2.0 | alpha |
+| `share-bar` | marketing | 0.2.0 | alpha |
+| `carousel-composer` | media | 0.2.0 | alpha |
+| `content-composer` | media | 0.3.0 | alpha |
+| `media-carousel` | media | 0.2.0 | alpha |
+| `media-editor` | media | 0.2.0 | alpha |
+| `media-library` | media | 0.2.0 | alpha |
+| `pdf-viewer` | media | 0.1.5 | alpha |
+| `story-composer` | media | 0.3.0 | alpha |
+| `story-viewer` | media | 0.5.0 | alpha |
+| `video-player` | media | 0.2.0 | alpha |
+| `account-switcher` | navigation | 0.2.0 | alpha |
+| `app-sidebar` | navigation | 0.4.0 | alpha |
+| `file-manager` | navigation | 0.1.3 | alpha |
+| `file-tree` | navigation | 0.1.3 | alpha |
 
 ## Queue & roadmap (re-dated 2026-08-10)
 
 **The master plan supersedes ad-hoc queueing until P4 closes.** New-component work is paused during P1 (fix program) except by explicit user call.
 
-- Original queue remainders: `rich-graph-2` · `chat-panel` · `notification-system`. Siblings queued (no GATE 1): `todo-rich-card-in-flow` · `bottom-tab-bar-01` · `related-articles-ribbon-01`.
+- Original queue remainders: `rich-graph-2` · `chat-panel` · `notification-system`. Siblings queued (no GATE 1): `todo-card-tree-node` · `bottom-tab-bar-01` · `related-articles-ribbon-01`.
 - Deferred extractions: `gamification-kit` (D-04; plan P3.5) · gamification Tier-host page.
 - Roadmap candidates (post-P4): `feedback/empty-state` · `forms/multi-select` · `layout/page-header` · `feedback/notification-feed` · `navigation/command-palette` · `media/dropzone`.
 - In-flight non-procomp: `cms-panel-01` GATE 1 awaiting sign-off + 10 open questions ([handoff](handoffs-archive/HANDOFF-2026-05-25-cms-panel-01-gate-1-awaiting-signoff.md)) — resumes after P1.
@@ -107,15 +107,15 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 - **P1 follow-up cohort** (from the fix program's adversarial passes; owners in review §0 ledger): re-export-on-re-edit (composer v0.2.3) · text-export webfonts (media-editor v0.2) · §6/§7 remainders → P3.4 fix-on-touch.
 - **F-cross-13** Radix→Base-UI divergence — path (b) producer sweep DONE (P1.5, 2026-08-11); path (a) defensive authoring is the standing rule for new code. Known residual carrier classes: pinned new-york regDep URLs (→P2/P4) · `--radix-popover-trigger-width` var (entity-picker/json-form now dual-var; audit others on touch). Tracker: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 - **F-S1** cross-procomp `/types` rewriter substitution — relative-imports lock in place; watch for a second trip.
-- **Per-component follow-up cohorts** (Low, from GATE 3 reviews): media-editor/story-composer v0.3 cohort · rich-card-in-flow v0.3 · flow-canvas v0.2.x · pdf-viewer worker default v0.2 · blackboard F-03/F-04. Owners + targets in each review file; superseded where the 2026-08-10 review re-found them.
-- **Informed defers:** MDX usage docs (trigger: ~5 prose-heavy components) · NPM publish artifacts (trigger: external consumer onboards) · test runner (trigger: first pure-lib bug; first test = rich-card parse→serialize fixed-point).
+- **Per-component follow-up cohorts** (Low, from GATE 3 reviews): media-editor/story-composer v0.3 cohort · card-tree-node v0.3 · flow-canvas v0.2.x · pdf-viewer worker default v0.2 · blackboard F-03/F-04. Owners + targets in each review file; superseded where the 2026-08-10 review re-found them.
+- **Informed defers:** MDX usage docs (trigger: ~5 prose-heavy components) · NPM publish artifacts (trigger: external consumer onboards) · test runner (trigger: first pure-lib bug; first test = card-tree parse→serialize fixed-point).
 
 ## Recent activity
 
 Five most-recent, one line each. Full log: [`.claude/decisions/`](decisions/).
 
 - **2026-08-11 — Open-source MIT + registry-directory plan** ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)) — LICENSE shipped; external guide audited (central "blocker" was false); directory PR sequenced after P2.
-- **2026-08-11 — P1.5 F-cross-13 path-b carrier sweep: 23 patch bumps, zero asChild/delayDuration/ToggleGroup in shipped code** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)) — 5 parallel fix agents + 3 adversarial verifiers (caught 1 real regression pre-ship: calendar touch long-press); calendar/rich-sidebar tooltips now local; registry deps pruned.
+- **2026-08-11 — P1.5 F-cross-13 path-b carrier sweep: 23 patch bumps, zero asChild/delayDuration/ToggleGroup in shipped code** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)) — 5 parallel fix agents + 3 adversarial verifiers (caught 1 real regression pre-ship: calendar touch long-press); calendar/app-sidebar tooltips now local; registry deps pruned.
 - **2026-08-10 — P1 fix program shipped: all review Highs closed, 23 patch bumps, lint 81→0** ([decision](decisions/2026-08-10-p1-fix-program.md)) — 6 parallel fix batches + 3 adversarial verify passes (caught + closed one regression pre-ship); reverse-npm + registry-json validators live.
 - **2026-08-10 — Deep review + production-readiness plan signed off** ([review](../docs/reviews/2026-08-10-deep-codebase-review.md) · [plan](../docs/production-readiness-plan.md)) — ~90 findings; D1–D3 locked; P0 hygiene executed same day.
 - **2026-07-01 — gamification visual hover pass** ([decision](decisions/2026-07-01-gamification-visual-hover-pass.md)) — 4 patch bumps + docs-site Button hover fix.

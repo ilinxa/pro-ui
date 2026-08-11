@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "navigation",
 
   description:
-    "VS Code-style hierarchical file tree with format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select.",
+    "VS Code-style file tree — format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select.",
   context:
     "Use anywhere a hierarchical-node array needs an interactive tree — code editors, document workspaces, asset libraries, schema browsers, low-code builders, or as the sidebar inside a dual-pane Finder layout. Controlled-data; consumer owns the `nodes` array; component fires object-shape callbacks on every operation.",
   features: [
@@ -37,7 +37,7 @@ export const meta: ComponentMeta = {
     "vscode",
   ],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-05-10",
   updatedAt: "2026-08-11",

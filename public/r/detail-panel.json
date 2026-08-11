@@ -3,7 +3,7 @@
   "name": "detail-panel",
   "title": "Detail Panel",
   "author": "ilinxa",
-  "description": "Selection-aware compound container — DetailPanel.Header / .Body / .Actions via React Context. Composite re-key on selection change, sticky header + sticky footer-actions, three mode configurations (controlled / uncontrolled / locked dev-warn), lifecycle precedence error > loading > content > empty.",
+  "description": "Selection-aware detail container with read and edit modes, lifecycle states, sticky header and footer actions, and a slot-based body.",
   "dependencies": [
     "lucide-react"
   ],

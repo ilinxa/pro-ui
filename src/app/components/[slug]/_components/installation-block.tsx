@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCopyToClipboard } from "@/registry/components/code/code-block/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 
-const REGISTRY_BASE = "https://ilinxa-proui.vercel.app/r";
+const REGISTRY_BASE = "https://ui.ilinxa.com/r";
 const REGISTRY_NAMESPACE = "@ilinxa";
 const REGISTRY_FRAGMENT = `"registries": {
   "${REGISTRY_NAMESPACE}": "${REGISTRY_BASE}/{name}.json"

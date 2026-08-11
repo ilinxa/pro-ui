@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "forms",
 
   description:
-    "CodeMirror 6-backed markdown editor — controlled value, GFM, [[wikilink]] autocomplete + decoration, slot-able toolbar, edit / split / preview view modes.",
+    "CodeMirror 6 markdown editor with GFM, wikilink autocomplete, a slot-able toolbar, and edit, split, and preview modes.",
   context:
     "Heaviest Tier 1 pro-component for the graph-system. CodeMirror 6 substrate (decision #19; ~150KB acceptance per #26) with a per-instance `marked` for preview parsing (Q-P1 — avoids global mutation). Wikilink candidates flow through CM6 StateField + StateEffect so host-side updates (e.g., new graph nodes) re-decorate without remount (Q-P5). Generic over the candidate type via `<MarkdownEditor<TCandidate extends WikilinkCandidate>>` for kind-typed candidates. Composed inside force-graph from v0.5 onward (doc nodes + wikilink reconciliation per decision #36) and inside detail-panel showcases. The editor's contract is `onSave(value)` only — reconciliation lives in force-graph, not here.",
   features: [
@@ -29,7 +29,7 @@ export const meta: ComponentMeta = {
   ],
   tags: ["markdown-editor", "codemirror", "wikilinks", "graph-system", "editor"],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   createdAt: "2026-04-29",
   updatedAt: "2026-08-11",
@@ -54,5 +54,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["properties-form", "detail-panel", "filter-stack", "entity-picker", "workspace"],
+  related: ["properties-form", "detail-panel", "filter-panel", "entity-picker", "split-workspace"],
 };

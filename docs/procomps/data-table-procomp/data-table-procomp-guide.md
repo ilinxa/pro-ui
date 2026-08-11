@@ -312,7 +312,7 @@ const columns = useMemo<DataTableColumn<User>[]>(() => [/* ... */], [deps]);
 <DataTable columns={[/* ... */]} ... />
 ```
 
-This is the same footgun pattern as `entity-picker`'s `items`, `markdown-editor`'s `wikilinkCandidates`, and `filter-stack`'s categories.
+This is the same footgun pattern as `entity-picker`'s `items`, `markdown-editor`'s `wikilinkCandidates`, and `filter-panel`'s categories.
 
 ### `rowKey` returning index is a footgun
 
@@ -524,6 +524,6 @@ Then import from `@/components/data-table`.
 
 ### Related
 
-- `kanban-board-01` — when the table model isn't right (records are cards in columns)
+- `kanban-board` — when the table model isn't right (records are cards in columns)
 - `workspace` — when you need a layout primitive that hosts multiple tables side-by-side
-- `rich-card` — for hierarchical record viewers (when each row is itself a tree of fields)
+- `card-tree` — for hierarchical record viewers (when each row is itself a tree of fields)

@@ -1,9 +1,9 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "entity-picker-fixtures",
-  "title": "Entity Picker (with fixtures)",
+  "title": "Entity Picker — fixtures",
   "author": "ilinxa",
-  "description": "Entity Picker bundle including the dummy-data fixtures used by the docs-site demo.",
+  "description": "Entity Picker plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/entity-picker"
   ],

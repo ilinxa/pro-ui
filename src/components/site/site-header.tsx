@@ -22,7 +22,7 @@ export function SiteHeader() {
         <Link
           href="/"
           className="group flex shrink-0 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm sm:gap-2.5"
-          aria-label="ilinxa-ui-pro home"
+          aria-label="ilinxa pro-ui home"
         >
           <span
             aria-hidden

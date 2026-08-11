@@ -86,8 +86,8 @@ When `rows.length === 0`, the function short-circuits to a `<div>`-based empty s
 - Types in `types.ts`; data fixtures in `dummy-data.ts`; that's it for the runtime surface
 
 The host pattern (`parts/` + `hooks/` + `lib/`) is for components that:
-- Hold a reducer or state machine (workspace, kanban-board-01)
-- Compose multiple sub-renderers (rich-card, kanban-board-01, flow-canvas-01)
+- Hold a reducer or state machine (workspace, kanban-board)
+- Compose multiple sub-renderers (card-tree, kanban-board, flow-canvas)
 - Run gestures or DOM measurements (workspace's corner-drag, flow-canvas pan/zoom)
 
 `data-table` does none of those. Forcing the host shape on it would be over-decomposition.

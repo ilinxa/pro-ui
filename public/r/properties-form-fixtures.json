@@ -1,9 +1,9 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "properties-form-fixtures",
-  "title": "Properties Form (with fixtures)",
+  "title": "Properties Form — fixtures",
   "author": "ilinxa",
-  "description": "Properties Form bundle including the dummy-data fixtures used by the docs-site demo.",
+  "description": "Properties Form plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/properties-form"
   ],

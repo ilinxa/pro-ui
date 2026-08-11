@@ -20,7 +20,7 @@ This component closes that gap. **`json-form` is the runtime form engine the pro
 
 1. Compiles its field DSL to a Zod schema at runtime (single source of validation truth).
 2. Uses `react-hook-form` v7 as the state substrate (the industry-standard, performance-tested choice — uncontrolled by default, narrow re-renders, the same library shadcn's own `Form` component wraps).
-3. Renders each field through a **renderer-registry** the consumer can extend (proven pattern from `workspace` + `kanban-board-01`).
+3. Renders each field through a **renderer-registry** the consumer can extend (proven pattern from `workspace` + `kanban-board`).
 4. Slots existing procomps as first-class field types: `code-block` in edit mode for code fields (shipped today). Future `file-upload-01`, `color-picker-01`, and a Plate-based richtext substrate land as additive v0.1.x extensions when those procomps ship — none of them are required for the v0.1.0 ship.
 5. Honors a declarative conditional-logic layer (`visibleWhen` / `enabledWhen` / `requiredWhen`) plus a `computed` field type for derived values — covers ~95% of real-world form reactivity without consumers writing reactive code.
 6. Stays in pure JSON. Consumers can author the schema in TypeScript, load it from a database, parse it from a CMS, or pipe it from a backend endpoint. The library does not require the schema to be a JavaScript value at build time — it works equally well with runtime JSON.
@@ -680,7 +680,7 @@ From the AskUserQuestion sequence prior to drafting:
 - **Scope:** one procomp — renderer + extensible field registry. Visual builder deferred to a separate future procomp.
 - **JSON shape:** custom field DSL → compiled to Zod internally. JSON-Schema parsing + Zod-first not adopted.
 - **State substrate:** `react-hook-form` v7.x + `@hookform/resolvers` + `zod` (versions verified at GATE 2).
-- **Renderer pattern:** registry-based, consumer-extensible (proven on `workspace` + `kanban-board-01`).
+- **Renderer pattern:** registry-based, consumer-extensible (proven on `workspace` + `kanban-board`).
 - **Field types v0.1.0:** text (text, email, password, url, tel, textarea, number), choice (select, multi-select, radio-group, checkbox, checkbox-group, switch), date/time (date, date-range, time, datetime), rich/composite (`code` via shipped `@ilinxa/code-block` + inline `slider` + `rating`). Special types: `computed`, `hidden`, `section`, `divider`.
 - **Deferred to v0.1.x:** `richtext` field type (waits for a future `@ilinxa/plate-editor` — confirmed 2026-05-12: NOT shipped yet); `file` (waits for `@ilinxa/file-upload-01`); `color` (waits for `@ilinxa/color-picker-01`). All three additive, non-breaking when added.
 - **Prerequisite shadcn primitives** (must be added via `pnpm dlx shadcn@latest add` before json-form can be built — verified missing in the project's `src/components/ui/` as of 2026-05-12): `form`, `radio-group`, `slider`, `label`. Already present: input, textarea, select, checkbox, switch, command, popover, calendar, button, separator, badge, tooltip, scroll-area.

@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
  *  - Tab clicks still work because we only swallow click events when the
  *    pointer gesture actually moved > 3px.
  *
- * Pattern lifted from engagement-bar-01 LikersStrip's `useDragScroll`.
+ * Pattern lifted from engagement-bar LikersStrip's `useDragScroll`.
  */
 export function SwipeTabsList({
   className,

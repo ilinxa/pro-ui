@@ -3,7 +3,7 @@
   "name": "file-manager-fixtures",
   "title": "File Manager — fixtures",
   "author": "ilinxa",
-  "description": "File Manager bundle including the dummy-data fixtures used by the docs-site demo (Next.js project shape + flat-grid asset library + 250-item virtualization-stress fixture).",
+  "description": "File Manager plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/file-manager"
   ],

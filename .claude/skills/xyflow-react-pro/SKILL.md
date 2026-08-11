@@ -511,7 +511,7 @@ When emitting v12 code, prefer the toolbar / aria / domAttributes / zIndexMode p
 
 This repo is Next.js 16.2.x (Turbopack, React Compiler), React 19.2.x, Tailwind v4.2.x with OKLCH tokens, signal-lime accent (`oklch(0.80 0.20 132)` light / `oklch(0.86 0.18 132)` dark). Design mandate: no pure-white backgrounds, near-black `--primary-foreground` paired with lime, graphite-cool dark surfaces.
 
-When integrating xyflow into a registry component (e.g. `flow-canvas-01`):
+When integrating xyflow into a registry component (e.g. `flow-canvas`):
 
 - **Boundary**: components in `src/registry/` cannot import `next/*`. Put the `'use client'` directive at the top of the registry component itself (xyflow needs window access). The docs site at `src/app/...` consumes the registry component directly — no extra wrapper needed beyond Next's normal client/server split.
 - **CSS import location**: ship the `import '@xyflow/react/dist/style.css'` at the consumer side (docs site or downstream app), NOT inside the registry component file. Document this in the procomp's usage notes.
@@ -519,7 +519,7 @@ When integrating xyflow into a registry component (e.g. `flow-canvas-01`):
 - **Lime accent on handles**: lime is bright; pair handle backgrounds with near-black borders or use lime sparingly (e.g., only on selected/active handles).
 - **Tailwind `@source not "../../docs"`**: already in `globals.css` — keeps procomp markdown's literal class snippets out of extraction. Don't remove during refactors.
 - **Dark mode**: this repo uses class-based dark mode. `colorMode="system"` works because the `.react-flow` root inherits `.dark` from a parent; alternatively pass `colorMode="dark"` reactively from your theme hook.
-- **Performance ceiling**: xyflow's documented sweet spot is ~1–2k nodes; beyond that is custom canvas territory. flow-canvas-01 caps success criteria at 200 nodes for v0.1.
+- **Performance ceiling**: xyflow's documented sweet spot is ~1–2k nodes; beyond that is custom canvas territory. flow-canvas caps success criteria at 200 nodes for v0.1.
 
 ## Quality checklist — run before claiming done
 

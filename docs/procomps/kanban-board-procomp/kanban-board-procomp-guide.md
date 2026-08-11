@@ -1,0 +1,220 @@
+# `kanban-board` — Consumer Guide (Stage 3)
+
+> **Stage:** 3 of 3 · **Status:** v0.4.1 (alpha)
+> **Slug:** `kanban-board` · **Category:** `data`
+> **In-app docs:** [`usage.tsx`](../../../src/registry/components/data/kanban-board/usage.tsx) renders at `/components/kanban-board`. This doc covers the bits that don't belong in the in-app surface.
+>
+> **v0.4.1 (consumer-integration-note A-series, patch):** **drop anywhere in a column** — release a card in a column's empty space (or an empty column), not only onto another card (pointer-based collision detection); **vertical mouse-wheel scrolls the board horizontally** (yields to a column that can still scroll vertically); the **drag ghost is portaled to `<body>`** so a transformed ancestor (entrance animations, sticky shells, CSS `contain`) can't offset it from the pointer; wider columns (`w-80`); header-mode grip strip no longer pokes past the card's rounded corners. No API change. Pair with a height-constrained board wrapper (e.g. `h-[calc(100dvh-15rem)]`) so columns overflow and wheel-scroll engages.
+
+## Install
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/kanban-board
+pnpm dlx shadcn@latest add @ilinxa/kanban-board-fixtures   # optional — adds dummy data
+```
+
+The base item depends on 7 shadcn primitives (`avatar`, `badge`, `button`, `dropdown-menu`, `input`, `popover`, `textarea`) and 4 npm packages (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `lucide-react`). The shadcn CLI resolves all of them automatically. Column-body scroll uses native `overflow-y-auto` (no scroll-area dep).
+
+## Mental model in one paragraph
+
+A column is an **ordered list of opaque items**. Each item is a JSON record `{ id, rendererId, data, swimlaneId?, locked? }`. The board doesn't render anything itself — it delegates to a renderer looked up by `rendererId` from the `renderers` prop. Two renderers ship built-in (`kanbanCardRenderer`, `kanbanNoteRenderer`); register more to host any kind of card. A single column may freely mix kinds — a kanban-card, a sticky note, and a fully-featured card-tree can sit as siblings in the same swimlane cell.
+
+## Composition recipes
+
+### Hosting a sibling rich component as a kanban item (card-tree adapter)
+
+The renderer-registry's marquee feature: any sibling component from this library can be plugged in as a third renderer with **all of its features intact**. The demo wires `<CardTree>` (the structural-content tree editor) — same pattern works for any rich card you author.
+
+```tsx
+import { CardTree, type CardTreeJsonNode } from "@ilinxa/card-tree";
+import {
+  KanbanBoard,
+  kanbanCardRenderer,
+  kanbanNoteRenderer,
+  type KanbanCardRenderer,
+} from "@ilinxa/kanban-board";
+
+function makeCardTreeRenderer(
+  onItemDataChange: (itemId: string, next: CardTreeJsonNode) => void,
+): KanbanCardRenderer<CardTreeJsonNode> {
+  return {
+    id: "card-tree",
+    label: "Card tree",
+    dragHandle: "header", // ← thin grip strip on top; body stays interactive
+    render: (data, ctx) => (
+      <CardTree
+        key={ctx.itemId}
+        defaultValue={data}
+        editable
+        onChange={(tree) => onItemDataChange(ctx.itemId, tree)}
+      />
+    ),
+    newItem: () => ({ __rcid: crypto.randomUUID(), title: "New card" }),
+    // No editForm — CardTree has its own click-to-edit UX.
+  };
+}
+```
+
+The `dragHandle: "header"` is what makes this work. CardTree owns clicks, keyboard input, and its own internal DnD; if the kanban shell competed for those events the inner editor would break. Switching to header mode renders a small grip strip on top — only that strip activates kanban DnD — and lets the entire body stay interactive.
+
+For state, lift the kanban data to the host and have the card-tree renderer call back into a shared updater. Items reference the renderer by id:
+
+```ts
+{ id: "p1", rendererId: "card-tree", data: { __rcid: "n1", title: "...", /* ... */ } satisfies CardTreeJsonNode }
+```
+
+The full wiring lives in [demo.tsx](../../../src/registry/components/data/kanban-board/demo.tsx).
+
+### Read-only board (status snapshot embedded in a dashboard)
+
+```tsx
+<KanbanBoard renderers={[kanbanCardRenderer]} data={data} readOnly />
+```
+
+`readOnly` removes ALL DnD wiring and ALL CRUD affordances. Clicks remain — `onItemClick` still fires.
+
+### Notes-only column
+
+```tsx
+{
+  id: "notes",
+  title: "Notes",
+  acceptsRendererIds: ["kanban-note"],   // rejects card drops
+  items: [...],
+}
+```
+
+### Pinned-Done column (drop in but never reorder, never leave)
+
+```tsx
+{
+  id: "done",
+  title: "Done",
+  allowReorder: false,    // no internal reorder
+  allowOutgoing: false,   // items can't leave once dropped here
+  items: [...],
+}
+```
+
+### Per-item lock
+
+```ts
+{ id: "blocked-1", rendererId: "kanban-card", data: {...}, locked: true }
+```
+
+Lock overrides column-level flags. Lock icon renders on hover; drag is suppressed; click still fires.
+
+### Custom palette (brand colors)
+
+```tsx
+const myPalette = [
+  { id: "brand-blue", label: "Brand Blue", cssVar: "--brand-blue" },
+  { id: "brand-coral", label: "Brand Coral", cssVar: "--brand-coral" },
+  // ... up to whatever you want; the picker grid is auto-sized
+];
+
+<KanbanBoard renderers={[...]} palette={myPalette} ... />
+```
+
+The CSS vars must resolve in the consuming app's stylesheet. The palette REPLACES the built-in 6-swatch (no merge).
+
+## Writing your own renderer
+
+Minimum:
+```ts
+type MyData = { headline: string; cover?: string };
+
+const myRenderer: KanbanCardRenderer<MyData> = {
+  id: "story",
+  label: "Story",
+  render: (data, ctx) => (
+    <div data-dragging={ctx.isDragging}>
+      {data.cover ? <img src={data.cover} alt="" /> : null}
+      <h3>{data.headline}</h3>
+    </div>
+  ),
+};
+```
+
+Full opt-in (inline create + inline edit):
+```ts
+const myRenderer: KanbanCardRenderer<MyData> = {
+  id: "story",
+  label: "Story",
+  render: (data, ctx) => <StoryView data={data} ctx={ctx} />,
+  newItem: () => ({ headline: "" }),
+  editForm: (data, onSave, onCancel) => (
+    <StoryEditForm data={data} onSave={onSave} onCancel={onCancel} />
+  ),
+};
+```
+
+The board wraps your renderer's output in a uniform draggable shell — grip handle, lock icon, focus ring, drop-target highlight, `aria-roledescription="<label>, draggable"`. **Renderers don't need to know about DnD.**
+
+### `dragHandle` — choosing where DnD activates
+
+Two modes per renderer:
+
+| Mode | Drag activator | When to use |
+|---|---|---|
+| `"shell"` *(default)* | The whole item card | Standard cards (kanban-card, kanban-note) — body has no internal pointer interactions. Whole-card grab feels natural. |
+| `"header"` | A thin grip strip rendered above the item | Renderers with their own click-to-edit, inputs, or internal DnD (the card-tree adapter, any embedded WYSIWYG, image annotators, etc.) — keeps the body fully interactive. |
+
+In `"header"` mode the shell renders a `h-7` grip bar with a "drag" affordance; only its pointer events feed dnd-kit. The renderer's own root keeps `cursor-default` and pointer events flow normally to its children. Switching modes is a single field on your renderer object — no other API surface changes.
+
+## State: controlled vs uncontrolled
+
+| Mode | Use when |
+|---|---|
+| **Uncontrolled** (`defaultData` + `onChange`) | You want the board to own its state and just need notifications for persistence. |
+| **Controlled** (`data` + `onChange`) | You're integrating with a bigger app store / undo system / live collaboration where the board's state must reflect external sources. |
+
+In controlled mode, every internal action calls `onChange(nextData)` instead of mutating internal state. You're responsible for echoing the new state back via `data`.
+
+## CRUD callback semantics
+
+Affordances render only when their callback is supplied:
+
+| Callback | What renders | What you receive |
+|---|---|---|
+| `onItemCreate` | Inline `+ Add` row at column footer | `({ columnId, item })` — item is fully formed (id + rendererId + data) |
+| `onItemUpdate` | Edit affordance on item hover | `(item)` |
+| `onItemDelete` | Delete affordance on item hover | `(itemId)` |
+| `onColumnCreate` | Right-edge `+ Add column` button | `(column)` — column is fully formed (id + title + empty items) |
+| `onColumnUpdate` | Column kebab menu → Rename | `(column)` *(currently the menu just calls back; render your own modal)* |
+| `onColumnDelete` | Column kebab menu → Delete | `(columnId)` |
+| `onItemClick` | (no affordance — just behavior) | `(item)` on click |
+| `onItemMove` | (no affordance — just behavior) | `({ item, from, to })` after a successful move |
+
+**Reducer also runs on every callback.** In uncontrolled mode the board's state already reflects the change before your callback fires — useful for "fire-and-forget" persistence.
+
+## Keyboard
+
+| Key | On focused item | On focused column header |
+|---|---|---|
+| `Tab` | Move focus | Move focus |
+| `Enter` | `onItemClick(item)` | (button activate, e.g. column kebab) |
+| `Space` | Lift (DnD mode) | Lift column for reorder |
+| Arrow keys (in DnD mode) | Move | Move |
+| `Space` again (in DnD mode) | Drop | Drop |
+| `Escape` | Cancel | Cancel |
+
+dnd-kit's announcer publishes drag start / over / end / cancel events to a live region — screen readers narrate the reorder.
+
+## Versioning
+
+`v0.4.0` is alpha. Changelog:
+
+- **v0.4.0** — **callback shape (consumers most need this):** `onItemCreate` / `onItemMove` are **object-shape** (`({ columnId, item })` / `({ item, from, to })`); the breaking cutover landed in **v0.3.0** — update any positional handlers. `onColumnCreate` now types its arg as a full `KanbanColumn` (was `Partial<KanbanColumn>` but always called with a full column). `KanbanCardData.meta[].value` narrowed `ReactNode` → `string | number` (keeps item data serializable — put nodes behind a renderer's `render` fn). New optional `KanbanRenderContext.onDataChange` lets a renderer persist edits back to the board (additive). Dependency cleanup: removed an unused `tooltip` dependency (hover hints use the native `title` attribute).
+- **v0.3.0** — cut `onItemCreate` / `onItemMove` over to object-shape callbacks.
+- **v0.2.0** — added the `dragHandle` field on renderers, the card-tree adapter pattern, and replaced the radix `<ScrollArea>` column body with native `overflow-y-auto`.
+
+Future feature additions (multi-select drag, hard WIP, virtualization, swimlane reorder, undo/redo) land in later minors. Breaking API changes go to `v1.0.0` only after external consumers and a 30-day no-break window.
+
+## Caveats
+
+- **No backend.** Board state is serializable JSON; persistence is your job. Wire `onChange` to your store / API.
+- **No card-detail modal.** Click a card → fire `onItemClick(item)` → consumer routes to a detail surface of their choice.
+- **No per-card comment thread.** The `kanban-note` renderer covers between-cards annotations; for full per-card threads, embed `comment-thread` inside your detail surface.
+- **`maxItems` is soft, by design.** Renders an overflow chip; does NOT block drops. There is no hard-enforcement mode — gate over-capacity drops in your own `onItemMove` handler if you need it.
+- **No virtualization.** Budgets to ~50 items / 5 columns. Beyond that, file an issue (`@tanstack/react-virtual` is already a project dep).

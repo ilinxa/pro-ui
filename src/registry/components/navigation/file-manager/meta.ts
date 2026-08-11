@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "navigation",
 
   description:
-    "Mac Finder-style file + folder browser with grid / list views, multi-select with marquee, cut/copy/paste, drag-and-drop, and a shared clipboard primitive.",
+    "Finder-style file browser — grid and list views, marquee multi-select, cut copy paste, drag-and-drop, and a shared clipboard primitive.",
   context:
     "Pairs with `file-tree` (the sidebar primitive) for the dual-pane Finder layout — drop `<FileTree>` into `<FileManager>`'s `sidebar` slot. Use anywhere a current-folder content view is needed: asset libraries, document workspaces, attachment managers, S3-bucket explorers. Controlled-data, object-shape callbacks, lazy children. The new `<FileClipboardProvider>` syncs cut/copy/paste across multiple instances.",
   features: [
@@ -41,7 +41,7 @@ export const meta: ComponentMeta = {
     "list",
   ],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   createdAt: "2026-05-10",
   updatedAt: "2026-08-11",

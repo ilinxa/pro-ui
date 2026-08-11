@@ -1,32 +1,32 @@
 "use client";
 
-// Import everything from `article-body-01.tsx` (not `./types`, not the
+// Import everything from `rich-text-editor.tsx` (not `./types`, not the
 // barrel `./index`). shadcn 4.6.0's path rewriter handles cross-procomp
 // component-file paths correctly but mangles `/types` and `/index` to the
 // CURRENT slug (F-S1 cross-procomp `/types` bug), which then breaks
-// consumer-tsc. `article-body-01.tsx` re-exports the symbols we need at
+// consumer-tsc. `rich-text-editor.tsx` re-exports the symbols we need at
 // its tail, so all imports land on a path the rewriter preserves.
 import {
-  ArticleBodyEditor,
-  ARTICLE_BODY_EMPTY_VALUE,
-  type ArticleBodyValue,
-} from "@/registry/components/data/article-body-01/article-body-01";
+  RichTextEditor,
+  RICH_TEXT_EMPTY_VALUE,
+  type RichTextValue,
+} from "@/registry/components/data/rich-text-editor/rich-text-editor";
 import type { FieldRenderer } from "../types";
 
 /**
- * `richtext` field renderer — wraps `@ilinxa/article-body-01`'s
- * `<ArticleBodyEditor>` in a Plate-based WYSIWYG.
+ * `richtext` field renderer — wraps `@ilinxa/rich-text-editor`'s
+ * `<RichTextEditor>` in a Plate-based WYSIWYG.
  *
  * Loaded lazily by `default-registry.ts` so the Plate bundle (~165KB gzip)
  * only ships when a form actually contains a `richtext` field. Therefore
  * this MUST `export default`.
  *
- * Submitted value: `ArticleBodyValue` (Plate JSON — `{ type, children }[]`).
- * Serialize with `serializeArticleBodyToHtml(value)` from
- * `@ilinxa/article-body-01` if you need HTML at an export boundary
+ * Submitted value: `RichTextValue` (Plate JSON — `{ type, children }[]`).
+ * Serialize with `serializeRichTextToHtml(value)` from
+ * `@ilinxa/rich-text-editor` if you need HTML at an export boundary
  * (RSS / email / OG tags).
  *
- * ARIA: `ArticleBodyEditor` doesn't expose `id` (Plate manages a
+ * ARIA: `RichTextEditor` doesn't expose `id` (Plate manages a
  * contenteditable internally). Wrap in a `role="group"` with
  * `aria-labelledby` so the wrapper's label binds.
  */
@@ -39,7 +39,7 @@ const FieldRichtext: FieldRenderer = ({
   ariaProps,
 }) => {
   const cfg = field.config?.richText;
-  const safe = isRichtextValue(value) ? value : ARTICLE_BODY_EMPTY_VALUE;
+  const safe = isRichtextValue(value) ? value : RICH_TEXT_EMPTY_VALUE;
 
   return (
     <div
@@ -50,7 +50,7 @@ const FieldRichtext: FieldRenderer = ({
       data-aria-required={ariaProps["aria-required"] ? "true" : undefined}
       data-aria-invalid={ariaProps["aria-invalid"] ? "true" : undefined}
     >
-      <ArticleBodyEditor
+      <RichTextEditor
         value={safe}
         onChange={(next) => onChange(next)}
         readOnly={readOnly || disabled}
@@ -62,7 +62,7 @@ const FieldRichtext: FieldRenderer = ({
   );
 };
 
-function isRichtextValue(v: unknown): v is ArticleBodyValue {
+function isRichtextValue(v: unknown): v is RichTextValue {
   return Array.isArray(v);
 }
 

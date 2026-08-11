@@ -13,7 +13,7 @@ import type { FileManagerIconSize } from "../types";
 /**
  * Plain-button segmented control. Deliberately NOT shadcn ToggleGroup — its
  * value model diverges between Radix (single: string) and Base UI (string[]),
- * an F-cross-13 carrier (calendar-01 v0.2.1 precedent; toggle-group dep
+ * an F-cross-13 carrier (event-calendar v0.2.1 precedent; toggle-group dep
  * dropped). Each segment is the TooltipTrigger itself — no `asChild`, which
  * Base UI triggers reject.
  */

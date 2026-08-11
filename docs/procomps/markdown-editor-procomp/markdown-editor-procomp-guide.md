@@ -26,12 +26,12 @@ Examples that fit:
 
 ## When NOT to use MarkdownEditor
 
-- **You need WYSIWYG.** This is markdown — users see syntax in edit mode. For TipTap / ProseMirror style WYSIWYG, see `<RichCard>` or `<ArticleBody>`.
+- **You need WYSIWYG.** This is markdown — users see syntax in edit mode. For TipTap / ProseMirror style WYSIWYG, see `<CardTree>` or `<RichText>`.
 - **You need collaborative editing.** No CRDT, no Yjs integration. Single-user only.
 - **You need a non-markdown source language** (AsciiDoc, MDX, reStructuredText). The grammar is markdown-only.
 - **Your app already bundles a different CM6 instance.** This component ships its own; loading two CM6 substrates wastes ~150 KB.
 - **Your bundle ceiling is < 100 KB.** This component is ~180 KB total install — including CM6 (~150 KB), `marked` (~14 KB), our code (~16 KB).
-- **You need real-time markdown streaming** (LLM token-by-token rendering). Use `<ArticleBody>` or `<RichCard>` for that — they're optimized for the read path, not edit-mode CM6.
+- **You need real-time markdown streaming** (LLM token-by-token rendering). Use `<RichText>` or `<CardTree>` for that — they're optimized for the read path, not edit-mode CM6.
 
 ---
 
@@ -181,7 +181,7 @@ const toolbar: ReadonlyArray<ToolbarItem> = [
 />
 ```
 
-The host can disable editing entirely via `readOnly`. Pair with `initialView="preview"` + `showPreviewToggle={false}` to render a pure markdown viewer. (For pure-viewer use cases, also consider `<ArticleBody>` — lighter, no CM6.)
+The host can disable editing entirely via `readOnly`. Pair with `initialView="preview"` + `showPreviewToggle={false}` to render a pure markdown viewer. (For pure-viewer use cases, also consider `<RichText>` — lighter, no CM6.)
 
 ### Pattern 6: extending CM6 with custom extensions
 
@@ -258,7 +258,7 @@ const candidates = useMemo(() => filterByVisibility(allCandidates, viewerRole), 
 <MarkdownEditor wikilinkCandidates={[/* ... */]} ... />
 ```
 
-Same footgun pattern as `data-table` columns, `properties-form` schemas, `entity-picker` items, `filter-stack` categories.
+Same footgun pattern as `data-table` columns, `properties-form` schemas, `entity-picker` items, `filter-panel` categories.
 
 ### `value` round-trip is echo-guarded
 
@@ -311,7 +311,7 @@ Pass an extension that conflicts with our wikilink decoration (rare) and our def
 
 ### Bundle is ≤ 180 KB; tree-shaking helps
 
-CM6 (~150 KB) + marked (~14 KB) + our code (~16 KB). For viewer-only cases, prefer `<ArticleBody>` (~25 KB). The split is documented in description §6.
+CM6 (~150 KB) + marked (~14 KB) + our code (~16 KB). For viewer-only cases, prefer `<RichText>` (~25 KB). The split is documented in description §6.
 
 ### `useDeferredValue` smooths preview rendering
 
@@ -436,7 +436,7 @@ If migrating from TipTap / ProseMirror / Lexical:
 
 If migrating from `react-markdown`:
 - `react-markdown` is preview-only; this component is editor + preview.
-- For viewer-only use cases, `<ArticleBody>` (lighter) or the exported `parseMarkdown` helper are closer matches.
+- For viewer-only use cases, `<RichText>` (lighter) or the exported `parseMarkdown` helper are closer matches.
 
 ---
 
@@ -515,7 +515,7 @@ Then import from `@/components/markdown-editor`.
 
 ### Related
 
-- `article-body-01` — Plate-substrate alternative for richer WYSIWYG editing (heavier; different tradeoffs)
+- `rich-text-editor` — Plate-substrate alternative for richer WYSIWYG editing (heavier; different tradeoffs)
 - `properties-form` — host this editor as a `renderer` for textarea-shaped fields that want richer formatting
 - `detail-panel` — the canonical inline-editing host
 - `entity-picker` — for typed reference fields adjacent to markdown content

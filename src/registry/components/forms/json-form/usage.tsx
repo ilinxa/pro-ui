@@ -180,7 +180,7 @@ const registry = { ...defaultJsonFormRegistry, color: MyColor };
         </ul>
         <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.3</h4>
         <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
-          <li>Richtext controlled-mode echo loop fixed at the substrate — depends on <code>@ilinxa/article-body-01@^0.2.2</code>, which now uses content-equality (JSON-stringified Plate-tree key) in its sync effect instead of reference-equality. The earlier v0.2.2 consumer-side band-aid in <code>parts/field-richtext.tsx</code> was reverted; the field is back to its simple v0.2.1 shape.</li>
+          <li>Richtext controlled-mode echo loop fixed at the substrate — depends on <code>@ilinxa/rich-text-editor@^0.2.2</code>, which now uses content-equality (JSON-stringified Plate-tree key) in its sync effect instead of reference-equality. The earlier v0.2.2 consumer-side band-aid in <code>parts/field-richtext.tsx</code> was reverted; the field is back to its simple v0.2.1 shape.</li>
         </ul>
         <h4 className="mt-3 mb-1 text-sm font-semibold">v0.2.4</h4>
         <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
@@ -363,7 +363,7 @@ function Custom({ schema, onValid }) {
               <tr><td className="px-2 py-1"><code>date / time / datetime</code></td><td className="px-2 py-1"><code>string</code> (ISO 8601)</td></tr>
               <tr><td className="px-2 py-1"><code>date-range</code></td><td className="px-2 py-1"><code>{`{ start: string; end: string }`}</code></td></tr>
               <tr><td className="px-2 py-1"><code>code</code></td><td className="px-2 py-1"><code>string</code></td></tr>
-              <tr><td className="px-2 py-1"><code>richtext</code></td><td className="px-2 py-1"><code>{`Array<{ type, children }>`}</code> (Plate JSON). For the canonical empty default, import <code>ARTICLE_BODY_EMPTY_VALUE</code> from <code>@ilinxa/article-body-01</code>. Serialize via <code>serializeArticleBodyToHtml</code> at export boundaries.</td></tr>
+              <tr><td className="px-2 py-1"><code>richtext</code></td><td className="px-2 py-1"><code>{`Array<{ type, children }>`}</code> (Plate JSON). For the canonical empty default, import <code>RICH_TEXT_EMPTY_VALUE</code> from <code>@ilinxa/rich-text-editor</code>. Serialize via <code>serializeRichTextToHtml</code> at export boundaries.</td></tr>
               <tr><td className="px-2 py-1"><code>computed</code></td><td className="px-2 py-1">whatever <code>expression</code> / <code>compute</code> returns</td></tr>
               <tr><td className="px-2 py-1"><code>hidden</code></td><td className="px-2 py-1">defaultValue (unchanged)</td></tr>
               <tr><td className="px-2 py-1"><code>section / divider</code></td><td className="px-2 py-1">— (excluded from submission)</td></tr>

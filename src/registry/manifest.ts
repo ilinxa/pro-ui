@@ -2,13 +2,13 @@ import DataTableDemo from "./components/data/data-table/demo";
 import DataTableUsage from "./components/data/data-table/usage";
 import { meta as dataTableMeta } from "./components/data/data-table/meta";
 
-import RichCardDemo from "./components/data/rich-card/demo";
-import RichCardUsage from "./components/data/rich-card/usage";
-import { meta as richCardMeta } from "./components/data/rich-card/meta";
+import CardTreeDemo from "./components/data/card-tree/demo";
+import CardTreeUsage from "./components/data/card-tree/usage";
+import { meta as cardTreeMeta } from "./components/data/card-tree/meta";
 
-import WorkspaceDemo from "./components/layout/workspace/demo";
-import WorkspaceUsage from "./components/layout/workspace/usage";
-import { meta as workspaceMeta } from "./components/layout/workspace/meta";
+import SplitWorkspaceDemo from "./components/layout/split-workspace/demo";
+import SplitWorkspaceUsage from "./components/layout/split-workspace/usage";
+import { meta as splitWorkspaceMeta } from "./components/layout/split-workspace/meta";
 
 import PropertiesFormDemo from "./components/forms/properties-form/demo";
 import PropertiesFormUsage from "./components/forms/properties-form/usage";
@@ -18,9 +18,9 @@ import DetailPanelDemo from "./components/feedback/detail-panel/demo";
 import DetailPanelUsage from "./components/feedback/detail-panel/usage";
 import { meta as detailPanelMeta } from "./components/feedback/detail-panel/meta";
 
-import FilterStackDemo from "./components/forms/filter-stack/demo";
-import FilterStackUsage from "./components/forms/filter-stack/usage";
-import { meta as filterStackMeta } from "./components/forms/filter-stack/meta";
+import FilterPanelDemo from "./components/forms/filter-panel/demo";
+import FilterPanelUsage from "./components/forms/filter-panel/usage";
+import { meta as filterPanelMeta } from "./components/forms/filter-panel/meta";
 
 import EntityPickerDemo from "./components/forms/entity-picker/demo";
 import EntityPickerUsage from "./components/forms/entity-picker/usage";
@@ -30,125 +30,125 @@ import MarkdownEditorDemo from "./components/forms/markdown-editor/demo";
 import MarkdownEditorUsage from "./components/forms/markdown-editor/usage";
 import { meta as markdownEditorMeta } from "./components/forms/markdown-editor/meta";
 
-import ContentCardNews01Demo from "./components/data/content-card-news-01/demo";
-import ContentCardNews01Usage from "./components/data/content-card-news-01/usage";
-import { meta as contentCardNews01Meta } from "./components/data/content-card-news-01/meta";
+import NewsCardDemo from "./components/data/news-card/demo";
+import NewsCardUsage from "./components/data/news-card/usage";
+import { meta as newsCardMeta } from "./components/data/news-card/meta";
 
-import NewsletterCard01Demo from "./components/marketing/newsletter-card-01/demo";
-import NewsletterCard01Usage from "./components/marketing/newsletter-card-01/usage";
-import { meta as newsletterCard01Meta } from "./components/marketing/newsletter-card-01/meta";
+import NewsletterSignupDemo from "./components/marketing/newsletter-signup/demo";
+import NewsletterSignupUsage from "./components/marketing/newsletter-signup/usage";
+import { meta as newsletterSignupMeta } from "./components/marketing/newsletter-signup/meta";
 
-import CategoryCloud01Demo from "./components/forms/category-cloud-01/demo";
-import CategoryCloud01Usage from "./components/forms/category-cloud-01/usage";
-import { meta as categoryCloud01Meta } from "./components/forms/category-cloud-01/meta";
+import CategoryCloudDemo from "./components/forms/category-cloud/demo";
+import CategoryCloudUsage from "./components/forms/category-cloud/usage";
+import { meta as categoryCloudMeta } from "./components/forms/category-cloud/meta";
 
-import FilterBar01Demo from "./components/forms/filter-bar-01/demo";
-import FilterBar01Usage from "./components/forms/filter-bar-01/usage";
-import { meta as filterBar01Meta } from "./components/forms/filter-bar-01/meta";
+import FilterBarDemo from "./components/forms/filter-bar/demo";
+import FilterBarUsage from "./components/forms/filter-bar/usage";
+import { meta as filterBarMeta } from "./components/forms/filter-bar/meta";
 
-import PageHeroNews01Demo from "./components/marketing/page-hero-news-01/demo";
-import PageHeroNews01Usage from "./components/marketing/page-hero-news-01/usage";
-import { meta as pageHeroNews01Meta } from "./components/marketing/page-hero-news-01/meta";
+import PageHeroDemo from "./components/marketing/page-hero/demo";
+import PageHeroUsage from "./components/marketing/page-hero/usage";
+import { meta as pageHeroMeta } from "./components/marketing/page-hero/meta";
 
-import GridLayoutNews01Demo from "./components/layout/grid-layout-news-01/demo";
-import GridLayoutNews01Usage from "./components/layout/grid-layout-news-01/usage";
-import { meta as gridLayoutNews01Meta } from "./components/layout/grid-layout-news-01/meta";
+import MagazineLayoutDemo from "./components/layout/magazine-layout/demo";
+import MagazineLayoutUsage from "./components/layout/magazine-layout/usage";
+import { meta as magazineLayoutMeta } from "./components/layout/magazine-layout/meta";
 
-import AuthorCard01Demo from "./components/marketing/author-card-01/demo";
-import AuthorCard01Usage from "./components/marketing/author-card-01/usage";
-import { meta as authorCard01Meta } from "./components/marketing/author-card-01/meta";
+import AuthorCardDemo from "./components/marketing/author-card/demo";
+import AuthorCardUsage from "./components/marketing/author-card/usage";
+import { meta as authorCardMeta } from "./components/marketing/author-card/meta";
 
-import ThumbList01Demo from "./components/data/thumb-list-01/demo";
-import ThumbList01Usage from "./components/data/thumb-list-01/usage";
-import { meta as thumbList01Meta } from "./components/data/thumb-list-01/meta";
+import ThumbnailListDemo from "./components/data/thumbnail-list/demo";
+import ThumbnailListUsage from "./components/data/thumbnail-list/usage";
+import { meta as thumbnailListMeta } from "./components/data/thumbnail-list/meta";
 
 import StatCardDemo from "./components/data/stat-card/demo";
 import StatCardUsage from "./components/data/stat-card/usage";
 import { meta as statCardMeta } from "./components/data/stat-card/meta";
 
-import ArticleMeta01Demo from "./components/data/article-meta-01/demo";
-import ArticleMeta01Usage from "./components/data/article-meta-01/usage";
-import { meta as articleMeta01Meta } from "./components/data/article-meta-01/meta";
+import ArticleMetaDemo from "./components/data/article-meta/demo";
+import ArticleMetaUsage from "./components/data/article-meta/usage";
+import { meta as articleMetaMeta } from "./components/data/article-meta/meta";
 
-import ShareBar01Demo from "./components/marketing/share-bar-01/demo";
-import ShareBar01Usage from "./components/marketing/share-bar-01/usage";
-import { meta as shareBar01Meta } from "./components/marketing/share-bar-01/meta";
+import ShareBarDemo from "./components/marketing/share-bar/demo";
+import ShareBarUsage from "./components/marketing/share-bar/usage";
+import { meta as shareBarMeta } from "./components/marketing/share-bar/meta";
 
-import PricingTable01Demo from "./components/marketing/pricing-table-01/demo";
-import PricingTable01Usage from "./components/marketing/pricing-table-01/usage";
-import { meta as pricingTable01Meta } from "./components/marketing/pricing-table-01/meta";
+import PricingTableDemo from "./components/marketing/pricing-table/demo";
+import PricingTableUsage from "./components/marketing/pricing-table/usage";
+import { meta as pricingTableMeta } from "./components/marketing/pricing-table/meta";
 
-import ArticleBody01Demo from "./components/data/article-body-01/demo";
-import ArticleBody01Usage from "./components/data/article-body-01/usage";
-import { meta as articleBody01Meta } from "./components/data/article-body-01/meta";
+import RichTextEditorDemo from "./components/data/rich-text-editor/demo";
+import RichTextEditorUsage from "./components/data/rich-text-editor/usage";
+import { meta as richTextEditorMeta } from "./components/data/rich-text-editor/meta";
 
-import EventCard01Demo from "./components/data/event-card-01/demo";
-import EventCard01Usage from "./components/data/event-card-01/usage";
-import { meta as eventCard01Meta } from "./components/data/event-card-01/meta";
+import EventCardDemo from "./components/data/event-card/demo";
+import EventCardUsage from "./components/data/event-card/usage";
+import { meta as eventCardMeta } from "./components/data/event-card/meta";
 
-import ScheduleList01Demo from "./components/data/schedule-list-01/demo";
-import ScheduleList01Usage from "./components/data/schedule-list-01/usage";
-import { meta as scheduleList01Meta } from "./components/data/schedule-list-01/meta";
+import ScheduleListDemo from "./components/data/schedule-list/demo";
+import ScheduleListUsage from "./components/data/schedule-list/usage";
+import { meta as scheduleListMeta } from "./components/data/schedule-list/meta";
 
-import ProgressTimeline01Demo from "./components/data/progress-timeline-01/demo";
-import ProgressTimeline01Usage from "./components/data/progress-timeline-01/usage";
-import { meta as progressTimeline01Meta } from "./components/data/progress-timeline-01/meta";
+import ProgressTimelineDemo from "./components/data/progress-timeline/demo";
+import ProgressTimelineUsage from "./components/data/progress-timeline/usage";
+import { meta as progressTimelineMeta } from "./components/data/progress-timeline/meta";
 
-import InfoList01Demo from "./components/data/info-list-01/demo";
-import InfoList01Usage from "./components/data/info-list-01/usage";
-import { meta as infoList01Meta } from "./components/data/info-list-01/meta";
+import InfoListDemo from "./components/data/info-list/demo";
+import InfoListUsage from "./components/data/info-list/usage";
+import { meta as infoListMeta } from "./components/data/info-list/meta";
 
-import PeopleGrid01Demo from "./components/data/people-grid-01/demo";
-import PeopleGrid01Usage from "./components/data/people-grid-01/usage";
-import { meta as peopleGrid01Meta } from "./components/data/people-grid-01/meta";
+import PeopleGridDemo from "./components/data/people-grid/demo";
+import PeopleGridUsage from "./components/data/people-grid/usage";
+import { meta as peopleGridMeta } from "./components/data/people-grid/meta";
 
-import RegistrationCard01Demo from "./components/data/registration-card-01/demo";
-import RegistrationCard01Usage from "./components/data/registration-card-01/usage";
-import { meta as registrationCard01Meta } from "./components/data/registration-card-01/meta";
+import RegistrationCardDemo from "./components/data/registration-card/demo";
+import RegistrationCardUsage from "./components/data/registration-card/usage";
+import { meta as registrationCardMeta } from "./components/data/registration-card/meta";
 
-import ExpandableText01Demo from "./components/data/expandable-text-01/demo";
-import ExpandableText01Usage from "./components/data/expandable-text-01/usage";
-import { meta as expandableText01Meta } from "./components/data/expandable-text-01/meta";
+import ExpandableTextDemo from "./components/data/expandable-text/demo";
+import ExpandableTextUsage from "./components/data/expandable-text/usage";
+import { meta as expandableTextMeta } from "./components/data/expandable-text/meta";
 
-import VideoPlayer01Demo from "./components/media/video-player-01/demo";
-import VideoPlayer01Usage from "./components/media/video-player-01/usage";
-import { meta as videoPlayer01Meta } from "./components/media/video-player-01/meta";
+import VideoPlayerDemo from "./components/media/video-player/demo";
+import VideoPlayerUsage from "./components/media/video-player/usage";
+import { meta as videoPlayerMeta } from "./components/media/video-player/meta";
 
-import MediaCarousel01Demo from "./components/media/media-carousel-01/demo";
-import MediaCarousel01Usage from "./components/media/media-carousel-01/usage";
-import { meta as mediaCarousel01Meta } from "./components/media/media-carousel-01/meta";
+import MediaCarouselDemo from "./components/media/media-carousel/demo";
+import MediaCarouselUsage from "./components/media/media-carousel/usage";
+import { meta as mediaCarouselMeta } from "./components/media/media-carousel/meta";
 
-import EngagementBar01Demo from "./components/data/engagement-bar-01/demo";
-import EngagementBar01Usage from "./components/data/engagement-bar-01/usage";
-import { meta as engagementBar01Meta } from "./components/data/engagement-bar-01/meta";
+import EngagementBarDemo from "./components/data/engagement-bar/demo";
+import EngagementBarUsage from "./components/data/engagement-bar/usage";
+import { meta as engagementBarMeta } from "./components/data/engagement-bar/meta";
 
-import CommentThread01Demo from "./components/data/comment-thread-01/demo";
-import CommentThread01Usage from "./components/data/comment-thread-01/usage";
-import { meta as commentThread01Meta } from "./components/data/comment-thread-01/meta";
+import CommentThreadDemo from "./components/data/comment-thread/demo";
+import CommentThreadUsage from "./components/data/comment-thread/usage";
+import { meta as commentThreadMeta } from "./components/data/comment-thread/meta";
 
-import PostCard01Demo from "./components/data/post-card-01/demo";
-import PostCard01Usage from "./components/data/post-card-01/usage";
-import { meta as postCard01Meta } from "./components/data/post-card-01/meta";
+import PostCardDemo from "./components/data/post-card/demo";
+import PostCardUsage from "./components/data/post-card/usage";
+import { meta as postCardMeta } from "./components/data/post-card/meta";
 
-import StoryRail01Demo from "./components/data/story-rail-01/demo";
-import StoryRail01Usage from "./components/data/story-rail-01/usage";
-import { meta as storyRail01Meta } from "./components/data/story-rail-01/meta";
+import StoryRailDemo from "./components/data/story-rail/demo";
+import StoryRailUsage from "./components/data/story-rail/usage";
+import { meta as storyRailMeta } from "./components/data/story-rail/meta";
 
-import StoryViewer01Demo from "./components/media/story-viewer-01/demo";
-import StoryViewer01Usage from "./components/media/story-viewer-01/usage";
-import { meta as storyViewer01Meta } from "./components/media/story-viewer-01/meta";
+import StoryViewerDemo from "./components/media/story-viewer/demo";
+import StoryViewerUsage from "./components/media/story-viewer/usage";
+import { meta as storyViewerMeta } from "./components/media/story-viewer/meta";
 
-import ProjectCard01Demo from "./components/data/project-card-01/demo";
-import ProjectCard01Usage from "./components/data/project-card-01/usage";
-import { meta as projectCard01Meta } from "./components/data/project-card-01/meta";
+import ProjectCardDemo from "./components/data/project-card/demo";
+import ProjectCardUsage from "./components/data/project-card/usage";
+import { meta as projectCardMeta } from "./components/data/project-card/meta";
 
-import KanbanBoard01Demo from "./components/data/kanban-board-01/demo";
-import KanbanBoard01Usage from "./components/data/kanban-board-01/usage";
-import { meta as kanbanBoard01Meta } from "./components/data/kanban-board-01/meta";
+import KanbanBoardDemo from "./components/data/kanban-board/demo";
+import KanbanBoardUsage from "./components/data/kanban-board/usage";
+import { meta as kanbanBoardMeta } from "./components/data/kanban-board/meta";
 
-import FlowCanvas01Demo from "./components/data/flow-canvas-01/demo";
-import FlowCanvas01Usage from "./components/data/flow-canvas-01/usage";
-import { meta as flowCanvas01Meta } from "./components/data/flow-canvas-01/meta";
+import FlowCanvasDemo from "./components/data/flow-canvas/demo";
+import FlowCanvasUsage from "./components/data/flow-canvas/usage";
+import { meta as flowCanvasMeta } from "./components/data/flow-canvas/meta";
 
 import PdfViewerDemo from "./components/media/pdf-viewer/demo";
 import PdfViewerUsage from "./components/media/pdf-viewer/usage";
@@ -162,37 +162,6 @@ import FileManagerDemo from "./components/navigation/file-manager/demo";
 import FileManagerUsage from "./components/navigation/file-manager/usage";
 import { meta as fileManagerMeta } from "./components/navigation/file-manager/meta";
 
-import RichSidebarDemo from "./components/navigation/rich-sidebar/demo";
-import RichSidebarUsage from "./components/navigation/rich-sidebar/usage";
-import { meta as richSidebarMeta } from "./components/navigation/rich-sidebar/meta";
-
-import AccountSwitcher01Demo from "./components/navigation/account-switcher-01/demo";
-import AccountSwitcher01Usage from "./components/navigation/account-switcher-01/usage";
-import { meta as accountSwitcher01Meta } from "./components/navigation/account-switcher-01/meta";
-
-import StoryComposer01Demo from "./components/media/story-composer-01/demo";
-import StoryComposer01Usage from "./components/media/story-composer-01/usage";
-import { meta as storyComposer01Meta } from "./components/media/story-composer-01/meta";
-
-import MediaEditor01Demo from "./components/media/media-editor-01/demo";
-import MediaEditor01Usage from "./components/media/media-editor-01/usage";
-import { meta as mediaEditor01Meta } from "./components/media/media-editor-01/meta";
-import ContentComposer01Demo from "./components/media/content-composer-01/demo";
-import ContentComposer01Usage from "./components/media/content-composer-01/usage";
-import { meta as contentComposer01Meta } from "./components/media/content-composer-01/meta";
-
-import MediaCarouselEditor01Demo from "./components/media/media-carousel-editor-01/demo";
-import MediaCarouselEditor01Usage from "./components/media/media-carousel-editor-01/usage";
-import { meta as mediaCarouselEditor01Meta } from "./components/media/media-carousel-editor-01/meta";
-
-import MediaLibrary01Demo from "./components/media/media-library-01/demo";
-import MediaLibrary01Usage from "./components/media/media-library-01/usage";
-import { meta as mediaLibrary01Meta } from "./components/media/media-library-01/meta";
-
-import Blackboard01Demo from "./components/data/blackboard-01/demo";
-import Blackboard01Usage from "./components/data/blackboard-01/usage";
-import { meta as blackboard01Meta } from "./components/data/blackboard-01/meta";
-
 import CodeBlockDemo from "./components/code/code-block/demo";
 import CodeBlockUsage from "./components/code/code-block/usage";
 import { meta as codeBlockMeta } from "./components/code/code-block/meta";
@@ -201,53 +170,85 @@ import JsonFormDemo from "./components/forms/json-form/demo";
 import JsonFormUsage from "./components/forms/json-form/usage";
 import { meta as jsonFormMeta } from "./components/forms/json-form/meta";
 
-import RegistrationForm01Demo from "./components/forms/registration-form-01/demo";
-import RegistrationForm01Usage from "./components/forms/registration-form-01/usage";
-import { meta as registrationForm01Meta } from "./components/forms/registration-form-01/meta";
+import SignupFormDemo from "./components/forms/signup-form/demo";
+import SignupFormUsage from "./components/forms/signup-form/usage";
+import { meta as signupFormMeta } from "./components/forms/signup-form/meta";
 
-import RichCardInFlowDemo from "./components/data/rich-card-in-flow/demo";
-import RichCardInFlowUsage from "./components/data/rich-card-in-flow/usage";
-import { meta as richCardInFlowMeta } from "./components/data/rich-card-in-flow/meta";
+import CardTreeNodeDemo from "./components/data/card-tree-node/demo";
+import CardTreeNodeUsage from "./components/data/card-tree-node/usage";
+import { meta as cardTreeNodeMeta } from "./components/data/card-tree-node/meta";
 
-import TodoRichCardDemo from "./components/data/todo-rich-card/demo";
-import TodoRichCardUsage from "./components/data/todo-rich-card/usage";
-import { meta as todoRichCardMeta } from "./components/data/todo-rich-card/meta";
+import TaskCardDemo from "./components/data/task-card/demo";
+import TaskCardUsage from "./components/data/task-card/usage";
+import { meta as taskCardMeta } from "./components/data/task-card/meta";
 
-import TodoTreeDemo from "./components/data/todo-tree/demo";
-import TodoTreeUsage from "./components/data/todo-tree/usage";
-import { meta as todoTreeMeta } from "./components/data/todo-tree/meta";
+import TaskTreeDemo from "./components/data/task-tree/demo";
+import TaskTreeUsage from "./components/data/task-tree/usage";
+import { meta as taskTreeMeta } from "./components/data/task-tree/meta";
 
-import GanttTimeline01Demo from "./components/data/gantt-timeline-01/demo";
-import GanttTimeline01Usage from "./components/data/gantt-timeline-01/usage";
-import { meta as ganttTimeline01Meta } from "./components/data/gantt-timeline-01/meta";
+import AppSidebarDemo from "./components/navigation/app-sidebar/demo";
+import AppSidebarUsage from "./components/navigation/app-sidebar/usage";
+import { meta as appSidebarMeta } from "./components/navigation/app-sidebar/meta";
 
-import Calendar01Demo from "./components/data/calendar-01/demo";
-import Calendar01Usage from "./components/data/calendar-01/usage";
-import { meta as calendar01Meta } from "./components/data/calendar-01/meta";
+import AccountSwitcherDemo from "./components/navigation/account-switcher/demo";
+import AccountSwitcherUsage from "./components/navigation/account-switcher/usage";
+import { meta as accountSwitcherMeta } from "./components/navigation/account-switcher/meta";
 
-import TeamProgressBar01Demo from "./components/gamification/team-progress-bar-01/demo";
-import TeamProgressBar01Usage from "./components/gamification/team-progress-bar-01/usage";
-import { meta as teamProgressBar01Meta } from "./components/gamification/team-progress-bar-01/meta";
+import StoryComposerDemo from "./components/media/story-composer/demo";
+import StoryComposerUsage from "./components/media/story-composer/usage";
+import { meta as storyComposerMeta } from "./components/media/story-composer/meta";
 
-import TeamTrophyShelf01Demo from "./components/gamification/team-trophy-shelf-01/demo";
-import TeamTrophyShelf01Usage from "./components/gamification/team-trophy-shelf-01/usage";
-import { meta as teamTrophyShelf01Meta } from "./components/gamification/team-trophy-shelf-01/meta";
+import MediaEditorDemo from "./components/media/media-editor/demo";
+import MediaEditorUsage from "./components/media/media-editor/usage";
+import { meta as mediaEditorMeta } from "./components/media/media-editor/meta";
 
-import TeamFeedbackLoop01Demo from "./components/gamification/team-feedback-loop-01/demo";
-import TeamFeedbackLoop01Usage from "./components/gamification/team-feedback-loop-01/usage";
-import { meta as teamFeedbackLoop01Meta } from "./components/gamification/team-feedback-loop-01/meta";
+import ContentComposerDemo from "./components/media/content-composer/demo";
+import ContentComposerUsage from "./components/media/content-composer/usage";
+import { meta as contentComposerMeta } from "./components/media/content-composer/meta";
 
-import CooperativeChallenge01Demo from "./components/gamification/cooperative-challenge-01/demo";
-import CooperativeChallenge01Usage from "./components/gamification/cooperative-challenge-01/usage";
-import { meta as cooperativeChallenge01Meta } from "./components/gamification/cooperative-challenge-01/meta";
+import CarouselComposerDemo from "./components/media/carousel-composer/demo";
+import CarouselComposerUsage from "./components/media/carousel-composer/usage";
+import { meta as carouselComposerMeta } from "./components/media/carousel-composer/meta";
 
-import TaskChoiceControl01Demo from "./components/gamification/task-choice-control-01/demo";
-import TaskChoiceControl01Usage from "./components/gamification/task-choice-control-01/usage";
-import { meta as taskChoiceControl01Meta } from "./components/gamification/task-choice-control-01/meta";
+import MediaLibraryDemo from "./components/media/media-library/demo";
+import MediaLibraryUsage from "./components/media/media-library/usage";
+import { meta as mediaLibraryMeta } from "./components/media/media-library/meta";
 
-import TeamQuestLog01Demo from "./components/gamification/team-quest-log-01/demo";
-import TeamQuestLog01Usage from "./components/gamification/team-quest-log-01/usage";
-import { meta as teamQuestLog01Meta } from "./components/gamification/team-quest-log-01/meta";
+import BlackboardDemo from "./components/data/blackboard/demo";
+import BlackboardUsage from "./components/data/blackboard/usage";
+import { meta as blackboardMeta } from "./components/data/blackboard/meta";
+
+import GanttTimelineDemo from "./components/data/gantt-timeline/demo";
+import GanttTimelineUsage from "./components/data/gantt-timeline/usage";
+import { meta as ganttTimelineMeta } from "./components/data/gantt-timeline/meta";
+
+import EventCalendarDemo from "./components/data/event-calendar/demo";
+import EventCalendarUsage from "./components/data/event-calendar/usage";
+import { meta as eventCalendarMeta } from "./components/data/event-calendar/meta";
+
+import TeamProgressBarDemo from "./components/gamification/team-progress-bar/demo";
+import TeamProgressBarUsage from "./components/gamification/team-progress-bar/usage";
+import { meta as teamProgressBarMeta } from "./components/gamification/team-progress-bar/meta";
+
+import TeamTrophyShelfDemo from "./components/gamification/team-trophy-shelf/demo";
+import TeamTrophyShelfUsage from "./components/gamification/team-trophy-shelf/usage";
+import { meta as teamTrophyShelfMeta } from "./components/gamification/team-trophy-shelf/meta";
+
+import TeamFeedbackLoopDemo from "./components/gamification/team-feedback-loop/demo";
+import TeamFeedbackLoopUsage from "./components/gamification/team-feedback-loop/usage";
+import { meta as teamFeedbackLoopMeta } from "./components/gamification/team-feedback-loop/meta";
+
+import TeamChallengeDemo from "./components/gamification/team-challenge/demo";
+import TeamChallengeUsage from "./components/gamification/team-challenge/usage";
+import { meta as teamChallengeMeta } from "./components/gamification/team-challenge/meta";
+
+import TeamTaskClaimDemo from "./components/gamification/team-task-claim/demo";
+import TeamTaskClaimUsage from "./components/gamification/team-task-claim/usage";
+import { meta as teamTaskClaimMeta } from "./components/gamification/team-task-claim/meta";
+
+import TeamQuestLogDemo from "./components/gamification/team-quest-log/demo";
+import TeamQuestLogUsage from "./components/gamification/team-quest-log/usage";
+import { meta as teamQuestLogMeta } from "./components/gamification/team-quest-log/meta";
 
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
 import type {
@@ -264,14 +265,14 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: DataTableUsage,
   },
   {
-    meta: richCardMeta,
-    Demo: RichCardDemo,
-    Usage: RichCardUsage,
+    meta: cardTreeMeta,
+    Demo: CardTreeDemo,
+    Usage: CardTreeUsage,
   },
   {
-    meta: workspaceMeta,
-    Demo: WorkspaceDemo,
-    Usage: WorkspaceUsage,
+    meta: splitWorkspaceMeta,
+    Demo: SplitWorkspaceDemo,
+    Usage: SplitWorkspaceUsage,
   },
   {
     meta: propertiesFormMeta,
@@ -284,9 +285,9 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: DetailPanelUsage,
   },
   {
-    meta: filterStackMeta,
-    Demo: FilterStackDemo,
-    Usage: FilterStackUsage,
+    meta: filterPanelMeta,
+    Demo: FilterPanelDemo,
+    Usage: FilterPanelUsage,
   },
   {
     meta: entityPickerMeta,
@@ -299,44 +300,44 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: MarkdownEditorUsage,
   },
   {
-    meta: contentCardNews01Meta,
-    Demo: ContentCardNews01Demo,
-    Usage: ContentCardNews01Usage,
+    meta: newsCardMeta,
+    Demo: NewsCardDemo,
+    Usage: NewsCardUsage,
   },
   {
-    meta: newsletterCard01Meta,
-    Demo: NewsletterCard01Demo,
-    Usage: NewsletterCard01Usage,
+    meta: newsletterSignupMeta,
+    Demo: NewsletterSignupDemo,
+    Usage: NewsletterSignupUsage,
   },
   {
-    meta: categoryCloud01Meta,
-    Demo: CategoryCloud01Demo,
-    Usage: CategoryCloud01Usage,
+    meta: categoryCloudMeta,
+    Demo: CategoryCloudDemo,
+    Usage: CategoryCloudUsage,
   },
   {
-    meta: filterBar01Meta,
-    Demo: FilterBar01Demo,
-    Usage: FilterBar01Usage,
+    meta: filterBarMeta,
+    Demo: FilterBarDemo,
+    Usage: FilterBarUsage,
   },
   {
-    meta: pageHeroNews01Meta,
-    Demo: PageHeroNews01Demo,
-    Usage: PageHeroNews01Usage,
+    meta: pageHeroMeta,
+    Demo: PageHeroDemo,
+    Usage: PageHeroUsage,
   },
   {
-    meta: gridLayoutNews01Meta,
-    Demo: GridLayoutNews01Demo,
-    Usage: GridLayoutNews01Usage,
+    meta: magazineLayoutMeta,
+    Demo: MagazineLayoutDemo,
+    Usage: MagazineLayoutUsage,
   },
   {
-    meta: authorCard01Meta,
-    Demo: AuthorCard01Demo,
-    Usage: AuthorCard01Usage,
+    meta: authorCardMeta,
+    Demo: AuthorCardDemo,
+    Usage: AuthorCardUsage,
   },
   {
-    meta: thumbList01Meta,
-    Demo: ThumbList01Demo,
-    Usage: ThumbList01Usage,
+    meta: thumbnailListMeta,
+    Demo: ThumbnailListDemo,
+    Usage: ThumbnailListUsage,
   },
   {
     meta: statCardMeta,
@@ -344,109 +345,109 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: StatCardUsage,
   },
   {
-    meta: articleMeta01Meta,
-    Demo: ArticleMeta01Demo,
-    Usage: ArticleMeta01Usage,
+    meta: articleMetaMeta,
+    Demo: ArticleMetaDemo,
+    Usage: ArticleMetaUsage,
   },
   {
-    meta: shareBar01Meta,
-    Demo: ShareBar01Demo,
-    Usage: ShareBar01Usage,
+    meta: shareBarMeta,
+    Demo: ShareBarDemo,
+    Usage: ShareBarUsage,
   },
   {
-    meta: pricingTable01Meta,
-    Demo: PricingTable01Demo,
-    Usage: PricingTable01Usage,
+    meta: pricingTableMeta,
+    Demo: PricingTableDemo,
+    Usage: PricingTableUsage,
   },
   {
-    meta: articleBody01Meta,
-    Demo: ArticleBody01Demo,
-    Usage: ArticleBody01Usage,
+    meta: richTextEditorMeta,
+    Demo: RichTextEditorDemo,
+    Usage: RichTextEditorUsage,
   },
   {
-    meta: eventCard01Meta,
-    Demo: EventCard01Demo,
-    Usage: EventCard01Usage,
+    meta: eventCardMeta,
+    Demo: EventCardDemo,
+    Usage: EventCardUsage,
   },
   {
-    meta: scheduleList01Meta,
-    Demo: ScheduleList01Demo,
-    Usage: ScheduleList01Usage,
+    meta: scheduleListMeta,
+    Demo: ScheduleListDemo,
+    Usage: ScheduleListUsage,
   },
   {
-    meta: progressTimeline01Meta,
-    Demo: ProgressTimeline01Demo,
-    Usage: ProgressTimeline01Usage,
+    meta: progressTimelineMeta,
+    Demo: ProgressTimelineDemo,
+    Usage: ProgressTimelineUsage,
   },
   {
-    meta: infoList01Meta,
-    Demo: InfoList01Demo,
-    Usage: InfoList01Usage,
+    meta: infoListMeta,
+    Demo: InfoListDemo,
+    Usage: InfoListUsage,
   },
   {
-    meta: peopleGrid01Meta,
-    Demo: PeopleGrid01Demo,
-    Usage: PeopleGrid01Usage,
+    meta: peopleGridMeta,
+    Demo: PeopleGridDemo,
+    Usage: PeopleGridUsage,
   },
   {
-    meta: registrationCard01Meta,
-    Demo: RegistrationCard01Demo,
-    Usage: RegistrationCard01Usage,
+    meta: registrationCardMeta,
+    Demo: RegistrationCardDemo,
+    Usage: RegistrationCardUsage,
   },
   {
-    meta: expandableText01Meta,
-    Demo: ExpandableText01Demo,
-    Usage: ExpandableText01Usage,
+    meta: expandableTextMeta,
+    Demo: ExpandableTextDemo,
+    Usage: ExpandableTextUsage,
   },
   {
-    meta: videoPlayer01Meta,
-    Demo: VideoPlayer01Demo,
-    Usage: VideoPlayer01Usage,
+    meta: videoPlayerMeta,
+    Demo: VideoPlayerDemo,
+    Usage: VideoPlayerUsage,
   },
   {
-    meta: mediaCarousel01Meta,
-    Demo: MediaCarousel01Demo,
-    Usage: MediaCarousel01Usage,
+    meta: mediaCarouselMeta,
+    Demo: MediaCarouselDemo,
+    Usage: MediaCarouselUsage,
   },
   {
-    meta: engagementBar01Meta,
-    Demo: EngagementBar01Demo,
-    Usage: EngagementBar01Usage,
+    meta: engagementBarMeta,
+    Demo: EngagementBarDemo,
+    Usage: EngagementBarUsage,
   },
   {
-    meta: commentThread01Meta,
-    Demo: CommentThread01Demo,
-    Usage: CommentThread01Usage,
+    meta: commentThreadMeta,
+    Demo: CommentThreadDemo,
+    Usage: CommentThreadUsage,
   },
   {
-    meta: postCard01Meta,
-    Demo: PostCard01Demo,
-    Usage: PostCard01Usage,
+    meta: postCardMeta,
+    Demo: PostCardDemo,
+    Usage: PostCardUsage,
   },
   {
-    meta: storyRail01Meta,
-    Demo: StoryRail01Demo,
-    Usage: StoryRail01Usage,
+    meta: storyRailMeta,
+    Demo: StoryRailDemo,
+    Usage: StoryRailUsage,
   },
   {
-    meta: storyViewer01Meta,
-    Demo: StoryViewer01Demo,
-    Usage: StoryViewer01Usage,
+    meta: storyViewerMeta,
+    Demo: StoryViewerDemo,
+    Usage: StoryViewerUsage,
   },
   {
-    meta: projectCard01Meta,
-    Demo: ProjectCard01Demo,
-    Usage: ProjectCard01Usage,
+    meta: projectCardMeta,
+    Demo: ProjectCardDemo,
+    Usage: ProjectCardUsage,
   },
   {
-    meta: kanbanBoard01Meta,
-    Demo: KanbanBoard01Demo,
-    Usage: KanbanBoard01Usage,
+    meta: kanbanBoardMeta,
+    Demo: KanbanBoardDemo,
+    Usage: KanbanBoardUsage,
   },
   {
-    meta: flowCanvas01Meta,
-    Demo: FlowCanvas01Demo,
-    Usage: FlowCanvas01Usage,
+    meta: flowCanvasMeta,
+    Demo: FlowCanvasDemo,
+    Usage: FlowCanvasUsage,
   },
   {
     meta: pdfViewerMeta,
@@ -474,104 +475,104 @@ export const REGISTRY: RegistryEntry[] = [
     Usage: JsonFormUsage,
   },
   {
-    meta: registrationForm01Meta,
-    Demo: RegistrationForm01Demo,
-    Usage: RegistrationForm01Usage,
+    meta: signupFormMeta,
+    Demo: SignupFormDemo,
+    Usage: SignupFormUsage,
   },
   {
-    meta: richCardInFlowMeta,
-    Demo: RichCardInFlowDemo,
-    Usage: RichCardInFlowUsage,
+    meta: cardTreeNodeMeta,
+    Demo: CardTreeNodeDemo,
+    Usage: CardTreeNodeUsage,
   },
   {
-    meta: todoRichCardMeta,
-    Demo: TodoRichCardDemo,
-    Usage: TodoRichCardUsage,
+    meta: taskCardMeta,
+    Demo: TaskCardDemo,
+    Usage: TaskCardUsage,
   },
   {
-    meta: todoTreeMeta,
-    Demo: TodoTreeDemo,
-    Usage: TodoTreeUsage,
+    meta: taskTreeMeta,
+    Demo: TaskTreeDemo,
+    Usage: TaskTreeUsage,
   },
   {
-    meta: richSidebarMeta,
-    Demo: RichSidebarDemo,
-    Usage: RichSidebarUsage,
+    meta: appSidebarMeta,
+    Demo: AppSidebarDemo,
+    Usage: AppSidebarUsage,
   },
   {
-    meta: accountSwitcher01Meta,
-    Demo: AccountSwitcher01Demo,
-    Usage: AccountSwitcher01Usage,
+    meta: accountSwitcherMeta,
+    Demo: AccountSwitcherDemo,
+    Usage: AccountSwitcherUsage,
   },
   {
-    meta: storyComposer01Meta,
-    Demo: StoryComposer01Demo,
-    Usage: StoryComposer01Usage,
+    meta: storyComposerMeta,
+    Demo: StoryComposerDemo,
+    Usage: StoryComposerUsage,
   },
   {
-    meta: mediaEditor01Meta,
-    Demo: MediaEditor01Demo,
-    Usage: MediaEditor01Usage,
+    meta: mediaEditorMeta,
+    Demo: MediaEditorDemo,
+    Usage: MediaEditorUsage,
   },
   {
-    meta: contentComposer01Meta,
-    Demo: ContentComposer01Demo,
-    Usage: ContentComposer01Usage,
+    meta: contentComposerMeta,
+    Demo: ContentComposerDemo,
+    Usage: ContentComposerUsage,
   },
   {
-    meta: mediaCarouselEditor01Meta,
-    Demo: MediaCarouselEditor01Demo,
-    Usage: MediaCarouselEditor01Usage,
+    meta: carouselComposerMeta,
+    Demo: CarouselComposerDemo,
+    Usage: CarouselComposerUsage,
   },
   {
-    meta: mediaLibrary01Meta,
-    Demo: MediaLibrary01Demo,
-    Usage: MediaLibrary01Usage,
+    meta: mediaLibraryMeta,
+    Demo: MediaLibraryDemo,
+    Usage: MediaLibraryUsage,
   },
   {
-    meta: blackboard01Meta,
-    Demo: Blackboard01Demo,
-    Usage: Blackboard01Usage,
+    meta: blackboardMeta,
+    Demo: BlackboardDemo,
+    Usage: BlackboardUsage,
   },
   {
-    meta: ganttTimeline01Meta,
-    Demo: GanttTimeline01Demo,
-    Usage: GanttTimeline01Usage,
+    meta: ganttTimelineMeta,
+    Demo: GanttTimelineDemo,
+    Usage: GanttTimelineUsage,
   },
   {
-    meta: calendar01Meta,
-    Demo: Calendar01Demo,
-    Usage: Calendar01Usage,
+    meta: eventCalendarMeta,
+    Demo: EventCalendarDemo,
+    Usage: EventCalendarUsage,
   },
   {
-    meta: teamProgressBar01Meta,
-    Demo: TeamProgressBar01Demo,
-    Usage: TeamProgressBar01Usage,
+    meta: teamProgressBarMeta,
+    Demo: TeamProgressBarDemo,
+    Usage: TeamProgressBarUsage,
   },
   {
-    meta: teamTrophyShelf01Meta,
-    Demo: TeamTrophyShelf01Demo,
-    Usage: TeamTrophyShelf01Usage,
+    meta: teamTrophyShelfMeta,
+    Demo: TeamTrophyShelfDemo,
+    Usage: TeamTrophyShelfUsage,
   },
   {
-    meta: teamFeedbackLoop01Meta,
-    Demo: TeamFeedbackLoop01Demo,
-    Usage: TeamFeedbackLoop01Usage,
+    meta: teamFeedbackLoopMeta,
+    Demo: TeamFeedbackLoopDemo,
+    Usage: TeamFeedbackLoopUsage,
   },
   {
-    meta: cooperativeChallenge01Meta,
-    Demo: CooperativeChallenge01Demo,
-    Usage: CooperativeChallenge01Usage,
+    meta: teamChallengeMeta,
+    Demo: TeamChallengeDemo,
+    Usage: TeamChallengeUsage,
   },
   {
-    meta: taskChoiceControl01Meta,
-    Demo: TaskChoiceControl01Demo,
-    Usage: TaskChoiceControl01Usage,
+    meta: teamTaskClaimMeta,
+    Demo: TeamTaskClaimDemo,
+    Usage: TeamTaskClaimUsage,
   },
   {
-    meta: teamQuestLog01Meta,
-    Demo: TeamQuestLog01Demo,
-    Usage: TeamQuestLog01Usage,
+    meta: teamQuestLogMeta,
+    Demo: TeamQuestLogDemo,
+    Usage: TeamQuestLogUsage,
   },
 ];
 

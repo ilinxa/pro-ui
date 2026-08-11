@@ -1,9 +1,9 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "data-table-fixtures",
-  "title": "Data Table (with fixtures)",
+  "title": "Data Table — fixtures",
   "author": "ilinxa",
-  "description": "Data Table bundle including the dummy-data fixtures used by the docs-site demo. Resolves the base data-table item automatically.",
+  "description": "Data Table plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/data-table"
   ],

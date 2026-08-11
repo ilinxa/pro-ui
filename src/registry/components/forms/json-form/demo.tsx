@@ -205,7 +205,7 @@ function RichFieldsTab() {
   return (
     <Section
       title="Rich fields"
-      caption="`code` (lazy-loads CodeMirror via `@ilinxa/code-block`), `richtext` (lazy-loads Plate via `@ilinxa/article-body-01`), `slider`, and `rating`."
+      caption="`code` (lazy-loads CodeMirror via `@ilinxa/code-block`), `richtext` (lazy-loads Plate via `@ilinxa/rich-text-editor`), `slider`, and `rating`."
     >
       <JsonForm
         schema={richFieldsFormSchema}

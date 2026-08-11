@@ -15,7 +15,7 @@ Today's options all fail one way:
 - **Commercial SDKs (Apryse, Nutrient, Foxit)** — feature-rich but 5-figure annual licenses and 5–20 MB of JS. Wildly disproportionate for "render a PDF nicely."
 - **Per-app rebuilds with raw `pdfjs-dist`** — every team writes their own React bindings, makes the same mistakes (worker config, scale arithmetic, scroll-restoration on zoom, mobile touch, accessibility). Code drift between apps.
 
-Pro-ui's existing media components (`media-carousel-01`, `story-viewer-01`, `video-player-01`) cover image and video. PDF is the missing third leg — the format teams hand to users alongside images and videos in attachment lists, content libraries, and document workflows.
+Pro-ui's existing media components (`media-carousel`, `story-viewer`, `video-player`) cover image and video. PDF is the missing third leg — the format teams hand to users alongside images and videos in attachment lists, content libraries, and document workflows.
 
 This component closes that gap with one opinionated, themeable, chrome-owned viewer that drops in anywhere a `File` / `Blob` / `URL` / `ArrayBuffer` exists.
 
@@ -178,7 +178,7 @@ The component is "done" when:
 
 ## Open questions
 
-1. **Slug — `pdf-viewer` or `pdf-viewer-01`?** Existing pattern is mixed: bigger composed surfaces (`data-table`, `markdown-editor`, `entity-picker`, `properties-form`, `workspace`, `detail-panel`, `stat-card`, `filter-stack`) drop the suffix; smaller pattern-style components (`media-carousel-01`, `story-viewer-01`, `video-player-01`, `kanban-board-01`) keep it. **Recommendation:** drop the suffix → `pdf-viewer`. This is a flagship composed surface, not a numbered variant pattern.
+1. **Slug — `pdf-viewer` or `pdf-viewer-01`?** Existing pattern is mixed: bigger composed surfaces (`data-table`, `markdown-editor`, `entity-picker`, `properties-form`, `workspace`, `detail-panel`, `stat-card`, `filter-panel`) drop the suffix; smaller pattern-style components (`media-carousel`, `story-viewer`, `video-player`, `kanban-board`) keep it. **Recommendation:** drop the suffix → `pdf-viewer`. This is a flagship composed surface, not a numbered variant pattern.
 
 2. **Continuous scroll vs paged scroll mode toggle.** Some users prefer "one page at a time, click to advance" (Adobe-like). **Recommendation:** ship continuous-only. Paged-scroll is its own UX with snap-points + spacebar nav; mixing both bloats the component. Real demand can graduate it later.
 

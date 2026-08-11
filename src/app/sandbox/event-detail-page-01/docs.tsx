@@ -57,7 +57,7 @@ export default function EventDetailPage01Docs() {
           </li>
           <li>
             <strong>The hero is inline (~50 lines), not productized.</strong>{" "}
-            <code>page-hero-news-01</code> is gradient-only — no image-background
+            <code>page-hero</code> is gradient-only — no image-background
             slot, no dark-overlay slot, no bottom alignment. Building a sealed{" "}
             <code>page-hero-event-01</code> is deferred until a second consumer
             appears.
@@ -66,7 +66,7 @@ export default function EventDetailPage01Docs() {
             <strong>Status badge composes the helper kernel without the card.</strong>{" "}
             <code>getEventStatus(event, now)</code> +{" "}
             <code>EVENT_STATUS_CONFIG</code> are exported from{" "}
-            <code>event-card-01</code> as pure JS — render the badge anywhere
+            <code>event-card</code> as pure JS — render the badge anywhere
             (hero, table cells, calendar dots) without needing the full card.
           </li>
           <li>
@@ -80,7 +80,7 @@ export default function EventDetailPage01Docs() {
           </li>
           <li>
             <strong>
-              <code>ArticleBodyViewer</code> is server-component compatible.
+              <code>RichTextViewer</code> is server-component compatible.
             </strong>{" "}
             Built on <code>platejs/static</code> — no client JS for the read
             view. The <code>className=&quot;prose-lg&quot;</code> override here
@@ -94,7 +94,7 @@ export default function EventDetailPage01Docs() {
           </li>
           <li>
             <strong>
-              The Requirements card uses <code>info-list-01</code> with a
+              The Requirements card uses <code>info-list</code> with a
               className override.
             </strong>{" "}
             Passing <code>className=&quot;bg-muted/50 border-transparent&quot;</code>{" "}
@@ -102,8 +102,8 @@ export default function EventDetailPage01Docs() {
             no new variant needed.
           </li>
           <li>
-            <strong>Registration card is independent of event-card-01&apos;s state machine.</strong>{" "}
-            <code>registration-card-01</code> has its own 4-state machine
+            <strong>Registration card is independent of event-card&apos;s state machine.</strong>{" "}
+            <code>registration-card</code> has its own 4-state machine
             (open / lastSpots / full / closed). The host owns event-timing
             context and passes <code>closed</code> when registration ends —
             here we set{" "}

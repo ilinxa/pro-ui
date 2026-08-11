@@ -4,9 +4,9 @@ import { ORDERED_CATEGORIES } from "@/registry/categories";
 import { getMetaList } from "@/registry/manifest";
 
 export const metadata = {
-  title: "Developer documentation — ilinxa-proui",
+  title: "Developer documentation — ilinxa pro-ui",
   description:
-    "Install ilinxa-proui components in your Next.js or React app via the shadcn-registry distribution model.",
+    "Install ilinxa pro-ui components in your Next.js or React app via the shadcn-registry distribution model.",
 };
 
 export default function DocsPage() {
@@ -61,7 +61,7 @@ export default function DocsPage() {
           <Code>components.json</Code> (merge with your existing config):
         </p>
         <Pre>{`"registries": {
-  "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
+  "@ilinxa": "https://ui.ilinxa.com/r/{name}.json"
 }`}</Pre>
         <p className="text-sm">
           The <Code>{"{name}"}</Code> placeholder is mandatory — the CLI rejects
@@ -203,7 +203,7 @@ export function TaskEditor() {
           A concise, structured reference for AI agents (Claude Code, Cursor,
           GitHub Copilot, etc.) is available at:
         </p>
-        <Pre>{`https://ilinxa-proui.vercel.app/llms.txt`}</Pre>
+        <Pre>{`https://ui.ilinxa.com/llms.txt`}</Pre>
         <p>
           Point your AI assistant at this URL when working on a project that
           consumes the registry. It contains install steps, the full component

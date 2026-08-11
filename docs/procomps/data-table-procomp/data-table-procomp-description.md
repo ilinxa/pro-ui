@@ -57,7 +57,7 @@ Three bands:
 |---|---|---|
 | **Direct use** | Admin tables, settings panels, audit log views, simple dashboards | Drop `<DataTable />` in; pass columns + rows; ship |
 | **Compose on top** | A team building a sortable wrapper, a virtualized wrapper, an editable wrapper | Wrap `<DataTable />`, control `rows` from outside; column accessors stay the host's contract |
-| **Sibling host components** | Future `paginated-data-table-01`, `kanban-board-01` (already uses the same renderer-registry idea but at a higher level) | Reuse the column accessor pattern; the host owns its own state |
+| **Sibling host components** | Future `paginated-data-table-01`, `kanban-board` (already uses the same renderer-registry idea but at a higher level) | Reuse the column accessor pattern; the host owns its own state |
 
 The first band is the largest and the test for whether v0.1 is the right shape — if "drop it in for an admin table" is harder than 10 lines, the API is wrong.
 
@@ -182,7 +182,7 @@ These were considered + locked at description sign-off (some retroactively, sinc
 - **Bundle ceiling:** `DataTable` itself is ~2 KB. The shadcn `table` primitive (~1.5 KB) is the only direct dep. Total install adds ≤ 4 KB before consumer-side cell renderers. Low risk.
 - **API stability:** v0.1 is alpha-status. A future v0.2 may add an opt-in `striped: boolean` prop or similar surface tweaks. None of the locked decisions above are at-risk for v0.2.
 - **Accessibility:** Relies on shadcn's `<TableHeader>` setting `<th scope="col">` correctly. Verified at v0.1 ship.
-- **Reference-stability footgun:** Consumers passing inline `[{ id: "name", ... }]` for `columns` re-create the array each render. React Compiler memoizes JSX-literal arrays in this repo, but NPM consumers without it must `useMemo` columns or hoist to module scope. Documented in the guide. Same footgun pattern as filter-stack, entity-picker, markdown-editor's `wikilinkCandidates`.
+- **Reference-stability footgun:** Consumers passing inline `[{ id: "name", ... }]` for `columns` re-create the array each render. React Compiler memoizes JSX-literal arrays in this repo, but NPM consumers without it must `useMemo` columns or hoist to module scope. Documented in the guide. Same footgun pattern as filter-panel, entity-picker, markdown-editor's `wikilinkCandidates`.
 
 ---
 
@@ -203,7 +203,7 @@ Once signed off, this description is the input to the plan stage. The plan stage
 
 ## Appendix A — Why this description is retroactive
 
-The component shipped at v0.1.0 in commit `7263286` (article-body-01 series; data-table was a pre-existing snapshot). Per the project workflow (`AGENTS.md`/`CLAUDE.md` §0–§1), the description should have been authored + signed off BEFORE `pnpm new:component`. It wasn't — the gap was caught by the v0.1 review (F-01: "NO procomp planning docs"). This Phase-4 catch-up:
+The component shipped at v0.1.0 in commit `7263286` (rich-text-editor series; data-table was a pre-existing snapshot). Per the project workflow (`AGENTS.md`/`CLAUDE.md` §0–§1), the description should have been authored + signed off BEFORE `pnpm new:component`. It wasn't — the gap was caught by the v0.1 review (F-01: "NO procomp planning docs"). This Phase-4 catch-up:
 
 - documents the component as it actually shipped (no API changes)
 - pins the locked decisions retroactively, citing v0.1 source as evidence

@@ -40,10 +40,10 @@ These are the same UI surface — a force-directed graph with rich panels — di
 ### 1.2 Goals
 
 - **One component surface, three usage modes.** Same code path, different data distributions.
-- **Decomposed into small, useful-on-their-own pro-components.** Tier 1 components (filter-stack, detail-panel, properties-form, entity-picker, markdown-editor) must be valuable independently of the graph; the graph composes them.
+- **Decomposed into small, useful-on-their-own pro-components.** Tier 1 components (filter-panel, detail-panel, properties-form, entity-picker, markdown-editor) must be valuable independently of the graph; the graph composes them.
 - **DB-agnostic.** No Kuzu lock-in. Source adapters live outside the registry.
 - **Origin-aware from day one.** The system distinguishes user-owned from DB-owned data at the data-model level, not as a UI overlay.
-- **Phased delivery.** Each pro-component ships through the procomp gate independently. The graph component itself ships in six phases (v0.1–v0.6) like rich-card.
+- **Phased delivery.** Each pro-component ships through the procomp gate independently. The graph component itself ships in six phases (v0.1–v0.6) like card-tree.
 
 ### 1.3 Non-goals
 
@@ -58,7 +58,7 @@ These are the same UI surface — a force-directed graph with rich panels — di
 A monolithic graph-visualizer was estimated at ~80–120 files / 14–18 calendar weeks with all of the cross-cutting concerns coupled. The decomposed plan (this doc) yields:
 
 - **Risk distribution.** The highest-risk core (custom WebGL programs, force layout) is concentrated in one Tier 2 component (`force-graph`). The five Tier 1 components are conventional React work.
-- **Reusability.** Every Tier 1 component is useful far beyond graphs. `filter-stack` slots into `data-table`. `detail-panel` slots into `rich-card`. `markdown-editor` slots into any future docs system.
+- **Reusability.** Every Tier 1 component is useful far beyond graphs. `filter-panel` slots into `data-table`. `detail-panel` slots into `card-tree`. `markdown-editor` slots into any future docs system.
 - **Independent shipping cadence.** Tier 1 can ship in parallel with Tier 2. We get useful components even if `force-graph` slips.
 - **Cleaner NPM extraction.** Smaller focused packages travel better than one monolith with 9+ third-party deps and a Web Worker.
 
@@ -89,7 +89,7 @@ The system has three tiers.
 Useful standalone, no graph dependency. Each ships through its own procomp gate. Per-phase plan-lock dependency:
 
 - `properties-form` + `detail-panel` plans → required before `force-graph` **v0.3** plan can be signed off
-- `filter-stack` plan → required before `force-graph` **v0.4** plan
+- `filter-panel` plan → required before `force-graph` **v0.4** plan
 - `markdown-editor` plan → required before `force-graph` **v0.5** plan
 - `entity-picker` is a utility used wherever; useful but not a hard gate
 - `force-graph` **v0.1, v0.2, v0.6** compose zero Tier 1 components — those plans can be locked independently of any Tier 1 work
@@ -98,9 +98,9 @@ This matches the phased shipability in §10.3 — `force-graph` v0.1 ships befor
 
 | # | Slug | Category | Role in graph-system | Procomp doc |
 |---|---|---|---|---|
-| 1 | `properties-form` | forms | Schema-driven entity editor — used inside `detail-panel` for editable system / user nodes and edges, and inside the creation flow. **Mirrors rich-card's typed flat-field approach.** | [→ procomp folder](../../procomps/properties-form-procomp/) (TBA) |
+| 1 | `properties-form` | forms | Schema-driven entity editor — used inside `detail-panel` for editable system / user nodes and edges, and inside the creation flow. **Mirrors card-tree's typed flat-field approach.** | [→ procomp folder](../../procomps/properties-form-procomp/) (TBA) |
 | 2 | `detail-panel` | feedback | Selection-aware multi-state container (empty / one-of-N typed-content states). Slot-based: host provides per-entity-type read/edit renderers. | [→ procomp folder](../../procomps/detail-panel-procomp/) (TBA) |
-| 3 | `filter-stack` | forms | Composable filter UI with **AND-across-categories / OR-within-category** semantics. Generic over the filter category type. | [→ procomp folder](../../procomps/filter-stack-procomp/) (TBA) |
+| 3 | `filter-panel` | forms | Composable filter UI with **AND-across-categories / OR-within-category** semantics. Generic over the filter category type. | [→ procomp folder](../../procomps/filter-panel-procomp/) (TBA) |
 | 4 | `entity-picker` | forms | Searchable picker with kind badges; single or multi select. Used by linking-mode UI, creation flows, group-membership editors. | [→ procomp folder](../../procomps/entity-picker-procomp/) (TBA) |
 | 5 | `markdown-editor` | forms | CodeMirror 6 wrapper with markdown mode + wikilink autocomplete + slot-able toolbar + preview toggle. **Heaviest pro-component by bundle (~150KB).** | [→ procomp folder](../../procomps/markdown-editor-procomp/) (TBA) |
 
@@ -110,7 +110,7 @@ This matches the phased shipability in §10.3 — `force-graph` v0.1 ships befor
 
 | # | Slug | Category | Role | Procomp doc |
 |---|---|---|---|---|
-| 6 | `force-graph` | data | The WebGL canvas, force layout, custom edge/node programs, source-adapter integration, group hulls, doc-node visuals, undo/redo. Composes all five Tier 1 components. Phased v0.1 → v0.6 (see §10). | [→ procomp folder](../../procomps/force-graph-procomp/) (TBA) |
+| 6 | `force-graph` | data | The WebGL canvas, force layout, custom edge/node programs, source-adapter integration, group hulls, doc-node visuals, undo/redo. Composes all five Tier 1 components. Phased v0.1 → v0.6 (see §10). | [→ procomp folder](../../migrations/force-graph/) (TBA) |
 
 ### 3.3 Tier 3 — Assembled experience (NOT in the registry)
 
@@ -232,7 +232,7 @@ In `force-graph` v0.1–v0.4, doc nodes have no editor mounted, so import-only r
 
 ## 5. Permission resolver pattern (cross-cutting)
 
-Origin alone doesn't decide editability. Some hosts may want read-only mode for everything. Some may want stricter rules ("system nodes annotation-only"). The system uses a resolver pattern, similar to rich-card's 7-layer permission resolver.
+Origin alone doesn't decide editability. Some hosts may want read-only mode for everything. Some may want stricter rules ("system nodes annotation-only"). The system uses a resolver pattern, similar to card-tree's 7-layer permission resolver.
 
 ### 5.1 Default rules (origin-driven)
 
@@ -256,11 +256,11 @@ The resolver evaluates in priority order, first match wins:
 
 ### 5.3 Where the resolver lives
 
-Each component owns its own resolver in v1. **Do not pre-extract a shared library.** Once `force-graph` v0.3 ships, we'll have two production permission resolvers (rich-card's and force-graph's) and can extract commonalities into `src/lib/permissions/` then. Premature abstraction is the bigger risk.
+Each component owns its own resolver in v1. **Do not pre-extract a shared library.** Once `force-graph` v0.3 ships, we'll have two production permission resolvers (card-tree's and force-graph's) and can extract commonalities into `src/lib/permissions/` then. Premature abstraction is the bigger risk.
 
 ### 5.4 Permission UX
 
-When an action is blocked by the resolver, the UI shows a tooltip ("This is a system node from Kuzu — annotations only") rather than silently disabling. `force-graph` v0.3 ships with permission tooltips on disabled actions; rich-card's [`permission-tooltip.tsx`](../../../src/registry/components/data/rich-card/parts/permission-tooltip.tsx) is the reference pattern.
+When an action is blocked by the resolver, the UI shows a tooltip ("This is a system node from Kuzu — annotations only") rather than silently disabling. `force-graph` v0.3 ships with permission tooltips on disabled actions; card-tree's [`permission-tooltip.tsx`](../../../src/registry/components/data/card-tree/parts/permission-tooltip.tsx) is the reference pattern.
 
 ---
 
@@ -337,7 +337,7 @@ How the constituent pro-components communicate.
 
 Tier 1 components are **composition primitives** — they accept props and emit events. They do not share a global store. The host (Tier 3 page) wires them together with its own state.
 
-`force-graph` (Tier 2) has an internal **selector-based state store** for graph state, selection, filters, linking mode, etc. — Zustand or equivalent; final implementation locked in `force-graph-procomp-plan.md`. A selector-based store is required (rather than `useReducer`, which rich-card uses) because multiple panels read different slices at high frequency; whole-tree re-renders would dominate at the panel density this component supports. The store exposes a **public actions API** and a **public selector API** so host code (and the wired Tier 1 panels) can read and dispatch.
+`force-graph` (Tier 2) has an internal **selector-based state store** for graph state, selection, filters, linking mode, etc. — Zustand or equivalent; final implementation locked in `force-graph-procomp-plan.md`. A selector-based store is required (rather than `useReducer`, which card-tree uses) because multiple panels read different slices at high frequency; whole-tree re-renders would dominate at the panel density this component supports. The store exposes a **public actions API** and a **public selector API** so host code (and the wired Tier 1 panels) can read and dispatch.
 
 This is the pattern:
 
@@ -348,7 +348,7 @@ This is the pattern:
               └──────┬───────────────┬──────┘
                      │               │
         ┌────────────▼─────┐ ┌───────▼────────┐
-        │   force-graph    │ │  Tier 1 panel  │  (filter-stack, detail-panel, ...)
+        │   force-graph    │ │  Tier 1 panel  │  (filter-panel, detail-panel, ...)
         │ (canvas + store) │ │ (props + events)│
         └────────┬─────────┘ └────────┬───────┘
                  │       reads/dispatches
@@ -364,7 +364,7 @@ The Tier 1 panels are **dumb** — they don't know about graph state. The host t
 | Graph snapshot / delta shapes | This doc, §4 + §6, with detail in `force-graph-v0.1-plan.md` |
 | `properties-form` schema → entity render | `properties-form-procomp-plan.md` |
 | `detail-panel` slot signatures | `detail-panel-procomp-plan.md` |
-| `filter-stack` filter category interface | `filter-stack-procomp-plan.md` |
+| `filter-panel` filter category interface | `filter-panel-procomp-plan.md` |
 | `entity-picker` entity shape | `entity-picker-procomp-plan.md` |
 | `markdown-editor` value/onChange + wikilink candidate provider | `markdown-editor-procomp-plan.md` |
 | `force-graph` actions / selectors / events | per-phase plans (`force-graph-v0.{N}-plan.md`); v0.1 plan covers props + ~6 actions + ~5 selectors |
@@ -390,7 +390,7 @@ Decisions made during the design discussion, locked at the system level so every
 | 8 | **Custom theme missing keys fall back to dark-theme defaults** regardless of system theme. | `force-graph-procomp-plan.md` §theming |
 | 9 | **Deleting a `derivedFromWikilink: true` edge is refused in the UI** with a tooltip ("Edit the source doc to remove this link"). Programmatic `deleteEdge` accepts but logs a warning. | `force-graph-procomp-plan.md` §edge-actions |
 | 10 | <a id="decision-10-superseded-phase-0-clause"></a>**Phase budgets recalibrated** to ~13.5 weeks focused / ~18–22 weeks calendar. ~~Phase 0 (custom edge program risk spike) precedes v0.1.~~ **Phase 0 clause SUPERSEDED by [#38](#8-locked-decisions-index)** (2026-04-29) — risk spike cancelled; budget reverts to v0.1. Phase budgets otherwise unchanged. | This doc §10 |
-| 11 | **Lucide icon atlas** ships with a **fixed sub-atlas of ~64 first-class icons**. `iconAtlas: 'dynamic'` opt-in for runtime atlas rebuilding lands later. **Footnote (2026-04-28, per [force-graph-v0.1-plan.md Q-P3](../../procomps/force-graph-procomp/force-graph-v0.1-plan.md#17-resolved-plan-stage-questions-locked-on-sign-off-2026-04-28)):** the original wording said "in v0.1," authored before the procomp decomposition. In the phased plan, the icon atlas is paired with the custom `IconNodeProgram` and ships in `force-graph` **v0.5**, not v0.1. v0.1–v0.4 render plain disc nodes via Sigma's stock `NodeCircleProgram`; icons + glyphs land with the custom node program in v0.5 per [spec §11.5 build-order note](../../../graph-visualizer-old.md). | `force-graph-v0.5-plan.md` §node-program |
+| 11 | **Lucide icon atlas** ships with a **fixed sub-atlas of ~64 first-class icons**. `iconAtlas: 'dynamic'` opt-in for runtime atlas rebuilding lands later. **Footnote (2026-04-28, per [force-graph-v0.1-plan.md Q-P3](../../migrations/force-graph/)):** the original wording said "in v0.1," authored before the procomp decomposition. In the phased plan, the icon atlas is paired with the custom `IconNodeProgram` and ships in `force-graph` **v0.5**, not v0.1. v0.1–v0.4 render plain disc nodes via Sigma's stock `NodeCircleProgram`; icons + glyphs land with the custom node program in v0.5 per [spec §11.5 build-order note](../../archive/graph-visualizer-old.md). | `force-graph-v0.5-plan.md` §node-program |
 | 12 | **Search overrides filters.** Matched nodes always visible + glow, regardless of group/type filters. | `force-graph-procomp-plan.md` §filtering |
 | 13 | **Single-member group click target is the group**, not the contained node. SVG halo hit takes priority. | `force-graph-procomp-plan.md` §interaction |
 | 14 | **Edge labels are viewport-culled by default** + `edgeLabelZoomThreshold` (default 0.7). | `force-graph-procomp-plan.md` §performance |
@@ -404,7 +404,7 @@ Decisions made during the design discussion, locked at the system level so every
 | 22 | **Real-time deltas preserve UI state**, do NOT enter the undo stack. | `force-graph-procomp-plan.md` §source-adapter |
 | 23 | **System data canonical fields are read-only; `annotations` field is user-writable** even on system nodes. Permission resolver enforces. | `force-graph-procomp-plan.md` §permissions |
 | 24 | **Schema reactivity by graceful degradation.** Unknown `schemaType` auto-registers a neutral default NodeType + surfaces a notification. No crash. | `force-graph-procomp-plan.md` §schema |
-| 25 | **Permission resolver is per-component in v1.** Shared `src/lib/permissions/` extracted only after rich-card and force-graph both ship resolvers. | This doc §5.3 |
+| 25 | **Permission resolver is per-component in v1.** Shared `src/lib/permissions/` extracted only after card-tree and force-graph both ship resolvers. | This doc §5.3 |
 | 26 | **CodeMirror 6 bundle weight (~150KB) accepted.** Markdown editor is the heaviest pro-component by bundle. | This doc §3.1 (acknowledged) |
 | 27 | **Source adapters live outside the registry.** Component is generic over them. | This doc §6.5 |
 | 28 | **System name `graph-system` (working title) locked.** Rename only if/when the system extracts to its own NPM package. | This doc §2 |
@@ -413,7 +413,7 @@ Decisions made during the design discussion, locked at the system level so every
 | 31 | **`forms` category added immediately as one-off plumbing PR**, before any form-category procomp doc starts. **✓ done** — `forms` was already present in `types.ts`/`categories.ts`/`new-component.mjs` pre-session; codegen fix for `VALID_CATEGORIES` (deriving from the type union at script startup) landed in commit `260d035`, eliminating the duplicate-source-of-truth issue. | [src/registry/types.ts](../../../src/registry/types.ts), [src/registry/categories.ts](../../../src/registry/categories.ts), [scripts/new-component.mjs](../../../scripts/new-component.mjs) |
 | 32 | **Stale-write conflict policy: last-write-wins + warning banner for v0.1.** Optimistic concurrency tokens are an additive upgrade only if real-world conflicts surface. | This doc §6.3, `force-graph-procomp-plan.md` §source-adapter |
 | 33 | **Annotations route through `applyMutation`** with a `setAnnotation` variant — single GraphSource method, not two. | This doc §6.4 |
-| 34 | **Existing backlog committed before any new procomp folders open. ✓ done** as 2 commits (revised 2026-04-28 from the original 6-chunk plan): `cc44b55` rich-card v0.3+v0.4; `c2cfef6` system planning docs. Reduced from 6 because chunks 1+2 and rich-card v0.1+v0.2 were already in commit `000169c` (the workspace-shipping commit), and v0.3/v0.4 lacked clean working-tree separation — STATUS.md and per-version plan docs preserve the version granularity independently. | git history |
+| 34 | **Existing backlog committed before any new procomp folders open. ✓ done** as 2 commits (revised 2026-04-28 from the original 6-chunk plan): `cc44b55` card-tree v0.3+v0.4; `c2cfef6` system planning docs. Reduced from 6 because chunks 1+2 and card-tree v0.1+v0.2 were already in commit `000169c` (the workspace-shipping commit), and v0.3/v0.4 lacked clean working-tree separation — STATUS.md and per-version plan docs preserve the version granularity independently. | git history |
 | 35 | **Tier 1 components are independent at the component level** — none of them imports another at the registry level. Composition (panels embedding forms) happens only at the host/Tier 3 level via slot props. | All Tier 1 procomp plans |
 | 36 | **Wikilink reconciliation runs on doc save in `force-graph` v0.5+** (in addition to `importSnapshot`). v0.1–v0.4 docs are read-only because the markdown editor isn't mounted; import-only reconciliation suffices for those phases. This is a deliberate scope expansion vs. the original spec, which deferred all reconciliation triggers other than import to v2. | `force-graph-procomp-plan.md` v0.5 |
 | 37 | **All constituent pro-components honor the design-system mandate** from [.claude/CLAUDE.md](../../../.claude/CLAUDE.md): Onest + JetBrains Mono fonts, signal-lime accent (`oklch(0.80 0.20 132)` light / `oklch(0.86 0.18 132)` dark), cool off-white light bg, graphite-cool dark bg, `reveal-up` keyframe for orchestrated reveals, OKLCH colors only, no `tailwind.config.*`. Components MUST use the CSS variables defined in [globals.css](../../../src/app/globals.css), never hard-code colors. | All component plans |
@@ -429,10 +429,10 @@ When a new decision is made during sub-doc authoring, append it here AND the rel
 |---|---|---|---|---|
 | `properties-form` | [signed off 2026-04-28](../../procomps/properties-form-procomp/properties-form-procomp-description.md) | [signed off 2026-04-29](../../procomps/properties-form-procomp/properties-form-procomp-plan.md) | TBA | description + plan signed off; **v0.1 IMPLEMENTED 2026-04-29** in `src/registry/components/forms/properties-form/` (alpha 0.1.0; 25 files; build/typecheck/lint clean; SSR rendered ok; browser interactivity not yet validated). First Tier 1 component to convert plan → implementation. Force-graph v0.3 plan-lock half-unblocked at the implementation level (still gates on detail-panel implementation) |
 | `detail-panel` | [signed off 2026-04-28](../../procomps/detail-panel-procomp/detail-panel-procomp-description.md) | [signed off 2026-04-29](../../procomps/detail-panel-procomp/detail-panel-procomp-plan.md) | TBA | description + plan signed off; **v0.1 IMPLEMENTED 2026-04-29** in `src/registry/components/feedback/detail-panel/` (alpha 0.1.0; 18 files; build/typecheck/lint clean; SSR rendered ok; browser interactivity not yet validated). Paired with `properties-form`, this **fully unblocks the `force-graph` v0.3 plan-lock at the implementation level** |
-| `filter-stack` | [signed off 2026-04-28](../../procomps/filter-stack-procomp/filter-stack-procomp-description.md) | [signed off 2026-04-29](../../procomps/filter-stack-procomp/filter-stack-procomp-plan.md) | TBA | description + plan signed off; **v0.1 IMPLEMENTED 2026-04-29** in `src/registry/components/forms/filter-stack/` (alpha 0.1.0; 21 files; build/typecheck/lint clean; SSR rendered ok; browser interactivity not yet validated). **Unblocks `force-graph` v0.4 plan-lock at the implementation level** |
+| `filter-panel` | [signed off 2026-04-28](../../procomps/filter-panel-procomp/filter-panel-procomp-description.md) | [signed off 2026-04-29](../../procomps/filter-panel-procomp/filter-panel-procomp-plan.md) | TBA | description + plan signed off; **v0.1 IMPLEMENTED 2026-04-29** in `src/registry/components/forms/filter-panel/` (alpha 0.1.0; 21 files; build/typecheck/lint clean; SSR rendered ok; browser interactivity not yet validated). **Unblocks `force-graph` v0.4 plan-lock at the implementation level** |
 | `entity-picker` | [signed off 2026-04-28](../../procomps/entity-picker-procomp/entity-picker-procomp-description.md) | [signed off 2026-04-29](../../procomps/entity-picker-procomp/entity-picker-procomp-plan.md) | TBA | description + plan signed off; **v0.1 IMPLEMENTED 2026-04-29** in `src/registry/components/forms/entity-picker/` (alpha 0.1.0; 18 files; build/typecheck/lint clean; SSR rendered ok; browser interactivity not yet validated). Doesn't gate a specific `force-graph` phase but composed inside Tier 3 from v0.3 onward (linking-mode UI) + v0.4 (group-membership editor) |
 | `markdown-editor` | [signed off 2026-04-28](../../procomps/markdown-editor-procomp/markdown-editor-procomp-description.md) | [signed off 2026-04-29](../../procomps/markdown-editor-procomp/markdown-editor-procomp-plan.md) | TBA | description + plan signed off; **unblocks `force-graph` v0.5 plan-lock**; **completes the 5 of 5 Tier 1 plan cascade — system Stage 2 plan now authorable**; implementation pre-flight is `pnpm add @codemirror/state @codemirror/view @codemirror/commands @codemirror/language @codemirror/lang-markdown @codemirror/autocomplete @codemirror/search @lezer/markdown @lezer/highlight marked` |
-| `force-graph` (v0.1–v0.6) | [signed off 2026-04-28](../../procomps/force-graph-procomp/force-graph-procomp-description.md) | [v0.1 signed off 2026-04-28](../../procomps/force-graph-procomp/force-graph-v0.1-plan.md); [v0.2 signed off 2026-04-29](../../procomps/force-graph-procomp/force-graph-v0.2-plan.md); [v0.3 signed off 2026-04-29](../../procomps/force-graph-procomp/force-graph-v0.3-plan.md); v0.4 / v0.5 / v0.6 TBA | TBA | description signed off; **v0.1 + v0.2 + v0.3 plans signed off** (Stage 3 implementation runs sequentially v0.1 → v0.2 → v0.3; gated on Phase 0 risk-spike per STATUS.md); v0.6 plan unblocked; v0.4 + v0.5 plans now also fully unblocked (all 5 Tier 1 plans signed off) |
+| `force-graph` (v0.1–v0.6) | [signed off 2026-04-28](../../migrations/force-graph/) | [v0.1 signed off 2026-04-28](../../migrations/force-graph/); [v0.2 signed off 2026-04-29](../../migrations/force-graph/); [v0.3 signed off 2026-04-29](../../migrations/force-graph/); v0.4 / v0.5 / v0.6 TBA | TBA | description signed off; **v0.1 + v0.2 + v0.3 plans signed off** (Stage 3 implementation runs sequentially v0.1 → v0.2 → v0.3; gated on Phase 0 risk-spike per STATUS.md); v0.6 plan unblocked; v0.4 + v0.5 plans now also fully unblocked (all 5 Tier 1 plans signed off) |
 | **System-level** | this doc | `graph-system-plan.md` (TBA) | `graph-system-guide.md` (TBA) | **description signed off 2026-04-28** |
 
 Each procomp folder lives at `docs/procomps/<slug>-procomp/` per the existing convention.
@@ -443,7 +443,7 @@ Authoring order — per decision #35, all five Tier 1 components are independent
 Tier 1 (parallelizable; recommended order = force-graph phase needs):
   1. properties-form-procomp-description.md       (consumed by force-graph v0.3)
   2. detail-panel-procomp-description.md           (consumed by force-graph v0.3)
-  3. filter-stack-procomp-description.md           (consumed by force-graph v0.4)
+  3. filter-panel-procomp-description.md           (consumed by force-graph v0.4)
   4. entity-picker-procomp-description.md          (utility; useful throughout)
   5. markdown-editor-procomp-description.md        (consumed by force-graph v0.5)
 
@@ -462,11 +462,11 @@ System-level Stage 2:
 
 ### 10.0 Prerequisite — backlog commit (~half a day)
 
-Per decision #34: commit the existing rich-card v0.1–v0.4 / workspace / design-system / site-chrome backlog into git in 6 logical chunks before any new procomp folders open. STATUS.md currently describes shipped work that doesn't exist in git history (only 2 commits exist). This must land before procomp authoring begins to keep PR review and ultrareview workflows clean.
+Per decision #34: commit the existing card-tree v0.1–v0.4 / workspace / design-system / site-chrome backlog into git in 6 logical chunks before any new procomp folders open. STATUS.md currently describes shipped work that doesn't exist in git history (only 2 commits exist). This must land before procomp authoring begins to keep PR review and ultrareview workflows clean.
 
 ### 10.1 Phase 0 — Risk spike (CANCELLED per [#38](#8-locked-decisions-index))
 
-**Status: cancelled 2026-04-29.** Per [decision #38](#8-locked-decisions-index), the custom `DashedDirectedEdgeProgram` is removed and replaced with stock Sigma edge programs + color/size differentiation. The 2-day spike budget reverts to `force-graph` v0.1 implementation. The original brief at [`force-graph-phase-0-spike-brief.md`](../../procomps/force-graph-procomp/force-graph-phase-0-spike-brief.md) is preserved for historical reference but no longer on the build path.
+**Status: cancelled 2026-04-29.** Per [decision #38](#8-locked-decisions-index), the custom `DashedDirectedEdgeProgram` is removed and replaced with stock Sigma edge programs + color/size differentiation. The 2-day spike budget reverts to `force-graph` v0.1 implementation. The original brief at [`force-graph-phase-0-spike-brief.md`](../../migrations/force-graph/) is preserved for historical reference but no longer on the build path.
 
 ~~**Independent of procomp gate** — pure technical research.~~
 
@@ -482,7 +482,7 @@ After all five Tier 1 description docs are signed off, plans can be authored in 
 
 1. `properties-form` (~2–3 weeks) — needed by `force-graph` v0.3
 2. `detail-panel` (~1.5 weeks) — needed by `force-graph` v0.3
-3. `filter-stack` (~1.5 weeks) — needed by `force-graph` v0.4
+3. `filter-panel` (~1.5 weeks) — needed by `force-graph` v0.4
 4. `entity-picker` (~1 week) — utility; useful throughout
 5. `markdown-editor` (~3 weeks) — needed by `force-graph` v0.5
 
@@ -497,7 +497,7 @@ Each phase is independently shippable.
 | v0.1 | Viewer core, origin-aware data model, source adapter, custom programs | 3 weeks | — |
 | v0.2 | Selection / hover / drag / undo / linking-mode infrastructure | 2 weeks | — |
 | v0.3 | Editing layer: CRUD with permissions, properties-form integration | 2 weeks | properties-form, detail-panel |
-| v0.4 | Groups: hulls, gravity, group-involving edges, filters | 2.5 weeks | filter-stack |
+| v0.4 | Groups: hulls, gravity, group-involving edges, filters | 2.5 weeks | filter-panel |
 | v0.5 | Doc nodes + wikilink reconciliation + markdown editor | 2 weeks | markdown-editor |
 | v0.6 | Perf hardening, multi-edge expansion, advanced settings | 2 weeks | — |
 
@@ -531,11 +531,11 @@ Explicit non-goals or v2 candidates:
 7. **Image embeds in markdown (`![[image.png]]`).** Render as literal text in v1; parsed in v2.
 8. **Slash commands in markdown editor.** Toolbar-only in v1; slash commands later.
 9. **Multi-source composition** (one component pulling from two GraphSources simultaneously). v1 accepts one source at a time.
-10. **Permission resolver shared library.** Extracted only after rich-card and force-graph both ship resolvers.
+10. **Permission resolver shared library.** Extracted only after card-tree and force-graph both ship resolvers.
 
 ---
 
-## 11.5 Alignment with original spec ([graph-visualizer-old.md](../../../graph-visualizer-old.md) v4)
+## 11.5 Alignment with original spec ([graph-visualizer-old.md](../../archive/graph-visualizer-old.md) v4)
 
 This document **supersedes** the original spec for cross-cutting decisions. The original 21 confirmed v1 decisions in its §13.1 are mapped here:
 

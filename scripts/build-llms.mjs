@@ -21,10 +21,11 @@ const registry = JSON.parse(
   fs.readFileSync(path.join(root, "registry.json"), "utf8"),
 );
 
-/** Base items only: skip fixtures siblings and internal _shared support items. */
+/** Base items only: skip fixtures siblings, internal _shared support items, and deprecated aliases (P2.3). */
 const items = registry.items
   .filter((i) => !i.name.endsWith("-fixtures"))
   .filter((i) => !(i.files?.[0]?.target ?? "").startsWith("components/_shared"))
+  .filter((i) => !i.meta?.deprecated)
   .map((i) => {
     const src = i.files?.[0]?.path ?? "";
     const m = src.match(/^src\/registry\/components\/([^/]+)\//);

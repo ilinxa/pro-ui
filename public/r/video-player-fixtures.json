@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "video-player-fixtures",
+  "title": "Video Player — fixtures",
+  "author": "ilinxa",
+  "description": "Video Player plus the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "@ilinxa/video-player"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/media/video-player/dummy-data.ts",
+      "content": "import type { VideoTrack } from \"./types\";\n\n// Hotlink-friendly demo sources. Pexels' video CDN blocks anonymous hotlinks\n// (returns 403), so the fixtures use test-videos.co.uk (Big Buck Bunny / Sintel\n// / Jellyfish — public test-clip mirrors) and MDN's cc0-videos bucket.\n\n/** Royalty-free landscape clip (~10s, ~1MB). */\nexport const SAMPLE_VIDEO_URL =\n  \"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4\";\n\n/** Generic 1280×720 placeholder poster. Swap for a real still in production. */\nexport const SAMPLE_POSTER_URL =\n  \"https://images.placeholders.dev/?width=1280&height=720&text=Sample+Video\";\n\n/**\n * Short clip exported as the \"vertical\" sample slot for fixtures consumers.\n * Note: this source is landscape. Story-style consumers should swap in their\n * own vertical asset.\n */\nexport const SAMPLE_VERTICAL_VIDEO_URL =\n  \"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4\";\n\n/** Short loopable clip for autoplay-loop scenarios (~10s flower clip). */\nexport const SAMPLE_LOOP_VIDEO_URL =\n  \"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4\";\n\n/** Second landscape clip — used for the isActive carousel demo (Jellyfish). */\nexport const SAMPLE_VIDEO_URL_B =\n  \"https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4\";\n\n/** Third landscape clip — used for the isActive carousel demo (Sintel). */\nexport const SAMPLE_VIDEO_URL_C =\n  \"https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4\";\n\n/** Sample English captions track. URL is a placeholder — verifies that <track> renders. */\nexport const SAMPLE_TRACKS_EN: VideoTrack[] = [\n  {\n    kind: \"captions\",\n    src: \"https://example.com/captions/sample-en.vtt\",\n    srcLang: \"en\",\n    label: \"English\",\n    default: true,\n  },\n];\n",
+      "type": "registry:component",
+      "target": "components/video-player/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "media",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

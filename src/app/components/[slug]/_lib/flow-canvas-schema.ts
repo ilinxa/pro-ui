@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { CanvasData } from "@/registry/components/data/flow-canvas-01";
+import type { CanvasData } from "@/registry/components/data/flow-canvas";
 
 /**
  * Validates the JSON-expressible part of a `CanvasData` — `version` + `nodes` +

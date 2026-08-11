@@ -9,7 +9,7 @@
 
 ## 1. Inherited inputs (one paragraph)
 
-Builds against [properties-form description §8 locked decisions](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) (10 questions; Q2 + Q5 revised on review) and [§8.5 plan-stage tightenings](properties-form-procomp-description.md#85-plan-stage-tightenings-surfaced-during-description-review) (4 surfaced). Inherits system constraints: [decision #6](../../systems/graph-system/graph-system-description.md) (DetailPanel Edit is inline), [#17](../../systems/graph-system/graph-system-description.md) (origin field is the host's concern, not properties-form's — properties-form is generic over entity shape), [#23](../../systems/graph-system/graph-system-description.md) (mixed-permission rendering is the architectural anchor — §6.2 of description), [#25](../../systems/graph-system/graph-system-description.md) (per-component permission resolver — own resolver inside properties-form), [#35](../../systems/graph-system/graph-system-description.md) (Tier 1 independence — no Tier 1 imports another at the registry level), [#37](../../systems/graph-system/graph-system-description.md) (design-system mandate — Onest + JetBrains Mono, OKLCH only). Prior art: [rich-card](../rich-card-procomp/) (counter-based dirty tracking; permission-tooltip pattern; sync-only validation per Q14 of rich-card's plan; ~200-400 LoC build-from-scratch state mgmt).
+Builds against [properties-form description §8 locked decisions](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) (10 questions; Q2 + Q5 revised on review) and [§8.5 plan-stage tightenings](properties-form-procomp-description.md#85-plan-stage-tightenings-surfaced-during-description-review) (4 surfaced). Inherits system constraints: [decision #6](../../systems/graph-system/graph-system-description.md) (DetailPanel Edit is inline), [#17](../../systems/graph-system/graph-system-description.md) (origin field is the host's concern, not properties-form's — properties-form is generic over entity shape), [#23](../../systems/graph-system/graph-system-description.md) (mixed-permission rendering is the architectural anchor — §6.2 of description), [#25](../../systems/graph-system/graph-system-description.md) (per-component permission resolver — own resolver inside properties-form), [#35](../../systems/graph-system/graph-system-description.md) (Tier 1 independence — no Tier 1 imports another at the registry level), [#37](../../systems/graph-system/graph-system-description.md) (design-system mandate — Onest + JetBrains Mono, OKLCH only). Prior art: [card-tree](../card-tree-procomp/) (counter-based dirty tracking; permission-tooltip pattern; sync-only validation per Q14 of card-tree's plan; ~200-400 LoC build-from-scratch state mgmt).
 
 ---
 
@@ -20,9 +20,9 @@ The deliverable is a single Tier 1 pro-component at `src/registry/components/for
 - **Six built-in field types** — `string`, `number`, `boolean`, `date`, `select`, `textarea`. Native `<input type="date">` per [Q1 lock](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28); shadcn `Calendar` upgrade in v0.2.
 - **Read mode + Edit mode** with a default of `"read"` per [Q9 lock](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28); edit mode requires `onChange` (runtime dev-only `console.error` if missing per Q6).
 - **3-state per-field permission** (`editable` / `read-only` / `hidden`) per [Q4 lock](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28) with `permissionReason` tooltip on read-only.
-- **Layered permission resolver**: declarative `field.permission` → host predicate `resolvePermission` → default `editable`. Predicate escape hatch parallels rich-card's pattern.
+- **Layered permission resolver**: declarative `field.permission` → host predicate `resolvePermission` → default `editable`. Predicate escape hatch parallels card-tree's pattern.
 - **Sync-only validation** in two layers: per-field `validate(value, allValues)` runs on every commit; form-level `validate(values)` runs on submit. Async deferred to v0.2 per description §3.
-- **Dirty tracking** — counter-based (`version` increments on every commit; `cleanVersion` snapshots on `markClean`/mount/successful submit; `isDirty = version !== cleanVersion`). Same shape as rich-card.
+- **Dirty tracking** — counter-based (`version` increments on every commit; `cleanVersion` snapshots on `markClean`/mount/successful submit; `isDirty = version !== cleanVersion`). Same shape as card-tree.
 - **Async `onSubmit`** with field-disable + 200ms-delayed spinner + `aria-busy` semantics + first-error focus on `{ ok: false, errors }`.
 - **Custom field renderer slot** (`field.renderer`) for non-built-in types and visual customization.
 - **Generic component** parameterized as `<PropertiesForm<T>>`; loose `Record<string, unknown>` default per [Q2 lock](properties-form-procomp-description.md#8-resolved-questions-locked-on-sign-off-2026-04-28).
@@ -171,14 +171,14 @@ type FormAction =
   | { type: "mode-changed"; mode: "read" | "edit" };       // controls error visibility
 ```
 
-`field-changed` is the hot path: per-field validate runs in the dispatch caller (the field-row component), the result is included in the action, the reducer updates `errors[key]` and increments `version`. Per-field validation is sync — any throw is caught at the caller and converted to a `validator-error` string, mirroring rich-card's `safeCall` pattern.
+`field-changed` is the hot path: per-field validate runs in the dispatch caller (the field-row component), the result is included in the action, the reducer updates `errors[key]` and increments `version`. Per-field validation is sync — any throw is caught at the caller and converted to a `validator-error` string, mirroring card-tree's `safeCall` pattern.
 
 ### 4.3 Dirty tracking
 
 - `version` increments on every `field-changed` (any value commit, even back to original).
 - `cleanVersion` is set to `version` on: mount, `markClean()`, `submit-succeeded`.
 - `isDirty()` returns `state.version !== state.cleanVersion`.
-- This matches rich-card's pattern exactly (counter-based, intentionally coarse — a value typed and reverted still leaves the form "dirty"; the alternative is structural-diff which is heavier than needed for v0.1).
+- This matches card-tree's pattern exactly (counter-based, intentionally coarse — a value typed and reverted still leaves the form "dirty"; the alternative is structural-diff which is heavier than needed for v0.1).
 
 ### 4.4 Mode-toggle behavior matrix (Q-P7)
 
@@ -205,7 +205,7 @@ For non-detail-panel hosts (settings forms, file inspectors, future surfaces), t
 
 ## 5. Permission resolver (own implementation per [decision #25](../../systems/graph-system/graph-system-description.md))
 
-Layered, first-match-wins, parallel to rich-card's resolver shape but simpler (3 layers, not 7).
+Layered, first-match-wins, parallel to card-tree's resolver shape but simpler (3 layers, not 7).
 
 ### 5.1 Resolution order
 
@@ -225,7 +225,7 @@ Permission resolves on every render of the field row. If `resolvePermission` ret
 ### 5.3 Permission UX
 
 - `editable` — typed input rendered.
-- `read-only` — formatted value rendered (same `lib/format-value.ts` as read mode); `permission-tooltip.tsx` (port from rich-card) shows `permissionReason` on hover/focus; `aria-readonly="true"` on the wrapper.
+- `read-only` — formatted value rendered (same `lib/format-value.ts` as read mode); `permission-tooltip.tsx` (port from card-tree) shows `permissionReason` on hover/focus; `aria-readonly="true"` on the wrapper.
 - `hidden` — field omitted from DOM entirely (no wrapper, no aria-hidden, no label). Submit values omit the key only if the host omits it from `values`; properties-form does not strip hidden keys from submit (host owns shape).
 
 ---
@@ -240,7 +240,7 @@ Sync only; two layers; runs in this order:
 - Result stored in `state.errors[key]`.
 - Inline error renders below the field (`<FieldError>` — see §8) when `state.submitAttempted || state.errors[key]` is truthy.
 - Pre-submit: errors render only after first submit attempt OR if the field has been blurred-with-error (Q-P8 details below).
-- A throw in the user's `validate` is caught at the field-row caller and converted to a generic error: `"Validation error — see console"`. Logs the throw to console in dev. Mirrors rich-card's `safeCall` posture.
+- A throw in the user's `validate` is caught at the field-row caller and converted to a generic error: `"Validation error — see console"`. Logs the throw to console in dev. Mirrors card-tree's `safeCall` posture.
 
 ### 6.2 Form-level validation
 
@@ -334,7 +334,7 @@ src/registry/components/forms/properties-form/
 │   ├── field-textarea.tsx
 │   ├── field-error.tsx                # inline error renderer with aria-describedby wiring
 │   ├── error-summary.tsx              # form-top summary with anchor links to first-error
-│   ├── permission-tooltip.tsx         # read-only tooltip; ported from rich-card
+│   ├── permission-tooltip.tsx         # read-only tooltip; ported from card-tree
 │   └── submit-actions.tsx             # default Save / Cancel button row
 ├── hooks/
 │   ├── use-form-reducer.ts            # the single useReducer + dispatch wrapper
@@ -352,7 +352,7 @@ src/registry/components/forms/properties-form/
 └── index.ts                           # PropertiesForm + types + flatten util re-export
 ```
 
-**File count: 25.** Within the Tier 1 size envelope (rich-card v0.1 was 26 files; workspace was 26). Corrected post-v0.1 review (F-05) — the file-tree above lists 25 entries; the prior "22" footer was a counting error, not an implementation drift.
+**File count: 25.** Within the Tier 1 size envelope (card-tree v0.1 was 26 files; workspace was 26). Corrected post-v0.1 review (F-05) — the file-tree above lists 25 entries; the prior "22" footer was a counting error, not an implementation drift.
 
 ### 8.2 Build order within v0.1
 
@@ -521,7 +521,7 @@ All 10 questions resolved at sign-off. **Q-P8 refined on validate pass** (split 
 **Impact:** low. **Trade-off:** read-only focus requires adding `tabIndex={0}` on read-only wrapper — minor a11y win (keyboard users can land on it via Tab anyway).
 
 ### Q-P5 (NEW) — Internal state: single useReducer vs split useStates
-**Locked: single `useReducer` (§4.2 actions).** Mirrors rich-card's pattern; single source of truth; reducer is unit-testable in isolation when Vitest lands; explicit actions are easier to reason about than a web of useState setters cross-coupling.
+**Locked: single `useReducer` (§4.2 actions).** Mirrors card-tree's pattern; single source of truth; reducer is unit-testable in isolation when Vitest lands; explicit actions are easier to reason about than a web of useState setters cross-coupling.
 **Impact:** high — touches the core implementation shape.
 **Trade-off:** slightly more boilerplate up front than 3-4 useStates; pays back at the first non-trivial action (submit-flow with multiple state transitions). Alternatives considered: split `useState` (rejected — mode + dirty + errors + pending interact too much), Zustand (rejected — overkill for component-local state, adds dep).
 
@@ -531,7 +531,7 @@ All 10 questions resolved at sign-off. **Q-P8 refined on validate pass** (split 
 
 ### Q-P7 (NEW) — Mode-toggle dirty-state behavior
 **Locked: matrix in [§4.4](#44-mode-toggle-behavior-matrix-q-p7).** Cancel runs `reset()`; Save success runs `markClean()`; host-driven mode flips do nothing (host owns policy). read→edit preserves errors + dirty so the user picks up where they left off. **Caveat: matrix applies to mode toggles within a stable mount only — see [§4.5](#45-composition-with-detail-panel-the-showcase-integration).** In the detail-panel showcase, properties-form is remounted on selection change, not toggled; the matrix is bypassed entirely.
-**Impact:** high — affects every editing surface in the system (force-graph v0.3, future rich-card refactor).
+**Impact:** high — affects every editing surface in the system (force-graph v0.3, future card-tree refactor).
 **Trade-off:** locking the matrix means hosts can't customize per-transition. If real consumers want, a `onModeChange(mode, defaultBehavior) => Promise` hook is additive in v0.2.
 
 ### Q-P8 (NEW; refined on validate pass) — Error visibility + first-error focus

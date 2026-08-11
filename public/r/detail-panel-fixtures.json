@@ -1,9 +1,9 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "detail-panel-fixtures",
-  "title": "Detail Panel (with fixtures)",
+  "title": "Detail Panel — fixtures",
   "author": "ilinxa",
-  "description": "Detail Panel bundle including the dummy-data fixtures used by the docs-site demo.",
+  "description": "Detail Panel plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/detail-panel"
   ],

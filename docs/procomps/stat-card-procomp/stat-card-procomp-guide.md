@@ -90,7 +90,7 @@ Each card consumes a different metric; deltas flip green/red per `betterIsHigher
 />
 ```
 
-The whole card becomes clickable via the overlay-link pattern (a la `content-card-news-01` / `event-card-01`). Focus-visible ring lands on the card (not the inner link), so keyboard users see the same focus state as the visual treatment.
+The whole card becomes clickable via the overlay-link pattern (a la `news-card` / `event-card`). Focus-visible ring lands on the card (not the inner link), so keyboard users see the same focus state as the visual treatment.
 
 ### Standalone sparkline (no card chrome)
 

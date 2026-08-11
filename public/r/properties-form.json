@@ -3,7 +3,7 @@
   "name": "properties-form",
   "title": "Properties Form",
   "author": "ilinxa",
-  "description": "Schema-driven controlled read/edit form. Six built-in field types, three-state permissions per field, sync validation with first-error focus, custom-renderer slot, async submit with delayed spinner.",
+  "description": "Schema-driven read and edit form for typed records — six field types, per-field permissions, sync validation, and a custom renderer slot.",
   "dependencies": [
     "lucide-react"
   ],

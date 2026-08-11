@@ -9,7 +9,7 @@ import { getAllSlugs, getEntry } from "@/registry/manifest";
 import { ComposerPlayground } from "./_components/composer-playground";
 import { FlowCanvasPlayground } from "./_components/flow-canvas-playground";
 import { JsonFormPlayground } from "./_components/json-form-playground";
-import { RichCardPlayground } from "./_components/rich-card-playground";
+import { CardTreePlayground } from "./_components/card-tree-playground";
 import { DemoSourceBlock } from "./_components/demo-source-block";
 import { InstallationBlock } from "./_components/installation-block";
 import { ViewCodeDialog } from "./_components/view-code-dialog";
@@ -28,7 +28,7 @@ const PLAYGROUNDS: Record<
   string,
   { description: ReactNode; render: () => ReactNode }
 > = {
-  "content-composer-01": {
+  "content-composer": {
     description: (
       <>
         This composer is defined entirely by a JSON{" "}
@@ -55,11 +55,11 @@ const PLAYGROUNDS: Record<
     ),
     render: () => <JsonFormPlayground />,
   },
-  "rich-card": {
+  "card-tree": {
     description: (
       <>
-        rich-card renders a recursive card tree from a JSON{" "}
-        <code className="font-mono text-foreground">RichCardJsonNode</code>{" "}
+        card-tree renders a recursive card tree from a JSON{" "}
+        <code className="font-mono text-foreground">CardTreeJsonNode</code>{" "}
         (scalar keys are fields, nested objects are subcards,{" "}
         <code className="font-mono text-foreground">__rcmeta</code> holds
         metadata). Edit it on the left, press{" "}
@@ -67,9 +67,9 @@ const PLAYGROUNDS: Record<
         card renders on the right.
       </>
     ),
-    render: () => <RichCardPlayground />,
+    render: () => <CardTreePlayground />,
   },
-  "flow-canvas-01": {
+  "flow-canvas": {
     description: (
       <>
         flow-canvas renders a node graph from a JSON{" "}

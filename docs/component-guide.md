@@ -602,11 +602,11 @@ If your component needs anything beyond the canonical set, **document it in [`me
 
 | Extra token group | Components that use it |
 |---|---|
-| `--chart-1` … `--chart-5` | chart-shell, stat-card; article-body-01 syntax classes (via `.hljs-*`) |
+| `--chart-1` … `--chart-5` | chart-shell, stat-card; rich-text-editor syntax classes (via `.hljs-*`) |
 | `--sidebar*` (`-foreground`, `-primary`, `-primary-foreground`, `-accent`, `-accent-foreground`, `-border`, `-ring`) | sidebar / nav surfaces |
 | `--warning`, `--warning-foreground` | semantic warning surfaces (parallel to `--destructive`) |
-| `--xy-*` overrides | flow-canvas-01 only (`react-flow` themed against tokens) |
-| `.hljs-*` color classes | article-body-01 only (lowlight syntax) |
+| `--xy-*` overrides | flow-canvas only (`react-flow` themed against tokens) |
+| `.hljs-*` color classes | rich-text-editor only (lowlight syntax) |
 
 The consumer is **never required to adopt the brand values** (signal-lime primary, off-white background, graphite-cool dark). Every component reads tokens by name; the host's palette wins. The ilinxa values in [src/app/globals.css](../src/app/globals.css) are only authoritative on the docs site itself.
 
@@ -1173,7 +1173,7 @@ git commit -m "feat(<category>/<slug>): ship v0.1"
 git push
 ```
 
-Vercel detects the push, runs `pnpm vercel-build` (which chains `shadcn build && next build`), and the catalog at `https://ilinxa-proui.vercel.app/r/registry.json` updates automatically. Consumers can install with:
+Vercel detects the push, runs `pnpm vercel-build` (which chains `shadcn build && next build`), and the catalog at `https://ui.ilinxa.com/r/registry.json` updates automatically. Consumers can install with:
 
 ```bash
 pnpm dlx shadcn@latest add @ilinxa/<slug>           # lean
@@ -1183,7 +1183,7 @@ pnpm dlx shadcn@latest add @ilinxa/<slug>-fixtures  # +dummy-data
 ### What if you forget the registry step
 
 Symptoms:
-- Component renders fine on `https://ilinxa-proui.vercel.app/components/<slug>` (docs preview works because manifest.ts was edited).
+- Component renders fine on `https://ui.ilinxa.com/components/<slug>` (docs preview works because manifest.ts was edited).
 - But `pnpm dlx shadcn@latest add @ilinxa/<slug>` returns 404 from Vercel (because `registry.json` doesn't list it).
 
 This is exactly the gap `force-graph` sits in deliberately (frozen at v0.2; not yet shipped via registry). For any other component, this is a bug — it's "implemented but not shipped". Step 5 of the workflow exists specifically to prevent this.
@@ -1244,35 +1244,35 @@ Same-folder imports (`./lib/X`, `./hooks/Y`, `./parts/Z`) are fine — they ride
 
 The constraint is ONLY about CROSS-folder access.
 
-#### Worked example — `media-carousel-01` composing `video-player-01`
+#### Worked example — `media-carousel` composing `video-player`
 
-`media-carousel-01` uses `video-player-01`'s double-tap hook for image slides. The cross-folder import:
+`media-carousel` uses `video-player`'s double-tap hook for image slides. The cross-folder import:
 
 ```tsx
-// src/registry/components/media/media-carousel-01/parts/carousel-track.tsx
-import { useDoubleTap } from "@/registry/components/media/video-player-01";
+// src/registry/components/media/media-carousel/parts/carousel-track.tsx
+import { useDoubleTap } from "@/registry/components/media/video-player";
 //                                                                        ^^^^^^^^^^^^^^^^^^^^^^^
-//                                                                        barrel — points at video-player-01/index.ts
+//                                                                        barrel — points at video-player/index.ts
 ```
 
 The barrel works in the docs site (it's a TS-only re-export through `index.ts`). But for the registry-shipped copy, what matters is:
 
-- `video-player-01/video-player-01.tsx` re-exports `useDoubleTap` (so it's part of the public surface)
-- `video-player-01`'s `registry.json` `files[]` includes `video-player-01.tsx` (so the symbol ships)
+- `video-player/video-player.tsx` re-exports `useDoubleTap` (so it's part of the public surface)
+- `video-player`'s `registry.json` `files[]` includes `video-player.tsx` (so the symbol ships)
 
-`useDoubleTap` is implemented in `video-player-01/hooks/use-double-tap.ts`, but consumers MUST NOT import that path directly from a sibling component — it would break under shadcn rewrite.
+`useDoubleTap` is implemented in `video-player/hooks/use-double-tap.ts`, but consumers MUST NOT import that path directly from a sibling component — it would break under shadcn rewrite.
 
 #### Carriers in the codebase (Tier 2 sweep findings)
 
 Two confirmed:
-- `post-card-01` (s10 F-01): cross-folder import from `engagement-bar-01` sub-folder — refactored before merge to import from the barrel.
-- `expandable-text-01` (s11 F-01): same shape — sub-folder import flagged + corrected.
+- `post-card` (s10 F-01): cross-folder import from `engagement-bar` sub-folder — refactored before merge to import from the barrel.
+- `expandable-text` (s11 F-01): same shape — sub-folder import flagged + corrected.
 
 Tier 1 audit (sweep close): no Tier 1 components carry the violation.
 
 > **Why this is doc-only mitigation, not a code-level lint:** the brittleness reaches users only when they `pnpm dlx shadcn add` an offending component, by which point it's too late. A consumer-tsc smoke harness extension that simulates shadcn's rewrite + tries to compile the result would catch this at producer-side commit time. That harness is a v0.2 follow-up; for v0.1.x, this section is the contract.
 
-#### The exact rewriter rules (proven by the `media-library-01` v0.1.1 consumer smoke)
+#### The exact rewriter rules (proven by the `media-library` v0.1.1 consumer smoke)
 
 The rewriter turns `@/registry/components/<category>/<slug>/...` → `@/components/<slug>/...` (strips `registry/components/` **and** the category) — **but ONLY for static `import` declarations.** It does NOT rewrite: relative paths, dynamic `import()` calls, or `export … from` re-exports. So the safe form depends on category + static/lazy:
 
@@ -1282,7 +1282,7 @@ The rewriter turns `@/registry/components/<category>/<slug>/...` → `@/componen
 | **Cross-category, static** (e.g. media→navigation) | **`@/registry/...` static `import`** | rewriter strips the category → `@/components/<slug>/...`. A relative cross-category path keeps the dead `<category>/` segment and 404s |
 | **Cross-category, lazy** (`React.lazy`) | a **local re-export wrapper** + `lazy(() => import("./wrapper"))` | dynamic `import()` is NOT rewritten, so import the cross-category procomp *statically* inside a local wrapper file and lazy-import that local file. Code-split preserved |
 
-The wrapper MUST use `import X; export default X` — **not** `export { X as default } from "..."` (the rewriter doesn't touch `export … from`). Reference impl: `media-library-01/parts/{lazy-code-block,sidebar,file-preview}.tsx`.
+The wrapper MUST use `import X; export default X` — **not** `export { X as default } from "..."` (the rewriter doesn't touch `export … from`). Reference impl: `media-library/parts/{lazy-code-block,sidebar,file-preview}.tsx`.
 
 ---
 

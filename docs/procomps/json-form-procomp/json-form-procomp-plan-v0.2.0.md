@@ -1,6 +1,6 @@
 # json-form — procomp plan, v0.2.0
 
-> **Status (2026-05-22):** this delta plan is **historical**. v0.1.7 and v0.2.0 both shipped 2026-05-21. The v0.2.x patch series since: v0.2.1 (docs + devtools), v0.2.3 (revert v0.2.2 richtext band-aid + dep on `article-body-01@^0.2.2`), v0.2.4 (`<JsonFormProvider>` bridges RHF's `<FormProvider>` internally), v0.2.5 (`<FieldRadioGroup>` always-controlled). Current shipped surface is **v0.2.5**. The forward-looking "≥7-day gate" referenced below was satisfied at ship time; the verbiage is retained as the original contract. Source of truth for current API: [`json-form-procomp-guide.md`](./json-form-procomp-guide.md).
+> **Status (2026-05-22):** this delta plan is **historical**. v0.1.7 and v0.2.0 both shipped 2026-05-21. The v0.2.x patch series since: v0.2.1 (docs + devtools), v0.2.3 (revert v0.2.2 richtext band-aid + dep on `rich-text-editor@^0.2.2`), v0.2.4 (`<JsonFormProvider>` bridges RHF's `<FormProvider>` internally), v0.2.5 (`<FieldRadioGroup>` always-controlled). Current shipped surface is **v0.2.5**. The forward-looking "≥7-day gate" referenced below was satisfied at ship time; the verbiage is retained as the original contract. Source of truth for current API: [`json-form-procomp-guide.md`](./json-form-procomp-guide.md).
 >
 > Stage 2 delta plan for the **v0.1.6 → v0.1.7 → v0.2.0** progression. Substrate decisions and public-API foundation are inherited from [`json-form-procomp-plan.md`](./json-form-procomp-plan.md) (v0.1.0 plan, signed off and shipped); this file specifies ONLY the deltas.
 >
@@ -12,7 +12,7 @@
 
 ## Strategic frame
 
-json-form is a **substrate-grade** component: rcif (rich-card-in-flow), todo-rich-card, planned cms-field-registry, planned cms-schemas, and any AI-driven UI surface all eventually flow through it. v0.1.x is correct but B+ on three axes: per-keystroke perf, narrow-deps hooks for headless consumers, and devtools. v0.2.0 closes those gaps. Backward compatibility is non-negotiable — every v0.1.x consumer keeps working at default settings.
+json-form is a **substrate-grade** component: rcif (card-tree-node), task-card, planned cms-field-registry, planned cms-schemas, and any AI-driven UI surface all eventually flow through it. v0.1.x is correct but B+ on three axes: per-keystroke perf, narrow-deps hooks for headless consumers, and devtools. v0.2.0 closes those gaps. Backward compatibility is non-negotiable — every v0.1.x consumer keeps working at default settings.
 
 Risk profile is hedged by **staging the bumps**:
 
@@ -43,7 +43,7 @@ Inherited from v0.1.0 plan unless overridden below.
 | `useJsonFormFieldValue` typing | `<T = unknown>(name): T` — consumer-asserted generic, JSDoc-noted (Q-P7 locked) | Q-P7 locked recommendation |
 | Devtools tree-shaking | `lazy()` + `process.env.NODE_ENV` guard — same pattern as `field-code`/`field-richtext` | Risk register, this plan |
 | `dependsOn` schema-lint | `validateSchemaDev` extended to warn on `dependsOn` paths referencing non-existent field names | Risk register, this plan |
-| Cross-procomp dep changes | **None.** v0.2.0 does not touch `article-body-01` (no new re-exports required); `code-block` integration unchanged. | Audit — internal-only refactor + new files |
+| Cross-procomp dep changes | **None.** v0.2.0 does not touch `rich-text-editor` (no new re-exports required); `code-block` integration unchanged. | Audit — internal-only refactor + new files |
 | Bundle posture | Devtools panel body lazy-loaded via `React.lazy()` (only the ~10 LOC loader stub ships at the import boundary; the ~250 LOC body chunk loads on first render). In prod, the component returns `null` before triggering the lazy load, so the body chunk is never fetched. Consumer-side `{process.env.NODE_ENV !== "production" && <JsonFormDevtools />}` gates the import entirely for true bundler-level dead-code-elimination (documented in usage.tsx). New hooks + factory + compile-split are pure-TS additions ≤ 200 LOC combined; no measurable bundle impact at default-import paths. | Risk register, this plan |
 
 ---
@@ -258,7 +258,7 @@ The 50-conditional dev-warn in `validateSchemaDev` is **demoted to 200-condition
 | `<JsonFormDevtools>` keyboard-shortcut conflicts with consumer app's existing shortcut | 🔹 Low | Default `Ctrl+Shift+J` overridable via `shortcut` prop. Document in usage.tsx. |
 | F-cross-13 carriers in devtools panel | 🔸 Medium → 🔹 Low | Devtools uses Buttons + Inputs + plain HTML only — no Select / Checkbox / Tooltip / Popover. Audit complete; no shadcn-primitive Radix↔Base UI divergence carriers present. |
 | Deep-merge `defaultValues` surprises a consumer relying on shallow-replace | 🔹 Low | Audit (2026-05-21) found no shipping consumer with that pattern. Documented in v0.2.0 release notes + FAQ. |
-| Downstream procomp consumers break on v0.2.0 | 🔸 Medium | rcif uses json-form for its port editor (confirmed). Other downstream consumers (todo-rich-card, planned cms-* surfaces) audited at v0.2.0 C4 verification step — grep each procomp's source for `JsonForm` / `useJsonForm` / `JsonFormProvider` imports, confirm each uses default-registry renderers OR sets explicit `dependsOn`. Smoke harness runs `pnpm dlx shadcn@4.6.0 add @ilinxa/json-form` AND each downstream consumer slug, then consumer-side `pnpm tsc --noEmit`, gating C4 sign-off. |
+| Downstream procomp consumers break on v0.2.0 | 🔸 Medium | rcif uses json-form for its port editor (confirmed). Other downstream consumers (task-card, planned cms-* surfaces) audited at v0.2.0 C4 verification step — grep each procomp's source for `JsonForm` / `useJsonForm` / `JsonFormProvider` imports, confirm each uses default-registry renderers OR sets explicit `dependsOn`. Smoke harness runs `pnpm dlx shadcn@4.6.0 add @ilinxa/json-form` AND each downstream consumer slug, then consumer-side `pnpm tsc --noEmit`, gating C4 sign-off. |
 
 ---
 
@@ -316,7 +316,7 @@ Returns `FieldRenderer` directly. Registry-shape compatible. Type-narrowing only
 1. C1 — `use-json-form.ts` `mergeDefaultValues` rewritten via `setByPath` per leaf.
 2. C2 — `parts/field-wrapper.tsx` gated `useWatch` (per-field-type-whitelist + `dependsOn` opt-in); `validate-schema.ts` conditional-count threshold bumped to 200.
 3. C3 — `usage.tsx` v0.2.0 release notes + FAQ entry.
-4. C4 — `meta.ts` v0.2.0, full-checklist review file authored at `reviews/2026-05-21-v0.2.0-checklist.md`, decision file authored, STATUS.md updated, smoke harness run including rcif + todo-rich-card downstream verification.
+4. C4 — `meta.ts` v0.2.0, full-checklist review file authored at `reviews/2026-05-21-v0.2.0-checklist.md`, decision file authored, STATUS.md updated, smoke harness run including rcif + task-card downstream verification.
 
 ### Estimated effort
 

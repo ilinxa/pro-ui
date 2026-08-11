@@ -222,7 +222,7 @@
  * (vs the `-default` suffix it uses internally), so they win without
  * `!important` and adapt automatically to our token-based theme.
  *
- * This is a slice of the comprehensive M7 theming pass for `flow-canvas-01`. */
+ * This is a slice of the comprehensive M7 theming pass for `flow-canvas`. */
 .react-flow {
   --xy-controls-button-background-color: var(--card);
   --xy-controls-button-background-color-hover: var(--accent);
@@ -245,7 +245,7 @@
   stroke-width: 2.5;
 }
 
-/* highlight.js token classes — used by lowlight (article-body-01).
+/* highlight.js token classes — used by lowlight (rich-text-editor).
  * Mapped to pro-ui tokens so syntax colors match the design system.
  * Classes follow highlight.js convention (hljs-*). Comment / muted is
  * --muted-foreground; punctuation is the body --foreground; the accent

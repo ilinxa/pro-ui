@@ -695,7 +695,7 @@ export const meta: ComponentMeta = {
     },
     internal: [],
   },
-  related: ["media-carousel-01", "story-viewer-01", "video-player-01"],
+  related: ["media-carousel", "story-viewer", "video-player"],
 };
 ```
 
@@ -895,7 +895,7 @@ This is documented in `usage.tsx` and `guide.md`. We do not bake a lazy strategy
 
 1. **Bundle size** — `react-pdf` + `pdfjs-dist` ≈ 700 KB minified (pdfjs-dist is the bulk). The viewer is dead-weight on routes that don't render PDFs. Mitigations:
    - Document a strong "use `next/dynamic` + `ssr: false`" recommendation in usage.tsx and guide.md.
-   - The component lives in `media/` with peers like `video-player-01` that are also weighty; consumers self-select.
+   - The component lives in `media/` with peers like `video-player` that are also weighty; consumers self-select.
 
 2. **`?url` worker import portability** — Webpack 5 / Turbopack / Vite all support `?url`; older bundlers (Webpack 4, Parcel 1) do not. Mitigation: explicit `workerSrc` prop override + clear documentation in usage.tsx of the supported toolchains.
 

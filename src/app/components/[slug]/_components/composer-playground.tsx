@@ -2,13 +2,13 @@
 
 import {
   ADAPTER_REGISTRY,
-  ContentComposer01,
-} from "@/registry/components/media/content-composer-01";
+  ContentComposer,
+} from "@/registry/components/media/content-composer";
 import type {
   ComposerConfig,
-  ContentCardItem,
+  NewsCardItem,
   ContentTypeAdapter,
-} from "@/registry/components/media/content-composer-01";
+} from "@/registry/components/media/content-composer";
 import {
   STARTER_CONFIG,
   validateComposerConfig,
@@ -19,7 +19,7 @@ import { JsonPlayground } from "./json-playground";
 // Any config's Publish / Save / Schedule assembles a visible result item — no
 // real backend needed. ADAPTER_REGISTRY is the composer's mutable runtime
 // registry; a config wires to this by setting `"adapterId": "playground"`.
-const playgroundAdapter: ContentTypeAdapter<ContentCardItem> = {
+const playgroundAdapter: ContentTypeAdapter<NewsCardItem> = {
   contentType: "playground",
   toContentItem: (draft, ctx) =>
     ({
@@ -28,7 +28,7 @@ const playgroundAdapter: ContentTypeAdapter<ContentCardItem> = {
       status: draft.status,
       scheduledFor: draft.scheduledFor,
       steps: draft.steps,
-    }) as unknown as ContentCardItem,
+    }) as unknown as NewsCardItem,
   fromContentItem: () => ({ draft: {} }),
 };
 ADAPTER_REGISTRY.playground = playgroundAdapter;
@@ -47,7 +47,7 @@ export function ComposerPlayground() {
       validate={validateComposerConfig}
       resultHint="assembled ContentItem (onPublish / onSaveDraft payload)"
       renderPreview={(config, setResult) => (
-        <ContentComposer01
+        <ContentComposer
           config={config}
           presentation="inline"
           uploader={playgroundUploader}

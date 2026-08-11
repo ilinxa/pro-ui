@@ -1,0 +1,153 @@
+export default function CommentThreadUsage() {
+  return (
+    <div className="max-w-none text-sm leading-relaxed text-foreground">
+      <h3 className="mb-2 mt-0 text-base font-semibold">When to use</h3>
+      <p className="text-muted-foreground">
+        Reach for <code>CommentThread</code> when you need a recursive comment
+        panel under any content surface — posts, news articles, events, product
+        reviews, document annotations. It composes <code>expandable-text</code>{" "}
+        for long bodies and <code>engagement-bar</code>{" "}
+        <code>variant=&quot;compact&quot;</code> for the per-row like action.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Footgun: the `comments` prop is mount-only</h3>
+      <p className="text-muted-foreground">
+        Component takes <code>comments</code> as initial state on mount only.
+        Subsequent prop reference changes are <strong>ignored</strong>. To push
+        external updates, use the imperative handle&apos;s{" "}
+        <code>reset(next)</code> or <code>dispatch(action)</code>:
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`const ref = useRef<CommentThreadHandle>(null);
+useEffect(() => {
+  ref.current?.reset(externalComments);
+}, [externalComments]);
+
+<CommentThread ref={ref} comments={externalComments} />`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import { CommentThread } from "@/components/comment-thread";
+
+export function Example() {
+  return (
+    <CommentThread
+      comments={post.comments}
+      currentUser={{ id: viewer.id, name: viewer.name, avatar: viewer.avatarUrl }}
+      onAddComment={async (content, parentId) => {
+        const created = await api.addComment(post.id, { content, parentId });
+        return created; // component swaps temp comment for real one
+      }}
+      onLikeComment={(id, nextLiked) => api.likeComment(id, nextLiked)}
+      onDeleteComment={(id) => api.deleteComment(id)}
+      onReportComment={(id) => openReportDialog(id)}
+    />
+  );
+}`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Realtime via subscribe</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`const subscribe = useCallback<Subscribe<CommentDelta>>(
+  (handler) => channel.on("comment", handler),
+  [channel],
+);
+
+<CommentThread
+  comments={post.initialComments}
+  currentUser={viewer}
+  subscribe={subscribe}
+  onSubscribeDelta={(d) => analytics.track("comment-delta", d)}
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        Hosts must memoize <code>subscribe</code> via{" "}
+        <code>useCallback</code> — identity changes trigger a clean teardown +
+        re-call. Same contract as <code>engagement-bar</code>.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Custom kebab actions</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<CommentThread
+  comments={comments}
+  currentUser={viewer}
+  commentActions={(comment, { isOwn }) => [
+    isOwn && { label: "Pin", onClick: () => api.pinComment(comment.id) },
+    isOwn && { label: "Delete", destructive: true, onClick: () => api.deleteComment(comment.id) },
+    !isOwn && { label: "Block author", onClick: () => api.block(comment.author.id) },
+    // v0.2.0 — explicit section divider above this item
+    { label: "Mark spam", separatorBefore: true, onClick: () => api.flagSpam(comment.id) },
+    { label: "Report", onClick: () => openReportDialog(comment.id) },
+  ].filter(Boolean) as CommentMenuItem[]}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">v0.2.0 — edited badge</h3>
+      <p className="text-muted-foreground">
+        Set <code>comment.edited = true</code> on first paint when your backend
+        reports the comment was edited; the row renders an{" "}
+        <code>(edited)</code> suffix after the timestamp. The realtime{" "}
+        <code>{`{ kind: "edited" }`}</code> delta also flips{" "}
+        <code>edited:true</code>, so first-paint and post-realtime UI behave
+        identically. Override the suffix copy via{" "}
+        <code>labels.editedSuffix</code>:
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<CommentThread
+  comments={comments.map((c) => ({ ...c, edited: c.serverEditedAt != null }))}
+  labels={{ editedSuffix: "(düzenlendi)" }} // i18n override
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Standalone composer</h3>
+      <p className="text-muted-foreground">
+        <code>CommentComposer</code> ships standalone for hosts that want the
+        composer without the thread (article-page hero CTAs):
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import { CommentComposer } from "@/components/comment-thread";
+
+<CommentComposer
+  currentUser={viewer}
+  placeholder="Share your thoughts…"
+  onSubmit={async (content) => api.addArticleComment(article.id, content)}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>
+      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <li>
+          <code>maxDepth</code> defaults to 2; past it, &quot;view N
+          replies&quot; inline-expands. Override the link via{" "}
+          <code>renderViewReplies</code> for navigate-to-detail mode.
+        </li>
+        <li>
+          <code>currentUser</code> absent → bottom composer hidden. Render a
+          sign-in CTA via <code>composerEmptyState</code>.
+        </li>
+        <li>
+          Default kebab&apos;s &quot;Delete&quot; only shows on the viewer&apos;s
+          own comments. Wire <code>commentActions</code> for moderator
+          semantics.
+        </li>
+        <li>
+          v0.2.0 — <code>comment.edited</code> renders an{" "}
+          <code>(edited)</code> suffix; the realtime{" "}
+          <code>{`{ kind: "edited" }`}</code> delta now also flips this flag.
+          The thread still does not surface an Edit affordance — wire it via
+          <code> commentActions</code>.
+        </li>
+        <li>
+          v0.2.0 — <code>CommentMenuItem.separatorBefore</code> draws a divider
+          above the item in the kebab. Useful for host-grouped sections (e.g.
+          post-card&apos;s moderator block).
+        </li>
+        <li>
+          <code>renderNode</code>, <code>renderViewReplies</code>, and{" "}
+          <code>renderComposer</code> are full-takeover slots.
+        </li>
+      </ul>
+    </div>
+  );
+}

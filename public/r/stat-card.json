@@ -3,7 +3,7 @@
   "name": "stat-card",
   "title": "Stat Card",
   "author": "ilinxa",
-  "description": "Single-metric dashboard widget — value + label + optional delta + optional sparkline. 3 variants (default / compact / detailed); object-shape callbacks; built-in pure-SVG sparkline (no charting peer dep); polarity-aware coloring via betterIsHigher.",
+  "description": "Single-metric dashboard card — value, label, delta, and a dependency-free SVG sparkline with polarity-aware coloring.",
   "dependencies": [],
   "registryDependencies": [
     "skeleton"

@@ -30,7 +30,7 @@ Examples that fit:
 - **Pure free-text input.** This is a picker — values must come from `items`. For arbitrary string entry, use a plain `<Input>` or wait for a future `combobox-with-create` host.
 - **Async-loaded items > 5000.** v0.1 renders all items in the popover (no virtualization). For large lists, paginate at the source (filter `items` upstream by query) — the picker stays consumer-controlled.
 - **Hierarchical / grouped lists.** v0.1 is flat. If you need section headers, render them via `renderItem` returning `null` plus parent-rendered separators — but it's smoother to use shadcn's `Command` directly.
-- **Filterable on multiple axes.** `match` is one predicate. For multi-axis (kind + label + tag) filter UIs, consider `filter-stack` instead.
+- **Filterable on multiple axes.** `match` is one predicate. For multi-axis (kind + label + tag) filter UIs, consider `filter-panel` instead.
 - **Inline-editable picker** (type-and-create). Out of scope; create-on-the-fly UIs need a different host.
 
 ---
@@ -277,7 +277,7 @@ const items = useMemo(() => filterByVisibility(allUsers, viewerRole), [allUsers,
 <EntityPicker items={[/* ... */]} ... />
 ```
 
-Same footgun pattern as `data-table` columns, `properties-form` schemas, `markdown-editor` candidates, `filter-stack` categories.
+Same footgun pattern as `data-table` columns, `properties-form` schemas, `markdown-editor` candidates, `filter-panel` categories.
 
 ### `mode` is fixed at the call site
 
@@ -492,6 +492,6 @@ Then import from `@/components/entity-picker`.
 ### Related
 
 - `properties-form` — the form host; entity-picker is a common custom-renderer for typed reference fields
-- `filter-stack` — when you need filter-shaped picker UIs (multi-axis filters, query strings)
+- `filter-panel` — when you need filter-shaped picker UIs (multi-axis filters, query strings)
 - `detail-panel` — the canonical inline-editing host that pairs picker fields with properties-form
 - `markdown-editor` — when the picker target is a referenced doc, consider the wikilink pattern as an alternative

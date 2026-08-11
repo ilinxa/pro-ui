@@ -1,0 +1,814 @@
+[
+  {
+    "file": "src\\registry\\components\\code\\code-block\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\article-meta\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\blackboard\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\demo.tsx",
+    "importPath": "@/registry/components/data/flow-canvas"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\demo.tsx",
+    "importPath": "@/registry/components/data/card-tree"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\derive-flat-fields.ts",
+    "importPath": "../../card-tree/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\derive-title.ts",
+    "importPath": "../../card-tree/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\enumerate-subcards.ts",
+    "importPath": "../../card-tree/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\find-port-target.ts",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\find-port-target.ts",
+    "importPath": "../../flow-canvas/lib/update-node-data"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\find-port-target.ts",
+    "importPath": "../../card-tree/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\lib\\port-mutators.ts",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\card-tree-viewer.tsx",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\card-tree-viewer.tsx",
+    "importPath": "../../flow-canvas/parts/ports-at"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\port-editor-add-popover.tsx",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\port-editor-row.tsx",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\port-editor-strip.tsx",
+    "importPath": "../../flow-canvas/registries/port-type-registry"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\port-editor-strip.tsx",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\subcard-block.tsx",
+    "importPath": "../../flow-canvas/parts/ports-at"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\subcard-block.tsx",
+    "importPath": "../../flow-canvas/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\card-tree-node\\parts\\subcard-block.tsx",
+    "importPath": "../../card-tree/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\comment-thread\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\comment-thread\\parts\\comment-node.tsx",
+    "importPath": "../../expandable-text/expandable-text"
+  },
+  {
+    "file": "src\\registry\\components\\data\\comment-thread\\parts\\comment-node.tsx",
+    "importPath": "../../engagement-bar/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\data-table\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\engagement-bar\\demo.tsx",
+    "importPath": "@/registry/components/data/comment-thread"
+  },
+  {
+    "file": "src\\registry\\components\\data\\engagement-bar\\demo.tsx",
+    "importPath": "@/registry/components/data/comment-thread"
+  },
+  {
+    "file": "src\\registry\\components\\data\\engagement-bar\\demo.tsx",
+    "importPath": "@/registry/components/data/comment-thread/dummy-data"
+  },
+  {
+    "file": "src\\registry\\components\\data\\engagement-bar\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\event-calendar\\hooks\\use-calendar-edit.ts",
+    "importPath": "../../task-card/lib/clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\data\\event-calendar\\lib\\color.ts",
+    "importPath": "../../task-card"
+  },
+  {
+    "file": "src\\registry\\components\\data\\event-calendar\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\event-calendar\\parts\\calendar-context-menu.tsx",
+    "importPath": "../../task-card/lib/clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\data\\event-calendar\\parts\\calendar-root.tsx",
+    "importPath": "../../task-card/lib/clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\data\\event-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\expandable-text\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\flow-canvas\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\gantt-timeline\\hooks\\use-gantt-edit.ts",
+    "importPath": "../../task-card/lib/clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\data\\gantt-timeline\\lib\\color.ts",
+    "importPath": "../../task-card"
+  },
+  {
+    "file": "src\\registry\\components\\data\\gantt-timeline\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\gantt-timeline\\parts\\gantt-timeline-root.tsx",
+    "importPath": "../../task-card/lib/clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\data\\info-list\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\kanban-board\\demo.tsx",
+    "importPath": "@/registry/components/data/card-tree"
+  },
+  {
+    "file": "src\\registry\\components\\data\\kanban-board\\demo.tsx",
+    "importPath": "@/registry/components/data/card-tree"
+  },
+  {
+    "file": "src\\registry\\components\\data\\kanban-board\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\news-card\\lib\\defaults.tsx",
+    "importPath": "../../comment-thread/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\news-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\news-card\\parts\\news-kebab.tsx",
+    "importPath": "../../comment-thread/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\people-grid\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\demo.tsx",
+    "importPath": "@/registry/components/data/comment-thread"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\demo.tsx",
+    "importPath": "@/registry/components/data/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\dummy-data.ts",
+    "importPath": "@/registry/components/data/comment-thread"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\dummy-data.ts",
+    "importPath": "@/registry/components/data/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\lib\\defaults.tsx",
+    "importPath": "../../engagement-bar/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\lib\\defaults.tsx",
+    "importPath": "../../comment-thread/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\compact-variant.tsx",
+    "importPath": "../../expandable-text/expandable-text"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\compact-variant.tsx",
+    "importPath": "../../engagement-bar/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\detail-variant.tsx",
+    "importPath": "../../expandable-text/expandable-text"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\detail-variant.tsx",
+    "importPath": "@/registry/components/media/media-carousel/media-carousel"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\detail-variant.tsx",
+    "importPath": "../../engagement-bar/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\detail-variant.tsx",
+    "importPath": "../../engagement-bar/parts/engagement-heart-burst"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\detail-variant.tsx",
+    "importPath": "../../comment-thread/comment-thread"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\feed-variant.tsx",
+    "importPath": "../../expandable-text/expandable-text"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\feed-variant.tsx",
+    "importPath": "@/registry/components/media/media-carousel/media-carousel"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\feed-variant.tsx",
+    "importPath": "../../engagement-bar/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\feed-variant.tsx",
+    "importPath": "../../engagement-bar/parts/engagement-heart-burst"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\list-variant.tsx",
+    "importPath": "../../expandable-text/expandable-text"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\list-variant.tsx",
+    "importPath": "../../engagement-bar/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\post-header.tsx",
+    "importPath": "../../comment-thread/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\variant-shared.ts",
+    "importPath": "../../comment-thread/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\post-card\\parts\\variant-shared.ts",
+    "importPath": "../../engagement-bar/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\progress-timeline\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\project-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\registration-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\rich-text-editor\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\schedule-list\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\stat-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\story-rail\\demo.tsx",
+    "importPath": "../../media/story-viewer"
+  },
+  {
+    "file": "src\\registry\\components\\data\\story-rail\\demo.tsx",
+    "importPath": "../../media/story-viewer"
+  },
+  {
+    "file": "src\\registry\\components\\data\\story-rail\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-card\\demo.tsx",
+    "importPath": "@/registry/components/data/kanban-board"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-controlled-mode.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-selection.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-status-option-by-value.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-task-tree-context.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-task-tree-state.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-task-tree-state.ts",
+    "importPath": "../../task-card/lib/clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-tree-dnd-html5.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-tree-dnd-internal.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-tree-events.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\hooks\\use-tree-keyboard.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\circular-drop.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\default-status-options.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\dnd-payload.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\filter-items.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\flatten-tree.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\permissions.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\reducer.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\search-items.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\sort-items.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\tree-mutators.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\tree-walker.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\lib\\visible-items.ts",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-drag-overlay.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-filter-dropdown.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-list.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-person-label.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-row-content.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-row.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-status-indicator.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\task-tree\\parts\\task-tree-toolbar.tsx",
+    "importPath": "../../task-card/types"
+  },
+  {
+    "file": "src\\registry\\components\\data\\thumbnail-list\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\feedback\\detail-panel\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\category-cloud\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\entity-picker\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\filter-bar\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\filter-panel\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\json-form\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\json-form\\parts\\field-code.tsx",
+    "importPath": "@/registry/components/code/code-block/code-block"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\json-form\\parts\\field-richtext.tsx",
+    "importPath": "@/registry/components/data/rich-text-editor/rich-text-editor"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\markdown-editor\\lib\\extensions\\wikilink-autocomplete.ts",
+    "importPath": "../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\markdown-editor\\lib\\extensions\\wikilink.ts",
+    "importPath": "../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\markdown-editor\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\properties-form\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\forms\\signup-form\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\gamification\\team-challenge\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\gamification\\team-feedback-loop\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\gamification\\team-progress-bar\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\gamification\\team-quest-log\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\gamification\\team-task-claim\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\gamification\\team-trophy-shelf\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\layout\\magazine-layout\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\layout\\split-workspace\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\marketing\\author-card\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\marketing\\newsletter-signup\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\marketing\\page-hero\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\marketing\\pricing-table\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\marketing\\share-bar\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\carousel-composer\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\carousel-composer\\parts\\edit-panel.tsx",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\carousel-composer\\types.ts",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\configs\\news-composer.config.ts",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\configs\\post-composer.config.ts",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\content-composer.tsx",
+    "importPath": "@/registry/components/media/carousel-composer/carousel-composer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\hooks\\use-body-dirty.ts",
+    "importPath": "@/registry/components/data/rich-text-editor/rich-text-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\lib\\clamp-media-sources.ts",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\lib\\gates.ts",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\lib\\gates.ts",
+    "importPath": "@/registry/components/forms/json-form/lib/condition-evaluator"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\lib\\gates.ts",
+    "importPath": "@/registry/components/forms/json-form/lib/path"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\lib\\hydration.ts",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\lib\\upload.ts",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\body-substrate-plate.tsx",
+    "importPath": "@/registry/components/data/rich-text-editor/rich-text-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\body-substrate-plate.tsx",
+    "importPath": "@/registry/components/data/rich-text-editor/rich-text-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\body-substrate.tsx",
+    "importPath": "@/registry/components/data/rich-text-editor/rich-text-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\field-author-picker.tsx",
+    "importPath": "@/registry/components/forms/json-form/lib/define-field-renderer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\field-tags.tsx",
+    "importPath": "@/registry/components/forms/json-form/lib/define-field-renderer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\json-form-substrate.tsx",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\json-form-substrate.tsx",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\media-carousel-substrate.tsx",
+    "importPath": "@/registry/components/media/carousel-composer/carousel-composer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\media-carousel-substrate.tsx",
+    "importPath": "@/registry/components/media/carousel-composer/carousel-composer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\media-substrate.tsx",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\parts\\media-substrate.tsx",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\types.ts",
+    "importPath": "@/registry/components/media/media-editor/media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\types.ts",
+    "importPath": "@/registry/components/data/rich-text-editor/rich-text-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\types.ts",
+    "importPath": "@/registry/components/data/news-card/news-card"
+  },
+  {
+    "file": "src\\registry\\components\\media\\content-composer\\types.ts",
+    "importPath": "@/registry/components/forms/json-form/json-form"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-carousel\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-carousel\\parts\\carousel-track.tsx",
+    "importPath": "../../video-player/hooks/use-double-tap"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-carousel\\parts\\single-item.tsx",
+    "importPath": "../../video-player/hooks/use-double-tap"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-carousel\\parts\\slide-renderer.tsx",
+    "importPath": "../../video-player/video-player"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-editor\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-editor\\parts\\editor-camera.tsx",
+    "importPath": "../../media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-editor\\parts\\editor-canvas.tsx",
+    "importPath": "../../media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-editor\\parts\\text-only-canvas.tsx",
+    "importPath": "../../media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-library\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-library\\parts\\lazy-code-block.tsx",
+    "importPath": "@/registry/components/code/code-block/code-block"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-library\\parts\\lazy-markdown-editor.tsx",
+    "importPath": "@/registry/components/forms/markdown-editor/markdown-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\media-library\\parts\\sidebar.tsx",
+    "importPath": "@/registry/components/navigation/file-tree/file-tree"
+  },
+  {
+    "file": "src\\registry\\components\\media\\pdf-viewer\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-composer\\hooks\\use-story-composer-state.ts",
+    "importPath": "../../media-editor"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-composer\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\demo.tsx",
+    "importPath": "@/registry/components/data/comment-thread/comment-thread"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\demo.tsx",
+    "importPath": "@/registry/components/data/comment-thread/dummy-data"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\demo.tsx",
+    "importPath": "@/registry/components/data/engagement-bar/parts/share-menu"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\demo.tsx",
+    "importPath": "@/registry/components/data/engagement-bar/dummy-data"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\parts\\engagement-overlay.tsx",
+    "importPath": "@/registry/components/data/engagement-bar/engagement-bar"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\parts\\item-view.tsx",
+    "importPath": "../../video-player/video-player"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\parts\\reply-composer.tsx",
+    "importPath": "@/registry/components/data/comment-thread/parts/comment-composer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\story-viewer\\story-viewer.tsx",
+    "importPath": "@/registry/components/data/comment-thread/parts/comment-composer"
+  },
+  {
+    "file": "src\\registry\\components\\media\\video-player\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\navigation\\account-switcher\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\navigation\\app-sidebar\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\navigation\\file-manager\\hooks\\use-clipboard.ts",
+    "importPath": "../../_shared/file-clipboard"
+  },
+  {
+    "file": "src\\registry\\components\\navigation\\file-manager\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\navigation\\file-tree\\meta.ts",
+    "importPath": "../../../types"
+  },
+  {
+    "file": "src\\registry\\components\\_template\\_template\\meta.ts",
+    "importPath": "../../../types"
+  }
+]

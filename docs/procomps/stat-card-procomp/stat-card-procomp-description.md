@@ -15,7 +15,7 @@ Every dashboard, admin panel, analytics view, and observability surface needs th
 - Loading skeletons that match the final shape (matching height, no layout shift on hydration).
 - Click-through ergonomics — half of stat cards drill into a detail view; half are pure-display. The component should make both clean.
 
-Pro-ui currently has no answer. `data-table` is for many-row tabular data. `content-card-news-01` is editorial. Nothing renders a single calibrated metric. This is the sort of component that quietly appears 12× on a dashboard page; the per-instance variation is small but the pattern surface is wide.
+Pro-ui currently has no answer. `data-table` is for many-row tabular data. `news-card` is editorial. Nothing renders a single calibrated metric. This is the sort of component that quietly appears 12× on a dashboard page; the per-instance variation is small but the pattern surface is wide.
 
 ## In scope
 
@@ -31,7 +31,7 @@ Pro-ui currently has no answer. `data-table` is for many-row tabular data. `cont
   - **`betterIsHigher?: boolean`** — default `true`. Set `false` for cost/error-style metrics where ↑ is bad — colors the upward delta red instead of green. **Replaces the earlier `polarity` design (rejected as ambiguous: "polarity: positive" could mean "the number is positive" vs "up is good"; `betterIsHigher` is unambiguous).**
   - Direction (visual up/down arrow) is computed internally from the sign of `value`; **not** exposed as a public prop (it would be redundant with the sign).
 - **`renderValue` slot** for cases where the value isn't a primitive — e.g., a value with a unit superscript, a value with a tooltip, a sparkline-as-value treatment. Default is `Intl.NumberFormat`-driven via `formatValue` callback.
-- **Polymorphic root** — `linkComponent` + `href` makes the whole card clickable with overlay-link pattern (a la `content-card-news-01` / `event-card-01`); when neither is provided, the card is a passive `<article>` (no focus ring, no click handling).
+- **Polymorphic root** — `linkComponent` + `href` makes the whole card clickable with overlay-link pattern (a la `news-card` / `event-card`); when neither is provided, the card is a passive `<article>` (no focus ring, no click handling).
 - **Loading state** — `loading={true}` renders a skeleton that exactly matches the final shape (height-locked, no layout shift on hydration).
 - **Optional `icon`** — lucide-style `ComponentType<{ className?: string }>`. Default position: leading (top-left). `iconPosition: "leading" | "trailing"` for placement override.
 - **i18n via `labels`** — keys: `deltaPrefix` ("vs"), `deltaPeriod` ("last period"), `loadingLabel` ("Loading metric…"), `decreaseLabel` ("decrease"), `increaseLabel` ("increase"). Defaults English; consumers override per call or globally. Screen readers announce `<sr-only>{labels.increaseLabel}</sr-only>` or `<sr-only>{labels.decreaseLabel}</sr-only>` (chosen by sign of `delta.value`) — see WCAG bullet below.

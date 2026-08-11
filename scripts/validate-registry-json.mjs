@@ -3,7 +3,7 @@
  * validate-registry-json — registry.json vs disk vs imports (plan P1C, review 3.4).
  *
  * registry.json is hand-maintained; nothing previously verified it. This exact
- * gap shipped a todo-tree item missing a runtime registryDependency and two
+ * gap shipped a task-tree item missing a runtime registryDependency and two
  * items with undeclared npm deps that survived only via transitive installs.
  *
  * Per BASE item (non `-fixtures`, non `_shared`):
@@ -73,8 +73,12 @@ function walk(dir, out = []) {
 
 const items = registry.items;
 const byName = new Map(items.map((i) => [i.name, i]));
+// Deprecated alias items (P2.3 — thin registryDependencies-only redirects from
+// pre-canon slugs) carry meta.deprecated and ship no files; validate their shape
+// separately below and skip the base-item battery for them.
+const aliasItems = items.filter((i) => i.meta?.deprecated);
 const baseItems = items.filter(
-  (i) => !i.name.endsWith("-fixtures") && !(i.files?.[0]?.target ?? "").startsWith("components/_shared"),
+  (i) => !i.name.endsWith("-fixtures") && !(i.files?.[0]?.target ?? "").startsWith("components/_shared") && !i.meta?.deprecated,
 );
 
 let highs = 0, warns = 0;
@@ -172,5 +176,17 @@ for (const item of baseItems) {
   }
 }
 
-console.log(`\nvalidate:registry-json — ${baseItems.length} base items audited: ${highs} high · ${warns} warn.`);
+// (8) deprecated alias shape (P2.3): no files, exactly one @ilinxa regDep
+// pointing at a live base item, meta.replacedBy consistent with it.
+for (const a of aliasItems) {
+  if ((a.files ?? []).length > 0) report("high", a.name, "deprecated alias must not ship files");
+  const regs = (a.registryDependencies ?? []).filter((d) => d.startsWith("@ilinxa/"));
+  const target = regs[0]?.slice("@ilinxa/".length);
+  if (regs.length !== 1) report("high", a.name, "alias must have exactly one @ilinxa registryDependency");
+  else if (!byName.has(target)) report("high", a.name, `alias redirect target "${target}" is not a registry item`);
+  if (a.meta?.replacedBy && a.meta.replacedBy !== target)
+    report("high", a.name, `meta.replacedBy "${a.meta.replacedBy}" ≠ registryDependency target "${target}"`);
+}
+
+console.log(`\nvalidate:registry-json — ${baseItems.length} base items + ${aliasItems.length} aliases audited: ${highs} high · ${warns} warn.`);
 process.exit(highs > 0 ? 1 : 0);

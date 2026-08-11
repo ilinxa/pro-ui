@@ -3,7 +3,7 @@
   "name": "file-tree-fixtures",
   "title": "File Tree — fixtures",
   "author": "ilinxa",
-  "description": "File Tree bundle including the dummy-data fixtures used by the docs-site demo (sample Next.js project tree + 250-node generator).",
+  "description": "File Tree plus the dummy-data fixtures used by the docs-site demo.",
   "registryDependencies": [
     "@ilinxa/file-tree"
   ],

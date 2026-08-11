@@ -5,7 +5,7 @@ export default function CodeBlockUsage() {
       <p className="text-muted-foreground">
         <code>CodeBlock</code> is the substrate for every &ldquo;render code professionally&rdquo;
         surface in the library: chat assistants, fenced markdown blocks, JSON/config viewers,
-        rich-card &ldquo;code&rdquo; sections, virtual terminal walkthroughs, and snippet editors.
+        card-tree &ldquo;code&rdquo; sections, virtual terminal walkthroughs, and snippet editors.
         Three modes (<code>view</code> / <code>edit</code> / <code>terminal</code>) cover the
         common cases. Streaming-friendly. Language-agnostic.
       </p>

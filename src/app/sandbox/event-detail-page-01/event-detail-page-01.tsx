@@ -16,16 +16,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import { ArticleBodyViewer } from "@/registry/components/data/article-body-01";
+import { RichTextViewer } from "@/registry/components/data/rich-text-editor";
 import {
   EVENT_STATUS_CONFIG,
   getEventStatus,
-} from "@/registry/components/data/event-card-01";
-import { InfoList01 } from "@/registry/components/data/info-list-01";
-import { PeopleGrid01 } from "@/registry/components/data/people-grid-01";
-import { ProgressTimeline01 } from "@/registry/components/data/progress-timeline-01";
-import { RegistrationCard01 } from "@/registry/components/data/registration-card-01";
-import { ScheduleList01 } from "@/registry/components/data/schedule-list-01";
+} from "@/registry/components/data/event-card";
+import { InfoList } from "@/registry/components/data/info-list";
+import { PeopleGrid } from "@/registry/components/data/people-grid";
+import { ProgressTimeline } from "@/registry/components/data/progress-timeline";
+import { RegistrationCard } from "@/registry/components/data/registration-card";
+import { ScheduleList } from "@/registry/components/data/schedule-list";
 
 import { demoEvent, demoNow } from "./event-fixture";
 
@@ -151,7 +151,7 @@ export function EventDetailPage01() {
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 lg:grid-cols-3">
           {/* Main column */}
           <div className="space-y-12 lg:col-span-2">
-            <ProgressTimeline01
+            <ProgressTimeline
               start={event.registrationOpensAt}
               end={event.registrationClosesAt}
               now={now}
@@ -173,13 +173,13 @@ export function EventDetailPage01() {
               >
                 Etkinlik Hakkında
               </h2>
-              <ArticleBodyViewer
+              <RichTextViewer
                 value={event.body}
                 className="prose-lg text-muted-foreground"
               />
             </section>
 
-            <ScheduleList01
+            <ScheduleList
               heading="Program"
               items={event.schedule}
               labels={{
@@ -188,7 +188,7 @@ export function EventDetailPage01() {
               }}
             />
 
-            <PeopleGrid01
+            <PeopleGrid
               heading="Konuşmacılar"
               items={event.speakers}
               columns={3}
@@ -199,7 +199,7 @@ export function EventDetailPage01() {
           {/* Sidebar */}
           <aside className="lg:col-span-1">
             <div className="sticky top-20 space-y-6">
-              <RegistrationCard01
+              <RegistrationCard
                 heading="Kayıt Durumu"
                 capacity={event.capacity}
                 registered={event.registered}
@@ -221,7 +221,7 @@ export function EventDetailPage01() {
                 }}
               />
 
-              <InfoList01
+              <InfoList
                 heading="Etkinlik Bilgileri"
                 variant="comfortable"
                 items={[
@@ -255,7 +255,7 @@ export function EventDetailPage01() {
                 ]}
               />
 
-              <InfoList01
+              <InfoList
                 heading="İletişim"
                 variant="compact"
                 items={[
@@ -279,7 +279,7 @@ export function EventDetailPage01() {
                 ]}
               />
 
-              <InfoList01
+              <InfoList
                 heading="Gerekli Belgeler"
                 variant="compact"
                 separated={false}

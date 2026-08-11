@@ -43,7 +43,7 @@ If none hold, a single sealed component (the `data-table` shape) is fine — don
 
 ## Worked example
 
-`media-library-01` (2026-06-09) is the reference implementation: `MediaLibraryRoot` (provider + DndContext + handle) + ~10 flat context parts (`MediaLibraryQuotaBar` / `…TypeFilters` / `…FolderRow` / `…FileGrid` / `…DetailsPane` / `…Lightbox` / …) + standalone primitives (`FilePreview`, `QuotaBar`, `FileCard`) + `MediaLibrary01` assembly. The four file viewers are `React.lazy`. Its demo has a "Lighter (composed)" tab proving the subset path. See [`docs/procomps/media-library-01-procomp/`](../../docs/procomps/media-library-01-procomp/).
+`media-library` (2026-06-09) is the reference implementation: `MediaLibraryRoot` (provider + DndContext + handle) + ~10 flat context parts (`MediaLibraryQuotaBar` / `…TypeFilters` / `…FolderRow` / `…FileGrid` / `…DetailsPane` / `…Lightbox` / …) + standalone primitives (`FilePreview`, `QuotaBar`, `FileCard`) + `MediaLibrary` assembly. The four file viewers are `React.lazy`. Its demo has a "Lighter (composed)" tab proving the subset path. See [`docs/procomps/media-library-procomp/`](../../docs/procomps/media-library-procomp/).
 
 ## Cross-references
 
@@ -53,4 +53,4 @@ If none hold, a single sealed component (the `data-table` shape) is fine — don
 
 ---
 
-**Established:** 2026-06-10 (after the `media-library-01` build). **Authority:** Binding for multi-part artifacts added after this date. Single-unit components are exempt.
+**Established:** 2026-06-10 (after the `media-library` build). **Authority:** Binding for multi-part artifacts added after this date. Single-unit components are exempt.

@@ -2,11 +2,11 @@
 
 > Stage 1: what & why. The "should we build this at all?" doc.
 >
-> **Greenfield component.** Not a migration. First component in a "code surface" family. Anticipated future siblings: `code-diff` (split / unified diff view), `notebook` (multi-cell variant), `terminal-emulator` (true xterm.js wrapper for live shells). `code-block` lands first because it is the substrate every chat / docs / rich-card surface needs *now*, and its decisions (substrate, theming, callback shapes, header/footer slot grammar) will lock in for the family.
+> **Greenfield component.** Not a migration. First component in a "code surface" family. Anticipated future siblings: `code-diff` (split / unified diff view), `notebook` (multi-cell variant), `terminal-emulator` (true xterm.js wrapper for live shells). `code-block` lands first because it is the substrate every chat / docs / card-tree surface needs *now*, and its decisions (substrate, theming, callback shapes, header/footer slot grammar) will lock in for the family.
 
 ## Problem
 
-Every internal surface that displays code — chat panels, docs sites, markdown editors, rich-card content sections, JSON viewers, log readers, snippet libraries, API explorers, virtual terminals, error-trace renderers — needs the same surface: **a syntax-highlighted, themed, chrome-wrapped code block with a header (filename + language + actions), a body (line numbers, wrap/scroll, optional line highlights), and a footer (caption / status), behaving sensibly in light + dark and at any width**.
+Every internal surface that displays code — chat panels, docs sites, markdown editors, card-tree content sections, JSON viewers, log readers, snippet libraries, API explorers, virtual terminals, error-trace renderers — needs the same surface: **a syntax-highlighted, themed, chrome-wrapped code block with a header (filename + language + actions), a body (line numbers, wrap/scroll, optional line highlights), and a footer (caption / status), behaving sensibly in light + dark and at any width**.
 
 Today's options all fail one way:
 
@@ -15,9 +15,9 @@ Today's options all fail one way:
 - **`react-shiki` / `bright` / `next-mdx-remote`'s shiki integration** — all good highlighters but each is highlighter-only. None ship the *block* (chrome + actions + footer). Each comes with a different SSR / RSC / streaming story, often forcing the consumer to pick one for their whole app.
 - **shadcn / Radix primitives** — there is no `code-block`. Closest is `<pre>` styling in `typography` blocks; that is read-only, themeless, and offers zero affordances.
 - **MDX `<CodeBlock>` recipes scattered in design-system docs** — every team copy-pastes from the Vercel, Tailwind, or Radix docs site, then drifts. None are reusable across consumers.
-- **Per-app rebuilds** — what teams actually do today. The result: chat panels render code one way, docs renders another, rich-card content cards render a third, virtual terminals render a fourth — each with subtly different copy UX, different theme handling, different long-line behavior, different streaming/re-render perf, different a11y.
+- **Per-app rebuilds** — what teams actually do today. The result: chat panels render code one way, docs renders another, card-tree content cards render a third, virtual terminals render a fourth — each with subtly different copy UX, different theme handling, different long-line behavior, different streaming/re-render perf, different a11y.
 
-This component closes that gap with one opinionated, themeable, chrome-complete code surface that drops into chat messages, MD renderers, JSON viewers, terminal-style readouts, rich-card content sections, and any other "show some code" need — same look-and-feel, same affordances, same a11y, same theming, same callback grammar, in either view or edit mode.
+This component closes that gap with one opinionated, themeable, chrome-complete code surface that drops into chat messages, MD renderers, JSON viewers, terminal-style readouts, card-tree content sections, and any other "show some code" need — same look-and-feel, same affordances, same a11y, same theming, same callback grammar, in either view or edit mode.
 
 ## In scope
 
@@ -84,7 +84,7 @@ Explicitly deferred. Each is real demand we choose not to address now to keep sc
 
 - **Chat panels** (in-flight `chat-panel` from active queue) — render assistant responses with code blocks. Streaming-friendly; copy button per block; filename when assistant suggests a file path. Most demanding consumer — drives the streaming + theming + chrome design.
 - **Markdown viewers + editors** (existing `markdown-editor`, future `markdown-viewer`) — render fenced code blocks (` ```ts ... ``` `) inline. Filename from `lang:filename` syntax (e.g., ` ```ts:app.tsx`).
-- **Rich-card "code section"** (existing `rich-card`) — composed inside rich-card as a content-section type. The user explicitly cited this as a primary use case.
+- **Rich-card "code section"** (existing `card-tree`) — composed inside card-tree as a content-section type. The user explicitly cited this as a primary use case.
 - **JSON / config viewers** — pretty-printed JSON / YAML / TOML with copy + line numbers.
 - **API explorers** — request / response code samples; runnable via consumer-supplied actions.
 - **Snippet libraries** — reusable code snippets with copy + filename.
@@ -197,14 +197,14 @@ The consumer is a **frontend dev with code content (a string + a language) and t
   value={shellOutput}
 />
 
-// Inside rich-card "code" section
-<RichCard>
-  <RichCard.Body>
-    <RichCard.Section type="code">
+// Inside card-tree "code" section
+<CardTree>
+  <CardTree.Body>
+    <CardTree.Section type="code">
       <CodeBlock lang="ts" value={code} />
-    </RichCard.Section>
-  </RichCard.Body>
-</RichCard>
+    </CardTree.Section>
+  </CardTree.Body>
+</CardTree>
 
 // RSC pre-tokenized (server-rendered, zero client-shiki)
 import { CodeBlock } from '@ilinxa/code-block/server';
@@ -244,7 +244,7 @@ A settings or API-explorer surface needs to show JSON pretty-printed with line n
 
 **4. Rich-card "code" section (the explicitly-cited primary case)**
 
-`rich-card` already supports section types. Adding a `'code'` section type that renders `<CodeBlock>` internally gives content authors a first-class way to embed code samples in cards. Filename, lang, line highlights all configurable per section. Inherits rich-card's section spacing + theming. This is composition: code-block lands as the substrate; rich-card v0.5 (or v0.4.x patch) adds `type: 'code'` to its section discriminator.
+`card-tree` already supports section types. Adding a `'code'` section type that renders `<CodeBlock>` internally gives content authors a first-class way to embed code samples in cards. Filename, lang, line highlights all configurable per section. Inherits card-tree's section spacing + theming. This is composition: code-block lands as the substrate; card-tree v0.5 (or v0.4.x patch) adds `type: 'code'` to its section discriminator.
 
 **5. Virtual terminal — install / deploy walkthrough**
 
@@ -292,7 +292,7 @@ The component is "done" when:
 
 > Each question has a recommended starting position. Reviewer should mark each open-question with their preferred resolution OR push back on the recommendation.
 
-1. **Slug — `code-block` or `code-window`?** Existing pattern is mixed: composed-surface flagships drop the `-01` suffix (`data-table`, `markdown-editor`, `pdf-viewer`, `file-tree`); pattern-style numbered variants keep it (`media-carousel-01`, `kanban-board-01`). `code-block` is what the world calls this surface (Markdown, ChatGPT, Claude, Notion, GitHub all call it a "code block"). `code-window` would emphasize the chrome-wrapped framing but is less universal terminology. **Recommendation:** `code-block` (no `-01` suffix) — flagship primitive, anticipated to be referenced by name not numbered, aligned with `data-table` / `pdf-viewer` / `file-tree` / `markdown-editor` precedent.
+1. **Slug — `code-block` or `code-window`?** Existing pattern is mixed: composed-surface flagships drop the `-01` suffix (`data-table`, `markdown-editor`, `pdf-viewer`, `file-tree`); pattern-style numbered variants keep it (`media-carousel`, `kanban-board`). `code-block` is what the world calls this surface (Markdown, ChatGPT, Claude, Notion, GitHub all call it a "code block"). `code-window` would emphasize the chrome-wrapped framing but is less universal terminology. **Recommendation:** `code-block` (no `-01` suffix) — flagship primitive, anticipated to be referenced by name not numbered, aligned with `data-table` / `pdf-viewer` / `file-tree` / `markdown-editor` precedent.
 
 2. **Category — `data`, `media`, or new `code`?** Code is technically content / data; pdf-viewer + video-player live in `media`. The closest categorical analogue is `media` (chrome-wrapped foreign-content renderer), but code is closer to text than to media. New `code` category would set up future siblings (`code-diff`, `terminal-emulator`, `notebook`) cleanly, mirroring how `navigation` was added for `file-tree` + future `command-palette`. **Recommendation:** new `code` category. Same precedent as the `navigation` decision two days ago for file-tree. Updating `categories.ts` is a 2-line edit.
 
@@ -353,7 +353,7 @@ The component is "done" when:
 
 28. **Run callback — slot only, or also a built-in `<RunButton>` part?** Earlier in scope I declared run is slot-only. Confirming. **Recommendation:** **slot-only via `actions`**. No built-in run button. Keeps code-block pure-presentational.
 
-29. **Should we export a hook (`useCodeBlock` / `useShikiTokens`) for advanced consumers?** Useful for building custom layouts that need access to tokens but not the full chrome. **Recommendation:** **defer to v0.2.0**. v0.1.0 ships components only. If real demand surfaces (rich-card asks for tokens to render its own chrome), revisit.
+29. **Should we export a hook (`useCodeBlock` / `useShikiTokens`) for advanced consumers?** Useful for building custom layouts that need access to tokens but not the full chrome. **Recommendation:** **defer to v0.2.0**. v0.1.0 ships components only. If real demand surfaces (card-tree asks for tokens to render its own chrome), revisit.
 
 30. **Test fixtures for streaming — how do we manually verify append-only tokenization?** Developer affordance only — not user-facing. **Recommendation:** include a "stream simulator" toggle in the demo (button labeled "Replay streaming") that emits the value in 10-char chunks at 50 ms intervals; demo shows tokenization stays smooth (no full-block flicker on each chunk).
 

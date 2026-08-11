@@ -6,7 +6,7 @@
  * sub-shapes audited per slug:
  *
  *   (a) Version drift — `meta.npm[pkg]` range differs from producer's
- *       `package.json`. Catches wrong-major (rich-card `@dnd-kit/sortable`
+ *       `package.json`. Catches wrong-major (card-tree `@dnd-kit/sortable`
  *       declared `^11.x`, producer has `^10.0.0`) and non-standard semver.
  *
  *   (b) Phantom npm dep — `meta.npm[pkg]` declared but no shipped source
@@ -149,8 +149,8 @@ function shadcnPrimitiveFromImport(path) {
 
 // Extract internal-registry slug from cross-folder import paths.
 // Producer-side sources use the project-relative form:
-//   "@/registry/components/data/expandable-text-01"     → "expandable-text-01"
-//   "@/registry/components/data/expandable-text-01/..." → "expandable-text-01"
+//   "@/registry/components/data/expandable-text"     → "expandable-text"
+//   "@/registry/components/data/expandable-text/..." → "expandable-text"
 // Consumer-facing (post-shadcn-build) form, also accepted:
 //   "@ilinxa/code-block"                                → "code-block"
 function internalSlugFromImport(path) {
@@ -193,7 +193,7 @@ function findImports(content) {
   return paths;
 }
 
-// Resolve a raw-relative import (e.g., "../../video-player-01") against an
+// Resolve a raw-relative import (e.g., "../../video-player") against an
 // importing file's path. Returns the sibling slug if the resolved path lands
 // inside `src/registry/components/<cat>/<slug>/...`, otherwise null.
 function relativeSiblingSlugFromImport(importPath, importerFile) {

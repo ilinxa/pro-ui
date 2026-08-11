@@ -384,7 +384,7 @@ export const meta: ComponentMeta = {
     npm: { "lucide-react": "^1.11.0" },
     internal: [],
   },
-  related: ["data-table", "content-card-news-01"],
+  related: ["data-table", "news-card"],
 };
 ```
 
@@ -426,7 +426,7 @@ No charting library. No internal registry-component composition. Sparkline is bu
 - **Slot pattern** for `renderValue` and `renderTrend` — full-takeover escape hatches; default behavior is opinionated.
 - **Polymorphic root** via `linkComponent + href`. When both supplied: overlay-link pattern (transparent `<linkComponent>` covers the `<dl>`, intercepting clicks while letting nested elements stay reachable). When neither supplied: passive `<dl>` with no focus ring.
 - **Headless+presentation NOT used.** State is purely controlled (loading from consumer); there is no headless API to extract.
-- **Sub-component sibling export** (`StatCardSparkline`) for the sparkline part — pattern from engagement-bar-01's `EngagementHeartBurst`. Consumers wanting just a sparkline outside a card import it directly.
+- **Sub-component sibling export** (`StatCardSparkline`) for the sparkline part — pattern from engagement-bar's `EngagementHeartBurst`. Consumers wanting just a sparkline outside a card import it directly.
 - **Render-prop signatures use object shape** (per F-cross-12): `renderValue({ value, loading })`, `renderTrend({ data, variant })`.
 
 ## Client vs server
@@ -536,7 +536,7 @@ This is the same checklist `docs/component-guide.md §13` enumerates; reproduced
 1. **Default-format convention footgun** — Consumer passes `delta.value = 12.4` thinking "12.4 percent change" but default format multiplies by 100, rendering "1240%". Mitigation: prominent doc note in usage.tsx + JSDoc on the `value` field; default format opts the consumer into the convention (override via `format` for non-percent units). Acceptable risk; the convention is internally consistent (matches `Intl.NumberFormat` percent style).
 2. **Sparkline rendering at large N** — 200+ data points would create 200 path segments. Mitigated by 100-point cap with uniform sampling. Cost of sampling is O(N) one-time at render; bundle stays small.
 3. **`betterIsHigher` boolean is binary** — what about metrics where neither up nor down is intrinsically good (e.g., user count for a B2B company where both growth and stability are valid)? Mitigation: omit `delta` entirely OR pass `delta.value === 0` (renders neutral). v0.2 candidate: `betterIsHigher: "neutral"` if real demand surfaces.
-4. **Variant prop bloat** — adding more variants (e.g., "row" for table-row use) widens the discriminated union; consumer switches need a default fallback (per the F-cross-12 lessons grid-layout-news-01 documented). Acceptable; v0.2 widens with care.
+4. **Variant prop bloat** — adding more variants (e.g., "row" for table-row use) widens the discriminated union; consumer switches need a default fallback (per the F-cross-12 lessons magazine-layout documented). Acceptable; v0.2 widens with care.
 5. **Loading state skeleton shape mismatch** — if the skeleton doesn't EXACTLY match the loaded layout, CLS > 0. Mitigation: skeleton uses the same DOM shape as the loaded card with `<Skeleton>` blocks substituted in; height-locked with `min-h-[N]rem` per variant.
 
 ### Alternatives considered
@@ -545,7 +545,7 @@ This is the same checklist `docs/component-guide.md §13` enumerates; reproduced
 - **`polarity: "positive" | "negative"` enum instead of `betterIsHigher: boolean`.** Rejected as ambiguous (description Stage 1 audit, fix #2). Boolean is unambiguous.
 - **`direction` as a public prop on delta** (auto-derived from sign by default; consumer override). Rejected as redundant with sign of `value`. Internal-only computation now.
 - **Charting library peer dep** (recharts / visx / chart.js for the sparkline). Rejected: ~30-line pure SVG covers the case; consumers wanting fancier charts use `renderTrend` slot.
-- **Standalone `<Sparkline>` registry component** (not a sub-export of stat-card). Rejected: single registry component that pairs cleanly with stat-card is simpler than two separate registry items; the sub-export pattern (engagement-bar-01 precedent) handles the standalone use case.
+- **Standalone `<Sparkline>` registry component** (not a sub-export of stat-card). Rejected: single registry component that pairs cleanly with stat-card is simpler than two separate registry items; the sub-export pattern (engagement-bar precedent) handles the standalone use case.
 - **Polymorphic root via the `as` prop pattern** (`as?: ElementType`). Rejected: stat-card has a strong semantic shape (`<dl>`); consumers wanting different markup write their own. The polymorphism we DO want is in the link wrapper, handled via `linkComponent`.
 - **Built-in real-time / live-counter** (internal `setInterval` ticker). Rejected per description out-of-scope. Pure presentation.
 

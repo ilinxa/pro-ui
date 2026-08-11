@@ -303,7 +303,7 @@ const schema = useMemo<ReadonlyArray<PropertiesFormField>>(() => buildSchema(fea
 <PropertiesForm schema={[/* ... */]} ... />
 ```
 
-This is the same footgun pattern as `data-table` columns, `entity-picker` items, `markdown-editor` candidates, `filter-stack` categories.
+This is the same footgun pattern as `data-table` columns, `entity-picker` items, `markdown-editor` candidates, `filter-panel` categories.
 
 ### `values` must be controlled (or memoized stable)
 
@@ -526,5 +526,5 @@ Then import from `@/components/properties-form`.
 - `detail-panel` — the canonical inline-editing host for this form
 - `entity-picker` — common companion for typed reference fields (use as a custom `renderer`)
 - `markdown-editor` — heavy "rich-text field" replacement when `textarea` isn't enough
-- `filter-stack` — sibling forms component for filter-bar composition
-- `rich-card` — when the records you're editing are hierarchical (cards-of-fields), not flat
+- `filter-panel` — sibling forms component for filter-bar composition
+- `card-tree` — when the records you're editing are hierarchical (cards-of-fields), not flat

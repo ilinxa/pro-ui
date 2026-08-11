@@ -6,7 +6,7 @@ export const meta: ComponentMeta = {
   category: "media",
 
   description:
-    "Drop-in PDF reader with toolbar, zoom, selectable text, drag-drop, and right-click context menu — themed to your design system, no commercial SDK.",
+    "Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu. No commercial SDK.",
   context:
     "Use anywhere a `File`, URL, `Blob`, or `ArrayBuffer` needs inline rendering — case management, contract review, knowledge bases, asset libraries, e-sign confirmations, attachment viewers. Continuous-scroll layout with native text selection via pdf.js text-layer; clickable embedded links via the annotation-layer.",
   features: [
@@ -37,7 +37,7 @@ export const meta: ComponentMeta = {
     "pdfjs",
   ],
 
-  version: "0.1.4",
+  version: "0.1.5",
   status: "alpha",
   createdAt: "2026-05-10",
   updatedAt: "2026-08-11",
@@ -63,5 +63,5 @@ export const meta: ComponentMeta = {
     internal: [],
   },
 
-  related: ["media-carousel-01", "story-viewer-01", "video-player-01"],
+  related: ["media-carousel", "story-viewer", "video-player"],
 };

@@ -15,7 +15,7 @@ export default function Home() {
           className="reveal-up font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground"
           style={{ animationDelay: "0ms" }}
         >
-          ilinxa-ui-pro
+          ilinxa pro-ui
         </p>
         <h1
           className="reveal-up text-balance text-5xl font-semibold tracking-tight text-foreground sm:text-6xl"
@@ -98,7 +98,7 @@ export default function Home() {
             </div>
             <pre className="overflow-x-auto rounded-md border border-border bg-card p-4 font-mono text-sm leading-relaxed text-foreground">
               <code>{`"registries": {
-  "@ilinxa": "https://ilinxa-proui.vercel.app/r/{name}.json"
+  "@ilinxa": "https://ui.ilinxa.com/r/{name}.json"
 }`}</code>
             </pre>
           </li>

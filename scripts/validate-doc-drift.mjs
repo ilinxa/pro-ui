@@ -25,6 +25,7 @@ const expected = new Set(
     .filter(
       (i) => !(i.files?.[0]?.target ?? "").startsWith("components/_shared"),
     )
+    .filter((i) => !i.meta?.deprecated) // P2.3 alias redirects are not catalog entries
     .map((i) => i.name),
 );
 

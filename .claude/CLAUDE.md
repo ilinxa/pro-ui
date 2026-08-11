@@ -41,7 +41,7 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 - `meta.ts` must populate every required `ComponentMeta` field. The scaffolder generates a stub with today's date.
 - Categories live in `src/registry/categories.ts`. Adding one requires updating `ComponentCategorySlug` and `CATEGORIES`.
 - Adding a component to the docs site requires a 3-line edit to `src/registry/manifest.ts` — the scaffolder prints the exact lines.
-- **Registry distribution:** [`registry.json`](../registry.json) at repo root drives `https://ilinxa-proui.vercel.app/r/<slug>.json`. TWO items per component: base + `<slug>-fixtures` (adds only `dummy-data.ts`). Locked: every file `type: "registry:component"`, `target: "components/<slug>/<sub-path>"`; never ship `demo.tsx` / `usage.tsx` / `meta.ts`. `pnpm vercel-build` regenerates artifacts + the llms/README catalog each deploy. Skill: [shadcn-registry-pro](skills/shadcn-registry-pro/).
+- **Registry distribution:** [`registry.json`](../registry.json) at repo root drives `https://ui.ilinxa.com/r/<slug>.json`. TWO items per component: base + `<slug>-fixtures` (adds only `dummy-data.ts`). Locked: every file `type: "registry:component"`, `target: "components/<slug>/<sub-path>"`; never ship `demo.tsx` / `usage.tsx` / `meta.ts`. `pnpm vercel-build` regenerates artifacts + the llms/README catalog each deploy. Skill: [shadcn-registry-pro](skills/shadcn-registry-pro/).
 
 ## Workflow
 0. **(Migration intake — only if porting from another app)** `pnpm new:migration <slug>` scaffolds `docs/migrations/<slug>/`; user fills `original/` + `source-notes.md`, assistant writes `analysis.md`, user signs off before Stage 1. See [docs/migrations/README.md](../docs/migrations/README.md).
@@ -65,7 +65,7 @@ For human-readable rules and a worked end-to-end example, see [docs/component-gu
 - Demos and Usage are React components today (`usage.tsx`). MDX is not wired up.
 
 ## Design system mandate
-Hold the line on tokens defined in [src/app/globals.css](src/app/globals.css):
+Hold the line on tokens defined in [src/app/globals.css](../src/app/globals.css):
 - **Fonts:** Onest (sans), JetBrains Mono (mono). Never Inter / Roboto / Geist / system-font defaults.
 - **Accent:** signal-lime — `oklch(0.80 0.20 132)` light / `oklch(0.86 0.18 132)` dark. Always paired with near-black `--primary-foreground` (lime is too bright for white text).
 - **Light backgrounds:** never pure white as the page background. Use cool off-white `oklch(0.975 0.003 250)` for `--background`; lift `--card` and `--popover` to pure white so raised surfaces visibly sit above the canvas.
@@ -93,13 +93,13 @@ Full tier model + per-tier gate specifics: [docs/library-tiers-charter.md](../do
 ## Rules
 - **IMPORTANT — Subagent models:** Opus 4.8[1m] or Sonnet 5[1m] only; **never Opus 5** (doesn't follow rules); cheap tiers for bulk jobs need verification. Full rule: [rules/subagent-model-policy.md](rules/subagent-model-policy.md).
 - **IMPORTANT — Readiness review (GATE 3):** every new library artifact MUST pass a structured review, verdict ≥ `Pass with follow-ups`, before push to `master`. The core rule auto-loads from [rules/readiness-review.md](rules/readiness-review.md); full spec at [docs/reviews/readiness-review-spec.md](../docs/reviews/readiness-review-spec.md).
-- **IMPORTANT — Compound structure for big components:** Any multi-part artifact (≥3 mountable regions, composes another procomp, pulls a heavy dep, or a consumer could want a subset) MUST ship as a shadcn-style compound — headless `Root` provider + flat à-la-carte parts + standalone primitives + a logic-free `<Name>` assembly; flat exports (never `Name.Root`); heavy deps `React.lazy`. Single-unit widgets are exempt. Full rule (path-scoped) at [.claude/rules/compound-component-structure.md](rules/compound-component-structure.md). Reference impl: `media-library-01`.
+- **IMPORTANT — Compound structure for big components:** Any multi-part artifact (≥3 mountable regions, composes another procomp, pulls a heavy dep, or a consumer could want a subset) MUST ship as a shadcn-style compound — headless `Root` provider + flat à-la-carte parts + standalone primitives + a logic-free `<Name>` assembly; flat exports (never `Name.Root`); heavy deps `React.lazy`. Single-unit widgets are exempt. Full rule (path-scoped) at [.claude/rules/compound-component-structure.md](rules/compound-component-structure.md). Reference impl: `media-library`.
 
 ## Progress tracking
-Read [.claude/STATUS.md](.claude/STATUS.md) at session start to see where the project is. STATUS.md is the current snapshot — not a changelog. The active master plan (phases, locked decisions, loops) is [docs/production-readiness-plan.md](../docs/production-readiness-plan.md). When you ship a component / change a status / make a non-obvious decision worth keeping:
+Read [.claude/STATUS.md](STATUS.md) at session start to see where the project is. STATUS.md is the current snapshot — not a changelog. The active master plan (phases, locked decisions, loops) is [docs/production-readiness-plan.md](../docs/production-readiness-plan.md). When you ship a component / change a status / make a non-obvious decision worth keeping:
 
 - **Update STATUS.md** for state changes (Components table row, version bump, Open decisions/TODOs).
 - **Author a per-decision file** at [.claude/decisions/](decisions/)`<YYYY-MM-DD>-<slug>.md` with YAML frontmatter (`date / session / phase / type / commits / components / findings / status`) — convention at [.claude/decisions/README.md](decisions/README.md).
 - **Update the "Recent activity" pointer list** at the bottom of STATUS.md to surface the new decision file (keep ~5 most-recent).
 
-Pre-2026-05-09 history is in [.claude/STATUS-archive.md](.claude/STATUS-archive.md) (frozen; do not extend). The split was option (b3) hybrid per F-cross-02 closure — see [.claude/decisions/2026-05-09-session-7d-phase-6.md](decisions/2026-05-09-session-7d-phase-6.md).
+Pre-2026-05-09 history is in [.claude/STATUS-archive.md](STATUS-archive.md) (frozen; do not extend). The split was option (b3) hybrid per F-cross-02 closure — see [.claude/decisions/2026-05-09-session-7d-phase-6.md](decisions/2026-05-09-session-7d-phase-6.md).

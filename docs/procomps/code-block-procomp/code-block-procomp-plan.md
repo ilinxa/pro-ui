@@ -953,7 +953,7 @@ The docs-site demo organizes into 8 sections, each demonstrating a specific capa
 5. **Terminal mode** — Structured `lines: TerminalLine[]` array showing `pnpm install` → output → `pnpm dev` → output. `showTrafficLights={true}` + `filename="zsh"`. Demonstrates the virtual-terminal use case.
 6. **Edit mode** — Controlled `<CodeBlock mode="edit">` with starter TS code. `onSave` wired to a toast "Saved." Demonstrates the edit / playground use case + theme continuity with view mode.
 7. **Custom header (run button)** — `renderHeader` slot example with a "Run" button in `actions`. Demonstrates the slot pattern.
-8. **Inside rich-card-style composition** — A faux rich-card wrapper showing how the block lives inside a content card. Documents the primary integration point.
+8. **Inside card-tree-style composition** — A faux card-tree wrapper showing how the block lives inside a content card. Documents the primary integration point.
 
 Each section has a short caption explaining the demonstrated capability.
 
