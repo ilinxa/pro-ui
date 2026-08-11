@@ -31,7 +31,9 @@
 pnpm dlx shadcn@latest add @ilinxa/media-editor
 ```
 
-Adds: **38 source files**, 2 peer deps (`konva ^10.3.0` + `react-konva ^19.2.4`), 1 shadcn primitive (`dialog`).
+Adds the base editor (file/gallery intake, edit canvas, all six tools, export): peer deps `konva ^10.3.0` + `react-konva ^19.2.4` + `lucide-react`, shadcn primitives `dialog` / `alert-dialog` / `popover` / `button` / `slider`.
+
+Camera capture is a separate opt-in item, `@ilinxa/media-editor-capture` — see [Feature slices](#feature-slices-p3-2026-08-11) below.
 
 Optional fixtures item (`@ilinxa/media-editor-fixtures`) ships sample initial sources + a brand-pack sticker set for demos.
 
@@ -279,6 +281,30 @@ const out = await editorRef.current.export();
 > in-UI camera controls in v0.1.x; programmatic capture lands in v0.2. Everything
 > else on the handle (inspect / state / edit-overlay mutation / export /
 > lifecycle) is fully wired.
+
+## Feature slices (P3, 2026-08-11)
+
+Camera capture ships as a separate, opt-in registry item — `@ilinxa/media-editor-capture` — not bundled into the base install.
+
+**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **282.0KB**. `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.5KB**. Combined they replace the pre-split single artifact (**315KB**). `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
+
+**Injection wiring.** Base owns the extension type + context (`hooks/use-capture-extension.ts`) and the optional `capture?: MediaCaptureExtension` prop; it never statically imports the feature package — the camera-shaped types it needs (`CapturedPhotoLike`, `MediaCaptureSurfaceProps`, …) are structurally duplicated in base rather than imported, so the base folder carries zero static dependency on `features/capture/`.
+
+```tsx
+import { MediaEditor } from "@/components/media-editor"
+import { mediaCapture } from "@/components/media-editor/features/capture"
+
+<MediaEditor mediaSources={["camera", "upload"]} capture={mediaCapture} />
+```
+
+**Negative path.** `mediaSources` includes `"camera"` but no `capture` extension is wired (feature not installed, or intentionally omitted) → one dev-only `console.warn` (`media-editor: mediaSources includes "camera" but no capture extension is wired — install @ilinxa/media-editor-capture and pass capture={mediaCapture} …`) and the editor falls back to the base file/gallery intake surface — pick a file → edit → export still works end-to-end; only the camera viewfinder is unavailable.
+
+**Upgrade recipe.** Same pattern as `event-calendar`'s editing slice (shared P3 mechanics — see the registry-mechanics evidence in `docs/plans/p3-feature-slicing-plan.md` §R1):
+- **Pristine base already installed** → `pnpm dlx shadcn@latest add @ilinxa/media-editor-capture` lands cleanly: 8 feature files created, base files byte-identical and untouched.
+- **Locally-modified base** → the capture item's `registryDependencies: ["@ilinxa/media-editor"]` re-resolves base files too, so the CLI prompts per differing base file. Answer `n` at each prompt — that file is skipped, the run continues, and the capture feature's own files still land.
+- **Non-interactive upgrade onto a modified base** (`--yes` in CI, or any unattended run) is a **known phantom no-op**: the prompt hits EOF, the whole run aborts silently at exit 0, and nothing is written — including the feature's own non-colliding files. Shared with the existing base+`-fixtures` pattern, not new here. Install onto a pristine base or run interactively instead.
+
+**story-composer compat band.** `story-composer` still re-exports 8 v0.1.5-era names (`ComposerCamera`, `ComposerEditor`, `ColorSwatchPicker`, their prop types, …) that now resolve through `@ilinxa/media-editor` / `@ilinxa/media-editor-capture` internally — see [`story-composer-v0.1.5-exports.snapshot.txt`](./story-composer-v0.1.5-exports.snapshot.txt) (the historical v0.1.5 contract snapshot, left as-is). That band had drifted to a bare `@deprecated` with no announced removal version, in violation of the snapshot's own "must still resolve" contract; the 2026-08-11 P3 review (finding MED-2) restored it with a real schedule — **removal in v0.5.0** — so downstream consumers get one more full minor version of notice before the aliases disappear.
 
 ## Footguns
 

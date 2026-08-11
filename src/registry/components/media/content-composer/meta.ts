@@ -20,6 +20,7 @@ export const meta: ComponentMeta = {
     "Shell owns upload (uploader / uploadUrl); lazy upload-on-publish",
     "Inline / dialog / auto presentation",
     "Multi-media post step (v0.2): `mediaCarouselSlot` backed by carousel-composer — drop/browse N mixed photo+video, reorder, per-item edit (news keeps the single mediaSlot)",
+    "v0.3.1 — mediaSlot's MediaEditor mount wires the `@ilinxa/media-editor-capture` extension (news hero step enables camera intake); no public-API change.",
   ],
   tags: [
     "content-composer",
@@ -31,8 +32,9 @@ export const meta: ComponentMeta = {
     "shell",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
+  artifactBudgetKB: 180,
   createdAt: "2026-06-04",
   updatedAt: "2026-08-11",
 

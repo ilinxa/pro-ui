@@ -3,7 +3,6 @@
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { format, isSameDay, isSameMonth, startOfDay } from "date-fns";
-import { useDroppable } from "@dnd-kit/core";
 import {
   Popover,
   PopoverContent,
@@ -11,6 +10,8 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
+import { useCalendarEditOptional } from "../hooks/use-calendar-edit-extension";
+import type { CalendarEditContextValue } from "../hooks/use-calendar-edit-extension";
 import { layoutMonthWeek, occurrencesOnDay } from "../lib/segments";
 import { monthGrid } from "../lib/date-range";
 import {
@@ -18,7 +19,6 @@ import {
   CalendarEventChip,
   EventHoverWrap,
 } from "./calendar-event";
-import { DraggableEventWrap } from "./calendar-edit-affordances";
 import type { CalendarOccurrence, TaskItem } from "../types";
 
 const DEFAULT_CAP = 3;
@@ -26,8 +26,9 @@ const LANE_H = "1.3rem";
 
 /** One month-grid day cell (Tier C). Renders the cell chrome + day number +
  *  the "+N more" affordance; spanning events are overlaid by the view. The
- *  editable view passes `dropRef`/`isOver` (a @dnd-kit droppable) + a create
- *  click; read-only consumers omit them and the cell stays context-free. */
+ *  editing feature's `DroppableDayCell` passes `dropRef`/`isOver` (a
+ *  `@dnd-kit` droppable) + a create click; read-only consumers omit them and
+ *  the cell stays context-free. */
 export function MonthDayCell({
   day,
   outside,
@@ -144,48 +145,9 @@ function DayList({
   );
 }
 
-/** Editable droppable wrapper around a day cell (Tier B — editable only). */
-function DroppableDayCell(props: {
-  day: Date;
-  outside: boolean;
-  today: boolean;
-  hidden: number;
-  hiddenItems: CalendarOccurrence[];
-  onShowMore?: (d: Date, items: TaskItem[]) => void;
-}) {
-  const { createItem, quickCompose, openComposer } = useCalendar();
-  const dayMs = startOfDay(props.day).getTime();
-  const { setNodeRef, isOver } = useDroppable({
-    id: `day:${dayMs}`,
-    data: { dayMs },
-  });
-  return (
-    <MonthDayCell
-      {...props}
-      dropRef={setNodeRef}
-      isOver={isOver}
-      creatable
-      onDayDoubleClick={(d, e) => {
-        const startMs = startOfDay(d).getTime();
-        if (quickCompose) {
-          openComposer({
-            date: new Date(startMs),
-            allDay: true,
-            defaultEnd: new Date(startMs),
-            x: e.clientX,
-            y: e.clientY,
-          });
-        } else {
-          createItem(null, undefined, { startMs, allDay: true });
-        }
-      }}
-    />
-  );
-}
-
 /** Month view (Tier B). 7-column weekday grid; multi-day spanning bars + chips
- *  in lanes, "+N more" overflow per day. Editable: drag-to-reschedule (whole
- *  days), all-day bar resize, click-to-create, hover-delete. */
+ *  in lanes, "+N more" overflow per day. Editing (when the extension is
+ *  wired): drag-to-reschedule (whole days), all-day bar resize, click-to-create. */
 export function CalendarMonthView({ className }: { className?: string }) {
   const ctx = useCalendar();
   const {
@@ -200,10 +162,8 @@ export function CalendarMonthView({ className }: { className?: string }) {
     onDateClick,
     onShowMore,
     renderTooltip,
-    editable,
-    can,
-    resizePreview,
   } = ctx;
+  const edit = useCalendarEditOptional();
 
   const weeks = monthGrid(focusDate, weekStartsOn);
   const weeksCount = weeks.length;
@@ -239,7 +199,8 @@ export function CalendarMonthView({ className }: { className?: string }) {
   }, [maxEventsPerCell, weeksCount]);
 
   const cap = maxEventsPerCell ?? responsiveCap;
-  // Apply the live resize preview to the occurrence being dragged.
+  // Apply the live resize preview (edit-only) to the occurrence being dragged.
+  const resizePreview = edit?.resizePreview ?? null;
   const occs = resizePreview
     ? occurrences.map((o) =>
         o.id === resizePreview.id
@@ -279,8 +240,7 @@ export function CalendarMonthView({ className }: { className?: string }) {
             focusDate={focusDate}
             nowDate={nowDate}
             selectedId={selectedId}
-            editable={editable}
-            can={can}
+            edit={edit}
             onDateClick={onDateClick}
             onShowMore={onShowMore}
             renderTooltip={renderTooltip}
@@ -300,8 +260,7 @@ function MonthWeekRow({
   focusDate,
   nowDate,
   selectedId,
-  editable,
-  can,
+  edit,
   onDateClick,
   onShowMore,
   renderTooltip,
@@ -313,8 +272,7 @@ function MonthWeekRow({
   focusDate: Date;
   nowDate: Date;
   selectedId: string | null;
-  editable: boolean;
-  can: ReturnType<typeof useCalendar>["can"];
+  edit: CalendarEditContextValue | null;
   onDateClick?: (d: Date) => void;
   onShowMore?: (d: Date, items: TaskItem[]) => void;
   renderTooltip?: ReturnType<typeof useCalendar>["renderTooltip"];
@@ -342,8 +300,8 @@ function MonthWeekRow({
           hiddenItems,
           onShowMore,
         };
-        return editable ? (
-          <DroppableDayCell key={day.toISOString()} {...cellProps} />
+        return edit ? (
+          <edit.components.DroppableDayCell key={day.toISOString()} {...cellProps} />
         ) : (
           <MonthDayCell
             key={day.toISOString()}
@@ -382,15 +340,15 @@ function MonthWeekRow({
               onClick={() => activate(seg.occ)}
             />
           );
-          const canDrag = editable && can("move", seg.occ.item);
+          const canDrag = !!edit && edit.can("move", seg.occ.item);
           // All-day bars (incl. single-day) get day-resize grips → drag an edge
           // to extend across days. Clipped (continues-left/right) bars can't.
           const resizable =
-            editable &&
+            !!edit &&
             seg.occ.allDay &&
             !seg.continuesLeft &&
             !seg.continuesRight &&
-            can("resize", seg.occ.item);
+            edit.can("resize", seg.occ.item);
           return (
             <div
               key={seg.occ.id}
@@ -400,8 +358,8 @@ function MonthWeekRow({
                 gridRow: seg.lane + 1,
               }}
             >
-              {editable ? (
-                <DraggableEventWrap
+              {edit ? (
+                <edit.components.DraggableEventWrap
                   occ={seg.occ}
                   canDrag={canDrag}
                   resizable={resizable}
@@ -409,7 +367,7 @@ function MonthWeekRow({
                   cols={week}
                 >
                   {Event}
-                </DraggableEventWrap>
+                </edit.components.DraggableEventWrap>
               ) : (
                 <EventHoverWrap tooltip={tooltip}>{Event}</EventHoverWrap>
               )}

@@ -3,9 +3,9 @@
 /**
  * Shared editable affordances for the DAY-GRANULAR surfaces — the month grid and
  * the week/day all-day band. Both make events @dnd-kit draggables (drops resolve
- * in `EventCalendarRoot`'s `onDragEnd` by whole calendar days) and add edge-resize
+ * in the editing Provider's `onDragEnd` by whole calendar days) and add edge-resize
  * grips (native pointer, clientX → column → day) + a hover-delete. The continuous
- * TIME grid uses its own native-pointer layer (see calendar-time-grid.tsx).
+ * TIME grid uses its own native-pointer layer (see `lib/time-grid-gestures.tsx`).
  */
 
 import type {
@@ -18,10 +18,10 @@ import { addDays, startOfDay } from "date-fns";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { useCalendar } from "../hooks/use-calendar-context";
-import { coveredDays } from "../lib/segments";
+import { useCalendarEditContext } from "../../../hooks/use-calendar-edit-extension";
+import { coveredDays } from "../../../lib/segments";
 import { CalendarEventContextMenu } from "./calendar-context-menu";
-import type { CalendarOccurrence } from "../types";
+import type { CalendarOccurrence } from "../../../types";
 
 /** Edge grip on an all-day bar → native-pointer DAY resize (clientX → column). */
 export function DayResizeGrip({
@@ -35,7 +35,7 @@ export function DayResizeGrip({
   containerRef: RefObject<HTMLDivElement | null>;
   cols: Date[];
 }) {
-  const { rescheduleItem, setResizePreview } = useCalendar();
+  const { rescheduleItem, setResizePreview } = useCalendarEditContext();
   // Active gesture teardown — run on unmount so a mid-gesture removal can't
   // leak window listeners or let a later, unrelated pointerup commit (v0.2.4).
   const gestureCleanup = useRef<(() => void) | null>(null);

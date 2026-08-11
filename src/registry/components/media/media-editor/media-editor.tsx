@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type Konva from "konva";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -11,15 +11,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
-import { useMultiInstanceGuard } from "./hooks/use-multi-instance-guard";
+import { useCaptureExtensionOptional } from "./hooks/use-capture-extension";
 import { resolvePresentation } from "./lib/presentation-resolver";
 import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
 import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
 import { compositeVideo } from "./lib/composite-video";
-import { EditorCamera } from "./parts/editor-camera";
-import { EditorCanvas } from "./parts/editor-canvas";
+import { validateGalleryFile } from "./lib/validate-media-file";
 import { DiscardConfirmDialog } from "./parts/discard-confirm-dialog";
 import { TextOnlyCanvas } from "./parts/text-only-canvas";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
@@ -52,19 +51,38 @@ import type {
   SourceError,
   StickerOption,
   StoryComposerLabels,
+  ValidationError,
 } from "./types";
 import type {
-  CapturedPhoto,
-  CapturedVideo,
-} from "./hooks/use-media-capture";
+  CapturedPhotoLike as CapturedPhoto,
+  CapturedVideoLike as CapturedVideo,
+} from "./hooks/use-capture-extension";
+
+// Lazy-load the konva canvas (compound-component-structure rule — heavy dep
+// boundary). Module-scoped (not inside the component) so the lazy factory's
+// identity is stable across renders. `parts/lazy-editor-canvas` is a
+// same-folder default-export wrapper — EditorCanvas itself is a named
+// export and React.lazy needs a default one.
+const LazyEditorCanvas = React.lazy(() => import("./parts/lazy-editor-canvas"));
 
 /**
  * media-editor — black-box orchestrator.
  *
  * Owns the editor state machine, capability gating
  * (enabledModes/Tools/Sources/aspect), presentation (inline / dialog / auto),
- * initial-source intake, the Konva editor surface (EditorCamera / EditorCanvas /
+ * initial-source intake, the Konva editor surface (camera surface / EditorCanvas /
  * tool panels), export pipeline, and the imperative ref handle.
+ *
+ * P3 S3 (feature-slicing): the camera capture surface is no longer statically
+ * imported here — it's injected via the optional `capture` prop
+ * (`MediaCaptureExtension`, see `hooks/use-capture-extension.ts`). Install
+ * `@ilinxa/media-editor-capture` and pass `capture={mediaCapture}` to enable
+ * a live camera; without it, "camera" in `mediaSources` falls back to the
+ * base file/gallery intake surface (one dev console.warn) — base-alone stays
+ * a real pick-file → edit → export flow. `MediaEditor` itself is a thin
+ * wrapper that mounts `props.capture.Provider` (when present) around
+ * `MediaEditorImpl`, which holds all the logic below and reads the
+ * extension back out via `useCaptureExtensionOptional()`.
  *
  * Known v0.1.x gap: the imperative *capture* handle methods (takePhoto,
  * startRecording, stopRecording, switchCamera, importFromGallery) are deferred
@@ -142,10 +160,31 @@ function devWarnOnce(memo: Set<string>, key: string, message: string) {
   console.warn(message);
 }
 
-export const MediaEditor = React.forwardRef<
+// Thin outer wrapper — its ONLY job is mounting `props.capture.Provider`
+// (when a capture extension is wired) as an ANCESTOR of the real
+// implementation, so `MediaEditorImpl` can read it back via
+// `useCaptureExtensionOptional()` (a component can't consume a context
+// Provider it renders itself — the Provider must be an ancestor). No other
+// logic lives here; everything else is unchanged in `MediaEditorImpl` below.
+export const MediaEditor = React.forwardRef<MediaEditorHandle, MediaEditorProps>(
+  function MediaEditor(props, ref) {
+    if (props.capture) {
+      const { Provider } = props.capture;
+      return (
+        <Provider>
+          <MediaEditorImpl {...props} ref={ref} />
+        </Provider>
+      );
+    }
+    return <MediaEditorImpl {...props} ref={ref} />;
+  },
+);
+
+const MediaEditorImpl = React.forwardRef<
   MediaEditorHandle,
   MediaEditorProps
->(function MediaEditor(props, ref) {
+>(function MediaEditorImpl(props, ref) {
+  const captureExt = useCaptureExtensionOptional();
   const { defaultMode } = props;
 
   // Seed the editor's cropAspect with the first allowed option (the hook's
@@ -325,12 +364,29 @@ export const MediaEditor = React.forwardRef<
   }, [initialSourceDep]);
 
   // Camera surface: show if camera intake allowed AND at least one capture mode
-  // is enabled; otherwise fall back to upload-only dropzone affordance.
+  // is enabled; otherwise fall back to the base file/gallery intake surface.
   const hasCaptureMode = enabledModes.some(
     (m) => m === "photo" || m === "video",
   );
+  // `cameraIntakeAvailable` is CONFIG-only (does the consumer want camera at
+  // all). `captureSurfaceReady` additionally requires the capture extension
+  // to actually be wired (`props.capture` → `captureExt`) — camera requested
+  // but unwired degrades to the file-intake surface below (one dev-warn),
+  // rather than a dead "Connect to camera" button.
   const cameraIntakeAvailable =
     mediaSources.includes("camera") && hasCaptureMode;
+  const CameraSurface = captureExt?.CameraSurface ?? null;
+  const captureSurfaceReady = cameraIntakeAvailable && CameraSurface !== null;
+
+  React.useEffect(() => {
+    if (!cameraIntakeAvailable) return;
+    if (captureExt?.CameraSurface) return;
+    devWarnOnce(
+      warnedRef.current,
+      "capture-extension-missing",
+      'media-editor: mediaSources includes "camera" but no capture extension is wired — install @ilinxa/media-editor-capture and pass capture={mediaCapture} (MediaEditorProps.capture) to enable the camera. Falling back to file/gallery intake.',
+    );
+  }, [cameraIntakeAvailable, captureExt]);
 
   // ─── R4: Undo / redo history + discard guard ─────────────────────────
 
@@ -630,10 +686,10 @@ export const MediaEditor = React.forwardRef<
   }, [props.labels]);
 
   // Capture surface is mounted when the editor is in capture stage AND the
-  // current mode is photo/video AND camera intake is allowed.
+  // current mode is photo/video AND a camera extension is actually wired.
   const showCameraSurface =
     editor.state.stage === "capture" &&
-    cameraIntakeAvailable &&
+    captureSurfaceReady &&
     (editor.state.mode === "photo" || editor.state.mode === "video");
 
   // Mode auto-seed removed — initial state is intentionally mode:null so the
@@ -675,9 +731,13 @@ export const MediaEditor = React.forwardRef<
   }, [editor, performReset]);
 
   // ─── Multi-instance guard (C11 — Q-P5 (b)) ──────────────────────────
-  // Only engage the counter for capture-enabled instances. Edit-only
-  // instances have no camera contention so they're unconditionally fine.
-  useMultiInstanceGuard(cameraIntakeAvailable);
+  // P3 S3: the guard's call site moved into the capture feature's
+  // EditorCamera (features/capture/parts/editor-camera.tsx) — it's a pure
+  // capture concern (live-camera contention), and the base can no longer
+  // statically import the hook that implements it. It now fires while the
+  // camera surface is actually mounted rather than merely "configured for
+  // camera" — a tighter, still-accurate trigger window. Base-alone (no
+  // capture extension) never acquires a camera, so it needs no guard at all.
 
   // ─── Empty-state footgun guard (C11 — description §1) ────────────────
   // `enabledModes: []` AND no `initialSource` AND no current source loaded
@@ -1168,45 +1228,56 @@ export const MediaEditor = React.forwardRef<
               )}
             </div>
           ) : showEditCanvas ? (
-            <EditorCanvas
-              imageUrl={
-                editor.draft?.kind === "image"
-                  ? editor.draft.url
-                  : editor.state.imageSrc
+            <React.Suspense
+              fallback={
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <Loader2
+                    className="size-6 animate-spin text-primary"
+                    aria-hidden="true"
+                  />
+                </div>
               }
-              videoUrl={
-                editor.draft?.kind === "video" ? editor.draft.url : videoUrl
-              }
-              textOverlays={editor.state.textOverlays}
-              selectedTextId={editor.selectedTextId}
-              onTextChange={(next) => editor.updateTextOverlay(next.id, next)}
-              onTextSelect={editor.setSelectedTextId}
-              stickers={editor.state.stickers}
-              resolveSticker={resolveSticker}
-              selectedStickerId={editor.selectedStickerId}
-              onStickerChange={(next) => editor.updateSticker(next.id, next)}
-              onStickerSelect={editor.setSelectedStickerId}
-              drawingStrokes={editor.state.drawingStrokes}
-              currentDrawingStroke={currentDrawingStroke}
-              isDrawing={editor.activeTool === "draw"}
-              onDrawBegin={handleDrawBegin}
-              onDrawExtend={handleDrawExtend}
-              onDrawEnd={handleDrawEnd}
-              cropRect={editor.state.crop}
-              cropActive={editor.activeTool === "crop"}
-              cropAspectRatio={aspectAsRatio(editor.cropAspect)}
-              onCropChange={editor.setCrop}
-              adjustments={editor.state.adjustments}
-              activeFilter={
-                resolvedFilterPresets.find(
-                  (f) => f.id === editor.state.filter,
-                ) ?? null
-              }
-              onStageReady={(s) => {
-                stageRef.current = s;
-              }}
-              className="h-full w-full"
-            />
+            >
+              <LazyEditorCanvas
+                imageUrl={
+                  editor.draft?.kind === "image"
+                    ? editor.draft.url
+                    : editor.state.imageSrc
+                }
+                videoUrl={
+                  editor.draft?.kind === "video" ? editor.draft.url : videoUrl
+                }
+                textOverlays={editor.state.textOverlays}
+                selectedTextId={editor.selectedTextId}
+                onTextChange={(next) => editor.updateTextOverlay(next.id, next)}
+                onTextSelect={editor.setSelectedTextId}
+                stickers={editor.state.stickers}
+                resolveSticker={resolveSticker}
+                selectedStickerId={editor.selectedStickerId}
+                onStickerChange={(next) => editor.updateSticker(next.id, next)}
+                onStickerSelect={editor.setSelectedStickerId}
+                drawingStrokes={editor.state.drawingStrokes}
+                currentDrawingStroke={currentDrawingStroke}
+                isDrawing={editor.activeTool === "draw"}
+                onDrawBegin={handleDrawBegin}
+                onDrawExtend={handleDrawExtend}
+                onDrawEnd={handleDrawEnd}
+                cropRect={editor.state.crop}
+                cropActive={editor.activeTool === "crop"}
+                cropAspectRatio={aspectAsRatio(editor.cropAspect)}
+                onCropChange={editor.setCrop}
+                adjustments={editor.state.adjustments}
+                activeFilter={
+                  resolvedFilterPresets.find(
+                    (f) => f.id === editor.state.filter,
+                  ) ?? null
+                }
+                onStageReady={(s) => {
+                  stageRef.current = s;
+                }}
+                className="h-full w-full"
+              />
+            </React.Suspense>
           ) : editor.state.stage === "capture" &&
             editor.state.mode === "text" &&
             enabledModes.includes("text") ? (
@@ -1219,8 +1290,8 @@ export const MediaEditor = React.forwardRef<
               value={editor.textOnly}
               onChange={(next) => editor.setTextOnly(next)}
             />
-          ) : showCameraSurface ? (
-            <EditorCamera
+          ) : showCameraSurface && CameraSurface ? (
+            <CameraSurface
               enabled={true}
               mode={editor.state.mode === "video" ? "video" : "photo"}
               defaultFacing={props.defaultFacing}
@@ -1237,7 +1308,7 @@ export const MediaEditor = React.forwardRef<
               onPermissionDenied={props.onPermissionDenied}
               renderPermissionDenied={props.renderPermissionDenied}
             />
-          ) : cameraIntakeAvailable ? (
+          ) : captureSurfaceReady ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Pick a mode above, or jump straight to the camera.
@@ -1258,12 +1329,24 @@ export const MediaEditor = React.forwardRef<
                 Connect to camera
               </button>
             </div>
+          ) : mediaSources.includes("upload") ||
+            mediaSources.includes("camera") ? (
+            // Base file/gallery intake — the ONLY intake surface base-alone
+            // ships (no capture extension installed), and the fallback when
+            // "camera" was requested but nothing answered it (dev-warn fired
+            // above). Real, not a placeholder: picking a file promotes it
+            // through the SAME draft path as a camera capture would
+            // (handleGalleryFile → editor.setDraft → stage "edit").
+            <FileIntakeSurface
+              galleryLabel={mergedLabels.galleryPicker}
+              maxFileSizeMb={props.maxFileSizeMb ?? 50}
+              onFile={handleGalleryFile}
+              onValidationError={props.onValidationError}
+            />
           ) : (
             <>
               <p className="font-medium text-foreground">
-                {mediaSources.includes("upload")
-                  ? "Upload dropzone (Phase B retrofit)"
-                  : "No capture source available"}
+                No capture source available
               </p>
               <p>
                 aspect: <code>{aspect}</code> · sources:{" "}
@@ -1645,6 +1728,62 @@ function aspectAsRatio(aspect: AspectRatio): number {
   const [w, h] = aspect.split(":").map(Number);
   if (!w || !h) return FREE_ASPECT_FALLBACK;
   return w / h;
+}
+
+/**
+ * Base file/gallery intake surface (P3 S3 — part B). The ONLY intake path
+ * base-alone ships once the capture feature slice is a separate install:
+ * a button + a hidden `<input type="file">`, honoring `maxFileSizeMb` via
+ * `validateGalleryFile` (same validation the capture feature's gallery
+ * button used pre-split). Matches the existing "Connect to camera" chrome —
+ * no new visual language.
+ */
+function FileIntakeSurface({
+  galleryLabel,
+  maxFileSizeMb,
+  onFile,
+  onValidationError,
+}: {
+  galleryLabel: string;
+  maxFileSizeMb: number;
+  onFile: (file: File) => void;
+  onValidationError?: (error: ValidationError) => void;
+}) {
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center"
+      data-intake-surface="file"
+    >
+      <p className="text-sm text-muted-foreground">
+        Pick a photo or video from your device.
+      </p>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+      >
+        {galleryLabel}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,video/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = ""; // reset so picking the same file twice re-fires
+          if (!file) return;
+          const err = validateGalleryFile(file, maxFileSizeMb);
+          if (err) {
+            onValidationError?.(err);
+            return;
+          }
+          onFile(file);
+        }}
+        className="hidden"
+      />
+    </div>
+  );
 }
 
 /**

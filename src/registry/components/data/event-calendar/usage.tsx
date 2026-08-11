@@ -31,6 +31,36 @@ export function Example({ tasks }) {
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
+        Editing (opt-in feature)
+      </h3>
+      <p className="text-muted-foreground">
+        Editing (drag/resize/create, clipboard, keyboard mutations,
+        permission-gated actions) ships as a separate feature slice —
+        installing the base package alone keeps it out of your bundle
+        entirely. Install{" "}
+        <code>@ilinxa/event-calendar-editing</code>, import{" "}
+        <code>calendarEditing</code>, and pass it alongside <code>editable</code>.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import { EventCalendar } from "@/components/event-calendar"
+import { calendarEditing } from "@/components/event-calendar/features/editing"
+
+<EventCalendar
+  editable
+  editing={calendarEditing}   // wires drag/resize/create/clipboard/keyboard
+  data={tasks}
+  onChange={setTasks}         // controlled — echo the mutated forest back
+  statusOptions={statusOptions}
+  permissions={permissions}   // optional — the shared TaskPermissions matrix
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        <code>editable</code> without <code>editing</code> wired stays fully
+        read-only (byte-identical to a base-only install) — the calendar logs
+        one <code>console.warn</code> in development and never throws.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
         Lighter (hand-assembled subset)
       </h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">

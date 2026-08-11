@@ -41,22 +41,28 @@ export {
 export { ComposerPublishBar } from "./parts/composer-publish-bar";
 export type { ComposerPublishBarProps } from "./parts/composer-publish-bar";
 
-// 3 parts moved + renamed in v0.2.0; backward-compat aliases preserve v0.1.5 names.
-// @deprecated import EditorCamera/EditorCanvas/EditorToolbar from "@ilinxa/media-editor".
+// v0.1.5 ComposerCamera/ComposerEditor/ComposerToolbar/ColorSwatchPicker
+// backward-compat aliases (+ their Props types). Unlike the useMediaCapture
+// band (explicitly scheduled and removed at v0.3.0+), THIS band carried a bare
+// @deprecated with no removal version, and the v0.1.5 export contract snapshot
+// says these names must still resolve — so they stay, now with a real
+// schedule. R4 restoration (2026-08-11): removal announced for v0.5.0.
+// `EditorCamera` lives in the capture feature slice since the P3 split.
+/** @deprecated since v0.2.0 — import from `@ilinxa/media-editor` / `@ilinxa/media-editor-capture` instead. REMOVED in v0.5.0. */
+export { EditorCamera as ComposerCamera } from "../media-editor/features/capture";
+/** @deprecated since v0.2.0 — import `EditorCanvas` from `@ilinxa/media-editor` instead. REMOVED in v0.5.0. */
 export {
-  EditorCamera as ComposerCamera,
   EditorCanvas as ComposerEditor,
   EditorToolbar as ComposerToolbar,
   ColorSwatchPicker,
 } from "../media-editor";
-
-// Props types for the renamed parts — also re-exported under old names.
+/** @deprecated since v0.2.0 — import the `Editor*Props` types from `@ilinxa/media-editor` / `@ilinxa/media-editor-capture` instead. REMOVED in v0.5.0. */
 export type {
-  EditorCameraProps as ComposerCameraProps,
   EditorCanvasProps as ComposerEditorProps,
   EditorToolbarProps as ComposerToolbarProps,
   ColorSwatchPickerProps,
 } from "../media-editor";
+export type { EditorCameraProps as ComposerCameraProps } from "../media-editor/features/capture";
 
 // ─── Exported hooks (plan §10) ─────────────────────────────────────────
 
@@ -66,20 +72,11 @@ export {
   type UseStoryComposerStateResult,
 } from "./hooks/use-story-composer-state";
 
-// Re-exports — useMediaCapture + utilities moved to media-editor in v0.2.0.
-// Preserved here for v0.1.5 consumer backward-compat per snapshot contract.
-/** @deprecated v0.2.0 — import from `@ilinxa/media-editor` directly. Removed in v0.3.0. */
-export {
-  useMediaCapture,
-  validateGalleryFile,
-  suggestedVideoFilename,
-  type UseMediaCaptureOptions,
-  type UseMediaCaptureResult,
-  type CapturedPhoto,
-  type CapturedVideo,
-  type CaptureStatus,
-  type FacingMode,
-} from "../media-editor";
+// useMediaCapture/CapturedPhoto/CapturedVideo/etc. v0.1.5 backward-compat
+// re-exports — REMOVED at v0.4.0 per the v0.2.0 @deprecated schedule.
+// `useMediaCapture` moved again in P3 S3: import from
+// `@ilinxa/media-editor-capture`. `validateGalleryFile` stayed on
+// `@ilinxa/media-editor` (generic file-intake).
 
 export {
   useImageUploader,

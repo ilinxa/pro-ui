@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCopyToClipboard } from "@/registry/components/code/code-block/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
+import type { ComponentMeta } from "@/registry/types";
 
 const REGISTRY_BASE = "https://ui.ilinxa.com/r";
 const REGISTRY_NAMESPACE = "@ilinxa";
@@ -124,7 +125,13 @@ function StepLabel({
   );
 }
 
-export function InstallationBlock({ slug }: { slug: string }) {
+export function InstallationBlock({
+  slug,
+  slices,
+}: {
+  slug: string;
+  slices?: ComponentMeta["slices"];
+}) {
   const [activePM, setActivePM] = useState<PM>("pnpm");
   const runner = PM_RUNNER[activePM];
   const initCommand = `${runner} shadcn@latest init`;
@@ -190,6 +197,27 @@ export function InstallationBlock({ slug }: { slug: string }) {
             label="Copy fixtures install command"
           />
         </div>
+
+        {slices && slices.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            <StepLabel
+              index={4}
+              title="Optional feature slices"
+              description="Install on top of the base for opt-in heavier capability."
+            />
+            {slices.map((slice) => (
+              <div key={slice.item} className="flex flex-col gap-2">
+                <CopyableCommand
+                  command={`${runner} shadcn@latest add ${REGISTRY_NAMESPACE}/${slice.item}`}
+                  label={`Copy ${slice.name} install command`}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {slice.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </TabsContent>
 
       <TabsContent value="manual" className="mt-0">

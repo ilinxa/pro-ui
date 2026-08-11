@@ -15,6 +15,9 @@ import {
   type MediaEditorLabels,
   type EditorCtx,
 } from "../media-editor";
+// Capture feature slice (P3 S3) — story-composer always requests "camera" in
+// mediaSources (below), so it wires the extension unconditionally.
+import { mediaCapture } from "../media-editor/features/capture";
 import { ComposerPublishBar } from "./parts/composer-publish-bar";
 import { PublishingProgressOverlay } from "./parts/publishing-progress-overlay";
 import { useImageUploader } from "./hooks/use-image-uploader";
@@ -279,6 +282,7 @@ export const StoryComposer = forwardRef<
         enabledModes={enabledModes}
         enabledTools={enabledTools}
         mediaSources={["camera", "upload"]}
+        capture={mediaCapture}
         presentation={editorPresentation}
         isOpen={isOpen}
         onClose={onClose}

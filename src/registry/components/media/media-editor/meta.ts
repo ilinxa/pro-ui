@@ -23,8 +23,9 @@ export const meta: ComponentMeta = {
     "Polymorphic export() with format dispatch (jpeg / png / webp) + onProgress callback",
     "Video-export perf shortcut: skips MediaRecorder re-encode when nothing has been overlaid on the source",
     "Multi-instance dev-warn guard for camera contention",
-    "Sealed-folder parts exported (EditorCamera / EditorCanvas / EditorToolbar / ColorSwatchPicker / DiscardConfirmDialog) for advanced composition",
+    "Sealed-folder parts exported (EditorCanvas / EditorToolbar / ColorSwatchPicker / DiscardConfirmDialog) for advanced composition",
     "v0.1.5 — F-cross-13 path-b sweep: ModeTogglePill swaps shadcn ToggleGroup for a plain-button segmented control (Radix single-string vs Base-UI string[] value model; filter-panel 0.1.1 / event-calendar v0.2.1 precedent); pill styling + re-tap-noop semantics preserved. Zero public-API change.",
+    "v0.3.0 — P3 feature-slicing: camera capture (getUserMedia/MediaRecorder, permission flows, shutter, multi-instance guard) split into the opt-in `@ilinxa/media-editor-capture` slice, wired in via `capture={mediaCapture}` (injection extension, not a static import). Base-alone now ships a real file/gallery intake surface (pick a file → edit → export) instead of a placeholder; the konva edit canvas gained a `React.lazy` boundary.",
   ],
   tags: [
     "media-editor",
@@ -37,8 +38,15 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.2.0",
+  version: "0.3.0",
   status: "alpha",
+  // Reduced from 365 (pre-P3) — capture's ~1,284 LOC left the base folder;
+  // base gained a smaller file-intake surface + the capture-extension seam
+  // in exchange. Verified against the real built artifact 2026-08-11:
+  // public/r/media-editor.json = 282.0KB actual. Budget tightened 300→290
+  // (R4: 300 would let growth silently drift past the plan's ≤275 bar
+  // context; 290 keeps ~3% headroom so real growth trips the validator).
+  artifactBudgetKB: 290,
   createdAt: "2026-06-02",
   updatedAt: "2026-08-11",
 
@@ -47,7 +55,11 @@ export const meta: ComponentMeta = {
   dependencies: {
     // Konva peer deps landed in C10 when EditorCanvas was mounted in the
     // root component for photo/video edit stages. Versions tracked against
-    // producer's package.json per validate:meta-deps F-cross-07.
+    // producer's package.json per validate:meta-deps F-cross-07. Unchanged
+    // by the P3 S3 capture split — the folder still ships EditorCanvas (base)
+    // so the union of shipped-file imports is the same; capture's own npm
+    // surface (none beyond lucide-react, already listed) is declared on the
+    // `media-editor-capture` registry item separately.
     shadcn: ["dialog"],
     npm: {
       konva: "^10.3.0",
@@ -56,6 +68,16 @@ export const meta: ComponentMeta = {
     },
     internal: [],
   },
+
+  // P3 feature-slicing (S3) — opt-in capability layered on top of this base.
+  slices: [
+    {
+      name: "capture",
+      item: "media-editor-capture",
+      description:
+        "Camera photo and video capture with permission flows, shutter controls, and multi-instance guard.",
+    },
+  ],
 
   related: [],
 };

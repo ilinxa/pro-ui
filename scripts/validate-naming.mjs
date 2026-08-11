@@ -13,6 +13,14 @@
  *  (5) registry.json base-item description/title in sync with meta.ts
  *  (6) three-way roster equality: disk folders == manifest == registry.json base
  *      items (deprecated aliases + _shared support items exempt)
+ *
+ * FEATURE items (P3 feature-slicing) — meta.featureOf — are excluded from the
+ * regBase roster/sync checks (4th predicate, same as validate-registry-json.mjs
+ * and build-llms.mjs): they have no dedicated meta.ts/folder to sync against
+ * and never appear on disk or in manifest.ts, so the roster-equality checks
+ * (disk == manifest == regBase) already skip them for free. They still go
+ * through the copy-canon description checks below (every served description)
+ * plus a light non-empty title check.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
@@ -78,7 +86,11 @@ for (const { cat, slug } of disk) {
 const registry = JSON.parse(readFileSync(join(ROOT, "registry.json"), "utf8"));
 const metaBySlug = new Map(disk.map(({ cat, slug }) => [slug, readFileSync(join(compRoot, cat, slug, "meta.ts"), "utf8")]));
 const regBase = registry.items.filter(
-  (i) => !i.name.endsWith("-fixtures") && !i.meta?.deprecated && !(i.files?.[0]?.target ?? "").startsWith("components/_shared"),
+  (i) =>
+    !i.name.endsWith("-fixtures") &&
+    !i.meta?.deprecated &&
+    !(i.files?.[0]?.target ?? "").startsWith("components/_shared") &&
+    !i.meta?.featureOf,
 );
 for (const item of regBase) {
   const src = metaBySlug.get(item.name);
@@ -93,6 +105,14 @@ for (const item of registry.items) {
   if (d.length > 160) report(item.name, `registry description ${d.length} chars > 160 cap`);
   if (/D-\d+/.test(d)) report(item.name, "registry description contains a decision ID");
   if (/\bv\d+\.\d+/.test(d)) report(item.name, "registry description contains version archaeology");
+}
+
+// feature items (P3): no dedicated meta.ts to sync title/description against
+// (the copy-canon loop above already covers description length/canon for
+// them too) — just require a non-empty title. Don't over-constrain further.
+for (const item of registry.items) {
+  if (!item.meta?.featureOf) continue;
+  if (!item.title || !item.title.trim()) report(item.name, "feature item has no title");
 }
 
 const regSet = new Set(regBase.map((i) => i.name));

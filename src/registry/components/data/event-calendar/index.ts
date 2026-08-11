@@ -10,13 +10,6 @@ export { CalendarDayView } from "./parts/calendar-day-view";
 export { CalendarAgendaView } from "./parts/calendar-agenda-view";
 export { CalendarMiniNav } from "./parts/calendar-mini-nav";
 export { CalendarEventInspector } from "./parts/calendar-event-inspector";
-export { CalendarQuickComposer } from "./parts/calendar-quick-composer";
-export { CalendarEventContextMenu } from "./parts/calendar-context-menu";
-export {
-  CalendarEventEditorOverlay,
-  CalendarRenameField,
-  EventEditorPanel,
-} from "./parts/calendar-edit-overlays";
 
 // Standalone primitives (Tier C)
 export {
@@ -35,17 +28,13 @@ export { CalendarFullCardTooltip } from "./parts/event-tooltip-full";
 // Hook
 export { useCalendar } from "./hooks/use-calendar-context";
 
-// Cross-surface task clipboard (the unified family envelope, hosted in
-// task-card; re-exported here so calendar's public API is unchanged)
-export {
-  TASK_CLIPBOARD_KIND,
-  TASK_CLIPBOARD_VERSION,
-  serializeTasks,
-  parseTasks,
-  reassignTaskIds,
-  writeTasksToClipboardEvent,
-  readTasksFromClipboardEvent,
-} from "../task-card/lib/clipboard";
+// Editing injection seam (P3 feature-slicing) — base owns the extension
+// point; the editing feature (`@ilinxa/event-calendar-editing`) supplies the
+// `CalendarEditExtension` value passed as `CalendarProps.editing`. The edit
+// components / dispatchers / gestures themselves live in the feature's own
+// barrel (`features/editing`), NOT here — this package never statically
+// imports feature code.
+export { useCalendarEditOptional } from "./hooks/use-calendar-edit-extension";
 
 // Public types (+ the consumed task-card data language, re-exported)
 export type {
@@ -59,13 +48,8 @@ export type {
   CalendarEventColor,
   CalendarStatusTone,
   CalendarTooltipRenderer,
-  CalendarSnap,
-  CalendarEditAction,
-  CalendarComposerTarget,
-  CalendarQuickComposerRenderer,
   TaskItem,
 } from "./types";
-export type { TaskClipboardEnvelope } from "../task-card/lib/clipboard";
 export type {
   TaskPerson,
   TaskStatusOption,
@@ -75,6 +59,23 @@ export type {
   TaskPermissions,
   TaskPermissionRule,
   TaskPermissionReason,
+} from "./types";
+export type {
+  CalendarEditExtension,
+  CalendarEditProps,
+  CalendarEditContextValue,
+} from "./hooks/use-calendar-edit-extension";
+
+// Type-only re-exports for the base prop surface (R4 finding, 2026-08-11):
+// `CalendarProps` references these in its own signatures (onItemAdded…,
+// snap, quickCompose, renderQuickComposer), so a BASE-only consumer must be
+// able to name them from this barrel. Type-only — erased at compile, adds no
+// runtime dependency on the editing feature or task-card values.
+export type {
+  CalendarSnap,
+  CalendarEditAction,
+  CalendarComposerTarget,
+  CalendarQuickComposerRenderer,
   TaskItemAddedEvent,
   TaskItemRemovedEvent,
   TaskItemMovedEvent,

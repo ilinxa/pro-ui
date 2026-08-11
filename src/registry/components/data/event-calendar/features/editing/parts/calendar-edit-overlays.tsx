@@ -1,16 +1,15 @@
 "use client";
 
 /**
- * Editing overlays (Tier B) mounted by the assembly alongside the quick-composer:
+ * Editing overlays (Tier B — editing feature) mounted by the assembly via
+ * `edit.components.EditOverlays` / `edit.components.RenameField`:
  *
- *  - `CalendarEventEditorOverlay` — the detail editor on `editingId`. Stage 1–3
- *    only rendered the editor inside the optional `CalendarEventInspector`, so the
- *    context-menu "Edit…" + keyboard Enter were dead in the default assembly. This
- *    surfaces the SAME editor without the inspector. The assembly mounts it only
- *    when `showInspector` is false (the inspector hosts it inline → no double).
- *  - `CalendarRenameField` — inline rename on `renamingId` (the `beginRename`
- *    target was declared in Stage 1–3 but never rendered → F2 / menu-Rename were
- *    dead). A small title-input popup.
+ *  - `CalendarEventEditorOverlay` — the detail editor on `editingId`. Surfaces
+ *    the same editor the inspector hosts inline, so the context-menu "Edit…" +
+ *    keyboard Enter work even without the inspector mounted. The assembly
+ *    mounts it only when `showInspector` is false (the inspector hosts it
+ *    inline → no double).
+ *  - `CalendarRenameField` — inline rename on `renamingId`.
  *
  * Both use the same centered modal shell as gantt's `GanttEditPopover` — a plain
  * backdrop button + panel (NOT the shadcn `dialog`/`popover` primitive), so the
@@ -26,17 +25,12 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useCalendar } from "../hooks/use-calendar-context";
-import type {
-  TaskItem,
-  TaskLabelOption,
-  TaskPermissions,
-  TaskPriorityOption,
-  TaskStatusOption,
-} from "../types";
+import { useCalendar } from "../../../hooks/use-calendar-context";
+import { useCalendarEditContext } from "../../../hooks/use-calendar-edit-extension";
+import type { EventEditorPanelProps } from "../../../hooks/use-calendar-edit-extension";
 
 const LazyTaskCard = lazy(() =>
-  import("../../task-card").then((m) => ({ default: m.TaskCard })),
+  import("../../../../task-card").then((m) => ({ default: m.TaskCard })),
 );
 
 /**
@@ -53,16 +47,7 @@ export function EventEditorPanel({
   onChange,
   onDone,
   className,
-}: {
-  item: TaskItem;
-  statusOptions?: TaskStatusOption[];
-  priorityOptions?: TaskPriorityOption[];
-  labelOptions?: TaskLabelOption[];
-  permissions?: TaskPermissions;
-  onChange: (next: TaskItem) => void;
-  onDone: () => void;
-  className?: string;
-}) {
+}: EventEditorPanelProps) {
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <Suspense
@@ -153,16 +138,10 @@ function OverlayShell({
  * `showInspector` is false.
  */
 export function CalendarEventEditorOverlay() {
-  const {
-    occurrences,
-    statusOptions,
-    priorityOptions,
-    labelOptions,
-    permissions,
-    editingId,
-    applyEditedSubtree,
-    closeEditor,
-  } = useCalendar();
+  const { occurrences, statusOptions, priorityOptions, labelOptions } =
+    useCalendar();
+  const { permissions, editingId, applyEditedSubtree, closeEditor } =
+    useCalendarEditContext();
   const item = editingId
     ? (occurrences.find((o) => o.id === editingId)?.item ?? null)
     : null;
@@ -193,7 +172,8 @@ export function CalendarEventEditorOverlay() {
  * from the item. Enter commits, Esc / Cancel / backdrop aborts.
  */
 export function CalendarRenameField() {
-  const { occurrences, renamingId, renameItemAction, endRename } = useCalendar();
+  const { occurrences } = useCalendar();
+  const { renamingId, renameItemAction, endRename } = useCalendarEditContext();
   const item = renamingId
     ? (occurrences.find((o) => o.id === renamingId)?.item ?? null)
     : null;

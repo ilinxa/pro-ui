@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * Quick-create composer (Tier B + Tier C). When a create gesture sets
- * `composerTarget`, this floats a small title-entry popup at the pointer:
- * type a title + Enter to create, or "More options" to open the full editor.
- * Deliberately a plain fixed-position panel (NOT a Radix Popover) to dodge the
- * Base-UI `PopoverAnchor`/`asChild` divergence (the engagement-bar lesson).
- * Mounted by the assembly; reads context (lives inside `EventCalendarRoot`).
+ * Quick-create composer (Tier B + Tier C — editing feature). When a create
+ * gesture sets `composerTarget`, this floats a small title-entry popup at the
+ * pointer: type a title + Enter to create, or "More options" to open the full
+ * editor. Deliberately a plain fixed-position panel (NOT a Radix Popover) to
+ * dodge the Base-UI `PopoverAnchor`/`asChild` divergence (the engagement-bar
+ * lesson). Mounted via `edit.components.QuickComposer`; reads the edit context.
  */
 
 import { useState } from "react";
@@ -14,12 +14,9 @@ import type { ReactNode } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCalendar } from "../hooks/use-calendar-context";
-import type {
-  CalendarComposerTarget,
-  CalendarContextValue,
-  TaskItem,
-} from "../types";
+import { useCalendarEditContext } from "../../../hooks/use-calendar-edit-extension";
+import type { CalendarEditContextValue } from "../../../hooks/use-calendar-edit-extension";
+import type { CalendarComposerTarget, TaskItem } from "../../../types";
 
 function whenText(t: CalendarComposerTarget): string {
   if (t.allDay) return `${format(t.date, "EEE, MMM d")} · all day`;
@@ -71,8 +68,8 @@ function ComposerPopup({
 }: {
   target: CalendarComposerTarget;
   onClose: () => void;
-  onCreate: CalendarContextValue["createItem"];
-  render?: CalendarContextValue["renderQuickComposer"];
+  onCreate: CalendarEditContextValue["createItem"];
+  render?: CalendarEditContextValue["renderQuickComposer"];
 }) {
   const [title, setTitle] = useState("");
   const commit = (seed?: Partial<TaskItem>) =>
@@ -150,7 +147,7 @@ function ComposerPopup({
 
 export function CalendarQuickComposer() {
   const { composerTarget, closeComposer, createItem, renderQuickComposer } =
-    useCalendar();
+    useCalendarEditContext();
   if (!composerTarget) return null;
   return (
     <ComposerPopup

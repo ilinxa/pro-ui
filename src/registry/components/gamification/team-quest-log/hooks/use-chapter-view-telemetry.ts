@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import type { GamificationEvent } from "../types";
 
 /**
@@ -28,10 +29,7 @@ export function useChapterViewTelemetry(args: {
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const firedRef = React.useRef<Set<string>>(new Set());
-  const onEventRef = React.useRef(onEvent);
-  React.useEffect(() => {
-    onEventRef.current = onEvent;
-  });
+  const onEventRef = useLatestRef(onEvent);
 
   const emit = React.useCallback(
     (chapterId: string) => {
@@ -43,7 +41,8 @@ export function useChapterViewTelemetry(args: {
         chapterId,
       });
     },
-    [teamId],
+    // `onEventRef` is a stable ref object — listed for exhaustive-deps only.
+    [teamId, onEventRef],
   );
 
   const hasHandler = Boolean(onEvent);

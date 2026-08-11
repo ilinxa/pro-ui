@@ -11,9 +11,9 @@
     "@ilinxa/video-player",
     "@ilinxa/engagement-bar",
     "@ilinxa/comment-thread",
-    "https://ui.shadcn.com/r/styles/new-york/dialog.json",
-    "https://ui.shadcn.com/r/styles/new-york/avatar.json",
-    "https://ui.shadcn.com/r/styles/new-york/button.json"
+    "dialog",
+    "avatar",
+    "button"
   ],
   "files": [
     {

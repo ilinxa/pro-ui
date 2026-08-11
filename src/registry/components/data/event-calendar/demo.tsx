@@ -15,6 +15,7 @@ import {
   useCalendar,
 } from "./";
 import type { CalendarHandle, TaskItem } from "./";
+import { calendarEditing } from "./features/editing";
 import {
   buildCalendarDummyData,
   CALENDAR_LABEL_OPTIONS,
@@ -121,6 +122,7 @@ export default function EventCalendarDemo() {
         </div>
         <EventCalendar
           editable
+          editing={calendarEditing}
           data={editData}
           onChange={setEditData}
           statusOptions={CALENDAR_STATUS_OPTIONS}

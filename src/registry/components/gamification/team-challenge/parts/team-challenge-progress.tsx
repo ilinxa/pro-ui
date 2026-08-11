@@ -5,11 +5,14 @@ import * as React from "react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
+import { clamp } from "../../_shared/gamification-kit";
 import { useTeamChallenge } from "../hooks/use-team-challenge";
 import type { ChallengeProgressMeterProps } from "../types";
 
+// Built on the shared `clamp` (P3.5 / D-04) — same min/max shape as
+// `lib/derive.ts`'s `progressFraction`, now single-sourced.
 function clamp01(current: number, target: number): number {
-  return Math.min(Math.max(current / Math.max(target, 1), 0), 1);
+  return clamp(current / Math.max(target, 1), 0, 1);
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { MediaCaptureExtension } from "./hooks/use-capture-extension";
 
 // ─── Modes + stage ──────────────────────────────────────────────────────
 // (Locked: NO renames from story-composer v0.1.5 — see plan §"Type system".
@@ -419,6 +420,17 @@ export interface MediaEditorProps {
   isOpen?: boolean;
   /** Required when presentation resolves to "dialog". */
   onClose?: () => void;
+
+  // === Capture extension (P3 S3 — install @ilinxa/media-editor-capture) ===
+  /**
+   * Enables camera capture. Install `@ilinxa/media-editor-capture` and pass
+   * its `mediaCapture` export straight through:
+   * `<MediaEditor capture={mediaCapture} />`. Without it, `"camera"` in
+   * `mediaSources` falls back to the base file/gallery intake surface (one
+   * dev console.warn) — base-alone stays fully usable (pick a file → edit →
+   * export), it just can't drive a live camera.
+   */
+  capture?: MediaCaptureExtension;
 
   // === Capture config (only meaningful if enabledModes overlaps capture modes) ===
   defaultMode?: ComposerMode;

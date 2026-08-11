@@ -1,12 +1,14 @@
 "use client";
 
 /**
- * Right-click action menu (Tier B). Wraps an event and offers permission-gated
- * Edit / Status / Priority / Delete. Every action routes through the same
- * `use-calendar-edit` dispatchers as the pointer paths (single chokepoint). When
- * editing is off or nothing is permitted, it renders the child unwrapped — zero
- * overhead in the read-only path. Mirrors gantt's `GanttContextMenu` (same
- * F-cross-13 path-b trigger shape — see the trigger comment below).
+ * Right-click action menu (Tier B — editing feature). Wraps an event and
+ * offers permission-gated Edit / Status / Priority / Delete. Every action
+ * routes through the same `use-calendar-edit` dispatchers as the pointer
+ * paths (single chokepoint). Only ever mounted via `edit.components.
+ * EventContextMenu` — i.e. inside the extension's own Provider — so it needs
+ * no `editable`-guard early-return (the read-only path never reaches this
+ * component at all). Mirrors gantt's `GanttContextMenu` (same F-cross-13
+ * path-b trigger shape — see the trigger comment below).
  */
 
 import type { ReactNode } from "react";
@@ -20,9 +22,10 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { useCalendar } from "../hooks/use-calendar-context";
-import { serializeTasks } from "../../task-card/lib/clipboard";
-import type { TaskItem } from "../types";
+import { useCalendar } from "../../../hooks/use-calendar-context";
+import { useCalendarEditContext } from "../../../hooks/use-calendar-edit-extension";
+import { serializeTasks } from "../../../../task-card/lib/clipboard";
+import type { TaskItem } from "../../../types";
 
 export function CalendarEventContextMenu({
   item,
@@ -31,15 +34,12 @@ export function CalendarEventContextMenu({
   item: TaskItem;
   children: ReactNode;
 }) {
-  const ctx = useCalendar();
-  const canEdit = ctx.editable && ctx.can("editDetails", item);
-  const canDelete = ctx.editable && ctx.can("delete", item);
-  const statusOptions = ctx.statusOptions ?? [];
-  const priorityOptions = ctx.priorityOptions ?? [];
-
-  // When editable, the menu always offers Copy (reading data needs no edit/delete
-  // permission); other items are capability-gated. Read-only → child unwrapped.
-  if (!ctx.editable) return <>{children}</>;
+  const base = useCalendar();
+  const edit = useCalendarEditContext();
+  const canEdit = edit.can("editDetails", item);
+  const canDelete = edit.can("delete", item);
+  const statusOptions = base.statusOptions ?? [];
+  const priorityOptions = base.priorityOptions ?? [];
 
   const copy = () => {
     void navigator.clipboard
@@ -59,7 +59,7 @@ export function CalendarEventContextMenu({
     if (!navigator.clipboard) return;
     void navigator.clipboard
       .writeText(serializeTasks([item], "event-calendar"))
-      .then(() => ctx.deleteItem(item.id))
+      .then(() => edit.deleteItem(item.id))
       .catch((err: unknown) => {
         if (process.env.NODE_ENV !== "production") {
           console.warn(
@@ -80,13 +80,13 @@ export function CalendarEventContextMenu({
       <ContextMenuTrigger className="contents">{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-44">
         {canEdit ? (
-          <ContextMenuItem onSelect={() => ctx.openEditor(item.id)}>
+          <ContextMenuItem onSelect={() => edit.openEditor(item.id)}>
             Edit…
           </ContextMenuItem>
         ) : null}
 
         {canEdit ? (
-          <ContextMenuItem onSelect={() => ctx.beginRename(item.id)}>
+          <ContextMenuItem onSelect={() => edit.beginRename(item.id)}>
             Rename
           </ContextMenuItem>
         ) : null}
@@ -98,7 +98,7 @@ export function CalendarEventContextMenu({
               {statusOptions.map((o) => (
                 <ContextMenuItem
                   key={o.value}
-                  onSelect={() => ctx.changeStatus(item.id, o.value)}
+                  onSelect={() => edit.changeStatus(item.id, o.value)}
                 >
                   {o.label}
                 </ContextMenuItem>
@@ -114,7 +114,7 @@ export function CalendarEventContextMenu({
               {priorityOptions.map((o) => (
                 <ContextMenuItem
                   key={o.value}
-                  onSelect={() => ctx.changePriority(item.id, o.value)}
+                  onSelect={() => edit.changePriority(item.id, o.value)}
                 >
                   {o.label}
                 </ContextMenuItem>
@@ -134,7 +134,7 @@ export function CalendarEventContextMenu({
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"
-              onSelect={() => ctx.deleteItem(item.id)}
+              onSelect={() => edit.deleteItem(item.id)}
             >
               Delete
             </ContextMenuItem>

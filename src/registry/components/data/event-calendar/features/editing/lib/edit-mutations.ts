@@ -15,8 +15,8 @@
  * off-by-one. `formatDateValue` is the inverse of `parseDateValue`.
  */
 
-import type { CalendarSnap, TaskItem } from "../types";
-import { parseDateValue } from "./classify";
+import type { CalendarSnap, TaskItem } from "../../../types";
+import { parseDateValue } from "../../../lib/classify";
 
 /** Minimum timed span (ms) so a resize/drag can't collapse a block to zero. */
 export const MIN_DURATION_MS = 60_000;

@@ -25,6 +25,7 @@ export const meta: ComponentMeta = {
     "Five exported sealed-folder parts + three exported hooks for advanced compositions",
     "14-method imperative handle (open/close/reset, switchCamera/takePhoto/startRecording/stopRecording/importFromGallery, addText/addSticker/setAdjustments/applyFilter, publish/exportBlob)",
     "v0.2.0 architecture: thin wrapper around @ilinxa/media-editor — capture + edit surface delegated; story-shaped publish flow + ComposerPublishBar layered on top",
+    "v0.4.0 — P3 feature-slicing lockstep: camera capture now flows through media-editor's `capture={mediaCapture}` extension (`@ilinxa/media-editor-capture`) instead of a static import; the v0.1.5 backward-compat re-exports scheduled for v0.3.0 removal (ComposerCamera/ComposerEditor/ComposerToolbar/ColorSwatchPicker + their Props types, and useMediaCapture/validateGalleryFile/suggestedVideoFilename/CapturedPhoto/CapturedVideo/CaptureStatus/FacingMode + their option types) are removed — breaking for any consumer still on the v0.1.5 names.",
   ],
   tags: [
     "story-composer",
@@ -37,8 +38,9 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.3.0",
+  version: "0.4.0",
   status: "alpha",
+  artifactBudgetKB: 60,
   createdAt: "2026-05-31",
   updatedAt: "2026-08-11",
 

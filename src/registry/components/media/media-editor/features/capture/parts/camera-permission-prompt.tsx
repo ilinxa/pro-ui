@@ -3,7 +3,7 @@
 import { Camera, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { StoryComposerLabels } from "../types";
+import type { StoryComposerLabels } from "../../../types";
 
 export type PermissionPromptVariant =
   | "idle"

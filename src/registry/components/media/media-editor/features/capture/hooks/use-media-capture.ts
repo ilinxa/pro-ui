@@ -10,8 +10,7 @@ import {
 import {
   containerFor,
   selectRecorderMime,
-} from "../lib/mime-fallback";
-import type { ValidationError } from "../types";
+} from "../../../lib/mime-fallback";
 
 export type CaptureStatus =
   | "idle"
@@ -469,27 +468,6 @@ export function suggestedVideoFilename(mime: string): string {
   return `story-${Date.now()}.${containerFor(mime) === "unknown" ? "bin" : containerFor(mime)}`;
 }
 
-// ─── Validation helpers (used by gallery picker) ────────────────────────
-
-export function validateGalleryFile(
-  file: File,
-  maxFileSizeMb: number,
-): ValidationError | null {
-  if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-    return {
-      kind: "unsupported-type",
-      message: `Unsupported file type: ${file.type || "unknown"}`,
-      file,
-    };
-  }
-  const bytes = file.size;
-  const maxBytes = maxFileSizeMb * 1024 * 1024;
-  if (bytes > maxBytes) {
-    return {
-      kind: "file-too-large",
-      message: `File is ${(bytes / 1024 / 1024).toFixed(1)} MB — maximum is ${maxFileSizeMb} MB`,
-      file,
-    };
-  }
-  return null;
-}
+// `validateGalleryFile` moved to the BASE (P3 S3 — it's generic file-intake,
+// not a capture concern) — see `../../../lib/validate-media-file.ts`.
+// `parts/editor-camera.tsx` imports it directly from there.

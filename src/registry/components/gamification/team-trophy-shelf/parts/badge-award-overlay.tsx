@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import type { BadgeAwardOverlayProps } from "../types";
 
 /**
@@ -23,16 +24,14 @@ export default function BadgeAwardOverlay({
   onDone,
   className,
 }: BadgeAwardOverlayProps) {
-  const onDoneRef = React.useRef(onDone);
-  React.useEffect(() => {
-    onDoneRef.current = onDone;
-  }, [onDone]);
+  const onDoneRef = useLatestRef(onDone);
 
   React.useEffect(() => {
     if (!active) return;
     const timer = setTimeout(() => onDoneRef.current?.(), 900);
     return () => clearTimeout(timer);
-  }, [active]);
+    // `onDoneRef` is a stable ref object — listed for exhaustive-deps only.
+  }, [active, onDoneRef]);
 
   return (
     <span className={cn("relative inline-flex", className)}>

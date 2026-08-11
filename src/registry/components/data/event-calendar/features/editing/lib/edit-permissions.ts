@@ -11,7 +11,7 @@ import type {
   TaskItem,
   TaskPermissionRule,
   TaskPermissions,
-} from "../types";
+} from "../../../types";
 
 /** Calendar actions piggy-back on the most natural existing rule key. */
 const ACTION_TO_RULE: Record<CalendarEditAction, keyof TaskPermissionRule> = {

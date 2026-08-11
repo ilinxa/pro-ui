@@ -13,10 +13,10 @@
     "@ilinxa/media-carousel",
     "@ilinxa/engagement-bar",
     "@ilinxa/comment-thread",
-    "https://ui.shadcn.com/r/styles/new-york/avatar.json",
-    "https://ui.shadcn.com/r/styles/new-york/button.json",
-    "https://ui.shadcn.com/r/styles/new-york/card.json",
-    "https://ui.shadcn.com/r/styles/new-york/dropdown-menu.json"
+    "avatar",
+    "button",
+    "card",
+    "dropdown-menu"
   ],
   "files": [
     {

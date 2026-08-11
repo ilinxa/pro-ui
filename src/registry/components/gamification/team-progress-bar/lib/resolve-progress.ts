@@ -1,15 +1,12 @@
+import { clamp } from "../../_shared/gamification-kit";
 import type { Milestone, ProgressLabelFormat, ResolvedProgress } from "../types";
 
 /**
  * The one piece of real logic — pure, SSR-deterministic (derives only from
- * props; never reads `Date`, layout, or env at module scope). Test-ready and a
- * prime candidate to hoist into a shared `gamification-kit` once 2–3 components
- * prove the surface (system §7.3) — keep it standalone, never inline it.
+ * props; never reads `Date`, layout, or env at module scope). Test-ready.
+ * `clamp` moved to the shared `gamification-kit` (P3.5 / D-04) once the
+ * surface was proven across ≥2 components — the rest stays standalone.
  */
-
-function clamp(n: number, lo: number, hi: number): number {
-  return Math.min(Math.max(n, lo), hi);
-}
 
 /** Dev-only warning. The `NODE_ENV` guard is the one sanctioned env reference
  *  (erased in production builds); kept inside the function body, never at module scope. */

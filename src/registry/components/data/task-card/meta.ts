@@ -51,6 +51,7 @@ export const meta: ComponentMeta = {
   // asChild eliminated (triggers ARE the buttons); zero public-API change.
   version: "0.5.0",
   status: "alpha",
+  artifactBudgetKB: 165,
   createdAt: "2026-05-20",
   updatedAt: "2026-08-11",
 

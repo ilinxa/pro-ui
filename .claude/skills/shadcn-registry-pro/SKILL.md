@@ -28,6 +28,7 @@ Validated against shadcn CLI v4.5+ and the registry schema as of Feb 2026.
 - Hosting a registry (Vercel, Netlify, GH Pages, S3 + CloudFront)
 - Configuring namespaced registries in `components.json`
 - Shipping optional fixtures / theme bundles separately from a base component
+- Shipping an opt-in capability slice (`meta.featureOf`) onto a base component
 - Tailwind v4 / React 19 / Next 16 + registry compatibility questions
 - Migrating a flat `src/components/` library into a registry-shipped one
 
@@ -43,6 +44,7 @@ Validated against shadcn CLI v4.5+ and the registry schema as of Feb 2026.
 | Add a route on consumer side | `type: registry:page` with `target: "~/app/foo/page.tsx"` |
 | Add CSS variables / global styles | `cssVars` + `css` fields (NOT `tailwind` — deprecated for v4) |
 | Make fixtures / variants opt-in | Ship a second item with `registryDependencies: [base]` |
+| Ship an opt-in capability slice (heavy axis, e.g. an editing layer) onto a base component | Feature item — `meta.featureOf: "<base>"`, files under `features/<name>/`, `registryDependencies` includes `@ilinxa/<base>`, base exposes an injection surface — see [pitfalls-and-fixes.md §16](pitfalls-and-fixes.md#16-feature-items-opt-in-slices) / [docs/feature-slicing-convention.md](../../../docs/feature-slicing-convention.md) |
 | Brand-paint the consumer's theme | Separate dedicated theming item — `registry:block` with `cssVars` + `css` only is always safe; `registry:theme` may also work but isn't verified verbatim in the current schema. Never push from functional components. |
 
 ## Critical anti-patterns
@@ -112,7 +114,7 @@ Consumer UX: `pnpm dlx shadcn add @ns/properties-form` (lean) vs `pnpm dlx shadc
 | [cli-and-protocol.md](cli-and-protocol.md) | `shadcn build` + `shadcn add` flag tables, HTTP protocol (Accept, User-Agent), package-manager detection |
 | [namespacing-and-hosting.md](namespacing-and-hosting.md) | `registries` map (string vs object form), `${ENV}` interpolation, Vercel hosting, content-negotiation rewrite for branded URLs |
 | [compatibility-and-versions.md](compatibility-and-versions.md) | Tailwind v4 + React 19 + Next 16 status, deprecated fields, peer-dep gotchas |
-| [pitfalls-and-fixes.md](pitfalls-and-fixes.md) | Sealed-folder collapse, fixture-bundle pattern, theme-pollution avoidance, ERESOLVE, last-writer-wins file conflicts, stale CDN cache |
+| [pitfalls-and-fixes.md](pitfalls-and-fixes.md) | Sealed-folder collapse, fixture-bundle pattern, feature-item opt-in slices, theme-pollution avoidance, ERESOLVE, last-writer-wins file conflicts, stale CDN cache |
 
 ## Sources
 

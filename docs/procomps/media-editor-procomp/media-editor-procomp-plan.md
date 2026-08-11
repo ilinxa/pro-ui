@@ -6,6 +6,8 @@
 >
 > **Extraction from `story-composer` v0.1.5** (tip `849c577`). Not greenfield. Story-composer-01 simultaneously refactors to consume this extraction as **v0.2.0** in the same release (non-breaking, public API preserved). This plan covers BOTH the extraction (Phase A) AND the wrapper refactor (Phase B) AND the close (Phase C).
 
+> **P3 addendum (2026-08-11).** The "Sealed-folder file map (LOCKED)" tree directly below places `editor-camera.tsx` / `camera-permission-prompt.tsx` / `shutter-button.tsx` under `parts/`, and `use-media-capture.ts` / `use-camera-permissions.ts` / `use-multi-instance-guard.ts` under `hooks/`, all re-exported from `media-editor/index.ts`. That location is **superseded** by the P3 feature-slicing split (v0.3.0): all six files moved to `features/capture/parts/` and `features/capture/hooks/` respectively, ship as the separate `@ilinxa/media-editor-capture` registry item, and are exported from `features/capture/index.ts`, not the base barrel. The base's own file count is also stale here (this plan's 33; the pre-P3 guide's 38; current base is 35 post-split, per `registry.json`) — treat this tree as historical intent, not current disk layout. Current layout + wiring: [`media-editor-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./media-editor-procomp-guide.md#feature-slices-p3-2026-08-11).
+
 ## Sealed-folder file map (LOCKED)
 
 ```
@@ -346,6 +348,8 @@ cd src/registry/components/media/story-composer && \
 ```
 
 The snapshot becomes the contract: every name in the snapshot MUST still resolve from `@ilinxa/story-composer` after v0.2.0. CI-style check: post-C17, re-run the same emitDeclarationOnly and diff against snapshot; any missing name fails the audit.
+
+> **P3 addendum (2026-08-11).** The contract this snapshot pins ("every name MUST still resolve") was violated between v0.2.0 and v0.4.0: the `ComposerCamera`/`ComposerEditor`/`ComposerToolbar`/`ColorSwatchPicker` band (+ their prop types) had drifted to a bare `@deprecated` with no announced removal version — never scheduled, so never allowed to disappear — yet `meta.ts` retroactively claimed a removal schedule that didn't exist in the code. The 2026-08-11 P3 review (finding MED-2) restored the 8-name band as re-exports (camera names now resolving through `@ilinxa/media-editor-capture`, the P3 capture slice) with a real, honored schedule: **removal in v0.5.0**. The snapshot file itself is left untouched as the historical record; see [`media-editor-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./media-editor-procomp-guide.md#feature-slices-p3-2026-08-11) for the current state.
 
 ### story-composer.tsx (v0.2.0) wrapper sketch
 

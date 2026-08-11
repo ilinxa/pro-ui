@@ -48,9 +48,9 @@ The CLI auto-installs shadcn primitives (button, popover, etc.) and npm peer dep
 Files land at `components/<slug>/<sub-path>` (project-root-relative). This assumes the consumer's components dir is at `./components/`. If the consumer uses `./src/components/`, files will land at `./components/<slug>/...` (outside their alias) and will need to be moved post-install.
 
 <!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
-## Available items (126 total — 63 base + 63 fixtures)
+## Available items (128 total — 63 base + 63 fixtures + 2 feature slices)
 
-63 components across 9 categories. Every item installs as `@ilinxa/<slug>`; each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only (fixtures depend on the base — installing fixtures pulls the base automatically).
+63 components across 9 categories. Every item installs as `@ilinxa/<slug>`; each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only (fixtures depend on the base — installing fixtures pulls the base automatically). Some components additionally offer optional feature slices — install `@ilinxa/<slice>` on top of the base for opt-in heavier capability.
 
 ### code
 
@@ -66,6 +66,7 @@ Files land at `components/<slug>/<sub-path>` (project-root-relative). This assum
 - `@ilinxa/data-table` — A typed, composable table primitive with column accessors and per-cell rendering.
 - `@ilinxa/engagement-bar` — Social action row — like, comment, share, bookmark, custom actions, and a multi-reaction picker with realtime counts and burst animation.
 - `@ilinxa/event-calendar` — Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard support, and keyboard navigation.
+  ↳ optional slice: `@ilinxa/event-calendar-editing` — Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated actions for the event calendar.
 - `@ilinxa/event-card` — Event preview card with six status states and four layouts — capacity-aware badges, overlay links, and soft-failure item handling.
 - `@ilinxa/expandable-text` — Truncating text block that only shows its toggle when text actually overflows — configurable line clamp, controlled or uncontrolled.
 - `@ilinxa/flow-canvas` — Node-and-edge canvas with typed ports, pluggable node renderers, edge and port-type registries, and JSON save and load — built on React Flow.
@@ -129,6 +130,7 @@ Files land at `components/<slug>/<sub-path>` (project-root-relative). This assum
 - `@ilinxa/content-composer` — Multi-step content authoring shell — each content type is a JSON config composing form, rich text, and media editing steps.
 - `@ilinxa/media-carousel` — Embla image and video carousel — gallery or linear variants, coordinated video pause for inactive slides.
 - `@ilinxa/media-editor` — Media capture and edit surface for photo, video, and text — capability dials and an Instagram-style chrome model.
+  ↳ optional slice: `@ilinxa/media-editor-capture` — Camera photo/video capture for Media Editor — permission flows, shutter control, multi-instance guard.
 - `@ilinxa/media-library` — Drive-style media library — folders and files, lazy loading, drag-drop upload, drag-to-move, context menus, and multi-type preview.
 - `@ilinxa/pdf-viewer` — Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu.
 - `@ilinxa/story-composer` — Instagram-style story creation surface — a locked 9:16 wrapper around the media editor.

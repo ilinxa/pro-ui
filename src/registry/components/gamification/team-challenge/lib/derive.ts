@@ -1,10 +1,12 @@
+import { clamp } from "../../_shared/gamification-kit";
 import type { Challenge, ChallengeDerived } from "../types";
 
 /**
  * The pure derivation layer — SSR-deterministic (derives only from the
- * `challenge` prop; never reads `Date`, `Math.random`, layout, or env). Test-
- * ready and a prime candidate to hoist into a shared `gamification-kit` once
- * 2–3 components prove the surface (system §7.3) — keep it standalone.
+ * `challenge` prop; never reads `Date`, `Math.random`, layout, or env).
+ * Test-ready. `clamp` moved to the shared `gamification-kit` (P3.5 / D-04)
+ * once the surface was proven across ≥2 components — keep the rest of this
+ * derivation standalone (system-model type duplication is intentional, D-03).
  *
  * No component-invented progress notion (system D-09 spirit): progress is
  * exactly `challenge.progress`; the card never derives it from milestones.
@@ -15,10 +17,6 @@ export const DEFAULT_JOIN_LABEL = "Join this challenge";
 export const DEFAULT_LEAVE_LABEL = "Leave challenge";
 export const DEFAULT_NO_PENALTY_HINT =
   "Optional — no penalty for sitting this one out";
-
-function clamp(n: number, lo: number, hi: number): number {
-  return Math.min(Math.max(n, lo), hi);
-}
 
 /**
  * Resolve every rendered value from the `challenge`. The `max(target, 1)`

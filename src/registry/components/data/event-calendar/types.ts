@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { CalendarEditExtension } from "./hooks/use-calendar-edit-extension";
 
 /*
  * event-calendar — the date-grid sibling of gantt-timeline.
@@ -119,9 +120,10 @@ export type CalendarSnap =
   | "off"
   | number;
 
-/** Edit actions; mapped onto task-card's `TaskPermissionRule` keys by
- *  `lib/edit-permissions.ts` (move/resize→drag, delete→remove, create→addChildren,
- *  editDetails→edit). Mirrors gantt's `GanttEditAction`. */
+/** Edit actions; mapped onto task-card's `TaskPermissionRule` keys by the
+ *  editing feature's `lib/edit-permissions.ts` (move/resize→drag,
+ *  delete→remove, create→addChildren, editDetails→edit). Mirrors gantt's
+ *  `GanttEditAction`. */
 export type CalendarEditAction =
   | "move"
   | "resize"
@@ -217,6 +219,12 @@ export type CalendarProps = {
   // ══ Editing (v0.2.0) — ALL opt-in; default surface is the v1 read-only calendar ══
   /** Master switch. Default false → byte-identical v1 read-only behavior. */
   editable?: boolean;
+  /** Wires the editing feature slice (P3 — `@ilinxa/event-calendar-editing`).
+   *  Import `calendarEditing` from the feature's barrel and pass it here
+   *  alongside `editable` to enable drag/resize/create/clipboard/keyboard
+   *  editing. `editable` without `editing` stays read-only (one dev
+   *  `console.warn`) — the base package never statically imports the feature. */
+  editing?: CalendarEditExtension;
   /** Full mutated forest after ANY edit; controlled consumer echoes into `data`. */
   onChange?: (data: TaskItem[]) => void;
   /** Reschedule sugar — fires alongside onChange/onFieldEdited (kept from gantt). */
@@ -288,9 +296,18 @@ export type CalendarHandle = {
   openQuickComposer(date: Date, allDay?: boolean): void;
 };
 
-/* ───────── context (internal; constructed in the Root) ───────── */
+/* ───────── context (internal; constructed in the Root) ─────────
+ *
+ * Split at P3 feature-slicing (v0.3.0): the base Root builds ONLY
+ * `CalendarBaseContextValue` (read-only surface — cursor/data/config/
+ * selection/read-only callbacks). The full edit surface (dispatchers +
+ * transient UI + gestures + components) lives in `CalendarEditContextValue`,
+ * defined in the injection seam (`hooks/use-calendar-edit-extension.ts`) and
+ * supplied by the editing feature's Provider — base never references it by
+ * static import, only through `useCalendarEditOptional()`.
+ */
 
-export type CalendarContextValue = {
+export type CalendarBaseContextValue = {
   // cursor
   view: CalendarView;
   focusDate: Date;
@@ -326,49 +343,11 @@ export type CalendarContextValue = {
   onDateClick?: (date: Date) => void;
   onShowMore?: (date: Date, items: TaskItem[]) => void;
   renderTooltip?: CalendarTooltipRenderer;
-
-  // ── editing (v0.2.0) — always present; dispatchers no-op when !editable ──
-  editable: boolean;
-  snap: CalendarSnap;
-  quickCompose: boolean;
-  permissions?: TaskPermissions;
-  /** Look up any item in the forest by id (incl. nested children). */
-  getItem: (id: string) => TaskItem | undefined;
-  /** Effective allow for an action on an item (false when !editable). */
-  can: (action: CalendarEditAction, item: TaskItem) => boolean;
-  // dispatchers (mirror gantt's use-gantt-edit surface)
-  rescheduleItem: (
-    id: string,
-    patch: { startMs?: number; endMs?: number; allDay: boolean },
-    kind: "move" | "resize",
-  ) => void;
-  createItem: (
-    parentId: string | null,
-    seed: Partial<TaskItem> | undefined,
-    window: { startMs: number; endMs?: number; allDay: boolean },
-    opts?: { openEditor?: boolean },
-  ) => void;
-  deleteItem: (id: string) => void;
-  renameItemAction: (id: string, name: string) => void;
-  changeStatus: (id: string, status: string) => void;
-  changePriority: (id: string, priority: string) => void;
-  applyEditedSubtree: (next: TaskItem) => void;
-  // transient edit UI
-  editingId: string | null;
-  openEditor: (id: string) => void;
-  closeEditor: () => void;
-  renamingId: string | null;
-  beginRename: (id: string) => void;
-  endRename: () => void;
-  composerTarget: CalendarComposerTarget | null;
-  openComposer: (target: CalendarComposerTarget) => void;
-  closeComposer: () => void;
-  /** Live drag/resize preview geometry (mid-gesture); commit happens on release. */
-  resizePreview: { id: string; startMs: number; endMs: number } | null;
-  setResizePreview: (
-    p: { id: string; startMs: number; endMs: number } | null,
-  ) => void;
-  // external drop-in + composer override
-  onExternalDrop?: (date: Date, allDay: boolean, data: DataTransfer) => void;
-  renderQuickComposer?: CalendarQuickComposerRenderer;
 };
+
+/** @deprecated internal compat alias — pre-split code referenced the combined
+ *  (base + edit) shape under this name. Never part of the public API (not
+ *  re-exported from `index.ts`); use `CalendarBaseContextValue` for the
+ *  read-only context, or the editing feature's `CalendarEditContextValue`
+ *  for the edit surface. */
+export type CalendarContextValue = CalendarBaseContextValue;

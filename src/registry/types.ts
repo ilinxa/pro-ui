@@ -35,6 +35,8 @@ export type ComponentMeta = {
 
   version: string;
   status: ComponentStatus;
+  /** Allowed KB of the built `public/r/<slug>.json` artifact — validate:artifact-size fails at >20% over. */
+  artifactBudgetKB: number;
   createdAt: string;
   updatedAt: string;
 
@@ -43,6 +45,8 @@ export type ComponentMeta = {
   dependencies?: ComponentDependencies;
 
   related?: string[];
+  /** Opt-in feature items installable on top of this component (P3 feature-slicing). */
+  slices?: { name: string; item: string; description: string }[];
 };
 
 export type RegistryEntry = {

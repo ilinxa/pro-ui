@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import { TeamTrophyShelfContext } from "../hooks/use-team-trophy-shelf";
 import { indexById, newlyEarned } from "../lib/diff";
 import { earnedCount, resolveSlots, totalCount } from "../lib/resolve";
@@ -76,22 +77,17 @@ export function TeamTrophyShelfRoot({
 
   // --- Telemetry: badges.viewed (no id) once on first view ---
   const firedView = React.useRef(false);
-  const onEventRef = React.useRef(onEvent);
-  React.useEffect(() => {
-    onEventRef.current = onEvent;
-  }, [onEvent]);
+  const onEventRef = useLatestRef(onEvent);
   const hasEventHandler = Boolean(onEvent);
   React.useEffect(() => {
     if (firedView.current || !hasEventHandler) return;
     firedView.current = true;
     onEventRef.current?.({ type: "badges.viewed", teamId: team.id });
-  }, [team.id, hasEventHandler]);
+    // `onEventRef` is a stable ref object — listed for exhaustive-deps only.
+  }, [team.id, hasEventHandler, onEventRef]);
 
   // --- Interaction ---
-  const onBadgeOpenRef = React.useRef(onBadgeOpen);
-  React.useEffect(() => {
-    onBadgeOpenRef.current = onBadgeOpen;
-  }, [onBadgeOpen]);
+  const onBadgeOpenRef = useLatestRef(onBadgeOpen);
   const isInteractive = Boolean(onBadgeOpen);
 
   const openBadge = React.useCallback(
@@ -103,7 +99,9 @@ export function TeamTrophyShelfRoot({
       });
       onBadgeOpenRef.current?.(badge);
     },
-    [team.id],
+    // `onBadgeOpenRef`/`onEventRef` are stable ref objects — listed for
+    // exhaustive-deps only.
+    [team.id, onBadgeOpenRef, onEventRef],
   );
 
   const onAwardDone = React.useCallback((badgeId: string) => {

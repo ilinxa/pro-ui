@@ -246,7 +246,7 @@ function parseMeta(metaPath) {
 
   // dependencies: { ... }, ↓ then a sibling key (related / thumbnail) or }
   const depsBlockMatch = text.match(
-    /dependencies\s*:\s*\{([\s\S]*?)\n\s*\},?\s*\n\s*(?:related|thumbnail|features|context|description|tags|examples|author|version|status|createdAt|updatedAt|category|subcategory|name|slug|\}|\/\/)/,
+    /dependencies\s*:\s*\{([\s\S]*?)\n\s*\},?\s*\n\s*(?:slices|artifactBudgetKB|related|thumbnail|features|context|description|tags|examples|author|version|status|createdAt|updatedAt|category|subcategory|name|slug|\}|\/\/)/,
   );
   if (!depsBlockMatch) return { shadcn: [], npm: {}, internal: [], parsedOk: false };
 

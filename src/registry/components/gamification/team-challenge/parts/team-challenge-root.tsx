@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import { TeamChallengeContext } from "../hooks/use-team-challenge";
 import {
   DEFAULT_JOIN_LABEL,
@@ -37,18 +38,13 @@ export function TeamChallengeRoot({
   className,
   "aria-label": ariaLabel,
 }: TeamChallengeRootProps) {
-  // Latest props read through refs so `toggleOptIn` + the opened-effect stay
-  // stable and an inline `onEvent`/`onOptInChange` never re-subscribes anything.
-  const challengeRef = React.useRef(challenge);
-  const teamRef = React.useRef(team);
-  const onOptInChangeRef = React.useRef(onOptInChange);
-  const onEventRef = React.useRef(onEvent);
-  React.useEffect(() => {
-    challengeRef.current = challenge;
-    teamRef.current = team;
-    onOptInChangeRef.current = onOptInChange;
-    onEventRef.current = onEvent;
-  });
+  // Latest props read through refs (shared `useLatestRef`, P3.5 / D-04) so
+  // `toggleOptIn` + the opened-effect stay stable and an inline
+  // `onEvent`/`onOptInChange` never re-subscribes anything.
+  const challengeRef = useLatestRef(challenge);
+  const teamRef = useLatestRef(team);
+  const onOptInChangeRef = useLatestRef(onOptInChange);
+  const onEventRef = useLatestRef(onEvent);
 
   const derived = React.useMemo(() => deriveChallenge(challenge), [challenge]);
 
@@ -60,7 +56,10 @@ export function TeamChallengeRoot({
     if (firedRef.current === challenge.id) return;
     firedRef.current = challenge.id;
     onEventRef.current?.(openedEvent(teamRef.current, challengeRef.current));
-  }, [challenge.id]);
+    // `challengeRef`/`teamRef`/`onEventRef` are stable ref objects (identity
+    // never changes, only `.current`) — listed for exhaustive-deps, not
+    // because they trigger re-runs.
+  }, [challenge.id, challengeRef, onEventRef, teamRef]);
 
   const toggleOptIn = React.useCallback(() => {
     const next = !challengeRef.current.optedIn;
@@ -70,7 +69,7 @@ export function TeamChallengeRoot({
     onEventRef.current?.(
       optInEvent(teamRef.current, challengeRef.current, next),
     );
-  }, []);
+  }, [challengeRef, onEventRef, onOptInChangeRef, teamRef]);
 
   const canOptIn = typeof onOptInChange === "function";
 

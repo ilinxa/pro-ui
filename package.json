@@ -17,11 +17,12 @@
     "validate:doc-budget": "node scripts/validate-doc-budget.mjs",
     "validate:registry-json": "node scripts/validate-registry-json.mjs",
  "validate:naming": "node scripts/validate-naming.mjs",
+    "validate:artifact-size": "node scripts/validate-artifact-size.mjs",
     "build:llms": "node scripts/build-llms.mjs",
     "build:source-map": "node scripts/build-source-map.mjs",
     "new:component": "node scripts/new-component.mjs",
     "new:migration": "node scripts/new-migration.mjs",
-    "registry:build": "node scripts/validate-meta-deps.mjs && node scripts/validate-default-registry-whitelist.mjs && node scripts/validate-registry-json.mjs && node scripts/validate-naming.mjs && node scripts/build-llms.mjs && node scripts/validate-doc-drift.mjs && node scripts/validate-doc-budget.mjs && node scripts/clean-registry-artifacts.mjs && shadcn build"
+    "registry:build": "node scripts/validate-meta-deps.mjs && node scripts/validate-default-registry-whitelist.mjs && node scripts/validate-registry-json.mjs && node scripts/validate-naming.mjs && node scripts/build-llms.mjs && node scripts/validate-doc-drift.mjs && node scripts/validate-doc-budget.mjs && node scripts/clean-registry-artifacts.mjs && shadcn build && node scripts/validate-artifact-size.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

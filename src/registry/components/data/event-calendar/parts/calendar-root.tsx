@@ -9,104 +9,203 @@ import {
   useRef,
   useState,
 } from "react";
-import type { KeyboardEvent } from "react";
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
-import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
+import type { KeyboardEvent, ReactNode, RefObject } from "react";
 import { cn } from "@/lib/utils";
 import { CalendarContext } from "../hooks/use-calendar-context";
 import { useCalendarCursor } from "../hooks/use-calendar-cursor";
-import { useCalendarEdit } from "../hooks/use-calendar-edit";
 import { useNowTick } from "../hooks/use-now-tick";
+import { useCalendarEditOptional } from "../hooks/use-calendar-edit-extension";
+import type { CalendarEditProps } from "../hooks/use-calendar-edit-extension";
 import { visibleRange as computeVisibleRange } from "../lib/date-range";
 import { toOccurrences } from "../lib/occurrences";
-import { coveredDays } from "../lib/segments";
-import { snapStepMs } from "../lib/edit-mutations";
-import { parseDateValue } from "../lib/classify";
-import {
-  readTasksFromClipboardEvent,
-  writeTasksToClipboardEvent,
-} from "../../task-card/lib/clipboard";
 import type {
-  CalendarContextValue,
+  CalendarBaseContextValue,
   CalendarHandle,
-  CalendarOccurrence,
   CalendarRootProps,
   CalendarView,
-  TaskItem,
 } from "../types";
 
 const ALL_VIEWS: CalendarView[] = ["month", "week", "day", "agenda"];
 
-/** Duration (ms) of a task from its dates; 0 when it has no real span. */
-function itemDurationMs(it: TaskItem): number {
-  const startMs = parseDateValue(it.startAt ?? it.setAt).ms;
-  const endMs = it.expireAt ? parseDateValue(it.expireAt).ms : NaN;
-  return Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs
-    ? endMs - startMs
-    : 0;
+// Per-instance dedup (ref passed in) — two calendars on one page each get
+// their own diagnostic, matching the sibling `warnedEditingRef` pattern.
+function warnNoEditingMethod(warnedRef: { current: boolean }) {
+  if (process.env.NODE_ENV === "production" || warnedRef.current) return;
+  warnedRef.current = true;
+  console.warn(
+    "[event-calendar] Called an editing method on the imperative handle, but no editing extension is wired — pass `editing={calendarEditing}` from @ilinxa/event-calendar-editing (and `editable`). No-op.",
+  );
 }
 
+type RootShellProps = {
+  className?: string;
+  ariaLabel?: string;
+  rootRef: RefObject<HTMLDivElement | null>;
+  rangeStartMs: number;
+  rangeEndMs: number;
+  goToDate: (date: Date) => void;
+  goToToday: () => void;
+  setView: (view: CalendarView) => void;
+  next: () => void;
+  prev: () => void;
+  availableViews: CalendarView[];
+  children: ReactNode;
+};
+
 /**
- * Where a paste lands. The TARGET decides all-day vs timed (so paste also
- * converts): a focused day-cell → that day, all-day; a focused event → its
- * day + all-day-ness; otherwise the current focus date (timed in week/day at
- * `scrollToHour`, else all-day). Duration is carried from the copied item.
+ * Inner shell (base, always rendered) — owns the root DOM node, the keyboard
+ * router, and the imperative handle. Split out from `EventCalendarRoot` so it
+ * can be mounted INSIDE the editing extension's `Provider` (when wired): the
+ * Provider establishes `CalendarEditContext` above this component, so
+ * `useCalendarEditOptional()` here resolves non-null exactly when editing is
+ * active — letting the imperative handle + keyboard router delegate to the
+ * edit surface without the base Root itself ever importing feature code.
  */
-function resolvePasteWindow(
-  items: TaskItem[],
-  opts: {
-    activeEl: Element | null;
-    occurrences: CalendarOccurrence[];
-    view: CalendarView;
-    focusDate: Date;
-    scrollToHour: number;
-  },
-): { startMs: number; endMs?: number; allDay: boolean } {
-  const { activeEl, occurrences, view, focusDate, scrollToHour } = opts;
-  const dur = itemDurationMs(items[0]);
-  const dayEl = activeEl?.closest?.("[data-day-ms]") as HTMLElement | null;
-  if (dayEl) {
-    const startMs = Number(dayEl.getAttribute("data-day-ms"));
-    return { startMs, endMs: dur > 0 ? startMs + dur : undefined, allDay: true };
-  }
-  const occEl = activeEl?.closest?.("[data-occ-id]") as HTMLElement | null;
-  if (occEl) {
-    const occ = occurrences.find(
-      (o) => o.id === occEl.getAttribute("data-occ-id"),
+const RootShell = forwardRef<CalendarHandle, RootShellProps>(
+  function RootShell(
+    {
+      className,
+      ariaLabel,
+      rootRef,
+      rangeStartMs,
+      rangeEndMs,
+      goToDate,
+      goToToday,
+      setView,
+      next,
+      prev,
+      availableViews,
+      children,
+    },
+    ref,
+  ) {
+    const edit = useCalendarEditOptional();
+    const warnedNoEditingRef = useRef(false);
+
+    useImperativeHandle(
+      ref,
+      (): CalendarHandle => ({
+        goToDate,
+        goToToday,
+        setView,
+        next,
+        prev,
+        getVisibleRange: () => ({
+          start: new Date(rangeStartMs),
+          end: new Date(rangeEndMs),
+        }),
+        // Editing (v0.2.0+) — delegates to the wired extension; a dev-only
+        // console.warn (once) + silent no-op when no extension is wired.
+        addTask: (date, item) => {
+          if (!edit) return warnNoEditingMethod(warnedNoEditingRef);
+          edit.handleMethods.addTask(date, item);
+        },
+        deleteTask: (id) => {
+          if (!edit) return warnNoEditingMethod(warnedNoEditingRef);
+          edit.handleMethods.deleteTask(id);
+        },
+        editTask: (id) => {
+          if (!edit) return warnNoEditingMethod(warnedNoEditingRef);
+          edit.handleMethods.editTask(id);
+        },
+        beginRename: (id) => {
+          if (!edit) return warnNoEditingMethod(warnedNoEditingRef);
+          edit.handleMethods.beginRename(id);
+        },
+        openQuickComposer: (date, allDay) => {
+          if (!edit) return warnNoEditingMethod(warnedNoEditingRef);
+          edit.handleMethods.openQuickComposer(date, allDay);
+        },
+      }),
+      [goToDate, goToToday, setView, next, prev, rangeStartMs, rangeEndMs, edit],
     );
-    if (occ) {
-      const span = occ.endMs > occ.startMs ? occ.endMs - occ.startMs : 0;
-      const length = dur > 0 ? dur : span;
-      return {
-        startMs: occ.startMs,
-        endMs: length > 0 ? occ.startMs + length : undefined,
-        allDay: occ.allDay,
-      };
-    }
-  }
-  const base = startOfDay(focusDate).getTime();
-  if (view === "week" || view === "day") {
-    const startMs = base + Math.max(0, Math.min(23, scrollToHour)) * 3_600_000;
-    return {
-      startMs,
-      endMs: dur > 0 ? startMs + dur : startMs + 3_600_000,
-      allDay: false,
+
+    // View/period keys (always) + delegated event/day-cell editing keys (only
+    // when an editing extension is wired — `edit` is null otherwise).
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      const targetEl = e.target as HTMLElement;
+      const tag = targetEl.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (edit) {
+        const occId = targetEl
+          .closest?.("[data-occ-id]")
+          ?.getAttribute("data-occ-id");
+        if (occId) {
+          if (edit.handleEventKey(e, occId)) return;
+        } else if (e.key === "Enter") {
+          const dayMsAttr = targetEl
+            .closest?.("[data-day-ms]")
+            ?.getAttribute("data-day-ms");
+          if (dayMsAttr) {
+            edit.handleDayEnterKey(Number(dayMsAttr));
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+      switch (e.key) {
+        case "ArrowLeft":
+        case "PageUp":
+          e.preventDefault();
+          prev();
+          break;
+        case "ArrowRight":
+        case "PageDown":
+          e.preventDefault();
+          next();
+          break;
+        case "t":
+        case "T":
+          e.preventDefault();
+          goToToday();
+          break;
+        case "m":
+        case "M":
+          if (availableViews.includes("month")) setView("month");
+          break;
+        case "w":
+        case "W":
+          if (availableViews.includes("week")) setView("week");
+          break;
+        case "d":
+        case "D":
+          if (availableViews.includes("day")) setView("day");
+          break;
+        case "a":
+        case "A":
+          if (availableViews.includes("agenda")) setView("agenda");
+          break;
+      }
     };
-  }
-  return { startMs: base, endMs: dur > 0 ? base + dur : undefined, allDay: true };
-}
+
+    return (
+      <div
+        ref={rootRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        aria-label={ariaLabel ?? "Calendar"}
+        className={cn(
+          "flex flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          className,
+        )}
+      >
+        {children}
+      </div>
+    );
+  },
+);
 
 /**
- * Headless provider (Tier B). Owns ALL state — the cursor (view + focus date),
- * selection, the memoized occurrences, the now-tick — plus the context and the
- * imperative handle. Renders `children`. No data state of its own (controlled,
- * family invariant); the v2 editing block is inert here.
+ * Headless provider (Tier B). Owns ALL base state — the cursor (view + focus
+ * date), selection, the memoized occurrences, the now-tick — plus the
+ * read-only context. No data state of its own (controlled, family invariant).
+ *
+ * Editing (P3 feature-slicing, v0.3.0): when BOTH `editable` and `editing`
+ * (the `CalendarEditExtension`) are set, the Root mounts the extension's
+ * `Provider` around its children — which is what makes `CalendarEditContext`
+ * resolve for every part below. This file never statically imports anything
+ * under `../features/editing/` (strategy-b injection); a base-only install
+ * compiles and renders fully read-only.
  */
 export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
   function EventCalendarRoot(props, ref) {
@@ -134,7 +233,8 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
       onShowMore,
       onRangeChange,
       renderTooltip,
-      // editing (v0.2.0)
+      // editing (v0.2.0+) — collected into `editProps` for the extension; not
+      // read directly by this component beyond `editable`/`editing` gating.
       editable = false,
       snap = "15min",
       quickCompose = true,
@@ -154,6 +254,7 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
       onPermissionDenied,
       onExternalDrop,
       renderQuickComposer,
+      editing,
       className,
       children,
     } = props;
@@ -223,90 +324,6 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
       [selectionControlled, onSelect],
     );
 
-    // ── editing (v0.2.0) — the dispatcher chokepoints; all no-op when !editable ──
-    const edit = useCalendarEdit({
-      data,
-      editable,
-      snap,
-      statusOptions,
-      select,
-      onChange,
-      onTaskReschedule,
-      onItemAdded,
-      onItemRemoved,
-      onItemMoved,
-      onFieldEdited,
-      onStatusChanged,
-      permissions,
-      canMoveItem,
-      canResizeItem,
-      canDeleteItem,
-      canCreateChild,
-      canEditItem,
-      onPermissionDenied,
-    });
-    const {
-      can,
-      getItem,
-      rescheduleItem,
-      createItem,
-      pasteTasks,
-      deleteItem,
-      renameItemAction,
-      changeStatus,
-      changePriority,
-      applyEditedSubtree,
-      editingId,
-      openEditor,
-      closeEditor,
-      renamingId,
-      beginRename,
-      endRename,
-      composerTarget,
-      openComposer,
-      closeComposer,
-      resizePreview,
-      setResizePreview,
-    } = edit;
-
-    // The root element (clipboard listeners fire only when it contains focus) and
-    // the id to refocus after a keyboard-opened transient (editor / rename /
-    // composer) closes (F-11).
-    const rootRef = useRef<HTMLDivElement>(null);
-    const restoreFocusRef = useRef<string | null>(null);
-
-    // Drag-to-reschedule across the grid. A draggable event carries `{ occ }`; a
-    // droppable day cell carries `{ dayMs }`. We shift by whole CALENDAR days
-    // (date-fns `addDays`, DST-safe) and only carry the end when the item has a
-    // real span (point events / milestones keep no end).
-    const sensors = useSensors(
-      useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    );
-    const onDragEnd = useCallback(
-      (e: DragEndEvent) => {
-        const occ = e.active.data.current?.occ as CalendarOccurrence | undefined;
-        const targetDayMs = e.over?.data.current?.dayMs as number | undefined;
-        if (!occ || targetDayMs == null) return;
-        const sourceDayMs = startOfDay(occ.startMs).getTime();
-        const deltaDays = differenceInCalendarDays(
-          new Date(targetDayMs),
-          new Date(sourceDayMs),
-        );
-        if (deltaDays === 0) return;
-        const newStart = addDays(new Date(occ.startMs), deltaDays).getTime();
-        const hasSpan = occ.endMs > occ.startMs;
-        const newEnd = hasSpan
-          ? addDays(new Date(occ.endMs), deltaDays).getTime()
-          : undefined;
-        rescheduleItem(
-          occ.id,
-          { startMs: newStart, endMs: newEnd, allDay: occ.allDay },
-          "move",
-        );
-      },
-      [rescheduleItem],
-    );
-
     // onRangeChange — fire on mount + when the visible window changes. The
     // callback is read through a ref updated in an effect (never during render)
     // so an inline consumer callback doesn't retrigger the notify effect.
@@ -324,155 +341,29 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
       });
     }, [view, rangeStartMs, rangeEndMs]);
 
-    // Focus restore (F-11): when a keyboard-opened transient (editor / rename /
-    // composer) closes, return focus to the originating event/cell.
+    // Shared root DOM node — the editing extension's clipboard + focus-restore
+    // effects need to know when focus is inside the calendar; created here so
+    // the same ref object reaches both the extension Provider (via `editProps`)
+    // and `RootShell` (which attaches it to the actual div).
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    // Dev-only, once: `editable` set but no extension wired → read-only fallback.
+    const warnedEditingRef = useRef(false);
     useEffect(() => {
-      if (editingId || renamingId || composerTarget) return;
-      const target = restoreFocusRef.current;
-      if (!target) return;
-      restoreFocusRef.current = null;
-      const raf = requestAnimationFrame(() => {
-        const sel = target.startsWith("day:")
-          ? `[data-day-ms="${target.slice(4)}"]`
-          : `[data-occ-id="${target}"]`;
-        (rootRef.current?.querySelector(sel) as HTMLElement | null)?.focus();
-      });
-      return () => cancelAnimationFrame(raf);
-    }, [editingId, renamingId, composerTarget]);
-
-    // Cross-surface clipboard — copy/cut/paste `TaskItem`s through the OS clipboard
-    // (the shared `ilinxa/task` envelope; foreign text is ignored). Document-level
-    // so it fires regardless of which focused element the UA targets; gated on the
-    // calendar containing focus, skipped over text inputs (so the composer / rename
-    // keep native text copy/paste).
-    useEffect(() => {
-      if (!editable) return;
-      const owns = () => {
-        const active = document.activeElement;
-        return !!rootRef.current && !!active && rootRef.current.contains(active);
-      };
-      const overText = () => {
-        const el = document.activeElement as HTMLElement | null;
-        return (
-          el?.tagName === "INPUT" ||
-          el?.tagName === "TEXTAREA" ||
-          el?.isContentEditable === true
+      if (
+        process.env.NODE_ENV !== "production" &&
+        editable &&
+        !editing &&
+        !warnedEditingRef.current
+      ) {
+        warnedEditingRef.current = true;
+        console.warn(
+          "[event-calendar] `editable` is set but no editing extension is wired — pass `editing={calendarEditing}` from @ilinxa/event-calendar-editing. Falling back to read-only.",
         );
-      };
-      // An open editor / rename / composer owns the clipboard (it may hold
-      // non-input controls), so defer to native copy/paste while one is up.
-      const busy = () =>
-        editingId != null || renamingId != null || composerTarget != null;
-      const targetId = (): string | null => {
-        const active = document.activeElement as HTMLElement | null;
-        const occId = active
-          ?.closest?.("[data-occ-id]")
-          ?.getAttribute("data-occ-id");
-        return occId ?? selectedId ?? null;
-      };
-      const onCopy = (e: ClipboardEvent) => {
-        if (!owns() || overText() || busy()) return;
-        const id = targetId();
-        const item = id ? getItem(id) : undefined;
-        if (!item) return;
-        writeTasksToClipboardEvent(e, [item], "event-calendar");
-        e.preventDefault();
-      };
-      const onCut = (e: ClipboardEvent) => {
-        if (!owns() || overText() || busy()) return;
-        const id = targetId();
-        const item = id ? getItem(id) : undefined;
-        if (!item) return;
-        writeTasksToClipboardEvent(e, [item], "event-calendar");
-        deleteItem(item.id);
-        e.preventDefault();
-      };
-      const onPaste = (e: ClipboardEvent) => {
-        if (!owns() || overText() || busy()) return;
-        const items = readTasksFromClipboardEvent(e);
-        if (!items) return;
-        pasteTasks(
-          items,
-          resolvePasteWindow(items, {
-            activeEl: document.activeElement,
-            occurrences,
-            view,
-            focusDate,
-            scrollToHour,
-          }),
-        );
-        e.preventDefault();
-      };
-      document.addEventListener("copy", onCopy);
-      document.addEventListener("cut", onCut);
-      document.addEventListener("paste", onPaste);
-      return () => {
-        document.removeEventListener("copy", onCopy);
-        document.removeEventListener("cut", onCut);
-        document.removeEventListener("paste", onPaste);
-      };
-    }, [
-      editable,
-      selectedId,
-      getItem,
-      deleteItem,
-      pasteTasks,
-      occurrences,
-      view,
-      focusDate,
-      scrollToHour,
-      editingId,
-      renamingId,
-      composerTarget,
-    ]);
+      }
+    }, [editable, editing]);
 
-    useImperativeHandle(
-      ref,
-      (): CalendarHandle => ({
-        goToDate,
-        goToToday,
-        setView,
-        next,
-        prev,
-        getVisibleRange: () => ({
-          start: new Date(rangeStartMs),
-          end: new Date(rangeEndMs),
-        }),
-        // Editing (v0.2.0) — live; still no-op when !editable / permission denied.
-        addTask: (date, item) =>
-          createItem(null, item, {
-            startMs: startOfDay(date).getTime(),
-            allDay: true,
-          }),
-        deleteTask: (id) => deleteItem(id),
-        editTask: (id) => openEditor(id),
-        beginRename: (id) => beginRename(id),
-        openQuickComposer: (date, allDay = true) =>
-          openComposer({
-            date: startOfDay(date),
-            allDay,
-            defaultEnd: allDay
-              ? startOfDay(date)
-              : new Date(date.getTime() + 3_600_000),
-          }),
-      }),
-      [
-        goToDate,
-        goToToday,
-        setView,
-        next,
-        prev,
-        rangeStartMs,
-        rangeEndMs,
-        createItem,
-        deleteItem,
-        openEditor,
-        beginRename,
-        openComposer,
-      ],
-    );
-
-    const ctx = useMemo<CalendarContextValue>(
+    const ctx = useMemo<CalendarBaseContextValue>(
       () => ({
         view,
         focusDate,
@@ -498,33 +389,6 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
         onDateClick,
         onShowMore,
         renderTooltip,
-        // editing (v0.2.0)
-        editable,
-        snap,
-        quickCompose,
-        permissions,
-        getItem,
-        can,
-        rescheduleItem,
-        createItem,
-        deleteItem,
-        renameItemAction,
-        changeStatus,
-        changePriority,
-        applyEditedSubtree,
-        editingId,
-        openEditor,
-        closeEditor,
-        renamingId,
-        beginRename,
-        endRename,
-        composerTarget,
-        openComposer,
-        closeComposer,
-        resizePreview,
-        setResizePreview,
-        onExternalDrop,
-        renderQuickComposer,
       }),
       [
         view,
@@ -551,214 +415,87 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
         onDateClick,
         onShowMore,
         renderTooltip,
-        editable,
+      ],
+    );
+
+    const editProps = useMemo<CalendarEditProps>(
+      () => ({
+        data,
+        editable: true,
+        onChange,
+        onTaskReschedule,
+        onItemAdded,
+        onItemRemoved,
+        onItemMoved,
+        onFieldEdited,
+        onStatusChanged,
+        permissions,
+        canMoveItem,
+        canResizeItem,
+        canDeleteItem,
+        canCreateChild,
+        canEditItem,
+        onPermissionDenied,
         snap,
         quickCompose,
+        onExternalDrop,
+        renderQuickComposer,
+        rootRef,
+      }),
+      [
+        data,
+        onChange,
+        onTaskReschedule,
+        onItemAdded,
+        onItemRemoved,
+        onItemMoved,
+        onFieldEdited,
+        onStatusChanged,
         permissions,
-        getItem,
-        can,
-        rescheduleItem,
-        createItem,
-        deleteItem,
-        renameItemAction,
-        changeStatus,
-        changePriority,
-        applyEditedSubtree,
-        editingId,
-        openEditor,
-        closeEditor,
-        renamingId,
-        beginRename,
-        endRename,
-        composerTarget,
-        openComposer,
-        closeComposer,
-        resizePreview,
-        setResizePreview,
+        canMoveItem,
+        canResizeItem,
+        canDeleteItem,
+        canCreateChild,
+        canEditItem,
+        onPermissionDenied,
+        snap,
+        quickCompose,
         onExternalDrop,
         renderQuickComposer,
       ],
     );
 
-    // Event-focused editing. `←/→` move by one unit (day in month/agenda, snap in
-    // the time grid), `Shift+←/→` (+ `↑/↓` in the time grid) resize the end,
-    // `Delete` removes, `Enter` opens the detail editor, `F2` renames. Returns
-    // true when it consumed the key (so chrome keys still fall through otherwise).
-    const handleEventKey = (
-      e: KeyboardEvent<HTMLDivElement>,
-      id: string,
-    ): boolean => {
-      const occ = occurrences.find((o) => o.id === id);
-      if (!occ) return false;
-      const timed = (view === "week" || view === "day") && !occ.allDay;
-      const stepMs = snapStepMs(snap) || 900_000;
-      const hasSpan = occ.endMs > occ.startMs;
-      // Day-granular ←/→ moves shift by CALENDAR days via `addDays` — the same
-      // math as the pointer drop path, DST-safe where a raw MS_PER_DAY add is a
-      // silent no-op across the fall-back day (v0.2.4). Timed moves in the time
-      // grid shift by the snap step.
-      const shiftMs = (ms: number, dir: number) =>
-        timed ? ms + dir * stepMs : addDays(new Date(ms), dir).getTime();
+    // Mount the extension only when BOTH `editable` and `editing` are set —
+    // matches the v1 invariant exactly (editable=false ⇒ byte-identical
+    // read-only calendar, no DnD/clipboard machinery mounted at all).
+    const mountEditing = editable && !!editing;
 
-      // Resize the END by one unit. All-day events resize in whole days against
-      // the exclusive-end convention (same `addDays` midnight math as the drag
-      // grip, so keyboard and pointer agree — no off-by-one, no DST drift) and
-      // never collapse past their start; milestones are points in time and
-      // aren't resizable.
-      const resizeEnd = (dir: number) => {
-        if (occ.kind === "milestone") return;
-        if (occ.allDay) {
-          const cov = coveredDays(occ);
-          const curEnd = startOfDay(addDays(new Date(cov.lastMs), 1)).getTime();
-          const minEnd = startOfDay(addDays(new Date(cov.firstMs), 1)).getTime();
-          rescheduleItem(
-            id,
-            {
-              endMs: Math.max(minEnd, addDays(new Date(curEnd), dir).getTime()),
-              allDay: true,
-            },
-            "resize",
-          );
-        } else {
-          const base = hasSpan ? occ.endMs : occ.startMs;
-          rescheduleItem(
-            id,
-            { endMs: base + dir * stepMs, allDay: false },
-            "resize",
-          );
-        }
-      };
-
-      switch (e.key) {
-        case "ArrowLeft":
-        case "ArrowRight": {
-          const dir = e.key === "ArrowRight" ? 1 : -1;
-          if (e.shiftKey) {
-            resizeEnd(dir);
-          } else {
-            rescheduleItem(
-              id,
-              {
-                startMs: shiftMs(occ.startMs, dir),
-                endMs: hasSpan ? shiftMs(occ.endMs, dir) : undefined,
-                allDay: occ.allDay,
-              },
-              "move",
-            );
-          }
-          e.preventDefault();
-          return true;
-        }
-        case "ArrowUp":
-        case "ArrowDown": {
-          if (!timed || !e.shiftKey) return false; // resize-only, time grid only
-          resizeEnd(e.key === "ArrowDown" ? 1 : -1);
-          e.preventDefault();
-          return true;
-        }
-        case "Delete":
-        case "Backspace":
-          deleteItem(id);
-          e.preventDefault();
-          return true;
-        case "Enter":
-          restoreFocusRef.current = id;
-          openEditor(id);
-          e.preventDefault();
-          return true;
-        case "F2":
-          restoreFocusRef.current = id;
-          beginRename(id);
-          e.preventDefault();
-          return true;
-        default:
-          return false;
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-      const targetEl = e.target as HTMLElement;
-      const tag = targetEl.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      // Route to event/cell editing when an event or editable day cell is focused;
-      // anything not consumed falls through to the v1 view/period keys below.
-      if (editable) {
-        const occId = targetEl
-          .closest?.("[data-occ-id]")
-          ?.getAttribute("data-occ-id");
-        if (occId) {
-          if (handleEventKey(e, occId)) return;
-        } else if (e.key === "Enter") {
-          const dayMsAttr = targetEl
-            .closest?.("[data-day-ms]")
-            ?.getAttribute("data-day-ms");
-          if (dayMsAttr) {
-            const d = startOfDay(new Date(Number(dayMsAttr)));
-            restoreFocusRef.current = `day:${dayMsAttr}`;
-            openComposer({ date: d, allDay: true, defaultEnd: d });
-            e.preventDefault();
-            return;
-          }
-        }
-      }
-      switch (e.key) {
-        case "ArrowLeft":
-        case "PageUp":
-          e.preventDefault();
-          prev();
-          break;
-        case "ArrowRight":
-        case "PageDown":
-          e.preventDefault();
-          next();
-          break;
-        case "t":
-        case "T":
-          e.preventDefault();
-          goToToday();
-          break;
-        case "m":
-        case "M":
-          if (availableViews.includes("month")) setView("month");
-          break;
-        case "w":
-        case "W":
-          if (availableViews.includes("week")) setView("week");
-          break;
-        case "d":
-        case "D":
-          if (availableViews.includes("day")) setView("day");
-          break;
-        case "a":
-        case "A":
-          if (availableViews.includes("agenda")) setView("agenda");
-          break;
-      }
-    };
-
-    // DnD only mounts when editable — the read-only path stays DnD-free.
-    const body = editable ? (
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+    const shell = (
+      <RootShell
+        ref={ref}
+        className={className}
+        ariaLabel={props["aria-label"]}
+        rootRef={rootRef}
+        rangeStartMs={rangeStartMs}
+        rangeEndMs={rangeEndMs}
+        goToDate={goToDate}
+        goToToday={goToToday}
+        setView={setView}
+        next={next}
+        prev={prev}
+        availableViews={availableViews}
+      >
         {children}
-      </DndContext>
-    ) : (
-      children
+      </RootShell>
     );
 
     return (
       <CalendarContext.Provider value={ctx}>
-        <div
-          ref={rootRef}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          aria-label={props["aria-label"] ?? "Calendar"}
-          className={cn(
-            "flex flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            className,
-          )}
-        >
-          {body}
-        </div>
+        {mountEditing && editing ? (
+          <editing.Provider editProps={editProps}>{shell}</editing.Provider>
+        ) : (
+          shell
+        )}
       </CalendarContext.Provider>
     );
   },

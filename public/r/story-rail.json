@@ -9,7 +9,7 @@
     "embla-carousel-react"
   ],
   "registryDependencies": [
-    "https://ui.shadcn.com/r/styles/new-york/avatar.json"
+    "avatar"
   ],
   "files": [
     {

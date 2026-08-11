@@ -46,6 +46,7 @@ export const meta: ComponentMeta = {
   // box-less span; zero public-API change.
   version: "0.6.0",
   status: "alpha",
+  artifactBudgetKB: 220,
   createdAt: "2026-06-20",
   updatedAt: "2026-08-11",
 

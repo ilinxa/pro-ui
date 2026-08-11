@@ -2,6 +2,11 @@
 
 import * as React from "react";
 import { MediaEditor } from "./media-editor";
+// Capture feature slice (P3 S3) — the docs site demonstrates the full
+// composed component (base + capture), so tabs with camera-eligible
+// mediaSources wire the extension. Base-alone behavior (no capture, file/
+// gallery intake fallback) is exercised separately below in `NoCaptureDemo`.
+import { mediaCapture } from "./features/capture";
 import {
   SAMPLE_BRAND_STICKERS,
   SAMPLE_CHAT_IMAGE_URL,
@@ -15,8 +20,8 @@ import type {
 } from "./types";
 
 /**
- * media-editor demo (C12) — five tabs covering the principal
- * consumer surfaces:
+ * media-editor demo (C12) — six tabs covering the principal
+ * consumer surfaces (incl. the P3 no-capture fallback):
  *
  *   - Defaults   — bare editor with all default capabilities.
  *   - News-hero  — 16:9 + editorial tools, hero re-edit via initialSource.
@@ -25,8 +30,12 @@ import type {
  *                  file paths + the four documented SourceError kinds.
  *   - Dark       — Defaults wrapped in a `dark` scope to spot-check the
  *                  graphite-cool dark surface.
+ *   - No-capture — base-alone (P3 S3): camera requested via `mediaSources`
+ *                  but NO `capture` extension wired — proves the file/
+ *                  gallery intake fallback (pick file → edit → export) plus
+ *                  the one dev console.warn.
  */
-type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark";
+type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "defaults", label: "Defaults" },
@@ -34,6 +43,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "chat", label: "Chat" },
   { value: "edit-only", label: "Edit-only" },
   { value: "dark", label: "Dark" },
+  { value: "no-capture", label: "No-capture (base-alone)" },
 ];
 
 export default function MediaEditorDemo() {
@@ -67,8 +77,10 @@ export default function MediaEditorDemo() {
         <ChatDemo />
       ) : tab === "edit-only" ? (
         <EditOnlyDemo />
-      ) : (
+      ) : tab === "dark" ? (
         <DarkDemo />
+      ) : (
+        <NoCaptureDemo />
       )}
     </div>
   );
@@ -87,7 +99,7 @@ function DefaultsDemo() {
         on tab switch; auto-resolve would otherwise pick <code>dialog</code>{" "}
         for capture-enabled instances and need an <code>isOpen</code> handler.
       </p>
-      <MediaEditor ref={editorRef} presentation="inline" />
+      <MediaEditor ref={editorRef} presentation="inline" capture={mediaCapture} />
       <DemoActions editorRef={editorRef} />
     </div>
   );
@@ -145,6 +157,7 @@ function ChatDemo() {
         aspect="9:16"
         presentation="dialog"
         enabledModes={["photo", "video"]}
+        capture={mediaCapture}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         stickers={[SAMPLE_BRAND_STICKERS]}
@@ -375,6 +388,31 @@ function DarkDemo() {
         Verifies the graphite-cool dark palette from{" "}
         <code>globals.css</code> holds across the editor chrome + canvas
         placeholder + toolbar.
+      </p>
+      <MediaEditor ref={editorRef} presentation="inline" capture={mediaCapture} />
+      <DemoActions editorRef={editorRef} />
+    </div>
+  );
+}
+
+// ─── No-capture (base-alone) ───────────────────────────────────────────
+//
+// P3 S3 invariant: mediaSources includes "camera" but NO capture extension
+// is passed — media-editor falls back to the base file/gallery intake
+// surface (one dev console.warn logged to the browser console) instead of a
+// dead camera surface. Pick a file → edit → export still works end to end.
+
+function NoCaptureDemo() {
+  const editorRef = React.useRef<MediaEditorHandle>(null);
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        Same capability dials as Defaults, but no <code>capture</code> prop —
+        the shape a consumer who installed <code>@ilinxa/media-editor</code>{" "}
+        WITHOUT <code>@ilinxa/media-editor-capture</code> is in.{" "}
+        <code>mediaSources</code> still includes <code>&quot;camera&quot;</code>,
+        so the editor falls back to file/gallery intake (check the console for
+        the one dev-warn) — pick a file, then edit and export it like normal.
       </p>
       <MediaEditor ref={editorRef} presentation="inline" />
       <DemoActions editorRef={editorRef} />

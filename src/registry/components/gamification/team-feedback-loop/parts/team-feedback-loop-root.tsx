@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import { TeamFeedbackContext } from "../hooks/use-team-feedback-context";
 import { clampDuration } from "../lib/clamp";
 import type {
@@ -125,26 +126,21 @@ export const TeamFeedbackLoopRoot = React.forwardRef<
     getReducedMotionServerSnapshot,
   );
 
-  // --- stable callback refs (assigning ref.current in an effect is NOT setState) ---
-  const onDismissRef = React.useRef(onCelebrationDismiss);
-  const onAcceptRef = React.useRef(onNextTask);
-  const onNudgeDismissRef = React.useRef(onNudgeDismiss);
-  const currentRef = React.useRef<FeedbackEvent | null>(null);
-  React.useEffect(() => {
-    onDismissRef.current = onCelebrationDismiss;
-    onAcceptRef.current = onNextTask;
-    onNudgeDismissRef.current = onNudgeDismiss;
-  }, [onCelebrationDismiss, onNextTask, onNudgeDismiss]);
-  React.useEffect(() => {
-    currentRef.current = current;
-  }, [current]);
+  // --- stable callback refs (P3.5 / D-04: shared `useLatestRef`, assigned in
+  // an effect, never during render — not a `setState`) ---
+  const onDismissRef = useLatestRef(onCelebrationDismiss);
+  const onAcceptRef = useLatestRef(onNextTask);
+  const onNudgeDismissRef = useLatestRef(onNudgeDismiss);
+  const currentRef = useLatestRef(current);
 
   // --- skip = user/imperative dismiss (fires the callback with reason "skip") ---
   const skip = React.useCallback(() => {
     const evt = currentRef.current;
     if (evt) onDismissRef.current?.(evt, "skip");
     dispatch({ type: "close" });
-  }, []);
+    // `currentRef`/`onDismissRef` are stable ref objects — listed for
+    // exhaustive-deps only, never trigger a re-create.
+  }, [currentRef, onDismissRef]);
 
   // --- auto-dismiss timer: armed per open (keyed on current + epoch), cleared on close ---
   React.useEffect(() => {
@@ -155,7 +151,7 @@ export const TeamFeedbackLoopRoot = React.forwardRef<
       dispatch({ type: "close" });
     }, ms);
     return () => window.clearTimeout(id);
-  }, [current, epoch, celebrationDurationMs]);
+  }, [current, epoch, celebrationDurationMs, onDismissRef]);
 
   // --- controlled `event` prop → funnels into the reducer (undefined = imperative-only) ---
   // v0.1.2 (review 5.12): compared by CONTENT, not identity. An inline object
@@ -213,13 +209,19 @@ export const TeamFeedbackLoopRoot = React.forwardRef<
     if (taskId != null) dispatch({ type: "nudge-rearm" });
   }, [nextTask?.taskId]);
 
-  const acceptNudge = React.useCallback((s: NextTaskSuggestion) => {
-    onAcceptRef.current?.(s);
-  }, []);
-  const dismissNudge = React.useCallback((s: NextTaskSuggestion) => {
-    dispatch({ type: "nudge-dismiss", taskId: s.taskId });
-    onNudgeDismissRef.current?.(s);
-  }, []);
+  const acceptNudge = React.useCallback(
+    (s: NextTaskSuggestion) => {
+      onAcceptRef.current?.(s);
+    },
+    [onAcceptRef],
+  );
+  const dismissNudge = React.useCallback(
+    (s: NextTaskSuggestion) => {
+      dispatch({ type: "nudge-dismiss", taskId: s.taskId });
+      onNudgeDismissRef.current?.(s);
+    },
+    [onNudgeDismissRef],
+  );
 
   const nudge =
     nextTask && nextTask.taskId !== dismissedTaskId ? nextTask : null;

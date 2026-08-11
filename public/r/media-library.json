@@ -15,12 +15,12 @@
     "@ilinxa/code-block",
     "@ilinxa/markdown-editor",
     "@ilinxa/video-player",
-    "https://ui.shadcn.com/r/styles/new-york/button.json",
-    "https://ui.shadcn.com/r/styles/new-york/context-menu.json",
-    "https://ui.shadcn.com/r/styles/new-york/dialog.json",
-    "https://ui.shadcn.com/r/styles/new-york/input.json",
-    "https://ui.shadcn.com/r/styles/new-york/progress.json",
-    "https://ui.shadcn.com/r/styles/new-york/skeleton.json"
+    "button",
+    "context-menu",
+    "dialog",
+    "input",
+    "progress",
+    "skeleton"
   ],
   "files": [
     {

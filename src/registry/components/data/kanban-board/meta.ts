@@ -34,6 +34,7 @@ export const meta: ComponentMeta = {
   // trigger asChild → buttonVariants; zero public-API change.
   version: "0.5.0",
   status: "alpha",
+  artifactBudgetKB: 105,
   createdAt: "2026-05-05",
   updatedAt: "2026-08-11",
 

@@ -2,7 +2,7 @@
 
 > **Version:** v0.2.1 · **Status:** alpha
 > **Slug:** `event-calendar` · **Category:** `data` · **Tier:** pro-component (shadcn-style compound)
-> Install: `pnpm dlx shadcn@latest add @ilinxa/event-calendar` (base) or `@ilinxa/event-calendar-fixtures` (base + demo data).
+> Install: `pnpm dlx shadcn@latest add @ilinxa/event-calendar` (base, read-only) or `@ilinxa/event-calendar-fixtures` (base + demo data). Editing is a separate opt-in item — `@ilinxa/event-calendar-editing` — see [Feature slices](#feature-slices-p3-2026-08-11) below.
 
 The **date-grid** surface onto the canonical `TaskItem[]` — the discrete twin of [`gantt-timeline`](../gantt-timeline-procomp/). Month grid, week/day hour time-grids, and a day-grouped agenda, from the same task data your List / Board / Timeline tabs already render. **v0.2 adds an opt-in editing layer** (drag / resize / create / keyboard / copy-paste), additive over v0.1's read-only display.
 
@@ -106,6 +106,41 @@ All editing is **opt-in via `editable`** (default off → read-only), **gated** 
 **Copy / cut / paste — cross-surface.** With the calendar focused, `⌘/Ctrl+C` / `X` / `V` copy/cut/paste the focused (or selected) event. Tasks travel as a portable `ilinxa/task` envelope on the OS clipboard, so a task copied in the calendar **pastes into gantt / kanban / tree** (as those surfaces adopt the same envelope) and back. **The paste target decides all-day vs timed** — paste onto a month day → all-day; paste in the week/day grid → timed (this is also how you convert). Pasted items are re-id'd (no collisions). Copying foreign clipboard text is ignored (native paste proceeds).
 
 **Detail editor & rename.** "Edit" (menu / `Enter`) opens the full `<TaskCard editable>`: **inline in `CalendarEventInspector`** when you mount it (`showInspector`), otherwise in a **centered modal overlay** (the assembly mounts `CalendarEventEditorOverlay` automatically when there's no inspector). `F2` / menu-Rename opens a small rename popup. The editor lazy-loads `task-card`, so a calendar that never opens it never bundles it.
+
+---
+
+## Feature slices (P3, 2026-08-11)
+
+Editing ships as a separate, opt-in registry item — `@ilinxa/event-calendar-editing` — not bundled into the base install. This is a **packaging** change, not a capability change: v0.2's editing surface (described above) is untouched; what changed is which install brings it in.
+
+**Base vs feature.** `@ilinxa/event-calendar` ships the read-only calendar — `EventCalendarRoot`, the four views, toolbar, mini-nav, and the Tier-C primitives — verified artifact **137.3KB**. `@ilinxa/event-calendar-editing` adds the drag/resize/create/clipboard/keyboard layer, the quick-composer, context-menu, and the inspector/overlay editors — **95.4KB**. Combined they replace the pre-split single artifact (**203KB**). The editing item carries `registryDependencies: ["@ilinxa/event-calendar", "@ilinxa/task-card"]`, so `add @ilinxa/event-calendar-editing` alone on a fresh consumer still pulls everything — no separate base step required.
+
+**npm deps moved.** `@dnd-kit/core` + `@dnd-kit/utilities` move from the base item's `dependencies` to the editing item's. A base-alone install never pulls dnd-kit — not deferred, genuinely absent from the bundle graph.
+
+**Injection wiring.** Base owns the extension type + context (`hooks/use-calendar-edit-extension.ts`) and the optional `editing?: CalendarEditExtension` prop on `CalendarProps`; it never statically imports the feature package.
+
+```tsx
+import { EventCalendar } from "@/components/event-calendar"
+import { calendarEditing } from "@/components/event-calendar/features/editing"
+
+<EventCalendar
+  editable
+  editing={calendarEditing}   // wires drag/resize/create/clipboard/keyboard
+  data={tasks}
+  onChange={setTasks}         // controlled — echo the mutated forest back
+  statusOptions={statusOptions}
+  permissions={permissions}   // optional — the shared TaskPermissions matrix
+/>
+```
+
+The same `editing={calendarEditing}` prop works on `<EventCalendarRoot>` for hand-assembled subsets.
+
+**Negative path.** `editable` set without `editing` wired (feature not installed, or intentionally omitted) stays fully read-only — byte-identical to a base-only install — and logs one dev-only `console.warn` (`` `[event-calendar] `editable` is set but no editing extension is wired…` ``). Calling an editing method on the imperative handle (`addTask` / `deleteTask` / `editTask` / …) with no extension wired is the same class: one dev warn, silent no-op, never throws.
+
+**Upgrade recipe.**
+- **Pristine base already installed** → `pnpm dlx shadcn@latest add @ilinxa/event-calendar-editing` lands cleanly: feature files created, every base file left byte-identical (R5 install matrix: 14 created / 68 identical-skipped, base file hashes untouched).
+- **Locally-modified base** → the editing item's `registryDependencies` back onto `@ilinxa/event-calendar` re-resolves base files too, so the CLI prompts per differing base file. Answer `n` at each prompt — that file is skipped, the run continues, and the feature's own files still land.
+- **Non-interactive upgrade onto a modified base** (`--yes` in CI, or any unattended run) is a **known phantom no-op**: the prompt hits EOF, the whole run aborts silently at exit 0, and nothing is written — including the feature's own non-colliding files. This is shared with the existing base+`-fixtures` pattern, not new to feature items. Work around it by installing onto a pristine base or running the add interactively.
 
 ---
 

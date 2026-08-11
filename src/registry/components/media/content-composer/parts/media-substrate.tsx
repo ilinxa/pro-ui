@@ -14,6 +14,13 @@ import type {
   MediaEditorHandle,
   MediaEditorState,
 } from "@/registry/components/media/media-editor/media-editor";
+// Capture feature slice (P3 S3) — the shipped news config enables "camera"
+// in mediaSources for the hero step (configs/news-composer.config.ts), so
+// the mount below wires the extension. Relative (not the `@/registry/...`
+// alias used above) — media-editor-capture is a sub-item of media-editor's
+// own folder, siblings-under-install-root the same way story-composer's
+// media-editor import already is.
+import { mediaCapture } from "../../media-editor/features/capture";
 import type { MediaSlotValue, SlotHandle, SlotRenderArgs } from "../types";
 import { assignRef } from "../lib/assign-ref";
 import { clampMediaSources } from "../lib/clamp-media-sources";
@@ -211,6 +218,7 @@ export function MediaSubstrateMount({
       enabledModes={slotConfig.enabledModes}
       enabledTools={slotConfig.enabledTools}
       mediaSources={clampMediaSources(slotConfig.mediaSources)}
+      capture={mediaCapture}
       aspect={slotConfig.aspect}
       cropAspects={slotConfig.cropAspects}
       maxFileSizeMb={slotConfig.maxFileSizeMb}

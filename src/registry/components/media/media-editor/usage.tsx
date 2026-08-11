@@ -68,7 +68,9 @@ export function Example() {
           <li>
             <code>mediaSources</code> — array of{" "}
             <code>&quot;camera&quot;</code> / <code>&quot;upload&quot;</code>
-            . Without camera you get an upload-only dropzone.
+            . Without camera (or with camera but no{" "}
+            <code>capture</code> extension — see below) you get the file/
+            gallery intake surface.
           </li>
           <li>
             <code>aspect</code> — <code>&quot;9:16&quot;</code> /{" "}
@@ -77,6 +79,33 @@ export function Example() {
             Locks the canvas aspect ratio and the default crop choice.
           </li>
         </ul>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-base font-semibold">
+          Camera capture (opt-in slice)
+        </h3>
+        <p className="text-muted-foreground">
+          Camera capture (getUserMedia + MediaRecorder, permission flows,
+          shutter, multi-instance guard) ships as a separate registry item —{" "}
+          <code>@ilinxa/media-editor-capture</code> — not part of the base
+          install. Install it and pass its export through the{" "}
+          <code>capture</code> prop:
+        </p>
+        <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+          <code>{`import { MediaEditor } from "@/components/media-editor"
+import { mediaCapture } from "@/components/media-editor/features/capture"
+
+<MediaEditor mediaSources={["camera", "upload"]} capture={mediaCapture} />`}</code>
+        </pre>
+        <p className="mt-2 text-muted-foreground">
+          Without it, <code>&quot;camera&quot;</code> in{" "}
+          <code>mediaSources</code> falls back to the base file/gallery
+          intake surface (a button + hidden file input) — one dev{" "}
+          <code>console.warn</code> fires, and the editor stays fully usable:
+          pick a file → edit → export. Base-alone never pulls konva/
+          react-konva-adjacent camera weight it doesn&apos;t need.
+        </p>
       </section>
 
       <section>

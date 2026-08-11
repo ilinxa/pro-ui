@@ -13,8 +13,8 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "https://ui.shadcn.com/r/styles/new-york/button.json",
-    "https://ui.shadcn.com/r/styles/new-york/textarea.json"
+    "button",
+    "textarea"
   ],
   "files": [
     {

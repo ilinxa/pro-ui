@@ -21,11 +21,12 @@ const registry = JSON.parse(
   fs.readFileSync(path.join(root, "registry.json"), "utf8"),
 );
 
-/** Base items only: skip fixtures siblings, internal _shared support items, and deprecated aliases (P2.3). */
+/** Base items only: skip fixtures siblings, internal _shared support items, deprecated aliases (P2.3), and feature items (P3 — rendered as sub-lines below instead). */
 const items = registry.items
   .filter((i) => !i.name.endsWith("-fixtures"))
   .filter((i) => !(i.files?.[0]?.target ?? "").startsWith("components/_shared"))
   .filter((i) => !i.meta?.deprecated)
+  .filter((i) => !i.meta?.featureOf)
   .map((i) => {
     const src = i.files?.[0]?.path ?? "";
     const m = src.match(/^src\/registry\/components\/([^/]+)\//);
@@ -39,6 +40,18 @@ const items = registry.items
 
 const categories = [...new Set(items.map((i) => i.category))];
 
+/** Feature items (P3 feature-slicing) — meta.featureOf points at the base slug; rendered as an indented "optional slice" sub-line under that base's entry, not as their own standalone entry. */
+const featureItems = registry.items
+  .filter((i) => typeof i.meta?.featureOf === "string" && i.meta.featureOf.length > 0)
+  .map((i) => ({ slug: i.name, featureOf: i.meta.featureOf, description: i.description ?? "" }))
+  .sort((a, b) => a.slug.localeCompare(b.slug));
+const featuresByBase = new Map();
+for (const f of featureItems) {
+  const arr = featuresByBase.get(f.featureOf) ?? [];
+  arr.push(f);
+  featuresByBase.set(f.featureOf, arr);
+}
+
 /** First sentence, clamped — full capability detail belongs on the detail page. */
 function blurb(desc, max = 160) {
   const first = desc.split(/(?<=\.)\s+/)[0]?.trim() ?? "";
@@ -46,10 +59,11 @@ function blurb(desc, max = 160) {
 }
 
 function llmsSection() {
+  const total = items.length * 2 + featureItems.length;
   const lines = [
-    `## Available items (${items.length * 2} total — ${items.length} base + ${items.length} fixtures)`,
+    `## Available items (${total} total — ${items.length} base + ${items.length} fixtures + ${featureItems.length} feature slices)`,
     "",
-    `${items.length} components across ${categories.length} categories. Every item installs as \`@ilinxa/<slug>\`; each has a sibling \`<slug>-fixtures\` item that adds \`dummy-data.ts\` only (fixtures depend on the base — installing fixtures pulls the base automatically).`,
+    `${items.length} components across ${categories.length} categories. Every item installs as \`@ilinxa/<slug>\`; each has a sibling \`<slug>-fixtures\` item that adds \`dummy-data.ts\` only (fixtures depend on the base — installing fixtures pulls the base automatically). Some components additionally offer optional feature slices — install \`@ilinxa/<slice>\` on top of the base for opt-in heavier capability.`,
     "",
   ];
   for (const cat of categories) {
@@ -57,6 +71,9 @@ function llmsSection() {
     lines.push("");
     for (const it of items.filter((i) => i.category === cat)) {
       lines.push(`- \`@ilinxa/${it.slug}\` — ${blurb(it.description)}`);
+      for (const fe of featuresByBase.get(it.slug) ?? []) {
+        lines.push(`  ↳ optional slice: \`@ilinxa/${fe.slug}\` — ${blurb(fe.description)}`);
+      }
     }
     lines.push("");
   }
@@ -76,7 +93,10 @@ function readmeSection() {
     "|---|---|---|",
   ];
   for (const it of items) {
-    lines.push(`| \`${it.slug}\` | ${it.category} | ${blurb(it.description, 120)} |`);
+    const sliceLines = (featuresByBase.get(it.slug) ?? [])
+      .map((fe) => `<br>↳ optional slice: \`${fe.slug}\` — ${blurb(fe.description, 120)}`)
+      .join("");
+    lines.push(`| \`${it.slug}\` | ${it.category} | ${blurb(it.description, 120)}${sliceLines} |`);
   }
   return lines.join("\n");
 }

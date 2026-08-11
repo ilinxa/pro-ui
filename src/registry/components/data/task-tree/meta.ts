@@ -49,6 +49,7 @@ export const meta: ComponentMeta = {
   // buttonVariants; zero public-API change.
   version: "0.4.0",
   status: "alpha",
+  artifactBudgetKB: 245,
   createdAt: "2026-05-20",
   updatedAt: "2026-08-11",
 

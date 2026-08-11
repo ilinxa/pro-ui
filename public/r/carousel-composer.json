@@ -12,8 +12,8 @@
   ],
   "registryDependencies": [
     "@ilinxa/media-editor",
-    "https://ui.shadcn.com/r/styles/new-york/button.json",
-    "https://ui.shadcn.com/r/styles/new-york/scroll-area.json"
+    "button",
+    "scroll-area"
   ],
   "files": [
     {

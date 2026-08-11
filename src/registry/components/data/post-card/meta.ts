@@ -68,6 +68,7 @@ export const meta: ComponentMeta = {
 
   version: "0.4.0",
   status: "alpha",
+  artifactBudgetKB: 165,
   createdAt: "2026-05-02",
   updatedAt: "2026-08-11",
 

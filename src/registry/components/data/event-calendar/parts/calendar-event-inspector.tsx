@@ -7,18 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
+import { useCalendarEditOptional } from "../hooks/use-calendar-edit-extension";
 import { coveredDays } from "../lib/segments";
-import { EventEditorPanel } from "./calendar-edit-overlays";
 import type { CalendarOccurrence } from "../types";
 
 /**
  * Selected-event inspector (Tier B). Shows a read-only preview of the selected
- * occurrence; when `editable`, an Edit button reveals the shared `EventEditorPanel`
- * (the full lazy `<TaskCard editable>` — title, status, priority, dates,
- * description) whose edits splice back via `applyEditedSubtree`, plus Delete.
- * Lives inside `EventCalendarRoot` (reads context). Place it beside the views for
- * a persistent details panel, or omit it (the editor also surfaces via the
- * `CalendarEventEditorOverlay` the assembly mounts when there's no inspector).
+ * occurrence; when the editing extension is wired, an Edit button reveals the
+ * shared `edit.components.EventEditorPanel` (the full lazy `<TaskCard editable>`
+ * — title, status, priority, dates, description) whose edits splice back via
+ * `applyEditedSubtree`, plus Delete. Lives inside `EventCalendarRoot` (reads
+ * context). Place it beside the views for a persistent details panel, or omit
+ * it (the editor also surfaces via the `EditOverlays` component the assembly
+ * mounts when there's no inspector).
  */
 
 function whenLabel(occ: CalendarOccurrence): string {
@@ -34,22 +35,9 @@ function whenLabel(occ: CalendarOccurrence): string {
 }
 
 export function CalendarEventInspector({ className }: { className?: string }) {
-  const {
-    occurrences,
-    selectedId,
-    select,
-    statusOptions,
-    priorityOptions,
-    labelOptions,
-    permissions,
-    editable,
-    can,
-    deleteItem,
-    applyEditedSubtree,
-    editingId,
-    openEditor,
-    closeEditor,
-  } = useCalendar();
+  const { occurrences, selectedId, select, statusOptions, priorityOptions, labelOptions } =
+    useCalendar();
+  const edit = useCalendarEditOptional();
 
   const occ = useMemo(
     () => occurrences.find((o) => o.id === selectedId) ?? null,
@@ -68,18 +56,18 @@ export function CalendarEventInspector({ className }: { className?: string }) {
           No event selected
         </p>
         <p className="text-xs text-muted-foreground">
-          Click an event to see its details{editable ? " and edit it" : ""}.
+          Click an event to see its details{edit ? " and edit it" : ""}.
         </p>
       </div>
     );
   }
 
   const item = occ.item;
-  const editing = editingId === item.id;
+  const editingThis = edit?.editingId === item.id;
   const status = statusOptions?.find((o) => o.value === item.status);
   const priority = priorityOptions?.find((o) => o.value === item.priority);
-  const canEdit = can("editDetails", item);
-  const canDelete = can("delete", item);
+  const canEdit = !!edit && edit.can("editDetails", item);
+  const canDelete = !!edit && edit.can("delete", item);
 
   return (
     <div className={cn("flex flex-col gap-3 p-3", className)}>
@@ -102,15 +90,15 @@ export function CalendarEventInspector({ className }: { className?: string }) {
         </button>
       </div>
 
-      {editing ? (
-        <EventEditorPanel
+      {editingThis && edit ? (
+        <edit.components.EventEditorPanel
           item={item}
           statusOptions={statusOptions}
           priorityOptions={priorityOptions}
           labelOptions={labelOptions}
-          permissions={permissions}
-          onChange={applyEditedSubtree}
-          onDone={closeEditor}
+          permissions={edit.permissions}
+          onChange={edit.applyEditedSubtree}
+          onDone={edit.closeEditor}
         />
       ) : (
         <>
@@ -148,13 +136,13 @@ export function CalendarEventInspector({ className }: { className?: string }) {
             </p>
           ) : null}
 
-          {editable ? (
+          {edit ? (
             <div className="mt-1 flex gap-2">
               <Button
                 size="sm"
                 className="gap-1.5"
                 disabled={!canEdit}
-                onClick={() => openEditor(item.id)}
+                onClick={() => edit.openEditor(item.id)}
               >
                 <Pencil className="size-3.5" /> Edit
               </Button>
@@ -164,7 +152,7 @@ export function CalendarEventInspector({ className }: { className?: string }) {
                 className="gap-1.5"
                 disabled={!canDelete}
                 onClick={() => {
-                  deleteItem(item.id);
+                  edit.deleteItem(item.id);
                   select(null);
                 }}
               >

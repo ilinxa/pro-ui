@@ -113,7 +113,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `comment-thread` | data | Recursive comment thread with composer, optimistic add, like, and delete, inline expansion past max depth, and realtime… |
 | `data-table` | data | A typed, composable table primitive with column accessors and per-cell rendering. |
 | `engagement-bar` | data | Social action row — like, comment, share, bookmark, custom actions, and a multi-reaction picker with realtime counts an… |
-| `event-calendar` | data | Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard s… |
+| `event-calendar` | data | Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard s…<br>↳ optional slice: `event-calendar-editing` — Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated acti… |
 | `event-card` | data | Event preview card with six status states and four layouts — capacity-aware badges, overlay links, and soft-failure ite… |
 | `expandable-text` | data | Truncating text block that only shows its toggle when text actually overflows — configurable line clamp, controlled or… |
 | `flow-canvas` | data | Node-and-edge canvas with typed ports, pluggable node renderers, edge and port-type registries, and JSON save and load… |
@@ -158,7 +158,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `carousel-composer` | media | Multi-item media post composer — drag in photos and videos, reorder them on a rail, and edit each through a shared edit… |
 | `content-composer` | media | Multi-step content authoring shell — each content type is a JSON config composing form, rich text, and media editing st… |
 | `media-carousel` | media | Embla image and video carousel — gallery or linear variants, coordinated video pause for inactive slides. |
-| `media-editor` | media | Media capture and edit surface for photo, video, and text — capability dials and an Instagram-style chrome model. |
+| `media-editor` | media | Media capture and edit surface for photo, video, and text — capability dials and an Instagram-style chrome model.<br>↳ optional slice: `media-editor-capture` — Camera photo/video capture for Media Editor — permission flows, shutter control, multi-instance guard. |
 | `media-library` | media | Drive-style media library — folders and files, lazy loading, drag-drop upload, drag-to-move, context menus, and multi-t… |
 | `pdf-viewer` | media | Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu. |
 | `story-composer` | media | Instagram-style story creation surface — a locked 9:16 wrapper around the media editor. |

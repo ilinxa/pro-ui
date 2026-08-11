@@ -11,15 +11,8 @@ import {
 } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
+import { initialsFromName } from "../../_shared/gamification-kit";
 import type { TeamMemberStackProps } from "../types";
-
-/** First letters of up to two name words → avatar initials fallback. */
-function initials(displayName: string): string {
-  const parts = displayName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
-}
 
 /**
  * Tier C — dumb avatar pile of `team.members`: image with an initials fallback,
@@ -51,7 +44,7 @@ export function TeamMemberStack({
             {member.avatarUrl ? (
               <AvatarImage src={member.avatarUrl} alt="" />
             ) : null}
-            <AvatarFallback>{initials(member.displayName)}</AvatarFallback>
+            <AvatarFallback>{initialsFromName(member.displayName)}</AvatarFallback>
           </Avatar>
         ))}
         {overflow > 0 ? <AvatarGroupCount>+{overflow}</AvatarGroupCount> : null}

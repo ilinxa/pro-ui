@@ -9,6 +9,8 @@
 
 This is the **how**. It locks the API, the compound export surface, the DnD architecture, the per-view gesture arbitration, the pure mutation/permission libs, the edit hook, the new parts, keyboard, cross-view/external DnD, F-03/F-04, the all-day⇄timed round-trip, a11y, deps, and the file-by-file build sequence. Everything is **additive over v1**; `editable=false` is byte-identical to v0.1.0.
 
+> **P3 addendum (2026-08-11).** §"Compound additions" below states `@dnd-kit/core` is "small + always needed when editing… a normal import inside the parts (not lazy); a read-only consumer (`editable=false`) still pays for it only if they mount an editable view" — and flags a `React.lazy` editable-layer as a future optimization if base consumers should never bundle dnd-kit. Both are **superseded, not just optimized**: the P3 feature-slicing split moved the entire edit surface — including `@dnd-kit/core` + `@dnd-kit/utilities` — out of the base package into the separate `@ilinxa/event-calendar-editing` registry item. A base-alone install (`@ilinxa/event-calendar`) never has dnd-kit in its dependency graph at all, whether or not a consumer mounts an editable view — stronger than the flagged lazy-boundary optimization, achieved at the package/registry level instead. Wiring + artifact numbers: [`event-calendar-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./event-calendar-procomp-guide.md#feature-slices-p3-2026-08-11).
+
 ---
 
 ## 1. Final API (locked)

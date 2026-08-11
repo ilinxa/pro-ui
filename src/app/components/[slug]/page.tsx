@@ -193,7 +193,7 @@ export default async function ComponentDetailPage({ params }: PageProps) {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Installation
         </h2>
-        <InstallationBlock slug={meta.slug} />
+        <InstallationBlock slug={meta.slug} slices={meta.slices} />
       </section>
 
       <section className="mb-10">

@@ -33,7 +33,7 @@ import type {
   TaskPermissions,
   TaskStatusChangedEvent,
   TaskStatusOption,
-} from "../types";
+} from "../../../types";
 import {
   addItem,
   buildIndex,
@@ -45,8 +45,8 @@ import {
   setWindow,
 } from "../lib/edit-mutations";
 import { evalCalendarPermission } from "../lib/edit-permissions";
-import { reassignTaskIds } from "../../task-card/lib/clipboard";
-import { parseDateValue } from "../lib/classify";
+import { reassignTaskIds } from "../../../../task-card/lib/clipboard";
+import { parseDateValue } from "../../../lib/classify";
 
 type Args = {
   data: TaskItem[];

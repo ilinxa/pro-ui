@@ -1188,6 +1188,14 @@ Symptoms:
 
 This is exactly the gap `force-graph` sits in deliberately (frozen at v0.2; not yet shipped via registry). For any other component, this is a bug — it's "implemented but not shipped". Step 5 of the workflow exists specifically to prevent this.
 
+### Optional feature slices
+
+Some components carry a heavy, optional capability axis — an editing layer, a camera-capture mode — that most consumers don't need. Rather than baking it into the base (and its artifact-size budget) forever, slice it out into a separate opt-in registry item on the component's **next major touch**, never as a big-bang rewrite. Slice when the axis buys real consumer weight (npm deps, or ≥15% of the artifact) or a real capability boundary (e.g. permissions) — not for every optional prop.
+
+The shape is the two-item pattern above, plus one extra piece: a **feature item** (`<slug>-<feature>`, marked `meta: { featureOf: "<slug>" }`) whose files live under `features/<feature>/` and whose `registryDependencies` includes `@ilinxa/<slug>`, wired into the base through a base-owned injection surface (a context + one optional prop) — never by overwriting base files. Once shipped, add it to the base's own `meta.ts` via the `slices: [{ name, item, description }]` field so `InstallationBlock` renders the extra install step on the docs page automatically.
+
+Full contract (injection surface, naming/target rules, the F1–F7 validators, the consumer upgrade recipe): [`docs/feature-slicing-convention.md`](feature-slicing-convention.md). Producer-side registry mechanics: [`.claude/skills/shadcn-registry-pro/`](../.claude/skills/shadcn-registry-pro/) — see the "Feature items (opt-in slices)" pitfall.
+
 ### 11.6. Cross-folder import constraint — re-export from `<slug>.tsx`, not from sub-folders
 
 > **TL;DR.** When component A composes component B (cross-folder import), import directly from B's `<slug>.tsx`, NOT from `B/lib/`, `B/hooks/`, or `B/parts/`. Anything you want shareable across folder boundaries MUST be re-exported from B's `<slug>.tsx`.

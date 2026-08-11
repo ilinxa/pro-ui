@@ -32,14 +32,34 @@ export const meta: ComponentMeta = {
     "todo",
   ],
 
-  // 0.2.5 (2026-08-11): F-cross-13 path-b sweep — asChild eliminated (context-menu
-  // trigger → box-less span; hover tooltip → local portal card); zero public-API change.
-  version: "0.3.0",
+  // 0.4.0 (2026-08-11): P3 feature-slicing — editing (drag/resize/create,
+  // clipboard, keyboard mutations, permission-gated actions) split out to
+  // `features/editing/` behind the `editing?: CalendarEditExtension` prop-
+  // based injection seam; base never statically imports feature code. Zero
+  // public-API removal on the composed surface (every export still resolves,
+  // base ∪ feature) — only the install SURFACE changed (see `slices` below).
+  version: "0.4.0",
   status: "alpha",
+  // Tightened 235→160 after the P3 editing split (built base artifact verified
+  // 137.3KB on 2026-08-11; ~15% headroom so real growth trips validate:artifact-size).
+  artifactBudgetKB: 160,
   createdAt: "2026-06-22",
   updatedAt: "2026-08-11",
 
   author: { name: "ilinxa" },
+
+  // P3 feature-slicing — opt-in capability layered on top of this base.
+  // NOTE: kept ABOVE `dependencies` (not between it and `related`) so
+  // validate-meta-deps.mjs's `dependencies` block regex (which expects a
+  // fixed sibling-key list right after the closing brace) still matches.
+  slices: [
+    {
+      name: "editing",
+      item: "event-calendar-editing",
+      description:
+        "Drag/resize editing, quick-compose, clipboard, keyboard mutations, and permission-gated actions.",
+    },
+  ],
 
   dependencies: {
     shadcn: [

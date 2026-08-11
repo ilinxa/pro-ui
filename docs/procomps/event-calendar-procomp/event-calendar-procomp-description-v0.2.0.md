@@ -8,6 +8,8 @@
 
 This is the **what & why** of the **editing layer**. v0.1.0 shipped a read-only, four-view calendar whose state model was *deliberately architected for this* (v1 D2/D3: fully-controlled data, no internal data state, a complete-but-inert editing API already declared under the `Editing (v0.2.0)` fence in [`types.ts`](../../../src/registry/components/data/event-calendar/types.ts)). v0.2.0 makes it **editable** — direct event manipulation, task CRUD, quick-create, detail editing, keyboard, and cross-view drag — **additively, with zero rewrite of v1**, and closes the two open GATE 3 visual follow-ups (F-03/F-04).
 
+> **P3 addendum (2026-08-11).** §"0. Premise" line 25 below states "v0.2.0 **ships** the full editor" — true of the *capability* the moment this doc was signed off, but as of the P3 feature-slicing split (`event-calendar` v0.4.0) that capability no longer ships **in the base install**. Editing is now a separate opt-in registry item, `@ilinxa/event-calendar-editing` (`registryDependencies` back onto this base + `task-card`); a base-alone install is read-only by construction, not just by the `editable` default. The editor itself — gestures, permissions, controlled-echo events — is unchanged from what this doc specifies. Packaging + wiring detail: [`event-calendar-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./event-calendar-procomp-guide.md#feature-slices-p3-2026-08-11).
+
 ---
 
 ## 0. Premise — the declared surface goes live

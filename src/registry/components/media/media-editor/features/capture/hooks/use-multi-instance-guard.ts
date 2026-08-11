@@ -3,9 +3,13 @@
 import { useEffect } from "react";
 
 /**
- * Multi-instance guard — fires a dev-only `console.warn` when 2+
- * capture-enabled `MediaEditor` instances mount simultaneously
- * (Q-P5 lock = `b`).
+ * Multi-instance guard — fires a dev-only `console.warn` when 2+ CAMERA
+ * SURFACES are actually mounted at once (Q-P5 lock = `b`). Since the P3
+ * capture split the guard lives in `EditorCamera` (gated on its `enabled`
+ * prop), so instances merely CONFIGURED for camera no longer warn until a
+ * camera surface really mounts — the trigger tracks live-stream contention,
+ * the thing being guarded, rather than configuration intent (R4 verdict
+ * 2026-08-11; pre-split behavior warned on config alone).
  *
  * Rationale: each instance owns its own `Konva.Stage` — fine, no
  * conflict. But `getUserMedia` against the same physical camera with

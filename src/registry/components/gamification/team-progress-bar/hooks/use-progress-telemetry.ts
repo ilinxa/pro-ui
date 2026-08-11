@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import { progressBarCheckedEvent } from "../lib/event";
 import type { GamificationEvent } from "../types";
 
@@ -25,11 +26,7 @@ export function useProgressTelemetry(args: {
 
   const targetRef = React.useRef<HTMLDivElement | null>(null);
   const hasFired = React.useRef(false);
-  const onEventRef = React.useRef(onEvent);
-
-  React.useEffect(() => {
-    onEventRef.current = onEvent;
-  }, [onEvent]);
+  const onEventRef = useLatestRef(onEvent);
 
   const hasHandler = Boolean(onEvent);
 
@@ -64,7 +61,8 @@ export function useProgressTelemetry(args: {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [teamId, hasHandler]);
+    // `onEventRef` is a stable ref object — listed for exhaustive-deps only.
+  }, [teamId, hasHandler, onEventRef]);
 
   return targetRef;
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { useLatestRef } from "../../_shared/gamification-kit";
 import { TeamQuestLogContext } from "../hooks/use-team-quest-log";
 import { deriveBeats } from "../lib/derive-beats";
 import { resolveQuestTitle } from "../lib/resolve-title";
@@ -62,16 +63,14 @@ export const TeamQuestLogRoot = React.forwardRef<
     setEditing(true);
   }, [canEditName, isDefault, title]);
 
-  const onQuestNameChangeRef = React.useRef(onQuestNameChange);
-  React.useEffect(() => {
-    onQuestNameChangeRef.current = onQuestNameChange;
-  });
+  const onQuestNameChangeRef = useLatestRef(onQuestNameChange);
 
   const saveDraft = React.useCallback(() => {
     // Blank/whitespace ⇒ "" ⇒ host clears questName ⇒ title reverts (the skip path).
     onQuestNameChangeRef.current?.(draft.trim());
     setEditing(false);
-  }, [draft]);
+    // `onQuestNameChangeRef` is a stable ref object — listed for exhaustive-deps only.
+  }, [draft, onQuestNameChangeRef]);
 
   const cancelEditing = React.useCallback(() => setEditing(false), []);
 

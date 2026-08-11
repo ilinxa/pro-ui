@@ -1,4 +1,5 @@
-// media-editor — public barrel.
+// media-editor — public barrel (BASE item; capture feature slice is
+// `features/capture/` — its own barrel, own registry item).
 //
 // Exports grow progressively as each commit lands its surface:
 //   C2  (this commit)         — main component + all editor-shaped types
@@ -8,6 +9,14 @@
 //                                ColorSwatchPicker, DiscardConfirmDialog)
 //   C6                        — useMediaEditorState (NEW)
 //   C9-C11                    — initial-source / multi-instance internal helpers (NOT re-exported)
+//   P3 S3 (feature-slicing)   — capture split OUT to features/capture/: useMediaCapture,
+//                                useCameraPermissions, useMultiInstanceGuard, EditorCamera,
+//                                CameraPermissionPrompt, ShutterButton (+ their types) no
+//                                longer export from here — import from `@ilinxa/media-editor-capture`
+//                                (features/capture/index.ts) instead. `validateGalleryFile` STAYS
+//                                here (generic file-intake, not a capture concern) — moved to
+//                                `./lib/validate-media-file`. The capture injection seam
+//                                (`MediaCaptureExtension` + friends) is NEW here.
 //
 // Backward-compat for story-composer v0.1.5 consumers is handled in
 // story-composer v0.2.0's barrel via re-exports from THIS barrel
@@ -76,25 +85,21 @@ export type {
 
 export { DEFAULT_ADJUSTMENTS, DEFAULT_LABELS } from "./types";
 
+// ─── Capture injection seam (P3 S3 — see hooks/use-capture-extension.ts) ─
+// For consumers building a CUSTOM capture provider (not the shipped
+// `@ilinxa/media-editor-capture`). Ordinary consumers just import
+// `mediaCapture` from the capture feature and pass `capture={mediaCapture}`.
+
+export {
+  MediaCaptureExtensionContext,
+  type MediaCaptureExtension,
+  type MediaCaptureExtensionContextValue,
+  type MediaCaptureSurfaceProps,
+  type CapturedPhotoLike,
+  type CapturedVideoLike,
+} from "./hooks/use-capture-extension";
+
 // ─── Hooks (C3 — moved from story-composer v0.1.5 via git mv) ───────
-
-export {
-  useMediaCapture,
-  validateGalleryFile,
-  suggestedVideoFilename,
-  type UseMediaCaptureOptions,
-  type UseMediaCaptureResult,
-  type CapturedPhoto,
-  type CapturedVideo,
-  type CaptureStatus,
-  type FacingMode,
-} from "./hooks/use-media-capture";
-
-export {
-  useCameraPermissions,
-  type CameraPermissionState,
-  type UseCameraPermissionsResult,
-} from "./hooks/use-camera-permissions";
 
 export {
   useDrawingStroke,
@@ -136,21 +141,25 @@ export {
   type UseMediaEditorStateResult,
 } from "./hooks/use-media-editor-state";
 
-// useMultiInstanceGuard (C11) — module-scoped counter + dev-warn for
-// 2+ capture-enabled instances mounted simultaneously (Q-P5 b).
-// Exported in case advanced consumers want to opt instances in/out
-// explicitly when composing media-editor inside other procomps.
-export { useMultiInstanceGuard } from "./hooks/use-multi-instance-guard";
+// useMultiInstanceGuard moved to features/capture/ in P3 S3 — its call site
+// is now inside the feature's EditorCamera (live-camera contention is a
+// capture-only concern). Advanced consumers: import from
+// `@ilinxa/media-editor-capture` instead.
 
 // ─── Lib helpers (C3 + C4 — moved from story-composer v0.1.5 via git mv) ──
 
-// mime-fallback (C3):
+// mime-fallback (C3, SHARED — capture recording + base export re-encode
+// both use it):
 export {
   selectRecorderMime,
   containerFor,
   PREFERRED_RECORDER_MIME_TYPES,
   type RecorderMimeType,
 } from "./lib/mime-fallback";
+
+// validate-media-file (P3 S3 — extracted from the old use-media-capture.ts;
+// generic file-intake, not a capture concern, so it stayed in base):
+export { validateGalleryFile } from "./lib/validate-media-file";
 
 // konva-filters (C4):
 export {
@@ -186,13 +195,15 @@ export {
 } from "./lib/defaults";
 
 // ─── Parts (C5 — moved from story-composer v0.1.5 via git mv) ──────
-
-// Renamed public parts (Composer* → Editor*):
-export { EditorCamera } from "./parts/editor-camera";
-export type { EditorCameraProps } from "./parts/editor-camera";
+// EditorCamera / CameraPermissionPrompt / ShutterButton moved to
+// features/capture/ in P3 S3 — import from `@ilinxa/media-editor-capture`.
 
 export { EditorCanvas } from "./parts/editor-canvas";
 export type { EditorCanvasProps } from "./parts/editor-canvas";
+
+// lazy-editor-canvas is an internal same-folder default-export shim for
+// React.lazy() (see parts/lazy-editor-canvas.tsx) — not re-exported; use
+// `EditorCanvas` above for direct/non-lazy composition.
 
 export { EditorToolbar } from "./parts/editor-toolbar";
 export type { EditorToolbarProps } from "./parts/editor-toolbar";
@@ -211,11 +222,8 @@ export {
 } from "./parts/tool-crop-overlay";
 export type { ToolCropOverlayProps } from "./parts/tool-crop-overlay";
 
-// Internal-by-convention parts — re-exported for sealed-folder consumers + the
-// story-composer v0.2.0 wrapper that still references these by name.
-export { CameraPermissionPrompt } from "./parts/camera-permission-prompt";
+// Internal-by-convention parts — re-exported for sealed-folder consumers.
 export { ModeTogglePill } from "./parts/mode-toggle-pill";
-export { ShutterButton } from "./parts/shutter-button";
 export { VideoTrimBar } from "./parts/video-trim-bar";
 export { TextOnlyCanvas } from "./parts/text-only-canvas";
 export type {

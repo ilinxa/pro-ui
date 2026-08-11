@@ -218,3 +218,38 @@ grep -r "from ['\"]@/registry/" src/registry/components/ --include='*.ts' --incl
 - Are binary assets inlined as text? (They shouldn't ship via registry — see pitfall 13.)
 
 The catalog (`public/r/registry.json` after build) is normally metadata-only with NO inlined `content` — it's the per-item JSONs that carry the source. If the catalog itself has `content` fields, that's an unusual artifact: re-run `pnpm dlx shadcn@latest build` to ensure current CLI, and compare against a known-good registry's catalog (e.g. `https://ui.shadcn.com/r/registry.json`).
+
+## 16. Feature items (opt-in slices)
+
+**Symptom:** A base component wants an opt-in capability axis (an editing layer, a camera-capture mode) shipped separately, so lean consumers don't pay for it — sounds like the fixtures pattern (pitfall 3), but fixtures only ever add inert data. A capability slice adds live code that must wire into the base at runtime, and naively overwriting/duplicating base files to do it breaks upgrades (strategy (a), stub-file-overwritten-by-feature-item, was tried and rejected — see below).
+
+**Cause:** There's still no CLI flag for a "capability" install any more than there was for fixtures — but a capability slice also can't just add a standalone file the way `dummy-data.ts` does; it needs a seam the base already exposes.
+
+**Fix — feature item, same dual-item shape as fixtures, plus a base-owned injection surface:**
+
+```json
+{
+  "name": "media-editor-capture",
+  "type": "registry:block",
+  "title": "Media Editor — Capture",
+  "meta": { "featureOf": "media-editor", "budgetKB": 65 },
+  "registryDependencies": ["@ilinxa/media-editor", "button"],
+  "files": [
+    {
+      "path": "src/registry/components/media/media-editor/features/capture/capture.tsx",
+      "type": "registry:component",
+      "target": "components/media-editor/features/capture/capture.tsx"
+    }
+  ]
+}
+```
+
+- **Marker:** `meta.featureOf: "<base-slug>"` (+ `meta.budgetKB`) is the 4th roster-exclusion predicate alongside `-fixtures` / `meta.deprecated` / `_shared`.
+- **Naming:** item name must be `<base-slug>-<feature>`.
+- **Targets:** every file lands at `components/<base>/features/<feature>/...`, mirroring its on-disk path under the base's own `features/` folder — never at the base's top level, never colliding with the base or its `-fixtures` sibling.
+- **regDeps:** MUST include `@ilinxa/<base>` (one-command fresh install pulls both) plus whatever shadcn primitives the feature's own files import.
+- **Validated, not just conventional:** `validate-registry-json.mjs` runs seven checks (F1–F7) on every feature item — base exists and isn't deprecated, name prefix, target convention, zero collisions, the `@ilinxa/<base>` regDep, a positive `budgetKB`, and every file path resolving on disk. Don't hand-roll these checks; they already run inside `pnpm registry:build`.
+- **Injection surface (the part fixtures never needed):** the base owns a seam — a context + optional prop — and the feature barrel exports the ready-made value for it. **A base file must never statically import a feature file**; the dependency direction is feature → base only. `validate-registry-json.mjs` enforces this with a base→own-features import ban.
+- **Upgrade caveat:** same base-file-prompt hazard as `-fixtures` (pitfall 3) on a locally-modified base, PLUS a sharper failure mode — a **non-interactive** (`--yes`) upgrade onto a modified base aborts the whole write with **exit 0** (a phantom no-op: looks like it succeeded, nothing landed). Don't script unattended feature-item upgrades over modified bases; install slices at project-setup time or verify files landed.
+
+Full contract (injection-surface mechanics, the rejected stub-overwrite strategy, the consumer upgrade recipe, when-to-slice guidance): [`docs/feature-slicing-convention.md`](../../../docs/feature-slicing-convention.md).

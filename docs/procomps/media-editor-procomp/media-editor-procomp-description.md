@@ -5,6 +5,8 @@
 > **Extraction from `story-composer` v0.1.5.** Not greenfield. The Konva-based capture + edit surface inside story-composer is being lifted into a standalone procomp so it can be re-used by the in-flight `content-composer` (news/post/event/project authoring) and a queue of other consumers (chat attachments, profile cover photos, project hero media). Story-composer-01 simultaneously refactors to consume this extraction as **v0.2.0** (non-breaking, public API preserved) — proving the extraction is real, not theoretical, in the same release.
 >
 > Migration origin: `src/registry/components/media/story-composer/` v0.1.5 (tip `849c577`). Full file-move/stay split in §"Extraction scope" below.
+>
+> **P3 addendum (2026-08-11).** This doc designs `media-editor` as one sealed, always-together package — camera capture (Q-P5 multi-instance guard, `useMediaCapture`, `<EditorCamera>`) included. As of the P3 feature-slicing split (v0.3.0), capture is no longer part of the base install: it moved to the opt-in `@ilinxa/media-editor-capture` registry item, injected via a `capture?: MediaCaptureExtension` prop the base never statically imports. The Q-P5 multi-instance dev-warn design below is unchanged in behavior but now only exists — and only fires — when that feature item is installed and wired; a base-alone (capture-less) install has no camera code to contend for a device in the first place. Packaging + wiring detail: [`media-editor-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./media-editor-procomp-guide.md#feature-slices-p3-2026-08-11).
 
 ## Problem
 

@@ -36,16 +36,16 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 
 ## Registry conventions
 - Components live ONLY in `src/registry/components/<category>/<slug>/`. Never under `src/app/`.
-- Registry code may import only: `react`, `@/components/ui/*`, `@/lib/utils`, and explicitly-declared third-party deps. **Never `next/*`**, app contexts, or env-specific code — this keeps the library portable for the future NPM extraction.
+- Registry code may import only: `react`, `@/components/ui/*`, `@/lib/utils`, and explicitly-declared third-party deps. **Never `next/*`**, app contexts, or env-specific code — keeps the library portable for future NPM extraction.
 - Each component is a sealed folder following the `data-table` shape: `<slug>.tsx`, `parts/`, `hooks/`, `types.ts`, `dummy-data.ts`, `demo.tsx`, `usage.tsx`, `meta.ts`, `index.ts`.
 - `meta.ts` must populate every required `ComponentMeta` field. The scaffolder generates a stub with today's date.
 - Categories live in `src/registry/categories.ts`. Adding one requires updating `ComponentCategorySlug` and `CATEGORIES`.
 - Adding a component to the docs site requires a 3-line edit to `src/registry/manifest.ts` — the scaffolder prints the exact lines.
-- **Registry distribution:** [`registry.json`](../registry.json) at repo root drives `https://ui.ilinxa.com/r/<slug>.json`. TWO items per component: base + `<slug>-fixtures` (adds only `dummy-data.ts`). Locked: every file `type: "registry:component"`, `target: "components/<slug>/<sub-path>"`; never ship `demo.tsx` / `usage.tsx` / `meta.ts`. `pnpm vercel-build` regenerates artifacts + the llms/README catalog each deploy. Skill: [shadcn-registry-pro](skills/shadcn-registry-pro/).
+- **Registry distribution:** [`registry.json`](../registry.json) at repo root drives `https://ui.ilinxa.com/r/<slug>.json`. TWO items per component: base + `<slug>-fixtures` (adds only `dummy-data.ts`). Locked: every file `type: "registry:component"`, `target: "components/<slug>/<sub-path>"`; never ship `demo.tsx` / `usage.tsx` / `meta.ts`. `pnpm vercel-build` regenerates artifacts + the llms/README catalog each deploy. Skill: [shadcn-registry-pro](skills/shadcn-registry-pro/). Feature items (`meta.featureOf`) ship opt-in slices into `components/<base>/features/<name>/`, injection-wired, never overwriting base files — see [docs/feature-slicing-convention.md](../docs/feature-slicing-convention.md).
 
 ## Workflow
-0. **(Migration intake — only if porting from another app)** `pnpm new:migration <slug>` scaffolds `docs/migrations/<slug>/`; user fills `original/` + `source-notes.md`, assistant writes `analysis.md`, user signs off before Stage 1. See [docs/migrations/README.md](../docs/migrations/README.md).
-1. **(Required gates — GATE 1 + GATE 2)** Before any code, author `docs/procomps/<slug>-procomp/` planning docs and get user sign-off IN ORDER: `<slug>-procomp-description.md` (what & why — **GATE 1**), then `<slug>-procomp-plan.md` (how — **GATE 2**); the guide doc is authored alongside implementation. **Never scaffold before both are confirmed** — if asked for a new component without these docs, draft the description and pause. See [docs/procomps/README.md](../docs/procomps/README.md) + [component-guide §2](../docs/component-guide.md#2-before-you-start).
+0. **(Migration intake — only if porting from another app)** `pnpm new:migration <slug>` scaffolds `docs/migrations/<slug>/`; user fills `original/` + `source-notes.md`, assistant writes `analysis.md`, sign-off before Stage 1. See [docs/migrations/README.md](../docs/migrations/README.md).
+1. **(Required gates — GATE 1 + GATE 2)** Before any code, author `docs/procomps/<slug>-procomp/` planning docs, sign-off IN ORDER: `<slug>-procomp-description.md` (what & why — **GATE 1**), then `<slug>-procomp-plan.md` (how — **GATE 2**); guide doc authored alongside implementation. **Never scaffold before both confirmed** — if asked without these docs, draft the description and pause. See [docs/procomps/README.md](../docs/procomps/README.md) + [component-guide §2](../docs/component-guide.md#2-before-you-start).
 2. `pnpm new:component <category>/<slug>` generates the folder from `_template/`.
 3. Implement the component, fill `meta.ts`, write the demo and usage.
 4. Paste the printed 3 lines into `src/registry/manifest.ts` (registers it in the docs site).
@@ -56,7 +56,7 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 9. Update `.claude/STATUS.md` with the new entry and any decisions worth keeping. Add the review file to the "Recent activity" pointer if non-trivial.
 10. Commit + push to `master`. Vercel auto-runs `pnpm vercel-build` on each deploy, regenerating the catalog from `registry.json`. Once deployed, the component is installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>` from any consumer app.
 
-For human-readable rules and a worked end-to-end example, see [docs/component-guide.md](../docs/component-guide.md). This `CLAUDE.md` stays terse; the guide is the long-form reference. The `shadcn-registry-pro` skill at `.claude/skills/shadcn-registry-pro/` covers registry-side work in detail.
+For human-readable rules + a worked example, see [docs/component-guide.md](../docs/component-guide.md) — the long-form reference; this `CLAUDE.md` stays terse. Registry-side detail: `shadcn-registry-pro` skill.
 
 ## Gotchas
 - Root `CLAUDE.md` chains to `AGENTS.md` — Next.js 16 has breaking changes from training data. Read `node_modules/next/dist/docs/` before writing route code.
@@ -81,9 +81,9 @@ Hold the line on tokens defined in [src/app/globals.css](../src/app/globals.css)
 - **IMPORTANT:** Use the `xyflow-react-pro` skill when working with `@xyflow/react` (React Flow / ReactFlow) — building flow editors, node graphs, workflow canvases, port-and-edge UIs, custom node/edge types — or whenever a file imports from `@xyflow/react`.
 
 ## Library tiers
-The library has four tiers, each with their own three-gate workflow and review specifics. The **procomp** workflow above is the established case; **pro-section / pro-page / pro-panel** are formalized but tooling + first pilots are queued (Phase B / C).
+Four tiers, each with a three-gate workflow + review specifics. **procomp** (above) is established; **pro-section / pro-page / pro-panel** are formalized, tooling + first pilots queued (Phase B / C).
 
-- **pro-component** — single composable unit (the established tier; current count + versions in STATUS.md). Sealed folder under `src/registry/components/`. Runtime distribution.
+- **pro-component** — single composable unit (established tier; counts in STATUS.md). Sealed folder under `src/registry/components/`. Runtime distribution.
 - **pro-section** — self-contained sub-route region (hero / stats row / filter bar). 1–3 procomps. Runtime by default. *Not yet shipped.*
 - **pro-page** — one full route + lifecycle (layout / data / auth). Scaffold-fork (`registry:block`). Peer/AI review required. *Not yet shipped.*
 - **pro-panel** — multi-page bundle with shared shell (`cms-panel`, `admin-panel`). Scaffold-fork meta-block. Peer/AI review required. Constituents must close their own GATE 3 first. *Not yet shipped.*
@@ -91,15 +91,16 @@ The library has four tiers, each with their own three-gate workflow and review s
 Full tier model + per-tier gate specifics: [docs/library-tiers-charter.md](../docs/library-tiers-charter.md). Tier folders: [docs/sections/](../docs/sections/), [docs/pages/](../docs/pages/), [docs/panels/](../docs/panels/).
 
 ## Rules
+- **IMPORTANT — Feature readiness loop:** use the `feature-readiness-loop` skill for any feature/module build, hardening, or close-out. Config: `.claude/readiness.config.md`.
 - **IMPORTANT — Subagent models:** Opus 4.8[1m] or Sonnet 5[1m] only; **never Opus 5** (doesn't follow rules); cheap tiers for bulk jobs need verification. Full rule: [rules/subagent-model-policy.md](rules/subagent-model-policy.md).
 - **IMPORTANT — Readiness review (GATE 3):** every new library artifact MUST pass a structured review, verdict ≥ `Pass with follow-ups`, before push to `master`. The core rule auto-loads from [rules/readiness-review.md](rules/readiness-review.md); full spec at [docs/reviews/readiness-review-spec.md](../docs/reviews/readiness-review-spec.md).
 - **IMPORTANT — Compound structure for big components:** Any multi-part artifact (≥3 mountable regions, composes another procomp, pulls a heavy dep, or a consumer could want a subset) MUST ship as a shadcn-style compound — headless `Root` provider + flat à-la-carte parts + standalone primitives + a logic-free `<Name>` assembly; flat exports (never `Name.Root`); heavy deps `React.lazy`. Single-unit widgets are exempt. Full rule (path-scoped) at [.claude/rules/compound-component-structure.md](rules/compound-component-structure.md). Reference impl: `media-library`.
 
 ## Progress tracking
-Read [.claude/STATUS.md](STATUS.md) at session start to see where the project is. STATUS.md is the current snapshot — not a changelog. The active master plan (phases, locked decisions, loops) is [docs/production-readiness-plan.md](../docs/production-readiness-plan.md). When you ship a component / change a status / make a non-obvious decision worth keeping:
+Read [.claude/STATUS.md](STATUS.md) at session start — the current snapshot, not a changelog. Master plan (phases, locked decisions, loops): [docs/production-readiness-plan.md](../docs/production-readiness-plan.md). When you ship a component / change a status / make a non-obvious decision worth keeping:
 
 - **Update STATUS.md** for state changes (Components table row, version bump, Open decisions/TODOs).
-- **Author a per-decision file** at [.claude/decisions/](decisions/)`<YYYY-MM-DD>-<slug>.md` with YAML frontmatter (`date / session / phase / type / commits / components / findings / status`) — convention at [.claude/decisions/README.md](decisions/README.md).
+- **Author a per-decision file** at [.claude/decisions/](decisions/)`<YYYY-MM-DD>-<slug>.md` with YAML frontmatter (`date/session/phase/type/commits/components/findings/status`) — convention: [decisions/README.md](decisions/README.md).
 - **Update the "Recent activity" pointer list** at the bottom of STATUS.md to surface the new decision file (keep ~5 most-recent).
 
-Pre-2026-05-09 history is in [.claude/STATUS-archive.md](STATUS-archive.md) (frozen; do not extend). The split was option (b3) hybrid per F-cross-02 closure — see [.claude/decisions/2026-05-09-session-7d-phase-6.md](decisions/2026-05-09-session-7d-phase-6.md).
+Pre-2026-05-09 history: [.claude/STATUS-archive.md](STATUS-archive.md) (frozen; do not extend) — split rationale in [decisions/2026-05-09-session-7d-phase-6.md](decisions/2026-05-09-session-7d-phase-6.md).

@@ -2,6 +2,7 @@
 
 import { forwardRef } from "react";
 import { useCalendar } from "./hooks/use-calendar-context";
+import { useCalendarEditOptional } from "./hooks/use-calendar-edit-extension";
 import { EventCalendarRoot } from "./parts/calendar-root";
 import { CalendarToolbar } from "./parts/calendar-toolbar";
 import { CalendarMiniNav } from "./parts/calendar-mini-nav";
@@ -10,11 +11,6 @@ import { CalendarWeekView } from "./parts/calendar-week-view";
 import { CalendarDayView } from "./parts/calendar-day-view";
 import { CalendarAgendaView } from "./parts/calendar-agenda-view";
 import { CalendarEventInspector } from "./parts/calendar-event-inspector";
-import { CalendarQuickComposer } from "./parts/calendar-quick-composer";
-import {
-  CalendarEventEditorOverlay,
-  CalendarRenameField,
-} from "./parts/calendar-edit-overlays";
 import type { CalendarHandle, CalendarProps } from "./types";
 
 /** Renders the active view (must live inside the Root to read context). */
@@ -32,6 +28,28 @@ function ActiveView() {
     default:
       return <CalendarMonthView />;
   }
+}
+
+/**
+ * Renders the quick-composer / rename field / detail-editor overlays — but
+ * ONLY when the editing extension is wired (`useCalendarEditOptional()` is
+ * non-null). A tiny inner component so it can read that context itself
+ * (must live inside the Root, same as `ActiveView`); the assembly never
+ * statically imports any of these — they resolve through `edit.components`.
+ */
+function EditOverlaysSlot({ showInspector }: { showInspector: boolean }) {
+  const edit = useCalendarEditOptional();
+  if (!edit) return null;
+  return (
+    <>
+      <edit.components.QuickComposer />
+      {/* Inline rename popup (the inspector never hosted rename). */}
+      <edit.components.RenameField />
+      {/* Detail editor — only when the inspector isn't mounted (it hosts the
+          editor inline; mounting both would double-render on `editingId`). */}
+      {showInspector ? null : <edit.components.EditOverlays />}
+    </>
+  );
 }
 
 /**
@@ -64,12 +82,7 @@ export const EventCalendar = forwardRef<CalendarHandle, CalendarProps>(
             <ActiveView />
           </div>
         </div>
-        <CalendarQuickComposer />
-        {/* Inline rename popup (the inspector never hosted rename). */}
-        <CalendarRenameField />
-        {/* Detail editor — only when the inspector isn't mounted (it hosts the
-            editor inline; mounting both would double-render on `editingId`). */}
-        {showInspector ? null : <CalendarEventEditorOverlay />}
+        <EditOverlaysSlot showInspector={showInspector} />
       </EventCalendarRoot>
     );
   },

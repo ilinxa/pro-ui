@@ -26,8 +26,14 @@ const expected = new Set(
       (i) => !(i.files?.[0]?.target ?? "").startsWith("components/_shared"),
     )
     .filter((i) => !i.meta?.deprecated) // P2.3 alias redirects are not catalog entries
+    .filter((i) => !i.meta?.featureOf) // P3 feature items render as ↳ sub-lines, not entries
     .map((i) => i.name),
 );
+// P3 feature items must be PRESENT (as sub-line mentions) in both surfaces,
+// but never counted as standalone catalog entries.
+const expectedFeatures = registry.items
+  .filter((i) => typeof i.meta?.featureOf === "string" && i.meta.featureOf.length > 0)
+  .map((i) => i.name);
 
 let failed = false;
 
@@ -45,9 +51,26 @@ function checkFile(file, slugRe) {
     return;
   }
   const section = src.slice(s, e);
+  // Feature-slice sub-lines ("↳ optional slice: …") are mentions, not entries —
+  // strip before entry-matching so features never register as phantom slugs.
+  const entrySection = section
+    .split("\n")
+    .map((l) => l.replace(/↳ optional slice:.*$/g, ""))
+    .join("\n");
   const found = new Set(
-    [...section.matchAll(slugRe)].map((m) => m[1]),
+    [...entrySection.matchAll(slugRe)].map((m) => m[1]),
   );
+  for (const feat of expectedFeatures) {
+    if (!section.includes(feat))
+      fail(`${file}: feature slice "${feat}" not mentioned under its base entry.`);
+  }
+  // Reverse check (R4 finding): a ↳ mention whose slug is NOT a current
+  // feature item is stale generated output — regenerate.
+  const mentionRe = /↳ optional slice:[^`\n]*`(?:@ilinxa\/)?([a-z0-9-]+)`/g;
+  for (const m of section.matchAll(mentionRe)) {
+    if (!expectedFeatures.includes(m[1]))
+      fail(`${file}: stale feature-slice mention "${m[1]}" (not a registry feature item).`);
+  }
   const missing = [...expected].filter((x) => !found.has(x));
   const phantom = [...found].filter((x) => !expected.has(x));
   if (missing.length)

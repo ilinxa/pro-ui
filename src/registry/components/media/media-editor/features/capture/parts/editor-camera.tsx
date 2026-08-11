@@ -4,20 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { Image as ImageIcon, SwitchCamera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  useMediaCapture,
-  validateGalleryFile,
-  useCameraPermissions,
-  type CapturedPhoto,
-  type CapturedVideo,
-} from "../../media-editor";
+// Direct relative imports — NEVER through the base barrel (F-S1 / R1
+// VERDICT). `useMediaCapture` / `useCameraPermissions` are co-located in
+// this feature; `validateGalleryFile` is generic file-intake and lives in
+// BASE (moved there in P3 S3); `useMultiInstanceGuard` is co-located too —
+// its call site lives HERE (not in the base orchestrator) since the
+// contention it guards against (2+ live camera streams) only exists while a
+// camera surface is actually mounted.
+import { useMediaCapture, type CapturedPhoto, type CapturedVideo } from "../hooks/use-media-capture";
+import { useCameraPermissions } from "../hooks/use-camera-permissions";
+import { useMultiInstanceGuard } from "../hooks/use-multi-instance-guard";
+import { validateGalleryFile } from "../../../lib/validate-media-file";
 import { CameraPermissionPrompt } from "./camera-permission-prompt";
 import { ShutterButton } from "./shutter-button";
 import type {
   ComposerMode,
   StoryComposerLabels,
   ValidationError,
-} from "../types";
+} from "../../../types";
 
 export interface EditorCameraProps {
   /** Composer is open + we should hold a live camera stream. */
@@ -81,6 +85,15 @@ export function EditorCamera({
 }: EditorCameraProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Multi-instance guard (moved from the base orchestrator in P3 S3 — see
+  // import comment above). Gated on `enabled`, which mirrors the original
+  // `cameraIntakeAvailable` intent closely enough: this component only
+  // mounts while the editor actually wants a live camera surface, so the
+  // guard now fires exactly while camera contention could occur, rather than
+  // merely "configured for camera" (a slightly tighter, arguably more
+  // accurate trigger window than the pre-split behavior).
+  useMultiInstanceGuard(enabled);
 
   const perms = useCameraPermissions();
   // Only request mic permission for video mode — requesting audio in photo

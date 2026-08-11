@@ -3014,10 +3014,10 @@
         "@ilinxa/media-carousel",
         "@ilinxa/engagement-bar",
         "@ilinxa/comment-thread",
-        "https://ui.shadcn.com/r/styles/new-york/avatar.json",
-        "https://ui.shadcn.com/r/styles/new-york/button.json",
-        "https://ui.shadcn.com/r/styles/new-york/card.json",
-        "https://ui.shadcn.com/r/styles/new-york/dropdown-menu.json"
+        "avatar",
+        "button",
+        "card",
+        "dropdown-menu"
       ],
       "dependencies": [
         "lucide-react"
@@ -3163,7 +3163,7 @@
         "data"
       ],
       "registryDependencies": [
-        "https://ui.shadcn.com/r/styles/new-york/avatar.json"
+        "avatar"
       ],
       "dependencies": [
         "lucide-react",
@@ -3238,9 +3238,9 @@
         "@ilinxa/video-player",
         "@ilinxa/engagement-bar",
         "@ilinxa/comment-thread",
-        "https://ui.shadcn.com/r/styles/new-york/dialog.json",
-        "https://ui.shadcn.com/r/styles/new-york/avatar.json",
-        "https://ui.shadcn.com/r/styles/new-york/button.json"
+        "dialog",
+        "avatar",
+        "button"
       ],
       "dependencies": [
         "lucide-react"
@@ -4411,6 +4411,40 @@
           "path": "src/registry/components/navigation/_shared/file-clipboard.tsx",
           "type": "registry:component",
           "target": "components/_shared/file-clipboard.tsx"
+        }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "gamification-kit",
+      "type": "registry:block",
+      "title": "Gamification Kit",
+      "description": "Shared helpers for team gamification components — a numeric clamp, name-to-initials resolution, and a stable latest-value ref hook.",
+      "author": "ilinxa",
+      "categories": [
+        "gamification",
+        "primitive"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/gamification/_shared/gamification-kit/clamp.ts",
+          "type": "registry:component",
+          "target": "components/_shared/gamification-kit/clamp.ts"
+        },
+        {
+          "path": "src/registry/components/gamification/_shared/gamification-kit/initials.ts",
+          "type": "registry:component",
+          "target": "components/_shared/gamification-kit/initials.ts"
+        },
+        {
+          "path": "src/registry/components/gamification/_shared/gamification-kit/use-latest-ref.ts",
+          "type": "registry:component",
+          "target": "components/_shared/gamification-kit/use-latest-ref.ts"
+        },
+        {
+          "path": "src/registry/components/gamification/_shared/gamification-kit/index.ts",
+          "type": "registry:component",
+          "target": "components/_shared/gamification-kit/index.ts"
         }
       ]
     },
@@ -6295,7 +6329,8 @@
       ],
       "registryDependencies": [
         "@ilinxa/media-editor",
-        "https://ui.shadcn.com/r/styles/new-york/button.json"
+        "@ilinxa/media-editor-capture",
+        "button"
       ],
       "dependencies": [
         "lucide-react"
@@ -6371,7 +6406,11 @@
         "media"
       ],
       "registryDependencies": [
-        "https://ui.shadcn.com/r/styles/new-york/dialog.json"
+        "dialog",
+        "alert-dialog",
+        "popover",
+        "button",
+        "slider"
       ],
       "dependencies": [
         "konva",
@@ -6395,11 +6434,6 @@
           "target": "components/media-editor/types.ts"
         },
         {
-          "path": "src/registry/components/media/media-editor/hooks/use-camera-permissions.ts",
-          "type": "registry:component",
-          "target": "components/media-editor/hooks/use-camera-permissions.ts"
-        },
-        {
           "path": "src/registry/components/media/media-editor/hooks/use-drawing-stroke.ts",
           "type": "registry:component",
           "target": "components/media-editor/hooks/use-drawing-stroke.ts"
@@ -6420,19 +6454,9 @@
           "target": "components/media-editor/hooks/use-konva-stage-size.ts"
         },
         {
-          "path": "src/registry/components/media/media-editor/hooks/use-media-capture.ts",
-          "type": "registry:component",
-          "target": "components/media-editor/hooks/use-media-capture.ts"
-        },
-        {
           "path": "src/registry/components/media/media-editor/hooks/use-media-editor-state.ts",
           "type": "registry:component",
           "target": "components/media-editor/hooks/use-media-editor-state.ts"
-        },
-        {
-          "path": "src/registry/components/media/media-editor/hooks/use-multi-instance-guard.ts",
-          "type": "registry:component",
-          "target": "components/media-editor/hooks/use-multi-instance-guard.ts"
         },
         {
           "path": "src/registry/components/media/media-editor/hooks/use-pan-zoom.ts",
@@ -6490,11 +6514,6 @@
           "target": "components/media-editor/lib/resolve-crop-aspects.ts"
         },
         {
-          "path": "src/registry/components/media/media-editor/parts/camera-permission-prompt.tsx",
-          "type": "registry:component",
-          "target": "components/media-editor/parts/camera-permission-prompt.tsx"
-        },
-        {
           "path": "src/registry/components/media/media-editor/parts/color-swatch-picker.tsx",
           "type": "registry:component",
           "target": "components/media-editor/parts/color-swatch-picker.tsx"
@@ -6503,11 +6522,6 @@
           "path": "src/registry/components/media/media-editor/parts/discard-confirm-dialog.tsx",
           "type": "registry:component",
           "target": "components/media-editor/parts/discard-confirm-dialog.tsx"
-        },
-        {
-          "path": "src/registry/components/media/media-editor/parts/editor-camera.tsx",
-          "type": "registry:component",
-          "target": "components/media-editor/parts/editor-camera.tsx"
         },
         {
           "path": "src/registry/components/media/media-editor/parts/editor-canvas.tsx",
@@ -6523,11 +6537,6 @@
           "path": "src/registry/components/media/media-editor/parts/mode-toggle-pill.tsx",
           "type": "registry:component",
           "target": "components/media-editor/parts/mode-toggle-pill.tsx"
-        },
-        {
-          "path": "src/registry/components/media/media-editor/parts/shutter-button.tsx",
-          "type": "registry:component",
-          "target": "components/media-editor/parts/shutter-button.tsx"
         },
         {
           "path": "src/registry/components/media/media-editor/parts/text-only-canvas.tsx",
@@ -6568,6 +6577,21 @@
           "path": "src/registry/components/media/media-editor/parts/video-trim-bar.tsx",
           "type": "registry:component",
           "target": "components/media-editor/parts/video-trim-bar.tsx"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/hooks/use-capture-extension.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/hooks/use-capture-extension.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/validate-media-file.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/validate-media-file.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/parts/lazy-editor-canvas.tsx",
+          "type": "registry:component",
+          "target": "components/media-editor/parts/lazy-editor-canvas.tsx"
         }
       ]
     },
@@ -6595,6 +6619,70 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "media-editor-capture",
+      "type": "registry:block",
+      "title": "Media Editor — Capture",
+      "description": "Camera photo/video capture for Media Editor — permission flows, shutter control, multi-instance guard. Wire in via MediaEditor's capture prop.",
+      "author": "ilinxa",
+      "categories": [
+        "media"
+      ],
+      "meta": {
+        "featureOf": "media-editor",
+        "budgetKB": 65
+      },
+      "registryDependencies": [
+        "@ilinxa/media-editor",
+        "button"
+      ],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/index.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/index.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/provider.tsx",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/provider.tsx"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/hooks/use-media-capture.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/hooks/use-media-capture.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/hooks/use-camera-permissions.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/hooks/use-camera-permissions.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/hooks/use-multi-instance-guard.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/hooks/use-multi-instance-guard.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/parts/editor-camera.tsx",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/parts/editor-camera.tsx"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/parts/camera-permission-prompt.tsx",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/parts/camera-permission-prompt.tsx"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/features/capture/parts/shutter-button.tsx",
+          "type": "registry:component",
+          "target": "components/media-editor/features/capture/parts/shutter-button.tsx"
+        }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "content-composer",
       "type": "registry:block",
       "title": "Content Composer",
@@ -6607,16 +6695,17 @@
         "@ilinxa/json-form",
         "@ilinxa/rich-text-editor",
         "@ilinxa/media-editor",
+        "@ilinxa/media-editor-capture",
         "@ilinxa/carousel-composer",
         "@ilinxa/news-card",
-        "https://ui.shadcn.com/r/styles/new-york/badge.json",
-        "https://ui.shadcn.com/r/styles/new-york/button.json",
-        "https://ui.shadcn.com/r/styles/new-york/command.json",
-        "https://ui.shadcn.com/r/styles/new-york/dialog.json",
-        "https://ui.shadcn.com/r/styles/new-york/input.json",
-        "https://ui.shadcn.com/r/styles/new-york/popover.json",
-        "https://ui.shadcn.com/r/styles/new-york/separator.json",
-        "https://ui.shadcn.com/r/styles/new-york/textarea.json"
+        "badge",
+        "button",
+        "command",
+        "dialog",
+        "input",
+        "popover",
+        "separator",
+        "textarea"
       ],
       "dependencies": [
         "lucide-react"
@@ -6828,8 +6917,8 @@
       ],
       "registryDependencies": [
         "@ilinxa/media-editor",
-        "https://ui.shadcn.com/r/styles/new-york/button.json",
-        "https://ui.shadcn.com/r/styles/new-york/scroll-area.json"
+        "button",
+        "scroll-area"
       ],
       "dependencies": [
         "@dnd-kit/core",
@@ -6948,12 +7037,12 @@
         "@ilinxa/code-block",
         "@ilinxa/markdown-editor",
         "@ilinxa/video-player",
-        "https://ui.shadcn.com/r/styles/new-york/button.json",
-        "https://ui.shadcn.com/r/styles/new-york/context-menu.json",
-        "https://ui.shadcn.com/r/styles/new-york/dialog.json",
-        "https://ui.shadcn.com/r/styles/new-york/input.json",
-        "https://ui.shadcn.com/r/styles/new-york/progress.json",
-        "https://ui.shadcn.com/r/styles/new-york/skeleton.json"
+        "button",
+        "context-menu",
+        "dialog",
+        "input",
+        "progress",
+        "skeleton"
       ],
       "dependencies": [
         "@dnd-kit/core",
@@ -7161,8 +7250,8 @@
         "data"
       ],
       "registryDependencies": [
-        "https://ui.shadcn.com/r/styles/new-york/button.json",
-        "https://ui.shadcn.com/r/styles/new-york/textarea.json"
+        "button",
+        "textarea"
       ],
       "dependencies": [
         "@fontsource/kalam",
@@ -7540,17 +7629,13 @@
         "badge",
         "button",
         "calendar",
-        "context-menu",
-        "input",
         "popover",
         "skeleton",
         "@ilinxa/task-card"
       ],
       "dependencies": [
         "date-fns",
-        "lucide-react",
-        "@dnd-kit/core",
-        "@dnd-kit/utilities"
+        "lucide-react"
       ],
       "files": [
         {
@@ -7599,16 +7684,6 @@
           "target": "components/event-calendar/lib/lane-pack.ts"
         },
         {
-          "path": "src/registry/components/data/event-calendar/lib/edit-mutations.ts",
-          "type": "registry:component",
-          "target": "components/event-calendar/lib/edit-mutations.ts"
-        },
-        {
-          "path": "src/registry/components/data/event-calendar/lib/edit-permissions.ts",
-          "type": "registry:component",
-          "target": "components/event-calendar/lib/edit-permissions.ts"
-        },
-        {
           "path": "src/registry/components/data/event-calendar/hooks/use-calendar-context.ts",
           "type": "registry:component",
           "target": "components/event-calendar/hooks/use-calendar-context.ts"
@@ -7619,9 +7694,9 @@
           "target": "components/event-calendar/hooks/use-calendar-cursor.ts"
         },
         {
-          "path": "src/registry/components/data/event-calendar/hooks/use-calendar-edit.ts",
+          "path": "src/registry/components/data/event-calendar/hooks/use-calendar-edit-extension.ts",
           "type": "registry:component",
-          "target": "components/event-calendar/hooks/use-calendar-edit.ts"
+          "target": "components/event-calendar/hooks/use-calendar-edit-extension.ts"
         },
         {
           "path": "src/registry/components/data/event-calendar/hooks/use-now-tick.ts",
@@ -7679,29 +7754,9 @@
           "target": "components/event-calendar/parts/event-tooltip-full.tsx"
         },
         {
-          "path": "src/registry/components/data/event-calendar/parts/calendar-edit-affordances.tsx",
-          "type": "registry:component",
-          "target": "components/event-calendar/parts/calendar-edit-affordances.tsx"
-        },
-        {
-          "path": "src/registry/components/data/event-calendar/parts/calendar-context-menu.tsx",
-          "type": "registry:component",
-          "target": "components/event-calendar/parts/calendar-context-menu.tsx"
-        },
-        {
-          "path": "src/registry/components/data/event-calendar/parts/calendar-quick-composer.tsx",
-          "type": "registry:component",
-          "target": "components/event-calendar/parts/calendar-quick-composer.tsx"
-        },
-        {
           "path": "src/registry/components/data/event-calendar/parts/calendar-event-inspector.tsx",
           "type": "registry:component",
           "target": "components/event-calendar/parts/calendar-event-inspector.tsx"
-        },
-        {
-          "path": "src/registry/components/data/event-calendar/parts/calendar-edit-overlays.tsx",
-          "type": "registry:component",
-          "target": "components/event-calendar/parts/calendar-edit-overlays.tsx"
         },
         {
           "path": "src/registry/components/data/event-calendar/parts/calendar-skeleton.tsx",
@@ -7735,6 +7790,102 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "event-calendar-editing",
+      "type": "registry:block",
+      "title": "Event Calendar — Editing",
+      "description": "Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated actions for the event calendar.",
+      "author": "ilinxa",
+      "categories": [
+        "data",
+        "task-management"
+      ],
+      "meta": {
+        "featureOf": "event-calendar",
+        "budgetKB": 110
+      },
+      "registryDependencies": [
+        "@ilinxa/event-calendar",
+        "@ilinxa/task-card",
+        "context-menu",
+        "input",
+        "button"
+      ],
+      "dependencies": [
+        "date-fns",
+        "lucide-react",
+        "@dnd-kit/core",
+        "@dnd-kit/utilities"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/index.ts",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/index.ts"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/provider.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/provider.tsx"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/hooks/use-calendar-edit.ts",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/hooks/use-calendar-edit.ts"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/lib/edit-mutations.ts",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/lib/edit-mutations.ts"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/lib/edit-permissions.ts",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/lib/edit-permissions.ts"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/lib/paste-window.ts",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/lib/paste-window.ts"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/lib/clipboard-effect.ts",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/lib/clipboard-effect.ts"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/lib/time-grid-gestures.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/lib/time-grid-gestures.tsx"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/parts/calendar-edit-affordances.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/parts/calendar-edit-affordances.tsx"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/parts/calendar-edit-overlays.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/parts/calendar-edit-overlays.tsx"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/parts/calendar-quick-composer.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/parts/calendar-quick-composer.tsx"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/parts/calendar-context-menu.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/parts/calendar-context-menu.tsx"
+        },
+        {
+          "path": "src/registry/components/data/event-calendar/features/editing/parts/droppable-day-cell.tsx",
+          "type": "registry:component",
+          "target": "components/event-calendar/features/editing/parts/droppable-day-cell.tsx"
+        }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "team-progress-bar",
       "type": "registry:block",
       "title": "Team Progress Bar",
@@ -7744,7 +7895,8 @@
         "gamification"
       ],
       "registryDependencies": [
-        "progress"
+        "progress",
+        "@ilinxa/gamification-kit"
       ],
       "dependencies": [],
       "files": [
@@ -7835,7 +7987,8 @@
       "registryDependencies": [
         "tooltip",
         "badge",
-        "separator"
+        "separator",
+        "@ilinxa/gamification-kit"
       ],
       "dependencies": [
         "lucide-react"
@@ -7936,7 +8089,8 @@
         "gamification"
       ],
       "registryDependencies": [
-        "button"
+        "button",
+        "@ilinxa/gamification-kit"
       ],
       "dependencies": [
         "canvas-confetti",
@@ -8040,7 +8194,8 @@
         "avatar",
         "button",
         "badge",
-        "skeleton"
+        "skeleton",
+        "@ilinxa/gamification-kit"
       ],
       "dependencies": [
         "lucide-react"
@@ -8150,7 +8305,8 @@
         "button",
         "avatar",
         "popover",
-        "command"
+        "command",
+        "@ilinxa/gamification-kit"
       ],
       "dependencies": [
         "lucide-react"
@@ -8232,7 +8388,8 @@
       ],
       "registryDependencies": [
         "button",
-        "input"
+        "input",
+        "@ilinxa/gamification-kit"
       ],
       "dependencies": [
         "lucide-react"

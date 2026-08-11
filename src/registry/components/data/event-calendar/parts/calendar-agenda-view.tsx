@@ -8,9 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "../hooks/use-calendar-context";
+import { useCalendarEditOptional } from "../hooks/use-calendar-edit-extension";
 import { agendaDays } from "../lib/date-range";
 import { occurrencesOnDay } from "../lib/segments";
-import { CalendarEventContextMenu } from "./calendar-context-menu";
 import type { CalendarOccurrence, TaskStatusOption } from "../types";
 
 function timeLabel(occ: CalendarOccurrence): string {
@@ -104,8 +104,8 @@ export function CalendarAgendaView({ className }: { className?: string }) {
     selectedId,
     select,
     onTaskClick,
-    editable,
   } = useCalendar();
+  const edit = useCalendarEditOptional();
 
   const days = agendaDays(focusDate, agendaRangeDays);
   const nowDate = new Date(nowMs);
@@ -158,10 +158,10 @@ export function CalendarAgendaView({ className }: { className?: string }) {
                 }}
               />
             );
-            return editable ? (
-              <CalendarEventContextMenu key={occ.id} item={occ.item}>
+            return edit ? (
+              <edit.components.EventContextMenu key={occ.id} item={occ.item}>
                 {row}
-              </CalendarEventContextMenu>
+              </edit.components.EventContextMenu>
             ) : (
               <Fragment key={occ.id}>{row}</Fragment>
             );

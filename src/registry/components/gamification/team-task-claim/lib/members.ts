@@ -1,3 +1,4 @@
+import { initialsFromName } from "../../_shared/gamification-kit";
 import type { TeamMember } from "../types";
 
 /**
@@ -14,17 +15,13 @@ export function resolveMember(
 
 /**
  * Deterministic (SSR-safe) initials for an avatar fallback — from the member's
- * display name, or the raw id when the member is unknown (stale-id path).
+ * display name, or the raw id when the member is unknown (stale-id path). The
+ * name → initials core moved to the shared `gamification-kit` (P3.5 / D-04);
+ * this wrapper keeps the member + fallback-id resolution local.
  */
 export function initialsFor(
   member: TeamMember | undefined,
   fallbackId: string,
 ): string {
-  const src = (member?.displayName ?? fallbackId).trim();
-  if (src === "") return "?";
-  const parts = src.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
-  }
-  return src.slice(0, 2).toUpperCase();
+  return initialsFromName(member?.displayName ?? fallbackId);
 }
