@@ -101,7 +101,7 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 
 ## Open decisions / TODOs
 
-- **P1.5 executed 2026-08-11** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)): zero `asChild`/`delayDuration`/ToggleGroup carriers left in shipped registry code (23 components patch-bumped). Post-deploy full-63 CLI smoke on the Base-UI harness: **pending this session** — annotate here when it lands.
+- **P1.5 executed + smoke-verified 2026-08-11** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)): zero `asChild`/`delayDuration`/ToggleGroup carriers in shipped code (23 + 4 residual-round bumps). Full-63 real-CLI Base-UI smoke: **63/63 installs · consumer tsc 0 errors** — first fully-green smoke since the CLI-corruption era began (~July).
 - **⚠️ shadcn CLI 4.6.0 corrupts consumer package.json on add** (version shuffle across names) — broke the smoke harness silently since ~July; harness re-aligned 2026-08-10. Verify newer CLI versions; smoke results between July and 2026-08-10 are unverified. Details: review §0.
 - **P1 follow-up cohort** (from the fix program's adversarial passes; owners in review §0 ledger): re-export-on-re-edit (composer v0.2.3) · text-export webfonts (media-editor v0.2) · §6/§7 remainders → P3.4 fix-on-touch.
 - **F-cross-13** Radix→Base-UI divergence — path (b) producer sweep DONE (P1.5, 2026-08-11); path (a) defensive authoring is the standing rule for new code. Known residual carrier classes: pinned new-york regDep URLs (→P2/P4) · `--radix-popover-trigger-width` var (entity-picker/json-form now dual-var; audit others on touch). Tracker: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).

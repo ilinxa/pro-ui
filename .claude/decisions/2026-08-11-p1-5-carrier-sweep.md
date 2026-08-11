@@ -50,6 +50,9 @@ Segmented controls: per-button tab stops. Tooltip-label triggers (pricing rows, 
 - `--radix-popover-trigger-width` audit across remaining components → P3.4 / on-touch.
 - Residual F-cross-13 carrier class: 9 media/social items pin new-york regDep URLs → P2/P4 convention decision (unchanged).
 
-## Post-deploy smoke
+## Post-deploy smoke — GREEN
 
-Recorded in the close-out commit after the full-63 CLI run on the repaired harness (`e:/tmp/ilinxa-smoke-consumer`, shadcn\@4.6.0 pinned, package.json re-aligned after every add per the corruption workaround).
+Two rounds, real CLI installs against production (`shadcn@4.6.0` pinned; the corruption workaround — per-add package.json re-align to producer truth + settle-install + tsbuildinfo purge — is now BUILT INTO `smoke-all.mjs`, no manual step):
+
+- **Round 1**: 61/63 installs (2 cold-edge 120s timeouts on the first slugs post-deploy; files landed) · consumer tsc implicated 4 slugs — all **pre-existing residual carrier classes** invisible during the silent-no-op era: Radix-only `collisionPadding` (account-switcher), Slider value-union (media-editor ×3; json-form's `firstNumber` was already safe), `./meta` barrel re-export that never ships (pricing-table — repo-wide grep: the only one), `onSelect` param typing + Radix-only `onPointerDownOutside`/`onEscapeKeyDown` (rich-sidebar; close-reason discriminator preserved via document-level attribution). Fixed as second-round bumps: account-switcher-01 0.1.2 · media-editor-01 0.1.6 · pricing-table-01 0.1.2 · rich-sidebar 0.3.3.
+- **Round 2 (confirmation, fresh baseline)**: **63/63 installs · 63/63 tsc · consumer typecheck fully clean.** First fully-green real smoke since ~July.
