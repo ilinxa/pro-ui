@@ -6,10 +6,11 @@
 
 ## Now (2026-08-11)
 
-- **Active master plan:** [`docs/production-readiness-plan.md`](../docs/production-readiness-plan.md) — signed off 2026-08-10. **P0 ✅ · P1 ✅ · P1.5 ✅ · P2 ✅ (2026-08-11)** → next: **P3 feature-slicing** → P4 polish/1.0. Locked: D1 drop `-NN` slugs · D2 order P1→P2→P3 · D3 STATUS one-line rows · **naming canon + domain `ui.ilinxa.com`** ([canon](../docs/naming-canon.md)).
+- **Active master plan:** [`docs/production-readiness-plan.md`](../docs/production-readiness-plan.md) — signed off 2026-08-10. **P0 ✅ · P1 ✅ · P1.5 ✅ · P2 ✅ · P3 ✅ (2026-08-11)** → next: **P4 polish/1.0**. Locked: D1 drop `-NN` slugs · D2 order P1→P2→P3 · D3 STATUS one-line rows · **naming canon + domain `ui.ilinxa.com`** ([canon](../docs/naming-canon.md)).
+- **P3 feature-slicing SHIPPED:** injection-surface feature items (`event-calendar-editing` 95.4KB, `media-editor-capture` 53.5KB), `gamification-kit`, `validate:artifact-size` + budgets on all 63, 27 pinned style-URL regDeps de-pinned (F-cross-13 carrier retired), structure audits 11/11 heavy tail. Review: [`docs/reviews/2026-08-11-p3-feature-slicing-review.md`](../docs/reviews/2026-08-11-p3-feature-slicing-review.md).
 - **P2 great rename SHIPPED:** 52/63 slugs renamed full-surface (identifiers included), 52 deprecated aliases live (old install names redirect), 63 canon descriptions (≤160), brand unified *ilinxa pro-ui*, `validate:naming` + artifact-clean wired. Review: [`docs/reviews/2026-08-11-p2-rename-review.md`](../docs/reviews/2026-08-11-p2-rename-review.md). **User actions open: DNS `ui.ilinxa.com` (CNAME → cname.vercel-dns.com + Vercel domain attach) · then submit the directory PR per [`docs/directory-pr-pack.md`](../docs/directory-pr-pack.md).**
 - **Deep review 2026-08-10:** [`docs/reviews/2026-08-10-deep-codebase-review.md`](../docs/reviews/2026-08-10-deep-codebase-review.md) — ~90 findings; **all Blocker/High FIXED by P1** (outcome ledger in review §0; open Mediums/Lows have owners there). 23 components patch-bumped ([decision](decisions/2026-08-10-p1-fix-program.md)).
-- Library: **63 pro-components / 9 populated categories**.
+- Library: **63 pro-components / 9 populated categories** + 2 feature-slice items + 1 shared kit (`_shared`).
 - Gates: tsc 0 · **lint 0 errors** (9 pre-existing warnings) · meta-deps 63/63 (reverse-npm) · registry-json validator ✓ · doc validators ✓ · build green.
 
 ## Library tiers
@@ -35,7 +36,7 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 | `comment-thread` | data | 0.3.0 | alpha |
 | `data-table` | data | 0.1.2 | alpha |
 | `engagement-bar` | data | 0.4.0 | alpha |
-| `event-calendar` | data | 0.3.0 | alpha |
+| `event-calendar` | data | 0.4.0 | alpha |
 | `event-card` | data | 0.2.0 | alpha |
 | `expandable-text` | data | 0.2.0 | alpha |
 | `flow-canvas` | data | 0.3.0 | alpha |
@@ -64,12 +65,12 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 | `markdown-editor` | forms | 0.1.4 | alpha |
 | `properties-form` | forms | 0.1.4 | alpha |
 | `signup-form` | forms | 0.2.0 | alpha |
-| `team-challenge` | gamification | 0.2.0 | alpha |
-| `team-feedback-loop` | gamification | 0.2.0 | alpha |
-| `team-progress-bar` | gamification | 0.2.0 | alpha |
-| `team-quest-log` | gamification | 0.2.0 | alpha |
-| `team-task-claim` | gamification | 0.2.0 | alpha |
-| `team-trophy-shelf` | gamification | 0.2.0 | alpha |
+| `team-challenge` | gamification | 0.2.1 | alpha |
+| `team-feedback-loop` | gamification | 0.2.1 | alpha |
+| `team-progress-bar` | gamification | 0.2.1 | alpha |
+| `team-quest-log` | gamification | 0.2.1 | alpha |
+| `team-task-claim` | gamification | 0.2.1 | alpha |
+| `team-trophy-shelf` | gamification | 0.2.1 | alpha |
 | `magazine-layout` | layout | 0.3.0 | alpha |
 | `split-workspace` | layout | 0.2.0 | alpha |
 | `author-card` | marketing | 0.2.0 | alpha |
@@ -78,12 +79,12 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 | `pricing-table` | marketing | 0.2.0 | alpha |
 | `share-bar` | marketing | 0.2.0 | alpha |
 | `carousel-composer` | media | 0.2.0 | alpha |
-| `content-composer` | media | 0.3.0 | alpha |
+| `content-composer` | media | 0.3.1 | alpha |
 | `media-carousel` | media | 0.2.0 | alpha |
-| `media-editor` | media | 0.2.0 | alpha |
+| `media-editor` | media | 0.3.0 | alpha |
 | `media-library` | media | 0.2.0 | alpha |
 | `pdf-viewer` | media | 0.1.5 | alpha |
-| `story-composer` | media | 0.3.0 | alpha |
+| `story-composer` | media | 0.4.0 | alpha |
 | `story-viewer` | media | 0.5.0 | alpha |
 | `video-player` | media | 0.2.0 | alpha |
 | `account-switcher` | navigation | 0.2.0 | alpha |
@@ -105,21 +106,22 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 - **🟢 Directory listing — pack READY, two user actions left** ([pack](../docs/directory-pr-pack.md)): (1) DNS `ui.ilinxa.com` → CNAME `cname.vercel-dns.com` + Vercel domain attach; (2) submit the one-entry PR to shadcn-ui/ui. Clean-project audit GREEN 2026-08-11 (list/view/search/add/fixtures/alias/tsc, newest CLI, src-layout Radix consumer). MIT decided 2026-08-11 ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)).
 - **P1.5 executed + smoke-verified 2026-08-11** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)): zero `asChild`/`delayDuration`/ToggleGroup carriers in shipped code (23 + 4 residual-round bumps). Full-63 real-CLI Base-UI smoke: **63/63 installs · consumer tsc 0 errors** — first fully-green smoke since the CLI-corruption era began (~July).
 - **⚠️ shadcn CLI 4.6.0 corrupts consumer package.json on add** (version shuffle across names) — broke the smoke harness silently since ~July; harness re-aligned 2026-08-10. Verify newer CLI versions; smoke results between July and 2026-08-10 are unverified. Details: review §0.
-- **P1 follow-up cohort** (from the fix program's adversarial passes; owners in review §0 ledger): re-export-on-re-edit (composer v0.2.3) · text-export webfonts (media-editor v0.2) · §6/§7 remainders → P3.4 fix-on-touch.
-- **F-cross-13** Radix→Base-UI divergence — path (b) producer sweep DONE (P1.5, 2026-08-11); path (a) defensive authoring is the standing rule for new code. Known residual carrier classes: pinned new-york regDep URLs (→P2/P4) · `--radix-popover-trigger-width` var (entity-picker/json-form now dual-var; audit others on touch). Tracker: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
+- **P1 follow-up cohort** (from the fix program's adversarial passes; owners in review §0 ledger): re-export-on-re-edit (composer v0.2.3) · text-export webfonts (media-editor v0.2).
+- **F-cross-13** Radix→Base-UI divergence — path (b) producer sweep DONE (P1.5, 2026-08-11); path (a) defensive authoring is the standing rule for new code. Pinned new-york regDep-URL carrier class CLOSED (P3 R5 de-pinned 27, 2026-08-11). Remaining residual: `--radix-popover-trigger-width` var (entity-picker/json-form now dual-var; audit others on touch). Tracker: [`docs/reviews/sweep-tracker.md`](../docs/reviews/sweep-tracker.md).
 - **F-S1** cross-procomp `/types` rewriter substitution — relative-imports lock in place; watch for a second trip.
-- **Per-component follow-up cohorts** (Low, from GATE 3 reviews): media-editor/story-composer v0.3 cohort · card-tree-node v0.3 · flow-canvas v0.2.x · pdf-viewer worker default v0.2 · blackboard F-03/F-04. Owners + targets in each review file; superseded where the 2026-08-10 review re-found them.
+- **P3 follow-ups** (owners in review): content-composer v0.4.0 config-conditional capture/substrate imports (MED-4 + audit High) · F-cross-15 static-import-vs-lazy fix-on-touch · non-interactive slice-upgrade phantom-no-op re-test at P4.2.
+- **Per-component follow-up cohorts** (Low, from GATE 3 reviews): card-tree-node v0.3 · flow-canvas v0.2.x · pdf-viewer worker default v0.2 · blackboard F-03/F-04. Owners + targets in each review file; superseded where the 2026-08-10 review re-found them.
 - **Informed defers:** MDX usage docs (trigger: ~5 prose-heavy components) · NPM publish artifacts (trigger: external consumer onboards) · test runner (trigger: first pure-lib bug; first test = card-tree parse→serialize fixed-point).
 
 ## Recent activity
 
 Five most-recent, one line each. Full log: [`.claude/decisions/`](decisions/).
 
+- **2026-08-11 — P3 feature-slicing SHIPPED end-to-end via feature-readiness loop** ([decision](decisions/2026-08-11-p3-feature-slicing-convention.md) · [review](../docs/reviews/2026-08-11-p3-feature-slicing-review.md)) — spike-verdicted injection convention, 2 pilots, kit, 5 validators feature-aware, e2e both backends.
 - **2026-08-11 — P2 great rename SHIPPED: 52 slugs + identifier families, aliases, canon copy, ui.ilinxa.com** ([decision](decisions/2026-08-11-p2-great-rename.md) · [review](../docs/reviews/2026-08-11-p2-rename-review.md)) — 2 codemods (16.4k replacements), 3 adversarial verify passes all closed pre-push, clean-project directory audit green.
 - **2026-08-11 — Open-source MIT + registry-directory plan** ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)) — LICENSE shipped; external guide audited (central "blocker" was false); directory PR sequenced after P2.
 - **2026-08-11 — P1.5 F-cross-13 path-b carrier sweep: 23 patch bumps, zero asChild/delayDuration/ToggleGroup in shipped code** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)) — 5 parallel fix agents + 3 adversarial verifiers (caught 1 real regression pre-ship: calendar touch long-press); calendar/app-sidebar tooltips now local; registry deps pruned.
 - **2026-08-10 — P1 fix program shipped: all review Highs closed, 23 patch bumps, lint 81→0** ([decision](decisions/2026-08-10-p1-fix-program.md)) — 6 parallel fix batches + 3 adversarial verify passes (caught + closed one regression pre-ship); reverse-npm + registry-json validators live.
-- **2026-08-10 — Deep review + production-readiness plan signed off** ([review](../docs/reviews/2026-08-10-deep-codebase-review.md) · [plan](../docs/production-readiness-plan.md)) — ~90 findings; D1–D3 locked; P0 hygiene executed same day.
 
 ## How to update this file
 

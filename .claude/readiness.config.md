@@ -62,10 +62,18 @@
 
 ## known-flakes
 - Consumer `pnpm add` fails oddly mid-smoke → shadcn CLI 4.6.0 corrupted consumer package.json on an earlier add → re-align versions to producer truth, retry.
+- CLI rejects components.json as "Invalid configuration" → UTF-8 BOM (PowerShell 5.1 `Set-Content -Encoding utf8` writes BOM) → write config files with the Write tool or `[IO.File]::WriteAllText` with BOM-less UTF8.
+- Consumer tsc fails on `@base-ui/react` / `@radix-ui/*` / `class-variance-authority` after installs → the CLI does NOT add installed primitives' own npm deps → `pnpm add` them post-add (cascades as fake implicit-any errors in registry code — fix deps first, re-judge).
+- Container browser (`shadow-browser`, NOT the old `virtualbrowser-…` name) can't reach a host dev server → per-port Windows-firewall block (no elevation available) and/or port 3000 occupied on 0.0.0.0 by an unrelated host service → run `next dev -H 0.0.0.0 -p <free port>`; if still blocked, host-side Playwright in the scratchpad is the proven R5 instrument (`next.config.ts` already carries `allowedDevOrigins`).
 - 403s fetching deployed `/r/*.json` → Vercel bot-mitigation on fast polling → wait 60s+ or use local `public/r/` copy.
 - Dev server dies with RocksDB/lock errors → Turbopack cache cleared while server live → stop, clear, restart.
 - Glob/ripgrep timeouts at repo root → node_modules scan on Windows → scope patterns to `src/`, `docs/`, `scripts/`.
 - `validate:meta-deps` misses an import → side-effect/`import x =` shapes → keep `from`-imports first in registry files.
+
+## agent-orchestration rules (earned 2026-08-11, P3 loop)
+- **Parallel agents share ONE working tree: git state-changing commands (stash/checkout/reset) are FORBIDDEN in agent briefs.** Two agents ran `git stash` mid-P3; one scooped ~90 files of concurrent work and restored via unconditional checkout (recovered, but a real clobber window existed). Put the prohibition in every implementer prompt.
+- Coordinator owns registry.json / package.json / scripts / types.ts; implementers emit JSON blocks via handoff files; coordinator merges + re-runs the central battery (P1/P1.5 method — held up well).
+- Size estimates from source bytes must model JSON-wrap overhead (~+13% built artifact vs raw source) before committing to KB bars.
 
 ## cost-constraints
 - **Subagent model policy (HARD RULE, `.claude/rules/subagent-model-policy.md`):** Sonnet 5[1m] or Opus 4.8[1m] only; **NEVER Opus 5** (ignores project rules). In harnesses exposing only aliases: `sonnet` is acceptable (→ Sonnet 5); do NOT use `opus` alias when it may resolve to Opus 5.

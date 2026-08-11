@@ -3,10 +3,10 @@ date: 2026-08-11
 session: P3 readiness loop (feature-slicing end-to-end)
 phase: P3.1–P3.3
 type: architecture-convention
-commits: TBD (lands with the P3 base commit)
-components: [event-calendar, media-editor, story-composer, content-composer, gamification/*]
-findings: spike C1–C7 + two seam maps; full evidence in docs/plans/p3-feature-slicing-plan.md
-status: DRAFT — finalizes at P3 R6/R7
+commits: fe72f47 (base commit, 188 files) + the R7 close-out commit
+components: [event-calendar 0.4.0, event-calendar-editing, media-editor 0.3.0, media-editor-capture, story-composer 0.4.0, content-composer 0.3.1, gamification-kit, team-* 0.2.1]
+findings: spike C1–C7 + two seam maps + R4 14 findings (13 fixed, MED-4 owned) + R5 3 registry bugs; full evidence in docs/plans/p3-feature-slicing-plan.md; GATE 3 verdict Pass-with-follow-ups in docs/reviews/2026-08-11-p3-feature-slicing-review.md
+status: FINAL — ratified 2026-08-11
 ---
 
 # P3 feature-slicing convention: injection-surface feature items (strategy b)

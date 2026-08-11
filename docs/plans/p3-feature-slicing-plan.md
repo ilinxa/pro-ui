@@ -54,8 +54,8 @@ proven end-to-end by real consumer installs on both backends.
 - [x] R3 gates green with numbers (see Gate results) — battery caught 4 issues en route, fixed
 - [x] R4 findings table complete: 14 findings / 13 fixed / 1 owned follow-up (MED-4); stash hypothesis refuted
 - [x] R5 all invariants observed live: install matrix both backends + browser 8/8 + negative paths; 3 more registry bugs fixed (see Runtime evidence)
-- [ ] R6 blast-radius walk in flight (convention doc ✅ · budgets tightened ✅ · 3 agents: post-refactor audits, pilot doc trios, CLAUDE.md/skill/guide integration) → doc validators + base commit
-- [ ] R7 history verified; GATE 3 verdict recorded; push; STATUS/decision/memory synced; retro → improvement log
+- [x] R6 blast-radius walked (convention doc · budgets · audits 3/3 · pilot trios · CLAUDE.md 11.9/12KB · registry skill §16 · guide §11.5 · F-cross-15 filed · F-cross-13 ledger updated) · full battery green (tsc 0 / lint 0-9 / chain 0 / build 93s) · **base commit fe72f47 (188 files, +5660/−1837; git rename-detection corroborates byte-near-identical moves)**
+- [x] R7 GATE 3 verdict recorded (Pass with follow-ups); STATUS/decision/memory synced; retro → .claude/improvement-log.md; parked promoted to readiness.config; push = close-out commit
 
 ## Slices (R2)
 > Progress 2026-08-11: S0 ✅ (spike table below) · S1 ✅ (infra agent; gates re-verified by
@@ -248,4 +248,21 @@ consumer) renders.
 - CLAUDE.md trigger line for feature-readiness-loop (config bootstrap §5) — fold into S4's CLAUDE.md edit.
 
 ## Handoff (R7)
-- (pending)
+- **Status: P3 COMPLETE.** HEAD = fe72f47 (base) + close-out commit; pushed to master (= deployed
+  = installable). GATE 3: Pass with follow-ups (docs/reviews/2026-08-11-p3-feature-slicing-review.md).
+- done: convention ratified + tooled (5 scripts feature-aware, F1–F7, artifact-size+completeness,
+  primitive scan, base→features ban) · pilots shipped both slices · kit extracted · 11 audits ·
+  27 style-URL pins retired · e2e both backends + browser 8/8 · docs synced (CLAUDE.md/skill/guide/
+  convention/trios).
+- pre-mortem: if this breaks in prod, it breaks because a consumer hits the non-interactive
+  upgrade phantom-no-op onto a modified base (documented CLI limit), or a newer shadcn CLI major
+  changes feature-item install semantics (re-test owner: P4.2 smoke variants).
+- next: (1) post-deploy single-slug spot check of `@ilinxa/event-calendar-editing` from the
+  DEPLOYED registry (≥60s spacing — Vercel bot-mitigation); (2) P4 phase per master plan;
+  (3) follow-up owners: content-composer v0.4.0 (MED-4 + eager substrates), F-cross-15
+  fix-on-touch, task-family clipboard docs gap.
+
+## Invariants — final status
+All 11 R4-checked and R5-observed (see Gate results + Runtime evidence): #1–#3, #5–#11 fully
+verified; #4 held in revised form with the two accepted-with-note KB deviations (137.3 vs 135;
+282 vs 275) — budgets now enforce mechanically at 160/110/290/65.
