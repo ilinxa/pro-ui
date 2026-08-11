@@ -1,6 +1,6 @@
 # Production-Readiness Master Plan
 
-**Authored:** 2026-08-10 · **Status:** SIGNED OFF 2026-08-10 (decisions D1–D3 locked below; D4/D5 default-accepted pending objection; D6 open-source MIT + directory listing locked 2026-08-11) · **Progress:** P0 ✅ · P1 ✅ · P1.5 ✅ (2026-08-11, smoke 63/63/0)
+**Authored:** 2026-08-10 · **Status:** SIGNED OFF 2026-08-10 (decisions D1–D3 locked below; D4/D5 default-accepted pending objection; D6 open-source MIT + directory listing locked 2026-08-11) · **Progress:** P0 ✅ · P1 ✅ · P1.5 ✅ · **P2 ✅ (2026-08-11 — the great rename shipped; directory PR pending user DNS)** → next: P3
 **Inputs:** [2026-08-10 deep codebase review](reviews/2026-08-10-deep-codebase-review.md) (~90 verified findings) · external site review (validated, §10 there) · doc-system audit (this document, §2) · user directives (naming professionalism · doc-system slim-down · component weight/composability · self-maintaining process).
 
 ---
@@ -85,6 +85,8 @@ Every batch: patch/minor bumps per readiness rule, 4-ship smoke loop, decision f
 > **✅ EXECUTED 2026-08-11** — zero `asChild`/`delayDuration`/ToggleGroup carriers in shipped code (true cohort ~55 sites / 23 components + 4 residual-carrier components found by the first real Base-UI smoke since July). 5 parallel fix agents + 3 adversarial verifiers (caught one fix-introduced regression pre-ship); confirmation smoke **63/63 installs · consumer tsc 0**. Decision: [`.claude/decisions/2026-08-11-p1-5-carrier-sweep.md`](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md).
 
 ## Phase 2 — Naming canon: the great rename (≈2–3 sessions incl. decision)
+
+> **✅ EXECUTED 2026-08-11** (single autonomous arc, /goal directive): canon LOCKED at [naming-canon.md](naming-canon.md) (52 renames, 1 revalidation flip gantt-timeline; domain locked **ui.ilinxa.com**); 2.2 sweep + 2.2b residual (16.4k replacements, 375 path renames, full identifier families); 2.3 aliases live + E2E-verified; 2.4 `validate:naming` + `clean-registry-artifacts` wired; 2.5 63 canon descriptions + Unsplash fixtures; brand unified *ilinxa pro-ui*; 2.6 pack ready + clean-project audit GREEN (list/view/search/add/fixtures/alias/tsc on newest CLI, src-layout Radix consumer). 3 adversarial verify passes closed pre-push. Review: [reviews/2026-08-11-p2-rename-review.md](reviews/2026-08-11-p2-rename-review.md) · decision: [.claude/decisions/2026-08-11-p2-great-rename.md](../.claude/decisions/2026-08-11-p2-great-rename.md). **Directory PR submission awaits user DNS (`ui.ilinxa.com`) — per done-when, P3 is not blocked.**
 
 **Goal:** one professional naming system, executed once, before any consumer base grows — and, on close, everything the official shadcn registry directory PR needs (D6). Verified requirements + corrections to the external guide: [`docs/registry-directory-plan.md`](registry-directory-plan.md).
 

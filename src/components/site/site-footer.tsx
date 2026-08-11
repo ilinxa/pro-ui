@@ -15,7 +15,7 @@ export function SiteFooter() {
               ilinxa
             </span>
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              /ui-pro
+              /pro-ui
             </span>
           </span>
           <span aria-hidden className="ml-1 h-3 w-px bg-border/80" />

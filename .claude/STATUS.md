@@ -4,9 +4,10 @@
 >
 > **Last re-slim: 2026-08-10** (120KB → lean, plan P0.3 — third restoration of the lean-snapshot rule after 2026-05-09 and 2026-05-25). Banner-blockquotes are banned here; their content lives in decision files.
 
-## Now (2026-08-10)
+## Now (2026-08-11)
 
-- **Active master plan:** [`docs/production-readiness-plan.md`](../docs/production-readiness-plan.md) — signed off 2026-08-10. **P0 ✅ · P1 ✅ · P1.5 ✅ (2026-08-11)** → next: **P2 great rename** (drop `-NN`, catalog copy rewrite — rename table needs per-row user approval) → P3 feature-slicing → P4 polish/1.0. Locked: D1 drop `-NN` slugs · D2 order P1→P2→P3 · D3 STATUS one-line rows.
+- **Active master plan:** [`docs/production-readiness-plan.md`](../docs/production-readiness-plan.md) — signed off 2026-08-10. **P0 ✅ · P1 ✅ · P1.5 ✅ · P2 ✅ (2026-08-11)** → next: **P3 feature-slicing** → P4 polish/1.0. Locked: D1 drop `-NN` slugs · D2 order P1→P2→P3 · D3 STATUS one-line rows · **naming canon + domain `ui.ilinxa.com`** ([canon](../docs/naming-canon.md)).
+- **P2 great rename SHIPPED:** 52/63 slugs renamed full-surface (identifiers included), 52 deprecated aliases live (old install names redirect), 63 canon descriptions (≤160), brand unified *ilinxa pro-ui*, `validate:naming` + artifact-clean wired. Review: [`docs/reviews/2026-08-11-p2-rename-review.md`](../docs/reviews/2026-08-11-p2-rename-review.md). **User actions open: DNS `ui.ilinxa.com` (CNAME → cname.vercel-dns.com + Vercel domain attach) · then submit the directory PR per [`docs/directory-pr-pack.md`](../docs/directory-pr-pack.md).**
 - **Deep review 2026-08-10:** [`docs/reviews/2026-08-10-deep-codebase-review.md`](../docs/reviews/2026-08-10-deep-codebase-review.md) — ~90 findings; **all Blocker/High FIXED by P1** (outcome ledger in review §0; open Mediums/Lows have owners there). 23 components patch-bumped ([decision](decisions/2026-08-10-p1-fix-program.md)).
 - Library: **63 pro-components / 9 populated categories**.
 - Gates: tsc 0 · **lint 0 errors** (9 pre-existing warnings) · meta-deps 63/63 (reverse-npm) · registry-json validator ✓ · doc validators ✓ · build green.
@@ -101,7 +102,7 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 
 ## Open decisions / TODOs
 
-- **🟢 Open-source MIT decided 2026-08-11** ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)): LICENSE shipped; goal = official shadcn registry directory listing for `@ilinxa`. All machine-checked requirements already pass; **PR = plan P2.6, gated on P2 ship** (rename churns every item name). Verified plan: [`docs/registry-directory-plan.md`](../docs/registry-directory-plan.md) — supersedes the external readiness guide (4 stale premises).
+- **🟢 Directory listing — pack READY, two user actions left** ([pack](../docs/directory-pr-pack.md)): (1) DNS `ui.ilinxa.com` → CNAME `cname.vercel-dns.com` + Vercel domain attach; (2) submit the one-entry PR to shadcn-ui/ui. Clean-project audit GREEN 2026-08-11 (list/view/search/add/fixtures/alias/tsc, newest CLI, src-layout Radix consumer). MIT decided 2026-08-11 ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)).
 - **P1.5 executed + smoke-verified 2026-08-11** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)): zero `asChild`/`delayDuration`/ToggleGroup carriers in shipped code (23 + 4 residual-round bumps). Full-63 real-CLI Base-UI smoke: **63/63 installs · consumer tsc 0 errors** — first fully-green smoke since the CLI-corruption era began (~July).
 - **⚠️ shadcn CLI 4.6.0 corrupts consumer package.json on add** (version shuffle across names) — broke the smoke harness silently since ~July; harness re-aligned 2026-08-10. Verify newer CLI versions; smoke results between July and 2026-08-10 are unverified. Details: review §0.
 - **P1 follow-up cohort** (from the fix program's adversarial passes; owners in review §0 ledger): re-export-on-re-edit (composer v0.2.3) · text-export webfonts (media-editor v0.2) · §6/§7 remainders → P3.4 fix-on-touch.
@@ -114,11 +115,11 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 
 Five most-recent, one line each. Full log: [`.claude/decisions/`](decisions/).
 
+- **2026-08-11 — P2 great rename SHIPPED: 52 slugs + identifier families, aliases, canon copy, ui.ilinxa.com** ([decision](decisions/2026-08-11-p2-great-rename.md) · [review](../docs/reviews/2026-08-11-p2-rename-review.md)) — 2 codemods (16.4k replacements), 3 adversarial verify passes all closed pre-push, clean-project directory audit green.
 - **2026-08-11 — Open-source MIT + registry-directory plan** ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)) — LICENSE shipped; external guide audited (central "blocker" was false); directory PR sequenced after P2.
 - **2026-08-11 — P1.5 F-cross-13 path-b carrier sweep: 23 patch bumps, zero asChild/delayDuration/ToggleGroup in shipped code** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)) — 5 parallel fix agents + 3 adversarial verifiers (caught 1 real regression pre-ship: calendar touch long-press); calendar/app-sidebar tooltips now local; registry deps pruned.
 - **2026-08-10 — P1 fix program shipped: all review Highs closed, 23 patch bumps, lint 81→0** ([decision](decisions/2026-08-10-p1-fix-program.md)) — 6 parallel fix batches + 3 adversarial verify passes (caught + closed one regression pre-ship); reverse-npm + registry-json validators live.
 - **2026-08-10 — Deep review + production-readiness plan signed off** ([review](../docs/reviews/2026-08-10-deep-codebase-review.md) · [plan](../docs/production-readiness-plan.md)) — ~90 findings; D1–D3 locked; P0 hygiene executed same day.
-- **2026-07-01 — gamification visual hover pass** ([decision](decisions/2026-07-01-gamification-visual-hover-pass.md)) — 4 patch bumps + docs-site Button hover fix.
 
 ## How to update this file
 

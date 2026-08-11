@@ -7,7 +7,7 @@ import EventDetailPage01Docs from "./docs";
 const meta = getSandbox("event-detail-page-01");
 
 export const metadata = {
-  title: meta ? `${meta.title} — ilinxa-ui-pro` : "Sandbox",
+  title: meta ? `${meta.title} — ilinxa pro-ui` : "Sandbox",
   description: meta?.description,
 };
 

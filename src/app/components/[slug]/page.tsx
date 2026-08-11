@@ -97,7 +97,7 @@ export async function generateMetadata({
   const entry = getEntry(slug);
   if (!entry) return {};
   return {
-    title: `${entry.meta.name} — ilinxa-ui-pro`,
+    title: `${entry.meta.name} — ilinxa pro-ui`,
     description: entry.meta.description,
   };
 }

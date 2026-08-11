@@ -11,7 +11,7 @@ import {
 import { SANDBOXES } from "./_lib/manifest";
 
 export const metadata = {
-  title: "Sandbox — ilinxa-ui-pro",
+  title: "Sandbox — ilinxa pro-ui",
   description:
     "Tier-3 assembled-page demos that prove the registry composes into real product surfaces.",
 };
@@ -21,7 +21,7 @@ export default function SandboxIndexPage() {
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <header className="mb-12 flex flex-col gap-3">
         <p className="text-sm font-medium text-muted-foreground">
-          ilinxa-ui-pro
+          ilinxa pro-ui
         </p>
         <h1 className="text-4xl font-semibold tracking-tight text-foreground">
           Sandbox

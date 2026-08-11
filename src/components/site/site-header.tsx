@@ -33,7 +33,7 @@ export function SiteHeader() {
               ilinxa
             </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:text-[11px] sm:tracking-[0.18em]">
-              /ui-pro
+              /pro-ui
             </span>
           </span>
         </Link>

@@ -44,8 +44,19 @@
 
 ## 5. Gates & E2E evidence
 
-_Final battery + post-deploy smoke appended at close._
+**Local gates at ship (commit 53faa6f):** tsc 0 · lint 0 errors (9-warning pre-existing baseline) · meta-deps 63/63 · registry-json 0 high (63 base + 52 aliases) · naming 0 · doc-drift/doc-budget green · production build green (63 SSG detail pages) · public/r exactly 180 artifacts (= registry.json, clean step enforced).
+
+**Post-deploy E2E (production registry):**
+- **Full-catalog consumer smoke (Base UI consumer, `e:/tmp/ilinxa-smoke-consumer`): 63/63 installs pass · consumer tsc 0 errors** across the full installed tree. (First batch showed 7 cold-start timeouts at exactly the 120s cap — all 7 re-ran warm at 6–20s; report: harness `results/2026-08-11-smoke.md`.)
+- **Clean-project directory audit (fresh Next app, src-layout, Radix, newest shadcn CLI):** `list @ilinxa` 179 items with canon copy · `view card-tree` · `search kanban` (surfaces base + fixtures + the deprecated alias) · `add kanban-board` · `add kanban-board-fixtures` (pulls base) · **`add @ilinxa/rich-card` (old slug) resolves via alias and installs `card-tree`** · consumer tsc clean. Also answers the src-layout install question for this path (installs to `src/components/<slug>/`).
+- **Live surface checks:** `/r/registry.json` 179 items, no `content` in index files[] (directory R4) · alias artifact serves with redirect metadata · llms.txt fully on `ui.ilinxa.com` · catalog + detail pages render with new names/copy (visual check: `/components`, `/components/task-card`).
 
 ## Verdict
 
-_Set at close._
+**Pass with follow-ups.**
+
+Follow-ups (owners = next respective touch):
+1. **User actions to finish D6:** DNS `ui.ilinxa.com` (CNAME → `cname.vercel-dns.com`) + Vercel domain attach; then submit the directory PR per [directory-pr-pack.md](../directory-pr-pack.md). Until DNS lands, `ilinxa-proui.vercel.app` serves everything (registry + site) — nothing is broken, but the canonical URLs printed in docs/README/llms resolve only after the attach.
+2. Alias grace-window removal: one release window after the directory listing stabilizes, delete the 52 alias items (tracked here).
+3. Smoke-harness per-slug timeout: raise 120s → 240s or add one retry for cold-start (first-run false negatives; P5.2 hygiene).
+4. Accepted exceptions stand as recorded in §4 (history zones verbatim · `card-tree-node` humanized head-noun · nav-context `"workspace"` ids · verbatim user quotes).

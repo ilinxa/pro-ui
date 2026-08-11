@@ -16,7 +16,7 @@ export default function ComponentsIndexPage() {
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <header className="mb-10 flex flex-col gap-3">
         <p className="text-sm font-medium text-muted-foreground">
-          ilinxa-ui-pro
+          ilinxa pro-ui
         </p>
         <h1 className="text-4xl font-semibold tracking-tight text-foreground">
           Components
