@@ -78,7 +78,7 @@ Hold the line on tokens defined in [src/app/globals.css](src/app/globals.css):
 - **IMPORTANT:** Use the `configuring-project-memory` skill when editing this `CLAUDE.md`, `.claude/STATUS.md`, `.claude/rules/`, or auto-memory.
 - **IMPORTANT:** Use the `skill-creator-pro` skill to author or restructure any skill in `.claude/skills/`.
 - **IMPORTANT:** Use the `shadcn-registry-pro` skill when authoring `registry.json`, running `shadcn build`, hosting/configuring the shadcn registry, setting up namespaced installs, or shipping components via the `pnpm dlx shadcn add` flow.
-- **IMPORTANT:** Use the `xyflow-react-pro` skill when working with `@xyflow/react` (React Flow / ReactFlow) — building flow editors, node graphs, workflow canvases, port-and-edge UIs, custom node/edge types — or whenever a file imports from `@xyflow/react`. Required for the in-flight `flow-canvas-01` procomp.
+- **IMPORTANT:** Use the `xyflow-react-pro` skill when working with `@xyflow/react` (React Flow / ReactFlow) — building flow editors, node graphs, workflow canvases, port-and-edge UIs, custom node/edge types — or whenever a file imports from `@xyflow/react`.
 
 ## Library tiers
 The library has four tiers, each with their own three-gate workflow and review specifics. The **procomp** workflow above is the established case; **pro-section / pro-page / pro-panel** are formalized but tooling + first pilots are queued (Phase B / C).
@@ -91,6 +91,7 @@ The library has four tiers, each with their own three-gate workflow and review s
 Full tier model + per-tier gate specifics: [docs/library-tiers-charter.md](../docs/library-tiers-charter.md). Tier folders: [docs/sections/](../docs/sections/), [docs/pages/](../docs/pages/), [docs/panels/](../docs/panels/).
 
 ## Rules
+- **IMPORTANT — Subagent models:** Opus 4.8[1m] or Sonnet 5[1m] only; **never Opus 5** (doesn't follow rules); cheap tiers for bulk jobs need verification. Full rule: [rules/subagent-model-policy.md](rules/subagent-model-policy.md).
 - **IMPORTANT — Readiness review (GATE 3):** every new library artifact MUST pass a structured review, verdict ≥ `Pass with follow-ups`, before push to `master`. The core rule auto-loads from [rules/readiness-review.md](rules/readiness-review.md); full spec at [docs/reviews/readiness-review-spec.md](../docs/reviews/readiness-review-spec.md).
 - **IMPORTANT — Compound structure for big components:** Any multi-part artifact (≥3 mountable regions, composes another procomp, pulls a heavy dep, or a consumer could want a subset) MUST ship as a shadcn-style compound — headless `Root` provider + flat à-la-carte parts + standalone primitives + a logic-free `<Name>` assembly; flat exports (never `Name.Root`); heavy deps `React.lazy`. Single-unit widgets are exempt. Full rule (path-scoped) at [.claude/rules/compound-component-structure.md](rules/compound-component-structure.md). Reference impl: `media-library-01`.
 

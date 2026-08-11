@@ -1,6 +1,6 @@
 # Production-Readiness Master Plan
 
-**Authored:** 2026-08-10 · **Status:** SIGNED OFF 2026-08-10 (decisions D1–D3 locked below; D4/D5 default-accepted pending objection)
+**Authored:** 2026-08-10 · **Status:** SIGNED OFF 2026-08-10 (decisions D1–D3 locked below; D4/D5 default-accepted pending objection; D6 open-source MIT + directory listing locked 2026-08-11) · **Progress:** P0 ✅ · P1 ✅ · P1.5 ✅ (2026-08-11, smoke 63/63/0)
 **Inputs:** [2026-08-10 deep codebase review](reviews/2026-08-10-deep-codebase-review.md) (~90 verified findings) · external site review (validated, §10 there) · doc-system audit (this document, §2) · user directives (naming professionalism · doc-system slim-down · component weight/composability · self-maintaining process).
 
 ---
@@ -80,17 +80,22 @@ Every batch: patch/minor bumps per readiness rule, 4-ship smoke loop, decision f
 
 **Done when:** review file shows every 🚫/⚠️ finding `fixed` or explicitly `deferred-with-owner`; lint exit 0; smoke green on Radix + Base UI.
 
+## Phase 1.5 — F-cross-13 path-b carrier sweep *(inserted 2026-08-10, executed 2026-08-11)*
+
+> **✅ EXECUTED 2026-08-11** — zero `asChild`/`delayDuration`/ToggleGroup carriers in shipped code (true cohort ~55 sites / 23 components + 4 residual-carrier components found by the first real Base-UI smoke since July). 5 parallel fix agents + 3 adversarial verifiers (caught one fix-introduced regression pre-ship); confirmation smoke **63/63 installs · consumer tsc 0**. Decision: [`.claude/decisions/2026-08-11-p1-5-carrier-sweep.md`](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md).
+
 ## Phase 2 — Naming canon: the great rename (≈2–3 sessions incl. decision)
 
-**Goal:** one professional naming system, executed once, before any consumer base grows.
+**Goal:** one professional naming system, executed once, before any consumer base grows — and, on close, everything the official shadcn registry directory PR needs (D6). Verified requirements + corrections to the external guide: [`docs/registry-directory-plan.md`](registry-directory-plan.md).
 
-- **2.1 Decision doc (GATE 1):** the canon. Recommended: **drop `-NN` from all public slugs** (version lives in the version field; `-02` returns only when a true second variant ships); rename the misleading stems (`rich-card`→e.g. `card-tree-editor`, disambiguate `todo-rich-card`/`rich-card-in-flow`, `workspace`→`split-workspace`, unify gamification `team-` prefix); full 63-row rename table with old→new. **User signs the table.**
+- **2.1 Decision doc (GATE 1):** the canon. Recommended: **drop `-NN` from all public slugs** (version lives in the version field; `-02` returns only when a true second variant ships); rename the misleading stems (`rich-card`→e.g. `card-tree-editor`, disambiguate `todo-rich-card`/`rich-card-in-flow`, `workspace`→`split-workspace`, unify gamification `team-` prefix); full 63-row rename table with old→new. **User signs the table.** Same doc also locks the **final domain** (Vercel subdomain vs custom) — the directory entry's `url` template is hard to change post-listing (a move = a second PR to shadcn-ui/ui), so this decision cannot slip past P2.
 - **2.2 Scripted sweep:** folder moves, manifest, registry.json (both items each), cross-procomp imports, docs/procomps folder names, guide/meta text — one commit series, one release window.
 - **2.3 Compatibility policy:** old slugs remain as deprecated thin registry items (`registryDependencies: [new]` + a README note) for one grace window, then removed. Registry `homepage` fixed; naming variants on site unified per review 10.3 (brand *ilinxa pro-ui*, host `ilinxa-proui`).
 - **2.4 Validator:** `validate:naming` — slug pattern lint (kebab, no `-NN` unless variant registered, no stem collisions) **+ catalog-copy lint** (description ≤200 chars hard cap; forbidden patterns: `D-\d+` decision IDs, version archaeology, self/sibling slug references) so drift can't re-enter via the scaffolder.
-- **2.5 Catalog copy rewrite (validated 2026-08-10):** all 63 `meta.ts` descriptions + registry.json sync, per a description canon locked in the 2.1 decision doc — proposed: **one sentence, ≤160 chars, capability-first, zero internal jargon** (`data-table`'s 99-char form is the model); capability detail belongs in the guide + detail page, not the blurb. Rides the same per-component sweep as the rename (same files open). While each component is open: swap unvetted fixture URLs (pravatar/picsum/example.com → Unsplash or inline SVG per review §6) in the same commit.
+- **2.5 Catalog copy rewrite (validated 2026-08-10):** all 63 `meta.ts` descriptions + registry.json sync, per a description canon locked in the 2.1 decision doc — proposed: **one sentence, ≤160 chars, capability-first, zero internal jargon** (`data-table`'s 99-char form is the model); capability detail belongs in the guide + detail page, not the blurb. Rides the same per-component sweep as the rename (same files open). While each component is open: swap unvetted fixture URLs (pravatar/picsum/example.com → Unsplash or inline SVG per review §6) in the same commit. The finished copy canon also supplies the **directory entry description** (one accurate sentence for the shadcn-ui/ui PR).
+- **2.6 Registry-directory PR pack (D6 — rides P2 close-out, ~half a day):** square inline-SVG logo (theme-aware `var(--foreground)` fill; **required** by the directory Zod schema even though the served registries.json strips it) · entry description from 2.5 · point `registry.json` `homepage` at the site (currently the GitHub URL) · clean-project audit exercising `list`/`view`/`search`/`add` incl. a fixtures item (P1.5's smoke covered `add`+tsc only) · then the one-entry PR to `shadcn-ui/ui` `apps/v4/registry/directory.json` + local `pnpm validate:registries`. **Sequencing lock: PR only AFTER 2.2–2.5 ship** — the rename churns every item name; listing first would break early adopters mid-review. Post-merge verification steps: [`registry-directory-plan.md`](registry-directory-plan.md).
 
-**Done when:** all 63 slugs match the canon; all 63 descriptions pass the copy lint; deprecated aliases live; site/README/llms show one brand form; validator wired.
+**Done when:** all 63 slugs match the canon; all 63 descriptions pass the copy lint; deprecated aliases live; site/README/llms show one brand form; validator wired; **directory PR submitted with CI validation green** (listing itself is external-review-gated — don't block P3 on the merge).
 
 ## Phase 3 — Architecture: weight & composability (≈4–8 sessions, investigation-gated)
 
@@ -106,7 +111,7 @@ Every batch: patch/minor bumps per readiness rule, 4-ship smoke loop, decision f
 
 ## Phase 4 — Professional polish & the 1.0 bar (≈2–3 sessions)
 
-- **4.1 Define 1.0** (decision doc): proposed bar — P0–P3 done · all validators green in CI · Base-UI + src-layout smoke matrix green across catalog · design-coherence sweep passed · docs fully generated · versioning policy published (semver meaning per component + catalog-level version).
+- **4.1 Define 1.0** (decision doc): proposed bar — P0–P3 done · all validators green in CI · Base-UI + src-layout smoke matrix green across catalog · design-coherence sweep passed · docs fully generated · versioning policy published (semver meaning per component + catalog-level version) · **`@ilinxa` listed in the official shadcn registry directory (or PR pending external review) with zero-config `add` verified from a clean project + shadcn-MCP discoverability confirmed** (D6).
 - **4.2 src-layout install answer** (review 10.4): run the two smoke variants (src/ dir; custom `aliases.components`), then either fix targets or make llms.txt/README precise — currently the two doc mentions contradict each other.
 - **4.3 Site professionalism:** metadataBase/OG/sitemap/robots, skip-link, breadcrumb links, shared registry-constants module, status-badge helper unification (review 4.6), design pass on docs pages per `frontend-design` skill.
 - **4.4 Changelog/versioning surface:** generate `component-versions` page from meta history + decision files; stop hand-maintaining.
@@ -157,7 +162,8 @@ Feed llms.txt to a *fresh* AI agent in a tmp consumer app; task it to install + 
 
 ## 7. Risks & mitigations
 
-- **Rename churn breaking the few existing consumers** → deprecated-alias grace window; do P2 before any marketing push.
+- **Rename churn breaking the few existing consumers** → deprecated-alias grace window; do P2 before any marketing push **and before the directory PR** (listing then renaming = catalog churn in front of the shadcn reviewers and early adopters).
+- **Directory listing creates standing obligations** → URL template stability (domain locked at 2.1; a move = a second shadcn-ui/ui PR), registry stays publicly accessible, MIT LICENSE stays intact, item descriptions kept current — delisting risk otherwise. Fold into the P5.3 maintenance sweep checklist once listed.
 - **Feature-slicing spike fails on CLI/rewriter constraints** → pilot is investigation-gated; fallback = keep single items + document à-la-carte *bundler* slicing (already works) as the official story.
 - **Doc slim loses history** → nothing is deleted, only archived; decision files remain canonical.
 - **Fixing Highs on heavy components before restructuring (P1 before P3)** is deliberate: restructure on top of broken flows makes regressions unbisectable.
@@ -170,3 +176,4 @@ Feed llms.txt to a *fresh* AI agent in a tmp consumer app; task it to install + 
 3. **D3 — STATUS.md slim: one-line rows.** ✅ Locked. name · version · status only; detail in meta.ts + decision files; Recent activity capped at 5; enforced by `validate:doc-budget`.
 4. **D4 — 1.0 bar** (§4.1 proposal) — default-accepted; revisit at P4.1 decision doc.
 5. **D5 — Loop cadence: on-demand only, never scheduled** — default-accepted (matches standing preference).
+6. **D6 — Open source MIT + official shadcn registry directory listing** (user decision 2026-08-11). ✅ Locked. LICENSE shipped same day; all machine-checked directory requirements already pass; remaining work = P2.6 pack; PR gated on P2 ship (rename churns item names). Plan: [`docs/registry-directory-plan.md`](registry-directory-plan.md) · decision: [`.claude/decisions/2026-08-11-open-source-mit-directory-plan.md`](../.claude/decisions/2026-08-11-open-source-mit-directory-plan.md).

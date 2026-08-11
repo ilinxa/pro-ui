@@ -21,7 +21,7 @@
 3. `force-graph` was archived long ago; not in `registry.json`.
 4. Its "269 entries" count is stale (~500 live).
 
-## Remaining work (ride P2 close-out)
+## Remaining work (formalized as plan **P2.6** — rides P2 close-out)
 
 1. **⚠️ SEQUENCING — PR only AFTER P2 ships.** The rename drops `-NN` from slugs → every item name changes. Listing first, then churning 63 item names, breaks early adopters and looks bad in review.
 2. During P2: canonical name applied everywhere (kills the 4 naming variants) · final domain decision (URL template change later = a second PR) · P2.5 catalog copy rewrite (the directory guideline explicitly wants LLM-readable descriptions) · point `registry.json` `homepage` at the site (currently the GitHub URL).

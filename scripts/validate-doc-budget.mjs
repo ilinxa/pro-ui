@@ -18,6 +18,7 @@ const BUDGETS = {
   ".claude/rules/readiness-review.md": 4 * 1024,
   ".claude/rules/compound-component-structure.md": 8 * 1024,
   ".claude/rules/component-readiness-review.md": 2 * 1024,
+  ".claude/rules/subagent-model-policy.md": 2 * 1024,
 };
 
 /** at most this many HANDOFF* files may sit in .claude/ root (rest → handoffs-archive/) */
