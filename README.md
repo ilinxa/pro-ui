@@ -1,4 +1,6 @@
 <!-- wl:readme.hero -->
+<p align="center"><img src="assets/brand/banner.svg" alt="ilinxa/pro-ui — fully-composed shadcn/ui components, installed with the CLI, owned in your repo" width="800"></p>
+
 # ilinxa/pro-ui
 
 Production-ready React components distributed via the [shadcn-registry](https://ui.shadcn.com/docs/registry) model. Built on shadcn/ui primitives + Tailwind CSS v4 + React 19. Install components into your Next.js (or any React) app with `pnpm dlx shadcn@latest add @ilinxa/<slug>` — source files copy into your repo, you own the code.

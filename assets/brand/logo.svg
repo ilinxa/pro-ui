@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="ilinxa pro-ui logo">
+  <rect x="6" y="6" width="16" height="16" rx="4" fill="#a3e635"/>
+  <rect x="26" y="6" width="16" height="16" rx="8" fill="#5b6270"/>
+  <rect x="6" y="26" width="16" height="16" rx="8" fill="#5b6270"/>
+  <rect x="26" y="26" width="16" height="16" rx="4" fill="#a3e635"/>
+</svg>

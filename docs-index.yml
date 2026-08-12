@@ -3,6 +3,7 @@ repo: pro-ui
 type: oss
 release: 2026-08-12
 updated: 2026-08-12
+brand: assets/brand/
 
 # NOTE: readme.catalog is machine-generated (pnpm build:llms, runs each deploy).
 # Its content + the README hash churn automatically — after any regen, re-stamp
@@ -12,18 +13,18 @@ docs:
   readme:
     f: README.md
     v: 2026-08-12
-    h: 72242e
+    h: 5793a8
     ok: true
     blocks:
-      hero: {l: [1, 7]}
-      install: {l: [11, 101]}
-      catalog: {l: [105, 178], deps: [changelog.unreleased]}
-      compat: {l: [182, 190]}
-      ai: {l: [194, 200]}
-      troubleshooting: {l: [204, 215]}
-      faq: {l: [219, 239]}
-      contributing: {l: [243, 327], deps: [contributing.setup]}
-      license: {l: [331, 335]}
+      hero: {l: [1, 9]}
+      install: {l: [13, 103]}
+      catalog: {l: [107, 180], deps: [changelog.unreleased]}
+      compat: {l: [184, 192]}
+      ai: {l: [196, 202]}
+      troubleshooting: {l: [206, 217]}
+      faq: {l: [221, 241]}
+      contributing: {l: [245, 329], deps: [contributing.setup]}
+      license: {l: [333, 337]}
   changelog:
     f: CHANGELOG.md
     v: 2026-08-12
@@ -45,7 +46,7 @@ docs:
   security:
     f: SECURITY.md
     v: 2026-08-12
-    h: 31c5e6
+    h: 1e245c
     ok: true
     blocks:
       report: {l: [1, 12]}
@@ -53,18 +54,19 @@ docs:
   support:
     f: SUPPORT.md
     v: 2026-08-12
-    h: d2e48b
+    h: "0557c2"
     ok: true
     blocks:
       routes: {l: [1, 7]}
   coc:
     f: CODE_OF_CONDUCT.md
     v: 2026-08-12
-    h: "203553"
+    h: a0aefd
     ok: true
     blocks:
       full: {l: [1, 134]}
 
 log:
+  - "2026-08-12 2026-08-12 readme.hero: brand banner added; support.routes -> Discussions; security/coc contact -> support@ilinxa.com"
   - "2026-08-12 2026-08-12 readme.contributing: .claude/CLAUDE.md untracked (gitignore); links fixed"
   - "2026-08-12 2026-08-12 bootstrap: index + changelog + contributing + security + support + coc + readme anchors/faq"
