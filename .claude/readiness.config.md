@@ -70,6 +70,9 @@
 - Dev server dies with RocksDB/lock errors → Turbopack cache cleared while server live → stop, clear, restart.
 - Glob/ripgrep timeouts at repo root → node_modules scan on Windows → scope patterns to `src/`, `docs/`, `scripts/`.
 - `validate:meta-deps` misses an import → side-effect/`import x =` shapes → keep `from`-imports first in registry files.
+- Smoke of a `*-fixtures` (or any dependent) item fails PRE-deploy → its `@ilinxa/<base>` registryDependency can't resolve against the deployed registry until the base ships → serve `public/r/` locally (`npx serve public -l <port>`) and temporarily point the consumer's `components.json` `registries.@ilinxa` at `http://localhost:<port>/r/{name}.json` (restore after); re-verify against production post-deploy (procomp-loop C6/U5, 2026-08-12).
+- Backgrounded `next start`/`serve` on Windows: killing the wrapper leaves the node child holding the port (EADDRINUSE on restart → you silently test a STALE build) → free by PID via `Get-NetTCPConnection -LocalPort <p>` before re-serving. Also `pnpm start -- -p X` passes `--` literally ("Invalid project directory") → use `npx next start -p X`.
+- tw-animate-css `animate-in` + `animationDelay` stagger flashes (fill-mode defaults to `none`) → set inline `animationFillMode: "both"` on every delayed element (procomp-loop pilot, empty-state 2026-08-12).
 
 ## agent-orchestration rules (earned 2026-08-11 P3 + 2026-08-12 P4 loops)
 - **Agent briefs must mandate FOREGROUND-ONLY execution** — "never background or monitor a

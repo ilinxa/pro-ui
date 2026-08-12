@@ -52,10 +52,12 @@ Fan-out defaults: ≤ 2 implementers + 1 finder for a single-unit component; up 
 - Review floors: verdict ≥ Pass-with-follow-ups; every follow-up has owner + bump target;
   expected findings base rate 1–3 (description) / 3–5 (plan) / >0 (GATE 3) — zero findings =
   redo the pass.
-- Size: built artifact ≤ budget in `scripts/validate-artifact-size` config; estimate = source
-  bytes × 1.13.
-- Versioning: semver-while-0.x (breaking → 0.x+1.0); bump `meta.ts` + STATUS row +
-  `pnpm validate:component-versions --check` green.
+- Size: built artifact ≤ the slug's own `artifactBudgetKB` in `meta.ts` (feature items:
+  `meta.budgetKB` on the registry.json item); `validate:artifact-size` fails at >1.2× budget.
+  Estimate = source bytes × 1.13.
+- Versioning: semver-while-0.x (breaking → 0.x+1.0); bump `meta.ts` + STATUS row; the
+  component-versions freshness `--check` runs inside `pnpm validate:doc-drift` (and
+  `registry:build`) — must be green.
 - New-category adds: types + CATEGORIES edit is part of the plan, not an implementation surprise.
 
 ## fix-on-touch ledger (owed follow-ups the U-loop U0 MUST consult)
@@ -63,7 +65,8 @@ Fan-out defaults: ≤ 2 implementers + 1 finder for a single-unit component; up 
 - F-cross-15 static-import-vs-lazy — fix when touching a carrier.
 - `--radix-popover-trigger-width` residual audit — check when touching any popover-bearing component.
 - Per-component cohorts: card-tree-node v0.3 · flow-canvas v0.2.x · pdf-viewer worker default
-  v0.2 · blackboard F-03/F-04 · content-composer v0.4.0 conditional imports (MED-4).
+  v0.2 · blackboard F-04 (F-03 closed v0.2.1, 2026-08-12) · content-composer v0.4.0 conditional
+  imports (MED-4).
 - Source of truth for the full list: STATUS.md "Open decisions / TODOs" + each review file's
   follow-up table. This ledger is a pointer, keep it short; mark items done in their source files.
 

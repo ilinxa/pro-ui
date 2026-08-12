@@ -91,8 +91,9 @@ Identical to C4: full battery in order, env prep, real numbers, one flake retry 
 ## U6 — Docs sync & review (architect)
 
 1. Walk the U0 blast-radius table: every row updated or explicitly cleared. Regenerate the
-   catalog (`registry:build`) and run `pnpm validate:component-versions --check` if versions
-   moved, plus doc validators.
+   catalog with `pnpm registry:build` — it also regenerates `component-versions` and runs the
+   freshness `--check` (folded into `validate:doc-drift`). If you touched only versions/docs,
+   `pnpm validate:doc-drift` is the standalone gate.
 2. **Review file per the readiness-review trigger table:** patch → none required; API-touching
    minor → spotcheck (narrow) at `docs/procomps/<slug>-procomp/reviews/<date>-v<ver>-<scope>.md`;
    broad minor / breaking → spotcheck or full checklist per breadth; promotion → **full checklist**
