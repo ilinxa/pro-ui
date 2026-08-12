@@ -299,19 +299,10 @@ function main() {
   lines.push("# Component Versions");
   lines.push("");
   lines.push(
-    `> Generated snapshot — pure data view derived from every \`meta.ts\` under \`src/registry/components/\`, cross-referenced against \`.claude/decisions/*.md\` frontmatter. **Do not hand-edit** — regenerate with \`pnpm build:component-versions\`.`,
+    `> Generated snapshot — pure data view derived from every \`meta.ts\` under \`src/registry/components/\`. **Do not hand-edit** — regenerate with \`pnpm build:component-versions\`.`,
   );
   lines.push(
     `> Snapshot marker: **${maxUpdatedAt}** (max \`updatedAt\` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).`,
-  );
-  lines.push(
-    `> Naming: decision-file \`components:\` references are mapped old→new using the P2 rename table in [\`docs/naming-canon.md\`](naming-canon.md) (§3a re-stems, §3b suffix-drops, §3c unchanged — locked 2026-08-11).` +
-      (parsedOk
-        ? ` Parsed ${reStemCount} re-stem + ${suffixDropCount} suffix-drop + ${unchangedCount} unchanged rows.`
-        : ` **Limitation: naming-canon.md's tables could not be parsed this run — old-slug decision-file references will not resolve to their current component.**`),
-  );
-  lines.push(
-    `> Limitation: the naming-canon table covers only the 2026-08-11 P2 rename. Any earlier ad-hoc internal renames (e.g. a component's working name before it first shipped) are out of scope and those historical decision files will not appear linked below.`,
   );
   lines.push("");
   lines.push("## Summary");
@@ -328,16 +319,11 @@ function main() {
     const rows = components.filter((c) => c.category === cat);
     lines.push(`### ${cat} (${rows.length})`);
     lines.push("");
-    lines.push("| Slug | Name | Version | Status | Updated | Decisions |");
-    lines.push("|---|---|---|---|---|---|");
+    lines.push("| Slug | Name | Version | Status | Updated |");
+    lines.push("|---|---|---|---|---|");
     for (const c of rows) {
-      const files = [...decisionIndex.get(c.slug)].sort().reverse();
-      const decisionLinks =
-        files.length > 0
-          ? files.map((f) => `[${f.replace(/\.md$/, "")}](../.claude/decisions/${f})`).join("<br>")
-          : "—";
       lines.push(
-        `| \`${c.slug}\` | ${c.name} | ${c.version} | ${c.status} | ${c.updatedAt} | ${decisionLinks} |`,
+        `| \`${c.slug}\` | ${c.name} | ${c.version} | ${c.status} | ${c.updatedAt} |`,
       );
     }
     lines.push("");
@@ -346,7 +332,7 @@ function main() {
   lines.push("## How history works");
   lines.push("");
   lines.push(
-    "Per-component narrative history (what changed, why, findings, follow-ups) lives in [`.claude/decisions/`](../.claude/decisions/) — one file per shipped decision. [`.claude/STATUS.md`](../.claude/STATUS.md) is the current lean snapshot with a \"Recent activity\" pointer to the newest files. This document is a pure generated index: version / status / updatedAt pulled straight from each component's `meta.ts`, cross-referenced against decision-file frontmatter `components:` lists. Regenerate with `pnpm build:component-versions` whenever a `meta.ts` bumps or a new decision file lands.",
+    "User-facing changes are recorded in [`CHANGELOG.md`](../CHANGELOG.md). This document is a pure generated index: version / status / updatedAt pulled straight from each component's `meta.ts`. Regenerate with `pnpm build:component-versions` whenever a `meta.ts` bumps.",
   );
   lines.push("");
 

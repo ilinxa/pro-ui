@@ -2,10 +2,8 @@
 
 # Component Versions
 
-> Generated snapshot — pure data view derived from every `meta.ts` under `src/registry/components/`, cross-referenced against `.claude/decisions/*.md` frontmatter. **Do not hand-edit** — regenerate with `pnpm build:component-versions`.
+> Generated snapshot — pure data view derived from every `meta.ts` under `src/registry/components/`. **Do not hand-edit** — regenerate with `pnpm build:component-versions`.
 > Snapshot marker: **2026-08-12** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
-> Naming: decision-file `components:` references are mapped old→new using the P2 rename table in [`docs/naming-canon.md`](naming-canon.md) (§3a re-stems, §3b suffix-drops, §3c unchanged — locked 2026-08-11). Parsed 19 re-stem + 33 suffix-drop + 11 unchanged rows.
-> Limitation: the naming-canon table covers only the 2026-08-11 P2 rename. Any earlier ad-hoc internal renames (e.g. a component's working name before it first shipped) are out of scope and those historical decision files will not appear linked below.
 
 ## Summary
 
@@ -26,113 +24,113 @@
 
 ### code (1)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `code-block` | Code Block | 0.1.4 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-11-code-block-v01-pipeline](../.claude/decisions/2026-05-11-code-block-v01-pipeline.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `code-block` | Code Block | 0.1.4 | alpha | 2026-08-11 |
 
 ### data (27)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 | [2026-08-12-procomp-loop-system](../.claude/decisions/2026-08-12-procomp-loop-system.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-18-blackboard-01-v0.1.0-first-ship](../.claude/decisions/2026-06-18-blackboard-01-v0.1.0-first-ship.md) |
-| `card-tree` | Card Tree | 0.5.0 | beta | 2026-08-11 | [2026-06-06-config-playgrounds-and-rich-card-ssr-fix](../.claude/decisions/2026-06-06-config-playgrounds-and-rich-card-ssr-fix.md)<br>[2026-05-17-rich-card-v0.4.2-empty-card-add-affordances](../.claude/decisions/2026-05-17-rich-card-v0.4.2-empty-card-add-affordances.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
-| `card-tree-node` | Card Tree Node | 0.3.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-17-rich-card-in-flow-v0.2.0-port-editor](../.claude/decisions/2026-05-17-rich-card-in-flow-v0.2.0-port-editor.md)<br>[2026-05-16-rich-card-in-flow-v0.1.0-first-ship](../.claude/decisions/2026-05-16-rich-card-in-flow-v0.1.0-first-ship.md) |
-| `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 | [2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment](../.claude/decisions/2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 | [2026-05-09-session-7c-phase-4](../.claude/decisions/2026-05-09-session-7c-phase-4.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md) |
-| `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 | [2026-05-28-engagement-bar-01-v0.3.0-reactions-multi-kind-ship](../.claude/decisions/2026-05-28-engagement-bar-01-v0.3.0-reactions-multi-kind-ship.md)<br>[2026-05-27-post-card-01-v0.2.0-ship](../.claude/decisions/2026-05-27-post-card-01-v0.2.0-ship.md)<br>[2026-05-27-engagement-bar-01-v0.2.0-likers-strip-share-menu-extraction](../.claude/decisions/2026-05-27-engagement-bar-01-v0.2.0-likers-strip-share-menu-extraction.md)<br>[2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `event-calendar` | Event Calendar | 0.4.0 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-23-task-family-clipboard-unify-and-gantt-parity](../.claude/decisions/2026-06-23-task-family-clipboard-unify-and-gantt-parity.md)<br>[2026-06-23-calendar-01-v0.2.2-port-feedback-fixes](../.claude/decisions/2026-06-23-calendar-01-v0.2.2-port-feedback-fixes.md)<br>[2026-06-23-calendar-01-v0.2.1-cross-backend-fix](../.claude/decisions/2026-06-23-calendar-01-v0.2.1-cross-backend-fix.md)<br>[2026-06-23-calendar-01-v0.2.0-editing-layer](../.claude/decisions/2026-06-23-calendar-01-v0.2.0-editing-layer.md)<br>[2026-06-22-calendar-01-v0.1.0-first-ship](../.claude/decisions/2026-06-22-calendar-01-v0.1.0-first-ship.md) |
-| `event-card` | Event Card | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-11-tier2-batch-4](../.claude/decisions/2026-05-09-session-11-tier2-batch-4.md) |
-| `expandable-text` | Expandable Text | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-11-tier2-batch-4](../.claude/decisions/2026-05-09-session-11-tier2-batch-4.md) |
-| `flow-canvas` | Flow Canvas | 0.3.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-06-config-playgrounds-and-rich-card-ssr-fix](../.claude/decisions/2026-06-06-config-playgrounds-and-rich-card-ssr-fix.md)<br>[2026-05-17-flow-canvas-v0.2.5-doc-port-type](../.claude/decisions/2026-05-17-flow-canvas-v0.2.5-doc-port-type.md)<br>[2026-05-17-flow-canvas-v0.2.4-stale-snapshot-fix](../.claude/decisions/2026-05-17-flow-canvas-v0.2.4-stale-snapshot-fix.md)<br>[2026-05-16-flow-canvas-v0.2.3-resync-echo-guard](../.claude/decisions/2026-05-16-flow-canvas-v0.2.3-resync-echo-guard.md)<br>[2026-05-16-flow-canvas-v0.2.2-microtask-defer](../.claude/decisions/2026-05-16-flow-canvas-v0.2.2-microtask-defer.md)<br>[2026-05-16-flow-canvas-v0.2.1-on-edit-request](../.claude/decisions/2026-05-16-flow-canvas-v0.2.1-on-edit-request.md)<br>[2026-05-16-flow-canvas-v0.2.0-perf-bundle](../.claude/decisions/2026-05-16-flow-canvas-v0.2.0-perf-bundle.md)<br>[2026-05-14-flow-canvas-v0.1.4-custom-json-handles](../.claude/decisions/2026-05-14-flow-canvas-v0.1.4-custom-json-handles.md)<br>[2026-05-11-flow-canvas-01-v013-stress-paint-cost](../.claude/decisions/2026-05-11-flow-canvas-01-v013-stress-paint-cost.md)<br>[2026-05-11-flow-canvas-01-v012-perf-patch](../.claude/decisions/2026-05-11-flow-canvas-01-v012-perf-patch.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md) |
-| `gantt-timeline` | Gantt Timeline | 0.6.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-23-task-family-clipboard-unify-and-gantt-parity](../.claude/decisions/2026-06-23-task-family-clipboard-unify-and-gantt-parity.md)<br>[2026-06-22-gantt-timeline-01-v0.4.0-draw-mode-and-rightclick-fix](../.claude/decisions/2026-06-22-gantt-timeline-01-v0.4.0-draw-mode-and-rightclick-fix.md)<br>[2026-06-22-gantt-timeline-01-v0.3.1-review-hardening](../.claude/decisions/2026-06-22-gantt-timeline-01-v0.3.1-review-hardening.md)<br>[2026-06-21-gantt-timeline-01-v0.3.0-group-move](../.claude/decisions/2026-06-21-gantt-timeline-01-v0.3.0-group-move.md)<br>[2026-06-20-gantt-timeline-01-v0.2.0-editing-layer](../.claude/decisions/2026-06-20-gantt-timeline-01-v0.2.0-editing-layer.md)<br>[2026-06-20-gantt-timeline-01-v0.1.0-first-ship](../.claude/decisions/2026-06-20-gantt-timeline-01-v0.1.0-first-ship.md) |
-| `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-11-tier2-batch-4](../.claude/decisions/2026-05-09-session-11-tier2-batch-4.md) |
-| `kanban-board` | Kanban Board | 0.5.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-19-consumer-note-kanban-v0.4.1-todo-rich-card-v0.3.0](../.claude/decisions/2026-06-19-consumer-note-kanban-v0.4.1-todo-rich-card-v0.3.0.md)<br>[2026-06-18-three-procomp-review-fixes](../.claude/decisions/2026-06-18-three-procomp-review-fixes.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-fcross12-v02-cutover](../.claude/decisions/2026-05-09-fcross12-v02-cutover.md)<br>[2026-05-09-fcross12-callback-migration-transition](../.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md) |
-| `news-card` | News Card | 0.4.0 | alpha | 2026-08-11 | [2026-06-02-content-card-news-01-v0.3.0-backend-shaped-editorial-features](../.claude/decisions/2026-06-02-content-card-news-01-v0.3.0-backend-shaped-editorial-features.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md)<br>[2026-05-09-fcross12-v02-cutover](../.claude/decisions/2026-05-09-fcross12-v02-cutover.md)<br>[2026-05-09-fcross12-callback-migration-transition](../.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md) |
-| `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-11-tier2-batch-4](../.claude/decisions/2026-05-09-session-11-tier2-batch-4.md) |
-| `post-card` | Post Card | 0.4.0 | alpha | 2026-08-11 | [2026-05-28-post-card-01-v0.2.1-list-thumb-and-docs-swipe-tabs](../.claude/decisions/2026-05-28-post-card-01-v0.2.1-list-thumb-and-docs-swipe-tabs.md)<br>[2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment](../.claude/decisions/2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment.md)<br>[2026-05-27-post-card-01-v0.2.0-ship](../.claude/decisions/2026-05-27-post-card-01-v0.2.0-ship.md)<br>[2026-05-27-engagement-bar-01-v0.2.0-likers-strip-share-menu-extraction](../.claude/decisions/2026-05-27-engagement-bar-01-v0.2.0-likers-strip-share-menu-extraction.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-11-tier2-batch-4](../.claude/decisions/2026-05-09-session-11-tier2-batch-4.md) |
-| `project-card` | Project Card | 0.3.0 | alpha | 2026-08-11 | [2026-05-09-session-11-tier2-batch-4](../.claude/decisions/2026-05-09-session-11-tier2-batch-4.md)<br>[2026-05-09-fcross12-v02-cutover](../.claude/decisions/2026-05-09-fcross12-v02-cutover.md)<br>[2026-05-09-fcross12-callback-migration-transition](../.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md) |
-| `registration-card` | Registration Card | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
-| `rich-text-editor` | Rich Text Editor | 0.3.0 | alpha | 2026-08-11 | [2026-05-21-json-form-v0.1.5-through-v0.1.7-substrate-upgrade](../.claude/decisions/2026-05-21-json-form-v0.1.5-through-v0.1.7-substrate-upgrade.md)<br>[2026-05-21-article-body-01-v0.2.2-content-equality-echo-guard](../.claude/decisions/2026-05-21-article-body-01-v0.2.2-content-equality-echo-guard.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
-| `schedule-list` | Schedule List | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
-| `stat-card` | Stat Card | 0.1.2 | alpha | 2026-08-11 | [2026-05-09-stat-card-v01-pipeline](../.claude/decisions/2026-05-09-stat-card-v01-pipeline.md) |
-| `story-rail` | Story Rail | 0.3.0 | alpha | 2026-08-11 | [2026-05-29-story-viewer-01-v0.2.0-engagement-layer-ship](../.claude/decisions/2026-05-29-story-viewer-01-v0.2.0-engagement-layer-ship.md)<br>[2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md)<br>[2026-05-09-fcross12-v02-cutover](../.claude/decisions/2026-05-09-fcross12-v02-cutover.md)<br>[2026-05-09-fcross12-callback-migration-transition](../.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md) |
-| `task-card` | Task Card | 0.5.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-23-task-family-clipboard-unify-and-gantt-parity](../.claude/decisions/2026-06-23-task-family-clipboard-unify-and-gantt-parity.md)<br>[2026-06-19-consumer-note-kanban-v0.4.1-todo-rich-card-v0.3.0](../.claude/decisions/2026-06-19-consumer-note-kanban-v0.4.1-todo-rich-card-v0.3.0.md)<br>[2026-06-18-three-procomp-review-fixes](../.claude/decisions/2026-06-18-three-procomp-review-fixes.md)<br>[2026-05-20-todo-rich-card-v0.1.1-f-cross-13-fix](../.claude/decisions/2026-05-20-todo-rich-card-v0.1.1-f-cross-13-fix.md)<br>[2026-05-20-todo-rich-card-v0.1.0-first-ship](../.claude/decisions/2026-05-20-todo-rich-card-v0.1.0-first-ship.md) |
-| `task-tree` | Task Tree | 0.4.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-23-task-family-clipboard-unify-and-gantt-parity](../.claude/decisions/2026-06-23-task-family-clipboard-unify-and-gantt-parity.md)<br>[2026-06-18-three-procomp-review-fixes](../.claude/decisions/2026-06-18-three-procomp-review-fixes.md)<br>[2026-05-21-todo-tree-v0.1.3-dnd-hydration-fix](../.claude/decisions/2026-05-21-todo-tree-v0.1.3-dnd-hydration-fix.md)<br>[2026-05-21-todo-tree-v0.1.2-add-button-deferred-commit-f-perm](../.claude/decisions/2026-05-21-todo-tree-v0.1.2-add-button-deferred-commit-f-perm.md)<br>[2026-05-21-todo-tree-v0.1.0-and-v0.1.1-first-ship](../.claude/decisions/2026-05-21-todo-tree-v0.1.0-and-v0.1.1-first-ship.md) |
-| `thumbnail-list` | Thumbnail List | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 |
+| `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 |
+| `card-tree` | Card Tree | 0.5.0 | beta | 2026-08-11 |
+| `card-tree-node` | Card Tree Node | 0.3.0 | alpha | 2026-08-11 |
+| `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 |
+| `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 |
+| `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 |
+| `event-calendar` | Event Calendar | 0.4.0 | alpha | 2026-08-11 |
+| `event-card` | Event Card | 0.2.0 | alpha | 2026-08-11 |
+| `expandable-text` | Expandable Text | 0.2.0 | alpha | 2026-08-11 |
+| `flow-canvas` | Flow Canvas | 0.3.0 | alpha | 2026-08-11 |
+| `gantt-timeline` | Gantt Timeline | 0.6.0 | alpha | 2026-08-11 |
+| `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |
+| `kanban-board` | Kanban Board | 0.5.0 | alpha | 2026-08-11 |
+| `news-card` | News Card | 0.4.0 | alpha | 2026-08-11 |
+| `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 |
+| `post-card` | Post Card | 0.4.0 | alpha | 2026-08-11 |
+| `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 |
+| `project-card` | Project Card | 0.3.0 | alpha | 2026-08-11 |
+| `registration-card` | Registration Card | 0.2.0 | alpha | 2026-08-11 |
+| `rich-text-editor` | Rich Text Editor | 0.3.0 | alpha | 2026-08-11 |
+| `schedule-list` | Schedule List | 0.2.0 | alpha | 2026-08-11 |
+| `stat-card` | Stat Card | 0.1.2 | alpha | 2026-08-11 |
+| `story-rail` | Story Rail | 0.3.0 | alpha | 2026-08-11 |
+| `task-card` | Task Card | 0.5.0 | alpha | 2026-08-11 |
+| `task-tree` | Task Tree | 0.4.0 | alpha | 2026-08-11 |
+| `thumbnail-list` | Thumbnail List | 0.2.0 | alpha | 2026-08-11 |
 
 ### feedback (2)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `detail-panel` | Detail Panel | 0.1.2 | alpha | 2026-08-11 | [2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
-| `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 | [2026-08-12-procomp-loop-system](../.claude/decisions/2026-08-12-procomp-loop-system.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `detail-panel` | Detail Panel | 0.1.2 | alpha | 2026-08-11 |
+| `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 |
 
 ### forms (8)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `category-cloud` | Category Cloud | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-8-tier2-batch-1](../.claude/decisions/2026-05-09-session-8-tier2-batch-1.md) |
-| `entity-picker` | Entity Picker | 0.1.3 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-09-session-7c-phase-4](../.claude/decisions/2026-05-09-session-7c-phase-4.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
-| `filter-bar` | Filter Bar | 0.2.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-09-session-8-tier2-batch-1](../.claude/decisions/2026-05-09-session-8-tier2-batch-1.md) |
-| `filter-panel` | Filter Panel | 0.2.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-09-session-8-tier2-batch-1](../.claude/decisions/2026-05-09-session-8-tier2-batch-1.md) |
-| `json-form` | JSON Form | 0.2.8 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-06-config-playgrounds-and-rich-card-ssr-fix](../.claude/decisions/2026-06-06-config-playgrounds-and-rich-card-ssr-fix.md)<br>[2026-05-22-json-form-v0.2.5-radio-group-controlled-fix](../.claude/decisions/2026-05-22-json-form-v0.2.5-radio-group-controlled-fix.md)<br>[2026-05-21-json-form-v0.2.4-headless-formprovider-bridge](../.claude/decisions/2026-05-21-json-form-v0.2.4-headless-formprovider-bridge.md)<br>[2026-05-21-json-form-v0.2.2-richtext-loop-fix](../.claude/decisions/2026-05-21-json-form-v0.2.2-richtext-loop-fix.md)<br>[2026-05-21-json-form-v0.2.1-docs-patch](../.claude/decisions/2026-05-21-json-form-v0.2.1-docs-patch.md)<br>[2026-05-21-json-form-v0.2.0-watch-drop-and-deep-merge](../.claude/decisions/2026-05-21-json-form-v0.2.0-watch-drop-and-deep-merge.md)<br>[2026-05-21-json-form-v0.2.0-f-03-whitelist-drift-lint](../.claude/decisions/2026-05-21-json-form-v0.2.0-f-03-whitelist-drift-lint.md)<br>[2026-05-21-json-form-v0.1.5-through-v0.1.7-substrate-upgrade](../.claude/decisions/2026-05-21-json-form-v0.1.5-through-v0.1.7-substrate-upgrade.md)<br>[2026-05-21-article-body-01-v0.2.2-content-equality-echo-guard](../.claude/decisions/2026-05-21-article-body-01-v0.2.2-content-equality-echo-guard.md)<br>[2026-05-13-json-form-v014-smoke-fix](../.claude/decisions/2026-05-13-json-form-v014-smoke-fix.md)<br>[2026-05-13-json-form-v013-full-cleanup](../.claude/decisions/2026-05-13-json-form-v013-full-cleanup.md)<br>[2026-05-13-json-form-v012-aria-fix](../.claude/decisions/2026-05-13-json-form-v012-aria-fix.md)<br>[2026-05-13-json-form-v011-richtext](../.claude/decisions/2026-05-13-json-form-v011-richtext.md)<br>[2026-05-13-json-form-v01-pipeline](../.claude/decisions/2026-05-13-json-form-v01-pipeline.md) |
-| `markdown-editor` | Markdown Editor | 0.1.4 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-7c-phase-4](../.claude/decisions/2026-05-09-session-7c-phase-4.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
-| `properties-form` | Properties Form | 0.1.4 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-09-session-7c-phase-4](../.claude/decisions/2026-05-09-session-7c-phase-4.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
-| `signup-form` | Signup Form | 0.2.0 | alpha | 2026-08-11 | [2026-05-22-registration-form-01-v0.1.1-submit-row-fullwidth](../.claude/decisions/2026-05-22-registration-form-01-v0.1.1-submit-row-fullwidth.md)<br>[2026-05-22-registration-form-01-v0.1.0-first-ship](../.claude/decisions/2026-05-22-registration-form-01-v0.1.0-first-ship.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `category-cloud` | Category Cloud | 0.2.0 | alpha | 2026-08-11 |
+| `entity-picker` | Entity Picker | 0.1.3 | alpha | 2026-08-11 |
+| `filter-bar` | Filter Bar | 0.2.0 | alpha | 2026-08-11 |
+| `filter-panel` | Filter Panel | 0.2.0 | alpha | 2026-08-11 |
+| `json-form` | JSON Form | 0.2.8 | alpha | 2026-08-11 |
+| `markdown-editor` | Markdown Editor | 0.1.4 | alpha | 2026-08-11 |
+| `properties-form` | Properties Form | 0.1.4 | alpha | 2026-08-11 |
+| `signup-form` | Signup Form | 0.2.0 | alpha | 2026-08-11 |
 
 ### gamification (6)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `team-challenge` | Team Challenge | 0.2.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-07-01-gamification-visual-hover-pass](../.claude/decisions/2026-07-01-gamification-visual-hover-pass.md)<br>[2026-07-01-gamification-system-gates-1-2](../.claude/decisions/2026-07-01-gamification-system-gates-1-2.md)<br>[2026-07-01-cooperative-challenge-01-v0.1.0-first-ship](../.claude/decisions/2026-07-01-cooperative-challenge-01-v0.1.0-first-ship.md) |
-| `team-feedback-loop` | Team Feedback Loop | 0.2.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-07-01-team-feedback-loop-01-v0.1.0-first-ship](../.claude/decisions/2026-07-01-team-feedback-loop-01-v0.1.0-first-ship.md)<br>[2026-07-01-gamification-system-gates-1-2](../.claude/decisions/2026-07-01-gamification-system-gates-1-2.md) |
-| `team-progress-bar` | Team Progress Bar | 0.2.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-07-01-team-progress-bar-01-v0.1.0-first-ship](../.claude/decisions/2026-07-01-team-progress-bar-01-v0.1.0-first-ship.md)<br>[2026-07-01-gamification-visual-hover-pass](../.claude/decisions/2026-07-01-gamification-visual-hover-pass.md)<br>[2026-07-01-gamification-system-gates-1-2](../.claude/decisions/2026-07-01-gamification-system-gates-1-2.md) |
-| `team-quest-log` | Team Quest Log | 0.2.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-07-01-team-quest-log-01-v0.1.0-first-ship](../.claude/decisions/2026-07-01-team-quest-log-01-v0.1.0-first-ship.md)<br>[2026-07-01-gamification-visual-hover-pass](../.claude/decisions/2026-07-01-gamification-visual-hover-pass.md)<br>[2026-07-01-gamification-system-gates-1-2](../.claude/decisions/2026-07-01-gamification-system-gates-1-2.md) |
-| `team-task-claim` | Team Task Claim | 0.2.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-07-01-task-choice-control-01-v0.1.0-first-ship](../.claude/decisions/2026-07-01-task-choice-control-01-v0.1.0-first-ship.md)<br>[2026-07-01-gamification-system-gates-1-2](../.claude/decisions/2026-07-01-gamification-system-gates-1-2.md) |
-| `team-trophy-shelf` | Team Trophy Shelf | 0.2.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-07-01-team-trophy-shelf-01-v0.1.0-first-ship](../.claude/decisions/2026-07-01-team-trophy-shelf-01-v0.1.0-first-ship.md)<br>[2026-07-01-gamification-visual-hover-pass](../.claude/decisions/2026-07-01-gamification-visual-hover-pass.md)<br>[2026-07-01-gamification-system-gates-1-2](../.claude/decisions/2026-07-01-gamification-system-gates-1-2.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `team-challenge` | Team Challenge | 0.2.1 | alpha | 2026-08-11 |
+| `team-feedback-loop` | Team Feedback Loop | 0.2.1 | alpha | 2026-08-11 |
+| `team-progress-bar` | Team Progress Bar | 0.2.1 | alpha | 2026-08-11 |
+| `team-quest-log` | Team Quest Log | 0.2.1 | alpha | 2026-08-11 |
+| `team-task-claim` | Team Task Claim | 0.2.1 | alpha | 2026-08-11 |
+| `team-trophy-shelf` | Team Trophy Shelf | 0.2.1 | alpha | 2026-08-11 |
 
 ### layout (2)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `magazine-layout` | Magazine Layout | 0.3.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-8-tier2-batch-1](../.claude/decisions/2026-05-09-session-8-tier2-batch-1.md)<br>[2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-fcross12-v02-cutover](../.claude/decisions/2026-05-09-fcross12-v02-cutover.md)<br>[2026-05-09-fcross12-callback-migration-transition](../.claude/decisions/2026-05-09-fcross12-callback-migration-transition.md) |
-| `split-workspace` | Split Workspace | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-25-workspace-v0.2.0-gate-1-closed](../.claude/decisions/2026-05-25-workspace-v0.2.0-gate-1-closed.md)<br>[2026-05-25-workspace-v0.1.3-f-03-internal-jsdoc](../.claude/decisions/2026-05-25-workspace-v0.1.3-f-03-internal-jsdoc.md)<br>[2026-05-24-workspace-v0.1.2-deep-review-closeout](../.claude/decisions/2026-05-24-workspace-v0.1.2-deep-review-closeout.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `magazine-layout` | Magazine Layout | 0.3.0 | alpha | 2026-08-11 |
+| `split-workspace` | Split Workspace | 0.2.0 | alpha | 2026-08-11 |
 
 ### marketing (5)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `author-card` | Author Card | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-8-tier2-batch-1](../.claude/decisions/2026-05-09-session-8-tier2-batch-1.md) |
-| `newsletter-signup` | Newsletter Signup | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-9-tier2-batch-2](../.claude/decisions/2026-05-09-session-9-tier2-batch-2.md) |
-| `page-hero` | Page Hero | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-9-tier2-batch-2](../.claude/decisions/2026-05-09-session-9-tier2-batch-2.md)<br>[2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md) |
-| `pricing-table` | Pricing Table | 0.2.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-22-pricing-table-01-v0.1.0-first-ship](../.claude/decisions/2026-05-22-pricing-table-01-v0.1.0-first-ship.md) |
-| `share-bar` | Share Bar | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-9-tier2-batch-2](../.claude/decisions/2026-05-09-session-9-tier2-batch-2.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `author-card` | Author Card | 0.2.0 | alpha | 2026-08-11 |
+| `newsletter-signup` | Newsletter Signup | 0.2.0 | alpha | 2026-08-11 |
+| `page-hero` | Page Hero | 0.2.0 | alpha | 2026-08-11 |
+| `pricing-table` | Pricing Table | 0.2.0 | alpha | 2026-08-11 |
+| `share-bar` | Share Bar | 0.2.0 | alpha | 2026-08-11 |
 
 ### media (9)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `carousel-composer` | Carousel Composer | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-05-media-carousel-editor-01-v0.1.1-and-content-composer-01-v0.2.0](../.claude/decisions/2026-06-05-media-carousel-editor-01-v0.1.1-and-content-composer-01-v0.2.0.md)<br>[2026-06-05-media-carousel-editor-01-v0.1.0-first-ship](../.claude/decisions/2026-06-05-media-carousel-editor-01-v0.1.0-first-ship.md) |
-| `content-composer` | Content Composer | 0.3.1 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-06-config-playgrounds-and-rich-card-ssr-fix](../.claude/decisions/2026-06-06-config-playgrounds-and-rich-card-ssr-fix.md)<br>[2026-06-05-media-carousel-editor-01-v0.1.1-and-content-composer-01-v0.2.0](../.claude/decisions/2026-06-05-media-carousel-editor-01-v0.1.1-and-content-composer-01-v0.2.0.md)<br>[2026-06-04-content-composer-01-v0.1.0-first-ship](../.claude/decisions/2026-06-04-content-composer-01-v0.1.0-first-ship.md)<br>[2026-06-04-content-composer-01-gate-1-2-and-foundation](../.claude/decisions/2026-06-04-content-composer-01-gate-1-2-and-foundation.md) |
-| `media-carousel` | Media Carousel | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `media-editor` | Media Editor | 0.3.0 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-05-media-carousel-editor-01-v0.1.0-first-ship](../.claude/decisions/2026-06-05-media-carousel-editor-01-v0.1.0-first-ship.md)<br>[2026-06-04-content-composer-01-gate-1-2-and-foundation](../.claude/decisions/2026-06-04-content-composer-01-gate-1-2-and-foundation.md)<br>[2026-06-03-media-editor-01-v0.1.2-followup-fixes](../.claude/decisions/2026-06-03-media-editor-01-v0.1.2-followup-fixes.md)<br>[2026-06-03-media-editor-01-v0.1.1-walkthrough-fixes](../.claude/decisions/2026-06-03-media-editor-01-v0.1.1-walkthrough-fixes.md)<br>[2026-06-02-media-editor-01-v0.1.0-extraction-and-story-composer-01-v0.2.0](../.claude/decisions/2026-06-02-media-editor-01-v0.1.0-extraction-and-story-composer-01-v0.2.0.md)<br>[2026-06-02-media-editor-01-extraction-c1-c8-phase-a-half](../.claude/decisions/2026-06-02-media-editor-01-extraction-c1-c8-phase-a-half.md) |
-| `media-library` | Media Library | 0.2.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-06-09-media-library-01-v0.1.0-first-ship](../.claude/decisions/2026-06-09-media-library-01-v0.1.0-first-ship.md) |
-| `pdf-viewer` | PDF Viewer | 0.1.5 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-10-pdf-viewer-v013-video-player-v012-runtime-fixes](../.claude/decisions/2026-05-10-pdf-viewer-v013-video-player-v012-runtime-fixes.md)<br>[2026-05-10-pdf-viewer-v01-pipeline](../.claude/decisions/2026-05-10-pdf-viewer-v01-pipeline.md) |
-| `story-composer` | Story Composer | 0.4.0 | alpha | 2026-08-11 | [2026-08-11-p3-feature-slicing-convention](../.claude/decisions/2026-08-11-p3-feature-slicing-convention.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-03-media-editor-01-v0.1.1-walkthrough-fixes](../.claude/decisions/2026-06-03-media-editor-01-v0.1.1-walkthrough-fixes.md)<br>[2026-06-02-media-editor-01-v0.1.0-extraction-and-story-composer-01-v0.2.0](../.claude/decisions/2026-06-02-media-editor-01-v0.1.0-extraction-and-story-composer-01-v0.2.0.md)<br>[2026-06-02-media-editor-01-extraction-c1-c8-phase-a-half](../.claude/decisions/2026-06-02-media-editor-01-extraction-c1-c8-phase-a-half.md)<br>[2026-06-01-story-composer-01-v0.1.5-photo-preview-and-arrow-keys](../.claude/decisions/2026-06-01-story-composer-01-v0.1.5-photo-preview-and-arrow-keys.md)<br>[2026-06-01-story-composer-01-v0.1.0-first-ship](../.claude/decisions/2026-06-01-story-composer-01-v0.1.0-first-ship.md) |
-| `story-viewer` | Story Viewer | 0.5.0 | alpha | 2026-08-11 | [2026-05-30-story-viewer-01-v0.4.x-cube-swipe-arc](../.claude/decisions/2026-05-30-story-viewer-01-v0.4.x-cube-swipe-arc.md)<br>[2026-05-29-story-viewer-01-v0.3.x-arc-comments-share-link-drawer-heart-toggle](../.claude/decisions/2026-05-29-story-viewer-01-v0.3.x-arc-comments-share-link-drawer-heart-toggle.md)<br>[2026-05-29-story-viewer-01-v0.3.0-comments-panel-and-bookmark-removal](../.claude/decisions/2026-05-29-story-viewer-01-v0.3.0-comments-panel-and-bookmark-removal.md)<br>[2026-05-29-story-viewer-01-v0.2.0-engagement-layer-ship](../.claude/decisions/2026-05-29-story-viewer-01-v0.2.0-engagement-layer-ship.md)<br>[2026-05-09-session-9-tier2-batch-2](../.claude/decisions/2026-05-09-session-9-tier2-batch-2.md)<br>[2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md) |
-| `video-player` | Video Player | 0.2.0 | alpha | 2026-08-11 | [2026-05-10-pdf-viewer-v013-video-player-v012-runtime-fixes](../.claude/decisions/2026-05-10-pdf-viewer-v013-video-player-v012-runtime-fixes.md)<br>[2026-05-09-session-9-tier2-batch-2](../.claude/decisions/2026-05-09-session-9-tier2-batch-2.md)<br>[2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `carousel-composer` | Carousel Composer | 0.2.0 | alpha | 2026-08-11 |
+| `content-composer` | Content Composer | 0.3.1 | alpha | 2026-08-11 |
+| `media-carousel` | Media Carousel | 0.2.0 | alpha | 2026-08-11 |
+| `media-editor` | Media Editor | 0.3.0 | alpha | 2026-08-11 |
+| `media-library` | Media Library | 0.2.0 | alpha | 2026-08-11 |
+| `pdf-viewer` | PDF Viewer | 0.1.5 | alpha | 2026-08-11 |
+| `story-composer` | Story Composer | 0.4.0 | alpha | 2026-08-11 |
+| `story-viewer` | Story Viewer | 0.5.0 | alpha | 2026-08-11 |
+| `video-player` | Video Player | 0.2.0 | alpha | 2026-08-11 |
 
 ### navigation (4)
 
-| Slug | Name | Version | Status | Updated | Decisions |
-|---|---|---|---|---|---|
-| `account-switcher` | Account Switcher | 0.2.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-05-23-rich-sidebar-rename-plus-v0.2-gate-1-drafts](../.claude/decisions/2026-05-23-rich-sidebar-rename-plus-v0.2-gate-1-drafts.md)<br>[2026-05-23-gate-2-plans-account-switcher-and-rich-sidebar-v0.2](../.claude/decisions/2026-05-23-gate-2-plans-account-switcher-and-rich-sidebar-v0.2.md)<br>[2026-05-23-gate-1-close-account-switcher-and-rich-sidebar-v0.2](../.claude/decisions/2026-05-23-gate-1-close-account-switcher-and-rich-sidebar-v0.2.md)<br>[2026-05-23-account-switcher-01-v0.1.0-first-ship](../.claude/decisions/2026-05-23-account-switcher-01-v0.1.0-first-ship.md) |
-| `app-sidebar` | App Sidebar | 0.4.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-23-rich-sidebar-v0.3.0-a-plus-pass](../.claude/decisions/2026-05-23-rich-sidebar-v0.3.0-a-plus-pass.md)<br>[2026-05-23-rich-sidebar-v0.2.0-additive-expansion](../.claude/decisions/2026-05-23-rich-sidebar-v0.2.0-additive-expansion.md)<br>[2026-05-23-rich-sidebar-rename-plus-v0.2-gate-1-drafts](../.claude/decisions/2026-05-23-rich-sidebar-rename-plus-v0.2-gate-1-drafts.md)<br>[2026-05-23-gate-2-plans-account-switcher-and-rich-sidebar-v0.2](../.claude/decisions/2026-05-23-gate-2-plans-account-switcher-and-rich-sidebar-v0.2.md)<br>[2026-05-23-gate-1-close-account-switcher-and-rich-sidebar-v0.2](../.claude/decisions/2026-05-23-gate-1-close-account-switcher-and-rich-sidebar-v0.2.md) |
-| `file-manager` | File Manager | 0.1.3 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-10-file-manager-v01-pipeline](../.claude/decisions/2026-05-10-file-manager-v01-pipeline.md) |
-| `file-tree` | File Tree | 0.1.3 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-10-file-tree-v01-pipeline](../.claude/decisions/2026-05-10-file-tree-v01-pipeline.md) |
+| Slug | Name | Version | Status | Updated |
+|---|---|---|---|---|
+| `account-switcher` | Account Switcher | 0.2.0 | alpha | 2026-08-11 |
+| `app-sidebar` | App Sidebar | 0.4.0 | alpha | 2026-08-11 |
+| `file-manager` | File Manager | 0.1.3 | alpha | 2026-08-11 |
+| `file-tree` | File Tree | 0.1.3 | alpha | 2026-08-11 |
 
 ## How history works
 
-Per-component narrative history (what changed, why, findings, follow-ups) lives in [`.claude/decisions/`](../.claude/decisions/) — one file per shipped decision. [`.claude/STATUS.md`](../.claude/STATUS.md) is the current lean snapshot with a "Recent activity" pointer to the newest files. This document is a pure generated index: version / status / updatedAt pulled straight from each component's `meta.ts`, cross-referenced against decision-file frontmatter `components:` lists. Regenerate with `pnpm build:component-versions` whenever a `meta.ts` bumps or a new decision file lands.
+User-facing changes are recorded in [`CHANGELOG.md`](../CHANGELOG.md). This document is a pure generated index: version / status / updatedAt pulled straight from each component's `meta.ts`. Regenerate with `pnpm build:component-versions` whenever a `meta.ts` bumps.
