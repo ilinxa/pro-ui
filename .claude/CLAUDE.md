@@ -44,17 +44,14 @@ pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 - **Registry distribution:** [`registry.json`](../registry.json) at repo root drives `https://ui.ilinxa.com/r/<slug>.json`. TWO items per component: base + `<slug>-fixtures` (adds only `dummy-data.ts`). Locked: every file `type: "registry:component"`, `target: "components/<slug>/<sub-path>"`; never ship `demo.tsx` / `usage.tsx` / `meta.ts`. `pnpm vercel-build` regenerates artifacts + the llms/README catalog each deploy. Skill: [shadcn-registry-pro](skills/shadcn-registry-pro/). Feature items (`meta.featureOf`) ship opt-in slices into `components/<base>/features/<name>/`, injection-wired, never overwriting base files — see [docs/feature-slicing-convention.md](../docs/feature-slicing-convention.md).
 
 ## Workflow
-0. **(Migration intake — only if porting from another app)** `pnpm new:migration <slug>` scaffolds `docs/migrations/<slug>/`; user fills `original/` + `source-notes.md`, assistant writes `analysis.md`, sign-off before Stage 1. See [docs/migrations/README.md](../docs/migrations/README.md).
-1. **(Required gates — GATE 1 + GATE 2)** Before any code, author `docs/procomps/<slug>-procomp/` planning docs, sign-off IN ORDER: `<slug>-procomp-description.md` (what & why — **GATE 1**), then `<slug>-procomp-plan.md` (how — **GATE 2**); guide doc authored alongside implementation. **Never scaffold before both confirmed** — if asked without these docs, draft the description and pause. See [docs/procomps/README.md](../docs/procomps/README.md) + [component-guide §2](../docs/component-guide.md#2-before-you-start).
-2. `pnpm new:component <category>/<slug>` generates the folder from `_template/`.
-3. Implement the component, fill `meta.ts`, write the demo and usage.
-4. Paste the printed 3 lines into `src/registry/manifest.ts` (registers it in the docs site).
-5. Verify the docs render at `/components` and `/components/<slug>`.
-6. **Add the component to [`registry.json`](../registry.json)** — base + fixtures items per the locked convention above. Pattern: [component-guide §11.5](../docs/component-guide.md#115-shipping-via-the-registry).
-7. `pnpm registry:build` to regenerate `public/r/*.json` locally; spot-check the new `<slug>.json` artifact. Optional but recommended on first ship: smoke-test from a tmp consumer (see §11.5).
-8. **(Required gate — must, GATE 3)** Structured readiness review per [rules/readiness-review.md](rules/readiness-review.md) (always loaded; full spec in [docs/reviews/readiness-review-spec.md](../docs/reviews/readiness-review-spec.md)). Verdict ≥ `Pass with follow-ups` to close.
-9. Update `.claude/STATUS.md` with the new entry and any decisions worth keeping. Add the review file to the "Recent activity" pointer if non-trivial.
-10. Commit + push to `master`. Vercel auto-runs `pnpm vercel-build` on each deploy, regenerating the catalog from `registry.json`. Once deployed, the component is installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>` from any consumer app.
+> **Operational driver:** the `procomp-loop` skill (C-loop create · U-loop update) sequences these steps with orchestration, adversarial review, and smoke proof — invoke it for any component build or change.
+0. **(Migration intake — only if porting from another app)** `pnpm new:migration <slug>`; sign-off before Stage 1. See [docs/migrations/README.md](../docs/migrations/README.md).
+1. **(GATE 1 + GATE 2)** Author `docs/procomps/<slug>-procomp/` planning docs; sign-off IN ORDER: description (**GATE 1**), then plan (**GATE 2**); guide authored alongside implementation. **Never scaffold before both confirmed** — if asked without these docs, draft the description and pause. See [docs/procomps/README.md](../docs/procomps/README.md).
+2. `pnpm new:component <category>/<slug>` → implement, fill `meta.ts`, write demo + usage.
+3. Paste the printed 3 lines into `src/registry/manifest.ts`; verify `/components/<slug>` renders.
+4. Add base + `<slug>-fixtures` items to [`registry.json`](../registry.json) per the locked convention; `pnpm registry:build`; smoke-test from a tmp consumer ([component-guide §11.5](../docs/component-guide.md#115-shipping-via-the-registry)).
+5. **(GATE 3)** Readiness review per [rules/readiness-review.md](rules/readiness-review.md); verdict ≥ `Pass with follow-ups` to close.
+6. Update `.claude/STATUS.md` (+ decision file if non-obvious); commit + push to `master` — Vercel runs `pnpm vercel-build`; component becomes installable via `pnpm dlx shadcn@latest add @ilinxa/<slug>`.
 
 For human-readable rules + a worked example, see [docs/component-guide.md](../docs/component-guide.md) — the long-form reference; this `CLAUDE.md` stays terse. Registry-side detail: `shadcn-registry-pro` skill.
 
@@ -91,7 +88,8 @@ Four tiers, each with a three-gate workflow + review specifics. **procomp** (abo
 Full tier model + per-tier gate specifics: [docs/library-tiers-charter.md](../docs/library-tiers-charter.md). Tier folders: [docs/sections/](../docs/sections/), [docs/pages/](../docs/pages/), [docs/panels/](../docs/panels/).
 
 ## Rules
-- **IMPORTANT — Feature readiness loop:** use the `feature-readiness-loop` skill for any feature/module build, hardening, or close-out. Config: `.claude/readiness.config.md`.
+- **IMPORTANT — Component loops:** use the `procomp-loop` skill for ANY library-component creation (C-loop) or update/upgrade/promotion (U-loop) — it drives GATE 1/2/3 end-to-end with subagent orchestration. Criteria config: [.claude/procomp-loop.config.md](procomp-loop.config.md). Never scaffold or edit a component outside a loop run.
+- **IMPORTANT — Feature readiness loop:** use the `feature-readiness-loop` skill for **non-component** feature/module work (site, tooling, validators, docs systems, phase arcs). Config: `.claude/readiness.config.md`.
 - **IMPORTANT — Subagent models:** Opus 4.8[1m] or Sonnet 5[1m] only; **never Opus 5** (doesn't follow rules); cheap tiers for bulk jobs need verification. Full rule: [rules/subagent-model-policy.md](rules/subagent-model-policy.md).
 - **IMPORTANT — Readiness review (GATE 3):** every new library artifact MUST pass a structured review, verdict ≥ `Pass with follow-ups`, before push to `master`. The core rule auto-loads from [rules/readiness-review.md](rules/readiness-review.md); full spec at [docs/reviews/readiness-review-spec.md](../docs/reviews/readiness-review-spec.md).
 - **IMPORTANT — Compound structure for big components:** Any multi-part artifact (≥3 mountable regions, composes another procomp, pulls a heavy dep, or a consumer could want a subset) MUST ship as a shadcn-style compound — headless `Root` provider + flat à-la-carte parts + standalone primitives + a logic-free `<Name>` assembly; flat exports (never `Name.Root`); heavy deps `React.lazy`. Single-unit widgets are exempt. Full rule (path-scoped) at [.claude/rules/compound-component-structure.md](rules/compound-component-structure.md). Reference impl: `media-library`.
