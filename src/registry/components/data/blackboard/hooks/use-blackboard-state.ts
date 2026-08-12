@@ -40,6 +40,18 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+// Drops extras the controlled `notes` prop has absorbed (same id). Pure — safe
+// under StrictMode double-invoked updaters. Returns `prev` identity when nothing
+// is absorbed so callers don't trigger spurious renders. Called opportunistically
+// from the `setExtras` writers (post / appendNote / loadOlder) instead of a prune
+// effect, which would be a set-state-in-effect cascade (v0.1.0 review F-03).
+function pruneAbsorbed(prev: BlackboardNote[], notes: BlackboardNote[]): BlackboardNote[] {
+  if (prev.length === 0) return prev;
+  const propIds = new Set(notes.map((n) => n.id));
+  const next = prev.filter((e) => !propIds.has(e.id));
+  return next.length === prev.length ? prev : next;
+}
+
 /**
  * The headless controller — builds the full `BlackboardContextValue` from
  * `BlackboardRootProps`. Owns optimistic posting + reconcile, lazy-load cursor,
@@ -109,9 +121,8 @@ export function useBlackboardController(props: BlackboardRootProps): BlackboardC
 
   // Display = controlled `notes` ∪ local extras (optimistic posts, real-time
   // appends, loaded-older pages), deduped by id with `notes` winning. Extras whose
-  // id is now in `notes` are filtered out here (no prune effect needed — that would
-  // be a set-state-in-effect cascade). Reconciled extras linger harmlessly; growth
-  // is bounded in `setExtras` callers. (v0.1.1: opportunistic prune of absorbed extras.)
+  // id is now in `notes` are filtered out here; the buffer itself is pruned
+  // opportunistically via `pruneAbsorbed` in the `setExtras` writers (F-03).
   const merged = useMemo(() => {
     const propIds = new Set(notes.map((n) => n.id));
     const extraOnly = extras.filter((e) => !propIds.has(e.id));
@@ -248,11 +259,11 @@ export function useBlackboardController(props: BlackboardRootProps): BlackboardC
       mentions,
       pending: true,
     };
-    setExtras((prev) => [...prev, optimistic]);
+    setExtras((prev) => [...pruneAbsorbed(prev, notes), optimistic]);
     setDraft((d) => ({ ...d, text: "", mentions: [] }));
     submit(optimistic);
     scrollToLatest();
-  }, [draft.text, draft.style, canWrite, onPostNote, members, currentUser, submit, scrollToLatest]);
+  }, [draft.text, draft.style, canWrite, onPostNote, members, currentUser, notes, submit, scrollToLatest]);
 
   const retryPost = useCallback(
     (id: string) => {
@@ -292,11 +303,12 @@ export function useBlackboardController(props: BlackboardRootProps): BlackboardC
     const older = await onLoadOlder(oldest ? oldest.id : null, loadOlderPageSize);
     if (older.length === 0) return;
     // Prepend any that aren't already present (consumer owns `notes`, but we
-    // surface them immediately via extras; the prune effect reconciles).
+    // surface them immediately via extras until the host absorbs them).
     setExtras((prev) => {
-      const known = new Set([...notes.map((n) => n.id), ...prev.map((e) => e.id)]);
+      const base = pruneAbsorbed(prev, notes);
+      const known = new Set([...notes.map((n) => n.id), ...base.map((e) => e.id)]);
       const fresh = older.filter((o) => !known.has(o.id));
-      return fresh.length ? [...fresh, ...prev] : prev;
+      return fresh.length ? [...fresh, ...base] : base;
     });
   }, [onLoadOlder, merged, loadOlderPageSize, notes]);
 
@@ -324,8 +336,9 @@ export function useBlackboardController(props: BlackboardRootProps): BlackboardC
       appendNote: (note) => {
         setExtras((prev) => {
           if (prev.some((e) => e.id === note.id)) return prev;
-          // Cap the local buffer so a long-lived real-time stream can't grow unbounded.
-          const next = [...prev, note];
+          // Prune absorbed entries, then cap so a long-lived real-time stream
+          // can't grow unbounded.
+          const next = [...pruneAbsorbed(prev, notes), note];
           return next.length > 300 ? next.slice(next.length - 300) : next;
         });
         scrollToLatest();
@@ -333,7 +346,7 @@ export function useBlackboardController(props: BlackboardRootProps): BlackboardC
       focusComposer: () => composerRef.current?.focus(),
       markAllSeen,
     }),
-    [scrollToLatest, markAllSeen],
+    [scrollToLatest, markAllSeen, notes],
   );
 
   return {
