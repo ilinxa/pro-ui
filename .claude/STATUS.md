@@ -11,8 +11,9 @@
 - **P3 feature-slicing SHIPPED:** injection-surface feature items (`event-calendar-editing` 95.4KB, `media-editor-capture` 53.5KB), `gamification-kit`, `validate:artifact-size` + budgets on all 63, 27 pinned style-URL regDeps de-pinned (F-cross-13 carrier retired), structure audits 11/11 heavy tail. Review: [`docs/reviews/2026-08-11-p3-feature-slicing-review.md`](../docs/reviews/2026-08-11-p3-feature-slicing-review.md).
 - **P2 great rename SHIPPED:** 52/63 slugs renamed full-surface (identifiers included), 52 deprecated aliases live (old install names redirect), 63 canon descriptions (≤160), brand unified *ilinxa pro-ui*, `validate:naming` + artifact-clean wired. Review: [`docs/reviews/2026-08-11-p2-rename-review.md`](../docs/reviews/2026-08-11-p2-rename-review.md). **User actions open: DNS `ui.ilinxa.com` (CNAME → cname.vercel-dns.com + Vercel domain attach) · then submit the directory PR per [`docs/directory-pr-pack.md`](../docs/directory-pr-pack.md).**
 - **Deep review 2026-08-10:** [`docs/reviews/2026-08-10-deep-codebase-review.md`](../docs/reviews/2026-08-10-deep-codebase-review.md) — ~90 findings; **all Blocker/High FIXED by P1** (outcome ledger in review §0; open Mediums/Lows have owners there). 23 components patch-bumped ([decision](decisions/2026-08-10-p1-fix-program.md)).
-- Library: **63 pro-components / 9 populated categories** + 2 feature-slice items + 1 shared kit (`_shared`).
-- Gates: tsc 0 · **lint 0 errors** (9 pre-existing warnings) · meta-deps 63/63 (reverse-npm) · registry-json validator ✓ · doc validators ✓ · build green.
+- **Component loops LIVE (2026-08-12):** `procomp-loop` skill (C-loop create · U-loop update) + `.claude/procomp-loop.config.md` now drive all component work — CLAUDE.md mandate wired. Proven by two same-day pilots: `empty-state` v0.1.0 (C-loop, GATE 3 Pass-with-follow-ups) + `blackboard` v0.2.1 (U-loop patch, owed F-03 landed).
+- Library: **64 pro-components / 9 populated categories** + 2 feature-slice items + 1 shared kit (`_shared`).
+- Gates: tsc 0 · **lint 0 errors** (9 pre-existing warnings) · meta-deps 64/64 (reverse-npm) · registry-json validator ✓ · doc validators ✓ · build green.
 
 ## Library tiers
 
@@ -20,7 +21,7 @@ Charter: [`docs/library-tiers-charter.md`](../docs/library-tiers-charter.md) · 
 
 | Tier | Shipped | Distribution |
 |---|---|---|
-| pro-component | 63 | runtime (`registry:component`) |
+| pro-component | 64 | runtime (`registry:component`) |
 | pro-section / pro-page / pro-panel | 0 — charter locked, tooling Phase B | runtime / scaffold-fork |
 
 ## Components
@@ -31,7 +32,7 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 |---|---|---|---|
 | `code-block` | code | 0.1.4 | alpha |
 | `article-meta` | data | 0.2.0 | alpha |
-| `blackboard` | data | 0.2.0 | alpha |
+| `blackboard` | data | 0.2.1 | alpha |
 | `card-tree` | data | 0.5.0 | beta |
 | `card-tree-node` | data | 0.3.0 | alpha |
 | `comment-thread` | data | 0.3.0 | alpha |
@@ -58,6 +59,7 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 | `task-tree` | data | 0.4.0 | alpha |
 | `thumbnail-list` | data | 0.2.0 | alpha |
 | `detail-panel` | feedback | 0.1.2 | alpha |
+| `empty-state` | feedback | 0.1.0 | alpha |
 | `category-cloud` | forms | 0.2.0 | alpha |
 | `entity-picker` | forms | 0.1.3 | alpha |
 | `filter-bar` | forms | 0.2.0 | alpha |
@@ -118,12 +120,11 @@ One line per component: version + status (source of truth: each `meta.ts`; regen
 
 Five most-recent, one line each. Full log: [`.claude/decisions/`](decisions/).
 
+- **2026-08-12 — procomp-loop system SHIPPED + proven: C-loop pilot `empty-state` v0.1.0, U-loop pilot `blackboard` v0.2.1** ([decision](decisions/2026-08-12-procomp-loop-system.md) · [review](../docs/procomps/empty-state-procomp/reviews/2026-08-12-v0.1.0-spotcheck.md)) — skill + config + CLAUDE.md mandate; pilots: 4 CONFIRMED findings fixed pre-ship, 18/18 + 3/3 live checks, consumer tsc 0 both backend-relevant items.
 - **2026-08-12 — P4 polish/1.0 SHIPPED via feature-readiness loop: 1.0 bar ratified, CLI 4.17.0 evidence, site baseline, generated versions doc** ([decision](decisions/2026-08-12-p4-one-point-oh-bar.md) · [review](../docs/reviews/2026-08-12-p4-polish-review.md)) — 2 adversarial finders (14 findings, 12 fixed) + 31/31 runtime checks; OG-cascade + CRLF-validator bugs caught live.
 - **2026-08-11 — P3 feature-slicing SHIPPED end-to-end via feature-readiness loop** ([decision](decisions/2026-08-11-p3-feature-slicing-convention.md) · [review](../docs/reviews/2026-08-11-p3-feature-slicing-review.md)) — spike-verdicted injection convention, 2 pilots, kit, 5 validators feature-aware, e2e both backends.
 - **2026-08-11 — P2 great rename SHIPPED: 52 slugs + identifier families, aliases, canon copy, ui.ilinxa.com** ([decision](decisions/2026-08-11-p2-great-rename.md) · [review](../docs/reviews/2026-08-11-p2-rename-review.md)) — 2 codemods (16.4k replacements), 3 adversarial verify passes all closed pre-push, clean-project directory audit green.
 - **2026-08-11 — Open-source MIT + registry-directory plan** ([decision](decisions/2026-08-11-open-source-mit-directory-plan.md)) — LICENSE shipped; external guide audited (central "blocker" was false); directory PR sequenced after P2.
-- **2026-08-11 — P1.5 F-cross-13 path-b carrier sweep: 23 patch bumps, zero asChild/delayDuration/ToggleGroup in shipped code** ([decision](decisions/2026-08-11-p1-5-carrier-sweep.md)) — 5 parallel fix agents + 3 adversarial verifiers (caught 1 real regression pre-ship: calendar touch long-press); calendar/app-sidebar tooltips now local; registry deps pruned.
-
 ## How to update this file
 
 Slim snapshot only — **never** verbose entries, **never** banner blockquotes (banners are changelog; changelog = decision files). Components table rows are one line: version + status. Recent activity = 5 one-liners max. When something ships: update the table row, author `.claude/decisions/<date>-<slug>.md`, add a one-line Recent-activity pointer, trim to 5. Stay under the 14KB budget — `pnpm validate:doc-budget` fails the build otherwise.
