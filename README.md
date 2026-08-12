@@ -101,7 +101,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 <!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
 ## Available components
 
-63 components across 9 categories, each with an optional `-fixtures` sibling for example data. Generated from [`registry.json`](registry.json) — run `pnpm build:llms` after registry changes.
+64 components across 9 categories, each with an optional `-fixtures` sibling for example data. Generated from [`registry.json`](registry.json) — run `pnpm build:llms` after registry changes.
 
 | Slug | Category | Description |
 |---|---|---|
@@ -134,6 +134,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `task-tree` | data | Hierarchical task outline with multi-select, bulk operations, search and filter toolbar, dual drag-and-drop, and virtua… |
 | `thumbnail-list` | data | Linked thumbnail list — small image, title, and meta line per row, each row one link target. |
 | `detail-panel` | feedback | Selection-aware detail container with read and edit modes, lifecycle states, sticky header and footer actions, and a sl… |
+| `empty-state` | feedback | The designed answer for empty surfaces — icon or illustration, title, description, capability-gated actions, and a hint… |
 | `category-cloud` | forms | Flex-wrapped cloud of clickable category chips with optional counts — single-select, toggleable, controlled or uncontro… |
 | `entity-picker` | forms | Searchable picker for typed entities — single or multi select, kind badges, chip cluster with removal, and custom rende… |
 | `filter-bar` | forms | Composite filter bar — search, category pills, date-range picker, and results count, each independently controlled or h… |

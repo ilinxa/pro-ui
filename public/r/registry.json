@@ -778,6 +778,62 @@
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "empty-state",
+      "type": "registry:block",
+      "title": "Empty State",
+      "description": "The designed answer for empty surfaces — icon or illustration, title, description, capability-gated actions, and a hint, across 6 variants and 3 sizes.",
+      "author": "ilinxa",
+      "categories": [
+        "feedback"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/feedback/empty-state/empty-state.tsx",
+          "type": "registry:component",
+          "target": "components/empty-state/empty-state.tsx"
+        },
+        {
+          "path": "src/registry/components/feedback/empty-state/types.ts",
+          "type": "registry:component",
+          "target": "components/empty-state/types.ts"
+        },
+        {
+          "path": "src/registry/components/feedback/empty-state/index.ts",
+          "type": "registry:component",
+          "target": "components/empty-state/index.ts"
+        }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "empty-state-fixtures",
+      "type": "registry:block",
+      "title": "Empty State — fixtures",
+      "description": "Empty State plus the dummy-data fixtures used by the docs-site demo.",
+      "author": "ilinxa",
+      "categories": [
+        "feedback",
+        "fixtures"
+      ],
+      "registryDependencies": [
+        "@ilinxa/empty-state"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/feedback/empty-state/dummy-data.ts",
+          "type": "registry:component",
+          "target": "components/empty-state/dummy-data.ts"
+        }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "name": "filter-panel",
       "type": "registry:block",
       "title": "Filter Panel",

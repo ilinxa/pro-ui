@@ -48,9 +48,9 @@ The CLI auto-installs shadcn primitives (button, popover, etc.) and npm peer dep
 Files land relative to the consumer's source root: `components/<slug>/<sub-path>` at the project root, or `src/components/<slug>/<sub-path>` when the project has a `src/` directory. A custom `aliases.components` does NOT relocate these files (registry items ship explicit target paths; only alias-resolved shadcn primitives like `ui/*` follow custom aliases) — imports are rewritten to the consumer's aliases either way, so installs compile without moving anything. Verified empirically on shadcn CLI 4.17.0 across root-layout, src-layout, and custom-alias consumers.
 
 <!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
-## Available items (128 total — 63 base + 63 fixtures + 2 feature slices)
+## Available items (130 total — 64 base + 64 fixtures + 2 feature slices)
 
-63 components across 9 categories. Every item installs as `@ilinxa/<slug>`; each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only (fixtures depend on the base — installing fixtures pulls the base automatically). Some components additionally offer optional feature slices — install `@ilinxa/<slice>` on top of the base for opt-in heavier capability.
+64 components across 9 categories. Every item installs as `@ilinxa/<slug>`; each has a sibling `<slug>-fixtures` item that adds `dummy-data.ts` only (fixtures depend on the base — installing fixtures pulls the base automatically). Some components additionally offer optional feature slices — install `@ilinxa/<slice>` on top of the base for opt-in heavier capability.
 
 ### code
 
@@ -90,6 +90,7 @@ Files land relative to the consumer's source root: `components/<slug>/<sub-path>
 ### feedback
 
 - `@ilinxa/detail-panel` — Selection-aware detail container with read and edit modes, lifecycle states, sticky header and footer actions, and a slot-based body.
+- `@ilinxa/empty-state` — The designed answer for empty surfaces — icon or illustration, title, description, capability-gated actions, and a hint, across 6 variants and 3 sizes.
 
 ### forms
 

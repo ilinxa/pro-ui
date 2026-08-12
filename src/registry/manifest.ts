@@ -18,6 +18,10 @@ import DetailPanelDemo from "./components/feedback/detail-panel/demo";
 import DetailPanelUsage from "./components/feedback/detail-panel/usage";
 import { meta as detailPanelMeta } from "./components/feedback/detail-panel/meta";
 
+import EmptyStateDemo from "./components/feedback/empty-state/demo";
+import EmptyStateUsage from "./components/feedback/empty-state/usage";
+import { meta as emptyStateMeta } from "./components/feedback/empty-state/meta";
+
 import FilterPanelDemo from "./components/forms/filter-panel/demo";
 import FilterPanelUsage from "./components/forms/filter-panel/usage";
 import { meta as filterPanelMeta } from "./components/forms/filter-panel/meta";
@@ -278,6 +282,11 @@ export const REGISTRY: RegistryEntry[] = [
     meta: detailPanelMeta,
     Demo: DetailPanelDemo,
     Usage: DetailPanelUsage,
+  },
+  {
+    meta: emptyStateMeta,
+    Demo: EmptyStateDemo,
+    Usage: EmptyStateUsage,
   },
   {
     meta: filterPanelMeta,

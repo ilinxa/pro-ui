@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "empty-state-fixtures",
+  "title": "Empty State — fixtures",
+  "author": "ilinxa",
+  "description": "Empty State plus the dummy-data fixtures used by the docs-site demo.",
+  "registryDependencies": [
+    "@ilinxa/empty-state"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/feedback/empty-state/dummy-data.ts",
+      "content": "import { createElement, type ReactNode } from \"react\";\nimport type { EmptyStateVariant } from \"./types\";\n\n/** Per-variant sample copy for the docs demo. Copy is host-domain in real usage — see Q2. */\nexport const EMPTY_STATE_DUMMY_COPY: Record<\n  EmptyStateVariant,\n  { title: string; description: string }\n> = {\n  default: {\n    title: \"No projects yet\",\n    description: \"Projects you create will show up here.\",\n  },\n  search: {\n    title: \"No results for “gantt”\",\n    description: \"Try a different term or clear the active filters.\",\n  },\n  error: {\n    title: \"Couldn't load this page\",\n    description: \"Something went wrong on our end. Try again in a moment.\",\n  },\n  offline: {\n    title: \"You're offline\",\n    description: \"Changes will sync automatically once you're back online.\",\n  },\n  permission: {\n    title: \"You don't have access\",\n    description: \"Ask a workspace admin to grant you access to this board.\",\n  },\n  \"first-use\": {\n    title: \"Upload your first file\",\n    description: \"Drag and drop anywhere, or browse from your device.\",\n  },\n};\n\n/**\n * Small inline SVG illustration for the media-slot demo tab. Built with\n * `createElement` (not JSX) because this file ships as plain `.ts` — see\n * plan P-F4: the demo imports this rather than duplicating an inline node.\n * `currentColor` only, no hex/rgb — inherits `text-muted-foreground`.\n */\nexport const EMPTY_STATE_DUMMY_ILLUSTRATION: ReactNode = createElement(\n  \"svg\",\n  {\n    viewBox: \"0 0 96 72\",\n    className: \"h-24 w-32 text-muted-foreground\",\n    fill: \"none\",\n    xmlns: \"http://www.w3.org/2000/svg\",\n  },\n  createElement(\"rect\", {\n    x: 4,\n    y: 14,\n    width: 88,\n    height: 54,\n    rx: 8,\n    stroke: \"currentColor\",\n    strokeOpacity: 0.35,\n    strokeWidth: 2,\n  }),\n  createElement(\"path\", {\n    d: \"M4 50 L28 32 L46 46 L64 26 L92 48\",\n    stroke: \"currentColor\",\n    strokeOpacity: 0.55,\n    strokeWidth: 2,\n    strokeLinecap: \"round\",\n    strokeLinejoin: \"round\",\n  }),\n  createElement(\"circle\", {\n    cx: 30,\n    cy: 26,\n    r: 6,\n    className: \"fill-primary/70\",\n  }),\n);\n",
+      "type": "registry:component",
+      "target": "components/empty-state/dummy-data.ts"
+    }
+  ],
+  "categories": [
+    "feedback",
+    "fixtures"
+  ],
+  "type": "registry:block"
+}

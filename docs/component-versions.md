@@ -3,7 +3,7 @@
 # Component Versions
 
 > Generated snapshot — pure data view derived from every `meta.ts` under `src/registry/components/`, cross-referenced against `.claude/decisions/*.md` frontmatter. **Do not hand-edit** — regenerate with `pnpm build:component-versions`.
-> Snapshot marker: **2026-08-11** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
+> Snapshot marker: **2026-08-12** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
 > Naming: decision-file `components:` references are mapped old→new using the P2 rename table in [`docs/naming-canon.md`](naming-canon.md) (§3a re-stems, §3b suffix-drops, §3c unchanged — locked 2026-08-11). Parsed 19 re-stem + 33 suffix-drop + 11 unchanged rows.
 > Limitation: the naming-canon table covers only the 2026-08-11 P2 rename. Any earlier ad-hoc internal renames (e.g. a component's working name before it first shipped) are out of scope and those historical decision files will not appear linked below.
 
@@ -13,14 +13,14 @@
 |---|---|
 | `code` | 1 |
 | `data` | 27 |
-| `feedback` | 1 |
+| `feedback` | 2 |
 | `forms` | 8 |
 | `gamification` | 6 |
 | `layout` | 2 |
 | `marketing` | 5 |
 | `media` | 9 |
 | `navigation` | 4 |
-| **Total** | **63** |
+| **Total** | **64** |
 
 ## Components
 
@@ -35,7 +35,7 @@
 | Slug | Name | Version | Status | Updated | Decisions |
 |---|---|---|---|---|---|
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `blackboard` | Blackboard | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-18-blackboard-01-v0.1.0-first-ship](../.claude/decisions/2026-06-18-blackboard-01-v0.1.0-first-ship.md) |
+| `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-18-blackboard-01-v0.1.0-first-ship](../.claude/decisions/2026-06-18-blackboard-01-v0.1.0-first-ship.md) |
 | `card-tree` | Card Tree | 0.5.0 | beta | 2026-08-11 | [2026-06-06-config-playgrounds-and-rich-card-ssr-fix](../.claude/decisions/2026-06-06-config-playgrounds-and-rich-card-ssr-fix.md)<br>[2026-05-17-rich-card-v0.4.2-empty-card-add-affordances](../.claude/decisions/2026-05-17-rich-card-v0.4.2-empty-card-add-affordances.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
 | `card-tree-node` | Card Tree Node | 0.3.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-17-rich-card-in-flow-v0.2.0-port-editor](../.claude/decisions/2026-05-17-rich-card-in-flow-v0.2.0-port-editor.md)<br>[2026-05-16-rich-card-in-flow-v0.1.0-first-ship](../.claude/decisions/2026-05-16-rich-card-in-flow-v0.1.0-first-ship.md) |
 | `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 | [2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment](../.claude/decisions/2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
@@ -62,11 +62,12 @@
 | `task-tree` | Task Tree | 0.4.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-23-task-family-clipboard-unify-and-gantt-parity](../.claude/decisions/2026-06-23-task-family-clipboard-unify-and-gantt-parity.md)<br>[2026-06-18-three-procomp-review-fixes](../.claude/decisions/2026-06-18-three-procomp-review-fixes.md)<br>[2026-05-21-todo-tree-v0.1.3-dnd-hydration-fix](../.claude/decisions/2026-05-21-todo-tree-v0.1.3-dnd-hydration-fix.md)<br>[2026-05-21-todo-tree-v0.1.2-add-button-deferred-commit-f-perm](../.claude/decisions/2026-05-21-todo-tree-v0.1.2-add-button-deferred-commit-f-perm.md)<br>[2026-05-21-todo-tree-v0.1.0-and-v0.1.1-first-ship](../.claude/decisions/2026-05-21-todo-tree-v0.1.0-and-v0.1.1-first-ship.md) |
 | `thumbnail-list` | Thumbnail List | 0.2.0 | alpha | 2026-08-11 | [2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
 
-### feedback (1)
+### feedback (2)
 
 | Slug | Name | Version | Status | Updated | Decisions |
 |---|---|---|---|---|---|
 | `detail-panel` | Detail Panel | 0.1.2 | alpha | 2026-08-11 | [2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
+| `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 | — |
 
 ### forms (8)
 
