@@ -1,0 +1,69 @@
+v: 1
+repo: pro-ui
+type: oss
+release: 2026-08-12
+updated: 2026-08-12
+
+# NOTE: readme.catalog is machine-generated (pnpm build:llms, runs each deploy).
+# Its content + the README hash churn automatically — after any regen, re-stamp
+# readme h and the l ranges of catalog and every block below it.
+
+docs:
+  readme:
+    f: README.md
+    v: 2026-08-12
+    h: c63c30
+    ok: true
+    blocks:
+      hero: {l: [1, 7]}
+      install: {l: [11, 101]}
+      catalog: {l: [105, 178], deps: [changelog.unreleased]}
+      compat: {l: [182, 190]}
+      ai: {l: [194, 200]}
+      troubleshooting: {l: [204, 215]}
+      faq: {l: [219, 239]}
+      contributing: {l: [243, 332], deps: [contributing.setup]}
+      license: {l: [336, 340]}
+  changelog:
+    f: CHANGELOG.md
+    v: 2026-08-12
+    h: 3a4f77
+    ok: true
+    blocks:
+      unreleased: {l: [5, 7]}
+      "2026-08-12": {l: [9, 26]}
+  contributing:
+    f: CONTRIBUTING.md
+    v: 2026-08-12
+    h: 9bbaa2
+    ok: true
+    blocks:
+      intro: {l: [1, 5]}
+      setup: {l: [7, 28]}
+      pr: {l: [30, 42]}
+      bugs: {l: [44, 48]}
+  security:
+    f: SECURITY.md
+    v: 2026-08-12
+    h: 31c5e6
+    ok: true
+    blocks:
+      report: {l: [1, 12]}
+      versions: {l: [14, 20]}
+  support:
+    f: SUPPORT.md
+    v: 2026-08-12
+    h: d2e48b
+    ok: true
+    blocks:
+      routes: {l: [1, 7]}
+  coc:
+    f: CODE_OF_CONDUCT.md
+    v: 2026-08-12
+    h: "203553"
+    ok: true
+    blocks:
+      full: {l: [1, 134]}
+
+log:
+  - "2026-08-12 2026-08-12 bootstrap: index + changelog + contributing + security + support + coc + readme anchors/faq"

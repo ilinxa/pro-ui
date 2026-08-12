@@ -35,7 +35,7 @@
 | Slug | Name | Version | Status | Updated | Decisions |
 |---|---|---|---|---|---|
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
-| `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 | [2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-18-blackboard-01-v0.1.0-first-ship](../.claude/decisions/2026-06-18-blackboard-01-v0.1.0-first-ship.md) |
+| `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 | [2026-08-12-procomp-loop-system](../.claude/decisions/2026-08-12-procomp-loop-system.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-06-18-blackboard-01-v0.1.0-first-ship](../.claude/decisions/2026-06-18-blackboard-01-v0.1.0-first-ship.md) |
 | `card-tree` | Card Tree | 0.5.0 | beta | 2026-08-11 | [2026-06-06-config-playgrounds-and-rich-card-ssr-fix](../.claude/decisions/2026-06-06-config-playgrounds-and-rich-card-ssr-fix.md)<br>[2026-05-17-rich-card-v0.4.2-empty-card-add-affordances](../.claude/decisions/2026-05-17-rich-card-v0.4.2-empty-card-add-affordances.md)<br>[2026-05-09-session-7b-phase-5](../.claude/decisions/2026-05-09-session-7b-phase-5.md)<br>[2026-05-09-session-7b-phase-3](../.claude/decisions/2026-05-09-session-7b-phase-3.md) |
 | `card-tree-node` | Card Tree Node | 0.3.0 | alpha | 2026-08-11 | [2026-08-11-p1-5-carrier-sweep](../.claude/decisions/2026-08-11-p1-5-carrier-sweep.md)<br>[2026-08-10-p1-fix-program](../.claude/decisions/2026-08-10-p1-fix-program.md)<br>[2026-05-17-rich-card-in-flow-v0.2.0-port-editor](../.claude/decisions/2026-05-17-rich-card-in-flow-v0.2.0-port-editor.md)<br>[2026-05-16-rich-card-in-flow-v0.1.0-first-ship](../.claude/decisions/2026-05-16-rich-card-in-flow-v0.1.0-first-ship.md) |
 | `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 | [2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment](../.claude/decisions/2026-05-28-ilx-3-and-ilx-4-moderator-and-edited-comment.md)<br>[2026-05-09-session-10-tier2-batch-3](../.claude/decisions/2026-05-09-session-10-tier2-batch-3.md) |
@@ -67,7 +67,7 @@
 | Slug | Name | Version | Status | Updated | Decisions |
 |---|---|---|---|---|---|
 | `detail-panel` | Detail Panel | 0.1.2 | alpha | 2026-08-11 | [2026-05-09-session-14-phase-7](../.claude/decisions/2026-05-09-session-14-phase-7.md)<br>[2026-05-09-session-12-tier2-batch-5](../.claude/decisions/2026-05-09-session-12-tier2-batch-5.md) |
-| `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 | — |
+| `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 | [2026-08-12-procomp-loop-system](../.claude/decisions/2026-08-12-procomp-loop-system.md) |
 
 ### forms (8)
 

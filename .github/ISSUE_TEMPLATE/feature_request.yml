@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a new component or an addition to an existing one
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you building, and what's missing or painful right now? Problem first — the solution follows from it.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What you'd want the component or API to look like. Rough is fine.
+    validations:
+      required: true
+  - type: input
+    id: existing
+    attributes:
+      label: Closest existing component
+      description: Which current component comes nearest, and why it doesn't fit
+      placeholder: e.g. data-table — but I need tree grouping

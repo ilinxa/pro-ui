@@ -1,11 +1,14 @@
+<!-- wl:readme.hero -->
 # ilinxa/pro-ui
 
 Production-ready React components distributed via the [shadcn-registry](https://ui.shadcn.com/docs/registry) model. Built on shadcn/ui primitives + Tailwind CSS v4 + React 19. Install components into your Next.js (or any React) app with `pnpm dlx shadcn@latest add @ilinxa/<slug>` — source files copy into your repo, you own the code.
 
 > **Demo:** [ui.ilinxa.com](https://ui.ilinxa.com) · **Catalog:** [/r/registry.json](https://ui.ilinxa.com/r/registry.json) · **AI reference:** [/llms.txt](https://ui.ilinxa.com/llms.txt)
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.install -->
 ## Install components in your app
 
 ### Prerequisites
@@ -95,9 +98,11 @@ pnpm dlx shadcn@latest add @ilinxa/<slug> --overwrite
 ```
 
 Diff against your local modifications (use `--dry-run` first if unsure), merge, ship.
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.catalog -->
 <!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
 ## Available components
 
@@ -170,9 +175,11 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `file-manager` | navigation | Finder-style file browser — grid and list views, marquee multi-select, cut copy paste, drag-and-drop, and a shared clip… |
 | `file-tree` | navigation | VS Code-style file tree — format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select. |
 <!-- END GENERATED CATALOG -->
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.compat -->
 ## Compatibility
 
 - **React host** — any React 19 framework. Tested on Next.js 14 / 15 / 16 (App Router & Pages Router); works in Vite, Remix, Astro, RSPack, etc. Components never import `next/*`.
@@ -180,17 +187,21 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 - **Tailwind CSS** — **v4 required** (CSS-vars-only config; no `tailwind.config.*`). The components are written against semantic Tailwind tokens (`bg-card`, `text-foreground`, `border-border`, …) registered through `@theme inline`. v3 + JS config won't compile the class names. See [Prerequisites §2](#prerequisites).
 - **Design tokens** — canonical shadcn token set required (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`). A few components also need `--chart-*`, `--sidebar*`, `--warning*` — see the table in [Prerequisites §2](#prerequisites).
 - **Package managers** — pnpm / bun / yarn. npm + React 19 needs `--legacy-peer-deps`.
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.ai -->
 ## AI / LLM access
 
 A concise, AI-friendly registry reference is at [/llms.txt](https://ui.ilinxa.com/llms.txt).
 
 Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when working on a project that consumes the registry. It contains install steps, the full component list, common gotchas, and the namespace snippet — everything an AI needs to install components correctly without guessing.
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.troubleshooting -->
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -201,10 +212,38 @@ Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when 
 | Stale install after upstream registry update | The CLI doesn't cache; the CDN does. Wait out the 5-minute TTL or append `?v=<hash>` to the registry URL once. |
 
 Longer-form troubleshooting + context: [/docs#troubleshooting](https://ui.ilinxa.com/docs#troubleshooting).
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.faq -->
+## FAQ
+
+**How is this different from shadcn/ui?**
+shadcn/ui gives you primitives — button, dialog, select. pro-ui distributes what you'd normally build *from* those primitives: kanban boards, gantt timelines, calendars, media editors, rich-text surfaces. Same install model (source copies into your project, you own it), one level higher in composition. Every component depends on shadcn/ui; none duplicates it.
+
+**Does it work without Next.js?**
+Yes. Components are pure React 19 and never import `next/*`. Vite, Remix, Astro islands, and RSPack hosts all work; the `"use client"` directives are no-ops outside the App Router.
+
+**Do I need Tailwind CSS v4?**
+Yes — it's a compile-time requirement, not a preference. Components render semantic token classes (`bg-card`, `text-foreground`) that only exist when Tailwind v4 maps them via `@theme inline`. Tailwind v3 with a JS config won't compile them. See [Prerequisites §2](#prerequisites).
+
+**Is it free for commercial use?**
+Yes — MIT. The installed code lands in your repo under your control, so there's no license coupling beyond the standard MIT notice.
+
+**Can an AI coding assistant install and use these components?**
+Yes. Point it at [ui.ilinxa.com/llms.txt](https://ui.ilinxa.com/llms.txt), or use the shadcn MCP server with the `@ilinxa` namespace registered — the registry follows the standard shadcn item schema, so `search` / `view` / `add` all work.
+
+**Do components update automatically after install?**
+No — by design. The registry copies source; upstream changes only arrive when you re-run `add` with `--overwrite`. See [Update an installed component](#update-an-installed-component).
+<!-- /wl -->
+
+---
+
+<!-- wl:readme.contributing -->
 ## Contributing — building components
+
+Bug reports and PRs welcome — read [CONTRIBUTING.md](CONTRIBUTING.md "wl:contributing.intro") first (setup, gates, PR conventions). Security reports go through [SECURITY.md](SECURITY.md "wl:security.report"), other help routes through [SUPPORT.md](SUPPORT.md).
 
 > **Stack:** Next.js 16 (App Router, Turbopack, React Compiler) · React 19 · Tailwind v4 · shadcn CLI v4 · TypeScript 5 · pnpm 10
 > **Building or modifying components?** See [docs/component-guide.md](docs/component-guide.md) — comprehensive developer reference covering anatomy, rules, design system, lifecycle, and a worked end-to-end example.
@@ -276,7 +315,7 @@ Full token reference: [src/app/globals.css](src/app/globals.css). Mandate and "d
 
 ### Status & roadmap
 
-Live in [.claude/STATUS.md](.claude/STATUS.md) — current component catalog, next priorities, open decisions, and a rolling decisions log.
+Live in [.claude/STATUS.md](.claude/STATUS.md) — current component catalog, next priorities, open decisions, and a rolling decisions log. User-facing changes land in [CHANGELOG.md](CHANGELOG.md "wl:changelog.unreleased"); per-component versions in [docs/component-versions.md](docs/component-versions.md).
 
 ### Scripts
 
@@ -290,9 +329,12 @@ pnpm tsc --noEmit                       # typecheck
 pnpm new:component <category>/<slug>    # scaffold a new component
 pnpm dlx shadcn@latest add <name>       # add a shadcn primitive
 ```
+<!-- /wl -->
 
 ---
 
+<!-- wl:readme.license -->
 ## License
 
 [MIT](LICENSE) — open source since 2026-08-11.
+<!-- /wl -->

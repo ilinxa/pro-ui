@@ -1,0 +1,40 @@
+name: Bug report
+description: A component installs wrong, types don't compile, or behavior is broken
+labels: [bug]
+body:
+  - type: input
+    id: component
+    attributes:
+      label: Component + version
+      description: Slug and version, e.g. `kanban-board 0.5.1` (version is in docs/component-versions.md or your install)
+      placeholder: kanban-board 0.5.1
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Host environment
+      description: Framework + React + Tailwind versions, package manager, OS
+      placeholder: Next.js 16.2, React 19.2, Tailwind 4.2, pnpm 10, Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happens instead — include the full error output if there is one
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Smallest snippet or command sequence that shows the problem. For install-time bugs, the install command + tsc output is enough.
+    validations:
+      required: true
