@@ -43,8 +43,6 @@ next-env.d.ts
 # generated source-map for docs detail page (regenerated on predev/prebuild)
 /src/app/components/[slug]/_lib/source-map.generated.ts
 
-# Claude Code per-machine permissions overrides
-.claude/settings.local.json
-
-# Claude Code scheduled-tasks runtime PID locks
-.claude/*.lock
+# Claude Code project config — local only, never published
+.claude/
+CLAUDE.md

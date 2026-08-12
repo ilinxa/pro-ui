@@ -11,6 +11,13 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+// .claude/ is gitignored (2026-08-12) — it exists locally but not in deploy
+// checkouts (Vercel). Budgets are a local-dev gate; skip cleanly when absent.
+if (!fs.existsSync(path.join(root, ".claude"))) {
+  console.log("• .claude/ not present (deploy checkout) — doc budgets skipped.");
+  process.exit(0);
+}
+
 /** file (repo-relative) → max bytes */
 const BUDGETS = {
   ".claude/CLAUDE.md": 12 * 1024,

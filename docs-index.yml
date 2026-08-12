@@ -12,7 +12,7 @@ docs:
   readme:
     f: README.md
     v: 2026-08-12
-    h: c63c30
+    h: 72242e
     ok: true
     blocks:
       hero: {l: [1, 7]}
@@ -22,8 +22,8 @@ docs:
       ai: {l: [194, 200]}
       troubleshooting: {l: [204, 215]}
       faq: {l: [219, 239]}
-      contributing: {l: [243, 332], deps: [contributing.setup]}
-      license: {l: [336, 340]}
+      contributing: {l: [243, 327], deps: [contributing.setup]}
+      license: {l: [331, 335]}
   changelog:
     f: CHANGELOG.md
     v: 2026-08-12
@@ -66,4 +66,5 @@ docs:
       full: {l: [1, 134]}
 
 log:
+  - "2026-08-12 2026-08-12 readme.contributing: .claude/CLAUDE.md untracked (gitignore); links fixed"
   - "2026-08-12 2026-08-12 bootstrap: index + changelog + contributing + security + support + coc + readme anchors/faq"
