@@ -71,7 +71,15 @@
 - Glob/ripgrep timeouts at repo root → node_modules scan on Windows → scope patterns to `src/`, `docs/`, `scripts/`.
 - `validate:meta-deps` misses an import → side-effect/`import x =` shapes → keep `from`-imports first in registry files.
 
-## agent-orchestration rules (earned 2026-08-11, P3 loop)
+## agent-orchestration rules (earned 2026-08-11 P3 + 2026-08-12 P4 loops)
+- **Agent briefs must mandate FOREGROUND-ONLY execution** — "never background or monitor a
+  command; use long timeouts (300s+) instead". P4: two agents stalled 3× by backgrounding
+  installs/gates and stopping to "wait" — each stall costs a coordinator round-trip, and a
+  harness restart orphans backgrounded work.
+- **R5 / design audits run against `pnpm build` + `next start`, NEVER the dev server** — the
+  Turbopack dev compile-worker farm (~17 node procs / ~2.3GB) plus multi-route Playwright plus
+  parallel consumer installs nearly crashed the machine (P4). Don't overlap heavy browser
+  audits with install-agent waves.
 - **Parallel agents share ONE working tree: git state-changing commands (stash/checkout/reset) are FORBIDDEN in agent briefs.** Two agents ran `git stash` mid-P3; one scooped ~90 files of concurrent work and restored via unconditional checkout (recovered, but a real clobber window existed). Put the prohibition in every implementer prompt.
 - Coordinator owns registry.json / package.json / scripts / types.ts; implementers emit JSON blocks via handoff files; coordinator merges + re-runs the central battery (P1/P1.5 method — held up well).
 - Size estimates from source bytes must model JSON-wrap overhead (~+13% built artifact vs raw source) before committing to KB bars.

@@ -4,8 +4,8 @@
      file alone. Update it as you go — not at the end. -->
 
 ## Status
-- phase: R5 — next unchecked gate: runtime invariant verification (R0–R4 done; R3 re-gated after R4 fixes)
-- branch/HEAD: master @ 1946e86 + uncommitted P4 work (base commit lands at R6)
+- phase: COMPLETE — all R0–R7 gates closed 2026-08-12
+- branch/HEAD: master @ 5ed0281 (base commit, pushed) + R7 close-out commit
 - updated: 2026-08-12
 - open escalation: none
 
@@ -51,7 +51,8 @@ review ≥ Pass-with-follow-ups, one base commit.
 - [x] R4 findings table complete (14 rows: 12 CONFIRMED+fixed · 2 DROPPED+reasoned) — GATE 3 review file next
 - [ ] R5 every invariant observed live incl. ≥1 negative path (see Runtime evidence)
 - [x] R6 blast-radius docs walked (STATUS/master-plan/config/harness/ADR); doc validators green; base commit landed
-- [ ] R7 history verified; handoff below; parked promoted to config; retro appended
+- [x] R7 history verified (single base commit 5ed0281, gate numbers in body, nothing amended);
+      handoff below; orchestration/env rules promoted to config; retro appended to improvement log
 
 ## Invariants (R1)
 | # | Invariant (testable) | R4 checked | R5 observed |
@@ -167,6 +168,14 @@ review ≥ Pass-with-follow-ups, one base commit.
   note in harness docs if observed, don't chase.
 
 ## Handoff (R7)
-- done:
-- pre-mortem:
-- next:
+- done: P4 complete end-to-end — base commit `5ed0281` pushed to master (deploys via Vercel).
+  ADR FINAL (1.0 bar: 8/9 criteria closed, #8 user-gated) · install-matrix evidence + 5 doc
+  surfaces corrected · site baseline (metadata/OG/robots/404/skip-link/breadcrumbs/constants/
+  badges/brand assets) · generated component-versions + --check gate · GATE 3 Pass-with-follow-ups
+  · R5 31/31 on prod build.
+- pre-mortem: if this breaks in prod, it breaks because the deployed Vercel env renders
+  metadata differently than local `next start` (mitigation: post-deploy spot-check below), or
+  a legacy scraper needs multi-res favicon.ico (accepted, icon.svg covers modern).
+- next: USER — DNS `ui.ilinxa.com` (CNAME → cname.vercel-dns.com + Vercel attach) then the
+  directory PR (docs/directory-pr-pack.md). Repo — P5 loop tooling on demand; 1.0 declaration
+  = flip catalog version + decision file once #8 closes. Follow-up owners in the review file.
