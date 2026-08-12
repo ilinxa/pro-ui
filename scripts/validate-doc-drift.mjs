@@ -43,7 +43,12 @@ function fail(msg) {
 }
 
 function checkFile(file, slugRe) {
-  const src = fs.readFileSync(path.join(root, file), "utf8");
+  // \r-normalize: on CRLF files the ↳-strip regex (`.*$`, non-multiline) stops
+  // matching before the trailing \r and slice mentions leak through as phantom
+  // slugs (P4 finding, 2026-08-12). Validate content, not line endings.
+  const src = fs
+    .readFileSync(path.join(root, file), "utf8")
+    .replace(/\r\n/g, "\n");
   const s = src.indexOf(START);
   const e = src.indexOf(END);
   if (s === -1 || e === -1 || e < s) {

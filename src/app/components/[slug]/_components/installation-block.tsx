@@ -7,12 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCopyToClipboard } from "@/registry/components/code/code-block/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import type { ComponentMeta } from "@/registry/types";
+import {
+  REGISTRY_NAMESPACE,
+  registryItemId,
+  registryItemUrl,
+  registriesSnippet,
+} from "@/lib/registry-constants";
 
-const REGISTRY_BASE = "https://ui.ilinxa.com/r";
-const REGISTRY_NAMESPACE = "@ilinxa";
-const REGISTRY_FRAGMENT = `"registries": {
-  "${REGISTRY_NAMESPACE}": "${REGISTRY_BASE}/{name}.json"
-}`;
+const REGISTRY_FRAGMENT = registriesSnippet();
 
 type PM = "pnpm" | "npm" | "yarn" | "bun";
 
@@ -135,9 +137,9 @@ export function InstallationBlock({
   const [activePM, setActivePM] = useState<PM>("pnpm");
   const runner = PM_RUNNER[activePM];
   const initCommand = `${runner} shadcn@latest init`;
-  const addCommand = `${runner} shadcn@latest add ${REGISTRY_NAMESPACE}/${slug}`;
-  const addFixturesCommand = `${runner} shadcn@latest add ${REGISTRY_NAMESPACE}/${slug}-fixtures`;
-  const jsonUrl = `${REGISTRY_BASE}/${slug}.json`;
+  const addCommand = `${runner} shadcn@latest add ${registryItemId(slug)}`;
+  const addFixturesCommand = `${runner} shadcn@latest add ${registryItemId(`${slug}-fixtures`)}`;
+  const jsonUrl = registryItemUrl(slug);
 
   return (
     <Tabs defaultValue="command" className="w-full">
@@ -173,7 +175,7 @@ export function InstallationBlock({
         <div className="flex flex-col gap-2">
           <StepLabel
             index={2}
-            title="Register the @ilinxa namespace (once per project)"
+            title={`Register the ${REGISTRY_NAMESPACE} namespace (once per project)`}
             description="Add to your components.json. Merge with existing config."
           />
           <CopyableSnippet
@@ -208,7 +210,7 @@ export function InstallationBlock({
             {slices.map((slice) => (
               <div key={slice.item} className="flex flex-col gap-2">
                 <CopyableCommand
-                  command={`${runner} shadcn@latest add ${REGISTRY_NAMESPACE}/${slice.item}`}
+                  command={`${runner} shadcn@latest add ${registryItemId(slice.item)}`}
                   label={`Copy ${slice.name} install command`}
                 />
                 <p className="text-xs text-muted-foreground">

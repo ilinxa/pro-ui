@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ExternalLink, FolderTree, PackagePlus, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getEntry } from "@/registry/manifest";
+import { registryItemId } from "@/lib/registry-constants";
 
 /** Outer page container for the docs tab. Constrains width + adds vertical rhythm. */
 export function DocsContainer({ children }: { children: ReactNode }) {
@@ -67,10 +68,10 @@ export function ShellBlock({
 export function InstallBlock({ slugs }: { slugs: string[] }) {
   if (slugs.length === 0) return null;
   const baseCmd = `pnpm dlx shadcn@latest add \\\n  ${slugs
-    .map((s) => `@ilinxa/${s}`)
+    .map((s) => registryItemId(s))
     .join(" \\\n  ")}`;
   const fixturesCmd = `pnpm dlx shadcn@latest add \\\n  ${slugs
-    .map((s) => `@ilinxa/${s}-fixtures`)
+    .map((s) => registryItemId(`${s}-fixtures`))
     .join(" \\\n  ")}`;
   return (
     <DocsSection

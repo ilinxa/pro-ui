@@ -9,9 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SANDBOXES } from "./_lib/manifest";
+import { statusBadgeVariant } from "@/lib/status-badge";
 
 export const metadata = {
-  title: "Sandbox — ilinxa pro-ui",
+  title: "Sandbox",
   description:
     "Tier-3 assembled-page demos that prove the registry composes into real product surfaces.",
 };
@@ -55,13 +56,7 @@ export default function SandboxIndexPage() {
                   <div className="flex items-center justify-between gap-3">
                     <CardTitle className="text-base">{sandbox.title}</CardTitle>
                     <Badge
-                      variant={
-                        sandbox.status === "stable"
-                          ? "default"
-                          : sandbox.status === "beta"
-                            ? "secondary"
-                            : "outline"
-                      }
+                      variant={statusBadgeVariant(sandbox.status)}
                       className="capitalize"
                     >
                       {sandbox.status}

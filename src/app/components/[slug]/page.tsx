@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CATEGORIES } from "@/registry/categories";
 import { getAllSlugs, getEntry } from "@/registry/manifest";
+import { SITE_URL } from "@/lib/registry-constants";
+import { OG_BASE } from "@/lib/site-metadata";
+import { statusBadgeVariant } from "@/lib/status-badge";
 import { ComposerPlayground } from "./_components/composer-playground";
 import { FlowCanvasPlayground } from "./_components/flow-canvas-playground";
 import { JsonFormPlayground } from "./_components/json-form-playground";
@@ -96,9 +99,19 @@ export async function generateMetadata({
   const { slug } = await params;
   const entry = getEntry(slug);
   if (!entry) return {};
+  const url = `${SITE_URL}/components/${slug}`;
   return {
-    title: `${entry.meta.name} — ilinxa pro-ui`,
+    title: entry.meta.name,
     description: entry.meta.description,
+    openGraph: {
+      ...OG_BASE,
+      title: entry.meta.name,
+      description: entry.meta.description,
+      url,
+    },
+    alternates: {
+      canonical: url,
+    },
   };
 }
 
@@ -113,14 +126,24 @@ export default async function ComponentDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto w-full max-w-5xl overflow-x-hidden px-6 py-12 sm:overflow-x-visible">
-      <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground"
+      >
         <Link href="/components" className="hover:text-foreground">
           Components
         </Link>
         <span aria-hidden>/</span>
-        <span>{category.label}</span>
+        <Link
+          href={`/components?cat=${category.slug}`}
+          className="hover:text-foreground"
+        >
+          {category.label}
+        </Link>
         <span aria-hidden>/</span>
-        <span className="text-foreground">{meta.name}</span>
+        <span aria-current="page" className="text-foreground">
+          {meta.name}
+        </span>
       </nav>
 
       <header className="flex flex-col gap-3">
@@ -128,18 +151,7 @@ export default async function ComponentDetailPage({ params }: PageProps) {
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             {meta.name}
           </h1>
-          <Badge
-            variant={
-              meta.status === "stable"
-                ? "default"
-                : meta.status === "deprecated"
-                  ? "destructive"
-                  : meta.status === "beta"
-                    ? "secondary"
-                    : "outline"
-            }
-            className="capitalize"
-          >
+          <Badge variant={statusBadgeVariant(meta.status)} className="capitalize">
             {meta.status}
           </Badge>
           <span className="rounded-full border border-border bg-background px-2 py-0.5 font-mono text-xs text-muted-foreground">

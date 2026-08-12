@@ -9,15 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { ComponentMeta } from "@/registry/types";
-
-function statusVariant(
-  status: ComponentMeta["status"],
-): "default" | "destructive" | "secondary" | "outline" {
-  if (status === "stable") return "default";
-  if (status === "deprecated") return "destructive";
-  if (status === "beta") return "secondary";
-  return "outline";
-}
+import { statusBadgeVariant } from "@/lib/status-badge";
 
 export function ComponentCard({ meta }: { meta: ComponentMeta }) {
   return (
@@ -29,7 +21,7 @@ export function ComponentCard({ meta }: { meta: ComponentMeta }) {
         <CardHeader className="gap-2">
           <div className="flex items-center justify-between gap-3">
             <CardTitle className="text-base">{meta.name}</CardTitle>
-            <Badge variant={statusVariant(meta.status)} className="capitalize">
+            <Badge variant={statusBadgeVariant(meta.status)} className="capitalize">
               {meta.status}
             </Badge>
           </div>

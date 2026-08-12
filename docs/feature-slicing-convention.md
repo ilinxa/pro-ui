@@ -52,6 +52,14 @@ side-effects.
 - **Known limit:** non-interactive (`--yes` does NOT answer file prompts) upgrades onto a modified
   base abort the whole write with exit 0 (phantom no-op). CI flows should install slices at
   project-setup time or verify files landed.
+- **P4.2 re-test (2026-08-12, CLI 4.17.0):** the 4.6.0 "false success" print is gone — re-adding
+  over a locally-modified file now surfaces an overwrite prompt, which non-interactive stdin
+  auto-answers "no" (file untouched, exit 0, no completion summary). Still undetectable by exit
+  code alone, so the CI guidance above stands unchanged. `--overwrite` now diffs per file and
+  rewrites only files that actually differ (identical files reported as skipped). The
+  whole-write-abort shape on conflicting *base* files was not re-reproduced in this matrix (the
+  re-test covered same-item re-add); treat it as unverified on ≥4.17.0 until the next slice ship
+  exercises it. Evidence: `e:/tmp/ilinxa-p4-install-matrix-report.md` §T3.
 
 ## When to slice
 

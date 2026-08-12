@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useRef } from "react";
 import {
   ADAPTER_REGISTRY,
   ContentComposer,
@@ -33,13 +34,34 @@ const playgroundAdapter: ContentTypeAdapter<NewsCardItem> = {
 };
 ADAPTER_REGISTRY.playground = playgroundAdapter;
 
-// Fake uploader — turns a captured single-hero blob into a local object URL so
-// the mediaSlot publish path resolves without a storage backend.
-const playgroundUploader = async (blob: Blob) => ({
-  url: URL.createObjectURL(blob),
-});
-
 export function ComposerPlayground() {
+  // Fake uploader — turns a captured single-hero blob into a local object URL
+  // so the mediaSlot publish path resolves without a storage backend. Object
+  // URLs are held in memory by the browser until explicitly revoked, so track
+  // every one created for this playground instance and revoke on unmount.
+  // Deliberately NOT revoke-on-replace: the uploader can't know whether an
+  // earlier URL is still referenced (composer state / published-result panel),
+  // so within-mount growth is bounded by the user's publish count and
+  // reclaimed at unmount/navigation (same trade-off as media-editor's
+  // revokeOnUnmount blob cache).
+  const objectUrlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const objectUrls = objectUrlsRef.current;
+    return () => {
+      for (const url of objectUrls) {
+        URL.revokeObjectURL(url);
+      }
+      objectUrls.length = 0;
+    };
+  }, []);
+
+  const playgroundUploader = useCallback(async (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    objectUrlsRef.current.push(url);
+    return { url };
+  }, []);
+
   return (
     <JsonPlayground<ComposerConfig>
       starter={STARTER_CONFIG}

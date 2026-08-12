@@ -1,6 +1,30 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getMetaList } from "@/registry/manifest";
+import {
+  registriesSnippet,
+  installCommand,
+  registryItemId,
+  SITE_URL,
+} from "@/lib/registry-constants";
+import { OG_BASE } from "@/lib/site-metadata";
+
+export function generateMetadata(): Metadata {
+  const count = getMetaList().length;
+  const title = "ilinxa pro-ui — professional components built on shadcn/ui";
+  const description = `${count} high-level, fully-composed components built on shadcn/ui and Tailwind CSS v4. Install source into your repo via the shadcn-registry — ${installCommand("<slug>")}.`;
+  return {
+    title: { absolute: title },
+    description,
+    openGraph: {
+      ...OG_BASE,
+      url: SITE_URL,
+      title,
+      description,
+    },
+  };
+}
 
 export default function Home() {
   const components = getMetaList();
@@ -97,9 +121,7 @@ export default function Home() {
               </h3>
             </div>
             <pre className="overflow-x-auto rounded-md border border-border bg-card p-4 font-mono text-sm leading-relaxed text-foreground">
-              <code>{`"registries": {
-  "@ilinxa": "https://ui.ilinxa.com/r/{name}.json"
-}`}</code>
+              <code>{registriesSnippet()}</code>
             </pre>
           </li>
 
@@ -116,7 +138,7 @@ export default function Home() {
               </h3>
             </div>
             <pre className="overflow-x-auto rounded-md border border-border bg-card p-4 font-mono text-sm leading-relaxed text-foreground">
-              <code>{`pnpm dlx shadcn@latest add @ilinxa/properties-form`}</code>
+              <code>{installCommand("properties-form")}</code>
             </pre>
             <p className="text-sm text-muted-foreground">
               Add{" "}
@@ -125,7 +147,7 @@ export default function Home() {
               </code>{" "}
               suffix to install with example data:{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground">
-                @ilinxa/properties-form-fixtures
+                {registryItemId("properties-form-fixtures")}
               </code>
             </p>
           </li>

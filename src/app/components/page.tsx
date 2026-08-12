@@ -1,12 +1,30 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 
 import { ORDERED_CATEGORIES } from "@/registry/categories";
 import { getMetaList } from "@/registry/manifest";
 import type { ComponentMeta } from "@/registry/types";
+import { SITE_URL } from "@/lib/registry-constants";
+import { OG_BASE } from "@/lib/site-metadata";
 
 import { ComponentCard } from "./_components/component-card";
 import { ComponentsExplorer } from "./_components/components-explorer";
 import { deriveFacets } from "./_components/filter-utils";
+
+export function generateMetadata(): Metadata {
+  const count = getMetaList().length;
+  const description = `Browse ${count} high-level, fully-composed components built on shadcn/ui and Tailwind CSS v4 — filterable by category, stack, and status.`;
+  return {
+    title: "Components",
+    description,
+    openGraph: {
+      ...OG_BASE,
+      url: `${SITE_URL}/components`,
+      title: "Components",
+      description,
+    },
+  };
+}
 
 export default function ComponentsIndexPage() {
   const entries = getMetaList();

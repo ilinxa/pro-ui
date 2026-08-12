@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- ilinxa pro-ui brand mark: signal-lime tile, near-black "i" built from geometry
+       (no font dependency so it rasterizes identically everywhere) -->
+  <rect width="64" height="64" rx="14" fill="#a3e635"/>
+  <circle cx="32" cy="19" r="6.5" fill="#101216"/>
+  <rect x="25.5" y="30" width="13" height="22" rx="6.5" fill="#101216"/>
+</svg>

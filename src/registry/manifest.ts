@@ -251,12 +251,7 @@ import TeamQuestLogUsage from "./components/gamification/team-quest-log/usage";
 import { meta as teamQuestLogMeta } from "./components/gamification/team-quest-log/meta";
 
 import { CATEGORIES, ORDERED_CATEGORIES } from "./categories";
-import type {
-  CategoryMeta,
-  ComponentCategorySlug,
-  ComponentMeta,
-  RegistryEntry,
-} from "./types";
+import type { ComponentMeta, RegistryEntry } from "./types";
 
 export const REGISTRY: RegistryEntry[] = [
   {
@@ -580,26 +575,8 @@ export function getEntry(slug: string): RegistryEntry | undefined {
   return REGISTRY.find((e) => e.meta.slug === slug);
 }
 
-export function getEntriesByCategory(
-  category: ComponentCategorySlug,
-): RegistryEntry[] {
-  return REGISTRY.filter((e) => e.meta.category === category);
-}
-
 export function getAllSlugs(): string[] {
   return REGISTRY.map((e) => e.meta.slug);
-}
-
-export type GroupedRegistry = Array<{
-  category: CategoryMeta;
-  entries: RegistryEntry[];
-}>;
-
-export function getGroupedRegistry(): GroupedRegistry {
-  return ORDERED_CATEGORIES.map((category) => ({
-    category,
-    entries: getEntriesByCategory(category.slug),
-  })).filter((group) => group.entries.length > 0);
 }
 
 export function getMetaList(): ComponentMeta[] {

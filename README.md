@@ -66,7 +66,7 @@ The CLI auto-installs:
 - shadcn primitives the component depends on (`button`, `popover`, etc.)
 - npm peer deps (`lucide-react`, `@dnd-kit/*`, `@codemirror/*`, `marked`, etc.)
 
-Files land at `components/<slug>/...` with the sealed folder intact.
+Files land at `components/<slug>/...` with the sealed folder intact — `src/components/<slug>/...` if your project uses a `src/` directory. A custom `aliases.components` doesn't relocate them (imports are rewritten to your aliases either way, so the install compiles as-is).
 
 ### Use it
 
@@ -195,7 +195,7 @@ Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when 
 | Symptom | Fix |
 |---|---|
 | `Cannot find module '@/lib/utils'` after install | Run `pnpm dlx shadcn@latest init` in the consumer project. `shadcn add` doesn't seed the `cn` helper — `init` does. |
-| Files landed at `./<slug>/...` instead of `./components/<slug>/...` | Your `components.json` has a non-default `aliases.components` (e.g. `@/src/components`). Either move the installed files post-install or adjust the alias. |
+| Re-running `add` didn't pull upstream changes | Without `--overwrite`, locally-modified files are skipped — non-interactive runs auto-answer the overwrite prompt with "no" and exit 0, so exit-code checks can't detect it. Add `--overwrite` to update; the CLI diffs per file, so unchanged files are left alone. |
 | `npm ERESOLVE` on React 19 peer deps | Use `npm install --legacy-peer-deps`, or switch to pnpm/bun which resolve cleanly. |
 | Stale install after upstream registry update | The CLI doesn't cache; the CDN does. Wait out the 5-minute TTL or append `?v=<hash>` to the registry URL once. |
 

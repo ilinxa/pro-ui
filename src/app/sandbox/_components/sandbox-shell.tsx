@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Code2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { statusBadgeVariant } from "@/lib/status-badge";
 import type { SandboxMeta } from "../_lib/manifest";
 
 export interface SandboxShellProps {
@@ -38,13 +39,7 @@ export function SandboxShell({ meta, demo, docs }: SandboxShellProps) {
               {meta.title}
             </span>
             <Badge
-              variant={
-                meta.status === "stable"
-                  ? "default"
-                  : meta.status === "beta"
-                    ? "secondary"
-                    : "outline"
-              }
+              variant={statusBadgeVariant(meta.status)}
               className="hidden capitalize sm:inline-flex"
             >
               {meta.status}

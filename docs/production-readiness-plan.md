@@ -111,7 +111,7 @@ Every batch: patch/minor bumps per readiness rule, 4-ship smoke loop, decision f
 
 **Done when:** convention ratified, 2 pilots shipped + smoked, size budgets recorded in meta, audit checklist exists and has run once across the tail.
 
-## Phase 4 — Professional polish & the 1.0 bar (≈2–3 sessions)
+## Phase 4 — Professional polish & the 1.0 bar (≈2–3 sessions) *(executed 2026-08-12 — [review](reviews/2026-08-12-p4-polish-review.md) · [ADR](../.claude/decisions/2026-08-12-p4-one-point-oh-bar.md))*
 
 - **4.1 Define 1.0** (decision doc): proposed bar — P0–P3 done · all validators green in CI · Base-UI + src-layout smoke matrix green across catalog · design-coherence sweep passed · docs fully generated · versioning policy published (semver meaning per component + catalog-level version) · **`@ilinxa` listed in the official shadcn registry directory (or PR pending external review) with zero-config `add` verified from a clean project + shadcn-MCP discoverability confirmed** (D6).
 - **4.2 src-layout install answer** (review 10.4): run the two smoke variants (src/ dir; custom `aliases.components`), then either fix targets or make llms.txt/README precise — currently the two doc mentions contradict each other.

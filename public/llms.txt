@@ -45,7 +45,7 @@ The fixtures item declares the base as a registryDependency, so installing the f
 
 The CLI auto-installs shadcn primitives (button, popover, etc.) and npm peer deps (lucide-react, @dnd-kit/*, @codemirror/*, marked, @radix-ui/*).
 
-Files land at `components/<slug>/<sub-path>` (project-root-relative). This assumes the consumer's components dir is at `./components/`. If the consumer uses `./src/components/`, files will land at `./components/<slug>/...` (outside their alias) and will need to be moved post-install.
+Files land relative to the consumer's source root: `components/<slug>/<sub-path>` at the project root, or `src/components/<slug>/<sub-path>` when the project has a `src/` directory. A custom `aliases.components` does NOT relocate these files (registry items ship explicit target paths; only alias-resolved shadcn primitives like `ui/*` follow custom aliases) — imports are rewritten to the consumer's aliases either way, so installs compile without moving anything. Verified empirically on shadcn CLI 4.17.0 across root-layout, src-layout, and custom-alias consumers.
 
 <!-- GENERATED CATALOG — do not edit; run `pnpm build:llms` -->
 ## Available items (128 total — 63 base + 63 fixtures + 2 feature slices)
@@ -166,7 +166,7 @@ Diff the changes (use `--dry-run` first if unsure), merge any local modification
 ## Common gotchas
 
 - `Cannot find module '@/lib/utils'` after install → consumer didn't run `shadcn init`. The `add` command does NOT seed the `cn` helper; `init` does.
-- Files at `./<slug>/...` instead of `./components/<slug>/...` → consumer's `aliases.components` is non-default (e.g. `@/src/components`). Either move post-install or adjust the alias.
+- Re-running `add` didn't pull upstream changes → without `--overwrite`, locally-modified files are skipped: non-interactive runs print the overwrite prompt, auto-answer "no", and exit 0 with no failure summary — exit-code checks can't detect the skip. Add `--overwrite` to update; the CLI diffs per file and only rewrites files that actually changed.
 - `npm ERESOLVE` on React 19 peer deps → `--legacy-peer-deps`, or recommend pnpm.
 - Stale install after upstream update → CDN edge cache. Wait out the 5-min TTL or append `?v=<hash>` to the URL once.
 

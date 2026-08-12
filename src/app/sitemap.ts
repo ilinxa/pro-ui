@@ -1,16 +1,15 @@
 import type { MetadataRoute } from "next";
 
 import { getAllSlugs } from "@/registry/manifest";
-
-const BASE = "https://ui.ilinxa.com";
+import { SITE_URL } from "@/lib/registry-constants";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    { url: BASE },
-    { url: `${BASE}/components` },
-    { url: `${BASE}/docs` },
+    { url: SITE_URL },
+    { url: `${SITE_URL}/components` },
+    { url: `${SITE_URL}/docs` },
     ...getAllSlugs().map((slug) => ({
-      url: `${BASE}/components/${slug}`,
+      url: `${SITE_URL}/components/${slug}`,
     })),
   ];
 }

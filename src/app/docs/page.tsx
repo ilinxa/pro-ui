@@ -2,9 +2,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ORDERED_CATEGORIES } from "@/registry/categories";
 import { getMetaList } from "@/registry/manifest";
+import {
+  SITE_URL,
+  registriesSnippet,
+  installCommand,
+} from "@/lib/registry-constants";
 
 export const metadata = {
-  title: "Developer documentation — ilinxa pro-ui",
+  title: "Developer documentation",
   description:
     "Install ilinxa pro-ui components in your Next.js or React app via the shadcn-registry distribution model.",
 };
@@ -60,9 +65,7 @@ export default function DocsPage() {
           Add the <Code>@ilinxa</Code> namespace to your project&rsquo;s{" "}
           <Code>components.json</Code> (merge with your existing config):
         </p>
-        <Pre>{`"registries": {
-  "@ilinxa": "https://ui.ilinxa.com/r/{name}.json"
-}`}</Pre>
+        <Pre>{registriesSnippet()}</Pre>
         <p className="text-sm">
           The <Code>{"{name}"}</Code> placeholder is mandatory — the CLI rejects
           registries without it.
@@ -75,17 +78,20 @@ export default function DocsPage() {
         delay={300}
       >
         <Pre>{`# Lean install — component source only
-pnpm dlx shadcn@latest add @ilinxa/properties-form
+${installCommand("properties-form")}
 
 # Or with dummy-data fixtures
-pnpm dlx shadcn@latest add @ilinxa/properties-form-fixtures`}</Pre>
+${installCommand("properties-form-fixtures")}`}</Pre>
         <p>
           The CLI auto-installs shadcn primitives the component depends on
           (e.g. <Code>button</Code>, <Code>input</Code>, <Code>tooltip</Code>)
           and npm peer deps (<Code>lucide-react</Code>,{" "}
           <Code>@codemirror/*</Code>, <Code>@dnd-kit/*</Code>, etc.). Files land
           at <Code>components/{"<slug>"}/{"<sub-path>"}</Code> with the sealed
-          folder intact.
+          folder intact — under <Code>src/</Code> if your project uses a{" "}
+          <Code>src/</Code> directory. A custom <Code>aliases.components</Code>{" "}
+          doesn&apos;t relocate them; imports are rewritten to your aliases
+          either way, so the install compiles as-is.
         </p>
         <p className="mt-6">Use it in your code:</p>
         <Pre>{`import { PropertiesForm } from "@/components/properties-form";
@@ -151,7 +157,7 @@ export function TaskEditor() {
           shadcn-registry copies source verbatim — you own the code. To pull
           upstream changes:
         </p>
-        <Pre>{`pnpm dlx shadcn@latest add @ilinxa/<slug> --overwrite`}</Pre>
+        <Pre>{`${installCommand("<slug>")} --overwrite`}</Pre>
         <p className="text-sm">
           Use <Code>--dry-run</Code> first to preview what would change, then
           merge any local modifications and ship.
@@ -185,8 +191,8 @@ export function TaskEditor() {
           fix="Run `pnpm dlx shadcn@latest init` in the consumer project. `shadcn add` doesn't seed the `cn` helper — `init` does."
         />
         <Trouble
-          symptom={`Files landed at ./<slug>/... instead of ./components/<slug>/...`}
-          fix="Your components.json has a non-default `aliases.components` (e.g. @/src/components). Either move the installed files post-install or adjust the alias."
+          symptom={`Re-running add didn't pull upstream changes`}
+          fix="Without --overwrite, locally-modified files are skipped — non-interactive runs auto-answer the overwrite prompt with 'no' and exit 0, so exit-code checks can't detect it. Add --overwrite to update; the CLI diffs per file, so unchanged files are left alone."
         />
         <Trouble
           symptom="npm ERESOLVE on React 19 peer deps"
@@ -203,7 +209,7 @@ export function TaskEditor() {
           A concise, structured reference for AI agents (Claude Code, Cursor,
           GitHub Copilot, etc.) is available at:
         </p>
-        <Pre>{`https://ui.ilinxa.com/llms.txt`}</Pre>
+        <Pre>{`${SITE_URL}/llms.txt`}</Pre>
         <p>
           Point your AI assistant at this URL when working on a project that
           consumes the registry. It contains install steps, the full component

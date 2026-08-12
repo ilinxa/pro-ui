@@ -4,16 +4,16 @@
 
 **Symptom:** Files end up at `<project-root>/<slug>/...` instead of `<project-root>/components/<slug>/...` (outside the consumer's components alias).
 
-**Cause:** `target` was set without the `components/` prefix. The CLI resolves `target` relative to the consumer's PROJECT ROOT, not relative to the alias root for the file's `type`. So `target: "<slug>/foo.tsx"` lands at `<project-root>/<slug>/foo.tsx`, NOT under `<aliases.components>/<slug>/foo.tsx`.
+**Cause:** `target` was set without the `components/` prefix. The CLI resolves `target` relative to the consumer's SOURCE ROOT (project root, or `src/` when one exists — see the corrected note below), never relative to any alias. So `target: "<slug>/foo.tsx"` lands at `<source-root>/<slug>/foo.tsx`, NOT under the consumer's components directory.
 
-**Fix:** Prefix every `target` with `components/` (or whatever path matches the consumer's `aliases.components`):
+**Fix:** Prefix every `target` with `components/` (a fixed literal — do NOT try to match the consumer's `aliases.components`; it has no effect on explicit-target placement):
 ```json
 { "path": "src/registry/.../foo.tsx", "type": "registry:component", "target": "components/<slug>/foo.tsx" }
 ```
 
 See [file-types-and-targets.md](file-types-and-targets.md) for the canonical recipe.
 
-**Consumer-layout fragility:** the `target` value is producer-decided and project-root-relative, so it implicitly assumes the consumer's components dir is at `./components/`. Consumers with `./src/components/` will see files land outside their alias and need to move them post-install OR adjust their `components.json`. Document this assumption in your docs site.
+**Consumer-layout behavior (corrected 2026-08-12, CLI 4.17.0 matrix):** explicit `target` paths resolve against the consumer's source root — project root normally, `src/` when a `src/` directory exists — so src-layout consumers get `./src/components/<slug>/...` automatically, no moving needed. Custom `aliases.components` does not relocate explicit-target files; imports are rewritten to the consumer's aliases and compile either way. See file-types-and-targets.md for the full corrected note.
 
 ## 2. Registry URL missing `{name}` placeholder
 
@@ -250,6 +250,6 @@ The catalog (`public/r/registry.json` after build) is normally metadata-only wit
 - **regDeps:** MUST include `@ilinxa/<base>` (one-command fresh install pulls both) plus whatever shadcn primitives the feature's own files import.
 - **Validated, not just conventional:** `validate-registry-json.mjs` runs seven checks (F1–F7) on every feature item — base exists and isn't deprecated, name prefix, target convention, zero collisions, the `@ilinxa/<base>` regDep, a positive `budgetKB`, and every file path resolving on disk. Don't hand-roll these checks; they already run inside `pnpm registry:build`.
 - **Injection surface (the part fixtures never needed):** the base owns a seam — a context + optional prop — and the feature barrel exports the ready-made value for it. **A base file must never statically import a feature file**; the dependency direction is feature → base only. `validate-registry-json.mjs` enforces this with a base→own-features import ban.
-- **Upgrade caveat:** same base-file-prompt hazard as `-fixtures` (pitfall 3) on a locally-modified base, PLUS a sharper failure mode — a **non-interactive** (`--yes`) upgrade onto a modified base aborts the whole write with **exit 0** (a phantom no-op: looks like it succeeded, nothing landed). Don't script unattended feature-item upgrades over modified bases; install slices at project-setup time or verify files landed.
+- **Upgrade caveat:** same base-file-prompt hazard as `-fixtures` (pitfall 3) on a locally-modified base, PLUS a sharper failure mode — a **non-interactive** (`--yes`) upgrade onto a modified base aborts the whole write with **exit 0** (a phantom no-op: looks like it succeeded, nothing landed). Don't script unattended feature-item upgrades over modified bases; install slices at project-setup time or verify files landed. *P4.2 re-test (2026-08-12, CLI 4.17.0):* the false "success" print is gone — conflicts now surface an overwrite prompt that non-interactive stdin auto-answers "no" (exit 0, no summary; still undetectable by exit code). `--overwrite` now diffs per file and rewrites only real changes. The whole-write-abort shape wasn't re-reproduced (test covered same-item re-add) — keep the guidance until a slice ship re-exercises it.
 
 Full contract (injection-surface mechanics, the rejected stub-overwrite strategy, the consumer upgrade recipe, when-to-slice guidance): [`docs/feature-slicing-convention.md`](../../../docs/feature-slicing-convention.md).

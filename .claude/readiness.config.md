@@ -61,7 +61,8 @@
 - repo-specific verification rules: read-the-source for any version/slug/path claim (naming canon renamed 52 slugs 2026-08-11 — older docs/memories carry dead slugs); registry code never imports `next/*`.
 
 ## known-flakes
-- Consumer `pnpm add` fails oddly mid-smoke → shadcn CLI 4.6.0 corrupted consumer package.json on an earlier add → re-align versions to producer truth, retry.
+- Consumer `pnpm add` fails oddly mid-smoke → shadcn CLI 4.6.0 corrupted consumer package.json on an earlier add → re-align versions to producer truth, retry. **RESOLVED on CLI 4.17.0** (P4.2 matrix 2026-08-12, 6 clean diffs) — applies only when pinning old CLIs.
+- Doc validator fails with phantom slugs / generator thrashes on unchanged inputs → a Windows tool rewrote a doc file with CRLF (Edit-tool does this sometimes; core.autocrlf=true) → both scripts now `\r\n`-normalize on read (P4 F-1/F-4); if a NEW script compares or regex-scans doc files, normalize `\r\n` first.
 - CLI rejects components.json as "Invalid configuration" → UTF-8 BOM (PowerShell 5.1 `Set-Content -Encoding utf8` writes BOM) → write config files with the Write tool or `[IO.File]::WriteAllText` with BOM-less UTF8.
 - Consumer tsc fails on `@base-ui/react` / `@radix-ui/*` / `class-variance-authority` after installs → the CLI does NOT add installed primitives' own npm deps → `pnpm add` them post-add (cascades as fake implicit-any errors in registry code — fix deps first, re-judge).
 - Container browser (`shadow-browser`, NOT the old `virtualbrowser-…` name) can't reach a host dev server → per-port Windows-firewall block (no elevation available) and/or port 3000 occupied on 0.0.0.0 by an unrelated host service → run `next dev -H 0.0.0.0 -p <free port>`; if still blocked, host-side Playwright in the scratchpad is the proven R5 instrument (`next.config.ts` already carries `allowedDevOrigins`).

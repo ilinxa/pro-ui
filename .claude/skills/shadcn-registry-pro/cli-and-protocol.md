@@ -95,9 +95,11 @@ pnpm dev   # serves public/r/*.json at http://localhost:3000/r/*.json
 cd /tmp/test-consumer
 pnpm dlx shadcn add http://localhost:3000/r/<slug>.json
 
-# inspect what landed where — exact path depends on consumer's components.json aliases:
-#   aliases.components = "@/components"     → ./components/<slug>/
-#   aliases.components = "@/src/components" → ./src/components/<slug>/
+# inspect what landed where — explicit-target files resolve against the consumer's SOURCE ROOT,
+# not aliases.components (verified empirically on CLI 4.17.0, 2026-08-12 P4.2 matrix):
+#   no src/ directory  → ./components/<slug>/
+#   src/ directory     → ./src/components/<slug>/   (even with a custom aliases.components)
+# only alias-resolved files (e.g. registry:ui primitives, no explicit target) follow aliases.
 ls -la <consumer-components-dir>/<slug>/
 cat <consumer-components-dir>/<slug>/<slug>.tsx | head -20   # confirm imports rewrote correctly
 ```

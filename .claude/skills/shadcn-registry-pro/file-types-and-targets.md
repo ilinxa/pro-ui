@@ -27,10 +27,10 @@ Resolved against the consumer's `components.json` aliases:
 
 | `target` value | Resolves to |
 |---|---|
-| `"components/<slug>/foo.tsx"` (no prefix) | **Consumer's project root.** `target` without `~` is project-root-relative. To land under the consumer's `components/` directory, the target string itself must include `components/` (or whatever path matches the consumer's `aliases.components`). |
+| `"components/<slug>/foo.tsx"` (no prefix) | **Consumer's source root** (project root, or `src/` when the consumer has a `src/` directory — see the corrected note below). To land under the consumer's `components/` directory, the target string itself must include the `components/` prefix. `aliases.components` plays no role in where explicit-target files land. |
 | `"~/<path>"` (tilde prefix) | Consumer's project root explicitly. `~/foo.config.js` → `<project-root>/foo.config.js`. Equivalent to no prefix in practice; the docs only require `~` for `registry:page` and `registry:file` types. |
 
-**Consumer-layout fragility — important:** because `target` is project-root-relative and producer-decided, it implicitly assumes the consumer's components dir is at `./components/`. Consumers with `./src/components/` (their `aliases.components` mapped to `@/src/components`) will see files land at `./components/<slug>/...` — outside their alias. They must either move the files post-install OR adjust their components.json alias. Document the assumption in your registry's docs site so consumers know what to expect.
+**Consumer-layout behavior — corrected 2026-08-12 (P4.2 empirical matrix, CLI 4.17.0):** explicit `target` paths resolve against the consumer's **source root**, which the CLI detects: project root normally, `src/` when a `src/` directory exists. So `target: "components/<slug>/..."` lands at `./components/<slug>/...` in root-layout projects and `./src/components/<slug>/...` in src-layout projects — no post-install moving needed in either case. A custom `aliases.components` (e.g. `@/widgets`) does NOT relocate explicit-target files (they still land under `(src/)components/`); only alias-resolved files without explicit targets (registry:ui primitives) follow the custom alias. Imports are rewritten to the consumer's aliases in all cases, so the split compiles cleanly. (An earlier version of this note claimed src-layout consumers get files at project root — refuted by the P4.2 matrix; evidence: `e:/tmp/ilinxa-p4-install-matrix-report.md`.)
 
 Examples:
 ```json
