@@ -3,18 +3,21 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
   CodeAreaValue,
+  CustomPredefinedKey,
   FlatFieldValue,
   ImageValue,
   ListValue,
   QuoteValue,
   TableValue,
 } from "../types";
-import type { CardTreePredefinedEntry } from "../lib/parse";
+import { isCustomEntry, type CardTreePredefinedEntry } from "../lib/parse";
+import { findCustomKey } from "../lib/custom-keys";
 import {
   validatePredefinedShape,
   type ValidationResult,
 } from "../lib/validate-edit";
 import { InlineError } from "./inline-error";
+import { PredefinedCustomEdit } from "./predefined-custom";
 
 /* ───────── shared editor frame ───────── */
 
@@ -343,13 +346,26 @@ function TableEdit({
 
 export function PredefinedEdit({
   entry,
+  customKeys,
   onCommit,
   onCancel,
 }: {
   entry: CardTreePredefinedEntry;
+  /** Resolved custom-key registrations (v0.6) — see `resolveCustomKeys`. */
+  customKeys: readonly CustomPredefinedKey[];
   onCommit: (next: CardTreePredefinedEntry) => void;
   onCancel: () => void;
 }) {
+  if (isCustomEntry(entry)) {
+    return (
+      <PredefinedCustomEdit
+        entry={entry}
+        registration={findCustomKey(customKeys, entry.key)}
+        onCommit={onCommit}
+        onCancel={onCancel}
+      />
+    );
+  }
   switch (entry.key) {
     case "codearea":
       return (

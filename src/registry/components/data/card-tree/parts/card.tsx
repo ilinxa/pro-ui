@@ -5,16 +5,19 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import type {
+  CustomPredefinedKey,
   FlatFieldValue,
   LevelStyle,
   MetaRenderer,
   PredefinedKey,
   SearchMatch,
 } from "../types";
-import type {
-  CardTreePredefinedEntry,
-  ParsedCardTree,
+import {
+  isCustomEntry,
+  type CardTreePredefinedEntry,
+  type ParsedCardTree,
 } from "../lib/parse";
+import { findCustomKey } from "../lib/custom-keys";
 import type {
   CardTreeAction,
   CardTreeState,
@@ -30,6 +33,7 @@ import { PredefinedImage } from "./predefined-image";
 import { PredefinedTable } from "./predefined-table";
 import { PredefinedQuote } from "./predefined-quote";
 import { PredefinedList } from "./predefined-list";
+import { PredefinedCustom } from "./predefined-custom";
 import { PredefinedEdit } from "./predefined-edit";
 import { FieldAddButton, FieldAddForm } from "./field-add";
 import { PredefinedAddMenu } from "./predefined-add-menu";
@@ -116,6 +120,9 @@ export type CardConfig = {
   searchQuery: string;
   searchCaseSensitive: boolean;
   dndEnabled: boolean;
+  // v0.6 — resolved custom predefined-key registrations (see `resolveCustomKeys`).
+  // Always present; `[]` when the host registered none.
+  customKeys: readonly CustomPredefinedKey[];
 };
 
 /* ───────── helpers ───────── */
@@ -133,6 +140,9 @@ function PredefinedRenderer({
   styleProp,
   editable,
   isEditing,
+  cardId,
+  level,
+  customKeys,
   onEnterEdit,
   onCommit,
   onCancel,
@@ -142,29 +152,51 @@ function PredefinedRenderer({
   styleProp: string | LevelStyle | undefined;
   editable: boolean;
   isEditing: boolean;
+  cardId: string;
+  level: number;
+  customKeys: readonly CustomPredefinedKey[];
   onEnterEdit: () => void;
   onCommit: (next: CardTreePredefinedEntry) => void;
   onCancel: () => void;
   onRemove: () => void;
 }) {
   if (isEditing) {
-    return <PredefinedEdit entry={entry} onCommit={onCommit} onCancel={onCancel} />;
+    return (
+      <PredefinedEdit
+        entry={entry}
+        customKeys={customKeys}
+        onCommit={onCommit}
+        onCancel={onCancel}
+      />
+    );
   }
   const className = resolvePredefinedClass(styleProp);
-  const block = (() => {
-    switch (entry.key) {
-      case "codearea":
-        return <PredefinedCodeArea value={entry.value} className={className} />;
-      case "image":
-        return <PredefinedImage value={entry.value} className={className} />;
-      case "table":
-        return <PredefinedTable value={entry.value} className={className} />;
-      case "quote":
-        return <PredefinedQuote value={entry.value} className={className} />;
-      case "list":
-        return <PredefinedList value={entry.value} className={className} />;
-    }
-  })();
+  // NARROWING CONTRACT: peel the custom variant off first — `entry.key` is an
+  // open `string` on `CardTreeCustomEntry`, so a bare `switch (entry.key)`
+  // would keep it a live candidate in every case and collapse `entry.value`
+  // to `unknown`. See lib/parse.ts `isCustomEntry`.
+  const block = isCustomEntry(entry) ? (
+    <PredefinedCustom
+      entry={entry}
+      registration={findCustomKey(customKeys, entry.key)}
+      ctx={{ cardId, level, isEditing: false, className }}
+    />
+  ) : (
+    (() => {
+      switch (entry.key) {
+        case "codearea":
+          return <PredefinedCodeArea value={entry.value} className={className} />;
+        case "image":
+          return <PredefinedImage value={entry.value} className={className} />;
+        case "table":
+          return <PredefinedTable value={entry.value} className={className} />;
+        case "quote":
+          return <PredefinedQuote value={entry.value} className={className} />;
+        case "list":
+          return <PredefinedList value={entry.value} className={className} />;
+      }
+    })()
+  );
   if (!editable) return block;
   return (
     <div className="group relative">
@@ -368,11 +400,16 @@ export function Card({
                       perms.canEditPredefined(tree.id, String(entry.key))
                     }
                     isEditing={isEditing}
+                    cardId={tree.id}
+                    level={tree.level}
+                    customKeys={config.customKeys}
                     onEnterEdit={() =>
                       config.setEditMode({
                         kind: "predefined",
                         cardId: tree.id,
-                        key: entry.key as PredefinedKey,
+                        // No cast: EditMode.key is `PredefinedKey | string` as of
+                        // v0.6 precisely so a custom key's name fits honestly.
+                        key: entry.key,
                       })
                     }
                     onCommit={(next) =>
@@ -422,8 +459,9 @@ export function Card({
             />
           ) : null}
           <PredefinedAddMenu
-            presentKeys={presentPredefinedKeys as PredefinedKey[]}
+            presentKeys={presentPredefinedKeys}
             disabledKeys={config.disabledPredefinedKeys}
+            customKeys={config.customKeys}
             onAdd={(entry) =>
               config.dispatchers.predefinedAdd(tree.id, entry)
             }

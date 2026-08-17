@@ -1074,8 +1074,10 @@ export default function BlackboardDemo() {
 
 import { useMemo, useRef, useState } from "react";
 import {
+  Blocks,
   Copy,
   Eye,
+  Gauge,
   Move,
   PanelRightClose,
   PanelRightOpen,
@@ -1090,11 +1092,232 @@ import type {
   CardTreeHandle,
   CardTreeJsonNode,
   CardTreeValidators,
+  CustomPredefinedKey,
   SearchMatch,
   SearchResult,
   ValidationFailedEvent,
 } from "./types";
 import { RICH_DEMO } from "./dummy-data";
+
+/**
+ * v0.6 custom predefined-keys — the surface that was declared and documented
+ * since v0.3 but stayed completely inert until v0.6 (see card-tree-loop.md
+ * F1/F7). Two registrations exercise both editor paths:
+ *
+ *   - \`metric\`  — object-valued, ships a real \`edit\` implementation, so the
+ *                 custom-editor path is demonstrated end to end.
+ *   - \`body\`    — ARRAY-valued (Plate Value / editor.js-shaped blocks). This
+ *                 is the case that was structurally impossible pre-v0.6:
+ *                 custom keys match on name before the value is inspected,
+ *                 so an array can be registered even though ordinary
+ *                 children still reject arrays (Q-P4, unchanged). \`edit\` is
+ *                 intentionally omitted, so this one demonstrates the
+ *                 documented JSON-textarea fallback.
+ */
+
+type MetricValue = { value: number; unit: string };
+
+function isMetricValue(v: unknown): v is MetricValue {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    typeof (v as Record<string, unknown>).value === "number" &&
+    typeof (v as Record<string, unknown>).unit === "string"
+  );
+}
+
+function MetricBlock({ value, className }: { value: MetricValue; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "inline-flex items-baseline gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-1.5",
+        className,
+      )}
+    >
+      <span className="font-mono text-base font-semibold text-foreground">
+        {value.value}
+      </span>
+      <span className="font-mono text-xs text-muted-foreground">{value.unit}</span>
+    </div>
+  );
+}
+
+function MetricEditor({
+  value,
+  onSave,
+  onCancel,
+}: {
+  value: MetricValue;
+  onSave: (next: MetricValue) => void;
+  onCancel: () => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <input
+        type="number"
+        value={draft.value}
+        onChange={(e) => setDraft((d) => ({ ...d, value: Number(e.target.value) }))}
+        className="w-20 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+      <input
+        type="text"
+        value={draft.unit}
+        onChange={(e) => setDraft((d) => ({ ...d, unit: e.target.value }))}
+        className="w-24 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+      <button
+        type="button"
+        onClick={() => onSave(draft)}
+        className="rounded-md border border-primary bg-primary px-2 py-1 font-mono text-[11px] text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        save
+      </button>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="rounded-md border border-border bg-card px-2 py-1 font-mono text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        cancel
+      </button>
+    </div>
+  );
+}
+
+const metricKey: CustomPredefinedKey = {
+  key: "metric",
+  description: "A KPI value with unit — custom editor",
+  category: "stats",
+  icon: <Gauge className="size-3.5" aria-hidden="true" />,
+  defaultValue: () => ({ value: 0, unit: "pages" }),
+  validate: (v) =>
+    isMetricValue(v)
+      ? { ok: true }
+      : {
+          ok: false,
+          errors: [
+            {
+              code: "shape-mismatch",
+              message: "metric must be { value: number, unit: string }",
+            },
+          ],
+        },
+  render: (value, ctx) =>
+    isMetricValue(value) ? (
+      <MetricBlock value={value} className={ctx.className} />
+    ) : (
+      <span className="font-mono text-xs text-destructive">invalid metric</span>
+    ),
+  edit: (value, onSave, onCancel) => (
+    <MetricEditor
+      value={isMetricValue(value) ? value : { value: 0, unit: "" }}
+      onSave={onSave}
+      onCancel={onCancel}
+    />
+  ),
+};
+
+type RichBlock =
+  | { type: "heading"; level: 1 | 2 | 3; text: string }
+  | { type: "paragraph"; text: string };
+
+function isRichBlocks(v: unknown): v is RichBlock[] {
+  return (
+    Array.isArray(v) &&
+    v.every(
+      (b) =>
+        typeof b === "object" &&
+        b !== null &&
+        typeof (b as Record<string, unknown>).type === "string" &&
+        typeof (b as Record<string, unknown>).text === "string",
+    )
+  );
+}
+
+function RichBlocksView({ blocks, className }: { blocks: RichBlock[]; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "space-y-1.5 rounded-md border border-border bg-muted/20 px-3 py-2",
+        className,
+      )}
+    >
+      {blocks.map((block, i) =>
+        block.type === "heading" ? (
+          <p
+            key={i}
+            className={cn(
+              "font-semibold text-foreground",
+              block.level === 1 ? "text-base" : block.level === 2 ? "text-sm" : "text-xs",
+            )}
+          >
+            {block.text}
+          </p>
+        ) : (
+          <p key={i} className="text-sm text-muted-foreground">
+            {block.text}
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
+const bodyBlocksKey: CustomPredefinedKey = {
+  key: "body",
+  description:
+    "Array-valued rich content (Plate Value / editor.js-shaped blocks) — no custom editor, falls back to the JSON-textarea",
+  category: "content",
+  icon: <Blocks className="size-3.5" aria-hidden="true" />,
+  defaultValue: () => [{ type: "paragraph", text: "" }] satisfies RichBlock[],
+  validate: (v) =>
+    isRichBlocks(v)
+      ? { ok: true }
+      : {
+          ok: false,
+          errors: [
+            {
+              code: "shape-mismatch",
+              message: "body must be an array of { type, text } blocks",
+            },
+          ],
+        },
+  render: (value, ctx) =>
+    isRichBlocks(value) ? (
+      <RichBlocksView blocks={value} className={ctx.className} />
+    ) : (
+      <span className="font-mono text-xs text-destructive">invalid body</span>
+    ),
+  searchableText: (value) => (isRichBlocks(value) ? value.map((b) => b.text) : []),
+  // \`edit\` intentionally omitted — demonstrates the documented JSON-textarea fallback.
+};
+
+const CUSTOM_PREDEFINED_KEYS: CustomPredefinedKey[] = [metricKey, bodyBlocksKey];
+
+/**
+ * RICH_DEMO plus one card exercising the two registrations above. Kept local
+ * to demo.tsx (not folded into dummy-data.ts) so the fixtures item ships the
+ * v0.1-v0.4 baseline tree unchanged.
+ */
+const DEMO_TREE: CardTreeJsonNode = {
+  ...RICH_DEMO,
+  impact: {
+    __rcid: "ch4",
+    __rcorder: 3,
+    __rcmeta: { drafted: "2026-04-10" },
+    pages: 3,
+
+    metric: { value: 94, unit: "% task success" },
+
+    body: [
+      { type: "heading", level: 2, text: "Why array-valued blocks matter" },
+      {
+        type: "paragraph",
+        text: "Plate Value and editor.js documents are arrays of blocks. Through v0.5.0, classifyKey routed any array to the child-card branch and parse rejected it outright — a registered array-shaped key had no way to reach the renderer. v0.6.0 matches custom keys by name before the value is inspected, so this block renders.",
+      },
+    ] satisfies RichBlock[],
+  },
+};
 
 const STRICT_VALIDATORS: CardTreeValidators = {
   fieldEdit: (event) => {
@@ -1131,7 +1354,7 @@ const STRICT_VALIDATORS: CardTreeValidators = {
 
 export default function CardTreeDemo() {
   const ref = useRef<CardTreeHandle>(null);
-  const initialJson = useMemo(() => JSON.stringify(RICH_DEMO, null, 2), []);
+  const initialJson = useMemo(() => JSON.stringify(DEMO_TREE, null, 2), []);
   const [liveJson, setLiveJson] = useState<string>(initialJson);
   const [copied, setCopied] = useState(false);
   const [showJson, setShowJson] = useState(true);
@@ -1161,7 +1384,7 @@ export default function CardTreeDemo() {
 
   const handleUndoOrRedo = () => {
     setDirty(ref.current?.isDirty() ?? false);
-    setLiveJson(JSON.stringify(ref.current?.getTree() ?? RICH_DEMO, null, 2));
+    setLiveJson(JSON.stringify(ref.current?.getTree() ?? DEMO_TREE, null, 2));
     setCanUndo(ref.current?.canUndo() ?? false);
     setCanRedo(ref.current?.canRedo() ?? false);
   };
@@ -1170,12 +1393,19 @@ export default function CardTreeDemo() {
     <div className="space-y-3">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <p className="max-w-3xl text-sm text-muted-foreground">
-          v0.4 demo: validators + per-commit undo/redo on v0.3&apos;s structural
-          management foundation. Toggle edit mode to enable inline editing,
-          drag-drop reordering, multi-select (shift-click range, cmd/ctrl-click
-          toggle), the bulk toolbar (≥2 selected), and the undo toolbar
-          (Cmd+Z / Cmd+Shift+Z / Cmd+Y). Use the search bar to find content in
-          collapsed subtrees and meta entries.
+          v0.6 demo: validators + per-commit undo/redo on v0.3&apos;s structural
+          management foundation, plus the &quot;Impact&quot; card&apos;s{" "}
+          <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">metric</code>{" "}
+          and{" "}
+          <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">body</code>{" "}
+          fields, rendered via two <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">customPredefinedKeys</code>{" "}
+          registrations — <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">body</code>{" "}
+          is array-valued, the case v0.5.0 could never register. Toggle edit
+          mode to enable inline editing, drag-drop reordering, multi-select
+          (shift-click range, cmd/ctrl-click toggle), the bulk toolbar (≥2
+          selected), and the undo toolbar (Cmd+Z / Cmd+Shift+Z / Cmd+Y). Use
+          the search bar to find content in collapsed subtrees and meta
+          entries.
         </p>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
@@ -1291,17 +1521,18 @@ export default function CardTreeDemo() {
               Preview
             </h3>
             <span className="font-mono text-[11px] text-muted-foreground">
-              v0.3 · 6 levels · all features
+              v0.6 · 6 levels · all features + custom keys
             </span>
           </div>
           <CardTree
             ref={ref}
             aria-label="Thesis outline"
-            defaultValue={RICH_DEMO}
+            defaultValue={DEMO_TREE}
             metaPresentation="popover"
             editable={editable}
             dndScopes={dndEnabled ? { sameLevel: true, crossLevel: true } : { sameLevel: false, crossLevel: false }}
             search={{ query: searchQuery }}
+            customPredefinedKeys={CUSTOM_PREDEFINED_KEYS}
             validators={validatorsEnabled ? STRICT_VALIDATORS : undefined}
             onValidationFailed={handleValidationFailed}
             onSearchResults={setSearchResult}

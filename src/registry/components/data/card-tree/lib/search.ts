@@ -8,11 +8,11 @@
 import type {
   CustomPredefinedKey,
   FlatFieldValue,
-  PredefinedKey,
   SearchMatch,
   SearchOptions,
   SearchResult,
 } from "../types";
+import { isCustomEntry } from "./parse";
 import type { CardTreePredefinedEntry, ParsedCardTree } from "./parse";
 
 const EXCERPT_RADIUS = 32; // chars on each side of the match
@@ -126,6 +126,20 @@ function stringifyPredefined(
   entry: CardTreePredefinedEntry,
   ctx: SearchContext,
 ): string {
+  // Custom entries carry an open `string` key, so they must be peeled off BEFORE
+  // the switch — otherwise they stay a candidate in every `case` and break the
+  // built-ins' narrowing (see CardTreeCustomEntry's narrowing contract).
+  if (isCustomEntry(entry)) {
+    const customKey = ctx.customKeys?.find((k) => k.key === entry.key);
+    if (!customKey?.searchableText) return "";
+    try {
+      return customKey.searchableText(entry.value).join(" ");
+    } catch {
+      // Host code — a throwing searchableText must not take the search down.
+      return "";
+    }
+  }
+
   switch (entry.key) {
     case "codearea":
       return `${entry.value.format} ${entry.value.content}`;
@@ -142,24 +156,7 @@ function stringifyPredefined(
       return entry.value;
     case "list":
       return entry.value.map(stringifyScalar).join(" ");
-    default: {
-      // Custom predefined-key — v0.3 doesn't search them by default (Q-P15 deferred).
-      // If a `searchableText` is supplied, use it.
-      const customKey = ctx.customKeys?.find(
-        (k) => k.key === (entry as { key: string }).key,
-      );
-      if (customKey?.searchableText) {
-        try {
-          return customKey.searchableText((entry as { value: unknown }).value).join(" ");
-        } catch {
-          return "";
-        }
-      }
-      return "";
-    }
   }
-  // suppress unused
-  void ({} as PredefinedKey);
 }
 
 function addOccurrences(

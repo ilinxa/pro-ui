@@ -3,14 +3,21 @@
  *
  * v0.1: viewer (typed scalar fields, predefined-key blocks, per-level styling, ARIA tree).
  * v0.2: inline editor (click-to-edit, granular events, dirty tracking, single-select).
- * v0.3 (current): structural management — drag-drop, bulk multi-select, permission matrix,
- *                 custom predefined-keys, virtualization, native search, meta editing,
- *                 root-removal, promote-on-delete.
+ * v0.3: structural management — drag-drop, bulk multi-select, permission matrix,
+ *       virtualization, native search, meta editing, root-removal, promote-on-delete.
+ * v0.4: validation hooks + per-commit undo/redo.
+ * v0.6 (current): **custom predefined-keys actually work.** The prop, the types and the
+ *       docs shipped in v0.3, but nothing between `parse` and the renderers ever read
+ *       them — registration was inert through 0.5.0. v0.6 wires the whole path
+ *       (classify → parse/validate → render/edit → serialize verbatim), which also
+ *       makes array-valued blocks (Plate Value, editor.js) registrable.
  *
  * See:
  *   - docs/procomps/card-tree-procomp/card-tree-procomp-plan.md (v0.1)
  *   - docs/procomps/card-tree-procomp/card-tree-procomp-plan-v0.2.md
- *   - docs/procomps/card-tree-procomp/card-tree-procomp-plan-v0.3.md
+ *   - docs/procomps/card-tree-procomp/card-tree-procomp-plan-v0.3.md (§9 = the custom-key spec)
+ *   - docs/procomps/card-tree-procomp/card-tree-procomp-plan-v0.4.md
+ *   - docs/procomps/card-tree-procomp/card-tree-loop.md (v0.6 U-loop)
  */
 
 import type { ReactNode } from "react";
@@ -209,7 +216,13 @@ export type CardTreePermissions = {
   default?: PermissionRule;
   byLevel?: Record<number, PermissionRule>;
   byCard?: Record<string, PermissionRule>;
-  byPredefinedKey?: Partial<Record<PredefinedKey, PermissionRule>>;
+  /**
+   * v0.6: accepts registered custom-key names too, not just the five built-ins.
+   * The runtime lookup in `lib/permissions.ts` always resolved this by string;
+   * the narrower type was the only thing preventing a custom block from being
+   * permission-controlled. `string & {}` keeps built-in autocomplete alive.
+   */
+  byPredefinedKey?: Partial<Record<PredefinedKey | (string & {}), PermissionRule>>;
   byFieldType?: Partial<Record<_FlatFieldType, PermissionRule>>;
   inherit?: boolean;
 };
@@ -257,7 +270,13 @@ export type CustomPredefinedKey = {
     onCancel: () => void,
   ) => ReactNode;
   defaultValue: () => unknown;
-  /** v0.4 candidate; not consumed in v0.3 */
+  /**
+   * Makes this block searchable by the native data-model search. Optional —
+   * omit it and the block is simply skipped by search (never an error).
+   *
+   * Q-P15 deferred custom-key search out of v0.3; `lib/search.ts` shipped the
+   * consumption early and it is live as of v0.6.
+   */
   searchableText?: (value: unknown) => string[];
 };
 
@@ -418,7 +437,25 @@ export type CardTreeProps = {
     reason: PermissionDenialReason,
   ) => void;
 
-  // v0.3 — custom predefined keys
+  /**
+   * Register additional content blocks at mount (v0.3 API — **functional since v0.6**).
+   *
+   * Precedence: reserved (`__rc*`) → built-in predefined → **custom** → scalar
+   * field → child card. Matching happens on the key NAME before the value is
+   * inspected, so a custom block may hold any JSON shape, arrays included —
+   * unlike ordinary children, which still reject arrays per Q-P4.
+   *
+   * Mount-only. A name that collides with a built-in or reserved key, or that is
+   * registered twice, is dropped with a `console.error`.
+   *
+   * ⚠️ Registering a name **claims that name everywhere in the tree**. If existing
+   * documents already use it for something else — a child card, say — those
+   * values are now routed to your `validate`, and a rejection drops the entry
+   * (same rule the five built-ins have always followed: a malformed `quote` is
+   * dropped too). Pick names you own, and treat adding a registration to a
+   * populated corpus as a migration. Parse diagnostics are emitted via
+   * `console.warn`.
+   */
   customPredefinedKeys?: CustomPredefinedKey[];
 
   // v0.3 — root-removal + delete policy

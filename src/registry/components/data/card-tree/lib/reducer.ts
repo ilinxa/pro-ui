@@ -243,12 +243,37 @@ function setLevelDeep(node: ParsedCardTree, level: number): ParsedCardTree {
   return next;
 }
 
+/**
+ * Duplicating a card must not leave the copy sharing a mutable value with the
+ * original. A spread only copies the entry wrapper, so `value` stayed shared by
+ * reference — latent for `table.rows`, and much likelier from v0.6 on, where a
+ * custom block's value is arbitrary host-owned JSON (a Plate Value array, say)
+ * and some editors mutate in place before calling `onSave`. That would corrupt
+ * the source card while editing its duplicate.
+ *
+ * Values are JSON by contract, so a structural clone is valid; anything
+ * non-cloneable (a stray function on a host value) falls back to the old
+ * shallow behavior rather than throwing.
+ */
+function cloneEntryValue<T>(value: T): T {
+  try {
+    return typeof structuredClone === "function"
+      ? structuredClone(value)
+      : (JSON.parse(JSON.stringify(value)) as T);
+  } catch {
+    return value;
+  }
+}
+
 function deepCloneWithFreshIds(node: ParsedCardTree, freshId: () => string): ParsedCardTree {
   return {
     ...node,
     id: freshId(),
     fields: node.fields.map((f) => ({ ...f })),
-    predefined: node.predefined.map((p) => ({ ...p })),
+    predefined: node.predefined.map((p) => ({
+      ...p,
+      value: cloneEntryValue(p.value),
+    })) as ParsedCardTree["predefined"],
     meta: node.meta ? { ...node.meta } : undefined,
     children: node.children.map((c) => deepCloneWithFreshIds(c, freshId)),
   };

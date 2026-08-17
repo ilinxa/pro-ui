@@ -8,11 +8,12 @@ export const meta: ComponentMeta = {
   description:
     "JSON-driven recursive card tree with a full structural editor — drag and drop, multi-select, permissions, search, validation, and undo.",
   context:
-    "Card Tree renders deeply nested structured content — agent transcripts, configuration trees, decision records, runbooks, requirement docs — as a card-tree where each card has typed scalar flat fields (string/number/boolean/null/date), five predefined content blocks (codearea, image, table, quote, list), child cards, and per-card meta. v0.4 completes the safety net: sync validation hooks via 3-layer pipeline (built-in → per-action → master) with `onValidationFailed` event, plus per-commit undo/redo (state-snapshot strategy with structural sharing, default 50-step history, `Cmd+Z` / `Cmd+Shift+Z` / `Cmd+Y` keyboard shortcuts, optional `<CardTreeUndoToolbar>` sibling export). Markdown adapter (v0.5) deferred indefinitely as a separate companion module — card-tree itself is JSON-native.",
+    "Card Tree renders deeply nested structured content — agent transcripts, configuration trees, decision records, runbooks, requirement docs — as a card-tree where each card has typed scalar flat fields (string/number/boolean/null/date), five predefined content blocks (codearea, image, table, quote, list), child cards, and per-card meta. v0.4 completes the safety net: sync validation hooks via 3-layer pipeline (built-in → per-action → master) with `onValidationFailed` event, plus per-commit undo/redo (state-snapshot strategy with structural sharing, default 50-step history, `Cmd+Z` / `Cmd+Shift+Z` / `Cmd+Y` keyboard shortcuts, optional `<CardTreeUndoToolbar>` sibling export). Markdown adapter (v0.5) deferred indefinitely as a separate companion module — card-tree itself is JSON-native. v0.6 makes `customPredefinedKeys` actually work: the prop and its docs shipped in v0.3, but nothing between parse and the renderers ever read it, so registrations were silently inert through 0.5.0. Custom keys now match on name before the value is inspected, which additionally makes array-valued blocks (Plate Value, editor.js) registrable — a shape ordinary child cards still reject by design (Q-P4).",
   features: [
     "JSON-native: accepts any plain object as a card; auto-attaches __rcid + __rcorder",
     "Typed flat-field rendering: numbers right-aligned mono, booleans as icons, ISO-8601 dates formatted",
-    "Five predefined-key content blocks (codearea, image, table, quote, list) + custom-key registration",
+    "Five predefined-key content blocks (codearea, image, table, quote, list)",
+    "v0.6 working custom-key registration: host-defined blocks of ANY JSON shape (arrays included) render, edit, validate, search, and round-trip verbatim",
     "Per-level + per-predefined-key slot styling",
     "Full ARIA tree contract with keyboard nav (arrows, home/end, expand/collapse, multi-select)",
     "Three meta presentation modes (hidden, inline, popover) with custom renderers + audit trail",
@@ -41,11 +42,11 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.5.0",
+  version: "0.6.0",
   status: "beta",
   artifactBudgetKB: 320,
   createdAt: "2026-04-28",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-17",
 
   author: { name: "ilinxa" },
 

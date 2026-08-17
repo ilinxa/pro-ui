@@ -46,7 +46,7 @@ Markdown source/serialization is **intentionally not in `card-tree`**. A v0.5 ma
 ### 3.1 Inside the ilinxa-ui-pro repo
 
 ```tsx
-import { CardTree } from "@/registry/components/data/card-tree";
+import { CardTree } from "@/components/card-tree";
 ```
 
 ### 3.2 Porting into another project
@@ -106,7 +106,7 @@ import {
   CardTreeUndoToolbar,
   type CardTreeHandle,
   type CardTreeValidators,
-} from "@/registry/components/data/card-tree";
+} from "@/components/card-tree";
 
 const ref = useRef<CardTreeHandle>(null);
 const [query, setQuery] = useState("");
@@ -272,12 +272,30 @@ Meta values must be scalars. Surface via `metaPresentation` prop (§11). Edit in
 }
 ```
 
-### 7.1 Custom predefined keys (v0.3)
+### 7.1 Custom predefined keys (specced v0.3, **implemented v0.6.0**)
+
+> **History:** `customPredefinedKeys` was declared, typed, and documented as a
+> working feature since v0.3 (see plan-v0.3 §9), but nothing between `parse`
+> and the renderers ever read the registration — it was completely inert
+> through v0.5.0. An external consumer built against this exact example and
+> lost time discovering it did nothing, with no warning, no parse error, and
+> no type error. v0.6.0 wires the whole path (classify → parse/validate →
+> render/edit → serialize); the API below is unchanged from what was always
+> documented. See `card-tree-loop.md` (U-loop) for the fix record.
 
 Register additional content blocks at mount via `customPredefinedKeys`:
 
+> **⚠️ A registered name claims that name across the whole tree.** Classification
+> matches on the key *name* before the value is inspected — that is what makes
+> array-valued blocks possible, and it is also the sharp edge. If your existing
+> documents already use that name for something else (a child card, a flat
+> field), those values are now handed to your `validate`, and a rejection drops
+> the entry, exactly as a malformed `quote` is dropped today. Parse diagnostics
+> go to `console.warn`. Pick names you own, and treat adding a registration to a
+> populated corpus as a data migration, not a config change.
+
 ```tsx
-import type { CustomPredefinedKey } from "@/registry/components/data/card-tree";
+import type { CustomPredefinedKey } from "@/components/card-tree";
 
 const metricKey: CustomPredefinedKey = {
   key: "metric",
@@ -300,7 +318,21 @@ const metricKey: CustomPredefinedKey = {
 <CardTree defaultValue={data} customPredefinedKeys={[metricKey]} editable />
 ```
 
-If `edit` is omitted, the editor falls back to a JSON-textarea. Mount-only registration — runtime conflicts (same name as built-in) are rejected with a console error.
+**Precedence (v0.6.0, load-bearing):** reserved (`__rc*`) → built-in
+predefined → **custom** → scalar field → child card. A registered name is
+matched **before its value is inspected**, so a custom block may hold any
+JSON shape — arrays included. That's what makes **array-valued** blocks
+(a Plate `Value`, an editor.js document) registrable: those shapes are
+structurally impossible to reach through the ordinary child-card route,
+which still rejects arrays (per §6 / Q-P4, unchanged for non-registered
+keys).
+
+If `edit` is omitted, the editor falls back to a JSON-textarea. Registration
+is mount-only — a name colliding with a built-in/reserved key, or registered
+twice, is rejected with a `console.error` (the built-in, or the first
+registration, wins) and the tree still renders. A `validate` that returns
+`{ ok: false }` or throws drops that entry with a diagnostic rather than
+breaking the rest of the tree.
 
 ---
 
@@ -472,7 +504,7 @@ Override via `levelStyles?: LevelStyle[]` (last entry repeats deeper) or `getLev
 ### 11.1 Custom meta renderers (v0.3)
 
 ```tsx
-import type { MetaRenderer } from "@/registry/components/data/card-tree";
+import type { MetaRenderer } from "@/components/card-tree";
 
 const tagsRenderer: MetaRenderer = (value, ctx) => {
   if (typeof value !== "string") return String(value);
@@ -1085,7 +1117,7 @@ import {
   CardTree,
   CardTreeUndoToolbar,
   type CardTreeValidators,
-} from "@/registry/components/data/card-tree";
+} from "@/components/card-tree";
 
 const validators: CardTreeValidators = {
   fieldEdit: (event) => {

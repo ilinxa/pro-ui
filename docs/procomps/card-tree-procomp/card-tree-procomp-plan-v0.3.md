@@ -563,6 +563,14 @@ When `__rcmeta.locked === true`, the card has:
 
 ## 9. Custom predefined-key registration
 
+> **Status (added 2026-08-17, non-normative):** this section was specified and
+> signed off at v0.3 GATE 2, and `types.ts` + `CardTreeProps.customPredefinedKeys`
+> shipped in v0.3 as written below — but the implementation was never wired
+> into `classifyKey` / `parse` / the renderers, so the feature was inert
+> through v0.5.0. It was implemented as specced (this section, unchanged) in
+> **v0.6.0**. See `card-tree-loop.md` (U-loop) for the fix record. The spec
+> below is left as originally signed off.
+
 ### 9.1 Mount-only registration
 
 ```tsx

@@ -9,6 +9,7 @@
 
 import type {
   CodeAreaValue,
+  CustomPredefinedKey,
   FlatFieldValue,
   ImageValue,
   ListValue,
@@ -18,6 +19,7 @@ import type {
   TableValue,
 } from "../types";
 import { classifyKey } from "./classify-key";
+import { findCustomKey } from "./custom-keys";
 import {
   inferFlatFieldType,
   type DateDetection,
@@ -32,12 +34,36 @@ export type CardTreeField = {
   type: FlatFieldType;
 };
 
+/**
+ * A host-registered custom block (v0.6). `value` is deliberately `unknown` and is
+ * written back by `serialize` VERBATIM — a custom block's shape is the
+ * integrator's contract, not card-tree's.
+ *
+ * NARROWING CONTRACT: `key` is an open `string`, so a bare `switch (entry.key)`
+ * would keep this variant alive in every `case`. Always test `isCustomEntry(entry)`
+ * (or `"custom" in entry`) FIRST; the remaining union is then the five built-ins
+ * and `switch` narrows as it always did.
+ */
+export type CardTreeCustomEntry = {
+  key: string;
+  custom: true;
+  value: unknown;
+};
+
 export type CardTreePredefinedEntry =
   | { key: "codearea"; value: CodeAreaValue }
   | { key: "image"; value: ImageValue }
   | { key: "table"; value: TableValue }
   | { key: "quote"; value: QuoteValue }
-  | { key: "list"; value: ListValue };
+  | { key: "list"; value: ListValue }
+  | CardTreeCustomEntry;
+
+/** Narrowing guard for {@link CardTreeCustomEntry} — see its narrowing contract. */
+export function isCustomEntry(
+  entry: CardTreePredefinedEntry,
+): entry is CardTreeCustomEntry {
+  return "custom" in entry && entry.custom === true;
+}
 
 export type ParsedCardTree = {
   id: string;
@@ -59,6 +85,12 @@ export type ParseError = {
 export type ParseOptions = {
   disabledPredefinedKeys: readonly PredefinedKey[];
   dateDetection: DateDetection;
+  /**
+   * Resolved custom-key registrations (v0.6) — pass the `keys` from
+   * `resolveCustomKeys`, never the raw prop: colliding + duplicate names must
+   * already be dropped. Omit for v0.5 behavior.
+   */
+  customKeys?: readonly CustomPredefinedKey[];
 };
 
 export type ParseResult = {
@@ -232,11 +264,19 @@ function validatePredefinedShape(
 
 /* ───────── core recursion ───────── */
 
+/**
+ * `ParseOptions` plus the custom-key NAME list, derived once per `parseInput`
+ * rather than per node — `classifyKey` runs on every property of every card.
+ */
+type InternalParseOptions = ParseOptions & {
+  customNames: readonly string[];
+};
+
 function parseNode(
   node: unknown,
   parentKey: string | undefined,
   level: number,
-  opts: ParseOptions,
+  opts: InternalParseOptions,
   errors: ParseError[],
   path: string,
   seenIds: Set<string>,
@@ -299,6 +339,7 @@ function parseNode(
       key,
       value,
       opts.disabledPredefinedKeys,
+      opts.customNames,
     );
 
     switch (classification) {
@@ -314,6 +355,51 @@ function parseNode(
           childPath,
         );
         if (validated) predefined.push(validated);
+        break;
+      }
+
+      case "custom": {
+        const registration = opts.customKeys
+          ? findCustomKey(opts.customKeys, key)
+          : undefined;
+        if (!registration) {
+          // classifyKey said "custom" but the registration is gone — only
+          // reachable if customNames and customKeys were built from different
+          // sources. Treat as a field rather than losing the value silently.
+          errors.push({
+            message: `custom predefined-key "${key}" is classified but has no registration; entry dropped`,
+            path: childPath,
+          });
+          break;
+        }
+
+        // Host code runs here. plan-v0.3 §L881: a throwing validator must
+        // degrade (drop + warn), never take the tree down.
+        let result: { ok: boolean; errors?: { code: string; message: string }[] };
+        try {
+          result = registration.validate(value);
+        } catch {
+          errors.push({
+            message: `custom predefined-key "${key}" validator threw; entry dropped`,
+            path: childPath,
+          });
+          break;
+        }
+
+        if (!result || result.ok !== true) {
+          const detail = (result?.errors ?? [])
+            .map((e) => `${e.code}: ${e.message}`)
+            .join("; ");
+          errors.push({
+            message: `custom predefined-key "${key}" failed validation${detail ? ` (${detail})` : ""}; entry dropped`,
+            path: childPath,
+          });
+          break;
+        }
+
+        // Stored verbatim — serialize writes `entry.value` straight back out,
+        // so the round-trip is byte-identical for any JSON shape (I2).
+        predefined.push({ key, custom: true, value });
         break;
       }
 
@@ -377,6 +463,10 @@ export function parseInput(
 ): ParseResult {
   const errors: ParseError[] = [];
   const seenIds = new Set<string>();
-  const tree = parseNode(input, undefined, 1, opts, errors, "", seenIds);
+  const internal: InternalParseOptions = {
+    ...opts,
+    customNames: opts.customKeys?.map((k) => k.key) ?? [],
+  };
+  const tree = parseNode(input, undefined, 1, internal, errors, "", seenIds);
   return { tree, errors };
 }

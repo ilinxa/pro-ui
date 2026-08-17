@@ -80,6 +80,75 @@ export function Example() {
       </section>
 
       <section>
+        <h3 className="mb-2 text-base font-semibold">
+          Custom predefined keys{" "}
+          <span className="ml-1 rounded bg-muted px-1.5 py-0.5 align-middle font-mono text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
+            v0.6
+          </span>
+        </h3>
+        <p className="text-muted-foreground">
+          Register additional content blocks at mount via{" "}
+          <code>customPredefinedKeys</code>. The prop was declared and
+          documented since v0.3 but had no reader anywhere in the parse
+          pipeline until v0.6 — a tree that passed it saw the registration
+          silently do nothing. As of v0.6 the whole path is wired: classify →
+          parse/validate → render/edit → serialize.
+        </p>
+        <pre className="mt-2 overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+          <code>{`import type { CustomPredefinedKey } from "@/components/card-tree";
+
+const metricKey: CustomPredefinedKey = {
+  key: "metric",
+  description: "A KPI value with unit",
+  defaultValue: () => ({ value: 0, unit: "" }),
+  validate: (v) =>
+    typeof v === "object" && v !== null
+      ? { ok: true }
+      : { ok: false, errors: [{ code: "shape-mismatch", message: "..." }] },
+  render: (value, ctx) => <MyMetricBlock value={value} cardId={ctx.cardId} />,
+  edit: (value, onSave, onCancel) => (
+    <MyMetricEditor value={value} onSave={onSave} onCancel={onCancel} />
+  ),
+};
+
+<CardTree
+  defaultValue={data}
+  editable
+  customPredefinedKeys={[metricKey]}
+/>`}</code>
+        </pre>
+        <p className="mt-2 text-muted-foreground">
+          <strong>Precedence:</strong> reserved (<code>__rc*</code>) → built-in
+          predefined (<code>codearea</code> / <code>image</code> /{" "}
+          <code>table</code> / <code>quote</code> / <code>list</code>) →{" "}
+          <strong>custom</strong> → scalar field → child card. A registered
+          name is matched <em>before</em> its value is inspected, which is
+          what makes an <strong>array-valued</strong> block registrable — an
+          editor.js document or a Plate <code>Value</code> is an array of
+          nodes, and through v0.5.0 that shape had no way to reach a renderer
+          (the child-card branch rejects arrays per the doc above). Ordinary,
+          unregistered children still reject arrays — this only opens up for
+          names you explicitly register.
+        </p>
+        <p className="mt-2 text-muted-foreground">
+          If <code>edit</code> is omitted, the editor falls back to a
+          JSON-textarea. <code>validate</code> runs at parse time and at edit
+          commit; a validator that returns <code>{`{ ok: false }`}</code> or
+          throws drops that entry (with a diagnostic) instead of breaking the
+          rest of the tree.{" "}
+          <code>searchableText</code> is optional — supply it to make a
+          custom block participate in native search, or omit it and the
+          block is simply skipped.
+        </p>
+        <p className="mt-2 text-muted-foreground">
+          Registration is <strong>mount-only</strong>. A name that collides
+          with a built-in / reserved key, or that is registered twice, is
+          dropped with a <code>console.error</code> — the built-in (or the
+          first registration) wins, and the tree still renders.
+        </p>
+      </section>
+
+      <section>
         <h3 className="mb-2 text-base font-semibold">Field value typing</h3>
         <p className="text-muted-foreground">
           Flat-field values are JSON scalars: <code>string</code>,{" "}

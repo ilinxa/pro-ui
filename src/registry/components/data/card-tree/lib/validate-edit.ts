@@ -50,12 +50,23 @@ function isPredefinedKey(key: string, disabled: readonly PredefinedKey[]): boole
   );
 }
 
+/**
+ * v0.6 — a registered custom-key name is no more available as a flat-field or
+ * card name than a built-in is. Without this check the edit commits, but the
+ * next parse re-classifies the key as `custom`, runs the host validator against
+ * a scalar, and drops the value: silent data loss across one round-trip.
+ */
+function isCustomKeyName(key: string, customKeyNames: readonly string[]): boolean {
+  return customKeyNames.includes(key);
+}
+
 function checkKeyAvailable(
   newKey: string,
   cardId: string,
   state: CardTreeState,
   disabled: readonly PredefinedKey[],
   excludeKey?: string,
+  customKeyNames: readonly string[] = [],
 ): ValidationError[] {
   const errors: ValidationError[] = [];
   if (!newKey || newKey.trim().length === 0) {
@@ -72,6 +83,12 @@ function checkKeyAvailable(
     errors.push({
       code: "predefined-key",
       message: `"${newKey}" is a predefined-key name. Add it to disabledPredefinedKeys to use as a flat field.`,
+    });
+  }
+  if (isCustomKeyName(newKey, customKeyNames)) {
+    errors.push({
+      code: "custom-key",
+      message: `"${newKey}" is a registered custom predefined-key name; pick a different key.`,
     });
   }
   const card = findCard(state.tree, cardId);
@@ -149,6 +166,7 @@ export function validateFieldEditKey(
   oldKey: string,
   newKey: string,
   disabledPredefinedKeys: readonly PredefinedKey[],
+  customKeyNames: readonly string[] = [],
 ): ValidationResult {
   if (oldKey === newKey) return ok;
   const errors = checkKeyAvailable(
@@ -157,6 +175,7 @@ export function validateFieldEditKey(
     state,
     disabledPredefinedKeys,
     oldKey,
+    customKeyNames,
   );
   return errors.length === 0 ? ok : fail(...errors);
 }
@@ -168,12 +187,15 @@ export function validateFieldAdd(
   value: FlatFieldValue,
   type: FlatFieldType,
   disabledPredefinedKeys: readonly PredefinedKey[],
+  customKeyNames: readonly string[] = [],
 ): ValidationResult {
   const keyErrors = checkKeyAvailable(
     key,
     cardId,
     state,
     disabledPredefinedKeys,
+    undefined,
+    customKeyNames,
   );
   if (keyErrors.length > 0) return fail(...keyErrors);
 
@@ -205,6 +227,7 @@ export function validateCardRename(
   cardId: string,
   newKey: string,
   disabledPredefinedKeys: readonly PredefinedKey[],
+  customKeyNames: readonly string[] = [],
 ): ValidationResult {
   if (!newKey || newKey.trim().length === 0) {
     return fail({ code: "empty-key", message: "Card name cannot be empty." });
@@ -219,6 +242,12 @@ export function validateCardRename(
     return fail({
       code: "predefined-key",
       message: `"${newKey}" is a predefined-key name; pick a different card name.`,
+    });
+  }
+  if (isCustomKeyName(newKey, customKeyNames)) {
+    return fail({
+      code: "custom-key",
+      message: `"${newKey}" is a registered custom predefined-key name; pick a different card name.`,
     });
   }
   // Sibling-key collision: find this card's parent + check siblings (excluding self)

@@ -13,7 +13,11 @@ export type EditMode =
   | { kind: "field-value"; cardId: string; key: string }
   | { kind: "field-key"; cardId: string; key: string }
   | { kind: "card-title"; cardId: string }
-  | { kind: "predefined"; cardId: string; key: PredefinedKey }
+  // `key` is widened from PredefinedKey in v0.6: a custom block's key is an
+  // arbitrary registered name. It was already being written here via an
+  // `as PredefinedKey` assertion, which compiled but was a lie the moment
+  // custom keys became real.
+  | { kind: "predefined"; cardId: string; key: PredefinedKey | string }
   | { kind: "field-add"; cardId: string }
   | { kind: "predefined-add"; cardId: string };
 
