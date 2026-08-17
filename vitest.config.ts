@@ -3,6 +3,21 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 /**
+ * Force the test build of React, whatever the ambient environment says.
+ *
+ * Vitest only defaults `NODE_ENV` to `test` when it is UNSET. Vercel exports
+ * `NODE_ENV=production` for the entire build, so `pnpm vercel-build` ran the
+ * suite against `react-dom.production.js` — which does not ship `act` — and
+ * every `@testing-library/react` render died with
+ * "TypeError: React.act is not a function" (24/24 component tests, deploy
+ * blocked). This assignment lands before Vite resolves the config and before
+ * any worker forks, so React/react-dom load their development entry.
+ */
+// (`NODE_ENV` is typed read-only by @types/node; the cast is the assignment,
+// not a behavior change.)
+(process.env as { NODE_ENV?: string }).NODE_ENV = "test";
+
+/**
  * Two projects, split by environment:
  *
  *   - `lib`        — pure-logic tests (parsers, reducers, validators). No DOM,
