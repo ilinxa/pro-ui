@@ -16,7 +16,7 @@ The `@ilinxa/article-meta-fixtures` sibling adds the demo dummy-data file. Skip 
 
 ```tsx
 import { Calendar, Clock, Eye, User } from "lucide-react";
-import { ArticleMeta } from "@/registry/components/data/article-meta";
+import { ArticleMeta } from "@/components/article-meta";
 
 export function ArticleHeader({ article }) {
   return (

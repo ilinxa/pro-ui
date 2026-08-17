@@ -17,7 +17,7 @@ The `@ilinxa/author-card-fixtures` sibling adds the `dummy-data.ts` file used by
 ## Quick start
 
 ```tsx
-import { AuthorCard } from "@/registry/components/marketing/author-card";
+import { AuthorCard } from "@/components/author-card";
 
 export function ArticleSidebar() {
   return (

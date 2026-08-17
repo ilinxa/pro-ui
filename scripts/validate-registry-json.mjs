@@ -47,7 +47,21 @@ const ROOT = process.cwd();
 const registry = JSON.parse(readFileSync(join(ROOT, "registry.json"), "utf8"));
 
 const ALWAYS_OK = new Set(["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"]);
-const NON_SHIPPED = /(^|[\\/])(demo\.tsx|usage\.tsx|meta\.ts|dummy-data\.tsx?)$/;
+/**
+ * Files that live in a component folder but must never appear in a registry item.
+ *
+ * `__tests__/` and `*.test.*` joined this list when the test tier landed
+ * (2026-08-17). This validator's roster-vs-disk diff otherwise reports every
+ * test file as "shipped file on disk NOT in registry.json files[]" — and the
+ * only way to satisfy that would be to actually ship tests into consumers'
+ * `components/` folders, which is precisely what must not happen.
+ *
+ * Note for future file categories: introducing any new non-shipped file type
+ * inside component folders requires updating BOTH this validator and
+ * `validate-meta-deps.mjs`, which walks the same tree with the same assumption.
+ */
+const NON_SHIPPED =
+  /(^|[\\/])(demo\.tsx|usage\.tsx|meta\.ts|dummy-data\.tsx?|__tests__[\\/].*|__mocks__[\\/].*|[^\\/]+\.(test|spec)\.(tsx?|m?js))$/;
 
 const IMPORT_RE =
   /(?:import|export)\s+(?:type\s+)?(?:\*(?:\s+as\s+[\w$]+)?|[\w$]+)?\s*,?\s*(?:\{[^}]*\})?\s*from\s+["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|^\s*import\s+["']([^"']+)["']/gm;

@@ -32,7 +32,7 @@ Two cleanly separated concerns:
 ### Event registration sidebar (the kasder use case)
 
 ```tsx
-import { RegistrationCard } from "@/registry/components/data/registration-card";
+import { RegistrationCard } from "@/components/registration-card";
 
 <RegistrationCard
   heading="Kayıt Durumu"
@@ -57,7 +57,7 @@ import { RegistrationCard } from "@/registry/components/data/registration-card";
 ### Composing with `event-card`'s state
 
 ```tsx
-import { getEventStatus } from "@/registry/components/data/event-card";
+import { getEventStatus } from "@/components/event-card";
 
 // Pattern 1 — close registration only when event has expired:
 <RegistrationCard
@@ -110,7 +110,7 @@ import { getEventStatus } from "@/registry/components/data/event-card";
 ### Custom actions cluster (replaces default share)
 
 ```tsx
-import { ShareBar } from "@/registry/components/marketing/share-bar";
+import { ShareBar } from "@/components/share-bar";
 
 <RegistrationCard
   capacity={200}
@@ -131,7 +131,7 @@ import { ShareBar } from "@/registry/components/marketing/share-bar";
 Pure function, no React imports. Use for header counters, calendar coloring, filter logic, deterministic tests:
 
 ```tsx
-import { deriveRegistrationStatus } from "@/registry/components/data/registration-card";
+import { deriveRegistrationStatus } from "@/components/registration-card";
 
 // Header counter
 const stillOpen = events.filter((e) => {

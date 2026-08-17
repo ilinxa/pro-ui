@@ -32,7 +32,7 @@ pnpm dlx shadcn@latest add @ilinxa/story-rail-fixtures
 ## Minimal usage
 
 ```tsx
-import { StoryRail } from "@/registry/components/data/story-rail";
+import { StoryRail } from "@/components/story-rail";
 
 <StoryRail
   items={stories}
@@ -48,7 +48,7 @@ That's the whole baseline. Renders 7 thumbnails (or however many you pass), fram
 import {
   StoryRail,
   AddStoryThumbnail,
-} from "@/registry/components/data/story-rail";
+} from "@/components/story-rail";
 
 <StoryRail
   items={stories}
@@ -70,7 +70,7 @@ import {
 import type {
   Subscribe,
   StoryRailDelta,
-} from "@/registry/components/data/story-rail";
+} from "@/components/story-rail";
 
 const subscribe = useCallback<Subscribe<StoryRailDelta>>(
   (handler) => channel.on("stories", handler),

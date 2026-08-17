@@ -52,7 +52,7 @@ Only one panel is open at a time. Each panel has a "Hide" button (kasder's "Gizl
 ## Minimal feed (with all three panels enabled)
 
 ```tsx
-import { PostCard } from "@/registry/components/data/post-card";
+import { PostCard } from "@/components/post-card";
 
 <PostCard
   variant="feed"
@@ -86,7 +86,7 @@ The card auto-wires:
 ## Detail with embedded thread + realtime
 
 ```tsx
-import type { Subscribe, EngagementDelta, CommentDelta } from "@/registry/components/data/post-card";
+import type { Subscribe, EngagementDelta, CommentDelta } from "@/components/post-card";
 
 const engagementSubscribe = useCallback<Subscribe<EngagementDelta>>(
   (h) => channel.on(`post-${post.id}-engagement`, h),
@@ -150,7 +150,7 @@ import {
   PostCard,
   defaultPostEngagementActions,
   type EngagementAction,
-} from "@/registry/components/data/post-card";
+} from "@/components/post-card";
 import { Wand2 } from "lucide-react";
 
 <PostCard

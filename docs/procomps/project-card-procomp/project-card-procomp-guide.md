@@ -28,13 +28,13 @@
 import { useState } from "react";
 import NextLink from "next/link";
 import { Building2 } from "lucide-react";
-import { PageHero } from "@/registry/components/marketing/page-hero";
-import { FilterBar } from "@/registry/components/forms/filter-bar";
+import { PageHero } from "@/components/page-hero";
+import { FilterBar } from "@/components/filter-bar";
 import {
   MagazineLayout,
   useMagazineFilter,
-} from "@/registry/components/layout/magazine-layout";
-import { ProjectCard } from "@/registry/components/data/project-card";
+} from "@/components/magazine-layout";
+import { ProjectCard } from "@/components/project-card";
 
 export default function ProjectsPage({ allProjects }) {
   const [category, setCategory] = useState<string | null>(null);
@@ -120,7 +120,7 @@ When `bento-grid-01` lands, the per-card `className` props become unnecessary â€
 import {
   PROJECT_STATUS_CONFIG,
   type ProjectStatus,
-} from "@/registry/components/data/project-card";
+} from "@/components/project-card";
 
 function StatusLegend() {
   return (
@@ -147,7 +147,7 @@ import {
   PROJECT_STATUS_CONFIG,
   type ProjectStatus,
   type ProjectCardItem,
-} from "@/registry/components/data/project-card";
+} from "@/components/project-card";
 
 function StatusSummary({ projects }: { projects: ProjectCardItem[] }) {
   const counts = projects.reduce<Record<ProjectStatus, number>>(

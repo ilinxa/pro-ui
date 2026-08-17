@@ -122,13 +122,13 @@ Install:
 pnpm dlx shadcn@latest add @ilinxa/flow-canvas
 ```
 
-(Within this monorepo, import from `@/registry/components/data/flow-canvas`. Once the component ships through the shadcn registry, consumers will install via `pnpm dlx shadcn@latest add @ilinxa/flow-canvas`.)
+(Within this monorepo, import from `@/components/flow-canvas`. Once the component ships through the shadcn registry, consumers will install via `pnpm dlx shadcn@latest add @ilinxa/flow-canvas`.)
 
 Minimum viable canvas:
 
 ```tsx
 "use client";
-import { FlowCanvas } from "@/registry/components/data/flow-canvas";
+import { FlowCanvas } from "@/components/flow-canvas";
 
 export function Example() {
   return (
@@ -306,7 +306,7 @@ Override:
 
 ```tsx
 import { useRef } from "react";
-import { FlowCanvas, type FlowCanvasExportHandle } from "@/registry/components/data/flow-canvas";
+import { FlowCanvas, type FlowCanvasExportHandle } from "@/components/flow-canvas";
 
 function Example() {
   const ref = useRef<FlowCanvasExportHandle>(null);
@@ -357,7 +357,7 @@ Every file in this folder begins with `'use client'`. xyflow cannot SSR. Two cor
 
 ```tsx
 // app/canvas/page.tsx — server component
-import { FlowCanvas } from "@/registry/components/data/flow-canvas";
+import { FlowCanvas } from "@/components/flow-canvas";
 export default function Page() {
   return (
     <div className="h-screen w-screen">
@@ -374,7 +374,7 @@ export default function Page() {
 ```tsx
 import dynamic from "next/dynamic";
 const FlowCanvas = dynamic(
-  () => import("@/registry/components/data/flow-canvas").then((m) => m.FlowCanvas),
+  () => import("@/components/flow-canvas").then((m) => m.FlowCanvas),
   { ssr: false },
 );
 ```

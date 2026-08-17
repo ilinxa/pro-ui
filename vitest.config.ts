@@ -1,0 +1,40 @@
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
+
+/**
+ * Two projects, split by environment:
+ *
+ *   - `lib`        — pure-logic tests (parsers, reducers, validators). No DOM,
+ *                    node environment, fast. `*.test.ts` only.
+ *   - `components`  — React component tests. jsdom environment,
+ *                    @vitejs/plugin-react for JSX/Fast Refresh-free transform,
+ *                    Testing Library + jest-dom matchers. `*.test.tsx` only.
+ *
+ * Kept separate so the lib tier (the highest-value, cheapest-to-run tier —
+ * see docs/plans/test-infrastructure-plan.md §R1) never pays jsdom's boot
+ * cost, and so a lib-only change can run `pnpm test:lib` for fast feedback.
+ */
+export default defineConfig({
+  test: {
+    projects: [
+      {
+        plugins: [tsconfigPaths()],
+        test: {
+          name: "lib",
+          environment: "node",
+          include: ["src/registry/**/__tests__/**/*.test.ts"],
+        },
+      },
+      {
+        plugins: [tsconfigPaths(), react()],
+        test: {
+          name: "components",
+          environment: "jsdom",
+          include: ["src/registry/**/__tests__/**/*.test.tsx"],
+          setupFiles: ["./vitest.setup.ts"],
+        },
+      },
+    ],
+  },
+});

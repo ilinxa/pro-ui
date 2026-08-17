@@ -37,7 +37,7 @@ import {
   RichTextViewer,    // RSC-friendly — pure server-renderable viewer
   type RichTextValue,
   type ImageUploader,
-} from "@/registry/components/data/rich-text-editor";
+} from "@/components/rich-text-editor";
 ```
 
 | | Editor | Viewer |
@@ -59,7 +59,7 @@ import {
   RichTextEditor,
   RICH_TEXT_EMPTY_VALUE,
   type RichTextValue,
-} from "@/registry/components/data/rich-text-editor";
+} from "@/components/rich-text-editor";
 
 export function ArticleEditPage({ initial }: { initial?: RichTextValue }) {
   const [value, setValue] = useState<RichTextValue>(
@@ -87,7 +87,7 @@ Press `Cmd/Ctrl+S` while in the editor to fire `onSave(value)` with the current 
 
 ```tsx
 // Server component — no "use client"
-import { RichTextViewer } from "@/registry/components/data/rich-text-editor";
+import { RichTextViewer } from "@/components/rich-text-editor";
 
 export default async function NewsArticle({ params }: { params: { id: string } }) {
   const article = await fetchArticle(params.id);

@@ -27,7 +27,7 @@ Reach for it when one fixed layout never fits every user's workflow. Three concr
 ## The five-minute walkthrough
 
 ```tsx
-import { SplitWorkspace, type SplitWorkspaceComponent } from "@/registry/components/layout/split-workspace";
+import { SplitWorkspace, type SplitWorkspaceComponent } from "@/components/split-workspace";
 
 const components: SplitWorkspaceComponent[] = [
   { id: "chart",  name: "Chart",   category: "Data",  render: () => <Chart /> },
@@ -96,7 +96,7 @@ Multiple areas can host the same component — two clocks, two notes pads — an
 Components that depend on their area's dimensions or focus state read live values via `useAreaContext()`:
 
 ```tsx
-import { useAreaContext } from "@/registry/components/layout/split-workspace";
+import { useAreaContext } from "@/components/split-workspace";
 
 function Chart() {
   const { width, height, isFocused } = useAreaContext();
@@ -134,7 +134,7 @@ For "remember the user's layout" UX, use controlled mode. **Debounce the write**
 ```tsx
 import { useMemo, useState } from "react";
 import { debounce } from "lodash-es";  // or any debounce of your choice
-import type { AreaTree } from "@/registry/components/layout/split-workspace";
+import type { AreaTree } from "@/components/split-workspace";
 
 const KEY = "myapp.workspace.layout";
 

@@ -162,7 +162,7 @@ import {
   formatEventDate,
   getDaysUntilEvent,
   type EventStatus,
-} from "@/registry/components/data/event-card";
+} from "@/components/event-card";
 ```
 
 ### Header counter
@@ -208,7 +208,7 @@ const filteredByStatus = events.filter((e) => {
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { getEventStatus } from "@/registry/components/data/event-card";
+import { getEventStatus } from "@/components/event-card";
 
 const fixedNow = new Date("2026-06-01T12:00:00Z");
 

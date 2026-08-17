@@ -104,7 +104,7 @@ Each card renders an initials circle (`bg-primary/10 text-primary font-semibold`
 The initials helper is exported as a pure function. Use it in mention chips, comment headers, contact rows, presence badges:
 
 ```tsx
-import { getInitials } from "@/registry/components/data/people-grid";
+import { getInitials } from "@/components/people-grid";
 
 getInitials("Dr. Ahmet Yılmaz")    // → "AY"
 getInitials("Prof. Dr. Elif Kaya") // → "EK"

@@ -41,7 +41,7 @@ pnpm dlx shadcn@latest add @ilinxa/story-viewer-fixtures
 ## Minimal usage
 
 ```tsx
-import { StoryViewer } from "@/registry/components/media/story-viewer";
+import { StoryViewer } from "@/components/story-viewer";
 
 const [open, setOpen] = useState(false);
 const [activeIdx, setActiveIdx] = useState(0);
@@ -58,8 +58,8 @@ const [activeIdx, setActiveIdx] = useState(0);
 
 ```tsx
 import { useRef, useState } from "react";
-import { StoryRail, type StoryRailHandle } from "@/registry/components/data/story-rail";
-import { StoryViewer } from "@/registry/components/media/story-viewer";
+import { StoryRail, type StoryRailHandle } from "@/components/story-rail";
+import { StoryViewer } from "@/components/story-viewer";
 
 function FeedTop({ stories, viewer }: Props) {
   const railRef = useRef<StoryRailHandle>(null);
@@ -95,7 +95,7 @@ The viewer's `onStoryViewed(storyId)` is what hosts wire back to `railRef.curren
 import type {
   Subscribe,
   StoryViewerDelta,
-} from "@/registry/components/media/story-viewer";
+} from "@/components/story-viewer";
 
 const subscribe = useCallback<Subscribe<StoryViewerDelta>>(
   (handler) => channel.on("stories", handler),
@@ -496,7 +496,7 @@ draft composer) persists across open/close cycles. The story timer
 auto-pauses while the panel is open.
 
 ```tsx
-import { CommentThread } from "@/registry/components/data/comment-thread";
+import { CommentThread } from "@/components/comment-thread";
 
 <StoryViewer
   /* ... */
@@ -531,7 +531,7 @@ Same mount + dismiss model as comments. Wire `renderSharePanel` to a
 share UI — typically `ShareMenu` from `@ilinxa/engagement-bar`:
 
 ```tsx
-import { ShareMenu } from "@/registry/components/data/engagement-bar";
+import { ShareMenu } from "@/components/engagement-bar";
 
 <StoryViewer
   /* ... */

@@ -20,12 +20,12 @@
 ### Full magazine page (the canonical use case)
 
 ```tsx
-import { MagazineLayout, useMagazineFilter } from "@/registry/components/layout/magazine-layout";
-import { NewsCard } from "@/registry/components/data/news-card";
-import { FilterBar } from "@/registry/components/forms/filter-bar";
-import { CategoryCloud } from "@/registry/components/forms/category-cloud";
-import { NewsletterSignup } from "@/registry/components/marketing/newsletter-signup";
-import { PageHero } from "@/registry/components/marketing/page-hero";
+import { MagazineLayout, useMagazineFilter } from "@/components/magazine-layout";
+import { NewsCard } from "@/components/news-card";
+import { FilterBar } from "@/components/filter-bar";
+import { CategoryCloud } from "@/components/category-cloud";
+import { NewsletterSignup } from "@/components/newsletter-signup";
+import { PageHero } from "@/components/page-hero";
 
 const filtered = useMagazineFilter<Article>({
   items: articles,

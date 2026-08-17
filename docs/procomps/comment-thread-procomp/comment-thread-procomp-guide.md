@@ -32,7 +32,7 @@ pnpm dlx shadcn@latest add @ilinxa/comment-thread-fixtures
 ## Minimal usage
 
 ```tsx
-import { CommentThread } from "@/registry/components/data/comment-thread";
+import { CommentThread } from "@/components/comment-thread";
 
 <CommentThread comments={post.comments} />
 ```
@@ -62,7 +62,7 @@ Read-only thread. No composer, no realtime, no callbacks.
 ## Realtime via `Subscribe<CommentDelta>`
 
 ```tsx
-import type { Subscribe, CommentDelta } from "@/registry/components/data/comment-thread";
+import type { Subscribe, CommentDelta } from "@/components/comment-thread";
 
 const subscribe = useCallback<Subscribe<CommentDelta>>(
   (handler) => channel.on("comment", handler),
@@ -94,7 +94,7 @@ type CommentDelta =
 ## Custom kebab actions
 
 ```tsx
-import type { CommentMenuItem } from "@/registry/components/data/comment-thread";
+import type { CommentMenuItem } from "@/components/comment-thread";
 
 <CommentThread
   comments={comments}
@@ -119,7 +119,7 @@ import type { CommentMenuItem } from "@/registry/components/data/comment-thread"
 ## Standalone composer
 
 ```tsx
-import { CommentComposer } from "@/registry/components/data/comment-thread";
+import { CommentComposer } from "@/components/comment-thread";
 
 <CommentComposer
   currentUser={viewer}
@@ -234,7 +234,7 @@ ref.current?.dispatch({
 The full reducer is publicly exported for hosts that want to drive comments from their own store entirely:
 
 ```tsx
-import { commentReducer, useCommentState } from "@/registry/components/data/comment-thread";
+import { commentReducer, useCommentState } from "@/components/comment-thread";
 ```
 
 ## Compact variant for side rails

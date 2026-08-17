@@ -96,7 +96,7 @@ The kernel is exported as a pure function. Use it for header counters, calendar 
 import {
   deriveTimelineState,
   type TimelineState,
-} from "@/registry/components/data/progress-timeline";
+} from "@/components/progress-timeline";
 
 // Header counter
 const activeCount = events.filter(

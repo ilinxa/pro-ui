@@ -15,7 +15,7 @@ The `@ilinxa/share-bar-fixtures` sibling adds the demo dummy-data file.
 ## Quick start
 
 ```tsx
-import { ShareBar } from "@/registry/components/marketing/share-bar";
+import { ShareBar } from "@/components/share-bar";
 
 export function ArticleFooter({ article }) {
   return (

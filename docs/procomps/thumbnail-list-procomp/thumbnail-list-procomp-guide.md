@@ -17,7 +17,7 @@ The `@ilinxa/thumbnail-list-fixtures` sibling adds the demo dummy-data file. Ski
 ## Quick start
 
 ```tsx
-import { ThumbnailList } from "@/registry/components/data/thumbnail-list";
+import { ThumbnailList } from "@/components/thumbnail-list";
 
 const items = [
   {

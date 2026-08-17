@@ -102,15 +102,31 @@ function findAllSlugs() {
 // meta.ts). Returns absolute paths to .ts/.tsx/.mjs/.js files.
 // ───────────────────────────────────────────────────────────────────────
 const NON_SHIPPED = new Set(["demo.tsx", "usage.tsx", "meta.ts"]);
+
+/**
+ * Directories that live inside a component folder but never enter an artifact.
+ *
+ * `__tests__` joined this list when the test tier landed (2026-08-17). Without
+ * it, a component's own tests made this validator report `undeclared-npm:
+ * vitest` / `@testing-library/react` against the component — "shipped source
+ * imports X" was simply false, since `registry.json` never lists test files.
+ * The correct authority is what the registry item ships; this exclusion keeps
+ * that true without coupling the validator to registry.json parsing.
+ */
+const NON_SHIPPED_DIRS = new Set(["__tests__", "__mocks__"]);
+const NON_SHIPPED_FILE_RE = /\.(test|spec)\.(tsx?|m?js)$/;
+
 function walkShipped(slugDir) {
   const out = [];
   function recurse(dir) {
     for (const name of readdirSync(dir)) {
       const full = join(dir, name);
       if (statSync(full).isDirectory()) {
+        if (NON_SHIPPED_DIRS.has(name)) continue;
         recurse(full);
       } else if (
         /\.(tsx?|m?js)$/.test(name) &&
+        !NON_SHIPPED_FILE_RE.test(name) &&
         !(dir === slugDir && NON_SHIPPED.has(name))
       ) {
         out.push(full);
