@@ -146,6 +146,21 @@ entry added. The boxes below were only ticked once each was true — which is th
 finding: **a state doc that overstates what landed is exactly as harmful as a stale config**, and it
 was caught only because the finder checked the tree instead of trusting the checkboxes.
 
+## Post-deploy verification (R7 — what actually closes this)
+
+A ship closes on the **deployed artifact**, not on `git push` (standing rule; two deploys once
+failed silently). Polled `https://ui.ilinxa.com/r/<slug>.json` after `d224e4d`:
+
+```
+attempt 1: card-tree 0/3 | card-tree-node 0/3 | filter-panel 0/3 | properties-form 0/3 | media-library 0/3
+attempt 2: card-tree 3/3 | card-tree-node 3/3 | filter-panel 3/3 | properties-form 3/3 | media-library 3/3
+DEPLOY VERIFIED — all 15 override modifiers live in the deployed artifacts.
+```
+
+Attempt 1 is the pre-deploy state and is worth keeping in the record: it shows the check can
+distinguish "not live yet" from "live", which is exactly what a poll that only ever prints success
+cannot do.
+
 ## Pre-mortem (R7)
 
 If this breaks, it breaks because a consumer enables one of the five **parked** flags — most likely
