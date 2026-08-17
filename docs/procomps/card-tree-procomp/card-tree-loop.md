@@ -326,3 +326,105 @@ argued-around. The harness is left healthier than found.
 ## Pre-mortem (U7)
 
 If this breaks for a consumer, it breaks because: a host registers a name that collides with existing document data (documented hazard — drops + warns; non-destructive option parked as FU-4), or because `card-tree-node` renders their custom blocks as nothing on a flow canvas (FU-2, known and owned). Neither is silent in the way the 0.5.0 bug was.
+
+---
+
+# Run 2 — U-loop (2026-08-18): integrator report F2, control characters
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **patch** — source hygiene, no public-API touch, runtime-identical) |
+| **Current stage** | **CLOSED** — shipped `6f61474` |
+| **Sign-off policy** | patch class → architect proceeds, recorded (config ladder row 1); user directive: *"firs fix the f2 properly and consistently"* |
+| **Version target** | v0.6.0 → **v0.6.1** |
+| **Model roster** | architect: main session only — 3-line diff, below the ≲150-line orchestration threshold |
+| **Started / updated** | 2026-08-18 / 2026-08-18 |
+
+**Trigger:** second external report from the same JSON CMS integrator, *"The Override and the NUL"*.
+Both findings validated against HEAD before intake. This run takes **F2 only**; F1 deferred (see below).
+
+## U0 — intake & blast radius
+
+- **F2 confirmed exactly as reported**: `card-tree.tsx` carried raw `U+0001` @ byte 6403 and
+  `U+0000` @ byte **6427** (the reporter's stated offset). `git show --stat cefad57` →
+  `Bin 42490 -> 45736 bytes`, numstat `-  -`. Ripgrep degrades to `Binary file … matches`.
+- **Scope swept, not assumed**: 1 of 1,395 registry files carried control characters. No other
+  component uses the separator idiom. Introduced by `cefad57` — one release old.
+- **Dependents:** `card-tree-fixtures`, `card-tree-node`, deprecated alias `todo-card-tree`.
+  All unaffected — the change is inside one memo expression, no API/behaviour surface.
+- **Fix-on-touch ledger consulted:** nothing owed overlaps a control-character fix.
+
+## U1 — change contract
+
+Invariant that must still hold: `customKeySignature` changes iff registered key *names* change, and
+the separator can never collide with a real key name. Both are properties of the code **points**,
+which the escapes preserve exactly. Bump: patch → 0.6.1.
+
+## U2/U3 — implement + gates
+
+Byte-level replacement (not the Edit tool — the control chars are invisible to a matcher, and the
+repo's CRLF flake would have rewritten all 1,439 line endings). LF preserved, verified 0 CRLF.
+
+tsc 0 · lint 0 errors / **14** warnings (baseline holds) · meta-deps 64 clean · registry validators
+0 high · no-control-chars 1,415 clean (2 zones) · registry:build exit 0 · artifact-size 66 audited
+0 high (card-tree 306.13 / 320 KB) · next build exit 0 · tests **15 files / 102 passed** under
+`NODE_ENV=production`.
+
+## U4 — self-check (patch class)
+
+Equivalence **proven, not asserted**: evaluated the signature expression from HEAD and from the
+built `public/r/card-tree.json`. Sentinel codes `1,105,110,118,97,108,105,100` and separator `0`
+identical on both sides; composed signature identical; artifact carries 0 raw control chars.
+
+## U5 — smoke
+
+Pre-deploy against local `public/r/` (deployed registry still served 0.6.0): `serve` on :4477,
+consumer repointed, `shadcn@4.18.0 add @ilinxa/card-tree --overwrite`.
+Install exit 0 · vendored copy **2 → 0** control chars · consumer `tsc` **0 errors**.
+components.json restored; orphaned `serve` child freed by PID (documented Windows flake).
+
+## U6 — the guard
+
+New `scripts/validate-no-control-chars.mjs` in `registry:build`. **The report's suggested ESLint
+`no-control-regex` would not have caught this** — verified empirically: that rule inspects regular
+expressions only, and this was a string literal (probe file lints clean, exit 0).
+
+Two zones, because **v1 of the validator caught itself**: it scanned `src/registry/` only, and
+shipped a raw NUL in its own header comment (`git add` → `Bin 0 -> 3225 bytes`). Now
+`src/registry` = tab/LF/CR; `scripts` = also raw ESC (real terminal colour, never vendored), NUL
+still banned. Falsified both ways in both zones.
+
+Review file: **not required** at patch class (ladder row 1).
+
+## U7 — ship + honest caveat
+
+Shipped `6f61474`. Committed blob: 0 control chars, LF preserved, `git grep` returns a count again
+instead of `Binary file matches`.
+
+⚠️ **The 0.6.0 → 0.6.1 upgrade diff is still binary** — git calls a diff binary if *either* side
+is, and the old blob holds the NUL. Verified: `0.6.0→0.6.1` = `Bin`/`-  -`; `0.6.1→next` = `2  2`,
+renders normally. The reporting integrator sees one last binary diff, then never again. Stated
+explicitly because otherwise it reads as "the fix didn't work".
+
+## Deferred — F1 is 5× the reported scope
+
+F1 (missing `override` modifiers) **not taken this run**. The report called `HostRenderBoundary`
+"the library's only class component"; there are **five**, all missing `override`, all shipped:
+`card-tree` · `card-tree-node` · `filter-panel` · `properties-form` · `media-library` →
+**15 TS4114 errors in shipped code** under a consumer `noImplicitOverride` (+2 in the docs-site
+`json-playground.tsx`, not shipped). Repo `tsconfig.json` is `strict: true` *without*
+`noImplicitOverride`, so it is clean in-repo and only ever breaks downstream; vendored `.tsx` means
+`skipLibCheck` cannot save the consumer. The proposed fix compiles clean under that flag (verified).
+
+Owner: its own U-loop run — 5 components across 4 categories, plus a decision on whether to enable
+`noImplicitOverride` in the repo tsconfig so the next class component cannot reintroduce it.
+
+## Retro
+
+An external reporter sees one slice. Both findings here were true **and** narrow: F2 looked like one
+file and genuinely was (1/1,395, swept not assumed); F1 looked like one component and was five. The
+cheap, high-yield step on any integrator report is to grep for the **class** of defect before fixing
+the instance. Second lesson, learned the embarrassing way: a guard that cannot see its own directory
+is not a guard.
