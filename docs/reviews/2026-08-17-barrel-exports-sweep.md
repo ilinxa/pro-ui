@@ -143,3 +143,11 @@ what makes the `@internal` escape hatch honest rather than a mute button.
 **Safety note.** Unlike the test gate, this validator is pure filesystem reads and regex — no
 `NODE_ENV`, no React, no network — so its CI behaviour is identical to local by construction. The
 failure class from the `NODE_ENV=production` incident two days earlier cannot recur here.
+
+**Confirmed in CI.** The argument above is structural; the evidence is the deploy. Vercel reports
+`b1f298f` on `master` as **Ready**, serving `ui.ilinxa.com` — so `registry:build` ran the new
+`--strict` gate inside `vercel-build` on Vercel and exited 0. That closes the one thing this
+review could not check from outside: `b1f298f` changed no shipped artifact content, so the live
+artifacts are byte-identical to the previous deploy and no amount of fetching could distinguish
+the two builds. **A commit that changes no artifact is not post-deploy-verifiable by inspection —
+the deploy log is the only evidence.**
