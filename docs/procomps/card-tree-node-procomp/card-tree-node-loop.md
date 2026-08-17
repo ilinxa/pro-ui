@@ -284,7 +284,20 @@ base-without-feature negative path. Worth remembering: `shadcn add` never delete
 stopped shipping, so any consumer upgrading across a feature-slicing split keeps dead files that
 typecheck against the old base.
 
-## Post-deploy (U7)
+## Post-deploy (U7) — verified on the deployed artifact, not on the push
 
-See the shared decision file
+The v0.4.0 run's lesson was that `git push` is not the close condition — the *deployed artifact
+changing* is. Commit `a1d1acc`, deploy green, then checked against production:
+
+| Check | Result |
+|---|---|
+| `https://ui.ilinxa.com/r/card-tree-node.json` | 200 · 18 files |
+| v0.5-only markers in the artifact | `customPredefinedKeys?:` and `disabledPredefinedKeys?:` present on the strip; `isChildAt` has 3 call sites in `find-port-target.ts` |
+| `isCardLike` in the shipped walker | **gone from code** — 1 remaining occurrence, and it is inside the comment explaining the retirement (verified by stripping comments before matching; the naive grep said "still present" and was wrong) |
+| Real CLI install from **production** (5 changed slugs) | all exit 0 |
+| Consumer probe naming the new prop surface + `tsc --noEmit` | **0 errors** |
+
+The barrel sweep was verified the same way — see the sweep review's post-deploy row.
+
+Full context: the shared decision file
 [`2026-08-17-fu-a-barrel-sweep-harness.md`](../../../.claude/decisions/2026-08-17-fu-a-barrel-sweep-harness.md).

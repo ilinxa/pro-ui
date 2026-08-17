@@ -99,6 +99,17 @@ LIVE post-card (pre-change):     PostMention ABSENT · PostPoll ABSENT · PostPe
 LIVE gantt-timeline (pre-change): GanttContextValue ABSENT · GanttRenderItem ABSENT
 ```
 
+## Post-deploy
+
+Verified on the deployed artifacts, not on the push (the v0.4.0 lesson). Commit `a1d1acc`,
+deploy green, then off **production**:
+
+| Check | Result |
+|---|---|
+| `/r/post-card.json`, `/r/gantt-timeline.json` barrels | `PostMention` · `PostPoll` · `GanttContextValue` · `GanttRenderItem` all now **present** (they were absent in the same fetch before the push) |
+| Real CLI install of all four from `ui.ilinxa.com` | exit 0 |
+| Consumer probe importing all 15 by name + `tsc --noEmit` | **0 errors** |
+
 ## Risk assessment
 
 All four diffs are type-only re-exports from each slug's own `types.ts`. No runtime code, no
