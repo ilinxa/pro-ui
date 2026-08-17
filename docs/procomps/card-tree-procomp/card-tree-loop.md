@@ -325,4 +325,4 @@ argued-around. The harness is left healthier than found.
 
 ## Pre-mortem (U7)
 
-If this breaks for a consumer, it breaks because: a host registers a name that collides with existing document data (documented hazard — drops + warns; non-destructive option parked as FU-4), or because  renders their custom blocks as nothing on a flow canvas (FU-2, known and owned). Neither is silent in the way the 0.5.0 bug was.
+If this breaks for a consumer, it breaks because: a host registers a name that collides with existing document data (documented hazard — drops + warns; non-destructive option parked as FU-4), or because `card-tree-node` renders their custom blocks as nothing on a flow canvas (FU-2, known and owned). Neither is silent in the way the 0.5.0 bug was.
