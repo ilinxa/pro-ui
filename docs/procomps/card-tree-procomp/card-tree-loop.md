@@ -8,7 +8,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive API; breaking-class review rigor adopted, see U0.1) |
-| **Current stage** | U7 — GATE 3 closed (Pass with follow-ups); shipping |
+| **Current stage** | **CLOSED** — shipped `cefad57`, deployed + post-deploy verified, retro appended |
 | **Sign-off policy** | **delegated by user** (context: *"if all are valid start it accurately and fix all"*, 2026-08-17) — scope question at U1.4 answered interactively |
 | **Version target** | v0.5.0 → **v0.6.0** |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 (×2) |
@@ -27,7 +27,7 @@ intake (see U0.3). Two further findings (F5, F6) were found during U0 and are no
 - [x] **U4 Adversarial review** — 2 fresh finders + dependents axis; no open CONFIRMED
 - [x] **U5 Runtime & smoke** — reproduction replayed; slug + `card-tree-node` installed
 - [x] **U6 Docs sync & GATE 3** — [reviews/2026-08-17-v0.6.0-spotcheck.md](reviews/2026-08-17-v0.6.0-spotcheck.md) · verdict **Pass with follow-ups**
-- [ ] **U7 Ship** — commit SHA · post-deploy check · retro appended
+- [x] **U7 Ship** — commit `cefad57` (27 files) · pushed to master · **post-deploy verified live** on ui.ilinxa.com (53 files, both new files, permissions widening, signature memo, v0.3 barrel block) · retro in `.claude/improvement-log.md`
 
 ---
 
@@ -325,4 +325,4 @@ argued-around. The harness is left healthier than found.
 
 ## Pre-mortem (U7)
 
-If this breaks for a consumer, it breaks because: `<pending>`
+If this breaks for a consumer, it breaks because: a host registers a name that collides with existing document data (documented hazard — drops + warns; non-destructive option parked as FU-4), or because  renders their custom blocks as nothing on a flow canvas (FU-2, known and owned). Neither is silent in the way the 0.5.0 bug was.
