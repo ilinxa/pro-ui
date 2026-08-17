@@ -38,6 +38,10 @@ export { useCalendarEditOptional } from "./hooks/use-calendar-edit-extension";
 
 // Public types (+ the consumed task-card data language, re-exported)
 export type {
+  // `useCalendar()` is exported above and returns this — without it a
+  // consumer can call the hook but cannot name what it hands back
+  // (validate:barrel-exports, 2026-08-17).
+  CalendarBaseContextValue,
   CalendarProps,
   CalendarRootProps,
   CalendarHandle,

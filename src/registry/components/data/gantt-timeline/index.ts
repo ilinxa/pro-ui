@@ -32,6 +32,12 @@ export { useGanttTimeline } from "./hooks/use-gantt-context";
 
 // Public types (+ the consumed task-card data language, re-exported)
 export type {
+  // `useGanttTimeline()` is exported above and returns GanttContextValue;
+  // GanttRenderItem is the element type of its `renderItems`. Both were
+  // unreachable from this barrel (validate:barrel-exports, 2026-08-17) —
+  // "internal" in types.ts means "constructed by the Root", not "private".
+  GanttContextValue,
+  GanttRenderItem,
   GanttTimelineProps,
   GanttTimelineRootProps,
   GanttTimelineHandle,

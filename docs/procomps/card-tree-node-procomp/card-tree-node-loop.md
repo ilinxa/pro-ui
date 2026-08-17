@@ -151,3 +151,140 @@ suite was verified; the *gate* was not. `readiness.config.md` gate 8 now specifi
 ## Pre-mortem (U7)
 
 If this breaks for a consumer, it breaks because: they upgrade without passing `customPredefinedKeys` to the **renderer** (only to `<CardTree>`), so their registered keys stay unclassified on the canvas and — being objects — now render as *subcard outlines* rather than blocks. That is visible rather than silent, and guide §6.1 leads with the rule, but it is the most likely upgrade mistake. Second most likely: a consumer relied on `quote` appearing in the field strip; the escape hatch is `disabledPredefinedKeys: ["quote"]`, documented in §9.
+
+---
+
+# Run 2 — v0.5.0 (U-loop, FU-A)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **minor** — additive API + a walker-behaviour correction) |
+| **Current stage** | U7 — shipped |
+| **Sign-off policy** | delegated by user (context: *"lets start and close these items end to end consistently and accurately"*, 2026-08-17, naming FU-A as one of three items) |
+| **Version target** | v0.4.0 → **v0.5.0** |
+| **Model roster** | architect: main session · no subagents (session constraint: agent spawning not requested this run — see U4 for the compensating measure) |
+| **Started / updated** | 2026-08-17 / 2026-08-17 |
+
+## Stage checklist
+
+- [x] **U0 Intake & impact** — class `minor`; blast radius below; owed follow-ups consulted (this IS the last open `card-tree-node` cohort item)
+- [x] **U1 Change contract** — invariants delta below; bump target v0.5.0; sign-off delegated
+- [x] **U2 Implement** — reproduction recorded BEFORE the fix and **watched failing** (7 failed / 5 passed)
+- [x] **U3 Gate battery** — real numbers below
+- [x] **U4 Adversarial review** — findings table below; no open CONFIRMED
+- [x] **U5 Runtime & smoke** — 16/16 e2e, consumer install + tsc 0, negative path included
+- [x] **U6 Docs sync & review** — guide §7.7 + §10.3; [`reviews/2026-08-17-v0.5.0-spotcheck.md`](reviews/2026-08-17-v0.5.0-spotcheck.md), verdict **Pass**
+- [x] **U7 Ship** — see review file + STATUS row
+
+## Origin
+
+Follow-up **FU-A** from the v0.4.0 review: *"`find-port-target.ts` still uses the retired
+`isCardLike` heuristic (F6). Owner: card-tree-node, target v0.4.x."* v0.4.0 deferred it on the
+grounds that fixing it needed `customKeyNames` threaded through the port-editor API, "a separate
+change with its own runtime-proof burden". That is exactly what this run does.
+
+## Reproduction (recorded at U2, BEFORE any fix)
+
+`__tests__/find-port-target.test.ts` was written against the intended behaviour and run against
+the unfixed walker:
+
+```
+Tests  7 failed | 5 passed (12)
+
+x resolves a card nested under a parent the old heuristic could not see
+x writes through that parent without disturbing its siblings
+x refuses a registered custom block whose payload carries __rcid + ports
+x refuses a built-in block whose payload carries __rcid + ports
+x defaults to zero registrations when options are omitted
+x resolves nothing the viewer classifies as a block
+x follows card-tree's opt-out semantics for a disabled built-in
+```
+
+The 5 passing rows are the no-regression anchors (root target, depth-1 `__rcid` child, null
+paths) — they prove the file was not merely broken.
+
+**Reachability, stated honestly.** Neither direction is reachable through the demo's click flow:
+the viewer only makes depth-1 subcards clickable, and only when they carry `__rcid` — precisely
+the cases both walkers already agreed on. The defect bites consumers who compute `subPath` any
+other way (tree outline, `CardTreeHandle.focusCard`, deep link). That is *why* it survived two
+minors, and why the regression guard has to be the test tier rather than the demo.
+
+## Blast radius
+
+| Surface | Status |
+|---|---|
+| Dependents (`registry.json` regDeps) | `card-tree-node-fixtures`, `rich-card-in-flow` (alias) — both resolved at U5 |
+| Cross-procomp importers in `src/registry/` | none import `find-port-target`; flow-canvas is a *dependency*, not a dependent |
+| Feature slices (`meta.featureOf`) | none for this base |
+| Interop contracts | none (`ports[]` shape untouched) |
+| Docs surfaces | guide §7.1 / §7.7 / §10.3 · `usage.tsx` · `demo.tsx` · meta features · STATUS row · component-versions |
+| `registry.json` roster | unchanged — no shipped file added or removed (the new test lives in `__tests__/`, which is not shipped) |
+
+## Invariants delta
+
+**Must still hold (regression targets):** root target resolves with `subPath === undefined` ·
+depth-1 `__rcid` child resolves · unknown node id / unmatched subPath → `null` (empty state, no
+crash, F-05) · `updateIn` is pure · v0.4 call sites compile unchanged.
+
+**New:** the walker and the viewer classify keys identically · a block payload is never a port
+target · a child under an `__rcid`-less parent is reachable · omitted options === no registrations.
+
+## Gate battery (U3)
+
+| Gate | Result |
+|---|---|
+| tsc | 0 errors |
+| lint | 0 errors · 14 warnings (documented baseline) |
+| meta-deps | 64/64 clean |
+| registry validators | whitelist ok · registry-json 0 high / 6 warn · naming 0 |
+| doc validators | pass (incl. component-versions `--check`) |
+| registry:build | pass · artifact-size 66 artifacts, 0 high |
+| build | pass, 77 static pages |
+| **tests (`NODE_ENV=production`)** | **102 passed / 15 files** (was 89/14) |
+| e2e | **16 passed** (was 12) |
+
+## Findings (U4 — architect adversarial pass)
+
+| # | Finding | Verdict |
+|---|---|---|
+| F-1 | `RESERVED_KEYS` is only the three real `__rc*` keys, but the retired heuristic skipped **any** `__rc`-prefixed key. `__rcfoo: {...}` is now a walkable child where it used to be skipped. | **CONFIRMED — accepted.** `enumerateSubcards` already took this widening at v0.4.0, so the walker now *agrees* with the viewer; diverging again would reintroduce FU-A. Pinned by a test and documented in guide §10.3 so it is met as a decision, not a surprise. |
+| F-2 | The change is **not purely additive**: with default options, a built-in block payload carrying `__rcid` stops being a valid port target. | **CONFIRMED — accepted, documented.** That case is the bug (a port write landing inside an opaque block payload). Shape is pathological — `<CardTree>` attaches `__rcid` to cards, never to block payloads. Called out explicitly in guide §7.7 rather than filed under "additive". |
+| F-3 | `findCardPath` recurses with no depth cap or visited set; the wider predicate can follow more paths, so cyclic `data` would hang. | **DROPPED — pre-existing and out of reach.** The old heuristic followed cycles too. `node.data` is JSON-sourced by contract (`CardTreeJsonNode`). Not introduced here; noted, not fixed. |
+| F-4 | The `keyOptions` memo allocates a new object when `customPredefinedKeys` is an inline literal, re-running the walk each render. | **CONFIRMED — mitigated, not a defect.** No state is set, so there is no loop (unlike card-tree v0.6.0's). Module-scope constants keep the default path stable; "pass a stable reference" is documented on the prop and in §7.7. |
+| F-5 | The demo passed `customPredefinedKeys` to `<CardTree>` but not to `<PortEditorStrip>` — with a comment three lines above stating the exact principle it was violating. | **CONFIRMED — fixed.** `demo.tsx` now passes it; `usage.tsx` + guide §7.1 updated. |
+
+**U4 method note.** The rigor ladder asks for 1 fresh finder subagent on a minor. Subagents were
+not spawned this run (session constraint). Compensating measure: each hypothesis above was written
+as a falsification attempt and checked against source or a run — F-1 by reading `RESERVED_KEYS`,
+F-3 by re-reading the pre-change walker, F-5 by reading the demo. F-1 and F-5 were both found this
+way and both produced changes. Recorded so the review's provenance is not overstated.
+
+## Runtime & smoke (U5)
+
+| Check | Result |
+|---|---|
+| Production build + `next start` | docs site 200 · `/components/card-tree-node` 200 |
+| E2E, full suite | **16/16** — incl. 4 new `card-tree-node-port-editor.spec.ts` specs (root target resolves, subcard re-target, add-port flow, dark theme) |
+| Consumer install (real CLI, local artifacts) | `card-tree-node` · `card-tree-node-fixtures` · `card-tree` — all exit 0 |
+| Consumer `tsc --noEmit` | **0 errors** |
+| Consumer probe naming the new props | compiles; `PortEditorStripProps["customPredefinedKeys"]` accepts `readonly CustomPredefinedKey[]` from `@ilinxa/card-tree` |
+| Back-compat | a v0.4-shaped call site (`nodeId`/`canvas`/`onChange` only) typechecks |
+
+**Harness incident (not a product defect).** The first consumer `tsc` reported 26 errors, all in
+`src/components/event-calendar`. Cause: 7 orphan files from the *pre-P3-split* event-calendar
+(`parts/calendar-context-menu.tsx`, `...-edit-affordances`, `...-edit-overlays`,
+`...-quick-composer`, `hooks/use-calendar-edit.ts`, `lib/edit-mutations.ts`,
+`lib/edit-permissions.ts`) left on disk by an older install. Proven by diffing the consumer tree
+against every `target` in `registry.json`: no item ships those paths today — their live
+counterparts are at `features/editing/*`, and the editing feature was never installed there.
+Removing the 7 orphans took the consumer to **0 errors**, which is also the mandatory
+base-without-feature negative path. Worth remembering: `shadcn add` never deletes files an item
+stopped shipping, so any consumer upgrading across a feature-slicing split keeps dead files that
+typecheck against the old base.
+
+## Post-deploy (U7)
+
+See the shared decision file
+[`2026-08-17-fu-a-barrel-sweep-harness.md`](../../../.claude/decisions/2026-08-17-fu-a-barrel-sweep-harness.md).

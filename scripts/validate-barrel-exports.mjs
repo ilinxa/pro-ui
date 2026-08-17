@@ -42,6 +42,24 @@
  *   4. Anything reached by the walk that ISN'T in the seed/exported set is a
  *      finding.
  *
+ * SEVERITY (added 2026-08-17, when the first sweep drove the backlog to zero
+ * high):
+ *
+ *   high — an ordinary public type that is simply missing from index.ts.
+ *          Fix by re-exporting it.
+ *   warn — the declaration carries an `@internal` JSDoc tag. The author has
+ *          stated it is not public, so re-exporting it would be the WRONG fix
+ *          — it would freeze a transitional shim into the published surface
+ *          and make its removal a breaking change. Reported, never gated: the
+ *          real defect is that a public type leaks an internal one, and the
+ *          fix is to change the public type, which is a separate (usually
+ *          breaking) piece of work. `--strict` fails on high only.
+ *
+ * The `@internal` escape hatch is deliberately not a bare "ignore" comment:
+ * it is a standard API-extractor tag with real meaning, it lives on the
+ * declaration rather than in a side-file allowlist, and it cannot silence a
+ * finding without also documenting the type as non-public.
+ *
  * Modes:
  *   node scripts/validate-barrel-exports.mjs             # report-only, exit 0
  *   node scripts/validate-barrel-exports.mjs --strict     # exit 1 on findings
@@ -127,6 +145,28 @@ function stripComments(src) {
 }
 
 const IDENT = "[A-Za-z_$][\\w$]*";
+
+/**
+ * Names whose JSDoc block carries `@internal`. Runs on the RAW source (before
+ * `stripComments`, which is what removes the tag we're looking for).
+ *
+ * The gap between the doc block and the `export` keyword may hold `//` lines
+ * — `kanban-board`'s `AnyKanbanCardRenderer` sits behind an
+ * `// eslint-disable-next-line`, and a pattern that only allowed whitespace
+ * there would miss that shape.
+ */
+function findInternalTypes(rawSrc) {
+  const out = new Set();
+  const re = new RegExp(
+    `/\\*\\*([\\s\\S]*?)\\*/((?:[ \\t]*\\n|[ \\t]*//[^\\n]*\\n)*)[ \\t]*export\\s+(?:type|interface)\\s+(${IDENT})`,
+    "g",
+  );
+  let m;
+  while ((m = re.exec(rawSrc))) {
+    if (/@internal\b/.test(m[1])) out.add(m[3]);
+  }
+  return out;
+}
 
 // ───────────────────────────────────────────────────────────────────────
 // Balanced-bracket / string-aware scanners.
@@ -324,9 +364,11 @@ function extractExternalDeclarationBody(fileSrc, name, isType) {
 // ───────────────────────────────────────────────────────────────────────
 function analyzeSlug({ slug, category, dir }) {
   const indexSrc = stripComments(readNormalized(join(dir, "index.ts")));
-  const typesSrc = stripComments(readNormalized(join(dir, "types.ts")));
+  const rawTypesSrc = readNormalized(join(dir, "types.ts"));
+  const typesSrc = stripComments(rawTypesSrc);
 
   const declared = parseDeclaredTypes(typesSrc); // name -> { body, kind }
+  const internalTypes = findInternalTypes(rawTypesSrc); // @internal-tagged
   const idx = parseIndexExports(indexSrc);
 
   if (idx.reExportsAll) {
@@ -337,6 +379,7 @@ function analyzeSlug({ slug, category, dir }) {
       totalDeclared: declared.size,
       exemptCount: declared.size,
       findings: [],
+      warnings: [],
     };
   }
 
@@ -408,7 +451,7 @@ function analyzeSlug({ slug, category, dir }) {
     return alias ? alias[1] !== slug : false;
   };
 
-  const findings = [...visited]
+  const unreachable = [...visited]
     .filter((n) => !exemptSet.has(n) && !isForeignReExport(n))
     .sort();
 
@@ -418,7 +461,8 @@ function analyzeSlug({ slug, category, dir }) {
     reExportsAll: false,
     totalDeclared: declared.size,
     exemptCount: exemptSet.size,
-    findings,
+    findings: unreachable.filter((n) => !internalTypes.has(n)),
+    warnings: unreachable.filter((n) => internalTypes.has(n)),
   };
 }
 
@@ -435,19 +479,31 @@ if (targetSlug && targets.length === 0) {
 
 const results = targets.map(analyzeSlug);
 const totalHigh = results.reduce((n, r) => n + r.findings.length, 0);
-const flaggedSlugs = results.filter((r) => r.findings.length > 0);
+const totalWarn = results.reduce((n, r) => n + r.warnings.length, 0);
+const flaggedSlugs = results.filter(
+  (r) => r.findings.length > 0 || r.warnings.length > 0,
+);
 
 if (jsonMode) {
-  console.log(JSON.stringify({ totalHigh, results }, null, 2));
+  console.log(JSON.stringify({ totalHigh, totalWarn, results }, null, 2));
 } else {
   console.log("");
   console.log("validate:barrel-exports — public-type reachability audit");
   console.log("==========================================================\n");
 
   for (const r of flaggedSlugs) {
-    console.log(`▸ ${r.category}/${r.slug}  (${r.findings.length} high)`);
+    const counts = [
+      r.findings.length ? `${r.findings.length} high` : null,
+      r.warnings.length ? `${r.warnings.length} warn` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    console.log(`▸ ${r.category}/${r.slug}  (${counts})`);
     for (const name of r.findings) {
       console.log(`  [⚠️ high  ] ${name}: referenced by an exported type but not importable from index.ts`);
+    }
+    for (const name of r.warnings) {
+      console.log(`  [· warn  ] ${name}: @internal, but reachable from an exported type — fix the public type, do NOT re-export this`);
     }
     console.log("");
   }
@@ -459,10 +515,10 @@ if (jsonMode) {
     `Audited ${totalSlugs} component${totalSlugs === 1 ? "" : "s"} — ` +
       `${cleanSlugs} clean, ${flaggedSlugs.length} with findings.`,
   );
-  console.log(`Findings: ${totalHigh} high · 0 warn.`);
+  console.log(`Findings: ${totalHigh} high · ${totalWarn} warn.`);
   console.log(
     strict
-      ? "(--strict mode)"
+      ? "(--strict mode — gates on high only; warn is informational)"
       : "(report-only — exits 0 regardless of findings; pass --strict to gate)",
   );
 }

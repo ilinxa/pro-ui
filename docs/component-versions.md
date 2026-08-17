@@ -35,20 +35,20 @@
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 |
 | `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 |
 | `card-tree` | Card Tree | 0.6.0 | beta | 2026-08-17 |
-| `card-tree-node` | Card Tree Node | 0.4.0 | alpha | 2026-08-17 |
+| `card-tree-node` | Card Tree Node | 0.5.0 | alpha | 2026-08-17 |
 | `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 |
 | `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 |
 | `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 |
-| `event-calendar` | Event Calendar | 0.4.0 | alpha | 2026-08-11 |
+| `event-calendar` | Event Calendar | 0.5.0 | alpha | 2026-08-17 |
 | `event-card` | Event Card | 0.2.0 | alpha | 2026-08-11 |
 | `expandable-text` | Expandable Text | 0.2.0 | alpha | 2026-08-11 |
 | `flow-canvas` | Flow Canvas | 0.3.0 | alpha | 2026-08-11 |
-| `gantt-timeline` | Gantt Timeline | 0.6.0 | alpha | 2026-08-11 |
+| `gantt-timeline` | Gantt Timeline | 0.7.0 | alpha | 2026-08-17 |
 | `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |
-| `kanban-board` | Kanban Board | 0.5.0 | alpha | 2026-08-11 |
+| `kanban-board` | Kanban Board | 0.6.0 | alpha | 2026-08-17 |
 | `news-card` | News Card | 0.4.0 | alpha | 2026-08-11 |
 | `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 |
-| `post-card` | Post Card | 0.4.0 | alpha | 2026-08-11 |
+| `post-card` | Post Card | 0.5.0 | alpha | 2026-08-17 |
 | `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 |
 | `project-card` | Project Card | 0.3.0 | alpha | 2026-08-11 |
 | `registration-card` | Registration Card | 0.2.0 | alpha | 2026-08-11 |

@@ -1822,6 +1822,11 @@ export default function CardTreeNodeDemo() {
                 canvas={canvas}
                 onChange={setCanvas}
                 editable={true}
+                // v0.5 (FU-A) — the strip walks the same tree the renderer
+                // paints, so it takes the same registrations. Without them
+                // \`body\` reads as a child card here while the canvas draws it
+                // as a block, and a port edit can land inside a block payload.
+                customPredefinedKeys={CUSTOM_KEYS}
               />
               <CardTree
                 key={editing.nodeId}

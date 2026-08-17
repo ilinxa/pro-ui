@@ -30,6 +30,7 @@ export const meta: ComponentMeta = {
     "v0.5 double-click-to-create: double-click an empty row area → a lightweight quick-composer floats at the pointer (name autofocus + status pick, Enter creates a snapped sibling, More options → full editor); independent of Draw mode; `quickCompose` (default true) / `renderQuickComposer` override",
     "v0.5 cross-surface clipboard: copy/cut/paste TaskItems through the shared `ilinxa/task` envelope (task-card/lib/clipboard) — ⌘/Ctrl+C·X·V (document-level, gated on focus + skipped over inputs) + right-click Copy/Cut; paste re-ids each subtree and lands as a sibling of the selection (dates preserved); interops with calendar / card-tree / tree",
     "v0.5 Priority submenu: the right-click menu gains a Priority picker (when priorityOptions provided); changePriority mutates + onChange only (parity with calendar — 'priority' is not a typed field event)",
+    "v0.7 barrel completeness: `GanttContextValue` (the exported `useGanttTimeline()` hook's return type) and `GanttRenderItem` (the element type of its `renderItems`) are now importable from the package root. Type-only, additive.",
   ],
   tags: [
     "gantt-timeline",
@@ -44,11 +45,11 @@ export const meta: ComponentMeta = {
 
   // 0.5.2 (2026-08-11): F-cross-13 path-b sweep — context-menu trigger asChild →
   // box-less span; zero public-API change.
-  version: "0.6.0",
+  version: "0.7.0",
   status: "alpha",
   artifactBudgetKB: 220,
   createdAt: "2026-06-20",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-17",
 
   author: { name: "ilinxa" },
 

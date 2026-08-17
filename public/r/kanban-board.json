@@ -28,7 +28,7 @@
     },
     {
       "path": "src/registry/components/data/kanban-board/index.ts",
-      "content": "export { KanbanBoard, findRenderer, newColumnId, newItemId } from \"./kanban-board\";\nexport { kanbanCardRenderer, KanbanCardView } from \"./parts/kanban-card\";\nexport { kanbanNoteRenderer, KanbanNoteView } from \"./parts/kanban-note\";\nexport { DEFAULT_PALETTE } from \"./lib/palette\";\nexport { validateData } from \"./lib/data\";\nexport type {\n  KanbanBoardProps,\n  KanbanCardData,\n  KanbanCardRenderer,\n  KanbanColumn,\n  KanbanData,\n  KanbanItem,\n  KanbanNoteData,\n  KanbanPaletteSwatch,\n  KanbanRenderContext,\n  KanbanSwimlane,\n} from \"./types\";\n",
+      "content": "export { KanbanBoard, findRenderer, newColumnId, newItemId } from \"./kanban-board\";\nexport { kanbanCardRenderer, KanbanCardView } from \"./parts/kanban-card\";\nexport { kanbanNoteRenderer, KanbanNoteView } from \"./parts/kanban-note\";\nexport { DEFAULT_PALETTE } from \"./lib/palette\";\nexport { validateData } from \"./lib/data\";\nexport type {\n  // Type-erased renderer. Consumers normally build typed\n  // `KanbanCardRenderer<TData>` values, but this is the declared element type\n  // of `KanbanBoardProps[\"renderers\"]` and of the exported `findRenderer`'s\n  // first parameter, so it has to be nameable\n  // (validate:barrel-exports, 2026-08-17).\n  AnyKanbanCardRenderer,\n  KanbanBoardProps,\n  KanbanCardData,\n  KanbanCardRenderer,\n  KanbanColumn,\n  KanbanData,\n  KanbanItem,\n  KanbanNoteData,\n  KanbanPaletteSwatch,\n  KanbanRenderContext,\n  KanbanSwimlane,\n} from \"./types\";\n",
       "type": "registry:component",
       "target": "components/kanban-board/index.ts"
     },

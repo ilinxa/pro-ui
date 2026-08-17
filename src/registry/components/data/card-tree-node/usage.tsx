@@ -231,6 +231,9 @@ useEffect(() => {
       canvas={canvas}
       onChange={setCanvas}
       editable={true}
+      // v0.5 — the THIRD surface that needs your registrations. Same array
+      // you pass to createCardTreeViewerRenderer() and to <CardTree>.
+      customPredefinedKeys={CUSTOM_KEYS}
       // optional — gates affordances when supplied
       permissions={{
         canAddPort: (cardId) => true,
@@ -239,10 +242,27 @@ useEffect(() => {
           field !== "id" || portId.startsWith("p-user-"),
       }}
     />
-    <CardTree editable defaultValue={...} onChange={...} />
+    <CardTree editable defaultValue={...} customPredefinedKeys={CUSTOM_KEYS} />
   </>
 )}`}</code>
       </pre>
+      <p className="mt-3 text-muted-foreground">
+        <strong>v0.5 (FU-A) — pass your registrations here too.</strong> The
+        strip walks the node&apos;s data tree to find the card named by{" "}
+        <code>subPath</code>, and through v0.4 it decided what counted as a
+        card by inspecting each value for <code>__rcid</code> or a{" "}
+        <code>ports</code> array. That disagreed with the renderer in both
+        directions: a child card you hadn&apos;t yet round-tripped through{" "}
+        <code>&lt;CardTree&gt;</code> was drawn on the canvas but unreachable
+        here, and a registered block whose payload happened to carry{" "}
+        <code>ports</code> was walked into as if it were a card — so a port
+        edit could land <em>inside a block payload</em>. It now classifies
+        keys with the same router the viewer uses, which is why it needs the
+        same <code>customPredefinedKeys</code> (and{" "}
+        <code>disabledPredefinedKeys</code>) you give the renderer. Both types
+        are imported from <code>@ilinxa/card-tree</code>. Omitting them is
+        safe only if you register nothing.
+      </p>
       <p className="mt-3 text-muted-foreground">
         Direction multi-select on add: check <code>[✓in]</code>,
         <code>[✓out]</code>, or both. Both creates two atomic ports

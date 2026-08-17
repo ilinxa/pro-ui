@@ -290,6 +290,7 @@ import {
   PortEditorStrip,
   type PortEditorPermissions,
 } from "@ilinxa/card-tree-node";
+import type { CustomPredefinedKey } from "@ilinxa/card-tree";
 
 // inside the dialog body — strip above CardTree per Q1 lock
 {editing && (
@@ -300,6 +301,8 @@ import {
       canvas={canvas}
       onChange={setCanvas}
       editable={true}
+      // v0.5 — the THIRD surface that needs your registrations (§7.7)
+      customPredefinedKeys={CUSTOM_KEYS}
       // optional — consumer-supplied predicates
       permissions={{
         canAddPort: (cardId) => true,
@@ -308,7 +311,7 @@ import {
           field !== "id" || portId.startsWith("p-user-"),
       }}
     />
-    <CardTree editable defaultValue={...} onChange={...} />
+    <CardTree editable defaultValue={...} customPredefinedKeys={CUSTOM_KEYS} />
   </>
 )}
 ```
@@ -344,6 +347,42 @@ Every mutation calls `onChange(updatedCanvas)`. No commit/cancel button. (Q6 loc
 ### 7.6 Empty / null-target states
 
 If `findPortTarget` can't resolve the (nodeId, subPath) — e.g. dialog transitioning between nodes one frame before canvas state updates — the strip renders `"No card found at this path."` instead of crashing (F-05 lock). Self-corrects on the next render.
+
+### 7.7 The strip needs your registrations too (v0.5.0 — FU-A)
+
+`<PortEditorStrip>` resolves `subPath` by walking the node's data tree. Through v0.4 it decided
+what counted as a card by inspecting each **value** for `__rcid` / `__rcorder` / `__rcmeta` or its
+own `ports` array — a private copy of the heuristic v0.4.0 had already retired everywhere else
+(§10.3). So the walker and the viewer disagreed about what a card is, in both directions:
+
+| | Viewer (v0.4+) | Walker (through v0.4) |
+|---|---|---|
+| child object, no `__rcid` yet | subcard outline | **invisible** — nothing beneath it is reachable |
+| registered block whose payload carries `ports` | block chip | **walked into** — `onChange` can write `ports` inside it |
+
+v0.5.0 routes the walker through `classifyNodeKey`, the same router the viewer uses, which is why
+it now takes the same two props:
+
+```tsx
+customPredefinedKeys={CUSTOM_KEYS}          // readonly CustomPredefinedKey[]  — from @ilinxa/card-tree
+disabledPredefinedKeys={["quote"]}          // readonly PredefinedKey[]        — from @ilinxa/card-tree
+```
+
+Both are optional and both default to empty, so **a v0.4 call site keeps compiling**. Pass a
+stable reference — an inline literal re-derives the name list on every render.
+
+**This is not a purely additive change.** Built-in keys are unconditional, so even with *no*
+registrations a `table` / `image` / `codearea` / `quote` / `list` payload that carries an `__rcid`
+is no longer a valid port target. That shape is pathological (`<CardTree>` attaches `__rcid` to
+cards, never to block payloads) and the old behaviour was the bug — writing a `ports` array into
+something the viewer paints as an opaque block — but if you hand-authored such data and
+hand-computed the `subPath`, the strip will now render its empty state instead.
+
+**Why this survived to v0.5:** the divergence is unreachable through the demo's click flow. The
+viewer only makes depth-1 subcards clickable, and only when they carry `__rcid` — exactly the
+cases both walkers agreed on. It bites consumers who compute `subPath` some other way (a tree
+outline, `CardTreeHandle.focusCard`, a deep link). The regression guard is therefore the test
+tier (`__tests__/find-port-target.test.ts`), not the demo.
 
 If the targeted card has zero ports, the strip renders `"No ports yet. Click + add port to begin."` (with the add affordance visible when `editable=true`).
 
@@ -443,6 +482,18 @@ The helper was kept INTERNAL because its signature depended on the `isCardLike` 
 The signature gained an options parameter (defaulted, so internal callers were unaffected). It stays private — the classifier is the stable surface now, and `classifyNodeKey` is the thing a custom renderer should reach for. Revisit only if a consumer asks for subcard enumeration by name.
 
 **Behaviour change to be aware of:** a plain object child with no `__rcid` now renders as a subcard outline where it previously rendered as nothing. That also makes `SubcardBlock`'s documented missing-`__rcid` degradation path (F-03) reachable in practice for the first time — it was dead code before, since the only way to be enumerated was to carry `__rcid` or `ports`.
+
+**v0.5.0 finished the job (FU-A).** v0.4.0 left one private copy of `isCardLike` behind, in
+`lib/find-port-target.ts`, because correcting it needed the host's registrations threaded through
+the port-editor API. That is now done — all three walkers there (find / read / write) go through
+`classifyNodeKey`, and `<PortEditorStrip>` takes `customPredefinedKeys` / `disabledPredefinedKeys`.
+`isCardLike` no longer exists anywhere in this component. See §7.7 for the consumer-facing story
+and the one narrowing it implies.
+
+One consequence worth knowing: `RESERVED_KEYS` is exactly `__rcid` / `__rcorder` / `__rcmeta`,
+but the retired heuristic skipped **any** key starting with `__rc`. So an object under a key like
+`__rcfoo` is now a walkable child. That is the same widening `enumerateSubcards` took at v0.4.0,
+so the two agree — it is pinned by a test rather than left to be rediscovered as a regression.
 
 ### 10.4 Smoke harness path-b is the F-V2 lock
 

@@ -21,6 +21,7 @@ export const meta: ComponentMeta = {
     "v0.4 BlockStrip — card-tree blocks finally render on the canvas (FU-2). The five built-in predefined keys and every host-registered custom key paint as compact summary chips (`table  2 x 3`, `body  2 items`); through v0.3 all of them rendered as nothing and `quote` leaked into the flat-field strip as an ordinary string.",
     "v0.4 createCardTreeViewerRenderer() — configurable renderer factory: customPredefinedKeys, opt-in host `render()` for custom blocks (error-boundaried), disabledPredefinedKeys, and the maxFlatFields / maxBlocks / maxSubcards caps Q6 kept hardcoded through v0.3. `cardTreeViewerRenderer` stays as the zero-config default.",
     "v0.4 key-first classification — one router (classifyNodeKey) mirroring card-tree's own precedence (reserved → built-in → custom → scalar → object/array) replaces two independent value-shape heuristics that disagreed with the editor the dialog mounts.",
+    "v0.5 PortEditorStrip takes customPredefinedKeys / disabledPredefinedKeys (FU-A) — the port walker now classifies keys through the same router as the viewer instead of its own private isCardLike copy. Closes the last surface where the port editor and the canvas disagreed about what a card is: a child card with no __rcid was drawn but unreachable, and a block whose payload carried `ports` could be written into.",
   ],
   tags: [
     "card-tree-node",
@@ -33,7 +34,7 @@ export const meta: ComponentMeta = {
     "config-canvas",
   ],
 
-  version: "0.4.0",
+  version: "0.5.0",
   status: "alpha",
   // Raised 65 -> 95 at v0.4.0. The block-rendering slice (classifier, block
   // deriver, BlockStrip, host boundary, the widened type surface) is a genuine

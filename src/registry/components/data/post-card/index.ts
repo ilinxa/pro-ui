@@ -41,6 +41,27 @@ export type {
   PostLikeUser,
 } from "./types";
 
+// The `Post` / `PostCardProps` sub-shapes. Every one of these is reachable
+// from an already-exported type — `Post.mentions`, `Post.poll`,
+// `Post.location`, `Post.replyTo`, `Post.linkPreview`, `Post.visibility`,
+// `PostCardProps.viewerMode` / `.permissions` / `.mutations` — but none was
+// importable from this barrel, so a consumer could hold a `Post` and still
+// not name the type of a field they were building
+// (validate:barrel-exports, 2026-08-17).
+export type {
+  LinkPreview,
+  PostLocation,
+  PostMention,
+  PostMutationHandlers,
+  PostPermissionAction,
+  PostPermissions,
+  PostPoll,
+  PostPollOption,
+  PostReplyTo,
+  PostViewerMode,
+  PostVisibility,
+} from "./types";
+
 export { DEFAULT_POST_CARD_LABELS } from "./types";
 
 // Re-exports for consumer convenience — single import.

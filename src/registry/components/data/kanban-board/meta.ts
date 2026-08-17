@@ -27,16 +27,17 @@ export const meta: ComponentMeta = {
     "Keyboard accessible drag (Space lift, arrows, Space drop, Escape cancel)",
     "Read-only mode disables all DnD and CRUD, leaves clicks active",
     "Native vertical column scroll when content overflows; vertical mouse-wheel scrolls the board horizontally",
+    "v0.6 barrel completeness: `AnyKanbanCardRenderer` — the declared element type of `KanbanBoardProps.renderers` and of the exported `findRenderer`'s first parameter — is now importable from the package root. Type-only, additive.",
   ],
   tags: ["kanban", "board", "drag-and-drop", "dnd-kit", "swimlanes", "columns", "tasks", "card-tree"],
 
   // 0.4.3 (2026-08-11): F-cross-13 path-b sweep — color-picker/inline-create/column-menu
   // trigger asChild → buttonVariants; zero public-API change.
-  version: "0.5.0",
+  version: "0.6.0",
   status: "alpha",
   artifactBudgetKB: 105,
   createdAt: "2026-05-05",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-17",
 
   author: { name: "ilinxa" },
 

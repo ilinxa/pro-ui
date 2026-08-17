@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 // F-S1 lock — RELATIVE cross-procomp imports
 import { defaultPortTypes } from "../../flow-canvas/registries/port-type-registry";
 import type { CanvasData, Port } from "../../flow-canvas/types";
+import type { CustomPredefinedKey, PredefinedKey } from "../../card-tree/types";
 import { findPortTarget } from "../lib/find-port-target";
 import { removePort, updatePort } from "../lib/port-mutators";
 import type { PortEditorPermissions } from "../types";
@@ -28,11 +29,40 @@ export type PortEditorStripProps = {
   editable?: boolean;
   /** Optional per-card / per-port / per-field permission predicates. */
   permissions?: PortEditorPermissions;
+  /**
+   * The host's block registrations — **the same value passed to
+   * `createCardTreeViewerRenderer()` and to `<CardTree>`**. The strip reads
+   * only `key`, to decide which properties are nested cards it may walk into
+   * and which are opaque block payloads it must not touch.
+   *
+   * Omitting it while the viewer *does* register keys puts the two back out
+   * of step: a registered block whose payload happens to carry `ports` or an
+   * `__rcid` becomes walkable again, and `onChange` can write a `ports` array
+   * into it. Pass a stable reference — an inline literal re-derives the name
+   * list every render.
+   *
+   * Import the type from `@ilinxa/card-tree`, not from this package.
+   *
+   * v0.5.0 addition (FU-A).
+   */
+  customPredefinedKeys?: readonly CustomPredefinedKey[];
+  /**
+   * Built-ins the consumer opted out of — mirrors `<CardTree>`'s prop and
+   * `CardTreeViewerOptions.disabledPredefinedKeys`. An opted-out built-in is
+   * demoted to a plain field, exactly as card-tree does it, so an
+   * object-valued one is neither a block nor a walkable child.
+   *
+   * v0.5.0 addition (FU-A).
+   */
+  disabledPredefinedKeys?: readonly PredefinedKey[];
   /** Optional className applied to the strip root. */
   className?: string;
 };
 
 const EMPTY_PERMISSIONS: PortEditorPermissions = {};
+/** Module-scope constants so the default path keeps a stable identity. */
+const EMPTY_CUSTOM_KEYS: readonly CustomPredefinedKey[] = [];
+const EMPTY_DISABLED_KEYS: readonly PredefinedKey[] = [];
 
 /**
  * Editor strip for the `ports[]` array of a single card-tree / subcard inside
@@ -68,15 +98,29 @@ export function PortEditorStrip({
   onChange,
   editable = true,
   permissions = EMPTY_PERMISSIONS,
+  customPredefinedKeys = EMPTY_CUSTOM_KEYS,
+  disabledPredefinedKeys = EMPTY_DISABLED_KEYS,
   className,
 }: PortEditorStripProps) {
   // v0.2 uses defaults only — Q5-bis lock; consumer-registered custom types
   // deferred to v0.3 with proper shared-context plumbing.
   const portTypes = defaultPortTypes;
 
+  // v0.5.0 (FU-A) — the walker classifies keys with the same router the
+  // viewer uses, so it needs the same registrations. Derived here rather than
+  // inside the target memo so a stable `customPredefinedKeys` reference keeps
+  // the name list stable too.
+  const keyOptions = useMemo(
+    () => ({
+      customKeyNames: customPredefinedKeys.map((k) => k.key),
+      disabledPredefinedKeys,
+    }),
+    [customPredefinedKeys, disabledPredefinedKeys],
+  );
+
   const target = useMemo(
-    () => findPortTarget(canvas, nodeId, subPath),
-    [canvas, nodeId, subPath],
+    () => findPortTarget(canvas, nodeId, subPath, keyOptions),
+    [canvas, nodeId, subPath, keyOptions],
   );
 
   // Pre-compute live-edges map per F-07 — one O(E) pass over the whole canvas.

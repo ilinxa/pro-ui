@@ -20,6 +20,7 @@ export const meta: ComponentMeta = {
     "Cursor (view + focus date) controlled OR uncontrolled; period nav, view switch, optional jump-to-date mini-nav (shadcn calendar), onRangeChange for lazy windowed fetch; height-responsive month overflow (maxEventsPerCell overrides)",
     "SSR-safe first paint (now prop seeds; client interval refreshes); finite-date guards (unparseable dates render label-only, never throw); all-day floating-local round-trip (no off-by-one)",
     "Compound: EventCalendarRoot + flat view parts + edit overlays + Tier-C primitives + the EventCalendar assembly; each view its own module (tree-shakeable); a month-only subset drops the time-grid code; the detail editor lazy-loads task-card",
+    "v0.5 barrel completeness: `CalendarBaseContextValue` — the return type of the exported `useCalendar()` hook — is now importable from the package root. Type-only, additive.",
   ],
   tags: [
     "event-calendar",
@@ -38,13 +39,13 @@ export const meta: ComponentMeta = {
   // based injection seam; base never statically imports feature code. Zero
   // public-API removal on the composed surface (every export still resolves,
   // base ∪ feature) — only the install SURFACE changed (see `slices` below).
-  version: "0.4.0",
+  version: "0.5.0",
   status: "alpha",
   // Tightened 235→160 after the P3 editing split (built base artifact verified
   // 137.3KB on 2026-08-11; ~15% headroom so real growth trips validate:artifact-size).
   artifactBudgetKB: 160,
   createdAt: "2026-06-22",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-17",
 
   author: { name: "ilinxa" },
 

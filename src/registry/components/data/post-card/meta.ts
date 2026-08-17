@@ -48,6 +48,7 @@ export const meta: ComponentMeta = {
     "No new shadcn primitives needed (avatar / button / card / dropdown-menu / input / popover present)",
     "No framer-motion — inherits engagement-heart-burst CSS from engagement-bar",
     "Uses the `engagement-bar` like-action `onCountClick` split (heart vs count) when in inline mode",
+    "v0.5 barrel completeness: the eleven `Post` / `PostCardProps` sub-shapes (PostMention, PostPoll, PostPollOption, PostLocation, PostReplyTo, LinkPreview, PostVisibility, PostViewerMode, PostPermissions, PostPermissionAction, PostMutationHandlers) are now importable from the package root — previously a consumer could hold a `Post` and still not name the type of a field they were building. Type-only, additive.",
   ],
   tags: [
     "post-card",
@@ -66,11 +67,11 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.4.0",
+  version: "0.5.0",
   status: "alpha",
   artifactBudgetKB: 165,
   createdAt: "2026-05-02",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-17",
 
   author: { name: "ilinxa" },
 
