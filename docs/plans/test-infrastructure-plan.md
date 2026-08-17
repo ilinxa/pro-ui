@@ -1,6 +1,6 @@
 # Plan — Test infrastructure + card-tree v0.6.0 follow-up closure
 
-> **Status:** R1 — design & contracts; **one open scope question at §R0.4 awaiting user**
+> **Status:** ✅ **CLOSED** — shipped `e43f96a`, deployed, post-deploy verified. Retro in `.claude/improvement-log.md`.
 > **Started:** 2026-08-17 · **Owner:** architect (main session)
 > **Driver:** the `card-tree` v0.6.0 U-loop closed with 9 follow-ups; FU-1 (test runner) had its
 > informed-defer trigger tripped by that bug. User directive: *"fix these in the most professional
@@ -166,13 +166,13 @@ Each slice = independently testable vertical cut; tests land with code.
 ## Phase checklist
 
 - [x] **R0 Frame & scope** — plan doc; improvement log read (retro appended 2026-08-17); versions verified live
-- [ ] **R1 Design & contracts** — invariants + blast radius; ADR for the vercel-build policy change
-- [ ] **R2 Implement in slices**
-- [ ] **R3 Gate battery** — real numbers
-- [ ] **R4 Adversarial review** — findings table, CONFIRMED/DROPPED
-- [ ] **R5 Runtime verification** — E2E observed, negative path included
-- [ ] **R6 Docs & knowledge sync** — base commit
-- [ ] **R7 Close-out & retro**
+- [x] **R1 Design & contracts** — invariants + blast radius; ADR for the vercel-build policy change
+- [x] **R2 Implement in slices**
+- [x] **R3 Gate battery** — all 8 green; 2 validators fixed for the new non-shipped file class
+- [x] **R4 Adversarial review** — 6 findings: 5 CONFIRMED+fixed, 1 accepted+documented
+- [x] **R5 Runtime verification** — guard proven by reverting the fix (unit + e2e both go red); deploy gate executed both ways
+- [x] **R6 Docs & knowledge sync** — base commit `e43f96a`
+- [x] **R7 Close-out & retro** — pushed, deployed, post-deploy verified (0 test files in production artifacts), retro appended
 
 ## Verified dependency versions (read live via `pnpm view`, not assumed)
 
