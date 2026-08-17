@@ -20,7 +20,7 @@
 - [x] **U4 Adversarial review** — findings table below; no open CONFIRMED
 - [x] **U5 Runtime & smoke** — evidence below, negative path included
 - [x] **U6 Docs sync & review** — [`reviews/2026-08-17-v0.4.0-spotcheck.md`](reviews/2026-08-17-v0.4.0-spotcheck.md), verdict **Pass with follow-ups**
-- [x] **U7 Ship** — see review file + STATUS row
+- [x] **U7 Ship** — commit `bd5f839`; see review file + STATUS row. ⚠️ **The first deploy of this commit FAILED** — see *Post-deploy* below. Live only after `6fd8c1b`.
 
 ## Origin
 
@@ -121,6 +121,32 @@ Root cause is one thing, not two: the viewer had **no key router**. It asked two
 - **FU-A** — `find-port-target.ts` still uses the retired `isCardLike` heuristic (F6). Owner: card-tree-node, target v0.4.x.
 - Built-in blocks are chips only; no consumer has asked for a real mini-table/thumbnail at node zoom. Revisit if one does.
 - `maxSubcards` / `maxFlatFields` overflow has no `+N` affordance — only blocks do. Cosmetic asymmetry, pre-existing for fields.
+
+## Post-deploy (U7) — the first deploy failed
+
+`bd5f839` was pushed with every local gate green. **The Vercel deploy then failed and the artifact
+stayed at 14 files.** `vercel-build` runs `pnpm test:run` first; Vercel exports
+`NODE_ENV=production`; Vitest only defaults `NODE_ENV` to `test` when it is UNSET; React's
+production entry ships no `act()`. Every `@testing-library/react` render threw
+`TypeError: React.act is not a function` — **24 component tests red, 65 lib tests green**, which
+made it read as a partial failure rather than an environmental one.
+
+Fixed in `6fd8c1b` (one line in `vitest.config.ts`, assigning `NODE_ENV` before Vite resolves the
+config). v0.4.0 reached production on that deploy.
+
+**Root cause of the miss, in this loop:** U3 ran gate 8 as `pnpm test:run`, which is implicitly
+`NODE_ENV=test` locally. `vercel-build` runs the same command in a different environment. The
+suite was verified; the *gate* was not. `readiness.config.md` gate 8 now specifies
+`NODE_ENV=production pnpm test:run`, and the flake is documented in known-flakes.
+
+**Verified after the fix, independently of the fixing commit's own claims:**
+
+| Check | Result |
+|---|---|
+| `NODE_ENV=production pnpm test:run` | 89 passed / 14 files |
+| Same, with the one-line fix removed | **24 failed / 65 passed**, `React.act is not a function` — claim confirmed |
+| Live artifact `https://ui.ilinxa.com/r/card-tree-node.json` | 18 files; `classify-node-key`, `derive-blocks`, `block-strip`, `host-block-boundary` all present |
+| E2E against **production** (`E2E_BASE_URL=https://ui.ilinxa.com`) | **7/7 green** |
 
 ## Pre-mortem (U7)
 
