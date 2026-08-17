@@ -1621,14 +1621,64 @@ import {
   CardTree,
   type CardTreeHandle,
   type CardTreeJsonNode,
+  type CustomPredefinedKey,
 } from "@/registry/components/data/card-tree";
 import { PortEditorStrip } from "./parts/port-editor-strip";
-import { cardTreeViewerRenderer } from "./parts/card-tree-viewer";
+import { createCardTreeViewerRenderer } from "./parts/card-tree-viewer";
 import { cardTreeNodeFixture } from "./dummy-data";
 
+// A host-registered custom block (v0.4.0). The SAME registration array feeds
+// the canvas renderer and \`<CardTree>\` in the dialog — that is the point: the
+// node and the editor must agree about what exists on a card. Module scope,
+// because an inline literal re-allocates every render (card-tree v0.6.0's
+// unbounded-render-loop hazard).
+const CUSTOM_KEYS: CustomPredefinedKey[] = [
+  {
+    key: "body",
+    description: "Rich-text blocks (Plate/editor.js shape)",
+    validate: (value) => ({ ok: Array.isArray(value) }),
+    defaultValue: () => [],
+    searchableText: (value) =>
+      Array.isArray(value)
+        ? value.map((b) => (b as { text?: string })?.text ?? "").filter(Boolean)
+        : [],
+    render: (value) => {
+      const blocks = Array.isArray(value) ? value : [];
+      return (
+        <span className="flex flex-col gap-0.5">
+          {blocks.map((b, i) => {
+            const block = b as { type?: string; text?: string };
+            return (
+              <span
+                key={i}
+                className={
+                  block.type === "heading"
+                    ? "font-semibold text-foreground"
+                    : "text-muted-foreground"
+                }
+              >
+                {block.text}
+              </span>
+            );
+          })}
+        </span>
+      );
+    },
+  },
+];
+
 // Module-scope renderers (per xyflow-react-pro skill: recreating renderer
-// arrays in render triggers teardown + remount on every render).
-const RENDERERS: NodeRenderer[] = [cardTreeViewerRenderer];
+// arrays in render triggers teardown + remount on every render). The renderer
+// factory must likewise be called ONCE — it resolves options into the stable
+// object that keeps the viewer's memo effective.
+const RENDERERS: NodeRenderer[] = [
+  createCardTreeViewerRenderer({
+    customPredefinedKeys: CUSTOM_KEYS,
+    // Built-in blocks still show summary chips; \`body\` is painted by the host
+    // renderer above, so both v0.4.0 paths are visible on one canvas.
+    renderCustomBlocks: true,
+  }),
+];
 
 // Reserved keys that belong to flow-canvas's NodeData shape (ports + the
 // \`__type\` discriminator) but not to card-tree's open-shape data model.
@@ -1727,7 +1777,9 @@ export default function CardTreeNodeDemo() {
       <p className="text-xs text-muted-foreground">
         Click any node to edit. Click a nested subcard to open the editor
         pre-focused on it. Marquee-select or shift-click for multi-select
-        (canvas-level — bulk edit deferred to v0.2).
+        (canvas-level — bulk edit deferred to v0.2). The chips on each node are
+        card-tree blocks (v0.4.0); &ldquo;Response&rdquo; also carries a
+        host-rendered <code>body</code> block.
       </p>
 
       <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card/40">
@@ -1776,6 +1828,10 @@ export default function CardTreeNodeDemo() {
                 ref={cardTreeRef}
                 defaultValue={editingTree}
                 editable={true}
+                // Same registrations as the canvas renderer — without this the
+                // dialog would reinterpret \`body\` as a child card and the two
+                // surfaces would disagree.
+                customPredefinedKeys={CUSTOM_KEYS}
                 onChange={(next) => {
                   setCanvas((prev) => {
                     const original = prev.nodes.find(

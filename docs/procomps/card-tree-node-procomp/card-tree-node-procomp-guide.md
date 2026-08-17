@@ -206,21 +206,76 @@ n8n-style multi-select works out of the box — marquee select + shift-click are
 
 ---
 
-## 6. v0.1 viewer limits + extension knobs
+## 6. Viewer shape + extension knobs
 
-The viewer paints a fixed summary shape — title + first 3 flat fields + up to 4 nested subcard outlines + 4 root-level port handles. v0.1 doesn't expose configurable knobs; the constants are locked at:
+The viewer paints a summary shape: title + first 3 flat fields + up to 3 **block chips** (v0.4.0, see §6.1) + up to 4 nested subcard outlines + 4 root-level port handles.
 
-| Knob | Value | Where |
+**v0.4.0 opened the knobs** that v0.1–v0.3 kept hardcoded. `createCardTreeViewerRenderer(options)` returns a configured `NodeRenderer<CardTreeCanvasNode>`; the bare `cardTreeViewerRenderer` export is exactly `createCardTreeViewerRenderer()` and keeps working unchanged.
+
+| Knob | Default | Notes |
 |---|---|---|
-| `MAX_FLAT_FIELDS` | 3 | `parts/card-tree-viewer.tsx` |
-| `MAX_NESTED_OUTLINES` | 4 | `parts/card-tree-viewer.tsx` |
-| `NESTED_DEPTH` | 1 | implicit — viewer doesn't recurse |
-| `editTrigger` | `"click"` | implicit — single click |
+| `maxFlatFields` | 3 | scalar fields before truncation |
+| `maxBlocks` | 3 | block chips before the `+N` overflow chip |
+| `maxSubcards` | 4 | nested outlines |
+| `customPredefinedKeys` | `[]` | the SAME array you pass to `<CardTree>` |
+| `renderCustomBlocks` | `false` | call the host's own `render()` instead of a chip |
+| `disabledPredefinedKeys` | `[]` | mirrors card-tree's prop |
+| nested depth | 1 | not configurable — viewer doesn't recurse |
+| `editTrigger` | `"click"` | not configurable |
 | Title fallback | `data.title` → first non-reserved string flat field → `"Untitled card-tree"` | `lib/derive-title.ts` |
 
-**Custom paint** — if you need a fully different shape, register your own `NodeRenderer<CardTreeCanvasNode>` instead of the default. The data contract (root + subcards each addressable by `__rcid`; subcards keep their own `ports[]`) is the only thing the dialog wiring depends on.
+> **Call the factory once, at module scope.** It resolves options into the stable object that keeps the viewer's `memo` effective. Building it inline in JSX re-allocates every render — the same hazard that produced card-tree v0.6.0's unbounded render loop.
 
-**v0.2 configurable options** — `CardTreeViewerOptions` factory is the planned path: `cardTreeViewer(options): NodeRenderer<CardTreeCanvasNode>` with `maxFlatFields`, `maxNestedOutlines`, `nestedDepth`, `titleField`, `fieldKeys`, `editTrigger?: "click" | "doubleClick"`. Lands when (a) two consumers diverge from the defaults OR (b) the `isCardLike` heuristic stabilizes (see §10 contributor notes).
+**Custom paint** — if you need a fully different shape, register your own `NodeRenderer<CardTreeCanvasNode>` instead. The data contract (root + subcards each addressable by `__rcid`; subcards keep their own `ports[]`) is the only thing the dialog wiring depends on.
+
+### 6.1 Blocks on a node (v0.4.0 — FU-2)
+
+A card-tree card can carry **blocks**: the five built-in predefined keys (`codearea`, `image`, `table`, `quote`, `list`) and any key the host registers via `customPredefinedKeys`.
+
+**Through v0.3 the viewer rendered none of them.** It recognised two things — scalars, and objects tagged with `__rcid`/`__rcorder`/`__rcmeta`/`ports` — and a block is neither, so every block vanished silently: no warning, no error, just a node with fewer fields than the dialog showed. `quote`, being a *string*, was worse: it passed the scalar test and was rendered as an ordinary field, where it could consume one of the three field slots and push a real field out of view.
+
+v0.4.0 replaces both value-shape heuristics with one key router (`lib/classify-node-key.ts`) that mirrors card-tree's own precedence:
+
+```
+reserved → built-in → custom → scalar → object/array
+```
+
+Matching custom keys by **name, before inspecting the value**, is the load-bearing part — it is what makes an array-valued block (Plate Value, editor.js) possible at all, since the child route rejects arrays for good reason (Q-P4).
+
+```tsx
+import { CardTree, type CustomPredefinedKey } from "@ilinxa/card-tree";
+import { createCardTreeViewerRenderer } from "@ilinxa/card-tree-node";
+
+const CUSTOM_KEYS: CustomPredefinedKey[] = [
+  {
+    key: "body",
+    validate: (v) => ({ ok: Array.isArray(v) }),
+    defaultValue: () => [],
+    render: (v) => <MyRichText value={v} />,
+  },
+];
+
+const RENDERERS = [
+  createCardTreeViewerRenderer({
+    customPredefinedKeys: CUSTOM_KEYS,
+    renderCustomBlocks: true, // default false = summary chips
+  }),
+];
+
+// ...and the dialog gets the SAME array:
+<CardTree defaultValue={tree} editable customPredefinedKeys={CUSTOM_KEYS} />
+```
+
+Rules worth knowing:
+
+- **Pass the same registrations to both surfaces.** If the node knows about a registration and the dialog does not (or vice versa), the two disagree about what exists on the card — which is the class of bug this release fixes.
+- **`renderCustomBlocks` is off by default.** A canvas node is a summary surface; host render code sized for a full-width editor rarely fits a 240px node. Turn it on when your renderer is compact.
+- **Host `render()` is error-boundaried either way.** A renderer that throws — synchronously or during its own render — degrades to its summary chip and never blanks the canvas.
+- **Built-ins always use the chip.** A host cannot capture `table` by registering that name; card-tree drops such collisions at mount and the viewer matches.
+- **Overflow is visible.** A card with more blocks than `maxBlocks` shows a `+N` chip. Blocks are never dropped silently.
+- **Styling hooks:** `[data-block-kind="table"]`, `[data-block-key="body"]`, `[data-block-overflow]`.
+
+Summary formats: `image` → alt text or filename · `table` → `rows x columns` · `codearea` → `format, N lines` · `quote` → the text (clipped at 80 chars) · `list` → `N items` · custom → `N items` (array) / `N fields` (object) / the text (string).
 
 ---
 
@@ -338,7 +393,15 @@ See §4 — F-03 graceful degradation handles the missing case but disables clic
 
 **v0.1.0 first ship** — no migration path. You're either on v0.1.0 or you're not.
 
-**Toward v0.2** — `CardTreeViewerOptions` will land as additive (the bare `cardTreeViewerRenderer` continues to work). Switch to `cardTreeViewer(options)` when you need configurable knobs. No breaking changes planned.
+**v0.3.0 → v0.4.0** — additive; nothing to change. `cardTreeViewerRenderer` keeps its exact signature and zero-config behaviour. Two things render differently, both fixes rather than choices:
+
+| What | v0.3.0 | v0.4.0 |
+|---|---|---|
+| `image` / `table` / `codearea` / `list` / registered custom keys | rendered as **nothing** | summary chip (§6.1) |
+| `quote` | an ordinary string field in the `<dl>` | a block chip |
+| a plain object child with no `__rcid` | rendered as **nothing** | subcard outline (§10.3) |
+
+If you were relying on `quote` appearing in the field strip, put it in `disabledPredefinedKeys` — the same escape hatch `<CardTree>` offers. To adopt custom blocks, pass `customPredefinedKeys` to `createCardTreeViewerRenderer()`; see §6.1.
 
 **`flow-canvas` version requirement** — `^0.2.1` (the `onEditRequest` API). If you're on v0.2.0 or earlier, you need to bump flow-canvas first; v0.2.1 is non-breaking from v0.2.0.
 
@@ -371,9 +434,15 @@ If you fork this procomp into another category (e.g. `forms/`), you can probably
 
 `meta.ts` declares `internal: ["card-tree", "flow-canvas"]`. The `validate-meta-deps` audit catches drift between this declaration and the actual relative imports — keep them in sync.
 
-### 10.3 F-rev-3 — `enumerateSubcards` stays private
+### 10.3 F-rev-3 — `enumerateSubcards` stays private *(resolved v0.4.0)*
 
-The helper is kept INTERNAL (not re-exported from `index.ts`) because its signature depends on the `isCardLike` heuristic, which is marked for tightening in v0.2 if card-tree ships a canonical "is-card" predicate. Exporting now then changing the signature later = breaking change for consumers writing custom card-tree renderers on top of this procomp. Revisit in v0.2.
+The helper was kept INTERNAL because its signature depended on the `isCardLike` heuristic, marked for tightening once card-tree shipped a canonical "is-card" predicate.
+
+**v0.4.0 retired the heuristic** without waiting for that predicate — which card-tree still does not export. `enumerateSubcards` now delegates to `classifyNodeKey`, so it inherits card-tree's key precedence directly rather than guessing from value shape. The old test was wrong in both directions: it MISSED a genuine child card that had not yet been round-tripped through `<CardTree>` (no `__rcid`), and it CLAIMED any host block whose payload happened to carry a `ports` key.
+
+The signature gained an options parameter (defaulted, so internal callers were unaffected). It stays private — the classifier is the stable surface now, and `classifyNodeKey` is the thing a custom renderer should reach for. Revisit only if a consumer asks for subcard enumeration by name.
+
+**Behaviour change to be aware of:** a plain object child with no `__rcid` now renders as a subcard outline where it previously rendered as nothing. That also makes `SubcardBlock`'s documented missing-`__rcid` degradation path (F-03) reachable in practice for the first time — it was dead code before, since the only way to be enumerated was to carry `__rcid` or `ports`.
 
 ### 10.4 Smoke harness path-b is the F-V2 lock
 

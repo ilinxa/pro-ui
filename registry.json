@@ -5489,6 +5489,16 @@
           "target": "components/card-tree-node/types.ts"
         },
         {
+          "path": "src/registry/components/data/card-tree-node/lib/classify-node-key.ts",
+          "type": "registry:component",
+          "target": "components/card-tree-node/lib/classify-node-key.ts"
+        },
+        {
+          "path": "src/registry/components/data/card-tree-node/lib/derive-blocks.ts",
+          "type": "registry:component",
+          "target": "components/card-tree-node/lib/derive-blocks.ts"
+        },
+        {
           "path": "src/registry/components/data/card-tree-node/lib/derive-flat-fields.ts",
           "type": "registry:component",
           "target": "components/card-tree-node/lib/derive-flat-fields.ts"
@@ -5527,6 +5537,16 @@
           "path": "src/registry/components/data/card-tree-node/parts/card-tree-viewer.tsx",
           "type": "registry:component",
           "target": "components/card-tree-node/parts/card-tree-viewer.tsx"
+        },
+        {
+          "path": "src/registry/components/data/card-tree-node/parts/block-strip.tsx",
+          "type": "registry:component",
+          "target": "components/card-tree-node/parts/block-strip.tsx"
+        },
+        {
+          "path": "src/registry/components/data/card-tree-node/parts/host-block-boundary.tsx",
+          "type": "registry:component",
+          "target": "components/card-tree-node/parts/host-block-boundary.tsx"
         },
         {
           "path": "src/registry/components/data/card-tree-node/parts/subcard-block.tsx",

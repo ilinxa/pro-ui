@@ -35,7 +35,7 @@
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 |
 | `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 |
 | `card-tree` | Card Tree | 0.6.0 | beta | 2026-08-17 |
-| `card-tree-node` | Card Tree Node | 0.3.0 | alpha | 2026-08-11 |
+| `card-tree-node` | Card Tree Node | 0.4.0 | alpha | 2026-08-17 |
 | `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 |
 | `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 |
 | `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 |

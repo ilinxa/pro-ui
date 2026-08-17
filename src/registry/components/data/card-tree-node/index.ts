@@ -1,4 +1,14 @@
-export { cardTreeViewerRenderer } from "./parts/card-tree-viewer";
+export {
+  cardTreeViewerRenderer,
+  // v0.4 — configurable renderer factory (custom-key registrations, block
+  // rendering mode, the caps Q6 kept hardcoded through v0.3).
+  createCardTreeViewerRenderer,
+} from "./parts/card-tree-viewer";
+
+// v0.4 — block rendering (FU-2). Both are prop-driven and context-free, so a
+// consumer hand-assembling a node renderer can mount them directly.
+export { BlockStrip } from "./parts/block-strip";
+export { HostBlockBoundary } from "./parts/host-block-boundary";
 
 // v0.2 — PortEditorStrip + types (rcif-internal symbols, safe to re-export
 // from the barrel per F-09 lock — only cross-procomp re-exports trip the
@@ -11,8 +21,13 @@ export {
 // Type re-exports for consumers writing typed canvas data
 export type {
   CardTreeCanvasNode, // F-V6 lock — canvas-node form
+  FlatField, // shape returned by the flat-field deriver
+  FlatFieldType, // "string" | "number" | "boolean" | "date"
   PortEditorPermissions, // v0.2 — for typed consumer permission predicates
   PortField, // v0.2 — for typed canEditPortField bodies
+  BlockKind, // v0.4 — built-in key name, or "custom"
+  NodeBlock, // v0.4 — a block as the viewer sees it
+  CardTreeViewerOptions, // v0.4 — createCardTreeViewerRenderer's argument
 } from "./types";
 
 // F-S1 lock (per json-form v0.1.4 smoke precedent + extended via card-tree-in-

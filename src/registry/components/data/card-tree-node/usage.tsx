@@ -7,11 +7,84 @@ export default function CardTreeNodeUsage() {
         flow-canvas node should carry a card-tree JSON tree as its data —
         agent workflow editors, schema/config canvases, decision or runbook
         maps. The viewer paints a read-only summary (title + first 3 flat
-        fields + nested-card outlines with their own ports); clicking opens a
+        fields + block chips + nested-card outlines with their own ports);
+        clicking opens a
         consumer-owned dialog with the full <code>CardTree</code> editor. At
         most ONE card-tree editor instance is mounted at any moment regardless
         of node count.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Blocks on a node (v0.4.0)
+      </h3>
+      <p className="text-muted-foreground">
+        A card-tree card can carry <strong>blocks</strong> — the five built-in
+        predefined keys (<code>codearea</code>, <code>image</code>,{" "}
+        <code>table</code>, <code>quote</code>, <code>list</code>) and any key
+        the host registers through <code>customPredefinedKeys</code>. Through
+        v0.3 the canvas viewer rendered none of them: it recognised scalars and{" "}
+        <code>__rcid</code>-tagged objects, and a block is neither, so blocks
+        vanished silently. v0.4.0 paints each one as a compact chip —{" "}
+        <code>table&nbsp;&nbsp;2&nbsp;x&nbsp;3</code>,{" "}
+        <code>body&nbsp;&nbsp;2&nbsp;items</code> — sized for node zoom, with
+        the full payload still living in the edit dialog.
+      </p>
+      <p className="mt-2 text-muted-foreground">
+        Pass the <strong>same</strong> <code>customPredefinedKeys</code> array
+        to the renderer and to <code>&lt;CardTree&gt;</code>. If the node knows
+        about a registration and the dialog does not (or the reverse), the two
+        surfaces disagree about what exists on the card.
+      </p>
+      <pre className="mt-3 overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import { CardTree, type CustomPredefinedKey } from "@ilinxa/card-tree";
+import { createCardTreeViewerRenderer } from "@ilinxa/card-tree-node";
+
+// Module scope — an inline literal re-allocates every render.
+const CUSTOM_KEYS: CustomPredefinedKey[] = [
+  {
+    key: "body",
+    validate: (v) => ({ ok: Array.isArray(v) }),
+    defaultValue: () => [],
+    render: (v) => <MyRichText value={v} />,
+  },
+];
+
+// Call the factory ONCE. It resolves options into the stable object that
+// keeps the viewer's memo effective.
+const RENDERERS = [
+  createCardTreeViewerRenderer({
+    customPredefinedKeys: CUSTOM_KEYS,
+    renderCustomBlocks: true,  // default false = summary chips
+    maxBlocks: 3,              // also: maxFlatFields, maxSubcards
+  }),
+];
+
+// ...and the dialog gets the same array:
+<CardTree defaultValue={tree} editable customPredefinedKeys={CUSTOM_KEYS} />`}</code>
+      </pre>
+      <ul className="mt-3 list-disc space-y-1 pl-5 text-muted-foreground">
+        <li>
+          <code>renderCustomBlocks</code> is <strong>off</strong> by default. A
+          canvas node is a summary surface, and host render code sized for a
+          full-width editor rarely fits a 240px node. Turn it on when your
+          renderer is compact.
+        </li>
+        <li>
+          Host <code>render()</code> output is wrapped in an error boundary
+          either way — a renderer that throws degrades to its summary chip and
+          never blanks the canvas.
+        </li>
+        <li>
+          Built-in blocks always use the chip; a host cannot capture{" "}
+          <code>table</code> by registering that name (card-tree drops such
+          collisions at mount, and the viewer matches).
+        </li>
+        <li>
+          Target a block from CSS with{" "}
+          <code>[data-block-kind=&quot;table&quot;]</code> or{" "}
+          <code>[data-block-key=&quot;body&quot;]</code>.
+        </li>
+      </ul>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Canonical wiring</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
