@@ -123,9 +123,23 @@ green in the producer *and* in a consumer that imports every one by name.
 |---|---|---|---|
 | FU-1 | **`media-editor` C17**: change `MediaCaptureSurfaceProps.labels` to `Required<MediaEditorLabels>` and delete the `StoryComposerLabels` shim. Breaking for anyone who wrote a custom `CameraSurface`; needs its own U-loop. Until then `validate:barrel-exports` will report 1 warn — that warn *is* the ticket. | media-editor | next `media-editor` minor |
 
-## Recommendation (not applied — user's call)
+## Promotion to a gate — applied, same day, after user sign-off
 
-`validate:barrel-exports` is now at 0 high and `--strict` exits 0, so it can be promoted from
-report-only into `registry:build` alongside the other validators. That was deliberately left
-alone here: report-only was an explicit user decision, and flipping a deploy gate is not a
-barrel sweep's business. Flipping it costs one line in `package.json`.
+`validate:barrel-exports --strict` now runs inside `registry:build` (and therefore
+`vercel-build`), positioned after `validate-naming` and **before** `shadcn build`, so a broken
+barrel cannot produce artifacts.
+
+It was falsified both ways before being trusted, because a gate seen only passing is not a gate:
+
+| Step | Result |
+|---|---|
+| Delete `AnyKanbanCardRenderer` from the kanban barrel | validator `--strict` → **exit 1**, 1 high · 1 warn |
+| `pnpm registry:build` with the break in place | **exit 1**, halted before `shadcn build` — zero artifacts written |
+| Restore the export (byte-identical to committed) | `registry:build` → **exit 0**, 0 high · 1 warn, 66 artifacts audited |
+
+The `warn` row is the load-bearing detail: it was present throughout and never gated, which is
+what makes the `@internal` escape hatch honest rather than a mute button.
+
+**Safety note.** Unlike the test gate, this validator is pure filesystem reads and regex — no
+`NODE_ENV`, no React, no network — so its CI behaviour is identical to local by construction. The
+failure class from the `NODE_ENV=production` incident two days earlier cannot recur here.

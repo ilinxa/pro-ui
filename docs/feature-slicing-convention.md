@@ -61,6 +61,46 @@ side-effects.
   re-test covered same-item re-add); treat it as unverified on ≥4.17.0 until the next slice ship
   exercises it. Evidence: `e:/tmp/ilinxa-p4-install-matrix-report.md` §T3.
 
+## Removed files leave orphans in every existing consumer — say so, every time
+
+**`shadcn add` never deletes a file an item stopped shipping.** Nothing in the registry-item
+schema expresses removal (verified 2026-08-17 against the shipped CLI), so a slice — which moves
+files from `components/<base>/…` to `components/<base>/features/<name>/…` — leaves the *old copies
+on disk* in every consumer that installed before the split. `--overwrite` refreshes the base
+around them; the dead files stay, still compiling against a base that has moved.
+
+They fail late and they fail misleadingly: the errors point at the **new** base types and read
+like a producer bug. That is exactly how it presented on 2026-08-17 — a consumer `tsc` opened with
+26 errors in `event-calendar`, none of them a producer defect.
+
+Every slice ships a **`Removed in vX — delete these`** list in the base component's guide. It is
+part of the slice, not a follow-up:
+
+```md
+### Removed in v0.4.0 (P3 editing split)
+
+These moved to `@ilinxa/event-calendar-editing`. `shadcn add` cannot delete them —
+remove them by hand after upgrading:
+
+    parts/calendar-context-menu.tsx        parts/calendar-edit-affordances.tsx
+    parts/calendar-edit-overlays.tsx       parts/calendar-quick-composer.tsx
+    hooks/use-calendar-edit.ts             lib/edit-mutations.ts
+    lib/edit-permissions.ts
+```
+
+**Detector:** `node scripts/find-orphans.mjs` in the smoke consumer
+(`e:/tmp/ilinxa-smoke-consumer/`) diffs an installed tree against every `target` in
+`registry.json` and reports files no item ships. Report-only by design — an "orphan" is also what
+a consumer's own hand-written file inside a component folder looks like, so it never deletes.
+
+**Both P3 pilots had orphans, and only one was found by accident.** The detector's first run
+surfaced 6 more in `media-editor` (the capture split: `parts/editor-camera.tsx`,
+`parts/camera-permission-prompt.tsx`, `parts/shutter-button.tsx`, `hooks/use-media-capture.ts`,
+`hooks/use-camera-permissions.ts`, `hooks/use-multi-instance-guard.ts`). Two of them compile only
+because `media-editor/types.ts` still carries the `@internal` `StoryComposerLabels` shim — so the
+**C17 refactor that deletes that shim will break every consumer still holding them.** C17 needs
+this list as a prerequisite, not an afterthought.
+
 ## When to slice
 
 Heavy components (≥4k LOC or ≥150KB artifact) with a coherent opt-in capability axis slice **on

@@ -304,6 +304,26 @@ import { mediaCapture } from "@/components/media-editor/features/capture"
 - **Locally-modified base** → the capture item's `registryDependencies: ["@ilinxa/media-editor"]` re-resolves base files too, so the CLI prompts per differing base file. Answer `n` at each prompt — that file is skipped, the run continues, and the capture feature's own files still land.
 - **Non-interactive upgrade onto a modified base** (`--yes` in CI, or any unattended run) is a **known phantom no-op**: the prompt hits EOF, the whole run aborts silently at exit 0, and nothing is written — including the feature's own non-colliding files. Shared with the existing base+`-fixtures` pattern, not new here. Install onto a pristine base or run interactively instead.
 
+### Removed in v0.3.0 (P3 capture split) — delete these by hand
+
+These moved to `@ilinxa/media-editor-capture` (`features/capture/…`). **`shadcn add` cannot delete
+files an item stopped shipping**, so upgrading from a pre-P3 install leaves the old copies on disk:
+
+```
+parts/editor-camera.tsx                parts/camera-permission-prompt.tsx
+parts/shutter-button.tsx               hooks/use-media-capture.ts
+hooks/use-camera-permissions.ts        hooks/use-multi-instance-guard.ts
+```
+
+Found 2026-08-17 by `node scripts/find-orphans.mjs` in the smoke consumer — on its first run, in a
+tree whose `tsc` was clean. **That last part is the trap:** these still compile today only because
+`types.ts` retains the `@internal` `StoryComposerLabels` shim, which
+`camera-permission-prompt.tsx` and `editor-camera.tsx` both import. The **C17 refactor that
+deletes that shim will break every consumer still holding them**, with errors pointing at
+media-editor's new types rather than at their own stale files — so C17 must ship this list, and
+should re-run the detector first. Convention:
+[`docs/feature-slicing-convention.md`](../../feature-slicing-convention.md).
+
 **story-composer compat band.** `story-composer` still re-exports 8 v0.1.5-era names (`ComposerCamera`, `ComposerEditor`, `ColorSwatchPicker`, their prop types, …) that now resolve through `@ilinxa/media-editor` / `@ilinxa/media-editor-capture` internally — see [`story-composer-v0.1.5-exports.snapshot.txt`](./story-composer-v0.1.5-exports.snapshot.txt) (the historical v0.1.5 contract snapshot, left as-is). That band had drifted to a bare `@deprecated` with no announced removal version, in violation of the snapshot's own "must still resolve" contract; the 2026-08-11 P3 review (finding MED-2) restored it with a real schedule — **removal in v0.5.0** — so downstream consumers get one more full minor version of notice before the aliases disappear.
 
 ## Footguns

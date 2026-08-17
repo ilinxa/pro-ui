@@ -162,6 +162,29 @@ The same `editing={calendarEditing}` prop works on `<EventCalendarRoot>` for han
 
 ## Migration notes
 
+### Removed in v0.4.0 (P3 editing split) — delete these by hand
+
+These moved to `@ilinxa/event-calendar-editing` (`features/editing/…`). **`shadcn add` cannot
+delete files an item stopped shipping**, so upgrading from a pre-P3 install leaves the old copies
+on disk. They keep compiling for a while, then break against the split base — and the errors point
+at the *new* code, reading like a producer bug. Observed 2026-08-17: a consumer `tsc` opened with
+26 errors, every one of them from these seven files.
+
+```
+parts/calendar-context-menu.tsx        parts/calendar-edit-affordances.tsx
+parts/calendar-edit-overlays.tsx       parts/calendar-quick-composer.tsx
+hooks/use-calendar-edit.ts             lib/edit-mutations.ts
+lib/edit-permissions.ts
+```
+
+If you want the editing layer, install `@ilinxa/event-calendar-editing` and pass
+`editing={calendarEditing}`; if you don't, deleting these leaves a working read-only calendar
+(that is the base-without-feature path, and it is covered by the smoke). Detect them with
+`node scripts/find-orphans.mjs` in the smoke consumer. Convention:
+[`docs/feature-slicing-convention.md`](../../feature-slicing-convention.md).
+
+---
+
 New greenfield component (no predecessor). The fifth member of the task-management set; shares the `TaskItem` + `TaskStatusOption` + `TaskPermissions` vocabulary with the rest — moving data between card / tree / board / gantt / calendar needs no transformation. The cross-surface clipboard helpers (`serializeTasks` / `parseTasks` / `reassignTaskIds` / `TaskClipboardEnvelope`) are exported from the calendar barrel and are slated to hoist into `task-card` (the shared vocabulary) so every task surface reads the same envelope.
 
 ---

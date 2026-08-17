@@ -66,9 +66,20 @@
  *   node scripts/validate-barrel-exports.mjs --json        # machine output
  *   node scripts/validate-barrel-exports.mjs <slug>        # single slug
  *
- * NOT wired into `registry:build` / `vercel-build` — report-only per explicit
- * user decision (test-infrastructure-plan.md §R0.4, 2026-08-17): validator
- * now, catalog-wide sweep is its own fix program.
+ * WIRED INTO `registry:build` as `--strict` (2026-08-17), therefore into
+ * `vercel-build` — a `high` finding stops a deploy before `shadcn build` runs,
+ * so a broken barrel can never produce artifacts.
+ *
+ * It shipped report-only earlier the same day (test-infrastructure-plan.md
+ * §R0.4) because the backlog was 16 high across 5 components; report-only was
+ * the holding position until the sweep closed it, not the intended end state.
+ * Promoted once the catalog reached 0 high — and only after the gate was
+ * falsified BOTH ways: an export was deleted, `registry:build` exited 1 and
+ * halted before `shadcn build`; restoring it returned exit 0. A gate that has
+ * only ever been seen passing is not a gate (the `NODE_ENV` deploy incident,
+ * two days earlier, is the standing reminder).
+ *
+ * `warn` never gates — see SEVERITY above.
  */
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
