@@ -32,6 +32,7 @@
     "test:run": "vitest run",
     "test:lib": "vitest run --project lib",
     "test:components": "vitest run --project components",
+    "test:repo": "vitest run --project repo",
     "validate:meta-deps": "node scripts/validate-meta-deps.mjs",
     "validate:default-registry-whitelist": "node scripts/validate-default-registry-whitelist.mjs",
     "validate:doc-drift": "node scripts/validate-doc-drift.mjs && node scripts/build-component-versions.mjs --check",

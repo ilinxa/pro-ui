@@ -329,6 +329,7 @@ export const TaskTree = forwardRef<TaskTreeHandle, TaskTreeProps>(
             allowed = evalPermission(permissions, action, item, level);
             return false;
           }
+          return true;
         });
         return allowed;
       },

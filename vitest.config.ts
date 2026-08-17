@@ -50,6 +50,18 @@ export default defineConfig({
           setupFiles: ["./vitest.setup.ts"],
         },
       },
+      {
+        // `repo` — guards on repo-level configuration rather than library code
+        // (e.g. the consumer-strict tsconfig flags). Deliberately OUTSIDE
+        // `src/` so the registry's folder-walking validators never see it: a
+        // new file class under src/registry once broke every one of them.
+        plugins: [tsconfigPaths()],
+        test: {
+          name: "repo",
+          environment: "node",
+          include: ["tests/**/*.test.ts"],
+        },
+      },
     ],
   },
 });

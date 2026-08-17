@@ -34,7 +34,7 @@ export const meta: ComponentMeta = {
     "config-canvas",
   ],
 
-  version: "0.5.0",
+  version: "0.5.1",
   status: "alpha",
   // Raised 65 -> 95 at v0.4.0. The block-rendering slice (classifier, block
   // deriver, BlockStrip, host boundary, the widened type surface) is a genuine
@@ -44,7 +44,7 @@ export const meta: ComponentMeta = {
   // reproducing here.
   artifactBudgetKB: 95,
   createdAt: "2026-05-16",
-  updatedAt: "2026-08-17",
+  updatedAt: "2026-08-18",
 
   author: { name: "ilinxa" },
 

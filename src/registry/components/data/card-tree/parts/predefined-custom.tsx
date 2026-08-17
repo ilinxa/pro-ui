@@ -66,14 +66,14 @@ export class HostRenderBoundary extends Component<
   { fallback: ReactNode; children: ReactNode },
   { hasError: boolean }
 > {
-  state = { hasError: false };
+  override state = { hasError: false };
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-  componentDidCatch() {
+  override componentDidCatch() {
     // Swallow — degrading to the generic JSON fallback is the recovery.
   }
-  render() {
+  override render() {
     return this.state.hasError ? this.props.fallback : this.props.children;
   }
 }

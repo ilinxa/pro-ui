@@ -15,11 +15,11 @@ class FilterErrorBoundary extends Component<
   { categoryId: string; children: ReactNode },
   { hasError: boolean }
 > {
-  state = { hasError: false };
+  override state = { hasError: false };
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  override componentDidCatch(error: Error, info: ErrorInfo) {
     if (process.env.NODE_ENV !== "production") {
       console.error(
         `[filter-panel] custom render crashed for category "${this.props.categoryId}":`,
@@ -28,7 +28,7 @@ class FilterErrorBoundary extends Component<
       );
     }
   }
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <p role="alert" className="text-xs text-destructive">

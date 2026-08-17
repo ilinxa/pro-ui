@@ -47,11 +47,11 @@ export const meta: ComponentMeta = {
 
   // 0.3.2 (2026-08-11): F-cross-13 path-b sweep — filter-popover trigger asChild →
   // buttonVariants; zero public-API change.
-  version: "0.4.0",
+  version: "0.4.1",
   status: "alpha",
   artifactBudgetKB: 245,
   createdAt: "2026-05-20",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-18",
 
   author: { name: "ilinxa" },
 

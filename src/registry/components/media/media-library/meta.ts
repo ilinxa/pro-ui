@@ -21,11 +21,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["media", "library", "files", "drive", "upload", "preview", "drag-drop", "folders", "cms"],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   artifactBudgetKB: 150,
   createdAt: "2026-06-09",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-18",
 
   author: { name: "ilinxa" },
 

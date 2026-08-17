@@ -20,13 +20,13 @@ export class HostBlockBoundary extends Component<
   { children: ReactNode; fallback: ReactNode },
   { failed: boolean }
 > {
-  state = { failed: false };
+  override state = { failed: false };
 
   static getDerivedStateFromError() {
     return { failed: true };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  override componentDidCatch(error: Error, info: ErrorInfo) {
     if (process.env.NODE_ENV === "development") {
       console.warn(
         "[card-tree-node] A custom block's render() threw; showing the summary instead.",
@@ -36,7 +36,7 @@ export class HostBlockBoundary extends Component<
     }
   }
 
-  render() {
+  override render() {
     return this.state.failed ? this.props.fallback : this.props.children;
   }
 }

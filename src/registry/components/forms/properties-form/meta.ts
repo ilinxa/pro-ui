@@ -22,11 +22,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["properties-form", "form", "schema", "validation", "graph-system"],
 
-  version: "0.1.4",
+  version: "0.1.5",
   status: "alpha",
   artifactBudgetKB: 60,
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-18",
 
   author: { name: "ilinxa" },
 

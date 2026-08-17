@@ -94,6 +94,7 @@ export function findItemWithLevel(
       out = { item, level };
       return false;
     }
+    return true;
   });
   return out;
 }

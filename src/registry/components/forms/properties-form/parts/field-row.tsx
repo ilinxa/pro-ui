@@ -80,11 +80,11 @@ class RendererErrorBoundary extends Component<
   { fieldKey: string; errorId: string; children: ReactNode },
   { hasError: boolean }
 > {
-  state = { hasError: false };
+  override state = { hasError: false };
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  override componentDidCatch(error: Error, info: ErrorInfo) {
     if (process.env.NODE_ENV !== "production") {
       console.error(
         `[properties-form] renderer crashed for field "${this.props.fieldKey}":`,
@@ -93,7 +93,7 @@ class RendererErrorBoundary extends Component<
       );
     }
   }
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <FieldError

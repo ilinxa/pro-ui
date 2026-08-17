@@ -23,11 +23,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["filter-panel", "filter", "facets", "graph-system"],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   artifactBudgetKB: 40,
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-18",
 
   author: { name: "ilinxa" },
 

@@ -38,11 +38,11 @@ class PreviewBoundary extends Component<
   { children: ReactNode },
   { error: Error | null }
 > {
-  state = { error: null as Error | null };
+  override state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) {
     return { error };
   }
-  render() {
+  override render() {
     if (this.state.error) {
       return (
         <div className="flex min-h-80 flex-col items-center justify-center gap-2 p-8 text-center">

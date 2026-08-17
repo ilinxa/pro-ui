@@ -5,6 +5,16 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    // Consumer-strict flags. NOT implied by `strict` — each is a separate
+    // opt-in, and this library ships VENDORED .tsx, so a consumer who enables
+    // one compiles our source with it. Producing code the producer never
+    // typechecks that way is how F1 shipped (17 x TS4114, found downstream).
+    // Cost measured before enabling; the flags still parked (and why) are in
+    // docs/plans/consumer-strict-tsconfig-plan.md.
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

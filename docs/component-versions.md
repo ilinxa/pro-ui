@@ -34,8 +34,8 @@
 |---|---|---|---|---|
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 |
 | `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 |
-| `card-tree` | Card Tree | 0.6.1 | beta | 2026-08-18 |
-| `card-tree-node` | Card Tree Node | 0.5.0 | alpha | 2026-08-17 |
+| `card-tree` | Card Tree | 0.6.2 | beta | 2026-08-18 |
+| `card-tree-node` | Card Tree Node | 0.5.1 | alpha | 2026-08-18 |
 | `comment-thread` | Comment Thread | 0.3.0 | alpha | 2026-08-11 |
 | `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 |
 | `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 |
@@ -57,7 +57,7 @@
 | `stat-card` | Stat Card | 0.1.2 | alpha | 2026-08-11 |
 | `story-rail` | Story Rail | 0.3.0 | alpha | 2026-08-11 |
 | `task-card` | Task Card | 0.5.0 | alpha | 2026-08-11 |
-| `task-tree` | Task Tree | 0.4.0 | alpha | 2026-08-11 |
+| `task-tree` | Task Tree | 0.4.1 | alpha | 2026-08-18 |
 | `thumbnail-list` | Thumbnail List | 0.2.0 | alpha | 2026-08-11 |
 
 ### feedback (2)
@@ -74,10 +74,10 @@
 | `category-cloud` | Category Cloud | 0.2.0 | alpha | 2026-08-11 |
 | `entity-picker` | Entity Picker | 0.1.3 | alpha | 2026-08-11 |
 | `filter-bar` | Filter Bar | 0.2.0 | alpha | 2026-08-11 |
-| `filter-panel` | Filter Panel | 0.2.0 | alpha | 2026-08-11 |
+| `filter-panel` | Filter Panel | 0.2.1 | alpha | 2026-08-18 |
 | `json-form` | JSON Form | 0.2.8 | alpha | 2026-08-11 |
 | `markdown-editor` | Markdown Editor | 0.1.4 | alpha | 2026-08-11 |
-| `properties-form` | Properties Form | 0.1.4 | alpha | 2026-08-11 |
+| `properties-form` | Properties Form | 0.1.5 | alpha | 2026-08-18 |
 | `signup-form` | Signup Form | 0.2.0 | alpha | 2026-08-11 |
 
 ### gamification (6)
@@ -116,7 +116,7 @@
 | `content-composer` | Content Composer | 0.3.1 | alpha | 2026-08-11 |
 | `media-carousel` | Media Carousel | 0.2.0 | alpha | 2026-08-11 |
 | `media-editor` | Media Editor | 0.3.0 | alpha | 2026-08-11 |
-| `media-library` | Media Library | 0.2.0 | alpha | 2026-08-11 |
+| `media-library` | Media Library | 0.2.1 | alpha | 2026-08-18 |
 | `pdf-viewer` | PDF Viewer | 0.1.5 | alpha | 2026-08-11 |
 | `story-composer` | Story Composer | 0.4.0 | alpha | 2026-08-11 |
 | `story-viewer` | Story Viewer | 0.5.0 | alpha | 2026-08-11 |

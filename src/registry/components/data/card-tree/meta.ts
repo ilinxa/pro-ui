@@ -42,7 +42,7 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.6.1",
+  version: "0.6.2",
   status: "beta",
   artifactBudgetKB: 320,
   createdAt: "2026-04-28",
