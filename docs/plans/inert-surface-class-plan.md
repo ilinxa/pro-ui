@@ -214,3 +214,36 @@ passed in CI, not just locally.
 - Implementing what the disclosed surfaces promise: story-viewer reactions preview,
   story-composer editor background, media-editor imperative capture, card-tree-node bulk edit,
   media-library copy/duplicate. Each now dev-warns and is tagged `@notImplemented`.
+
+## R5 addendum — consumer install verification (2026-08-19, post-ship)
+
+The one instrument skipped at first pass, and the one that matters most for public **type** changes.
+Ran the smoke harness against the deployed registry for the five components whose types changed:
+
+| Slug | Install | Consumer `tsc` |
+|---|---|---|
+| news-card | pass | **0 errors** |
+| comment-thread | pass | **0 errors** |
+| markdown-editor | pass | **0 errors** |
+| app-sidebar | pass | **0 errors** |
+| code-block | pass (unbounded) | **0 errors** |
+
+130 vendored files; each verified to carry this arc's changes (`data-cb-scroller`, `kebabOpen?:`,
+`submitSlot`, `handleItemHover`, `run?:`). Consumer tsc runs with the consumer-strict flags
+mirrored, so this is the bar that would have caught the `ResolvedPartProps` break.
+
+**Two harness defects surfaced, both fixed, neither a product defect:**
+
+1. A hardcoded **120s** per-slug install timeout killed `code-block` mid-write. It landed with zero
+   files, and consumer tsc then failed inside `json-form` and `media-library` — its dependents —
+   **implicating two components that were never touched.** Raised to 300s,
+   `SMOKE_INSTALL_TIMEOUT_MS`-overridable.
+2. Each run ends with `pnpm install --no-frozen-lockfile`, re-drifting the lockfile so the *next*
+   run's pre-flight fails. A batch loop therefore fails every slug after the first — and reports
+   exit 0 anyway, because a `for` loop's status is its last command's.
+
+**(2) nearly became a false green of exactly the kind this arc is about:** the batch reported
+"exit code 0" while installing nothing at all. It was caught only by checking the installed file
+count instead of trusting the exit status — and then my first file-count check read the wrong path
+(`components/` rather than `src/components/`) and reported zero for a tree that was fully
+populated. Two measurement errors in a row on the same claim.
