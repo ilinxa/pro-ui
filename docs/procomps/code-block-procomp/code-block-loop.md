@@ -142,6 +142,22 @@ breaking it and watching the right tests go red.
 Local artifacts on :4499, CLI 4.18.0. `code-block` + the `json-form` dependent installed;
 the vendored copy carries all three review fixes; **consumer `tsc` 0 errors**. Harness restored.
 
+## U7 — post-deploy verification
+
+A ship closes on the **deployed artifact**, not on `git push`. Polled
+`ui.ilinxa.com/r/code-block.json` after 8076467:
+
+```
+attempt 1: fallback: NO  | recovery: NO  | R1: yes | R2: NO  | engine: NO  | stale global gone: NO
+attempt 2: fallback: yes | recovery: yes | R1: yes | R2: yes | engine: yes | stale global gone: yes
+DEPLOY VERIFIED - all five v0.2.0 changes live in the deployed artifact.
+```
+
+Attempt 1 is worth keeping in the record: `getLoadedLanguages` was present in the OLD artifact
+too (it was the second check there, after the global Set), so that probe alone would have reported
+a false pass. The "stale global gone" check is what actually discriminated.
+**A post-deploy probe must test something the previous version did NOT have.**
+
 ## U7 — retro
 
 Two runs in a row an external report was a **lower bound** on its own scope: card-tree's F1 was 5
