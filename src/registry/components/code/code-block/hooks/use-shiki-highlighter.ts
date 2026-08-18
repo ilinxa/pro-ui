@@ -14,7 +14,11 @@ import {
   emptyCache,
   type StreamingCache,
 } from "../lib/streaming-cache";
-import type { CodeBlockLineRange, CodeBlockThemes } from "../types";
+import type {
+  CodeBlockLineRange,
+  CodeBlockRegexEngine,
+  CodeBlockThemes,
+} from "../types";
 
 interface UseShikiHighlighterArgs {
   value: string;
@@ -22,11 +26,23 @@ interface UseShikiHighlighterArgs {
   themes: CodeBlockThemes | undefined;
   highlightedLines?: Array<number | CodeBlockLineRange>;
   streaming?: boolean;
+  /** v0.2.0 — see `CodeBlockProps.regexEngine`. Undefined = oniguruma. */
+  regexEngine?: CodeBlockRegexEngine;
 }
 
 interface UseShikiHighlighterResult {
   html: string;
   ready: boolean;
+  /**
+   * The highlighter gave up for this input — engine unavailable (e.g. a strict
+   * CSP with no `wasm-unsafe-eval`), grammar chunk failed to load, or the
+   * default-theme retry itself threw.
+   *
+   * v0.2.0: exists so the view body can degrade to plain text instead of
+   * rendering an empty panel. Distinct from `!ready`, which is also true while
+   * highlighting is merely still in flight.
+   */
+  failed: boolean;
   resolvedLang: string;
 }
 
@@ -89,9 +105,11 @@ export function useShikiHighlighter({
   themes,
   highlightedLines,
   streaming,
+  regexEngine,
 }: UseShikiHighlighterArgs): UseShikiHighlighterResult {
   const [html, setHtml] = useState<string>("");
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [resolvedLang, setResolvedLang] = useState<string>(normalizeLang(lang));
   const cacheRef = useRef<StreamingCache>(emptyCache());
   const rafRef = useRef<number | null>(null);
@@ -101,7 +119,7 @@ export function useShikiHighlighter({
     const highlightedSet = rangeToLines(highlightedLines);
 
     const run = async () => {
-      const highlighter = await getHighlighter();
+      const highlighter = await getHighlighter(regexEngine);
       if (cancelled) return;
       const langForRender = await ensureLangLoaded(highlighter, lang);
       if (cancelled) return;
@@ -177,6 +195,13 @@ export function useShikiHighlighter({
       cancelAnimationFrame(rafRef.current);
     }
     rafRef.current = requestAnimationFrame(() => {
+      // Fresh inputs get a fresh verdict — a block that failed once should
+      // retry rather than stay degraded forever, and a stale `failed` would
+      // mislabel a subsequently successful render. Reset here rather than in
+      // the effect body: a synchronous setState there is a cascading-render
+      // hazard the React Compiler lint (correctly) rejects.
+      if (!cancelled) setFailed(false);
+
       // Final safety net (5.9): any residual rejection (network-failed wasm /
       // grammar import, malformed default retry) must never surface as an
       // unhandled rejection.
@@ -184,6 +209,10 @@ export function useShikiHighlighter({
         if (process.env.NODE_ENV !== "production") {
           console.warn("[CodeBlock] Highlighter initialization failed.", err);
         }
+        // v0.2.0 — the warning above is dev-only, so in production this was
+        // previously a completely silent death: `html` stayed "" and the body
+        // rendered an empty panel. Flag it so the view can show the raw code.
+        if (!cancelled) setFailed(true);
       });
     });
 
@@ -194,7 +223,7 @@ export function useShikiHighlighter({
         rafRef.current = null;
       }
     };
-  }, [value, lang, themes, highlightedLines, streaming]);
+  }, [value, lang, themes, highlightedLines, streaming, regexEngine]);
 
-  return { html, ready, resolvedLang };
+  return { html, ready, failed, resolvedLang };
 }

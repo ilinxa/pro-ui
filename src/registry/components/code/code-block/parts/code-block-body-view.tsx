@@ -8,6 +8,7 @@ import type {
   CodeBlockAnnotationRenderArgs,
   CodeBlockLineRange,
   CodeBlockLineClickArgs,
+  CodeBlockRegexEngine,
   CodeBlockThemes,
 } from "../types";
 import { CodeBlockAnnotationMarker } from "./code-block-annotation-marker";
@@ -31,6 +32,8 @@ interface CodeBlockBodyViewProps {
   emptyMessage?: string;
   maxHeight?: number | string;
   onLineClick?: (args: CodeBlockLineClickArgs) => void;
+  /** v0.2.0 — see `CodeBlockProps.regexEngine`. */
+  regexEngine?: CodeBlockRegexEngine;
 }
 
 export function CodeBlockBodyView({
@@ -48,13 +51,15 @@ export function CodeBlockBodyView({
   emptyMessage,
   maxHeight,
   onLineClick,
+  regexEngine,
 }: CodeBlockBodyViewProps) {
-  const { html } = useShikiHighlighter({
+  const { html, failed } = useShikiHighlighter({
     value,
     lang,
     themes,
     highlightedLines,
     streaming,
+    regexEngine,
   });
 
   const total = lineCount(value);
@@ -92,9 +97,7 @@ export function CodeBlockBodyView({
         : maxHeight
       : undefined;
 
-  // splitToLines is only used to ensure totalLines & line-number alignment.
   const lines = splitToLines(value);
-  void lines; // unused at render time; ref'd above via lineCount
 
   return (
     <div
@@ -136,17 +139,59 @@ export function CodeBlockBodyView({
       ) : null}
 
       <div
+        // Observable highlight state (v0.2.0). "failed" means the engine gave
+        // up and the body below is raw text, not tokens — a host that saw an
+        // empty panel and an empty console now has something to assert on, and
+        // hosts can style/telemeter the degraded state without new props.
+        data-highlight={failed ? "failed" : html ? "ready" : "pending"}
         className={cn(
           "code-block-shiki-body relative min-w-0 flex-1 overflow-auto px-4 py-3 font-mono text-[0.8rem] leading-relaxed",
           wrap === "wrap" ? "whitespace-pre-wrap break-words" : "whitespace-pre",
         )}
       >
-        <div
-          // dangerouslySetInnerHTML: Shiki output is server-controlled and
-          // sanitized by the library (no user-supplied HTML can leak through
-          // the code path).
-          dangerouslySetInnerHTML={{ __html: visibleHtml }}
-        />
+        {visibleHtml ? (
+          <div
+            // dangerouslySetInnerHTML: Shiki output is server-controlled and
+            // sanitized by the library (no user-supplied HTML can leak through
+            // the code path).
+            dangerouslySetInnerHTML={{ __html: visibleHtml }}
+          />
+        ) : (
+          /*
+           * v0.2.0 — soft-failure for the highlighter itself.
+           *
+           * `html` is "" both before the first tokenize AND forever after the
+           * engine gives up (strict CSP with no `wasm-unsafe-eval`, failed
+           * grammar chunk). Rendering nothing in that state produced an empty
+           * panel with no message and nothing in the console — the one
+           * documented failure mode that had no fallback.
+           *
+           * Showing the raw code covers both cases: it is the pre-highlight
+           * paint AND the permanent degradation. Deliberately NOT gated on
+           * `failed`, because "still loading" should show the code too.
+           *
+           * Structure mirrors Shiki's own output (block-level lines at the
+           * same 1.6em rhythm) so the line-number gutter stays aligned.
+           */
+          <pre className="m-0 bg-transparent p-0">
+            <code className="block">
+              {lines.map((line, i) => (
+                <span
+                  key={i}
+                  // `line` + `data-highlighted` are what globals.css keys the
+                  // row tint and gutter accent-bar off. Without them a degraded
+                  // block still bolds the gutter NUMBER (that comes from
+                  // CodeBlockLineNumbers) while the row itself stays plain —
+                  // a half-applied highlight.
+                  className="line block min-h-[1.6em] -ml-1 pl-1"
+                  data-highlighted={highlightedSet.has(i + 1) ? "true" : undefined}
+                >
+                  {line === "" ? " " : line}
+                </span>
+              ))}
+            </code>
+          </pre>
+        )}
         {streaming ? <CodeBlockStreamingCursor /> : null}
       </div>
 

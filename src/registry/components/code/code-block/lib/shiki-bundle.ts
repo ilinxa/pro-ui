@@ -13,9 +13,17 @@ import {
   type ThemeRegistrationAny,
 } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine/oniguruma";
+import type { CodeBlockRegexEngine } from "../types";
 
-let cachedHighlighter: Promise<HighlighterCore> | null = null;
-const loadedLangs = new Set<string>();
+/**
+ * Highlighter cache, **keyed by engine** (v0.2.0).
+ *
+ * This used to be a single module-level promise with no key. Once the engine
+ * became selectable that would have been a silent bug: the first block to
+ * mount would win, and every later block asking for the other engine would get
+ * the cached one instead. Keying is what makes the option real.
+ */
+const cachedHighlighters = new Map<CodeBlockRegexEngine, Promise<HighlighterCore>>();
 
 const LAZY_LANG_LOADERS: Record<string, () => Promise<unknown>> = {
   rust: () => import("shiki/langs/rust.mjs"),
@@ -75,11 +83,8 @@ async function loadCoreGrammars(): Promise<LanguageRegistration[]> {
   const out = [ts, tsx, js, jsx, json, bash, python, markdown, html, css]
     .map((m) => (m as { default: unknown }).default)
     .flat() as LanguageRegistration[];
-  for (const reg of out) {
-    if (reg && typeof reg === "object" && "name" in reg && typeof reg.name === "string") {
-      loadedLangs.add(reg.name);
-    }
-  }
+  // No bookkeeping needed: these are passed to `createHighlighterCore`, so
+  // each instance reports them from `getLoadedLanguages()` itself.
   return out;
 }
 
@@ -94,23 +99,46 @@ async function loadCoreThemes(): Promise<ThemeRegistrationAny[]> {
   ];
 }
 
-export function getHighlighter(): Promise<HighlighterCore> {
-  if (cachedHighlighter) return cachedHighlighter;
-  cachedHighlighter = (async () => {
-    const [langs, themes, wasmMod] = await Promise.all([
+/**
+ * Build the regex engine.
+ *
+ * `oniguruma` (default) is WebAssembly and needs `'wasm-unsafe-eval'` in the
+ * host's `script-src` under a strict CSP — without it Chrome refuses the
+ * compile outright and highlighting can never work. `javascript` uses no wasm
+ * at all, so it is the escape hatch for CSP-restricted hosts; it supports
+ * slightly fewer grammar constructs, which is the trade being offered.
+ */
+async function buildEngine(engine: CodeBlockRegexEngine) {
+  if (engine === "javascript") {
+    const { createJavaScriptRegexEngine } = await import("shiki/engine/javascript");
+    return createJavaScriptRegexEngine();
+  }
+  // shiki/wasm exports the wasm-loader function as `default`.
+  const wasmMod = await import("shiki/wasm");
+  return createOnigurumaEngine(wasmMod.default);
+}
+
+export function getHighlighter(
+  engine: CodeBlockRegexEngine = "oniguruma",
+): Promise<HighlighterCore> {
+  const cached = cachedHighlighters.get(engine);
+  if (cached) return cached;
+  const created = (async () => {
+    const [langs, themes, regexEngine] = await Promise.all([
       loadCoreGrammars(),
       loadCoreThemes(),
-      import("shiki/wasm"),
+      buildEngine(engine),
     ]);
-    // shiki/wasm exports the wasm-loader function as `default`.
-    const wasm = wasmMod.default;
-    return createHighlighterCore({
-      engine: createOnigurumaEngine(wasm),
-      langs,
-      themes,
-    });
+    return createHighlighterCore({ engine: regexEngine, langs, themes });
   })();
-  return cachedHighlighter;
+  // Evict on failure so the cache cannot pin a permanent rejection. Without
+  // this, one failed wasm compile poisons every block for the page's lifetime
+  // and the hook's retry-on-new-input can never actually retry.
+  created.catch(() => {
+    if (cachedHighlighters.get(engine) === created) cachedHighlighters.delete(engine);
+  });
+  cachedHighlighters.set(engine, created);
+  return created;
 }
 
 export async function ensureLangLoaded(
@@ -119,11 +147,19 @@ export async function ensureLangLoaded(
 ): Promise<string> {
   const normalized = normalizeLang(lang);
   if (normalized === "plaintext") return normalized;
-  if (loadedLangs.has(normalized)) return normalized;
-  if (highlighter.getLoadedLanguages().includes(normalized)) {
-    loadedLangs.add(normalized);
-    return normalized;
-  }
+  /*
+   * Ask the HIGHLIGHTER what it has loaded — never a module-global set.
+   *
+   * Until v0.2.0 there was exactly one highlighter, so a shared
+   * `loadedLangs` Set was a harmless shortcut. Making the engine selectable
+   * created a second instance and turned that Set into a cross-instance lie:
+   * once the oniguruma highlighter loaded `rust`, the javascript one would
+   * short-circuit here, never call `loadLanguage`, and then throw
+   * "Language `rust` not found" on the very next `codeToHtml` — surfacing as
+   * a permanent plaintext fallback on a perfectly healthy engine.
+   * `getLoadedLanguages()` is per-instance and cannot drift.
+   */
+  if (highlighter.getLoadedLanguages().includes(normalized)) return normalized;
   const loader = LAZY_LANG_LOADERS[normalized];
   if (!loader) {
     if (process.env.NODE_ENV !== "production") {
@@ -134,7 +170,6 @@ export async function ensureLangLoaded(
   const mod = (await loader()) as { default: LanguageRegistration | LanguageRegistration[] };
   const reg = Array.isArray(mod.default) ? mod.default : [mod.default];
   await highlighter.loadLanguage(...reg);
-  loadedLangs.add(normalized);
   return normalized;
 }
 

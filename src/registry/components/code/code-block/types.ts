@@ -4,6 +4,14 @@ import type { Extension } from "@codemirror/state";
 // ─── Core enums ──────────────────────────────────────────────────────────────
 
 export type CodeBlockMode = "view" | "edit" | "terminal";
+
+/**
+ * Regex engine for the Shiki highlighter (v0.2.0).
+ *
+ * `"oniguruma"` is WebAssembly-backed and requires `'wasm-unsafe-eval'` in the
+ * host's CSP `script-src`; `"javascript"` needs no wasm at all.
+ */
+export type CodeBlockRegexEngine = "oniguruma" | "javascript";
 export type CodeBlockWrap = "wrap" | "scroll";
 export type CodeBlockAnnotationType = "info" | "warn" | "error";
 export type TerminalLineKind = "input" | "output" | "error";
@@ -113,6 +121,10 @@ export type CodeBlockLabels = Partial<{
   streamingCursor: string;
   closeModal: string;
   emptyDefault: string;
+  /** Shown when CodeMirror fails to initialise in edit mode (v0.2.0). */
+  editorFailed: string;
+  /** Recovery control rendered beside `editorFailed` (v0.2.0). */
+  reloadAsViewOnly: string;
 }>;
 
 export const DEFAULT_LABELS: Required<CodeBlockLabels> = {
@@ -127,6 +139,8 @@ export const DEFAULT_LABELS: Required<CodeBlockLabels> = {
   streamingCursor: "Streaming",
   closeModal: "Close",
   emptyDefault: "",
+  editorFailed: "The editor could not be loaded.",
+  reloadAsViewOnly: "Reload as view-only",
 };
 
 // ─── Top-level props (client variant) ────────────────────────────────────────
@@ -203,6 +217,20 @@ export interface CodeBlockProps {
 
   // Theme
   themes?: CodeBlockThemes;
+
+  /**
+   * Regex engine backing the view-mode highlighter (v0.2.0).
+   *
+   * - `"oniguruma"` (default) — Shiki's WebAssembly engine. Widest grammar
+   *   support, and what every 0.1.x consumer already gets.
+   * - `"javascript"` — pure-JS engine, **no WebAssembly**. Use it when the host
+   *   serves a strict `Content-Security-Policy` without `'wasm-unsafe-eval'`,
+   *   where the wasm engine cannot compile at all. Slightly narrower grammar
+   *   coverage is the trade.
+   *
+   * Highlighters are cached per engine, so mixing both on one page is safe.
+   */
+  regexEngine?: CodeBlockRegexEngine;
 
   // Sizing
   maxHeight?: number | string;

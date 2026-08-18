@@ -14,6 +14,7 @@ export type {
   CodeBlockServerProps,
   CodeBlockHandle,
   CodeBlockMode,
+  CodeBlockRegexEngine,
   CodeBlockWrap,
   CodeBlockAnnotation,
   CodeBlockAnnotationType,

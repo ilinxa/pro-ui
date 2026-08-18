@@ -77,6 +77,7 @@ export function CodeBlock(props: CodeBlockProps) {
     onCopy,
     onDownload,
     themes,
+    regexEngine,
     maxHeight,
     emptyMessage,
     className,
@@ -131,6 +132,25 @@ export function CodeBlock(props: CodeBlockProps) {
   });
 
   const [modalOpen, setModalOpen] = useState(false);
+  /**
+   * v0.2.0 — set when the user takes the "Reload as view-only" recovery after
+   * a failed CodeMirror mount. Local, not a `mode` mutation: `mode` belongs to
+   * the host.
+   *
+   * Reset whenever `mode` changes, so a host with an Edit/Preview toggle can
+   * get its editor back after a transient failure. Without this the flag is a
+   * one-way trap: the host flips `mode` back to "edit", nothing happens, and
+   * the only escape is remounting via `key` — which nothing documents.
+   * Adjusting state during render (React's documented pattern for deriving
+   * from a changed prop) rather than in an effect, which would be a cascading
+   * -render hazard the compiler lint rejects.
+   */
+  const [editorFellBack, setEditorFellBack] = useState(false);
+  const [lastMode, setLastMode] = useState(mode);
+  if (lastMode !== mode) {
+    setLastMode(mode);
+    if (editorFellBack) setEditorFellBack(false);
+  }
 
   // Line numbers default per mode
   const resolvedShowLineNumbers =
@@ -246,9 +266,15 @@ export function CodeBlock(props: CodeBlockProps) {
       : `Code block — ${lang === "plaintext" ? "text" : lang}`);
 
   const body = (() => {
-    if (mode === "edit") {
+    // v0.2.0 — editor mount can fail (grammar chunk fetch, EditorView throw).
+    // The recovery renders the VIEW body instead, as a local override: `mode`
+    // is the host's prop and a component must not mutate it, so this stays
+    // component-local and resets naturally on remount.
+    if (mode === "edit" && !editorFellBack) {
       return (
         <CodeBlockBodyEdit
+          labels={labels}
+          onFallbackToView={() => setEditorFellBack(true)}
           value={editValue}
           lang={lang}
           readOnly={readOnly}
@@ -279,9 +305,12 @@ export function CodeBlock(props: CodeBlockProps) {
     }
     return (
       <CodeBlockBodyView
-        value={valueProp ?? ""}
+        // When we land here as the edit-mode fallback, the host's `value` prop
+        // may be undefined (uncontrolled edit mode keeps it in `editValue`).
+        value={mode === "edit" ? editValue : (valueProp ?? "")}
         lang={lang}
         themes={themesResolved}
+        regexEngine={regexEngine}
         highlightedLines={highlightedLines}
         annotations={annotations}
         renderAnnotation={renderAnnotation}

@@ -26,7 +26,7 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `code-block` | Code Block | 0.1.4 | alpha | 2026-08-11 |
+| `code-block` | Code Block | 0.2.0 | alpha | 2026-08-18 |
 
 ### data (27)
 

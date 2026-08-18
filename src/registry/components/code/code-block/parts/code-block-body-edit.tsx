@@ -1,9 +1,11 @@
 "use client";
 import { useEffect } from "react";
 import type { Extension } from "@codemirror/state";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCodeMirror } from "../hooks/use-code-mirror";
 import { CODEMIRROR_THEME_CSS } from "../lib/codemirror-theme";
+import type { CodeBlockLabels } from "../types";
 
 interface CodeBlockBodyEditProps {
   value: string;
@@ -20,6 +22,14 @@ interface CodeBlockBodyEditProps {
     focus: () => void;
     getValue: () => string;
   }) => void;
+  /** Resolved labels (defaults merged) — needed for the init-failure branch. */
+  labels: Required<CodeBlockLabels>;
+  /**
+   * Invoked when the user takes the "Reload as view-only" recovery after a
+   * failed editor mount. Omit it and the error is still shown, just without
+   * the recovery control.
+   */
+  onFallbackToView?: () => void;
 }
 
 export function CodeBlockBodyEdit({
@@ -34,8 +44,10 @@ export function CodeBlockBodyEdit({
   editorExtensions,
   maxHeight,
   registerImperative,
+  labels,
+  onFallbackToView,
 }: CodeBlockBodyEditProps) {
-  const { containerRef, focus, getValue } = useCodeMirror({
+  const { containerRef, focus, getValue, error } = useCodeMirror({
     value,
     lang,
     readOnly,
@@ -57,6 +69,30 @@ export function CodeBlockBodyEdit({
         ? `${maxHeight}px`
         : maxHeight
       : undefined;
+
+  /*
+   * v0.2.0 — the soft-failure policy always documented an inline error plus a
+   * "Reload as view-only" recovery here; nothing implemented it, and a failed
+   * editor mount was an unhandled rejection over a blank box. `onFallbackToView`
+   * is what actually swaps the body, because `mode` is a plain prop the host
+   * owns — the component must not try to mutate it.
+   */
+  if (error) {
+    return (
+      <div
+        role="alert"
+        data-editor="failed"
+        className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 text-sm text-muted-foreground"
+      >
+        <span>{labels.editorFailed}</span>
+        {onFallbackToView ? (
+          <Button type="button" size="sm" variant="outline" onClick={onFallbackToView}>
+            {labels.reloadAsViewOnly}
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <>

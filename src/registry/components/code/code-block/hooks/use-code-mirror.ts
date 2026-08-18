@@ -43,6 +43,12 @@ interface UseCodeMirrorResult {
   view: EditorView | null;
   focus: () => void;
   getValue: () => string;
+  /**
+   * Editor construction failed (grammar chunk fetch, EditorView throw).
+   * v0.2.0: previously this could only manifest as an unhandled rejection and
+   * a blank editor; the edit body now renders a recovery affordance from it.
+   */
+  error: Error | null;
 }
 
 export function useCodeMirror({
@@ -93,12 +99,14 @@ export function useCodeMirror({
   }, [readOnly]);
 
   const [view, setView] = useState<EditorView | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   // Mount (once per container)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     let cancelled = false;
+    setError(null);
 
     const mount = async () => {
       const normalizedLang = normalizeLang(lang);
@@ -163,7 +171,21 @@ export function useCodeMirror({
       if (!cancelled) setView(v);
     };
 
-    void mount();
+    // v0.2.0 — this used to be a bare `void mount();`. `mount()` awaits a
+    // dynamic grammar import and then constructs an EditorView; either can
+    // reject (a failed chunk fetch is the same class of failure that takes the
+    // Shiki engine down under a strict CSP). The result was an unhandled
+    // rejection plus a permanently empty editor — the soft-failure policy
+    // documented an inline error + "Reload as view-only" here, and nothing
+    // implemented it.
+    void mount().catch((err: unknown) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[CodeBlock] Editor initialization failed.", err);
+      }
+      if (!cancelled) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
+    });
     return () => {
       cancelled = true;
       viewRef.current?.destroy();
@@ -237,5 +259,5 @@ export function useCodeMirror({
     [],
   );
 
-  return { containerRef, view, focus, getValue };
+  return { containerRef, view, focus, getValue, error };
 }
