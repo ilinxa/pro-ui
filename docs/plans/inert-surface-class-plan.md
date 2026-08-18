@@ -148,8 +148,8 @@ non-virtualized branch (nothing to measure), `media-editor` capture methods (dev
 - [x] **R3** gate battery green with real numbers
 - [x] **R4** adversarial review — 2 CONFIRMED findings on my own fixes, both fixed + tested
 - [x] **R5** runtime verification — gate falsified both ways; components driven in a real browser
-- [ ] **R6** docs sync + base commit
-- [ ] **R7** close-out, retro, parked promoted
+- [x] **R6** docs sync + base commit (`476030b`)
+- [x] **R7** close-out, retro logged, parked promoted, deploy verified
 
 ## Gate numbers (R3 — filled in live)
 
@@ -187,3 +187,30 @@ If this breaks, it breaks because the detector's regex-based probes produce a fa
 someone silences with a disclosure tag on a surface that *should* have been implemented — turning
 the escape hatch into a laundering mechanism. Mitigation: disclosure requires a runtime dev-warn,
 not just a comment, so silencing the gate has a user-visible cost.
+
+## R7 — deploy verification
+
+A ship closes on the **deployed artifact**, not on `git push`. Polled `ui.ilinxa.com/r/*.json`
+after `476030b`:
+
+```
+code-block      data-cb-scroller  LIVE
+app-sidebar     handleItemHover   LIVE
+comment-thread  submitSlot        LIVE
+```
+
+Each probe names a symbol that exists **only** in the new version. The first attempt used
+`onItemHover` for app-sidebar and reported LIVE against a *stale* artifact — that identifier is
+declared in `types.ts`, which the old version shipped too. Same trap as the 2026-08-18 post-deploy
+poll, caught here by re-reading the rule: **a post-deploy probe must test something the previous
+version did not have.**
+
+The gate runs inside `vercel-build` → `registry:build`, so a successful deploy is also proof it
+passed in CI, not just locally.
+
+## Parked (promoted to config)
+
+- The real `@ilinxa/code-block/server` RSC variant — a feature behind GATE 2.
+- Implementing what the disclosed surfaces promise: story-viewer reactions preview,
+  story-composer editor background, media-editor imperative capture, card-tree-node bulk edit,
+  media-library copy/duplicate. Each now dev-warns and is tagged `@notImplemented`.
