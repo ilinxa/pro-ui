@@ -34,6 +34,7 @@ export const meta: ComponentMeta = {
     "Permissions membership gating + diff-based onPermissionDenied",
     "localStorage opt-in persist for collapse + collapsed-sections",
     "Full WAI-ARIA pattern, keyboard nav, skip-link, reduced-motion respect",
+    "v0.4.1 — `onItemHover` / `onItemFocus` / `onActiveItemChange` / `onMount` / `onUnmount` are wired and emit; they were declared on the props surface but connected to nothing until now. Hover/focus stay silent on disabled rows; `onActiveItemChange` fires from derived state when the host's path commits, never from the click handler",
     "F-cross-13 defensive: Sheet + DropdownMenu callbacks pre-emptively widened (Tooltip primitive dropped in v0.3.2 — local implementation)",
   ],
   tags: [
@@ -49,11 +50,11 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.4.0",
+  version: "0.4.1",
   status: "alpha",
   artifactBudgetKB: 210,
   createdAt: "2026-05-22",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

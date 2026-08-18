@@ -30,7 +30,15 @@ export interface ToolbarItem {
   icon?: ReactNode;
   shortcut?: string;
   isActive?: (ctx: ToolbarCtx) => boolean;
-  run: (ctx: ToolbarCtx) => void;
+  /*
+   * Optional since v0.2.1. A separator (`label: ""`) is a real `ToolbarItem`
+   * that the renderer draws as a divider and never invokes — but `run` was
+   * required, so the documented separator idiom told consumers to write
+   * `run: () => {}`. That taught the codebase to author empty-bodied public
+   * methods, which is the exact shape being eliminated everywhere else.
+   * Separators now simply omit it.
+   */
+  run?: (ctx: ToolbarCtx) => void;
 }
 
 export interface MarkdownEditorProps<TCandidate extends WikilinkCandidate = WikilinkCandidate> {

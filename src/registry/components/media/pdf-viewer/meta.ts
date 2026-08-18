@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Use anywhere a `File`, URL, `Blob`, or `ArrayBuffer` needs inline rendering — case management, contract review, knowledge bases, asset libraries, e-sign confirmations, attachment viewers. Continuous-scroll layout with native text selection via pdf.js text-layer; clickable embedded links via the annotation-layer.",
   features: [
+    "v0.1.6 — the `renderContextMenu` slot opens on right-click at the pointer with a working `closeMenu` (Escape closes); it previously rendered unconditionally in the corner and could not be dismissed",
     "Sources: URL / File / Blob / ArrayBuffer",
     "Drag-and-drop a PDF onto the viewer to open it",
     "Continuous-scroll page rendering",
@@ -37,11 +38,11 @@ export const meta: ComponentMeta = {
     "pdfjs",
   ],
 
-  version: "0.1.5",
+  version: "0.1.6",
   status: "alpha",
   artifactBudgetKB: 110,
   createdAt: "2026-05-10",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

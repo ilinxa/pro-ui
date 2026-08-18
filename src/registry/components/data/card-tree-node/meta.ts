@@ -14,7 +14,7 @@ export const meta: ComponentMeta = {
     "Subcard-level click-to-focus — clicking a nested card pre-focuses the dialog on that subcard via CardTreeHandle.focusCard",
     "Subcard ports + selectability — subcards carry their own port handles + visual selection state",
     "Graceful degradation when __rcid is missing — subcard click bubbles to root + dev-mode warning",
-    "n8n-style multi-select supported via flow-canvas's marquee + shift-click (bulk-edit-via-dialog deferred to v0.3)",
+    "n8n-style multi-select supported via flow-canvas's marquee + shift-click (bulk-edit-via-dialog is not implemented)",
     "Consumer-owned dialog pattern (no shipped dialog chrome) — documented in procomp guide",
     "v0.2 PortEditorStrip — opt-in port editor (id / type / side / dir / multi / label) per card or subcard; live-save; [✓in][✓out] create-flow splits to atomic rows; doc-type forces bottom side editor-side; orphan-doc-target tooltip until doc files ship",
     "v0.2.1 — F-cross-13 path-b sweep: PortEditorAddPopover trigger drops `asChild`; PortEditorRow id-field Tooltip (an <Input> can't nest inside the trigger <button> either backend renders) replaced with a native `title` hint; dead TooltipProvider + `tooltip` dep dropped. Zero public-API change.",

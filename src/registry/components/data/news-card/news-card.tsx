@@ -283,16 +283,18 @@ function NewsCardImpl(props: NewsCardProps) {
   ]);
 
   // ─── Imperative handle (11 methods) ──────────────────────────────────────
+  const [kebabOpen, setKebabOpen] = useState(false);
+
   useImperativeHandle(
     ref,
     (): NewsCardHandle => ({
-      openKebab: () => {
-        // Variant parts own the actual trigger ref. Handle the open via a
-        // sentinel — variant parts subscribe via the kebab trigger they
-        // render. v0.3 ships an open-emitter at C11; for now the handle
-        // method is wired but the trigger is per-variant.
-        // No-op until C11 wires the per-variant open ref.
-      },
+      /*
+       * v0.4.1 — was an empty body while `meta.ts` advertised an "11-method
+       * imperative handle". The trigger lives in whichever variant part is
+       * rendered, so the root could not reach it; the menu is now controlled
+       * from here and every variant forwards that state to its kebab.
+       */
+      openKebab: () => setKebabOpen(true),
       triggerEdit: () => onEdit?.(effectiveItem.id),
       triggerDelete: () => onDelete?.(effectiveItem.id),
       triggerPublish: () => onPublish?.(effectiveItem.id),
@@ -324,6 +326,8 @@ function NewsCardImpl(props: NewsCardProps) {
 
   // ─── Resolved part-props bag ─────────────────────────────────────────────
   const partProps: ResolvedPartProps = {
+    kebabOpen,
+    onKebabOpenChange: setKebabOpen,
     item: effectiveItem,
     formattedDate,
     formattedRelativeTime,

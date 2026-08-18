@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Gantt Timeline is the time-axis sibling of task-card (cards) and kanban-board (columns): it consumes the SAME canonical TaskItem type and lays it on a horizontal time axis, so a 'Timeline' tab is literally the same task data the List + Board tabs show, on a third surface. v0.2 makes it editable: opt in with `editable` and edits fire task-card-shaped events + onChange(TaskItem[]) for the controlled consumer to echo (no internal data state). The permission matrix (TaskPermissions) + per-action predicates are reused from task-card — the gantt is the third consumer after the card and task-tree. Use it for sprint/cycle planning, delivery roadmaps (collapse to epics), content embargo→sunset schedules, and agent/pipeline run windows. Compound structure: GanttTimelineRoot (headless provider) + flat parts (Toolbar/Axis/Gutter/Body) + Tier-C primitives (GanttBar/SummaryBar/MilestoneDiamond/TodayLine/GutterRow/AxisHeader/BarTooltip/GanttContextMenu) + the GanttTimeline assembly. The full-card tooltip and the edit editor lazy-load task-card, so the default read-only path keeps it out of the bundle.",
   features: [
+    "v0.7.1 — `measureRows()` from the public `useGanttTimeline()` context re-measures for real; it was an empty body while the virtualizer's own `measure()` went unused",
     "One bar per TaskItem: effectiveStart = startAt ?? setAt; effectiveEnd = expireAt ?? (start + duration); no end ⇒ milestone diamond",
     "Collapsible WBS summary rows from children; summary bar spans min(child start) → max(child end)",
     "Continuous zoom (pixels-per-time) with five named header buckets (hour · day · week · month · quarter) auto-selected with hysteresis; default week",
@@ -45,11 +46,11 @@ export const meta: ComponentMeta = {
 
   // 0.5.2 (2026-08-11): F-cross-13 path-b sweep — context-menu trigger asChild →
   // box-less span; zero public-API change.
-  version: "0.7.0",
+  version: "0.7.1",
   status: "alpha",
   artifactBudgetKB: 220,
   createdAt: "2026-06-20",
-  updatedAt: "2026-08-17",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

@@ -1777,7 +1777,7 @@ export default function CardTreeNodeDemo() {
       <p className="text-xs text-muted-foreground">
         Click any node to edit. Click a nested subcard to open the editor
         pre-focused on it. Marquee-select or shift-click for multi-select
-        (canvas-level — bulk edit deferred to v0.2). The chips on each node are
+        (canvas-level — bulk edit is not implemented). The chips on each node are
         card-tree blocks (v0.4.0); &ldquo;Response&rdquo; also carries a
         host-rendered <code>body</code> block.
       </p>
@@ -1908,7 +1908,7 @@ function SeededTab() {
       />
       <Status>
         Seeded from remote URLs (CMS re-edit). Select a thumb, drag to reorder,
-        press Edit on a photo. Video Edit is deferred to v0.2.
+        press Edit on any item. Videos open in video mode; a re-edit resumes from the exported frame.
       </Status>
     </div>
   );
@@ -7999,7 +7999,7 @@ function CustomToolbarDemo() {
   const [value, setValue] = useState(SHORT_DOC);
   const customToolbar: ReadonlyArray<ToolbarItem> = [
     ...defaultMarkdownToolbar,
-    { id: "sep-2", label: "", run: () => {} },
+    { id: "sep-2", label: "" },
     {
       id: "callout",
       label: "Insert callout",

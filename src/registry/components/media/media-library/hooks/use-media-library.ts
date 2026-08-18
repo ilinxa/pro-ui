@@ -64,7 +64,7 @@ export interface MediaLibraryContextValue {
   selection: SelectionApi;
   visibleIds: string[];
 
-  // clipboard (cut → move on paste; copy deferred to v0.2)
+  // clipboard (cut → move on paste; copy/duplicate is not implemented)
   clipboard: MediaClipboard;
   cut: (ids: string[]) => void;
   paste: () => void;

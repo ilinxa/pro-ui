@@ -88,7 +88,7 @@ export function Example() {
           file&apos;s percent via the <code>progress</code> callback and resolve with the
           real <code>MediaNode[]</code>.
         </li>
-        <li>Cut → paste-into-folder moves items; copy/duplicate is deferred to v0.2.</li>
+        <li>Cut → paste-into-folder moves items; copy/duplicate is not implemented.</li>
       </ul>
     </div>
   );

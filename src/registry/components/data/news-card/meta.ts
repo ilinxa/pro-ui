@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "First component in the news-domain family (siblings: page-hero, magazine-layout, related-articles-ribbon-01 queued). v0.3.0 mirrors the post-card v0.3.2 trait set translated into editorial vocabulary (`editor` instead of `owner`; `publish/unpublish/feature` instead of `pin/markSensitive`; `paywall` distinct from `sensitive`). Strictly additive on v0.2: every v0.2.x consumer keeps working unchanged (all new fields/props/labels optional; existing `author` string + `date` field preserved alongside new structured `authorEntity` + `publishedAt`). Engagement-bar-01 is NOT a peer dep — consumers compose it via the `renderEngagementCounts` slot on news article detail pages per the documented integration pattern. F-S1 lock applied for cross-procomp imports (RELATIVE paths to specific files; `CommentMenuItem` reused from comment-thread). F-cross-13 defensive DropdownMenu pattern (direct trigger, no asChild). Migration origin: kasder kas-social-front-v0 NewsCard.tsx (v0.1 base; v0.3 expansion is greenfield).",
   features: [
+    "v0.4.1 — `handle.openKebab()` actually opens the menu; the kebab is now controlled from the card root so the handle can reach whichever variant part renders it",
     // v0.1/v0.2 carry
     "5 visual variants — featured / large / medium / small / list — dispatched via single `variant` prop",
     "Overlay-link pattern — whole card clickable; optional `actions` slot for nested interactives",
@@ -83,11 +84,11 @@ export const meta: ComponentMeta = {
     "editor-mode",
   ],
 
-  version: "0.4.0",
+  version: "0.4.1",
   status: "alpha",
   artifactBudgetKB: 210,
   createdAt: "2026-05-01",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

@@ -690,9 +690,16 @@ export interface StoryViewerProps {
    * the reaction action is suppressed even if `canReact` resolves true.
    */
   reactionKinds?: StoryEngagementReactionKind[];
-  /** Pre-loaded reactor profiles for the engagement overlay's reactionsPreview. */
+  /**
+   * @notImplemented The engagement overlay has no reactions-preview surface,
+   * so nothing reads this. Passing it warns in development. Render reactors
+   * yourself via `renderEngagementOverlay`.
+   */
   reactors?: StoryReactorProfile[];
-  /** Lazy-fetch additional reactors on tap. */
+  /**
+   * @notImplemented Paired with {@link StoryViewerProps.reactors}; there is no
+   * reactor list to tap, so this is never called. Warns in development.
+   */
   onLoadReactors?: (storyId: string, itemId: string) => Promise<StoryReactorProfile[]>;
 
   // ─── v0.2.0 — viewer identity ─────────────────────────────────────────

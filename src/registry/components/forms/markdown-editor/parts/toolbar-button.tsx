@@ -22,7 +22,7 @@ export function ToolbarButton({ item, ctx, disabled }: ToolbarButtonProps) {
         aria-pressed={item.isActive ? isActive : undefined}
         aria-keyshortcuts={item.shortcut}
         disabled={disabled}
-        onClick={() => item.run(ctx)}
+        onClick={() => item.run?.(ctx)}
         className={cn(
           buttonVariants({ variant: "ghost", size: "icon-sm" }),
           "text-muted-foreground hover:text-foreground",

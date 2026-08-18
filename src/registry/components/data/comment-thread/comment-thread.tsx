@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import {
   DEFAULT_COMMENT_THREAD_LABELS,
   type Comment,
+  type CommentComposerHelpers,
   type CommentThreadHandle,
   type CommentThreadProps,
   type CommentThreadLabels,
@@ -141,6 +142,26 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
     [onReportComment],
   );
 
+  /*
+   * v0.2.2 — state backing the `renderComposer` slot.
+   *
+   * The slot used to receive a frozen `{ value: "", isSubmitting: false }` and
+   * three empty-bodied helpers, so a consumer who replaced the composer got a
+   * controller that could not set a value, submit, or cancel. The contract in
+   * `CommentComposerHelpers` promised all three. The default composer owns its
+   * value internally, which is why nothing here did — this state exists only
+   * for the slot path and costs the default path nothing.
+   */
+  const [slotComposerValue, setSlotComposerValue] = useState("");
+  const [slotComposerSubmitting, setSlotComposerSubmitting] = useState(false);
+  /*
+   * Review finding: `submit` used to close over `slotComposerValue`, so the
+   * natural call sequence from a custom composer — `setValue(next)` then
+   * `submit()` in the same tick — posted the PREVIOUS value, because React had
+   * not re-rendered yet. A ref mirrors the latest value so the two orderings
+   * agree. Silently posting stale text is a worse failure than the empty stubs
+   * this replaced.
+   */
   const submitTopLevel = useCallback(
     async (content: string) => {
       if (!currentUser) return;
@@ -165,6 +186,43 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
       }
     },
     [currentUser, dispatch, onAddComment],
+  );
+
+  /*
+   * Real helpers for the `renderComposer` slot. They replaced three
+   * empty-bodied stubs, so a custom composer can finally set a value, submit,
+   * and cancel.
+   *
+   * No ref is involved on purpose: `renderComposer(state, helpers)` runs DURING
+   * render, so anything it receives is on a render-reachable path, and reading
+   * `ref.current` there is what the React Compiler lint rejects. `submit`
+   * therefore closes over the rendered value and accepts an explicit override
+   * for the same-tick case.
+   */
+  const setSlotValue = useCallback((next: string) => {
+    setSlotComposerValue(next);
+  }, []);
+
+  const cancelSlot = useCallback(() => setSlotComposerValue(""), []);
+
+  const submitSlot = useCallback(
+    async (explicit?: string) => {
+      const content = (explicit ?? slotComposerValue).trim();
+      if (!content) return;
+      setSlotComposerSubmitting(true);
+      try {
+        await submitTopLevel(content);
+        setSlotComposerValue("");
+      } finally {
+        setSlotComposerSubmitting(false);
+      }
+    },
+    [slotComposerValue, submitTopLevel],
+  );
+
+  const slotComposerHelpers = useMemo<CommentComposerHelpers>(
+    () => ({ setValue: setSlotValue, submit: submitSlot, cancel: cancelSlot }),
+    [setSlotValue, submitSlot, cancelSlot],
   );
 
   const submitReply = useCallback(
@@ -289,12 +347,12 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
       {currentUser ? (
         renderComposer ? (
           renderComposer(
-            { value: "", isReply: false, isSubmitting: false },
             {
-              setValue: () => {},
-              submit: async () => {},
-              cancel: () => {},
+              value: slotComposerValue,
+              isReply: false,
+              isSubmitting: slotComposerSubmitting,
             },
+            slotComposerHelpers,
           )
         ) : (
           <CommentComposer

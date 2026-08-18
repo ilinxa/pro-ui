@@ -128,7 +128,7 @@ export type EditTool =
 // ─── Media source intake (NEW in media-editor — for capability gating) ──
 
 export type MediaSource = "camera" | "upload";
-// "library" deferred to v0.2+ — see description §"Out of scope"
+// "library" is not implemented — see description §"Out of scope"
 
 // ─── Crop ───────────────────────────────────────────────────────────────
 // Lifted from story-composer/parts/tool-crop-overlay.tsx (where v0.1.5

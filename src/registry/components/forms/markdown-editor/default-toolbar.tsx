@@ -47,7 +47,7 @@ export const defaultMarkdownToolbar: ReadonlyArray<ToolbarItem> = [
       ctx.view.focus();
     },
   },
-  { id: "sep-1", label: "", run: () => {} },
+  { id: "sep-1", label: "" },
   {
     id: "bullet-list",
     label: "Bullet list",

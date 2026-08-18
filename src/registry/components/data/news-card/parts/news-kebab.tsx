@@ -18,6 +18,9 @@ interface NewsKebabProps {
   /** aria-label for the trigger button. Default "Open menu". */
   triggerAriaLabel?: string;
   className?: string;
+  /** Controlled open state — lets `NewsCardHandle.openKebab()` reach the menu. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -41,11 +44,13 @@ export function NewsKebab({
   items,
   triggerAriaLabel = "Open menu",
   className,
+  open,
+  onOpenChange,
 }: NewsKebabProps) {
   if (items.length === 0) return null;
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger
         aria-label={triggerAriaLabel}
         className={cn(

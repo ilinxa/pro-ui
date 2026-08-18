@@ -79,6 +79,8 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     onReactStory,
     onShareStory,
     reactionKinds,
+    reactors,
+    onLoadReactors,
     disableEngagement = false,
     renderEngagementOverlay,
     // v0.2.0 — reply composer inputs (C4)
@@ -179,6 +181,21 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // Imperative handle.
   const storiesRef = useRef(stories);
   const cursorRef = useRef(cursor);
+  /*
+   * `reactors` + `onLoadReactors` describe a reactions-preview surface in the
+   * engagement overlay that was never built: no part reads either prop, so a
+   * consumer supplying profiles (or a fetcher) sees nothing and gets no signal.
+   * Building the reactor list is a feature, not a wiring fix — so until it
+   * exists, the props announce themselves rather than swallowing the data.
+   */
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (reactors === undefined && onLoadReactors === undefined) return;
+    console.warn(
+      "story-viewer: `reactors` / `onLoadReactors` are not implemented — the engagement overlay has no reactions-preview surface yet, so neither prop has any effect. Render reactors yourself via `renderEngagementOverlay`.",
+    );
+  }, [reactors, onLoadReactors]);
+
   useEffect(() => {
     storiesRef.current = stories;
     cursorRef.current = cursor;

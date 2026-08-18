@@ -32,6 +32,7 @@ import { SidebarLoadingSkeleton } from "./parts/sidebar-loading-skeleton";
 import { SidebarNavList } from "./parts/sidebar-nav-list";
 import { SidebarSkipLink } from "./parts/sidebar-skip-link";
 import type {
+  NavItem,
   NavUserMenuItemSelectEvent,
   AppSidebarEmptyReason,
   AppSidebarHandle,
@@ -80,7 +81,12 @@ export function AppSidebar(props: AppSidebarProps) {
     onCollapsedChange,
     onMobileOpenChange,
     onItemClick,
+    onItemHover,
+    onItemFocus,
     onItemNavigate,
+    onActiveItemChange,
+    onMount,
+    onUnmount,
     onSectionToggle,
     autoCloseMobileOnNavigate = true,
     keepEmptySections = false,
@@ -400,6 +406,65 @@ export function AppSidebar(props: AppSidebarProps) {
   // external handle so trigger toggles drive the right state machine.
   useImperativeHandle(externalRef, () => finalHandle, [finalHandle]);
 
+  /*
+   * v0.3.1 — lifecycle + derived-state events.
+   *
+   * `onItemHover`, `onItemFocus`, `onActiveItemChange`, `onMount` and
+   * `onUnmount` were all declared in `AppSidebarProps`, documented in the
+   * description, and never read by a single line of implementation. The plan
+   * doc even carries a High review finding correcting `onActiveItemChange`'s
+   * TIMING (P2) — a careful argument about a callback that was then wired to
+   * nothing. `NavLinkProps` had likewise declared `onMouseEnter`/`onFocus`
+   * from the start with nothing passing them.
+   */
+  const firedMountRef = useRef(false);
+  useEffect(() => {
+    if (firedMountRef.current) return;
+    firedMountRef.current = true;
+    onMount?.({ initialState: finalHandle.getState() });
+    // Mount-only by contract: `initialState` is the state AT mount. Re-running
+    // on handle identity would re-announce a mount that already happened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Unmount fires during cleanup, when props are already gone — so the latest
+  // callback is held in a ref rather than captured in the effect closure.
+  const onUnmountRef = useRef(onUnmount);
+  useEffect(() => {
+    onUnmountRef.current = onUnmount;
+  }, [onUnmount]);
+  useEffect(
+    () => () => {
+      onUnmountRef.current?.();
+    },
+    [],
+  );
+
+  /*
+   * `activeItem` is DERIVED from `currentPath`, which changes when the host's
+   * router commits — so this is reactive, not click-synchronous. Firing it from
+   * the click handler (the original design) would report a change that had not
+   * happened yet, and miss every navigation the host performed on its own.
+   *
+   * The initial value is not a "change": it is delivered by `onMount`'s
+   * `initialState`. Comparing by `id` keeps a re-rendered-but-equal item from
+   * emitting a phantom transition.
+   */
+  const previousActiveItemRef = useRef<NavItem | null>(null);
+  const activeChangeInitialisedRef = useRef(false);
+  useEffect(() => {
+    const item = finalActiveItem ?? null;
+    if (!activeChangeInitialisedRef.current) {
+      activeChangeInitialisedRef.current = true;
+      previousActiveItemRef.current = item;
+      return;
+    }
+    const previousItem = previousActiveItemRef.current;
+    if ((previousItem?.id ?? null) === (item?.id ?? null)) return;
+    previousActiveItemRef.current = item;
+    onActiveItemChange?.({ item, previousItem });
+  }, [finalActiveItem, onActiveItemChange]);
+
   const contextValue = useMemo<AppSidebarContextValue>(
     () => ({
       state: { ...state, collapsed: finalCollapsed, mobileOpen: finalMobileOpen, collapsedSectionIds: finalCollapsedSectionIds },
@@ -579,6 +644,8 @@ export function AppSidebar(props: AppSidebarProps) {
           collapsedSectionIds={finalCollapsedSectionIds}
           onToggleSection={toggleSection}
           onItemClick={onItemClick}
+          onItemHover={onItemHover}
+          onItemFocus={onItemFocus}
           onItemNavigate={onItemNavigate}
           onSectionToggle={onSectionToggle}
           renderItem={renderItem}
@@ -610,6 +677,8 @@ export function AppSidebar(props: AppSidebarProps) {
       finalCollapsedSectionIds,
       toggleSection,
       onItemClick,
+      onItemHover,
+      onItemFocus,
       onItemNavigate,
       onSectionToggle,
       renderItem,

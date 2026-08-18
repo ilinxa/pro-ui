@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Use anywhere stories appear — Instagram-style modal viewer over a feed. Pairs with story-rail which fires onItemClick(item, index); host opens <StoryViewer isOpen stories={...} initialStoryIndex={index} onClose={...} /> in response. The viewer's onStoryViewed(storyId) callback is what hosts wire back into railRef.current.markViewed(storyId) to clear the unread ring — viewer is fully decoupled from the rail. Image and video items both supported (video composes media/video-player). v0.4 ships pure-CSS 3D cube transitions + pointer-driven swipe (no framer-motion peer dep); the cube engages only during the animation window and the front face sits at the perspective plane (no scale-jump). The engagement overlay (v0.2) composes engagement-bar v0.3.x; the comments panel (v0.3) and share panel (v0.3.1) are bottom-sheet slots typically host-wired to CommentThread and ShareMenu. Migration origin: kasder kas-social-front-v0 StoryViewer.tsx.",
   features: [
+    "v0.5.1 — `reactors` / `onLoadReactors` are marked @notImplemented and dev-warn; both were declared and never read",
     "Radix Dialog modal — focus trap + portal + Escape + backdrop click free",
     "Mobile full-screen (h-dvh) / desktop centered portrait modal (md:h-175 md:w-100)",
     "Segmented progress bars (one per item; CSS `transition-[width]` fill; ARIA progressbar)",
@@ -69,11 +70,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["story-viewer", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.5.0",
+  version: "0.5.1",
   status: "alpha",
   artifactBudgetKB: 240,
   createdAt: "2026-05-03",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

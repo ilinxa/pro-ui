@@ -158,7 +158,7 @@ export const GanttTimelineRoot = forwardRef<
   const bodyScrollRef = useRef<HTMLDivElement | null>(null);
   const gutterTrackRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const { renderItems, totalSize } = useGanttVirtual({
+  const { renderItems, totalSize, measure } = useGanttVirtual({
     count: rows.length,
     scrollRef: bodyScrollRef,
     rowHeight,
@@ -369,7 +369,14 @@ export const GanttTimelineRoot = forwardRef<
     bodyScrollRef,
     gutterTrackRef,
     onBodyScroll,
-    measureRows: () => {},
+    /*
+     * v0.5.1 — `measureRows` is public (it reaches consumers through the
+     * exported `useGanttTimeline()` context) and was an empty body, so a
+     * consumer re-measuring after a row-height change got silence. The
+     * virtualizer's own `measure()` was already returned by `useGanttVirtual`
+     * and simply never destructured.
+     */
+    measureRows: measure,
     viewport: vp.viewport,
     bodyWidth,
     setBodyWidth,

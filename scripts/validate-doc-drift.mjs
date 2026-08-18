@@ -92,6 +92,44 @@ function checkFile(file, slugRe) {
 checkFile("public/llms.txt", /@ilinxa\/([a-z0-9-]+)/g);
 checkFile("README.md", /\| `([a-z0-9-]+)` \|/g);
 
+/*
+ * Every shipped component must have a Stage-3 guide.
+ *
+ * The planning trio is description -> plan -> guide. `code-block` shipped
+ * v0.1.0 and v0.2.0 as a DUO, and writing the guide three months later is what
+ * finally surfaced two public APIs that had been inert since v0.1.0 — an
+ * exported RSC props type with no entry point, and a handle method that was an
+ * empty function body while `meta.ts` advertised it.
+ *
+ * That is not a coincidence to be noted, it is the reason this check exists:
+ * authoring the consumer-facing guide is the step that forces someone to ask
+ * "does this actually do anything?" of every part of the public surface. No
+ * automated gate can ask that question. Skipping the guide removes the only
+ * step that ever has.
+ */
+function checkGuides() {
+  const missing = [];
+  for (const slug of expected) {
+    const dir = path.join(root, "docs/procomps", `${slug}-procomp`);
+    if (!fs.existsSync(dir)) continue; // migrations//tier docs live elsewhere
+    const hasGuide = fs
+      .readdirSync(dir)
+      .some((f) => f.endsWith("-guide.md"));
+    if (!hasGuide) missing.push(slug);
+  }
+  if (missing.length) {
+    fail(
+      `docs/procomps: ${missing.length} component(s) ship without a Stage-3 guide: ${missing.join(", ")}
+` +
+        `    Fix: author docs/procomps/<slug>-procomp/<slug>-procomp-guide.md (see docs/procomps/README.md § Stage 3).`,
+    );
+  } else {
+    console.log(`✓ docs/procomps: every component has a guide doc.`);
+  }
+}
+
+checkGuides();
+
 if (failed) {
   console.error("\nFix: run `pnpm build:llms` and commit the result.");
   process.exit(1);

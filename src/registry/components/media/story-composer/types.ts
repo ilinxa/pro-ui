@@ -342,6 +342,12 @@ export interface StoryComposerProps {
   // Layout + behavior
   cropAspects?: AspectRatio[];
   presentation?: "auto" | "fullscreen" | "modal";
+  /**
+   * @notImplemented Declared since v0.1 and never applied — StoryComposer
+   * renders `MediaEditor` directly, so it has no surface of its own to paint,
+   * and MediaEditor exposes no background prop to forward to. Passing it warns
+   * in development. Style the editor from your own layout instead.
+   */
   editorBackground?: string;
   confirmOnDiscard?: boolean;
 

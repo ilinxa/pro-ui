@@ -846,6 +846,15 @@ export interface NewsCardProps
  * here without re-deriving. C11 wires them up.
  */
 export interface ResolvedPartProps {
+  /*
+   * v0.4.1 — controlled kebab state, so `NewsCardHandle.openKebab()` can
+   * actually open it. The handle method shipped as an empty function body while
+   * `meta.ts` advertised an "11-method imperative handle"; the trigger lives in
+   * whichever variant part is rendered, so the root had no way to reach it.
+   */
+  kebabOpen: boolean;
+  onKebabOpenChange: (open: boolean) => void;
+
   // v0.2 carry
   item: NewsCardItem;
   formattedDate: string | undefined;

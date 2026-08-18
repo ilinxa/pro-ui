@@ -50,6 +50,11 @@ export function CodeBlockBodyTerminal({
     <div
       role="log"
       aria-live="off"
+      // Scroll seam for `CodeBlockHandle.scrollToLine` (v0.2.1). Terminal rows
+      // carry `data-cb-line` rather than Shiki's `.line`, because `.line` has
+      // highlight CSS bound to it in globals.css that a transcript row must not
+      // inherit.
+      data-cb-scroller=""
       className={cn(
         "min-w-0 overflow-auto px-4 py-3 font-mono text-[0.8rem] leading-relaxed",
         wrap === "wrap" ? "whitespace-pre-wrap break-words" : "whitespace-pre",
@@ -60,7 +65,7 @@ export function CodeBlockBodyTerminal({
         if (line.kind === "input") {
           const { prefix, rest } = promptPrefix(line.text);
           return (
-            <div key={idx} className="text-foreground">
+            <div key={idx} data-cb-line={idx + 1} className="text-foreground">
               <span className="text-muted-foreground/70">{prefix}</span>
               <span>{rest}</span>
               {streaming && idx === lastInputIdx ? (
@@ -71,13 +76,13 @@ export function CodeBlockBodyTerminal({
         }
         if (line.kind === "error") {
           return (
-            <div key={idx} className="text-destructive">
+            <div key={idx} data-cb-line={idx + 1} className="text-destructive">
               {line.text || " "}
             </div>
           );
         }
         return (
-          <div key={idx} className="text-muted-foreground">
+          <div key={idx} data-cb-line={idx + 1} className="text-muted-foreground">
             {line.text || " "}
           </div>
         );

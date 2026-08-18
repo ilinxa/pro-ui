@@ -255,10 +255,22 @@ export interface CodeBlockProps {
 // ─── RSC variant props (typed narrowing) ─────────────────────────────────────
 
 /**
- * RSC-variant props. Compile-time narrowing of CodeBlockProps that removes
- * fields requiring client interactivity. TypeScript rejects mode='edit' and
- * streaming at compile time; the runtime guard in code-block.server.tsx is
- * a backstop for JS consumers.
+ * RSC-variant props — **the `/server` entry point does not exist.**
+ *
+ * @deprecated Since v0.2.1. This type shipped in v0.1.0 as a scaffold so
+ * consumers could "prepare for the v0.2.0 RSC export without breaking
+ * changes". v0.2.0 shipped without that export, and the type spent three
+ * minor versions describing a component nobody could import: this package
+ * ships no server entry module and the registry item lists no server file, so
+ * `@ilinxa/code-block/server` resolves to nothing.
+ *
+ * It is kept (rather than deleted) because it is importable today and removing
+ * it would break any consumer using it as an annotation — but it narrows props
+ * for a component that is not shipped. Use {@link CodeBlockProps}; the client
+ * component server-renders its first paint correctly under Next.js.
+ *
+ * If the zero-client-Shiki variant is ever built, it is a feature behind its
+ * own planning gate, and this type becomes real again at that point.
  */
 export type CodeBlockServerProps = Omit<
   CodeBlockProps,

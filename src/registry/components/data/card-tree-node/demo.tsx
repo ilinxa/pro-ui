@@ -173,7 +173,7 @@ export default function CardTreeNodeDemo() {
       <p className="text-xs text-muted-foreground">
         Click any node to edit. Click a nested subcard to open the editor
         pre-focused on it. Marquee-select or shift-click for multi-select
-        (canvas-level — bulk edit deferred to v0.2). The chips on each node are
+        (canvas-level — bulk edit is not implemented). The chips on each node are
         card-tree blocks (v0.4.0); &ldquo;Response&rdquo; also carries a
         host-rendered <code>body</code> block.
       </p>

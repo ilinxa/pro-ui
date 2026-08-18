@@ -56,6 +56,8 @@ export function FeaturedPart(props: ResolvedPartProps) {
     disableEngagementCounts,
     engagementHandlers,
     kebabItems,
+    kebabOpen,
+    onKebabOpenChange,
     onAuthorClick,
     onPublisherClick,
     onCategoryClick,
@@ -146,7 +148,13 @@ export function FeaturedPart(props: ResolvedPartProps) {
             />
             <div className="flex items-center gap-1">
               <VisibilityBadge visibility={item.visibility} labels={labels} />
-              {showKebab && <NewsKebab items={kebabItems} />}
+              {showKebab && (
+                <NewsKebab
+                  items={kebabItems}
+                  open={kebabOpen}
+                  onOpenChange={onKebabOpenChange}
+                />
+              )}
             </div>
           </div>
         )}

@@ -77,7 +77,20 @@ export interface CommentComposerState {
 
 export interface CommentComposerHelpers {
   setValue: (next: string) => void;
-  submit: () => Promise<void>;
+  /**
+   * Submit the composer.
+   *
+   * With no argument it posts the value from the current render — the normal
+   * flow, where `setValue` runs on input change and `submit` on a later click.
+   *
+   * Pass the text explicitly when both happen in the SAME tick (a form handler
+   * that reads its own input, calls `setValue`, then submits): React has not
+   * re-rendered yet, so the no-argument form would still hold the previous
+   * value. The component deliberately does not solve this with a ref — these
+   * helpers are handed to `renderComposer` DURING render, so a ref read on that
+   * path is exactly what the React Compiler forbids.
+   */
+  submit: (value?: string) => Promise<void>;
   cancel: () => void;
 }
 

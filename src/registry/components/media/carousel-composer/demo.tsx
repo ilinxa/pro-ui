@@ -41,7 +41,7 @@ function SeededTab() {
       />
       <Status>
         Seeded from remote URLs (CMS re-edit). Select a thumb, drag to reorder,
-        press Edit on a photo. Video Edit is deferred to v0.2.
+        press Edit on any item. Videos open in video mode; a re-edit resumes from the exported frame.
       </Status>
     </div>
   );

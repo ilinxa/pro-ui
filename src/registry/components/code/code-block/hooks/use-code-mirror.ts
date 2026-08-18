@@ -44,6 +44,11 @@ interface UseCodeMirrorResult {
   focus: () => void;
   getValue: () => string;
   /**
+   * Scroll a 1-indexed line into view. Returns `false` when no editor is
+   * mounted yet, so the caller can fall back to the DOM row path.
+   */
+  scrollToLine: (line: number) => boolean;
+  /**
    * Editor construction failed (grammar chunk fetch, EditorView throw).
    * v0.2.0: previously this could only manifest as an unhandled rejection and
    * a blank editor; the edit body now renders a recovery affordance from it.
@@ -259,5 +264,28 @@ export function useCodeMirror({
     [],
   );
 
-  return { containerRef, view, focus, getValue, error };
+  /**
+   * Scroll a 1-indexed line into view (v0.2.1).
+   *
+   * `CodeBlockHandle.scrollToLine` shipped in v0.1.0 as an empty function body
+   * that `meta.ts` advertised as a working handle method for three minor
+   * versions. This is the integration that was owed.
+   *
+   * Out-of-range input is clamped rather than thrown: the handle is called from
+   * host code reacting to data (a stack trace line, a search hit) that can
+   * legitimately point past the end of a document that has since shrunk.
+   */
+  const scrollToLine = useCallback((line: number) => {
+    const v = viewRef.current;
+    if (!v) return false;
+    const total = v.state.doc.lines;
+    const target = Math.min(Math.max(Math.trunc(line), 1), total);
+    const pos = v.state.doc.line(target).from;
+    v.dispatch({
+      effects: EditorView.scrollIntoView(pos, { y: "center" }),
+    });
+    return true;
+  }, []);
+
+  return { containerRef, view, focus, getValue, scrollToLine, error };
 }

@@ -8,7 +8,7 @@ export const meta: ComponentMeta = {
   description:
     "Code surface with view, edit, and terminal modes — Shiki highlighting, dual-theme CSS variables, and chrome presets for docs, chat, and terminal UIs.",
   context:
-    "Substrate for every 'render code professionally' surface in the library — chat assistants, fenced markdown blocks, JSON / config viewers, card-tree code sections, virtual terminal walkthroughs, and snippet editors. View mode uses Shiki's GitHub Light + GitHub Dark Default themes (toggled via the active `.dark` class with zero re-tokenize). Edit mode wraps a CodeMirror 6 instance with a custom HighlightStyle approximating the same GitHub palette (near-match in v0.1.0; pixel-perfect Shiki → CodeMirror bridge defers to v0.2.0). Terminal mode renders structured `TerminalLine[]` rows with prompt detection on `$ `, `> `, `# ` prefixes and macOS-style traffic-light decoration. Streaming-friendly via an explicit `streaming` flag that batches re-tokenization to rAF and shows a blinking tail cursor. Filename → lang derivation works out of the box for ~30 extensions; consumer can override via `filenameToLang`. Object-shape callbacks throughout (per F-cross-12).",
+    "Substrate for every 'render code professionally' surface in the library — chat assistants, fenced markdown blocks, JSON / config viewers, card-tree code sections, virtual terminal walkthroughs, and snippet editors. View mode uses Shiki's GitHub Light + GitHub Dark Default themes (toggled via the active `.dark` class with zero re-tokenize). Edit mode wraps a CodeMirror 6 instance with a custom HighlightStyle approximating the same GitHub palette (a near-match, not pixel-perfect — a true Shiki → CodeMirror theme bridge is not implemented). Terminal mode renders structured `TerminalLine[]` rows with prompt detection on `$ `, `> `, `# ` prefixes and macOS-style traffic-light decoration. Streaming-friendly via an explicit `streaming` flag that batches re-tokenization to rAF and shows a blinking tail cursor. Filename → lang derivation works out of the box for ~30 extensions; consumer can override via `filenameToLang`. Object-shape callbacks throughout (per F-cross-12).",
   features: [
     "Three render modes (view / edit / terminal) in one component, switched by `mode` prop",
     "Shiki tokenization for view mode (GitHub Light + Dark Default by default; consumer overridable)",
@@ -21,7 +21,7 @@ export const meta: ComponentMeta = {
     "Dual-theme via CSS variables: `.dark` class toggles palette with zero re-tokenize",
     "Standalone header parts exported (`<CodeBlockCopyButton>`, `<CodeBlockTrafficLights>`, etc.) for `renderHeader` slot composition",
     "Object-shape callbacks throughout (per F-cross-12)",
-    "Imperative handle: `copy()`, `focus()`, `getValue()`, `scrollToLine()`",
+    "Imperative handle: `copy()`, `focus()`, `getValue()`, and `scrollToLine()` — which works in all three modes (CodeMirror dispatch in edit, row targeting in view/terminal) and expands a collapsed block rather than scrolling to a row hidden under the fade",
   ],
   tags: [
     "code-block",
@@ -36,11 +36,11 @@ export const meta: ComponentMeta = {
     "streaming",
   ],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   artifactBudgetKB: 110,
   createdAt: "2026-05-10",
-  updatedAt: "2026-08-18",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

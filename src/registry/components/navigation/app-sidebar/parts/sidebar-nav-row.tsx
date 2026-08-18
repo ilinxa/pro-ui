@@ -27,6 +27,11 @@ interface SidebarNavRowProps {
   linkComponent: NavLinkComponent;
   activeVariant?: AppSidebarProps["activeVariant"];
   onClick: (event: React.MouseEvent) => void;
+  // v0.3.1 — `NavLinkProps` declared `onMouseEnter`/`onFocus` from the start;
+  // nothing ever passed them, so `onItemHover`/`onItemFocus` were inert props
+  // on the public surface for the component's whole life.
+  onMouseEnter?: (event: React.MouseEvent) => void;
+  onFocus?: (event: React.FocusEvent) => void;
   renderBadge?: AppSidebarProps["renderBadge"];
   renderTooltipContent?: AppSidebarProps["renderTooltipContent"];
   // v0.2.0 — href resolution (L42 + L43)
@@ -61,6 +66,8 @@ export function SidebarNavRow({
   linkComponent: LinkComponent,
   activeVariant,
   onClick,
+  onMouseEnter,
+  onFocus,
   renderBadge,
   renderTooltipContent,
   hrefTemplateValues,
@@ -109,6 +116,8 @@ export function SidebarNavRow({
     <LinkComponent
       href={href}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onFocus={onFocus}
       aria-current={isActive ? "page" : undefined}
       aria-label={isCollapsed ? item.label : undefined}
       aria-disabled={isDisabled || undefined}

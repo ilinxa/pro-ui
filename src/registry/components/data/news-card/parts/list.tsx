@@ -54,6 +54,8 @@ export function ListPart(props: ResolvedPartProps) {
     disableEngagementCounts,
     engagementHandlers,
     kebabItems,
+    kebabOpen,
+    onKebabOpenChange,
     onAuthorClick,
     onCategoryClick,
     onQuotedClick,
@@ -269,7 +271,11 @@ export function ListPart(props: ResolvedPartProps) {
           <div className="relative z-10">{actions}</div>
         ) : null}
         {showKebab ? (
-          <NewsKebab items={kebabItems} />
+          <NewsKebab
+            items={kebabItems}
+            open={kebabOpen}
+            onOpenChange={onKebabOpenChange}
+          />
         ) : !actions ? (
           <ArrowRight
             aria-hidden="true"

@@ -104,7 +104,7 @@ function CustomToolbarDemo() {
   const [value, setValue] = useState(SHORT_DOC);
   const customToolbar: ReadonlyArray<ToolbarItem> = [
     ...defaultMarkdownToolbar,
-    { id: "sep-2", label: "", run: () => {} },
+    { id: "sep-2", label: "" },
     {
       id: "callout",
       label: "Insert callout",

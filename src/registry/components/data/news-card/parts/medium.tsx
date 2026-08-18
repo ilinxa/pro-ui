@@ -65,6 +65,8 @@ export function MediumPart(props: ResolvedPartProps) {
     disableEngagementCounts,
     engagementHandlers,
     kebabItems,
+    kebabOpen,
+    onKebabOpenChange,
     onAuthorClick,
     onPublisherClick,
     onCategoryClick,
@@ -225,7 +227,13 @@ export function MediumPart(props: ResolvedPartProps) {
           </h3>
           <div className="flex shrink-0 items-center gap-1">
             <VisibilityBadge visibility={item.visibility} labels={labels} />
-            {showKebab && <NewsKebab items={kebabItems} />}
+            {showKebab && (
+              <NewsKebab
+                items={kebabItems}
+                open={kebabOpen}
+                onOpenChange={onKebabOpenChange}
+              />
+            )}
           </div>
         </div>
 

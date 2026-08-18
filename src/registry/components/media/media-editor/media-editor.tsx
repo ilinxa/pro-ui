@@ -92,7 +92,7 @@ const LazyEditorCanvas = React.lazy(() => import("./parts/lazy-editor-canvas"));
  */
 
 const NOT_IMPLEMENTED_MARKER =
-  "media-editor: imperative capture (takePhoto / startRecording / stopRecording / switchCamera / importFromGallery) is deferred to v0.2 — drive capture via the in-UI controls for now.";
+  "media-editor: imperative capture (takePhoto / startRecording / stopRecording / switchCamera / importFromGallery) is not implemented — drive capture via the in-UI controls instead.";
 
 const NOT_WIRED_HISTORY_MARKER =
   "media-editor: undo/redo is not wired in v0.1.x (no mutations are recorded as commands yet) — no-op. The per-mutation command layer lands in v0.2.";
@@ -938,7 +938,7 @@ const MediaEditorImpl = React.forwardRef<
   // ─── Imperative handle ──────────────────────────────────────────────
   // Inspect / state / export / edit-overlay methods are fully wired. The
   // imperative CAPTURE methods (takePhoto / startRecording / stopRecording /
-  // switchCamera / importFromGallery) are deferred to v0.2 — they dev-warn
+  // switchCamera / importFromGallery) are not implemented — they dev-warn
   // until then; the in-UI camera controls are the supported capture path.
   React.useImperativeHandle(
     ref,
@@ -973,7 +973,7 @@ const MediaEditorImpl = React.forwardRef<
           ? editor.draft.blob
           : null,
 
-      // === Capture (imperative path deferred to v0.2 — dev-warns; see note above) ===
+      // === Capture (imperative path not implemented — dev-warns; see note above) ===
       switchCamera: async () => {
         devWarnOnce(warnedRef.current, "switchCamera", NOT_IMPLEMENTED_MARKER);
       },
@@ -1029,10 +1029,23 @@ const MediaEditorImpl = React.forwardRef<
 
       // === Lifecycle ===
       reset: () => performReset(),
+      /**
+       * Dialog mode is controlled: the consumer owns `isOpen`, so the handle
+       * genuinely cannot open the editor, and inline mode has nothing to open.
+       * That made this a legitimate no-op — but a SILENT one, which is
+       * indistinguishable from a broken method at the call site.
+       *
+       * It now says so, exactly as this component's capture methods already
+       * do. Being unable to act is fine; being unable to act quietly is not.
+       *
+       * @notImplemented Set `isOpen` on the component instead.
+       */
       open: () => {
-        // Dialog mode is controlled — consumer owns `isOpen`. open() is a no-op;
-        // the consumer must set isOpen=true. Documented in JSDoc / guide.
-        // Inline mode has nothing to open.
+        devWarnOnce(
+          warnedRef.current,
+          "handle-open-noop",
+          "media-editor: handle.open() cannot open the editor — dialog mode is controlled, so set isOpen={true} on the component (inline mode has nothing to open).",
+        );
       },
       close: () => {
         // Routes through requestClose so confirm-on-discard guard fires

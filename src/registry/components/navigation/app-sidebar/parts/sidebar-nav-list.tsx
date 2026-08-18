@@ -39,6 +39,8 @@ interface SidebarNavListProps {
 
   // Consumer event hooks
   onItemClick?: (args: AppSidebarEventArgs["itemClick"]) => void;
+  onItemHover?: (args: AppSidebarEventArgs["itemHover"]) => void;
+  onItemFocus?: (args: AppSidebarEventArgs["itemFocus"]) => void;
   onItemNavigate?: (args: AppSidebarEventArgs["itemNavigate"]) => void;
   onSectionToggle?: (args: AppSidebarEventArgs["sectionToggle"]) => void;
 
@@ -82,6 +84,8 @@ export function SidebarNavList({
   collapsedSectionIds,
   onToggleSection,
   onItemClick,
+  onItemHover,
+  onItemFocus,
   onItemNavigate,
   onSectionToggle,
   renderItem,
@@ -132,6 +136,23 @@ export function SidebarNavList({
   // `renderItem={({ defaultRender }) => defaultRender}` produces
   // `<li><a>…</a></li>` instead of the v0.2.x `<li><li>…</li></li>` bug.
   // Item-level `className` + `data-testid` are applied to this wrapper.
+  /*
+   * v0.3.1 — hover/focus emitters. Disabled rows short-circuit exactly as they
+   * do for clicks (L27): a row the user cannot activate should not report
+   * interest in it either, or a consumer using these for prefetch would warm
+   * routes the user can never reach.
+   */
+  const handleItemHover =
+    (item: NavItem) => (event: React.MouseEvent) => {
+      if (item.disabled) return;
+      onItemHover?.({ item, event });
+    };
+  const handleItemFocus =
+    (item: NavItem) => (event: React.FocusEvent) => {
+      if (item.disabled) return;
+      onItemFocus?.({ item, event });
+    };
+
   const renderRow = (item: NavItem, sectionId: string | null, indexInSection: number) => {
     const isActive = activeItemId === item.id;
     const isFocused = focusedItemId === item.id;
@@ -146,6 +167,8 @@ export function SidebarNavList({
         linkComponent={linkComponent}
         activeVariant={activeVariant}
         onClick={handleItemClick(item, sectionId, indexInSection)}
+        onMouseEnter={onItemHover ? handleItemHover(item) : undefined}
+        onFocus={onItemFocus ? handleItemFocus(item) : undefined}
         renderBadge={renderBadge}
         renderTooltipContent={renderTooltipContent}
         hrefTemplateValues={hrefTemplateValues}

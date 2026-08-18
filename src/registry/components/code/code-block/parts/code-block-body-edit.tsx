@@ -21,6 +21,7 @@ interface CodeBlockBodyEditProps {
   registerImperative?: (handle: {
     focus: () => void;
     getValue: () => string;
+    scrollToLine: (line: number) => boolean;
   }) => void;
   /** Resolved labels (defaults merged) — needed for the init-failure branch. */
   labels: Required<CodeBlockLabels>;
@@ -47,7 +48,7 @@ export function CodeBlockBodyEdit({
   labels,
   onFallbackToView,
 }: CodeBlockBodyEditProps) {
-  const { containerRef, focus, getValue, error } = useCodeMirror({
+  const { containerRef, focus, getValue, scrollToLine, error } = useCodeMirror({
     value,
     lang,
     readOnly,
@@ -60,8 +61,8 @@ export function CodeBlockBodyEdit({
   });
 
   useEffect(() => {
-    registerImperative?.({ focus, getValue });
-  }, [registerImperative, focus, getValue]);
+    registerImperative?.({ focus, getValue, scrollToLine });
+  }, [registerImperative, focus, getValue, scrollToLine]);
 
   const heightStyle =
     maxHeight !== undefined

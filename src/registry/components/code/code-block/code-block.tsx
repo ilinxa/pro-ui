@@ -192,10 +192,69 @@ export function CodeBlock(props: CodeBlockProps) {
   }, [displayValue, filename, lang, onDownload]);
 
   // Imperative handle wired to body refs
+  const rootRef = useRef<HTMLElement | null>(null);
   const editorImperativeRef = useRef<{
     focus: () => void;
     getValue: () => string;
+    scrollToLine: (line: number) => boolean;
   } | null>(null);
+
+  /**
+   * v0.2.1 — `scrollToLine` was an empty function body from v0.1.0 while
+   * `meta.ts` advertised it as a working handle method. Calling it did nothing,
+   * silently, for three minor versions.
+   *
+   * Three bodies, three scrollers, one entry point:
+   *   edit     → CodeMirror owns its scroller; dispatch scrollIntoView.
+   *   view     → Shiki emits `.line` rows (so does the v0.2.0 plaintext
+   *              fallback), inside the `[data-cb-scroller]` div.
+   *   terminal → rows carry `data-cb-line`.
+   *
+   * Collapsed blocks expand first. `maxLines` clips by height rather than by
+   * dropping rows, so the target row exists in the DOM but sits under the fade
+   * — scrolling to it without expanding would move the scroller and still show
+   * the user nothing, which is the same silent no-op this method is being
+   * fixed for.
+   */
+  const scrollToLine = useCallback(
+    (line: number) => {
+      if (mode === "edit" && !editorFellBack) {
+        if (editorImperativeRef.current?.scrollToLine(line)) return;
+      }
+      const root = rootRef.current;
+      if (!root) return;
+      const scroller = root.querySelector<HTMLElement>("[data-cb-scroller]");
+      if (!scroller) return;
+      const rows = scroller.querySelectorAll<HTMLElement>("[data-cb-line], .line");
+      if (rows.length === 0) return;
+      const index = Math.min(Math.max(Math.trunc(line), 1), rows.length) - 1;
+      const row = rows[index];
+      if (!row) return;
+
+      const reveal = () => {
+        if (typeof row.scrollIntoView === "function") {
+          row.scrollIntoView({ block: "center" });
+        } else {
+          scroller.scrollTop = Math.max(
+            0,
+            row.offsetTop - scroller.clientHeight / 2,
+          );
+        }
+      };
+
+      const collapsed =
+        maxLines !== undefined && !expanded && index + 1 > maxLines;
+      if (collapsed) {
+        setExpandedInternal(true);
+        if (typeof requestAnimationFrame === "function") {
+          requestAnimationFrame(reveal);
+          return;
+        }
+      }
+      reveal();
+    },
+    [mode, editorFellBack, maxLines, expanded, setExpandedInternal],
+  );
 
   const handle = useMemo<CodeBlockHandle>(
     () => ({
@@ -205,11 +264,9 @@ export function CodeBlock(props: CodeBlockProps) {
         mode === "edit"
           ? (editorImperativeRef.current?.getValue() ?? editValue)
           : displayValue,
-      scrollToLine: () => {
-        // v0.1.0: best-effort no-op; reserved for v0.2 CodeMirror integration.
-      },
+      scrollToLine,
     }),
-    [handleCopy, displayValue, editValue, mode],
+    [handleCopy, displayValue, editValue, mode, scrollToLine],
   );
 
   useImperativeHandle(ref, () => handle, [handle]);
@@ -397,6 +454,7 @@ export function CodeBlock(props: CodeBlockProps) {
     <CodeBlockProvider value={ctxValue}>
       <TooltipProvider>
         <section
+          ref={rootRef}
           role="region"
           aria-label={resolvedAriaLabel}
           className={cn(

@@ -178,7 +178,7 @@ useEffect(() => {
         flow-canvas hosts the selection. Clicking-to-edit on the
         clicked node opens the dialog on THAT node; the other selected nodes
         stay selected for canvas-level operations (move, delete, duplicate).
-        Bulk EDIT (single op applied across selection) is deferred to v0.2.
+        Bulk EDIT (single op applied across selection) is not implemented.
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">v0.1 viewer limits</h3>
@@ -287,7 +287,7 @@ useEffect(() => {
       </p>
       <p className="mt-2 text-muted-foreground">
         <strong>Custom port-type registration in the strip&apos;s
-        picker</strong> is deferred to v0.3 with proper shared-context
+        picker</strong> is not implemented — it needs shared-context
         plumbing — v0.2 uses the 6 defaults only. <strong>Per-field
         ports</strong> (a flat field IS a port) is also a v0.3 lift; in
         v0.2 you add ports via the strip&apos;s &quot;+ add port&quot;

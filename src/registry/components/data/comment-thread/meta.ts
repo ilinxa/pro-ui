@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Fifth ship in the 8-component social-posts-system arc and the second cross-folder import in pro-ui (after media-carousel → video-player). Component is always-uncontrolled — `comments` prop is initial state on mount only; subsequent prop changes are IGNORED. Use the imperative handle's `reset(next)` or `dispatch(action)` to push external updates. Realtime via Subscribe<CommentDelta> matches engagement-bar's shape one-to-one (single mental model). Per-row engagement-bar is always controlled by the thread reducer to keep state coherent under realtime + optimistic flow. No framer-motion, no react-textarea-autosize peer dep, no date-fns peer dep. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx (468 LOC), CommentItem sub-component lines 413–467.",
   features: [
+    "v0.3.1 — the `renderComposer` slot now receives real helpers: `setValue` / `submit` / `cancel` were empty-bodied stubs, so a custom composer could not set a value, send, or clear",
     "Recursive Comment[] with optional `replies?` per node — depth-aware indentation",
     "maxDepth default 2; past it, inline-expand 'view N replies' (slot-overridable)",
     "Autosize composer (roll-our-own ~25-LOC hook; no react-textarea-autosize)",
@@ -46,11 +47,11 @@ export const meta: ComponentMeta = {
     "expandable",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   artifactBudgetKB: 60,
   createdAt: "2026-05-02",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

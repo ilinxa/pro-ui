@@ -144,6 +144,11 @@ export function CodeBlockBodyView({
         // empty panel and an empty console now has something to assert on, and
         // hosts can style/telemeter the degraded state without new props.
         data-highlight={failed ? "failed" : html ? "ready" : "pending"}
+        // Scroll seam for `CodeBlockHandle.scrollToLine` (v0.2.1). This div is
+        // the element that actually scrolls, and Shiki's own output marks each
+        // row `.line` — as does the v0.2.0 plaintext fallback — so one query
+        // resolves rows on BOTH the highlighted and the degraded path.
+        data-cb-scroller=""
         className={cn(
           "code-block-shiki-body relative min-w-0 flex-1 overflow-auto px-4 py-3 font-mono text-[0.8rem] leading-relaxed",
           wrap === "wrap" ? "whitespace-pre-wrap break-words" : "whitespace-pre",

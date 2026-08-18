@@ -184,6 +184,33 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
 
     // Compact mode tracking via ResizeObserver
     const [compact, setCompact] = useState(false);
+    /*
+     * v0.3.1 — open-state + anchor point for the `renderContextMenu` slot.
+     * `null` means closed; the built-in Radix menu does not use this (it owns
+     * its own positioning), so this is purely the consumer-slot path.
+     */
+    const [customMenuPos, setCustomMenuPos] = useState<{
+      x: number;
+      y: number;
+    } | null>(null);
+
+    /*
+     * Escape closes the custom context menu.
+     *
+     * Review finding: this started as `onKeyDown` on the scroll container, which
+     * only fires while THAT element has focus — and a context menu almost always
+     * takes focus itself the moment it opens, so the handler could not fire in
+     * the one situation it existed for. Listening at the document is what makes
+     * the documented behaviour actually true.
+     */
+    useEffect(() => {
+      if (!customMenuPos) return;
+      const onKey = (event: KeyboardEvent) => {
+        if (event.key === "Escape") setCustomMenuPos(null);
+      };
+      document.addEventListener("keydown", onKey);
+      return () => document.removeEventListener("keydown", onKey);
+    }, [customMenuPos]);
     useEffect(() => {
       const root = rootRef.current;
       if (!root) return;
@@ -440,8 +467,17 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
     const contextMenuCtx = {
       ...docState,
       actions,
-      position: { x: 0, y: 0 },
-      closeMenu: () => {},
+      /*
+       * v0.3.1 — real position + a close that closes.
+       *
+       * The custom slot used to render UNCONDITIONALLY at `{x:0, y:0}` with an
+       * empty-bodied `closeMenu`, which made it unusable as a context menu: it
+       * was always on screen, always in the corner, and could not be dismissed.
+       * The built-in menu never hit this because Radix owns its own positioning
+       * — only the consumer-facing slot was broken.
+       */
+      position: customMenuPos ?? { x: 0, y: 0 },
+      closeMenu: () => setCustomMenuPos(null),
       onSearch: onSearchSelection
         ? (text: string) => onSearchSelection({ text })
         : null,
@@ -466,6 +502,14 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
           <div
             ref={scrollContainerRef}
             {...(enableDragDrop ? drop.dropProps : {})}
+            onContextMenu={
+              enableContextMenu && renderContextMenu
+                ? (event) => {
+                    event.preventDefault();
+                    setCustomMenuPos({ x: event.clientX, y: event.clientY });
+                  }
+                : undefined
+            }
             className={cn(
               "relative flex-1 overflow-auto bg-muted/30 [touch-action:pan-x_pan-y]",
               "[&_.react-pdf__Page__textContent]:select-text",
@@ -551,7 +595,7 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
             : null}
 
           {/* Custom context-menu slot (when consumer overrides) */}
-          {status === "ready" && enableContextMenu && renderContextMenu
+          {status === "ready" && enableContextMenu && renderContextMenu && customMenuPos
             ? renderContextMenu(contextMenuCtx)
             : null}
 

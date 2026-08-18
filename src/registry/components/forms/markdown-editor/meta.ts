@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Heaviest Tier 1 pro-component for the graph-system. CodeMirror 6 substrate (decision #19; ~150KB acceptance per #26) with a per-instance `marked` for preview parsing (Q-P1 — avoids global mutation). Wikilink candidates flow through CM6 StateField + StateEffect so host-side updates (e.g., new graph nodes) re-decorate without remount (Q-P5). Generic over the candidate type via `<MarkdownEditor<TCandidate extends WikilinkCandidate>>` for kind-typed candidates. Composed inside force-graph from v0.5 onward (doc nodes + wikilink reconciliation per decision #36) and inside detail-panel showcases. The editor's contract is `onSave(value)` only — reconciliation lives in force-graph, not here.",
   features: [
+    "v0.1.5 — `ToolbarItem.run` is optional: a separator is declarative (empty-string label) instead of carrying a no-op `run`",
     "Pure controlled value/onChange — host owns the markdown string",
     "Three view modes — edit / split / preview, controlled or uncontrolled",
     "Default toolbar — 8 built-in items (bold, italic, code, link, lists, blockquote, heading-cycle); extend by spreading defaultMarkdownToolbar",
@@ -29,11 +30,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["markdown-editor", "codemirror", "wikilinks", "graph-system", "editor"],
 
-  version: "0.1.4",
+  version: "0.1.5",
   status: "alpha",
   artifactBudgetKB: 75,
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-08-19",
 
   author: { name: "ilinxa" },
 

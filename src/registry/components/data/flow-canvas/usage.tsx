@@ -231,7 +231,7 @@ const sourceShape = exportRef.current?.export({ withPorts: false })`}</code>
         </li>
       </ul>
 
-      <h3 className="mb-2 mt-6 text-base font-semibold">Deferred to v0.3+ (Tier 3 + adjacent)</h3>
+      <h3 className="mb-2 mt-6 text-base font-semibold">Not implemented (Tier 3 + adjacent)</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>Custom edge renderers dispatched per-edge via <code>edgeTypes</code> (registry exists; dispatch is Tier 3 per perf description)</li>
         <li>Per-handle <code>isValidConnection</code> overrides (node-local connection-validation slot)</li>

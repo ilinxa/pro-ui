@@ -133,7 +133,7 @@ import {
 
 const toolbar: ReadonlyArray<ToolbarItem> = [
   ...defaultMarkdownToolbar,
-  { id: "sep-2", label: "", run: () => {} },
+  { id: "sep-2", label: "" },
   {
     id: "callout",
     label: "Insert callout",

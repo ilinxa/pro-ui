@@ -103,7 +103,7 @@ export function PortEditorStrip({
   className,
 }: PortEditorStripProps) {
   // v0.2 uses defaults only — Q5-bis lock; consumer-registered custom types
-  // deferred to v0.3 with proper shared-context plumbing.
+  // not implemented — needs proper shared-context plumbing first.
   const portTypes = defaultPortTypes;
 
   // v0.5.0 (FU-A) — the walker classifies keys with the same router the

@@ -80,6 +80,7 @@ export const StoryComposer = forwardRef<
     filterPresets,
     replaceBuiltinFilters,
     cropAspects,
+    editorBackground,
     fonts,
     colorPresets,
     labels: labelOverrides,
@@ -273,6 +274,24 @@ export const StoryComposer = forwardRef<
     }),
     [handlePublish],
   );
+
+  /*
+   * `editorBackground` has never been applied. StoryComposer is a thin wrapper
+   * that renders `<MediaEditor>` directly — there is no container of its own to
+   * paint, and MediaEditor exposes no background prop to forward to, so
+   * honouring this would be a cross-component feature rather than a wiring fix.
+   *
+   * Until then it says so out loud. A styling prop that silently does nothing
+   * is the most expensive kind to debug: the consumer assumes their value is
+   * wrong, not that the prop is dead.
+   */
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (editorBackground === undefined) return;
+    console.warn(
+      "story-composer: `editorBackground` is not implemented and has no effect — StoryComposer renders MediaEditor directly and has no surface of its own to paint. Style the editor from your own layout instead.",
+    );
+  }, [editorBackground]);
 
   return (
     <>
