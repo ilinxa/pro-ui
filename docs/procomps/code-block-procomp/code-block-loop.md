@@ -167,3 +167,49 @@ components not 1, and here the report's own table claimed a fallback that did no
 New this run: *a cache that is correct only because there is exactly one of something breaks the
 moment you add a second.* I added multi-engine caching and did not audit the other module-global
 state that assumed a single highlighter. The finder caught it by reproducing, not by reading.
+
+---
+
+## FU-1 closure — docs pass (2026-08-18, same day)
+
+The v0.2.0 review closed with condition 1 **partial**: `code-block` had shipped v0.1.0 and v0.2.0
+with a planning **duo**, no guide. This pass authored
+[`code-block-procomp-guide.md`](code-block-procomp-guide.md) — the trio is complete, FU-1 closed,
+condition 1 now ✅.
+
+The guide was written **against source, not against the planning docs**, which is what made it
+useful: documenting the public surface forced the question of whether each piece *does* anything.
+Two pieces did not, and both are now logged as High follow-ups:
+
+| # | Inert surface | Advertised where | Since |
+|---|---|---|---|
+| **FU-6** | `CodeBlockServerProps` — no `code-block.server.tsx` exists, no `server.ts` in the registry item, so `@ilinxa/code-block/server` resolves to nothing. A `types.ts` comment still cites "the runtime guard in `code-block.server.tsx`". | barrel export + description §SSR posture | v0.1.0 |
+| **FU-7** | `CodeBlockHandle.scrollToLine()` — empty function body, comment *"reserved for v0.2 CodeMirror integration"*. | handle type + `meta.ts` feature bullets (so the docs site advertises it) | v0.1.0 |
+
+Both were deferred **to v0.2.0**. v0.2.0 shipped — twice reviewed, 126 tests, adversarial finder,
+consumer tsc 0 — without either, and nothing caught it. Nothing *could*: tsc, lint,
+`validate:meta-deps`, `validate:barrel-exports` and the test tier each check that a symbol
+**exists**, never that it **does something**. The types compile, the export resolves, the method is
+callable. All green, nothing works.
+
+**The lesson this pass adds:** authoring the consumer-facing guide is a detector no automated gate
+replaces — writing "here is how you use X" is the step that forces the check. It is also exactly
+the step skipped when a component ships without its trio, which is why the gap and the dead APIs
+have the same root cause and the same v0.1.0 date.
+
+**Corollary for the loop:** a deferral written as *"deferred to vN"* is a debt with a due date.
+When vN ships, reconciling the deferral list is part of what closes — otherwise shipped types
+outlive the intent that justified them. This is the third instance of the "declared but inert"
+class in a fortnight (card-tree `customPredefinedKeys`; this release's own CodeMirror fallback;
+now these two).
+
+Scope: **docs-only**. Choosing *implement* vs *deprecate the claim* for FU-6/FU-7 is a public-API
+call that belongs in a U-loop run behind GATE 2, not a docs commit. `meta.ts` still advertises
+`scrollToLine()` — knowingly, and now recorded in the guide (§17.2) so a consumer is not the one
+to find it.
+
+Sibling gap noted, not closed: `carousel-composer`, `pricing-table` and `signup-form` also ship
+without a guide doc.
+
+Gates: `tsc` 0 · `lint` 0 errors / 14 warnings (baseline) · `validate:meta-deps` 64/64 clean ·
+`validate:doc-drift` ✓ · `validate:doc-budget` ✓. No code touched.
