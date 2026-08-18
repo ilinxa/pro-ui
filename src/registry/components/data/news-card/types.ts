@@ -851,9 +851,14 @@ export interface ResolvedPartProps {
    * actually open it. The handle method shipped as an empty function body while
    * `meta.ts` advertised an "11-method imperative handle"; the trigger lives in
    * whichever variant part is rendered, so the root had no way to reach it.
+   *
+   * OPTIONAL on purpose. `ResolvedPartProps` is exported from the barrel and
+   * `types.ts` ships, so adding REQUIRED fields would break any consumer who
+   * annotates with it — in a patch release. The root always passes both; when
+   * they are absent the kebab simply falls back to uncontrolled.
    */
-  kebabOpen: boolean;
-  onKebabOpenChange: (open: boolean) => void;
+  kebabOpen?: boolean;
+  onKebabOpenChange?: (open: boolean) => void;
 
   // v0.2 carry
   item: NewsCardItem;

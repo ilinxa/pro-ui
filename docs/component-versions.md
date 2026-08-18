@@ -46,7 +46,7 @@
 | `gantt-timeline` | Gantt Timeline | 0.7.1 | alpha | 2026-08-19 |
 | `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |
 | `kanban-board` | Kanban Board | 0.6.0 | alpha | 2026-08-17 |
-| `news-card` | News Card | 0.4.1 | alpha | 2026-08-19 |
+| `news-card` | News Card | 0.4.2 | alpha | 2026-08-19 |
 | `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 |
 | `post-card` | Post Card | 0.5.0 | alpha | 2026-08-17 |
 | `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 |

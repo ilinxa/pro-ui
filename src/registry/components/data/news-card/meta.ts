@@ -84,7 +84,7 @@ export const meta: ComponentMeta = {
     "editor-mode",
   ],
 
-  version: "0.4.1",
+  version: "0.4.2",
   status: "alpha",
   artifactBudgetKB: 210,
   createdAt: "2026-05-01",
