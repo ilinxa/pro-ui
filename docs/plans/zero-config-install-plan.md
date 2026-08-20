@@ -1,6 +1,6 @@
 # Plan — zero-config install flip (post-directory-merge)
 
-Status: R1 done — implementing (R2)
+Status: **CLOSED** — all gates R0–R7 passed; shipped `5813af1`, deployed and verified live
 Loop: feature-readiness-loop · single-session, no subagents (≤2-package change per config cost default)
 Date: 2026-08-20
 
@@ -75,11 +75,14 @@ namespace", "three steps", section headings) so no test breaks blind.
 - [x] R1 invariants + blast radius written; decision file lands in S3
 - [x] R2 slices implemented; collision grep: no test/e2e asserts the old copy (3 e2e specs are all card-tree)
 - [x] R3 gate battery green with real numbers (gate-8 anomaly characterized, not swept)
-- [ ] R4 findings table complete (hat-switch review per config cost default)
+- [x] R4 findings table complete — fresh finder (Sonnet 5) + my verdicts; 2 CONFIRMED (both fixed),
+  3 DROPPED with reasons
 - [x] R5 runtime verification incl. negative path (live zero-config install on 2 CLI versions +
   consumer tsc 0 + production-build page copy + anchor integrity)
-- [ ] R6 docs synced; doc validators green; base commit landed
-- [ ] R7 close-out: history verified, launch doc updated, retro appended
+- [x] R6 docs synced; doc validators re-run green after the R4 fixes; base commit `5813af1` landed
+  (7 files) and pushed to `master`
+- [x] R7 close-out: history verified (no attribution trailer), launch doc updated, retro appended,
+  **post-deploy artifact verified** (a push is not a ship — 2026-08-17 precedent)
 
 ## Findings table (R4)
 
@@ -148,6 +151,24 @@ All against the **production registry** (`ui.ilinxa.com`), from the smoke consum
 the resolution failure itself, and a consumer seeing the entry appear is the CLI self-configuring,
 not drift. Independently, the CLI's own failure message recommends exactly the snippet this flip
 kept — which is direct evidence for keeping it (I2) rather than deleting it.
+
+## R7 post-deploy verification (2026-08-20)
+
+Commit `5813af1` pushed to `master`; Vercel deploy watched until the **deployed artifact changed**,
+not until the push returned. Baselines captured before the push (production still served
+"Step 1 — add the namespace…" and the "One-time setup" heading), so each check below is a
+before/after, not a bare assertion. All fetched cache-busted.
+
+| Surface (production) | Result |
+|---|---|
+| `/llms.txt` | "Step 1 — install a component" present; the CLI-self-config note present |
+| `/docs` | "Namespace resolution — zero config" ×2; **"One-time setup" gone** |
+| `/` | "in two steps" ×2; "in three steps" gone |
+| `/components/event-calendar` | fallback box present; **"Register the @ilinxa namespace" step gone** |
+| `/r/registry.json` · `/r/empty-state.json` | 200, valid item JSON — the deploy's `registry:build` output is healthy |
+
+Install mechanics were proven against this same production registry pre-push (R5) and are untouched
+by this commit, which changes documentation only.
 
 ## Pre-mortem
 
