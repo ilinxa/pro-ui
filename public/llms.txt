@@ -19,7 +19,23 @@ Prerequisites — all three must hold:
 
 Extra tokens some components also need: `--chart-1..5` (chart-shell, stat-card, rich-text-editor), `--sidebar*` (sidebar surfaces), `--warning` + `--warning-foreground` (warning surfaces). Consumers don't need to adopt the ilinxa brand *values* — every component reads tokens by name, so the host's palette wins.
 
-Step 1 — add the namespace to the consumer's `components.json` (merge with their existing config):
+Step 1 — install a component (the `@ilinxa` namespace is listed in the official shadcn registry directory, so the CLI resolves it with ZERO configuration — do NOT add a `registries` entry to `components.json` first):
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/<slug>
+```
+
+Step 2 — optionally install fixtures (dummy data for a working example):
+
+```bash
+pnpm dlx shadcn@latest add @ilinxa/<slug>-fixtures
+```
+
+The fixtures item declares the base as a registryDependency, so installing the fixtures sibling automatically pulls the base. There is no `--with-fixtures` flag — the dual-item pattern is the equivalent.
+
+On a successful install the CLI writes the `@ilinxa` entry into the consumer's `components.json` "registries" map itself. That is expected — do not revert it, and do not treat it as a reason to add the entry by hand beforehand.
+
+Fallback — ONLY if the CLI cannot resolve `@ilinxa` (older or pinned CLI versions, self-hosted mirrors), add the namespace to the consumer's `components.json` (merge with their existing config):
 
 ```json
 "registries": {
@@ -28,20 +44,6 @@ Step 1 — add the namespace to the consumer's `components.json` (merge with the
 ```
 
 The `{name}` placeholder is mandatory — the CLI rejects registries without it.
-
-Step 2 — install a component:
-
-```bash
-pnpm dlx shadcn@latest add @ilinxa/<slug>
-```
-
-Step 3 — optionally install fixtures (dummy data for a working example):
-
-```bash
-pnpm dlx shadcn@latest add @ilinxa/<slug>-fixtures
-```
-
-The fixtures item declares the base as a registryDependency, so installing the fixtures sibling automatically pulls the base. There is no `--with-fixtures` flag — the dual-item pattern is the equivalent.
 
 The CLI auto-installs shadcn primitives (button, popover, etc.) and npm peer deps (lucide-react, @dnd-kit/*, @codemirror/*, marked, @radix-ui/*).
 
@@ -184,9 +186,8 @@ https://ui.ilinxa.com/components/<slug> renders preview, usage, and dependencies
 When a user asks to install a component from this registry:
 
 1. Verify the consumer has run `shadcn init` (check for `components.json` AND `lib/utils.ts`). If not, run init first.
-2. Add the namespace map to `components.json` if missing.
-3. Run `pnpm dlx shadcn@latest add @ilinxa/<slug>`.
-4. If they want example data: run the `<slug>-fixtures` variant (registryDependencies pulls the base automatically — no need to install both).
-5. Verify by reading `components/<slug>/index.ts` for the exposed API.
+2. Run `pnpm dlx shadcn@latest add @ilinxa/<slug>` — the namespace resolves from the official shadcn registry directory with no configuration. Do NOT pre-add a `registries` entry; only add the namespace map to `components.json` (see Fallback above) if the CLI reports it cannot resolve `@ilinxa`.
+3. If they want example data: run the `<slug>-fixtures` variant (registryDependencies pulls the base automatically — no need to install both).
+4. Verify by reading `components/<slug>/index.ts` for the exposed API.
 
 Do not invent slugs or deps. The list above is the complete set of available items as of this writing — re-fetch this `llms.txt` for updates.

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getMetaList } from "@/registry/manifest";
 import {
-  registriesSnippet,
   installCommand,
   registryItemId,
   SITE_URL,
@@ -87,7 +86,7 @@ export default function Home() {
           className="reveal-up text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
           style={{ animationDelay: "300ms" }}
         >
-          Install into any Next or React app in three steps.
+          Install into any Next or React app in two steps.
         </h2>
 
         <ol className="mt-2 grid gap-8">
@@ -117,23 +116,6 @@ export default function Home() {
                 02
               </span>
               <h3 className="text-lg font-medium text-foreground">
-                Register the namespace in components.json
-              </h3>
-            </div>
-            <pre className="overflow-x-auto rounded-md border border-border bg-card p-4 font-mono text-sm leading-relaxed text-foreground">
-              <code>{registriesSnippet()}</code>
-            </pre>
-          </li>
-
-          <li
-            className="reveal-up grid gap-3"
-            style={{ animationDelay: "480ms" }}
-          >
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                03
-              </span>
-              <h3 className="text-lg font-medium text-foreground">
                 Install a component
               </h3>
             </div>
@@ -150,12 +132,24 @@ export default function Home() {
                 {registryItemId("properties-form-fixtures")}
               </code>
             </p>
+            <p className="text-sm text-muted-foreground">
+              The <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground">@ilinxa</code>{" "}
+              namespace is listed in the official shadcn registry directory —
+              no <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-foreground">components.json</code>{" "}
+              setup needed. CLI can&apos;t resolve it?{" "}
+              <Link
+                href="/docs#setup"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Manual registry config →
+              </Link>
+            </p>
           </li>
         </ol>
 
         <div
           className="reveal-up mt-6 flex flex-wrap items-center gap-3"
-          style={{ animationDelay: "540ms" }}
+          style={{ animationDelay: "480ms" }}
         >
           <Button asChild variant="outline">
             <Link href="/docs">Detailed guide</Link>

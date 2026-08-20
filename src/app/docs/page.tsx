@@ -60,10 +60,18 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section anchor="setup" title="One-time setup" delay={240}>
+      <Section anchor="setup" title="Namespace resolution — zero config" delay={240}>
         <p>
-          Add the <Code>@ilinxa</Code> namespace to your project&rsquo;s{" "}
-          <Code>components.json</Code> (merge with your existing config):
+          The <Code>@ilinxa</Code> namespace is listed in the official shadcn
+          registry directory, so the CLI resolves it automatically — no{" "}
+          <Code>components.json</Code> configuration needed. Skip straight to
+          the install command.
+        </p>
+        <p>
+          <strong className="text-foreground">Fallback:</strong> if your CLI
+          can&rsquo;t resolve <Code>@ilinxa</Code> (older or pinned CLI
+          versions, self-hosted mirrors), register the namespace manually in
+          your <Code>components.json</Code> (merge with your existing config):
         </p>
         <Pre>{registriesSnippet()}</Pre>
         <p className="text-sm">
@@ -213,7 +221,7 @@ export function TaskEditor() {
         <p>
           Point your AI assistant at this URL when working on a project that
           consumes the registry. It contains install steps, the full component
-          list, common gotchas, and the namespace setup snippet — everything an
+          list, common gotchas, and the fallback registry config — everything an
           AI needs to install components correctly without guessing.
         </p>
         <p className="mt-4">

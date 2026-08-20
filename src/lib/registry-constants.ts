@@ -33,7 +33,14 @@ export function installCommand(slug: string, runner = "pnpm dlx"): string {
   return `${runner} shadcn@latest add ${registryItemId(slug)}`;
 }
 
-/** The `registries` block to merge into a consumer's components.json. */
+/**
+ * The `registries` block to merge into a consumer's components.json.
+ *
+ * FALLBACK ONLY since 2026-08-20: `@ilinxa` is listed in the official shadcn
+ * registry directory, so current CLIs resolve the namespace with zero config.
+ * This snippet is for CLIs that can't resolve `@ilinxa` (older or pinned
+ * versions, self-hosted mirrors).
+ */
 export function registriesSnippet(): string {
   return `"registries": {
   "${REGISTRY_NAMESPACE}": "${REGISTRY_ITEM_URL_TEMPLATE}"

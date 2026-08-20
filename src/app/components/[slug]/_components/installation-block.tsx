@@ -173,19 +173,7 @@ export function InstallationBlock({
         </div>
 
         <div className="flex flex-col gap-2">
-          <StepLabel
-            index={2}
-            title={`Register the ${REGISTRY_NAMESPACE} namespace (once per project)`}
-            description="Add to your components.json. Merge with existing config."
-          />
-          <CopyableSnippet
-            snippet={REGISTRY_FRAGMENT}
-            label="Copy registries snippet"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <StepLabel index={3} title="Install the component" />
+          <StepLabel index={2} title="Install the component" />
           <CopyableCommand command={addCommand} label="Copy install command" />
           <p className="text-xs text-muted-foreground">
             Add{" "}
@@ -203,7 +191,7 @@ export function InstallationBlock({
         {slices && slices.length > 0 ? (
           <div className="flex flex-col gap-2">
             <StepLabel
-              index={4}
+              index={3}
               title="Optional feature slices"
               description="Install on top of the base for opt-in heavier capability."
             />
@@ -220,6 +208,22 @@ export function InstallationBlock({
             ))}
           </div>
         ) : null}
+
+        <div className="flex flex-col gap-2 rounded-md border border-dashed border-border p-3">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              CLI can&apos;t resolve {REGISTRY_NAMESPACE}?
+            </span>{" "}
+            The namespace is listed in the official shadcn registry directory,
+            so current CLIs need no configuration. If yours can&apos;t resolve
+            it (older or pinned versions, self-hosted mirrors), register it
+            manually in <code className="font-mono">components.json</code>:
+          </p>
+          <CopyableSnippet
+            snippet={REGISTRY_FRAGMENT}
+            label="Copy registries snippet"
+          />
+        </div>
       </TabsContent>
 
       <TabsContent value="manual" className="mt-0">

@@ -47,17 +47,9 @@ pnpm dlx shadcn@latest init
 
 This seeds `lib/utils.ts` (the `cn` helper that every primitive imports) and `components.json` (alias config). Skip if you've already used any shadcn component in the project.
 
-### Register the namespace
-
-Add the namespace to your project's `components.json` (merge with your existing config):
-
-```json
-"registries": {
-  "@ilinxa": "https://ui.ilinxa.com/r/{name}.json"
-}
-```
-
 ### Install a component
+
+The `@ilinxa` namespace is listed in the [official shadcn registry directory](https://ui.shadcn.com/docs/registry), so the CLI resolves it with zero configuration — no `components.json` setup needed.
 
 ```bash
 # Lean install (component only)
@@ -72,6 +64,14 @@ The CLI auto-installs:
 - npm peer deps (`lucide-react`, `@dnd-kit/*`, `@codemirror/*`, `marked`, etc.)
 
 Files land at `components/<slug>/...` with the sealed folder intact — `src/components/<slug>/...` if your project uses a `src/` directory. A custom `aliases.components` doesn't relocate them (imports are rewritten to your aliases either way, so the install compiles as-is).
+
+**Fallback** — if your CLI can't resolve `@ilinxa` (older or pinned CLI versions, self-hosted mirrors), register the namespace manually in your `components.json` (merge with your existing config):
+
+```json
+"registries": {
+  "@ilinxa": "https://ui.ilinxa.com/r/{name}.json"
+}
+```
 
 ### Use it
 
@@ -198,7 +198,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 
 A concise, AI-friendly registry reference is at [/llms.txt](https://ui.ilinxa.com/llms.txt).
 
-Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when working on a project that consumes the registry. It contains install steps, the full component list, common gotchas, and the namespace snippet — everything an AI needs to install components correctly without guessing.
+Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when working on a project that consumes the registry. It contains install steps, the full component list, common gotchas, and the fallback registry config — everything an AI needs to install components correctly without guessing.
 <!-- /wl -->
 
 ---
@@ -234,7 +234,7 @@ Yes — it's a compile-time requirement, not a preference. Components render sem
 Yes — MIT. The installed code lands in your repo under your control, so there's no license coupling beyond the standard MIT notice.
 
 **Can an AI coding assistant install and use these components?**
-Yes. Point it at [ui.ilinxa.com/llms.txt](https://ui.ilinxa.com/llms.txt), or use the shadcn MCP server with the `@ilinxa` namespace registered — the registry follows the standard shadcn item schema, so `search` / `view` / `add` all work.
+Yes. Point it at [ui.ilinxa.com/llms.txt](https://ui.ilinxa.com/llms.txt), or use the shadcn MCP server — `@ilinxa` is listed in the official shadcn registry directory, so it resolves without any namespace configuration, and the registry follows the standard shadcn item schema, so `search` / `view` / `add` all work.
 
 **Do components update automatically after install?**
 No — by design. The registry copies source; upstream changes only arrive when you re-run `add` with `--overwrite`. See [Update an installed component](#update-an-installed-component).
