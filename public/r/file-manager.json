@@ -5,8 +5,8 @@
   "author": "ilinxa",
   "description": "Finder-style file browser — grid and list views, marquee multi-select, cut copy paste, drag-and-drop, and a shared clipboard primitive.",
   "dependencies": [
-    "@tanstack/react-virtual",
-    "lucide-react"
+    "@tanstack/react-virtual@^3.13.24",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "alert-dialog",

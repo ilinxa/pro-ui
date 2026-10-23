@@ -79,10 +79,10 @@
         "popover"
       ],
       "dependencies": [
-        "lucide-react",
-        "@dnd-kit/core",
-        "@dnd-kit/sortable",
-        "@dnd-kit/utilities"
+        "lucide-react@^1.11.0",
+        "@dnd-kit/core@^6.3.1",
+        "@dnd-kit/sortable@^10.0.0",
+        "@dnd-kit/utilities@^3.2.2"
       ],
       "files": [
         {
@@ -398,7 +398,7 @@
         "tabs"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
@@ -568,7 +568,7 @@
         "tooltip"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -725,7 +725,7 @@
         "skeleton"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -845,7 +845,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -914,7 +914,7 @@
         "tooltip"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -1052,7 +1052,7 @@
         "popover"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -1176,17 +1176,17 @@
         "tooltip"
       ],
       "dependencies": [
-        "lucide-react",
-        "marked",
-        "@codemirror/state",
-        "@codemirror/view",
-        "@codemirror/commands",
-        "@codemirror/language",
-        "@codemirror/lang-markdown",
-        "@codemirror/autocomplete",
-        "@codemirror/search",
-        "@lezer/markdown",
-        "@lezer/highlight"
+        "lucide-react@^1.11.0",
+        "marked@^18.0.2",
+        "@codemirror/state@^6.6.0",
+        "@codemirror/view@^6.41.1",
+        "@codemirror/commands@^6.10.3",
+        "@codemirror/language@^6.12.3",
+        "@codemirror/lang-markdown@^6.5.0",
+        "@codemirror/autocomplete@^6.20.1",
+        "@codemirror/search@^6.7.0",
+        "@lezer/markdown@^1.6.3",
+        "@lezer/highlight@^1.2.3"
       ],
       "files": [
         {
@@ -1359,7 +1359,7 @@
         "@ilinxa/comment-thread"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -1682,9 +1682,9 @@
         "calendar"
       ],
       "dependencies": [
-        "lucide-react",
-        "react-day-picker",
-        "date-fns"
+        "lucide-react@^1.11.0",
+        "react-day-picker@^9.14.0",
+        "date-fns@^4.1.0"
       ],
       "files": [
         {
@@ -1767,7 +1767,7 @@
       ],
       "registryDependencies": [],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -1917,7 +1917,7 @@
       ],
       "registryDependencies": [],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -1989,7 +1989,7 @@
       ],
       "registryDependencies": [],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2133,7 +2133,7 @@
       ],
       "registryDependencies": [],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2202,7 +2202,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2287,7 +2287,7 @@
         "tooltip"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2392,21 +2392,21 @@
         "button"
       ],
       "dependencies": [
-        "platejs",
-        "@platejs/basic-nodes",
-        "@platejs/basic-styles",
-        "@platejs/caption",
-        "@platejs/code-block",
-        "@platejs/indent",
-        "@platejs/link",
-        "@platejs/list",
-        "@platejs/media",
-        "@platejs/resizable",
-        "@platejs/table",
-        "@floating-ui/react",
-        "lowlight",
-        "highlight.js",
-        "lucide-react"
+        "platejs@^53.0.3",
+        "@platejs/basic-nodes@^53.0.0",
+        "@platejs/basic-styles@^53.0.0",
+        "@platejs/caption@^53.0.0",
+        "@platejs/code-block@^53.0.0",
+        "@platejs/indent@^53.0.0",
+        "@platejs/link@^53.0.3",
+        "@platejs/list@^53.0.2",
+        "@platejs/media@^53.0.1",
+        "@platejs/resizable@^53.0.0",
+        "@platejs/table@^53.0.0",
+        "@floating-ui/react@^0.27.19",
+        "lowlight@^3.3.0",
+        "highlight.js@^11.11.1",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2543,7 +2543,7 @@
         "progress"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
@@ -2622,7 +2622,7 @@
       ],
       "registryDependencies": [],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2666,7 +2666,7 @@
         "progress"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2707,7 +2707,7 @@
       ],
       "registryDependencies": [],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2795,7 +2795,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2908,7 +2908,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -2993,9 +2993,9 @@
         "button"
       ],
       "dependencies": [
-        "embla-carousel-react",
-        "embla-carousel",
-        "lucide-react"
+        "embla-carousel-react@^8.6.0",
+        "embla-carousel@^8.6.0",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -3092,7 +3092,7 @@
         "popover"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -3236,7 +3236,7 @@
         "textarea"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -3348,7 +3348,7 @@
         "dropdown-menu"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -3603,7 +3603,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -3957,7 +3957,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -4056,10 +4056,10 @@
         "textarea"
       ],
       "dependencies": [
-        "@dnd-kit/core",
-        "@dnd-kit/sortable",
-        "@dnd-kit/utilities",
-        "lucide-react"
+        "@dnd-kit/core@^6.3.1",
+        "@dnd-kit/sortable@^10.0.0",
+        "@dnd-kit/utilities@^3.2.2",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -4260,8 +4260,8 @@
         "textarea"
       ],
       "dependencies": [
-        "@xyflow/react",
-        "lucide-react"
+        "@xyflow/react@^12.10.2",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -4466,9 +4466,9 @@
         "tooltip"
       ],
       "dependencies": [
-        "react-pdf",
+        "react-pdf@^10.4.1",
         "pdfjs-dist@5.4.296",
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -4669,8 +4669,8 @@
         "tooltip"
       ],
       "dependencies": [
-        "@tanstack/react-virtual",
-        "lucide-react"
+        "@tanstack/react-virtual@^3.13.24",
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
@@ -4918,8 +4918,8 @@
         "@ilinxa/file-clipboard"
       ],
       "dependencies": [
-        "@tanstack/react-virtual",
-        "lucide-react"
+        "@tanstack/react-virtual@^3.13.24",
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
@@ -5894,7 +5894,7 @@
         "@ilinxa/flow-canvas"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
@@ -6053,7 +6053,7 @@
         "tooltip"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -6248,9 +6248,9 @@
         "@ilinxa/task-card"
       ],
       "dependencies": [
-        "lucide-react",
-        "@dnd-kit/core",
-        "@tanstack/react-virtual"
+        "lucide-react@^1.11.0",
+        "@dnd-kit/core@^6.3.1",
+        "@tanstack/react-virtual@^3.13.24"
       ],
       "files": [
         {
@@ -6753,7 +6753,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.5.1",
         "status": "alpha"
       }
     },
@@ -6780,7 +6780,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.5.1",
         "status": "alpha"
       }
     },
@@ -6800,7 +6800,7 @@
         "separator"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -6902,7 +6902,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -6990,9 +6990,9 @@
         "slider"
       ],
       "dependencies": [
-        "konva",
-        "react-konva",
-        "lucide-react"
+        "konva@^10.3.0",
+        "react-konva@^19.2.4",
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
@@ -7233,7 +7233,7 @@
         "button"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -7305,7 +7305,7 @@
         "textarea"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -7526,10 +7526,10 @@
         "scroll-area"
       ],
       "dependencies": [
-        "@dnd-kit/core",
-        "@dnd-kit/sortable",
-        "@dnd-kit/utilities",
-        "lucide-react"
+        "@dnd-kit/core@^6.3.1",
+        "@dnd-kit/sortable@^10.0.0",
+        "@dnd-kit/utilities@^3.2.2",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -7658,9 +7658,9 @@
         "skeleton"
       ],
       "dependencies": [
-        "@dnd-kit/core",
-        "date-fns",
-        "lucide-react"
+        "@dnd-kit/core@^6.3.1",
+        "date-fns@^4.1.0",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -7875,12 +7875,12 @@
         "textarea"
       ],
       "dependencies": [
-        "@fontsource/kalam",
-        "@fontsource-variable/caveat",
-        "@fontsource/patrick-hand",
-        "@fontsource/shadows-into-light",
-        "date-fns",
-        "lucide-react"
+        "@fontsource/kalam@^5.2.8",
+        "@fontsource-variable/caveat@^5.2.8",
+        "@fontsource/patrick-hand@^5.2.8",
+        "@fontsource/shadows-into-light@^5.2.8",
+        "date-fns@^4.1.0",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -8087,9 +8087,9 @@
         "@ilinxa/task-card"
       ],
       "dependencies": [
-        "lucide-react",
-        "@tanstack/react-virtual",
-        "@dnd-kit/core"
+        "lucide-react@^1.11.0",
+        "@tanstack/react-virtual@^3.13.24",
+        "@dnd-kit/core@^6.3.1"
       ],
       "files": [
         {
@@ -8271,8 +8271,8 @@
         "@ilinxa/task-card"
       ],
       "dependencies": [
-        "date-fns",
-        "lucide-react"
+        "date-fns@^4.1.0",
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -8458,10 +8458,10 @@
         "button"
       ],
       "dependencies": [
-        "date-fns",
-        "lucide-react",
-        "@dnd-kit/core",
-        "@dnd-kit/utilities"
+        "date-fns@^4.1.0",
+        "lucide-react@^1.11.0",
+        "@dnd-kit/core@^6.3.1",
+        "@dnd-kit/utilities@^3.2.2"
       ],
       "files": [
         {
@@ -8646,7 +8646,7 @@
         "@ilinxa/gamification-kit"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -8756,8 +8756,8 @@
         "@ilinxa/gamification-kit"
       ],
       "dependencies": [
-        "canvas-confetti",
-        "lucide-react"
+        "canvas-confetti@^1.9.4",
+        "lucide-react@^1.11.0"
       ],
       "devDependencies": [
         "@types/canvas-confetti"
@@ -8869,7 +8869,7 @@
         "@ilinxa/gamification-kit"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -8988,7 +8988,7 @@
         "@ilinxa/gamification-kit"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {
@@ -9079,7 +9079,7 @@
         "@ilinxa/gamification-kit"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "files": [
         {

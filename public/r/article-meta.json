@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Icon-and-value metadata strip for article headers — author, date, read time, view count, or any custom pairs.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [],
   "files": [

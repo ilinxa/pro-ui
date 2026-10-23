@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "The designed answer for empty surfaces — icon or illustration, title, description, capability-gated actions, and a hint, across 6 variants and 3 sizes.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button"

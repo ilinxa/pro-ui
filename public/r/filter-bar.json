@@ -5,9 +5,9 @@
   "author": "ilinxa",
   "description": "Composite filter bar — search, category pills, date-range picker, and results count, each independently controlled or hidden.",
   "dependencies": [
-    "lucide-react",
-    "react-day-picker",
-    "date-fns"
+    "lucide-react@^1.11.0",
+    "react-day-picker@^9.14.0",
+    "date-fns@^4.1.0"
   ],
   "registryDependencies": [
     "input",

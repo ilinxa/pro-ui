@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Horizontal progress bar with a current-position marker and start, state-aware center, and end captions — derives its state from three dates.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "progress"

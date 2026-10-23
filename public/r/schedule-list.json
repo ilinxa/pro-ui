@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Time-anchored agenda list — time or range, title, optional description and icons, per-row links, framed or bare.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [],
   "files": [

@@ -1,2 +1,2 @@
-export { Template } from "./_template";
-export type { TemplateProps } from "./types";
+export { Template, defaultTemplateLabels } from "./_template";
+export type { TemplateLabels, TemplateLabelsInput, TemplateProps } from "./types";

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Video element wrapper — autoplay-friendly defaults, slot-based controls, carousel-coordinated pause, and double-tap gestures.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button"

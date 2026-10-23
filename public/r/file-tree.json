@@ -5,8 +5,8 @@
   "author": "ilinxa",
   "description": "VS Code-style file tree — format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select.",
   "dependencies": [
-    "@tanstack/react-virtual",
-    "lucide-react"
+    "@tanstack/react-virtual@^3.13.24",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "alert-dialog",

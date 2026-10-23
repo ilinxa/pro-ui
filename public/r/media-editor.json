@@ -5,9 +5,9 @@
   "author": "ilinxa",
   "description": "Media capture and edit surface for photo, video, and text — capability dials and an Instagram-style chrome model.",
   "dependencies": [
-    "konva",
-    "react-konva",
-    "lucide-react"
+    "konva@^10.3.0",
+    "react-konva@^19.2.4",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "dialog",

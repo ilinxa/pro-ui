@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Schema-driven task card with time-aware color coding, popup and inline editing, clipboard and drag-drop payloads, and permission predicates.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "avatar",

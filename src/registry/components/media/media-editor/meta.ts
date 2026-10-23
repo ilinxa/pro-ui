@@ -42,6 +42,7 @@ export const meta: ComponentMeta = {
 
   version: "0.4.0",
   status: "alpha",
+  heavy: true,
   // Reduced from 365 (pre-P3) — capture's ~1,284 LOC left the base folder;
   // base gained a smaller file-intake surface + the capture-extension seam
   // in exchange. Verified against the real built artifact 2026-08-11:

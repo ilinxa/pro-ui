@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Camera photo/video capture for Media Editor — permission flows, shutter control, multi-instance guard. Wire in via MediaEditor's capture prop.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/media-editor",

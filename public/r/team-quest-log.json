@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Team quest overlay — an editable skippable quest name plus a milestone chapter timeline with done, current, and upcoming beats.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

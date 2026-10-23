@@ -5,10 +5,10 @@
   "author": "ilinxa",
   "description": "Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated actions for the event calendar.",
   "dependencies": [
-    "date-fns",
-    "lucide-react",
-    "@dnd-kit/core",
-    "@dnd-kit/utilities"
+    "date-fns@^4.1.0",
+    "lucide-react@^1.11.0",
+    "@dnd-kit/core@^6.3.1",
+    "@dnd-kit/utilities@^3.2.2"
   ],
   "registryDependencies": [
     "@ilinxa/event-calendar",

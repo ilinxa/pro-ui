@@ -5,17 +5,17 @@
   "author": "ilinxa",
   "description": "CodeMirror 6 markdown editor with GFM, wikilink autocomplete, a slot-able toolbar, and edit, split, and preview modes.",
   "dependencies": [
-    "lucide-react",
-    "marked",
-    "@codemirror/state",
-    "@codemirror/view",
-    "@codemirror/commands",
-    "@codemirror/language",
-    "@codemirror/lang-markdown",
-    "@codemirror/autocomplete",
-    "@codemirror/search",
-    "@lezer/markdown",
-    "@lezer/highlight"
+    "lucide-react@^1.11.0",
+    "marked@^18.0.2",
+    "@codemirror/state@^6.6.0",
+    "@codemirror/view@^6.41.1",
+    "@codemirror/commands@^6.10.3",
+    "@codemirror/language@^6.12.3",
+    "@codemirror/lang-markdown@^6.5.0",
+    "@codemirror/autocomplete@^6.20.1",
+    "@codemirror/search@^6.7.0",
+    "@lezer/markdown@^1.6.3",
+    "@lezer/highlight@^1.2.3"
   ],
   "registryDependencies": [
     "badge",

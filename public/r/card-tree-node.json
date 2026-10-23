@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Card-tree renderer for flow canvas nodes — read-only viewer, a consumer-owned edit dialog pattern, and a typed port editor strip.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "popover",

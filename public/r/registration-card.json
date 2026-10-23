@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Event registration status card — capacity progress, spots-left counter, status-aware call to action, and a share slot.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "progress",

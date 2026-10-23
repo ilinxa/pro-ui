@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Social post composite in four layouts — text expansion, media carousel, engagement bar, and comment thread wired together.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/expandable-text",

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Full-bleed gradient hero band — badge, title, highlight, description, stats row, and a reveal-on-mount animation.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [],
   "files": [

@@ -5,12 +5,12 @@
   "author": "ilinxa",
   "description": "Chalkboard-style team notes board — handwritten ink notes with pens, widths, pins, @mentions, auto-save, and lazy history loading.",
   "dependencies": [
-    "@fontsource/kalam",
-    "@fontsource-variable/caveat",
-    "@fontsource/patrick-hand",
-    "@fontsource/shadows-into-light",
-    "date-fns",
-    "lucide-react"
+    "@fontsource/kalam@^5.2.8",
+    "@fontsource-variable/caveat@^5.2.8",
+    "@fontsource/patrick-hand@^5.2.8",
+    "@fontsource/shadows-into-light@^5.2.8",
+    "date-fns@^4.1.0",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

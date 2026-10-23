@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Selection-aware detail container with read and edit modes, lifecycle states, sticky header and footer actions, and a slot-based body.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

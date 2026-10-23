@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Schema-driven read and edit form for typed records — six field types, per-field permissions, sync validation, and a custom renderer slot.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

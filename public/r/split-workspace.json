@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Splittable, mergeable canvas of editor areas — a dynamic layout primitive for dashboards, dev tools, and data apps.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "dropdown-menu",

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Linked thumbnail list — small image, title, and meta line per row, each row one link target.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [],
   "files": [

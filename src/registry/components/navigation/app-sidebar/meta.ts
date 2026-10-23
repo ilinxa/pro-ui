@@ -55,11 +55,11 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.5.0",
+  version: "0.5.1",
   status: "alpha",
   artifactBudgetKB: 230,
   createdAt: "2026-05-22",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

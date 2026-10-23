@@ -5,9 +5,9 @@
   "author": "ilinxa",
   "description": "Hierarchical task outline with multi-select, bulk operations, search and filter toolbar, dual drag-and-drop, and virtualization.",
   "dependencies": [
-    "lucide-react",
-    "@dnd-kit/core",
-    "@tanstack/react-virtual"
+    "lucide-react@^1.11.0",
+    "@dnd-kit/core@^6.3.1",
+    "@tanstack/react-virtual@^3.13.24"
   ],
   "registryDependencies": [
     "avatar",

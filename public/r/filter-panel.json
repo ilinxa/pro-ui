@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Schema-driven filter panel — checkbox lists, toggles, text, and custom filter types with AND composition and debounced input.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Searchable picker for typed entities — single or multi select, kind badges, chip cluster with removal, and custom render slots.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "badge",

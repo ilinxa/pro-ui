@@ -62,6 +62,18 @@ export default defineConfig({
           include: ["tests/**/*.test.ts"],
         },
       },
+      {
+        // `repo-dom` — the shared component-test helpers (tests/helpers/: render with
+        // dir/locale, axe, environment mocks, media stubs, the C11 contract kit) and their
+        // own tests. jsdom, like `components`; outside src/ for the same reason as `repo`.
+        plugins: [tsconfigPaths(), react()],
+        test: {
+          name: "repo-dom",
+          environment: "jsdom",
+          include: ["tests/**/*.test.tsx"],
+          setupFiles: ["./vitest.setup.ts"],
+        },
+      },
     ],
   },
 });

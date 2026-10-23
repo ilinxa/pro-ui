@@ -47,6 +47,12 @@ export type ComponentMeta = {
   related?: string[];
   /** Opt-in feature items installable on top of this component (P3 feature-slicing). */
   slices?: { name: string; item: string; description: string }[];
+  /**
+   * A heavy item (an editor, Konva, pdf.js…). Another item may reach it only through a slot
+   * or render prop — never a static import or a `registryDependencies` entry. Enforced by
+   * `scripts/validate-registry-deps.mjs` (consumer contract C10 / R11).
+   */
+  heavy?: boolean;
 };
 
 export type RegistryEntry = {

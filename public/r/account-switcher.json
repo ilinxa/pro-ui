@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Popover account and context switcher — active label trigger, switchable context list, and a footer slot for create or request actions.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "popover",

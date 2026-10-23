@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Social share button row — nine built-in platforms, custom targets, and copy-link with success feedback.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button"

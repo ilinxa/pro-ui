@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Full-screen story viewer — segmented progress, 3D cube transitions, finger-following swipe, tap zones, and an engagement overlay.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/video-player",

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Gallery of earned team badges with honest locked slots, an optional count header, and a brief skippable reveal for new badges.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "tooltip",

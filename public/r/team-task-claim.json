@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Task autonomy control — an open-for-anyone toggle, a volunteer claim button, and an assignee chip with neutral release and reassign.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "switch",

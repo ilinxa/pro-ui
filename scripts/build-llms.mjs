@@ -101,25 +101,74 @@ function readmeSection() {
   return lines.join("\n");
 }
 
-function replaceBetween(file, generated) {
+/**
+ * The consumer-contract token table (Part 1 R1 / C1). Every contract token, plus any
+ * token a registry item maps via `cssVars.theme`, with the items that ship that
+ * mapping. `tests/contract-tokens.test.ts` asserts each listed token exists under
+ * `:root`, `.dark` and `@theme inline` in src/app/globals.css.
+ */
+export const CONTRACT_TOKENS = [
+  "brand",
+  "brand-foreground",
+  "success",
+  "success-foreground",
+  "warning",
+  "warning-foreground",
+  "info",
+  "info-foreground",
+  "destructive-foreground",
+  "story-ring-from",
+  "story-ring-to",
+  "media-overlay",
+  "media-overlay-foreground",
+];
+
+function tokenSection() {
+  const users = new Map();
+  for (const item of registry.items) {
+    if (item.name.endsWith("-fixtures")) continue;
+    for (const key of Object.keys(item.cssVars?.theme ?? {})) {
+      const token = key.replace(/^color-/, "");
+      users.set(token, [...(users.get(token) ?? []), item.name]);
+    }
+  }
+  const tokens = [...new Set([...CONTRACT_TOKENS, ...users.keys()])];
+  const lines = [
+    "| Token | Required by (items that map it) |",
+    "|---|---|",
+    ...tokens.map((t) => {
+      const by = (users.get(t) ?? []).sort();
+      return `| \`--${t}\` | ${by.length ? by.map((n) => `\`${n}\``).join(", ") : "— (utility available; no item maps it yet)"} |`;
+    }),
+  ];
+  return lines.join("\n");
+}
+
+function replaceBetween(file, generated, start = START, end = END, label = `catalog (${items.length} components)`) {
   const p = path.join(root, file);
   const src = fs.readFileSync(p, "utf8");
-  const s = src.indexOf(START);
-  const e = src.indexOf(END);
+  const s = src.indexOf(start);
+  const e = src.indexOf(end);
   if (s === -1 || e === -1 || e < s) {
     console.error(`✗ ${file}: marker pair not found — cannot regenerate.`);
     process.exitCode = 1;
     return;
   }
   const next =
-    src.slice(0, s + START.length) + "\n" + generated + "\n" + src.slice(e);
+    src.slice(0, s + start.length) + "\n" + generated + "\n" + src.slice(e);
   if (next !== src) {
     fs.writeFileSync(p, next);
-    console.log(`✓ ${file}: catalog regenerated (${items.length} components).`);
+    console.log(`✓ ${file}: ${label} regenerated.`);
   } else {
-    console.log(`✓ ${file}: catalog already current.`);
+    console.log(`✓ ${file}: ${label} already current.`);
   }
 }
 
-replaceBetween("public/llms.txt", llmsSection());
-replaceBetween("README.md", readmeSection());
+const TOKENS_START = "<!-- GENERATED TOKENS — do not edit; run `pnpm build:llms` -->";
+const TOKENS_END = "<!-- END GENERATED TOKENS -->";
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  replaceBetween("public/llms.txt", llmsSection());
+  replaceBetween("README.md", readmeSection());
+  replaceBetween("README.md", tokenSection(), TOKENS_START, TOKENS_END, "contract token table");
+}

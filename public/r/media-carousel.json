@@ -5,9 +5,9 @@
   "author": "ilinxa",
   "description": "Embla image and video carousel — gallery or linear variants, coordinated video pause for inactive slides.",
   "dependencies": [
-    "embla-carousel-react",
-    "embla-carousel",
-    "lucide-react"
+    "embla-carousel-react@^8.6.0",
+    "embla-carousel@^8.6.0",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/video-player",

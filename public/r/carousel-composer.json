@@ -5,10 +5,10 @@
   "author": "ilinxa",
   "description": "Multi-item media post composer — drag in photos and videos, reorder them on a rail, and edit each through a shared editor panel.",
   "dependencies": [
-    "@dnd-kit/core",
-    "@dnd-kit/sortable",
-    "@dnd-kit/utilities",
-    "lucide-react"
+    "@dnd-kit/core@^6.3.1",
+    "@dnd-kit/sortable@^10.0.0",
+    "@dnd-kit/utilities@^3.2.2",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/media-editor",

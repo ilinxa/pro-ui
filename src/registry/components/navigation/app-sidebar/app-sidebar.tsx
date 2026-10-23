@@ -321,6 +321,7 @@ export function AppSidebar(props: AppSidebarProps) {
       }
     };
     document.addEventListener("pointerdown", onPointerDown, true);
+    // keydown-ok: only records why the drawer closed on Escape; never prevents or acts on typing
     document.addEventListener("keydown", onKeyDown, true);
     return () => {
       document.removeEventListener("pointerdown", onPointerDown, true);
@@ -918,8 +919,10 @@ export function AppSidebar(props: AppSidebarProps) {
       : side === "end"
         ? "border-s"
         : cn(
+            // dir-ok: the deprecated `side="left" | "right"` aliases are physical by definition
             side === "left" ? "border-r" : "border-l",
             "rtl:border-x-0",
+            // dir-ok: same deprecated physical aliases, mirrored under rtl
             side === "left" ? "rtl:border-l" : "rtl:border-r",
           );
 

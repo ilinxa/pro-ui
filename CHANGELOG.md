@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The registry a
 ## [Unreleased]
 <!-- /wl -->
 
+### Components
+- `app-sidebar` 0.5.1 — source comments only: two escape notes for the new consumer-contract gate (the deprecated `side="left" | "right"` aliases are physical by definition; the drawer's Escape listener never acts on typing). No behaviour change; bumped so one version always means one file content.
+
+### Registry
+- The consumer contract (C1–C12) is now a build gate: palette colours, physical inline-axis utilities, `{placeholder}` label templates, locale-less formatting, render-time clock reads, hard-coded JSX text and unguarded window keydown listeners fail `registry:build` and `pnpm lint` beyond a checked-in baseline that can only shrink. Rules and escapes: [component guide §19](docs/component-guide.md#19-consumer-contract-c1c12).
+- `globals.css` defines the contract tokens `--brand`, `--success`, `--info` (each with `-foreground`), `--story-ring-from` / `--story-ring-to` and `--media-overlay` / `--media-overlay-foreground`. The README has a generated token table listing which items map each one.
+- Every npm dependency in `registry.json` is pinned to the range pro-ui installs and tests (`package.json`). The build fails on a bare name or a drifted range. Heavy items (`media-editor`, `rich-text-editor`, `markdown-editor`, `pdf-viewer`, `code-block`, `flow-canvas`) are flagged in `meta.ts`; a new static import or `registryDependencies` edge into one — directly or through an item that already pulls one — fails the build. The existing edges are listed in `scripts/heavy-edges-baseline.json` and close as each component moves to a slot.
+- Test helpers for component authors in `tests/helpers/`: render with `dir` / `locale`, an axe assertion, jsdom stubs (matchMedia, ResizeObserver, IntersectionObserver, layout, Embla, media playback) and `describeContract`, which runs the six consumer-contract checks; `expandable-text` is the reference.
+- New components scaffold with a typed `labels` interface, `default<Name>Labels`, a `number | null` count, a `locale` prop and an optimistic `use-controllable-state` hook, each with tests.
+
 ## [2026-10-23] — Social-platform hardening
 
 Every component version from here on has an entry in this file; `pnpm registry:build` fails on a version without one (`scripts/validate-changelog.mjs`). Versions that predate the rule are listed in `scripts/changelog-baseline.json`.

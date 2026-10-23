@@ -31,11 +31,31 @@ A few components rely on extra tokens beyond the canonical set:
 
 | Token group | Required by | Where to copy from |
 |---|---|---|
-| `--chart-1` … `--chart-5` | chart-shell, stat-card, rich-text-editor syntax highlighting | [src/app/globals.css:94-98, 132-136](src/app/globals.css#L94-L98) |
-| `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent`, `--sidebar-border`, `--sidebar-ring` (+ `-foreground` variants) | sidebar / nav surfaces | [src/app/globals.css:100-107, 137-144](src/app/globals.css#L100-L107) |
-| `--warning`, `--warning-foreground` | components with semantic warning state | [src/app/globals.css:86-87, 126-127](src/app/globals.css#L86-L87) |
-| `--xy-*` overrides | flow-canvas only | [src/app/globals.css:224-244](src/app/globals.css#L224-L244) |
-| `.hljs-*` syntax classes | rich-text-editor only | [src/app/globals.css:246-304](src/app/globals.css#L246-L304) |
+| `--chart-1` … `--chart-5` | chart-shell, stat-card, rich-text-editor syntax highlighting | [src/app/globals.css](src/app/globals.css) |
+| `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-accent`, `--sidebar-border`, `--sidebar-ring` (+ `-foreground` variants) | sidebar / nav surfaces | [src/app/globals.css](src/app/globals.css) |
+| `--warning`, `--warning-foreground` | components with semantic warning state | [src/app/globals.css](src/app/globals.css) |
+| `--xy-*` overrides | flow-canvas only | [src/app/globals.css](src/app/globals.css) |
+| `.hljs-*` syntax classes | rich-text-editor only | [src/app/globals.css](src/app/globals.css) |
+
+**Consumer-contract tokens.** Components use only semantic tokens (rule C1). Define these in your theme with your own values. Every item that needs one also ships a `cssVars.theme` mapping with a `var()` fallback, so it renders before you do. This site's values are in [src/app/globals.css](src/app/globals.css).
+
+<!-- GENERATED TOKENS — do not edit; run `pnpm build:llms` -->
+| Token | Required by (items that map it) |
+|---|---|
+| `--brand` | `app-sidebar` |
+| `--brand-foreground` | `app-sidebar` |
+| `--success` | `app-sidebar` |
+| `--success-foreground` | — (utility available; no item maps it yet) |
+| `--warning` | `app-sidebar`, `card-tree-node`, `event-card` |
+| `--warning-foreground` | `event-card` |
+| `--info` | — (utility available; no item maps it yet) |
+| `--info-foreground` | — (utility available; no item maps it yet) |
+| `--destructive-foreground` | `app-sidebar`, `event-card`, `file-manager`, `file-tree`, `media-editor`, `split-workspace` |
+| `--story-ring-from` | `story-rail` |
+| `--story-ring-to` | `story-rail` |
+| `--media-overlay` | — (utility available; no item maps it yet) |
+| `--media-overlay-foreground` | — (utility available; no item maps it yet) |
+<!-- END GENERATED TOKENS -->
 
 You **don't** need to copy the brand *values* — keep your own `--primary`, `--background`, etc. Every ilinxa component reads tokens by name, so it inherits whatever palette the host ships. The brand identity (signal-lime + cool off-white + graphite-cool dark) is only authoritative on this demo site.
 

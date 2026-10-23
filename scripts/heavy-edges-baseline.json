@@ -1,0 +1,140 @@
+[
+  {
+    "from": "json-form",
+    "to": "rich-text-editor",
+    "via": "registryDependencies",
+    "owner": "Part 3 json-form loop — reach rich-text-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "json-form",
+    "to": "rich-text-editor",
+    "via": "static import",
+    "owner": "Part 3 json-form loop — reach rich-text-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "story-composer",
+    "to": "media-editor",
+    "via": "registryDependencies",
+    "owner": "Part 3 story-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "story-composer",
+    "to": "media-editor-capture",
+    "via": "registryDependencies",
+    "owner": "Part 3 story-composer loop — reach media-editor-capture through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "rich-text-editor",
+    "via": "registryDependencies",
+    "owner": "Part 3 content-composer loop — reach rich-text-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "media-editor",
+    "via": "registryDependencies",
+    "owner": "Part 3 content-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "media-editor-capture",
+    "via": "registryDependencies",
+    "owner": "Part 3 content-composer loop — reach media-editor-capture through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "rich-text-editor",
+    "via": "static import",
+    "owner": "Part 3 content-composer loop — reach rich-text-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "media-editor",
+    "via": "static import",
+    "owner": "Part 3 content-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "carousel-composer",
+    "to": "media-editor",
+    "via": "registryDependencies",
+    "owner": "Part 3 carousel-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "carousel-composer",
+    "to": "media-editor",
+    "via": "static import",
+    "owner": "Part 3 carousel-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "media-library",
+    "to": "pdf-viewer",
+    "via": "registryDependencies",
+    "owner": "Part 3 media-library loop — reach pdf-viewer through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "media-library",
+    "to": "markdown-editor",
+    "via": "registryDependencies",
+    "owner": "Part 3 media-library loop — reach markdown-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "media-library",
+    "to": "markdown-editor",
+    "via": "static import",
+    "owner": "Part 3 media-library loop — reach markdown-editor through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "json-form",
+    "to": "code-block",
+    "via": "registryDependencies",
+    "owner": "next json-form loop — reach code-block through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "json-form",
+    "to": "code-block",
+    "via": "static import",
+    "owner": "next json-form loop — reach code-block through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "card-tree-node",
+    "to": "flow-canvas",
+    "via": "registryDependencies",
+    "owner": "next card-tree-node loop — reach flow-canvas through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "json-form",
+    "via": "registryDependencies",
+    "owner": "next content-composer loop — reach json-form through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "carousel-composer",
+    "via": "registryDependencies",
+    "owner": "next content-composer loop — reach carousel-composer through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "json-form",
+    "via": "static import",
+    "owner": "next content-composer loop — reach json-form through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "content-composer",
+    "to": "carousel-composer",
+    "via": "static import",
+    "owner": "next content-composer loop — reach carousel-composer through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "media-library",
+    "to": "code-block",
+    "via": "registryDependencies",
+    "owner": "next media-library loop — reach code-block through a slot / optional feature slice (locked decision 5)"
+  },
+  {
+    "from": "media-library",
+    "to": "code-block",
+    "via": "static import",
+    "owner": "next media-library loop — reach code-block through a slot / optional feature slice (locked decision 5)"
+  }
+]

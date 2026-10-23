@@ -56,6 +56,12 @@
   --color-success: var(--success, oklch(0.65 0.15 150));
   --color-brand: var(--brand, var(--primary));
   --color-brand-foreground: var(--brand-foreground, var(--primary-foreground));
+  /* consumer-contract tokens (C1) without a registry consumer yet — mapped so the utilities exist */
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-media-overlay: var(--media-overlay);
+  --color-media-overlay-foreground: var(--media-overlay-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -96,6 +102,17 @@
   --destructive-foreground: oklch(0.985 0 0); /* near-white on destructive */
   --warning: oklch(0.78 0.16 75); /* amber — semantic warning, hue between yellow and orange */
   --warning-foreground: oklch(0.18 0 0); /* near-black on amber (parallels primary-foreground) */
+  /* consumer-contract tokens (C1) — this site's values; consumers keep their own */
+  --brand: oklch(0.8 0.2 132); /* = signal-lime; distinct from the neutral --accent */
+  --brand-foreground: oklch(0.18 0 0);
+  --success: oklch(0.65 0.15 150);
+  --success-foreground: oklch(0.18 0 0); /* near-black: ≈6:1 on this green; white is ≈3:1 and fails AA */
+  --info: oklch(0.62 0.15 245);
+  --info-foreground: oklch(0.18 0 0);
+  --story-ring-from: oklch(0.78 0.16 75); /* = --warning: the unread ring keeps today's amber → red */
+  --story-ring-to: oklch(0.577 0.245 27.325); /* = --destructive */
+  --media-overlay: oklch(0 0 0 / 0.55); /* scrim over photos / video (decision 3) */
+  --media-overlay-foreground: oklch(1 0 0);
   --border: oklch(0.91 0.003 250);
   --input: oklch(0.91 0.003 250);
   --ring: oklch(0.8 0.2 132); /* signal-lime */
@@ -137,6 +154,16 @@
   --destructive-foreground: oklch(0.13 0 0); /* near-black on the lifted dark red (white fails AA here) */
   --warning: oklch(0.82 0.15 75); /* lifted L for graphite background */
   --warning-foreground: oklch(0.13 0 0); /* near-black on amber */
+  --brand: oklch(0.86 0.18 132); /* = dark signal-lime */
+  --brand-foreground: oklch(0.13 0 0);
+  --success: oklch(0.65 0.15 150); /* = the value app-sidebar rendered before (its cssVars fallback) */
+  --success-foreground: oklch(0.13 0 0);
+  --info: oklch(0.72 0.13 245);
+  --info-foreground: oklch(0.13 0 0);
+  --story-ring-from: oklch(0.82 0.15 75); /* = dark --warning */
+  --story-ring-to: oklch(0.704 0.191 22.216); /* = dark --destructive */
+  --media-overlay: oklch(0 0 0 / 0.55);
+  --media-overlay-foreground: oklch(1 0 0);
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.86 0.18 132); /* signal-lime */

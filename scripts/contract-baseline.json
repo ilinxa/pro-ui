@@ -1,0 +1,1972 @@
+{
+  "closed": [
+    "story-rail",
+    "app-sidebar"
+  ],
+  "rules": {
+    "palette": {
+      "src/registry/components/code/code-block/parts/code-block-annotation-marker.tsx": [
+        "dark:text-amber-400",
+        "dark:text-blue-400",
+        "text-amber-500",
+        "text-blue-500"
+      ],
+      "src/registry/components/code/code-block/parts/code-block-traffic-lights.tsx": [
+        "bg-[oklch(0.78_0.16_145)]",
+        "bg-[oklch(0.78_0.16_25)]",
+        "bg-[oklch(0.84_0.15_85)]"
+      ],
+      "src/registry/components/data/blackboard/parts/blackboard-background-editor.tsx": [
+        "bg-[oklch(0.22_0.02_250)]"
+      ],
+      "src/registry/components/data/blackboard/parts/handwritten-note.tsx": [
+        "text-[oklch(0.66_0.19_22)]"
+      ],
+      "src/registry/components/data/blackboard/parts/mention-picker.tsx": [
+        "bg-[oklch(0.22_0.02_250)]"
+      ],
+      "src/registry/components/data/card-tree/parts/match-highlight.tsx": [
+        "bg-amber-200/70",
+        "bg-amber-400",
+        "dark:bg-amber-400/80",
+        "dark:bg-amber-500/30"
+      ],
+      "src/registry/components/data/news-card/parts/content-sensitive-gate.tsx": [
+        "dark:text-amber-400",
+        "dark:text-amber-400",
+        "text-amber-600",
+        "text-amber-600"
+      ],
+      "src/registry/components/data/news-card/parts/live-update-line.tsx": [
+        "bg-red-500"
+      ],
+      "src/registry/components/data/news-card/parts/news-badges.tsx": [
+        "bg-amber-500",
+        "bg-red-500",
+        "bg-red-600",
+        "ring-red-700/40",
+        "ring-red-700/40",
+        "shadow-amber-950/20",
+        "shadow-red-950/30",
+        "shadow-red-950/30",
+        "text-amber-950"
+      ],
+      "src/registry/components/data/news-card/parts/status-badge.tsx": [
+        "bg-amber-500",
+        "ring-amber-700/40",
+        "text-amber-950"
+      ],
+      "src/registry/components/data/task-card/parts/card.tsx": [
+        "bg-emerald-500/15",
+        "bg-rose-500/15",
+        "dark:bg-emerald-950/45",
+        "dark:bg-rose-950/70"
+      ],
+      "src/registry/components/data/task-card/parts/status-badge.tsx": [
+        "bg-emerald-600",
+        "bg-rose-600",
+        "hover:bg-emerald-600/90",
+        "hover:bg-rose-600/90"
+      ],
+      "src/registry/components/forms/signup-form/parts/strength-meter.tsx": [
+        "bg-amber-500"
+      ],
+      "src/registry/components/media/media-editor/features/capture/parts/camera-permission-prompt.tsx": [
+        "text-amber-400"
+      ],
+      "src/registry/components/media/media-editor/features/capture/parts/editor-camera.tsx": [
+        "bg-red-500"
+      ],
+      "src/registry/components/media/media-editor/features/capture/parts/shutter-button.tsx": [
+        "bg-red-500",
+        "bg-red-500"
+      ],
+      "src/registry/components/media/media-editor/parts/tool-text-input.tsx": [
+        "hover:bg-red-500/15",
+        "hover:text-red-200",
+        "text-red-300"
+      ],
+      "src/registry/components/media/media-library/parts/file-visuals.tsx": [
+        "bg-orange-500/15",
+        "bg-red-500/15",
+        "bg-sky-500/15",
+        "bg-sky-500/15",
+        "bg-sky-500/15",
+        "bg-slate-500/15",
+        "bg-violet-500/15",
+        "dark:text-orange-300",
+        "dark:text-red-300",
+        "dark:text-sky-300",
+        "dark:text-sky-300",
+        "dark:text-sky-300",
+        "dark:text-slate-300",
+        "dark:text-violet-300",
+        "ring-orange-500/25",
+        "ring-red-500/25",
+        "ring-sky-500/25",
+        "ring-sky-500/25",
+        "ring-sky-500/25",
+        "ring-slate-500/25",
+        "ring-violet-500/25",
+        "text-orange-700",
+        "text-red-700",
+        "text-sky-700",
+        "text-sky-700",
+        "text-sky-700",
+        "text-slate-700",
+        "text-violet-700"
+      ],
+      "src/registry/components/media/media-library/parts/type-filters.tsx": [
+        "bg-orange-500",
+        "bg-red-500",
+        "bg-sky-500",
+        "bg-violet-500"
+      ],
+      "src/registry/components/media/story-composer/parts/publishing-progress-overlay.tsx": [
+        "text-amber-400"
+      ],
+      "src/registry/components/media/story-viewer/story-viewer.tsx": [
+        "text-rose-400"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-item.tsx": [
+        "dark:text-amber-400",
+        "dark:text-amber-400",
+        "text-amber-600",
+        "text-amber-600"
+      ],
+      "src/registry/components/navigation/file-tree/parts/file-tree-row.tsx": [
+        "dark:text-amber-400",
+        "text-amber-600"
+      ]
+    },
+    "physical": {
+      "src/registry/components/code/code-block/parts/code-block-body-terminal.tsx": [
+        "ml-0.5"
+      ],
+      "src/registry/components/code/code-block/parts/code-block-body-view.tsx": [
+        "-ml-1",
+        "left-0",
+        "pl-1"
+      ],
+      "src/registry/components/code/code-block/parts/code-block-header.tsx": [
+        "mr-1"
+      ],
+      "src/registry/components/code/code-block/parts/code-block-line-numbers.tsx": [
+        "pl-3",
+        "pr-3",
+        "text-right"
+      ],
+      "src/registry/components/data/blackboard/parts/blackboard-background-editor.tsx": [
+        "left-0",
+        "left-2"
+      ],
+      "src/registry/components/data/blackboard/parts/blackboard-notification-badge.tsx": [
+        "right-2"
+      ],
+      "src/registry/components/data/blackboard/parts/handwritten-note.tsx": [
+        "right-1"
+      ],
+      "src/registry/components/data/blackboard/parts/ink-color-picker.tsx": [
+        "ml-0.5"
+      ],
+      "src/registry/components/data/blackboard/parts/note-composer.tsx": [
+        "left-3"
+      ],
+      "src/registry/components/data/card-tree-node/parts/card-tree-viewer.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/data/card-tree-node/parts/flat-field-strip.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/data/card-tree-node/parts/port-editor-row.tsx": [
+        "pr-6",
+        "right-1.5"
+      ],
+      "src/registry/components/data/card-tree-node/parts/subcard-block.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/data/card-tree/parts/bulk-toolbar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/data/card-tree/parts/card-actions.tsx": [
+        "text-left",
+        "text-left",
+        "text-left"
+      ],
+      "src/registry/components/data/card-tree/parts/card.tsx": [
+        "right-1",
+        "text-left"
+      ],
+      "src/registry/components/data/card-tree/parts/field-add.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/data/card-tree/parts/field-edit.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/data/card-tree/parts/meta-edit.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-add-menu.tsx": [
+        "text-left",
+        "text-left"
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-table.tsx": [
+        "text-left",
+        "text-right"
+      ],
+      "src/registry/components/data/card-tree/parts/search-bar.tsx": [
+        "border-l",
+        "pl-1"
+      ],
+      "src/registry/components/data/comment-thread/parts/comment-composer.tsx": [
+        "pr-10",
+        "right-1"
+      ],
+      "src/registry/components/data/comment-thread/parts/comment-kebab.tsx": [
+        "mr-2"
+      ],
+      "src/registry/components/data/comment-thread/parts/comment-node.tsx": [
+        "ml-10"
+      ],
+      "src/registry/components/data/data-table/data-table.tsx": [
+        "text-right",
+        "text-right"
+      ],
+      "src/registry/components/data/engagement-bar/parts/like-action.tsx": [
+        "pr-2"
+      ],
+      "src/registry/components/data/engagement-bar/parts/reaction-action.tsx": [
+        "pr-2"
+      ],
+      "src/registry/components/data/engagement-bar/parts/share-menu.tsx": [
+        "left-2",
+        "pl-8",
+        "text-left"
+      ],
+      "src/registry/components/data/event-calendar/event-calendar.tsx": [
+        "border-r",
+        "border-r"
+      ],
+      "src/registry/components/data/event-calendar/features/editing/lib/time-grid-gestures.tsx": [
+        "border-l",
+        "first:border-l-0"
+      ],
+      "src/registry/components/data/event-calendar/features/editing/parts/calendar-edit-affordances.tsx": [
+        "left-0",
+        "right-0"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-agenda-view.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-event.tsx": [
+        "border-l-2",
+        "border-l-2",
+        "border-l-2",
+        "mr-1",
+        "rounded-l-none",
+        "rounded-l-sm",
+        "rounded-r-none",
+        "rounded-r-sm",
+        "text-left",
+        "text-left",
+        "text-left"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-month-view.tsx": [
+        "border-r",
+        "border-r",
+        "last:border-r-0",
+        "last:border-r-0",
+        "text-left",
+        "text-left"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-time-grid.tsx": [
+        "border-l",
+        "border-l",
+        "border-l",
+        "first:border-l-0",
+        "pr-1.5",
+        "right-1.5"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-toolbar.tsx": [
+        "ml-1"
+      ],
+      "src/registry/components/data/event-card/parts/compact.tsx": [
+        "mr-1"
+      ],
+      "src/registry/components/data/event-card/parts/feed.tsx": [
+        "mr-1.5"
+      ],
+      "src/registry/components/data/event-card/parts/grid.tsx": [
+        "left-4",
+        "left-4",
+        "left-4",
+        "mr-1.5",
+        "right-4",
+        "right-4",
+        "right-4"
+      ],
+      "src/registry/components/data/event-card/parts/list.tsx": [
+        "border-l-4",
+        "border-l-primary",
+        "mr-1"
+      ],
+      "src/registry/components/data/flow-canvas/parts/custom-json-node.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/data/flow-canvas/parts/node-shell.tsx": [
+        "-right-1"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-bars.tsx": [
+        "left-0",
+        "left-0",
+        "left-0",
+        "right-0",
+        "right-0",
+        "right-0",
+        "right-1",
+        "rounded-l-[5px]",
+        "rounded-l-[5px]",
+        "rounded-r-[5px]",
+        "rounded-r-[5px]"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-axis.tsx": [
+        "border-r",
+        "border-r",
+        "border-r"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-gutter.tsx": [
+        "-ml-1",
+        "border-r",
+        "ml-auto",
+        "ml-auto",
+        "pr-2"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-skeleton.tsx": [
+        "border-r",
+        "border-r"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-toolbar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/data/kanban-board/parts/column-collapsed.tsx": [
+        "border-l-2"
+      ],
+      "src/registry/components/data/kanban-board/parts/column.tsx": [
+        "border-l-4",
+        "border-r"
+      ],
+      "src/registry/components/data/kanban-board/parts/item-shell.tsx": [
+        "left-0.5",
+        "right-1"
+      ],
+      "src/registry/components/data/kanban-board/parts/kanban-card.tsx": [
+        "ml-2"
+      ],
+      "src/registry/components/data/kanban-board/parts/kanban-note.tsx": [
+        "border-l-2",
+        "border-l-2",
+        "border-r",
+        "border-r"
+      ],
+      "src/registry/components/data/news-card/parts/featured.tsx": [
+        "left-2",
+        "ml-auto"
+      ],
+      "src/registry/components/data/news-card/parts/large.tsx": [
+        "left-2"
+      ],
+      "src/registry/components/data/news-card/parts/medium.tsx": [
+        "left-4",
+        "right-2",
+        "right-4"
+      ],
+      "src/registry/components/data/news-card/parts/quoted-article-card.tsx": [
+        "right-2"
+      ],
+      "src/registry/components/data/news-card/parts/small.tsx": [
+        "right-2"
+      ],
+      "src/registry/components/data/post-card/parts/link-preview-card.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/data/post-card/parts/poll-widget.tsx": [
+        "left-0"
+      ],
+      "src/registry/components/data/post-card/parts/post-header.tsx": [
+        "mr-2"
+      ],
+      "src/registry/components/data/project-card/parts/feature.tsx": [
+        "left-3",
+        "mr-1",
+        "mr-1.5",
+        "right-3",
+        "right-3"
+      ],
+      "src/registry/components/data/project-card/parts/grid.tsx": [
+        "left-4",
+        "mr-1.5",
+        "mr-1.5",
+        "right-4",
+        "right-4",
+        "right-4"
+      ],
+      "src/registry/components/data/rich-text-editor/parts/element-renderers.tsx": [
+        "border-l-4",
+        "ml-6",
+        "pl-6",
+        "rounded-r-md",
+        "text-left"
+      ],
+      "src/registry/components/data/rich-text-editor/parts/image-element.tsx": [
+        "right-0"
+      ],
+      "src/registry/components/data/rich-text-editor/static-elements/static-element-renderers.tsx": [
+        "border-l-4",
+        "ml-6",
+        "pl-6",
+        "rounded-r-md",
+        "text-left"
+      ],
+      "src/registry/components/data/task-card/parts/action-menu.tsx": [
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2",
+        "mr-2"
+      ],
+      "src/registry/components/data/task-card/parts/card.tsx": [
+        "rounded-r-md"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-drop-indicator.tsx": [
+        "right-0"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-filter-dropdown.tsx": [
+        "ml-1"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-row-content.tsx": [
+        "pr-2"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-search-input.tsx": [
+        "left-2",
+        "pl-7",
+        "pr-7",
+        "right-0.5"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-sort-dropdown.tsx": [
+        "mr-1"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-status-indicator.tsx": [
+        "left-0",
+        "rounded-l"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-toolbar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/feedback/detail-panel/parts/detail-panel-actions.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/forms/entity-picker/parts/chip.tsx": [
+        "ml-0.5",
+        "pr-0.5"
+      ],
+      "src/registry/components/forms/entity-picker/parts/trigger-button.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/forms/filter-bar/filter-bar.tsx": [
+        "text-left",
+        "text-right"
+      ],
+      "src/registry/components/forms/filter-bar/parts/search-input.tsx": [
+        "left-4",
+        "pl-12"
+      ],
+      "src/registry/components/forms/json-form/parts/error-summary.tsx": [
+        "ml-4"
+      ],
+      "src/registry/components/forms/json-form/parts/field-select.tsx": [
+        "ml-auto",
+        "pr-1"
+      ],
+      "src/registry/components/forms/json-form/parts/field-slider.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/forms/json-form/parts/field-wrapper.tsx": [
+        "ml-0.5"
+      ],
+      "src/registry/components/forms/json-form/parts/json-form-devtools-body.tsx": [
+        "pr-2",
+        "pr-2",
+        "pr-2",
+        "pr-2",
+        "pr-2",
+        "pr-2",
+        "pr-2",
+        "pr-2",
+        "right-4",
+        "right-4",
+        "text-left"
+      ],
+      "src/registry/components/forms/markdown-editor/markdown-editor.tsx": [
+        "@[480px]:border-r"
+      ],
+      "src/registry/components/forms/markdown-editor/parts/preview-pane.tsx": [
+        "[&_blockquote]:border-l-2",
+        "[&_blockquote]:pl-3",
+        "[&_ol]:pl-6",
+        "[&_th]:text-left",
+        "[&_ul]:pl-6"
+      ],
+      "src/registry/components/forms/properties-form/parts/error-summary.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/forms/properties-form/parts/field-number.tsx": [
+        "text-right",
+        "text-right"
+      ],
+      "src/registry/components/gamification/team-feedback-loop/parts/next-task-nudge.tsx": [
+        "ml-auto",
+        "right-4"
+      ],
+      "src/registry/components/gamification/team-quest-log/parts/chapter-beat.tsx": [
+        "text-left",
+        "text-left"
+      ],
+      "src/registry/components/gamification/team-quest-log/parts/team-quest-chapters.tsx": [
+        "left-[13px]"
+      ],
+      "src/registry/components/gamification/team-trophy-shelf/parts/badge-award-overlay.tsx": [
+        "left-1/2"
+      ],
+      "src/registry/components/layout/split-workspace/parts/component-picker.tsx": [
+        "mr-2"
+      ],
+      "src/registry/components/layout/split-workspace/parts/corner-handle.tsx": [
+        "left-0",
+        "left-0",
+        "right-0",
+        "right-0"
+      ],
+      "src/registry/components/layout/split-workspace/parts/split-divider.tsx": [
+        "left-0"
+      ],
+      "src/registry/components/marketing/page-hero/parts/hero-stats.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/media/carousel-composer/parts/main-preview.tsx": [
+        "right-3"
+      ],
+      "src/registry/components/media/carousel-composer/parts/rail-thumb.tsx": [
+        "-right-1.5",
+        "left-0.5",
+        "right-0.5"
+      ],
+      "src/registry/components/media/content-composer/parts/field-tags.tsx": [
+        "pr-1"
+      ],
+      "src/registry/components/media/content-composer/parts/step-indicator.tsx": [
+        "pl-1",
+        "pr-3"
+      ],
+      "src/registry/components/media/media-carousel/parts/carousel-track.tsx": [
+        "left-0",
+        "right-0"
+      ],
+      "src/registry/components/media/media-carousel/parts/nav-buttons.tsx": [
+        "left-2",
+        "right-2"
+      ],
+      "src/registry/components/media/media-editor/media-editor.tsx": [
+        "!left-0",
+        "border-r",
+        "left-3",
+        "md:!left-1/2",
+        "ml-2",
+        "pr-2"
+      ],
+      "src/registry/components/media/media-editor/parts/editor-canvas.tsx": [
+        "left-0",
+        "left-3",
+        "right-0"
+      ],
+      "src/registry/components/media/media-editor/parts/tool-draw-controls.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/media/media-editor/parts/tool-text-input.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/media/media-editor/parts/video-trim-bar.tsx": [
+        "-ml-1.5",
+        "-ml-1.5",
+        "left-0",
+        "right-0"
+      ],
+      "src/registry/components/media/media-library/parts/file-card.tsx": [
+        "left-2"
+      ],
+      "src/registry/components/media/media-library/parts/file-grid.tsx": [
+        "right-2"
+      ],
+      "src/registry/components/media/media-library/parts/library-toolbar.tsx": [
+        "left-2.5",
+        "pl-8"
+      ],
+      "src/registry/components/media/media-library/parts/preview-lightbox.tsx": [
+        "left-3",
+        "pr-12",
+        "right-3"
+      ],
+      "src/registry/components/media/pdf-viewer/parts/pdf-page-indicator.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/media/pdf-viewer/parts/pdf-toolbar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/media/story-composer/parts/composer-publish-bar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/media/story-viewer/parts/engagement-overlay.tsx": [
+        "right-3"
+      ],
+      "src/registry/components/media/story-viewer/parts/kebab-panel.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/media/story-viewer/parts/link-cta.tsx": [
+        "right-3"
+      ],
+      "src/registry/components/media/story-viewer/parts/nav-arrows.tsx": [
+        "left-4",
+        "right-4"
+      ],
+      "src/registry/components/media/story-viewer/parts/owner-overlay.tsx": [
+        "ml-2",
+        "mr-2"
+      ],
+      "src/registry/components/media/story-viewer/parts/reply-composer.tsx": [
+        "pl-4",
+        "pr-16"
+      ],
+      "src/registry/components/media/story-viewer/parts/viewer-header.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/media/story-viewer/story-viewer.tsx": [
+        "right-3"
+      ],
+      "src/registry/components/media/video-player/parts/default-controls.tsx": [
+        "left-3",
+        "right-3"
+      ],
+      "src/registry/components/navigation/account-switcher/parts/switcher-item-row.tsx": [
+        "ml-auto",
+        "text-left"
+      ],
+      "src/registry/components/navigation/account-switcher/parts/switcher-trigger.tsx": [
+        "ml-auto",
+        "text-left"
+      ],
+      "src/registry/components/navigation/file-manager/file-manager.tsx": [
+        "border-l",
+        "border-r"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-icon-size-control.tsx": [
+        "first:rounded-l-lg",
+        "last:rounded-r-lg"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-item.tsx": [
+        "text-right"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-list-view.tsx": [
+        "text-left"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-path-bar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-rename-input.tsx": [
+        "left-0"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-search-input.tsx": [
+        "left-2",
+        "pl-7",
+        "pr-7",
+        "right-2"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-status-bar.tsx": [
+        "ml-auto"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-view-toggle.tsx": [
+        "first:rounded-l-lg",
+        "last:rounded-r-lg"
+      ],
+      "src/registry/components/navigation/file-tree/parts/file-tree-header.tsx": [
+        "ml-auto",
+        "pl-3",
+        "pr-1"
+      ],
+      "src/registry/components/navigation/file-tree/parts/file-tree-rename-input.tsx": [
+        "left-0"
+      ]
+    },
+    "template-fill": {
+      "src/registry/components/data/engagement-bar/parts/likers-strip.tsx": [
+        "replace(\"{count}\")"
+      ],
+      "src/registry/components/data/news-card/parts/content-sensitive-gate.tsx": [
+        "replace(\"{warnings}\")"
+      ],
+      "src/registry/components/data/news-card/parts/live-update-line.tsx": [
+        "replace(\"{count}\")",
+        "replace(\"{time}\")"
+      ],
+      "src/registry/components/data/news-card/parts/news-engagement-counts.tsx": [
+        "replace(\"{count}\")",
+        "replace(\"{count}\")",
+        "replace(\"{count}\")",
+        "replace(\"{count}\")"
+      ],
+      "src/registry/components/data/news-card/parts/sponsor-badge.tsx": [
+        "replace(\"{name}\")"
+      ],
+      "src/registry/components/data/post-card/parts/poll-widget.tsx": [
+        "replace(\"{count}\")",
+        "replace(\"{time}\")"
+      ],
+      "src/registry/components/forms/signup-form/hooks/use-strength-meter.ts": [
+        "replace(\"{level}\")"
+      ],
+      "src/registry/components/forms/signup-form/lib/build-schema.ts": [
+        "replace(\"{min}\")"
+      ],
+      "src/registry/components/forms/signup-form/lib/oauth-providers.ts": [
+        "replace(\"{provider}\")"
+      ],
+      "src/registry/components/forms/signup-form/parts/step-indicator.tsx": [
+        "replace(\"{current}\")",
+        "replace(\"{total}\")"
+      ],
+      "src/registry/components/marketing/pricing-table/parts/format.ts": [
+        "replace(\"{amount}\")"
+      ],
+      "src/registry/components/media/carousel-composer/carousel-composer.tsx": [
+        "replace(\"{max}\")"
+      ],
+      "src/registry/components/media/carousel-composer/parts/media-dropzone.tsx": [
+        "replace(\"{max}\")"
+      ],
+      "src/registry/components/media/carousel-composer/parts/rail-thumb.tsx": [
+        "replace(\"{kind}\")",
+        "replace(\"{n}\")",
+        "replace(\"{total}\")"
+      ],
+      "src/registry/components/media/media-carousel/parts/carousel-track.tsx": [
+        "replace(\"{index}\")",
+        "replace(\"{total}\")"
+      ],
+      "src/registry/components/media/media-library/parts/file-grid.tsx": [
+        "replace(\"{kind}\")",
+        "replace(\"{name}\")"
+      ],
+      "src/registry/components/media/media-library/parts/folder-row.tsx": [
+        "replace(\"{kind}\")",
+        "replace(\"{name}\")"
+      ]
+    },
+    "intl": {
+      "src/registry/components/data/blackboard/parts/handwritten-note.tsx": [
+        "toLocaleString() without a locale"
+      ],
+      "src/registry/components/data/card-tree-node/lib/format-value.ts": [
+        "Intl.DateTimeFormat(undefined…)",
+        "Intl.NumberFormat(undefined…)",
+        "module-scope new Intl.DateTimeFormat",
+        "module-scope new Intl.NumberFormat"
+      ],
+      "src/registry/components/data/card-tree/parts/field-row.tsx": [
+        "Intl.DateTimeFormat(undefined…)"
+      ],
+      "src/registry/components/data/event-card/lib/format-default.ts": [
+        "Intl.PluralRules(\"en\")",
+        "module-scope new Intl.PluralRules"
+      ],
+      "src/registry/components/data/gantt-timeline/lib/time-scale.ts": [
+        "Intl.DateTimeFormat(undefined…)"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-bars.tsx": [
+        "Intl.DateTimeFormat(undefined…)"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-quick-composer.tsx": [
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-body.tsx": [
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-gutter.tsx": [
+        "toLocaleDateString() without a locale",
+        "toLocaleDateString() without a locale"
+      ],
+      "src/registry/components/data/news-card/lib/format-default.ts": [
+        "toLocaleDateString() without a locale"
+      ],
+      "src/registry/components/data/post-card/parts/edited-suffix.tsx": [
+        "toLocaleString() without a locale"
+      ],
+      "src/registry/components/data/registration-card/lib/format-default.ts": [
+        "Intl.PluralRules(\"en\")",
+        "module-scope new Intl.PluralRules"
+      ],
+      "src/registry/components/data/stat-card/lib/format-default.ts": [
+        "Intl.NumberFormat(undefined…)",
+        "module-scope new Intl.NumberFormat"
+      ],
+      "src/registry/components/data/task-card/lib/time.ts": [
+        "Intl.DateTimeFormat(undefined…)",
+        "Intl.RelativeTimeFormat(undefined…)"
+      ],
+      "src/registry/components/forms/filter-bar/lib/format-default.ts": [
+        "Intl.DateTimeFormat(undefined…)",
+        "Intl.DateTimeFormat(undefined…)",
+        "module-scope new Intl.DateTimeFormat",
+        "module-scope new Intl.DateTimeFormat"
+      ],
+      "src/registry/components/media/story-viewer/lib/format-time.ts": [
+        "Intl.DateTimeFormat(undefined…)"
+      ],
+      "src/registry/components/media/story-viewer/types.ts": [
+        "Intl.DateTimeFormat(undefined…)"
+      ],
+      "src/registry/components/navigation/file-manager/lib/format.ts": [
+        "Intl.DateTimeFormat(undefined…)",
+        "module-scope new Intl.DateTimeFormat"
+      ]
+    },
+    "clock": {
+      "src/registry/components/data/blackboard/hooks/use-blackboard-state.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/card-tree/card-tree.tsx": [
+        "Date.now()",
+        "new Date()"
+      ],
+      "src/registry/components/data/card-tree/lib/reducer.ts": [
+        "Date.now()"
+      ],
+      "src/registry/components/data/card-tree/parts/field-add.tsx": [
+        "new Date()"
+      ],
+      "src/registry/components/data/comment-thread/comment-thread.tsx": [
+        "Date.now()"
+      ],
+      "src/registry/components/data/comment-thread/lib/format-time.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/comment-thread/parts/comment-node.tsx": [
+        "new Date()"
+      ],
+      "src/registry/components/data/event-calendar/hooks/use-calendar-cursor.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/event-card/lib/event-status.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/event-card/lib/format-default.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/news-card/hooks/use-relative-time.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/post-card/parts/poll-widget.tsx": [
+        "new Date()"
+      ],
+      "src/registry/components/data/post-card/post-card.tsx": [
+        "new Date()",
+        "new Date()"
+      ],
+      "src/registry/components/data/progress-timeline/lib/timeline-state.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/task-card/lib/normalize.ts": [
+        "Date.now()",
+        "new Date()",
+        "new Date()"
+      ],
+      "src/registry/components/data/task-card/lib/time.ts": [
+        "new Date()"
+      ],
+      "src/registry/components/data/task-card/parts/kanban-adapter.tsx": [
+        "Date.now()",
+        "new Date()"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-toolbar.tsx": [
+        "Date.now()",
+        "new Date()"
+      ],
+      "src/registry/components/layout/split-workspace/lib/ids.ts": [
+        "Date.now()"
+      ],
+      "src/registry/components/media/content-composer/content-composer.tsx": [
+        "Date.now()"
+      ],
+      "src/registry/components/media/media-editor/features/capture/hooks/use-media-capture.ts": [
+        "Date.now()"
+      ],
+      "src/registry/components/media/media-editor/lib/composite-video.ts": [
+        "Date.now()",
+        "Date.now()"
+      ],
+      "src/registry/components/media/media-editor/media-editor.tsx": [
+        "Date.now()"
+      ],
+      "src/registry/components/media/media-library/lib/format.ts": [
+        "Date.now()"
+      ]
+    },
+    "jsx-literal": {
+      "src/registry/components/code/code-block/parts/code-block-collapse-fade.tsx": [
+        "child: ( more lines)"
+      ],
+      "src/registry/components/code/code-block/parts/code-block-expand-modal.tsx": [
+        "child: Code"
+      ],
+      "src/registry/components/data/blackboard/parts/blackboard-note-stream.tsx": [
+        "aria-label=\"Board notes\""
+      ],
+      "src/registry/components/data/blackboard/parts/handwritten-note.tsx": [
+        "· failed"
+      ],
+      "src/registry/components/data/blackboard/parts/ink-color-picker.tsx": [
+        "aria-label=\"Custom ink color\"",
+        "title=\"Custom color\""
+      ],
+      "src/registry/components/data/blackboard/parts/mention-picker.tsx": [
+        "aria-label=\"Mention a teammate\""
+      ],
+      "src/registry/components/data/blackboard/parts/note-composer.tsx": [
+        "aria-label: Close",
+        "aria-label: Post",
+        "aria-label: Write a note",
+        "child: Post",
+        "child: You don't have permission to write here.",
+        "placeholder: Write a note…"
+      ],
+      "src/registry/components/data/card-tree-node/parts/block-strip.tsx": [
+        "aria-label=\"Blocks\"",
+        "title: more block on this card"
+      ],
+      "src/registry/components/data/card-tree-node/parts/card-tree-viewer.tsx": [
+        "aria-label: Card tree:",
+        "child: Untitled card-tree"
+      ],
+      "src/registry/components/data/card-tree-node/parts/port-editor-add-popover.tsx": [
+        "Add",
+        "Add port",
+        "Allow multiple connections",
+        "Cancel",
+        "Direction",
+        "Doc-type ports are forced to the bottom side.",
+        "Label (optional)",
+        "Side",
+        "Type",
+        "add port",
+        "in",
+        "out",
+        "placeholder=\"e.g. response, doc-ref\""
+      ],
+      "src/registry/components/data/card-tree-node/parts/port-editor-row.tsx": [
+        "aria-label: Remove port",
+        "aria-label=\"Rename will affect existing edges\"",
+        "multi",
+        "placeholder=\"label\""
+      ],
+      "src/registry/components/data/card-tree-node/parts/port-editor-strip.tsx": [
+        "No card found at this path.",
+        "Ports",
+        "child: No ports yet. Click + add port to begin.",
+        "child: No ports."
+      ],
+      "src/registry/components/data/card-tree-node/parts/subcard-block.tsx": [
+        "aria-label: Subcard:"
+      ],
+      "src/registry/components/data/card-tree/parts/bulk-toolbar.tsx": [
+        "Set field on all selected",
+        "apply to selected",
+        "aria-label=\"Bulk actions\"",
+        "aria-label=\"Bulk set field across selection\"",
+        "aria-label=\"Clear selection\"",
+        "aria-label=\"Toggle lock on selected cards\"",
+        "boolean",
+        "cards selected",
+        "child: · locked",
+        "date",
+        "delete",
+        "duplicate",
+        "fields",
+        "number",
+        "placeholder: true / false",
+        "placeholder: value",
+        "placeholder=\"key\"",
+        "set field",
+        "string",
+        "toggle lock",
+        "· L",
+        "–L"
+      ],
+      "src/registry/components/data/card-tree/parts/card-actions.tsx": [
+        "Duplicate",
+        "Remove",
+        "Remove (promote children)",
+        "aria-label=\"Card actions\"",
+        "child",
+        "child: (cascade)",
+        "child: Removal denied by permissions.",
+        "child: Root removal disabled (allowRootRemoval=false)."
+      ],
+      "src/registry/components/data/card-tree/parts/card-header.tsx": [
+        "Untitled",
+        "aria-label: Collapse card",
+        "aria-label: Expand card",
+        "aria-label=\"Locked\""
+      ],
+      "src/registry/components/data/card-tree/parts/card-title-edit.tsx": [
+        "aria-label=\"Edit card title\""
+      ],
+      "src/registry/components/data/card-tree/parts/card.tsx": [
+        "aria-label: Edit",
+        "aria-label: Remove"
+      ],
+      "src/registry/components/data/card-tree/parts/drag-handle.tsx": [
+        "aria-label=\"Drag to reorder\""
+      ],
+      "src/registry/components/data/card-tree/parts/empty-tree.tsx": [
+        "Tree is empty.",
+        "add root card"
+      ],
+      "src/registry/components/data/card-tree/parts/field-add.tsx": [
+        "add",
+        "aria-label=\"Cancel add field\"",
+        "aria-label=\"New field date value\"",
+        "aria-label=\"New field key\"",
+        "aria-label=\"New field number value\"",
+        "aria-label=\"New field string value\"",
+        "aria-label=\"New field type\"",
+        "child: false",
+        "child: true",
+        "field",
+        "key",
+        "placeholder=\"field name\"",
+        "placeholder=\"value\"",
+        "value"
+      ],
+      "src/registry/components/data/card-tree/parts/field-edit.tsx": [
+        "(read-only — null fields cannot be edited)",
+        "aria-label=\"Cancel\"",
+        "aria-label=\"Edit boolean value\"",
+        "aria-label=\"Edit date value\"",
+        "aria-label=\"Edit number value\"",
+        "aria-label=\"Edit string value\"",
+        "aria-label=\"Rename field key\"",
+        "aria-label=\"Save\""
+      ],
+      "src/registry/components/data/card-tree/parts/field-row.tsx": [
+        "aria-label: Remove field"
+      ],
+      "src/registry/components/data/card-tree/parts/meta-edit.tsx": [
+        "Meta",
+        "add",
+        "aria-label: Remove meta",
+        "aria-label=\"Add meta entry\"",
+        "aria-label=\"Edit meta value\"",
+        "placeholder=\"key\"",
+        "placeholder=\"value\""
+      ],
+      "src/registry/components/data/card-tree/parts/meta-popover.tsx": [
+        "Meta",
+        "aria-label=\"Show meta information\""
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-add-menu.tsx": [
+        "Add block",
+        "Custom",
+        "block"
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-codearea.tsx": [
+        "child: code"
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-custom.tsx": [
+        "&quot; · no `edit` registered · JSON fallback",
+        "aria-label: Edit (JSON)",
+        "aria-label=\"Cancel edit\"",
+        "custom block &quot;",
+        "custom renderer error",
+        "save"
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-edit.tsx": [
+        "alt",
+        "aria-label=\"Cancel edit\"",
+        "aria-label=\"Code content\"",
+        "aria-label=\"Code format\"",
+        "aria-label=\"Image alt text\"",
+        "aria-label=\"Image src\"",
+        "aria-label=\"List items\"",
+        "aria-label=\"Quote text\"",
+        "aria-label=\"Table JSON\"",
+        "format",
+        "one item per line · empty lines dropped · `true` / `false` / `null` / numbers inferred",
+        "placeholder=\"description\"",
+        "placeholder=\"https://...\"",
+        "save",
+        "src",
+        "table edit (JSON · cell-editor in v0.3)"
+      ],
+      "src/registry/components/data/card-tree/parts/predefined-list.tsx": [
+        "child: false",
+        "child: true"
+      ],
+      "src/registry/components/data/card-tree/parts/search-bar.tsx": [
+        "aria-label=\"Clear search\"",
+        "aria-label=\"Next match\"",
+        "aria-label=\"Previous match\"",
+        "aria-label=\"Search cards\""
+      ],
+      "src/registry/components/data/card-tree/parts/undo-toolbar.tsx": [
+        "aria-label=\"Redo\"",
+        "aria-label=\"Undo / redo\"",
+        "aria-label=\"Undo\"",
+        "title=\"Redo (Cmd/Ctrl+Shift+Z)\"",
+        "title=\"Undo (Cmd/Ctrl+Z)\""
+      ],
+      "src/registry/components/data/comment-thread/parts/comment-kebab.tsx": [
+        "aria-label: Comment actions for"
+      ],
+      "src/registry/components/data/data-table/data-table.tsx": [
+        "child: No records to display."
+      ],
+      "src/registry/components/data/engagement-bar/parts/like-action.tsx": [
+        "aria-label: Show likers",
+        "aria-label: Show likers"
+      ],
+      "src/registry/components/data/event-calendar/features/editing/parts/calendar-context-menu.tsx": [
+        "Copy",
+        "Cut",
+        "Delete",
+        "Edit…",
+        "Priority",
+        "Rename",
+        "Status"
+      ],
+      "src/registry/components/data/event-calendar/features/editing/parts/calendar-edit-affordances.tsx": [
+        "aria-label: Resize end",
+        "aria-label: Resize start"
+      ],
+      "src/registry/components/data/event-calendar/features/editing/parts/calendar-edit-overlays.tsx": [
+        "Cancel",
+        "Done editing",
+        "Loading editor…",
+        "Rename event",
+        "Save",
+        "aria-label=\"Close\"",
+        "label: Edit",
+        "label: Rename"
+      ],
+      "src/registry/components/data/event-calendar/features/editing/parts/calendar-quick-composer.tsx": [
+        "Cancel",
+        "Create",
+        "More options",
+        "aria-label=\"Create event\"",
+        "placeholder=\"Add title\""
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-agenda-view.tsx": [
+        "No events in the next",
+        "aria-label=\"High priority\"",
+        "child: · Today",
+        "days."
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-event-inspector.tsx": [
+        "Click an event to see its details",
+        "Delete",
+        "Edit",
+        "Event details",
+        "No event selected",
+        "Overdue",
+        "aria-label=\"Clear selection\"",
+        "child: and edit it"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-event.tsx": [
+        "aria-label=\"High priority\""
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-month-view.tsx": [
+        "more",
+        "more"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-root.tsx": [
+        "aria-label: Calendar"
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-time-grid.tsx": [
+        "all day",
+        "aria-label=\"Resize end\"",
+        "aria-label=\"Resize start\""
+      ],
+      "src/registry/components/data/event-calendar/parts/calendar-toolbar.tsx": [
+        "Today",
+        "aria-label=\"Calendar view\"",
+        "aria-label=\"Next period\"",
+        "aria-label=\"Previous period\""
+      ],
+      "src/registry/components/data/event-calendar/parts/event-tooltip-full.tsx": [
+        "Loading…"
+      ],
+      "src/registry/components/data/flow-canvas/parts/canvas-context-menu.tsx": [
+        "Add custom node",
+        "Canvas",
+        "Convert to custom-JSON",
+        "Copy as JSON",
+        "Delete",
+        "Delete",
+        "Duplicate",
+        "Edge",
+        "Extract sub-object",
+        "Fit view",
+        "Paste JSON…",
+        "Reset zoom"
+      ],
+      "src/registry/components/data/flow-canvas/parts/canvas.tsx": [
+        "aria-label: Flow canvas"
+      ],
+      "src/registry/components/data/flow-canvas/parts/node-shell.tsx": [
+        "aria-label=\"Locked\"",
+        "title=\"Locked\""
+      ],
+      "src/registry/components/data/flow-canvas/parts/paste-dialog.tsx": [
+        "Add node",
+        "Cancel",
+        "Paste JSON",
+        "Paste a JSON object to spawn it as a node. Unknown shapes render as a custom-JSON node automatically.",
+        "placeholder: {\"__type\":\"prompt\",\"template\":\"Translate to French\"}"
+      ],
+      "src/registry/components/data/gantt-timeline/gantt-timeline.tsx": [
+        "No tasks to schedule",
+        "Pass a",
+        "TaskItem[]",
+        "data",
+        "to",
+        "to render the timeline."
+      ],
+      "src/registry/components/data/gantt-timeline/parts/bar-tooltip-full.tsx": [
+        "Loading…"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-bars.tsx": [
+        "Today"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-context-menu.tsx": [
+        "Add child task",
+        "Add task below",
+        "Copy",
+        "Cut",
+        "Delete",
+        "Edit…",
+        "Priority",
+        "Rename",
+        "Status"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-edit-popover.tsx": [
+        "Done",
+        "Loading editor…",
+        "aria-label: Edit",
+        "aria-label=\"Close editor\""
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-quick-composer.tsx": [
+        "Cancel",
+        "Create",
+        "More options",
+        "aria-label=\"Create task\"",
+        "aria-label=\"Status\"",
+        "placeholder=\"Task name\""
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-gutter.tsx": [
+        "aria-label: Collapse",
+        "aria-label: Expand",
+        "aria-label=\"Add child task\"",
+        "aria-label=\"Delete task\"",
+        "aria-label=\"Drag to reorder\"",
+        "aria-label=\"Task rows\""
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-root.tsx": [
+        "aria-label: Gantt timeline"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-skeleton.tsx": [
+        "aria-label=\"Loading timeline\""
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-timeline-toolbar.tsx": [
+        "Draw",
+        "Fit",
+        "Today",
+        "aria-label=\"Zoom in\"",
+        "aria-label=\"Zoom level\"",
+        "aria-label=\"Zoom out\"",
+        "title=\"Draw mode — drag an empty row to create a task (off = drag to pan)\""
+      ],
+      "src/registry/components/data/kanban-board/kanban-board.tsx": [
+        "kanban-board requires at least one renderer"
+      ],
+      "src/registry/components/data/kanban-board/parts/add-column-button.tsx": [
+        "Add",
+        "Add column",
+        "Cancel",
+        "placeholder=\"Column title\""
+      ],
+      "src/registry/components/data/kanban-board/parts/color-picker.tsx": [
+        "Clear color",
+        "aria-label=\"Pick column color\""
+      ],
+      "src/registry/components/data/kanban-board/parts/column-collapsed.tsx": [
+        "aria-label: Expand column"
+      ],
+      "src/registry/components/data/kanban-board/parts/column-header.tsx": [
+        "Delete column",
+        "Rename column",
+        "aria-label: Collapse column",
+        "aria-label=\"Column menu\""
+      ],
+      "src/registry/components/data/kanban-board/parts/inline-create-editor.tsx": [
+        "Add",
+        "Add",
+        "aria-label: Add item to column"
+      ],
+      "src/registry/components/data/kanban-board/parts/item-shell.tsx": [
+        "Edit",
+        "aria-label=\"Delete item\"",
+        "aria-label=\"Drag to move\"",
+        "aria-label=\"Edit item\"",
+        "drag",
+        "title=\"Drag to move\"",
+        "title=\"Locked\""
+      ],
+      "src/registry/components/data/kanban-board/parts/kanban-card.tsx": [
+        "Cancel",
+        "Save",
+        "placeholder=\"Card title\"",
+        "placeholder=\"Description (optional)\""
+      ],
+      "src/registry/components/data/kanban-board/parts/kanban-note.tsx": [
+        "Cancel",
+        "Save",
+        "placeholder=\"Body (optional)\"",
+        "placeholder=\"Note title\""
+      ],
+      "src/registry/components/data/kanban-board/parts/missing-renderer.tsx": [
+        "Renderer not found"
+      ],
+      "src/registry/components/data/kanban-board/parts/swimlane-cell.tsx": [
+        "Empty"
+      ],
+      "src/registry/components/data/news-card/parts/featured.tsx": [
+        "aria-label: Category:",
+        "aria-label: Category:"
+      ],
+      "src/registry/components/data/news-card/parts/large.tsx": [
+        "aria-label: Category:",
+        "aria-label: Category:"
+      ],
+      "src/registry/components/data/news-card/parts/list.tsx": [
+        "aria-label: Category:",
+        "aria-label: Category:"
+      ],
+      "src/registry/components/data/news-card/parts/medium.tsx": [
+        "aria-label: Category:",
+        "aria-label: Category:"
+      ],
+      "src/registry/components/data/news-card/parts/quoted-article-card.tsx": [
+        "aria-label: Read quoted article:",
+        "aria-label: Read quoted article:"
+      ],
+      "src/registry/components/data/news-card/parts/small.tsx": [
+        "aria-label: Category:",
+        "aria-label: Category:"
+      ],
+      "src/registry/components/data/post-card/parts/list-variant.tsx": [
+        "child: · shares",
+        "comments",
+        "likes ·"
+      ],
+      "src/registry/components/data/post-card/parts/post-header.tsx": [
+        "aria-label=\"Post actions\""
+      ],
+      "src/registry/components/data/rich-text-editor/parts/editor-toolbar.tsx": [
+        "Default font",
+        "Mono",
+        "Sans",
+        "Serif",
+        "Size",
+        "aria-label=\"Font family\"",
+        "aria-label=\"Font size\"",
+        "aria-label=\"Rich text editor toolbar\"",
+        "aria-label=\"Text color\"",
+        "label: Insert bullet list",
+        "label: Insert ordered list",
+        "label=\"Blockquote\"",
+        "label=\"Bold\"",
+        "label=\"Code block\"",
+        "label=\"Heading 1\"",
+        "label=\"Heading 2\"",
+        "label=\"Heading 3\"",
+        "label=\"Highlight\"",
+        "label=\"Inline code\"",
+        "label=\"Insert horizontal rule\"",
+        "label=\"Insert image\"",
+        "label=\"Insert link\"",
+        "label=\"Insert table\"",
+        "label=\"Italic\"",
+        "label=\"Strikethrough\"",
+        "label=\"Subscript\"",
+        "label=\"Superscript\"",
+        "label=\"Underline\"",
+        "title=\"Font family\"",
+        "title=\"Font size\"",
+        "title=\"Text color\""
+      ],
+      "src/registry/components/data/rich-text-editor/parts/element-renderers.tsx": [
+        "(embed)"
+      ],
+      "src/registry/components/data/rich-text-editor/parts/floating-toolbar.tsx": [
+        "aria-label=\"Insert link\"",
+        "aria-label=\"Selection actions\"",
+        "label=\"Bold\"",
+        "label=\"Highlight\"",
+        "label=\"Inline code\"",
+        "label=\"Italic\"",
+        "label=\"Strikethrough\"",
+        "label=\"Underline\"",
+        "title=\"Insert link\""
+      ],
+      "src/registry/components/data/rich-text-editor/parts/image-element.tsx": [
+        "(image)",
+        "aria-label=\"Image caption\"",
+        "aria-label=\"Resize image\"",
+        "placeholder=\"Caption (optional)\""
+      ],
+      "src/registry/components/data/rich-text-editor/rich-text-editor.tsx": [
+        "Press",
+        "to save"
+      ],
+      "src/registry/components/data/rich-text-editor/rich-text-viewer.tsx": [
+        "No content."
+      ],
+      "src/registry/components/data/task-card/parts/action-menu.tsx": [
+        "Activate",
+        "Copy",
+        "Deactivate",
+        "Edit in dialog…",
+        "Lock",
+        "Override color…",
+        "Paste as child",
+        "Remove",
+        "Unlock",
+        "aria-label=\"Card actions\"",
+        "child: Close inline edit",
+        "child: Edit"
+      ],
+      "src/registry/components/data/task-card/parts/card-header.tsx": [
+        "aria-label: Collapse card",
+        "aria-label: Edit",
+        "aria-label: Expand card",
+        "aria-label: Toggle inline edit",
+        "aria-label=\"Active\"",
+        "aria-label=\"Edit in dialog\""
+      ],
+      "src/registry/components/data/task-card/parts/card.tsx": [
+        "Apply",
+        "Auto",
+        "Border color",
+        "Close",
+        "Override the time-engine color for this card. Pick a swatch, paste a CSS color, or reset to let the engine decide.",
+        "aria-label: Children of",
+        "aria-label: Drop zone for",
+        "aria-label: Use color",
+        "placeholder=\"oklch(...) or #hex\"",
+        "title=\"Hand control back to the time-driven auto-color engine\""
+      ],
+      "src/registry/components/data/task-card/parts/edit-inline.tsx": [
+        "Done editing",
+        "aria-label=\"Description\"",
+        "aria-label=\"Name\"",
+        "aria-label=\"Status\"",
+        "aria-label=\"Status\"",
+        "placeholder=\"Description\"",
+        "placeholder=\"Status\"",
+        "placeholder=\"Status\""
+      ],
+      "src/registry/components/data/task-card/parts/edit-popup.tsx": [
+        "Active",
+        "Cancel",
+        "Changes apply when you click Save. Press Escape to discard.",
+        "Description",
+        "Duration (min)",
+        "Edit task",
+        "Expires at",
+        "Name",
+        "Save",
+        "Set at",
+        "Starts at",
+        "Status",
+        "placeholder=\"Select status\"",
+        "placeholder=\"e.g. 30\""
+      ],
+      "src/registry/components/data/task-card/parts/link-chip.tsx": [
+        "title=\"Invalid URL\""
+      ],
+      "src/registry/components/data/task-card/parts/person-chip.tsx": [
+        "(creator)"
+      ],
+      "src/registry/components/data/task-card/parts/status-badge.tsx": [
+        "aria-label: Status: . Click to change"
+      ],
+      "src/registry/components/data/task-card/parts/time-info.tsx": [
+        "Created",
+        "Duration",
+        "Expires",
+        "Starts",
+        "aria-label=\"Show timing details\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-bulk-action-bar.tsx": [
+        "Activate",
+        "Deactivate",
+        "Delete",
+        "Edit",
+        "aria-label: item selected",
+        "aria-label=\"Clear selection\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-checkbox.tsx": [
+        "aria-label: Mark active",
+        "aria-label: Mark inactive"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-chevron.tsx": [
+        "aria-label: Collapse",
+        "aria-label: Expand"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-empty-state.tsx": [
+        "child: Adjust your search or filter to see more rows.",
+        "child: Items added via the tree's imperative API or DnD will appear here.",
+        "child: No matches",
+        "child: No tasks yet"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-filter-active-toggle.tsx": [
+        "aria-label=\"Filter by active state\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-filter-dropdown.tsx": [
+        "Clear status + person",
+        "Filter",
+        "Person",
+        "Status",
+        "aria-label=\"Filter\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-grip.tsx": [
+        "aria-label=\"Drag to move\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-list.tsx": [
+        "aria-label=\"Task tree\"",
+        "aria-label=\"Task tree\"",
+        "aria-label=\"Task tree\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-search-input.tsx": [
+        "aria-label=\"Clear search\"",
+        "aria-label=\"Search todo tree\""
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-sort-dropdown.tsx": [
+        "aria-label=\"Sort\"",
+        "placeholder: Custom",
+        "placeholder: Sort"
+      ],
+      "src/registry/components/data/task-tree/parts/task-tree-toolbar.tsx": [
+        "New",
+        "aria-label=\"Tree controls\""
+      ],
+      "src/registry/components/data/task-tree/task-tree-with-editor.tsx": [
+        "Add task",
+        "Cancel",
+        "child: Edit",
+        "child: Edit task",
+        "child: New task"
+      ],
+      "src/registry/components/data/task-tree/task-tree.tsx": [
+        "aria-label: Task tree"
+      ],
+      "src/registry/components/feedback/detail-panel/parts/detail-panel-error.tsx": [
+        "Try again"
+      ],
+      "src/registry/components/feedback/detail-panel/parts/selection-announcer.tsx": [
+        "Selection changed"
+      ],
+      "src/registry/components/forms/entity-picker/entity-picker.tsx": [
+        "aria-label: Search entities"
+      ],
+      "src/registry/components/forms/entity-picker/parts/chip.tsx": [
+        "aria-label: Remove"
+      ],
+      "src/registry/components/forms/entity-picker/parts/default-empty-state.tsx": [
+        "No results",
+        "Nothing to pick from"
+      ],
+      "src/registry/components/forms/filter-panel/parts/filter-custom.tsx": [
+        "Custom filter crashed — see console."
+      ],
+      "src/registry/components/forms/filter-panel/parts/filter-toggle.tsx": [
+        "child: Off",
+        "child: On"
+      ],
+      "src/registry/components/forms/filter-panel/parts/solo-button.tsx": [
+        "Solo:"
+      ],
+      "src/registry/components/forms/json-form/parts/field-date.tsx": [
+        "child: Pick a date",
+        "child: Pick a date & time",
+        "child: Pick a date range"
+      ],
+      "src/registry/components/forms/json-form/parts/field-fallback.tsx": [
+        "Unknown field type"
+      ],
+      "src/registry/components/forms/json-form/parts/field-rating.tsx": [
+        "aria-label: star"
+      ],
+      "src/registry/components/forms/json-form/parts/field-select.tsx": [
+        "aria-label: Remove",
+        "child: Select…",
+        "placeholder: Select…",
+        "placeholder=\"Search…\""
+      ],
+      "src/registry/components/forms/json-form/parts/json-form-devtools-body.tsx": [
+        "&lt;JsonForm&gt;",
+        "&lt;JsonFormDevtools /&gt;",
+        "&lt;JsonFormProvider&gt;",
+        "Field",
+        "FormSchema (",
+        "No JsonForm context found.",
+        "No conditional fields in this schema.",
+        "No errors. Form is valid.",
+        "Place",
+        "aria-label=\"Close devtools panel\"",
+        "aria-label=\"Close devtools panel\"",
+        "aria-label=\"Open JsonForm devtools panel\"",
+        "enabled",
+        "fields)",
+        "inside a",
+        "json-form devtools",
+        "json-form devtools",
+        "json-form devtools",
+        "or",
+        "required",
+        "tree so the panel can read schema, values, conditionals, and errors.",
+        "v0.2.1",
+        "visible"
+      ],
+      "src/registry/components/forms/markdown-editor/markdown-editor.tsx": [
+        "aria-label: Markdown editor"
+      ],
+      "src/registry/components/forms/markdown-editor/parts/toolbar.tsx": [
+        "aria-label=\"Markdown editor toolbar\""
+      ],
+      "src/registry/components/forms/markdown-editor/parts/view-toggle.tsx": [
+        "Edit",
+        "Preview",
+        "Split"
+      ],
+      "src/registry/components/forms/properties-form/parts/error-summary.tsx": [
+        "child: Please fix the errors below."
+      ],
+      "src/registry/components/forms/properties-form/parts/field-boolean.tsx": [
+        "aria-label=\"No\"",
+        "aria-label=\"Yes\"",
+        "child: No",
+        "child: Yes"
+      ],
+      "src/registry/components/forms/properties-form/parts/field-select.tsx": [
+        "placeholder: Select..."
+      ],
+      "src/registry/components/gamification/team-challenge/parts/team-challenge-header.tsx": [
+        "Active",
+        "Completed together",
+        "Optional"
+      ],
+      "src/registry/components/gamification/team-challenge/parts/team-challenge-progress.tsx": [
+        "aria-label: Team progress: of",
+        "aria-label: progress:"
+      ],
+      "src/registry/components/gamification/team-challenge/parts/team-challenge-reward.tsx": [
+        "child: The team earned:",
+        "child: The team earns:"
+      ],
+      "src/registry/components/gamification/team-challenge/parts/team-member-stack.tsx": [
+        "aria-label: team"
+      ],
+      "src/registry/components/gamification/team-feedback-loop/parts/celebration-overlay.tsx": [
+        "aria-label=\"Dismiss celebration\""
+      ],
+      "src/registry/components/gamification/team-feedback-loop/parts/next-task-nudge.tsx": [
+        "Next up",
+        "Start",
+        "aria-label=\"Dismiss suggestion\"",
+        "aria-label=\"Suggested next task\""
+      ],
+      "src/registry/components/gamification/team-quest-log/parts/chapter-beat.tsx": [
+        "Completed"
+      ],
+      "src/registry/components/gamification/team-quest-log/parts/team-quest-chapters.tsx": [
+        "Your team&apos;s story will appear here as milestones are reached."
+      ],
+      "src/registry/components/gamification/team-quest-log/parts/team-quest-log-root.tsx": [
+        "aria-label: — team quest log"
+      ],
+      "src/registry/components/gamification/team-quest-log/parts/team-quest-name-editor.tsx": [
+        "Name your quest",
+        "aria-label=\"Cancel\"",
+        "aria-label=\"Edit quest name\"",
+        "aria-label=\"Quest name\"",
+        "aria-label=\"Save quest name\"",
+        "placeholder=\"Name your quest…\""
+      ],
+      "src/registry/components/gamification/team-task-claim/parts/assignee-chip.tsx": [
+        "Assigned to",
+        "No teammates to assign.",
+        "placeholder=\"Reassign to…\""
+      ],
+      "src/registry/components/gamification/team-task-claim/team-task-claim.tsx": [
+        "aria-label: Task assignment choice"
+      ],
+      "src/registry/components/gamification/team-trophy-shelf/parts/team-milestone-badge.tsx": [
+        "Earned",
+        "Earned"
+      ],
+      "src/registry/components/gamification/team-trophy-shelf/parts/team-trophy-shelf-empty.tsx": [
+        "Milestones your team completes will land here.",
+        "No trophies yet"
+      ],
+      "src/registry/components/gamification/team-trophy-shelf/parts/team-trophy-shelf-root.tsx": [
+        "aria-label: Team trophies"
+      ],
+      "src/registry/components/layout/split-workspace/parts/area-header.tsx": [
+        "Down",
+        "Left",
+        "Merge with neighbor",
+        "Right",
+        "Split",
+        "Split horizontal",
+        "Split vertical",
+        "Up",
+        "aria-label=\"Area actions\""
+      ],
+      "src/registry/components/layout/split-workspace/parts/area.tsx": [
+        "&quot; not registered",
+        "Component &quot;",
+        "Use the dropdown to pick one from the registry.",
+        "aria-label: Area"
+      ],
+      "src/registry/components/layout/split-workspace/parts/card-stack.tsx": [
+        "&quot; not registered",
+        "Component &quot;",
+        "aria-label: Area"
+      ],
+      "src/registry/components/layout/split-workspace/parts/component-picker.tsx": [
+        "aria-label: Change component (current: )"
+      ],
+      "src/registry/components/layout/split-workspace/parts/split-divider.tsx": [
+        "aria-label: Resize areas (left/right)",
+        "aria-label: Resize areas (up/down)"
+      ],
+      "src/registry/components/marketing/pricing-table/parts/comparison-table.tsx": [
+        "Call to action"
+      ],
+      "src/registry/components/marketing/pricing-table/parts/price-display.tsx": [
+        "aria-label: Was per month"
+      ],
+      "src/registry/components/media/carousel-composer/carousel-composer.tsx": [
+        "aria-label=\"Dismiss\""
+      ],
+      "src/registry/components/media/carousel-composer/parts/media-dropzone.tsx": [
+        "child: Adding media…"
+      ],
+      "src/registry/components/media/content-composer/parts/body-substrate-plaintext.tsx": [
+        "placeholder: Write…"
+      ],
+      "src/registry/components/media/content-composer/parts/body-substrate-plate.tsx": [
+        "placeholder: Write the article…"
+      ],
+      "src/registry/components/media/content-composer/parts/body-substrate.tsx": [
+        "Loading editor…"
+      ],
+      "src/registry/components/media/content-composer/parts/composer-shell.tsx": [
+        "Back",
+        "Next",
+        "aria-label=\"Dismiss\""
+      ],
+      "src/registry/components/media/content-composer/parts/field-author-picker.tsx": [
+        "No author selected",
+        "No authors found.",
+        "Searching…",
+        "child: Select author…",
+        "placeholder=\"Search authors…\""
+      ],
+      "src/registry/components/media/content-composer/parts/field-tags.tsx": [
+        "aria-label: Remove",
+        "placeholder=\"Add tag…\""
+      ],
+      "src/registry/components/media/content-composer/parts/missing-substrate.tsx": [
+        "Substrate not found"
+      ],
+      "src/registry/components/media/content-composer/parts/publish-bar.tsx": [
+        "aria-label=\"Schedule publish time\""
+      ],
+      "src/registry/components/media/content-composer/parts/step-indicator.tsx": [
+        "aria-label=\"Composer steps\""
+      ],
+      "src/registry/components/media/media-carousel/parts/carousel-track.tsx": [
+        "aria-roledescription=\"carousel\"",
+        "aria-roledescription=\"slide\"",
+        "aria-roledescription=\"slide\""
+      ],
+      "src/registry/components/media/media-editor/features/capture/parts/camera-permission-prompt.tsx": [
+        "Camera ready",
+        "Enable camera",
+        "Tap below to enable your camera, or pick a file from the gallery."
+      ],
+      "src/registry/components/media/media-editor/media-editor.tsx": [
+        "Apply",
+        "Apply",
+        "Back",
+        "Cancel",
+        "Connect to camera",
+        "Couldn&apos;t load source",
+        "No capture source available",
+        "No source provided",
+        "Pass",
+        "Pick a mode above, or jump straight to the camera.",
+        "Pick a photo or video from your device.",
+        "aria-label=\"Back to capture\"",
+        "aria-label=\"Media editor: no source provided. Pass initialSource or enable a capture mode.\"",
+        "aspect:",
+        "child: (blank)",
+        "child: (none)",
+        "child: (none)",
+        "child: · attempted",
+        "child: · enabled",
+        "child: · type",
+        "crop aspects)",
+        "enabledModes",
+        "initialSource",
+        "or enable a capture mode in",
+        "· sources:"
+      ],
+      "src/registry/components/media/media-editor/parts/color-swatch-picker.tsx": [
+        "Hex",
+        "aria-label: Color",
+        "placeholder=\"#ffffff\""
+      ],
+      "src/registry/components/media/media-editor/parts/editor-canvas.tsx": [
+        "aria-label: Resize",
+        "aria-label=\"Media editor canvas — arrow keys pan, +/- zoom, 0 resets\"",
+        "aria-label=\"Reset zoom\""
+      ],
+      "src/registry/components/media/media-editor/parts/editor-toolbar.tsx": [
+        "aria-label=\"Edit tools\""
+      ],
+      "src/registry/components/media/media-editor/parts/text-only-canvas.tsx": [
+        "Background"
+      ],
+      "src/registry/components/media/media-editor/parts/tool-text-input.tsx": [
+        "aria-label=\"Delete text\""
+      ],
+      "src/registry/components/media/media-editor/parts/video-trim-bar.tsx": [
+        "s",
+        "s"
+      ],
+      "src/registry/components/media/media-library/parts/breadcrumbs.tsx": [
+        "aria-label=\"Breadcrumb\""
+      ],
+      "src/registry/components/media/pdf-viewer/parts/pdf-action-menu.tsx": [
+        "aria-label: Download",
+        "aria-label: More actions",
+        "aria-label: Print",
+        "aria-label: Rotate"
+      ],
+      "src/registry/components/media/pdf-viewer/parts/pdf-page-indicator.tsx": [
+        "aria-label: Jump to page"
+      ],
+      "src/registry/components/media/pdf-viewer/parts/pdf-page-nav.tsx": [
+        "aria-label: Next page",
+        "aria-label: Previous page"
+      ],
+      "src/registry/components/media/pdf-viewer/parts/pdf-zoom-controls.tsx": [
+        "aria-label: Zoom in",
+        "aria-label: Zoom out"
+      ],
+      "src/registry/components/media/story-viewer/parts/owner-overlay.tsx": [
+        "Loading viewers…",
+        "No viewers yet."
+      ],
+      "src/registry/components/navigation/account-switcher/parts/empty-placeholder.tsx": [
+        "No items available"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-path-bar.tsx": [
+        "aria-label=\"Path\"",
+        "aria-label=\"Path\""
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-rename-input.tsx": [
+        "aria-label: Rename"
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-search-input.tsx": [
+        "aria-label=\"Clear search\""
+      ],
+      "src/registry/components/navigation/file-manager/parts/file-manager-sort-menu.tsx": [
+        "Sort by",
+        "aria-label: Sort by",
+        "title=\"Sort\""
+      ],
+      "src/registry/components/navigation/file-tree/parts/file-tree-rename-input.tsx": [
+        "aria-label: Rename"
+      ],
+      "src/registry/components/navigation/file-tree/parts/file-tree-row.tsx": [
+        "(empty)",
+        "aria-label: Collapse",
+        "aria-label: Expand"
+      ]
+    },
+    "keydown": {
+      "src/registry/components/data/event-calendar/features/editing/parts/calendar-edit-overlays.tsx": [
+        "window.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/data/gantt-timeline/parts/gantt-edit-popover.tsx": [
+        "window.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/forms/json-form/parts/json-form-devtools-body.tsx": [
+        "window.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/gamification/team-feedback-loop/parts/team-feedback-loop-root.tsx": [
+        "document.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/layout/split-workspace/hooks/use-keyboard-actions.ts": [
+        "window.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/media/media-editor/hooks/use-history.ts": [
+        "window.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/media/pdf-viewer/hooks/use-pdf-keyboard.ts": [
+        "document.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/media/pdf-viewer/pdf-viewer.tsx": [
+        "document.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/media/story-viewer/hooks/use-story-keyboard-nav.ts": [
+        "window.addEventListener(\"keydown\")"
+      ],
+      "src/registry/components/media/story-viewer/parts/kebab-panel.tsx": [
+        "window.addEventListener(\"keydown\")"
+      ]
+    }
+  }
+}

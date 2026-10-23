@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Event preview card with six status states and four layouts — capacity-aware badges, overlay links, and soft-failure item handling.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

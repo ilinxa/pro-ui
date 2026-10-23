@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Instagram-style story creation surface — a locked 9:16 wrapper around the media editor.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/media-editor",

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Multi-step content authoring shell — each content type is a JSON config composing form, rich text, and media editing steps.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/json-form",

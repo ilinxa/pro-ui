@@ -25,6 +25,7 @@ A comprehensive, codebase-grounded guide to building pro-components in `ilinxa-u
 16. [Adding a new category](#16-adding-a-new-category)
 17. [Troubleshooting](#17-troubleshooting)
 18. [Reference appendix](#18-reference-appendix)
+19. [Consumer contract (C1–C12)](#19-consumer-contract-c1c12) — labels, formatting, direction, controlled data, keyboard, tests, packaging; enforced by `validate-contract`
 
 ---
 
@@ -651,13 +652,15 @@ className="ring-ring"
 
 ```tsx
 className="bg-white"            // → bg-card or bg-background
-className="bg-black"            // → bg-foreground (inverse) or bg-card in dark mode
+className="bg-black"            // → bg-foreground (inverse) or bg-card in dark mode; over media → bg-media-overlay
 className="bg-gray-50"          // → bg-muted
 className="bg-zinc-900"         // → bg-card
-className="text-white"          // on bg-primary → text-primary-foreground
+className="text-white"          // on bg-primary → text-primary-foreground; over media → text-media-overlay-foreground
 style={{ color: "#888" }}       // → text-muted-foreground
 className="bg-[#bada55]"        // → text-primary or define a token
 ```
+
+**Over photos and video** (scrims, captions on media): use `bg-media-overlay` / `text-media-overlay-foreground`. `bg-black/50` and `text-white` are tolerated there by the build gate (consumer contract C1 allows black and white over media), but new code uses the tokens. Palette and arbitrary colours fail `registry:build` — see [§19](#19-consumer-contract-c1c12).
 
 ### The lime + foreground rule
 
@@ -1585,3 +1588,136 @@ rmdir src/registry/components/<new-category>
 - [.claude/STATUS.md](../.claude/STATUS.md) — live state: components table, roadmap, decisions
 - [README.md](../README.md) — stack and quick start
 - [package.json](../package.json) — installed dependencies
+
+---
+
+## 19. Consumer contract (C1–C12)
+
+Consumers measure each component against these twelve rules. The ilinxa Social Platform first wrote them down, and the library has adopted them as its own. `scripts/validate-contract.mjs` enforces most of them. It runs in `pnpm registry:build` (and so in every deploy) and in `pnpm lint`.
+
+### 19.1 The gate, the baseline and escapes
+
+| Rule | Contract | Fails on (in any shipped file) | Escape (same line or the line above, with a reason) |
+|---|---|---|---|
+| `palette` | C1 | a palette colour (`bg-red-500`, `text-zinc-400/60`) or an arbitrary colour (`bg-[#fff]`, `text-[oklch(…)]`) in any string | `// palette-ok: <reason>` |
+| `physical` | C4 | `ml-`/`mr-`, `pl-`/`pr-`, `left-N`/`right-N`, `text-left`/`text-right`, `rounded-l*`/`rounded-r*`, `border-l`/`border-r`, `float-`/`clear-left/right`, `scroll-ml`/`scroll-pl`, and so on. Centring (`left-1/2 -translate-x-1/2`) and `left-N right-N` pairs pass | `// dir-ok: <reason>` |
+| `template-fill` | C2 | `.replace("{…")` / `.replaceAll("{…")` | — |
+| `intl` | C3 | `Intl.X(undefined`, a module-scope `new Intl.*`, `toLocaleString()` / `toLocaleDateString()` / `toLocaleTimeString()` with no locale, `Intl.PluralRules("en")` | — |
+| `clock` | C3 | a zero-argument `new Date()` / `Date.now()` outside an effect, `useCallback`, a JSX `on*` handler, a `handle*`/`on*` function, or a timer / listener callback | `// now-ok: <reason>` |
+| `jsx-literal` | C2 | a JSX text child containing a letter, or a literal in `aria-label`, `aria-description`, `aria-roledescription`, `aria-valuetext`, `title`, `placeholder`, `alt` or `label` (including the branches of `? :` / `&&` / `\|\|` / `??`) | `// literal-ok: <reason>` |
+| `keydown` | C9 | `window` / `document` `.addEventListener("keydown", …)` outside a `use-global-keydown` hook | `// keydown-ok: <reason>` |
+
+Classes are read from **every** string and template literal, not only `className` and `cn()`, so class maps and `cva` variants are covered. Demos, usage pages, `meta.ts`, tests and fixtures data are not shipped, so they are not checked.
+
+**Baseline.** `scripts/contract-baseline.json` holds, per rule and per file, the count of violations present when the rule landed (2026-10-24).
+- A file over its count fails. So does a file with violations and no row.
+- A file *under* its count also fails, until you record the progress:
+
+```bash
+node scripts/validate-contract.mjs --update-baseline   # lowers counts to current; never raises one
+node scripts/validate-contract.mjs --report            # per-rule totals
+```
+
+When a component finishes its consumer-hardening loop, fix its remaining rows and add its slug to `closed` in the baseline file. A closed component may never have a row again.
+
+An escape comment is for code that is correct as written, such as a deprecated physical alias or an ID seed. It is never a way to defer a fix.
+
+### 19.2 C1 — Tokens
+
+Use semantic tokens only.
+- **The contract tokens:** `--brand`, `--success`, `--warning`, `--info` and their `-foreground`s, `--destructive-foreground`, `--story-ring-from` / `--story-ring-to`, and `--media-overlay` / `--media-overlay-foreground`.
+- They are defined in [`src/app/globals.css`](../src/app/globals.css). The README's generated token table lists each one with the items that map it.
+- A component that needs a token beyond the shadcn set ships a `cssVars.theme` mapping with a `var()` fallback. Never `light` / `dark` values (`validate:registry-tokens`, §11.5).
+
+For black and white over media, see §8.
+
+### 19.3 C2 — Labels
+
+Every user-facing string — visible text, `aria-label`, `title`, `placeholder`, default `alt`, toast and error text — comes from a typed `labels` prop. The scaffold starts you with it:
+
+```ts
+// types.ts
+export interface StatCardLabels {
+  trendUp: string;
+  itemCount: (count: number) => string; // a string with a value is a function; plurals live inside it
+}
+export type StatCardLabelsInput = Partial<StatCardLabels>;
+
+// stat-card.tsx
+export const defaultStatCardLabels: StatCardLabels = {
+  trendUp: "Up",
+  itemCount: (n) => (n === 1 ? "1 item" : `${n} items`),
+};
+// merged over the defaults in a useMemo; an `undefined` value never erases a default
+```
+
+- **Names:** `<Name>Labels`, `default<Name>Labels`, `labels?: Partial<<Name>Labels>`. Renaming an existing `DEFAULT_*_LABELS` constant keeps the old name as a deprecated alias for one minor.
+- **Composed children** get a nested, typed key (`labels.engagement`, `labels.comments`), never a cast.
+- **No `{placeholder}` templates** (`template-fill` fails them) **and no sentences built from fragments.** For example, `` `${ariaLabel}, current: ${name}` `` becomes `labels.triggerWithCurrent(name)`.
+- Hard-coded JSX text fails `jsx-literal`.
+
+### 19.4 C3 — Formatting, locale, time zone, "now"
+
+- **Locale and time zone:** `locale?: string` (default `"en"`) on every component that formats, and `timeZone?: string` wherever a date or time is shown.
+- **Formatter props** where relevant: `formatDate`, `formatRelativeTime`, `formatCount`, `formatDuration`.
+  - The defaults are `Intl.*(locale, { timeZone, … })`, created **inside** the component and memoised on `locale` / `timeZone`.
+  - Never at module scope, and never with an `undefined` locale.
+- **`now?: Date`.** Without it, "now" is captured in an effect after mount.
+  - Until then, relative-time text is not rendered, or the absolute date is rendered with `locale` / `timeZone`. This way the server and the first client render agree.
+  - A clock read during render fails `clock`.
+
+### 19.5 C4 — Direction
+
+- **Logical utilities only:** `ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`, `text-start`/`text-end`, `rounded-s`/`rounded-e`, `border-s`/`border-e`. On Tailwind v4.0+, use `start-*` / `end-*`, not `inset-s-*` / `inset-e-*` (4.2+ only).
+- **Direction-aware logic** (arrow keys, swipe, carousel, slide transitions) resolves `dir` with `useDirection(ref, dirProp)`. Copy it from [`_template/_snippets/use-direction.ts`](../src/registry/components/_template/_snippets/use-direction.ts).
+  - It returns the prop if given, otherwise the element's direction after mount, otherwise `"ltr"`.
+  - Markup must not depend on it before mount.
+- **Directional props** accept `"start" | "end"`. Physical values stay only as deprecated aliases.
+- **Demos:** every demo of a hardened component has an RTL example inside `<div dir="rtl" lang="ar">`, with RTL sample text in `dummy-data.ts`.
+
+### 19.6 C5–C7 — Controlled data, withheld counts, action gating
+
+- **Controlled props.** Every data-bearing prop works controlled.
+  - Use `value` / `defaultValue` / `onValueChange`, or domain names with the same shape (`items` / `defaultItems` / `onItemsChange`, `isCollapsed` / `onCollapsedChange`).
+  - A defined prop wins on **every** render, not only when it changes.
+  - Uncontrolled stays the default (locked decision).
+- **Optimistic updates.** Add `optimistic?: boolean` (default `true`) when a change goes to the server, meaning the callback returns a promise.
+  - The change shows at once, until the promise settles or the prop next changes.
+  - A rejection rolls it back to the prop, or to the last accepted value when uncontrolled.
+  - Only the **latest** request decides; an older request settling late never overrides a newer one.
+  - If the promise resolves but the parent didn't adopt the value, the prop shows again.
+  - `optimistic={false}` renders only the prop.
+  - A synchronous callback is never optimistic when controlled.
+  - The scaffold's `hooks/use-controllable-state.ts` implements this, with tests. Pass `isEqual` when the parent builds a fresh object every render.
+- **Counts** are `number | null`. `null` renders no number, and no count in any accessible name.
+- **Actions and menus.** Every action takes `disabled` and `hidden`. Every menu takes `extraActions` or a slot.
+
+### 19.7 C8–C9 — Media and runtime
+
+- **Images** take `width`, `height`, `alt`, `srcSet` and `sizes`.
+- **Media components** take `onMediaError(item) => Promise<string | void>` to refresh an expired URL. Video reports real media time.
+- **Runtime:**
+  - no `next/*` (links go through a `linkComponent` prop);
+  - no `window` / `document` at module scope or in render;
+  - every transition respects `prefers-reduced-motion`.
+- **Window-level keys** go through `useGlobalKeydown(handler, { enabled, capture })`.
+  - It skips editable targets, already-handled events and IME composition.
+  - Copy it together with `is-editable-target.ts` from [`_template/_snippets/`](../src/registry/components/_template/_snippets/).
+  - The `keydown` rule fails any other window/document keydown listener.
+
+### 19.8 C10 — Packaging
+
+- The served item carries its version: `meta.version`, plus the stamp on the entry file's last line (§11.5).
+- Every version has a CHANGELOG entry.
+- Installs are proven on shadcn CLI 3.8.x and 4.x (`pnpm test:install`).
+- npm dependencies use pinned ranges.
+- Heavy items (editors, media-editor) are reached only through slots, never a static import.
+
+### 19.9 C11–C12 — Tests and visual parity
+
+- **Tests.** A component closed under the contract ships Vitest + axe tests. They cover render, labels override, controlled re-render, RTL render and keyboard paths, plus a regression test for each bug fixed.
+  - **The kit:** `describeContract(name, spec)` in [`tests/helpers/`](../tests/helpers/) runs the six checks from one spec: render, labels override, controlled re-render (and "a requested change calls back but the prop still wins"), an RTL render with axe, a keyboard path, and axe over extra states.
+  - **The pattern to copy:** [`expandable-text/__tests__/contract.test.tsx`](../src/registry/components/data/expandable-text/__tests__/contract.test.tsx). Import the kit with a relative path.
+  - **Also in `tests/helpers/`:** `renderWithContext(ui, { dir, locale })` and `expectNoAxeViolations(container)` (axe-core; `color-contrast` is off because jsdom computes no colours). There are jsdom stubs too: `mockMatchMedia({ reducedMotion, pointer })`, `mockResizeObserver()`, `mockIntersectionObserver({ visible })`, `mockLayout({ scrollHeight, lineHeight, … })`, `createEmblaApi()` for an Embla module mock, and `installMediaElementStubs()` + `fireMedia(el, "timeupdate", { currentTime })`. Every installer returns `restore()`.
+  - `story-rail` and `app-sidebar` (`__tests__/`) are larger worked examples.
+- **Visual parity.** Layout, anatomy, sizes, radii and rings match the consumer's agreed prototype through documented CSS variables. Today's defaults stay (locked decision 2).

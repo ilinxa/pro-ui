@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Cooperative team challenge card — one shared goal, collective progress, a whole-team reward, and penalty-free opt-in.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "progress",

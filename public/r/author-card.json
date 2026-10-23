@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Person identity card — avatar, name, role, optional bio, optionally clickable.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [],
   "files": [

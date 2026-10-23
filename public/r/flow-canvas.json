@@ -5,8 +5,8 @@
   "author": "ilinxa",
   "description": "Node-and-edge canvas with typed ports, pluggable node renderers, edge and port-type registries, and JSON save and load — built on React Flow.",
   "dependencies": [
-    "@xyflow/react",
-    "lucide-react"
+    "@xyflow/react@^12.10.2",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

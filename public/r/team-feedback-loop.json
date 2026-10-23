@@ -5,8 +5,8 @@
   "author": "ilinxa",
   "description": "Non-blocking celebration layer — a brief skippable overlay when team progress advances, plus a gentle dismissible next-task nudge.",
   "dependencies": [
-    "canvas-confetti",
-    "lucide-react"
+    "canvas-confetti@^1.9.4",
+    "lucide-react@^1.11.0"
   ],
   "devDependencies": [
     "@types/canvas-confetti"

@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Magazine-style news card in five sizes — role-aware editor and viewer modes, permissions matrix, badges, paywall and sensitivity gates.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "badge",

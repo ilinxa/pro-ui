@@ -5,8 +5,8 @@
   "author": "ilinxa",
   "description": "Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard support, and keyboard navigation.",
   "dependencies": [
-    "date-fns",
-    "lucide-react"
+    "date-fns@^4.1.0",
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "avatar",

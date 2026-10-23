@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Pricing tiers side by side — monthly and annual toggle, highlighted tier, per-feature tooltips, and a comparison layout. RTL-safe, full i18n.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",

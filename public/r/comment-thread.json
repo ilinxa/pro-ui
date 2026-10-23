@@ -5,7 +5,7 @@
   "author": "ilinxa",
   "description": "Recursive comment thread with composer, optimistic add, like, and delete, inline expansion past max depth, and realtime subscription hooks.",
   "dependencies": [
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "@ilinxa/expandable-text",

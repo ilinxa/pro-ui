@@ -5,9 +5,9 @@
   "author": "ilinxa",
   "description": "Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu. No commercial SDK.",
   "dependencies": [
-    "react-pdf",
+    "react-pdf@^10.4.1",
     "pdfjs-dist@5.4.296",
-    "lucide-react"
+    "lucide-react@^1.11.0"
   ],
   "registryDependencies": [
     "button",
