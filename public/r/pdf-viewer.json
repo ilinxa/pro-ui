@@ -28,7 +28,7 @@
     },
     {
       "path": "src/registry/components/media/pdf-viewer/index.ts",
-      "content": "export { PdfViewer, default } from \"./pdf-viewer\";\n\n// Toolbar parts (reads viewer context internally)\nexport { PdfToolbar } from \"./parts/pdf-toolbar\";\nexport { PdfPageNav } from \"./parts/pdf-page-nav\";\nexport { PdfPageIndicator } from \"./parts/pdf-page-indicator\";\nexport { PdfZoomControls } from \"./parts/pdf-zoom-controls\";\nexport { PdfActionMenu } from \"./parts/pdf-action-menu\";\n\n// Public hook for advanced consumers building bespoke chrome\nexport { usePdfViewer } from \"./hooks/use-pdf-viewer-context\";\n\n// Defaults\nexport { DEFAULT_PDF_VIEWER_LABELS } from \"./types\";\n\nexport type {\n  PdfSource,\n  PdfInitialScale,\n  PdfRotation,\n  PdfFitMode,\n  PdfVirtualizeMode,\n  PdfStatus,\n  PdfActions,\n  PdfDocumentState,\n  PdfToolbarContext,\n  PdfContextMenuContext,\n  PdfPasswordPromptContext,\n  PdfViewerHandle,\n  PdfViewerLabels,\n  PdfViewerProps,\n} from \"./types\";\n",
+      "content": "export { PdfViewer, default } from \"./pdf-viewer\";\n\n// Toolbar parts (reads viewer context internally)\nexport { PdfToolbar } from \"./parts/pdf-toolbar\";\nexport { PdfPageNav } from \"./parts/pdf-page-nav\";\nexport { PdfPageIndicator } from \"./parts/pdf-page-indicator\";\nexport { PdfZoomControls } from \"./parts/pdf-zoom-controls\";\nexport { PdfActionMenu } from \"./parts/pdf-action-menu\";\n\n// Public hook for advanced consumers building bespoke chrome\nexport { usePdfViewer } from \"./hooks/use-pdf-viewer-context\";\n\n// Defaults\nexport { DEFAULT_PDF_VIEWER_LABELS } from \"./types\";\n\nexport type {\n  PdfSource,\n  PdfInitialScale,\n  PdfRotation,\n  PdfFitMode,\n  PdfVirtualizeMode,\n  PdfStatus,\n  PdfActions,\n  PdfDocumentState,\n  PdfToolbarContext,\n  PdfContextMenuContext,\n  PdfPasswordPromptContext,\n  PdfViewerHandle,\n  PdfViewerLabels,\n  PdfViewerProps,\n} from \"./types\";\n\n// @ilinxa/pdf-viewer 0.1.6\n",
       "type": "registry:component",
       "target": "components/pdf-viewer/index.ts"
     },
@@ -195,6 +195,10 @@
       "target": "components/pdf-viewer/parts/pdf-loading-state.tsx"
     }
   ],
+  "meta": {
+    "version": "0.1.6",
+    "status": "alpha"
+  },
   "categories": [
     "media",
     "pdf",

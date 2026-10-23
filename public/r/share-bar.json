@@ -19,7 +19,7 @@
     },
     {
       "path": "src/registry/components/marketing/share-bar/index.ts",
-      "content": "export { ShareBar } from \"./share-bar\";\nexport {\n  SHARE_BAR_DEFAULT_LABELS,\n  type ShareBarLabels,\n  type ShareBarProps,\n  type ShareKind,\n  type ShareTarget,\n  type ShareTargetBuiltin,\n  type ShareTargetCopy,\n  type ShareTargetCustom,\n} from \"./types\";\nexport { SHARE_TEMPLATES } from \"./parts/templates\";\n",
+      "content": "export { ShareBar } from \"./share-bar\";\nexport {\n  SHARE_BAR_DEFAULT_LABELS,\n  type ShareBarLabels,\n  type ShareBarProps,\n  type ShareKind,\n  type ShareTarget,\n  type ShareTargetBuiltin,\n  type ShareTargetCopy,\n  type ShareTargetCustom,\n} from \"./types\";\nexport { SHARE_TEMPLATES } from \"./parts/templates\";\n\n// @ilinxa/share-bar 0.2.0\n",
       "type": "registry:component",
       "target": "components/share-bar/index.ts"
     },
@@ -54,6 +54,10 @@
       "target": "components/share-bar/parts/brand-icons.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "marketing"
   ],

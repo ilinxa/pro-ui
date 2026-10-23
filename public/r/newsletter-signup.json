@@ -18,7 +18,7 @@
     },
     {
       "path": "src/registry/components/marketing/newsletter-signup/index.ts",
-      "content": "export { NewsletterSignup, default } from \"./newsletter-signup\";\nexport type {\n  NewsletterSignupHeadingLevel,\n  NewsletterSignupLabels,\n  NewsletterSignupProps,\n  NewsletterSignupStatus,\n  NewsletterSignupTone,\n  NewsletterSignupVariant,\n} from \"./types\";\n",
+      "content": "export { NewsletterSignup, default } from \"./newsletter-signup\";\nexport type {\n  NewsletterSignupHeadingLevel,\n  NewsletterSignupLabels,\n  NewsletterSignupProps,\n  NewsletterSignupStatus,\n  NewsletterSignupTone,\n  NewsletterSignupVariant,\n} from \"./types\";\n\n// @ilinxa/newsletter-signup 0.2.0\n",
       "type": "registry:component",
       "target": "components/newsletter-signup/index.ts"
     },
@@ -53,6 +53,10 @@
       "target": "components/newsletter-signup/parts/tone.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "marketing"
   ],

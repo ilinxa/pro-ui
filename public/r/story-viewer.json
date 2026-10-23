@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/media/story-viewer/index.ts",
-      "content": "export { StoryViewer } from \"./story-viewer\";\n\nexport {\n  storyViewerReducer,\n  useStoryViewerState,\n  type UseStoryViewerStateOptions,\n  type UseStoryViewerStateResult,\n} from \"./hooks/use-story-viewer-state\";\n\nexport {\n  useStoryProgress,\n  type UseStoryProgressOptions,\n} from \"./hooks/use-story-progress\";\n\nexport {\n  useStoryKeyboardNav,\n  type UseStoryKeyboardNavOptions,\n} from \"./hooks/use-story-keyboard-nav\";\n\nexport type {\n  // v0.1 core\n  Story,\n  StoryItem,\n  StoryItemLink,\n  StoryViewerProps,\n  StoryViewerHandle,\n  StoryViewerLabels,\n  ResolvedStoryViewer01Labels,\n  StoryViewerDelta,\n  StoryViewerLocalAction,\n  RenderItemContext,\n  Subscribe,\n  Unsubscribe,\n  // v0.2.0 — role / permissions\n  StoryViewerMode,\n  StoryViewerPermissions,\n  StoryPermissionAction,\n  // v0.2.0 — engagement realtime + actions\n  StoryEngagementDelta,\n  StoryEngagementLocalAction,\n  StoryEngagementAction,\n  StoryEngagementActionAlign,\n  StoryEngagementReactionKind,\n  StoryEngagementBarLabels,\n  // v0.2.0 — owner overlay + reactors\n  ViewerListItem,\n  StoryReactorProfile,\n  // v0.2.0 — DM composer / reply\n  StoryCurrentUser,\n  StoryReplyComposerLabels,\n  // v0.2.0 — kebab\n  StoryKebabMenuItem,\n  // v0.2.0 — slot helpers\n  StoryViewerSlotHelpers,\n} from \"./types\";\n\nexport { DEFAULT_STORY_VIEWER_LABELS } from \"./types\";\n\n",
+      "content": "export { StoryViewer } from \"./story-viewer\";\n\nexport {\n  storyViewerReducer,\n  useStoryViewerState,\n  type UseStoryViewerStateOptions,\n  type UseStoryViewerStateResult,\n} from \"./hooks/use-story-viewer-state\";\n\nexport {\n  useStoryProgress,\n  type UseStoryProgressOptions,\n} from \"./hooks/use-story-progress\";\n\nexport {\n  useStoryKeyboardNav,\n  type UseStoryKeyboardNavOptions,\n} from \"./hooks/use-story-keyboard-nav\";\n\nexport type {\n  // v0.1 core\n  Story,\n  StoryItem,\n  StoryItemLink,\n  StoryViewerProps,\n  StoryViewerHandle,\n  StoryViewerLabels,\n  ResolvedStoryViewer01Labels,\n  StoryViewerDelta,\n  StoryViewerLocalAction,\n  RenderItemContext,\n  Subscribe,\n  Unsubscribe,\n  // v0.2.0 — role / permissions\n  StoryViewerMode,\n  StoryViewerPermissions,\n  StoryPermissionAction,\n  // v0.2.0 — engagement realtime + actions\n  StoryEngagementDelta,\n  StoryEngagementLocalAction,\n  StoryEngagementAction,\n  StoryEngagementActionAlign,\n  StoryEngagementReactionKind,\n  StoryEngagementBarLabels,\n  // v0.2.0 — owner overlay + reactors\n  ViewerListItem,\n  StoryReactorProfile,\n  // v0.2.0 — DM composer / reply\n  StoryCurrentUser,\n  StoryReplyComposerLabels,\n  // v0.2.0 — kebab\n  StoryKebabMenuItem,\n  // v0.2.0 — slot helpers\n  StoryViewerSlotHelpers,\n} from \"./types\";\n\nexport { DEFAULT_STORY_VIEWER_LABELS } from \"./types\";\n\n// @ilinxa/story-viewer 0.5.2\n",
       "type": "registry:component",
       "target": "components/story-viewer/index.ts"
     },
@@ -191,6 +191,10 @@
       "target": "components/story-viewer/parts/story-cube-face.tsx"
     }
   ],
+  "meta": {
+    "version": "0.5.2",
+    "status": "alpha"
+  },
   "categories": [
     "media"
   ],

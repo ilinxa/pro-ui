@@ -33,7 +33,7 @@ All three must pass clean. `registry:build` chains the project validators (meta-
 - Branch from `master`; name it `fix/<slug>-<what>` or `feat/<slug>-<what>`.
 - Commits follow conventional-commit style: `fix(kanban-board): guard empty column drop`.
 - Component code lives only in `src/registry/components/<category>/<slug>/` and may import only `react`, `@/components/ui/*`, `@/lib/utils`, and deps declared in the component's `meta.ts`. Never `next/*`.
-- Changing a component's public API needs a version bump in its `meta.ts` and a CHANGELOG entry.
+- Changing a component's public API needs a version bump in its `meta.ts` and a CHANGELOG entry: a bullet that **starts** with the slug and the new version, e.g. ``- `story-rail` 0.4.1 — fixes …``. `pnpm registry:build` fails without it, then writes the version into `registry.json` and the served files — commit those too.
 - One component (or one concern) per PR.
 
 This is a small-team project; reviews usually land within a week, sometimes faster, sometimes not. If a PR sits longer than that, a polite bump on the thread is fine.

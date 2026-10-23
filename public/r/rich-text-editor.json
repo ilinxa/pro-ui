@@ -39,7 +39,7 @@
     },
     {
       "path": "src/registry/components/data/rich-text-editor/index.ts",
-      "content": "export { RichTextEditor } from \"./rich-text-editor\";\nexport { RichTextViewer } from \"./rich-text-viewer\";\nexport {\n  RICH_TEXT_DEFAULT_PLACEHOLDER,\n  RICH_TEXT_EMPTY_VALUE,\n  type RichTextEditorProps,\n  type RichTextEmbedPolicyProps,\n  type RichTextValue,\n  type RichTextViewerProps,\n  type ImageUploadResult,\n  type ImageUploader,\n} from \"./types\";\nexport {\n  serializeRichTextToHtml,\n  type SerializeHtmlOptions,\n} from \"./lib/serialize-html\";\nexport {\n  EMBED_DEFAULT_ALLOW_LIST,\n  safeHref,\n  type EmbedPolicy,\n} from \"./lib/safe-embed\";\n",
+      "content": "export { RichTextEditor } from \"./rich-text-editor\";\nexport { RichTextViewer } from \"./rich-text-viewer\";\nexport {\n  RICH_TEXT_DEFAULT_PLACEHOLDER,\n  RICH_TEXT_EMPTY_VALUE,\n  type RichTextEditorProps,\n  type RichTextEmbedPolicyProps,\n  type RichTextValue,\n  type RichTextViewerProps,\n  type ImageUploadResult,\n  type ImageUploader,\n} from \"./types\";\nexport {\n  serializeRichTextToHtml,\n  type SerializeHtmlOptions,\n} from \"./lib/serialize-html\";\nexport {\n  EMBED_DEFAULT_ALLOW_LIST,\n  safeHref,\n  type EmbedPolicy,\n} from \"./lib/safe-embed\";\n\n// @ilinxa/rich-text-editor 0.4.0\n",
       "type": "registry:component",
       "target": "components/rich-text-editor/index.ts"
     },
@@ -128,6 +128,10 @@
       "target": "components/rich-text-editor/parts/safe-embed-view.tsx"
     }
   ],
+  "meta": {
+    "version": "0.4.0",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "richtext"

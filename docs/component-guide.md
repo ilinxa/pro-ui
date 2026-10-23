@@ -1165,10 +1165,22 @@ pnpm dlx shadcn@latest add http://localhost:3000/r/<slug>.json
 # inspect: files at components/<slug>/, primitives auto-installed, deps in package.json
 ```
 
+### Versions, CHANGELOG and the install test
+
+`registry:build` does three things with versions, so a version is only ever written in `meta.ts`:
+
+- It copies `version` and `status` from `meta.ts` onto your base, fixtures and feature items in `registry.json` (`meta.version`, `meta.status`). **Commit the rewritten `registry.json` and `public/r/`** — the repo tests that run first in `vercel-build` fail a deploy whose committed files disagree with `meta.ts`.
+- It appends `// @ilinxa/<slug> <version>` as the **last line** of the served `index.ts` (`dummy-data.ts` for the fixtures item). It is a trailer because the shadcn CLI strips leading comments on install. Don't add it to the source.
+- It fails if the version has no CHANGELOG entry. Add a bullet that **starts** with the slug and version under the release's heading in [`CHANGELOG.md`](../CHANGELOG.md): ``- `<slug>` 0.2.0 — what changed for consumers``. A grandfathered row in `scripts/changelog-baseline.json` stops counting once you bump; delete it.
+
+It also fails a cross-category import (`@/registry/components/<other-category>/…`) whose target file's basename isn't unique in the registry, and any cross-category `export … from` or dynamic `import()`. The CLI resolves those by basename or doesn't rewrite them at all.
+
+Before a release that touches packaging, cross-component imports or primitives, run the install test: `pnpm registry:build && pnpm test:install`. It installs a sample into a throwaway `new-york`, `src/`-directory consumer on shadcn CLI 3.8.5 and 4.18.0 and checks file landing, the version stamp, untouched `ui/` files and consumer `tsc`. `INSTALL_TEST_ITEMS=<slug>,<slug>-fixtures` targets your component.
+
 ### Commit + push → Vercel auto-deploys
 
 ```bash
-git add registry.json src/registry/manifest.ts src/registry/components/<category>/<slug>/ public/r/ .claude/STATUS.md
+git add registry.json CHANGELOG.md src/registry/manifest.ts src/registry/components/<category>/<slug>/ public/r/ .claude/STATUS.md
 git commit -m "feat(<category>/<slug>): ship v0.1"
 git push
 ```

@@ -6,6 +6,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The registry a
 ## [Unreleased]
 <!-- /wl -->
 
+## [2026-10-23] — Social-platform hardening
+
+Every component version from here on has an entry in this file; `pnpm registry:build` fails on a version without one (`scripts/validate-changelog.mjs`). Versions that predate the rule are listed in `scripts/changelog-baseline.json`.
+
+### Components
+- `app-sidebar` 0.5.0 — controlled `isCollapsed` toggles from the rendered value and never touches storage; the mobile drawer always shows full labels; CSS variables set on any ancestor win and reach the portalled drawer (`drawerClassName`, `drawerStyle`, `--ilinxa-sidebar-drawer-w`); `labels` covers every string, with badge-aware row names and `formatBadgeCount`; `side="start" | "end"` with RTL; presence and badge colours use tokens. **Breaking:** rows are 2.75rem tall, `data-side` reads `"start"` by default, expanded badge rows are named "Label, 5".
+- `story-rail` 0.4.0 — optional `previewImage` with avatar fallback and `onPreviewError` refresh; `--story-ring-from` / `--story-ring-to`; `muted` authors; `arrows="fine-pointer"`; controlled `items` + `onItemsChange`; RTL; scroll-aware edge fades; the Add tile reads the rail's `labels`. **Breaking:** `ref.scrollTo(i)` no longer lands one tile off with `leading`; the Add tile's default name is "Add story".
+- `story-viewer` 0.5.2 — removing the current story no longer freezes playback; reply-box keys no longer drive the viewer; `triggerReply` content and per-item drafts are kept.
+- `story-composer` 0.5.0 — the publishing overlay renders inside the dialog, so Retry and Cancel work. Needs `media-editor` 0.4.0 or later.
+- `media-editor` 0.4.0 — nested `labels` apply; new `overlay` prop; not-implemented handle methods carry `@notImplemented` and warn in development.
+- `rich-text-editor` 0.4.0 — embeds are sandboxed and checked against `embedAllowList` / `isEmbedAllowed`; links pass through `safeHref`.
+- `post-card` 0.5.1 — double-tap only ever likes, never unlikes.
+- `carousel-composer` 0.2.1 — `openEditor()` refuses video items (there is no WebM-free re-encode path).
+- `video-player` 0.2.1 — taps on the controls no longer count towards a double-tap.
+- `event-calendar` 0.5.1 — a prop that does nothing yet now says so in development.
+- `news-card` 0.4.3 — a prop that does nothing yet now says so in development.
+- `card-tree` 0.6.3 — three runtime error strings no longer name a future version.
+
+### Registry
+- Theme tokens ship as `cssVars.theme` mappings with `var()` fallbacks, never `light` / `dark` values, so the CLI never overrides a consumer's own theme. `--destructive-foreground` is defined.
+
 <!-- wl:changelog.2026-08-12 -->
 ## [2026-08-12] — Public baseline
 

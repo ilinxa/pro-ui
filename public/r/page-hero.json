@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/marketing/page-hero/index.ts",
-      "content": "export { PageHero, HeroStats, default } from \"./page-hero\";\nexport type {\n  HeroStat,\n  HeroStatsProps,\n  PageHeroDensity,\n  PageHeroHeadingLevel,\n  PageHeroProps,\n} from \"./types\";\n",
+      "content": "export { PageHero, HeroStats, default } from \"./page-hero\";\nexport type {\n  HeroStat,\n  HeroStatsProps,\n  PageHeroDensity,\n  PageHeroHeadingLevel,\n  PageHeroProps,\n} from \"./types\";\n\n// @ilinxa/page-hero 0.2.0\n",
       "type": "registry:component",
       "target": "components/page-hero/index.ts"
     },
@@ -34,6 +34,10 @@
       "target": "components/page-hero/parts/hero-stats.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "marketing",
     "news"

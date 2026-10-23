@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/stat-card/index.ts",
-      "content": "export { StatCard, default } from \"./stat-card\";\nexport { StatCardSparkline } from \"./parts/sparkline\";\nexport type { StatCardSparklineProps } from \"./parts/sparkline\";\nexport { defaultDeltaFormat } from \"./lib/format-default\";\nexport { DEFAULT_STAT_CARD_LABELS } from \"./types\";\nexport type {\n  StatCardDelta,\n  StatCardIcon,\n  StatCardIconPosition,\n  StatCardLabels,\n  StatCardProps,\n  StatCardTrendContext,\n  StatCardValueContext,\n  StatCardVariant,\n} from \"./types\";\n// NOTE: `meta` is intentionally NOT re-exported — it's docs-site only,\n// excluded from registry shipments per the post-Phase-7 cleanup\n// (see .claude/decisions/ for the barrel-meta-export removal).\n",
+      "content": "export { StatCard, default } from \"./stat-card\";\nexport { StatCardSparkline } from \"./parts/sparkline\";\nexport type { StatCardSparklineProps } from \"./parts/sparkline\";\nexport { defaultDeltaFormat } from \"./lib/format-default\";\nexport { DEFAULT_STAT_CARD_LABELS } from \"./types\";\nexport type {\n  StatCardDelta,\n  StatCardIcon,\n  StatCardIconPosition,\n  StatCardLabels,\n  StatCardProps,\n  StatCardTrendContext,\n  StatCardValueContext,\n  StatCardVariant,\n} from \"./types\";\n// NOTE: `meta` is intentionally NOT re-exported — it's docs-site only,\n// excluded from registry shipments per the post-Phase-7 cleanup\n// (see .claude/decisions/ for the barrel-meta-export removal).\n\n// @ilinxa/stat-card 0.1.2\n",
       "type": "registry:component",
       "target": "components/stat-card/index.ts"
     },
@@ -40,6 +40,10 @@
       "target": "components/stat-card/lib/format-default.ts"
     }
   ],
+  "meta": {
+    "version": "0.1.2",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

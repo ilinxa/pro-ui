@@ -31,7 +31,7 @@
     },
     {
       "path": "src/registry/components/forms/signup-form/index.ts",
-      "content": "// Component\nexport { SignupForm } from \"./signup-form\";\n\n// Public types\nexport type {\n  SignupFormProps,\n  SignupFormStatus,\n  SignupSubmitPayload,\n  SignupStep1Values,\n  SignupStep2Values,\n  SignupLabels,\n  OAuthProvider,\n  OptionalFieldName,\n  OptionalFieldConfig,\n  StrengthCalculator,\n  ButtonVariant,\n} from \"./types\";\n\n// Helpers\nexport {\n  defaultSignupLabels,\n  mergeSignupLabels,\n} from \"./parts/labels\";\nexport { defaultStrengthCalculator } from \"./lib/strength-calculator\";\nexport { OAUTH_PROVIDERS } from \"./lib/oauth-providers\";\n",
+      "content": "// Component\nexport { SignupForm } from \"./signup-form\";\n\n// Public types\nexport type {\n  SignupFormProps,\n  SignupFormStatus,\n  SignupSubmitPayload,\n  SignupStep1Values,\n  SignupStep2Values,\n  SignupLabels,\n  OAuthProvider,\n  OptionalFieldName,\n  OptionalFieldConfig,\n  StrengthCalculator,\n  ButtonVariant,\n} from \"./types\";\n\n// Helpers\nexport {\n  defaultSignupLabels,\n  mergeSignupLabels,\n} from \"./parts/labels\";\nexport { defaultStrengthCalculator } from \"./lib/strength-calculator\";\nexport { OAUTH_PROVIDERS } from \"./lib/oauth-providers\";\n\n// @ilinxa/signup-form 0.2.0\n",
       "type": "registry:component",
       "target": "components/signup-form/index.ts"
     },
@@ -168,6 +168,10 @@
       "target": "components/signup-form/lib/strength-calculator.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "forms"
   ],

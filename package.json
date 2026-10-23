@@ -44,14 +44,18 @@
     "validate:no-control-chars": "node scripts/validate-no-control-chars.mjs",
     "validate:inert-surfaces": "node scripts/validate-inert-surfaces.mjs",
     "validate:registry-tokens": "node scripts/validate-registry-tokens.mjs",
+    "validate:cross-category-imports": "node scripts/validate-cross-category-imports.mjs",
+    "validate:changelog": "node scripts/validate-changelog.mjs",
+    "sync:registry-versions": "node scripts/sync-registry-versions.mjs",
     "build:llms": "node scripts/build-llms.mjs",
     "build:component-versions": "node scripts/build-component-versions.mjs",
     "build:source-map": "node scripts/build-source-map.mjs",
     "new:component": "node scripts/new-component.mjs",
     "new:migration": "node scripts/new-migration.mjs",
-    "registry:build": "node scripts/validate-meta-deps.mjs && node scripts/validate-default-registry-whitelist.mjs && node scripts/validate-registry-json.mjs && node scripts/validate-naming.mjs && node scripts/validate-no-control-chars.mjs && node scripts/validate-barrel-exports.mjs --strict && node scripts/validate-inert-surfaces.mjs --strict && node scripts/validate-registry-tokens.mjs --strict && node scripts/build-llms.mjs && node scripts/build-component-versions.mjs && node scripts/validate-doc-drift.mjs && node scripts/validate-doc-budget.mjs && node scripts/clean-registry-artifacts.mjs && shadcn build && node scripts/validate-artifact-size.mjs",
+    "registry:build": "node scripts/validate-meta-deps.mjs && node scripts/sync-registry-versions.mjs && node scripts/validate-default-registry-whitelist.mjs && node scripts/validate-registry-json.mjs && node scripts/validate-naming.mjs && node scripts/validate-no-control-chars.mjs && node scripts/validate-barrel-exports.mjs --strict && node scripts/validate-inert-surfaces.mjs --strict && node scripts/validate-registry-tokens.mjs --strict && node scripts/validate-cross-category-imports.mjs && node scripts/validate-changelog.mjs && node scripts/build-llms.mjs && node scripts/build-component-versions.mjs && node scripts/validate-doc-drift.mjs && node scripts/validate-doc-budget.mjs && node scripts/clean-registry-artifacts.mjs && shadcn build && node scripts/stamp-registry-artifacts.mjs && node scripts/validate-artifact-size.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "test:install": "node scripts/install-test/run.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

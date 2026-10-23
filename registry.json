@@ -32,7 +32,11 @@
           "type": "registry:component",
           "target": "components/data-table/types.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -54,7 +58,11 @@
           "type": "registry:component",
           "target": "components/data-table/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -342,7 +350,11 @@
           "type": "registry:component",
           "target": "components/card-tree/parts/undo-toolbar.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.6.3",
+        "status": "beta"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -364,7 +376,11 @@
           "type": "registry:component",
           "target": "components/card-tree/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.6.3",
+        "status": "beta"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -500,7 +516,11 @@
           "type": "registry:component",
           "target": "components/split-workspace/parts/split-divider.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -522,7 +542,11 @@
           "type": "registry:component",
           "target": "components/split-workspace/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -652,7 +676,11 @@
           "type": "registry:component",
           "target": "components/properties-form/lib/validate.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.5",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -675,7 +703,11 @@
           "type": "registry:component",
           "target": "components/properties-form/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.5",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -766,7 +798,11 @@
           "type": "registry:component",
           "target": "components/detail-panel/parts/selection-announcer.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -789,7 +825,11 @@
           "type": "registry:component",
           "target": "components/detail-panel/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -823,7 +863,11 @@
           "type": "registry:component",
           "target": "components/empty-state/index.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -845,7 +889,11 @@
           "type": "registry:component",
           "target": "components/empty-state/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -954,7 +1002,11 @@
           "type": "registry:component",
           "target": "components/filter-panel/parts/solo-button.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -977,7 +1029,11 @@
           "type": "registry:component",
           "target": "components/filter-panel/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1069,7 +1125,11 @@
           "type": "registry:component",
           "target": "components/entity-picker/parts/trigger-button.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1092,7 +1152,11 @@
           "type": "registry:component",
           "target": "components/entity-picker/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1245,7 +1309,11 @@
           "type": "registry:component",
           "target": "components/markdown-editor/parts/view-toggle.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.5",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1268,7 +1336,11 @@
           "type": "registry:component",
           "target": "components/markdown-editor/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.5",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1410,7 +1482,11 @@
           "type": "registry:component",
           "target": "components/news-card/parts/news-kebab.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1433,7 +1509,11 @@
           "type": "registry:component",
           "target": "components/news-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1486,7 +1566,11 @@
           "type": "registry:component",
           "target": "components/newsletter-signup/parts/tone.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1508,7 +1592,11 @@
           "type": "registry:component",
           "target": "components/newsletter-signup/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1545,7 +1633,11 @@
           "type": "registry:component",
           "target": "components/category-cloud/parts/category-chip.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1567,7 +1659,11 @@
           "type": "registry:component",
           "target": "components/category-cloud/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1626,7 +1722,11 @@
           "type": "registry:component",
           "target": "components/filter-bar/parts/date-range-picker.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1648,7 +1748,11 @@
           "type": "registry:component",
           "target": "components/filter-bar/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1686,7 +1790,11 @@
           "type": "registry:component",
           "target": "components/page-hero/parts/hero-stats.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1709,7 +1817,11 @@
           "type": "registry:component",
           "target": "components/page-hero/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1760,7 +1872,11 @@
           "type": "registry:component",
           "target": "components/magazine-layout/hooks/use-magazine-filter.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1783,7 +1899,11 @@
           "type": "registry:component",
           "target": "components/magazine-layout/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1825,7 +1945,11 @@
           "type": "registry:component",
           "target": "components/author-card/parts/tone-resolver.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1847,7 +1971,11 @@
           "type": "registry:component",
           "target": "components/author-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1889,7 +2017,11 @@
           "type": "registry:component",
           "target": "components/thumbnail-list/parts/empty-state.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1931,7 +2063,11 @@
           "type": "registry:component",
           "target": "components/stat-card/lib/format-default.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1953,7 +2089,11 @@
           "type": "registry:component",
           "target": "components/thumbnail-list/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -1975,7 +2115,11 @@
           "type": "registry:component",
           "target": "components/stat-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2012,7 +2156,11 @@
           "type": "registry:component",
           "target": "components/article-meta/parts/meta-item.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2034,7 +2182,11 @@
           "type": "registry:component",
           "target": "components/article-meta/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2088,7 +2240,11 @@
           "type": "registry:component",
           "target": "components/share-bar/parts/brand-icons.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2110,7 +2266,11 @@
           "type": "registry:component",
           "target": "components/share-bar/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2185,7 +2345,11 @@
           "type": "registry:component",
           "target": "components/pricing-table/parts/tone.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2207,7 +2371,11 @@
           "type": "registry:component",
           "target": "components/pricing-table/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2326,7 +2494,11 @@
           "type": "registry:component",
           "target": "components/rich-text-editor/parts/safe-embed-view.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2349,7 +2521,11 @@
           "type": "registry:component",
           "target": "components/rich-text-editor/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2427,7 +2603,11 @@
           "type": "registry:component",
           "target": "components/event-card/lib/image-fallback.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2465,7 +2645,11 @@
           "type": "registry:component",
           "target": "components/schedule-list/parts/schedule-row.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2505,7 +2689,11 @@
           "type": "registry:component",
           "target": "components/progress-timeline/lib/timeline-state.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2542,7 +2730,11 @@
           "type": "registry:component",
           "target": "components/info-list/parts/info-row.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2582,7 +2774,11 @@
           "type": "registry:component",
           "target": "components/people-grid/lib/get-initials.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2627,7 +2823,11 @@
           "type": "registry:component",
           "target": "components/registration-card/lib/format-default.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2662,7 +2862,11 @@
           "type": "registry:component",
           "target": "components/expandable-text/hooks/use-line-clamp-detect.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2684,7 +2888,11 @@
           "type": "registry:component",
           "target": "components/expandable-text/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2738,7 +2946,11 @@
           "type": "registry:component",
           "target": "components/video-player/hooks/use-double-tap.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2760,7 +2972,11 @@
           "type": "registry:component",
           "target": "components/video-player/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2827,7 +3043,11 @@
           "type": "registry:component",
           "target": "components/media-carousel/hooks/use-embla-with-state.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2849,7 +3069,11 @@
           "type": "registry:component",
           "target": "components/media-carousel/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2961,7 +3185,11 @@
           "type": "registry:component",
           "target": "components/engagement-bar/lib/format-count.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -2983,7 +3211,11 @@
           "type": "registry:component",
           "target": "components/engagement-bar/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3062,7 +3294,11 @@
           "type": "registry:component",
           "target": "components/comment-thread/lib/format-time.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3084,7 +3320,11 @@
           "type": "registry:component",
           "target": "components/comment-thread/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3216,7 +3456,11 @@
           "type": "registry:component",
           "target": "components/post-card/lib/permissions.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3238,7 +3482,11 @@
           "type": "registry:component",
           "target": "components/post-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3304,7 +3552,11 @@
           "type": "registry:component",
           "target": "components/story-rail/hooks/use-rail-environment.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3326,7 +3578,11 @@
           "type": "registry:component",
           "target": "components/story-rail/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3495,7 +3751,11 @@
           "type": "registry:component",
           "target": "components/story-viewer/parts/story-cube-face.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3517,7 +3777,11 @@
           "type": "registry:component",
           "target": "components/story-viewer/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.2",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3539,7 +3803,11 @@
           "type": "registry:component",
           "target": "components/registration-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3561,7 +3829,11 @@
           "type": "registry:component",
           "target": "components/people-grid/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3583,7 +3855,11 @@
           "type": "registry:component",
           "target": "components/info-list/dummy-data.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3606,7 +3882,11 @@
           "type": "registry:component",
           "target": "components/progress-timeline/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3629,7 +3909,11 @@
           "type": "registry:component",
           "target": "components/schedule-list/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3652,7 +3936,11 @@
           "type": "registry:component",
           "target": "components/event-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3707,7 +3995,11 @@
           "type": "registry:component",
           "target": "components/project-card/lib/image-fallback.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3736,7 +4028,11 @@
           "type": "registry:component",
           "target": "components/project-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3911,7 +4207,11 @@
           "type": "registry:component",
           "target": "components/kanban-board/parts/kanban-note.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.6.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3934,7 +4234,11 @@
           "type": "registry:component",
           "target": "components/kanban-board/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.6.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4105,7 +4409,11 @@
           "type": "registry:component",
           "target": "components/flow-canvas/registries/renderer-registry.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4129,7 +4437,11 @@
           "type": "registry:component",
           "target": "components/flow-canvas/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4304,7 +4616,11 @@
           "type": "registry:component",
           "target": "components/pdf-viewer/parts/pdf-loading-state.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.6",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4328,7 +4644,11 @@
           "type": "registry:component",
           "target": "components/pdf-viewer/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.6",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4488,7 +4808,11 @@
           "type": "registry:component",
           "target": "components/file-tree/parts/file-tree-delete-confirm.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4512,7 +4836,11 @@
           "type": "registry:component",
           "target": "components/file-tree/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4809,7 +5137,11 @@
           "type": "registry:component",
           "target": "components/file-manager/parts/file-manager-marquee.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -4832,7 +5164,11 @@
           "type": "registry:component",
           "target": "components/file-manager/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.1.3",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5036,7 +5372,11 @@
           "type": "registry:component",
           "target": "components/code-block/lib/streaming-cache.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5058,7 +5398,11 @@
           "type": "registry:component",
           "target": "components/code-block/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5315,7 +5659,11 @@
           "type": "registry:component",
           "target": "components/json-form/lib/validate-schema.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.8",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5337,7 +5685,11 @@
           "type": "registry:component",
           "target": "components/json-form/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.8",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5487,7 +5839,11 @@
           "type": "registry:component",
           "target": "components/signup-form/lib/strength-calculator.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5509,7 +5865,11 @@
           "type": "registry:component",
           "target": "components/signup-form/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5632,7 +5992,11 @@
           "type": "registry:component",
           "target": "components/card-tree-node/parts/port-editor-strip.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5656,7 +6020,11 @@
           "type": "registry:component",
           "target": "components/card-tree-node/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5823,7 +6191,11 @@
           "type": "registry:component",
           "target": "components/task-card/parts/kanban-adapter.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -5846,7 +6218,11 @@
           "type": "registry:component",
           "target": "components/task-card/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6117,7 +6493,11 @@
           "type": "registry:component",
           "target": "components/task-tree/parts/task-tree-empty-state.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6140,7 +6520,11 @@
           "type": "registry:component",
           "target": "components/task-tree/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6367,7 +6751,11 @@
           "type": "registry:component",
           "target": "components/app-sidebar/hooks/use-direction.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6390,7 +6778,11 @@
           "type": "registry:component",
           "target": "components/app-sidebar/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6461,7 +6853,11 @@
           "type": "registry:component",
           "target": "components/account-switcher/parts/switcher-trigger.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6484,7 +6880,11 @@
           "type": "registry:component",
           "target": "components/account-switcher/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6540,7 +6940,11 @@
           "type": "registry:component",
           "target": "components/story-composer/parts/publishing-progress-overlay.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6562,7 +6966,11 @@
           "type": "registry:component",
           "target": "components/story-composer/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6772,7 +7180,11 @@
           "type": "registry:component",
           "target": "components/media-editor/parts/lazy-editor-canvas.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6794,7 +7206,11 @@
           "type": "registry:component",
           "target": "components/media-editor/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.4.0",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -6808,7 +7224,9 @@
       ],
       "meta": {
         "featureOf": "media-editor",
-        "budgetKB": 65
+        "budgetKB": 65,
+        "version": "0.4.0",
+        "status": "alpha"
       },
       "registryDependencies": [
         "@ilinxa/media-editor",
@@ -7060,7 +7478,11 @@
           "type": "registry:component",
           "target": "components/content-composer/parts/step-indicator.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7082,7 +7504,11 @@
           "type": "registry:component",
           "target": "components/content-composer/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.3.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7176,7 +7602,11 @@
           "type": "registry:component",
           "target": "components/carousel-composer/parts/edit-panel.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7198,7 +7628,11 @@
           "type": "registry:component",
           "target": "components/carousel-composer/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7394,7 +7828,11 @@
           "type": "registry:component",
           "target": "components/media-library/parts/lazy-markdown-editor.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7416,7 +7854,11 @@
           "type": "registry:component",
           "target": "components/media-library/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7591,7 +8033,11 @@
           "type": "registry:component",
           "target": "components/blackboard/parts/unread-count.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7613,7 +8059,11 @@
           "type": "registry:component",
           "target": "components/blackboard/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7767,7 +8217,11 @@
           "type": "registry:component",
           "target": "components/gantt-timeline/parts/gantt-timeline-toolbar.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.7.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7790,7 +8244,11 @@
           "type": "registry:component",
           "target": "components/gantt-timeline/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.7.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7942,7 +8400,11 @@
           "type": "registry:component",
           "target": "components/event-calendar/parts/calendar-skeleton.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7965,7 +8427,11 @@
           "type": "registry:component",
           "target": "components/event-calendar/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.5.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -7980,7 +8446,9 @@
       ],
       "meta": {
         "featureOf": "event-calendar",
-        "budgetKB": 110
+        "budgetKB": 110,
+        "version": "0.5.1",
+        "status": "alpha"
       },
       "registryDependencies": [
         "@ilinxa/event-calendar",
@@ -8129,7 +8597,11 @@
           "type": "registry:component",
           "target": "components/team-progress-bar/parts/team-progress-bar-label.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8151,7 +8623,11 @@
           "type": "registry:component",
           "target": "components/team-progress-bar/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8233,7 +8709,11 @@
           "type": "registry:component",
           "target": "components/team-trophy-shelf/parts/badge-award-overlay.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8255,7 +8735,11 @@
           "type": "registry:component",
           "target": "components/team-trophy-shelf/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8334,7 +8818,11 @@
           "type": "registry:component",
           "target": "components/team-feedback-loop/parts/confetti-burst.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8356,7 +8844,11 @@
           "type": "registry:component",
           "target": "components/team-feedback-loop/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8445,7 +8937,11 @@
           "type": "registry:component",
           "target": "components/team-challenge/parts/team-challenge-skeleton.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8467,7 +8963,11 @@
           "type": "registry:component",
           "target": "components/team-challenge/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8531,7 +9031,11 @@
           "type": "registry:component",
           "target": "components/team-task-claim/parts/assignee-chip.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8553,7 +9057,11 @@
           "type": "registry:component",
           "target": "components/team-task-claim/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8629,7 +9137,11 @@
           "type": "registry:component",
           "target": "components/team-quest-log/parts/chapter-beat.tsx"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -8651,7 +9163,11 @@
           "type": "registry:component",
           "target": "components/team-quest-log/dummy-data.ts"
         }
-      ]
+      ],
+      "meta": {
+        "version": "0.2.1",
+        "status": "alpha"
+      }
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",

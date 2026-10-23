@@ -32,7 +32,7 @@
     },
     {
       "path": "src/registry/components/forms/markdown-editor/index.ts",
-      "content": "export { MarkdownEditor } from \"./markdown-editor\";\nexport { defaultMarkdownToolbar } from \"./default-toolbar\";\nexport { parseMarkdown } from \"./lib/parse-markdown\";\nexport type {\n  KindMeta,\n  MarkdownEditorHandle,\n  MarkdownEditorProps,\n  ToolbarCtx,\n  ToolbarItem,\n  ViewMode,\n  WikilinkCandidate,\n} from \"./types\";\n",
+      "content": "export { MarkdownEditor } from \"./markdown-editor\";\nexport { defaultMarkdownToolbar } from \"./default-toolbar\";\nexport { parseMarkdown } from \"./lib/parse-markdown\";\nexport type {\n  KindMeta,\n  MarkdownEditorHandle,\n  MarkdownEditorProps,\n  ToolbarCtx,\n  ToolbarItem,\n  ViewMode,\n  WikilinkCandidate,\n} from \"./types\";\n\n// @ilinxa/markdown-editor 0.1.5\n",
       "type": "registry:component",
       "target": "components/markdown-editor/index.ts"
     },
@@ -169,6 +169,10 @@
       "target": "components/markdown-editor/parts/view-toggle.tsx"
     }
   ],
+  "meta": {
+    "version": "0.1.5",
+    "status": "alpha"
+  },
   "categories": [
     "forms",
     "graph-system"

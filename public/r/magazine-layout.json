@@ -15,7 +15,7 @@
     },
     {
       "path": "src/registry/components/layout/magazine-layout/index.ts",
-      "content": "export { MagazineLayout, default } from \"./magazine-layout\";\nexport { useMagazineFilter } from \"./hooks/use-magazine-filter\";\nexport { useInfiniteScroll } from \"./hooks/use-infinite-scroll\";\nexport type {\n  MagazineLayoutItemSlot,\n  MagazineLayoutLabels,\n  MagazineLayoutProps,\n  UseMagazineFilterArgs,\n  UseMagazineFilterReturn,\n} from \"./types\";\n",
+      "content": "export { MagazineLayout, default } from \"./magazine-layout\";\nexport { useMagazineFilter } from \"./hooks/use-magazine-filter\";\nexport { useInfiniteScroll } from \"./hooks/use-infinite-scroll\";\nexport type {\n  MagazineLayoutItemSlot,\n  MagazineLayoutLabels,\n  MagazineLayoutProps,\n  UseMagazineFilterArgs,\n  UseMagazineFilterReturn,\n} from \"./types\";\n\n// @ilinxa/magazine-layout 0.3.0\n",
       "type": "registry:component",
       "target": "components/magazine-layout/index.ts"
     },
@@ -50,6 +50,10 @@
       "target": "components/magazine-layout/hooks/use-magazine-filter.ts"
     }
   ],
+  "meta": {
+    "version": "0.3.0",
+    "status": "alpha"
+  },
   "categories": [
     "layout",
     "news"

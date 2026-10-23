@@ -200,7 +200,11 @@ export function TaskEditor() {
         />
         <Trouble
           symptom={`Re-running add didn't pull upstream changes`}
-          fix="Without --overwrite, locally-modified files are skipped — non-interactive runs auto-answer the overwrite prompt with 'no' and exit 0, so exit-code checks can't detect it. Add --overwrite to update; the CLI diffs per file, so unchanged files are left alone."
+          fix="Without --overwrite, the CLI asks before replacing a file you changed; answering 'no' skips that file and installs the rest. Add --overwrite to update; the CLI diffs per file, so unchanged files are left alone."
+        />
+        <Trouble
+          symptom={`add printed success but installed nothing`}
+          fix="In a non-interactive run (CI, a script, closed stdin) the CLI aborts the whole add, with exit 0, when any file it would write already exists with different content — often a components/ui primitive you customized. Run it interactively and answer 'no', pipe the answers in (yes n | pnpm dlx shadcn add …), or pass --overwrite. Check that the files exist rather than trusting the exit code."
         />
         <Trouble
           symptom="npm ERESOLVE on React 19 peer deps"

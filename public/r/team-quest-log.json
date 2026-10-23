@@ -21,7 +21,7 @@
     },
     {
       "path": "src/registry/components/gamification/team-quest-log/index.ts",
-      "content": "// Tier A — batteries-included assembly.\nexport { TeamQuestLog } from \"./team-quest-log\";\n\n// Tier B — headless provider + flat à-la-carte context parts.\nexport { TeamQuestLogRoot } from \"./parts/team-quest-log-root\";\nexport { TeamQuestNameEditor } from \"./parts/team-quest-name-editor\";\nexport { TeamQuestChapters } from \"./parts/team-quest-chapters\";\n\n// Tier C — standalone, context-free primitives.\nexport { QuestTitle, QuestNameField } from \"./parts/team-quest-name-editor\";\nexport { ChapterRail, EmptyNarrative } from \"./parts/team-quest-chapters\";\nexport { ChapterBeat } from \"./parts/chapter-beat\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamQuestLog } from \"./hooks/use-team-quest-log\";\n\n// Pure helpers (a hand-assembly resolves identically).\nexport { resolveQuestTitle } from \"./lib/resolve-title\";\nexport { deriveBeats } from \"./lib/derive-beats\";\n\n// Public types.\nexport type {\n  Team,\n  Milestone,\n  NarrativeChapter,\n  GamificationEvent,\n  BeatState,\n  DerivedBeat,\n  TeamQuestLogProps,\n  TeamQuestLogBaseProps,\n  TeamQuestLogRootProps,\n  TeamQuestLogHandle,\n  TeamQuestLogContextValue,\n  QuestTitleProps,\n  QuestNameFieldProps,\n  ChapterBeatProps,\n  ChapterRailProps,\n} from \"./types\";\n",
+      "content": "// Tier A — batteries-included assembly.\nexport { TeamQuestLog } from \"./team-quest-log\";\n\n// Tier B — headless provider + flat à-la-carte context parts.\nexport { TeamQuestLogRoot } from \"./parts/team-quest-log-root\";\nexport { TeamQuestNameEditor } from \"./parts/team-quest-name-editor\";\nexport { TeamQuestChapters } from \"./parts/team-quest-chapters\";\n\n// Tier C — standalone, context-free primitives.\nexport { QuestTitle, QuestNameField } from \"./parts/team-quest-name-editor\";\nexport { ChapterRail, EmptyNarrative } from \"./parts/team-quest-chapters\";\nexport { ChapterBeat } from \"./parts/chapter-beat\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamQuestLog } from \"./hooks/use-team-quest-log\";\n\n// Pure helpers (a hand-assembly resolves identically).\nexport { resolveQuestTitle } from \"./lib/resolve-title\";\nexport { deriveBeats } from \"./lib/derive-beats\";\n\n// Public types.\nexport type {\n  Team,\n  Milestone,\n  NarrativeChapter,\n  GamificationEvent,\n  BeatState,\n  DerivedBeat,\n  TeamQuestLogProps,\n  TeamQuestLogBaseProps,\n  TeamQuestLogRootProps,\n  TeamQuestLogHandle,\n  TeamQuestLogContextValue,\n  QuestTitleProps,\n  QuestNameFieldProps,\n  ChapterBeatProps,\n  ChapterRailProps,\n} from \"./types\";\n\n// @ilinxa/team-quest-log 0.2.1\n",
       "type": "registry:component",
       "target": "components/team-quest-log/index.ts"
     },
@@ -80,6 +80,10 @@
       "target": "components/team-quest-log/parts/chapter-beat.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "gamification"
   ],

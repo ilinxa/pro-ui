@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/data/registration-card/index.ts",
-      "content": "export { RegistrationCard, default } from \"./registration-card\";\n\nexport type {\n  RegistrationCardProps,\n  RegistrationCardLabels,\n  RegistrationStatus,\n} from \"./types\";\n\nexport { DEFAULT_REGISTRATION_CARD_LABELS } from \"./types\";\n\nexport {\n  deriveRegistrationStatus,\n  type DeriveRegistrationStatusOptions,\n} from \"./lib/registration-status\";\n\n",
+      "content": "export { RegistrationCard, default } from \"./registration-card\";\n\nexport type {\n  RegistrationCardProps,\n  RegistrationCardLabels,\n  RegistrationStatus,\n} from \"./types\";\n\nexport { DEFAULT_REGISTRATION_CARD_LABELS } from \"./types\";\n\nexport {\n  deriveRegistrationStatus,\n  type DeriveRegistrationStatusOptions,\n} from \"./lib/registration-status\";\n\n// @ilinxa/registration-card 0.2.0\n",
       "type": "registry:component",
       "target": "components/registration-card/index.ts"
     },
@@ -43,6 +43,10 @@
       "target": "components/registration-card/lib/format-default.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

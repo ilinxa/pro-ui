@@ -165,11 +165,14 @@ Diff the changes (use `--dry-run` first if unsure), merge any local modification
 - **Tailwind CSS** — v4 REQUIRED. CSS-vars-only config; no `tailwind.config.*`. Components are written against semantic Tailwind tokens registered through `@theme inline`. v3 + JS config will not compile the class names.
 - **Design tokens** — canonical shadcn token set required (see Prerequisites above for the full list). Extras: `--chart-*`, `--sidebar*`, `--warning*` for the components that use them.
 - **Package managers** — pnpm / bun / yarn / npm. npm + React 19 needs `--legacy-peer-deps`.
+- **shadcn CLI** — 3.8.x and 4.x; install-tested on 3.8.5 and 4.18.0 into a `new-york`, `src/`-directory Next.js project with a sample of components (app-sidebar, story-rail, post-card, carousel-composer and their dependencies, plus a fixtures and a feature item); the full catalog is install-smoked on 4.x. On 3.x, add the `registries` entry for `@ilinxa` to `components.json`.
 
 ## Common gotchas
 
 - `Cannot find module '@/lib/utils'` after install → consumer didn't run `shadcn init`. The `add` command does NOT seed the `cn` helper; `init` does.
-- Re-running `add` didn't pull upstream changes → without `--overwrite`, locally-modified files are skipped: non-interactive runs print the overwrite prompt, auto-answer "no", and exit 0 with no failure summary — exit-code checks can't detect the skip. Add `--overwrite` to update; the CLI diffs per file and only rewrites files that actually changed.
+- Re-running `add` didn't pull upstream changes → without `--overwrite`, the CLI asks before replacing a locally-modified file; answering "no" skips that file and installs the rest. Add `--overwrite` to update; the CLI diffs per file and only rewrites files that actually changed.
+- `add` printed success but installed nothing → in a non-interactive run (CI, script, closed stdin), CLI 3.8.5 and 4.18.0 abort the WHOLE add with exit 0 when any file it would write already exists with different content (often a customized `components/ui/` primitive). Run interactively and answer "no", pipe answers in (`yes n | pnpm dlx shadcn add …`), or pass `--overwrite`. Verify files landed; never trust the exit code.
+- Which version is installed → the last line of each component's `index.ts` (a fixtures item: `dummy-data.ts`; a feature item: `features/<name>/index.ts`) is `// @ilinxa/<slug> <version>` (the CLI strips leading comments, so it is a trailer, not a header). The served item and `/r/registry.json` carry `meta.version` / `meta.status`; CHANGELOG.md has an entry per version.
 - `npm ERESOLVE` on React 19 peer deps → `--legacy-peer-deps`, or recommend pnpm.
 - Stale install after upstream update → CDN edge cache. Wait out the 5-min TTL or append `?v=<hash>` to the URL once.
 

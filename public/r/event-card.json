@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/data/event-card/index.ts",
-      "content": "export { EventCard, default } from \"./event-card\";\n\nexport type {\n  EventCardItem,\n  EventCardLabels,\n  EventCardProps,\n  EventCardVariant,\n  EventStatus,\n} from \"./types\";\n\nexport { DEFAULT_EVENT_CARD_LABELS } from \"./types\";\n\nexport {\n  getEventStatus,\n  EVENT_STATUS_CONFIG,\n  type EventStatusConfigEntry,\n} from \"./lib/event-status\";\n\nexport { formatEventDate, getDaysUntilEvent } from \"./lib/format-default\";\n\n",
+      "content": "export { EventCard, default } from \"./event-card\";\n\nexport type {\n  EventCardItem,\n  EventCardLabels,\n  EventCardProps,\n  EventCardVariant,\n  EventStatus,\n} from \"./types\";\n\nexport { DEFAULT_EVENT_CARD_LABELS } from \"./types\";\n\nexport {\n  getEventStatus,\n  EVENT_STATUS_CONFIG,\n  type EventStatusConfigEntry,\n} from \"./lib/event-status\";\n\nexport { formatEventDate, getDaysUntilEvent } from \"./lib/format-default\";\n\n// @ilinxa/event-card 0.2.0\n",
       "type": "registry:component",
       "target": "components/event-card/index.ts"
     },
@@ -79,6 +79,10 @@
       "color-warning-foreground": "var(--warning-foreground, oklch(0.18 0 0))",
       "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
     }
+  },
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
   },
   "categories": [
     "data",

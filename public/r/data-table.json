@@ -16,7 +16,7 @@
     },
     {
       "path": "src/registry/components/data/data-table/index.ts",
-      "content": "export { DataTable } from \"./data-table\";\nexport type { DataTableColumn, DataTableProps } from \"./types\";\n",
+      "content": "export { DataTable } from \"./data-table\";\nexport type { DataTableColumn, DataTableProps } from \"./types\";\n\n// @ilinxa/data-table 0.1.2\n",
       "type": "registry:component",
       "target": "components/data-table/index.ts"
     },
@@ -27,6 +27,10 @@
       "target": "components/data-table/types.ts"
     }
   ],
+  "meta": {
+    "version": "0.1.2",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

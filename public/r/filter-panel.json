@@ -23,7 +23,7 @@
     },
     {
       "path": "src/registry/components/forms/filter-panel/index.ts",
-      "content": "export { FilterPanel } from \"./filter-panel\";\nexport { defaultIsEmpty } from \"./lib/default-is-empty\";\nexport type {\n  CheckboxListFilter,\n  CustomFilter,\n  CustomFilterRenderProps,\n  FilterCategory,\n  FilterMode,\n  FilterOption,\n  FilterPanelHandle,\n  FilterPanelProps,\n  FilterValue,\n  TextFilter,\n  ToggleFilter,\n} from \"./types\";\n",
+      "content": "export { FilterPanel } from \"./filter-panel\";\nexport { defaultIsEmpty } from \"./lib/default-is-empty\";\nexport type {\n  CheckboxListFilter,\n  CustomFilter,\n  CustomFilterRenderProps,\n  FilterCategory,\n  FilterMode,\n  FilterOption,\n  FilterPanelHandle,\n  FilterPanelProps,\n  FilterValue,\n  TextFilter,\n  ToggleFilter,\n} from \"./types\";\n\n// @ilinxa/filter-panel 0.2.1\n",
       "type": "registry:component",
       "target": "components/filter-panel/index.ts"
     },
@@ -118,6 +118,10 @@
       "target": "components/filter-panel/parts/solo-button.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "forms",
     "graph-system"

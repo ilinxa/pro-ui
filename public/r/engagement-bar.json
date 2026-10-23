@@ -22,7 +22,7 @@
     },
     {
       "path": "src/registry/components/data/engagement-bar/index.ts",
-      "content": "export { EngagementBar } from \"./engagement-bar\";\nexport { EngagementHeartBurst } from \"./parts/engagement-heart-burst\";\nexport type { EngagementHeartBurstProps } from \"./parts/engagement-heart-burst\";\nexport { LikersStrip } from \"./parts/likers-strip\";\nexport type { LikersStripProps } from \"./parts/likers-strip\";\nexport { ShareMenu } from \"./parts/share-menu\";\nexport type { ShareMenuProps } from \"./parts/share-menu\";\nexport {\n  engagementReducer,\n  useEngagementState,\n  deriveStateFromActions,\n} from \"./hooks/use-engagement-state\";\nexport type {\n  UseEngagementStateOptions,\n  UseEngagementStateResult,\n} from \"./hooks/use-engagement-state\";\nexport { formatEngagementCount } from \"./lib/format-count\";\n\nexport type {\n  EngagementBarProps,\n  EngagementBarHandle,\n  EngagementBarVariant,\n  EngagementBarLabels,\n  EngagementAction,\n  EngagementActionAlign,\n  EngagementDelta,\n  EngagementLikeUser,\n  EngagementLikerProfile,\n  EngagementReactionKind,\n  EngagementState,\n  EngagementLocalAction,\n  Subscribe,\n  Unsubscribe,\n} from \"./types\";\n\nexport { DEFAULT_ENGAGEMENT_BAR_LABELS } from \"./types\";\n\n",
+      "content": "export { EngagementBar } from \"./engagement-bar\";\nexport { EngagementHeartBurst } from \"./parts/engagement-heart-burst\";\nexport type { EngagementHeartBurstProps } from \"./parts/engagement-heart-burst\";\nexport { LikersStrip } from \"./parts/likers-strip\";\nexport type { LikersStripProps } from \"./parts/likers-strip\";\nexport { ShareMenu } from \"./parts/share-menu\";\nexport type { ShareMenuProps } from \"./parts/share-menu\";\nexport {\n  engagementReducer,\n  useEngagementState,\n  deriveStateFromActions,\n} from \"./hooks/use-engagement-state\";\nexport type {\n  UseEngagementStateOptions,\n  UseEngagementStateResult,\n} from \"./hooks/use-engagement-state\";\nexport { formatEngagementCount } from \"./lib/format-count\";\n\nexport type {\n  EngagementBarProps,\n  EngagementBarHandle,\n  EngagementBarVariant,\n  EngagementBarLabels,\n  EngagementAction,\n  EngagementActionAlign,\n  EngagementDelta,\n  EngagementLikeUser,\n  EngagementLikerProfile,\n  EngagementReactionKind,\n  EngagementState,\n  EngagementLocalAction,\n  Subscribe,\n  Unsubscribe,\n} from \"./types\";\n\nexport { DEFAULT_ENGAGEMENT_BAR_LABELS } from \"./types\";\n\n// @ilinxa/engagement-bar 0.4.0\n",
       "type": "registry:component",
       "target": "components/engagement-bar/index.ts"
     },
@@ -123,6 +123,10 @@
       "target": "components/engagement-bar/lib/format-count.ts"
     }
   ],
+  "meta": {
+    "version": "0.4.0",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

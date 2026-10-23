@@ -23,7 +23,7 @@
     },
     {
       "path": "src/registry/components/navigation/file-tree/index.ts",
-      "content": "export { FileTree } from \"./file-tree\";\nexport { FileTreeHeader } from \"./parts/file-tree-header\";\nexport { FileTreeNewFileButton } from \"./parts/file-tree-new-file-button\";\nexport { FileTreeNewFolderButton } from \"./parts/file-tree-new-folder-button\";\nexport { FileTreeRefreshButton } from \"./parts/file-tree-refresh-button\";\nexport { FileTreeCollapseAllButton } from \"./parts/file-tree-collapse-all-button\";\nexport { useFileTree } from \"./hooks/use-file-tree-context\";\nexport { mergeLoadedChildren } from \"./lib/tree-utils\";\nexport { iconForExtension } from \"./lib/icons\";\nexport { DEFAULT_FILE_TREE_LABELS } from \"./types\";\nexport type {\n  FsNode,\n  FsNodeType,\n  FileTreeProps,\n  FileTreeHandle,\n  FileTreeState,\n  FileTreeActions,\n  FileTreeRow,\n  FileTreeSelectionMode,\n  FileTreeDropPosition,\n  FileTreeVirtualizeMode,\n  FileTreeOpenArgs,\n  FileTreeCreateArgs,\n  FileTreeRenameArgs,\n  FileTreeDeleteArgs,\n  FileTreeMoveArgs,\n  FileTreeRefreshArgs,\n  FileTreeExternalDropArgs,\n  FileTreeLoadChildrenArgs,\n  FileTreeSelectionChangeArgs,\n  FileTreeExpandedChangeArgs,\n  FileTreeValidateRenameArgs,\n  FileTreeIconForNodeArgs,\n  FileTreeContextMenuItem,\n  FileTreeContextMenuItemId,\n  FileTreeHeaderContext,\n  FileTreeContextMenuContext,\n  FileTreeEmptyContext,\n  FileTreeRowRenderArgs,\n  FileTreeDeleteConfirmContext,\n  FileTreeLabels,\n} from \"./types\";\n",
+      "content": "export { FileTree } from \"./file-tree\";\nexport { FileTreeHeader } from \"./parts/file-tree-header\";\nexport { FileTreeNewFileButton } from \"./parts/file-tree-new-file-button\";\nexport { FileTreeNewFolderButton } from \"./parts/file-tree-new-folder-button\";\nexport { FileTreeRefreshButton } from \"./parts/file-tree-refresh-button\";\nexport { FileTreeCollapseAllButton } from \"./parts/file-tree-collapse-all-button\";\nexport { useFileTree } from \"./hooks/use-file-tree-context\";\nexport { mergeLoadedChildren } from \"./lib/tree-utils\";\nexport { iconForExtension } from \"./lib/icons\";\nexport { DEFAULT_FILE_TREE_LABELS } from \"./types\";\nexport type {\n  FsNode,\n  FsNodeType,\n  FileTreeProps,\n  FileTreeHandle,\n  FileTreeState,\n  FileTreeActions,\n  FileTreeRow,\n  FileTreeSelectionMode,\n  FileTreeDropPosition,\n  FileTreeVirtualizeMode,\n  FileTreeOpenArgs,\n  FileTreeCreateArgs,\n  FileTreeRenameArgs,\n  FileTreeDeleteArgs,\n  FileTreeMoveArgs,\n  FileTreeRefreshArgs,\n  FileTreeExternalDropArgs,\n  FileTreeLoadChildrenArgs,\n  FileTreeSelectionChangeArgs,\n  FileTreeExpandedChangeArgs,\n  FileTreeValidateRenameArgs,\n  FileTreeIconForNodeArgs,\n  FileTreeContextMenuItem,\n  FileTreeContextMenuItemId,\n  FileTreeHeaderContext,\n  FileTreeContextMenuContext,\n  FileTreeEmptyContext,\n  FileTreeRowRenderArgs,\n  FileTreeDeleteConfirmContext,\n  FileTreeLabels,\n} from \"./types\";\n\n// @ilinxa/file-tree 0.1.3\n",
       "type": "registry:component",
       "target": "components/file-tree/index.ts"
     },
@@ -176,6 +176,10 @@
     "theme": {
       "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
     }
+  },
+  "meta": {
+    "version": "0.1.3",
+    "status": "alpha"
   },
   "categories": [
     "navigation",

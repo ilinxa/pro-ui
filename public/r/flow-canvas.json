@@ -29,7 +29,7 @@
     },
     {
       "path": "src/registry/components/data/flow-canvas/index.ts",
-      "content": "export { FlowCanvas } from \"./flow-canvas\";\n\nexport type {\n  CanvasData,\n  EdgeRecord,\n  EdgeRenderContext,\n  EdgeRenderer,\n  FlowCanvasBackgroundConfig,\n  FlowCanvasExportHandle,\n  FlowCanvasProps,\n  MenuItem,\n  NodeData,\n  NodeRecord,\n  NodeRenderer,\n  Port,\n  PortDir,\n  PortSide,\n  PortType,\n  PortsAtProps,\n  RenderContext,\n} from \"./types\";\n\nexport {\n  customJsonRenderer,\n  findRenderer,\n  mergeRenderers,\n  useRenderer,\n} from \"./registries/renderer-registry\";\nexport {\n  defaultPortTypes,\n  findPortType,\n  usePortType,\n} from \"./registries/port-type-registry\";\nexport {\n  defaultEdgeRenderer,\n  findEdgeType,\n  mergeEdgeTypes,\n  useEdgeType,\n} from \"./registries/edge-type-registry\";\n\nexport { PortsAt } from \"./parts/ports-at\";\nexport { PortHandle } from \"./parts/port-handle\";\n\nexport { findPortInTree, countEdgesAtPort } from \"./lib/port-walker\";\nexport type { FoundPort } from \"./lib/port-walker\";\n\nexport { emitSubObjectDrag } from \"./lib/emit-sub-object-drag\";\n\nexport { updateNodeData } from \"./lib/update-node-data\";\n\n",
+      "content": "export { FlowCanvas } from \"./flow-canvas\";\n\nexport type {\n  CanvasData,\n  EdgeRecord,\n  EdgeRenderContext,\n  EdgeRenderer,\n  FlowCanvasBackgroundConfig,\n  FlowCanvasExportHandle,\n  FlowCanvasProps,\n  MenuItem,\n  NodeData,\n  NodeRecord,\n  NodeRenderer,\n  Port,\n  PortDir,\n  PortSide,\n  PortType,\n  PortsAtProps,\n  RenderContext,\n} from \"./types\";\n\nexport {\n  customJsonRenderer,\n  findRenderer,\n  mergeRenderers,\n  useRenderer,\n} from \"./registries/renderer-registry\";\nexport {\n  defaultPortTypes,\n  findPortType,\n  usePortType,\n} from \"./registries/port-type-registry\";\nexport {\n  defaultEdgeRenderer,\n  findEdgeType,\n  mergeEdgeTypes,\n  useEdgeType,\n} from \"./registries/edge-type-registry\";\n\nexport { PortsAt } from \"./parts/ports-at\";\nexport { PortHandle } from \"./parts/port-handle\";\n\nexport { findPortInTree, countEdgesAtPort } from \"./lib/port-walker\";\nexport type { FoundPort } from \"./lib/port-walker\";\n\nexport { emitSubObjectDrag } from \"./lib/emit-sub-object-drag\";\n\nexport { updateNodeData } from \"./lib/update-node-data\";\n\n// @ilinxa/flow-canvas 0.3.0\n",
       "type": "registry:component",
       "target": "components/flow-canvas/index.ts"
     },
@@ -190,6 +190,10 @@
       "target": "components/flow-canvas/registries/renderer-registry.tsx"
     }
   ],
+  "meta": {
+    "version": "0.3.0",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "flow",

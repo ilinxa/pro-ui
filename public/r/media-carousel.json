@@ -22,7 +22,7 @@
     },
     {
       "path": "src/registry/components/media/media-carousel/index.ts",
-      "content": "export { default as MediaCarousel } from \"./media-carousel\";\n\nexport type {\n  MediaCarouselProps,\n  MediaCarouselHandle,\n  MediaCarouselLabels,\n  MediaCarouselVariant,\n  MediaItem,\n  RenderItemContext,\n  LinearAspect,\n} from \"./types\";\n\nexport { DEFAULT_MEDIA_CAROUSEL_LABELS } from \"./types\";\n\n",
+      "content": "export { default as MediaCarousel } from \"./media-carousel\";\n\nexport type {\n  MediaCarouselProps,\n  MediaCarouselHandle,\n  MediaCarouselLabels,\n  MediaCarouselVariant,\n  MediaItem,\n  RenderItemContext,\n  LinearAspect,\n} from \"./types\";\n\nexport { DEFAULT_MEDIA_CAROUSEL_LABELS } from \"./types\";\n\n// @ilinxa/media-carousel 0.2.0\n",
       "type": "registry:component",
       "target": "components/media-carousel/index.ts"
     },
@@ -69,6 +69,10 @@
       "target": "components/media-carousel/hooks/use-embla-with-state.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "media"
   ],

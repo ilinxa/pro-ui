@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/thumbnail-list/index.ts",
-      "content": "export { ThumbnailList } from \"./thumbnail-list\";\nexport {\n  THUMBNAIL_LIST_DEFAULT_LABELS,\n  type ThumbnailListItem,\n  type ThumbnailListLabels,\n  type ThumbnailListProps,\n} from \"./types\";\n",
+      "content": "export { ThumbnailList } from \"./thumbnail-list\";\nexport {\n  THUMBNAIL_LIST_DEFAULT_LABELS,\n  type ThumbnailListItem,\n  type ThumbnailListLabels,\n  type ThumbnailListProps,\n} from \"./types\";\n\n// @ilinxa/thumbnail-list 0.2.0\n",
       "type": "registry:component",
       "target": "components/thumbnail-list/index.ts"
     },
@@ -40,6 +40,10 @@
       "target": "components/thumbnail-list/parts/empty-state.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

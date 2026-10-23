@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/forms/category-cloud/index.ts",
-      "content": "export { CategoryCloud, default } from \"./category-cloud\";\nexport type {\n  CategoryCloudHeadingLevel,\n  CategoryCloudItem,\n  CategoryCloudProps,\n} from \"./types\";\n",
+      "content": "export { CategoryCloud, default } from \"./category-cloud\";\nexport type {\n  CategoryCloudHeadingLevel,\n  CategoryCloudItem,\n  CategoryCloudProps,\n} from \"./types\";\n\n// @ilinxa/category-cloud 0.2.0\n",
       "type": "registry:component",
       "target": "components/category-cloud/index.ts"
     },
@@ -34,6 +34,10 @@
       "target": "components/category-cloud/parts/category-chip.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "forms"
   ],

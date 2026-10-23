@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/schedule-list/index.ts",
-      "content": "export { ScheduleList, default } from \"./schedule-list\";\n\nexport type {\n  ScheduleListItem,\n  ScheduleListLabels,\n  ScheduleListProps,\n} from \"./types\";\n\nexport { DEFAULT_SCHEDULE_LIST_LABELS } from \"./types\";\n\n",
+      "content": "export { ScheduleList, default } from \"./schedule-list\";\n\nexport type {\n  ScheduleListItem,\n  ScheduleListLabels,\n  ScheduleListProps,\n} from \"./types\";\n\nexport { DEFAULT_SCHEDULE_LIST_LABELS } from \"./types\";\n\n// @ilinxa/schedule-list 0.2.0\n",
       "type": "registry:component",
       "target": "components/schedule-list/index.ts"
     },
@@ -34,6 +34,10 @@
       "target": "components/schedule-list/parts/schedule-row.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "events"

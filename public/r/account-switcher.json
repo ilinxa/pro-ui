@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/navigation/account-switcher/index.ts",
-      "content": "export { AccountSwitcher } from \"./account-switcher\";\nexport type {\n  AccountSwitcherProps,\n  AccountSwitcherAriaCurrent,\n  CollapsedPopoverSide,\n  SwitcherItem,\n} from \"./types\";\n",
+      "content": "export { AccountSwitcher } from \"./account-switcher\";\nexport type {\n  AccountSwitcherProps,\n  AccountSwitcherAriaCurrent,\n  CollapsedPopoverSide,\n  SwitcherItem,\n} from \"./types\";\n\n// @ilinxa/account-switcher 0.2.0\n",
       "type": "registry:component",
       "target": "components/account-switcher/index.ts"
     },
@@ -73,6 +73,10 @@
       "target": "components/account-switcher/parts/switcher-trigger.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "navigation",
     "app-shell"

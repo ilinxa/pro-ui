@@ -36,7 +36,7 @@
     },
     {
       "path": "src/registry/components/data/task-tree/index.ts",
-      "content": "export { TaskTree } from \"./task-tree\";\nexport { TaskTreeWithEditor } from \"./task-tree-with-editor\";\n\n// Headless state hook\nexport { useTaskTreeState } from \"./hooks/use-task-tree-state\";\n\nexport type {\n  TaskTreeProps,\n  TaskTreeHandle,\n  TaskTreeStateValue,\n  TaskTreeChangeReason,\n  TaskTreeChangeArgs,\n  TaskTreeSort,\n  TaskTreeFilter,\n  TaskTreePermissionAction,\n  TaskTreePermissionDenialReason,\n  TaskTreeAction,\n  TreeLocation,\n  TaskTreeVisibleRow,\n  TaskTreeItemEvent,\n  TaskTreeMoveEvent,\n  TaskTreeDropEvent,\n  TaskTreeAddEvent,\n  TaskTreeRemoveEvent,\n  TaskTreePermissionDeniedEvent,\n  TaskTreeRowRenderArgs,\n  TaskTreeFieldRenderArgs,\n  TaskTreeStatusRenderArgs,\n  TaskTreeToolbarRenderArgs,\n  TaskTreeEmptyRenderArgs,\n  TaskTreeDragOverlayArgs,\n} from \"./types\";\n",
+      "content": "export { TaskTree } from \"./task-tree\";\nexport { TaskTreeWithEditor } from \"./task-tree-with-editor\";\n\n// Headless state hook\nexport { useTaskTreeState } from \"./hooks/use-task-tree-state\";\n\nexport type {\n  TaskTreeProps,\n  TaskTreeHandle,\n  TaskTreeStateValue,\n  TaskTreeChangeReason,\n  TaskTreeChangeArgs,\n  TaskTreeSort,\n  TaskTreeFilter,\n  TaskTreePermissionAction,\n  TaskTreePermissionDenialReason,\n  TaskTreeAction,\n  TreeLocation,\n  TaskTreeVisibleRow,\n  TaskTreeItemEvent,\n  TaskTreeMoveEvent,\n  TaskTreeDropEvent,\n  TaskTreeAddEvent,\n  TaskTreeRemoveEvent,\n  TaskTreePermissionDeniedEvent,\n  TaskTreeRowRenderArgs,\n  TaskTreeFieldRenderArgs,\n  TaskTreeStatusRenderArgs,\n  TaskTreeToolbarRenderArgs,\n  TaskTreeEmptyRenderArgs,\n  TaskTreeDragOverlayArgs,\n} from \"./types\";\n\n// @ilinxa/task-tree 0.4.1\n",
       "type": "registry:component",
       "target": "components/task-tree/index.ts"
     },
@@ -311,6 +311,10 @@
       "target": "components/task-tree/parts/task-tree-empty-state.tsx"
     }
   ],
+  "meta": {
+    "version": "0.4.1",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "task-management"

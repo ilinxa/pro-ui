@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/gamification/team-challenge/index.ts",
-      "content": "// Tier A — batteries-included assembly.\nexport { TeamChallenge } from \"./team-challenge\";\n\n// Tier B — headless provider + flat à-la-carte context parts.\nexport { TeamChallengeRoot } from \"./parts/team-challenge-root\";\nexport { TeamChallengeHeader } from \"./parts/team-challenge-header\";\nexport { TeamChallengeProgress } from \"./parts/team-challenge-progress\";\nexport { TeamChallengeReward } from \"./parts/team-challenge-reward\";\nexport { TeamChallengeOptIn } from \"./parts/team-challenge-optin\";\n\n// Tier C — standalone, context-free primitives.\nexport { ChallengeProgressMeter } from \"./parts/team-challenge-progress\";\nexport { ChallengeRewardChip } from \"./parts/team-challenge-reward\";\nexport { OptInToggle } from \"./parts/team-challenge-optin\";\nexport { TeamMemberStack } from \"./parts/team-member-stack\";\nexport { TeamChallengeSkeleton } from \"./parts/team-challenge-skeleton\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamChallenge } from \"./hooks/use-team-challenge\";\n\n// Public types.\nexport type {\n  Challenge,\n  Team,\n  TeamMember,\n  GamificationEvent,\n  TeamChallengeProps,\n  TeamChallengeBaseProps,\n  TeamChallengeRootProps,\n  TeamChallengeContextValue,\n  ChallengeDerived,\n  OptInToggleProps,\n  ChallengeProgressMeterProps,\n  ChallengeRewardChipProps,\n  TeamMemberStackProps,\n} from \"./types\";\n",
+      "content": "// Tier A — batteries-included assembly.\nexport { TeamChallenge } from \"./team-challenge\";\n\n// Tier B — headless provider + flat à-la-carte context parts.\nexport { TeamChallengeRoot } from \"./parts/team-challenge-root\";\nexport { TeamChallengeHeader } from \"./parts/team-challenge-header\";\nexport { TeamChallengeProgress } from \"./parts/team-challenge-progress\";\nexport { TeamChallengeReward } from \"./parts/team-challenge-reward\";\nexport { TeamChallengeOptIn } from \"./parts/team-challenge-optin\";\n\n// Tier C — standalone, context-free primitives.\nexport { ChallengeProgressMeter } from \"./parts/team-challenge-progress\";\nexport { ChallengeRewardChip } from \"./parts/team-challenge-reward\";\nexport { OptInToggle } from \"./parts/team-challenge-optin\";\nexport { TeamMemberStack } from \"./parts/team-member-stack\";\nexport { TeamChallengeSkeleton } from \"./parts/team-challenge-skeleton\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamChallenge } from \"./hooks/use-team-challenge\";\n\n// Public types.\nexport type {\n  Challenge,\n  Team,\n  TeamMember,\n  GamificationEvent,\n  TeamChallengeProps,\n  TeamChallengeBaseProps,\n  TeamChallengeRootProps,\n  TeamChallengeContextValue,\n  ChallengeDerived,\n  OptInToggleProps,\n  ChallengeProgressMeterProps,\n  ChallengeRewardChipProps,\n  TeamMemberStackProps,\n} from \"./types\";\n\n// @ilinxa/team-challenge 0.2.1\n",
       "type": "registry:component",
       "target": "components/team-challenge/index.ts"
     },
@@ -95,6 +95,10 @@
       "target": "components/team-challenge/parts/team-challenge-skeleton.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "gamification"
   ],

@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/forms/filter-bar/index.ts",
-      "content": "export { FilterBar, default } from \"./filter-bar\";\nexport type {\n  DateRange,\n  FilterBarAlign,\n  FilterBarCategoryItem,\n  FilterBarLabels,\n  FilterBarProps,\n  FilterBarValue,\n} from \"./types\";\n",
+      "content": "export { FilterBar, default } from \"./filter-bar\";\nexport type {\n  DateRange,\n  FilterBarAlign,\n  FilterBarCategoryItem,\n  FilterBarLabels,\n  FilterBarProps,\n  FilterBarValue,\n} from \"./types\";\n\n// @ilinxa/filter-bar 0.2.0\n",
       "type": "registry:component",
       "target": "components/filter-bar/index.ts"
     },
@@ -59,6 +59,10 @@
       "target": "components/filter-bar/parts/date-range-picker.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "forms"
   ],

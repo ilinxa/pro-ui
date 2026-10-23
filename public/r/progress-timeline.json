@@ -19,7 +19,7 @@
     },
     {
       "path": "src/registry/components/data/progress-timeline/index.ts",
-      "content": "export { ProgressTimeline, default } from \"./progress-timeline\";\n\nexport type {\n  ProgressTimelineProps,\n  ProgressTimelineLabels,\n  TimelineLabelText,\n  TimelineState,\n  TimelineStatus,\n} from \"./types\";\n\nexport { DEFAULT_PROGRESS_TIMELINE_LABELS } from \"./types\";\n\nexport { deriveTimelineState } from \"./lib/timeline-state\";\n\n",
+      "content": "export { ProgressTimeline, default } from \"./progress-timeline\";\n\nexport type {\n  ProgressTimelineProps,\n  ProgressTimelineLabels,\n  TimelineLabelText,\n  TimelineState,\n  TimelineStatus,\n} from \"./types\";\n\nexport { DEFAULT_PROGRESS_TIMELINE_LABELS } from \"./types\";\n\nexport { deriveTimelineState } from \"./lib/timeline-state\";\n\n// @ilinxa/progress-timeline 0.2.0\n",
       "type": "registry:component",
       "target": "components/progress-timeline/index.ts"
     },
@@ -36,6 +36,10 @@
       "target": "components/progress-timeline/lib/timeline-state.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "events"

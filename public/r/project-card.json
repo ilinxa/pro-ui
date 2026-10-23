@@ -19,7 +19,7 @@
     },
     {
       "path": "src/registry/components/data/project-card/index.ts",
-      "content": "export { ProjectCard, default } from \"./project-card\";\n\nexport type {\n  ProjectCardItem,\n  ProjectCardLabels,\n  ProjectCardProps,\n  ProjectCardVariant,\n  ProjectCategoryStyle,\n  ProjectStatus,\n} from \"./types\";\n\nexport { DEFAULT_PROJECT_CARD_LABELS } from \"./types\";\n\nexport {\n  PROJECT_STATUS_CONFIG,\n  type ProjectStatusConfigEntry,\n} from \"./lib/project-status\";\n\n",
+      "content": "export { ProjectCard, default } from \"./project-card\";\n\nexport type {\n  ProjectCardItem,\n  ProjectCardLabels,\n  ProjectCardProps,\n  ProjectCardVariant,\n  ProjectCategoryStyle,\n  ProjectStatus,\n} from \"./types\";\n\nexport { DEFAULT_PROJECT_CARD_LABELS } from \"./types\";\n\nexport {\n  PROJECT_STATUS_CONFIG,\n  type ProjectStatusConfigEntry,\n} from \"./lib/project-status\";\n\n// @ilinxa/project-card 0.3.0\n",
       "type": "registry:component",
       "target": "components/project-card/index.ts"
     },
@@ -54,6 +54,10 @@
       "target": "components/project-card/lib/image-fallback.tsx"
     }
   ],
+  "meta": {
+    "version": "0.3.0",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "projects"

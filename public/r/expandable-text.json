@@ -15,7 +15,7 @@
     },
     {
       "path": "src/registry/components/data/expandable-text/index.ts",
-      "content": "export { default as ExpandableText } from \"./expandable-text\";\n\nexport type {\n  ExpandableTextProps,\n  ExpandableTextLabels,\n  ExpandableTextToggleRenderProps,\n} from \"./types\";\n\nexport { DEFAULT_EXPANDABLE_TEXT_LABELS } from \"./types\";\n\nexport {\n  useLineClampDetect,\n  type UseLineClampDetectOptions,\n  type UseLineClampDetectResult,\n} from \"./hooks/use-line-clamp-detect\";\n\n",
+      "content": "export { default as ExpandableText } from \"./expandable-text\";\n\nexport type {\n  ExpandableTextProps,\n  ExpandableTextLabels,\n  ExpandableTextToggleRenderProps,\n} from \"./types\";\n\nexport { DEFAULT_EXPANDABLE_TEXT_LABELS } from \"./types\";\n\nexport {\n  useLineClampDetect,\n  type UseLineClampDetectOptions,\n  type UseLineClampDetectResult,\n} from \"./hooks/use-line-clamp-detect\";\n\n// @ilinxa/expandable-text 0.2.0\n",
       "type": "registry:component",
       "target": "components/expandable-text/index.ts"
     },
@@ -32,6 +32,10 @@
       "target": "components/expandable-text/hooks/use-line-clamp-detect.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

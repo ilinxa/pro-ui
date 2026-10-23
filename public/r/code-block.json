@@ -34,7 +34,7 @@
     },
     {
       "path": "src/registry/components/code/code-block/index.ts",
-      "content": "export { CodeBlock } from \"./code-block\";\nexport { CodeBlockHeader } from \"./parts/code-block-header\";\nexport { CodeBlockFilename } from \"./parts/code-block-filename\";\nexport { CodeBlockLangPill } from \"./parts/code-block-lang-pill\";\nexport { CodeBlockCopyButton } from \"./parts/code-block-copy-button\";\nexport { CodeBlockExpandButton } from \"./parts/code-block-expand-button\";\nexport { CodeBlockWrapButton } from \"./parts/code-block-wrap-button\";\nexport { CodeBlockDownloadButton } from \"./parts/code-block-download-button\";\nexport { CodeBlockTrafficLights } from \"./parts/code-block-traffic-lights\";\nexport { useCodeBlock } from \"./hooks/use-code-block-context\";\nexport { resolveLang, FILENAME_TO_LANG_MAP } from \"./lib/lang-resolution\";\nexport type {\n  CodeBlockProps,\n  CodeBlockServerProps,\n  CodeBlockHandle,\n  CodeBlockMode,\n  CodeBlockRegexEngine,\n  CodeBlockWrap,\n  CodeBlockAnnotation,\n  CodeBlockAnnotationType,\n  CodeBlockLineRange,\n  CodeBlockLabels,\n  CodeBlockThemes,\n  CodeBlockChangeArgs,\n  CodeBlockCopyArgs,\n  CodeBlockSaveArgs,\n  CodeBlockDownloadArgs,\n  CodeBlockLineClickArgs,\n  CodeBlockExpandedChangeArgs,\n  CodeBlockWrapChangeArgs,\n  CodeBlockFilenameToLangArgs,\n  CodeBlockHeaderContext,\n  CodeBlockAnnotationRenderArgs,\n  CodeBlockExpandModalContext,\n  ShikiThemeObject,\n  TerminalLine,\n  TerminalLineKind,\n} from \"./types\";\n",
+      "content": "export { CodeBlock } from \"./code-block\";\nexport { CodeBlockHeader } from \"./parts/code-block-header\";\nexport { CodeBlockFilename } from \"./parts/code-block-filename\";\nexport { CodeBlockLangPill } from \"./parts/code-block-lang-pill\";\nexport { CodeBlockCopyButton } from \"./parts/code-block-copy-button\";\nexport { CodeBlockExpandButton } from \"./parts/code-block-expand-button\";\nexport { CodeBlockWrapButton } from \"./parts/code-block-wrap-button\";\nexport { CodeBlockDownloadButton } from \"./parts/code-block-download-button\";\nexport { CodeBlockTrafficLights } from \"./parts/code-block-traffic-lights\";\nexport { useCodeBlock } from \"./hooks/use-code-block-context\";\nexport { resolveLang, FILENAME_TO_LANG_MAP } from \"./lib/lang-resolution\";\nexport type {\n  CodeBlockProps,\n  CodeBlockServerProps,\n  CodeBlockHandle,\n  CodeBlockMode,\n  CodeBlockRegexEngine,\n  CodeBlockWrap,\n  CodeBlockAnnotation,\n  CodeBlockAnnotationType,\n  CodeBlockLineRange,\n  CodeBlockLabels,\n  CodeBlockThemes,\n  CodeBlockChangeArgs,\n  CodeBlockCopyArgs,\n  CodeBlockSaveArgs,\n  CodeBlockDownloadArgs,\n  CodeBlockLineClickArgs,\n  CodeBlockExpandedChangeArgs,\n  CodeBlockWrapChangeArgs,\n  CodeBlockFilenameToLangArgs,\n  CodeBlockHeaderContext,\n  CodeBlockAnnotationRenderArgs,\n  CodeBlockExpandModalContext,\n  ShikiThemeObject,\n  TerminalLine,\n  TerminalLineKind,\n} from \"./types\";\n\n// @ilinxa/code-block 0.2.1\n",
       "type": "registry:component",
       "target": "components/code-block/index.ts"
     },
@@ -231,6 +231,10 @@
       "target": "components/code-block/lib/streaming-cache.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "code"
   ],

@@ -21,7 +21,7 @@
     },
     {
       "path": "src/registry/components/layout/split-workspace/index.ts",
-      "content": "export { SplitWorkspace } from \"./split-workspace\";\nexport { useAreaContext } from \"./hooks/use-area-context\";\nexport type {\n  AreaContext,\n  AreaTree,\n  AreaTreeLeaf,\n  AreaTreeSplit,\n  Breakpoint,\n  ResponsiveValue,\n  SplitOrientation,\n  SplitWorkspaceComponent,\n  SplitWorkspacePreset,\n  SplitWorkspaceProps,\n} from \"./types\";\n",
+      "content": "export { SplitWorkspace } from \"./split-workspace\";\nexport { useAreaContext } from \"./hooks/use-area-context\";\nexport type {\n  AreaContext,\n  AreaTree,\n  AreaTreeLeaf,\n  AreaTreeSplit,\n  Breakpoint,\n  ResponsiveValue,\n  SplitOrientation,\n  SplitWorkspaceComponent,\n  SplitWorkspacePreset,\n  SplitWorkspaceProps,\n} from \"./types\";\n\n// @ilinxa/split-workspace 0.2.0\n",
       "type": "registry:component",
       "target": "components/split-workspace/index.ts"
     },
@@ -150,6 +150,10 @@
     "theme": {
       "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
     }
+  },
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
   },
   "categories": [
     "layout"

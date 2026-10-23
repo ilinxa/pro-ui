@@ -10,11 +10,15 @@
   "files": [
     {
       "path": "src/registry/components/marketing/page-hero/dummy-data.ts",
-      "content": "import { Clock, Newspaper, TrendingUp } from \"lucide-react\";\nimport type { HeroStat } from \"./types\";\n\nexport const NEWS_HERO_DEFAULTS = {\n  badge: \"News & Updates\",\n  badgeIcon: Newspaper,\n  title: \"Latest Stories\",\n  titleHighlight: \"From Our Team\",\n  description:\n    \"Insights, announcements, and behind-the-scenes from our editorial team.\",\n};\n\nexport const NEWS_HERO_STATS_EN: HeroStat[] = [\n  { icon: Newspaper, value: \"500+\", label: \"Articles\" },\n  { icon: TrendingUp, value: \"10K+\", label: \"Readers\" },\n  { icon: Clock, value: \"Daily\", label: \"Updates\" },\n];\n\n/** Turkish-flavored content for the localized demo, matching the kasder source. */\nexport const NEWS_HERO_DEFAULTS_TR = {\n  badge: \"Haberler & Duyurular\",\n  badgeIcon: Newspaper,\n  title: \"Güncel Haberler\",\n  titleHighlight: \"Son Gelişmeler\",\n  description:\n    \"Kentsel gelişim, şehir planlama ve sürdürülebilirlik alanındaki en son gelişmeleri ve duyuruları takip edin.\",\n};\n\nexport const NEWS_HERO_STATS_TR: HeroStat[] = [\n  { icon: Newspaper, value: \"500+\", label: \"Makale\" },\n  { icon: TrendingUp, value: \"10K+\", label: \"Okuyucu\" },\n  { icon: Clock, value: \"Günlük\", label: \"Güncelleme\" },\n];\n",
+      "content": "import { Clock, Newspaper, TrendingUp } from \"lucide-react\";\nimport type { HeroStat } from \"./types\";\n\nexport const NEWS_HERO_DEFAULTS = {\n  badge: \"News & Updates\",\n  badgeIcon: Newspaper,\n  title: \"Latest Stories\",\n  titleHighlight: \"From Our Team\",\n  description:\n    \"Insights, announcements, and behind-the-scenes from our editorial team.\",\n};\n\nexport const NEWS_HERO_STATS_EN: HeroStat[] = [\n  { icon: Newspaper, value: \"500+\", label: \"Articles\" },\n  { icon: TrendingUp, value: \"10K+\", label: \"Readers\" },\n  { icon: Clock, value: \"Daily\", label: \"Updates\" },\n];\n\n/** Turkish-flavored content for the localized demo, matching the kasder source. */\nexport const NEWS_HERO_DEFAULTS_TR = {\n  badge: \"Haberler & Duyurular\",\n  badgeIcon: Newspaper,\n  title: \"Güncel Haberler\",\n  titleHighlight: \"Son Gelişmeler\",\n  description:\n    \"Kentsel gelişim, şehir planlama ve sürdürülebilirlik alanındaki en son gelişmeleri ve duyuruları takip edin.\",\n};\n\nexport const NEWS_HERO_STATS_TR: HeroStat[] = [\n  { icon: Newspaper, value: \"500+\", label: \"Makale\" },\n  { icon: TrendingUp, value: \"10K+\", label: \"Okuyucu\" },\n  { icon: Clock, value: \"Günlük\", label: \"Güncelleme\" },\n];\n\n// @ilinxa/page-hero-fixtures 0.2.0\n",
       "type": "registry:component",
       "target": "components/page-hero/dummy-data.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "marketing",
     "news",

@@ -21,7 +21,7 @@
     },
     {
       "path": "src/registry/components/forms/entity-picker/index.ts",
-      "content": "export { EntityPicker } from \"./entity-picker\";\nexport type {\n  CommonPickerProps,\n  EntityLike,\n  EntityPickerHandle,\n  EntityPickerProps,\n  KindMeta,\n  MultiPickerProps,\n  PickerMode,\n  RenderEmptyContext,\n  RenderItemContext,\n  RenderTriggerContext,\n  SinglePickerProps,\n} from \"./types\";\n",
+      "content": "export { EntityPicker } from \"./entity-picker\";\nexport type {\n  CommonPickerProps,\n  EntityLike,\n  EntityPickerHandle,\n  EntityPickerProps,\n  KindMeta,\n  MultiPickerProps,\n  PickerMode,\n  RenderEmptyContext,\n  RenderItemContext,\n  RenderTriggerContext,\n  SinglePickerProps,\n} from \"./types\";\n\n// @ilinxa/entity-picker 0.1.3\n",
       "type": "registry:component",
       "target": "components/entity-picker/index.ts"
     },
@@ -98,6 +98,10 @@
       "target": "components/entity-picker/parts/trigger-button.tsx"
     }
   ],
+  "meta": {
+    "version": "0.1.3",
+    "status": "alpha"
+  },
   "categories": [
     "forms",
     "graph-system"

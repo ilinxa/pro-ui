@@ -60,6 +60,11 @@ side-effects.
   whole-write-abort shape on conflicting *base* files was not re-reproduced in this matrix (the
   re-test covered same-item re-add); treat it as unverified on ≥4.17.0 until the next slice ship
   exercises it. Evidence: `e:/tmp/ilinxa-p4-install-matrix-report.md` §T3.
+- **Re-verified 2026-10-24 (CLI 3.8.5 and 4.18.0, R12 install test):** the whole-write abort is real on
+  both. With stdin closed, one differing existing file makes the add write nothing — a file deleted
+  from the same item beforehand is not restored — and the exit code is 0. The "auto-answers no"
+  reading above was that abort seen from a single-file case. Answering `n` (interactively or piped)
+  skips only that file and writes the rest; `pnpm test:install` relies on exactly that.
 
 ## Removed files leave orphans in every existing consumer — say so, every time
 

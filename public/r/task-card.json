@@ -31,7 +31,7 @@
     },
     {
       "path": "src/registry/components/data/task-card/index.ts",
-      "content": "// Main component\nexport { TaskCard } from \"./task-card\";\n\n// Companion: kanban-board card renderer (Q-P6)\nexport { taskCardKanbanRenderer } from \"./parts/kanban-adapter\";\n\n// Constants\nexport { RAMPS } from \"./lib/ramp\";\nexport { TASK_RAMPS, TASK_CLIPBOARD_MIME } from \"./types\";\n\n// Unified cross-surface task clipboard (the canonical family envelope —\n// gantt / calendar / tree import from \"./lib/clipboard\" directly)\nexport {\n  TASK_CLIPBOARD_KIND,\n  TASK_CLIPBOARD_VERSION,\n  serializeTasks,\n  parseTasks,\n  reassignTaskIds,\n  writeTasksToClipboardEvent,\n  readTasksFromClipboardEvent,\n  copyTasksToClipboard,\n  readTasksFromClipboard,\n} from \"./lib/clipboard\";\nexport type { TaskClipboardEnvelope } from \"./lib/clipboard\";\n\n// Data types\nexport type {\n  TaskItem,\n  TaskPerson,\n  TaskImage,\n  TaskLink,\n  TaskColorRamp,\n  TaskColorRampPreset,\n  TaskStatusOption,\n  TaskPriorityOption,\n  TaskLabelOption,\n  TaskEditableField,\n} from \"./types\";\n\n// Permission types\nexport type {\n  TaskPermissions,\n  TaskPermissionRule,\n  TaskPermissionReason,\n} from \"./types\";\n\n// Event types\nexport type {\n  TaskFieldEditedEvent,\n  TaskStatusChangedEvent,\n  TaskItemAddedEvent,\n  TaskItemRemovedEvent,\n  TaskItemMovedEvent,\n  TaskColorOverriddenEvent,\n  TaskActiveToggledEvent,\n  TaskLockedToggledEvent,\n  TaskCopyEvent,\n  TaskPasteEvent,\n  TaskEditRequestEvent,\n} from \"./types\";\n\n// Component surface\nexport type { TaskCardProps, TaskCardHandle } from \"./types\";\n",
+      "content": "// Main component\nexport { TaskCard } from \"./task-card\";\n\n// Companion: kanban-board card renderer (Q-P6)\nexport { taskCardKanbanRenderer } from \"./parts/kanban-adapter\";\n\n// Constants\nexport { RAMPS } from \"./lib/ramp\";\nexport { TASK_RAMPS, TASK_CLIPBOARD_MIME } from \"./types\";\n\n// Unified cross-surface task clipboard (the canonical family envelope —\n// gantt / calendar / tree import from \"./lib/clipboard\" directly)\nexport {\n  TASK_CLIPBOARD_KIND,\n  TASK_CLIPBOARD_VERSION,\n  serializeTasks,\n  parseTasks,\n  reassignTaskIds,\n  writeTasksToClipboardEvent,\n  readTasksFromClipboardEvent,\n  copyTasksToClipboard,\n  readTasksFromClipboard,\n} from \"./lib/clipboard\";\nexport type { TaskClipboardEnvelope } from \"./lib/clipboard\";\n\n// Data types\nexport type {\n  TaskItem,\n  TaskPerson,\n  TaskImage,\n  TaskLink,\n  TaskColorRamp,\n  TaskColorRampPreset,\n  TaskStatusOption,\n  TaskPriorityOption,\n  TaskLabelOption,\n  TaskEditableField,\n} from \"./types\";\n\n// Permission types\nexport type {\n  TaskPermissions,\n  TaskPermissionRule,\n  TaskPermissionReason,\n} from \"./types\";\n\n// Event types\nexport type {\n  TaskFieldEditedEvent,\n  TaskStatusChangedEvent,\n  TaskItemAddedEvent,\n  TaskItemRemovedEvent,\n  TaskItemMovedEvent,\n  TaskColorOverriddenEvent,\n  TaskActiveToggledEvent,\n  TaskLockedToggledEvent,\n  TaskCopyEvent,\n  TaskPasteEvent,\n  TaskEditRequestEvent,\n} from \"./types\";\n\n// Component surface\nexport type { TaskCardProps, TaskCardHandle } from \"./types\";\n\n// @ilinxa/task-card 0.5.0\n",
       "type": "registry:component",
       "target": "components/task-card/index.ts"
     },
@@ -186,6 +186,10 @@
       "target": "components/task-card/parts/kanban-adapter.tsx"
     }
   ],
+  "meta": {
+    "version": "0.5.0",
+    "status": "alpha"
+  },
   "categories": [
     "data",
     "task-management"

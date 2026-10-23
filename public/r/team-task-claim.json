@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/gamification/team-task-claim/index.ts",
-      "content": "// Assembly — the logic-free fan-out (single-unit; no Root/context).\nexport { TeamTaskClaim } from \"./team-task-claim\";\n\n// Flat à-la-carte sub-parts (each mountable alone).\nexport { OpenForAnyoneToggle } from \"./parts/open-for-anyone-toggle\";\nexport { ClaimButton } from \"./parts/claim-button\";\nexport { AssigneeChip } from \"./parts/assignee-chip\";\n\n// Pure helpers (a hand-assembly resolves identically).\nexport { resolveTaskClaimState } from \"./lib/state\";\nexport { resolveMember, initialsFor } from \"./lib/members\";\n\n// Public types.\nexport type {\n  TaskClaimState,\n  TeamMember,\n  TaskClaimRenderState,\n  TaskClaimInteraction,\n  TaskClaimEvent,\n  TaskClaimDensity,\n  TaskClaimLabels,\n  TeamTaskClaimProps,\n  OpenForAnyoneToggleProps,\n  ClaimButtonProps,\n  AssigneeChipProps,\n} from \"./types\";\n",
+      "content": "// Assembly — the logic-free fan-out (single-unit; no Root/context).\nexport { TeamTaskClaim } from \"./team-task-claim\";\n\n// Flat à-la-carte sub-parts (each mountable alone).\nexport { OpenForAnyoneToggle } from \"./parts/open-for-anyone-toggle\";\nexport { ClaimButton } from \"./parts/claim-button\";\nexport { AssigneeChip } from \"./parts/assignee-chip\";\n\n// Pure helpers (a hand-assembly resolves identically).\nexport { resolveTaskClaimState } from \"./lib/state\";\nexport { resolveMember, initialsFor } from \"./lib/members\";\n\n// Public types.\nexport type {\n  TaskClaimState,\n  TeamMember,\n  TaskClaimRenderState,\n  TaskClaimInteraction,\n  TaskClaimEvent,\n  TaskClaimDensity,\n  TaskClaimLabels,\n  TeamTaskClaimProps,\n  OpenForAnyoneToggleProps,\n  ClaimButtonProps,\n  AssigneeChipProps,\n} from \"./types\";\n\n// @ilinxa/team-task-claim 0.2.1\n",
       "type": "registry:component",
       "target": "components/team-task-claim/index.ts"
     },
@@ -65,6 +65,10 @@
       "target": "components/team-task-claim/parts/assignee-chip.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "gamification"
   ],

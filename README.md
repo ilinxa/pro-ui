@@ -100,6 +100,8 @@ pnpm dlx shadcn@latest add @ilinxa/<slug> --overwrite
 ```
 
 Diff against your local modifications (use `--dry-run` first if unsure), merge, ship.
+
+**Which version do I have?** The last line of every installed component's `index.ts` is `// @ilinxa/<slug> <version>`. A fixtures item stamps its `dummy-data.ts`, and an opt-in feature item stamps its `features/<name>/index.ts`. It is the last line, not the first, because the shadcn CLI strips leading comments when it installs a file. The served item and the [registry index](https://ui.ilinxa.com/r/registry.json) carry the same `meta.version` and `meta.status`, and [CHANGELOG.md](CHANGELOG.md) has an entry for each version.
 <!-- /wl -->
 
 ---
@@ -189,6 +191,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 - **Tailwind CSS** — **v4 required** (CSS-vars-only config; no `tailwind.config.*`). The components are written against semantic Tailwind tokens (`bg-card`, `text-foreground`, `border-border`, …) registered through `@theme inline`. v3 + JS config won't compile the class names. See [Prerequisites §2](#prerequisites).
 - **Design tokens** — canonical shadcn token set required (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`). A few components also need `--chart-*`, `--sidebar*`, `--warning*` — see the table in [Prerequisites §2](#prerequisites).
 - **Package managers** — pnpm / bun / yarn. npm + React 19 needs `--legacy-peer-deps`.
+- **shadcn CLI** — 3.8.x and 4.x. Install-tested on **3.8.5** and **4.18.0** into a `new-york`, `src/`-directory Next.js project (`pnpm test:install`) with a sample of components — `app-sidebar`, `story-rail`, `post-card`, `carousel-composer` and what they pull in, plus a fixtures item and a feature item: every file lands under `src/components/<slug>/`, your existing `components/ui/` files are left alone, and `tsc` is clean. The full catalog is install-smoked on 4.x. On 3.x, add the `registries` entry from [the fallback above](#install-a-component).
 <!-- /wl -->
 
 ---
@@ -209,7 +212,8 @@ Point Claude Code, Cursor, GitHub Copilot, or any AI assistant at this URL when 
 | Symptom | Fix |
 |---|---|
 | `Cannot find module '@/lib/utils'` after install | Run `pnpm dlx shadcn@latest init` in the consumer project. `shadcn add` doesn't seed the `cn` helper — `init` does. |
-| Re-running `add` didn't pull upstream changes | Without `--overwrite`, locally-modified files are skipped — non-interactive runs auto-answer the overwrite prompt with "no" and exit 0, so exit-code checks can't detect it. Add `--overwrite` to update; the CLI diffs per file, so unchanged files are left alone. |
+| Re-running `add` didn't pull upstream changes | Without `--overwrite`, the CLI asks before replacing a file you changed; answering "no" skips that file and installs the rest. Add `--overwrite` to update; the CLI diffs per file, so unchanged files are left alone. |
+| `add` printed success but installed nothing | In a non-interactive run (CI, a script, closed stdin), CLI 3.8.5 and 4.18.0 abort the **whole** add, with exit 0, when any file it would write already exists with different content — often a `components/ui/` primitive you customized. Run it interactively and answer "no", pipe the answers in (`yes n \| pnpm dlx shadcn add …`), or pass `--overwrite` if replacing is what you want. Check that the files exist rather than trusting the exit code. |
 | `npm ERESOLVE` on React 19 peer deps | Use `npm install --legacy-peer-deps`, or switch to pnpm/bun which resolve cleanly. |
 | Stale install after upstream registry update | The CLI doesn't cache; the CDN does. Wait out the 5-minute TTL or append `?v=<hash>` to the registry URL once. |
 

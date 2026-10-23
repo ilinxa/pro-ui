@@ -19,7 +19,7 @@
     },
     {
       "path": "src/registry/components/media/video-player/index.ts",
-      "content": "export { default as VideoPlayer } from \"./video-player\";\n\nexport type {\n  VideoPlayerProps,\n  VideoPlayerLabels,\n  VideoState,\n  VideoTrack,\n} from \"./types\";\n\nexport { DEFAULT_VIDEO_PLAYER_LABELS } from \"./types\";\n\nexport {\n  useDoubleTap,\n  type UseDoubleTapOptions,\n} from \"./hooks/use-double-tap\";\n\n",
+      "content": "export { default as VideoPlayer } from \"./video-player\";\n\nexport type {\n  VideoPlayerProps,\n  VideoPlayerLabels,\n  VideoState,\n  VideoTrack,\n} from \"./types\";\n\nexport { DEFAULT_VIDEO_PLAYER_LABELS } from \"./types\";\n\nexport {\n  useDoubleTap,\n  type UseDoubleTapOptions,\n} from \"./hooks/use-double-tap\";\n\n// @ilinxa/video-player 0.2.1\n",
       "type": "registry:component",
       "target": "components/video-player/index.ts"
     },
@@ -54,6 +54,10 @@
       "target": "components/video-player/hooks/use-double-tap.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "media"
   ],

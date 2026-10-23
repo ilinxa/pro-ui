@@ -18,7 +18,7 @@
     },
     {
       "path": "src/registry/components/gamification/team-progress-bar/index.ts",
-      "content": "// Tier A — batteries-included assembly.\nexport { TeamProgressBar } from \"./team-progress-bar\";\n\n// Tier B — headless provider + flat à-la-carte parts.\nexport { TeamProgressBarRoot } from \"./parts/team-progress-bar-root\";\nexport { TeamProgressBarTrack } from \"./parts/team-progress-bar-track\";\nexport { TeamProgressBarLabel } from \"./parts/team-progress-bar-label\";\n\n// Tier C — context-free primitive.\nexport { ProgressTrack } from \"./parts/team-progress-bar-track\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamProgressBar } from \"./hooks/use-team-progress-bar\";\n\n// Public types.\nexport type {\n  TeamProgressBarProps,\n  TeamProgressBarRootProps,\n  TeamProgressBarBaseProps,\n  TeamProgressBarContextValue,\n  ProgressTrackProps,\n  Milestone,\n  TeamProgressBarTeam,\n  GamificationEvent,\n  ProgressLabelFormat,\n  ProgressTick,\n  ResolvedProgress,\n} from \"./types\";\n",
+      "content": "// Tier A — batteries-included assembly.\nexport { TeamProgressBar } from \"./team-progress-bar\";\n\n// Tier B — headless provider + flat à-la-carte parts.\nexport { TeamProgressBarRoot } from \"./parts/team-progress-bar-root\";\nexport { TeamProgressBarTrack } from \"./parts/team-progress-bar-track\";\nexport { TeamProgressBarLabel } from \"./parts/team-progress-bar-label\";\n\n// Tier C — context-free primitive.\nexport { ProgressTrack } from \"./parts/team-progress-bar-track\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamProgressBar } from \"./hooks/use-team-progress-bar\";\n\n// Public types.\nexport type {\n  TeamProgressBarProps,\n  TeamProgressBarRootProps,\n  TeamProgressBarBaseProps,\n  TeamProgressBarContextValue,\n  ProgressTrackProps,\n  Milestone,\n  TeamProgressBarTeam,\n  GamificationEvent,\n  ProgressLabelFormat,\n  ProgressTick,\n  ResolvedProgress,\n} from \"./types\";\n\n// @ilinxa/team-progress-bar 0.2.1\n",
       "type": "registry:component",
       "target": "components/team-progress-bar/index.ts"
     },
@@ -71,6 +71,10 @@
       "target": "components/team-progress-bar/parts/team-progress-bar-label.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "gamification"
   ],

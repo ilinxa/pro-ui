@@ -10,11 +10,15 @@
   "files": [
     {
       "path": "src/registry/components/marketing/share-bar/dummy-data.ts",
-      "content": "import type { ShareTarget } from \"./types\";\n\nexport const SHARE_BAR_DUMMY_DEFAULT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_FULL: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"reddit\" },\n  { kind: \"whatsapp\" },\n  { kind: \"telegram\" },\n  { kind: \"threads\" },\n  { kind: \"bluesky\" },\n  { kind: \"email\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_COMPACT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_TR: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_URL =\n  \"https://ui.ilinxa.com/components/share-bar\";\nexport const SHARE_BAR_DUMMY_TITLE =\n  \"ShareBar — pro-ui share strip with 9 built-in platforms\";\n",
+      "content": "import type { ShareTarget } from \"./types\";\n\nexport const SHARE_BAR_DUMMY_DEFAULT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_FULL: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"linkedin\" },\n  { kind: \"reddit\" },\n  { kind: \"whatsapp\" },\n  { kind: \"telegram\" },\n  { kind: \"threads\" },\n  { kind: \"bluesky\" },\n  { kind: \"email\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_COMPACT: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_TR: ReadonlyArray<ShareTarget> = [\n  { kind: \"twitter\" },\n  { kind: \"facebook\" },\n  { kind: \"copy\" },\n];\n\nexport const SHARE_BAR_DUMMY_URL =\n  \"https://ui.ilinxa.com/components/share-bar\";\nexport const SHARE_BAR_DUMMY_TITLE =\n  \"ShareBar — pro-ui share strip with 9 built-in platforms\";\n\n// @ilinxa/share-bar-fixtures 0.2.0\n",
       "type": "registry:component",
       "target": "components/share-bar/dummy-data.ts"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "marketing",
     "fixtures"

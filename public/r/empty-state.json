@@ -25,11 +25,15 @@
     },
     {
       "path": "src/registry/components/feedback/empty-state/index.ts",
-      "content": "export { EmptyState } from \"./empty-state\";\nexport type {\n  EmptyStateAction,\n  EmptyStateActionConfig,\n  EmptyStateProps,\n  EmptyStateSize,\n  EmptyStateVariant,\n} from \"./types\";\n",
+      "content": "export { EmptyState } from \"./empty-state\";\nexport type {\n  EmptyStateAction,\n  EmptyStateActionConfig,\n  EmptyStateProps,\n  EmptyStateSize,\n  EmptyStateVariant,\n} from \"./types\";\n\n// @ilinxa/empty-state 0.1.0\n",
       "type": "registry:component",
       "target": "components/empty-state/index.ts"
     }
   ],
+  "meta": {
+    "version": "0.1.0",
+    "status": "alpha"
+  },
   "categories": [
     "feedback"
   ],

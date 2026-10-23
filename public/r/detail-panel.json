@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/feedback/detail-panel/index.ts",
-      "content": "export { DetailPanel, DetailPanelEmptyState } from \"./detail-panel\";\nexport { DEFAULT_DETAIL_PANEL_LABELS } from \"./types\";\nexport type {\n  DetailPanelActionsContext,\n  DetailPanelActionsProps,\n  DetailPanelActionsRenderFn,\n  DetailPanelBodyProps,\n  DetailPanelError,\n  DetailPanelHandle,\n  DetailPanelHeaderProps,\n  DetailPanelLabels,\n  DetailPanelMode,\n  DetailPanelProps,\n  DetailPanelSelection,\n} from \"./types\";\n",
+      "content": "export { DetailPanel, DetailPanelEmptyState } from \"./detail-panel\";\nexport { DEFAULT_DETAIL_PANEL_LABELS } from \"./types\";\nexport type {\n  DetailPanelActionsContext,\n  DetailPanelActionsProps,\n  DetailPanelActionsRenderFn,\n  DetailPanelBodyProps,\n  DetailPanelError,\n  DetailPanelHandle,\n  DetailPanelHeaderProps,\n  DetailPanelLabels,\n  DetailPanelMode,\n  DetailPanelProps,\n  DetailPanelSelection,\n} from \"./types\";\n\n// @ilinxa/detail-panel 0.1.2\n",
       "type": "registry:component",
       "target": "components/detail-panel/index.ts"
     },
@@ -97,6 +97,10 @@
       "target": "components/detail-panel/parts/selection-announcer.tsx"
     }
   ],
+  "meta": {
+    "version": "0.1.2",
+    "status": "alpha"
+  },
   "categories": [
     "feedback",
     "graph-system"

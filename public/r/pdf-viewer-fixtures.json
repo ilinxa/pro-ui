@@ -10,11 +10,15 @@
   "files": [
     {
       "path": "src/registry/components/media/pdf-viewer/dummy-data.ts",
-      "content": "/**\n * Mozilla's public-domain \"TraceMonkey\" PDF — used as the official pdf.js\n * demo file. Hosted on GitHub Pages with CORS headers, so we can render it\n * directly without proxying. ~14 pages, mixed text + figures.\n */\nexport const PDF_VIEWER_DUMMY_URL =\n  \"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf\";\n\n/**\n * A second, smaller sample for compact / single-page demos.\n * Single-page Berkeley computer science paper sample, also CORS-friendly.\n */\nexport const PDF_VIEWER_DUMMY_SHORT_URL =\n  \"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf\";\n\n/**\n * Construct a Blob from one of the sample URLs (for demos that want to\n * exercise the Blob source path). Used in demo.tsx via `useEffect`.\n */\nexport async function pdfViewerDummyBlob(\n  url = PDF_VIEWER_DUMMY_URL,\n): Promise<Blob> {\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(`Failed to fetch sample PDF (${res.status})`);\n  return await res.blob();\n}\n\n/**\n * Construct an ArrayBuffer from one of the sample URLs.\n */\nexport async function pdfViewerDummyArrayBuffer(\n  url = PDF_VIEWER_DUMMY_URL,\n): Promise<ArrayBuffer> {\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(`Failed to fetch sample PDF (${res.status})`);\n  return await res.arrayBuffer();\n}\n",
+      "content": "/**\n * Mozilla's public-domain \"TraceMonkey\" PDF — used as the official pdf.js\n * demo file. Hosted on GitHub Pages with CORS headers, so we can render it\n * directly without proxying. ~14 pages, mixed text + figures.\n */\nexport const PDF_VIEWER_DUMMY_URL =\n  \"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf\";\n\n/**\n * A second, smaller sample for compact / single-page demos.\n * Single-page Berkeley computer science paper sample, also CORS-friendly.\n */\nexport const PDF_VIEWER_DUMMY_SHORT_URL =\n  \"https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf\";\n\n/**\n * Construct a Blob from one of the sample URLs (for demos that want to\n * exercise the Blob source path). Used in demo.tsx via `useEffect`.\n */\nexport async function pdfViewerDummyBlob(\n  url = PDF_VIEWER_DUMMY_URL,\n): Promise<Blob> {\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(`Failed to fetch sample PDF (${res.status})`);\n  return await res.blob();\n}\n\n/**\n * Construct an ArrayBuffer from one of the sample URLs.\n */\nexport async function pdfViewerDummyArrayBuffer(\n  url = PDF_VIEWER_DUMMY_URL,\n): Promise<ArrayBuffer> {\n  const res = await fetch(url);\n  if (!res.ok) throw new Error(`Failed to fetch sample PDF (${res.status})`);\n  return await res.arrayBuffer();\n}\n\n// @ilinxa/pdf-viewer-fixtures 0.1.6\n",
       "type": "registry:component",
       "target": "components/pdf-viewer/dummy-data.ts"
     }
   ],
+  "meta": {
+    "version": "0.1.6",
+    "status": "alpha"
+  },
   "categories": [
     "media",
     "pdf",

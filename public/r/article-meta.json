@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/article-meta/index.ts",
-      "content": "export { ArticleMeta } from \"./article-meta\";\nexport type {\n  ArticleMetaProps,\n  ArticleMetaItem,\n} from \"./types\";\n",
+      "content": "export { ArticleMeta } from \"./article-meta\";\nexport type {\n  ArticleMetaProps,\n  ArticleMetaItem,\n} from \"./types\";\n\n// @ilinxa/article-meta 0.2.0\n",
       "type": "registry:component",
       "target": "components/article-meta/index.ts"
     },
@@ -34,6 +34,10 @@
       "target": "components/article-meta/parts/meta-item.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],

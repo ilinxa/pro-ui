@@ -24,7 +24,7 @@
     },
     {
       "path": "src/registry/components/gamification/team-feedback-loop/index.ts",
-      "content": "// Tier A — batteries-included assembly.\nexport { TeamFeedbackLoop } from \"./team-feedback-loop\";\n\n// Tier B — headless provider + flat à-la-carte parts.\nexport { TeamFeedbackLoopRoot } from \"./parts/team-feedback-loop-root\";\nexport { TeamFeedbackCelebration } from \"./parts/team-feedback-celebration\";\nexport { TeamFeedbackNudge } from \"./parts/team-feedback-nudge\";\n\n// Tier C — context-free primitives. ConfettiBurst is the lazy-chunk host; the\n// Grid pulls it via React.lazy, so importing it here for standalone use does not\n// force it into a default consumer's bundle (unused re-exports tree-shake).\nexport { CelebrationOverlay } from \"./parts/celebration-overlay\";\nexport { NextTaskNudge } from \"./parts/next-task-nudge\";\nexport { default as ConfettiBurst } from \"./parts/confetti-burst\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamFeedbackLoop } from \"./hooks/use-team-feedback-context\";\n\n// Public types.\nexport type {\n  TeamFeedbackLoopProps,\n  TeamFeedbackLoopRootProps,\n  TeamFeedbackLoopBaseProps,\n  TeamFeedbackLoopHandle,\n  TeamFeedbackContextValue,\n  CelebrationOverlayProps,\n  NextTaskNudgeProps,\n  FeedbackEvent,\n  NextTaskSuggestion,\n  NudgePlacement,\n  GamificationEvent,\n} from \"./types\";\n",
+      "content": "// Tier A — batteries-included assembly.\nexport { TeamFeedbackLoop } from \"./team-feedback-loop\";\n\n// Tier B — headless provider + flat à-la-carte parts.\nexport { TeamFeedbackLoopRoot } from \"./parts/team-feedback-loop-root\";\nexport { TeamFeedbackCelebration } from \"./parts/team-feedback-celebration\";\nexport { TeamFeedbackNudge } from \"./parts/team-feedback-nudge\";\n\n// Tier C — context-free primitives. ConfettiBurst is the lazy-chunk host; the\n// Grid pulls it via React.lazy, so importing it here for standalone use does not\n// force it into a default consumer's bundle (unused re-exports tree-shake).\nexport { CelebrationOverlay } from \"./parts/celebration-overlay\";\nexport { NextTaskNudge } from \"./parts/next-task-nudge\";\nexport { default as ConfettiBurst } from \"./parts/confetti-burst\";\n\n// Context consumer for hand-assembled layouts.\nexport { useTeamFeedbackLoop } from \"./hooks/use-team-feedback-context\";\n\n// Public types.\nexport type {\n  TeamFeedbackLoopProps,\n  TeamFeedbackLoopRootProps,\n  TeamFeedbackLoopBaseProps,\n  TeamFeedbackLoopHandle,\n  TeamFeedbackContextValue,\n  CelebrationOverlayProps,\n  NextTaskNudgeProps,\n  FeedbackEvent,\n  NextTaskSuggestion,\n  NudgePlacement,\n  GamificationEvent,\n} from \"./types\";\n\n// @ilinxa/team-feedback-loop 0.2.1\n",
       "type": "registry:component",
       "target": "components/team-feedback-loop/index.ts"
     },
@@ -83,6 +83,10 @@
       "target": "components/team-feedback-loop/parts/confetti-burst.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.1",
+    "status": "alpha"
+  },
   "categories": [
     "gamification"
   ],

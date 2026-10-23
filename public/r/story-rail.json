@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/data/story-rail/index.ts",
-      "content": "export { StoryRail } from \"./story-rail\";\nexport { AddStoryThumbnail } from \"./parts/add-story-thumbnail\";\nexport type { AddStoryThumbnailProps } from \"./parts/add-story-thumbnail\";\n\nexport {\n  storyRailReducer,\n  useStoryRailState,\n  type UseStoryRailStateOptions,\n  type UseStoryRailStateResult,\n} from \"./hooks/use-story-rail-state\";\n\nexport type {\n  StoryRailItem,\n  StoryRailProps,\n  StoryRailHandle,\n  StoryRailLabels,\n  ResolvedStoryRailLabels,\n  StoryRailArrows,\n  StoryRailDelta,\n  StoryRailLocalAction,\n  ThumbnailRenderHelpers,\n  Subscribe,\n  Unsubscribe,\n} from \"./types\";\n\nexport { DEFAULT_STORY_RAIL_LABELS } from \"./types\";\n\n",
+      "content": "export { StoryRail } from \"./story-rail\";\nexport { AddStoryThumbnail } from \"./parts/add-story-thumbnail\";\nexport type { AddStoryThumbnailProps } from \"./parts/add-story-thumbnail\";\n\nexport {\n  storyRailReducer,\n  useStoryRailState,\n  type UseStoryRailStateOptions,\n  type UseStoryRailStateResult,\n} from \"./hooks/use-story-rail-state\";\n\nexport type {\n  StoryRailItem,\n  StoryRailProps,\n  StoryRailHandle,\n  StoryRailLabels,\n  ResolvedStoryRailLabels,\n  StoryRailArrows,\n  StoryRailDelta,\n  StoryRailLocalAction,\n  ThumbnailRenderHelpers,\n  Subscribe,\n  Unsubscribe,\n} from \"./types\";\n\nexport { DEFAULT_STORY_RAIL_LABELS } from \"./types\";\n\n// @ilinxa/story-rail 0.4.0\n",
       "type": "registry:component",
       "target": "components/story-rail/index.ts"
     },
@@ -66,6 +66,10 @@
       "color-story-ring-from": "var(--story-ring-from, var(--warning, oklch(0.78 0.16 75)))",
       "color-story-ring-to": "var(--story-ring-to, var(--destructive))"
     }
+  },
+  "meta": {
+    "version": "0.4.0",
+    "status": "alpha"
   },
   "categories": [
     "data"

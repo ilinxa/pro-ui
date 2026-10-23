@@ -1,0 +1,8 @@
+[
+  {
+    "importer": "src/registry/components/media/content-composer/lib/gates.ts",
+    "target": "forms/json-form/lib/path",
+    "rule": "A",
+    "owner": "next content-composer or json-form loop — import getByPath from a uniquely named file (the other shipped path.ts belongs to file-manager)"
+  }
+]

@@ -17,7 +17,7 @@
     },
     {
       "path": "src/registry/components/data/info-list/index.ts",
-      "content": "export { InfoList, default } from \"./info-list\";\n\nexport type {\n  InfoListItem,\n  InfoListLabels,\n  InfoListProps,\n  InfoListVariant,\n} from \"./types\";\n\nexport { DEFAULT_INFO_LIST_LABELS } from \"./types\";\n\n",
+      "content": "export { InfoList, default } from \"./info-list\";\n\nexport type {\n  InfoListItem,\n  InfoListLabels,\n  InfoListProps,\n  InfoListVariant,\n} from \"./types\";\n\nexport { DEFAULT_INFO_LIST_LABELS } from \"./types\";\n\n// @ilinxa/info-list 0.2.0\n",
       "type": "registry:component",
       "target": "components/info-list/index.ts"
     },
@@ -34,6 +34,10 @@
       "target": "components/info-list/parts/info-row.tsx"
     }
   ],
+  "meta": {
+    "version": "0.2.0",
+    "status": "alpha"
+  },
   "categories": [
     "data"
   ],
