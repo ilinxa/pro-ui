@@ -1,8 +1,8 @@
 # Plan — Part 1 registry-wide hardening (R1–R12), slice group A: R10 + R12
 
 ## Status
-- phase: R6 — next unchecked gate: base commit
-- branch/HEAD: master @ 42070ff (uncommitted work on top)
+- phase: **closed** (R7 done 2026-10-24)
+- branch/HEAD: master @ aaa2b4c (base commit, pushed; deploy verified live)
 - updated: 2026-10-24
 - open escalation: none
 
@@ -79,8 +79,8 @@ this loop after the R10/R12 report-back. Signed off by the user and the platform
 - [x] R3 code gates green with numbers (see Gate results)
 - [x] R4 findings table complete — every row CONFIRMED+fixed+tested or DROPPED+reasoned
 - [x] R5 every invariant observed live incl. ≥1 negative path (see Runtime evidence)
-- [ ] R6 blast-radius docs walked; docs-audit green; base commit landed
-- [ ] R7 history verified; handoff below; parked promoted to config; retro appended to improvement log
+- [x] R6 blast-radius docs walked; docs-audit green; base commit landed (aaa2b4c)
+- [x] R7 history verified; handoff below; parked promoted to config; retro appended to improvement log
 
 ## Invariants (R1)
 | # | Invariant (testable) | R4 checked | R5 observed |
@@ -184,3 +184,11 @@ src-dir project, `public/` served in-process), plus a 9-file probe item for CLI 
 - Versions for the 2 `_shared` support items — no `meta.ts` to source one from.
 
 ## Handoff (R7)
+- **done:** aaa2b4c pushed; live check 2026-10-24: `/r/{app-sidebar, story-rail, post-card,
+  carousel-composer, story-rail-fixtures, media-editor-capture}.json` carry `meta.version` + `meta.status`
+  and exactly one entry file whose last line is the stamp; alias `article-body-01` and `_shared`
+  `gamification-kit` carry neither; the live index lists a version on 130 of 184 items. History: one
+  base commit with gate numbers in the body, no amend, no attribution.
+- **pre-mortem:** if this breaks a consumer, it breaks because a future CLI also strips trailing
+  comments — `pnpm test:install` catches it, but only when run before a release.
+- **next:** group B (R1–R9, R11) — [part1-group-b-plan.md](part1-group-b-plan.md).
