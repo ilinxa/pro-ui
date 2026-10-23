@@ -1,5 +1,6 @@
 import { createStaticEditor, PlateStatic } from "platejs/static";
 import { cn } from "@/lib/utils";
+import { setEmbedPolicy } from "./lib/safe-embed";
 import { richTextViewerPlugins } from "./plugins/viewer-kit";
 import {
   RICH_TEXT_EMPTY_VALUE,
@@ -14,6 +15,8 @@ export function RichTextViewer({
   value,
   className,
   fallback,
+  embedAllowList,
+  isEmbedAllowed,
 }: RichTextViewerProps) {
   if (!value || value.length === 0) {
     if (fallback !== undefined) return <>{fallback}</>;
@@ -28,6 +31,8 @@ export function RichTextViewer({
     plugins: richTextViewerPlugins,
     value: value as RichTextValue,
   });
+
+  setEmbedPolicy(editor, { embedAllowList, isEmbedAllowed });
 
   return (
     <div className={cn(VIEWER_PROSE_CLASSES, className)}>

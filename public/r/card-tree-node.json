@@ -127,6 +127,11 @@
       "target": "components/card-tree-node/parts/port-editor-strip.tsx"
     }
   ],
+  "cssVars": {
+    "theme": {
+      "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+    }
+  },
   "categories": [
     "data",
     "flow",

@@ -553,7 +553,7 @@ would have exactly one child.
 ## 17. Known limitations — declared but NOT implemented
 
 > These are public surfaces that exist in the types and would reasonably be assumed to work.
-> They do not. Both were "deferred to v0.2.0" in the planning docs; **v0.2.0 shipped without
+> They do not. Both were deferred in the planning docs; **v0.2.0 shipped without
 > either.** Documented here rather than quietly left for a consumer to find.
 
 ### 17.1 `CodeBlockServerProps` — there is no `/server` entry point
@@ -572,7 +572,7 @@ is currently unmet.
 ### 17.2 `CodeBlockHandle.scrollToLine()` — a no-op
 
 Declared on the handle, listed in `meta.ts` as a shipped feature, and implemented as an empty
-function body with the comment *"v0.1.0: best-effort no-op; reserved for v0.2 CodeMirror
+function body with the comment *"v0.1.0: best-effort no-op; reserved for a later CodeMirror
 integration."* Calling it silently does nothing.
 
 If you need to scroll to a line today, scroll the container yourself — rows are `.line` elements

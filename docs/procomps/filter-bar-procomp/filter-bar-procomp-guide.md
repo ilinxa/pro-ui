@@ -141,9 +141,9 @@ The shadcn Calendar primitive was newly installed for this component (first user
 
 ## Open follow-ups
 
-- v0.2: multi-select on categories.
-- v0.2: saved filter presets (chip-row of preset names + "Save current").
-- v0.2: reset-all button.
-- v0.2: `locale` pass-through for Calendar (date-fns locales).
+- Not implemented: multi-select on categories.
+- Not implemented: saved filter presets (chip-row of preset names + "Save current").
+- Not implemented: reset-all button.
+- Not implemented: `locale` pass-through for Calendar (date-fns locales).
 - v0.3: numeric range / dropdown / multi-tag sub-controls.
 - v0.3: chip row could optionally render as `category-cloud` (with counts) when consumer prefers — currently the bar uses Button-as-chip (visually different from category-cloud's Badge-as-chip).

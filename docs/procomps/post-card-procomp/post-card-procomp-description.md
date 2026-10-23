@@ -219,7 +219,7 @@ Two `triggerLike()` methods (R-D-3): card-level wraps bar + burst (canonical UX)
 ## Out of scope (v0.2 candidates)
 
 - **Inline edit affordance** — locked deferred for the entire arc.
-- **Reaction emojis** (Facebook-style 6-emoji popover on long-press of like) — explicit out-of-scope; engagement-bar v0.2 candidate.
+- **Reaction emojis** (Facebook-style 6-emoji popover on long-press of like) — explicit out-of-scope for post-card itself; `engagement-bar` ships a multi-reaction picker (`reaction` action).
 - **Inline comment thread in `feed` variant** — only `detail` embeds the thread. Feed/compact/list rely on `comment.onClick` to hand off to host (typically navigates to detail). Hosts wanting feed-with-inline-thread compose `<CommentThread>` themselves under the card.
 - **`view-count` analytics injection** — host owns the count; we don't auto-track impressions.
 - **Long-press preview** (force-touch / 3D-touch detail peek) — out of scope.

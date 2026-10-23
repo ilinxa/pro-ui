@@ -169,7 +169,7 @@ All resolved during the analysis pass:
 1. ✅ **Success tint** — use `text-primary` (signal-lime); no new `--success` token.
 2. ✅ **Tooltips** — native `title` attribute (no shadcn Tooltip dep).
 3. ✅ **`onShare(targetKind)` callback** — included in v0.1 for analytics.
-4. ✅ **Native Web Share API integration** — NOT in v0.1; potential v0.2 addition.
+4. ✅ **Native Web Share API integration** — not implemented; possible future addition.
 
 ## Why not...
 

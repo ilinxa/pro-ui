@@ -96,4 +96,4 @@ Marketing / blog / news / docs sites all need a brand-tinted CTA card asking vis
 1. **Component export name.** `NewsletterSignup` (matching slug + variant-explicit) — confirmed pattern from news-card.
 2. **Tone palette scope.** Three tones (primary / accent / muted) or just one? **Resolved:** three — gives consumers room without exploding the API.
 3. **Should `inline-form` show inline validation errors?** v0.1 ships with HTML5 validation only. Strong validation (regex, async unique-check) is consumer concern.
-4. **Disabled state.** Should the card support a `disabled` prop (read-only display)? **Open** — defer unless a real consumer asks. Likely a v0.2 candidate.
+4. **Disabled state.** Should the card support a `disabled` prop (read-only display)? **Open** — defer unless a real consumer asks. Likely a possible future addition.

@@ -51,7 +51,7 @@ It is — by intent — **the most ambitious component in the registry**: it doe
 - **Tab-based UIs inside an area** — different paradigm; if a consumer wants tabs inside an area, they register a tabbed component themselves.
 - **Implementations of registered components** — the registry is empty by default. Consumer-supplied.
 - **Persistence to a backend** — workspace tree is serializable; saving is the consumer's job.
-- **Detach-to-OS-window** — the original brief mentions it. **Deferred to v0.2** (see Q2 in §7). Area ids stay stable and subtrees stay independently serializable so v0.2 can add it without breaking v0.1's API.
+- **Detach-to-OS-window** — the original brief mentions it. **Not implemented** (see Q2 in §7). Area ids stay stable and subtrees stay independently serializable so it can be added without breaking the API.
 - **Touch / pen support for corner gestures** — desktop-first in v0.1.0. On narrow viewports the layout collapses to a card stack (no gestures needed). v0.2 may add a long-press → action-sheet alternative.
 - **Cross-tab sync** of layouts.
 - **Built-in undo/redo** — consumer can wire it via `onLayoutChange` snapshots; we don't ship a history stack.
@@ -251,7 +251,7 @@ All twelve questions raised during description review have been resolved. Two di
 | # | Question | Decision | Notes |
 |---|---|---|---|
 | Q1 | **Slug name** — `split-workspace` vs alternatives | **`split-workspace`** ✓ | Confirmed. Preset-tab UI labels can use "Layouts" if the term overlap matters in chrome strings. |
-| Q2 | **Detach-to-OS-window in v0.1.0?** | **Defer to v0.2.** ✓ | Architectural hooks (stable area-ids, subtree-serializable) stay in v0.1 so v0.2 doesn't break the API. |
+| Q2 | **Detach-to-OS-window in v0.1.0?** | **Not implemented.** ✓ | Architectural hooks (stable area-ids, subtree-serializable) are kept so adding it later does not break the API. |
 | Q3 | **State on split: clone or fresh-mount?** | ⚠ **Hybrid** — original area keeps its state and component instance; new sibling area mounts fresh. | Diverged from originally-proposed "fresh on both sides". The hybrid is achievable via stable area-ids as React keys; better UX. Documented as the contract. |
 | Q4 | **Presets-tabs UI: included or separate?** | **Included.** ✓ | Renders only when `presets` prop is provided. No tab strip otherwise. |
 | Q5 | **Touch / pen support** | **Desktop-first in v0.1.0.** Mobile viewports collapse to a **1-column stack of cards** instead of supporting gestures. ✓ | This unifies with Q12 — mobile = stacked cards = `maxSplitDepth.mobile` defaults to 0. |
@@ -285,7 +285,7 @@ Before moving to the plan stage:
 
 - [x] Sections 1–8 reviewed.
 - [x] Q1–Q12 each carry an agreed or overridden answer (see §7). Q3 and Q12 diverged from originally-proposed defaults; the new answers are the locked ones.
-- [x] In-scope / Out-of-scope list updated — added: responsive collapse to 1-column card stack, hard depth cap, state-preservation on split. Confirmed deferred to v0.2: detach-to-OS-window, touch gestures, DnD between areas.
+- [x] In-scope / Out-of-scope list updated — added: responsive collapse to 1-column card stack, hard depth cap, state-preservation on split. Confirmed not implemented: detach-to-OS-window, touch gestures, DnD between areas.
 - [x] Framing reset — primary targets are dashboards / dev tools / data-exploration apps, not creative tools. Blender / VS Code / tiling WMs cited as conceptual lineage, not implementation models.
 - [ ] **User explicitly says "description approved" (or equivalent)** — this unlocks Stage 2 (`split-workspace-procomp-plan.md`).
 

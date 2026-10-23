@@ -43,10 +43,10 @@ export type SignupFormStatus =
  * Pluggable password-strength calculator. 0 = empty / unrated. 1–4 =
  * weak / fair / strong / excellent.
  *
- * v0.1 default is the built-in `(length, character-class-count)` heuristic
+ * default is the built-in `(length, character-class-count)` heuristic
  * in `lib/strength-calculator.ts`. Consumers with corporate password
- * policies or who want to drop in zxcvbn replace this slot; v0.2 may ship
- * an opt-in zxcvbn adapter that satisfies the same shape.
+ * policies or who want to drop in zxcvbn replace this slot; an opt-in zxcvbn adapter is not implemented, but
+ * could be added against the same shape.
  */
 export type StrengthCalculator = (password: string) => 0 | 1 | 2 | 3 | 4;
 
@@ -230,7 +230,7 @@ export interface SignupFormProps {
   };
 
   /**
-   * BYO strength heuristic — v0.1 contract for the v0.2 zxcvbn opt-in.
+   * BYO strength heuristic — seam for a zxcvbn opt-in (no adapter is implemented).
    * Default is the built-in `(length, character-class-count)` scorer in
    * `lib/strength-calculator.ts`.
    */

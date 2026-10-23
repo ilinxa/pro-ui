@@ -6,7 +6,7 @@
  * these before any commit; on failure, state is unchanged and the calling
  * editor surfaces errors via <InlineError>.
  *
- * No async hooks here — those land in v0.4.
+ * No async hooks here — async validation is not implemented.
  */
 
 import {
@@ -202,7 +202,7 @@ export function validateFieldAdd(
   if (type === "null") {
     return fail({
       code: "no-null-add",
-      message: "Adding null fields is not supported in v0.2.",
+      message: "Adding null fields is not supported.",
     });
   }
   // delegate the value/type sanity check to validateFieldEditValue logic minus card/field lookup
@@ -299,7 +299,7 @@ export function validateCardRemove(
   if (state.tree.id === cardId) {
     return fail({
       code: "no-root-remove",
-      message: "Removing the root card is not supported in v0.2.",
+      message: "Removing the root card is not supported.",
     });
   }
   if (!findCard(state.tree, cardId)) {

@@ -46,7 +46,7 @@ That is the contract this component owns: **the viewport, the renderer registry,
   - **Node**: "Duplicate", "Copy as JSON", "Convert to custom-JSON", "Delete"
   - **Edge**: "Delete" (typed ports are inherently directional — out → in — so reversal is meaningless and not exposed)
   Consumers append items via `menuItems.canvas` / `menuItems.node` / `menuItems.edge` props.
-- **Selection model** — single click selects; shift-click adds; click empty clears. Marquee selection deferred to v0.2.
+- **Selection model** — single click selects; shift-click adds; click empty clears. Marquee selection is not implemented.
 - **Per-node lock** — `node.locked: true` pins the node in place. The locked node cannot be moved by drag (overrides drag); other operations (edge connect/disconnect, delete via menu, sub-object extract) remain available unless `readOnly` is also set. Mirrors the kanban-board per-item lock contract. Visual indicator (lock chip on hover or in the node shell) is plan-stage detail.
 - **Save / load** — full canvas state is `{ version, nodes: NodeRecord[], edges: EdgeRecord[], viewport?: { x, y, zoom } }`. Round-trips through `JSON.stringify` cleanly. Versioned for forward migration.
 - **Controlled and uncontrolled state** — `data` (controlled) / `defaultData` (uncontrolled) / `onChange`. Same shape as workspace and kanban-board precedents.
@@ -56,7 +56,7 @@ That is the contract this component owns: **the viewport, the renderer registry,
 
 ### Out of scope (deliberate non-goals)
 
-- **Undo / redo** — consumers wire it via `onChange` snapshots; we don't ship a history stack. (v0.2 candidate.)
+- **Undo / redo** — consumers wire it via `onChange` snapshots; we don't ship a history stack. (possible future addition.)
 - **Minimap** — xyflow ships one; we'll expose it via a slot in v0.2 but not enable it by default.
 - **Auto-layout / dagre / ELK integration** — out of scope for v0.1. Consumers lay out manually or compute positions themselves.
 - **Marquee / lasso selection** — single + shift-click only in v0.1. Marquee is v0.2.
@@ -65,7 +65,7 @@ That is the contract this component owns: **the viewport, the renderer registry,
 - **Component / palette sidebar** — the "draggable list of node types you can drag onto canvas" panel that n8n and Langflow ship. Useful but a separate component (`flow-palette-01`?) — flow-canvas itself just receives drops.
 - **Search palette / command picker** — consumer-supplied if needed.
 - **Cross-canvas drag** — single canvas only.
-- **DB-ref nodes** (`{ ref: 'post:abc123' }` placeholders that fetch and visualize on demand) — its own subsystem with loader registry, fetch state, cache, refetch policy. **Deferred to v2.** v0.1 nodes carry inline data.
+- **DB-ref nodes** (`{ ref: 'post:abc123' }` placeholders that fetch and visualize on demand) — its own subsystem with loader registry, fetch state, cache, refetch policy. **Not implemented.** Nodes carry inline data.
 - **Live collaborative editing** — presence cursors, conflict resolution, CRDT.
 - **Inline edge controls** — mid-edge buttons (delete on hover, edit-label affordances), mid-edge editable labels, animation-state toggles. Edge appearance is polymorphic via the edge-type registry, but inline-on-edge interactivity beyond the registry is v0.2.
 - **Built-in renderer set beyond `custom-json`** — flow-canvas ships ONLY the custom-JSON fallback renderer. Cards from elsewhere in the registry (`post-card`, `project-card`, etc.) are wrapped by consumers via thin adapter renderers. Auto-discovery is explicitly NOT in scope.
@@ -466,7 +466,7 @@ Stable (`1.0.0`) is gated separately and includes external consumers, undo/redo,
 | Q14 | **Right-click menu items — locked or extendable?** | **Built-in items are fixed** (Duplicate, Copy as JSON, Convert to custom-JSON, Delete on nodes; etc.). **Consumers append additional items** via `menuItems.{canvas, node, edge}`. No removing built-ins in v0.1. | Predictability over configurability for the default set. Consumers wanting fully custom menus build their own renderer chrome. |
 | Q15 | **Edge deletion on node delete** — cascade or orphan? | **Cascade.** Deleting a node deletes all its incident edges. No "dangling edge" state. | Standard graph semantics. No use case for orphan edges in v0.1. |
 | Q16 | **Save/load schema versioning** — versioned now or later? | **Versioned now** — `CanvasData.version: number` starting at `1`. Plan stage decides migration story. | Forward-compatible from day one is cheap; retrofitting versions is expensive. |
-| Q17 | **Selection model** — single, multi (shift), or marquee? | **v0.1: single + shift-multi.** Marquee deferred to v0.2. | Covers the common case; marquee adds drag-overlap math we don't need yet. |
+| Q17 | **Selection model** — single, multi (shift), or marquee? | **Single + shift-multi.** Marquee not implemented. | Covers the common case; marquee adds drag-overlap math we don't need yet. |
 | Q18 | **Read-only mode coverage** — disable just edits, or also disable selection? | **Disable edits only.** Selection, pan, zoom, right-click "view" menu items remain. | Read-only viewers (audit, share-link) need to inspect the graph; pure-static is a CSS render of nodes, not what we ship. |
 | Q19 | **Touch / pen interaction parity with mouse** — full parity or basic? | **Basic.** Pan, zoom, drag-to-connect on touch. Long-press to open right-click menu. Sub-object extract via long-press + drag is functional but not pixel-perfect. | xyflow gets us most of this. Polishing touch DnD is a v0.2 task. |
 | Q20 | **`@xyflow/react` peer dep — bundled or peer?** | **Peer dep** declared in registry component metadata. Consumer installs via `pnpm dlx shadcn add @ilinxa/flow-canvas` which then prompts to install xyflow. | Standard registry pattern for non-trivial third-party deps. |

@@ -118,9 +118,8 @@ const editorTheme = EditorView.theme(
 );
 
 /**
- * Build the editor theme extension. The themes arg is reserved for the
- * v0.2.0 Shiki bridge — in v0.1.0 it is informational only (the active
- * palette is CSS-variable driven via .dark class).
+ * Build the editor theme extension. Takes no arguments: the active palette
+ * is CSS-variable driven via the .dark class.
  */
 export function buildCodeMirrorTheme(): Extension {
   return [editorTheme, syntaxHighlighting(highlightStyle)];

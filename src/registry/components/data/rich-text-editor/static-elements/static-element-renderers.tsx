@@ -1,10 +1,14 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { getEmbedPolicy, safeHref } from "../lib/safe-embed";
+import { SafeEmbedView } from "../parts/safe-embed-view";
 
 interface StaticElementProps {
   attributes?: Record<string, unknown>;
   children?: ReactNode;
   element: { type: string; [key: string]: unknown };
+  /** Passed by Plate's static pipeline; carries the per-instance embed policy. */
+  editor?: unknown;
   className?: string;
   style?: CSSProperties;
 }
@@ -229,7 +233,7 @@ export function StaticMediaEmbed(props: StaticElementProps) {
     <div {...spreadAttrs(props.attributes)} className={cn("my-6", props.className)}>
       {element.url ? (
         <div className="aspect-video overflow-hidden rounded-md border border-border bg-muted/30">
-          <iframe src={element.url} className="h-full w-full" allowFullScreen />
+          <SafeEmbedView url={element.url} policy={getEmbedPolicy(props.editor)} />
         </div>
       ) : null}
       {props.children}
@@ -239,11 +243,13 @@ export function StaticMediaEmbed(props: StaticElementProps) {
 
 export function StaticLink(props: StaticElementProps) {
   const element = props.element as { url?: string };
+  const href = safeHref(element.url);
   return (
     <a
       {...spreadAttrs(props.attributes)}
-      href={element.url ?? "#"}
-      target="_blank"
+      // Unsafe scheme (javascript:, data:, ...) => no href; children kept.
+      href={href}
+      target={href ? "_blank" : undefined}
       rel="noopener noreferrer"
       className={cn(
         "text-primary underline underline-offset-2 hover:text-primary/80",

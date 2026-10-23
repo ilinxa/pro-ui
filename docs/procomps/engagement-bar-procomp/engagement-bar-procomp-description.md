@@ -123,12 +123,12 @@ Every social product surface needs the same row of buttons under the content: **
 
 ## Out of scope (v0.2 candidates)
 
-- **Built-in likers carousel** — slot pattern handles it; no concrete need to bake one in. v0.2 candidate: ship a sibling `<LikersStrip>` part if 3+ consumers reach for the same Embla pattern.
+- **Built-in likers carousel** — slot pattern handles it; no concrete need to bake one in. Since shipped as the `<LikersStrip>` sub-export.
 - **Reaction emojis** (Facebook-style 6-emoji popover on long-press of like) — explicit out-of-scope; if needed later, add as `kind: "reaction"` action variant.
 - **Built-in share menu** (copy link / share-to-X / etc.) — `share.onClick` opens the host's menu / native share sheet. We don't ship a popover.
 - **Comments composer** — that lives in `comment-thread` (next ship).
 - **Comments panel** — also `comment-thread`. The `comment.onClick` here just opens / scrolls-to / focuses the host's comment thread.
-- **Animated count rolling** (digit-by-digit slot machine) — count flip is an instant CSS transform, not animated digit-roll. v0.2 candidate if requested.
+- **Animated count rolling** (digit-by-digit slot machine) — count flip is an instant CSS transform, not animated digit-roll. a possible future addition if requested.
 - **Per-action analytics hook** (auto-firing on every click) — host wires this in `onToggle` / `onClick`. We don't introduce a separate `onAnalyticsEvent` prop.
 - **Long-press detection for power-user actions** — pure click + double-tap interactions only.
 

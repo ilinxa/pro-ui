@@ -105,7 +105,7 @@ await ref.current?.export();    // defensive copy (see §7)
 ref.current?.addFiles(files);   // File[] | FileList — same path as the dropzone
 ref.current?.removeItem(id);
 ref.current?.select(id);        // null clears selection
-ref.current?.openEditor(id);
+ref.current?.openEditor(id); // images only — a video id is ignored (dev-warn)
 ref.current?.reset();           // revokes owned URLs and clears
 ```
 
@@ -145,10 +145,11 @@ rejected 60 MB video looks identical to a broken dropzone.
 4. **Crop aspect is not forwardable** through `editorProps` by design — see §6.
 5. **Reordering fires `onReorder` *and* `onChange`.** Do not treat them as alternatives and apply
    the change twice.
-6. **Video items edit through the same panel, with a caveat.** They open `media-editor` in video
-   mode, but the applied patch persists `editorState` with `videoBlob: null` — so a *re-edit*
-   resumes from the exported frame, not the original video track. (The demo used to say video edit
-   was "deferred to v0.2"; that line predated the feature and was stale by v0.2.0.)
+6. **Video items are not editable.** Only image items reach the editor. `openEditor(id)` on a
+   video item is a no-op (dev-warn, `onEditOpen` does not fire), the main preview shows the
+   `videoNotEditable` label instead of an Edit button, and `EditPanel` refuses a non-image item
+   (dev-warn, cancels itself). Video items support preview / reorder / remove. Nothing in the
+   composer re-encodes a video.
 
 ## 12. Public exports
 

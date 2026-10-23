@@ -308,10 +308,10 @@ const TR_LABELS: CommentThreadLabels = {
 ## What's NOT in v0.1
 
 - **Edit affordance** — `CommentDelta.edited` is in the realtime contract for forward-compatibility, but no UI for editing in v0.1.
-- **Mentions / hashtags** — render rich content via `renderNode` if you need them now; built-in tag UI lands in v0.2.
+- **Mentions / hashtags** — render rich content via `renderNode` if you need them now; built-in tag UI is not implemented.
 - **Voting (up/down)** — like-only.
 - **Per-comment subscription** — one subscribe for the whole thread; no per-node subscribe.
-- **Lazy-load deeper replies (`onLoadReplies`)** — v0.1 trusts `replies` to be fully loaded for visible nodes. v0.2 candidate.
+- **Lazy-load deeper replies (`onLoadReplies`)** — the component trusts `replies` to be fully loaded for visible nodes. possible future addition.
 - **Animated insert/remove** — no framer-motion.
 - **Search within thread** — out of scope.
 

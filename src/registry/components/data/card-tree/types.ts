@@ -274,8 +274,7 @@ export type CustomPredefinedKey = {
    * Makes this block searchable by the native data-model search. Optional —
    * omit it and the block is simply skipped by search (never an error).
    *
-   * Q-P15 deferred custom-key search out of v0.3; `lib/search.ts` shipped the
-   * consumption early and it is live as of v0.6.
+   * `lib/search.ts` consumes this and it is live.
    */
   searchableText?: (value: unknown) => string[];
 };

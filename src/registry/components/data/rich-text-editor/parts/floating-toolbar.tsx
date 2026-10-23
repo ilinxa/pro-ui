@@ -28,6 +28,7 @@ import {
 import { useEditorRef, useEditorSelection } from "platejs/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { safeHref } from "../lib/safe-embed";
 import { MarkButton } from "./toolbar-buttons";
 
 function getSelectionRect(): DOMRect | null {
@@ -94,7 +95,7 @@ export function FloatingToolbar() {
   }, [isCollapsed, refs, selection]);
 
   const handleAddLink = useCallback(() => {
-    const url = window.prompt("Link URL");
+    const url = safeHref(window.prompt("Link URL"));
     if (!url) return;
     editor.tf.insertNodes({
       type: LinkPlugin.key,

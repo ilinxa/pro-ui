@@ -8,7 +8,7 @@ export const meta: ComponentMeta = {
   description:
     "Plate-powered WYSIWYG editor and read-only viewer for long-form articles — code blocks, captioned images, floating toolbar, HTML export.",
   context:
-    "First Plate (platejs) component in pro-ui. Two exports from one folder: `<RichTextEditor>` is a 'use client' editor (~165KB gzip after v0.2 additions) with a fixed top toolbar (marks / headings / lists / blockquote / link / image / table / code-block / font-family / font-size / color) PLUS a selection-anchored floating toolbar (marks + link). `<RichTextViewer>` is server-renderable via `platejs/static` (~32KB gzip). Both consume the same Plate `Value` JSON shape. Storage format is JSON, not HTML — Plate's docs warn against HTML round-trips. v0.2 adds: lowlight code-block syntax highlighting (15 languages registered, tokens themed via chart-1..5 palette in globals.css); per-image resize handle + inline caption editor (width stored as %); floating toolbar (selection-anchored, anchored via @floating-ui/react); HTML serialization escape hatch via `serializeRichTextToHtml(value)` for RSS / email / OG-tag export boundaries.",
+    "First Plate (platejs) component in pro-ui. Two exports from one folder: `<RichTextEditor>` is a 'use client' editor (~165KB gzip after v0.2 additions) with a fixed top toolbar (marks / headings / lists / blockquote / link / image / table / code-block / font-family / font-size / color) PLUS a selection-anchored floating toolbar (marks + link). `<RichTextViewer>` is server-renderable via `platejs/static` (~32KB gzip). Both consume the same Plate `Value` JSON shape. Storage format is JSON, not HTML — Plate's docs warn against HTML round-trips. v0.2 adds: lowlight code-block syntax highlighting (15 languages registered, tokens themed via chart-1..5 palette in globals.css); per-image resize handle + inline caption editor (width stored as %); floating toolbar (selection-anchored, anchored via @floating-ui/react); HTML serialization escape hatch via `serializeRichTextToHtml(value)` for RSS / email / OG-tag export boundaries. v0.4.0 hardens embeds and links: iframes are sandboxed and host-allow-listed (disallowed hosts render as a link; migration: pass `embedAllowList` or `isEmbedAllowed` to allow other hosts), and link hrefs are scheme-filtered in the editor, viewer and HTML export.",
   features: [
     "Editor + Viewer split — same JSON shape, different bundle profiles",
     "Fixed top toolbar (marks, headings, lists, blockquote, link, image, table, code, font-family, font-size, color)",
@@ -25,6 +25,7 @@ export const meta: ComponentMeta = {
     "Read-only mode hides both toolbars; editor still selectable",
     "Pure server-renderable viewer via createStaticEditor + PlateStatic",
     "Tailwind v4 + signal-lime token integration; prose styling via @tailwindcss/typography",
+    "Sandboxed embeds with a host allow-list (YouTube / Vimeo by default; `embedAllowList` / `isEmbedAllowed` to extend) — other hosts render as a link; scheme-filtered links (`javascript:` / `data:` hrefs are dropped, http/https/mailto/tel allowed)",
   ],
   tags: [
     "rich-text-editor",
@@ -41,11 +42,11 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.3.0",
+  version: "0.4.0",
   status: "alpha",
   artifactBudgetKB: 75,
   createdAt: "2026-05-02",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

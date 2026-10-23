@@ -176,8 +176,8 @@ Originals at [`docs/migrations/magazine-layout/original/`](../../migrations/maga
 
 ## Open follow-ups
 
-- v0.2: virtualization for the medium-card grid (auto-enable at 500+ items).
-- v0.2: `stickyOffset` prop for the sidebar (currently hardcoded `top-24`).
-- v0.2: alternate tower shapes (e.g., 2-large side-by-side, no large + uniform grid).
-- v0.2: scroll restoration on browser back-nav.
-- v0.3: URL-state sync helper hook (separate from `useMagazineFilter` to keep the simple case simple).
+- Not implemented: virtualization for the medium-card grid (auto-enable at 500+ items).
+- Not implemented: `stickyOffset` prop for the sidebar (currently hardcoded `top-24`).
+- Not implemented: alternate tower shapes (e.g., 2-large side-by-side, no large + uniform grid).
+- Not implemented: scroll restoration on browser back-nav.
+- Not implemented: URL-state sync helper hook (separate from `useMagazineFilter` to keep the simple case simple).

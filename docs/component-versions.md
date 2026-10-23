@@ -3,7 +3,7 @@
 # Component Versions
 
 > Generated snapshot — pure data view derived from every `meta.ts` under `src/registry/components/`. **Do not hand-edit** — regenerate with `pnpm build:component-versions`.
-> Snapshot marker: **2026-08-19** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
+> Snapshot marker: **2026-10-23** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
 
 ## Summary
 
@@ -34,25 +34,25 @@
 |---|---|---|---|---|
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 |
 | `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 |
-| `card-tree` | Card Tree | 0.6.2 | beta | 2026-08-18 |
+| `card-tree` | Card Tree | 0.6.3 | beta | 2026-10-23 |
 | `card-tree-node` | Card Tree Node | 0.5.1 | alpha | 2026-08-18 |
 | `comment-thread` | Comment Thread | 0.3.1 | alpha | 2026-08-19 |
 | `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 |
 | `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 |
-| `event-calendar` | Event Calendar | 0.5.0 | alpha | 2026-08-17 |
+| `event-calendar` | Event Calendar | 0.5.1 | alpha | 2026-10-23 |
 | `event-card` | Event Card | 0.2.0 | alpha | 2026-08-11 |
 | `expandable-text` | Expandable Text | 0.2.0 | alpha | 2026-08-11 |
 | `flow-canvas` | Flow Canvas | 0.3.0 | alpha | 2026-08-11 |
 | `gantt-timeline` | Gantt Timeline | 0.7.1 | alpha | 2026-08-19 |
 | `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |
 | `kanban-board` | Kanban Board | 0.6.0 | alpha | 2026-08-17 |
-| `news-card` | News Card | 0.4.2 | alpha | 2026-08-19 |
+| `news-card` | News Card | 0.4.3 | alpha | 2026-10-23 |
 | `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 |
-| `post-card` | Post Card | 0.5.0 | alpha | 2026-08-17 |
+| `post-card` | Post Card | 0.5.1 | alpha | 2026-10-23 |
 | `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 |
 | `project-card` | Project Card | 0.3.0 | alpha | 2026-08-11 |
 | `registration-card` | Registration Card | 0.2.0 | alpha | 2026-08-11 |
-| `rich-text-editor` | Rich Text Editor | 0.3.0 | alpha | 2026-08-11 |
+| `rich-text-editor` | Rich Text Editor | 0.4.0 | alpha | 2026-10-23 |
 | `schedule-list` | Schedule List | 0.2.0 | alpha | 2026-08-11 |
 | `stat-card` | Stat Card | 0.1.2 | alpha | 2026-08-11 |
 | `story-rail` | Story Rail | 0.3.0 | alpha | 2026-08-11 |
@@ -112,15 +112,15 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `carousel-composer` | Carousel Composer | 0.2.0 | alpha | 2026-08-11 |
+| `carousel-composer` | Carousel Composer | 0.2.1 | alpha | 2026-10-23 |
 | `content-composer` | Content Composer | 0.3.1 | alpha | 2026-08-11 |
 | `media-carousel` | Media Carousel | 0.2.0 | alpha | 2026-08-11 |
-| `media-editor` | Media Editor | 0.3.1 | alpha | 2026-08-19 |
+| `media-editor` | Media Editor | 0.4.0 | alpha | 2026-10-23 |
 | `media-library` | Media Library | 0.2.1 | alpha | 2026-08-18 |
 | `pdf-viewer` | PDF Viewer | 0.1.6 | alpha | 2026-08-19 |
-| `story-composer` | Story Composer | 0.4.1 | alpha | 2026-08-19 |
-| `story-viewer` | Story Viewer | 0.5.1 | alpha | 2026-08-19 |
-| `video-player` | Video Player | 0.2.0 | alpha | 2026-08-11 |
+| `story-composer` | Story Composer | 0.5.0 | alpha | 2026-10-23 |
+| `story-viewer` | Story Viewer | 0.5.2 | alpha | 2026-10-23 |
+| `video-player` | Video Player | 0.2.1 | alpha | 2026-10-23 |
 
 ### navigation (4)
 

@@ -110,7 +110,7 @@ Plugin set:
 | `CodeBlockPlugin` + `CodeLinePlugin` + `CodeSyntaxPlugin` | `@platejs/code-block/react` | `CodeBlockElement` + `CodeLineElement` |
 | `TablePlugin` + `TableRowPlugin` + `TableCellPlugin` + `TableCellHeaderPlugin` | `@platejs/table/react` | `TableElement` + `TableRowElement` + `TableCellElement` + `TableCellHeaderElement` |
 | `ImagePlugin` + `MediaEmbedPlugin` | `@platejs/media/react` | `ImageElement` + `MediaEmbedElement` |
-| `LinkPlugin` | `@platejs/link/react` | `LinkElement` |
+| `LinkPlugin` | `@platejs/link/react` | `LinkElement` (v0.4.0: configured with `allowedSchemes`; href via `safeHref`) |
 | `BoldPlugin` … `KbdPlugin` | `@platejs/basic-nodes/react` | leaf renderers in `parts/leaf-renderers.tsx` for `Code`, `Highlight`, `Kbd` |
 | `FontFamilyPlugin` / `FontSizePlugin` / `FontColorPlugin` / `FontBackgroundColorPlugin` | `@platejs/basic-styles/react` | mark plugins (no element component) |
 | `IndentPlugin` | `@platejs/indent/react` | configured to inject into paragraph / heading / blockquote / code block |

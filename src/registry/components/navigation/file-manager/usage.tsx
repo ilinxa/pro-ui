@@ -149,7 +149,7 @@ export default function FileManagerUsage() {
           </li>
           <li>
             <strong>Dragging files OUT to the desktop</strong> is not
-            supported in v0.1.0. Add a Download button via{" "}
+            supported. Add a Download button via{" "}
             <code>renderContextMenu</code> or the toolbar overflow.
           </li>
           <li>

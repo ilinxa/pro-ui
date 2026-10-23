@@ -45,14 +45,14 @@ import {
  * text-only canvas) now lives inside MediaEditor — landed in the R1–R4
  * backfill commits.
  *
- * Known v0.2.0 polish gaps (none break the type contract):
- *   - `labels` overrides pass through verbatim as the v0.1.5 flat shape;
- *     full MediaEditorLabels nested-shape mapping lands at C17.
- *   - `editorBackground` prop is accepted but not forwarded — the
- *     editor canvas always uses "#000" (matches the v0.1.5 default).
- *     Re-exposed in v0.2.1 if needed.
- *   - `renderPublishingOverlay` honored — consumer slot replaces the default
- *     `PublishingProgressOverlay` during publish (slot wiring at C21 review).
+ * Known gaps (none break the type contract):
+ *   - `labels` overrides pass through as the flat shape; media-editor
+ *     normalizes them (flat keys win over its nested keys).
+ *   - `editorBackground` is accepted but not implemented (dev-warns) — the
+ *     editor canvas always uses "#000".
+ *   - `renderPublishingOverlay` is honored — the consumer slot replaces the
+ *     default `PublishingProgressOverlay` during publish, and is rendered
+ *     through media-editor's `overlay` prop (requires media-editor >= 0.4.0).
  */
 
 const ALL_MODES: ComposerMode[] = ["photo", "video", "text"];
@@ -293,99 +293,102 @@ export const StoryComposer = forwardRef<
     );
   }, [editorBackground]);
 
+  // Passed through MediaEditor's `overlay` so it renders INSIDE the editor
+  // surface — in dialog presentation that is inside the dialog content, which
+  // keeps Retry / Cancel clickable (a sibling would sit outside the modal).
+  const publishingOverlay =
+    publishStatus === "uploading" ||
+    publishStatus === "compositing" ||
+    publishStatus === "error" ? (
+      renderPublishingOverlay ? (
+        renderPublishingOverlay({
+          progress: uploadProgress,
+          mode: (editorRef.current?.getMode() ?? "photo") as ComposerMode,
+        })
+      ) : (
+        <PublishingProgressOverlay
+          progress={publishStatus === "uploading" ? uploadProgress : null}
+          status={publishStatus === "error" ? "error" : "uploading"}
+          labels={labels}
+          onRetry={publishStatus === "error" ? handlePublish : undefined}
+          onCancel={() => {
+            publishCancelledRef.current = true;
+            uploader_.cancel();
+            setPublishStatus("idle");
+            setUploadProgress(0);
+          }}
+        />
+      )
+    ) : null;
+
   return (
-    <>
-      <MediaEditor
-        ref={editorRef}
-        aspect="9:16"
-        enabledModes={enabledModes}
-        enabledTools={enabledTools}
-        mediaSources={["camera", "upload"]}
-        capture={mediaCapture}
-        presentation={editorPresentation}
-        isOpen={isOpen}
-        onClose={onClose}
-        confirmOnDiscard={confirmOnDiscard}
-        defaultMode={defaultMode}
-        defaultFacing={defaultFacing}
-        recordAudio={recordAudio}
-        maxFileSizeMb={maxFileSizeMb}
-        maxVideoDuration={maxVideoDuration}
-        stickers={stickers}
-        replaceBuiltinStickers={replaceBuiltinStickers}
-        filterPresets={filterPresets}
-        replaceBuiltinFilters={replaceBuiltinFilters}
-        cropAspects={cropAspects}
-        fonts={fonts}
-        colorPresets={colorPresets}
-        // Pass-through of label overrides — MediaEditor accepts as flat shape
-        // via INTERNAL_LABELS_FALLBACK merge (R2). C17 will refactor onto
-        // the nested MediaEditorLabels surface.
-        labels={labelOverrides as unknown as Partial<MediaEditorLabels>}
-        onValidationError={onValidationError}
-        onPermissionDenied={onPermissionDenied}
-        renderEmpty={renderEmpty}
-        renderPermissionDenied={renderPermissionDenied}
-        renderTopBar={(ctx) =>
-          renderTopBar ? (
-            renderTopBar(toComposerCtx(ctx))
-          ) : (
-            <ComposerPublishBar
-              isPublishing={
-                publishStatus === "compositing" ||
-                publishStatus === "uploading"
-              }
-              canPublish={ctx.isDirty}
-              // Hide Publish only during photo/video capture (nothing captured
-              // yet → a disabled CTA just crowds the mode pill). Text mode lives
-              // in the capture stage too but IS publishable, so keep it there.
-              showPublish={!ctx.isCapturing || ctx.mode === "text"}
-              // Hide the close X in the edit stage when the editor shows its own
-              // Back arrow in that corner (capture modes enabled). Keep it during
-              // capture, and for edit-only configs that have no Back.
-              showClose={
-                ctx.isCapturing ||
-                !(
-                  ctx.enabledModes.includes("photo") ||
-                  ctx.enabledModes.includes("video")
-                )
-              }
-              labels={labels}
-              onPublish={handlePublish}
-              onClose={onClose}
-            />
-          )
-        }
-        renderBottomToolbar={
-          renderBottomToolbar
-            ? (ctx) => renderBottomToolbar(toComposerCtx(ctx))
-            : undefined
-        }
-      />
-      {publishStatus === "uploading" ||
-      publishStatus === "compositing" ||
-      publishStatus === "error" ? (
-        renderPublishingOverlay ? (
-          renderPublishingOverlay({
-            progress: uploadProgress,
-            mode: (editorRef.current?.getMode() ??
-              "photo") as ComposerMode,
-          })
+    <MediaEditor
+      ref={editorRef}
+      aspect="9:16"
+      enabledModes={enabledModes}
+      enabledTools={enabledTools}
+      mediaSources={["camera", "upload"]}
+      capture={mediaCapture}
+      presentation={editorPresentation}
+      isOpen={isOpen}
+      onClose={onClose}
+      confirmOnDiscard={confirmOnDiscard}
+      defaultMode={defaultMode}
+      defaultFacing={defaultFacing}
+      recordAudio={recordAudio}
+      maxFileSizeMb={maxFileSizeMb}
+      maxVideoDuration={maxVideoDuration}
+      stickers={stickers}
+      replaceBuiltinStickers={replaceBuiltinStickers}
+      filterPresets={filterPresets}
+      replaceBuiltinFilters={replaceBuiltinFilters}
+      cropAspects={cropAspects}
+      fonts={fonts}
+      colorPresets={colorPresets}
+      // Pass-through of label overrides — MediaEditor accepts as flat shape
+      // via INTERNAL_LABELS_FALLBACK merge (R2). C17 will refactor onto
+      // the nested MediaEditorLabels surface.
+      labels={labelOverrides as unknown as Partial<MediaEditorLabels>}
+      onValidationError={onValidationError}
+      onPermissionDenied={onPermissionDenied}
+      renderEmpty={renderEmpty}
+      renderPermissionDenied={renderPermissionDenied}
+      renderTopBar={(ctx) =>
+        renderTopBar ? (
+          renderTopBar(toComposerCtx(ctx))
         ) : (
-          <PublishingProgressOverlay
-            progress={publishStatus === "uploading" ? uploadProgress : null}
-            status={publishStatus === "error" ? "error" : "uploading"}
+          <ComposerPublishBar
+            isPublishing={
+              publishStatus === "compositing" ||
+              publishStatus === "uploading"
+            }
+            canPublish={ctx.isDirty}
+            // Hide Publish only during photo/video capture (nothing captured
+            // yet → a disabled CTA just crowds the mode pill). Text mode lives
+            // in the capture stage too but IS publishable, so keep it there.
+            showPublish={!ctx.isCapturing || ctx.mode === "text"}
+            // Hide the close X in the edit stage when the editor shows its own
+            // Back arrow in that corner (capture modes enabled). Keep it during
+            // capture, and for edit-only configs that have no Back.
+            showClose={
+              ctx.isCapturing ||
+              !(
+                ctx.enabledModes.includes("photo") ||
+                ctx.enabledModes.includes("video")
+              )
+            }
             labels={labels}
-            onRetry={publishStatus === "error" ? handlePublish : undefined}
-            onCancel={() => {
-              publishCancelledRef.current = true;
-              uploader_.cancel();
-              setPublishStatus("idle");
-              setUploadProgress(0);
-            }}
+            onPublish={handlePublish}
+            onClose={onClose}
           />
         )
-      ) : null}
-    </>
+      }
+      renderBottomToolbar={
+        renderBottomToolbar
+          ? (ctx) => renderBottomToolbar(toComposerCtx(ctx))
+          : undefined
+      }
+      overlay={publishingOverlay}
+    />
   );
 });

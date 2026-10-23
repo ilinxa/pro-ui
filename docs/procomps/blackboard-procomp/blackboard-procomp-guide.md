@@ -97,7 +97,7 @@ Four handwriting fonts ship bundled via `@fontsource` and load automatically whe
 
 ## Open follow-ups (v0.1)
 
-- **Live mention-highlight while typing** — v0.1 inserts `@name` as plain text and styles mention tokens on *rendered* notes; an in-textarea highlight overlay is deferred to v0.2.
+- **Live mention-highlight while typing** — the composer inserts `@name` as plain text and styles mention tokens on *rendered* notes; an in-textarea highlight overlay is not implemented.
 - **Edit-own notes** — delete-own ships in v0.1; inline edit is v0.2 (the `onUpdateNote` type is already present).
 - **Virtualization** — not needed at lazy-load-10 scale; revisit with `@tanstack/react-virtual` if a consumer holds thousands of notes.
 - **Reconciled-extra prune** — absorbed optimistic/appended notes linger in a local buffer (display is correct via dedup; buffer is capped at 300). Opportunistic prune → v0.1.1.

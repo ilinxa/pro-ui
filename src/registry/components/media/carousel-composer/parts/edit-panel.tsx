@@ -76,9 +76,21 @@ export function EditPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isEditable = item.kind === "image";
+  useEffect(() => {
+    if (isEditable) return;
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[CarouselComposer] EditPanel refused item "${item.id}": it is a ${item.kind}; only image items can be edited.`,
+      );
+    }
+    onCancel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleDone = async () => {
     const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor || !isEditable) return;
     setBusy(true);
     setFailed(false);
     try {
@@ -102,6 +114,8 @@ export function EditPanel({
       setBusy(false);
     }
   };
+
+  if (!isEditable) return null;
 
   return (
     <div className="flex flex-col gap-3">

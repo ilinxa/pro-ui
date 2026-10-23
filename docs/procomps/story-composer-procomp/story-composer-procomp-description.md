@@ -340,11 +340,11 @@ export interface ValidationError {
 
 - **AR face filters / face tracking** (would need MediaPipe / TensorFlow.js — separate procomp `story-composer-ar-01` if ever)
 - **Music overlay** (would need audio mixing + track licensing UI; deferred)
-- **Polls / quizzes / question stickers** (these are interactive sticker types — deferred to v0.2)
+- **Polls / quizzes / question stickers** (these are interactive sticker types — not implemented)
 - **GIF support** (animated GIFs as stickers are tricky in canvas; deferred)
 - **Boomerang / slow-mo / hyperlapse** (video effects — deferred)
 - **Multi-segment stories** (chaining multiple captures into one Story before publish — see Q-P5)
-- **Draft persistence** (saving in-progress edits to IndexedDB and restoring on next open — deferred to v0.2)
+- **Draft persistence** (saving in-progress edits to IndexedDB and restoring on next open — not implemented)
 - **Crop with non-9:16 aspects** unless Q-P4 says otherwise
 
 ## Q-Ps for sign-off (lock before GATE 2)
@@ -357,7 +357,7 @@ These are intentional open calls — answer at sign-off so GATE 2 can lock the A
 | **Q-P2** | Drawing tool — vector polylines (Konva.Line) or raster (offscreen canvas)? Plus: eraser toggle in v0.1 or v0.2? | (a) Vector + eraser. (b) Vector, no eraser (use undo). (c) Raster, no eraser. **(Recommended: a — vector for editability, eraser is one Konva.GlobalCompositeOperation flip)** |
 | **Q-P3** | Stickers — consumer-only set, built-in only, or both (with `replaceBuiltinStickers` flag)? | (a) Both — composer ships ~30 emoji-stickers, consumer can extend or replace. (b) Consumer-only (no built-ins). (c) Built-in only (no extension). **(Recommended: a — open dynamism per project preference)** |
 | **Q-P4** | Crop aspect ratios in v0.1 — 9:16 only, or also 1:1 + 4:5 + free? | (a) 9:16 only (Instagram-story canonical). (b) 9:16 + 1:1 + 4:5 (story + post + portrait-post). (c) All four + free. **(Recommended: b — 9:16 default, 1:1 + 4:5 toggleable; matches multi-format social pipelines)** |
-| **Q-P5** | Multi-segment stories — can users chain 2+ captures into one Story before publish, or one-capture-per-publish in v0.1? | (a) One-capture-per-publish (matches Instagram's individual-story-item model; multi-segment is the user's next "create story" tap). (b) Multi-segment — composer holds an array of items, "Add to story" button after each capture, publish bundles all. **(Recommended: a — simpler, matches consumer mental model; multi-segment is a v0.2 addition driven by demand)** |
+| **Q-P5** | Multi-segment stories — can users chain 2+ captures into one Story before publish, or one-capture-per-publish in v0.1? | (a) One-capture-per-publish (matches Instagram's individual-story-item model; multi-segment is the user's next "create story" tap). (b) Multi-segment — composer holds an array of items, "Add to story" button after each capture, publish bundles all. **(Recommended: a — simpler, matches consumer mental model; multi-segment is a possible future addition driven by demand)** |
 | **Q-P6** | Default `uploadUrl` request shape — POST FormData with the blob as field `file`, or PUT raw blob? | (a) POST FormData (`file` + `uploadFields`) — standard multipart; works with Express/Fastify/multer/multipart-parsers. (b) PUT raw blob — works with S3 pre-signed PUT URLs but requires `uploader` escape hatch for FormData backends anyway. **(Recommended: a — POST FormData is the broader default; S3 PUT goes via `uploader`)** |
 | **Q-P7** | Live filter preview strip — pre-render each filter as a thumbnail (1 second extra processing, but instant browse) or apply on-tap-only (instant browse, full-res application, but no preview thumb)? | (a) Pre-render thumbnails (better UX, +1s on edit-mode entry). (b) Apply on tap (no preview thumb, instant entry). **(Recommended: a — Instagram parity, perceived quality)** |
 | **Q-P8** | Camera permission UI — if denied, do we offer auto-retry on settings change (`navigator.permissions.query` watching), or static "denied, please enable in browser settings" message? | (a) Auto-retry via `permissions.query` + change event listener (smoother UX). (b) Static message with link to browser-settings help. **(Recommended: a — the API is standardized, the wiring is ~15 LOC)** |

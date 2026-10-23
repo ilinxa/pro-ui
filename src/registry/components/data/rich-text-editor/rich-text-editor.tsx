@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 import { cn } from "@/lib/utils";
+import { setEmbedPolicy } from "./lib/safe-embed";
 import { richTextPlugins } from "./plugins/editor-kit";
 import { EditorToolbar } from "./parts/editor-toolbar";
 import { FloatingToolbar } from "./parts/floating-toolbar";
@@ -33,6 +34,8 @@ export function RichTextEditor(props: RichTextEditorProps) {
     containerClassName,
     hideToolbar = false,
     autoFocus = false,
+    embedAllowList,
+    isEmbedAllowed,
   } = props;
 
   const initialValue =
@@ -43,6 +46,9 @@ export function RichTextEditor(props: RichTextEditorProps) {
     value: initialValue,
     autoSelect: autoFocus ? "end" : undefined,
   });
+
+  // Idempotent per-editor policy for the embed renderer (see lib/safe-embed.ts).
+  setEmbedPolicy(editor, { embedAllowList, isEmbedAllowed });
 
   // v0.2.2 — echo-guarded sync, now content-keyed. When `controlledValue`
   // prop changes by REFERENCE only (e.g., RHF-controlled forms emit a fresh

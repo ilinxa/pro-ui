@@ -87,13 +87,13 @@ We **override** Radix's default `data-state` transitions to use kasder's scale-a
 
 ### Motion strategy lock — CSS-only for v0.1
 
-Per the project's locked motion substrate decision, `framer-motion` is NOT a peer dep yet. The adoption gate is **swipe-to-dismiss** (drag-y gesture) — that's a v0.2 candidate per the migration analysis (open item #4). v0.1 ships:
+Per the project's locked motion substrate decision, `framer-motion` is NOT a peer dep yet. The adoption gate is **swipe-to-dismiss** (drag-y gesture) — that's a candidate for a future version per the migration analysis (open item #4). v0.1 ships:
 - Modal in/out: Tailwind `data-state` animations on Radix attrs
 - Progress bar fill: CSS `transition-[width] duration-100 linear`
-- Heart-burst on double-tap: NOT in v0.1 (story viewer doesn't have like-on-media in kasder; the like is a host-level reaction surface deferred to v0.2)
+- Heart-burst on double-tap: not implemented (story viewer doesn't have like-on-media in kasder; the like lives in the engagement overlay)
 - Reduced-motion: Tailwind handles via `motion-safe:` prefixes; modal in/out fades only when `prefers-reduced-motion: reduce`
 
-When swipe-to-dismiss lands in v0.2, framer-motion enters the project — the `viewer-shell.tsx` part is the seam.
+Swipe navigation shipped as pure CSS + pointer events (no framer-motion). A drag-to-dismiss gesture is not implemented; if it is ever added, the `viewer-shell.tsx` part is the seam.
 
 ### Segmented progress bars
 
@@ -271,13 +271,13 @@ export interface StoryViewerLabels {
 ## Out of scope (v0.2 candidates / explicit non-goals)
 
 - **Swipe-to-dismiss** (drag-y to close) — the framer-motion adoption gate. v0.2.
-- **Story reactions / reply input** — a viewer surface, but kasder doesn't ship it. v0.2 surface (would compose with `engagement-bar` reaction action + `comment-thread` composer). Track as v0.2 candidate after the arc closes.
-- **Heart-burst on double-tap** — kasder's viewer doesn't have like-on-media. Add when reactions land in v0.2.
+- **Story reactions / reply input** — a viewer surface, but kasder doesn't ship it. Now shipped: the engagement overlay composes `engagement-bar` reaction actions and a reply composer.
+- **Heart-burst on double-tap** — kasder's viewer doesn't have like-on-media. Not implemented; reactions are available through the engagement overlay.
 - **Polls / quizzes / question stickers** — host-level overlay; not a viewer concern. Out of scope.
 - **Story expiration timer** (24h auto-disappear) — host owns expiration; passes filtered stories. Same lock as story-rail.
 - **Story groups / Highlights** — separate composite. Out of scope.
-- **Auto-advance to next user's story past last story** — closes instead (kasder pattern). v0.2 candidate: `onAutoCloseAtEnd?` callback so hosts can choose.
-- **Save / download / share buttons** — viewer header has no overflow menu in kasder. v0.2 candidate via header-action slot.
+- **Auto-advance to next user's story past last story** — closes instead (kasder pattern). Hosts can observe it with `onAutoCloseAtEnd?` and keep the viewer open with `disableAutoClose`.
+- **Save / download / share buttons** — kasder's viewer header has no overflow menu. Now shipped: a role-aware header kebab menu and a share panel slot.
 - **Stories pinning / reorder** — admin/curator surfaces. Out of scope.
 - **Audio-only stories / podcast items** — out of scope; image + video only.
 
@@ -286,7 +286,7 @@ export interface StoryViewerLabels {
 - **shadcn primitives**: `dialog` (already installed), `avatar` (already installed), `button` (already installed). NO new shadcn primitives.
 - **Cross-folder registry deps** (declared via `registryDependencies` in registry.json): `media/video-player` for video items.
 - **Lucide icons**: `X`, `ChevronLeft`, `ChevronRight`, `Pause`, `Play`, `Volume2`, `VolumeX`. All already in use elsewhere.
-- **NO framer-motion peer dep** — CSS-only animations in v0.1 (per locked motion substrate decision; FM enters when swipe-to-dismiss lands in v0.2).
+- **NO framer-motion peer dep** — CSS-only animations (per locked motion substrate decision; FM would enter only if a drag-to-dismiss gesture is added).
 - **NO Embla** — viewer is single-item-at-a-time, not a carousel.
 
 ## Sealed-folder structure (preview — Stage 2 will lock)
@@ -327,7 +327,7 @@ Two options:
 - **(A)** CSS-only via Tailwind's `data-[state=open]:fade-in-0 zoom-in-95` etc. on Radix's `Dialog.Content` — kasder's scale-and-fade reproduced without framer-motion. Default.
 - **(B)** No custom animation; use Radix Dialog's bare data-state defaults (no transition).
 
-**Recommendation: A.** Visually matches kasder; ships zero new dep cost; is the natural seam to swap framer-motion into when swipe-to-dismiss lands in v0.2. (B) is cheaper but loses the polished open/close that defines the surface.
+**Recommendation: A.** Visually matches kasder; ships zero new dep cost; is the natural seam to swap framer-motion into if swipe-to-dismiss is ever added. (B) is cheaper but loses the polished open/close that defines the surface.
 
 **Q2. `markViewed` semantics — fire on item-completion (per-item) or story-completion (per-story)?**
 

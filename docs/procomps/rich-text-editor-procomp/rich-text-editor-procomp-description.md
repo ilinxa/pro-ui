@@ -6,6 +6,8 @@
 >
 > **Architectural decision:** Plate (`platejs` v53) adopted as pro-ui's WYSIWYG substrate. See [project_richtext_substrate.md](../../../C:\Users\AsiaData\.claude\projects\e--2026-ilinxaDOC-ilinxa-ui-pro\memory\project_richtext_substrate.md) memory note. Future rich-content components compose on Plate.
 >
+> **v0.4.0 (2026-10-23):** embeds and links are hardened - sandboxed, host-allow-listed iframes (`embedAllowList` / `isEmbedAllowed`) and scheme-filtered link hrefs; see the guide section "Security: embeds and links".
+
 > **v0.2 changelog (2026-05-02):** Added 4 features from the parked candidate list — (1) lowlight syntax highlighting on code blocks (15 languages registered, tokens themed via pro-ui chart palette in globals.css); (2) HTML serialization escape hatch via `serializeRichTextToHtml(value)` for export boundaries; (3) per-image resize handle + inline caption editor (width stored as percentage, caption stored on the node); (4) selection-anchored floating toolbar (marks + link insertion, anchored via `@floating-ui/react` virtual element). Editor bundle estimate: ~150KB → ~165KB gzip after additions; viewer: ~30KB → ~32KB. v0.1 description below describes the v0.1 surface; v0.2 additions are layered on top of it.
 
 ## Problem

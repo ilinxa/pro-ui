@@ -140,24 +140,24 @@ const handleTap = useDoubleTap(onLike, { windowMs: 400 });`}</code>
           <strong>Don&apos;t expect a video ref</strong> in{" "}
           <code>renderControls</code> — exposing it would let consumers
           bypass our state machine and cause desync. State + dispatchers
-          only. v0.2 candidate: <code>renderVideoElement</code> for full
-          takeover.
+          only. A <code>renderVideoElement</code> slot for full takeover is not
+          implemented (possible future addition).
         </li>
         <li>
           <strong>Don&apos;t expect fullscreen / volume slider / PiP</strong>{" "}
-          in v0.1 default controls. Add via <code>renderControls</code> if
+          in the default controls. Add via <code>renderControls</code> if
           needed.
         </li>
         <li>
           <strong>
             Don&apos;t expect HLS / DASH / streaming format support
           </strong>{" "}
-          — raw <code>&lt;video src&gt;</code> only in v0.1.
+          — raw <code>&lt;video src&gt;</code> only.
         </li>
         <li>
           <strong>Don&apos;t expect a buffering spinner / error UI</strong> —
-          browser shows the poster on slow load + load failure. v0.2
-          candidates.
+          browser shows the poster on slow load + load failure. Neither is implemented
+          (possible future additions).
         </li>
         <li>
           <strong>Don&apos;t auto-resume</strong> when{" "}

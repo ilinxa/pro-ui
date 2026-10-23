@@ -67,8 +67,8 @@ export function NewsComposer() {
           <code>mediaCarouselSlot</code> → <code>carousel-composer</code> —
           drop/browse N photo+video, reorder, per-item edit). Post authoring is
           fully live; only its publish path (the <code>post-content-item</code>{" "}
-          adapter + multi-blob upload-at-publish) is deferred to the v0.3 post
-          backend. Adding a type is a JSON file, not a new component.
+          adapter + multi-blob upload-at-publish) is not implemented yet (pending the post
+          backend). Adding a type is a JSON file, not a new component.
         </li>
         <li>
           <strong>Upload is lazy.</strong> The hero blob is captured when you

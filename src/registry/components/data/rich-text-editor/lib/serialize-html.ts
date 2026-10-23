@@ -1,9 +1,10 @@
 import { createStaticEditor, serializeHtml } from "platejs/static";
 
+import { setEmbedPolicy, type EmbedPolicy } from "./safe-embed";
 import { richTextViewerPlugins } from "../plugins/viewer-kit";
 import type { RichTextValue } from "../types";
 
-export interface SerializeHtmlOptions {
+export interface SerializeHtmlOptions extends EmbedPolicy {
   /** Drop className attributes from the output. Default: false. */
   stripClassNames?: boolean;
   /**
@@ -36,12 +37,16 @@ export async function serializeRichTextToHtml(
     stripClassNames = false,
     preserveClassNames,
     stripDataAttributes = true,
+    embedAllowList,
+    isEmbedAllowed,
   } = options;
 
   const editor = createStaticEditor({
     plugins: richTextViewerPlugins,
     value,
   });
+
+  setEmbedPolicy(editor, { embedAllowList, isEmbedAllowed });
 
   return serializeHtml(editor, {
     stripClassNames,

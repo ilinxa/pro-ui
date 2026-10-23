@@ -56,8 +56,8 @@ export function PostMedia() {
           serially per item — never N at once.
         </li>
         <li>
-          v0.1: video items support preview / reorder / remove; full video
-          editing tracks media-editor maturity. <code>&quot;library&quot;</code>{" "}
+          Video items support preview / reorder / remove; video editing is
+          not available. <code>&quot;library&quot;</code>{" "}
           source is clamped to upload-only.
         </li>
         <li>

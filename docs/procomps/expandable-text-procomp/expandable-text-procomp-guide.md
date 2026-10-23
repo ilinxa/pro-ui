@@ -180,7 +180,7 @@ The hook's `content` parameter is typed `unknown` — pass any primitive or stab
 | Pass `ReactNode` as `content` | Measurement requires a stable text node. Use `rich-text-editor` for rich content. |
 | Define `labels={{ ... }}` inline | Busts `React.memo` (new object identity every render). Hoist to module scope. |
 | Expect auto-collapse on click outside | One-shot expand; user collapses by clicking the toggle. |
-| Expect animated height transition | The expand/collapse swap is instant in v0.1. v0.2 candidate. |
+| Expect animated height transition | The expand/collapse swap is instant. Possible future addition. |
 | Override the inline `style` for `display` / `WebkitLineClamp` | The component owns these for measurement. Use `contentClassName` for fonts / colors / spacing. |
 | Server-render + expect zero flash | First server render assumes `isTruncated: false` (no DOM, no measurement). Toggle pop-in after hydration is small but exists. Live with it or use static `line-clamp-N` without the toggle. |
 

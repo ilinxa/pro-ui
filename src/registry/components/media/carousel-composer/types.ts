@@ -98,7 +98,7 @@ export const DEFAULT_CAROUSEL_LABELS: Required<CarouselComposerLabels> = {
   remove: "Remove",
   reorderHint: "Drag to reorder",
   maxReached: "Maximum {max} items reached",
-  videoNotEditable: "Video editing arrives in v0.2",
+  videoNotEditable: "Video editing isn't available.",
   finishEditingHint: "Finish editing to reorder or add media",
   itemAria: "Media item {n} of {total}, {kind}",
 };

@@ -8,7 +8,7 @@ import type {
  * Stable selector + dispatcher for selection state.
  *
  * Selection is click-driven, distinct from focus (which is keyboard-driven).
- * Single-select only in v0.2. Multi-select arrives in v0.3.
+ * This hook is single-select only; multi-select is tracked separately as `selectedIds` in the reducer state (see card-tree.tsx).
  */
 export function useSelection(
   state: CardTreeState,

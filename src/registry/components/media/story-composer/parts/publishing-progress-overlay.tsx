@@ -35,7 +35,7 @@ export function PublishingProgressOverlay({
       role="status"
       aria-live="polite"
       className={cn(
-        "absolute inset-0 z-40 grid place-items-center bg-black/85 backdrop-blur-sm text-white px-6",
+        "absolute inset-0 z-40 grid place-items-center rounded-[inherit] bg-black/85 backdrop-blur-sm text-white px-6",
         className,
       )}
     >

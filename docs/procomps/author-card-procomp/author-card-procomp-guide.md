@@ -146,8 +146,8 @@ Tones only affect the icon-fallback path. When `imageSrc` is provided, the image
 
 ## Known limits / v0.2 candidates
 
-- **Image error fallback** — broken `src` shows the browser default broken-image icon. v0.2 candidate: optional `imagePlaceholder?: ReactNode`.
-- **Avatar size** — fixed at `w-16 h-16`. v0.2 candidate: `size?: "sm" | "md" | "lg"` if real use cases emerge.
+- **Image error fallback** — broken `src` shows the browser default broken-image icon. Not implemented; possible future addition: optional `imagePlaceholder?: ReactNode`.
+- **Avatar size** — fixed at `w-16 h-16`. Not implemented; possible future addition: `size?: "sm" | "md" | "lg"` if real use cases emerge.
 - **Footer slot** — no support for trailing CTAs ("Follow", "View all posts") inside the card. Consumer can wrap externally; YAGNI for v0.1.
 - **Avatar groups / multiple authors** — single author only. Out of scope.
 - **Skeleton loading** — consumers wrap their own `Skeleton` while data loads.

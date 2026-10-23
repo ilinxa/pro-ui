@@ -429,11 +429,33 @@ function PostCardInner(props: PostCardProps) {
     statefulPostRef.current = statefulPost;
   });
 
+  const engagementActionsRef = useRef(engagementActionsArr);
+  useEffect(() => {
+    engagementActionsRef.current = engagementActionsArr;
+  });
+
+  // The built-in bar's handle, only when a like can actually be applied through
+  // it: bar mounted (null under a `renderEngagementBar` takeover) AND a `like`
+  // action exists (a custom `engagementActions` slot may omit it). The bar's
+  // `triggerLike()` silently no-ops otherwise, so no burst may play.
+  const getLikeCapableBar = useCallback((): EngagementBarHandle | null => {
+    const bar = barRef.current;
+    if (!bar) return null;
+    return engagementActionsRef.current.some((a) => a.kind === "like")
+      ? bar
+      : null;
+  }, []);
+
+  // Double-tap never REMOVES a like: unliked -> like + burst; already liked ->
+  // burst only; no like applicable -> nothing. "Liked" is read from the bar's
+  // own state (it is the source `triggerLike` toggles against).
   const onMediaDoubleTap = useCallback(() => {
     if (!heartBurstWired) return;
-    barRef.current?.triggerLike();
+    const bar = getLikeCapableBar();
+    if (!bar) return;
+    if (!bar.getCurrentState().liked) bar.triggerLike();
     setBurstKey((k) => k + 1);
-  }, [heartBurstWired]);
+  }, [heartBurstWired, getLikeCapableBar]);
 
   // C6 — sensitive-media reveal: single handler combining local-state flip
   // + host's onRevealSensitive callback (analytics hook). Used by the gate
@@ -479,8 +501,12 @@ function PostCardInner(props: PostCardProps) {
     () => ({
       openKebab: () => setKebabOpen(true),
       triggerLike: () => {
-        barRef.current?.triggerLike();
-        if (heartBurstWired) setBurstKey((k) => k + 1);
+        // Toggle semantics are kept; the burst plays only when the result is liked.
+        const bar = getLikeCapableBar();
+        if (!bar) return;
+        const wasLiked = bar.getCurrentState().liked;
+        bar.triggerLike();
+        if (!wasLiked && heartBurstWired) setBurstKey((k) => k + 1);
       },
       getCurrentPost: () => statefulPostRef.current,
       reset: (next: Post) => {
@@ -517,7 +543,7 @@ function PostCardInner(props: PostCardProps) {
     }),
     // heartBurstWired re-derives per render; capture via ref if needed.
     // For v0.1 simplicity, identity churns when heartBurstWired changes — acceptable.
-    [heartBurstWired],
+    [heartBurstWired, getLikeCapableBar],
   );
 
   const authorId = useId();

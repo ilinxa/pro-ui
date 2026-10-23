@@ -66,14 +66,24 @@ describe("the gate is wired into the build", () => {
  * throwaway category, because the validator walks that path by design. It is
  * removed in `finally`, so a failing assertion cannot leave the catalog dirty.
  */
-function scanFixture(files: Record<string, string>): {
+function scanFixture(
+  files: Record<string, string>,
+  docs?: Record<string, string>,
+): {
   code: number;
   output: string;
 } {
   const category = "__inert_fixture__";
   const dir = path.join(REPO_ROOT, "src/registry/components", category, "probe-widget");
+  const docsDir = path.join(REPO_ROOT, "docs/procomps/probe-widget-procomp");
   fs.mkdirSync(dir, { recursive: true });
   try {
+    if (docs) {
+      fs.mkdirSync(docsDir, { recursive: true });
+      for (const [name, contents] of Object.entries(docs)) {
+        fs.writeFileSync(path.join(docsDir, name), contents, "utf8");
+      }
+    }
     for (const [name, contents] of Object.entries(files)) {
       const target = path.join(dir, name);
       fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -98,6 +108,7 @@ function scanFixture(files: Record<string, string>): {
       recursive: true,
       force: true,
     });
+    fs.rmSync(docsDir, { recursive: true, force: true });
   }
 }
 
@@ -161,10 +172,10 @@ describe("probe B — no-op methods on public contracts", () => {
     expect(code).toBe(1);
   });
 
-  it("passes when the stub warns — the disclosed-stub path", () => {
+  it("passes when the stub warns AND is tagged — the disclosed-stub path", () => {
     const { code } = scanFixture({
       "meta.ts": META(),
-      "types.ts": `export interface ProbeWidgetHandle {\n  doThing: () => void;\n}\n`,
+      "types.ts": `export interface ProbeWidgetHandle {\n  /** @notImplemented */\n  doThing: () => void;\n}\n`,
       "probe-widget.tsx": `export const handle = {\n  doThing: () => {\n    console.warn("probe-widget: doThing is not implemented");\n  },\n};\n`,
     });
     expect(code).toBe(0);
@@ -253,5 +264,199 @@ describe("the disclosure hatch cannot launder a defect", () => {
       "probe-widget.tsx": `export function ProbeWidget({ onDead }: { onDead?: () => void }) {\n  if (onDead) console.warn("probe-widget: onDead is not implemented");\n  return null;\n}\n`,
     });
     expect(code).toBe(0);
+  });
+});
+
+/* ─────────────── probe D — widened pending-version markers ─────────────── */
+
+const PLAIN_TYPES = `export interface ProbeWidgetProps {\n  a?: string;\n}\n`;
+const PLAIN_IMPL = `export function ProbeWidget(p: { a?: string }) {\n  return p.a;\n}\n`;
+const GUIDE = "probe-widget-procomp-guide.md";
+const BASE = (version: string, extra: Record<string, string> = {}) => ({
+  "meta.ts": META(version),
+  "types.ts": PLAIN_TYPES,
+  "probe-widget.tsx": PLAIN_IMPL,
+  ...extra,
+});
+
+describe("probe D — widened markers (types.ts, wrapped comments, other verbs, docs)", () => {
+  it("scans types.ts: 'arrives in v0.2' at v0.3.0", () => {
+    const { code, output } = scanFixture(
+      BASE("0.3.0", {
+        "types.ts": `export interface ProbeWidgetProps {\n  /** Video editing arrives in v0.2. */\n  a?: string;\n}\n`,
+      }),
+    );
+    expect(output).toContain("stale-deferral");
+    expect(output).toContain("types.ts:2");
+    expect(code).toBe(1);
+  });
+
+  it("joins a comment-wrapped deferral and reports the ORIGINAL line", () => {
+    const { code, output } = scanFixture(
+      BASE("0.3.0", {
+        "probe-widget.tsx": `/**\n * Edit tools are deferred\n * to v0.2.\n */\n${PLAIN_IMPL}`,
+      }),
+    );
+    expect(output).toContain("probe-widget.tsx:2");
+    expect(code).toBe(1);
+  });
+
+  it("catches 'lands in v0.2' in a string literal", () => {
+    const { code, output } = scanFixture(
+      BASE("0.3.0", { "probe-widget.tsx": `export const MSG = "Crop lands in v0.2";\n${PLAIN_IMPL}` }),
+    );
+    expect(output).toContain("stale-deferral");
+    expect(code).toBe(1);
+  });
+
+  it("catches 'RESERVED - not wired ... in v0.2.0' in types.ts", () => {
+    const { code } = scanFixture(
+      BASE("0.3.0", {
+        "types.ts": `export interface ProbeWidgetProps {\n  /** RESERVED — not wired by any gesture in v0.2.0. */\n  a?: string;\n}\n`,
+      }),
+    );
+    expect(code).toBe(1);
+  });
+
+  it("scans the slug's guide: 'v0.2 candidate'", () => {
+    const { code, output } = scanFixture(BASE("0.3.0"), {
+      [GUIDE]: `# Guide\n\n- Batch export (v0.2 candidate)\n`,
+    });
+    expect(output).toContain("probe-widget-procomp-guide.md:3");
+    expect(code).toBe(1);
+  });
+
+  it("scans the slug's guide: 'v0.2: <label>' and a pinned 'Known gaps' heading", () => {
+    const a = scanFixture(BASE("0.3.0"), { [GUIDE]: `# Guide\n\n- v0.2: locale pass-through\n` });
+    expect(a.code).toBe(1);
+    const b = scanFixture(BASE("0.3.0"), {
+      [GUIDE]: `# Guide\n\n## Known gaps (v0.1.2 alpha)\n\nNone.\n`,
+    });
+    expect(b.code).toBe(1);
+  });
+
+  describe("negatives (must stay quiet)", () => {
+    it("past tense: 'added in v0.2'", () => {
+      const r = scanFixture(
+        BASE("0.3.0", {
+          "types.ts": `export interface ProbeWidgetProps {\n  /** Added in v0.2. */\n  a?: string;\n}\n`,
+        }),
+      );
+      expect(r.output).not.toContain("stale-deferral");
+      expect(r.code).toBe(0);
+    });
+
+    it("origin, not target: 'deferred from `other-slug` v0.1.0'", () => {
+      // Real catalog case (file-manager description): the version belongs to ANOTHER component.
+      const r = scanFixture(
+        BASE("0.3.0", {
+          "types.ts": `export interface ProbeWidgetProps {\n  /** Clipboard (deferred from \`file-tree\` v0.1.0). */\n  a?: string;\n}\n`,
+        }),
+      );
+      expect(r.output).not.toContain("stale-deferral");
+      expect(r.code).toBe(0);
+    });
+
+    it("provenance: @since 0.2.0 and 'shipped in v0.2'", () => {
+      const r = scanFixture(
+        BASE("0.3.0", {
+          "types.ts": `export interface ProbeWidgetProps {\n  /** @since 0.2.0 */\n  a?: string;\n}\n`,
+          "probe-widget.tsx": `// Crop shipped in v0.2 and lands in v0.2 builds\n${PLAIN_IMPL}`,
+        }),
+      );
+      expect(r.code).toBe(0);
+    });
+
+    it("ISO dates", () => {
+      const r = scanFixture(BASE("0.3.0", { "probe-widget.tsx": `// planned 2026-08-19\n${PLAIN_IMPL}` }), {
+        [GUIDE]: "# Guide\n\nReserved 2026-02-03 for later.\n",
+      });
+      expect(r.code).toBe(0);
+    });
+
+    it("an unreached version: 'lands in v0.9' at v0.3.0", () => {
+      const r = scanFixture(BASE("0.3.0", { "probe-widget.tsx": `// Crop lands in v0.9\n${PLAIN_IMPL}` }));
+      expect(r.output).not.toContain("stale-deferral");
+      expect(r.code).toBe(0);
+    });
+
+    it("a changelog entry in meta.ts", () => {
+      const r = scanFixture(
+        BASE("0.3.0", {
+          "meta.ts": `export const meta = {\n  version: "0.3.0",\n  changelog: [\n    "0.2.0 — crop deferred to v0.2 was reconsidered; v0.2 candidate dropped",\n  ],\n  notes: [\n    "v0.2.1 — not supported in v0.1 no more",\n  ],\n};\n`,
+        }),
+      );
+      expect(r.output).not.toContain("stale-deferral");
+      expect(r.code).toBe(0);
+    });
+
+    it("a fenced code block and a Changelog section in the guide", () => {
+      const r = scanFixture(BASE("0.3.0"), {
+        [GUIDE]:
+          "# Guide\n\n```ts\n// batch export is a v0.2 candidate\n```\n\n## Changelog\n\n- v0.2: locale pass-through\n- deferred to v0.2\n",
+      });
+      expect(r.output).not.toContain("stale-deferral");
+      expect(r.code).toBe(0);
+    });
+  });
+});
+
+/* ─────────── probe B2 — handle stubs and the @notImplemented tag ─────────── */
+
+describe("probe B2 — a warn-only handle method must be tagged", () => {
+  const impl = (body: string) =>
+    `export const handle = {\n  doThing: () => {\n${body}\n  },\n};\n`;
+  const handleTypes = (doc: string) =>
+    `export interface ProbeWidgetHandle {\n${doc}  doThing: () => void;\n}\n`;
+
+  it("reports a warn-only method whose type member has no @notImplemented", () => {
+    const { code, output } = scanFixture({
+      "meta.ts": META(),
+      "types.ts": handleTypes(""),
+      "probe-widget.tsx": impl(
+        `    if (process.env.NODE_ENV !== "production") {\n      console.warn("probe-widget: doThing is not implemented");\n    }`,
+      ),
+    });
+    expect(output).toContain("undisclosed-stub");
+    expect(code).toBe(1);
+  });
+
+  it("accepts the same method once the member is tagged", () => {
+    const { code, output } = scanFixture({
+      "meta.ts": META(),
+      "types.ts": handleTypes("  /** @notImplemented */\n"),
+      "probe-widget.tsx": impl(`    console.warn("probe-widget: doThing is not implemented");`),
+    });
+    expect(output).not.toContain("undisclosed");
+    expect(code).toBe(0);
+  });
+
+  it("does not flag a method that warns AND does real work", () => {
+    const { code } = scanFixture({
+      "meta.ts": META(),
+      "types.ts": handleTypes(""),
+      "probe-widget.tsx": impl(`    if (!ready) console.warn("not ready");\n    run();\n    return;`),
+    });
+    expect(code).toBe(0);
+  });
+
+  it("reports @notImplemented on a method that never warns", () => {
+    const { code, output } = scanFixture({
+      "meta.ts": META(),
+      "types.ts": handleTypes("  /** @notImplemented */\n"),
+      "probe-widget.tsx": impl(`    run();`),
+    });
+    expect(output).toContain("undisclosed-tag");
+    expect(code).toBe(1);
+  });
+
+  it("brace-balances bodies: an empty method is still found next to nested blocks", () => {
+    const { code, output } = scanFixture({
+      "meta.ts": META(),
+      "types.ts": handleTypes(""),
+      "probe-widget.tsx": `export const handle = {\n  doThing: () => {},\n  other: () => { if (x) { y(); } },\n};\n`,
+    });
+    expect(output).toContain("noop-method");
+    expect(code).toBe(1);
   });
 });

@@ -31,7 +31,7 @@ Built ad-hoc across kasder (`PostContent.tsx`) and likely repeated in any feed-s
 - **Per-character / per-word truncation** — line-based only. Word-truncation with ellipsis mid-word is a different UX (typically used in single-line table cells, not multi-line text blocks).
 - **Auto-collapse on click outside** — one-shot expand; user collapses by clicking the toggle.
 - **Read-more navigation to a detail page** — that's a host concern (link styling, routing). The toggle here only controls inline expansion.
-- **Animated height transition on expand** — `expanded ? "visible" : "hidden"` swap is instant in v0.1. Adding a smooth height animation requires either measuring the unclamped height (extra render pass) or using `interpolate-size: allow-keywords` (limited browser support). v0.2 candidate if real demand surfaces.
+- **Animated height transition on expand** — `expanded ? "visible" : "hidden"` swap is instant. Adding a smooth height animation requires either measuring the unclamped height (extra render pass) or using `interpolate-size: allow-keywords` (limited browser support). a possible future addition if real demand surfaces.
 - **Show-more inside an inline-flow container** — the toggle renders as a block button under the text. Inline "...more" continuation (Twitter style) is out of scope.
 - **Markdown link / mention / hashtag rendering** — pure text. If consumers want auto-linkification, they preprocess `content` themselves or use `rich-text-editor`.
 

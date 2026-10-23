@@ -500,7 +500,7 @@ No consumer code change beyond mounting both components on the page. The shared 
 | L21 | Cross-procomp drag semantics = copy by default | Consumer wires move semantics via `onItemDropped` + their own state. Mirrors task-card. |
 | L22 | Drop visual affordance: horizontal accent line for sibling zones; inner-glow ring for middle/reparent zone | Plan-stage will lock the exact pixel/timing values. |
 | L23 | Circular-drop prevention: hit-test bans drops where source `id` is an ancestor of target | Fires `onPermissionDenied` with reason `"circular-drop"`. |
-| L24 | Single feature-complete v0.1 — no scheduled v0.2 / v0.3 | The only follow-up bumps would be (a) bug-fix patches and (b) responsive additions if real consumers surface needs we didn't anticipate. |
+| L24 | Single feature-complete v0.1 — no follow-up versions scheduled | The only follow-up bumps would be (a) bug-fix patches and (b) responsive additions if real consumers surface needs we didn't anticipate. |
 
 ---
 
@@ -543,7 +543,7 @@ Pre-answered where the answer is obvious; only genuinely open items remain as Qs
 
 - [x] All 24 locks in §7 understood and accepted by user.
 - [x] All 8 Qs in §8 answered with explicit picks (Q1–Q7 = author's suggested defaults; Q8 = option (a) Dual DnD).
-- [x] No scheduled v0.2 / v0.3 work — explicit single-version ship lock (L24).
+- [x] No follow-up versions scheduled — explicit single-version ship lock (L24).
 - [x] No new top-level scope additions during plan-stage (loud deviations only — fold in §7 of THIS doc on next update).
 - [x] User explicitly closed GATE 1 — 2026-05-20.
 
@@ -564,6 +564,6 @@ Pre-answered where the answer is obvious; only genuinely open items remain as Qs
 >
 > Sub-items collapsible.
 >
-> **Scope direction:** "no v2 just make every thing complete" — single feature-complete v0.1 ship; no scheduled v0.2 / v0.3 deferrals. Every capability that belongs in this component ships on day one.
+> **Scope direction:** "no v2 just make every thing complete" — single feature-complete v0.1 ship; no deferrals. Every capability that belongs in this component ships on day one.
 >
 > **Q8 lock (touch DnD):** "a" — Dual DnD system (@dnd-kit internal + HTML5 cross-procomp).

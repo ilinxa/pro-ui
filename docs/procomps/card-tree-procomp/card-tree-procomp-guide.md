@@ -568,7 +568,7 @@ When set, every commit auto-stamps `__rcmeta._lastEdited` (ISO timestamp) and `_
 
 ### 12.5 Type-changing
 
-**Not supported.** `string` stays a string on edit. To change type, remove + re-add. (v0.4 candidate.)
+**Not supported.** `string` stays a string on edit. To change type, remove + re-add. (possible future addition.)
 
 ### 12.6 Null fields
 
@@ -804,9 +804,9 @@ ref.current?.getEffectivePermissions(cardId, { kind: "field", key: "priority" })
 
 ---
 
-## 18. Virtualization (deferred to v0.5)
+## 18. Virtualization (not implemented)
 
-> **v0.4.1 status:** the `virtualize` prop and `@tanstack/react-virtual` dependency have been removed. The original v0.3 plan called for opt-in virtualization for trees >500 nodes (auto-threshold), but the prop was authored without ever being wired into the render path — running on a 5000-node tree had no virtualization benefit. v0.4.1 removed the prop + the dead `useTreeVirtualizer` hook + the dependency to keep the published API honest about actual capabilities. Virtualization is deferred to v0.5 alongside the markdown adapter; until then, **card-tree's render budget is ≤ 500 nodes** (sufficient for the agent-transcript / configuration-tree / decision-record use cases the component was designed for).
+> **v0.4.1 status:** the `virtualize` prop and `@tanstack/react-virtual` dependency have been removed. The original v0.3 plan called for opt-in virtualization for trees >500 nodes (auto-threshold), but the prop was authored without ever being wired into the render path — running on a 5000-node tree had no virtualization benefit. v0.4.1 removed the prop + the dead `useTreeVirtualizer` hook + the dependency to keep the published API honest about actual capabilities. Virtualization is not implemented; until it is, **card-tree's render budget is ≤ 500 nodes** (sufficient for the agent-transcript / configuration-tree / decision-record use cases the component was designed for).
 >
 > Native search (§19) operates on the data model directly, so it remains usable for trees of any size — it returns matches even from collapsed subtrees. For trees > 500 nodes today, host-side pagination of the tree input is the supported workaround.
 
@@ -854,7 +854,7 @@ Every text-rendering location (card title, field key, field value, predefined-ke
 
 ### 19.5 Data-model search (works regardless of render mode)
 
-Native search walks the data model (not the DOM), so it finds matches in collapsed subtrees and meta entries. (The "virtualization-safe" framing here was relevant when `virtualize` was a planned prop; that feature is now deferred to v0.5 — see §18.)
+Native search walks the data model (not the DOM), so it finds matches in collapsed subtrees and meta entries. (The "virtualization-safe" framing here was relevant when `virtualize` was a planned prop; that feature is not implemented — see §18.)
 
 ### 19.6 Keyboard
 
@@ -1197,7 +1197,7 @@ Every commit auto-stamps `__rcmeta._lastEdited` (ISO timestamp) and `__rcmeta._l
 
 | Concern | Strategy |
 |---|---|
-| Render budget | 500 leaves at 60fps. Trees > 500 → host-side pagination of the tree input (virtualization deferred to v0.5; see §18). |
+| Render budget | 500 leaves at 60fps. Trees > 500 → host-side pagination of the tree input (virtualization not implemented; see §18). |
 | Edit re-renders | Only the editing input + its card re-render on keystroke. Reducer commits on blur/Enter. |
 | Validation cost | Pure functions; safe to run on every keystroke. Host validators should be O(1) or O(log n). |
 | Permission resolution | Memoized by `tree`; recomputes on tree change only. |

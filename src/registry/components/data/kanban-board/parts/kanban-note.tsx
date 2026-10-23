@@ -12,8 +12,8 @@ import type { KanbanCardRenderer, KanbanNoteData, KanbanRenderContext } from "..
 // "amber" preserves the v0.1 visual (amber-tinted note) but via the swatch's
 // --chart-1 token instead of hardcoded `amber-*` Tailwind classes — keeps the
 // component honest to the project's design-system mandate. Consumers using a
-// custom board-level `palette` prop see DEFAULT_PALETTE here in v0.2.1; full
-// palette propagation through `KanbanRenderContext` is a v0.3 follow-up
+// custom board-level `palette` prop see DEFAULT_PALETTE here; full
+// palette propagation through `KanbanRenderContext` is not implemented
 // (would be additive — no breaking change).
 const NOTE_FALLBACK_COLOR_ID = "amber";
 

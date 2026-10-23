@@ -182,7 +182,11 @@ export interface NewsCardItem {
 
   /** Canonical published timestamp — wins over `date` when both set. */
   publishedAt?: string | Date | number;
-  /** Timestamp of the last edit. Renders an "(edited)" suffix on the date row. */
+  /**
+   * @notImplemented Timestamp of the last edit. Accepted but not rendered yet — no
+   * "(edited)" marker is shown anywhere. Passing it emits a dev-only warning
+   * (once per mount).
+   */
   updatedAt?: string | Date | number;
   /** Future timestamp when a `status: "scheduled"` article will publish. */
   scheduledFor?: string | Date | number;

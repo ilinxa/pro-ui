@@ -197,4 +197,4 @@ New greenfield component (no predecessor). The fifth member of the task-manageme
 - **Hoist the clipboard** into `task-card` + wire gantt / kanban / tree (the "between all task tools" epic).
 - **Live-preview perf** — the resize preview rebuilds the whole context per pointermove (isolate to a preview-only context).
 - **Grid roving-tabindex** arrow-key cell navigation (editable cells are individual tab stops today).
-- **Deferred/reserved:** external HTML5 drop tray (`onExternalDrop` is declared but inert — copy/paste replaces it), agenda-row dragging, bespoke conversion-drag, time-grid empty-slot keyboard create.
+- **Not implemented:** external HTML5 drop tray (`onExternalDrop` is `@notImplemented` — accepted, never called; passing it emits a dev-only warning once per mount; copy/paste replaces it), agenda-row dragging, bespoke conversion-drag, time-grid empty-slot keyboard create.

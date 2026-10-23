@@ -29,6 +29,12 @@ export interface ReplyComposerProps {
   /** Optional handle ref so the parent can focus / pre-fill the composer (triggerReply). */
   composerRef?: React.Ref<CommentComposerHandle>;
   /**
+   * Pre-fill request (`triggerReply(content)`). Applied once per distinct
+   * `nonce`; the text lands in the composer exactly as if typed (so the story
+   * auto-pauses, same as typing).
+   */
+  prefill?: { nonce: number; text: string } | null;
+  /**
    * @deprecated v0.3.3 — Cancel button removed and engagement column
    *   redesigned as a heart-toggle reveal in v0.3.5/v0.3.7. This callback
    *   is kept as a forward-compat hook for future host-side polish (e.g.,
@@ -67,6 +73,7 @@ function ReplyComposerInner(props: ReplyComposerProps) {
     className,
     composerRef,
     onActiveChange,
+    prefill,
   } = props;
   // Track whether user has typed anything since last submit; auto-pause
   // fires only on the FIRST keystroke (cheap idempotent setPaused call).
@@ -78,15 +85,23 @@ function ReplyComposerInner(props: ReplyComposerProps) {
   // always visible; the Cancel button (which caused the collision) was
   // removed. The signal is kept for forward compat.
   const [hasFocus, setHasFocus] = useState(false);
-  const [hasContent, setHasContent] = useState(false);
+  // Controlled text so triggerReply(content) can pre-fill.
+  const [text, setText] = useState("");
+  // Derived, so a failed send (text kept by the composer) still reads as content.
+  const hasContent = text.length > 0;
   const active = hasFocus || hasContent;
+  const [appliedNonce, setAppliedNonce] = useState(prefill?.nonce ?? 0);
+  if (prefill && prefill.nonce !== appliedNonce) {
+    setAppliedNonce(prefill.nonce);
+    setText(prefill.text);
+  }
   useEffect(() => {
     onActiveChange?.(active);
   }, [active, onActiveChange]);
 
   const handleChange = useCallback(
     (value: string) => {
-      setHasContent(value.length > 0);
+      setText(value);
       if (value.length > 0 && !pausedRef.current) {
         pausedRef.current = true;
         onSetPaused(true);
@@ -99,13 +114,23 @@ function ReplyComposerInner(props: ReplyComposerProps) {
     [onSetPaused],
   );
 
+  // A pre-fill counts as typing: pause the story (same as the first keystroke).
+  const prefillNonce = prefill?.nonce;
+  const prefillText = prefill?.text;
+  useEffect(() => {
+    if (prefillNonce === undefined || !prefillText) return;
+    if (!pausedRef.current) {
+      pausedRef.current = true;
+      onSetPaused(true);
+    }
+  }, [prefillNonce, prefillText, onSetPaused]);
+
   const handleSubmit = useCallback(
     async (content: string) => {
       try {
         await onAddReply?.(story.id, item.id, content);
       } finally {
         pausedRef.current = false;
-        setHasContent(false);
         onSetPaused(false);
       }
     },
@@ -137,6 +162,7 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         ref={composerRef}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         currentUser={currentUser as any}
+        value={text}
         placeholder={labels.replyComposerPlaceholder(story)}
         onChange={handleChange}
         onSubmit={handleSubmit}

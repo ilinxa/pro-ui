@@ -46,6 +46,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
@@ -85,6 +86,7 @@
   --accent: oklch(0.96 0.002 250);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0); /* near-white on destructive */
   --warning: oklch(0.78 0.16 75); /* amber — semantic warning, hue between yellow and orange */
   --warning-foreground: oklch(0.18 0 0); /* near-black on amber (parallels primary-foreground) */
   --border: oklch(0.91 0.003 250);
@@ -125,6 +127,7 @@
   --accent: oklch(0.22 0.005 250);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.13 0 0); /* near-black on the lifted dark red (white fails AA here) */
   --warning: oklch(0.82 0.15 75); /* lifted L for graphite background */
   --warning-foreground: oklch(0.13 0 0); /* near-black on amber */
   --border: oklch(1 0 0 / 8%);

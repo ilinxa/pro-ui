@@ -2,7 +2,7 @@
 
 > Stage 3: how to *use* it. Companion to the [description](./content-composer-procomp-description.md) (what & why) and the [plan](./content-composer-procomp-plan.md) (how it's built).
 >
-> **Status:** v0.2.1 alpha. News **and** post configs both ship. News authors a single hero (`mediaSlot` → media-editor); post authors **multi-media** (`mediaCarouselSlot` → carousel-composer — drop/browse N mixed photo+video → reorder → per-item edit). Post **authoring is fully live**; only its publish path (the `post-content-item` adapter + durable multi-blob upload-at-publish) is deferred to the v0.3 post backend — publishing a post today surfaces a visible "no adapter" message, no silent loss. Install: `pnpm dlx shadcn@latest add @ilinxa/content-composer`.
+> **Status:** v0.2.1 alpha. News **and** post configs both ship. News authors a single hero (`mediaSlot` → media-editor); post authors **multi-media** (`mediaCarouselSlot` → carousel-composer — drop/browse N mixed photo+video → reorder → per-item edit). Post **authoring is fully live**; only its publish path (the `post-content-item` adapter + durable multi-blob upload-at-publish) is not implemented yet (pending the post backend) — publishing a post today surfaces a visible "no adapter" message, no silent loss. Install: `pnpm dlx shadcn@latest add @ilinxa/content-composer`.
 
 ---
 
@@ -174,7 +174,7 @@ with the upload-at-publish backend.
 
 ## Scope notes & known limits (as of v0.2.1)
 
-- **Post publish is deferred to the v0.3 post backend** — the `post-content-item`
+- **Post publish is not implemented yet (pending the post backend)** — the `post-content-item`
   adapter + durable multi-blob upload-at-publish ship together. Post *authoring*
   (the `mediaCarouselSlot` step) is fully live; only the terminal publish/upload
   is stubbed (surfaces a visible "no adapter" alert).
@@ -184,9 +184,9 @@ with the upload-at-publish backend.
   follow-up.
 - **Non-active step gates** check required-field presence; full json-form
   validation (pattern / custom validators) runs live on the step you're editing.
-- **Publisher** and **auto-slug-from-title** are deferred (the slug is a plain
-  optional field in v0.1).
-- **Video re-edit restore** (blob re-attach) is deferred — news v0.1 is
+- **Publisher** and **auto-slug-from-title** are not implemented (the slug is a plain
+  optional field).
+- **Video re-edit restore** (blob re-attach) is not implemented — the news config is
   photo-only; a video config exercises that path.
 - The composer imports no `next/*` — it stays portable for the future NPM
   extraction. Konva / Plate arrive (and lazy-load) through the substrate procomps.

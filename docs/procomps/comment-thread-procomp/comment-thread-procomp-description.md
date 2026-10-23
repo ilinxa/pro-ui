@@ -194,9 +194,9 @@ Every social product surface needs a comment panel under content: **flat list wi
 ## Out of scope (v0.2 candidates)
 
 - **Edit affordance** — `CommentDelta.edited` is in the v0.1 contract (so future v0.2 won't break realtime), but no UI for editing in v0.1. Defer until a real consumer asks.
-- **Mentions / hashtags / link auto-detection** — render via `renderNode?` if a host needs them in v0.1; built-in tag UI lands in v0.2.
-- **Voting (up/down)** — kasder is like-only. v0.2 candidate as a `voting?: boolean` flag that swaps the like action for a vote pair.
-- **Collapse-by-default per node** — every node renders expanded up to `maxDepth`. v0.2 candidate: `defaultCollapsed?: boolean`.
+- **Mentions / hashtags / link auto-detection** — render via `renderNode?` if a host needs them; built-in tag UI is not implemented.
+- **Voting (up/down)** — kasder is like-only. Possible future addition as a `voting?: boolean` flag that swaps the like action for a vote pair.
+- **Collapse-by-default per node** — every node renders expanded up to `maxDepth`. possible future addition: `defaultCollapsed?: boolean`.
 - **Per-comment subscription** — one subscribe for the whole thread; no per-node subscribe.
 - **Animated insert / remove** — CSS-keyframe at most (60ms fade-in on optimistic add); no FM. Story-viewer-01 still gates FM adoption.
 - **Lazy-load deeper replies** — `onLoadReplies?(parentId, page)` is a v0.2 consideration; v0.1 trusts `replies` to be fully loaded for visible nodes.

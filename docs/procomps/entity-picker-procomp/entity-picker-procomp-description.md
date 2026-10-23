@@ -57,7 +57,7 @@ In the graph-system specifically, the linking-mode UI must show **both nodes AND
 - **"Create new" affordance** (e.g., "+ Create '{query}'" inline in the dropdown). Useful pattern but not a v0.1 must-have. v0.2 adds via `onCreate?: (query) => Promise<T>` prop.
 - **Multi-section grouping** (e.g., "Nodes" header / list, "Groups" header / list). v0.1 ships flat list with kind badges; sectioning is v0.2.
 - **Recently-selected memory** across mounts. Out of scope; host's responsibility (use localStorage, prepend recent items to the `items` prop).
-- **Drag-to-reorder** in multi mode. Selection order is the order picked; reordering is not supported in v0.1.
+- **Drag-to-reorder** in multi mode. Selection order is the order picked; reordering is not supported.
 - **Free-text values** (the picker ALSO accepts a string that doesn't match any entity). Out of scope; entity-picker is for picking entities, not for arbitrary text.
 - **Custom search behavior** (fuzzy match, ranking, scoring). v0.1 ships case-insensitive substring; richer search via the `match` predicate slot.
 

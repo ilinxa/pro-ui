@@ -310,11 +310,11 @@ The component is "done" for v0.1 when:
 
 All 10 questions resolved at sign-off. The recommendations below are the locked decisions for v0.1; Stage 2 (plan) builds against these. New questions surfacing during plan authoring land in a fresh `## 8.6 New open questions` section as needed.
 
-1. **Built-in filter types — locked: 4 types** (`checkbox-list`, `toggle`, `text`, `custom`). `range` and `date-range` deferred to v0.2 (custom slot covers them in v0.1). `toggle` stays separate from `checkbox-list` because the UI idiom differs (switch vs. list).
+1. **Built-in filter types — locked: 4 types** (`checkbox-list`, `toggle`, `text`, `custom`). `range` and `date-range` are not implemented (the custom slot covers them). `toggle` stays separate from `checkbox-list` because the UI idiom differs (switch vs. list).
 
-2. **Solo buttons — locked: ship in v0.1 as opt-in `showSoloButtons?: boolean` flag on `checkbox-list`** (default `false`). **Reversed from the original "defer to v0.2" recommendation on re-validation.** Reasoning: host-side implementation without API support is awkward (checkbox options have no per-option click hook in the schema); force-graph v0.4 explicitly wants solo per the original spec; the implementation cost is small (~50 LOC) and entirely opt-in (zero impact for hosts who don't enable). Adding later as a non-breaking flag is technically possible but means force-graph v0.4 either delays or re-implements solo at host level.
+2. **Solo buttons — locked: ship in v0.1 as opt-in `showSoloButtons?: boolean` flag on `checkbox-list`** (default `false`). **Reversed from the original "defer" recommendation on re-validation.** Reasoning: host-side implementation without API support is awkward (checkbox options have no per-option click hook in the schema); force-graph v0.4 explicitly wants solo per the original spec; the implementation cost is small (~50 LOC) and entirely opt-in (zero impact for hosts who don't enable). Adding later as a non-breaking flag is technically possible but means force-graph v0.4 either delays or re-implements solo at host level.
 
-3. **Section collapsibles — locked: defer to v0.2.** v0.1 ships flat layout. `collapsible: boolean` per category lands in v0.2 if real consumers complain at 5+ sections (additive, non-breaking).
+3. **Section collapsibles — locked: not implemented.** The layout is flat. `collapsible: boolean` per category is a possible addition if real consumers complain at 5+ sections (additive, non-breaking).
 
 4. **`onFilteredChange` convenience callback — locked: ship alongside `onChange`.** Both callbacks: `onChange(values)` is mandatory (state ownership); `onFilteredChange(filtered)` is optional convenience. Hosts wanting filter-panel to do composition once (efficient) use the convenience callback; hosts wanting raw `values` for external state get them via `onChange`. No conflict.
 

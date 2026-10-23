@@ -109,7 +109,10 @@ export const richTextPlugins = [
   }),
 
   // Inline
-  LinkPlugin.withComponent(LinkElement),
+  LinkPlugin.configure({
+    options: { allowedSchemes: ["http", "https", "mailto", "tel"] },
+    node: { component: LinkElement },
+  }),
 
   // Marks
   BoldPlugin,

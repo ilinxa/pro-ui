@@ -13,6 +13,7 @@ import {
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
 import { useCaptureExtensionOptional } from "./hooks/use-capture-extension";
 import { resolvePresentation } from "./lib/presentation-resolver";
+import { normalizeEditorLabels } from "./lib/normalize-labels";
 import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
@@ -84,24 +85,26 @@ const LazyEditorCanvas = React.lazy(() => import("./parts/lazy-editor-canvas"));
  * `MediaEditorImpl`, which holds all the logic below and reads the
  * extension back out via `useCaptureExtensionOptional()`.
  *
- * Known v0.1.x gap: the imperative *capture* handle methods (takePhoto,
- * startRecording, stopRecording, switchCamera, importFromGallery) are deferred
- * to v0.2 — they dev-warn if called. The in-UI camera controls are the
- * supported capture path in v0.1.x; everything else on the handle (inspect /
- * state / export / edit-overlay mutation) is fully wired.
+ * Known gap: the imperative *capture* handle methods (takePhoto,
+ * startRecording, stopRecording, switchCamera, importFromGallery) are not
+ * implemented — they dev-warn if called. The in-UI camera controls are the
+ * supported capture path. Also not implemented: handle.undo / redo, handle.open,
+ * and handle.addText() with no argument (all dev-warn). The rest of the handle
+ * (inspect / state / export / edit-overlay mutation) is wired.
  */
 
 const NOT_IMPLEMENTED_MARKER =
   "media-editor: imperative capture (takePhoto / startRecording / stopRecording / switchCamera / importFromGallery) is not implemented — drive capture via the in-UI controls instead.";
 
 const NOT_WIRED_HISTORY_MARKER =
-  "media-editor: undo/redo is not wired in v0.1.x (no mutations are recorded as commands yet) — no-op. The per-mutation command layer lands in v0.2.";
+  "media-editor: undo/redo is not wired (no mutations are recorded as commands) — no-op.";
 
-// English fallback for the v0.1.5-shaped StoryComposerLabels that several
+// English fallback for the flat StoryComposerLabels shape that several
 // part files (EditorCamera, EditorToolbar, DiscardConfirmDialog, etc.) still
 // require until the C17 refactor moves them onto MediaEditorLabels.
 // Module-scoped; not exported via the barrel. Consumers override individual
-// strings via the `labels` prop (mapped through DEFAULT_LABELS).
+// strings via the `labels` prop (nested MediaEditorLabels or flat keys,
+// normalized by normalizeEditorLabels).
 const INTERNAL_LABELS_FALLBACK: Required<StoryComposerLabels> = {
   composerLabel: "Media editor",
   composerDescription: "Capture a photo, record a video, or compose text-only content.",
@@ -390,11 +393,10 @@ const MediaEditorImpl = React.forwardRef<
 
   // ─── R4: Undo / redo history + discard guard ─────────────────────────
 
-  // Command-stack scaffolding — nothing calls history.execute() in v0.1.x, so
-  // the stack is always empty. bindKeyboard stays OFF until the per-mutation
-  // command layer lands (v0.2): a live window Ctrl/Cmd+Z listener that
-  // preventDefault()s page-wide while doing nothing is strictly worse than no
-  // listener. handle.undo/redo dev-warn accordingly (see the handle below).
+  // Command-stack scaffolding — nothing calls history.execute(), so the
+  // stack is always empty. bindKeyboard stays OFF (no per-mutation command
+  // layer): a live window Ctrl/Cmd+Z listener that preventDefault()s
+  // page-wide while doing nothing is strictly worse than no listener. handle.undo/redo dev-warn accordingly (see the handle below).
   const history = useHistory({ capacity: 50, bindKeyboard: false });
 
   const [showDiscardConfirm, setShowDiscardConfirm] = React.useState(false);
@@ -677,12 +679,23 @@ const MediaEditorImpl = React.forwardRef<
   );
 
   const mergedLabels: Required<StoryComposerLabels> = React.useMemo(() => {
-    // The MediaEditorLabels → StoryComposerLabels mapping is C17 work.
-    // Until then, only string overrides at the keys that overlap with the
-    // flat shim flow through (e.g., `composerLabel`); everything else
-    // falls back to the English defaults.
-    const overrides = (props.labels ?? {}) as Partial<StoryComposerLabels>;
-    return { ...INTERNAL_LABELS_FALLBACK, ...overrides };
+    // Nested MediaEditorLabels keys are mapped onto the internal flat shape;
+    // flat string keys (story-composer) win on conflict. Non-strings ignored.
+    return { ...INTERNAL_LABELS_FALLBACK, ...normalizeEditorLabels(props.labels) };
+  }, [props.labels]);
+
+  // `labels.publish` / `labels.empty` are typed but nothing renders them
+  // (@notImplemented) — say so once per mount instead of failing silently.
+  const warnedInertLabelsRef = React.useRef(false);
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "production" || warnedInertLabelsRef.current) return;
+    const l = props.labels as Record<string, unknown> | undefined;
+    if (l && (l.publish !== undefined || l.empty !== undefined)) {
+      warnedInertLabelsRef.current = true;
+      console.warn(
+        "[MediaEditor] `labels.publish` and `labels.empty` are not implemented: no editor surface renders them, so they have no effect. Use `renderEmpty` for empty-state copy.",
+      );
+    }
   }, [props.labels]);
 
   // Capture surface is mounted when the editor is in capture stage AND the
@@ -995,7 +1008,11 @@ const MediaEditorImpl = React.forwardRef<
         if (text !== undefined) {
           editor.setTextContent(text);
         } else {
-          devWarnOnce(warnedRef.current, "addText", NOT_IMPLEMENTED_MARKER);
+          devWarnOnce(
+          warnedRef.current,
+          "addText",
+          "media-editor: handle.addText() with no argument is not implemented — pass the text: addText(text).",
+        );
         }
       },
       addSticker: (sticker: StickerOption) => {
@@ -1013,8 +1030,8 @@ const MediaEditorImpl = React.forwardRef<
       applyFilter: (name: string | null) => editor.setFilter(name),
       clearLayer: (layer: "drawing" | "stickers" | "text") =>
         editor.clearLayer(layer),
-      // No execute() callers exist yet (per-mutation commands land in v0.2) —
-      // the stack is always empty, so these are honest no-ops, not silent ones.
+      // No execute() callers exist — the stack is always empty, so these are
+      // honest (dev-warning) no-ops, not silent ones.
       undo: () => {
         devWarnOnce(warnedRef.current, "undo", NOT_WIRED_HISTORY_MARKER);
       },
@@ -1650,6 +1667,10 @@ const MediaEditorImpl = React.forwardRef<
           props.onClose?.();
         }}
       />
+
+      {/* Consumer overlay — last child of the surface so it stacks above the
+          editor and, in dialog presentation, lives inside the dialog content. */}
+      {props.overlay}
     </div>
   );
 

@@ -124,6 +124,7 @@ type StoryViewerDelta =
 ```
 
 - **Cursor stability:** internal cursor is tracked by `(currentStoryId, currentItemId)` — NOT by index — so insertions / removals don't desync your position. Default `position` for `story-added` is `"end"`; `"start"` works correctly for hosts wanting Instagram chronology because the ID-anchored cursor anchors through the shift.
+- **Removal:** if the item or group under the cursor is removed (delta, `reset`, or `handle.dispatch`), the cursor moves to the next item of the same group, else the first item of the next group, else (nothing after) the nearest earlier item; progress restarts on the new item and no cube animation plays for the snap. Removing the last remaining group/item calls `onClose`. A viewer opened with `stories=[]` starts playing the first story that arrives. A group added or removed *before* the current one shifts indices but keeps the same item on screen, with no cube animation. An unsent reply draft belongs to its item: changing item discards it (it can never be sent to a different item).
 - **Mount-scoped lifecycle:** subscription runs from mount to unmount, NOT scoped to `isOpen`. Hosts wanting visibility scoping pass `isOpen ? subscribe : undefined`.
 - **Identity-stable convention:** memoize `subscribe` via `useCallback` over a stable channel reference (locked precedent).
 
@@ -209,7 +210,7 @@ const TR_LABELS: StoryViewerLabels = {
 - Per-segment progress bar has `role="progressbar"` + `aria-valuemin/max/now` so screen readers announce.
 - Each control button has `aria-label` from the `labels` prop. Mute toggle adds `aria-pressed={isMuted}`.
 - Tap zones are `aria-hidden="true"` with `tabIndex={-1}` (touch affordance only — keyboard users use arrow keys instead).
-- Keyboard: ArrowLeft (prev item), ArrowRight (next item), Space (toggle pause; `preventDefault` to stop page scroll), Escape (close — handled by Radix).
+- Keyboard: ArrowLeft (prev item), ArrowRight (next item), Space (toggle pause; `preventDefault` to stop page scroll), Escape (close — handled by Radix). The window listener ignores events from editable targets (input / textarea / select / contentEditable / `[role="textbox"]` / anything inside `[data-keyboard-ignore]`) and IME composition, and leaves Space on a focused button/link to that element (no pause toggle).
 - Pause / mute icons swap via state, not just color — color-blind safe.
 
 ## Composition example: feed + rail + viewer
@@ -464,7 +465,7 @@ and the avatar + name as children; manage `href` inside your wrapper:
 handle.setMuted(true)         // parity with setPaused
 handle.triggerLike()          // toggles current like state
 handle.triggerReaction("love") // selects a reaction kind (or null to clear)
-handle.triggerReply("draft")  // focuses composer (setValue stubbed in v0.2.0)
+handle.triggerReply("draft")  // focuses composer and pre-fills "draft" (pauses the story, as typing does)
 handle.triggerShare()         // fires onShareStory
 handle.openKebab()            // opens the kebab bottom-sheet
 ```

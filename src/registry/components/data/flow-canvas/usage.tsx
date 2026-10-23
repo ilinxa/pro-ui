@@ -226,7 +226,7 @@ const sourceShape = exportRef.current?.export({ withPorts: false })`}</code>
           editors mount the full state machine per node (e.g. 200 editor
           instances at N=200) — putting the editor in a single dialog scopes
           that cost to the one node being edited. Pattern in procomp guide §8.3
-          + the future <code>RenderContext.onEditRequest</code> slot (v0.3
+          + the <code>RenderContext.onEditRequest</code> slot
           candidate).
         </li>
       </ul>

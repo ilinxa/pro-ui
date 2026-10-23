@@ -72,7 +72,7 @@ If `onSubmit` returns void (sync), status doesn't auto-track and stays `idle`. T
 
 ### Status `disabled` cascades
 
-While `status === 'pending'`, both the input and button are disabled. If you need a different disabled behavior (e.g. always-disabled preview mode), the v0.1 API doesn't support it — defer to v0.2 or wrap the card.
+While `status === 'pending'`, both the input and button are disabled. If you need a different disabled behavior (e.g. always-disabled preview mode), the API doesn't support it (not implemented) — wrap the card instead.
 
 ### Tone color in dark mode
 
@@ -95,6 +95,6 @@ Originals at [`docs/migrations/newsletter-signup/original/`](../../migrations/ne
 ## Open follow-ups
 
 - v0.2: `disabled` prop for read-only preview mode.
-- v0.2: alternate variant with name + email (multi-field).
-- v0.2: success-replaces-card option (the card transforms into a thank-you state instead of showing inline message).
+- Not implemented (possible future addition): alternate variant with name + email (multi-field).
+- Not implemented (possible future addition): success-replaces-card option (the card transforms into a thank-you state instead of showing inline message).
 - v0.3: built-in email-validation regex prop (today: HTML5 `type="email"` only).

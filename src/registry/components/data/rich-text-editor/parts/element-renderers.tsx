@@ -3,6 +3,8 @@
 import type { ComponentProps, ReactNode } from "react";
 import { PlateElement, type PlateElementProps } from "platejs/react";
 import { cn } from "@/lib/utils";
+import { getEmbedPolicy, safeHref } from "../lib/safe-embed";
+import { SafeEmbedView } from "./safe-embed-view";
 
 type ElementProps = ComponentProps<typeof PlateElement>;
 
@@ -189,7 +191,7 @@ export function TableCellHeaderElement(props: ElementProps) {
 export { ImageElement } from "./image-element";
 
 export function MediaEmbedElement(props: ElementProps) {
-  const { element } = props as PlateElementProps;
+  const { element, editor } = props as PlateElementProps;
   const url = (element as { url?: string }).url;
   return (
     <PlateElement
@@ -199,7 +201,7 @@ export function MediaEmbedElement(props: ElementProps) {
     >
       <div className="aspect-video overflow-hidden rounded-md border border-border bg-muted/30">
         {url ? (
-          <iframe src={url} className="h-full w-full" allowFullScreen />
+          <SafeEmbedView url={url} policy={getEmbedPolicy(editor)} />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             (embed)
@@ -213,14 +215,14 @@ export function MediaEmbedElement(props: ElementProps) {
 
 export function LinkElement(props: ElementProps) {
   const { element } = props as PlateElementProps;
-  const url = (element as { url?: string }).url ?? "#";
+  const href = safeHref((element as { url?: string }).url);
   return (
     <Wrapped
       {...withAs(props, "a")}
       attributes={{
         ...(props.attributes as Record<string, unknown>),
-        href: url,
-        target: "_blank",
+        // Unsafe scheme (javascript:, data:, ...) => no href; children kept.
+        ...(href ? { href, target: "_blank" } : {}),
         rel: "noopener noreferrer",
       } as never}
       className={cn("text-primary underline underline-offset-2 hover:text-primary/80", props.className)}

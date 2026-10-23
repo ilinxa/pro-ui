@@ -195,8 +195,8 @@ const view = ref.current?.getView(); // escape hatch (substrate-leak risk acknow
           </li>
           <li>
             <strong>Wikilink anchors</strong> (<code>[[label#anchor]]</code>) are NOT
-            supported in v0.1. The anchor portion is treated as part of the label;
-            v0.2 adds anchor parsing.
+            supported: the anchor portion is treated as part of the label
+            (anchor parsing is not implemented).
           </li>
           <li>
             <strong>Cmd+S</strong> only suppresses the browser&apos;s native save when an{" "}

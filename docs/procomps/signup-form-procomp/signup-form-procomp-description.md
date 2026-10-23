@@ -34,7 +34,7 @@ Pro-ui has zero signup components today. `properties-form` is entity-edit, not a
 ## Out of scope
 
 - **Backend / API integration** — the component never makes a network request. `onSubmit(values)` is `async`-aware; the consumer is responsible for the actual auth call (Supabase, NextAuth, raw fetch, etc.) and for surfacing server errors via the controlled `errorMessage` prop.
-- **CAPTCHA / hCaptcha / Turnstile** — the honeypot field is the only built-in anti-spam. CAPTCHA needs a slot + a script-load contract that's out of scope for v0.1; planned for v0.2 if a real consumer asks.
+- **CAPTCHA / hCaptcha / Turnstile** — the honeypot field is the only built-in anti-spam. CAPTCHA needs a slot + a script-load contract that's out of scope (not implemented).
 - **2FA / TOTP enrollment** — signup creates the account; 2FA enrollment is a downstream flow (different component, different state).
 - **Email verification UI** — "We sent you a confirmation link" is post-signup; the success screen here is a generic `successMessage` that the consumer can override to point at the verification flow.
 - **Password reset** — separate component (`password-reset-form-01` candidate, future).
@@ -44,7 +44,7 @@ Pro-ui has zero signup components today. `properties-form` is entity-edit, not a
 - **Field-level async validation** (e.g., "username taken") — signup here is one-shot at submit; v0.2 could add a `validateField?` async hook if a real consumer asks.
 - **More than two flow steps** — three-or-more-step wizards are a different problem (left for a future `multi-step-form-01` if anyone needs it).
 - **Username field** — covered by `displayName` in the optional-fields bag. We don't try to encode separate username + display-name fields; consumers who genuinely need `username` (Twitter-style) treat `displayName` as their username slot in v0.1.
-- **Server-side / SSR-only flows** (Next.js Server Actions, etc.) — the component is a client component (`"use client"`); progressive-enhancement variant is a v0.2 candidate.
+- **Server-side / SSR-only flows** (Next.js Server Actions, etc.) — the component is a client component (`"use client"`); a progressive-enhancement variant is not implemented.
 
 ## Target consumers
 
@@ -253,7 +253,7 @@ All seven open questions locked with refinements; folded into the spec above. Ve
 - **Q3 ✅ Honeypot field name `website`.** Refinement: docstring + render call out the off-screen pattern explicitly — `position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden` + `tabIndex={-1}` + `aria-hidden` + `autoComplete="off"`. **`display: none` is bot-detectable; the off-screen pattern is load-bearing.**
 - **Q4 ✅ `skippableStepTwo` + "Skip for now" submits step-1 values.** Refinement: `onSubmit` payload is a **discriminated envelope** `{ stepCompleted: "single" | "step1" | "step2"; values; isHoneypotTripped }` — not optional-field narrowing. The envelope forces a switch on `stepCompleted` and prevents naïve destructuring from silently sending `undefined` profile fields to backend APIs.
 - **Q5 ✅ Internal status default + controlled `status` / `onStatusChange` escape hatch.** Refinement: **mutual exclusion** documented explicitly — if `status` is passed, internal state becomes read-only (`status` is source of truth, `onStatusChange` fires for observers only). Mixing the two is a contract violation; surfaced in the consumer guide.
-- **Q6 ✅ Built-in length + char-class-count heuristic; zxcvbn deferred to v0.2.** Refinement: **`strengthCalculator?: (password: string) => 0 | 1 | 2 | 3 | 4` is the v0.1 seam** — consumers BYO (corporate password policies, dictionary checks) without a breaking change; v0.2 can ship a zxcvbn adapter as a pluggable calc against the same shape.
+- **Q6 ✅ Built-in length + char-class-count heuristic; zxcvbn adapter not implemented.** Refinement: **`strengthCalculator?: (password: string) => 0 | 1 | 2 | 3 | 4` is the seam** — consumers BYO (corporate password policies, dictionary checks) without a breaking change; a zxcvbn adapter could be shipped as a pluggable calc against the same shape.
 - **Q7 ✅ 150ms CSS opacity fade, no motion peer.** Refinement: **`prefers-reduced-motion: reduce` collapses the transition to 0ms** so a11y tooling isn't disorientated.
 
 ---

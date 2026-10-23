@@ -129,7 +129,7 @@ import Link from "next/link";
 1. **Default thumbnail aspect** — `w-20 h-16` (5:4 landscape, kasder source). Confirmed in source-notes; consumer can override via `imageClassName` for square or other ratios.
 2. **Default header icon** — `BookOpen` matches the kasder "Related News" semantics. Generic enough for blog/news/article contexts; consumers swap for `Music`, `Film`, `History`, etc. via `headerIcon`. Pass `null` to omit.
 3. **No `getKey` accessor** — `items` requires `id: string` directly. Simpler than a generic accessor; covers 100% of realistic cases.
-4. **No image-error placeholder in v0.1** — broken `src` shows browser default. v0.2 candidate: `imagePlaceholder?: ReactNode`.
+4. **No image-error placeholder in v0.1** — broken `src` shows browser default. A possible future addition: `imagePlaceholder?: ReactNode` (not implemented).
 
 ## Why not...
 

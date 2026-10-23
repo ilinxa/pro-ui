@@ -12,14 +12,14 @@ Sites with categorized content need a sidebar / inline filter affordance: the us
 
 - **Always-visible flex-wrap of category chips** — clicking selects, re-clicking clears (toggleable).
 - **Inline counts** — `Tech (12)` style; optional per-item.
-- **Controlled-or-uncontrolled selection** — single-select; multi is v0.2 candidate.
+- **Controlled-or-uncontrolled selection** — single-select; multi-select is not implemented.
 - **Optional title with editorial-header rhythm** — serif-bold + bottom border.
 - **Generic over category items** — `string[]` shorthand or `{value, label, count}[]` full form.
 - **WCAG 2.1 AA** — native button semantics, `aria-pressed`, focus-visible ring.
 
 ## Out of scope
 
-- Multi-select — v0.2 candidate.
+- Multi-select — not implemented.
 - Search-within-categories — that's `entity-picker`.
 - Drag-reorder of categories.
 - Async category loading — consumer fetches and passes the array.

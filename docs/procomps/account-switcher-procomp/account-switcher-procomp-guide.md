@@ -318,7 +318,7 @@ There's intentionally no `allowActiveSelfClick` prop in v0.1. If you genuinely n
 
 ## 8. What this primitive doesn't do
 
-- **No search/filter** in the popover. For >10 items, compose `cmdk` `Command` instead. v0.2 candidate.
+- **No search/filter** in the popover. For >10 items, compose `cmdk` `Command` instead. Possible future addition.
 - **No groups/sections** within items. Source flat-lists. You can split into multiple switchers if you really need sections.
 - **No custom row renderer.** Footer is the escape hatch for custom content; row list is rigid.
 - **No async items loading.** Pre-resolve consumer-side; pass a skeleton via `fallbackActiveItem` if needed.

@@ -126,8 +126,8 @@ function MyTextBlock({ text }: { text: string }) {
         </li>
         <li>
           <strong>Don&apos;t expect animated height transition</strong> on
-          expand/collapse in v0.1 — the swap is instant. Animation requires
-          extra browser support and lands in v0.2.
+          expand/collapse — the swap is instant. Animation requires
+          extra browser support and is not implemented.
         </li>
         <li>
           <strong>Don&apos;t define inline labels objects</strong> if you care

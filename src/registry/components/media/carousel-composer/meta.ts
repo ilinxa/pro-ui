@@ -8,7 +8,7 @@ export const meta: ComponentMeta = {
   description:
     "Multi-item media post composer — drag in photos and videos, reorder them on a rail, and edit each through a shared editor panel.",
   context:
-    "The authoring counterpart to the media-carousel viewer. Composes the shipped media-editor WITHOUT modifying it: a single editor instance is loaded serially with the selected item (never N at once, so it can't trip media-editor's multi-instance guard). The procomp owns the collection concerns — file intake (drop + multiple browse, MIME-inferred so there are no photo/video capture tabs), the ordered MediaCarouselItem model, the @dnd-kit reorderable thumbnail rail, the main preview, and the edit-panel lifecycle (Edit → mount media-editor in edit-only mode → flatten export back into the item). Edits flatten on apply so the rail/preview are always publish-ready; export() is pull-only. v0.1 intake is upload-only (library clamped) and video items are preview/reorder/remove + limited edit. Output is shaped to feed media-carousel. Primary downstream consumer: content-composer's post media slot (wired in content-composer v0.2 via the mediaCarouselSlot substrate).",
+    "The authoring counterpart to the media-carousel viewer. Composes the shipped media-editor WITHOUT modifying it: a single editor instance is loaded serially with the selected item (never N at once, so it can't trip media-editor's multi-instance guard). The procomp owns the collection concerns — file intake (drop + multiple browse, MIME-inferred so there are no photo/video capture tabs), the ordered MediaCarouselItem model, the @dnd-kit reorderable thumbnail rail, the main preview, and the edit-panel lifecycle (Edit → mount media-editor in edit-only mode → flatten export back into the item). Edits flatten on apply so the rail/preview are always publish-ready; export() is pull-only. v0.1 intake is upload-only (library clamped) and video items are preview/reorder/remove only (not editable). Output is shaped to feed media-carousel. Primary downstream consumer: content-composer's post media slot (wired in content-composer v0.2 via the mediaCarouselSlot substrate).",
   features: [
     "Multi-file intake — drag-and-drop dropzone + multiple Browse, mixed image + video (MIME-inferred, no capture-mode tabs)",
     "Ordered MediaCarouselItem model — add / remove / reorder / select",
@@ -32,11 +32,11 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.2.0",
+  version: "0.2.1",
   status: "alpha",
   artifactBudgetKB: 70,
   createdAt: "2026-06-05",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

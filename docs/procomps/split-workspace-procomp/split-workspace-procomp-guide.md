@@ -165,7 +165,7 @@ return (
 
 The `AreaTree` is plain JSON — `JSON.stringify` / `JSON.parse` round-trip cleanly. Persist to localStorage, IndexedDB, your backend, or wherever.
 
-> v0.2.0 will split this into a per-frame `onResize` callback and a debounced `onLayoutChange`, eliminating the need to debounce in your handler. Until then, the recipe above is the canonical pattern.
+> Splitting this into a per-frame `onResize` callback and a debounced `onLayoutChange` is not implemented; the recipe above is the canonical pattern.
 
 ### Pattern 5: presets as tabs
 
@@ -255,7 +255,7 @@ const persist = useMemo(
 <SplitWorkspace ... onLayoutChange={persist} />
 ```
 
-v0.2.0 will split this into a per-frame `onResize` callback and a debounced `onLayoutChange` to remove the footgun. Until then, debounce in your handler.
+A per-frame `onResize` callback plus a debounced `onLayoutChange` is not implemented, so debounce in your handler.
 
 ### First-render breakpoint flash
 
@@ -365,16 +365,16 @@ Same pattern — controlled mode, replace tree:
 <SplitWorkspace layout={layout} onLayoutChange={setLayout} ... />
 ```
 
-## Known limitations / deferred to v0.2
+## Known limitations (not implemented)
 
-These are deliberate non-goals for v0.1.0:
+These are deliberate non-goals:
 
 - **Detach-to-OS-window** (multi-monitor "tear off") — area-ids are stable, subtrees are independently serializable, so the architectural hooks are in place.
 - **Touch / pen gestures** — desktop-first. Mobile users get the card stack instead.
 - **Drag-and-drop components between areas** — use the dropdown picker.
-- **Aligned-edge linked resize** — dragging one shared boundary moves only that boundary; multi-edge tracking is v0.2.
+- **Aligned-edge linked resize** — dragging one shared boundary moves only that boundary; multi-edge tracking is not implemented.
 - **Built-in undo/redo** — wire your own history via `onLayoutChange` snapshots.
-- **Cross-breakpoint animation** — when the viewport shifts breakpoints, the layout snaps. No animation in v0.1.
+- **Cross-breakpoint animation** — when the viewport shifts breakpoints, the layout snaps. No animation.
 
 ## Migration notes
 
@@ -396,25 +396,25 @@ Patch bump — non-breaking. New optional props with sensible defaults:
 
 ### v0.1.0 → v0.1.1 (initial)
 
-This was the first ship. Nothing to migrate from. When v0.2 lands, this section will document its breaking changes.
+This was the first ship. Nothing to migrate from. Breaking changes in later versions are documented in this section.
 
 ## Open follow-ups
 
 Tracked in [.claude/STATUS.md](../../../.claude/STATUS.md):
 
 - ~~**`inertLogged` was module-level, not per-instance**~~ ✅ Closed in v0.1.2 (per-instance `useRef`).
-- ~~**`onLayoutChange` 60Hz storm during edge-drag**~~ ✅ Doc workaround in v0.1.2; structural fix (`onResize` split) in v0.2.0.
+- **`onLayoutChange` 60Hz storm during edge-drag** — doc workaround in v0.1.2; the structural fix (`onResize` split) is not implemented.
 - ~~**Divider keyboard mismatch (`aria-valuenow` without keyboard control)**~~ ✅ Closed in v0.1.2 (Arrow key resize).
 - ~~**`cap=0` conflation routed desktop to card stack**~~ ✅ Closed in v0.1.2.
 - ~~**`STACK_CARD_HEIGHT` hardcoded at 320**~~ ✅ Closed in v0.1.2 (`cardStackItemHeight` prop).
 - ~~**`validateTree` errors swallowed (console-only)**~~ ✅ Closed in v0.1.2 (`onError` callback).
-- **Imperative ref API** — landing in v0.2.0 (`SplitWorkspaceHandle` mirroring `TaskTreeHandle`).
-- **`stack` kind in `AreaTree`** — v0.2.0; closes the F-01 trade-off (depth cap strictly honored, no balanced-split chain side-effect).
-- **Touch / pen gestures** — v0.2.0 (long-press 300ms via Pointer Events; mobile cap default bumps to 2).
-- **Built-in undo / redo** — v0.2.0 (`Ctrl/Cmd+Z`, `historyDepth` prop).
-- **Aligned-edge linked resize** — v0.2.0 (`linkedResize` prop, default `true`).
-- **Detach-to-OS-window** — v0.3.
-- **DnD-between-areas** — v0.3.
+- **Imperative ref API** — not implemented yet (`SplitWorkspaceHandle` mirroring `TaskTreeHandle`).
+- **`stack` kind in `AreaTree`** — not implemented yet; would close the F-01 trade-off (depth cap strictly honored, no balanced-split chain side-effect).
+- **Touch / pen gestures** — not implemented yet (long-press 300ms via Pointer Events; mobile cap default bumps to 2).
+- **Built-in undo / redo** — not implemented yet (`Ctrl/Cmd+Z`, `historyDepth` prop).
+- **Aligned-edge linked resize** — not implemented yet (`linkedResize` prop, default `true`).
+- **Detach-to-OS-window** — not implemented.
+- **DnD-between-areas** — not implemented.
 - **Test debt** — no test runner is wired in this repo. The pure modules in `lib/` (`tree.ts`, `reducer.ts`, `geometry.ts`) are written to be testable in isolation when Vitest lands.
 
 ## Reference

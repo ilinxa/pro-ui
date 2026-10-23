@@ -161,6 +161,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     goToItemIndex,
     reset,
     dispatch,
+    snapCount,
   } = useStoryViewerState({
     initialStories,
     initialStoryIndex,
@@ -213,6 +214,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // them after the handle trips the React Compiler
   // "cannot access variable before it is declared" check.
   const composerRef = useRef<CommentComposerHandle | null>(null);
+  // triggerReply(content) → pre-fill request consumed by <ReplyComposer>.
+  const [replyPrefill, setReplyPrefill] = useState<{
+    nonce: number;
+    text: string;
+  } | null>(null);
   // ─── v0.2.0 kebab state (C6) — shared between engagement-overlay placement + header fallback ──
   const [kebabOpen, setKebabOpen] = useState(false);
 
@@ -237,11 +243,10 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       triggerLike: () => triggerLikeRef.current(),
       triggerReaction: (kind?: string) => triggerReactionRef.current(kind),
       triggerReply: (content?: string) => {
-        composerRef.current?.focus();
         if (content) {
-          // CommentComposerHandle exposes focus; setValue not in v0.2.1.
-          // Future enhancement: extend Handle with setValue method.
+          setReplyPrefill((prev) => ({ nonce: (prev?.nonce ?? 0) + 1, text: content }));
         }
+        composerRef.current?.focus();
       },
       triggerShare: () => triggerShareRef.current(),
       openKebab: () => setKebabOpen(true),
@@ -312,26 +317,35 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     releaseDrag: cubeReleaseDrag,
     forceIdle: cubeForceIdle,
   } = useCubeTransition(storyTransitionDurationMs);
-  const [trackedCursor, setTrackedCursor] = useState({
+  // `storyId` is tracked alongside the index so a pure INDEX shift (a group
+  // inserted/removed before the current one, same story on screen) snaps
+  // instead of animating a cube away from whatever now sits at the old index.
+  const trackNow = () => ({
     storyIndex: cursor.storyIndex,
     itemIndex: cursor.itemIndex,
     isOpen,
+    storyId: stories[cursor.storyIndex]?.id,
   });
+  const [trackedCursor, setTrackedCursor] = useState(trackNow);
+  const [trackedSnap, setTrackedSnap] = useState(snapCount);
   const [pendingDragCommit, setPendingDragCommit] = useState(false);
-  if (trackedCursor.isOpen !== isOpen) {
-    setTrackedCursor({
-      storyIndex: cursor.storyIndex,
-      itemIndex: cursor.itemIndex,
-      isOpen,
-    });
+  if (trackedSnap !== snapCount) {
+    // Cursor was repaired because its story/item was removed (or data first
+    // arrived) — snap, never animate a cube toward/away from a ghost.
+    setTrackedSnap(snapCount);
+    setTrackedCursor(trackNow());
+  } else if (trackedCursor.isOpen !== isOpen) {
+    setTrackedCursor(trackNow());
   } else if (pendingDragCommit && cursor.storyIndex !== trackedCursor.storyIndex) {
     // Cursor change came from a drag commit — suppress the auto animation.
     setPendingDragCommit(false);
-    setTrackedCursor({
-      storyIndex: cursor.storyIndex,
-      itemIndex: cursor.itemIndex,
-      isOpen,
-    });
+    setTrackedCursor(trackNow());
+  } else if (
+    cursor.storyIndex !== trackedCursor.storyIndex &&
+    stories[cursor.storyIndex]?.id === trackedCursor.storyId
+  ) {
+    // Same story, shifted index (an earlier group was added/removed) — snap.
+    setTrackedCursor(trackNow());
   } else if (
     isOpen &&
     !disableStoryTransition &&
@@ -354,20 +368,12 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         },
       });
     }
-    setTrackedCursor({
-      storyIndex: cursor.storyIndex,
-      itemIndex: cursor.itemIndex,
-      isOpen,
-    });
+    setTrackedCursor(trackNow());
   } else if (
     trackedCursor.storyIndex !== cursor.storyIndex ||
     trackedCursor.itemIndex !== cursor.itemIndex
   ) {
-    setTrackedCursor({
-      storyIndex: cursor.storyIndex,
-      itemIndex: cursor.itemIndex,
-      isOpen,
-    });
+    setTrackedCursor(trackNow());
   }
   // Force idle on viewer close to clear any in-flight cube state.
   // Dep only on the memoized `cubeForceIdle` (stable identity) — depending
@@ -1206,6 +1212,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
               renderReplyComposer(currentStory!, currentItem!, slotHelpers)
             ) : currentUser ? (
               <ReplyComposer
+                // Keyed per item: a draft (and its pause) never carries over to
+                // the next item, so Send can't target an item the user didn't reply to.
+                key={`${currentStory!.id}:${currentItem!.id}`}
                 story={currentStory!}
                 item={currentItem!}
                 currentUser={currentUser}
@@ -1213,6 +1222,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
                 onSetPaused={(p) => setPaused(p)}
                 labels={labels}
                 composerRef={composerRef}
+                prefill={replyPrefill}
               />
             ) : (
               composerEmptyState

@@ -29,7 +29,7 @@ Anywhere user-generated or editorial video plays:
 - Product video previews
 - Standalone embedded videos
 
-**Not** for streaming formats (HLS / DASH) — raw `<video src>` only. v0.2 candidate via `useHls` flag.
+**Not** for streaming formats (HLS / DASH) — raw `<video src>` only. Not implemented; possible future addition via a `useHls` flag.
 
 ## Sizing the player
 
@@ -190,12 +190,14 @@ const handleTap = useDoubleTap(onLike, { windowMs: 400 });
 
 300ms default window matches iOS standard. Single tap is silent; only the second tap within `windowMs` fires.
 
+Clicks whose target is inside an interactive control (`button`, `a`, `input`, `select`, `textarea`, `[role="button"]`, `[role="slider"]`) are ignored — they neither fire nor arm the window. Two quick taps on the mute or play button therefore never fire `onDoubleTap` (an accidental "like"); two taps on the bare video area still do. The same guard applies to every caller of the hook, including `media-carousel`.
+
 ## Anti-patterns
 
 | Don't | Why |
 |---|---|
 | Forget to wrap in a sized parent | Component fills `h-full w-full`; without an aspect-ratio wrapper it collapses. |
-| Expect a video ref in `renderControls` | Bypasses state machine → desync. v0.2 candidate: `renderVideoElement` slot for full takeover. |
+| Expect a video ref in `renderControls` | Bypasses state machine → desync. `renderVideoElement` slot for full takeover is not implemented (possible future addition). |
 | Expect fullscreen / volume slider / PiP in v0.1 default controls | Add via `renderControls` if needed. v0.2 candidates. |
 | Expect HLS / DASH support | Raw `<video src>` only. v0.2 via `useHls?: boolean` flag + `hls.js` peer dep. |
 | Expect a buffering spinner / error UI | Browser shows poster on slow load + load failure. v0.2 candidates (`renderError` slot). |
@@ -219,11 +221,11 @@ If you want unmuted autoplay (rare — bad UX in feeds), you're explicitly fight
 
 ## Limitations / caveats
 
-- **No fullscreen toggle in default controls** (v0.1). Add via `renderControls` if needed. v0.2 candidate.
+- **No fullscreen toggle in default controls** Add via `renderControls` if needed. Possible future addition.
 - **No volume slider** (v0.1). Mute-only. Matches kasder + Instagram UX.
-- **No HLS/DASH/streaming format support** (v0.1). v0.2 candidate via `useHls?: boolean` flag.
+- **No HLS/DASH/streaming format support**. Possible future addition via a `useHls?: boolean` flag.
 - **No buffering spinner overlay** (v0.1). Browser shows poster during load.
-- **No error UI** (v0.1). Browser shows poster on load failure. v0.2 candidate via `renderError?` slot.
+- **No error UI** Browser shows poster on load failure. Possible future addition via a `renderError?` slot.
 - **No playback rate selector** (v0.1).
 - **No picture-in-picture** (v0.1).
 - **`useVideoState` hook is internal-only** — state delivered to consumers via the `renderControls` slot. v0.2 if real demand for hosts to drive their own `<video>` with our state.

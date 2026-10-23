@@ -384,6 +384,11 @@
       "dependencies": [
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/layout/split-workspace/split-workspace.tsx",
@@ -2310,6 +2315,16 @@
           "path": "src/registry/components/data/rich-text-editor/lib/serialize-html.ts",
           "type": "registry:component",
           "target": "components/rich-text-editor/lib/serialize-html.ts"
+        },
+        {
+          "path": "src/registry/components/data/rich-text-editor/lib/safe-embed.ts",
+          "type": "registry:component",
+          "target": "components/rich-text-editor/lib/safe-embed.ts"
+        },
+        {
+          "path": "src/registry/components/data/rich-text-editor/parts/safe-embed-view.tsx",
+          "type": "registry:component",
+          "target": "components/rich-text-editor/parts/safe-embed-view.tsx"
         }
       ]
     },
@@ -2354,6 +2369,13 @@
       "dependencies": [
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))",
+          "color-warning-foreground": "var(--warning-foreground, oklch(0.18 0 0))",
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/data/event-card/event-card.tsx",
@@ -3235,6 +3257,11 @@
         "lucide-react",
         "embla-carousel-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/data/story-rail/story-rail.tsx",
@@ -3416,6 +3443,11 @@
           "path": "src/registry/components/media/story-viewer/lib/kebab.ts",
           "type": "registry:component",
           "target": "components/story-viewer/lib/kebab.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/lib/is-editable-target.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/lib/is-editable-target.ts"
         },
         {
           "path": "src/registry/components/media/story-viewer/parts/link-cta.tsx",
@@ -3681,6 +3713,12 @@
       "registryDependencies": [
         "@ilinxa/project-card"
       ],
+      "cssVars": {
+        "theme": {
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))",
+          "color-warning-foreground": "var(--warning-foreground, oklch(0.18 0 0))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/data/project-card/dummy-data.ts",
@@ -4303,6 +4341,11 @@
         "@tanstack/react-virtual",
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/navigation/file-tree/file-tree.tsx",
@@ -4539,6 +4582,11 @@
         "@tanstack/react-virtual",
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/navigation/file-manager/file-manager.tsx",
@@ -5477,6 +5525,11 @@
       "dependencies": [
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/data/card-tree-node/index.ts",
@@ -6098,6 +6151,11 @@
       "dependencies": [
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/navigation/app-sidebar/app-sidebar.tsx",
@@ -6503,6 +6561,11 @@
         "react-konva",
         "lucide-react"
       ],
+      "cssVars": {
+        "theme": {
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/media/media-editor/media-editor.tsx",
@@ -6578,6 +6641,11 @@
           "path": "src/registry/components/media/media-editor/lib/initial-source-loader.ts",
           "type": "registry:component",
           "target": "components/media-editor/lib/initial-source-loader.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/normalize-labels.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/normalize-labels.ts"
         },
         {
           "path": "src/registry/components/media/media-editor/lib/konva-filters.ts",

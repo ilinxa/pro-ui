@@ -464,6 +464,7 @@ Every v0.2.x card keeps rendering identically when no new props are passed. Drop
 
 ### Known limitations
 
+- **`item.updatedAt` is not rendered yet.** It is accepted on `NewsCardItem` but no "(edited)" marker appears on any variant. Passing it emits a dev-only warning once per mount; use `publishedAt` / `date` for the visible date row.
 - **No virtualization** at the card level — that's the layout's job (`magazine-layout` will support `virtualize: 'auto'` when it ships).
 - **No browser test runner** — verification is demo-driven. Pure modules (`defaultRelativeTime`, `defaultDateFormat`) are trivially testable when Vitest lands.
 - **Text-selection inside the card** can be awkward because the link overlay sits above text. Click-and-drag to select the excerpt may register as a click-and-navigate. Workaround: select text by double-click-and-drag instead, or use the article detail page for serious copying.

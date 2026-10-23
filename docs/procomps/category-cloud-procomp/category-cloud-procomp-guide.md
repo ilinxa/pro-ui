@@ -14,7 +14,7 @@
 - **Searchable / paginated lists of items** — use `entity-picker` (popover-driven select with cmdk search).
 - **Multi-section schema-driven filters** — use `filter-panel`.
 - **Composite filter with search + chips + date** — use `filter-bar`.
-- **Multi-select** — single-select only in v0.1; multi-select is a v0.2 candidate.
+- **Multi-select** — single-select only; multi-select is not implemented.
 
 ## Composition patterns
 
@@ -103,7 +103,7 @@ Originals at [`docs/migrations/category-cloud/original/`](../../migrations/categ
 
 ## Open follow-ups
 
-- v0.2: multi-select mode (`selectionMode: 'single' | 'multi'`).
-- v0.2: roving-tabindex for arrow-key navigation between chips.
-- v0.2: built-in collapsing for very long lists (show 10, "+ N more" expand).
-- v0.3: visual variants (rounded-lg vs rounded-full, with/without backdrop, etc.).
+- Not implemented: multi-select mode (`selectionMode: 'single' | 'multi'`).
+- Not implemented: roving-tabindex for arrow-key navigation between chips.
+- Not implemented: built-in collapsing for very long lists (show 10, "+ N more" expand).
+- Not implemented: visual variants (rounded-lg vs rounded-full, with/without backdrop, etc.).

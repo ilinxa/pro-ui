@@ -8,7 +8,7 @@ export default function EventCalendarUsage() {
         <code>task-tree</code>, <code>kanban-board</code>, and{" "}
         <code>gantt-timeline</code>) and want a date-grid surface — month,
         week, day, or agenda — with no adapter. It is the read-only display
-        sibling of the gantt; editing lands in v0.2.
+        sibling of the gantt; editing ships as the opt-in `editing` feature slice.
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>

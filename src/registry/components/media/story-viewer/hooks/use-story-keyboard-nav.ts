@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { isActivatableTarget, isEditableTarget } from "../lib/is-editable-target";
 
 export interface UseStoryKeyboardNavOptions {
   isOpen: boolean;
@@ -25,6 +26,9 @@ export interface UseStoryKeyboardNavOptions {
  * - Space → onTogglePause (preventDefault to stop page scroll)
  * - Escape → onClose (when supplied; deduplicated with Radix Dialog)
  *
+ * Events from editable targets (input / textarea / select / contentEditable /
+ * `[role="textbox"]` / `[data-keyboard-ignore]`) and IME composition are ignored.
+ *
  * Listener attaches on `isOpen=true` only and detaches on close — no leaks.
  * Refs-mirror pattern keeps the listener stable; only re-attaches on `isOpen` flip.
  */
@@ -39,6 +43,8 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
     if (!isOpen) return;
     if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
+      // Typing surfaces and IME composition own their keys.
+      if (e.isComposing || isEditableTarget(e.target)) return;
       switch (e.key) {
         case "ArrowLeft":
           refs.current.onPrevItem();
@@ -47,6 +53,8 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
           refs.current.onNextItem();
           break;
         case " ":
+          // Space on a focused button/link activates that element instead.
+          if (isActivatableTarget(e.target)) return;
           e.preventDefault();
           refs.current.onTogglePause();
           break;

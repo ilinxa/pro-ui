@@ -363,6 +363,21 @@ export const EventCalendarRoot = forwardRef<CalendarHandle, CalendarRootProps>(
       }
     }, [editable, editing]);
 
+    // Dev-only, once per mount: `onExternalDrop` is accepted but never fires.
+    const warnedExternalDropRef = useRef(false);
+    useEffect(() => {
+      if (
+        process.env.NODE_ENV !== "production" &&
+        onExternalDrop !== undefined &&
+        !warnedExternalDropRef.current
+      ) {
+        warnedExternalDropRef.current = true;
+        console.warn(
+          "[event-calendar] `onExternalDrop` is not implemented: it is accepted but never called. Cross-surface task transfer uses copy/paste (the `ilinxa/task` clipboard envelope).",
+        );
+      }
+    }, [onExternalDrop]);
+
     const ctx = useMemo<CalendarBaseContextValue>(
       () => ({
         view,

@@ -323,7 +323,7 @@ useEffect(() => {
           <strong>Subcards aren&apos;t drag-extractable in v0.1</strong> —
           they&apos;re part of one card-tree tree per node by design (Q1
           lock); flow-canvas&apos;s <code>data-draggable-subobject</code>{" "}
-          pattern won&apos;t work on subcards. v0.2 candidate if a consumer
+          pattern won&apos;t work on subcards. a possible future addition if a consumer
           asks.
         </li>
       </ul>

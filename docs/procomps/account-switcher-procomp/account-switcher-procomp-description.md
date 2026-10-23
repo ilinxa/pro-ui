@@ -104,7 +104,7 @@ Documented so the next contributor doesn't drift here without a description re-v
 - **Custom row renderer** (`renderItem` render-prop slot). The footer is the escape hatch for custom content; the item list is rigid by design.
 - **Trigger variants** (`triggerVariant: "button" | "row" | "compact-icon"`). v0.1 ships one variant (button); `isCollapsed` is the only modifier. Multi-variant ergonomics belong to a richer v0.2 if there's demand.
 - **Per-item `meta` / `description` / `disabled`**. Not in source; speculative until proven.
-- **`onTriggerOpen?: (open: boolean) => void`**. Source has none — open state is internal to the popover. If consumers need observability, v0.2 candidate.
+- **`onTriggerOpen?: (open: boolean) => void`**. Source has none — open state is internal to the popover. If consumers need observability, it is a possible future addition.
 - **Async items loading state**. Consumer pre-resolves; if they have a loading state, they render the trigger with their own skeleton during it and pass `items={[]}` + `fallbackActiveItem={someSkeleton}`. Or use a different primitive.
 - **Multi-select / checkbox mode**. This is a SWITCHER not a multi-picker. Different pattern → different procomp.
 
@@ -255,7 +255,7 @@ All Q-Ps below were signed off at GATE 1 close with defaults accepted unless not
 | R3 | Trigger label width overflow on long account names. | Low | `truncate` + `min-w-0` baked in; tested at the demo with a 50-char fake business name. |
 | R4 | Active-item flicker during async `activeKey` resolution (consumer's pathname → key derivation). | Low | `fallbackActiveItem` smooths this — consumer can render a loading-state fallback during async. |
 | R5 | Collapsed-mode trigger and popover positioning interact badly when slotted in a fixed-width 80px sidebar. | Medium | Tested in the v0.1 demo against app-sidebar's collapsed mode. Plan stage spells out exact CSS. |
-| R6 | Consumer expects `searchable` for >10 items. | Low | Out-of-scope per §2; guide.md recommends cmdk Command primitive for that case. v0.2 candidate if real demand. |
+| R6 | Consumer expects `searchable` for >10 items. | Low | Out-of-scope per §2; guide.md recommends cmdk Command primitive for that case. Possible future addition if real demand. |
 | R7 | `footerSlot` rendering arbitrary content could break aria-combobox semantics if the consumer puts focusable content with conflicting roles in it. | Low | Document: footer is OUTSIDE the listbox semantic — focusable content is fine, but conflicting `role` attrs are the consumer's responsibility. |
 
 ---

@@ -124,6 +124,56 @@ interface CursorIds {
   itemId: string;
 }
 
+/** Last known valid cursor position — lets removal resolve "the next one". */
+interface LastPosition {
+  storyId: string;
+  storyIndex: number;
+  itemIndex: number;
+}
+
+/**
+ * Resolve a cursor that may name a removed (or never-seen) story/item.
+ *
+ * Returns the cursor unchanged when it is valid. Otherwise picks, in order:
+ * the next item of the same group, the first item of the next group, then
+ * (nothing after) the nearest earlier item. Returns `null` when no item exists
+ * anywhere (empty list / every group empty).
+ */
+function resolveCursor(
+  stories: Story[],
+  ids: CursorIds,
+  last: LastPosition,
+): CursorIds | null {
+  const sIdx = stories.findIndex((s) => s.id === ids.storyId);
+  const firstOf = (from: number): CursorIds | null => {
+    for (let k = Math.max(0, from); k < stories.length; k++) {
+      const first = stories[k].items[0];
+      if (first) return { storyId: stories[k].id, itemId: first.id };
+    }
+    return null;
+  };
+  const lastBefore = (from: number): CursorIds | null => {
+    for (let k = Math.min(from, stories.length - 1); k >= 0; k--) {
+      const items = stories[k].items;
+      const tail = items[items.length - 1];
+      if (tail) return { storyId: stories[k].id, itemId: tail.id };
+    }
+    return null;
+  };
+  if (sIdx >= 0) {
+    const story = stories[sIdx];
+    if (story.items.some((i) => i.id === ids.itemId)) return ids;
+    // Item gone (removed, or group opened empty and just received items).
+    const at = last.storyId === ids.storyId ? last.itemIndex : 0;
+    const next = story.items[at];
+    if (next) return { storyId: story.id, itemId: next.id };
+    return firstOf(sIdx + 1) ?? lastBefore(sIdx);
+  }
+  // Group gone (removed, reset away, or never existed): the group that now sits
+  // at its old index is "the next group".
+  return firstOf(last.storyIndex) ?? lastBefore(last.storyIndex - 1);
+}
+
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
 export interface UseStoryViewerStateOptions {
@@ -167,6 +217,12 @@ export interface UseStoryViewerStateResult {
   goToItemIndex: (index: number) => void;
   reset: (next: Story[]) => void;
   dispatch: React.Dispatch<StoryViewerLocalAction>;
+  /**
+   * Bumps each time the cursor was repaired because its story/item vanished
+   * (removal / reset / first data arrival). Lets the shell skip the cube
+   * animation for that snap.
+   */
+  snapCount: number;
 }
 
 export function useStoryViewerState(
@@ -248,15 +304,53 @@ export function useStoryViewerState(
     });
   }, [initialStoryIndex, isOpen]);
 
+  // Repair a cursor that names a removed id (render-time setState — the
+  // discarded pass never commits, so there is no flash of the stale cursor).
+  const [lastPos, setLastPos] = useState<LastPosition>({
+    storyId: cursorIds.storyId,
+    storyIndex: 0,
+    itemIndex: 0,
+  });
+  const [snapCount, setSnapCount] = useState(0);
+  const resolved = resolveCursor(stories, cursorIds, lastPos);
+  if (
+    resolved &&
+    (resolved.storyId !== cursorIds.storyId || resolved.itemId !== cursorIds.itemId)
+  ) {
+    setCursorIds(resolved);
+    setSnapCount((c) => c + 1);
+  }
+  const ids = resolved ?? cursorIds;
+
   // Derive indices from IDs.
   const cursor = useMemo(() => {
-    const storyIndex = Math.max(0, stories.findIndex((s) => s.id === cursorIds.storyId));
+    const storyIndex = Math.max(0, stories.findIndex((s) => s.id === ids.storyId));
     const story = stories[storyIndex];
     const itemIndex = story
-      ? Math.max(0, story.items.findIndex((i) => i.id === cursorIds.itemId))
+      ? Math.max(0, story.items.findIndex((i) => i.id === ids.itemId))
       : 0;
     return { storyIndex, itemIndex };
-  }, [stories, cursorIds]);
+  }, [stories, ids.storyId, ids.itemId]);
+
+  if (
+    resolved &&
+    (lastPos.storyId !== resolved.storyId ||
+      lastPos.storyIndex !== cursor.storyIndex ||
+      lastPos.itemIndex !== cursor.itemIndex)
+  ) {
+    setLastPos({
+      storyId: resolved.storyId,
+      storyIndex: cursor.storyIndex,
+      itemIndex: cursor.itemIndex,
+    });
+  }
+
+  // Every group/item was removed while the viewer is open — nothing left to
+  // show, so close (once per transition into the empty state).
+  const removedAll = resolved === null && cursorIds.storyId !== "";
+  useEffect(() => {
+    if (removedAll && isOpen) onCloseRef.current();
+  }, [removedAll, isOpen]);
 
   // Fire onCursorChange whenever derived indices change.
   const lastCursorRef = useRef(cursor);
@@ -274,7 +368,7 @@ export function useStoryViewerState(
 
   // Reset pause on item key change — React 19 pattern: setState during render
   // when a derived prop changes. Keeps resume from sticking after auto-advance.
-  const itemKey = `${cursorIds.storyId}:${cursorIds.itemId}`;
+  const itemKey = `${ids.storyId}:${ids.itemId}`;
   const [renderedItemKey, setRenderedItemKey] = useState(itemKey);
   if (renderedItemKey !== itemKey) {
     setRenderedItemKey(itemKey);
@@ -407,5 +501,6 @@ export function useStoryViewerState(
     goToItemIndex,
     reset,
     dispatch,
+    snapCount,
   };
 }

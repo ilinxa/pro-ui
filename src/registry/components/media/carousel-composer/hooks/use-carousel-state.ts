@@ -210,6 +210,17 @@ export function useCarouselState(
   }, []);
 
   const openEditor = useCallback((id: string) => {
+    // Only images are editable — a video must never reach the editor, whose
+    // export() would re-encode it.
+    const target = itemsRef.current.find((it) => it.id === id);
+    if (target && target.kind !== "image") {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[CarouselComposer] openEditor("${id}") ignored: item is a ${target.kind}; only image items can be edited.`,
+        );
+      }
+      return;
+    }
     setSelectedId(id);
     setEditingId(id);
     cbRef.current.onEditOpen?.(id);

@@ -12,7 +12,19 @@ export interface ImageUploadResult {
 
 export type ImageUploader = (file: File) => Promise<ImageUploadResult>;
 
-export interface RichTextEditorProps {
+/** Embed hardening options shared by the editor, viewer and serializer. */
+export interface RichTextEmbedPolicyProps {
+  /**
+   * Hostnames allowed to render as an iframe. `*.example.com` matches any
+   * subdomain. REPLACES the default list (YouTube, youtube-nocookie, Vimeo
+   * player). Embeds on other hosts render as a plain link.
+   */
+  embedAllowList?: string[];
+  /** Custom predicate; wins over `embedAllowList`. Receives the parsed https URL. */
+  isEmbedAllowed?: (url: URL) => boolean;
+}
+
+export interface RichTextEditorProps extends RichTextEmbedPolicyProps {
   value?: RichTextValue;
   defaultValue?: RichTextValue;
   onChange?: (value: RichTextValue) => void;
@@ -28,7 +40,7 @@ export interface RichTextEditorProps {
   autoFocus?: boolean;
 }
 
-export interface RichTextViewerProps {
+export interface RichTextViewerProps extends RichTextEmbedPolicyProps {
   value: RichTextValue;
   className?: string;
   fallback?: ReactNode;

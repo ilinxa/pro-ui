@@ -338,7 +338,7 @@ export function useCalendarEdit(args: Args) {
     [data, guard, onFieldEdited, onChange],
   );
 
-  /** Reserved reparent path (not wired by any v0.2.0 gesture; see plan §1). */
+  /** Reserved reparent path (not wired by any gesture; see plan §1). */
   const moveItemAction = useCallback(
     (id: string, newParentId: string | null, newIndex: number) => {
       const item = guard("move", id);

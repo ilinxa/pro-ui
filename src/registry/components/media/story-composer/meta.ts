@@ -8,8 +8,9 @@ export const meta: ComponentMeta = {
   description:
     "Instagram-style story creation surface — a locked 9:16 wrapper around the media editor.",
   context:
-    "Third and final component in the story-system trilogy alongside story-rail (discovery) and story-viewer (consumption). v0.2.0 delegates the capture + edit surface (camera, multi-layer Konva editor, all six tools, discard guard, history) to @ilinxa/media-editor (v0.1.1+), then layers the story-specific publish pipeline on top: ComposerPublishBar in the renderTopBar slot, PublishingProgressOverlay during upload, and a 14-method handle whose publish/exportBlob methods bridge ExportMetadata → PublishMetadata → PublishedStory. Camera-first defaults: rear camera on mobile, front on desktop, microphone for video. Public API 100% preserved across the v0.1.5 → v0.2.0 boundary; the 73-name export snapshot at docs/procomps/media-editor-procomp/story-composer-v0.1.5-exports.snapshot.txt resolves through the v0.2.0 barrel without omission.",
+    "Third and final component in the story-system trilogy alongside story-rail (discovery) and story-viewer (consumption). v0.2.0 delegates the capture + edit surface (camera, multi-layer Konva editor, all six tools, discard guard, history) to @ilinxa/media-editor (requires 0.4.0+ for the in-dialog publishing overlay), then layers the story-specific publish pipeline on top: ComposerPublishBar in the renderTopBar slot, PublishingProgressOverlay during upload, and a 14-method handle whose publish/exportBlob methods bridge ExportMetadata → PublishMetadata → PublishedStory. Camera-first defaults: rear camera on mobile, front on desktop, microphone for video. Public API 100% preserved across the v0.1.5 → v0.2.0 boundary; the 73-name export snapshot at docs/procomps/media-editor-procomp/story-composer-v0.1.5-exports.snapshot.txt resolves through the v0.2.0 barrel without omission.",
   features: [
+    "v0.5.0 — the publishing overlay (default and `renderPublishingOverlay`) now renders inside media-editor's dialog via its `overlay` prop, so Retry / Cancel are clickable; requires media-editor >= 0.4.0 (minor: a coupling change — update media-editor with it, re-adding with --overwrite); the overlay also inherits the surface radius",
     "v0.4.1 — `editorBackground` is marked @notImplemented and dev-warns; it was declared and never applied",
     "Camera capture (photo + video + text-only modes) via getUserMedia + MediaRecorder",
     "Gallery picker fallback when camera is denied or unavailable",
@@ -39,11 +40,11 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.4.1",
+  version: "0.5.0",
   status: "alpha",
   artifactBudgetKB: 60,
   createdAt: "2026-05-31",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

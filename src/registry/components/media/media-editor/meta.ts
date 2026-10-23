@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "The reusable Konva-based editor lifted out of story-composer v0.1.5. Four orthogonal capability dials (enabledModes, enabledTools, mediaSources, aspect) plus initialSource intake and inline/dialog presentation let consumers pull as little or as much editor surface as their context needs. The chrome follows an Instagram model: mode tabs appear only in the capture stage and are replaced by a back-to-capture arrow once a draft exists; bottom edit tools overlay a full-bleed canvas; the canvas drag-pans with a single pointer (plus 2-finger / wheel / keyboard zoom). Story-composer-01 v0.2.0 is a thin wrapper around this. content-composer, chat-panel attachments, and CMS hero editors are downstream consumers.",
   features: [
+    "v0.4.0 — the documented nested `labels` prop now works (nested keys map onto the internal strings; flat keys still accepted and win on conflict); new additive `overlay` prop renders inside the editor surface (inside the dialog in dialog presentation); every warn-only handle method (capture methods, undo/redo, open, no-arg addText) is tagged `@notImplemented`; version pins removed from messages and docs",
     "v0.3.1 — `handle.open()` dev-warns instead of failing silently (dialog mode is controlled, so set `isOpen` on the component)",
     "Controllable capture modes (photo / video / text) gated by `enabledModes`",
     "Controllable edit tools (text / draw / stickers / filters / adjust / crop) gated by `enabledTools`",
@@ -19,7 +20,7 @@ export const meta: ComponentMeta = {
     "Container-query-sized capture controls + min-size floor (dialog clamp / inline min-h) so the surface never collapses or overflows",
     "Media-source intake (camera + upload; a library source is not implemented)",
     "Inline / dialog / auto presentation — auto picks dialog if capture enabled, else inline",
-    "Imperative ref handle: inspect / state / edit-overlay / export wired (imperative *capture* methods dev-warn — not implemented)",
+    "Imperative ref handle: inspect / state / edit-overlay / export wired (imperative *capture* methods, undo/redo, open and no-arg addText dev-warn — not implemented)",
     "Initial-source intake (URL / Blob / File) — skips capture surface for re-edit workflows",
     "Polymorphic export() with format dispatch (jpeg / png / webp) + onProgress callback",
     "Video-export perf shortcut: skips MediaRecorder re-encode when nothing has been overlaid on the source",
@@ -39,7 +40,7 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.3.1",
+  version: "0.4.0",
   status: "alpha",
   // Reduced from 365 (pre-P3) — capture's ~1,284 LOC left the base folder;
   // base gained a smaller file-intake surface + the capture-extension seam
@@ -49,7 +50,7 @@ export const meta: ComponentMeta = {
   // context; 290 keeps ~3% headroom so real growth trips the validator).
   artifactBudgetKB: 290,
   createdAt: "2026-06-02",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

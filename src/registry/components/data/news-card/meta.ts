@@ -84,11 +84,11 @@ export const meta: ComponentMeta = {
     "editor-mode",
   ],
 
-  version: "0.4.2",
+  version: "0.4.3",
   status: "alpha",
   artifactBudgetKB: 210,
   createdAt: "2026-05-01",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

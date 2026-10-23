@@ -117,6 +117,6 @@ Originals at [`docs/migrations/page-hero/original/`](../../migrations/page-hero/
 ## Open follow-ups
 
 - v0.2: `gradientFrom` / `gradientTo` props for non-primary tints.
-- v0.2: Light-on-light variant (text-foreground for non-primary backgrounds).
-- v0.2: Optional sticky-on-scroll mini-mode (cuts to a thin band when user scrolls past).
+- Not implemented (possible future addition): Light-on-light variant (text-foreground for non-primary backgrounds).
+- Not implemented (possible future addition): Optional sticky-on-scroll mini-mode (cuts to a thin band when user scrolls past).
 - v0.3: Sibling components — `page-hero-product-01`, `page-hero-event-01` — same engine, different defaults.

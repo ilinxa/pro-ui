@@ -30,15 +30,15 @@ Every marketing site, SaaS landing page, and product CMS needs a pricing surface
 ## Out of scope
 
 - **More than 4 tiers** — the design assumes 2–4. Five-tier grids are a different layout problem (carousel, or vertical-list collapse).
-- **Per-tier custom illustrations / icons** — tier header is text-only in v0.1. Slot-based icon is a v0.2 candidate if a real consumer asks.
+- **Per-tier custom illustrations / icons** — tier header is text-only. A slot-based icon is a possible future addition if a real consumer asks.
 - **Currency conversion / live rates** — `priceMonthly` and `priceAnnual` are raw numbers in the supplied currency; consumer does any conversion upstream.
 - **Per-feature row groups / collapsible sections** — `table` layout is a flat grid in v0.1. Grouped comparison ("Storage features", "Support features") is v0.2+.
 - **Anchor / coupon code input** — not a v0.1 concern. Belongs to a checkout block downstream.
-- **More than one billing period** — only monthly ↔ annual swap. Quarterly / lifetime not supported in v0.1.
+- **More than one billing period** — only monthly ↔ annual swap. Quarterly / lifetime not supported.
 - **Tier add-ons / sub-pricing** — single price per tier per period.
 - **In-card testimonials or social proof** — different component (a future `testimonial-card-01`).
 - **Built-in `next/link` integration on CTAs** — `CtaSpec` renders a plain `<a>`; for SPA navigation the consumer passes their own `<Link>` as a `ReactNode` CTA. Registry code can't import `next/*`.
-- **Locale-driven number formatting** — `Intl.NumberFormat` is pinned to `"en-US"` in v0.1 to avoid SSR/client hydration drift. A `locale?: string` prop is a v0.2 candidate.
+- **Locale-driven number formatting** — `Intl.NumberFormat` is pinned to `"en-US"` to avoid SSR/client hydration drift. A `locale?: string` prop is not implemented (possible future addition).
 
 ## Target consumers
 
@@ -152,7 +152,7 @@ const [billing, setBilling] = useState<BillingPeriod>("monthly");
 1. **Tier-count typing.** **Resolved:** `tiers: ReadonlyArray<PricingTier>` + dev-mode `console.warn` on `length < 2 || > 4`. Tuple-union rejected — doesn't fit CMS runtime tier-building.
 2. **Annual-price input shape.** **Resolved:** `priceAnnual` is the **per-month rate when billed annually** — the headline number the user pays monthly under the annual plan. Component derives `priceAnnual * 12` for the optional small yearly-lump label rendered alongside the price.
 3. **Free-tier label.** **Resolved:** opt-in `labels.freeLabel?: string`. When unset, `priceMonthly === 0` falls through to currency formatting (e.g. `"$0"`).
-4. **Currency formatting.** **Resolved:** `Intl.NumberFormat` (zero dep). Pinned to `"en-US"` in v0.1 to avoid SSR/client hydration drift; `locale?: string` is a v0.2 candidate.
+4. **Currency formatting.** **Resolved:** `Intl.NumberFormat` (zero dep). Pinned to `"en-US"` to avoid SSR/client hydration drift; `locale?: string` is not implemented (possible future addition).
 5. **CTA shape.** **Resolved:** `cta: ReactNode | CtaSpec`. `ReactNode` is **load-bearing** (consumer wraps with their router primitive — Next `<Link>`, etc.). `CtaSpec = { label, href?, onClick?, variant? }` is the optional convenience overload, rendering a plain `<a>` (with `href`) or `<button>` (with `onClick`) wrapped in `<Button>` / `<Button asChild>`.
 6. **Tooltip dep.** **Resolved:** accept the `@/components/ui/tooltip` dep. Consumers wanting zero-dep can pass `tooltip: undefined` on each feature — Tooltip is only imported on the row when a tooltip string is provided.
 

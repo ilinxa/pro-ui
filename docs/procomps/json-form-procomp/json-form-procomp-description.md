@@ -99,7 +99,7 @@ Covers the realistic 95% case. Compiles to a RHF `watch()` subscription that re-
 **Layout & rendering**:
 
 - **Default layout** — flat vertical stack with consistent spacing per the project's design-system rhythm (defined in the component's CSS or via Tailwind utilities — exact token names locked at plan stage). `section` field type breaks the flow with a `<fieldset>` + `<legend>`.
-- **Two-column layout** — opt-in via `<JsonForm columns={2}>`. Fields can opt OUT per-field via `colSpan: 'full'`. v0.1.0 supports `1` (default) and `2` only — `3+` deferred to v0.2.
+- **Two-column layout** — opt-in via `<JsonForm columns={2}>`. Fields can opt OUT per-field via `colSpan: 'full'`. Supports `1` (default) and `2` only — `3+` is not implemented.
 - **Label position** — top-aligned by default. `<JsonForm labelPosition="left" />` supports left-aligned labels for compact admin forms. Per-field override via `labelPosition` on the DSL.
 - **Field width** — `width?: 'full' | 'half' | 'third' | 'quarter' | number` — relative width within the row (used inside the 2-column layout or for inline rows when a `row` grouping is used).
 - **Row grouping** — fields can declare `row: string` (any matching string groups them on the same horizontal row). Useful for "First name | Last name" pairs.
@@ -148,7 +148,7 @@ These wrap RHF's `useFormContext` ergonomically — consumers using the ref neve
 
 - **Flat names by default** — `name: 'email'`. Stored as `values.email`.
 - **Dot-path support** — `name: 'address.city'`. Stored as `values.address.city`. RHF handles deep-set internally.
-- **Array / repeating fieldset fields** — deferred to v0.1.x (see Out of scope + Q4); v0.1.0 ships flat fields + dot-path nesting only.
+- **Array / repeating fieldset fields** — not implemented (see Out of scope + Q4); flat fields + dot-path nesting only.
 
 **Accessibility (full first-class support)**:
 
@@ -163,7 +163,7 @@ These wrap RHF's `useFormContext` ergonomically — consumers using the ref neve
 - Keyboard navigation works via standard tab order (no `tabIndex` hacks).
 - Lighthouse a11y target: ≥ 95.
 
-**Polymorphic root** — accepts `className` and `style` (forwarded to the `<form>` element). Polymorphic `as` prop NOT supported in v0.1.0 (`<form>` semantics matter — Enter-to-submit, native validation, action attribute compatibility). Consumers wrap externally.
+**Polymorphic root** — accepts `className` and `style` (forwarded to the `<form>` element). Polymorphic `as` prop NOT supported (`<form>` semantics matter — Enter-to-submit, native validation, action attribute compatibility). Consumers wrap externally.
 
 **Render slots (override hooks)** — two override seams sit alongside `fieldRegistry` for layout-level customization:
 
@@ -199,13 +199,13 @@ The hierarchy is: `renderField` > `fieldRegistry` lookup > built-in default rend
 
 ## Out of scope (deferred)
 
-Each is real demand, deferred to keep v0.1.0 tractable. Most are additive when added (non-breaking).
+Each is real demand, left out to keep the initial scope tractable. Most are additive when added (non-breaking).
 
 - **Visual form builder UI** — a drag-and-drop tool that authors the JSON schema. Separate procomp (`form-builder` candidate) for v0.2 or later. v0.1.0 is the runtime engine; authoring is JSON by hand or by a backend.
-- **Multi-step / wizard mode** — sequential page-by-page submission with progress indicator. Real demand (onboarding flows, surveys) but is a fundamentally different UX shape. Defer to v0.1.x or v0.2 as `steps?: Array<{ title, fields[] }>` extension. v0.1.0 ships single-page only.
+- **Multi-step / wizard mode** — sequential page-by-page submission with progress indicator. Real demand (onboarding flows, surveys) but is a fundamentally different UX shape. Not implemented; could be added as a `steps?: Array<{ title, fields[] }>` extension. Single-page only.
 - **File-upload field type (`file`)** — waits for the future `@ilinxa/file-upload-01` standalone procomp. Adds non-breakingly in v0.1.x once that procomp lands.
 - **Color-picker field type (`color`)** — waits for the future `@ilinxa/color-picker-01` standalone procomp. Adds non-breakingly in v0.1.x.
-- **Array / repeating fieldset field type** — fields that produce arrays of sub-objects (e.g., "Add another address"). Real demand but the UX shape (add / remove / reorder) is its own design problem. **TBD in open questions whether this ships in v0.1.0 or defers to v0.1.x.**
+- **Array / repeating fieldset field type** — fields that produce arrays of sub-objects (e.g., "Add another address"). Real demand but the UX shape (add / remove / reorder) is its own design problem. **Not implemented (see open question 4).**
 - **Nested sub-forms (a field whose value is itself a form)** — composability, but rarely needed; deep dot-paths handle the simple nesting case. Defer indefinitely; revisit if real demand surfaces.
 - **JSON Schema (RJSF) compatibility** — parsing JSON Schema 2020-12 input. We use our own DSL. v0.2 adapter possible (`jsonSchemaToFormSchema(schema)`) for consumers migrating from RJSF; out of v0.1.0.
 - **Autosave / draft persistence** — saving form state to localStorage / server every N seconds. Consumer-owned via `onChange`. We do not ship persistence.
@@ -510,7 +510,7 @@ Schema lives in the CMS / database / backend. Frontend renders without a deploy 
 />
 ```
 
-> v0.1.0 ships `code` + `slider` + `rating`. `richtext` (Plate-based), `file`, and `color` field types are deferred to v0.1.x — they each land additively when their dedicated procomp ships. Until then, consumers needing rich text either compose `markdown-editor` outside the form or register a custom field via `fieldRegistry`.
+> The initial release shipped `code` + `slider` + `rating`; `richtext` was added in v0.1.1 (lazy-loaded `rich-text-editor`). `file` and `color` field types are not implemented — consumers needing them register a custom field via `fieldRegistry`.
 
 ### 6. Imperative API (multi-form flows)
 
@@ -586,7 +586,7 @@ The component is "done" for v0.1.0 when:
 
 3. **Zod compilation strategy — compile once at mount or lazily per field?** Per-render compile would thrash; compile-once at mount + memoize via `useMemo(() => buildZodFromSchema(schema), [schema])` is the cheap path. **Recommendation:** **compile once per `schema` identity** via `useMemo`. Consumers who reload schemas frequently need to memoize their schema object themselves (documented). Plan stage may add a `schemaVersion` field for explicit cache-busting.
 
-4. **Array field type — ship in v0.1.0 or defer to v0.1.x?** Real demand (multi-row data), but the UX (add / remove / reorder rows) is its own design problem with non-trivial accessibility. Shipping in v0.1.0 inflates surface significantly. **Recommendation:** **defer to v0.1.x**. v0.1.0 ships flat fields + dot-path nesting only. Adding `type: 'array'` later is additive and non-breaking. Real-world consumers asking for arrays in v0.1.0 use the `hidden` field + custom UI workaround documented in the guide.
+4. **Array field type — ship initially or leave out?** Real demand (multi-row data), but the UX (add / remove / reorder rows) is its own design problem with non-trivial accessibility. Shipping it initially would inflate the surface significantly. **Recommendation:** **do not ship it initially.** The array type is not implemented; flat fields + dot-path nesting only. Adding `type: 'array'` later is additive and non-breaking. Real-world consumers asking for arrays use the `hidden` field + custom UI workaround documented in the guide.
 
 5. **Multi-step / wizard mode — v0.1.0 or v0.1.x?** Multi-step is a different UX shape (progress indicator, "Next" / "Back" buttons, per-step validation). **Recommendation:** **v0.1.x** (additive `steps?: Array<{ title, fields[] }>` extension). v0.1.0 focuses on single-page forms — the largest, simplest, most common case. Multi-step has consumers (onboarding) but isn't blocking the v0.1.0 ship.
 
@@ -602,7 +602,7 @@ The component is "done" for v0.1.0 when:
 
 11. **Disabled fields' values — submit or strip?** Disabled is different from hidden — the field is shown but greyed. **Recommendation:** **submit disabled values** (mirrors HTML `<input disabled>` semantics inverted — HTML actually strips them, but most React form libraries submit them; we follow RHF default which submits). Document the divergence from native HTML.
 
-12. **Field naming collision — what happens?** Two fields with the same `name`. **Recommendation:** **dev error in development** + render the first occurrence + warn. In production, render the first occurrence silently. Compile-time check via a schema-validation utility (v0.2 candidate).
+12. **Field naming collision — what happens?** Two fields with the same `name`. **Recommendation:** **dev error in development** + render the first occurrence + warn. In production, render the first occurrence silently. Compile-time check via a schema-validation utility (not implemented).
 
 13. **`computed` field — pure or memoized?** `compute: (values) => x` runs every time `values` changes. **Recommendation:** **memoize via shallow-compare on referenced field names**. Plan stage tracks: parse the `expression` template OR run `compute` once with proxy values to detect dependencies, subscribe via RHF `watch()` to only those, recompute only when those change.
 
@@ -640,7 +640,7 @@ The component is "done" for v0.1.0 when:
 
 30. **Hook exports — what ships? Locked:** v0.1.0 ships TWO distinct hooks (resolves the H-04 name collision the review surfaced): (a) `useJsonForm<TValues>(schema, options)` — headless **factory** hook that creates a new form instance from a schema; returns `{ form, zodSchema, fieldList, isValid, isSubmitting, ... }` for consumers rendering the form themselves with full primitive control; (b) `useJsonFormContext()` — **accessor** hook for reading the form API from inside a child rendered under `<JsonFormProvider>` / `<JsonForm>`; returns the same `JsonFormHandle` shape the `ref` exposes. Both are power-user APIs; documented but not the primary surface.
 
-31. **Plate field type — ships in v0.1.0? Locked (review verification 2026-05-12): NO.** Verified state of the registry: `markdown-editor` (the only WYSIWYG-adjacent procomp in `forms/`) uses CodeMirror, not Plate. No `plate-editor` procomp exists. The earlier note about "Plate as WYSIWYG substrate" was aspirational, not shipped. `richtext` field type is deferred to v0.1.x and lands additively when an `@ilinxa/plate-editor` procomp ships (or whichever substrate the team eventually picks). v0.1.0's `config.richText` slot is reserved in the type sketch but excluded from the v0.1.0 type union; consumers needing rich text in the meantime register a custom field via `fieldRegistry` or compose `markdown-editor` outside the form.
+31. **Plate field type — ships in v0.1.0? Locked (review verification 2026-05-12): NO.** Verified state of the registry: `markdown-editor` (the only WYSIWYG-adjacent procomp in `forms/`) uses CodeMirror, not Plate. No `plate-editor` procomp exists. The earlier note about "Plate as WYSIWYG substrate" was aspirational, not shipped. `richtext` was left out of the initial release and shipped later (added in v0.1.1, backed by the lazy-loaded `rich-text-editor` procomp). At sign-off, the `config.richText` slot was only sketched in the type definitions and excluded from the field-type union; until `richtext` shipped, consumers registered a custom field via `fieldRegistry` or composed `markdown-editor` outside the form.
 
 32. **Code field type — uses shipped `@ilinxa/code-block` in `mode='edit'`?** **Recommendation:** **yes**. code-block v0.1.0 ships an edit mode (CodeMirror 6). json-form's code field passes `value`, `onChange`, `lang`, `filename` through to it. Documented as a substrate-composition case.
 
@@ -654,7 +654,7 @@ The component is "done" for v0.1.0 when:
 
 37. **Standalone parts — naming convention?** Match the existing pattern: `<JsonFormProvider>`, `<JsonFormField>`, `<JsonFormSubmitButton>`, `<JsonFormResetButton>`, `<JsonFormErrorSummary>`. **Recommendation:** confirmed.
 
-38. **Should we ship a `jsonSchemaToFormSchema(schema)` adapter for RJSF migration in v0.1.0?** **Recommendation:** **no** — defer to v0.2. v0.1.0 establishes the DSL; the JSON-Schema adapter is a separate piece of work and risks expanding scope.
+38. **Should we ship a `jsonSchemaToFormSchema(schema)` adapter for RJSF migration in v0.1.0?** **Recommendation:** **no** — not implemented. The initial release establishes the DSL; the JSON-Schema adapter is a separate piece of work and risks expanding scope.
 
 39. **`hidden` field type — same as `<input type="hidden">` or just "stored value, no UI"?** **Recommendation:** **stored value, no UI** (renders nothing in the DOM). Mirrors RHF's invisible-but-tracked behavior. Used for things like CSRF tokens, multi-step state, or `id` carrying across edits.
 
@@ -682,7 +682,7 @@ From the AskUserQuestion sequence prior to drafting:
 - **State substrate:** `react-hook-form` v7.x + `@hookform/resolvers` + `zod` (versions verified at GATE 2).
 - **Renderer pattern:** registry-based, consumer-extensible (proven on `workspace` + `kanban-board`).
 - **Field types v0.1.0:** text (text, email, password, url, tel, textarea, number), choice (select, multi-select, radio-group, checkbox, checkbox-group, switch), date/time (date, date-range, time, datetime), rich/composite (`code` via shipped `@ilinxa/code-block` + inline `slider` + `rating`). Special types: `computed`, `hidden`, `section`, `divider`.
-- **Deferred to v0.1.x:** `richtext` field type (waits for a future `@ilinxa/plate-editor` — confirmed 2026-05-12: NOT shipped yet); `file` (waits for `@ilinxa/file-upload-01`); `color` (waits for `@ilinxa/color-picker-01`). All three additive, non-breaking when added.
+- **Not implemented:** `file` (waits for a file-upload procomp) and `color` (waits for a color-picker procomp) — additive, non-breaking when added. (`richtext` was added in v0.1.1.)
 - **Prerequisite shadcn primitives** (must be added via `pnpm dlx shadcn@latest add` before json-form can be built — verified missing in the project's `src/components/ui/` as of 2026-05-12): `form`, `radio-group`, `slider`, `label`. Already present: input, textarea, select, checkbox, switch, command, popover, calendar, button, separator, badge, tooltip, scroll-area.
 - **Conditional logic:** declarative `visibleWhen` / `enabledWhen` / `requiredWhen` + Condition DSL (12 operators) + function escape hatch + `computed` field type.
 
@@ -700,7 +700,7 @@ Re-validation surfaced **1 contradiction + 3 ambiguities + 1 optimization call**
 
 1. **T1 — `FieldRenderer` prop signature** — lock the exact shape: `(args: { field, value, onChange, onBlur, error, disabled, allValues, formApi }) => ReactNode` (TS interface fully spelled out, single canonical name).
 2. **T2 — Cross-registry dep declaration** for `@ilinxa/code-block` (shipped — the one cross-registry dep in v0.1.0) in `validate-meta-deps`. Plan stage works out exact declaration shape with the lint script.
-3. **T3 — Dynamic-import pattern** for the `code` field type so `@ilinxa/code-block`'s Shiki + CodeMirror chunks stay out of forms that don't use it. Registry maps `'code' → React.lazy(() => import('./parts/field-code'))`. Same pattern reserved for v0.1.x rich fields.
+3. **T3 — Dynamic-import pattern** for the `code` field type so `@ilinxa/code-block`'s Shiki + CodeMirror chunks stay out of forms that don't use it. Registry maps `'code' → React.lazy(() => import('./parts/field-code'))`. Same pattern reserved for other rich fields.
 4. **T4 — `readOnly` vs `disabled` semantics** — both are field-level props; `readOnly` is "submitted but not editable" (`<input readonly>`), `disabled` is "submitted but greyed and not focusable". Plan documents the seam + how each composes with `enabledWhen: false`.
 5. **T5 — Prerequisite primitives install gate** — plan-stage step before scaffolding: `pnpm dlx shadcn@latest add form radio-group slider label`. Verify each lands in `src/components/ui/`; capture lockfile churn in the same PR.
 6. **T6 — Exact RHF version + Zod version pins** verified via `pnpm view react-hook-form version` + `pnpm view @hookform/resolvers version` + `pnpm view zod version` per the "verify peer packages exist during plan" memory.

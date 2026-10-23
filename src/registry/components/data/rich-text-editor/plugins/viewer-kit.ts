@@ -95,7 +95,10 @@ export const richTextViewerPlugins = [
   MediaEmbedPlugin.withComponent(StaticMediaEmbed),
 
   // Inline
-  LinkPlugin.withComponent(StaticLink),
+  LinkPlugin.configure({
+    options: { allowedSchemes: ["http", "https", "mailto", "tel"] },
+    node: { component: StaticLink },
+  }),
 
   // Marks
   BoldPlugin,

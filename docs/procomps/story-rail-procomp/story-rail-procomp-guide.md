@@ -231,7 +231,7 @@ const TR_LABELS: StoryRailLabels = {
 - **Auto-scroll to next-unread on view** — out of scope; host can call `scrollTo(index)` via the imperative handle.
 - **Virtualization** for 500+ stories — out of scope in v0.1; defer until a real consumer hits a wall.
 - **Indicator dots** — story rails are skim-scroll, not snap carousels. No "current index" concept.
-- **Image error fallback** — `<img>` natively shows alt text on error; v0.2 candidate for a tinted placeholder.
+- **Image error fallback** — `<img>` natively shows alt text on error; a tinted placeholder is not implemented.
 
 ## Composition example: feed top
 

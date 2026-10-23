@@ -214,7 +214,7 @@ Compact still opens inline panels on tap — they expand below the row.
 ```ts
 interface PostCardHandle {
   openKebab: () => void;
-  /** Card-level: bar.triggerLike() + setBurstKey(k+1) when wired. */
+  /** Card-level: toggles the like via the bar; heart burst plays only when the result is liked. No-op when no like action / bar is mounted. */
   triggerLike: () => void;
   getCurrentPost: () => Post;
   reset: (next: Post) => void;
@@ -226,6 +226,7 @@ interface PostCardHandle {
 Common patterns:
 
 - **Programmatic like + burst** from a feed-level keyboard shortcut: `ref.current?.triggerLike()` (canonical "Instagram tap").
+- **Double-tap semantics** (media double-tap, v0.5.1): never removes a like. Unliked → likes + heart burst; already liked → burst only; no like applicable (the `engagementActions` slot omitted `like`, or `renderEngagementBar` replaced the bar) → no burst. Burst still requires `onLike` (heart-burst wiring). The handle's `triggerLike()` is a true toggle (unlike is possible) and bursts only on the liked result.
 - **Surgical engagement-bar control** without burst: `ref.current?.getEngagementHandle()?.triggerLike()`.
 - **Push external state**: `ref.current?.reset(updatedPost)`.
 - **Read current mirrored state** (post + engagement deltas applied): `ref.current?.getCurrentPost()`.
@@ -235,7 +236,7 @@ Common patterns:
 
 - **`renderHeader(post, helpers)`** — full takeover for the header row (avatar + name + verified + timestamp + kebab).
 - **`renderContent(post)`** — full takeover for the body. Default is `<ExpandableText>`. Override for rich Plate content / mentions / hashtags / link previews.
-- **`renderMedia(media, helpers)`** — full takeover for the media block. `helpers.onDoubleTap` is the wired heart-burst trigger (when applicable) — wire it through if you want the canonical UX.
+- **`renderMedia(media, helpers)`** — full takeover for the media block. `helpers.onDoubleTap` is the wired heart-burst trigger (when applicable) — wire it through if you want the canonical UX. It likes (never unlikes) through the built-in bar, so it does nothing visible under a `renderEngagementBar` takeover.
 - **`engagementActions(post, handlers, variant)`** — full takeover for the actions array. `handlers` are pre-wrapped.
 - **`renderEngagementBar(post, defaults)`** — full takeover for the bar UI. `defaults.actions` is the resolved actions array.
 - **`kebabActions(post)`** — full takeover for the header kebab. `[]` hides it.
@@ -324,13 +325,13 @@ function Feed({ posts, viewer, channel }: Props) {
 ## What's NOT in v0.1.1
 
 - **Inline edit affordance** — locked deferred for the entire arc.
-- **Reaction emojis** (Facebook-style 6-emoji popover) — engagement-bar v0.2 candidate.
+- **Reaction emojis** (Facebook-style 6-emoji popover) — out of scope for post-card itself; `engagement-bar` ships a multi-reaction picker (`reaction` action).
 - **Inline thread auto-load on detail page** — detail variant takes pre-loaded `commentThread` prop.
 - **Auto-track impressions** for `view-count` — host owns the count.
 - **Long-press preview** (force-touch peek) — out of scope.
 - **Multi-author posts** — `post.author` is a single object in v0.1.x.
 - **Mention chips / hashtag highlighting** — render via `renderContent` slot.
-- **Share popover (anchored)** — current share menu renders inline below the engagement bar to match the likes/comments panel architecture. Anchored popover is a v0.2 candidate.
+- **Share popover (anchored)** — current share menu renders inline below the engagement bar to match the likes/comments panel architecture. An anchored popover is not implemented.
 
 ## v0.1.1 patch notes (since first ship)
 
@@ -469,7 +470,7 @@ Renders below content + above any link-preview. Two views:
 
 Optimistic vote semantics: the library increments the picked option's `voteCount` + the displayed total immediately. Host can **reject** by calling `ref.current.reset(originalPost)` — that clears the local mirror so the bars roll back to the server-resolved counts.
 
-**Multi-select polls** (`poll.multiSelect: true`) currently render the same single-vote UI in v0.2.0. Multi-select behavior is a v0.2.x / v0.3 follow-up.
+**Multi-select polls** (`poll.multiSelect: true`) currently render the same single-vote UI. Multi-select behavior is not implemented.
 
 ## OG link-preview card
 

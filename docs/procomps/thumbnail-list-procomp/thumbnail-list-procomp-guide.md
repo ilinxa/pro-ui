@@ -202,7 +202,7 @@ All three components share the same card chrome and heading rhythm — they comp
 
 ## Known limits / v0.2 candidates
 
-- **Image error fallback** — broken `src` shows browser default. v0.2 candidate: `imagePlaceholder?: ReactNode`.
+- **Image error fallback** — broken `src` shows browser default. A possible future addition: `imagePlaceholder?: ReactNode` (not implemented).
 - **Custom item shape** — current API requires `ThumbnailListItem`. v0.2 could expose `getId/getTitle/getImageSrc/...` accessors for non-conforming sources; YAGNI for now (consumer maps upstream).
 - **Skeleton loading** — consumers wrap their own.
 - **Item icons (alongside or instead of thumbnails)** — separate slug if ever needed.

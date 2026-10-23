@@ -33,8 +33,8 @@ Every product surface that plays user-generated video — Instagram-post media, 
 - **Volume slider** — mute-only in v0.1 (matches kasder; matches Instagram). Volume slider is a separate UX with its own risk surface (touch dragging, accessibility, keyboard).
 - **Fullscreen toggle** — `requestFullscreen()` API is supported but adds button + state. Consumer can add via `renderControls`. Default controls stay minimal in v0.1.
 - **Picture-in-picture** — PiP requires an explicit user gesture and toggle UI; defer.
-- **HLS / DASH / streaming formats** — raw `<video src>` only. Streaming lands in v0.2 via a `useHls?: boolean` flag + `hls.js` peer dep, OR via a `renderVideoElement?` slot escape hatch.
-- **Buffering spinner overlay** — kasder doesn't show one; v0.1 trusts the browser's default poster + native loading. v0.2 candidate.
+- **HLS / DASH / streaming formats** — raw `<video src>` only. Streaming is not implemented; possible future paths are a `useHls?: boolean` flag + `hls.js` peer dep, OR via a `renderVideoElement?` slot escape hatch.
+- **Buffering spinner overlay** — kasder doesn't show one; the player trusts the browser's default poster + native loading. Possible future addition.
 - **Error UI** — when video fails to load, `<video>` shows the poster image (browser default). v0.2: `renderError?: (error) => ReactNode` slot for a retry / fallback UX.
 - **Playback rate** — no 1.0× / 1.5× / 2× selector. v0.2.
 - **Per-source resolution switching** — single `src` only. Multi-resolution `<source>` children would require a different prop shape.
@@ -178,7 +178,7 @@ export { meta } from "./meta";
 4. **Keyboard scope — global or only when video has focus?** Native `<video controls>` only handles keys when focused. Match that posture (focus required) so multiple videos on one page don't fight for Space.
 5. **`onDoubleTap` window — 300ms hard-coded or configurable?** kasder uses 300ms. Mirror that. Configurable via `useDoubleTap(handler, { windowMs: number })` for hook consumers; component-level uses default 300ms.
 6. **`tracks` prop — array of objects or `children` slot accepting `<track>` elements?** Array of objects is more ergonomic for the data-driven case (most common); requires zero peer knowledge of `<track>` API. Lock to array.
-7. **`renderControls` receives the entire `<video>` ref or just state?** State only. Exposing the ref leaks substrate — hosts could call native methods that conflict with our state machine. If they need raw access, they fork via `renderVideoElement?` slot (v0.2 candidate; not v0.1).
+7. **`renderControls` receives the entire `<video>` ref or just state?** State only. Exposing the ref leaks substrate — hosts could call native methods that conflict with our state machine. If they need raw access, they fork via `renderVideoElement?` slot (not implemented).
 8. **Fullscreen support — drop entirely from default controls or add a fullscreen prop?** Drop from default controls. Hosts who need it add via `renderControls`. Keeps API minimal.
 9. **Should `controls={false}` disable keyboard shortcuts too?** No — Space/M still work even with controls hidden (decorative-video case where the user can still interact). Document.
 10. **Mute-toggle `aria-pressed` semantics?** Mute is a toggle button — `aria-pressed={isMuted}`. `labels.mute` reads "Mute" (action verb), `labels.unmute` reads "Unmute". Whichever button is currently rendered gets the correct label.

@@ -262,10 +262,12 @@ export type CalendarProps = {
   /** Create opens the Google-style quick mini-composer (default true when
    *  editable); false → create opens the full detail card directly. */
   quickCompose?: boolean;
-  /** RESERVED — not wired by any gesture in v0.2.0. Cross-surface task transfer
-   *  ships as copy/paste (the `ilinxa/task` clipboard envelope), so native HTML5
-   *  external drop targets are deferred; this callback stays declared for the
-   *  future opt-in but never fires today. */
+  /**
+   * @notImplemented Accepted but never called: no gesture invokes it, and passing it
+   * emits a dev-only warning (once per mount). Cross-surface task transfer ships
+   * as copy/paste (the `ilinxa/task` clipboard envelope), not as native HTML5
+   * external drop targets.
+   */
   onExternalDrop?: (date: Date, allDay: boolean, data: DataTransfer) => void;
   /** Override the default quick-composer body. */
   renderQuickComposer?: CalendarQuickComposerRenderer;

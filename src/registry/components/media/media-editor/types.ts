@@ -386,6 +386,10 @@ export interface MediaEditorLabels {
     saturation?: string;
     blur?: string;
   };
+  /**
+   * @notImplemented No editor surface renders publish copy — these keys are accepted but
+   * have no effect (a dev-only warning fires when they are passed).
+   */
   publish: { exporting?: string; cancel?: string; ready?: string };
   discard: {
     title?: string;
@@ -393,6 +397,10 @@ export interface MediaEditorLabels {
     cancel?: string;
     confirm?: string;
   };
+  /**
+   * @notImplemented The editor has no "no source" empty copy of its own — use `renderEmpty`.
+   * Accepted but has no effect (a dev-only warning fires when it is passed).
+   */
   empty: { noSource?: string };
 }
 
@@ -459,6 +467,7 @@ export interface MediaEditorProps {
   confirmOnDiscard?: boolean;
 
   // === Localization ===
+  /** Nested `MediaEditorLabels` keys are honored. Flat internal keys (as passed by story-composer) are also accepted and win on conflict. */
   labels?: Partial<MediaEditorLabels>;
 
   // === State change observability ===
@@ -467,12 +476,12 @@ export interface MediaEditorProps {
   onModeChange?: (mode: ComposerMode | null) => void;
   onDirtyChange?: (isDirty: boolean) => void;
   /**
-   * Analytics/undo-sync hook. v0.1.x emits the navigation + lifecycle actions:
+   * Analytics/undo-sync hook. Emits the navigation + lifecycle actions:
    * `mode-change`, `tool-open`, `tool-close`, and `reset`. The fine-grained
    * content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`,
-   * `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) land in v0.2
-   * when the per-mutation instrumentation layer ships — the `EditAction` union
-   * is already complete so consumers can switch exhaustively today.
+   * `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are not
+   * emitted — there is no per-mutation instrumentation layer. The
+   * `EditAction` union is complete so consumers can switch exhaustively.
    */
   onEditAction?: (action: EditAction) => void;
 
@@ -484,6 +493,14 @@ export interface MediaEditorProps {
     usePicker: () => void;
   }) => ReactNode;
   renderEmpty?: () => ReactNode;
+
+  /**
+   * Rendered as the last child of the editor surface (above the editor
+   * content). In dialog presentation it renders inside the dialog content, so
+   * controls in the overlay are interactive despite the modal. Position it
+   * `absolute inset-0` with `z-40` or higher (editor chrome uses up to `z-30`).
+   */
+  overlay?: ReactNode;
 }
 
 // ─── Imperative handle (LOCKED in description §7) ──────────────────────
@@ -516,20 +533,34 @@ export interface MediaEditorHandle {
    */
   getSourceBlob: () => Blob | null;
 
-  // === Capture (only if enabledModes includes capture modes; else dev-warn + no-op) ===
+  // === Capture (imperative capture is not implemented — each method dev-warns and does nothing; drive capture via the in-UI controls) ===
+  /** @notImplemented Dev-warns and does nothing. Use the in-UI camera controls. */
   switchCamera: () => Promise<void>;
+  /** @notImplemented Dev-warns and does nothing. Use the in-UI camera controls. */
   takePhoto: () => Promise<void>;
+  /** @notImplemented Dev-warns and does nothing. Use the in-UI camera controls. */
   startRecording: () => Promise<void>;
+  /** @notImplemented Dev-warns and does nothing. Use the in-UI camera controls. */
   stopRecording: () => Promise<void>;
+  /** @notImplemented Dev-warns and does nothing. Use the in-UI gallery button. */
   importFromGallery: () => void;
 
-  // === Edit (gated by enabledTools — disabled tool methods dev-warn + no-op) ===
+  // === Edit ===
+  /**
+   * `addText(text)` sets the text content. The no-argument form is not
+   * implemented.
+   *
+   * @notImplemented `addText()` with no argument dev-warns and does nothing;
+   * pass the text instead.
+   */
   addText: (text?: string) => void;
   addSticker: (sticker: StickerOption) => void;
   setAdjustments: (adj: Partial<ImageAdjustments>) => void;
   applyFilter: (name: string | null) => void;
   clearLayer: (layer: "drawing" | "stickers" | "text") => void;
+  /** @notImplemented Dev-warns and does nothing — no mutations are recorded as commands. */
   undo: () => void;
+  /** @notImplemented Dev-warns and does nothing — no mutations are recorded as commands. */
   redo: () => void;
 
   // === Export ===
@@ -546,7 +577,12 @@ export interface MediaEditorHandle {
 
   // === Lifecycle ===
   reset: () => void;
-  /** Dialog mode only — no-op in inline. */
+  /**
+   * Dialog mode is controlled by the consumer, so the handle cannot open the
+   * editor; inline mode has nothing to open.
+   *
+   * @notImplemented Dev-warns and does nothing. Set `isOpen` on the component instead.
+   */
   open: () => void;
   /** Dialog mode only — no-op in inline. */
   close: () => void;

@@ -1,5 +1,6 @@
 "use client";
 
+import { isEditableTarget } from "../lib/is-editable-target";
 import { Fragment, memo, useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ function KebabPanelInner(props: KebabPanelProps) {
   useEffect(() => {
     if (!props.open) return;
     const handleKey = (e: KeyboardEvent) => {
+      if (e.isComposing || isEditableTarget(e.target)) return;
       if (e.key === "Escape") props.onClose();
     };
     window.addEventListener("keydown", handleKey);

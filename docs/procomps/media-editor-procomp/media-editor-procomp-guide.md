@@ -1,6 +1,6 @@
 # media-editor — consumer guide
 
-> v0.1.3 alpha. The reusable capture + edit surface lifted out of
+> Alpha. The reusable capture + edit surface lifted out of
 > [`story-composer`](../story-composer-procomp/) v0.1.5. Four
 > controllable capability dials let you pull as little or as much editor
 > surface as your context needs. `story-composer` v0.2.x is a thin
@@ -197,6 +197,8 @@ Desktop dialog sizing is viewport-relative and aspect-locked, with a min/max **c
 | Portrait (`9:16`, `4:5`, `1:1`) | height | `clamp(24rem, 85dvh, 44rem)` |
 | Landscape (`16:9`, `free`) | width | `clamp(28rem, 85vw, 60rem)` |
 
+**`overlay`** — `overlay?: ReactNode` is rendered as the last child of the editor surface, above the editor content. In dialog presentation it is inside the dialog content, so buttons in it stay clickable despite the modal (a sibling rendered next to `<MediaEditor>` would sit outside the dialog and be blocked). Position it with `absolute inset-0` (the surface is `relative`) and give it `z-40` or higher — the mode pill and Back button sit at `z-30`, the edit toolbars at `z-20` — plus `rounded-[inherit]` so it follows the inline surface's corners. `story-composer` uses it for its publishing overlay (requires media-editor >= 0.4.0).
+
 Mobile breakpoint is always fullscreen (`h-[100dvh] w-screen`). The canvas fills the dialog edge-to-edge and the bottom edit tools **overlay** it (see [Capture vs edit chrome](#capture-vs-edit-chrome)). Use `presentation="inline"` if you need custom sizing — inline is width-driven with `min-h` / `max-h` bounds, so it stays responsive between a small chat embed and a full surface.
 
 ## Capture vs edit chrome
@@ -263,24 +265,23 @@ const out = await editorRef.current.export();
 
 ## Imperative handle
 
-22 methods grouped by role. Pass a `ref<MediaEditorHandle>` to access.
+23 methods grouped by role. Pass a `ref<MediaEditorHandle>` to access.
 
 | Group | Methods |
 |---|---|
-| Inspect | `getIsDirty`, `getMode`, `getState`, `loadState` |
-| Capture ⚠️ | `switchCamera`, `takePhoto`, `startRecording`, `stopRecording`, `importFromGallery` |
-| Edit | `addText`, `addSticker`, `setAdjustments`, `applyFilter`, `clearLayer`, `undo`, `redo` |
+| Inspect | `getIsDirty`, `getMode`, `getState`, `loadState`, `getSourceBlob` |
+| Capture (not implemented) | `switchCamera`, `takePhoto`, `startRecording`, `stopRecording`, `importFromGallery` |
+| Edit | `addText` (with a text argument; the no-argument form is not implemented), `addSticker`, `setAdjustments`, `applyFilter`, `clearLayer`, `undo` (not implemented), `redo` (not implemented) |
 | Export | `exportImage`, `exportVideo`, `export` |
-| Lifecycle | `reset`, `open`, `close` |
+| Lifecycle | `reset`, `open` (not implemented), `close` |
 
 `getState()` returns a serializable `MediaEditorState` snapshot for draft persistence; `loadState()` restores it.
 
-> ⚠️ **Capture group — deferred to v0.2.** The imperative capture methods
-> (`takePhoto` / `startRecording` / `stopRecording` / `switchCamera` /
-> `importFromGallery`) currently dev-warn and no-op. Drive capture through the
-> in-UI camera controls in v0.1.x; programmatic capture lands in v0.2. Everything
-> else on the handle (inspect / state / edit-overlay mutation / export /
-> lifecycle) is fully wired.
+> ⚠️ **Not implemented.** These handle members dev-warn and do nothing (each carries `@notImplemented` in `types.ts`):
+> the imperative capture methods (`takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery`) —
+> drive capture through the in-UI camera controls instead; `undo` / `redo` (no mutations are recorded as commands);
+> `open` (dialog mode is controlled — set `isOpen` on the component); and `addText()` with no argument
+> (`addText(text)` works). The rest of the handle (inspect / state / edit-overlay mutation / export / `reset` / `close`) is wired.
 
 ## Feature slices (P3, 2026-08-11)
 
@@ -359,17 +360,18 @@ Inside, the canvas wrapper always carries `data-canvas-placeholder=""` (regardle
 - Commit chain + implementation notes: see [`media-editor-procomp-plan.md`](./media-editor-procomp-plan.md).
 - Extraction lessons (Phase A): see the decision file at `.claude/decisions/2026-06-02-media-editor-extraction-c1-c8-phase-a-half.md`.
 
-## Known gaps (v0.1.2 alpha)
+## Known gaps
 
-The full visual pipeline is wired — camera viewfinder + shutter, all six tool
-panels (text / draw / stickers / filters / adjust / crop), undo/redo, drag-pan,
-and export all work end-to-end (the `story-composer` wrapper exercises them in
-production). The remaining gaps are narrow:
+The visual pipeline is wired — camera viewfinder + shutter, all six tool
+panels (text / draw / stickers / filters / adjust / crop), drag-pan, and
+export work end-to-end (the `story-composer` wrapper exercises them in
+production). Undo/redo is not implemented — the toolbars have no working
+history. The remaining gaps are narrow:
 
-- **Imperative capture handle** — `takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery` dev-warn and no-op; programmatic capture lands in v0.2. The in-UI camera controls are the supported capture path. (See [Imperative handle](#imperative-handle).)
-- **Library media source** — `mediaSources` supports `camera` + `upload`; a device-library picker is deferred to v0.2.
-- **Nested `labels` prop** — the public `labels` shape is in transition; some nested keys are not yet honored end-to-end (tracked as the C17 label-flattening refactor). Mode/tool/Back strings are correct.
-- **`onEditAction` coverage** — v0.1.2 emits the navigation + lifecycle actions (`mode-change`, `tool-open`, `tool-close`, `reset`). The fine-grained content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`, `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are emitted from v0.2 when the per-mutation instrumentation lands — the `EditAction` union is already complete so you can switch exhaustively today.
+- **Imperative capture handle** — `takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery` dev-warn and no-op (not implemented). The in-UI camera controls are the supported capture path. (See [Imperative handle](#imperative-handle).)
+- **Library media source** — `mediaSources` supports `camera` + `upload`; a device-library picker is not implemented.
+- **`labels` prop** — the documented nested `MediaEditorLabels` keys for `capture`, `toolbar`, `adjust` and `discard` are honored. `publish.*` and `empty.noSource` have no consumer in the editor and are accepted but unused. The flat internal keys (`composerLabel`, `shutterPhoto`, `textPlaceholder`, …, what `story-composer` passes) are also accepted and win over a nested key on conflict.
+- **`onEditAction` coverage** — emits the navigation + lifecycle actions (`mode-change`, `tool-open`, `tool-close`, `reset`). The fine-grained content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`, `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are not emitted (no per-mutation instrumentation) — the `EditAction` union is complete so you can switch exhaustively.
 
 **Closed in v0.1.2:** `onModeChange` + `onEditAction` now emit; the
 `renderPermissionDenied` slot is honored for the denied state; the pan-zoom

@@ -56,7 +56,7 @@ This procomp is the **authoring counterpart to the existing [`media-carousel`](.
 ## Out of scope (v0.1.0 — deferred)
 
 - **`"library"` source** (pick from existing backend media) — rides behind media-editor v0.2 library source; the prop is *modeled* (declared) but clamped, same pattern content-composer used for the post config.
-- **Camera as an add-source** — v0.1 intake is upload/drop/browse only. (Camera-per-item is a v0.2 candidate; media-editor already owns the camera surface, so it's additive later.)
+- **Camera as an add-source** — intake is upload/drop/browse only. (Camera-per-item is not implemented, a possible future addition; media-editor already owns the camera surface, so it's additive later.)
 - **Full video editing per item** — media-editor is photo-first; video items get preview + reorder + remove + (limited) edit. Depth tracks media-editor's own video maturity.
 - **content-composer integration** — wiring this into the post media slot is a **separate follow-on gate** (content-composer v0.2, breaking: `MediaSlotValue` grows single-URL → array). This description scopes the **standalone procomp**; it ships and demos on its own first. (See Q5 — resolved: standalone first.)
 - Cross-item bulk operations (apply one filter to all), captions/alt-text per item, cover-frame selection for video.

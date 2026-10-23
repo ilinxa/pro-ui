@@ -49,6 +49,11 @@
       "target": "components/story-rail/hooks/use-story-rail-state.ts"
     }
   ],
+  "cssVars": {
+    "theme": {
+      "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+    }
+  },
   "categories": [
     "data"
   ],

@@ -44,7 +44,7 @@ Every social product surface that lets users post multiple media items needs the
 - **`feature-strip` variant** — the third variant from the analysis was deferred since no concrete consumer exists in the 8-component scope (engagement-bar's likers-preview is a slot pattern; story-rail uses raw Embla). Add when a third consumer surfaces.
 - **Drag-to-dismiss / swipe-down** — Embla handles horizontal drag natively; vertical swipe-to-dismiss is a story-viewer concern, not carousel.
 - **Pinch-to-zoom on images** — image lightbox UX. Add a separate `image-lightbox-01` if needed.
-- **Lazy-mount videos beyond N slides away** — kasder mounts all video elements simultaneously (memory cost ~5MB per video, acceptable for typical posts of ≤10 media). v0.2 candidate: `lazyVideoDistance?: number` to unmount videos > N slides from active.
+- **Lazy-mount videos beyond N slides away** — kasder mounts all video elements simultaneously (memory cost ~5MB per video, acceptable for typical posts of ≤10 media). possible future addition: `lazyVideoDistance?: number` to unmount videos > N slides from active.
 - **Auto-advance / slideshow mode** — `autoPlayMs?: number` for kiosk-style auto-advance. Different UX (story viewer is the "auto-advance" pattern).
 - **Thumbnail strip** — separate row of mini-previews for jumping to specific slides. Adds visual complexity; defer.
 - **Fullscreen viewer** — clicking a slide opens lightbox. Different pattern; would be a separate `image-viewer-01` / similar.
@@ -203,7 +203,7 @@ export { meta } from "./meta";
 
 - **No framer-motion** — Embla's transitions + Tailwind opacity transitions are sufficient.
 - **Embla peer dep** — `embla-carousel-react@^8.x` (already approved).
-- **No virtualization** — kasder posts have ≤10 media; Embla handles 10 slides effortlessly. v0.2 candidate if real consumers hit walls.
+- **No virtualization** — kasder posts have ≤10 media; Embla handles 10 slides effortlessly. possible future addition if real consumers hit walls.
 - **Touch + mouse via Embla's pointer events** — no custom gesture handling needed.
 - **`<MediaCarousel>` is `"use client"`** — owns Embla state, observers, refs.
 

@@ -6,6 +6,10 @@
 >
 > First Plate-based pro-comp in pro-ui. Pairs with `markdown-editor` (CodeMirror — source-text editor) but is a different paradigm: WYSIWYG rich text with JSON-as-storage.
 
+## What's new in v0.4
+
+Sandboxed, host-allow-listed embeds and scheme-filtered links (editor, viewer and HTML export) - see [Security: embeds and links](#security-embeds-and-links).
+
 ## What's new in v0.2
 
 **v0.2.0 (2026-05-02):**
@@ -179,6 +183,10 @@ interface RichTextEditorProps {
   placeholder?: string;              // default "Write your article here…"
   autoFocus?: boolean;               // default false; focuses editor on mount
 
+  // Embed policy (v0.4.0 - see "Security: embeds and links")
+  embedAllowList?: string[];         // hostnames; "*.example.com" wildcard; REPLACES the default list
+  isEmbedAllowed?: (url: URL) => boolean; // wins over embedAllowList
+
   // Image upload
   onImageUpload?: (file: File) => Promise<{ src; alt?; width?; height? }>;
 
@@ -194,6 +202,8 @@ interface RichTextViewerProps {
   value: RichTextValue;           // required
   className?: string;
   fallback?: ReactNode;              // shown when value is empty (defaults to "No content.")
+  embedAllowList?: string[];         // same as the editor prop
+  isEmbedAllowed?: (url: URL) => boolean;
 }
 
 type RichTextValue = Value;       // Plate's Value type — array of element nodes
@@ -209,6 +219,26 @@ interface ImageUploadResult {
 }
 type ImageUploader = (file: File) => Promise<ImageUploadResult>;
 ```
+
+## Security: embeds and links
+
+Stored JSON, pasted HTML and programmatic inserts can all produce `media_embed` and link nodes with an arbitrary `url`. Since v0.4.0 the editor, the viewer and `serializeRichTextToHtml` treat those URLs as untrusted.
+
+**Embeds**
+- The URL must parse as an absolute `https:` URL and its hostname must be on the allow-list. Default list: `www.youtube.com`, `youtube.com`, `www.youtube-nocookie.com`, `player.vimeo.com`. URLs carrying credentials (`https://user:pw@host/…`) are refused. Matching is on the parsed hostname only (any path on an allowed host is embeddable); list internationalized hosts in their punycode form (`xn--…`), and note a `*.com`-style wildcard allows every host under that suffix.
+- Allowed embeds render `<iframe sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" referrerpolicy="strict-origin-when-cross-origin" loading="lazy" allow="fullscreen; picture-in-picture; encrypted-media" allowfullscreen title="Embedded content">`. `allow-top-navigation*` is never granted.
+- Anything else (other host, `http:`, `javascript:`, unparsable) renders as a plain link card in the same box: `<a rel="noopener noreferrer nofollow" target="_blank">` with the URL as text, or plain text when the URL is not a safe href. It is never an iframe and never silently dropped.
+- `embedAllowList={["*.example.com", "video.acme.io"]}` **replaces** the default list (add the defaults back yourself if you still want them; they are exported as `EMBED_DEFAULT_ALLOW_LIST`). `*.` matches subdomains, not the apex.
+- `isEmbedAllowed={(url) => ...}` wins over the list and receives the parsed https `URL`. A non-https URL is refused regardless.
+- The same two options exist on `<RichTextEditor>`, `<RichTextViewer>` and `serializeRichTextToHtml(value, options)`.
+- Same-origin embeds are NOT detected: the viewer is server-rendered, and a client-only origin check would cause a hydration mismatch. Do not put your own origin on the allow-list, because `allow-scripts` + `allow-same-origin` on a same-origin frame defeats the sandbox.
+- Policy is read at render time per editor instance; changing the props re-renders on the next edit/refresh of the document, not retroactively for already-mounted embed nodes.
+
+**Links**
+- `href` is passed through `safeHref()` (exported): control characters and whitespace are stripped before the scheme is checked; `http`, `https`, `mailto`, `tel` and scheme-less relative URLs are allowed. Anything else (`javascript:`, `data:`, `vbscript:`, `file:`) renders the link without an `href`, children kept. Protocol-relative URLs (`//example.com`) count as relative and navigate off-site, exactly like an absolute `https:` link would.
+- The toolbar and floating-toolbar link prompts reject unsafe URLs (nothing is inserted); the toolbar image prompt requires `http(s)`. `LinkPlugin` is configured with `allowedSchemes: ["http", "https", "mailto", "tel"]`.
+
+**Migration from 0.3.x:** embeds from hosts outside the allow-list now render as links; pass `embedAllowList` or `isEmbedAllowed` to allow them. Existing YouTube/Vimeo embed URLs keep rendering. Dependents (`json-form` richtext field, `content-composer`) need no changes.
 
 ## Controlled mode (RHF / json-form)
 

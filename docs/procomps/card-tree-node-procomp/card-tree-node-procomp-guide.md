@@ -202,7 +202,7 @@ n8n-style multi-select works out of the box — marquee select + shift-click are
 
 - Clicking a node fires the edit request for THAT clicked node only (single-edit gesture).
 - The other selected nodes stay selected for canvas-level operations: move, delete, duplicate, copy-paste — all unaffected.
-- **Bulk EDIT (single op applied across selected nodes via the dialog) is deferred to v0.2.** Per Q3 lock — needs a real consumer signal on which fields are bulk-editable + a UX shape that doesn't violate card-tree's single-tree contract.
+- **Bulk EDIT (single op applied across selected nodes via the dialog) is not implemented.** Per Q3 lock — needs a real consumer signal on which fields are bulk-editable + a UX shape that doesn't violate card-tree's single-tree contract.
 
 ---
 
@@ -279,7 +279,7 @@ Summary formats: `image` → alt text or filename · `table` → `rows x columns
 
 ---
 
-## 7. Port editor (v0.2 addition)
+## 7. Port editor
 
 v0.2 ships an opt-in `<PortEditorStrip>` for editing the `ports[]` array of a card or subcard inline. Consumer mounts it alongside `<CardTree editable>` inside the dialog; the strip is uncontrolled (operates on the `canvas` prop) and live-saves on every mutation.
 
@@ -378,7 +378,7 @@ cards, never to block payloads) and the old behaviour was the bug — writing a 
 something the viewer paints as an opaque block — but if you hand-authored such data and
 hand-computed the `subPath`, the strip will now render its empty state instead.
 
-**Why this survived to v0.5:** the divergence is unreachable through the demo's click flow. The
+**Why this survived for several releases:** the divergence is unreachable through the demo's click flow. The
 viewer only makes depth-1 subcards clickable, and only when they carry `__rcid` — exactly the
 cases both walkers agreed on. It bites consumers who compute `subPath` some other way (a tree
 outline, `CardTreeHandle.focusCard`, a deep link). The regression guard is therefore the test
@@ -420,7 +420,7 @@ It defeats the "at most one editor mounted" property. shadcn's default `<Dialog>
 
 ### 8.5 Subcards are NOT drag-extractable in v0.1
 
-flow-canvas ships a `data-draggable-subobject={path}` pattern that lets users drag a sub-piece OUT of a node to spawn it as a new canvas node. **Subcards in v0.1 don't support this** — they're part of one card-tree tree per Q1 lock; extracting them would mean splitting the tree across multiple flow-canvas nodes. v0.2 candidate if a consumer asks (needs a careful UX: split-tree vs copy-tree-content-as-new-node).
+flow-canvas ships a `data-draggable-subobject={path}` pattern that lets users drag a sub-piece OUT of a node to spawn it as a new canvas node. **Subcards don't support this** — they're part of one card-tree tree per Q1 lock; extracting them would mean splitting the tree across multiple flow-canvas nodes. a possible future addition if a consumer asks (needs a careful UX: split-tree vs copy-tree-content-as-new-node).
 
 ### 8.6 `__rcid` must be on every subcard you want focusable
 

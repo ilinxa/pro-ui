@@ -309,7 +309,7 @@ Pure-helper composition, zero card render, zero React tree dependency.
 9. **`Building2` as default category icon.** Source always renders it regardless of category. **Resolved:** always render as fallback UNLESS `categoryStyles[project.category]?.icon` provided (which then overrides). Matches source behavior; opens the customization door.
 10. **`href` precedence chain.** Three layers: `getHref(project)` overrides `href` overrides `project.href`. **Resolved:** documented; `getHref` is for dynamic routing (e.g. category-prefixed routes), `href` is for single-card use, `project.href` is for data-driven routing.
 11. **Image rendering — `<img>` or `bg-image`?** Source uses both (public uses `<img>`, BusinessProjectsSection uses `style={{ backgroundImage }}`). **Resolved:** `<img>` in both variants — `loading="lazy"` works, `alt` works, image-loading errors fire (so the fallback can be triggered via state, future enhancement). `feature` uses `<img className="absolute inset-0 w-full h-full object-cover">` to mimic the bg-image effect without losing semantic image.
-12. **Loading skeleton.** Should the card ship a `<ProjectCard.Skeleton variant="grid" />`? **Open** — v0.1 ships without; consumers render a `bg-muted` placeholder. v0.2 candidate if real demand surfaces.
+12. **Loading skeleton.** Should the card ship a `<ProjectCard.Skeleton variant="grid" />`? **Open** — not implemented; consumers render a `bg-muted` placeholder. Possible future addition if real demand surfaces.
 
 ---
 

@@ -231,8 +231,8 @@ export function removeItem(
  * Move an item to `newParentId` (null = root) at `newIndex`. The caller guards
  * circular drops (`isAncestor`); `newIndex` is interpreted against the target
  * parent's children AFTER the source has been removed (task-tree semantics).
- * Reserved for the v0.2.0 "drop-onto-an-event-to-nest" path (not wired by any
- * gesture this version — calendar's "move" is reschedule, not reparent).
+ * Reserved for a "drop-onto-an-event-to-nest" path (not wired by any
+ * gesture — calendar's "move" is reschedule, not reparent).
  */
 export function moveItem(
   data: TaskItem[],

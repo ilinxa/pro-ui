@@ -73,6 +73,13 @@
       "target": "components/event-card/lib/image-fallback.tsx"
     }
   ],
+  "cssVars": {
+    "theme": {
+      "color-warning": "var(--warning, oklch(0.78 0.16 75))",
+      "color-warning-foreground": "var(--warning-foreground, oklch(0.18 0 0))",
+      "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+    }
+  },
   "categories": [
     "data",
     "events"

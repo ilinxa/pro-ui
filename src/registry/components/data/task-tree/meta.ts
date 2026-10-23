@@ -8,7 +8,7 @@ export const meta: ComponentMeta = {
   description:
     "Hierarchical task outline with multi-select, bulk operations, search and filter toolbar, dual drag-and-drop, and virtualization.",
   context:
-    "Task Tree is the lightweight cousin to task-card — same fixed TaskItem schema (cross-procomp type-only dep), thin two-line row instead of the time-aware card chrome. Use it for sub-issue lists, side-panel outlines, hierarchical task pickers, and bulk-management screens. Clicking a row opens task-card's edit popup (consumer-owned or via the TaskTreeWithEditor convenience wrapper). Shared DnD payload (application/x-ilinxa-task+json) lets drags cross between task-tree and task-card in both directions on pointer; touch DnD is internal-only by design. v0.1 ships feature-complete (no scheduled v0.2/v0.3 — see procomp plan).",
+    "Task Tree is the lightweight cousin to task-card — same fixed TaskItem schema (cross-procomp type-only dep), thin two-line row instead of the time-aware card chrome. Use it for sub-issue lists, side-panel outlines, hierarchical task pickers, and bulk-management screens. Clicking a row opens task-card's edit popup (consumer-owned or via the TaskTreeWithEditor convenience wrapper). Shared DnD payload (application/x-ilinxa-task+json) lets drags cross between task-tree and task-card in both directions on pointer; touch DnD is internal-only by design. v0.1 ships feature-complete (no follow-up versions scheduled — see procomp plan).",
   features: [
     "Two-line row: chevron + status-indicator + checkbox + bold name + person label (top); thin truncated description (bottom)",
     "Per-row collapsibility (chevron); UI-only state (collapsedIds), not in TaskItem; default expanded",

@@ -73,9 +73,9 @@ interface ResolvedOption extends PostPollOption {
  * reject by calling `ref.current.reset(originalPost)`, which clears the
  * local mirror upstream.
  *
- * Multi-select polls are not yet fully supported in v0.2.0 — single-vote
- * behavior renders regardless of `poll.multiSelect`. Tracked as a v0.2.x /
- * v0.3 follow-up.
+ * Multi-select polls are not supported — single-vote
+ * behavior renders regardless of `poll.multiSelect` (not implemented).
+ * (additive when added).
  */
 export function PollWidget({
   poll,

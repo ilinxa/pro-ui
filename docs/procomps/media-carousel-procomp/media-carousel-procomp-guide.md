@@ -196,8 +196,8 @@ const TR_LABELS = {
 | Don't | Why |
 |---|---|
 | Add custom fields to `MediaItem` | Strict discriminated union — `(image \| video)` only. Custom shapes go via `renderItem` with TS intersection. |
-| Expect `feature-strip` variant | Deferred to v0.2 (no concrete consumer in current scope). |
-| Expect virtualization | kasder posts ≤10 media; v0.2 candidate (`lazyVideoDistance`) for larger sets. |
+| Expect `feature-strip` variant | Not implemented (no concrete consumer in current scope). |
+| Expect virtualization | kasder posts ≤10 media; `lazyVideoDistance` is not implemented (possible future addition) for larger sets. |
 | Expect a fullscreen lightbox on slide-click | Different UX (would be `image-lightbox-01`). |
 | Pass inline `labels` / `tracks` objects | Busts `React.memo`. Hoist to module scope. |
 | Pass inline Embla options | Hook handles memoization; consumers pass typed props directly. |
@@ -215,7 +215,7 @@ Sets the precedent for the rest of the social-posts arc: `comment-thread` import
 
 ## Limitations / caveats
 
-- **No virtualization** in v0.1. Rendering 100+ slides will eagerly mount all video elements (~5MB memory each). v0.2 candidate via `lazyVideoDistance?: number`.
+- **No virtualization** Rendering 100+ slides will eagerly mount all video elements (~5MB memory each). Possible future addition via `lazyVideoDistance?: number`.
 - **No fullscreen lightbox** — that's `image-lightbox-01` territory (not in the social-posts scope).
 - **No `feature-strip` variant** — deferred.
 - **No auto-advance / slideshow mode** — that's a story-viewer concern.

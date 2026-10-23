@@ -38,7 +38,7 @@ Pro-ui has no existing answer here. `news-card` is editorial (passive read-link,
 - **Event detail page** — speakers, schedule, organizer, requirements, address. Belongs to `event-detail-page-01` (deferred), not this card.
 - **`compact` / `list` / `inline` variants** beyond grid + feed — revisit when a real consumer surfaces. Two variants matches kasder's actual usage.
 - **Layout-level featured treatment** — bigger card, separate slot above the grid, `featuredItem` + `renderFeatured` props. That's `events-grid-layout-01`'s job.
-- **Loading skeletons** — pure presentation. Consumers handle data-loading states. v0.2 candidate if real demand surfaces.
+- **Loading skeletons** — pure presentation. Consumers handle data-loading states. a possible future addition if real demand surfaces.
 - **CDN-aware image components** (`next/image` etc.) — consumer wraps via `imageClassName` slot.
 - **Heavy animation** — Tailwind transitions + `motion-safe:` only. No framer-motion.
 
@@ -253,7 +253,7 @@ Pure-helper composition, zero card render, zero React tree.
 7. **`actions` slot positioning per variant.** Grid: top-right of image area when supplied (pushes type badge to bottom-right). Feed: top-right of the content overlay area. **Resolved:** documented in plan; visual contract preserved.
 8. **CTA decoration vs interaction.** **Resolved:** decorative `<div role="button">` styled like a real Button — clicking it just fires the wrapping link; consumers wanting a real Register button drop one in `actions`.
 9. **Helper API stability.** Exporting `getEventStatus` / `EVENT_STATUS_CONFIG` / `formatEventDate` / `getDaysUntilEvent` widens the public surface — breaking changes here become breaking changes for consumers using the kernel without the card. **Open** — locking the signatures now is fine (they're tiny + pure), but flag in usage.tsx that the kernel is the contract; future internal refactors must preserve them.
-10. **Loading skeleton.** Should the card ship a `<EventCard.Skeleton variant="grid" />` for loading states? **Open** — v0.1 ships without; consumers render a `bg-muted` placeholder. v0.2 candidate if real demand surfaces.
+10. **Loading skeleton.** Should the card ship a `<EventCard.Skeleton variant="grid" />` for loading states? **Open** — the card ships without; consumers render a `bg-muted` placeholder. a possible future addition if real demand surfaces.
 
 ---
 

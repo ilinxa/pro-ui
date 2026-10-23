@@ -365,9 +365,9 @@ const [serverError, setServerError] = useState<string | undefined>();
           Why no built-in CAPTCHA?
         </dt>
         <dd>
-          The off-screen honeypot is the v0.1 anti-spam. CAPTCHA / hCaptcha /
+          The off-screen honeypot is the built-in anti-spam. CAPTCHA / hCaptcha /
           Turnstile need a slot + a script-load contract that&apos;s out of
-          scope for v0.1; planned for v0.2 if a real consumer asks. If your
+          scope (not implemented). If your
           honeypot false-negative rate ever becomes a problem, add a CAPTCHA
           on top via your own slot rendered alongside this component.
         </dd>

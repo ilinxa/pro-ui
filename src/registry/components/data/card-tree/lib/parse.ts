@@ -419,7 +419,7 @@ function parseNode(
       case "child": {
         if (Array.isArray(value)) {
           errors.push({
-            message: `array values are not supported as children in v0.1 (key "${key}"). Use object-keyed children, or the \`list\` predefined key for scalar arrays.`,
+            message: `array values are not supported as children (key "${key}"). Use object-keyed children, or the \`list\` predefined key for scalar arrays.`,
             path: childPath,
           });
           break;

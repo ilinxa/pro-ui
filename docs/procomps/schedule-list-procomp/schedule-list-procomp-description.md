@@ -25,8 +25,8 @@ Pro-ui has no existing answer. `data-table` is tabular. `thumbnail-list` is imag
 
 ## Out of scope
 
-- **Day grouping** (multi-day schedules) — v0.2 candidate. v0.1 is single-day.
-- **Live "current item" highlighting** based on `now` — v0.2 candidate. v0.1 is presentation-only.
+- **Day grouping** (multi-day schedules) — not implemented. Single-day only.
+- **Live "current item" highlighting** based on `now` — not implemented. Presentation-only.
 - **Inline edit / drag-reorder** — different component class entirely.
 - **Live agenda updates** (WebSocket integration) — host concern; this card just renders props.
 - **Speaker chips per item** — host can compose via `renderItem` slot.

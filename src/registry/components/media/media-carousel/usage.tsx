@@ -142,8 +142,8 @@ export function PostMedia({ post }: { post: Post }) {
         </li>
         <li>
           <strong>Don&apos;t expect virtualization</strong> — kasder posts
-          ≤10 media; v0.2 candidate (<code>lazyVideoDistance</code>) for
-          larger sets.
+          ≤10 media; <code>lazyVideoDistance</code> is not implemented (possible
+          future addition) for larger sets.
         </li>
         <li>
           <strong>Don&apos;t expect a fullscreen lightbox</strong> on

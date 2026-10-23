@@ -49,6 +49,7 @@ export const meta: ComponentMeta = {
     "No framer-motion — inherits engagement-heart-burst CSS from engagement-bar",
     "Uses the `engagement-bar` like-action `onCountClick` split (heart vs count) when in inline mode",
     "v0.5 barrel completeness: the eleven `Post` / `PostCardProps` sub-shapes (PostMention, PostPoll, PostPollOption, PostLocation, PostReplyTo, LinkPreview, PostVisibility, PostViewerMode, PostPermissions, PostPermissionAction, PostMutationHandlers) are now importable from the package root — previously a consumer could hold a `Post` and still not name the type of a field they were building. Type-only, additive.",
+    "v0.5.1 — Double-tap on the media never removes a like: unliked → like + heart burst; already liked → burst only; no like applicable (no `like` action in the bar, or a `renderEngagementBar` takeover) → no burst. Handle `triggerLike()` keeps toggle semantics but bursts only when the result is liked. Previously double-tap on a liked post UNLIKED it while the heart played, and bar-less posts burst with no effect.",
   ],
   tags: [
     "post-card",
@@ -67,11 +68,11 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.5.0",
+  version: "0.5.1",
   status: "alpha",
   artifactBudgetKB: 165,
   createdAt: "2026-05-02",
-  updatedAt: "2026-08-17",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

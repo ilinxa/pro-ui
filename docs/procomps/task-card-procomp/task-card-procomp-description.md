@@ -113,10 +113,10 @@ Each step is independently shippable: v0.1 alone is a registerable card.
 - **`card-tree-node` style** (flow-canvas node): adapter ships as the sibling procomp `todo-card-tree-node` (mirrors card-tree-node's shape exactly). v0.1 of this procomp ships before the flow adapter; adapter follows in its own PR.
 - **`kanban-board` card slot**: ships a `taskCardKanbanRenderer: KanbanCardRenderer<TaskItem>` export with `dragHandle: "header"` (the kanban-board pattern explicitly designed for renderers with internal pointer interactions — same lock card-tree uses). Lives either in this folder's `parts/kanban-adapter.tsx` or in todo-list's kanban variant; decision in GATE 2.
 
-### v0.1 — out of scope (deferred to v0.2+)
+### Out of scope (not implemented)
 
 - Slot props for field renderers (`renderPerson?`, `renderLink?`, `renderImage?`). Fixed renderers in v0.1; slot opening is non-breaking when added in v0.2.
-- Custom ramp registry (named presets are baked in v0.1; consumer-registered named presets land v0.3).
+- Custom ramp registry (named presets are baked in v0.1; consumer-registered named presets are not implemented).
 - Pulse / overdue animation — waiting on framer-motion adoption gate.
 - Parent-rollup color/status aggregation — explicitly out of v0.1 per locked decision.
 - Per-item override of `colorRamp` (only `borderColor` is per-item in v0.1).
@@ -450,7 +450,7 @@ Decisions reached during the GATE 1 conversation. Each row records the question 
 | Q7 | **Edit mode semantics** | **`editable` enables a toggle**, popup remains default click affordance. `editable=false` → click edit button = popup (canonical convention from card-tree-node v0.1.0). `editable=true` → edit button toggles per-item between view and inline-edit; popup still available as a secondary action. Per-item state — host doesn't dictate. `locked` blocks both. |
 | Q8 | **Edit button visibility** | **Always visible on the card chrome.** Hidden only when fully view-only (no edit handler wired AND `editable=false` AND no `onEdit`). |
 | Q9 | **Nesting — status & color rollup** | **Independent per item.** Each item paints from its own dates; no parent-child color/status aggregation in v0.1. Consumers can compute rollup externally via public helpers if they want it. |
-| Q10 | **Person / link / image field shape** | **Structured objects with sensible defaults**: `person {id, name, avatar?}`, `link {url, label?, icon?}`, `image {src, alt?, caption?}`. Minimal shapes (just `name` / `url` / `src`) get a sensible default render. Slot-prop renderers deferred to v0.2 (additive, non-breaking). |
+| Q10 | **Person / link / image field shape** | **Structured objects with sensible defaults**: `person {id, name, avatar?}`, `link {url, label?, icon?}`, `image {src, alt?, caption?}`. Minimal shapes (just `name` / `url` / `src`) get a sensible default render. Slot-prop renderers are not implemented (additive, non-breaking when added). |
 | Q11 | **JSON I/O surface** | **Mirror card-tree v0.3** — `defaultValue` for seed, imperative handle with `getValue(): string` (canonical JSON) + `getTree(): TaskItem`. Clipboard via `copy() / paste()` methods + Cmd/Ctrl+C / Cmd/Ctrl+V when focused. DnD as source + target with `application/x-ilinxa-task+json` MIME. Cross-card moves are list-shell concern; intra-card child paste is in-scope here. |
 | Q12 | **Permission model** | **Mirror card-tree's pattern** — declarative `permissions?: { default?, byLevel?, byItem?, inherit? }` + per-action predicates (`canEditItem`, `canRemoveItem`, `canAddChildren`, `canDragItem`, `canToggleActive`, `canOverrideColor`). |
 | Q13 | **Standalone vs embedded** | **Both.** Standalone usable as `<TaskCard />`. Registerable in `kanban-board` via a `KanbanCardRenderer<TaskItem>` named export with `dragHandle: "header"` (the kanban-board pattern for renderers with internal pointer interactions, e.g., inline editors). Registerable in `flow-canvas` via a sibling adapter procomp `todo-card-tree-node` (mirrors `card-tree-node` shape exactly — separate procomp, separate PR, separate v0.1). |

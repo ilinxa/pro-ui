@@ -14,6 +14,8 @@ Adds: 37 source files, 2 peer deps (`konva ^10.3.0` + `react-konva ^19.2.4`), 6 
 
 Optional fixtures item (`@ilinxa/story-composer-fixtures`) ships sample dummy data for demos.
 
+> **Requires `media-editor` >= 0.4.0.** The publishing overlay is passed through media-editor's `overlay` prop (so Retry / Cancel sit inside the dialog and are clickable). When updating story-composer, re-add `media-editor` too, overwriting: `pnpm dlx shadcn@latest add @ilinxa/media-editor --overwrite`. An older media-editor ignores `overlay`, so the overlay would not show.
+
 ## Quick start
 
 ```tsx
@@ -138,6 +140,8 @@ Pick one:
 ```
 
 The custom uploader takes precedence over `uploadUrl` if both are passed.
+
+The progress / error overlay (default, or your `renderPublishingOverlay` output) is rendered through media-editor's `overlay` prop, i.e. inside the dialog content in dialog presentation.
 
 ## Responsive
 

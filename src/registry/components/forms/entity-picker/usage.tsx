@@ -42,7 +42,7 @@ export function NodePicker() {
         Set <code>{`mode="multi"`}</code>. <code>value</code> becomes{" "}
         <code>T[]</code>; chips render in the trigger; Backspace on empty
         search removes the last chip; chip-X buttons remove individual chips.
-        Selection order is the order picked (no drag-to-reorder in v0.1).
+        Selection order is the order picked (no drag-to-reorder).
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<EntityPicker<Node>

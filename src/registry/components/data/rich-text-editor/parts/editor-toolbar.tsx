@@ -43,6 +43,7 @@ import { ImagePlugin } from "@platejs/media/react";
 import { TablePlugin } from "@platejs/table/react";
 import { ParagraphPlugin, useEditorRef } from "platejs/react";
 import { cn } from "@/lib/utils";
+import { isHttpUrl, safeHref } from "../lib/safe-embed";
 import type { ImageUploader } from "../types";
 import { BlockButton, MarkButton, useBlockToggle } from "./toolbar-buttons";
 
@@ -161,7 +162,7 @@ function InsertImageButton({ onImageUpload }: { onImageUpload?: ImageUploader })
     }
 
     const url = window.prompt("Image URL");
-    if (!url) return;
+    if (!url || !isHttpUrl(url)) return;
     editor.tf.insertNodes({
       type: ImagePlugin.key,
       url,
@@ -183,7 +184,8 @@ function InsertImageButton({ onImageUpload }: { onImageUpload?: ImageUploader })
 function InsertLinkButton() {
   const editor = useEditorRef();
   const handleClick = useCallback(() => {
-    const url = window.prompt("Link URL");
+    const raw = window.prompt("Link URL");
+    const url = safeHref(raw);
     if (!url) return;
     const text = window.getSelection()?.toString() || url;
     editor.tf.insertNodes({

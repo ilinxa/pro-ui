@@ -271,6 +271,11 @@
       "target": "components/file-manager/parts/file-manager-marquee.tsx"
     }
   ],
+  "cssVars": {
+    "theme": {
+      "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+    }
+  },
   "categories": [
     "navigation",
     "filesystem",

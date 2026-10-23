@@ -3,9 +3,11 @@
 import {
   memo,
   useCallback,
+  useEffect,
   useId,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { MouseEvent } from "react";
@@ -132,6 +134,22 @@ function NewsCardImpl(props: NewsCardProps) {
   // updates via prop changes still see fresh data (statefulItem follows
   // itemProp implicitly via React's render).
   const effectiveItem = statefulItem === itemProp ? itemProp : statefulItem;
+
+  // Dev-only, once per mount: `updatedAt` is accepted but nothing renders it.
+  const warnedUpdatedAtRef = useRef(false);
+  const hasUpdatedAt = effectiveItem.updatedAt != null;
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      hasUpdatedAt &&
+      !warnedUpdatedAtRef.current
+    ) {
+      warnedUpdatedAtRef.current = true;
+      console.warn(
+        "[news-card] `item.updatedAt` is not rendered yet: it is accepted but no \"(edited)\" marker is shown.",
+      );
+    }
+  }, [hasUpdatedAt]);
 
   // ─── Resolved labels + permissions ───────────────────────────────────────
   const labels = useMemo(

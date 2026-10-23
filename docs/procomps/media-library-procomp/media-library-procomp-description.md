@@ -86,7 +86,7 @@ You chose **Hybrid**: bespoke media layout, cherry-pick reuse. Made concrete —
 - **Tagging, favourites/starred, trash/restore, versions** — `meta`-modelable, deferred.
 - **Cross-folder global search** — v0.1 search filters the current folder only (matches `file-manager`).
 - **Inline image editing** — that's `media-editor`'s job; out of a *library* surface.
-- **Multi-image lightbox via `media-carousel`** — v0.1 uses a single `<img>` + the dispatcher's own prev/next; carousel composition is a v0.2 candidate.
+- **Multi-image lightbox via `media-carousel`** — v0.1 uses a single `<img>` + the dispatcher's own prev/next; carousel composition is a possible future addition.
 
 ## Target consumers
 
@@ -213,7 +213,7 @@ This procomp composes **five** registry components (`file-tree`, `pdf-viewer`, `
 - **Q3 — Move semantics.** ✅ **Both** — drag-to-move for the common case, **plus** reuse `FileClipboardProvider` for keyboard cut/copy/paste parity with `file-manager`. (GATE 2 must resolve the packaging wrinkle: the clipboard lives in `src/registry/components/_shared/file-clipboard.tsx`, a *sibling* module outside file-manager's sealed folder — so the registry artifact must vendor `_shared/file-clipboard.tsx` into this component's folder, or depend on it explicitly. Verified: it is NOT inside file-manager's `index.ts`-rooted folder tree.)
 - **Q4 — "Docs" chip taxonomy.** ✅ **PDFs** = `application/pdf`; **Docs** = text/code/markdown/json **+** office types (docx/xlsx/pptx — office gets the download fallback, not a rich preview, in v0.1).
 - **Q5 — Promote reusable selection/dnd hooks out of `file-manager`?** ✅ **Self-contained for v0.1** — file-manager's barrel verified to expose only `useFileManager` (context) + clipboard + helpers, not its selection/dnd internals. No touching a shipped component. Extraction deferred to a later additive cleanup if a third consumer wants them.
-- **Q6 — Image lightbox.** ✅ **Own prev/next in v0.1** (the dispatcher already needs sibling-stepping for all types); `media-carousel` composition deferred to v0.2.
+- **Q6 — Image lightbox.** ✅ **Own prev/next in v0.1** (the dispatcher already needs sibling-stepping for all types); `media-carousel` composition is not implemented.
 - **Q7 — Upload progress contract.** ✅ `onUpload(files, targetFolderId, progress) => Promise<FsNode[]>` (consumer drives the bytes, calls `progress(id, pct)`, resolves with the real `FsNode[]`).
 
 ## Verification pass (2026-06-09 — pre-GATE-2 re-validation)

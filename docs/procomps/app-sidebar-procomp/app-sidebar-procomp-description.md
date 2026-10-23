@@ -867,7 +867,7 @@ Pre-answered where the answer is obvious from project precedent. Only items wher
 
 - [x] All 26 locks (L1–L26) understood.
 - [ ] All 10 Qs in §8 answered with explicit picks (defaults pre-filled; user confirms or overrides).
-- [ ] No scheduled v0.2 / v0.3 work — explicit single-version ship lock (L3).
+- [ ] No follow-up release work is planned — explicit single-version ship lock (L3).
 - [ ] No new top-level scope additions during plan-stage (loud deviations only — fold in §7 of THIS doc on next update).
 - [ ] User explicitly closes GATE 1 — date TBD.
 
