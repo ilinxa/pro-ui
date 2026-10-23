@@ -6,6 +6,11 @@ export { NavPrimaryAction } from "./parts/nav-primary-action";
 export { NavUser } from "./parts/nav-user";
 export { useAppSidebarState } from "./hooks/use-sidebar-nav-state";
 export { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
+// v0.5.0
+export { useAppSidebarMode } from "./contexts/sidebar-nav-context";
+export { DEFAULT_APP_SIDEBAR_LABELS } from "./lib/labels";
+export { APP_SIDEBAR_CSS_VARS } from "./lib/derive-css-vars";
+export type { AppSidebarCssVar } from "./lib/derive-css-vars";
 export type { UseFilteredNavSectionsOpts } from "./hooks/use-filtered-nav-sections";
 
 export type {
@@ -51,4 +56,12 @@ export type {
 
   // v0.2.0 — additive
   NavContext,
+
+  // v0.5.0 — additive
+  AppSidebarLabels,
+  AppSidebarLabelsInput,
+  AppSidebarSide,
+  AppSidebarMode,
+  AppSidebarTopSlotArgs,
+  NavBadgeTone,
 } from "./types";

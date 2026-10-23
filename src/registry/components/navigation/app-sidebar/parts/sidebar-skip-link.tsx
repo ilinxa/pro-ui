@@ -31,15 +31,13 @@ export function SidebarSkipLink({
       className={cn(
         // sr-only by default — appears on focus
         "sr-only focus:not-sr-only",
-        "focus:absolute focus:left-2 focus:top-2 focus:z-50",
-        // RTL: skip link should sit on the same logical inline-start edge,
-        // which means physical-right when direction is RTL
-        "rtl:focus:left-auto rtl:focus:right-2",
+        // v0.5.0 (C4) - logical inline-start edge (flips in RTL by itself)
+        "focus:absolute focus:start-2 focus:top-2 focus:z-50",
         "focus:inline-flex focus:items-center focus:rounded-md",
-        "focus:bg-card focus:px-3 focus:py-2",
+        "focus:bg-(--ilinxa-sidebar-bg,var(--card)) focus:px-3 focus:py-2",
         "focus:text-sm focus:font-medium focus:text-foreground",
         "focus:shadow-md focus:ring-1 focus:ring-border",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-(--ilinxa-sidebar-bg,var(--card))",
       )}
     >
       {label}

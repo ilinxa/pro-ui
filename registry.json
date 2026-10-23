@@ -6147,7 +6147,7 @@
       "name": "app-sidebar",
       "type": "registry:block",
       "title": "App Sidebar",
-      "description": "App-shell sidebar with mobile drawer mode, twelve composition slots, prefab nav parts, and a headless state hook.",
+      "description": "App-shell sidebar with a full-label mobile drawer, labels for every string, ancestor-overridable CSS variables, RTL, and a headless state hook.",
       "author": "ilinxa",
       "categories": [
         "navigation",
@@ -6160,11 +6160,15 @@
         "sheet"
       ],
       "dependencies": [
-        "lucide-react"
+        "lucide-react@^1.11.0"
       ],
       "cssVars": {
         "theme": {
-          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))",
+          "color-success": "var(--success, oklch(0.65 0.15 150))",
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))",
+          "color-brand": "var(--brand, var(--primary))",
+          "color-brand-foreground": "var(--brand-foreground, var(--primary-foreground))"
         }
       },
       "files": [
@@ -6352,6 +6356,16 @@
           "path": "src/registry/components/navigation/app-sidebar/parts/tooltip-wrapper.tsx",
           "type": "registry:component",
           "target": "components/app-sidebar/parts/tooltip-wrapper.tsx"
+        },
+        {
+          "path": "src/registry/components/navigation/app-sidebar/lib/labels.ts",
+          "type": "registry:component",
+          "target": "components/app-sidebar/lib/labels.ts"
+        },
+        {
+          "path": "src/registry/components/navigation/app-sidebar/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/app-sidebar/hooks/use-direction.ts"
         }
       ]
     },

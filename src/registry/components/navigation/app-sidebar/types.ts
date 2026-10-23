@@ -114,11 +114,20 @@ export type NavLinkComponent = ComponentType<NavLinkProps>;
 // Prefab part configs (L14, L15)
 // ─────────────────────────────────────────────────────────────────────────
 
+export type NavBadgeTone = "default" | "accent" | "destructive" | "muted" | "brand";
+
 export interface NavBadgeConfig {
-  value: number | string | ReactNode;
+  /**
+   * `null` = withheld (privacy / permission) — renders nothing, and the row's
+   * accessible name is the plain label. A zero renders nothing unless `showZero`.
+   */
+  value: number | string | ReactNode | null;
   max?: number;
   variant?: "number" | "dot" | "pulse";
-  tone?: "default" | "accent" | "destructive" | "muted";
+  /** Default `"destructive"`. `"brand"` reads `--brand` / `--brand-foreground`. */
+  tone?: NavBadgeTone;
+  /** Tone used instead of `tone` while the badge's row is the active item. */
+  activeTone?: NavBadgeTone;
   position?: "inline-end" | "corner";
   showZero?: boolean;
   className?: string;
@@ -335,6 +344,55 @@ export interface AppSidebarEventArgs {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// Labels (v0.5.0 — C2). Every user-facing string the sidebar renders.
+// ─────────────────────────────────────────────────────────────────────────
+
+export interface AppSidebarLabels {
+  /** `aria-label` of the `<nav>` and the drawer title. Default "Main navigation". */
+  navigation: string;
+  /** Collapse toggle while collapsed. Default "Expand sidebar". */
+  expandSidebar: string;
+  /** Collapse toggle while expanded. Default "Collapse sidebar". */
+  collapseSidebar: string;
+  /** `AppSidebarTrigger` inside the sidebar's subtree. Default "Open navigation". */
+  openNavigation: string;
+  /** Drawer close button. Default "Close navigation". */
+  closeNavigation: string;
+  /** Skip link. Default "Skip to content". */
+  skipToContent: string;
+  /** Loading skeleton's accessible name. Default "Loading navigation items". */
+  loading: string;
+  /** User-menu trigger. Default `"{name} — open menu"`. */
+  userMenu: (name: string) => string;
+  /**
+   * Accessible name of a row with a number / string badge — collapsed and
+   * expanded alike. Default `"{label}, {value}"`. `value` is the raw badge value.
+   */
+  itemWithBadge: (label: string, value: number | string) => string;
+  /** Accessible name of a row with a dot / pulse badge. Default `"{label}, new"`. */
+  itemWithIndicator: (label: string) => string;
+  /** Default empty-state copy per reason. */
+  emptyState: Record<AppSidebarEmptyReason, { title: string; body?: string }>;
+}
+
+/** What the `labels` prop accepts: every key optional, `emptyState` per reason. */
+export type AppSidebarLabelsInput = Partial<Omit<AppSidebarLabels, "emptyState">> & {
+  emptyState?: Partial<AppSidebarLabels["emptyState"]>;
+};
+
+/** Where the sidebar sits. `start` / `end` follow the text direction; `left` / `right` are physical. */
+export type AppSidebarSide = "start" | "end" | "left" | "right";
+
+/** Which render of the chrome a part is in. */
+export type AppSidebarMode = "desktop" | "mobile";
+
+export interface AppSidebarTopSlotArgs {
+  mode: AppSidebarMode;
+  /** Always `false` in the drawer. */
+  isCollapsed: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // Main component props (the full surface)
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -371,14 +429,21 @@ export interface AppSidebarProps {
   isMobileOpen?: boolean;
   onMobileOpenChange?: (args: AppSidebarEventArgs["mobileOpenChange"]) => void;
   mobileBreakpoint?: "sm" | "md" | "lg" | "xl" | "2xl" | (string & {});
-  mobileDrawerSide?: "left" | "right";
+  /** Default: same as `side`. `start` / `end` follow the text direction. */
+  mobileDrawerSide?: AppSidebarSide;
   autoCloseMobileOnNavigate?: boolean;
 
   // Lifted state (L30 — wins over individual props above)
   state?: AppSidebarStateValue;
 
   // Layout
-  side?: "left" | "right";
+  /**
+   * v0.5.0 — default `"start"` (left in LTR, right in RTL). `"left"` /
+   * `"right"` keep their v0.4 meaning.
+   */
+  side?: AppSidebarSide;
+  /** Text direction. Default: the element's computed `direction`, read after mount. */
+  dir?: "ltr" | "rtl";
   collapsedWidth?: string;
   expandedWidth?: string;
   transitionDuration?: string;
@@ -436,8 +501,24 @@ export interface AppSidebarProps {
   onMount?: (args: AppSidebarEventArgs["mount"]) => void;
   onUnmount?: () => void;
 
+  // v0.5.0 — strings (C2)
+  /** Partial override merged over `DEFAULT_APP_SIDEBAR_LABELS`. */
+  labels?: AppSidebarLabelsInput;
+  /** Badge count formatter (C3). Default: `value > max ? "{max}+" : String(value)`. */
+  formatBadgeCount?: (value: number, max: number) => string;
+
+  // v0.5.0 — drawer chrome (AS3)
+  /** Extra classes on the drawer panel (`SheetContent`). */
+  drawerClassName?: string;
+  /** Inline style on the drawer panel — e.g. CSS variables for the drawer only. */
+  drawerStyle?: CSSProperties;
+
   // Standard
   className?: string;
+  /**
+   * Inline style on the desktop `<nav>`. CSS variables set here win over
+   * ancestor declarations; ancestors win over the built-in defaults.
+   */
   style?: CSSProperties;
   "aria-label"?: string;
   id?: string;
@@ -457,7 +538,7 @@ export interface AppSidebarProps {
    * `navAccessorySlot`. Consumer Fragment-stacks if multiple widgets
    * needed (L41). Canonical occupant: `<AccountSwitcher>`.
    */
-  topSlot?: ReactNode;
+  topSlot?: ReactNode | ((args: AppSidebarTopSlotArgs) => ReactNode);
 
   /**
    * v0.2.0 — Map of placeholder values for href substitution. When present,
@@ -533,4 +614,12 @@ export interface UseAppSidebarStateOptions {
   permissions?: ReadonlySet<string>;
   storageKey?: string;
   autoExpandActiveSection?: boolean;
+  /** v0.5.0 — forwarded to the filter pass (same meaning as the `AppSidebar` props). */
+  keepEmptySections?: boolean;
+  /** v0.5.0 — forwarded to the filter pass. Default `false` (ownerOnly items hidden). */
+  isOwner?: boolean;
+  /** v0.5.0 — forwarded to the filter pass. Default `Infinity`. */
+  currentMaxMembers?: number;
+  /** v0.5.0 — forwarded to the filter pass. */
+  bypassFiltering?: boolean;
 }

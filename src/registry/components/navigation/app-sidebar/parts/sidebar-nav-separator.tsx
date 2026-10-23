@@ -10,8 +10,8 @@ interface SidebarNavSeparatorProps {
  */
 export function SidebarNavSeparator({ className }: SidebarNavSeparatorProps) {
   return (
-    <li role="presentation" className={cn("my-2 px-3", className)}>
-      <div className="h-px w-full bg-border" />
+    <li role="presentation" className={cn("my-2 px-(--ilinxa-sidebar-px,0.75rem)", className)}>
+      <div className="h-px w-full bg-(--ilinxa-sidebar-border,var(--border))" />
     </li>
   );
 }

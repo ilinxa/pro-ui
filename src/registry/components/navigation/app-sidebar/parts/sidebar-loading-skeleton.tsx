@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useAppSidebarContextOrNull } from "../contexts/sidebar-nav-context";
+import { DEFAULT_APP_SIDEBAR_LABELS } from "../lib/labels";
 
 interface SidebarLoadingSkeletonProps {
   isCollapsed: boolean;
@@ -22,18 +24,20 @@ export function SidebarLoadingSkeleton({
   rowCount = 6,
   className,
 }: SidebarLoadingSkeletonProps) {
+  const ctx = useAppSidebarContextOrNull();
+  const labels = ctx?.labels ?? DEFAULT_APP_SIDEBAR_LABELS;
   return (
     <ul
       role="list"
       aria-busy="true"
-      aria-label="Loading navigation items"
-      className={cn("flex flex-col gap-1", className)}
+      aria-label={labels.loading}
+      className={cn("flex flex-col gap-(--ilinxa-sidebar-row-gap,0.25rem)", className)}
     >
       {Array.from({ length: rowCount }, (_, i) => (
         <li key={i} className="list-none">
           <div
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5",
+              "flex min-h-(--ilinxa-sidebar-row-h,2.75rem) items-center gap-3 rounded-lg px-(--ilinxa-sidebar-px,0.75rem) py-2",
               "motion-safe:animate-pulse",
             )}
             aria-hidden="true"

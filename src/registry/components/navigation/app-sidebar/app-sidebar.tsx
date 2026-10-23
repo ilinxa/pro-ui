@@ -1,26 +1,36 @@
 "use client";
 
-import { PanelLeft, PanelLeftClose } from "lucide-react";
+import { PanelLeft, PanelLeftClose, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
   useId,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
+  useState,
+  type CSSProperties,
 } from "react";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useActiveDetection } from "./hooks/use-active-detection";
 import { useMatchMedia, resolveBreakpointQuery } from "./hooks/use-match-media";
 import { useSidebarReducer } from "./hooks/use-sidebar-reducer";
 import { useStorageSync } from "./hooks/use-storage-sync";
+import { useDirection, resolvePhysicalSide } from "./hooks/use-direction";
 import {
   AppSidebarContext,
   type AppSidebarContextValue,
 } from "./contexts/sidebar-nav-context";
 import { buildHandle } from "./lib/build-handle";
-import { deriveCssVars } from "./lib/derive-css-vars";
+import { deriveCssVars, readInheritedCssVars } from "./lib/derive-css-vars";
+import { resolveLabels } from "./lib/labels";
 import { flattenEntriesForKeyboard } from "./lib/flatten-entries";
 import { handleSidebarKeydown } from "./lib/keyboard-handler";
 import { DefaultLink } from "./parts/default-link";
@@ -39,6 +49,10 @@ import type {
   AppSidebarMobileOpenReason,
   AppSidebarProps,
 } from "./types";
+
+// useLayoutEffect warns during SSR; the drawer-variable copy only runs in the browser.
+const useIsoLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Breakpoint → CSS class lookup (L44 — CSS-gated, not JS-gated rendering). */
 const BREAKPOINT_DESKTOP_VISIBLE: Record<string, string> = {
@@ -72,7 +86,7 @@ export function AppSidebar(props: AppSidebarProps) {
     linkComponent = DefaultLink,
     className,
     id: idProp,
-    "aria-label": ariaLabel = "Main navigation",
+    "aria-label": ariaLabelProp,
     defaultCollapsed,
     defaultMobileOpen,
     defaultCollapsedSectionIds,
@@ -110,7 +124,8 @@ export function AppSidebar(props: AppSidebarProps) {
     primaryAction,
     footerSlot,
     footer,
-    side = "left",
+    side = "start",
+    dir: dirProp,
     activeVariant = "fill",
     collapsedWidth,
     expandedWidth,
@@ -120,7 +135,7 @@ export function AppSidebar(props: AppSidebarProps) {
     mobileDrawerSide,
     drawerHeaderSlot,
     skipLinkTarget,
-    skipLinkLabel = "Skip to content",
+    skipLinkLabel: skipLinkLabelProp,
     onPermissionDenied,
     onSkipLinkActivated,
     onBrandClick,
@@ -135,11 +150,29 @@ export function AppSidebar(props: AppSidebarProps) {
     isOwner,
     currentMaxMembers,
     bypassFiltering,
+    // v0.5.0 — additive
+    labels: labelsProp,
+    formatBadgeCount,
+    drawerClassName,
+    drawerStyle,
   } = props;
+
+  // v0.5.0 (C2) — every rendered string resolves through `labels`; the older
+  // dedicated props (`aria-label`, `skipLinkLabel`) still win when passed.
+  const labels = useMemo(() => resolveLabels(labelsProp), [labelsProp]);
+  const ariaLabel = ariaLabelProp ?? labels.navigation;
+  const skipLinkLabel = skipLinkLabelProp ?? labels.skipToContent;
 
   // L32: id defaults via useId() for <SidebarNavTrigger aria-controls>
   const autoId = useId();
   const sidebarId = idProp ?? `app-sidebar-${autoId}`;
+
+  // v0.5.0 (AS8) — direction + physical edges. Resolved after mount (the
+  // server and the first client render agree on "ltr"); `dir` forces it.
+  const navRef = useRef<HTMLElement | null>(null);
+  const dir = useDirection(navRef, dirProp);
+  const physicalSide = resolvePhysicalSide(side, dir);
+  const drawerSide = resolvePhysicalSide(mobileDrawerSide ?? side, dir);
 
   // Section-collapse init priority (plan §8): explicit prop > per-section
   // defaultCollapsed. Storage rehydration (C11) will outrank both via
@@ -178,7 +211,9 @@ export function AppSidebar(props: AppSidebarProps) {
       "[app-sidebar] `storageKey` is ignored when `state` (lifted hook) is provided — the hook owns persistence (L43). Move storageKey to useAppSidebarState() options.",
     );
   }
-  useStorageSync(state, dispatch, effectiveStorageKey);
+  // v0.5.0 (AS1) — a controlled `isCollapsed` is the host's value: storage
+  // neither reads nor writes `collapsed` (sections still persist).
+  useStorageSync(state, dispatch, effectiveStorageKey, isCollapsed !== undefined);
 
   // Items pipeline: derive visible entries → compute active item
   const { visible, active } = useActiveDetection({
@@ -335,7 +370,14 @@ export function AppSidebar(props: AppSidebarProps) {
   useEffect(() => {
     if (!focusedItemId) return;
     if (typeof document === "undefined") return;
-    const nav = document.getElementById(sidebarId);
+    // v0.5.0 (U4) — the drawer renders the same rows (same `data-nav-id`s)
+    // in a portalled panel while the desktop <nav> is display:none below the
+    // breakpoint. Move focus inside whichever surface the user is in.
+    const panel = mobilePanelRef.current;
+    const nav =
+      panel && (panel.contains(document.activeElement) || finalMobileOpen)
+        ? panel
+        : document.getElementById(sidebarId);
     if (!nav) return;
     // v0.3.0 (C3, F3): CSS.escape is universal in modern browsers
     // (Chrome 46+ / Edge 79+ / Firefox 31+ / Safari 10+) — the SSR guard
@@ -349,7 +391,7 @@ export function AppSidebar(props: AppSidebarProps) {
     if (target && document.activeElement !== target) {
       target.focus();
     }
-  }, [focusedItemId, sidebarId]);
+  }, [focusedItemId, sidebarId, finalMobileOpen]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
@@ -359,9 +401,10 @@ export function AppSidebar(props: AppSidebarProps) {
         setFocusedId: (id) => dispatch({ type: "FOCUS_ITEM", itemId: id }),
         toggleSection: (id) => finalHandle.toggleSection(id),
         isSectionCollapsed: (id) => finalCollapsedSectionIds.has(id),
+        dir,
       });
     },
-    [keyboardFlat, focusedItemId, dispatch, finalHandle, finalCollapsedSectionIds],
+    [keyboardFlat, focusedItemId, dispatch, finalHandle, finalCollapsedSectionIds, dir],
   );
 
   // F2 — auto-scroll active item into view on mount + currentPath change (L48-c)
@@ -471,8 +514,26 @@ export function AppSidebar(props: AppSidebarProps) {
       dispatch,
       handle: finalHandle,
       sidebarId,
+      labels,
+      mode: "desktop",
+      dir,
+      physicalSide,
+      formatBadgeCount,
     }),
-    [state, dispatch, finalHandle, sidebarId, finalCollapsed, finalMobileOpen, finalCollapsedSectionIds],
+    [state, dispatch, finalHandle, sidebarId, finalCollapsed, finalMobileOpen, finalCollapsedSectionIds, labels, dir, physicalSide, formatBadgeCount],
+  );
+
+  // v0.5.0 (AS2) — the drawer is never "collapsed": its chrome renders inside
+  // this provider so NavUser / NavBrand / NavPrimaryAction / NavBadge draw
+  // their full (labelled) variant there, whatever the desktop rail is doing.
+  const mobileContextValue = useMemo<AppSidebarContextValue>(
+    () => ({
+      ...contextValue,
+      state: { ...contextValue.state, collapsed: false },
+      mode: "mobile",
+      physicalSide: drawerSide,
+    }),
+    [contextValue, drawerSide],
   );
 
   const cssVars = useMemo(
@@ -484,7 +545,7 @@ export function AppSidebar(props: AppSidebarProps) {
     <button
       type="button"
       onClick={() => finalHandle.toggleCollapse()}
-      aria-label={finalCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-label={finalCollapsed ? labels.expandSidebar : labels.collapseSidebar}
       aria-expanded={!finalCollapsed}
       aria-controls={sidebarId}
       className={cn(
@@ -493,10 +554,11 @@ export function AppSidebar(props: AppSidebarProps) {
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
       )}
     >
+      {/* The glyph points at the rail's edge: mirror it for a right-edge rail. */}
       {finalCollapsed ? (
-        <PanelLeft className="h-4 w-4" aria-hidden="true" />
+        <PanelLeft className={cn("h-4 w-4", physicalSide === "right" && "-scale-x-100")} aria-hidden="true" />
       ) : (
-        <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+        <PanelLeftClose className={cn("h-4 w-4", physicalSide === "right" && "-scale-x-100")} aria-hidden="true" />
       )}
     </button>
   );
@@ -699,10 +761,16 @@ export function AppSidebar(props: AppSidebarProps) {
     // (desktopAccessory), leaving a wasteful gap below topSlot. Merge the
     // accessory into the topSlot row instead (expanded desktop only —
     // collapsed mode keeps its own vertical-stack layout for the toggle).
+    // v0.5.0 (AS2) — `topSlot` may be a function of the render mode, so an
+    // occupant (e.g. AccountSwitcher) can render its drawer variant.
+    const resolvedTopSlot =
+      typeof topSlot === "function"
+        ? topSlot({ mode, isCollapsed: headerCollapsedDesktop })
+        : topSlot;
     const mergeAccessoryIntoTopSlot =
       mode === "desktop" &&
       !headerCollapsedDesktop &&
-      !!topSlot &&
+      !!resolvedTopSlot &&
       !headerSlot &&
       !resolvedBrand &&
       desktopAccessory !== null;
@@ -722,10 +790,10 @@ export function AppSidebar(props: AppSidebarProps) {
        *  When `mergeAccessoryIntoTopSlot` is true (topSlot present, no brand
        *  row content of its own), the collapse toggle moves into this row
        *  pinned to the right — eliminates the empty brand-row gap. */}
-      {topSlot ? (
+      {resolvedTopSlot ? (
         <div
           className={cn(
-            "ilinxa-sidebar-top-slot border-b border-border",
+            "ilinxa-sidebar-top-slot border-b border-(--ilinxa-sidebar-border,var(--border))",
             // Collapsed desktop: 80px-wide sidebar — center the topSlot
             // content so icon-only widgets (the canonical AccountSwitcher
             // 40×40 trigger) line up with the nav-row icons below. Without
@@ -739,11 +807,11 @@ export function AppSidebar(props: AppSidebarProps) {
         >
           {mergeAccessoryIntoTopSlot ? (
             <>
-              <div className="min-w-0 flex-1">{topSlot}</div>
+              <div className="min-w-0 flex-1">{resolvedTopSlot}</div>
               <div className="shrink-0">{desktopAccessory}</div>
             </>
           ) : (
-            topSlot
+            resolvedTopSlot
           )}
         </div>
       ) : null}
@@ -751,15 +819,15 @@ export function AppSidebar(props: AppSidebarProps) {
       {/* Brand / header zone.
        *
        * Layout:
-       *   - expanded desktop / mobile drawer: horizontal flex — brand on the
-       *     left, toggle on the right (`ml-auto`).
+       *   - expanded desktop / mobile drawer: horizontal flex — brand at the
+       *     inline start, toggle at the inline end (`ms-auto`).
        *   - collapsed desktop: stack vertically and center — there isn't
        *     room for both brand (32px) and toggle (32px) plus gap inside
        *     an 80px-wide column without the two visually overlapping. */}
       {shouldShowBrandRow && (
         <div
           className={cn(
-            "flex border-b border-border min-h-14",
+            "flex border-b border-(--ilinxa-sidebar-border,var(--border)) min-h-14",
             headerCollapsedDesktop
               ? "flex-col items-center gap-1 px-2 py-2"
               : "items-center gap-2 p-3",
@@ -789,7 +857,7 @@ export function AppSidebar(props: AppSidebarProps) {
                 !mergeAccessoryIntoTopSlot && (
                   <div
                     className={cn(
-                      headerCollapsedDesktop ? "shrink-0" : "ml-auto shrink-0",
+                      headerCollapsedDesktop ? "shrink-0" : "ms-auto shrink-0",
                     )}
                   >
                     {desktopAccessory}
@@ -810,7 +878,7 @@ export function AppSidebar(props: AppSidebarProps) {
 
       {/* Footer zone */}
       {resolvedFooter && (
-        <div className="border-t border-border p-3">{resolvedFooter}</div>
+        <div className="border-t border-(--ilinxa-sidebar-border,var(--border)) p-3">{resolvedFooter}</div>
       )}
     </>
     );
@@ -829,33 +897,58 @@ export function AppSidebar(props: AppSidebarProps) {
     ],
   );
 
-  const drawerSide = mobileDrawerSide ?? side;
+  // v0.5.0 (AS3) — the drawer panel is portalled to <body>, outside every
+  // ancestor that could declare `--ilinxa-*` variables. When it opens, copy
+  // the effective values from the in-tree wrapper (which inherits them) onto
+  // the panel. Order on the panel: inherited < `drawerStyle`.
+  const mobileWrapperRef = useRef<HTMLDivElement | null>(null);
+  const [inheritedDrawerVars, setInheritedDrawerVars] = useState<CSSProperties>({});
+  useIsoLayoutEffect(() => {
+    if (!finalMobileOpen) return;
+    const wrapper = mobileWrapperRef.current;
+    if (!wrapper) return;
+    setInheritedDrawerVars(readInheritedCssVars(wrapper));
+  }, [finalMobileOpen]);
+
+  // Border on the content-facing edge. `start` / `end` use logical classes;
+  // `left` / `right` keep their v0.4 physical classes (+ the RTL hook).
+  const borderClasses =
+    side === "start"
+      ? "border-e"
+      : side === "end"
+        ? "border-s"
+        : cn(
+            side === "left" ? "border-r" : "border-l",
+            "rtl:border-x-0",
+            side === "left" ? "rtl:border-l" : "rtl:border-r",
+          );
 
   return (
     <AppSidebarContext.Provider value={contextValue}>
       {/* Desktop render path — CSS-hidden BELOW breakpoint (L44) */}
       <nav
+        ref={navRef}
         id={sidebarId}
         aria-label={ariaLabel}
         data-component="app-sidebar"
         data-collapsed={finalCollapsed}
         data-mobile-open={finalMobileOpen}
         data-side={side}
+        dir={dirProp}
         onKeyDown={handleKeyDown}
         style={{ ...cssVars, ...style }}
         className={cn(
-          "relative hidden h-full flex-col bg-card",
+          "relative hidden h-full flex-col",
+          // v0.5.0 (AS3/AS7) — surfaces through variables (ancestor-overridable;
+          // map them to `--sidebar` / `--sidebar-border` for shadcn sidebar tokens).
+          "bg-(--ilinxa-sidebar-bg,var(--card)) text-(--ilinxa-sidebar-fg,var(--foreground))",
           desktopVisibleClass,
-          // Side-aware border
-          side === "left" ? "border-r" : "border-l",
-          "border-border",
-          // CSS-var-driven width + motion-safe transition
-          "data-[collapsed=false]:w-(--ilinxa-sidebar-w-expanded)",
-          "data-[collapsed=true]:w-(--ilinxa-sidebar-w-collapsed)",
-          "motion-safe:transition-[width] motion-safe:duration-(--ilinxa-sidebar-transition-duration)",
-          // RTL hook
-          "rtl:border-x-0",
-          side === "left" ? "rtl:border-l" : "rtl:border-r",
+          borderClasses,
+          "border-(--ilinxa-sidebar-border,var(--border))",
+          // CSS-var-driven width + motion-safe transition (defaults at the read site)
+          "data-[collapsed=false]:w-(--ilinxa-sidebar-w-expanded,16rem)",
+          "data-[collapsed=true]:w-(--ilinxa-sidebar-w-collapsed,5rem)",
+          "motion-safe:transition-[width] motion-safe:duration-(--ilinxa-sidebar-transition-duration,300ms)",
           className,
         )}
       >
@@ -871,9 +964,11 @@ export function AppSidebar(props: AppSidebarProps) {
 
       {/* Mobile render path — CSS-hidden ABOVE breakpoint */}
       <div
+        ref={mobileWrapperRef}
         className={mobileVisibleClass}
         data-component="app-sidebar-mobile-wrapper"
-        style={cssVars}
+        dir={dirProp}
+        style={{ ...cssVars, ...style }}
       >
         <Sheet
           open={finalMobileOpen}
@@ -904,23 +999,42 @@ export function AppSidebar(props: AppSidebarProps) {
           <SheetContent
             ref={mobilePanelRef}
             side={drawerSide}
+            dir={dirProp ?? dir}
+            // The primitive's own close button carries a hard-coded English
+            // sr-only "Close" — ours is labelled through `labels`.
+            showCloseButton={false}
             // NOTE: do NOT add `relative` here — it would tailwind-merge
             // away Radix's `fixed inset-y-0 {side}-0`, leaving the panel
             // unpositioned and invisible against the overlay backdrop.
-            className="flex w-72 flex-col bg-card p-0"
-            style={cssVars}
+            className={cn(
+              // Width in BOTH forms: new-york sheets size with `w-3/4`, nova /
+              // base sheets with `data-[side=*]:w-3/4` (higher specificity).
+              // tailwind-merge drops whichever the primitive used. The
+              // primitive's `max-w-sm` (24rem) still caps it.
+              "flex w-(--ilinxa-sidebar-drawer-w,18rem) data-[side=left]:w-(--ilinxa-sidebar-drawer-w,18rem) data-[side=right]:w-(--ilinxa-sidebar-drawer-w,18rem) flex-col bg-(--ilinxa-sidebar-bg,var(--card)) text-(--ilinxa-sidebar-fg,var(--foreground)) p-0",
+              drawerClassName,
+            )}
+            style={{ ...inheritedDrawerVars, ...drawerStyle }}
             aria-describedby={undefined}
             onKeyDown={handleKeyDown}
           >
             <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
-            {skipLinkTarget && (
-              <SidebarSkipLink
-                target={skipLinkTarget}
-                label={skipLinkLabel}
-                onActivated={onSkipLinkActivated}
-              />
-            )}
-            {renderInnerChrome("mobile")}
+            <AppSidebarContext.Provider value={mobileContextValue}>
+              {skipLinkTarget && (
+                <SidebarSkipLink
+                  target={skipLinkTarget}
+                  label={skipLinkLabel}
+                  onActivated={onSkipLinkActivated}
+                />
+              )}
+              {renderInnerChrome("mobile")}
+            </AppSidebarContext.Provider>
+            <SheetClose
+              aria-label={labels.closeNavigation}
+              className="absolute end-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-70 hover:bg-muted hover:text-foreground hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:transition-opacity"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </SheetClose>
           </SheetContent>
         </Sheet>
       </div>

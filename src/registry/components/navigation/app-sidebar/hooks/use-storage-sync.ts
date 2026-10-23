@@ -19,30 +19,47 @@ import {
  *  • mobileOpen is NOT persisted (transient UI, not user-preference).
  *  • Schema-versioned JSON; mismatch silently drops the stored payload.
  *  • Quota / serialization failures silently swallowed.
+ *  • v0.5.0 (AS1) — while `collapsed` is CONTROLLED (`isCollapsed` defined) the
+ *    hook neither reads nor writes it: the host owns that value (cookie, server
+ *    state). Section state still persists, and the stored `collapsed` is carried
+ *    over untouched so an uncontrolled mount later still finds it.
  */
 export function useStorageSync(
   state: SidebarReducerState,
   dispatch: React.Dispatch<SidebarReducerAction>,
   storageKey: string | undefined,
+  collapsedControlled = false,
 ): void {
   const hasReadRef = useRef(false);
+  const readKeyRef = useRef<string | undefined>(undefined);
   const writeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const storedCollapsedRef = useRef<boolean | null>(null);
+  const collapsedControlledRef = useRef(collapsedControlled);
+  useEffect(() => {
+    collapsedControlledRef.current = collapsedControlled;
+  });
 
   // Read once on mount (or when storageKey changes)
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
-    if (hasReadRef.current) return;
+    // Read once per key (StrictMode re-mounts must not re-read; a NEW key must).
+    if (hasReadRef.current && readKeyRef.current === storageKey) return;
     hasReadRef.current = true;
+    readKeyRef.current = storageKey;
+    storedCollapsedRef.current = null;
     try {
       const raw = window.localStorage.getItem(storageKey);
       if (!raw) return;
       const parsed: unknown = JSON.parse(raw);
       if (!isStoredState(parsed)) return;
-      dispatch({
-        type: "EXTERNAL_SYNC",
-        collapsed: parsed.collapsed,
-        mobileOpen: state.mobileOpen,
-      });
+      storedCollapsedRef.current = parsed.collapsed;
+      if (!collapsedControlledRef.current) {
+        dispatch({
+          type: "EXTERNAL_SYNC",
+          collapsed: parsed.collapsed,
+          mobileOpen: state.mobileOpen,
+        });
+      }
       // v0.3.1 (review): whole-set REPLACE, not per-id collapse replay.
       // The old per-id SET-collapsed loop could only ADD collapses — a
       // section the user had EXPANDED (i.e. removed from the stored array,
@@ -65,9 +82,13 @@ export function useStorageSync(
     if (!hasReadRef.current) return; // don't write before initial read
     if (writeTimerRef.current) clearTimeout(writeTimerRef.current);
     writeTimerRef.current = setTimeout(() => {
+      const collapsed = collapsedControlled
+        ? (storedCollapsedRef.current ?? state.collapsed)
+        : state.collapsed;
+      if (!collapsedControlled) storedCollapsedRef.current = collapsed;
       const payload: StoredState = {
         v: STORAGE_SCHEMA_VERSION,
-        collapsed: state.collapsed,
+        collapsed,
         collapsedSectionIds: [...state.collapsedSectionIds],
       };
       try {
@@ -80,5 +101,5 @@ export function useStorageSync(
     return () => {
       if (writeTimerRef.current) clearTimeout(writeTimerRef.current);
     };
-  }, [storageKey, state.collapsed, state.collapsedSectionIds]);
+  }, [storageKey, state.collapsed, state.collapsedSectionIds, collapsedControlled]);
 }

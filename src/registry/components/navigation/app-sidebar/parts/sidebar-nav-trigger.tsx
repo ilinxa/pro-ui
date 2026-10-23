@@ -4,6 +4,7 @@ import { cloneElement, isValidElement } from "react";
 import { PanelLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppSidebarContextOrNull } from "../contexts/sidebar-nav-context";
+import { DEFAULT_APP_SIDEBAR_LABELS } from "../lib/labels";
 import type { AppSidebarHandle, AppSidebarTriggerProps } from "../types";
 
 type SlotCloneProps = React.HTMLAttributes<HTMLElement> & {
@@ -121,7 +122,10 @@ export function AppSidebarTrigger({
     onClick: handleClick,
     "aria-controls": sidebarId,
     "aria-haspopup": "dialog" as const,
-    "aria-label": ariaLabel ?? "Open navigation",
+    "aria-label":
+      ariaLabel ??
+      ctx?.labels.openNavigation ??
+      DEFAULT_APP_SIDEBAR_LABELS.openNavigation,
     className: cn(
       !asChild &&
         "inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

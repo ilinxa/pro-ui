@@ -13,6 +13,32 @@ This is the **description** doc. Its job is to pin down what we're building and 
 
 ---
 
+## v0.5.0 update (2026-10-23)
+
+> Consumer-hardening pass for the ilinxa Social Platform (request §4.1 AS1–AS10 + contract C1–C12, as amended by
+> the verification digest). Loop state + signed-off contract: [`app-sidebar-loop.md`](./app-sidebar-loop.md).
+> Where this section and the text below (or the v0.2.0 / v0.3.0 addenda) disagree, **this section wins**.
+
+**Scope added**
+- **Controlled collapse that holds (AS1)** — a controlled toggle requests `!isCollapsed` from the *rendered* value; with
+  `isCollapsed` set, `storageKey` neither reads nor writes `collapsed` (sections still persist). Enables the
+  server-cookie pattern with no first-paint flip.
+- **Drawer is never collapsed (AS2)** — nested context (`collapsed:false`, `mode:"mobile"`); `topSlot` may be a function
+  of `{ mode, isCollapsed }`; `useAppSidebarMode()`.
+- **CSS variables that actually cascade (AS3)** — defaults move to the read sites (`var(--x, default)`); inline only
+  for passed props; the portalled drawer copies the effective values; `drawerClassName` / `drawerStyle`; the four
+  previously inert variables are wired (row height 2.75rem; section indent default `0`, expanded rail only, so section
+  items keep their v0.4 position). New `--ilinxa-sidebar-fg` / `--ilinxa-nav-hover-bg`. Supersedes L11's "inline defaults on the root".
+- **Labels (AS4/AS5, C2)** — `labels` covers every string; badge-aware accessible names collapsed and expanded.
+- **Tokens (AS6/AS7, C1)** — presence dots + `brand` badge tone on semantic tokens via `cssVars.theme`; surfaces via
+  variables (map to `--sidebar-*`), defaults unchanged.
+- **RTL (AS8, C4)** — `start` / `end` sides (default `start`), `dir`, logical classes, mirrored keys/tooltips/icons.
+- **Hook gates (AS9)**, **C3** `formatBadgeCount`, **C6** `null` badge, **C9** editable-target key guard.
+
+**Corrected claims:** storage rehydration is not "reflected in the first paint" (it runs after mount — use the
+controlled pattern for SSR); `--ilinxa-nav-*` tokens are not "defined in your app's globals.css" (the component reads
+them with built-in defaults; you may override them at any ancestor).
+
 ## 1. Problem
 
 App-shell navigation is the most common high-touch surface in any product, yet shadcn ships no sidebar primitive — every team rolls their own. The result is fragmented: Linear-style left-bar active, Notion-style indent-rail, Slack-style workspace switcher, Discord-style avatar status dot, Vercel-style command-palette-aware shell. Each consumer reimplements the same 30 affordances (collapse, mobile drawer, badge, sections, tooltip-on-collapsed, keyboard nav, reduced-motion, localStorage persist, link primitive abstraction). Most ship a v0.1 that handles the happy path and breaks under real-world consumer load.
@@ -105,7 +131,7 @@ Sidebar root sets these custom properties inline (with prop overrides) so consum
 - `--ilinxa-nav-active-fg` (default `var(--primary-foreground)`)
 - `--ilinxa-nav-active-bar-w` (default `3px`) — width of the accent bar for `"left-bar" | "right-bar"` variants
 - `--ilinxa-nav-badge-size` (default `1.25rem`)
-- `--ilinxa-nav-indent-step` (default `0.75rem`)
+- `--ilinxa-nav-indent-step` (default `0.75rem`; **v0.5.0: default `0`, expanded rail only** — see the v0.5.0 update)
 
 Props (`collapsedWidth?`, `expandedWidth?`, `transitionDuration?`) take string values and write to the CSS vars on the root element. Consumers tweaking via global CSS (`.dark { --ilinxa-nav-active-bg: ... }`) take precedence over component defaults and component-prop fallbacks. **Order:** consumer CSS > consumer prop > component default.
 

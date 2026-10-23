@@ -21,10 +21,15 @@ import { AccountSwitcher } from "../account-switcher/account-switcher";
 import type { SwitcherItem } from "../account-switcher/types";
 import { AppSidebar } from "./app-sidebar";
 import { useFilteredNavSections } from "./hooks/use-filtered-nav-sections";
+import { useAppSidebarMode } from "./contexts/sidebar-nav-context";
 import { AppSidebarTrigger } from "./parts/sidebar-nav-trigger";
 import { TooltipWrapper } from "./parts/tooltip-wrapper";
 import {
+  SIDEBAR_LABELS_AR,
+  SIDEBAR_LABELS_TR,
+  SIDEBAR_NAV_DUMMY_BADGES,
   SIDEBAR_NAV_DUMMY_ITEMS,
+  SIDEBAR_NAV_DUMMY_RTL,
   SIDEBAR_NAV_DUMMY_SECTIONED,
 } from "./dummy-data";
 import type {
@@ -34,7 +39,7 @@ import type {
 } from "./types";
 
 const KSquareLogo = () => (
-  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg) text-sm font-bold">
+  <span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--ilinxa-nav-active-bg,var(--primary)) text-(--ilinxa-nav-active-fg,var(--primary-foreground)) text-sm font-bold">
     K
   </span>
 );
@@ -195,6 +200,11 @@ export default function AppSidebarDemo() {
       <V03RenderItemSlotDemo variant={variant} />
       <V02MultiContextDemo />
       <V02HeadlessFilterDemo />
+      <V05ControlledDemo />
+      <V05RtlDemo />
+      <V05LabelsBadgesDemo />
+      <V05ThemingDemo />
+      <V05DrawerDemo />
     </div>
   );
 }
@@ -513,6 +523,268 @@ function V02HeadlessFilterDemo() {
         <p className="text-xs text-muted-foreground">
           Renders consumer-owned UI; library helper just does the filter math.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v0.5.0 demos
+// ─────────────────────────────────────────────────────────────────────────
+
+const V05_FRAME =
+  "flex min-h-72 overflow-hidden rounded-lg border border-border bg-background lg:h-112";
+const V05_HEADING =
+  "mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground";
+
+function V05Pane({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-muted-foreground sm:p-6">
+      {children}
+    </div>
+  );
+}
+
+function interceptHref(setter: (p: string) => void) {
+  return ({ item, event }: { item: { href?: string }; event: React.MouseEvent }) => {
+    if (item.href) {
+      event.preventDefault();
+      setter(item.href);
+    }
+  };
+}
+
+// Controlled collapse — the parent owns `isCollapsed`. `storageKey` is set to
+// prove storage no longer reads/writes `collapsed` while the prop is defined.
+function V05ControlledDemo() {
+  const [collapsed, setCollapsed] = useState(false);
+  const [accept, setAccept] = useState(true);
+  const [requested, setRequested] = useState<boolean | null>(null);
+  const [path, setPath] = useState("/social/home");
+  return (
+    <div>
+      <p className={V05_HEADING}>
+        v0.5.0 — controlled isCollapsed (storageKey does not fight the prop)
+      </p>
+      <div className={V05_FRAME}>
+        <AppSidebar
+          items={SIDEBAR_NAV_DUMMY_ITEMS}
+          currentPath={path}
+          onItemClick={interceptHref(setPath)}
+          isCollapsed={collapsed}
+          onCollapsedChange={({ collapsed: next }) => {
+            setRequested(next);
+            if (accept) setCollapsed(next);
+          }}
+          storageKey="app-sidebar-demo-controlled"
+          aria-label="Controlled collapse demo"
+        />
+        <V05Pane>
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={accept}
+              onChange={(e) => setAccept(e.target.checked)}
+            />
+            parent accepts the request (untick: the rail must not move)
+          </label>
+          <p>
+            isCollapsed (rendered):{" "}
+            <code className="font-mono">{String(collapsed)}</code>
+          </p>
+          <p>
+            last requested via onCollapsedChange:{" "}
+            <code className="font-mono">
+              {requested === null ? "—" : String(requested)}
+            </code>
+          </p>
+          <p className="text-xs">
+            The toggle requests <code>!isCollapsed</code>. With{" "}
+            <code>isCollapsed</code> set, <code>storageKey</code> still persists
+            section state but never reads or writes <code>collapsed</code>.
+          </p>
+        </V05Pane>
+      </div>
+    </div>
+  );
+}
+
+// RTL — `dir="rtl"` on an ancestor; side="start" (default) docks on the right.
+function V05RtlDemo() {
+  const [path, setPath] = useState("/social/home");
+  return (
+    <div>
+      <p className={V05_HEADING}>
+        v0.5.0 — RTL (dir=&quot;rtl&quot; ancestor, Arabic labels, side=&quot;start&quot;)
+      </p>
+      <div dir="rtl" className={V05_FRAME}>
+        <AppSidebar
+          items={SIDEBAR_NAV_DUMMY_RTL}
+          currentPath={path}
+          onItemClick={interceptHref(setPath)}
+          labels={SIDEBAR_LABELS_AR}
+          brand={{ logo: <KSquareLogo />, label: "كاسدر", href: "/" }}
+          footer={{
+            user: { name: "أليكس مورغان", handle: "@alex", status: "online" },
+            menuItems: [
+              { kind: "item", icon: UserIcon, label: "الملف الشخصي" },
+              { kind: "item", icon: LogOut, label: "تسجيل الخروج", variant: "destructive" },
+            ],
+          }}
+          aria-label="RTL demo"
+        />
+        <V05Pane>
+          <p>
+            Sidebar docks on the inline start (right). Border, active bar,
+            tooltips and collapse icons mirror; the arrow keys swap.
+          </p>
+          <p>
+            Path: <span className="font-mono" dir="ltr">{path}</span>
+          </p>
+        </V05Pane>
+      </div>
+    </div>
+  );
+}
+
+// Turkish labels, badges (number / dot / withheld), formatBadgeCount, brand tone.
+function V05LabelsBadgesDemo() {
+  const [path, setPath] = useState("/social/home");
+  const [collapsed, setCollapsed] = useState(false);
+  const formatTr = useMemo(() => {
+    const nf = new Intl.NumberFormat("tr");
+    return (value: number, max: number) =>
+      value > max ? `${nf.format(max)}+` : nf.format(value);
+  }, []);
+  return (
+    <div>
+      <p className={V05_HEADING}>
+        v0.5.0 — labels (tr) · badge names · formatBadgeCount · withheld (null) · brand tone
+      </p>
+      <div className={V05_FRAME}>
+        <AppSidebar
+          items={SIDEBAR_NAV_DUMMY_BADGES}
+          currentPath={path}
+          onItemClick={interceptHref(setPath)}
+          isCollapsed={collapsed}
+          onCollapsedChange={({ collapsed: next }) => setCollapsed(next)}
+          labels={SIDEBAR_LABELS_TR}
+          formatBadgeCount={formatTr}
+          footer={{
+            user: { name: "Ayşe Yılmaz", status: "online" },
+            menuItems: [{ kind: "item", icon: Settings, label: "Ayarlar" }],
+          }}
+          aria-label="Labels and badges demo"
+        />
+        <V05Pane>
+          <p>
+            Collapse the rail: each badged row keeps an accessible name such as{" "}
+            <code>&quot;Mesajlar, 1284 yeni&quot;</code>; the visible count is
+            formatted by <code>Intl.NumberFormat(&quot;tr&quot;)</code>.
+          </p>
+          <ul className="ml-4 list-disc space-y-1 text-xs">
+            <li>Ana sayfa — numeric badge, <code>tone</code> destructive, <code>activeTone</code> brand (changes while the row is active)</li>
+            <li>Mesajlar — large count, formatted</li>
+            <li>Bildirimler — dot badge (name ends &quot;, yeni&quot;)</li>
+            <li>Gelen kutusu — <code>badge: &#123; value: null &#125;</code> renders nothing; name stays the plain label</li>
+          </ul>
+        </V05Pane>
+      </div>
+    </div>
+  );
+}
+
+// Theming — ancestor CSS variables win over built-in defaults. Tokens only.
+function V05ThemingDemo() {
+  const [path, setPath] = useState("/social/home");
+  const themed = {
+    "--ilinxa-sidebar-bg": "var(--muted)",
+    "--ilinxa-sidebar-border": "var(--ring)",
+    "--ilinxa-nav-active-bg": "var(--accent)",
+    "--ilinxa-nav-active-fg": "var(--accent-foreground)",
+    "--ilinxa-nav-badge-corner-size": "1.25rem",
+    "--ilinxa-sidebar-row-h": "3rem",
+  } as React.CSSProperties;
+  return (
+    <div>
+      <p className={V05_HEADING}>
+        v0.5.0 — theming via ancestor CSS variables (no props)
+      </p>
+      <div style={themed} className={V05_FRAME}>
+        <AppSidebar
+          items={SIDEBAR_NAV_DUMMY_ITEMS}
+          currentPath={path}
+          onItemClick={interceptHref(setPath)}
+          aria-label="Theming demo"
+        />
+        <V05Pane>
+          <p>
+            The wrapper declares <code>--ilinxa-sidebar-bg</code>,{" "}
+            <code>--ilinxa-sidebar-border</code>,{" "}
+            <code>--ilinxa-nav-active-bg</code>/<code>-fg</code>,{" "}
+            <code>--ilinxa-nav-badge-corner-size</code> and{" "}
+            <code>--ilinxa-sidebar-row-h</code>. The sidebar sets none of them
+            inline, so the ancestor wins. Values are design tokens.
+          </p>
+        </V05Pane>
+      </div>
+    </div>
+  );
+}
+
+function ModeChip() {
+  const mode = useAppSidebarMode();
+  return (
+    <div className="px-3 py-2 text-xs text-muted-foreground">
+      topSlot mode: <code className="font-mono">{mode ?? "none"}</code>
+    </div>
+  );
+}
+
+// Drawer — rail is collapsed; the drawer (portalled) shows full labels.
+function V05DrawerDemo() {
+  const ref = useRef<AppSidebarHandle>(null);
+  const [path, setPath] = useState("/social/home");
+  return (
+    <div>
+      <p className={V05_HEADING}>
+        v0.5.0 — drawer: full labels, topSlot as a function, drawerClassName / drawerStyle
+      </p>
+      <div className={V05_FRAME}>
+        <AppSidebar
+          ref={ref}
+          items={SIDEBAR_NAV_DUMMY_ITEMS}
+          currentPath={path}
+          onItemClick={interceptHref(setPath)}
+          defaultCollapsed
+          topSlot={({ mode }) =>
+            mode === "mobile" ? (
+              <ModeChip />
+            ) : null
+          }
+          brand={{ logo: <KSquareLogo />, label: "Kasder", href: "/" }}
+          primaryAction={{ icon: PlusSquare, label: "Post" }}
+          footer={{
+            user: { name: "Alex Morgan", handle: "@alexmorgan", status: "online" },
+            menuItems: [{ kind: "item", icon: Settings, label: "Settings" }],
+          }}
+          drawerClassName="border-primary"
+          drawerStyle={{ "--ilinxa-sidebar-drawer-w": "20rem" } as React.CSSProperties}
+          aria-label="Drawer demo"
+        />
+        <V05Pane>
+          <button
+            type="button"
+            onClick={() => ref.current?.openMobile()}
+            className="self-start rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+          >
+            Open drawer (ref.openMobile)
+          </button>
+          <p className="text-xs">
+            The rail is icon-only, yet the drawer shows the brand label, full
+            labels, inline-end badges and the full user footer.
+          </p>
+        </V05Pane>
       </div>
     </div>
   );

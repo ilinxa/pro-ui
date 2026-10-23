@@ -60,6 +60,12 @@ export function useAppSidebarState(
     isActive: options.isActive,
     defaultMatch: options.defaultMatch,
     permissions: options.permissions,
+    // v0.5.0 (AS9) — the gates the component forwards; without them a lifted
+    // `state` hid every ownerOnly item and showed every minMembers item.
+    keepEmptySections: options.keepEmptySections,
+    isOwner: options.isOwner,
+    currentMaxMembers: options.currentMaxMembers,
+    bypassFiltering: options.bypassFiltering,
   });
 
   // F1 — auto-expand section containing the active item (L48-b)

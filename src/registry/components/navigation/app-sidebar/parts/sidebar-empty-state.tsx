@@ -2,6 +2,8 @@
 
 import { Inbox, ShieldOff, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAppSidebarContextOrNull } from "../contexts/sidebar-nav-context";
+import { DEFAULT_APP_SIDEBAR_LABELS } from "../lib/labels";
 import type { AppSidebarEmptyReason } from "../types";
 
 interface SidebarEmptyStateProps {
@@ -9,30 +11,15 @@ interface SidebarEmptyStateProps {
   className?: string;
 }
 
-const REASON_COPY: Record<
+// v0.5.0 (C2) - icons only; the copy lives in `labels.emptyState`.
+const REASON_ICON: Record<
   AppSidebarEmptyReason,
-  { icon: React.ComponentType<{ className?: string }>; title: string; body: string }
+  React.ComponentType<{ className?: string }>
 > = {
-  "no-items": {
-    icon: Inbox,
-    title: "No items",
-    body: "Configure `items` prop to populate the navigation.",
-  },
-  "all-filtered-by-permission": {
-    icon: ShieldOff,
-    title: "Nothing visible",
-    body: "All items filtered by current permissions.",
-  },
-  "all-hidden": {
-    icon: EyeOff,
-    title: "All items hidden",
-    body: "Every item has `hidden: true`.",
-  },
-  "all-filtered-by-loading": {
-    icon: Inbox,
-    title: "No items",
-    body: "Loading completed with no items.",
-  },
+  "no-items": Inbox,
+  "all-filtered-by-permission": ShieldOff,
+  "all-hidden": EyeOff,
+  "all-filtered-by-loading": Inbox,
 };
 
 /**
@@ -42,7 +29,10 @@ const REASON_COPY: Record<
  * Each reason gets a distinct icon + title + body for diagnostic clarity.
  */
 export function SidebarEmptyState({ reason, className }: SidebarEmptyStateProps) {
-  const { icon: IconComp, title, body } = REASON_COPY[reason];
+  const ctx = useAppSidebarContextOrNull();
+  const labels = ctx?.labels ?? DEFAULT_APP_SIDEBAR_LABELS;
+  const IconComp = REASON_ICON[reason];
+  const { title, body } = labels.emptyState[reason];
   return (
     <div
       role="status"
@@ -53,7 +43,7 @@ export function SidebarEmptyState({ reason, className }: SidebarEmptyStateProps)
     >
       <IconComp className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
       <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="text-xs text-muted-foreground">{body}</p>
+      {body ? <p className="text-xs text-muted-foreground">{body}</p> : null}
     </div>
   );
 }

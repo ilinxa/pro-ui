@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAppSidebarContextOrNull } from "../contexts/sidebar-nav-context";
 import { deriveAvatarFallback } from "../lib/derive-avatar-fallback";
+import { DEFAULT_APP_SIDEBAR_LABELS } from "../lib/labels";
 import type {
   NavUserConfig,
   NavUserMenuItem,
@@ -21,10 +22,11 @@ import { DefaultLink } from "./default-link";
 import { Icon } from "./icon";
 
 const STATUS_DOT_CLASSES: Record<string, string> = {
-  online: "bg-emerald-500",
-  offline: "bg-zinc-400",
-  busy: "bg-red-500",
-  away: "bg-amber-500",
+  // v0.5.0 (AS6) - semantic tokens, not raw palette (the theme maps them)
+  online: "bg-success",
+  offline: "bg-muted-foreground",
+  busy: "bg-destructive",
+  away: "bg-warning",
 };
 
 /**
@@ -55,6 +57,7 @@ export function NavUser({
 }: NavUserConfig & { className?: string }) {
   const ctx = useAppSidebarContextOrNull();
   const isCollapsed = ctx?.state.collapsed ?? false;
+  const labels = ctx?.labels ?? DEFAULT_APP_SIDEBAR_LABELS;
   const [open, setOpen] = useState(false);
 
   const initials = deriveAvatarFallback(user.name);
@@ -70,12 +73,12 @@ export function NavUser({
       type="button"
       className={cn(
         "flex w-full items-center gap-3 rounded-md p-1.5",
-        "hover:bg-muted",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "hover:bg-(--ilinxa-nav-hover-bg,var(--muted))",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-(--ilinxa-sidebar-bg,var(--card))",
         isCollapsed && "justify-center",
         className,
       )}
-      aria-label={isCollapsed ? `${user.name} — open menu` : undefined}
+      aria-label={isCollapsed ? labels.userMenu(user.name) : undefined}
     >
       <span className="relative inline-flex shrink-0">
         <Avatar className="h-9 w-9">
@@ -88,17 +91,16 @@ export function NavUser({
           <span
             aria-hidden="true"
             className={cn(
-              "absolute -bottom-0.5 -right-0.5 inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-card",
-              // RTL flip — status dot stays on the avatar's inline-end side
-              "rtl:right-auto rtl:-left-0.5",
+              // inline-end corner of the avatar (logical: mirrors in RTL)
+              "absolute -bottom-0.5 -end-0.5 inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-(--ilinxa-sidebar-bg,var(--card))",
               statusDot,
             )}
           />
         )}
       </span>
       {!isCollapsed && (
-        <span className="flex min-w-0 flex-1 flex-col text-left">
-          <span className="truncate text-sm font-medium text-foreground">
+        <span className="flex min-w-0 flex-1 flex-col text-start">
+          <span className="truncate text-sm font-medium text-(--ilinxa-sidebar-fg,var(--foreground))">
             {user.name}
           </span>
           {user.handle && (
@@ -162,7 +164,7 @@ export function NavUser({
               <Icon icon={item.icon} className="h-4 w-4" />
               <span className="flex-1">{item.label}</span>
               {item.shortcut && (
-                <span className="ml-auto font-mono text-xs text-muted-foreground">
+                <span className="ms-auto font-mono text-xs text-muted-foreground">
                   {item.shortcut}
                 </span>
               )}
@@ -247,7 +249,7 @@ function NavUserLinkMenuItem({
         <Icon icon={item.icon} className="h-4 w-4" />
         <span className="flex-1">{item.label}</span>
         {item.shortcut && (
-          <span className="ml-auto font-mono text-xs text-muted-foreground">
+          <span className="ms-auto font-mono text-xs text-muted-foreground">
             {item.shortcut}
           </span>
         )}

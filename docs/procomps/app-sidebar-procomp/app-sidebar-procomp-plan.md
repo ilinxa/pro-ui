@@ -10,6 +10,21 @@ This is the **plan** doc. Its job is to convert the description's WHAT into a HO
 
 ---
 
+## v0.5.0 update (2026-10-23)
+
+> Revises locks for the consumer-hardening pass. Contract, invariants I1–I7 + I-neg and the C1–C12 matrix:
+> [`app-sidebar-loop.md`](./app-sidebar-loop.md) §U1. **This section wins over §2–§17 below.**
+
+| Lock | v0.5.0 |
+|---|---|
+| L7 controlled wiring | `useSidebarReducer`'s dispatch routes `TOGGLE/SET_COLLAPSED` and `TOGGLE/SET_MOBILE_OPEN` straight to the change callback (requested value computed from the controlled prop) while that dimension is controlled — the raw reducer never diverges; Defense 1 (microtask) kept |
+| L11 CSS vars (§9) | **superseded** (indent-step default `0`, expanded-only; + `--ilinxa-sidebar-fg`, `--ilinxa-nav-hover-bg`) — no inline defaults; `APP_SIDEBAR_CSS_VARS` is the variable/default table, every read uses `var(--x, default)`; inline only for `collapsedWidth` / `expandedWidth` / `transitionDuration` / `style`; drawer copies `readInheritedCssVars(wrapper)` on open (inherited < `drawerStyle`) |
+| L23 storage (§11) | while `isCollapsed` is defined: no `EXTERNAL_SYNC` from storage; writes carry the stored `collapsed` over untouched |
+| L30/L40 context | context gains `labels`, `mode`, `dir`, `physicalSide`, `formatBadgeCount`; the drawer renders inside a nested provider (`collapsed:false`, `mode:"mobile"`, `physicalSide:drawerSide`) |
+| `side` | `"start" \| "end" \| "left" \| "right"`, default `"start"`; `start`/`end` → `border-e`/`border-s`; `left`/`right` keep the v0.4 classes + RTL hook; drawer side resolved physically from `dir` |
+| §17 keyboard | `dir` swaps expand/collapse arrows; events from editable targets are ignored |
+| New files | `lib/labels.ts`, `hooks/use-direction.ts` (both in `registry.json`) |
+
 ## 1. Inherited inputs (one paragraph)
 
 `app-sidebar` is a registry-portable, framework-agnostic app-shell sidebar with built-in mobile-drawer mode, a 12-slot composition surface, 4 exported prefab parts (`<NavBadge>` / `<NavBrand>` / `<NavPrimaryAction>` / `<NavUser>`), a `<SidebarNavTrigger>` companion for mobile-drawer wiring outside the sidebar's subtree, and a `useSidebarNavState` headless hook. Items use a discriminated union (`NavItem | NavSection | NavSeparator`) supporting flat-or-grouped lists with optional `collapsible` sections. Active route detected via `currentPath` + optional `isActive` predicate + per-item `match`. Link primitive abstracted via `linkComponent` (default `<a href>`) typed as `NavLinkComponent`. CSS-variable theme surface (`--ilinxa-sidebar-*` + `--ilinxa-nav-*`) exposes widths / transitions / active colors at any DOM scope. Five `activeVariant` styles (`"fill" | "left-bar" | "right-bar" | "outline" | "subtle"`). Permissions = simple membership Set. Controlled / uncontrolled / headless-via-hook all supported (with `state` prop winning over individual props). `storageKey` opt-in localStorage persist for collapse + collapsed-sections. F-cross-13 carriers locked: Tooltip + Sheet + DropdownMenu — defensive callback contravariance pre-applied.

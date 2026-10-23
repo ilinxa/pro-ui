@@ -143,7 +143,7 @@ Files land relative to the consumer's source root: `components/<slug>/<sub-path>
 ### navigation
 
 - `@ilinxa/account-switcher` — Popover account and context switcher — active label trigger, switchable context list, and a footer slot for create or request actions.
-- `@ilinxa/app-sidebar` — App-shell sidebar with mobile drawer mode, twelve composition slots, prefab nav parts, and a headless state hook.
+- `@ilinxa/app-sidebar` — App-shell sidebar with a full-label mobile drawer, labels for every string, ancestor-overridable CSS variables, RTL, and a headless state hook.
 - `@ilinxa/file-manager` — Finder-style file browser — grid and list views, marquee multi-select, cut copy paste, drag-and-drop, and a shared clipboard primitive.
 - `@ilinxa/file-tree` — VS Code-style file tree — format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select.
 

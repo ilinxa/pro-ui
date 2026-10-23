@@ -1,8 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useAppSidebarContextOrNull } from "../contexts/sidebar-nav-context";
 import { getActiveVariantClasses } from "../lib/active-variant-classes";
 import { resolveItemHref } from "../lib/href-resolver";
+import { DEFAULT_APP_SIDEBAR_LABELS } from "../lib/labels";
 import type {
   NavBadgeConfig,
   NavItem,
@@ -73,6 +75,8 @@ export function SidebarNavRow({
   hrefTemplateValues,
   resolveHref,
 }: SidebarNavRowProps) {
+  const ctx = useAppSidebarContextOrNull();
+  const labels = ctx?.labels ?? DEFAULT_APP_SIDEBAR_LABELS;
   const isDisabled = item.disabled ?? false;
   // v0.2.0: resolveItemHref applies the precedence pipeline (callback wins
   // over template-value substitution; fallback to item.href as-is). When
@@ -82,9 +86,15 @@ export function SidebarNavRow({
 
   const badgeConfig = resolveBadgeConfig(item.badge);
   const defaultBadge = badgeConfig ? (
-    <NavBadge {...badgeConfig} />
+    <NavBadge {...badgeConfig} active={isActive} />
   ) : null;
-  const badgeNode = renderBadge && badgeConfig
+
+  // v0.5.0 (AS5) — accessible name carries the badge. A SHOWN number / string
+  // value -> "{label}, {value}"; dot / pulse -> "{label}, new". Hidden zero,
+  // null, ReactNode value, or no badge -> collapsed keeps the plain label,
+  // expanded lets the content name the link.
+  const badgeValue = badgeConfig?.value;
+  const rawBadgeNode = renderBadge && badgeConfig
     ? renderBadge({
         item,
         badge: badgeConfig,
@@ -92,6 +102,35 @@ export function SidebarNavRow({
         defaultRender: defaultBadge,
       })
     : defaultBadge;
+  // A badge the consumer's `renderBadge` suppressed (null) or an empty string
+  // is not shown — the name must not announce a count nobody can see.
+  const badgeShown =
+    badgeConfig !== null &&
+    badgeValue !== null &&
+    badgeValue !== undefined &&
+    badgeValue !== "" &&
+    rawBadgeNode !== null &&
+    !(badgeValue === 0 && !badgeConfig.showZero);
+  const isIndicator =
+    badgeConfig?.variant === "dot" || badgeConfig?.variant === "pulse";
+  let rowAriaLabel: string | undefined = isCollapsed ? item.label : undefined;
+  if (badgeShown) {
+    if (isIndicator) {
+      rowAriaLabel = labels.itemWithIndicator(item.label);
+    } else if (typeof badgeValue === "number" || typeof badgeValue === "string") {
+      rowAriaLabel = labels.itemWithBadge(item.label, badgeValue);
+    }
+  }
+  // The row's aria-label already announces the badge: hide the visual one so
+  // it is not read twice.
+  const badgeNode =
+    badgeShown && rowAriaLabel !== undefined && rawBadgeNode !== null ? (
+      <span aria-hidden="true" className="contents">
+        {rawBadgeNode}
+      </span>
+    ) : (
+      rawBadgeNode
+    );
 
   // Tooltip content when collapsed — label + optional shortcut + optional description
   const tooltipContent = renderTooltipContent
@@ -119,7 +158,7 @@ export function SidebarNavRow({
       onMouseEnter={onMouseEnter}
       onFocus={onFocus}
       aria-current={isActive ? "page" : undefined}
-      aria-label={isCollapsed ? item.label : undefined}
+      aria-label={rowAriaLabel}
       aria-disabled={isDisabled || undefined}
       data-active={isActive}
       data-focused={isFocused || undefined}
@@ -128,9 +167,11 @@ export function SidebarNavRow({
       target={item.target}
       rel={item.rel}
       className={cn(
-        "group relative flex items-center gap-3 rounded-lg px-3 py-2.5",
+        // v0.5.0 - row metrics read the documented vars (AS3): min-height
+        // `--ilinxa-sidebar-row-h` (2.75rem) and inline padding `--ilinxa-sidebar-px`.
+        "group relative flex min-h-(--ilinxa-sidebar-row-h,2.75rem) items-center gap-3 rounded-(--ilinxa-nav-row-radius,var(--radius-lg)) px-(--ilinxa-sidebar-px,0.75rem) py-2",
         "text-sm font-medium",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-(--ilinxa-sidebar-bg,var(--card))",
         // Active vs inactive paint via L12 variant matrix
         getActiveVariantClasses(activeVariant, isActive),
         // Disabled (L27)
@@ -188,7 +229,7 @@ export function SidebarNavRow({
   return (
     <TooltipWrapper
       content={tooltipContent}
-      side="right"
+      side={ctx?.physicalSide === "right" ? "left" : "right"}
       disabled={!isCollapsed}
     >
       {linkEl}

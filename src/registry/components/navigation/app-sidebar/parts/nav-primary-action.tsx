@@ -47,7 +47,7 @@ export function NavPrimaryAction({
   const buttonClasses = cn(
     "w-full gap-2",
     isCollapsed && "px-0",
-    tone === "accent" && "bg-(--ilinxa-nav-active-bg) text-(--ilinxa-nav-active-fg) hover:bg-(--ilinxa-nav-active-bg)/90",
+    tone === "accent" && "bg-(--ilinxa-nav-active-bg,var(--primary)) text-(--ilinxa-nav-active-fg,var(--primary-foreground)) hover:bg-(--ilinxa-nav-active-bg,var(--primary))/90",
     tone === "destructive" && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     className,
   );
@@ -85,7 +85,7 @@ export function NavPrimaryAction({
   return (
     <TooltipWrapper
       content={<span className="font-medium">{label}</span>}
-      side="right"
+      side={ctx?.physicalSide === "right" ? "left" : "right"}
       disabled={!isCollapsed}
     >
       {buttonEl}

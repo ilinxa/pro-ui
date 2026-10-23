@@ -52,6 +52,10 @@
   /* story-rail unread ring — same mapping + fallbacks the registry item ships via cssVars.theme */
   --color-story-ring-from: var(--story-ring-from, var(--warning, oklch(0.78 0.16 75)));
   --color-story-ring-to: var(--story-ring-to, var(--destructive));
+  /* app-sidebar presence + brand badge — same mappings + fallbacks the registry item ships via cssVars.theme */
+  --color-success: var(--success, oklch(0.65 0.15 150));
+  --color-brand: var(--brand, var(--primary));
+  --color-brand-foreground: var(--brand-foreground, var(--primary-foreground));
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);

@@ -202,7 +202,7 @@ export function SidebarNavList({
     <ul
       role="list"
       className={cn(
-        "flex flex-1 flex-col gap-1 overflow-y-auto",
+        "flex flex-1 flex-col gap-(--ilinxa-sidebar-row-gap,0.25rem) overflow-y-auto",
         // C5 hooks: motion-safe transitions will live here
       )}
     >

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — 0.x minor) |
-| **Current stage** | U7 — committed locally; push awaits user OK |
+| **Current stage** | CLOSED — shipped `407fea1`, deploy verified 2026-10-23 |
 | **Sign-off policy** | delegated by user 2026-10-23 ("Sign off, delegate rest" — U2–U6 without pausing, ask before push; also covers app-sidebar's U1 unless a composed component breaks). Scroll-aware fades + `axe-core` devDep approved. |
 | **Version target** | v0.3.0 → **v0.4.0** |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finder: Sonnet 5 (fresh) |
@@ -24,7 +24,7 @@ User order (2026-10-23): story-rail first (consumer adopts it for their stories 
 - [x] U4 Adversarial review — 2 fresh finders (23 rows: 20 CONFIRMED+fixed, 3 DROPPED incl. F-V refuted at U5); 13 regression tests added (F-A…F-M), F-C + F-F falsified by the coordinator; gates re-run green
 - [x] U5 Runtime & smoke — browser 21/21 on the production build; installs CLI 4.18.0 + 3.8.5 (base + fixtures) exit 0, consumer tsc 0, theme no-overwrite negative path held
 - [x] U6 Docs sync & review — spotcheck (broad) [`reviews/2026-10-23-v0.4.0-hardening.md`](reviews/2026-10-23-v0.4.0-hardening.md): **Pass with follow-ups** (5, all owned); roster 8/8 clean; doc-drift · doc-budget · inert-surfaces green; digest SR4 claim corrected
-- [ ] U7 Ship — commit · push (ask) · post-deploy check · retro
+- [x] U7 Ship — `407fea1` pushed on user OK (with `0004f43`); live `https://ui.ilinxa.com/r/story-rail.json` verified on poll 3 (8 files incl. `story-rail-context.ts`, pinned deps, both `color-story-ring-*` mappings). Retro: decision `.claude/decisions/2026-10-23-story-rail-v0-4-0.md` (local).
 
 ## U0 — Intake
 

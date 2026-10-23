@@ -44,7 +44,7 @@ export function NavBrand({
     <span className={cn("flex items-center gap-2 min-w-0", className)}>
       {renderLogo()}
       {!isCollapsed && (
-        <span className="truncate text-base font-semibold text-foreground">
+        <span className="truncate text-base font-semibold text-(--ilinxa-sidebar-fg,var(--foreground))">
           {label}
         </span>
       )}

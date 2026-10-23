@@ -6,13 +6,18 @@ export const meta: ComponentMeta = {
   category: "navigation",
 
   description:
-    "App-shell sidebar with mobile drawer mode, twelve composition slots, prefab nav parts, and a headless state hook.",
+    "App-shell sidebar with a full-label mobile drawer, labels for every string, ancestor-overridable CSS variables, RTL, and a headless state hook.",
   context:
-    "App-shell navigation for SaaS dashboards, social products, and developer tools. Single source of truth for the collapsible-left-sidebar pattern: built-in collapse + mobile drawer (Sheet) + tooltips-on-collapsed + sections + separators + permissions + localStorage persist + CSS-variable theme surface. Replaces the per-app reinvention of these 30 affordances. Sibling-of bottom-tab-bar-01 (shares NavBadge part + NavItem schema via cross-procomp relative imports). Migration origin: kasder's SocialSidebar.tsx.",
+    "App-shell navigation for SaaS dashboards, social products, and developer tools. Single source of truth for the collapsible-sidebar pattern: built-in collapse + mobile drawer (Sheet) + tooltips-on-collapsed + sections + separators + permissions + localStorage persist + CSS-variable theme surface. Replaces the per-app reinvention of these 30 affordances. Migration origin: kasder's SocialSidebar.tsx.",
   features: [
-    "Collapsible (uncontrolled / controlled / headless-via-hook)",
+    "Collapsible (uncontrolled / controlled / headless-via-hook) — v0.5: a controlled toggle requests `!isCollapsed` from the rendered value, and `storageKey` never reads/writes `collapsed` while controlled (server-cookie pattern; no first-paint flip)",
+    "v0.5 — `labels` covers every rendered string (nav name, toggle, trigger, drawer close, skip link, loading, user menu, empty states) incl. badge-aware accessible names `itemWithBadge(label, value)` / `itemWithIndicator(label)` for collapsed AND expanded rows",
+    "v0.5 — drawer always renders full labels (nested context: collapsed=false, mode=mobile); `topSlot` may be a function of `{ mode, isCollapsed }`; `useAppSidebarMode()`; `drawerClassName` / `drawerStyle`",
+    "v0.5 — CSS variables are ancestor-overridable (defaults live at the read site, inline only for passed props) and reach the portalled drawer; `APP_SIDEBAR_CSS_VARS` lists them; row height / gap / padding / indent variables wired",
+    "v0.5 — RTL: `side` / `mobileDrawerSide` accept `start` / `end` (default `start`), `dir` prop or computed direction, logical classes, mirrored arrow keys / tooltips / icons",
+    "v0.5 — presence dots and a `brand` badge tone (+ `activeTone`) on semantic tokens shipped via `cssVars.theme`; `formatBadgeCount`; `null` badge = withheld (renders nothing); keyboard handler ignores editable targets",
     "Mobile-drawer mode via shadcn Sheet (CSS-gated render path; no SSR flash)",
-    "<AppSidebarTrigger> companion for hamburger button outside sidebar subtree",
+    "<AppSidebarTrigger> companion — inside the subtree it resolves the sidebar from context; outside, pass `controls={ref}` (and its `aria-label`, since it cannot read `labels`)",
     "Items discriminated union: NavItem | NavSection | NavSeparator",
     "v0.2 — topSlot above brand zone for AccountSwitcher / context widgets",
     "v0.2 — {key} href template substitution + resolveHref callback escape hatch",
@@ -50,11 +55,11 @@ export const meta: ComponentMeta = {
     "theming",
   ],
 
-  version: "0.4.1",
+  version: "0.5.0",
   status: "alpha",
-  artifactBudgetKB: 210,
+  artifactBudgetKB: 230,
   createdAt: "2026-05-22",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-23",
 
   author: { name: "ilinxa" },
 

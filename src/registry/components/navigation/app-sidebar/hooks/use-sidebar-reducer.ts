@@ -1,4 +1,11 @@
-import { useReducer, useEffect, useMemo, useRef, useCallback } from "react";
+import {
+  useReducer,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import {
   type SidebarReducerAction,
   type SidebarReducerInitOptions,
@@ -7,6 +14,9 @@ import {
   sidebarReducer,
 } from "../lib/sidebar-reducer";
 import type { AppSidebarEventArgs } from "../types";
+
+const useIsoLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export interface UseSidebarReducerOptions extends SidebarReducerInitOptions {
   // Controlled-mode props (when provided, drive state via EXTERNAL_SYNC)
@@ -115,9 +125,59 @@ export function useSidebarReducer(
     }
   }, [state.collapsed, state.mobileOpen, state.lastSyncedSnapshot, state.lastMobileOpenReason]);
 
-  // Stable dispatch (useReducer's dispatch is already stable; wrap for symmetry)
+  // v0.5.0 (AS1) — while a dimension is controlled, its mutations never touch
+  // the raw reducer. They compute the REQUESTED value from the RENDERED (prop)
+  // value and go straight to the change callback (still microtask-deferred,
+  // Defense 1). Before, a toggle flipped the raw state — and once anything had
+  // made raw ≠ prop (the storage read used to), the first click requested the
+  // value already on screen and did nothing.
+  const controlledRef = useRef({
+    collapsed: options.isCollapsed,
+    mobileOpen: options.isMobileOpen,
+  });
+  // Layout effect: a parent's layout effect / a same-commit handle call must
+  // already see the new prop.
+  useIsoLayoutEffect(() => {
+    controlledRef.current = {
+      collapsed: options.isCollapsed,
+      mobileOpen: options.isMobileOpen,
+    };
+  });
+
   const stableDispatch = useCallback<React.Dispatch<SidebarReducerAction>>(
-    (action) => dispatch(action),
+    (action) => {
+      const controlled = controlledRef.current;
+      if (
+        controlled.collapsed !== undefined &&
+        (action.type === "TOGGLE_COLLAPSED" || action.type === "SET_COLLAPSED")
+      ) {
+        const current = controlled.collapsed;
+        const requested =
+          action.type === "TOGGLE_COLLAPSED" ? !current : action.collapsed;
+        if (requested !== current) {
+          queueMicrotask(() => {
+            onCollapsedChangeRef.current?.({ collapsed: requested });
+          });
+        }
+        return;
+      }
+      if (
+        controlled.mobileOpen !== undefined &&
+        (action.type === "TOGGLE_MOBILE" || action.type === "SET_MOBILE_OPEN")
+      ) {
+        const current = controlled.mobileOpen;
+        const requested =
+          action.type === "TOGGLE_MOBILE" ? !current : action.open;
+        const reason = action.reason ?? "imperative";
+        if (requested !== current) {
+          queueMicrotask(() => {
+            onMobileOpenChangeRef.current?.({ open: requested, reason });
+          });
+        }
+        return;
+      }
+      dispatch(action);
+    },
     [],
   );
 

@@ -173,7 +173,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `story-viewer` | media | Full-screen story viewer — segmented progress, 3D cube transitions, finger-following swipe, tap zones, and an engagemen… |
 | `video-player` | media | Video element wrapper — autoplay-friendly defaults, slot-based controls, carousel-coordinated pause, and double-tap ges… |
 | `account-switcher` | navigation | Popover account and context switcher — active label trigger, switchable context list, and a footer slot for create or r… |
-| `app-sidebar` | navigation | App-shell sidebar with mobile drawer mode, twelve composition slots, prefab nav parts, and a headless state hook. |
+| `app-sidebar` | navigation | App-shell sidebar with a full-label mobile drawer, labels for every string, ancestor-overridable CSS variables, RTL, an… |
 | `file-manager` | navigation | Finder-style file browser — grid and list views, marquee multi-select, cut copy paste, drag-and-drop, and a shared clip… |
 | `file-tree` | navigation | VS Code-style file tree — format-aware icons, full CRUD, drag-and-drop, lazy children, and multi-select. |
 <!-- END GENERATED CATALOG -->

@@ -23,7 +23,13 @@ interface SidebarNavSectionProps {
  *
  * Behavior:
  *  - collapsible=true → header is a <button aria-expanded aria-controls> that toggles
- *  - collapsible=false → header is a <h6 role="heading"> (label only, not focusable)
+ *  - collapsible=false → header is a visual label only (`aria-hidden`); the
+ *    body list's `aria-label` names the group, so it is announced once.
+ *
+ * v0.5.0 (axe): the body is a plain `<ul aria-label>` — `role="group"` on a
+ * `<ul>` removed its list semantics and orphaned every `<li>` row (axe
+ * `listitem`); the old `<h6>` title broke the host page's heading outline
+ * (axe `heading-order`) at a level the sidebar cannot know.
  *
  * At sidebar-collapsed mode (icon-only), section title hides; only the icon
  * shows. If section has no icon, the section header collapses to a thin
@@ -47,18 +53,18 @@ export function SidebarNavSection({
     return (
       <li className="list-none">
         {section.icon || section.title ? (
-          <div className="px-3 py-1.5" role="presentation" aria-hidden="true">
+          <div className="px-(--ilinxa-sidebar-px,0.75rem) py-1.5" role="presentation" aria-hidden="true">
             {section.icon ? (
               <Icon
                 icon={section.icon}
                 className="h-3.5 w-3.5 text-muted-foreground"
               />
             ) : (
-              <div className="h-px w-full bg-border" />
+              <div className="h-px w-full bg-(--ilinxa-sidebar-border,var(--border))" />
             )}
           </div>
         ) : (
-          <div className="my-1 h-px w-full bg-border" role="presentation" />
+          <div className="my-1 h-px w-full bg-(--ilinxa-sidebar-border,var(--border))" role="presentation" />
         )}
         {!isCollapsed && (
           // <ul> (not <div>) so the `<li>` rows produced by SidebarNavRow
@@ -67,9 +73,8 @@ export function SidebarNavSection({
           // valid HTML for a nested list group.
           <ul
             id={bodyId}
-            role="group"
             aria-label={section.title}
-            className="flex flex-col gap-1"
+            className="flex flex-col gap-(--ilinxa-sidebar-row-gap,0.25rem)"
           >
             {children}
           </ul>
@@ -85,7 +90,7 @@ export function SidebarNavSection({
       <span className="truncate">{section.title}</span>
       {visibleItemCount > 0 && (
         <span
-          className="ml-1 text-[10px] font-normal text-muted-foreground/70"
+          className="ms-1 text-[10px] font-normal text-muted-foreground/70"
           aria-hidden="true"
         >
           {visibleItemCount}
@@ -106,9 +111,9 @@ export function SidebarNavSection({
           data-focused={isFocused || undefined}
           tabIndex={rovingTabIndex}
           className={cn(
-            "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left",
-            "hover:bg-muted/50",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+            "flex w-full items-center gap-2 rounded-md px-(--ilinxa-sidebar-px,0.75rem) py-1.5 text-start",
+            "hover:bg-(--ilinxa-nav-hover-bg,var(--muted))/50",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-(--ilinxa-sidebar-bg,var(--card))",
           )}
         >
           {headerInner}
@@ -116,25 +121,29 @@ export function SidebarNavSection({
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground",
               "motion-safe:transition-transform motion-safe:duration-200",
-              isCollapsed && "-rotate-90",
-              // RTL: chevron rotates the OTHER way when collapsed so it
-              // still points "outward" from the open direction
-              isCollapsed && "rtl:rotate-90",
+              // Collapsed: point toward the inline END (right in LTR, left in
+              // RTL). A scale mirror of a symmetric chevron does nothing —
+              // rotate the other way instead.
+              isCollapsed && "-rotate-90 rtl:rotate-90",
             )}
             aria-hidden="true"
           />
         </button>
       ) : section.title ? (
-        // Non-collapsible header — pure label, not focusable
-        <h6 className="px-3 py-1.5">{headerInner}</h6>
+        // Non-collapsible header — visual label; the list's aria-label names the group
+        <div className="px-(--ilinxa-sidebar-px,0.75rem) py-1.5" aria-hidden="true">
+          {headerInner}
+        </div>
       ) : null}
 
       {!isCollapsed && (
         <ul
           id={bodyId}
-          role="group"
           aria-label={section.title}
-          className="mt-0.5 flex flex-col gap-1"
+          // v0.5.0 — items inside a section indent by `--ilinxa-nav-indent-step`
+          // (default 0 = the v0.4 look). Expanded rail only: the collapsed rail
+          // renders the branch above, where icons stay on the centre line.
+          className="mt-0.5 flex flex-col gap-(--ilinxa-sidebar-row-gap,0.25rem) ps-(--ilinxa-nav-indent-step,0)"
         >
           {children}
         </ul>
