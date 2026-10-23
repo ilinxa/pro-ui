@@ -4,9 +4,28 @@
 >
 > **Migration origin:** [`docs/migrations/social-posts-system/`](../../migrations/social-posts-system/) — derived from kasder `StoriesSection.tsx` + `StoryThumbnail.tsx` (story rail concern only; story viewer concern → [`story-viewer`](../story-viewer-procomp/), eighth ship).
 >
-> **Seventh of 8** in the social-posts-system arc — story doublet, part 1. Decoupled from the viewer: clicking a thumbnail fires `onItemClick(item, index)` and host owns the viewer. Once `story-viewer` ships, the canonical wiring (post-feed-page Tier-3 composition) plugs both together.
+> **Seventh of 8** in the social-posts-system arc — story doublet, part 1. Decoupled from the viewer: clicking a thumbnail fires `onItemClick({ item, index })` (positional until v0.2) and host owns the viewer. Once `story-viewer` ships, the canonical wiring (post-feed-page Tier-3 composition) plugs both together.
 >
 > Embla used directly (sealed-folder rule — story-rail's start-aligned + drag-free + small-rectangle config differs structurally from media-carousel's centered + snap + large-square gallery; cross-importing would force adapter layers). NOT a cross-folder import.
+
+## v0.4.0 update (2026-10-23)
+
+> Consumer-hardening pass for the ilinxa Social Platform (request §4.2 SR1–SR8 + contract C1–C12, as amended by
+> `.claude/hardening-request-verification-2026-10-23.md`). Loop state + signed-off change contract:
+> [`story-rail-loop.md`](./story-rail-loop.md). Where this section and the text below disagree, **this section wins**.
+
+**Scope added**
+- **Optional preview** — `previewImage?`; absent / failing → avatar card (author avatar on `bg-muted`, same 80×112 tile). `onPreviewError(item)` may resolve a refreshed URL (signed URLs expire), retried once. Lazy/async `<img>` with `width`/`height`/`srcSet`/`sizes` (C8).
+- **Story-ring tokens** — unread ring `from-story-ring-from to-story-ring-to`, delivered as item `cssVars.theme` mappings with fallbacks (locked decision 4). Supersedes the kasder `from-accent via-warning to-destructive` ring (our `--accent` is neutral, so the ring started grey).
+- **Muted authors** — `muted?: boolean`: grey ring even when unread, reduced opacity, the label function receives the item.
+- **Arrows** — opt-in `arrows: "none" | "fine-pointer" | "always"` (default `"none"`, decision 2), page-wise, hidden where the rail cannot scroll, labelled, mirrored, reduced-motion jump.
+- **Controlled items** — `items` + `onItemsChange` (prop wins every render; mutations + deltas reported) or `defaultItems`. `items` alone keeps the read-once path with a dev warning (decision 1; supersedes "always-uncontrolled").
+- **RTL** — `dir` prop or nearest `[dir]` ancestor → Embla `direction`; logical positions; mirrored fades.
+- **Add tile labels wired** — `addStoryLabel` / `addStoryAriaLabel` were declared but inert (inert-surface defect); `AddStoryThumbnail` now reads the rail's labels from context.
+- **Scroll-aware fades** — a fade shows only where the rail can scroll; width is `--story-rail-fade-width` (default kept, `3rem`). User-approved 2026-10-23.
+- **Fixes** — focus ring clipped by the viewport (track `py-1`); Add tile had no focus indicator; `ref.scrollTo(i)` was off by one with `leading`.
+
+**Corrected claims below:** "Drag-scroll inherits Embla's keyboard arrow-key support" (a11y) was never true — Embla binds no keys. Keyboard reach is Tab: Embla 8.6 `watchFocus` scrolls a focused tile into view; the opt-in arrows are buttons. `onItemClick(item, index)` mentions are the v0.1 positional shape; it is `onItemClick({ item, index })` since v0.2.
 
 ## Problem
 
@@ -127,7 +146,7 @@ export interface StoryRailHandle {
 - Each thumbnail is a `<button aria-label={labels.thumbnailAriaLabel}>` with the username + unread state announced (`{username}, unread story` / `{username}, viewed`).
 - Add-story thumbnail's `+` badge has `aria-hidden`; the button itself has `aria-label={labels.addStoryAriaLabel}`.
 - Edge gradients are `aria-hidden`.
-- Drag-scroll inherits Embla's keyboard arrow-key support.
+- ~~Drag-scroll inherits Embla's keyboard arrow-key support.~~ Never true (Embla binds no keys) — corrected in v0.4.0: Tab + `watchFocus`, plus opt-in arrow buttons.
 - Hover scale wrapped in `motion-safe:` so reduced-motion users see static thumbnails.
 
 ### i18n labels
@@ -253,7 +272,7 @@ Per the locked-pattern memory, only one decision is novel enough to surface — 
 
 ## Pre-emptive locks (silent — committed per locked-pattern memory)
 
-- **Always-uncontrolled** with `reset(next)` + `dispatch(action)` imperative handle (matches comment-thread R-Plan-15 + post-card). `items` prop is mount-only initial state.
+- ~~**Always-uncontrolled**~~ — superseded in v0.4.0 (controlled `items` + `onItemsChange`, uncontrolled `defaultItems`; see the v0.4.0 update). `reset(next)` + `dispatch(action)` imperative handle kept.
 - **`<StoryRail>` is `"use client"`** — owns Embla + state.
 - **`<AddStoryThumbnail>` is `"use client"`** — owns onClick handler (could be RSC if click moved out, but client is simpler for v0.1).
 - **`React.memo` at export + ref-as-prop** (project standard).
@@ -267,7 +286,7 @@ Per the locked-pattern memory, only one decision is novel enough to surface — 
 - **Thumbnail dimensions locked** to `w-20 h-28` (kasder-exact). No size knob in v0.1; `renderThumbnail` slot is the escape hatch.
 - **Tailwind v4 translations applied at write-time:** `bg-gradient-to-X` → `bg-linear-to-X` (kasder source already correct since their codebase migrated).
 - **Locked target convention** for `registry.json`: every file `type: "registry:component"`, `target: "components/story-rail/<sub>"`. Never ship demo / usage / meta. Fixtures via `-fixtures` sibling.
-- **`onItemClick(item, index)` signature** — both args (matches engagement-bar / media-carousel callback shapes).
+- **`onItemClick` signature** — object shape `({ item, index })` since v0.2 (v0.1 shipped positional `(item, index)`).
 - **`useId()` per thumbnail** for accessible-name wiring inside `renderThumbnail` slot (helpers carry id).
 
 ---

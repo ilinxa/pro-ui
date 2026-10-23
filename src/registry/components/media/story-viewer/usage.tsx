@@ -5,7 +5,7 @@ export default function StoryViewerUsage() {
       <p className="text-muted-foreground">
         Reach for <code>StoryViewer</code> when you need an Instagram-style
         full-screen modal viewer for sequential stories. Pairs with{" "}
-        <code>StoryRail</code>: rail fires <code>onItemClick(item, index)</code>;
+        <code>StoryRail</code>: rail fires <code>onItemClick({"{ item, index }"})</code>;
         host opens <code>&lt;StoryViewer isOpen ... /&gt;</code> with the
         matching index. The viewer&apos;s <code>onStoryViewed(storyId)</code>{" "}
         feeds back into <code>railRef.current.markViewed(storyId)</code> so the
@@ -56,8 +56,8 @@ const [activeIdx, setActiveIdx] = useState(-1);
 
 <StoryRail
   ref={railRef}
-  items={stories}
-  onItemClick={(_item, index) => setActiveIdx(index)}
+  defaultItems={stories}
+  onItemClick={({ index }) => setActiveIdx(index)}
 />
 
 {activeIdx >= 0 ? (

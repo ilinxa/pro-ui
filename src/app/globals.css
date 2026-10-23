@@ -49,6 +49,9 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  /* story-rail unread ring — same mapping + fallbacks the registry item ships via cssVars.theme */
+  --color-story-ring-from: var(--story-ring-from, var(--warning, oklch(0.78 0.16 75)));
+  --color-story-ring-to: var(--story-ring-to, var(--destructive));
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);

@@ -136,7 +136,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `rich-text-editor` | data | Plate-powered WYSIWYG editor and read-only viewer for long-form articles — code blocks, captioned images, floating tool… |
 | `schedule-list` | data | Time-anchored agenda list — time or range, title, optional description and icons, per-row links, framed or bare. |
 | `stat-card` | data | Single-metric dashboard card — value, label, delta, and a dependency-free SVG sparkline with polarity-aware coloring. |
-| `story-rail` | data | Horizontal story rail with unread gradient rings, drag-free skim scrolling, an add-story tile, and edge-fade gradients. |
+| `story-rail` | data | Horizontal story rail with unread gradient rings, drag-free skim scrolling, optional arrows, an add-story tile, and scr… |
 | `task-card` | data | Schema-driven task card with time-aware color coding, popup and inline editing, clipboard and drag-drop payloads, and p… |
 | `task-tree` | data | Hierarchical task outline with multi-select, bulk operations, search and filter toolbar, dual drag-and-drop, and virtua… |
 | `thumbnail-list` | data | Linked thumbnail list — small image, title, and meta line per row, each row one link target. |

@@ -1,6 +1,6 @@
 import type { StoryRailDelta, StoryRailItem, Subscribe } from "./types";
 
-/** 7 mock users — kasder's `mockStories` array, mapped to the rail's preview shape. */
+/** 9 mock users (incl. one without a preview and one muted-unread) — kasder's `mockStories` array, mapped to the rail's preview shape. */
 export const DUMMY_STORIES: StoryRailItem[] = [
   {
     id: "1",
@@ -9,6 +9,9 @@ export const DUMMY_STORIES: StoryRailItem[] = [
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
     previewImage:
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+    previewSrcSet:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=160 160w, https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=320 320w, https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800 800w",
+    previewSizes: "80px",
     hasUnread: true,
   },
   {
@@ -64,6 +67,26 @@ export const DUMMY_STORIES: StoryRailItem[] = [
     previewImage:
       "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800",
     hasUnread: true,
+  },
+  // No `previewImage` yet (e.g. a video story still processing its poster)
+  // -> renders the avatar card.
+  {
+    id: "8",
+    userId: "u8",
+    username: "selin",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
+    hasUnread: true,
+  },
+  // Muted AND unread -> grey ring, reduced opacity.
+  {
+    id: "9",
+    userId: "u9",
+    username: "burak",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100",
+    previewImage:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
+    hasUnread: true,
+    muted: true,
   },
 ];
 

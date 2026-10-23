@@ -84,7 +84,7 @@ Files land relative to the consumer's source root: `components/<slug>/<sub-path>
 - `@ilinxa/rich-text-editor` — Plate-powered WYSIWYG editor and read-only viewer for long-form articles — code blocks, captioned images, floating toolbar, HTML export.
 - `@ilinxa/schedule-list` — Time-anchored agenda list — time or range, title, optional description and icons, per-row links, framed or bare.
 - `@ilinxa/stat-card` — Single-metric dashboard card — value, label, delta, and a dependency-free SVG sparkline with polarity-aware coloring.
-- `@ilinxa/story-rail` — Horizontal story rail with unread gradient rings, drag-free skim scrolling, an add-story tile, and edge-fade gradients.
+- `@ilinxa/story-rail` — Horizontal story rail with unread gradient rings, drag-free skim scrolling, optional arrows, an add-story tile, and scroll-aware edge fades.
 - `@ilinxa/task-card` — Schema-driven task card with time-aware color coding, popup and inline editing, clipboard and drag-drop payloads, and permission predicates.
 - `@ilinxa/task-tree` — Hierarchical task outline with multi-select, bulk operations, search and filter toolbar, dual drag-and-drop, and virtualization.
 - `@ilinxa/thumbnail-list` — Linked thumbnail list — small image, title, and meta line per row, each row one link target.

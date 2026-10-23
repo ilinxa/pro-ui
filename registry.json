@@ -3245,7 +3245,7 @@
       "name": "story-rail",
       "type": "registry:block",
       "title": "Story Rail",
-      "description": "Horizontal story rail with unread gradient rings, drag-free skim scrolling, an add-story tile, and edge-fade gradients.",
+      "description": "Horizontal story rail with unread gradient rings, drag-free skim scrolling, optional arrows, an add-story tile, and scroll-aware edge fades.",
       "author": "ilinxa",
       "categories": [
         "data"
@@ -3254,12 +3254,13 @@
         "avatar"
       ],
       "dependencies": [
-        "lucide-react",
-        "embla-carousel-react"
+        "lucide-react@^1.11.0",
+        "embla-carousel-react@^8.6.0"
       ],
       "cssVars": {
         "theme": {
-          "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+          "color-story-ring-from": "var(--story-ring-from, var(--warning, oklch(0.78 0.16 75)))",
+          "color-story-ring-to": "var(--story-ring-to, var(--destructive))"
         }
       },
       "files": [
@@ -3292,6 +3293,16 @@
           "path": "src/registry/components/data/story-rail/hooks/use-story-rail-state.ts",
           "type": "registry:component",
           "target": "components/story-rail/hooks/use-story-rail-state.ts"
+        },
+        {
+          "path": "src/registry/components/data/story-rail/parts/story-rail-context.ts",
+          "type": "registry:component",
+          "target": "components/story-rail/parts/story-rail-context.ts"
+        },
+        {
+          "path": "src/registry/components/data/story-rail/hooks/use-rail-environment.ts",
+          "type": "registry:component",
+          "target": "components/story-rail/hooks/use-rail-environment.ts"
         }
       ]
     },

@@ -14,6 +14,8 @@ export type {
   StoryRailProps,
   StoryRailHandle,
   StoryRailLabels,
+  ResolvedStoryRailLabels,
+  StoryRailArrows,
   StoryRailDelta,
   StoryRailLocalAction,
   ThumbnailRenderHelpers,

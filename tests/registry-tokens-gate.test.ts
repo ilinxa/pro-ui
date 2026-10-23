@@ -109,6 +109,16 @@ describe("missing-mapping", () => {
     for (const t of ["glow", "ember"]) expect(r.out).toContain(`"${t}"`);
   });
 
+  it("treats a var() with an inline fallback as an override knob, but still scans the fallback", () => {
+    const ok = run([item()], { "src/a.tsx": `const c = "w-(--fade-width,3rem)"; const s = { width: "var(--gap, 12px)" };` });
+    expect(ok.out).toContain("0 findings");
+    expect(ok.status).toBe(0);
+    const nested = run([item()], { "src/a.tsx": `const s = { color: "var(--ring-from, var(--halo))" };` });
+    expect(nested.status).toBe(1);
+    expect(nested.out).toContain(`"halo"`);
+    expect(nested.out).not.toContain(`"ring-from"`);
+  });
+
   it("does not read a JS decrement like `(--count)` as a token", () => {
     const r = run([item()], { "src/a.tsx": `let count = 2; const x = (--count) + [--count][0];` });
     expect(r.out).toContain("0 findings");

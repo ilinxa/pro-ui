@@ -145,6 +145,10 @@ export function scanText(raw, localDefs = new Set()) {
   while ((m = varRe.exec(src))) {
     const t = m[1];
     if (DEFAULT_TOKENS.has(t) || localDefs.has(t) || isPrivate(t)) continue;
+    // `var(--x, fallback)` / `w-(--x,3rem)` resolves without the consumer defining `--x` — it is
+    // an override knob, not a missing token. A var INSIDE the fallback is still matched by this
+    // loop on its own, so `var(--x, var(--brand))` keeps flagging `brand`.
+    if (/^\s*,/.test(src.slice(varRe.lastIndex))) continue;
     found.push({ token: t, line: lineOf(m.index), kind: "var()", excerpt: excerptAt(m.index) });
   }
   return found;

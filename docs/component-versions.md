@@ -55,7 +55,7 @@
 | `rich-text-editor` | Rich Text Editor | 0.4.0 | alpha | 2026-10-23 |
 | `schedule-list` | Schedule List | 0.2.0 | alpha | 2026-08-11 |
 | `stat-card` | Stat Card | 0.1.2 | alpha | 2026-08-11 |
-| `story-rail` | Story Rail | 0.3.0 | alpha | 2026-08-11 |
+| `story-rail` | Story Rail | 0.4.0 | alpha | 2026-10-23 |
 | `task-card` | Task Card | 0.5.0 | alpha | 2026-08-11 |
 | `task-tree` | Task Tree | 0.4.1 | alpha | 2026-08-18 |
 | `thumbnail-list` | Thumbnail List | 0.2.0 | alpha | 2026-08-11 |

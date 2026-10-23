@@ -8,6 +8,26 @@
 >
 > **Embla used directly — NOT cross-importing media-carousel (sealed-folder rule).**
 
+## v0.4.0 update (2026-10-23)
+
+> Revises the locks below for the consumer-hardening pass. Contract, invariants I1–I11 and the C1–C12 matrix:
+> [`story-rail-loop.md`](./story-rail-loop.md) §U1 (user sign-off 2026-10-23). **This section wins over the tables below.**
+
+| Lock | v0.4.0 |
+|---|---|
+| Q-P1 item shape | + `previewImage?` (optional), `previewSrcSet?`, `previewSizes?`, `muted?` |
+| Q-P2 / R-D-1 fades | position logical (`start-0`/`end-0` inside a `relative` track wrapper, so framed/bare differ only in `from-card`/`from-background`); gradient flips under `rtl:`; **scroll-aware** (opacity by `canPrev`/`canNext` from Embla `scrollProgress`); width `w-(--story-rail-fade-width,3rem)` |
+| Q-P4 uncontrolled | **superseded** — `defaultItems` (uncontrolled; `onItemsChange` alone notifies) · `items`+`onItemsChange` (controlled; `dispatch` computes from the latest list, chained via a ref reset only when the rendered list changes identity — U4 F-F) · `items` alone = legacy read-once + one dev warning per mount |
+| Q-P8 ring | `bg-linear-to-br from-story-ring-from to-story-ring-to`; read + muted `bg-muted`; `motion-safe:transition-colors`. Item `cssVars.theme`: `color-story-ring-from: var(--story-ring-from, var(--warning, oklch(0.78 0.16 75)))`, `color-story-ring-to: var(--story-ring-to, var(--destructive))` |
+| Q-P13 | `use-rail-environment.ts`: `useFinePointer` / `useReducedMotion` (`useSyncExternalStore`, server snapshot `false`), `useResolvedDirection` (layout effect) — server render == first client render |
+| Q-P16 | object-shape `onItemClick({ item, index })` (v0.2) |
+| New | `parts/story-rail-context.ts` — `StoryRailLabelsContext` carries resolved labels to `leading` parts |
+| New | arrows: `top-[3.875rem]` (tile centre: `py-1` + 58px), `start-1`/`end-1`, `size-8` round token button; page step = `slidesInView` span; slide→snap clamp to `scrollSnapList().length-1`; a focused arrow that unmounts hands focus to the other |
+| New | `scrollTo(i)` → slide `i + (leading ? 1 : 0)`, clamped; jump under reduced motion |
+| New | `StoryPreview` keyed by `previewImage`: phases primary → refreshing → retry → failed; mount probe catches pre-hydration errors (`complete && naturalWidth === 0`) |
+| Files | + `hooks/use-rail-environment.ts`, `parts/story-rail-context.ts` (both in `registry.json` `files[]`); deps pinned to meta ranges (C10); budget 25 → 46 KB (built 43.11 KB after U4 fixes) |
+| Tests | `__tests__/` — reducer (lib) + component (jsdom, Embla mocked, axe-core 4.14.0) |
+
 ## Q-P locks (most carry from precedents — only novel ones re-stated)
 
 | # | Lock | Source |
@@ -15,7 +35,7 @@
 | Q-P1 | `StoryRailItem` shape: minimal preview (`id` / `username` / `avatar?` / `previewImage` / `hasUnread?` / `userId?`). Story-viewer-01 will define its own full `Story` type. | Stage-1 Q1 |
 | Q-P2 | Edge fade gradients adapt to `framed` mode — `from-card` + `left-4 right-4` when framed; `from-background` + `left-0 right-0` when bare. | Stage-1 R-D-1 |
 | Q-P3 | Embla used inline, no wrapper hook, no indicator dots. Just `useEmblaCarousel(opts)` + `api?.scrollTo(i)`. | Stage-1 R-D-2 |
-| Q-P4 | Always-uncontrolled — `items` prop is mount-only initial state. `reset(next)` + `dispatch(action)` imperative escape hatches. | comment-thread R-Plan-15 + post-card |
+| Q-P4 | ~~Always-uncontrolled~~ — **superseded v0.4.0** (see the update table above). `reset(next)` + `dispatch(action)` kept. | comment-thread R-Plan-15 + post-card |
 | Q-P5 | Realtime via `Subscribe<StoryRailDelta>` + `onSubscribeDelta` callback. Identity-stable (`useCallback` host-side). Same `controlledRef` + `onSubscribeDeltaRef` mirror pattern. | engagement-bar + comment-thread carry-over |
 | Q-P6 | Embla config kasder-exact: `align: "start"`, `containScroll: "trimSnaps"`, `dragFree: true`. | kasder source |
 | Q-P7 | Thumbnail dimensions locked: `w-20 h-28` outer (80×112px portrait); `rounded-2xl` outer ring; `rounded-[14px]` inner image; `border-2 border-card`. | kasder source |
@@ -27,7 +47,7 @@
 | Q-P13 | `<StoryRail>` is `"use client"` (Embla state + handle); `<AddStoryThumbnail>` is `"use client"` (button click). | inherited |
 | Q-P14 | `React.memo` at export + ref-as-prop. | project standard |
 | Q-P15 | `commentReducer`-style `storyRailReducer` exported from day-1 (per dynamicity primacy). `useStoryRailState` hook also public. | post-card carry-over |
-| Q-P16 | `onItemClick(item, index)` signature — both args. `linkComponent` + `getHref` co-exist (both can fire on click). | engagement-bar / media-carousel callback shape |
+| Q-P16 | `onItemClick` — positional `(item, index)` in v0.1, **object `({ item, index })` since v0.2**. `linkComponent` + `getHref` co-exist (both can fire on click). | engagement-bar / media-carousel callback shape |
 | Q-P17 | `useId()` per thumbnail wired into `renderThumbnail` slot helpers — for hosts attaching ARIA via the slot. | comment-thread R-Plan-12 carry-over |
 | Q-P18 | No new shadcn primitives — `avatar` already installed. NOT using the shadcn `card` primitive (R-Plan-1: render `<section>` with conditional card-style classes). Embla peer dep already installed (media-carousel). | R-Plan-1 |
 | Q-P22 | Edge gradients render only when items are present (not over empty state). | R-Plan-2 |
@@ -590,7 +610,7 @@ Two items: base + fixtures.
   "name": "story-rail",
   "type": "registry:block",
   "title": "Story Rail",
-  "description": "Horizontal stories rail (kasder-exact thumbnails) — gradient ring on unread, muted ring on read; AddStoryThumbnail standalone export + leading slot for custom; Embla used directly with drag-free skim-scroll; mode-aware edge-fade gradients (framed vs bare); realtime via Subscribe<StoryRailDelta>. Always-uncontrolled with reset() + dispatch() imperative escape hatches. No new shadcn primitives; Embla peer dep already shared with media-carousel. Seventh ship in the social-posts-system arc.",
+  "description": "Horizontal stories rail (kasder-exact thumbnails) — gradient ring on unread, muted ring on read; AddStoryThumbnail standalone export + leading slot for custom; Embla used directly with drag-free skim-scroll; mode-aware edge-fade gradients (framed vs bare); realtime via Subscribe<StoryRailDelta>. (v0.1 snapshot; the live item description is in registry.json.) Always-uncontrolled with reset() + dispatch() imperative escape hatches. No new shadcn primitives; Embla peer dep already shared with media-carousel. Seventh ship in the social-posts-system arc.",
   "registryDependencies": [
     "https://ui.shadcn.com/r/styles/new-york/avatar.json",
     "https://ui.shadcn.com/r/styles/new-york/card.json"
