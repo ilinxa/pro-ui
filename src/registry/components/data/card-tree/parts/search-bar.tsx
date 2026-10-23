@@ -81,7 +81,7 @@ export function CardTreeSearchBar({
         </span>
       ) : null}
       {hasMatches ? (
-        <span className="inline-flex shrink-0 items-center gap-0.5 border-l border-border pl-1">
+        <span className="inline-flex shrink-0 items-center gap-0.5 border-s border-border ps-1">
           <button
             type="button"
             onClick={onPrevious}

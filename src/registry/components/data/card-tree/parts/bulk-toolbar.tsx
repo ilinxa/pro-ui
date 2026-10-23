@@ -55,7 +55,7 @@ export function BulkToolbar({
       <span className="font-mono text-[10px] text-muted-foreground">
         · L{levelMin}–L{levelMax} · {totalFields} fields{lockedCount > 0 ? ` · ${lockedCount} locked` : ""}
       </span>
-      <div className="ml-auto flex flex-wrap items-center gap-1">
+      <div className="ms-auto flex flex-wrap items-center gap-1">
         <BulkSetFieldPopover onCommit={onBulkSetField} />
         <button
           type="button"

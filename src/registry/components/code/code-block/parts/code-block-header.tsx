@@ -41,7 +41,7 @@ export function CodeBlockHeader({
         className,
       )}
     >
-      {showTrafficLights ? <CodeBlockTrafficLights className="mr-1" /> : null}
+      {showTrafficLights ? <CodeBlockTrafficLights className="me-1" /> : null}
       <CodeBlockFilename filename={filename} />
       {filename && showLanguage && resolvedLang && resolvedLang !== "plaintext" ? (
         <span aria-hidden="true" className="text-muted-foreground/40">·</span>

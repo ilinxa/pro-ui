@@ -35,7 +35,7 @@ export function SwitcherItemRow({
         data-active={isActive || undefined}
         onClick={onSelect}
         className={cn(
-          "group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+          "group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-start text-sm transition-colors",
           "hover:bg-accent hover:text-accent-foreground",
           "focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none",
           isActive && "bg-accent/60 text-accent-foreground",
@@ -48,7 +48,7 @@ export function SwitcherItemRow({
         ) : null}
         <span className="min-w-0 flex-1 truncate">{item.label}</span>
         {isActive ? (
-          <Check className="ml-auto h-4 w-4 shrink-0 text-foreground" aria-hidden="true" />
+          <Check className="ms-auto h-4 w-4 shrink-0 text-foreground" aria-hidden="true" />
         ) : null}
       </button>
     </li>

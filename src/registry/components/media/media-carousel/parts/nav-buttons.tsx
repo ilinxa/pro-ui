@@ -16,7 +16,7 @@ export function NavButtons({ scrollPrev, scrollNext, labels }: NavButtonsProps) 
         type="button"
         variant="secondary"
         size="icon"
-        className="absolute top-1/2 left-2 z-10 h-8 w-8 -translate-y-1/2 rounded-full opacity-80 hover:opacity-100 rtl:rotate-180"
+        className="absolute top-1/2 start-2 z-10 h-8 w-8 -translate-y-1/2 rounded-full opacity-80 hover:opacity-100 rtl:rotate-180"
         onClick={scrollPrev}
         aria-label={labels.previousSlide}
       >
@@ -26,7 +26,7 @@ export function NavButtons({ scrollPrev, scrollNext, labels }: NavButtonsProps) 
         type="button"
         variant="secondary"
         size="icon"
-        className="absolute top-1/2 right-2 z-10 h-8 w-8 -translate-y-1/2 rounded-full opacity-80 hover:opacity-100 rtl:rotate-180"
+        className="absolute top-1/2 end-2 z-10 h-8 w-8 -translate-y-1/2 rounded-full opacity-80 hover:opacity-100 rtl:rotate-180"
         onClick={scrollNext}
         aria-label={labels.nextSlide}
       >

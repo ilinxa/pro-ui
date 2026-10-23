@@ -69,7 +69,7 @@ export function HandwrittenNote({
       data-failed={note.failed ? "" : undefined}
     >
       {actions ? (
-        <div className="absolute right-1 top-1 z-10 flex items-center gap-0.5 rounded-md bg-black/30 p-0.5 opacity-0 backdrop-blur-sm transition-opacity group-focus-within/note:opacity-100 group-hover/note:opacity-100">
+        <div className="absolute end-1 top-1 z-10 flex items-center gap-0.5 rounded-md bg-black/30 p-0.5 opacity-0 backdrop-blur-sm transition-opacity group-focus-within/note:opacity-100 group-hover/note:opacity-100">
           {actions}
         </div>
       ) : null}

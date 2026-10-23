@@ -59,7 +59,7 @@ export const FileCard = forwardRef<HTMLDivElement, FileCardProps>(function FileC
             <PreviewKindIcon kind={kind} className="size-9" />
           </span>
         )}
-        <span className="absolute left-2 top-2">
+        <span className="absolute start-2 top-2">
           <FileKindBadge kind={kind} ext={ext} />
         </span>
         {dims ? (

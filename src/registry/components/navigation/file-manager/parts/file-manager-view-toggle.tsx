@@ -39,7 +39,7 @@ export function FileManagerViewToggle() {
             onClick={() => actions.setViewMode(mode)}
             className={cn(
               buttonVariants({ variant: "ghost", size: "icon" }),
-              "size-7 rounded-none first:rounded-l-lg last:rounded-r-lg",
+              "size-7 rounded-none first:rounded-s-lg last:rounded-e-lg",
               state.viewMode === mode && "bg-muted",
             )}
           >

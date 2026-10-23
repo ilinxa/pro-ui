@@ -152,6 +152,7 @@ export function ImageElement(props: ElementProps) {
               aria-label="Resize image"
               onMouseDown={handleResizeStart}
               className={cn(
+                // dir-ok: resize handle sits on the edge that handleResizeStart drags by physical clientX delta (width grows rightward)
                 "absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2",
                 "h-12 w-1.5 cursor-ew-resize rounded-full bg-primary/40",
                 "opacity-0 transition-opacity hover:opacity-100 group-hover/img:opacity-100",

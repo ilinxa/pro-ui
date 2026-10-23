@@ -216,7 +216,7 @@ export function FieldWrapper({
               >
                 {field.label}
                 {required ? (
-                  <span aria-hidden="true" className="ml-0.5 text-destructive">
+                  <span aria-hidden="true" className="ms-0.5 text-destructive">
                     {ctx.strings.requiredIndicator}
                   </span>
                 ) : null}

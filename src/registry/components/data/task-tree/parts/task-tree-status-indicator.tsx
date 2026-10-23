@@ -33,7 +33,7 @@ export function TaskTreeStatusIndicator({
         aria-hidden
         data-status={statusOption?.value ?? "unknown"}
         className={cn(
-          "pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l",
+          "pointer-events-none absolute inset-y-0 start-0 w-1 rounded-s",
           palette.strip,
           className,
         )}

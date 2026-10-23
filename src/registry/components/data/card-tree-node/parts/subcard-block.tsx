@@ -64,7 +64,7 @@ function SubcardBlockImpl({
       data-subcard-focusable={canFocusThisSubcard ? undefined : "false"}
       // F-05 + G1 lock — MUST stay position: relative; do not remove.
       className={cn(
-        "relative w-full rounded-sm border border-border/60 bg-muted/30 p-2 text-left",
+        "relative w-full rounded-sm border border-border/60 bg-muted/30 p-2 text-start",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         canFocusThisSubcard && "cursor-pointer hover:border-border hover:bg-muted/50",
         !canFocusThisSubcard && "cursor-default",

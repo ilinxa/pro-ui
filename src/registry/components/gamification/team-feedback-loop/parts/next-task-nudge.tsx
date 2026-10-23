@@ -27,7 +27,7 @@ export function NextTaskNudge({
       className={cn(
         "flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 text-card-foreground",
         placement === "corner" &&
-          "fixed bottom-4 right-4 z-40 max-w-xs shadow-lg",
+          "fixed bottom-4 end-4 z-40 max-w-xs shadow-lg",
         className,
       )}
     >
@@ -45,7 +45,7 @@ export function NextTaskNudge({
           {suggestion.label}
         </span>
       </div>
-      <div className="ml-auto flex shrink-0 items-center gap-1">
+      <div className="ms-auto flex shrink-0 items-center gap-1">
         <Button size="sm" variant="secondary" onClick={() => onAccept(suggestion)}>
           Start
         </Button>

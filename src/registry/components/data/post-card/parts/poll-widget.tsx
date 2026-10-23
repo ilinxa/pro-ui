@@ -163,7 +163,7 @@ export function PollWidget({
                 <div
                   aria-hidden="true"
                   className={cn(
-                    "absolute inset-y-0 left-0 transition-[width] duration-300 ease-out motion-reduce:transition-none",
+                    "absolute inset-y-0 start-0 transition-[width] duration-300 ease-out motion-reduce:transition-none",
                     opt.isViewerChoice ? "bg-primary/20" : "bg-foreground/[0.06]",
                   )}
                   style={{ width: `${opt.pct}%` }}

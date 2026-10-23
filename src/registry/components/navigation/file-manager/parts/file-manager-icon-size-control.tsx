@@ -45,7 +45,7 @@ export function FileManagerIconSizeControl() {
               onClick={() => actions.setIconSize(size)}
               className={cn(
                 buttonVariants({ variant: "ghost", size: "icon" }),
-                "size-7 rounded-none first:rounded-l-lg last:rounded-r-lg",
+                "size-7 rounded-none first:rounded-s-lg last:rounded-e-lg",
                 state.iconSize === size && "bg-muted",
               )}
             >

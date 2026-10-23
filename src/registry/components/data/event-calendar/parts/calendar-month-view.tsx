@@ -65,7 +65,7 @@ export function MonthDayCell({
       onClick={onDayClick ? () => onDayClick(day) : undefined}
       onDoubleClick={onDayDoubleClick ? (e) => onDayDoubleClick(day, e) : undefined}
       className={cn(
-        "relative min-h-27 border-r border-border outline-none last:border-r-0",
+        "relative min-h-27 border-e border-border outline-none last:border-e-0",
         (onDayClick || creatable) && "cursor-pointer",
         creatable &&
           "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
@@ -93,7 +93,7 @@ export function MonthDayCell({
                 e.stopPropagation();
                 onShowMore(day, hiddenItems.map((o) => o.item));
               }}
-              className="w-full rounded-sm px-1 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="w-full rounded-sm px-1 text-start text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               +{hidden} more
             </button>
@@ -104,7 +104,7 @@ export function MonthDayCell({
               <PopoverTrigger
                 type="button"
                 onClick={(e) => e.stopPropagation()}
-                className="w-full rounded-sm px-1 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="w-full rounded-sm px-1 text-start text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 +{hidden} more
               </PopoverTrigger>
@@ -222,7 +222,7 @@ export function CalendarMonthView({ className }: { className?: string }) {
           <div
             key={d.toISOString()}
             role="columnheader"
-            className="border-r border-border px-2 py-1.5 text-xs font-medium text-muted-foreground last:border-r-0"
+            className="border-e border-border px-2 py-1.5 text-xs font-medium text-muted-foreground last:border-e-0"
           >
             {format(d, "EEE")}
           </div>

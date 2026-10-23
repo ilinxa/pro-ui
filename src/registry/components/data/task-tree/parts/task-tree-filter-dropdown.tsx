@@ -80,7 +80,7 @@ export function TaskTreeFilterDropdown({
         <Filter className="size-3.5" />
         <span>Filter</span>
         {totalActive > 0 && (
-          <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+          <Badge variant="secondary" className="ms-1 h-4 px-1 text-[10px]">
             {totalActive}
           </Badge>
         )}

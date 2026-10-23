@@ -118,7 +118,7 @@ function TriggerButtonInner<T extends EntityLike>(
       </span>
       <ChevronDown
         aria-hidden="true"
-        className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
+        className="ms-auto size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
       />
     </div>
   );

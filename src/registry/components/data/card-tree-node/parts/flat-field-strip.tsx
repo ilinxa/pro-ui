@@ -20,7 +20,7 @@ function FlatFieldStripImpl({ fields }: { fields: FlatField[] }) {
           <dd
             className={cn(
               "truncate",
-              field.type === "number" && "text-right font-mono tabular-nums",
+              field.type === "number" && "text-end font-mono tabular-nums",
               field.type === "boolean" && "text-center",
               field.type === "date" && "font-mono",
             )}

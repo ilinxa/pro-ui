@@ -70,7 +70,7 @@ export function TaskTreeRowContent({
       data-dimmed={dimmed || undefined}
       data-active={item.active}
       className={cn(
-        "relative flex flex-col justify-center gap-0.5 py-1.5 pr-2",
+        "relative flex flex-col justify-center gap-0.5 py-1.5 pe-2",
         dimmed && "opacity-50",
         className,
       )}

@@ -81,7 +81,7 @@ function CardTreeViewerImpl({
         disabled={!ctx.onEditRequest}
         className={cn(
           "flex w-full items-center gap-2 border-b border-border px-3 py-2",
-          "text-left text-sm font-semibold",
+          "text-start text-sm font-semibold",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           ctx.onEditRequest && "cursor-pointer hover:bg-accent/40",
           !ctx.onEditRequest && "cursor-default",

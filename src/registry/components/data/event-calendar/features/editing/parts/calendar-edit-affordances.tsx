@@ -111,7 +111,7 @@ export function DayResizeGrip({
       onClick={(e) => e.stopPropagation()}
       className={cn(
         "absolute inset-y-0 z-10 hidden w-2.5 cursor-ew-resize items-center justify-center group-hover:flex",
-        edge === "start" ? "left-0" : "right-0",
+        edge === "start" ? "start-0" : "end-0",
       )}
     >
       <span

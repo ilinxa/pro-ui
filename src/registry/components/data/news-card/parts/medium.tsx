@@ -127,10 +127,10 @@ export function MediumPart(props: ResolvedPartProps) {
           imageClassName,
         )}
       />
-      {categoryChip && <div className="absolute left-4 top-4">{categoryChip}</div>}
+      {categoryChip && <div className="absolute start-4 top-4">{categoryChip}</div>}
       {item.views !== undefined ? (
         <div
-          className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm"
+          className="absolute bottom-4 end-4 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm"
           aria-label={`${item.views} ${labels.viewsLabel}`}
         >
           <Eye aria-hidden="true" className="h-3 w-3" />
@@ -327,7 +327,7 @@ export function MediumPart(props: ResolvedPartProps) {
           (Exclusive / Featured) render as a separate kicker above the title
           in the body — distinct semantic so they get distinct visual position. */}
       {showStateBadges && (
-        <div className="absolute right-2 top-2 z-20 flex max-w-[75%] flex-wrap justify-end gap-1">
+        <div className="absolute end-2 top-2 z-20 flex max-w-[75%] flex-wrap justify-end gap-1">
           {renderBadges ? (
             renderBadges(item, { canModerate })
           ) : (

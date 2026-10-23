@@ -180,7 +180,7 @@ export const CalendarEventChip = forwardRef<HTMLButtonElement, ChipProps>(
         data-occ-id={occ.id}
         style={accentStyle(occ)}
         className={cn(
-          "flex w-full items-center gap-1 truncate rounded-sm border-l-2 border-(--cal-accent) px-1.5 py-0.5 text-left text-xs leading-tight",
+          "flex w-full items-center gap-1 truncate rounded-sm border-s-2 border-(--cal-accent) px-1.5 py-0.5 text-start text-xs leading-tight",
           SURFACE,
           FOCUS,
           SELECTED,
@@ -226,20 +226,20 @@ export const CalendarEventBar = forwardRef<HTMLButtonElement, BarProps>(
         data-occ-id={occ.id}
         style={accentStyle(occ)}
         className={cn(
-          "flex h-5 w-full items-center truncate px-1.5 text-left text-xs font-medium leading-none",
+          "flex h-5 w-full items-center truncate px-1.5 text-start text-xs font-medium leading-none",
           SURFACE,
           FOCUS,
           SELECTED,
           continuesLeft
-            ? "rounded-l-none"
-            : "rounded-l-sm border-l-2 border-(--cal-accent)",
-          continuesRight ? "rounded-r-none" : "rounded-r-sm",
+            ? "rounded-s-none"
+            : "rounded-s-sm border-s-2 border-(--cal-accent)",
+          continuesRight ? "rounded-e-none" : "rounded-e-sm",
           occ.inactive && "opacity-50",
           className,
         )}
       >
         {!continuesLeft ? (
-          <span className="mr-1 inline-flex shrink-0">
+          <span className="me-1 inline-flex shrink-0">
             <PriorityFlag color={occ.flagColor} />
           </span>
         ) : null}
@@ -283,7 +283,7 @@ export const CalendarTimeBlock = forwardRef<HTMLButtonElement, TimeBlockProps>(
           width: `calc(${width * 100}% - 2px)`,
         })}
         className={cn(
-          "absolute z-10 flex flex-col overflow-hidden rounded-sm border-l-2 border-(--cal-accent) px-1.5 py-0.5 text-left text-xs leading-tight",
+          "absolute z-10 flex flex-col overflow-hidden rounded-sm border-s-2 border-(--cal-accent) px-1.5 py-0.5 text-start text-xs leading-tight",
           SURFACE,
           FOCUS,
           "hover:z-20 focus-visible:z-20 data-[selected=true]:z-20",

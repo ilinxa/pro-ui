@@ -72,7 +72,7 @@ export function BlockquoteElement(props: ElementProps) {
     <Wrapped
       {...withAs(props, "blockquote")}
       className={cn(
-        "my-6 border-l-4 border-primary pl-6 py-2 italic text-muted-foreground bg-muted/30 rounded-r-md",
+        "my-6 border-s-4 border-primary ps-6 py-2 italic text-muted-foreground bg-muted/30 rounded-e-md",
         props.className
       )}
     >
@@ -106,7 +106,7 @@ export function ListElement(props: ElementProps) {
     <Wrapped
       {...withAs(props, tag)}
       className={cn(
-        "my-4 ml-6",
+        "my-4 ms-6",
         listStyleType === "decimal" ? "list-decimal" : "list-disc",
         props.className
       )}
@@ -176,7 +176,7 @@ export function TableCellHeaderElement(props: ElementProps) {
     <Wrapped
       {...withAs(props, "th")}
       className={cn(
-        "border border-border bg-muted/40 px-3 py-2 text-left font-semibold align-top",
+        "border border-border bg-muted/40 px-3 py-2 text-start font-semibold align-top",
         props.className
       )}
     >

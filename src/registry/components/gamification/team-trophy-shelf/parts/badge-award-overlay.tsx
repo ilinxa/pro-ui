@@ -45,6 +45,7 @@ export default function BadgeAwardOverlay({
           {SPARKS.map((spark, i) => (
             <span
               key={i}
+              // dir-ok: centred by the inline translate(-50%) and offset by physical spark.x — a symmetric burst
               className="absolute left-1/2 top-1/2 size-1.5 rounded-full bg-primary animate-ping"
               style={{
                 transform: `translate(-50%, -50%) translate(${spark.x}px, ${spark.y}px)`,

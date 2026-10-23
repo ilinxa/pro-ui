@@ -46,11 +46,11 @@ export const meta: ComponentMeta = {
 
   // 0.5.2 (2026-08-11): F-cross-13 path-b sweep — context-menu trigger asChild →
   // box-less span; zero public-API change.
-  version: "0.7.1",
+  version: "0.7.2",
   status: "alpha",
   artifactBudgetKB: 220,
   createdAt: "2026-06-20",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

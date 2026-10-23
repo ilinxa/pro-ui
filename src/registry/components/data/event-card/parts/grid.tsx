@@ -129,7 +129,7 @@ export function EventCardGrid({
         {/* Status badge — top-left */}
         <span
           className={cn(
-            "absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium",
+            "absolute top-4 start-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium",
             statusEntry.className,
           )}
         >
@@ -141,7 +141,7 @@ export function EventCardGrid({
         <span
           className={cn(
             "absolute backdrop-blur-sm border rounded-md text-xs px-2.5 py-0.5",
-            hasActions ? "bottom-4 right-4" : "top-4 right-4",
+            hasActions ? "bottom-4 end-4" : "top-4 end-4",
             typeStyle?.className ?? "bg-muted text-muted-foreground border-border",
           )}
         >
@@ -150,20 +150,20 @@ export function EventCardGrid({
 
         {/* Actions slot — top-right, above link overlay */}
         {hasActions && (
-          <div className="absolute top-4 right-4 z-10 flex gap-1.5">
+          <div className="absolute top-4 end-4 z-10 flex gap-1.5">
             {actions}
           </div>
         )}
 
         {/* Days-until OR ongoing pill — bottom-left */}
         {status !== "expired" && status !== "ongoing" && (
-          <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 text-white">
+          <div className="absolute bottom-4 start-4 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 text-white">
             <div className="text-2xl font-bold leading-none">{daysUntil}</div>
             <div className="text-xs text-white/70">{formatDaysUntilSuffix(daysUntil)}</div>
           </div>
         )}
         {status === "ongoing" && (
-          <div className="absolute bottom-4 left-4 bg-accent/90 backdrop-blur-sm rounded-lg px-3 py-2 text-accent-foreground inline-flex items-center gap-2">
+          <div className="absolute bottom-4 start-4 bg-accent/90 backdrop-blur-sm rounded-lg px-3 py-2 text-accent-foreground inline-flex items-center gap-2">
             <span
               aria-hidden="true"
               className="w-2 h-2 rounded-full bg-current motion-safe:animate-pulse"
@@ -194,7 +194,7 @@ export function EventCardGrid({
           {featured && (
             <Star
               aria-hidden="true"
-              className="inline w-4 h-4 fill-primary text-primary mr-1.5 align-baseline"
+              className="inline w-4 h-4 fill-primary text-primary me-1.5 align-baseline"
             />
           )}
           {event.title}

@@ -28,11 +28,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["video-player", "video", "media", "player", "carousel"],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   artifactBudgetKB: 30,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

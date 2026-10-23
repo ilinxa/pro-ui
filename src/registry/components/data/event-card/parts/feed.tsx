@@ -192,7 +192,7 @@ export function EventCardFeed({
             {featured && (
               <Star
                 aria-hidden="true"
-                className="inline w-4 h-4 fill-primary text-primary mr-1.5 align-baseline"
+                className="inline w-4 h-4 fill-primary text-primary me-1.5 align-baseline"
               />
             )}
             {event.title}

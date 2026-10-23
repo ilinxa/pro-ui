@@ -644,7 +644,7 @@ export const FileManager = forwardRef<
           onKeyDown={kb.onKeyDown}
         >
           {sidebar ? (
-            <aside className="flex w-64 shrink-0 flex-col border-r border-border/60 bg-card/30">
+            <aside className="flex w-64 shrink-0 flex-col border-e border-border/60 bg-card/30">
               {sidebar}
             </aside>
           ) : null}
@@ -733,7 +733,7 @@ export const FileManager = forwardRef<
               : null}
           </div>
           {details ? (
-            <aside className="flex w-72 min-w-70 shrink-0 flex-col border-l border-border/60 bg-card/30">
+            <aside className="flex w-72 min-w-70 shrink-0 flex-col border-s border-border/60 bg-card/30">
               {details}
             </aside>
           ) : null}

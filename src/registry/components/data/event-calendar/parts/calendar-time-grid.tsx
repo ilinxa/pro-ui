@@ -30,7 +30,7 @@ export function TimeGutter() {
       {HOURS.map((h) => (
         <div key={h} style={{ height: HOUR_PX }} className="relative">
           {h > 0 ? (
-            <span className="absolute -top-2 right-1.5 text-[0.65rem] tabular-nums text-muted-foreground">
+            <span className="absolute -top-2 end-1.5 text-[0.65rem] tabular-nums text-muted-foreground">
               {format(new Date(2000, 0, 1, h), "h a")}
             </span>
           ) : null}
@@ -82,7 +82,7 @@ function AllDayBand({ columns }: { columns: Date[] }) {
 
   return (
     <div className="flex border-b border-border">
-      <div className="flex w-14 shrink-0 items-start justify-end pr-1.5 pt-1 text-[0.6rem] uppercase text-muted-foreground">
+      <div className="flex w-14 shrink-0 items-start justify-end pe-1.5 pt-1 text-[0.6rem] uppercase text-muted-foreground">
         all day
       </div>
       <div className="relative flex-1">
@@ -94,7 +94,7 @@ function AllDayBand({ columns }: { columns: Date[] }) {
             ) : (
               <div
                 key={day.toISOString()}
-                className="min-h-7 border-l border-border first:border-l-0"
+                className="min-h-7 border-s border-border first:border-s-0"
               />
             ),
           )}
@@ -202,7 +202,7 @@ function DayColumn({
   return (
     <div
       ref={colRef}
-      className="relative flex-1 border-l border-border"
+      className="relative flex-1 border-s border-border"
       style={{ height: DAY_PX }}
       onPointerDown={
         edit
@@ -354,7 +354,7 @@ export function TimeGrid({
         {columns.map((day) => (
           <div
             key={day.toISOString()}
-            className="flex-1 border-l border-border px-2 py-1.5 text-center"
+            className="flex-1 border-s border-border px-2 py-1.5 text-center"
           >
             <div className="text-xs text-muted-foreground">{format(day, "EEE")}</div>
             <div

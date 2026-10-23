@@ -82,7 +82,7 @@ export function RailThumb({
               }}
               className="size-full object-cover"
             />
-            <span className="absolute bottom-0.5 right-0.5 grid place-items-center rounded-sm bg-black/60 p-0.5 text-white">
+            <span className="absolute bottom-0.5 end-0.5 grid place-items-center rounded-sm bg-black/60 p-0.5 text-white">
               <Film className="size-3" aria-hidden />
             </span>
           </>
@@ -102,7 +102,7 @@ export function RailThumb({
             aria-label={labels.reorderHint}
             {...attributes}
             {...listeners}
-            className="absolute bottom-0.5 left-0.5 grid size-6 cursor-grab touch-none place-items-center rounded bg-black/55 text-white opacity-90 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+            className="absolute bottom-0.5 start-0.5 grid size-6 cursor-grab touch-none place-items-center rounded bg-black/55 text-white opacity-90 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
           >
             <GripVertical className="size-4" aria-hidden />
           </button>
@@ -113,7 +113,7 @@ export function RailThumb({
               e.stopPropagation();
               onRemove(item.id);
             }}
-            className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute -end-1.5 -top-1.5 grid size-6 place-items-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="size-3.5" aria-hidden />
           </button>

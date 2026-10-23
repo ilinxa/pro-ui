@@ -34,7 +34,7 @@ export const FieldSlider: FieldRenderer = ({
         aria-describedby={ariaProps["aria-describedby"]}
         className="flex-1"
       />
-      <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">
+      <span className="w-10 text-end text-xs tabular-nums text-muted-foreground">
         {safe}
       </span>
     </div>

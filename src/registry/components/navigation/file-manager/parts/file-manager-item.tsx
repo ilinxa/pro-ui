@@ -215,7 +215,7 @@ export function FileManagerItemView(props: FileManagerItemViewProps) {
       <span className="hidden w-32 shrink-0 text-xs text-muted-foreground sm:block">
         {formatDate(node.modifiedAt)}
       </span>
-      <span className="hidden w-20 shrink-0 text-right font-mono text-xs text-muted-foreground sm:block">
+      <span className="hidden w-20 shrink-0 text-end font-mono text-xs text-muted-foreground sm:block">
         {isFolder ? "—" : formatBytes(node.size ?? 0)}
       </span>
       <span className="hidden w-16 shrink-0 text-xs text-muted-foreground md:block">

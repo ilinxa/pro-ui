@@ -100,7 +100,7 @@ function ShareMenuInner({
       <div className="relative">
         <Search
           aria-hidden="true"
-          className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute start-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         />
         <Input
           value={query}
@@ -108,7 +108,7 @@ function ShareMenuInner({
             void handleQueryChange(e.target.value);
           }}
           placeholder={searchPlaceholder}
-          className="h-9 pl-8"
+          className="h-9 ps-8"
         />
       </div>
       <ul className="-mx-1 max-h-64 overflow-y-auto" role="list">
@@ -125,7 +125,7 @@ function ShareMenuInner({
               <button
                 type="button"
                 onClick={() => onShareTo(user)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   {user.avatar ? (

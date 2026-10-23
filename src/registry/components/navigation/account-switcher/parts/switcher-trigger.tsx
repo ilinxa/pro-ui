@@ -101,11 +101,11 @@ export function SwitcherTriggerContent({
           {renderIcon(activeItem.icon, "h-4 w-4") as ReactNode}
         </span>
       ) : null}
-      <span className="min-w-0 flex-1 truncate text-left">
+      <span className="min-w-0 flex-1 truncate text-start">
         {activeItem?.label ?? "—"}
       </span>
       <ChevronsUpDown
-        className="ml-auto h-4 w-4 shrink-0 text-muted-foreground"
+        className="ms-auto h-4 w-4 shrink-0 text-muted-foreground"
         aria-hidden="true"
       />
     </>

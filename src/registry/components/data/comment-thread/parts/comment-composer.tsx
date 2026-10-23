@@ -175,7 +175,7 @@ function CommentComposerInner({
           disabled={disabled || isSubmitting}
           aria-label={ariaLabel ?? placeholderText}
           aria-busy={isSubmitting}
-          className="resize-none border-0 bg-muted/50 pr-10"
+          className="resize-none border-0 bg-muted/50 pe-10"
         />
         <Button
           type="button"
@@ -186,7 +186,7 @@ function CommentComposerInner({
           }}
           disabled={!value.trim() || isSubmitting || disabled}
           aria-label={sendLabel}
-          className="absolute right-1 top-1.5 h-7 w-7"
+          className="absolute end-1 top-1.5 h-7 w-7"
         >
           <Send
             className={cn(

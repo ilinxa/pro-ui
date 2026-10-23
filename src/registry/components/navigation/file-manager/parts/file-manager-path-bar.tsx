@@ -120,7 +120,7 @@ export function FileManagerPathBar(props: FileManagerPathBarProps) {
       {onPathTyped ? (
         <Pencil
           aria-hidden="true"
-          className="ml-auto size-3 shrink-0 text-muted-foreground/40"
+          className="ms-auto size-3 shrink-0 text-muted-foreground/40"
         />
       ) : null}
     </nav>

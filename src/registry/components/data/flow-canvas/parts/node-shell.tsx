@@ -43,7 +43,7 @@ function NodeShellImpl({
           aria-label="Locked"
           title="Locked"
           className={cn(
-            "absolute -right-1 -top-1 z-10 grid h-5 w-5 place-items-center",
+            "absolute -end-1 -top-1 z-10 grid h-5 w-5 place-items-center",
             "rounded-full border border-border bg-card text-muted-foreground shadow-sm",
           )}
         >

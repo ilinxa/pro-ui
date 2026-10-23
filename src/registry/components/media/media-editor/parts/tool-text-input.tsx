@@ -150,7 +150,7 @@ export function ToolTextInput({
           aria-label={labels.textFontSize}
           className="flex-1"
         />
-        <span className="text-xs font-mono tabular-nums w-8 text-right">
+        <span className="text-xs font-mono tabular-nums w-8 text-end">
           {overlay.fontSize}
         </span>
       </div>

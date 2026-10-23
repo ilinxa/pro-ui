@@ -29,7 +29,7 @@ export function KanbanNoteView({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 rounded-md border-l-2 border-y border-r border-border bg-muted/40 p-2.5",
+        "flex flex-col gap-1 rounded-md border-s-2 border-y border-e border-border bg-muted/40 p-2.5",
         "transition-shadow",
         ctx.isDragging && "shadow-md",
         ctx.isLocked && "opacity-90",
@@ -71,7 +71,7 @@ function KanbanNoteEditForm({
         e.preventDefault();
         handleSave();
       }}
-      className="flex flex-col gap-2 rounded-md border-l-2 border-y border-r border-border bg-muted/40 p-2.5"
+      className="flex flex-col gap-2 rounded-md border-s-2 border-y border-e border-border bg-muted/40 p-2.5"
       style={accentColor ? { borderLeftColor: accentColor } : undefined}
     >
       <Input

@@ -23,7 +23,7 @@ export function FieldNumber({
 }: BuiltInFieldProps) {
   if (mode === "read") {
     return (
-      <span className="block truncate text-right font-mono text-sm tabular-nums">
+      <span className="block truncate text-end font-mono text-sm tabular-nums">
         {formatFieldValue(field, value)}
       </span>
     );
@@ -57,7 +57,7 @@ export function FieldNumber({
       aria-required={required || undefined}
       aria-invalid={error ? true : undefined}
       aria-describedby={error ? errorId : undefined}
-      className="text-right font-mono tabular-nums"
+      className="text-end font-mono tabular-nums"
     />
   );
 }

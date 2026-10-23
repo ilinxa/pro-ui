@@ -28,7 +28,7 @@ export function ColumnCollapsed({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex h-full w-10 shrink-0 flex-col items-center justify-between border-l-2 bg-card/50 py-2",
+        "flex h-full w-10 shrink-0 flex-col items-center justify-between border-s-2 bg-card/50 py-2",
         "rounded-md border border-border",
         isOver && "ring-1 ring-ring",
       )}

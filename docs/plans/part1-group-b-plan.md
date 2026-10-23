@@ -1,8 +1,8 @@
 # Plan — Part 1 registry-wide hardening, slice group B (R1–R9, R11)
 
 ## Status
-- phase: R3 (B1–B5) — next unchecked gate: commit B1–B5, then B6 (R8 sites) and B7 (R6 codemod)
-- branch/HEAD: master @ aaa2b4c (group A pushed 2026-10-24)
+- phase: R6 — next unchecked gate: B7 commit, then R7 (Part 1 close-out + report-back)
+- branch/HEAD: master @ a08d889 (local; 511de61 B1–B5, a08d889 B6 — unpushed) + B7 uncommitted
 - updated: 2026-10-24
 - open escalation: none
 - group A (R10, R12): [part1-registry-hardening-plan.md](part1-registry-hardening-plan.md) — closed
@@ -98,18 +98,18 @@ closed under Parts 2–3 (story-rail 0.4.0, app-sidebar 0.5.0) must have no base
 - [x] B4 R11 pinned ranges (115 bare → 0) + `heavy` meta flag + heavy-edge gate + baseline
 - [x] B5 R9 `tests/helpers/` (render with dir/locale, axe, matchMedia/ResizeObserver/IntersectionObserver/Embla
       mocks, media stubs, contract kit) + `repo-dom` project + expandable-text reference tests
-- [ ] B6 R8 sites: story-viewer (+ SV7 regression), media-editor, pdf-viewer, split-workspace → shared guard;
+- [x] B6 R8 sites: story-viewer (+ SV7 regression), media-editor, pdf-viewer, split-workspace → shared guard;
       patch bumps + CHANGELOG
-- [ ] B7 R6 codemod physical → logical (bulk, per category) + baseline shrink + patch bumps + CHANGELOG +
+- [x] B7 R6 codemod physical → logical (bulk, per category) + baseline shrink + patch bumps + CHANGELOG +
       LTR screenshot parity
 
 ## Readiness checklist
 - [x] R0 plan doc + improvement-log scan + slice plan; scope surfaced (user + platform approved Part 1)
-- [ ] R1 invariants + blast radius; decision file
-- [ ] R2 slices B1–B7 ticked with tests
-- [ ] R3 gates with numbers
-- [ ] R4 findings table (fresh finders per slice group)
-- [ ] R5 runtime evidence
+- [x] R1 invariants + blast radius; decision file (`.claude/decisions/2026-10-24-part1-group-b-contract-gates.md`, local)
+- [x] R2 slices B1–B7 ticked with tests
+- [x] R3 gates with numbers
+- [x] R4 findings table (fresh finders per slice group: C, D on B1–B5; E on B6–B7)
+- [x] R5 runtime evidence
 - [ ] R6 docs + docs-audit; commits landed
 - [ ] R7 handoff, parked promoted, retro
 
@@ -154,6 +154,35 @@ closed under Parts 2–3 (story-rail 0.4.0, app-sidebar 0.5.0) must have no base
 | heavy edges | 23 baselined; 7 flagged heavy items, 6 more reach one |
 | scaffold | a probe `pnpm new:component` scaffold compiled and its 10 tests passed (before R4; the template tests re-run green after) |
 
+## Gate results (B6 + B7, after R4 fixes)
+| Gate | Result |
+|---|---|
+| typecheck | exit 0 |
+| lint | 0 errors / **13** warnings (one fewer than the old 14: story-viewer's kebab-panel effect warning went with its listener) |
+| registry:build | exit 0; `validate-contract` physical **0** (was 295), keydown 4 (was 10); 130 entry files stamped; artifact-size 66 audited, 0 high |
+| build | `pnpm build` exit 0 (in the snapshot run) |
+| tests | **710 passed / 65 files** |
+| CHANGELOG gate | 64 versions: 43 in CHANGELOG.md, 21 grandfathered (was 52) |
+
+## Runtime evidence (R5)
+- **R6 codemod, LTR parity.** `rects.cjs` recorded every element's box plus the inline-axis computed styles
+  on all 41 touched components' demo pages, on a production build at 1280px.
+  - **Before:** two runs were identical (41/41), so the snapshot is deterministic.
+  - **After vs before:** 41/41 identical once two kinds of noise are removed, and the normalisation was
+    audited:
+    - 11,722 differences are only the spelling of `text-align` in LTR: `right` became `end` 11,530 times,
+      and `left` became `start` 192 times.
+    - 211 are header-row shifts at y=233/257, the docs page's version chip, whose text changed with the
+      bump.
+    - Nothing else differs.
+- **Pure mapping:** `pure.cjs` checked all 234 changed line pairs of the codemod diff. Each one differs
+  only by the physical→logical mapping.
+- **R8:** with the guard removed, the regression tests go red in split-workspace, media-editor and
+  pdf-viewer; restoring it, `cmp` confirmed each file byte-identical. story-viewer's SV7 tests and the new
+  `defaultPrevented` test pass.
+- **Install (R11 pins + new files):** `pnpm test:install` re-run after group B, on CLI 3.8.5 and 4.18.0
+  → **2/2 CLIs pass** (12 items incl. the bumped versions: app-sidebar 0.5.1, post-card 0.5.2, carousel-composer 0.2.2, media-editor 0.4.1 …; landing, stamps, untouched ui/, consumer tsc 0).
+
 ## Findings table (R4 — B1–B5)
 Two fresh Sonnet finders: C on the contract validator, D on tokens, template, R11 and the R9 harness.
 They made 28 reports. All are CONFIRMED and fixed except where marked. Four fixes were falsified: the fix
@@ -194,9 +223,29 @@ was reverted, the test went red, the file was restored, and `cmp` confirmed it b
 | D13 | Guide §8 still banned black/white without the media note | CONFIRMED | Reconciled |
 | D14 | Template: `locale=""` throws; aria-label on a role-less span | CONFIRMED | `locale \|\| "en"`; sr-only label text; tests |
 
+## Findings table (R4 — B6 R8 sites + B7 R6 codemod)
+One fresh Sonnet finder (E). A separate coordinator script checked all 234 changed line pairs: each differs from
+its original only by the physical→logical mapping. The 5 exceptions are trailing escape comments added to
+unchanged lines.
+
+| # | Finding | Verdict | Fix + test |
+|---|---|---|---|
+| E1 | task-tree drop line: `end-0` next to an inline physical `left` collapses to zero width in RTL | CONFIRMED (High) | Inline `insetInlineStart`; test `task-tree/__tests__/drop-indicator-rtl.test.tsx` |
+| E2 | event-calendar all-day resize grip mirrors, but `colAt` maps `clientX` physically | CONFIRMED, pre-existing (the drag math was already physical) — PARKED to event-calendar's RTL loop | — |
+| E3 | event-calendar timed blocks: placed by physical inline `left`, while border / rounding now flip | CONFIRMED (Low), same root — PARKED with E2 | — |
+| E4 | team-trophy-shelf spark: `start-1/2` + inline `translate(-50%)` is off-centre in RTL | CONFIRMED | Back to `left-1/2` with `dir-ok` (symmetric burst centred by inline transform) |
+| E5 | code-block edit body lacked the `dir="ltr"` its view / terminal bodies got | CONFIRMED (Low) | `dir="ltr"` on the CodeMirror container |
+| E6 | Physical inline styles (`paddingLeft`, `marginLeft`, `style.left`) are invisible to the gate | CONFIRMED (Low) — a gate extension, PARKED | — |
+| E7 | pdf-viewer moved from a `document` to a `window` listener: a host's native `document` `stopPropagation` now hides it | DROPPED — React synthetic `stopPropagation` (the common case) blocked both equally; a host suppressing a key at document level is opting out | — |
+| E8 | media-editor's helper treats checkbox / button inputs as non-editable (story-viewer's own helper treats every input as editable) | DROPPED — Ctrl+Z on a focused checkbox should undo the editor; story-viewer keeps its stricter helper deliberately (unchanged semantics) | — |
+| E9 | No test for the new `defaultPrevented` skip in story-viewer; pdf-viewer guard not falsified | CONFIRMED | `story-viewer/__tests__/keyboard-hook.test.tsx`; pdf-viewer guard falsified (removed → red → restored, `cmp` identical) |
+
 ## Parked
 - GitHub Actions workflow for tests + lint on pull requests (R9 "recommended") — outward surface; user call.
 - `origin-*`, `bg-left/right`, `slide-in-from-left/right` as physical utilities (C12) — not in R6's list; decide with the platform.
+- event-calendar RTL (E2/E3): column hit-testing and timed-block placement use physical `clientX` / inline `left`; mirror the grid math in the component's own loop.
+- gantt-timeline RTL: the time axis is deliberately physical (`dir-ok`) while the gutter now mirrors — decide whether a gantt on an RTL page forces `dir="ltr"` on the timeline or mirrors the whole axis.
+- Gate extension (E6): physical inline-style properties (`paddingLeft`, `marginLeft`, `left` in `style={{…}}`) — e.g. comment-thread / rich-text indents, gantt gutter indent.
 - A content-hash lock for served files (one version ⇒ one content) — would have caught app-sidebar's comment-only change automatically; proposed, not in the request.
 
 ## Handoff (R7)

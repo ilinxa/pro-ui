@@ -26,45 +26,45 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `code-block` | Code Block | 0.2.1 | alpha | 2026-08-19 |
+| `code-block` | Code Block | 0.2.2 | alpha | 2026-10-24 |
 
 ### data (27)
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
 | `article-meta` | Article Meta | 0.2.0 | alpha | 2026-08-11 |
-| `blackboard` | Blackboard | 0.2.1 | alpha | 2026-08-12 |
-| `card-tree` | Card Tree | 0.6.3 | beta | 2026-10-23 |
-| `card-tree-node` | Card Tree Node | 0.5.1 | alpha | 2026-08-18 |
-| `comment-thread` | Comment Thread | 0.3.1 | alpha | 2026-08-19 |
-| `data-table` | Data Table | 0.1.2 | alpha | 2026-08-11 |
-| `engagement-bar` | Engagement Bar | 0.4.0 | alpha | 2026-08-11 |
-| `event-calendar` | Event Calendar | 0.5.1 | alpha | 2026-10-23 |
-| `event-card` | Event Card | 0.2.0 | alpha | 2026-08-11 |
+| `blackboard` | Blackboard | 0.2.2 | alpha | 2026-10-24 |
+| `card-tree` | Card Tree | 0.6.4 | beta | 2026-10-24 |
+| `card-tree-node` | Card Tree Node | 0.5.2 | alpha | 2026-10-24 |
+| `comment-thread` | Comment Thread | 0.3.2 | alpha | 2026-10-24 |
+| `data-table` | Data Table | 0.1.3 | alpha | 2026-10-24 |
+| `engagement-bar` | Engagement Bar | 0.4.1 | alpha | 2026-10-24 |
+| `event-calendar` | Event Calendar | 0.5.2 | alpha | 2026-10-24 |
+| `event-card` | Event Card | 0.2.1 | alpha | 2026-10-24 |
 | `expandable-text` | Expandable Text | 0.2.0 | alpha | 2026-08-11 |
-| `flow-canvas` | Flow Canvas | 0.3.0 | alpha | 2026-08-11 |
-| `gantt-timeline` | Gantt Timeline | 0.7.1 | alpha | 2026-08-19 |
+| `flow-canvas` | Flow Canvas | 0.3.1 | alpha | 2026-10-24 |
+| `gantt-timeline` | Gantt Timeline | 0.7.2 | alpha | 2026-10-24 |
 | `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |
-| `kanban-board` | Kanban Board | 0.6.0 | alpha | 2026-08-17 |
-| `news-card` | News Card | 0.4.3 | alpha | 2026-10-23 |
+| `kanban-board` | Kanban Board | 0.6.1 | alpha | 2026-10-24 |
+| `news-card` | News Card | 0.4.4 | alpha | 2026-10-24 |
 | `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 |
-| `post-card` | Post Card | 0.5.1 | alpha | 2026-10-23 |
+| `post-card` | Post Card | 0.5.2 | alpha | 2026-10-24 |
 | `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 |
-| `project-card` | Project Card | 0.3.0 | alpha | 2026-08-11 |
+| `project-card` | Project Card | 0.3.1 | alpha | 2026-10-24 |
 | `registration-card` | Registration Card | 0.2.0 | alpha | 2026-08-11 |
-| `rich-text-editor` | Rich Text Editor | 0.4.0 | alpha | 2026-10-23 |
+| `rich-text-editor` | Rich Text Editor | 0.4.1 | alpha | 2026-10-24 |
 | `schedule-list` | Schedule List | 0.2.0 | alpha | 2026-08-11 |
 | `stat-card` | Stat Card | 0.1.2 | alpha | 2026-08-11 |
 | `story-rail` | Story Rail | 0.4.0 | alpha | 2026-10-23 |
-| `task-card` | Task Card | 0.5.0 | alpha | 2026-08-11 |
-| `task-tree` | Task Tree | 0.4.1 | alpha | 2026-08-18 |
+| `task-card` | Task Card | 0.5.1 | alpha | 2026-10-24 |
+| `task-tree` | Task Tree | 0.4.2 | alpha | 2026-10-24 |
 | `thumbnail-list` | Thumbnail List | 0.2.0 | alpha | 2026-08-11 |
 
 ### feedback (2)
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `detail-panel` | Detail Panel | 0.1.2 | alpha | 2026-08-11 |
+| `detail-panel` | Detail Panel | 0.1.3 | alpha | 2026-10-24 |
 | `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 |
 
 ### forms (8)
@@ -72,12 +72,12 @@
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
 | `category-cloud` | Category Cloud | 0.2.0 | alpha | 2026-08-11 |
-| `entity-picker` | Entity Picker | 0.1.3 | alpha | 2026-08-11 |
-| `filter-bar` | Filter Bar | 0.2.0 | alpha | 2026-08-11 |
+| `entity-picker` | Entity Picker | 0.1.4 | alpha | 2026-10-24 |
+| `filter-bar` | Filter Bar | 0.2.1 | alpha | 2026-10-24 |
 | `filter-panel` | Filter Panel | 0.2.1 | alpha | 2026-08-18 |
-| `json-form` | JSON Form | 0.2.8 | alpha | 2026-08-11 |
-| `markdown-editor` | Markdown Editor | 0.1.5 | alpha | 2026-08-19 |
-| `properties-form` | Properties Form | 0.1.5 | alpha | 2026-08-18 |
+| `json-form` | JSON Form | 0.2.9 | alpha | 2026-10-24 |
+| `markdown-editor` | Markdown Editor | 0.1.6 | alpha | 2026-10-24 |
+| `properties-form` | Properties Form | 0.1.6 | alpha | 2026-10-24 |
 | `signup-form` | Signup Form | 0.2.0 | alpha | 2026-08-11 |
 
 ### gamification (6)
@@ -85,11 +85,11 @@
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
 | `team-challenge` | Team Challenge | 0.2.1 | alpha | 2026-08-11 |
-| `team-feedback-loop` | Team Feedback Loop | 0.2.1 | alpha | 2026-08-11 |
+| `team-feedback-loop` | Team Feedback Loop | 0.2.2 | alpha | 2026-10-24 |
 | `team-progress-bar` | Team Progress Bar | 0.2.1 | alpha | 2026-08-11 |
-| `team-quest-log` | Team Quest Log | 0.2.1 | alpha | 2026-08-11 |
+| `team-quest-log` | Team Quest Log | 0.2.2 | alpha | 2026-10-24 |
 | `team-task-claim` | Team Task Claim | 0.2.1 | alpha | 2026-08-11 |
-| `team-trophy-shelf` | Team Trophy Shelf | 0.2.1 | alpha | 2026-08-11 |
+| `team-trophy-shelf` | Team Trophy Shelf | 0.2.2 | alpha | 2026-10-24 |
 
 ### layout (2)
 
@@ -104,7 +104,7 @@
 |---|---|---|---|---|
 | `author-card` | Author Card | 0.2.0 | alpha | 2026-08-11 |
 | `newsletter-signup` | Newsletter Signup | 0.2.0 | alpha | 2026-08-11 |
-| `page-hero` | Page Hero | 0.2.0 | alpha | 2026-08-11 |
+| `page-hero` | Page Hero | 0.2.1 | alpha | 2026-10-24 |
 | `pricing-table` | Pricing Table | 0.2.0 | alpha | 2026-08-11 |
 | `share-bar` | Share Bar | 0.2.0 | alpha | 2026-08-11 |
 
@@ -112,24 +112,24 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `carousel-composer` | Carousel Composer | 0.2.1 | alpha | 2026-10-23 |
-| `content-composer` | Content Composer | 0.3.1 | alpha | 2026-08-11 |
-| `media-carousel` | Media Carousel | 0.2.0 | alpha | 2026-08-11 |
+| `carousel-composer` | Carousel Composer | 0.2.2 | alpha | 2026-10-24 |
+| `content-composer` | Content Composer | 0.3.2 | alpha | 2026-10-24 |
+| `media-carousel` | Media Carousel | 0.2.1 | alpha | 2026-10-24 |
 | `media-editor` | Media Editor | 0.4.1 | alpha | 2026-10-24 |
-| `media-library` | Media Library | 0.2.1 | alpha | 2026-08-18 |
+| `media-library` | Media Library | 0.2.2 | alpha | 2026-10-24 |
 | `pdf-viewer` | PDF Viewer | 0.1.7 | alpha | 2026-10-24 |
-| `story-composer` | Story Composer | 0.5.0 | alpha | 2026-10-23 |
+| `story-composer` | Story Composer | 0.5.1 | alpha | 2026-10-24 |
 | `story-viewer` | Story Viewer | 0.5.3 | alpha | 2026-10-24 |
-| `video-player` | Video Player | 0.2.1 | alpha | 2026-10-23 |
+| `video-player` | Video Player | 0.2.2 | alpha | 2026-10-24 |
 
 ### navigation (4)
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `account-switcher` | Account Switcher | 0.2.0 | alpha | 2026-08-11 |
+| `account-switcher` | Account Switcher | 0.2.1 | alpha | 2026-10-24 |
 | `app-sidebar` | App Sidebar | 0.5.1 | alpha | 2026-10-24 |
-| `file-manager` | File Manager | 0.1.3 | alpha | 2026-08-11 |
-| `file-tree` | File Tree | 0.1.3 | alpha | 2026-08-11 |
+| `file-manager` | File Manager | 0.1.4 | alpha | 2026-10-24 |
+| `file-tree` | File Tree | 0.1.4 | alpha | 2026-10-24 |
 
 ## How history works
 

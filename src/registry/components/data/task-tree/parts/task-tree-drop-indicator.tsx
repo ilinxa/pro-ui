@@ -33,11 +33,12 @@ export function TaskTreeDropIndicator({
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute right-0 z-10 h-0.5 bg-primary",
+          "pointer-events-none absolute end-0 z-10 h-0.5 bg-primary",
           zone === "top" ? "top-0" : "bottom-0",
           className,
         )}
-        style={{ left: indentPx }}
+        // Logical, like `end-0`: the line runs from the row's indent to its inline end in both directions.
+        style={{ insetInlineStart: indentPx }}
       />
     );
   }

@@ -16,7 +16,7 @@ export function BlackboardNotificationBadge({ className }: BlackboardNotificatio
   const ctx = useBlackboard();
   if (ctx.unreadCount <= 0) return null;
   return (
-    <div className={cn("pointer-events-none absolute right-2 top-2 z-20", className)}>
+    <div className={cn("pointer-events-none absolute end-2 top-2 z-20", className)}>
       <div className="pointer-events-auto">
         <UnreadCount
           count={ctx.unreadCount}

@@ -19,7 +19,7 @@ export function FileTreeHeader(props: FileTreeHeaderProps) {
   return (
     <div
       className={cn(
-        "flex h-9 shrink-0 items-center gap-1 border-b border-border/60 bg-card/40 pl-3 pr-1",
+        "flex h-9 shrink-0 items-center gap-1 border-b border-border/60 bg-card/40 ps-3 pe-1",
         className,
       )}
     >
@@ -29,7 +29,7 @@ export function FileTreeHeader(props: FileTreeHeaderProps) {
           {totalCount}
         </span>
       </h2>
-      <div className="ml-auto flex items-center gap-0.5">
+      <div className="ms-auto flex items-center gap-0.5">
         <FileTreeNewFileButton className="size-7" />
         <FileTreeNewFolderButton className="size-7" />
         <FileTreeRefreshButton className="size-7" />

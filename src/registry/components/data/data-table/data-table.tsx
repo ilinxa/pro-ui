@@ -35,7 +35,7 @@ export function DataTable<TRow>({
               <TableHead
                 key={column.id}
                 className={cn(
-                  column.align === "right" && "text-right",
+                  column.align === "right" && "text-end",
                   column.align === "center" && "text-center",
                 )}
                 style={column.width ? { width: column.width } : undefined}
@@ -52,7 +52,7 @@ export function DataTable<TRow>({
                 <TableCell
                   key={column.id}
                   className={cn(
-                    column.align === "right" && "text-right",
+                    column.align === "right" && "text-end",
                     column.align === "center" && "text-center",
                   )}
                 >

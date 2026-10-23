@@ -108,7 +108,7 @@ export function LinkCta({
       ref={containerRef}
       // ProgressBars sit at top z-20 + ViewerHeader at top z-20 with `top-4`.
       // Place the chip at `top-16` so it sits just under the header strip.
-      className="pointer-events-auto absolute top-16 right-3 z-25 flex flex-col items-end gap-2"
+      className="pointer-events-auto absolute top-16 end-3 z-25 flex flex-col items-end gap-2"
     >
       {/* Chip — always visible while the link is set. Tapping toggles the
           drawer below. */}

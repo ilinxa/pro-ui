@@ -182,11 +182,13 @@ export function VideoTrimBar({
         </div>
         {/* Dim out trimmed regions */}
         <div
+          // dir-ok: trim overlay sized by startPct/endPct on a left-to-right time axis
           className="absolute inset-y-0 left-0 bg-black/60"
           style={{ width: `${startPct}%` }}
           aria-hidden
         />
         <div
+          // dir-ok: trim overlay sized by startPct/endPct on a left-to-right time axis
           className="absolute inset-y-0 right-0 bg-black/60"
           style={{ width: `${100 - endPct}%` }}
           aria-hidden
@@ -202,6 +204,7 @@ export function VideoTrimBar({
           type="button"
           aria-label={labels.trimStart}
           onPointerDown={handlePointerDown("start")}
+          // dir-ok: handle placed by inline style left percent on a left-to-right time axis; -ml centres it
           className="absolute top-0 bottom-0 w-3 -ml-1.5 grid place-items-center bg-white text-black cursor-ew-resize touch-none"
           style={{ left: `${startPct}%` }}
         >
@@ -212,6 +215,7 @@ export function VideoTrimBar({
           type="button"
           aria-label={labels.trimEnd}
           onPointerDown={handlePointerDown("end")}
+          // dir-ok: handle placed by inline style left percent on a left-to-right time axis; -ml centres it
           className="absolute top-0 bottom-0 w-3 -ml-1.5 grid place-items-center bg-white text-black cursor-ew-resize touch-none"
           style={{ left: `${endPct}%` }}
         >

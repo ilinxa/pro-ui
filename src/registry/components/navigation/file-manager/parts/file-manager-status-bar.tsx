@@ -22,7 +22,7 @@ export function FileManagerStatusBar() {
         </span>
       ) : null}
       {totalSize > 0 ? (
-        <span className="ml-auto font-mono">
+        <span className="ms-auto font-mono">
           {formatBytes(totalSize)} {labels.totalSize}
         </span>
       ) : null}

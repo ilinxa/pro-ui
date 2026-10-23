@@ -82,7 +82,7 @@ export function SplitDivider({
           "pointer-events-none absolute bg-border",
           isVertical
             ? "left-1/2 top-0 h-full w-px -translate-x-1/2"
-            : "left-0 top-1/2 h-px w-full -translate-y-1/2",
+            : "start-0 top-1/2 h-px w-full -translate-y-1/2",
         )}
       />
     </div>

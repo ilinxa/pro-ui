@@ -32,11 +32,11 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   artifactBudgetKB: 70,
   createdAt: "2026-06-05",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

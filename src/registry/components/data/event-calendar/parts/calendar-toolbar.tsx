@@ -70,7 +70,7 @@ export function CalendarToolbar({ className }: { className?: string }) {
         >
           <ChevronRight className="size-4" />
         </Button>
-        <span className="ml-1 text-sm font-semibold text-foreground">
+        <span className="ms-1 text-sm font-semibold text-foreground">
           {periodLabel(view, focusDate, visibleRange)}
         </span>
       </div>

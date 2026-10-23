@@ -79,7 +79,7 @@ export function StaticBlockquote(props: StaticElementProps) {
     <blockquote
       {...spreadAttrs(props.attributes)}
       className={cn(
-        "my-6 border-l-4 border-primary pl-6 py-2 italic text-muted-foreground bg-muted/30 rounded-r-md",
+        "my-6 border-s-4 border-primary ps-6 py-2 italic text-muted-foreground bg-muted/30 rounded-e-md",
         props.className
       )}
     >
@@ -103,7 +103,7 @@ export function StaticList(props: StaticElementProps) {
   const indent = (element.indent ?? 1) - 1;
   const ordered = listStyleType === "decimal";
   const className = cn(
-    "my-4 ml-6",
+    "my-4 ms-6",
     ordered ? "list-decimal" : "list-disc",
     props.className
   );
@@ -179,7 +179,7 @@ export function StaticTableCellHeader(props: StaticElementProps) {
     <th
       {...spreadAttrs(props.attributes)}
       className={cn(
-        "border border-border bg-muted/40 px-3 py-2 text-left font-semibold align-top",
+        "border border-border bg-muted/40 px-3 py-2 text-start font-semibold align-top",
         props.className
       )}
     >

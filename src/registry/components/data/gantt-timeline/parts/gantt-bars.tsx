@@ -85,6 +85,7 @@ export function GanttBar({
       {priorityColor ? (
         <span
           aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
           className="absolute left-0 top-0 h-full w-1 rounded-l-[5px]"
           style={{ background: priorityColor }}
         />
@@ -92,12 +93,14 @@ export function GanttBar({
       {overdue ? (
         <span
           aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
           className="absolute inset-y-0 right-0 w-1.5 rounded-r-[5px] bg-destructive"
         />
       ) : null}
       {locked ? (
         <span
           aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
           className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] leading-none text-background/80"
         >
           🔒
@@ -108,11 +111,13 @@ export function GanttBar({
           <span
             data-edge="start"
             aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
             className="absolute inset-y-0 left-0 w-2 cursor-col-resize rounded-l-[5px] hover:bg-foreground/25"
           />
           <span
             data-edge="end"
             aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
             className="absolute inset-y-0 right-0 w-2 cursor-col-resize rounded-r-[5px] hover:bg-foreground/25"
           />
         </>
@@ -160,10 +165,12 @@ export function SummaryBar({
       {/* bracket end-caps */}
       <span
         aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
         className="absolute -bottom-1 left-0 h-2 w-1.5 -skew-x-[20deg] bg-foreground/85"
       />
       <span
         aria-hidden
+          // dir-ok: bar sits on a physical LTR time axis (inline left/width, pointer clientX drag), so its edges stay physical
         className="absolute -bottom-1 right-0 h-2 w-1.5 skew-x-[20deg] bg-foreground/85"
       />
     </div>

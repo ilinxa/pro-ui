@@ -77,7 +77,7 @@ export function LargePart(props: ResolvedPartProps) {
         )}
       />
       {!disableBadgesRender && (
-        <div className="absolute left-2 top-2 z-20">
+        <div className="absolute start-2 top-2 z-20">
           {renderBadges ? (
             renderBadges(item, { canModerate })
           ) : (

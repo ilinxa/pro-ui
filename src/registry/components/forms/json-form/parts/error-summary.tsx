@@ -48,7 +48,7 @@ export function JsonFormErrorSummary({
       <h3 className="mb-1.5 text-sm font-medium text-destructive">
         {ctx.strings.summaryHeading}
       </h3>
-      <ul className="ml-4 list-disc space-y-0.5 text-xs text-destructive">
+      <ul className="ms-4 list-disc space-y-0.5 text-xs text-destructive">
         {flat.map(({ name, message }) => (
           <li key={name}>
             <a

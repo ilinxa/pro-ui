@@ -22,7 +22,7 @@ export function CodeBlockLineNumbers({
     <div
       aria-hidden="true"
       className={cn(
-        "select-none pr-3 pl-3 text-right font-mono text-[0.75rem] text-muted-foreground/60",
+        "select-none pe-3 ps-3 text-end font-mono text-[0.75rem] text-muted-foreground/60",
         className,
       )}
       style={{ minWidth: `${width + 2}ch` }}

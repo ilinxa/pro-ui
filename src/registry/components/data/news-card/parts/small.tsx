@@ -96,7 +96,7 @@ export function SmallPart(props: ResolvedPartProps) {
 
       {/* Single highest-priority badge — top-right corner */}
       {!disableBadgesRender && (
-        <div className="absolute right-2 top-2 z-20">
+        <div className="absolute end-2 top-2 z-20">
           {renderBadges ? (
             renderBadges(item, { canModerate })
           ) : (

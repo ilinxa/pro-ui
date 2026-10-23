@@ -29,11 +29,11 @@ export const meta: ComponentMeta = {
     "feed",
   ],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   artifactBudgetKB: 110,
   createdAt: "2026-06-18",
-  updatedAt: "2026-08-12",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

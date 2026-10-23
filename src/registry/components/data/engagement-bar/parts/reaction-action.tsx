@@ -262,7 +262,7 @@ function ReactionActionInner({
   // default + compact horizontal.
   if (splitCount) {
     return (
-      <div className={cn("flex items-center gap-2 pr-2", actionClassName)}>
+      <div className={cn("flex items-center gap-2 pe-2", actionClassName)}>
         {popover}
         {countButton}
       </div>

@@ -67,7 +67,7 @@ export function MainPreview({
         />
       )}
 
-      <div className="absolute right-3 top-3">
+      <div className="absolute end-3 top-3">
         {canEdit ? (
           <Button type="button" size="sm" onClick={onEdit}>
             <Pencil className="size-4" aria-hidden />

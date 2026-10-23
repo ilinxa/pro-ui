@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 export type CornerPosition = "tl" | "tr" | "bl" | "br";
 
 const POSITION_CLASSES: Record<CornerPosition, string> = {
-  tl: "top-0 left-0 cursor-crosshair",
-  tr: "top-0 right-0 cursor-crosshair",
-  bl: "bottom-0 left-0 cursor-crosshair",
-  br: "bottom-0 right-0 cursor-crosshair",
+  tl: "top-0 left-0 cursor-crosshair", // dir-ok: physical corner paired with a physical-angle dither mask below
+  tr: "top-0 right-0 cursor-crosshair", // dir-ok: physical corner paired with a physical-angle dither mask below
+  bl: "bottom-0 left-0 cursor-crosshair", // dir-ok: physical corner paired with a physical-angle dither mask below
+  br: "bottom-0 right-0 cursor-crosshair", // dir-ok: physical corner paired with a physical-angle dither mask below
 };
 
 const PATTERN_CLASSES: Record<CornerPosition, string> = {

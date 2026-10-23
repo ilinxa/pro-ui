@@ -62,7 +62,7 @@ export default function JsonFormDevtoolsBody({
         className,
       )
     : cn(
-        "fixed bottom-4 right-4 z-9999 flex w-96 max-w-[calc(100vw-2rem)] flex-col rounded-lg border border-border bg-card text-card-foreground shadow-xl",
+        "fixed bottom-4 end-4 z-9999 flex w-96 max-w-[calc(100vw-2rem)] flex-col rounded-lg border border-border bg-card text-card-foreground shadow-xl",
         className,
       );
 
@@ -71,7 +71,7 @@ export default function JsonFormDevtoolsBody({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-9999 flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-xs font-medium text-foreground shadow-md hover:bg-muted"
+        className="fixed bottom-4 end-4 z-9999 flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-xs font-medium text-foreground shadow-md hover:bg-muted"
         aria-label="Open JsonForm devtools panel"
       >
         <span className="size-2 rounded-full bg-primary" />
@@ -237,11 +237,11 @@ function ConditionalsTab() {
   return (
     <table className="w-full border-collapse text-[11px]">
       <thead>
-        <tr className="text-left text-muted-foreground">
-          <th className="py-1 pr-2 font-medium">Field</th>
-          <th className="py-1 pr-2 font-medium">visible</th>
-          <th className="py-1 pr-2 font-medium">enabled</th>
-          <th className="py-1 pr-2 font-medium">required</th>
+        <tr className="text-start text-muted-foreground">
+          <th className="py-1 pe-2 font-medium">Field</th>
+          <th className="py-1 pe-2 font-medium">visible</th>
+          <th className="py-1 pe-2 font-medium">enabled</th>
+          <th className="py-1 pe-2 font-medium">required</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-border">
@@ -260,10 +260,10 @@ function ConditionalRow({ field }: { field: FieldDefinition }) {
 
   return (
     <tr>
-      <td className="py-1 pr-2 font-mono text-foreground">{field.name}</td>
-      <td className="py-1 pr-2">{visible ? "✓" : "✗"}</td>
-      <td className="py-1 pr-2">{enabled ? "✓" : "✗"}</td>
-      <td className="py-1 pr-2">{required ? "✓" : "✗"}</td>
+      <td className="py-1 pe-2 font-mono text-foreground">{field.name}</td>
+      <td className="py-1 pe-2">{visible ? "✓" : "✗"}</td>
+      <td className="py-1 pe-2">{enabled ? "✓" : "✗"}</td>
+      <td className="py-1 pe-2">{required ? "✓" : "✗"}</td>
     </tr>
   );
 }

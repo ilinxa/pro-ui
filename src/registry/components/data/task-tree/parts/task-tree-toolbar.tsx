@@ -155,7 +155,7 @@ export function TaskTreeToolbar({
         <Button
           size="sm"
           variant="default"
-          className="ml-auto"
+          className="ms-auto"
           onClick={(e) => {
             const next = factory!();
             if (onCreateRequest) {

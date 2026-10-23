@@ -23,7 +23,7 @@ export function NavArrows({ canPrev, onPrev, onNext, labels }: NavArrowsProps) {
         type="button"
         variant="ghost"
         size="icon"
-        className={cn(base, "left-4")}
+        className={cn(base, "start-4")}
         onClick={(e) => {
           e.stopPropagation();
           onPrev();
@@ -37,7 +37,7 @@ export function NavArrows({ canPrev, onPrev, onNext, labels }: NavArrowsProps) {
         type="button"
         variant="ghost"
         size="icon"
-        className={cn(base, "right-4")}
+        className={cn(base, "end-4")}
         onClick={(e) => {
           e.stopPropagation();
           onNext();

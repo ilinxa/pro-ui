@@ -51,7 +51,7 @@ export function CardActionsMenu({
             type="button"
             onClick={onDuplicate}
             disabled={!canDuplicate || isRoot}
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:bg-muted"
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start text-sm transition-colors hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:bg-muted"
           >
             <Copy className="size-3.5" aria-hidden="true" />
             Duplicate
@@ -62,7 +62,7 @@ export function CardActionsMenu({
             type="button"
             onClick={onRemovePromote}
             disabled={!removeAllowed}
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:bg-muted"
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start text-sm transition-colors hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:bg-muted"
           >
             <TreePine className="size-3.5" aria-hidden="true" />
             Remove (promote children)
@@ -72,7 +72,7 @@ export function CardActionsMenu({
           type="button"
           onClick={onRemoveCascade}
           disabled={!removeAllowed}
-          className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40 focus-visible:outline-none focus-visible:bg-destructive/10"
+          className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start text-sm text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40 focus-visible:outline-none focus-visible:bg-destructive/10"
         >
           <Trash2 className="size-3.5" aria-hidden="true" />
           Remove{hasChildren ? " (cascade)" : ""}

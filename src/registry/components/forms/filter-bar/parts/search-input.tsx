@@ -44,7 +44,7 @@ export function SearchInput({
     <div role="search" className={cn("relative", className)}>
       <Search
         aria-hidden="true"
-        className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+        className="absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
       />
       <Input
         type="search"
@@ -56,7 +56,7 @@ export function SearchInput({
         }}
         placeholder={placeholder}
         aria-label={ariaLabel}
-        className="h-14 rounded-xl border-border/50 pl-12 text-lg focus-visible:border-primary"
+        className="h-14 rounded-xl border-border/50 ps-12 text-lg focus-visible:border-primary"
       />
     </div>
   );

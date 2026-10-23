@@ -109,7 +109,7 @@ export function ToolDrawControls({
           aria-label={labels.drawBrush}
           className="flex-1"
         />
-        <span className="text-xs font-mono tabular-nums w-7 text-right">
+        <span className="text-xs font-mono tabular-nums w-7 text-end">
           {brushSize}
         </span>
       </div>

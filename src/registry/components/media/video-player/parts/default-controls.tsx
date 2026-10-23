@@ -95,7 +95,7 @@ export function DefaultControls({
       {/* Bottom-right mute toggle — auto-hides during playback */}
       <div
         className={cn(
-          "absolute right-3 bottom-3 flex gap-2 transition-opacity duration-300",
+          "absolute end-3 bottom-3 flex gap-2 transition-opacity duration-300",
           showControls ? "opacity-100" : "opacity-0",
         )}
       >
@@ -122,7 +122,7 @@ export function DefaultControls({
           type="button"
           variant="ghost"
           size="icon"
-          className="pointer-events-auto absolute bottom-3 left-3 h-8 w-8 rounded-full bg-background/70 hover:bg-background/90"
+          className="pointer-events-auto absolute bottom-3 start-3 h-8 w-8 rounded-full bg-background/70 hover:bg-background/90"
           onClick={togglePlay}
           aria-label={labels.pause}
         >

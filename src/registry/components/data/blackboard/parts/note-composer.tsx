@@ -110,7 +110,7 @@ export function NoteComposer({
   return (
     <div className={cn("relative border-t border-white/10 px-3 pb-2.5 pt-2", className)}>
       {mentions.active && mentions.candidates.length > 0 ? (
-        <div className="absolute bottom-full left-3 z-20 mb-1">
+        <div className="absolute bottom-full start-3 z-20 mb-1">
           <MentionPicker
             members={mentions.candidates}
             highlight={mentions.highlight}

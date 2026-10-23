@@ -254,7 +254,7 @@ export function FeaturedPart(props: ResolvedPartProps) {
             </div>
           ) : null}
           {href ? (
-            <span className="ml-auto inline-flex items-center gap-2 text-white transition-colors motion-safe:group-hover:text-primary">
+            <span className="ms-auto inline-flex items-center gap-2 text-white transition-colors motion-safe:group-hover:text-primary">
               {labels.readMore}
               <ArrowRight
                 aria-hidden="true"
@@ -312,7 +312,7 @@ export function FeaturedPart(props: ResolvedPartProps) {
     >
       {/* Editorial badge stack — overlaid at top */}
       {!disableBadgesRender && (
-        <div className="absolute left-2 top-2 z-20">
+        <div className="absolute start-2 top-2 z-20">
           {renderBadges ? (
             renderBadges(item, { canModerate })
           ) : (

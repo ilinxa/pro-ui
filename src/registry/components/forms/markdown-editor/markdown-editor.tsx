@@ -197,7 +197,7 @@ export function MarkdownEditor<TCandidate extends WikilinkCandidate = WikilinkCa
               minHeight={minHeight}
               maxHeight={maxHeight}
               className={cn(
-                viewValue === "split" && "@[480px]:border-r @[480px]:border-border",
+                viewValue === "split" && "@[480px]:border-e @[480px]:border-border",
               )}
             />
           )}

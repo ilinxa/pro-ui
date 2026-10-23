@@ -184,7 +184,7 @@ function ValueInputForType({
             const n = Number(e.target.value);
             onChange(Number.isFinite(n) ? n : 0);
           }}
-          className={cn(baseClass, "w-32 text-right font-mono tabular-nums")}
+          className={cn(baseClass, "w-32 text-end font-mono tabular-nums")}
           aria-label="New field number value"
         />
       );

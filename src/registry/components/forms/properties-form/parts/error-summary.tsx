@@ -48,7 +48,7 @@ export function ErrorSummary({
                     <button
                       type="button"
                       onClick={() => onFocusField(key)}
-                      className="text-left underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 focus-visible:rounded-sm"
+                      className="text-start underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 focus-visible:rounded-sm"
                     >
                       {label}: {errors[key]}
                     </button>

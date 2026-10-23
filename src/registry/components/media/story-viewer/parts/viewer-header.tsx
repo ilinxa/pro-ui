@@ -53,7 +53,7 @@ export function ViewerHeader({
     authorComponent ?? (onAuthorClick ? "button" : "div");
   const authorRootProps: Record<string, unknown> = {
     className: cn(
-      "flex items-center gap-3 rounded-full text-left",
+      "flex items-center gap-3 rounded-full text-start",
       isInteractive &&
         "cursor-pointer transition-opacity hover:opacity-80 focus-visible:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
     ),

@@ -240,7 +240,7 @@ function PostHeaderInner({
                       )}
                     >
                       {item.icon ? (
-                        <span className="mr-2">{item.icon}</span>
+                        <span className="me-2">{item.icon}</span>
                       ) : null}
                       {item.label}
                     </DropdownMenuItem>

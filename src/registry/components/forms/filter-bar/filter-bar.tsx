@@ -18,9 +18,9 @@ import {
 } from "./types";
 
 const ALIGN_CLASSES = {
-  left: "items-start text-left",
+  left: "items-start text-start",
   center: "items-center text-center",
-  right: "items-end text-right",
+  right: "items-end text-end",
 } as const;
 
 const normalizeCategories = (

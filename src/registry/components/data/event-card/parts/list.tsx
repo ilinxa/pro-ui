@@ -80,7 +80,7 @@ export function EventCardList({
       className={cn(
         "relative group grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 py-3 px-3 border-b border-border/50 last:border-0 motion-safe:hover:bg-muted/30 transition-colors rounded-lg items-center",
         statusEntry.cardClassName,
-        featured && "border-l-4 border-l-primary",
+        featured && "border-s-4 border-s-primary",
         className,
       )}
     >
@@ -136,7 +136,7 @@ export function EventCardList({
           {featured && (
             <Star
               aria-hidden="true"
-              className="inline w-3.5 h-3.5 fill-primary text-primary mr-1 align-baseline"
+              className="inline w-3.5 h-3.5 fill-primary text-primary me-1 align-baseline"
             />
           )}
           {event.title}

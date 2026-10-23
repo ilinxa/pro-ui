@@ -279,10 +279,12 @@ export function CarouselTrack({
         <>
           <div
             aria-hidden="true"
+            // dir-ok: physical edge fade paired with a physical bg-linear-to-r/l gradient direction
             className="pointer-events-none absolute inset-y-0 left-0 z-5 w-12 bg-linear-to-r from-background to-transparent"
           />
           <div
             aria-hidden="true"
+            // dir-ok: physical edge fade paired with a physical bg-linear-to-r/l gradient direction
             className="pointer-events-none absolute inset-y-0 right-0 z-5 w-12 bg-linear-to-l from-background to-transparent"
           />
         </>

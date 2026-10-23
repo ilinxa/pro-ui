@@ -40,7 +40,7 @@ export function AxisHeader({
 
   return (
     <div className={cn("flex select-none border-b bg-card", className)}>
-      <div className="shrink-0 border-r border-border" style={{ width: gutterWidth }} />
+      <div className="shrink-0 border-e border-border" style={{ width: gutterWidth }} />
       <div className="relative grow overflow-hidden" style={{ height: 46 }}>
         {weekendsOn
           ? minorTicks
@@ -64,6 +64,7 @@ export function AxisHeader({
           return (
             <div
               key={`M${t}`}
+              // dir-ok: cell is placed by computed style left on the physical time axis; border must stay on its right edge
               className="absolute top-0 flex h-6 items-center overflow-hidden whitespace-nowrap border-r border-border/60 px-2 text-xs font-medium text-foreground"
               style={{ left, width: w }}
             >
@@ -77,6 +78,7 @@ export function AxisHeader({
           return (
             <div
               key={`m${t}`}
+              // dir-ok: cell is placed by computed style left on the physical time axis; border must stay on its right edge
               className="absolute bottom-0 flex h-5 items-center justify-center overflow-hidden border-r border-border/40 text-[10px] tabular-nums text-muted-foreground"
               style={{ left, width: w }}
             >

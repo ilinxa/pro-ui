@@ -70,7 +70,7 @@ export function TaskTreeSortDropdown({
         aria-label="Sort"
         className={cn("h-8 w-[140px]", className)}
       >
-        <ArrowUpDown className="mr-1 size-3.5 text-muted-foreground" />
+        <ArrowUpDown className="me-1 size-3.5 text-muted-foreground" />
         <SelectValue placeholder={isCustom ? "Custom" : "Sort"} />
       </SelectTrigger>
       <SelectContent>

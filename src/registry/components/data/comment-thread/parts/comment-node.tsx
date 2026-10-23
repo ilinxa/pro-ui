@@ -141,7 +141,7 @@ function CommentNodeInner(props: CommentNodeProps) {
       <>
         {renderNode(comment, depth, helpers)}
         {isReplyOpen && currentUser ? (
-          <div className="ml-10 mt-2">
+          <div className="ms-10 mt-2">
             <CommentComposer
               currentUser={currentUser}
               placeholder={labels.composerPlaceholder}

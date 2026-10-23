@@ -25,7 +25,7 @@ export function MediaLibraryToolbar({ className }: { className?: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
           <Input
@@ -33,7 +33,7 @@ export function MediaLibraryToolbar({ className }: { className?: string }) {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={labels.searchPlaceholder}
             aria-label={labels.searchPlaceholder}
-            className="h-9 w-44 pl-8 sm:w-64"
+            className="h-9 w-44 ps-8 sm:w-64"
           />
         </div>
         {can.createFolder ? (

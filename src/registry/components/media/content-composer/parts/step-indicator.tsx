@@ -40,7 +40,7 @@ export function StepIndicator({
                 aria-current={isCurrent ? "step" : undefined}
                 onClick={() => onStepClick(i)}
                 className={cn(
-                  "group flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm transition-colors",
+                  "group flex items-center gap-2 rounded-full py-1 pe-3 ps-1 text-sm transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   isCurrent
                     ? "bg-primary/15 text-foreground"

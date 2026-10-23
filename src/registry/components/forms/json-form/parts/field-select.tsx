@@ -200,7 +200,7 @@ function ComboboxSelect({
                 <Badge
                   key={String(v)}
                   variant="secondary"
-                  className={cn("gap-1 pr-1")}
+                  className={cn("gap-1 pe-1")}
                 >
                   <span>{opt?.label ?? String(v)}</span>
                   <span
@@ -268,7 +268,7 @@ function ComboboxSelect({
                   >
                     <span>{opt.label}</span>
                     {opt.description ? (
-                      <span className="ml-auto text-xs text-muted-foreground">
+                      <span className="ms-auto text-xs text-muted-foreground">
                         {opt.description}
                       </span>
                     ) : null}

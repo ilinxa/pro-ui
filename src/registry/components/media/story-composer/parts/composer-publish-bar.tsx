@@ -74,7 +74,7 @@ export function ComposerPublishBar({
           className={cn(
             // ml-auto keeps Publish pinned right even when the close button is
             // hidden (otherwise justify-between would pull a lone child left).
-            "ml-auto rounded-full bg-white text-black hover:bg-white/90 gap-1.5 px-4",
+            "ms-auto rounded-full bg-white text-black hover:bg-white/90 gap-1.5 px-4",
             "disabled:opacity-50",
           )}
         >

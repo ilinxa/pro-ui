@@ -153,7 +153,7 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // v0.3.7: right padding bumped to `pr-16` so the input doesn't
         // extend under the heart toggle that now sits inline in the DM bar
         // row (rendered by story-viewer.tsx at right-3 bottom-3).
-        "absolute right-0 bottom-0 left-0 z-31 pl-4 pr-16 pt-3 pb-3 pointer-events-auto",
+        "absolute end-0 bottom-0 start-0 z-31 ps-4 pe-16 pt-3 pb-3 pointer-events-auto",
         "bg-linear-to-t from-black/60 via-black/40 to-transparent",
         className,
       )}

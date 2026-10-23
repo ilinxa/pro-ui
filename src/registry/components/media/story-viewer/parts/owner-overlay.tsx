@@ -111,9 +111,9 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
           aria-label={ariaLabel}
           aria-expanded={open}
         >
-          <Eye className="mr-2 h-4 w-4" />
+          <Eye className="me-2 h-4 w-4" />
           <span className="font-semibold">{eagerCount}</span>
-          <span className="ml-2 text-white/70">· {timeStr}</span>
+          <span className="ms-2 text-white/70">· {timeStr}</span>
         </button>
       </div>
 

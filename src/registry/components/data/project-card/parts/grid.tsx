@@ -91,7 +91,7 @@ export function ProjectCardGrid({
         {/* Status pill — top-left (always) */}
         <span
           className={cn(
-            "absolute top-4 left-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium",
+            "absolute top-4 start-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium",
             statusEntry.className,
           )}
         >
@@ -102,17 +102,17 @@ export function ProjectCardGrid({
         <span
           className={cn(
             "absolute inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm",
-            hasActions ? "bottom-4 right-4" : "top-4 right-4",
+            hasActions ? "bottom-4 end-4" : "top-4 end-4",
             categoryStyle?.className ?? "bg-white/20 text-white",
           )}
         >
-          <CategoryIcon aria-hidden="true" className="w-3 h-3 mr-1.5" />
+          <CategoryIcon aria-hidden="true" className="w-3 h-3 me-1.5" />
           {project.category}
         </span>
 
         {/* Actions slot — top-right, above link overlay */}
         {hasActions && (
-          <div className="absolute top-4 right-4 z-10 flex gap-1.5">
+          <div className="absolute top-4 end-4 z-10 flex gap-1.5">
             {actions}
           </div>
         )}
@@ -150,7 +150,7 @@ export function ProjectCardGrid({
           {featured && (
             <Star
               aria-hidden="true"
-              className="inline w-4 h-4 fill-primary text-primary mr-1.5 align-baseline"
+              className="inline w-4 h-4 fill-primary text-primary me-1.5 align-baseline"
             />
           )}
           {project.title}

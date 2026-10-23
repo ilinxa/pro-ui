@@ -72,7 +72,7 @@ export function EventCardCompact({
           {featured && (
             <Star
               aria-hidden="true"
-              className="inline w-3.5 h-3.5 fill-primary text-primary mr-1 align-baseline"
+              className="inline w-3.5 h-3.5 fill-primary text-primary me-1 align-baseline"
             />
           )}
           {event.title}

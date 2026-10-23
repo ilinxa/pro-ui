@@ -35,12 +35,12 @@ export const meta: ComponentMeta = {
     "edges",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   heavy: true,
   artifactBudgetKB: 140,
   createdAt: "2026-05-06",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

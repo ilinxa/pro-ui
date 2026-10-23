@@ -45,7 +45,7 @@ export function TaskTreeSearchInput({
 
   return (
     <div className={cn("relative flex-1 min-w-0", className)}>
-      <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <Search className="pointer-events-none absolute start-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="search"
         value={local}
@@ -54,7 +54,7 @@ export function TaskTreeSearchInput({
           setLocal(e.target.value);
           debounced(e.target.value);
         }}
-        className="h-8 pl-7 pr-7"
+        className="h-8 ps-7 pe-7"
         aria-label="Search todo tree"
       />
       {local.length > 0 && (
@@ -67,7 +67,7 @@ export function TaskTreeSearchInput({
             setLocal("");
             onChange("");
           }}
-          className="absolute right-0.5 top-1/2 size-7 -translate-y-1/2 p-0"
+          className="absolute end-0.5 top-1/2 size-7 -translate-y-1/2 p-0"
         >
           <X className="size-3" />
         </Button>

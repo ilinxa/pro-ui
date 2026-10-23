@@ -50,7 +50,7 @@ export function ChapterRail({
               <span
                 aria-hidden
                 className={cn(
-                  "absolute top-7 bottom-0 left-[13px] w-px",
+                  "absolute top-7 bottom-0 start-[13px] w-px",
                   beat.state === "done" ? "bg-primary" : "bg-border",
                 )}
               />

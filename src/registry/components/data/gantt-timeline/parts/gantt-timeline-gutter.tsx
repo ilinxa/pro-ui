@@ -107,7 +107,7 @@ export function GutterRow({
       tabIndex={tabIndex}
       onClick={onActivate}
       className={cn(
-        "group/row flex h-full cursor-default select-none items-center gap-1.5 border-b border-border/40 pr-2 outline-none",
+        "group/row flex h-full cursor-default select-none items-center gap-1.5 border-b border-border/40 pe-2 outline-none",
         "focus-visible:bg-accent focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring",
         selected && "bg-accent",
         !item.active && "opacity-60",
@@ -121,7 +121,7 @@ export function GutterRow({
           tabIndex={-1}
           aria-label="Drag to reorder"
           onClick={(e) => e.stopPropagation()}
-          className="-ml-1 hidden shrink-0 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing group-hover/row:block"
+          className="-ms-1 hidden shrink-0 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing group-hover/row:block"
           {...gripProps}
         >
           <GripVertical className="size-3.5" />
@@ -182,7 +182,7 @@ export function GutterRow({
       )}
 
       {!renaming && dots.length > 0 ? (
-        <span className="ml-auto flex shrink-0 items-center gap-1">
+        <span className="ms-auto flex shrink-0 items-center gap-1">
           {dots.map((d) => (
             <span
               key={d.value}
@@ -197,7 +197,7 @@ export function GutterRow({
       {!renaming && statusOpt ? (
         <Badge
           variant={statusOpt.variant ?? "secondary"}
-          className={cn("shrink-0 text-[10px]", dots.length === 0 && "ml-auto")}
+          className={cn("shrink-0 text-[10px]", dots.length === 0 && "ms-auto")}
         >
           {statusOpt.label}
         </Badge>
@@ -436,7 +436,7 @@ export function GanttTimelineGutter({ className }: { className?: string }) {
       aria-label="Task rows"
       onKeyDown={onKeyDown}
       className={cn(
-        "h-full shrink-0 overflow-hidden border-r border-border bg-card",
+        "h-full shrink-0 overflow-hidden border-e border-border bg-card",
         className,
       )}
       style={{ width: ctx.gutterWidth }}

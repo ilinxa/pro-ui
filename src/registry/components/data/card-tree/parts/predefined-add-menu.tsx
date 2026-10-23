@@ -92,7 +92,7 @@ export function PredefinedAddMenu({
                 key={k}
                 type="button"
                 onClick={() => onAdd(defaultEntry(k))}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left font-mono text-[12px] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:bg-muted"
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start font-mono text-[12px] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:bg-muted"
               >
                 {k}
               </button>
@@ -109,7 +109,7 @@ export function PredefinedAddMenu({
                 key={reg.key}
                 type="button"
                 onClick={() => onAdd(defaultCustomEntry(reg))}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left font-mono text-[12px] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:bg-muted"
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-start font-mono text-[12px] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:bg-muted"
               >
                 {reg.icon ? (
                   <span className="shrink-0 text-muted-foreground" aria-hidden="true">

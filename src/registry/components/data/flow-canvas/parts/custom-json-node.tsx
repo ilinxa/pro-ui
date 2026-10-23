@@ -36,7 +36,7 @@ function CustomJsonNodeImpl({ data }: { data: CustomJsonData }) {
         onClick={() => setExpanded((v) => !v)}
         className={cn(
           "flex w-full items-center justify-between gap-2 px-3 py-2",
-          "text-left text-xs font-medium",
+          "text-start text-xs font-medium",
           expanded && "border-b border-border",
         )}
       >

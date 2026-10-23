@@ -76,7 +76,7 @@ export function GanttTimelineToolbar({ className }: { className?: string }) {
       <div
         role="group"
         aria-label="Zoom level"
-        className="ml-auto inline-flex overflow-hidden rounded-md border border-border"
+        className="ms-auto inline-flex overflow-hidden rounded-md border border-border"
       >
         {ZOOMS.map((z) => (
           <button

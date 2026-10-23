@@ -32,7 +32,7 @@ export function DetailPanelActions({
         "z-10 flex items-center justify-end gap-2 bg-background",
         isFooter
           ? "sticky bottom-0 border-t border-border px-4 py-3"
-          : "ml-auto",
+          : "ms-auto",
         className,
       )}
     >

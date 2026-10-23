@@ -146,7 +146,7 @@ function ValueInput({
             onChange(Number.isFinite(n) ? n : 0);
           }}
           onBlur={onBlur}
-          className={cn(baseClass, "w-24 text-right font-mono tabular-nums")}
+          className={cn(baseClass, "w-24 text-end font-mono tabular-nums")}
           aria-label="Edit number value"
         />
       );

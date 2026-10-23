@@ -17,11 +17,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["table", "data", "list", "typed"],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   artifactBudgetKB: 5,
   createdAt: "2026-04-26",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

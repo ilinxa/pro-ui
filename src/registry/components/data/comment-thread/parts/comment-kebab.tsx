@@ -99,7 +99,7 @@ function CommentKebabInner({
                 "text-destructive focus:text-destructive",
             )}
           >
-            {item.icon ? <span className="mr-2">{item.icon}</span> : null}
+            {item.icon ? <span className="me-2">{item.icon}</span> : null}
             {item.label}
           </DropdownMenuItem>
         ))}

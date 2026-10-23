@@ -77,7 +77,7 @@ function HeaderCell({
       }
       onClick={onClick}
       className={cn(
-        "flex items-center gap-1 truncate text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground",
+        "flex items-center gap-1 truncate text-start text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground",
         className,
       )}
     >

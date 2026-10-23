@@ -40,11 +40,11 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.5.0",
+  version: "0.5.1",
   status: "alpha",
   artifactBudgetKB: 60,
   createdAt: "2026-05-31",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

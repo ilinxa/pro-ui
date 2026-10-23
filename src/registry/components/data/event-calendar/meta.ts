@@ -39,13 +39,13 @@ export const meta: ComponentMeta = {
   // based injection seam; base never statically imports feature code. Zero
   // public-API removal on the composed surface (every export still resolves,
   // base ∪ feature) — only the install SURFACE changed (see `slices` below).
-  version: "0.5.1",
+  version: "0.5.2",
   status: "alpha",
   // Tightened 235→160 after the P3 editing split (built base artifact verified
   // 137.3KB on 2026-08-11; ~15% headroom so real growth trips validate:artifact-size).
   artifactBudgetKB: 160,
   createdAt: "2026-06-22",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

@@ -73,10 +73,10 @@ export const EventCalendar = forwardRef<CalendarHandle, CalendarProps>(
         {showToolbar ? <CalendarToolbar /> : null}
         <div className="flex min-h-0 flex-1">
           {showInspector ? (
-            <CalendarEventInspector className="hidden w-64 shrink-0 border-r border-border sm:flex" />
+            <CalendarEventInspector className="hidden w-64 shrink-0 border-e border-border sm:flex" />
           ) : null}
           {showMiniNav ? (
-            <CalendarMiniNav className="hidden border-r border-border p-2 sm:block" />
+            <CalendarMiniNav className="hidden border-e border-border p-2 sm:block" />
           ) : null}
           <div className="min-w-0 flex-1 overflow-hidden">
             <ActiveView />

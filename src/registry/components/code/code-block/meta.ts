@@ -36,12 +36,12 @@ export const meta: ComponentMeta = {
     "streaming",
   ],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   heavy: true,
   artifactBudgetKB: 110,
   createdAt: "2026-05-10",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

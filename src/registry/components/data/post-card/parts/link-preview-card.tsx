@@ -96,7 +96,7 @@ export function LinkPreviewCard({
   const baseClasses = cn(
     "block overflow-hidden rounded-lg border border-border bg-card transition-colors",
     interactive
-      ? "w-full text-left hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      ? "w-full text-start hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       : "hover:bg-muted/30",
     className,
   );

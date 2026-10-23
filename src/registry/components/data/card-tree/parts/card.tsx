@@ -203,7 +203,7 @@ function PredefinedRenderer({
       <button
         type="button"
         onClick={onEnterEdit}
-        className="block w-full cursor-text text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+        className="block w-full cursor-text text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
         aria-label={`Edit ${entry.key}`}
       >
         {block}
@@ -215,7 +215,7 @@ function PredefinedRenderer({
           onRemove();
         }}
         aria-label={`Remove ${entry.key}`}
-        className="absolute right-1 top-1 inline-flex size-5 items-center justify-center rounded bg-card/80 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/20 hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute end-1 top-1 inline-flex size-5 items-center justify-center rounded bg-card/80 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/20 hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         ×
       </button>

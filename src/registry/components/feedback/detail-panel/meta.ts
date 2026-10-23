@@ -25,11 +25,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["detail-panel", "feedback", "compound", "selection", "graph-system"],
 
-  version: "0.1.2",
+  version: "0.1.3",
   status: "alpha",
   artifactBudgetKB: 30,
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

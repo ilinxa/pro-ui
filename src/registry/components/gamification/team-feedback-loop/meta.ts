@@ -30,11 +30,11 @@ export const meta: ComponentMeta = {
     "cooperative",
   ],
 
-  version: "0.2.1",
+  version: "0.2.2",
   status: "alpha",
   artifactBudgetKB: 40,
   createdAt: "2026-07-01",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

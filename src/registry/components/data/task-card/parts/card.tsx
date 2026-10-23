@@ -283,7 +283,7 @@ export function Card({ node }: { node: TaskNode }) {
           onDrop={handleDrop}
           className={cn(
             "mt-3 space-y-2 border-s border-border/40 ps-4",
-            isDropTarget && "bg-muted/30 rounded-r-md",
+            isDropTarget && "bg-muted/30 rounded-e-md",
           )}
         >
           {node.childNodes.map((child) => (

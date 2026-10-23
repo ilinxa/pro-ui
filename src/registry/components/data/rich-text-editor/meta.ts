@@ -42,12 +42,12 @@ export const meta: ComponentMeta = {
     "data",
   ],
 
-  version: "0.4.0",
+  version: "0.4.1",
   status: "alpha",
   heavy: true,
   artifactBudgetKB: 75,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

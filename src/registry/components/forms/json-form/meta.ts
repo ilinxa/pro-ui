@@ -43,11 +43,11 @@ export const meta: ComponentMeta = {
     "headless",
   ],
 
-  version: "0.2.8",
+  version: "0.2.9",
   status: "alpha",
   artifactBudgetKB: 205,
   createdAt: "2026-05-12",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

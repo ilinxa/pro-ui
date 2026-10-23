@@ -70,7 +70,7 @@ export function KanbanCardView({
             </Avatar>
           ))}
           {data.assignees.length > 5 ? (
-            <span className="ml-2 text-[10px] text-muted-foreground">
+            <span className="ms-2 text-[10px] text-muted-foreground">
               +{data.assignees.length - 5}
             </span>
           ) : null}

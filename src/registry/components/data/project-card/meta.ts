@@ -25,11 +25,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["project-card", "projects", "portfolio", "case-study", "status", "card"],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   artifactBudgetKB: 30,
   createdAt: "2026-05-03",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

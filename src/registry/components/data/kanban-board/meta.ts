@@ -33,11 +33,11 @@ export const meta: ComponentMeta = {
 
   // 0.4.3 (2026-08-11): F-cross-13 path-b sweep — color-picker/inline-create/column-menu
   // trigger asChild → buttonVariants; zero public-API change.
-  version: "0.6.0",
+  version: "0.6.1",
   status: "alpha",
   artifactBudgetKB: 105,
   createdAt: "2026-05-05",
-  updatedAt: "2026-08-17",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

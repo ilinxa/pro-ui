@@ -20,7 +20,7 @@
     },
     {
       "path": "src/registry/components/feedback/detail-panel/index.ts",
-      "content": "export { DetailPanel, DetailPanelEmptyState } from \"./detail-panel\";\nexport { DEFAULT_DETAIL_PANEL_LABELS } from \"./types\";\nexport type {\n  DetailPanelActionsContext,\n  DetailPanelActionsProps,\n  DetailPanelActionsRenderFn,\n  DetailPanelBodyProps,\n  DetailPanelError,\n  DetailPanelHandle,\n  DetailPanelHeaderProps,\n  DetailPanelLabels,\n  DetailPanelMode,\n  DetailPanelProps,\n  DetailPanelSelection,\n} from \"./types\";\n\n// @ilinxa/detail-panel 0.1.2\n",
+      "content": "export { DetailPanel, DetailPanelEmptyState } from \"./detail-panel\";\nexport { DEFAULT_DETAIL_PANEL_LABELS } from \"./types\";\nexport type {\n  DetailPanelActionsContext,\n  DetailPanelActionsProps,\n  DetailPanelActionsRenderFn,\n  DetailPanelBodyProps,\n  DetailPanelError,\n  DetailPanelHandle,\n  DetailPanelHeaderProps,\n  DetailPanelLabels,\n  DetailPanelMode,\n  DetailPanelProps,\n  DetailPanelSelection,\n} from \"./types\";\n\n// @ilinxa/detail-panel 0.1.3\n",
       "type": "registry:component",
       "target": "components/detail-panel/index.ts"
     },
@@ -50,7 +50,7 @@
     },
     {
       "path": "src/registry/components/feedback/detail-panel/parts/detail-panel-actions.tsx",
-      "content": "\"use client\";\n\nimport type {\n  DetailPanelActionsProps,\n  DetailPanelActionsRenderFn,\n} from \"../types\";\nimport { useDetailPanel } from \"./detail-panel-context\";\nimport { cn } from \"@/lib/utils\";\n\nfunction isRenderFn(\n  children: DetailPanelActionsProps[\"children\"],\n): children is DetailPanelActionsRenderFn {\n  return typeof children === \"function\";\n}\n\nexport function DetailPanelActions({\n  children,\n  position = \"footer\",\n  className,\n}: DetailPanelActionsProps) {\n  const { mode, setMode, canEdit } = useDetailPanel();\n  const content = isRenderFn(children)\n    ? children({ mode, setMode, canEdit })\n    : children;\n\n  const isFooter = position === \"footer\";\n\n  return (\n    <div\n      role=\"toolbar\"\n      className={cn(\n        \"z-10 flex items-center justify-end gap-2 bg-background\",\n        isFooter\n          ? \"sticky bottom-0 border-t border-border px-4 py-3\"\n          : \"ml-auto\",\n        className,\n      )}\n    >\n      {content}\n    </div>\n  );\n}\n",
+      "content": "\"use client\";\n\nimport type {\n  DetailPanelActionsProps,\n  DetailPanelActionsRenderFn,\n} from \"../types\";\nimport { useDetailPanel } from \"./detail-panel-context\";\nimport { cn } from \"@/lib/utils\";\n\nfunction isRenderFn(\n  children: DetailPanelActionsProps[\"children\"],\n): children is DetailPanelActionsRenderFn {\n  return typeof children === \"function\";\n}\n\nexport function DetailPanelActions({\n  children,\n  position = \"footer\",\n  className,\n}: DetailPanelActionsProps) {\n  const { mode, setMode, canEdit } = useDetailPanel();\n  const content = isRenderFn(children)\n    ? children({ mode, setMode, canEdit })\n    : children;\n\n  const isFooter = position === \"footer\";\n\n  return (\n    <div\n      role=\"toolbar\"\n      className={cn(\n        \"z-10 flex items-center justify-end gap-2 bg-background\",\n        isFooter\n          ? \"sticky bottom-0 border-t border-border px-4 py-3\"\n          : \"ms-auto\",\n        className,\n      )}\n    >\n      {content}\n    </div>\n  );\n}\n",
       "type": "registry:component",
       "target": "components/detail-panel/parts/detail-panel-actions.tsx"
     },
@@ -98,7 +98,7 @@
     }
   ],
   "meta": {
-    "version": "0.1.2",
+    "version": "0.1.3",
     "status": "alpha"
   },
   "categories": [

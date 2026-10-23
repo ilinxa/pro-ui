@@ -68,11 +68,11 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.5.1",
+  version: "0.5.2",
   status: "alpha",
   artifactBudgetKB: 165,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

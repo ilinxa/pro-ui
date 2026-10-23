@@ -78,7 +78,7 @@ export function ComponentPicker({
                 className="text-xs"
               >
                 {item.icon ? (
-                  <span className="mr-2 inline-flex size-3 items-center justify-center text-muted-foreground">
+                  <span className="me-2 inline-flex size-3 items-center justify-center text-muted-foreground">
                     {item.icon}
                   </span>
                 ) : null}

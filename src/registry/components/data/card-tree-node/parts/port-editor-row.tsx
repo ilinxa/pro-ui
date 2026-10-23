@@ -141,13 +141,13 @@ function PortEditorRowImpl({
         onChange={(e) => setIdDraft(e.target.value)}
         onBlur={commitId}
         disabled={!canEditField("id")}
-        className={`h-7 pr-6 font-mono text-xs ${idError ? "border-destructive" : ""}`}
+        className={`h-7 pe-6 font-mono text-xs ${idError ? "border-destructive" : ""}`}
         aria-invalid={idError !== null}
         title={idError ?? idEdgeWarning ?? undefined}
       />
       {hasLiveEdges && idIsDirty && !idError && (
         <AlertCircle
-          className="pointer-events-none absolute right-1.5 top-1.5 size-3 text-warning"
+          className="pointer-events-none absolute end-1.5 top-1.5 size-3 text-warning"
           aria-label="Rename will affect existing edges"
         />
       )}

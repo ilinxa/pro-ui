@@ -45,7 +45,7 @@ export function InkColorPicker({
       })}
       {allowFreeColor ? (
         <label
-          className="ml-0.5 inline-flex size-5 cursor-pointer items-center justify-center rounded-full ring-1 ring-white/15"
+          className="ms-0.5 inline-flex size-5 cursor-pointer items-center justify-center rounded-full ring-1 ring-white/15"
           title="Custom color"
           style={{
             background:

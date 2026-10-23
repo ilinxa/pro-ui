@@ -113,7 +113,7 @@ function LikeActionInner({
   // actions (comment / share / bookmark / view-count).
   if (splitCount) {
     return (
-      <div className={cn("flex items-center gap-2 pr-2", actionClassName)}>
+      <div className={cn("flex items-center gap-2 pe-2", actionClassName)}>
         <Button
           type="button"
           variant="ghost"

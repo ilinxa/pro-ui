@@ -47,11 +47,11 @@ export const meta: ComponentMeta = {
     "expandable",
   ],
 
-  version: "0.3.1",
+  version: "0.3.2",
   status: "alpha",
   artifactBudgetKB: 60,
   createdAt: "2026-05-02",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

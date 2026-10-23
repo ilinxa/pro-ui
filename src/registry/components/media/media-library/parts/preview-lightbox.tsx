@@ -71,7 +71,7 @@ export function FilePreviewLightbox({
         <DialogDescription className="sr-only">{labels.preview}</DialogDescription>
         {node ? (
           <div className="flex h-full w-full flex-col">
-            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5 pr-12">
+            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5 pe-12">
               <p className="truncate text-sm font-medium text-foreground">{node.name}</p>
               <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
                 {index + 1} / {nodes.length}
@@ -93,7 +93,7 @@ export function FilePreviewLightbox({
                   size="icon"
                   aria-label={labels.prev}
                   onClick={goPrev}
-                  className="absolute left-3 top-1/2 size-9 -translate-y-1/2 rounded-full shadow-md"
+                  className="absolute start-3 top-1/2 size-9 -translate-y-1/2 rounded-full shadow-md"
                 >
                   <ChevronLeft className="size-5" aria-hidden="true" />
                 </Button>
@@ -105,7 +105,7 @@ export function FilePreviewLightbox({
                   aria-label={labels.next}
                   onClick={goNext}
                   className={cn(
-                    "absolute right-3 top-1/2 size-9 -translate-y-1/2 rounded-full shadow-md",
+                    "absolute end-3 top-1/2 size-9 -translate-y-1/2 rounded-full shadow-md",
                   )}
                 >
                   <ChevronRight className="size-5" aria-hidden="true" />

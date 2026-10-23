@@ -29,7 +29,7 @@ export function BlackboardBackgroundEditor({ className }: BlackboardBackgroundEd
 
   const bg = ctx.background;
   return (
-    <div className={cn("absolute left-2 top-2 z-20", className)}>
+    <div className={cn("absolute start-2 top-2 z-20", className)}>
       <Button
         type="button"
         size="icon-sm"
@@ -45,7 +45,7 @@ export function BlackboardBackgroundEditor({ className }: BlackboardBackgroundEd
         <div
           role="dialog"
           aria-label={ctx.labels.backgroundLabel}
-          className="absolute left-0 top-9 w-60 rounded-lg border border-white/10 bg-[oklch(0.22_0.02_250)] p-3 text-white shadow-xl"
+          className="absolute start-0 top-9 w-60 rounded-lg border border-white/10 bg-[oklch(0.22_0.02_250)] p-3 text-white shadow-xl"
         >
           <div className="mb-2 text-xs font-medium text-white/60">{ctx.labels.backgroundColor}</div>
           <div className="flex gap-1.5">

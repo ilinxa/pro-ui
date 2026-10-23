@@ -1165,7 +1165,7 @@ const MediaEditorImpl = React.forwardRef<
           when a capture mode exists to return to — edit-only consumers
           (initialSource, no capture modes) keep their close button instead. */}
       {editor.state.stage === "edit" && hasCaptureMode ? (
-        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-30">
+        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] start-3 z-30">
           <button
             type="button"
             onClick={backToCapture}
@@ -1476,7 +1476,7 @@ const MediaEditorImpl = React.forwardRef<
               {editor.activeTool === "crop" ? (
                 <div className="flex flex-wrap items-center justify-center gap-2 rounded-md border border-border bg-muted/30 p-2">
                   {resolvedCropAspects.length > 1 ? (
-                    <div className="flex flex-wrap items-center gap-1 border-r border-border pr-2">
+                    <div className="flex flex-wrap items-center gap-1 border-e border-border pe-2">
                       {resolvedCropAspects.map((a) => (
                         <button
                           key={a}
@@ -1643,7 +1643,7 @@ const MediaEditorImpl = React.forwardRef<
                   </button>
                 ))}
                 {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
-                  <span className="ml-2 shrink-0 self-center text-[10px] text-muted-foreground/70">
+                  <span className="ms-2 shrink-0 self-center text-[10px] text-muted-foreground/70">
                     ({resolvedCropAspects.length} crop aspects)
                   </span>
                 ) : null}
@@ -1699,11 +1699,13 @@ const MediaEditorImpl = React.forwardRef<
         className={cn(
           // Mobile: edge-to-edge fullscreen. Defeat shadcn base centering
           // (top-1/2 left-1/2 + -translate-x/y-1/2) so the dialog anchors at 0,0.
+          // dir-ok: Dialog centring (left:50% + -translate-x-1/2) must stay physical in any direction; the gate cannot see it through the ! prefix
           "!fixed !inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0",
           "!max-w-none gap-0 overflow-hidden p-0",
           "h-[100dvh] w-screen !rounded-none",
           // Desktop: restore viewport-centered positioning. !inset-auto cancels
           // the mobile !inset-0 so top/left:50% can land.
+          // dir-ok: Dialog centring (left:50% + -translate-x-1/2) must stay physical in any direction; the gate cannot see it through the ! prefix
           "md:!inset-auto md:!top-1/2 md:!left-1/2",
           "md:!-translate-x-1/2 md:!-translate-y-1/2",
           "md:!rounded-2xl",

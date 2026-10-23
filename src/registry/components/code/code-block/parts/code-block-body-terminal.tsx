@@ -49,6 +49,7 @@ export function CodeBlockBodyTerminal({
   return (
     <div
       role="log"
+      dir="ltr"
       aria-live="off"
       // Scroll seam for `CodeBlockHandle.scrollToLine` (v0.2.1). Terminal rows
       // carry `data-cb-line` rather than Shiki's `.line`, because `.line` has
@@ -69,7 +70,7 @@ export function CodeBlockBodyTerminal({
               <span className="text-muted-foreground/70">{prefix}</span>
               <span>{rest}</span>
               {streaming && idx === lastInputIdx ? (
-                <CodeBlockStreamingCursor className="ml-0.5" />
+                <CodeBlockStreamingCursor className="ms-0.5" />
               ) : null}
             </div>
           );

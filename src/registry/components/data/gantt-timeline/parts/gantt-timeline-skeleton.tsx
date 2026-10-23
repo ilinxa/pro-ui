@@ -26,7 +26,7 @@ export function GanttTimelineSkeleton({
     >
       <div className="flex border-b border-border">
         <div
-          className="flex shrink-0 items-center border-r border-border p-2"
+          className="flex shrink-0 items-center border-e border-border p-2"
           style={{ width: gutterWidth }}
         >
           <Skeleton className="h-4 w-24" />
@@ -44,7 +44,7 @@ export function GanttTimelineSkeleton({
           style={{ height: rowHeight }}
         >
           <div
-            className="flex shrink-0 items-center gap-2 border-r border-border px-2"
+            className="flex shrink-0 items-center gap-2 border-e border-border px-2"
             style={{ width: gutterWidth, paddingLeft: 8 + (i % 3) * 16 }}
           >
             <Skeleton className="size-4 rounded-full" />

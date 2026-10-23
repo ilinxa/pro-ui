@@ -58,7 +58,7 @@ export function PdfPageIndicator({ className }: PdfPageIndicatorProps) {
         className="h-7 w-12 px-1.5 text-center font-mono text-xs tabular-nums"
       />
       <span className="text-muted-foreground">/</span>
-      <span className="min-w-6 text-left text-muted-foreground">
+      <span className="min-w-6 text-start text-muted-foreground">
         {numPages || "—"}
       </span>
     </form>

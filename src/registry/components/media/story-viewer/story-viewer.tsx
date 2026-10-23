@@ -1245,7 +1245,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
                   : labels.engagementShowLabel
               }
               className={cn(
-                "absolute right-3 bottom-3 z-32 flex h-9 w-9 items-center justify-center rounded-full text-white pointer-events-auto",
+                "absolute end-3 bottom-3 z-32 flex h-9 w-9 items-center justify-center rounded-full text-white pointer-events-auto",
                 "transition-colors hover:bg-white/15 focus-visible:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
               )}
             >

@@ -95,7 +95,7 @@ function KebabPanelInner(props: KebabPanelProps) {
                     props.onClose();
                   }}
                   className={cn(
-                    "flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors",
+                    "flex w-full items-center gap-3 px-4 py-3 text-start text-sm transition-colors",
                     "hover:bg-muted focus:bg-muted focus:outline-none",
                     "disabled:opacity-50 disabled:pointer-events-none",
                     item.destructive && "text-destructive hover:bg-destructive/10 focus:bg-destructive/10",

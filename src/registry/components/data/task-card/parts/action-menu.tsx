@@ -141,7 +141,7 @@ export function ActionMenu({
           disabled={!perms.edit}
           onClick={() => tryOpenEdit(ctx.editable ? "inline" : "popup")}
         >
-          <Edit3 className="mr-2 size-4" />
+          <Edit3 className="me-2 size-4" />
           {ctx.editable && isInlineActive ? "Close inline edit" : "Edit"}
         </DropdownMenuItem>
         {ctx.editable ? (
@@ -149,20 +149,20 @@ export function ActionMenu({
             disabled={!perms.edit}
             onClick={() => tryOpenEdit("popup")}
           >
-            <PanelTop className="mr-2 size-4" />
+            <PanelTop className="me-2 size-4" />
             Edit in dialog…
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleCopy}>
-          <Copy className="mr-2 size-4" />
+          <Copy className="me-2 size-4" />
           Copy
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={!perms.addChildren}
           onClick={handlePaste}
         >
-          <ClipboardPaste className="mr-2 size-4" />
+          <ClipboardPaste className="me-2 size-4" />
           Paste as child
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -172,12 +172,12 @@ export function ActionMenu({
         >
           {node.item.active ? (
             <>
-              <PowerOff className="mr-2 size-4" />
+              <PowerOff className="me-2 size-4" />
               Deactivate
             </>
           ) : (
             <>
-              <Zap className="mr-2 size-4" />
+              <Zap className="me-2 size-4" />
               Activate
             </>
           )}
@@ -185,12 +185,12 @@ export function ActionMenu({
         <DropdownMenuItem onClick={handleToggleLocked}>
           {node.item.locked ? (
             <>
-              <Unlock className="mr-2 size-4" />
+              <Unlock className="me-2 size-4" />
               Unlock
             </>
           ) : (
             <>
-              <Lock className="mr-2 size-4" />
+              <Lock className="me-2 size-4" />
               Lock
             </>
           )}
@@ -199,7 +199,7 @@ export function ActionMenu({
           disabled={!perms.overrideColor}
           onClick={handleOverrideColor}
         >
-          <Palette className="mr-2 size-4" />
+          <Palette className="me-2 size-4" />
           Override color…
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -208,7 +208,7 @@ export function ActionMenu({
           onClick={handleRemove}
           className="text-destructive focus:text-destructive"
         >
-          <Trash2 className="mr-2 size-4" />
+          <Trash2 className="me-2 size-4" />
           Remove
         </DropdownMenuItem>
       </DropdownMenuContent>

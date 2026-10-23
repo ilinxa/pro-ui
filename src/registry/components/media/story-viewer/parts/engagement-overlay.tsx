@@ -64,7 +64,7 @@ function EngagementOverlayInner(props: EngagementOverlayProps) {
         // v0.3.7: bottom-20 leaves room for the DM bar row (which sits at
         // bottom-0 with ~56px height including padding). Heart toggle lives
         // inline in the DM bar; this column only renders the icons.
-        "absolute right-3 bottom-20 z-30 flex flex-col items-center gap-3 text-white",
+        "absolute end-3 bottom-20 z-30 flex flex-col items-center gap-3 text-white",
         // Each direct child of the bar is an ActionButton; animate each.
         "[&>div>*]:transition-all [&>div>*]:duration-300 [&>div>*]:ease-out",
         // Collapsed: hidden + offset down.

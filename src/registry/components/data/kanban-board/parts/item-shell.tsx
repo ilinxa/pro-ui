@@ -134,7 +134,7 @@ export function ItemShell({
 
       {/* Action overlay — only visible on hover/focus. Pointer events stop propagation
           so clicks on the buttons don't trigger drag activation or the parent click. */}
-      <div className="pointer-events-none absolute right-1 top-1 z-10 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+      <div className="pointer-events-none absolute end-1 top-1 z-10 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
         {item.locked ? (
           <span
             className="pointer-events-auto inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground"
@@ -188,7 +188,7 @@ export function ItemShell({
 
       {handleMode === "shell" && !readOnly && !item.locked ? (
         <span
-          className="pointer-events-none absolute left-0.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100"
+          className="pointer-events-none absolute start-0.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100"
           aria-hidden="true"
         >
           <GripVertical className="size-3" />

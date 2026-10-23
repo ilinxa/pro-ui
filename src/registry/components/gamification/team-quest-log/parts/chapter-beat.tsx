@@ -72,7 +72,7 @@ export function ChapterBeat({
   );
 
   const body = (
-    <span className="flex min-w-0 flex-col gap-0.5 pb-4 text-left">
+    <span className="flex min-w-0 flex-col gap-0.5 pb-4 text-start">
       <span
         className={cn(
           "truncate text-sm font-medium",
@@ -119,7 +119,7 @@ export function ChapterBeat({
           aria-label={accessibleName}
           onClick={() => onClick?.(chapter)}
           className={cn(
-            "group flex w-full items-start gap-3 rounded-md text-left outline-none",
+            "group flex w-full items-start gap-3 rounded-md text-start outline-none",
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           )}
         >

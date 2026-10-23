@@ -133,7 +133,7 @@ function MetaRow({
           <button
             type="button"
             onClick={onEnterEdit}
-            className="cursor-text rounded-sm px-1 -mx-1 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="cursor-text rounded-sm px-1 -mx-1 text-start hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {value === null ? "—" : String(value)}
           </button>

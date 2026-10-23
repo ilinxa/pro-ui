@@ -41,7 +41,7 @@ function TagsFieldImpl({
       className="flex flex-wrap items-center gap-1.5"
     >
       {tags.map((t) => (
-        <Badge key={t} variant="secondary" className="gap-1 pr-1">
+        <Badge key={t} variant="secondary" className="gap-1 pe-1">
           {t}
           <button
             type="button"

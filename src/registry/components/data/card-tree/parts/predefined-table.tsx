@@ -36,7 +36,7 @@ export function PredefinedTable({
             {value.headers.map((h, i) => (
               <th
                 key={`${h}-${i}`}
-                className="px-2.5 py-1.5 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+                className="px-2.5 py-1.5 text-start font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
               >
                 {h}
               </th>
@@ -55,7 +55,7 @@ export function PredefinedTable({
                   className={cn(
                     "px-2.5 py-1.5 align-top",
                     typeof cell === "number" &&
-                      "text-right font-mono tabular-nums",
+                      "text-end font-mono tabular-nums",
                   )}
                 >
                   {renderCell(cell)}

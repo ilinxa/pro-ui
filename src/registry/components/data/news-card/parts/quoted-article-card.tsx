@@ -96,7 +96,7 @@ export function QuotedArticleCard({
     >
       {/* Quote glyph — top-right context cue */}
       <Quote
-        className="pointer-events-none absolute right-2 top-2 z-[1] size-4 text-muted-foreground/50"
+        className="pointer-events-none absolute end-2 top-2 z-[1] size-4 text-muted-foreground/50"
         aria-hidden
       />
 

@@ -512,7 +512,7 @@ export function EditorCanvas({
           size="sm"
           onClick={panZoom.reset}
           aria-label="Reset zoom"
-          className="absolute top-3 left-3 z-20 gap-1.5 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 hover:text-white"
+          className="absolute top-3 start-3 z-20 gap-1.5 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 hover:text-white"
         >
           <Maximize2 className="size-3.5" />
           <span className="text-xs font-mono tabular-nums">
@@ -687,6 +687,7 @@ function CropOverlay({
         style={{ height: stageHeight - rect.y - rect.height }}
       />
       <div
+        // dir-ok: dim mask sized in px from Konva stage coordinates (rect.x), physical axis
         className="absolute left-0 bg-black/60"
         style={{
           top: rect.y,
@@ -695,6 +696,7 @@ function CropOverlay({
         }}
       />
       <div
+        // dir-ok: dim mask sized in px from Konva stage coordinates (rect.x), physical axis
         className="absolute right-0 bg-black/60"
         style={{
           top: rect.y,

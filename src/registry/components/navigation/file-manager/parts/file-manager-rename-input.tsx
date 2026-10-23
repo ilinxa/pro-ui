@@ -91,7 +91,7 @@ export function FileManagerRenameInput(props: FileManagerRenameInputProps) {
       {error ? (
         <span
           role="alert"
-          className="pointer-events-none absolute left-0 top-full z-20 mt-0.5 rounded-sm bg-destructive px-1.5 py-0.5 text-xs text-destructive-foreground shadow-sm"
+          className="pointer-events-none absolute start-0 top-full z-20 mt-0.5 rounded-sm bg-destructive px-1.5 py-0.5 text-xs text-destructive-foreground shadow-sm"
         >
           {error}
         </span>

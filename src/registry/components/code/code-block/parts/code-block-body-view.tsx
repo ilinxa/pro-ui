@@ -101,6 +101,7 @@ export function CodeBlockBodyView({
 
   return (
     <div
+      dir="ltr"
       className={cn(
         "relative flex w-full overflow-hidden",
         wrap === "wrap" ? "whitespace-pre-wrap" : "",
@@ -121,7 +122,7 @@ export function CodeBlockBodyView({
               {Array.from(annotationByLine.entries()).map(([line, items]) => (
                 <div
                   key={line}
-                  className="absolute left-0 flex items-center"
+                  className="absolute start-0 flex items-center"
                   style={{ top: `calc(${line - 1} * 1.6em)`, height: "1.6em" }}
                 >
                   {items.map((a, i) => (
@@ -188,7 +189,7 @@ export function CodeBlockBodyView({
                   // block still bolds the gutter NUMBER (that comes from
                   // CodeBlockLineNumbers) while the row itself stays plain —
                   // a half-applied highlight.
-                  className="line block min-h-[1.6em] -ml-1 pl-1"
+                  className="line block min-h-[1.6em] -ms-1 ps-1"
                   data-highlighted={highlightedSet.has(i + 1) ? "true" : undefined}
                 >
                   {line === "" ? " " : line}

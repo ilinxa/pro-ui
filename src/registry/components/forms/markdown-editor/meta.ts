@@ -30,12 +30,12 @@ export const meta: ComponentMeta = {
   ],
   tags: ["markdown-editor", "codemirror", "wikilinks", "graph-system", "editor"],
 
-  version: "0.1.5",
+  version: "0.1.6",
   status: "alpha",
   heavy: true,
   artifactBudgetKB: 75,
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

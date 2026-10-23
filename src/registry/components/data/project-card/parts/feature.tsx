@@ -87,14 +87,14 @@ export function ProjectCardFeature({
       />
 
       {/* Top-left cluster: category (always) + status (only when actions yielded top-right) */}
-      <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+      <div className="absolute top-3 start-3 flex flex-col items-start gap-1.5">
         <span
           className={cn(
             "inline-flex items-center text-xs px-2 py-1 rounded-full backdrop-blur-sm",
             categoryStyle?.className ?? "bg-white/20 text-white",
           )}
         >
-          <CategoryIcon aria-hidden="true" className="w-3 h-3 mr-1" />
+          <CategoryIcon aria-hidden="true" className="w-3 h-3 me-1" />
           {project.category}
         </span>
         {hasActions && (
@@ -111,13 +111,13 @@ export function ProjectCardFeature({
 
       {/* Top-right: actions (when supplied) OR status pill */}
       {hasActions ? (
-        <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+        <div className="absolute top-3 end-3 z-10 flex gap-1.5">
           {actions}
         </div>
       ) : (
         <span
           className={cn(
-            "absolute top-3 right-3 inline-flex items-center text-xs px-2.5 py-1 rounded-full backdrop-blur-sm",
+            "absolute top-3 end-3 inline-flex items-center text-xs px-2.5 py-1 rounded-full backdrop-blur-sm",
             statusEntry.className,
           )}
         >
@@ -146,7 +146,7 @@ export function ProjectCardFeature({
           {featured && (
             <Star
               aria-hidden="true"
-              className="inline w-4 h-4 fill-primary text-primary mr-1.5 align-baseline"
+              className="inline w-4 h-4 fill-primary text-primary me-1.5 align-baseline"
             />
           )}
           {project.title}

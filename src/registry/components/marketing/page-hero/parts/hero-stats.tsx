@@ -22,7 +22,7 @@ export function HeroStats({ stats, className }: HeroStatsProps) {
                 <Icon className="h-5 w-5" />
               </div>
             ) : null}
-            <div className="text-left">
+            <div className="text-start">
               <div className="text-2xl font-bold">{stat.value}</div>
               <div className="text-sm text-primary-foreground/70">{stat.label}</div>
             </div>

@@ -24,11 +24,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["entity-picker", "picker", "combobox", "graph-system"],
 
-  version: "0.1.3",
+  version: "0.1.4",
   status: "alpha",
   artifactBudgetKB: 35,
   createdAt: "2026-04-29",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

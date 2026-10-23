@@ -86,7 +86,7 @@ function ConnectedFileCard({ node }: { node: MediaNode }) {
               {...listeners}
               aria-label={`${ctx.labels.move}: ${node.name}`}
               onClick={(e) => e.stopPropagation()}
-              className="absolute right-2 top-2 cursor-grab rounded bg-background/70 p-1 text-muted-foreground opacity-50 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity hover:bg-background focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover/file:opacity-100"
+              className="absolute end-2 top-2 cursor-grab rounded bg-background/70 p-1 text-muted-foreground opacity-50 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity hover:bg-background focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover/file:opacity-100"
             >
               <GripVertical className="size-3.5" aria-hidden="true" />
             </button>

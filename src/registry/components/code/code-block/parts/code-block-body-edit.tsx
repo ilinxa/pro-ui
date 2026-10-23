@@ -100,6 +100,8 @@ export function CodeBlockBodyEdit({
       <style dangerouslySetInnerHTML={{ __html: CODEMIRROR_THEME_CSS }} />
       <div
         ref={containerRef}
+        // Code is left-to-right on any page — the same as the view and terminal bodies.
+        dir="ltr"
         className={cn("code-block-editor relative min-h-32 overflow-hidden")}
         style={{ maxHeight: heightStyle }}
       />

@@ -280,7 +280,7 @@ export function BandDropCell({ day }: { day: Date }) {
         }
       }}
       className={cn(
-        "min-h-7 cursor-pointer border-l border-border first:border-l-0",
+        "min-h-7 cursor-pointer border-s border-border first:border-s-0",
         isOver && "bg-primary/10",
       )}
     />

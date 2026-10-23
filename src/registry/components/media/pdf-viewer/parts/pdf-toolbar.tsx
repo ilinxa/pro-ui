@@ -31,7 +31,7 @@ export function PdfToolbar({ className }: PdfToolbarProps) {
         <Separator orientation="vertical" className="mx-1 h-5" />
         <PdfZoomControls />
         <Separator orientation="vertical" className="mx-1 h-5" />
-        <div className="ml-auto flex items-center gap-0.5">
+        <div className="ms-auto flex items-center gap-0.5">
           <PdfActionMenu />
         </div>
       </div>
