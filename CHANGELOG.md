@@ -7,6 +7,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The registry a
 <!-- /wl -->
 
 ### Components
+- `split-workspace` 0.2.1 — Alt+Shift+Arrow no longer resizes a pane while you type in an input, textarea, select or contentEditable (the shortcut had no typing guard).
+- `media-editor` 0.4.1 — Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z leave a focused `<select>`, textbox-role widget or anything inside `[data-keyboard-ignore]` alone too (inputs, textareas and contentEditable already were), and skip IME composition.
+- `pdf-viewer` 0.1.7 — the viewer's shortcuts skip a focused `<select>`, textbox-role widgets and IME composition, as well as text inputs. The context-menu Escape listener is unchanged.
+- `story-viewer` 0.5.3 — its window shortcuts and the kebab panel's Escape share one guarded listener hook, which also skips events another handler already handled and inputs inside a shadow root. Typing behaviour is otherwise unchanged.
 - `app-sidebar` 0.5.1 — source comments only: two escape notes for the new consumer-contract gate (the deprecated `side="left" | "right"` aliases are physical by definition; the drawer's Escape listener never acts on typing). No behaviour change; bumped so one version always means one file content.
 
 ### Registry

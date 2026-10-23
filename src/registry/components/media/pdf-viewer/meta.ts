@@ -38,12 +38,12 @@ export const meta: ComponentMeta = {
     "pdfjs",
   ],
 
-  version: "0.1.6",
+  version: "0.1.7",
   status: "alpha",
   heavy: true,
   artifactBudgetKB: 110,
   createdAt: "2026-05-10",
-  updatedAt: "2026-08-19",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import type { Action } from "../lib/reducer";
+import { useGlobalKeydown } from "./use-global-keydown";
 import type { LeafRect, SplitDividerRect } from "../lib/geometry";
 import { rectsShareFullEdge } from "../lib/geometry";
 import { getNodeAtPath } from "../lib/tree";
@@ -136,9 +137,10 @@ export function useResizeKeyboard(opts: {
   const { enabled, leaves, dividers, renderedTree, focusedAreaId, dispatch } =
     opts;
 
-  useEffect(() => {
-    if (!enabled) return;
-    const handler = (e: KeyboardEvent) => {
+  // useGlobalKeydown leaves typing targets alone: Alt+Shift+Arrow extends a text selection
+  // by word on some platforms, so it must never resize a pane while the user is typing.
+  useGlobalKeydown(
+    (e) => {
       if (!focusedAreaId) return;
       if (!e.altKey || !e.shiftKey) return;
       const isHorizontal = e.key === "ArrowLeft" || e.key === "ArrowRight";
@@ -177,8 +179,7 @@ export function useResizeKeyboard(opts: {
         Math.min(0.95, node.ratio + KEYBOARD_RESIZE_STEP * direction),
       );
       dispatch({ type: "resize", splitPath: candidate.splitPath, ratio: next });
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [enabled, focusedAreaId, leaves, dividers, renderedTree, dispatch]);
+    },
+    { enabled },
+  );
 }

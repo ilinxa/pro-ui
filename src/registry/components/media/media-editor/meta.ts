@@ -40,7 +40,7 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.4.0",
+  version: "0.4.1",
   status: "alpha",
   heavy: true,
   // Reduced from 365 (pre-P3) — capture's ~1,284 LOC left the base folder;
@@ -51,7 +51,7 @@ export const meta: ComponentMeta = {
   // context; 290 keeps ~3% headroom so real growth trips the validator).
   artifactBudgetKB: 290,
   createdAt: "2026-06-02",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

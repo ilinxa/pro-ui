@@ -71,11 +71,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["story-viewer", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.5.2",
+  version: "0.5.3",
   status: "alpha",
   artifactBudgetKB: 240,
   createdAt: "2026-05-03",
-  updatedAt: "2026-10-23",
+  updatedAt: "2026-10-24",
 
   author: { name: "ilinxa" },
 

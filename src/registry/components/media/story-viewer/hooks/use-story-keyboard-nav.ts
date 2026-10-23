@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { isActivatableTarget, isEditableTarget } from "../lib/is-editable-target";
+import { isActivatableTarget } from "../lib/is-editable-target";
+import { useGlobalKeydown } from "./use-global-keydown";
 
 export interface UseStoryKeyboardNavOptions {
   isOpen: boolean;
@@ -27,7 +28,8 @@ export interface UseStoryKeyboardNavOptions {
  * - Escape → onClose (when supplied; deduplicated with Radix Dialog)
  *
  * Events from editable targets (input / textarea / select / contentEditable /
- * `[role="textbox"]` / `[data-keyboard-ignore]`) and IME composition are ignored.
+ * `[role="textbox"]` / `[data-keyboard-ignore]`), IME composition and events another
+ * handler already prevented are ignored (via `useGlobalKeydown`).
  *
  * Listener attaches on `isOpen=true` only and detaches on close — no leaks.
  * Refs-mirror pattern keeps the listener stable; only re-attaches on `isOpen` flip.
@@ -39,12 +41,10 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
   });
 
   const { isOpen, enabled = true } = opts;
-  useEffect(() => {
-    if (!isOpen) return;
-    if (!enabled) return;
-    const handler = (e: KeyboardEvent) => {
-      // Typing surfaces and IME composition own their keys.
-      if (e.isComposing || isEditableTarget(e.target)) return;
+  // useGlobalKeydown skips editable targets (incl. inside shadow roots), IME composition and
+  // events another handler already prevented.
+  useGlobalKeydown(
+    (e) => {
       switch (e.key) {
         case "ArrowLeft":
           refs.current.onPrevItem();
@@ -62,8 +62,7 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
           refs.current.onClose?.();
           break;
       }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, enabled]);
+    },
+    { enabled: isOpen && enabled },
+  );
 }

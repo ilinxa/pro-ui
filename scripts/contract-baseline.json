@@ -1948,24 +1948,6 @@
       ],
       "src/registry/components/gamification/team-feedback-loop/parts/team-feedback-loop-root.tsx": [
         "document.addEventListener(\"keydown\")"
-      ],
-      "src/registry/components/layout/split-workspace/hooks/use-keyboard-actions.ts": [
-        "window.addEventListener(\"keydown\")"
-      ],
-      "src/registry/components/media/media-editor/hooks/use-history.ts": [
-        "window.addEventListener(\"keydown\")"
-      ],
-      "src/registry/components/media/pdf-viewer/hooks/use-pdf-keyboard.ts": [
-        "document.addEventListener(\"keydown\")"
-      ],
-      "src/registry/components/media/pdf-viewer/pdf-viewer.tsx": [
-        "document.addEventListener(\"keydown\")"
-      ],
-      "src/registry/components/media/story-viewer/hooks/use-story-keyboard-nav.ts": [
-        "window.addEventListener(\"keydown\")"
-      ],
-      "src/registry/components/media/story-viewer/parts/kebab-panel.tsx": [
-        "window.addEventListener(\"keydown\")"
       ]
     }
   }

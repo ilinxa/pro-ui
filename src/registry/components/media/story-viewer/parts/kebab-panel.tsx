@@ -1,7 +1,7 @@
 "use client";
 
-import { isEditableTarget } from "../lib/is-editable-target";
-import { Fragment, memo, useEffect } from "react";
+import { Fragment, memo } from "react";
+import { useGlobalKeydown } from "../hooks/use-global-keydown";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,16 +36,13 @@ export interface KebabPanelProps {
  * onClose dispatch).
  */
 function KebabPanelInner(props: KebabPanelProps) {
-  // Escape key handler — closes the panel when open.
-  useEffect(() => {
-    if (!props.open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.isComposing || isEditableTarget(e.target)) return;
+  // Escape closes the panel when open (editable targets and IME composition are skipped).
+  useGlobalKeydown(
+    (e) => {
       if (e.key === "Escape") props.onClose();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [props.open, props.onClose]);
+    },
+    { enabled: props.open },
+  );
 
   if (!props.open || props.items.length === 0) return null;
 

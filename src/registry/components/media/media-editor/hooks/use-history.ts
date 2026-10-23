@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useGlobalKeydown } from "./use-global-keydown";
 
 export interface Command {
   do: () => void;
@@ -93,29 +94,20 @@ export function useHistory(
     tick();
   }, [tick]);
 
-  // Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z keyboard shortcuts.
-  useEffect(() => {
-    if (!bindKeyboard || typeof window === "undefined") return;
-    const handler = (e: KeyboardEvent) => {
+  // Ctrl/Cmd+Z / Ctrl/Cmd+Shift+Z keyboard shortcuts. useGlobalKeydown leaves typing
+  // targets (text inputs, textarea, select, contentEditable, textbox roles), IME
+  // composition and already-handled events alone — their own undo stays native.
+  useGlobalKeydown(
+    (e) => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
       if (e.key.toLowerCase() !== "z") return;
-      // Don't hijack while typing in an input/textarea.
-      const tgt = e.target as HTMLElement | null;
-      if (
-        tgt?.tagName === "INPUT" ||
-        tgt?.tagName === "TEXTAREA" ||
-        tgt?.isContentEditable
-      ) {
-        return;
-      }
       e.preventDefault();
       if (e.shiftKey) redo();
       else undo();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [bindKeyboard, undo, redo]);
+    },
+    { enabled: bindKeyboard },
+  );
 
   return {
     execute,

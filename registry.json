@@ -515,10 +515,20 @@
           "path": "src/registry/components/layout/split-workspace/parts/split-divider.tsx",
           "type": "registry:component",
           "target": "components/split-workspace/parts/split-divider.tsx"
+        },
+        {
+          "path": "src/registry/components/layout/split-workspace/hooks/use-global-keydown.ts",
+          "type": "registry:component",
+          "target": "components/split-workspace/hooks/use-global-keydown.ts"
+        },
+        {
+          "path": "src/registry/components/layout/split-workspace/lib/is-editable-target.ts",
+          "type": "registry:component",
+          "target": "components/split-workspace/lib/is-editable-target.ts"
         }
       ],
       "meta": {
-        "version": "0.2.0",
+        "version": "0.2.1",
         "status": "alpha"
       }
     },
@@ -544,7 +554,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.0",
+        "version": "0.2.1",
         "status": "alpha"
       }
     },
@@ -3750,10 +3760,15 @@
           "path": "src/registry/components/media/story-viewer/parts/story-cube-face.tsx",
           "type": "registry:component",
           "target": "components/story-viewer/parts/story-cube-face.tsx"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/hooks/use-global-keydown.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/hooks/use-global-keydown.ts"
         }
       ],
       "meta": {
-        "version": "0.5.2",
+        "version": "0.5.3",
         "status": "alpha"
       }
     },
@@ -3779,7 +3794,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.2",
+        "version": "0.5.3",
         "status": "alpha"
       }
     },
@@ -4615,10 +4630,20 @@
           "path": "src/registry/components/media/pdf-viewer/parts/pdf-loading-state.tsx",
           "type": "registry:component",
           "target": "components/pdf-viewer/parts/pdf-loading-state.tsx"
+        },
+        {
+          "path": "src/registry/components/media/pdf-viewer/hooks/use-global-keydown.ts",
+          "type": "registry:component",
+          "target": "components/pdf-viewer/hooks/use-global-keydown.ts"
+        },
+        {
+          "path": "src/registry/components/media/pdf-viewer/lib/is-editable-target.ts",
+          "type": "registry:component",
+          "target": "components/pdf-viewer/lib/is-editable-target.ts"
         }
       ],
       "meta": {
-        "version": "0.1.6",
+        "version": "0.1.7",
         "status": "alpha"
       }
     },
@@ -4646,7 +4671,7 @@
         }
       ],
       "meta": {
-        "version": "0.1.6",
+        "version": "0.1.7",
         "status": "alpha"
       }
     },
@@ -7179,10 +7204,20 @@
           "path": "src/registry/components/media/media-editor/parts/lazy-editor-canvas.tsx",
           "type": "registry:component",
           "target": "components/media-editor/parts/lazy-editor-canvas.tsx"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/hooks/use-global-keydown.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/hooks/use-global-keydown.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/is-editable-target.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/is-editable-target.ts"
         }
       ],
       "meta": {
-        "version": "0.4.0",
+        "version": "0.4.1",
         "status": "alpha"
       }
     },
@@ -7208,7 +7243,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.0",
+        "version": "0.4.1",
         "status": "alpha"
       }
     },
@@ -7225,7 +7260,7 @@
       "meta": {
         "featureOf": "media-editor",
         "budgetKB": 65,
-        "version": "0.4.0",
+        "version": "0.4.1",
         "status": "alpha"
       },
       "registryDependencies": [

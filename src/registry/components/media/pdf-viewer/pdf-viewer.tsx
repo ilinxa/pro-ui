@@ -208,6 +208,7 @@ export const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
       const onKey = (event: KeyboardEvent) => {
         if (event.key === "Escape") setCustomMenuPos(null);
       };
+      // keydown-ok: Escape only closes the open context menu; it never acts on typing
       document.addEventListener("keydown", onKey);
       return () => document.removeEventListener("keydown", onKey);
     }, [customMenuPos]);

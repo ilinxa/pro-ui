@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import type { PdfActions, PdfStatus } from "../types";
+import { useGlobalKeydown } from "./use-global-keydown";
 
 interface UsePdfKeyboardArgs {
   containerRef: { current: HTMLElement | null };
@@ -15,30 +15,20 @@ interface UsePdfKeyboardArgs {
 /**
  * Wires keyboard shortcuts on the viewer root: PgUp/PgDn for page nav,
  * Cmd/Ctrl ± for zoom, Cmd/Ctrl + 0 for reset, Cmd/Ctrl + P for print,
- * Cmd/Ctrl + S for download. Listener attaches to document but only fires
- * when focus is inside the viewer's root.
+ * Cmd/Ctrl + S for download. One window listener (`useGlobalKeydown`) that acts only
+ * when the event comes from inside the viewer's root.
  */
 export function usePdfKeyboard(args: UsePdfKeyboardArgs): void {
   const { rootRef, actions, status, allowDownload, allowPrint } = args;
 
-  useEffect(() => {
-    if (status !== "ready") return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
+  // useGlobalKeydown already skips typing targets (the page-number input, any select or
+  // contentEditable), IME composition and already-handled events.
+  useGlobalKeydown(
+    (e) => {
       const root = rootRef.current;
       if (!root) return;
       const target = e.target as Node | null;
       if (target && !(root === target || root.contains(target))) return;
-
-      // Skip when typing in inputs / textareas / contenteditable.
-      if (
-        target instanceof HTMLElement &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
 
       const meta = e.ctrlKey || e.metaKey;
 
@@ -92,9 +82,7 @@ export function usePdfKeyboard(args: UsePdfKeyboardArgs): void {
         actions.goToPage(Number.MAX_SAFE_INTEGER);
         return;
       }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [rootRef, actions, status, allowDownload, allowPrint]);
+    },
+    { enabled: status === "ready" },
+  );
 }
