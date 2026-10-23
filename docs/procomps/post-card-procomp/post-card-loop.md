@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: patch) |
-| **Current stage** | U7 — gates 1–8 green, consumer smoke 23/23 + tsc 0; committed locally, push awaits user |
+| **Current stage** | CLOSED — shipped in `85b9e87`, deploy verified 2026-10-23 |
 | **Sign-off policy** | patch — architect proceeds (batch plan docs/plans/fix-now-batch-plan.md, sign-off delegated by user 2026-10-23) |
 | **Version target** | v0.5.0 -> v0.5.1 |
 | **Model roster** | architect: main session · implementer: Sonnet 5.5 |
@@ -30,7 +30,7 @@ Caveat: the implementer wrote the regression tests after the fix (no git stash a
 - [x] U4 Gate battery / adversarial review — architect — gates 1–8 green; review done (F-A6 dropped)
 - [ ] U5 Runtime & smoke — architect
 - [ ] U6 Docs & GATE 3 — architect
-- [ ] U7 Ship — architect
+- [x] U7 Ship — `85b9e87` (fix-now batch) pushed to master; Vercel deploy verified 2026-10-23 (live `/r/*.json` carry the new files + `cssVars`). Decision: `.claude/decisions/2026-10-23-fix-now-hardening-batch.md`
 
 ## Slice plan
 

@@ -7,7 +7,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: minor) |
-| **Current stage** | U7 — gates 1–8 green, consumer smoke 23/23 + tsc 0; committed locally, push awaits user |
+| **Current stage** | CLOSED — shipped in `85b9e87`, deploy verified 2026-10-23 |
 | **Sign-off policy** | minor — delegated by user 2026-10-23 for the fix-now batch (docs/plans/fix-now-batch-plan.md); architect signs off contract B7 |
 | **Version target** | v0.3.1 → v0.4.0 |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 |
@@ -22,7 +22,7 @@
 - [x] U4 Adversarial review — finders; findings table below
 - [x] U5 Runtime & smoke — `pnpm build` ✓ (77 pages); consumer smoke (shadcn@4.18.0, local `public/r`): 23/23 installs exit 0, consumer `tsc` 0 errors; cssVars land only in `@theme inline`; base media-editor compiles without the capture slice
 - [x] U6 Docs sync & GATE 3 — guides/meta current; minors reviewed in spotcheck files (Pass with follow-ups); patches: architect self-check (no review file per ladder) — review file `reviews/2026-10-23-v0.4.0-spotcheck.md` exists; GATE 3 closure pending
-- [ ] U7 Ship
+- [x] U7 Ship — `85b9e87` (fix-now batch) pushed to master; Vercel deploy verified 2026-10-23 (live `/r/*.json` carry the new files + `cssVars`). Decision: `.claude/decisions/2026-10-23-fix-now-hardening-batch.md`
 
 ### Contract
 

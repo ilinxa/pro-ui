@@ -10,7 +10,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | procomp-loop U-loops (per component) + feature-readiness-loop (gate tooling, registry tokens) |
-| **Current stage** | U7 — all gates green, smoke 23/23; committed locally; push awaits user |
+| **Current stage** | CLOSED — shipped in `85b9e87` (pushed, Vercel deploy verified on live `/r/*.json`, 2026-10-23) |
 | **Sign-off policy** | delegated by user (2026-10-23: "Delegate for this batch" — minor-class contracts signed off by the architect, recorded per state doc; user reviews everything before push) |
 | **Push policy** | commit locally with gate numbers; **ask before push** (user, 2026-10-23) |
 | **Model roster** | architect: main session · implementers + finders: Sonnet 5 (`sonnet`) |
@@ -71,7 +71,7 @@ Moved out of this batch into the next loops (same order the consumer agreed): ap
 - [x] Findings table complete
 - [x] Runtime + smoke evidence recorded — `pnpm build` ✓; consumer smoke (shadcn@4.18.0 pinned, local `public/r` via `@ilinxa` remap, restored after): 23/23 installs exit 0 (21 base + `media-editor-capture` + `project-card-fixtures`), new files present, consumer `tsc` 0; orphan sweep 64/64 clean; consumer `globals.css` gained exactly 3 `@theme inline` lines and no `:root`/`.dark` rule; base media-editor compiles without the capture slice (only its two importers fail, as designed), then 0 with it. Behaviour proof = the jsdom regression tests (each falsified red where noted); no browser pass this run (host memory)
 - [x] Docs, review files, STATUS, decision file
-- [ ] Committed (push: ask user)
+- [x] Committed + pushed on user OK — `85b9e87`; post-deploy check: live `event-card` cssVars, `rich-text-editor` safe-embed files, `story-viewer` `is-editable-target.ts` all present
 
 ## Gate battery
 
