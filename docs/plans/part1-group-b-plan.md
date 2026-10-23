@@ -1,8 +1,8 @@
 # Plan — Part 1 registry-wide hardening, slice group B (R1–R9, R11)
 
 ## Status
-- phase: **closed** (R7 done 2026-10-24; push + deploy check pending the user's OK)
-- branch/HEAD: master — local, unpushed: 511de61 (B1–B5), a08d889 (B6), 72263e0 (B7), + the close-out docs commit
+- phase: **closed and live** (R7 done; pushed 2026-10-24, deploy verified on ui.ilinxa.com — see Handoff)
+- branch/HEAD: master @ d4f12f0 (511de61 B1–B5, a08d889 B6, 72263e0 B7, d4f12f0 close-out — all pushed)
 - updated: 2026-10-24
 - open escalation: none
 - group A (R10, R12): [part1-registry-hardening-plan.md](part1-registry-hardening-plan.md) — closed
@@ -259,6 +259,6 @@ unchanged lines.
   - The baseline wording drifting under a harmless edit. Editing a baselined hard-coded string makes it
     "new", so the edit must convert it to `labels` — which is intended, but surprises contributors.
 - **next:**
-  - Push and verify the deploy (user's OK).
+  - ~~Push and verify the deploy~~ — done 2026-10-24: live `/r/*.json` sampled (app-sidebar 0.5.1, post-card 0.5.2, story-viewer 0.5.3, media-editor 0.4.1, pdf-viewer 0.1.7, split-workspace 0.2.1, task-tree 0.4.2, code-block 0.2.2, carousel-composer 0.2.2): versions, 0 bare deps, one stamp each; task-tree `insetInlineStart` and code-block `dir="ltr"` served; index 0 bare deps, 130/184 versioned.
   - Relay the report-back.
   - Then engagement-bar → media-carousel (urgent), each closing its baseline rows and joining `closed`.
