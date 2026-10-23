@@ -1,8 +1,8 @@
 # Plan — Part 1 registry-wide hardening, slice group B (R1–R9, R11)
 
 ## Status
-- phase: R6 — next unchecked gate: B7 commit, then R7 (Part 1 close-out + report-back)
-- branch/HEAD: master @ a08d889 (local; 511de61 B1–B5, a08d889 B6 — unpushed) + B7 uncommitted
+- phase: **closed** (R7 done 2026-10-24; push + deploy check pending the user's OK)
+- branch/HEAD: master — local, unpushed: 511de61 (B1–B5), a08d889 (B6), 72263e0 (B7), + the close-out docs commit
 - updated: 2026-10-24
 - open escalation: none
 - group A (R10, R12): [part1-registry-hardening-plan.md](part1-registry-hardening-plan.md) — closed
@@ -110,8 +110,8 @@ closed under Parts 2–3 (story-rail 0.4.0, app-sidebar 0.5.0) must have no base
 - [x] R3 gates with numbers
 - [x] R4 findings table (fresh finders per slice group: C, D on B1–B5; E on B6–B7)
 - [x] R5 runtime evidence
-- [ ] R6 docs + docs-audit; commits landed
-- [ ] R7 handoff, parked promoted, retro
+- [x] R6 docs + docs-audit; commits landed
+- [x] R7 handoff, parked promoted, retro
 
 ## Invariants (R1 — draft)
 | # | Invariant | R4 | R5 |
@@ -249,3 +249,16 @@ unchanged lines.
 - A content-hash lock for served files (one version ⇒ one content) — would have caught app-sidebar's comment-only change automatically; proposed, not in the request.
 
 ## Handoff (R7)
+- **done:**
+  - Part 1 R1–R9 and R11 built, reviewed (3 fresh finders, 37 reports), gated and tested.
+  - Results: tests 710 / 65 files (+3 in the close-out commit), install test 2/2 CLIs, the LTR layout snapshot identical on 41/41 pages.
+  - Report-back for the platform: `.claude/report-back-2026-10-24-part1-closed.md` (local).
+- **pre-mortem:** if this breaks a consumer, the likely causes are:
+  - A codemod conversion that is right as a class but wrong next to an inline physical style in a
+    state no demo renders. E1 was exactly that, and only RTL reasoning caught it. The gate cannot see inline styles (parked).
+  - The baseline wording drifting under a harmless edit. Editing a baselined hard-coded string makes it
+    "new", so the edit must convert it to `labels` — which is intended, but surprises contributors.
+- **next:**
+  - Push and verify the deploy (user's OK).
+  - Relay the report-back.
+  - Then engagement-bar → media-carousel (urgent), each closing its baseline rows and joining `closed`.
