@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — 0.x minor) |
-| **Current stage** | U7 — committed locally; push awaits user OK |
+| **Current stage** | CLOSED — shipped `a5c7324`, deploy verified 2026-10-23 |
 | **Sign-off policy** | delegated by user 2026-10-23 ("Sign off, delegate rest" on the story-rail U1 question, which named app-sidebar's U1 too, unless a composed component breaks — none composes app-sidebar in code). Push still needs the user's OK. |
 | **Version target** | v0.4.1 → **v0.5.0** |
 | **Model roster** | architect: main session · implementers: Sonnet · finders: Sonnet (fresh) |
@@ -25,7 +25,7 @@ reaching the drawer (AS3) · labels incl. badge count (AS4/AS5) · C1–C12 as t
 - [x] U4 Adversarial review — 2 fresh finders (33 findings → 22 rows: 18 CONFIRMED + fixed or gated, 4 DROPPED with reasons); 21 regression tests (u4-regressions + lib) incl. one real bug the tests caught (`badge:""` empty pill → fixed); U4-B/C falsified; gates re-run green (542/48 serial)
 - [x] U5 Runtime & smoke — browser 14/14 on the production build; installs CLI 4.18 + 3.8.5 (base + fixtures), consumer tsc 0, consumer-owned token preserved; prototype rail measured
 - [x] U6 Docs sync & review — spotcheck (broad) [`reviews/2026-10-23-v0.5.0-hardening.md`](reviews/2026-10-23-v0.5.0-hardening.md): **Pass with follow-ups** (5, owned); final gates: lint 14 baseline · doc-drift · `pnpm build` (51 s) · tests 542/48 serial (one worker-start flake on the first run, retried — passed count compared)
-- [ ] U7 Ship
+- [x] U7 Ship — `a5c7324` pushed on user OK; live `https://ui.ilinxa.com/r/app-sidebar.json` verified on poll 4 (39 files incl. `lib/labels.ts` + `hooks/use-direction.ts`, `lucide-react@^1.11.0`, 5 `cssVars.theme` mappings). Retro: decision `.claude/decisions/2026-10-23-app-sidebar-v0-5-0.md` (local). Report-back to the platform drafted: `.claude/report-back-2026-10-23-story-rail-app-sidebar.md` (local; the user relays)
 
 ## U0 — Intake
 
