@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive API + two visible default changes; composed by comment-thread and post-card) |
-| **Current stage** | U7 — committed locally; push awaits the user's OK |
+| **Current stage** | **CLOSED** — `8c374a9` pushed 2026-10-24 and verified live |
 | **Sign-off policy** | user-interactive |
 | **Version target** | v0.2.0 → **v0.3.0** |
 | **Model roster** | architect: main session (diff ≲ 150 lines — no implementer fan-out, per config) · finder: Sonnet 5 (fresh) |
@@ -15,7 +15,7 @@
 
 - [x] U0 Intake — class, blast radius, reproductions (below)
 - [x] U1 Change contract — consistency review (below) · **sign-off:** user 2026-10-24 ("review and confirm that every thing is consistent and matche and accurate then go ahead")
-- [x] U2 Implement (architect) · [x] U3 Gates (tsc 0 · lint 0 / 13 · registry:build 0 · build 0 · tests 1287/1287, 100 files) · [x] U4 Review (fresh finder with Chromium probes: 9 rows, all CONFIRMED; 7 fixed, 2 documented) · [x] U5 Runtime & smoke (browser **28/28** after U5-1; installs 2/2 CLIs) · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (5) · [ ] U7 Ship (ask before push)
+- [x] U2 Implement (architect) · [x] U3 Gates (tsc 0 · lint 0 / 13 · registry:build 0 · build 0 · tests 1287/1287, 100 files) · [x] U4 Review (fresh finder with Chromium probes: 9 rows, all CONFIRMED; 7 fixed, 2 documented) · [x] U5 Runtime & smoke (browser **28/28** after U5-1; installs 2/2 CLIs) · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (5) · [x] U7 Ship — pushed `1cf2d4b..9821f82` (user OK, 2026-10-24; with `233d23d` + the video-player R-02 note `9821f82`); live on poll 5 (~7 min): `expandable-text` 0.3.0 with 4 files, one stamp (the entry trailer), 0 bare registry imports, no npm deps; `expandable-text-fixtures` 0.3.0 with the Arabic `LONG_AR`. Scope kept as built (incl. focus-expand) on the user's call after the platform's "as written" reply
 
 Source: request §4.4 ET1–ET2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:627-646`) as amended by the digest
 §expandable-text (`.claude/hardening-request-verification-2026-10-23.md:127-129`).
