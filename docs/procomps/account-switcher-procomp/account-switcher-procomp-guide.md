@@ -13,11 +13,15 @@ This guide is the consumer-facing usage notes — what to import, how to wire it
 ```ts
 import {
   AccountSwitcher,
+  defaultAccountSwitcherLabels,
   // types
   type AccountSwitcherProps,
   type AccountSwitcherAriaCurrent,
+  type AccountSwitcherLabels,
   type CollapsedPopoverSide,
+  type SwitcherGroup,
   type SwitcherItem,
+  type SwitcherItemRenderState,
 } from "@/components/account-switcher";
 ```
 
@@ -28,10 +32,12 @@ import {
   ACCOUNT_SWITCHER_DUMMY_ITEMS,
   ACCOUNT_SWITCHER_DUMMY_ACTIVE_KEY,
   ACCOUNT_SWITCHER_DUMMY_FALLBACK,
+  ACCOUNT_SWITCHER_DUMMY_GROUPED_ITEMS, // + _GROUPS / _GROUPS_TR / _LABELS_TR
+  ACCOUNT_SWITCHER_DUMMY_ITEMS_AR,      // + _GROUPS_AR / _LABELS_AR
 } from "@/components/account-switcher/dummy-data";
 ```
 
-**No other public exports.** No hooks, no part components, no context. The sealed-folder primitive is a single composed `<AccountSwitcher>`.
+**No other public exports** besides `defaultAccountSwitcherLabels`. No hooks, no part components, no context. The sealed-folder primitive is a single composed `<AccountSwitcher>`.
 
 ---
 
@@ -96,7 +102,7 @@ This is the same shape as `app-sidebar` and every other procomp in this library 
   footerSlot={
     canCreate ? (
       <Button onClick={openCreateDialog} variant="ghost" className="w-full justify-start">
-        <Plus className="mr-2 h-4 w-4" />
+        <Plus className="me-2 h-4 w-4" />
         Create Business
       </Button>
     ) : null
@@ -175,7 +181,7 @@ If you want a one-off programmatic open without committing to controlled mode, w
     activeKey={activeKey}
     onSelect={onSelect}
     isCollapsed={sidebar.collapsed}
-    collapsedPopoverSide="right"  // default; flip to "left" on right-edge sidebars
+    collapsedPopoverSide="end"  // default: toward the content (right in LTR, left in RTL); "start" for an inline-end sidebar
   />
   {/* rest of the sidebar */}
 </aside>
@@ -230,15 +236,15 @@ parent decides; the prop flows down.
 **What the user sees** in expanded mode:
 - Sidebar at full width; switcher trigger renders as a full-width button
   with chevron + active label
-- Popover content opens BELOW the trigger, width matches trigger via
-  `--radix-popover-trigger-width`
+- Popover content opens BELOW the trigger, width matches the trigger on both
+  shadcn backends (`--radix-popover-trigger-width`, else Base UI's `--anchor-width`)
 
 **Same in collapsed mode** (`sidebarCollapsed === true`):
 - Sidebar shrinks to icon-only (~80px); switcher trigger renders as a
   40×40 square icon-only button (no label, no chevron)
-- Popover content opens to the SIDE of the trigger (Radix collision-aware
-  flip); content-sized, list rows + footer slot render identically to
-  expanded mode
+- Popover content opens to the inline-end SIDE of the trigger, toward the
+  content (collision-aware flip); content-sized, list rows + footer slot
+  render identically to expanded mode
 
 **Mobile drawer behavior** (when `app-sidebar`'s viewport drops below
 `mobileBreakpoint`): the sidebar becomes a Sheet drawer. The switcher
@@ -266,17 +272,89 @@ By default, clicking the already-active item is a no-op (L6). If you want clicks
 />
 ```
 
-There's intentionally no `allowActiveSelfClick` prop in v0.1. If you genuinely need this, file an issue — we'll consider it for v0.2.
+There's intentionally no `allowActiveSelfClick` prop. If you genuinely need this, file an issue.
+
+### 4.8 Grouped "post as" picker with avatars
+
+```tsx
+<AccountSwitcher
+  items={[
+    { key: "me", label: "Ayşe Yılmaz", description: "@ayse", icon: <Avatar … />, group: "personal" },
+    { key: "biz-kahve", label: "Kahve Durağı", description: "Owner", icon: <Avatar … />, group: "business" },
+    { key: "console", label: "Platform console", description: "Staff", icon: Globe, group: "platform" },
+  ]}
+  groups={[
+    { id: "personal", label: "Personal" },
+    { id: "business", label: "Businesses" },
+    { id: "platform", label: "Platform" },
+  ]}
+  itemSize="lg"            // 32 px avatar box, two-line rows
+  activeKey={activeKey}
+  onSelect={onSelect}
+/>
+```
+
+- `groups` decides the headings and their order; items without a `group` render first. A group with no items
+  is not rendered. An item naming a group missing from `groups` dev-warns and renders ungrouped.
+- Each group is `role="group"` named by its heading. Keyboard order always follows what is on screen.
+- `description` is a second line in the row (not in the trigger).
+- `renderItem={(item, { active }) => …}` replaces the row's content when the built-in layout doesn't fit. The
+  option element, `aria-selected`, keyboard and selection stay the library's — don't put buttons or links inside.
+
+### 4.9 Labels (Turkish, or any locale)
+
+```tsx
+<AccountSwitcher
+  labels={{
+    trigger: (current) => (current === null ? "Hesap değiştir" : `Hesap değiştir, şu anki: ${current}`),
+    list: "Hesaplar",
+    empty: "Hesap yok",
+  }}
+  …
+/>
+```
+
+`trigger(current)` is the trigger's accessible name (`current` is the active label, or `null` for the empty
+placeholder). Any key you leave out — or pass as `undefined` — keeps its English default
+(`defaultAccountSwitcherLabels`). The old `aria-label` prop still works but is deprecated: it names the list and
+builds `"<aria-label>, current: <label>"` unless `labels` sets those.
+
+### 4.10 Right-to-left
+
+Nothing to do in an RTL app: the switcher reads the trigger's direction after mount. The list is portaled to
+`<body>`, so it carries that direction itself — an RTL section of an LTR page still gets an RTL list. In collapsed
+mode the default side `"end"` opens toward the content (left in RTL). Pass `dir` when the direction can change at
+runtime without a remount.
 
 ---
 
 ## 5. ARIA + keyboard
 
-- Trigger is `role="combobox"` with `aria-haspopup="listbox"`, `aria-expanded`, `aria-controls={listboxId}` (auto-generated via `useId`), and `aria-label` composed with the active item label (e.g., `"Switch account context, current: Acme Corp"`).
-- Popover content has `role="listbox"` with the same `aria-label`.
-- Each row is `role="option"` with `aria-selected` on the active row and `aria-current` set per the `ariaCurrent` prop (default `"true"`).
+- Trigger is a `button` with `aria-haspopup="listbox"`, `aria-expanded`, `aria-controls` (the list's id, only while
+  open), and the accessible name `labels.trigger(current)` (default `"Switch account context, current: Acme Corp"`).
+- The list is `role="listbox"` named by `labels.list`; groups are `role="group"` named by their heading. The popover
+  around it is a dialog with the same name.
+- Each row is `role="option"` with `aria-selected` (`true` on the active row) and `aria-current` set per the
+  `ariaCurrent` prop (default `"true"`).
 - `data-active="true"` is also emitted on the active row regardless of `ariaCurrent` value (PQ3), so consumer CSS hooks work without ARIA noise.
-- Keyboard navigation is provided by the underlying Radix Popover + native button semantics: Enter/Space activate; Tab navigates between rows; Escape closes; focus returns to trigger.
+
+| Key | Where | Does |
+|---|---|---|
+| Enter / Space / click | trigger | open |
+| ↓ / ↑ | trigger | open |
+| — | on open | focus the active item (else the first) |
+| ↓ / ↑ | list | next / previous item, in on-screen order (no wrap) |
+| Home / End | list | first / last item |
+| Enter / Space | list | select (the active item just closes — L6) → close → focus the trigger |
+| Escape | list / footer | close → focus the trigger |
+| Tab / Shift+Tab | list / footer | move between the list (one Tab stop) and the footer slot; focus cycles inside the open popover — Escape (or a selection) closes it |
+
+### Migrating from 0.2.x (breaking in 0.3.0)
+
+The trigger is no longer `role="combobox"`: a combobox keeps focus on itself, which left the footer slot
+unreachable by keyboard. Tests that query `getByRole("combobox")` should use
+`getByRole("button", { name: /Switch account context/ })` (or your `labels.trigger` text). Accessible names are
+unchanged by default.
 
 ### Overriding `aria-current`
 
@@ -297,7 +375,7 @@ There's intentionally no `allowActiveSelfClick` prop in v0.1. If you genuinely n
 
 - Library memoizes the dedup pass + the active-item resolution, so frequent parent re-renders don't re-iterate the items array. But **`items` reference stability is your job** — pass a `useMemo`'d array, not a fresh literal on every render.
 - The dev-warn passes (duplicate keys, controlled-mode transitions, missing onChange) are gated on `process.env.NODE_ENV !== "production"` and tree-shake out of prod bundles.
-- No internal observers, no event listeners outside Radix Popover's own — the procomp is cheap.
+- No observers and no global listeners — the only key handlers sit on the trigger and the list.
 
 ---
 
@@ -311,29 +389,32 @@ There's intentionally no `allowActiveSelfClick` prop in v0.1. If you genuinely n
 | Switching `open` between defined/undefined | Inconsistent behavior; dev-warn | Pick controlled OR uncontrolled at mount; don't toggle. |
 | Passing only `defaultOpen` and expecting `onOpenChange` to drive state | `onOpenChange` fires but doesn't update internal state | Either pass `open` (controlled) or use `defaultOpen` for one-time initial state. |
 | Long account names overflow the trigger | Layout breaks | None needed — `truncate min-w-0` baked into the trigger. Test with 50-char names. |
-| Footer slot inside `<ul role="listbox">` | AT confusion | None — library renders footer OUTSIDE the listbox (PQ5). |
-| Popover content too narrow vs trigger | Looks weird | The popover sets `width: var(--radix-popover-trigger-width)` automatically (expanded mode only). If you want a different width, wrap in a sized container. Collapsed mode is content-sized. |
+| Footer slot inside the listbox | AT confusion | None — library renders footer OUTSIDE the listbox (PQ5); Tab reaches it from the list. |
+| Popover content too narrow vs trigger | Looks weird | The popover matches the trigger width exactly (expanded mode only, both shadcn backends) — a narrow trigger gives a narrow list; long labels truncate. If you want a different width, wrap in a sized container. Collapsed mode is content-sized (at least 14rem). |
+| Interactive content in `renderItem` | Nested-interactive a11y error; keys misfire | Keep rows non-interactive; put actions in `footerSlot`. |
+| Popover flips to the other side | Near the viewport edge | Collision handling always applies and isn't configurable; constrain the trigger's container for strict positioning. |
 
 ---
 
 ## 8. What this primitive doesn't do
 
 - **No search/filter** in the popover. For >10 items, compose `cmdk` `Command` instead. Possible future addition.
-- **No groups/sections** within items. Source flat-lists. You can split into multiple switchers if you really need sections.
-- **No custom row renderer.** Footer is the escape hatch for custom content; row list is rigid.
+- **No type-ahead** (jumping to an item by typing its first letters). Arrow keys, Home and End only.
 - **No async items loading.** Pre-resolve consumer-side; pass a skeleton via `fallbackActiveItem` if needed.
 - **No multi-select / checkbox mode.** This is a SWITCHER, not a multi-picker.
 - **No URL routing logic.** `onSelect` fires; consumer routes. (Same pattern as `app-sidebar`.)
 
-If you need any of these and have a real use case, file an issue. v0.2 candidates are documented in the description doc § "Out of scope".
+If you need any of these and have a real use case, file an issue.
 
 ---
 
 ## 9. Versioning
 
-Follows project convention — `0.x.x` while public API may evolve, `1.x.x` once stable. Patch-level bumps (`0.1.x → 0.1.y`) are non-breaking; minor bumps (`0.1.x → 0.2.0`) may add props but won't remove or rename existing ones; major would be reserved for breaking changes.
+Follows project convention — `0.x.x` while the public API may evolve, `1.x.x` once stable. While `0.x`, patch bumps
+are non-breaking and a breaking change bumps the minor (it is called out in CHANGELOG and in a migration note).
 
-Current: **v0.1.0** (first ship, 2026-05-23).
+Current: **v0.3.0** (2026-10-24 — keyboard, labels, groups, RTL; see §5 "Migrating from 0.2.x"). History in
+`CHANGELOG.md`.
 
 ---
 
@@ -343,5 +424,6 @@ Current: **v0.1.0** (first ship, 2026-05-23).
 |---|---|
 | What does the component do and why does it exist? | [`account-switcher-procomp-description.md`](account-switcher-procomp-description.md) |
 | How was it implemented (file layout, commit chain, internal decisions)? | [`account-switcher-procomp-plan.md`](account-switcher-procomp-plan.md) |
-| What did the GATE 3 review find? | [`reviews/2026-05-23-v0.1.0-spotcheck.md`](reviews/2026-05-23-v0.1.0-spotcheck.md) |
+| What did the GATE 3 review find? | [`reviews/2026-05-23-v0.1.0-spotcheck.md`](reviews/2026-05-23-v0.1.0-spotcheck.md) · 0.3.0: [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md) |
+| What changed in 0.3.0 and why? | [`account-switcher-loop.md`](account-switcher-loop.md) |
 | How does it compose with `app-sidebar`? | [`../app-sidebar-procomp/app-sidebar-procomp-description-v0.2.0.md`](../app-sidebar-procomp/app-sidebar-procomp-description-v0.2.0.md) Appendix D |

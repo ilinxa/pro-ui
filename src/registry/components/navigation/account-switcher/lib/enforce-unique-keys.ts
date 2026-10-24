@@ -14,6 +14,11 @@ import type { SwitcherItem } from "../types";
 export function enforceUniqueKeys(
   items: ReadonlyArray<SwitcherItem>,
 ): ReadonlyArray<SwitcherItem> {
+  // Fast path (v0.1.0 review F-01): no duplicates → return the input, no new array.
+  const keys = new Set<string>();
+  for (const item of items) keys.add(item.key);
+  if (keys.size === items.length) return items;
+
   const seen = new Set<string>();
   const deduped: SwitcherItem[] = [];
   const duplicateKeys: string[] = [];

@@ -1,9 +1,13 @@
+import type { Ref } from "react";
 import { cn } from "@/lib/utils";
 
 interface EmptyPlaceholderProps {
   ariaLabel: string;
+  /** Visible text (`labels.empty`). */
+  emptyText: string;
   isCollapsed: boolean;
   className?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -11,10 +15,11 @@ interface EmptyPlaceholderProps {
  * is provided (Q1 default: disabled with placeholder text). Defensive
  * against the source's empty-array crash (I-2).
  */
-export function EmptyPlaceholder({ ariaLabel, isCollapsed, className }: EmptyPlaceholderProps) {
+export function EmptyPlaceholder({ ariaLabel, emptyText, isCollapsed, className, ref }: EmptyPlaceholderProps) {
   if (isCollapsed) {
     return (
       <button
+        ref={ref}
         type="button"
         disabled
         aria-label={ariaLabel}
@@ -29,6 +34,7 @@ export function EmptyPlaceholder({ ariaLabel, isCollapsed, className }: EmptyPla
   }
   return (
     <button
+      ref={ref}
       type="button"
       disabled
       aria-label={ariaLabel}
@@ -37,7 +43,7 @@ export function EmptyPlaceholder({ ariaLabel, isCollapsed, className }: EmptyPla
         className,
       )}
     >
-      <span>No items available</span>
+      <span>{emptyText}</span>
     </button>
   );
 }

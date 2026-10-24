@@ -7,6 +7,8 @@
 >
 > **Migration origin:** [`docs/migrations/socialmedia-adv-nav-system/`](../../migrations/socialmedia-adv-nav-system/) — extracts the `<AccountSwitcher>` pattern from the multi-context app shell (the THE-feature-the-user-flagged from the v0.1 sidebar migration miss). 172-LOC source at [`original/components/AccountSwitcher.tsx`](../../migrations/socialmedia-adv-nav-system/original/components/AccountSwitcher.tsx). 30% direct port / 70% generalization — source is tightly coupled to memberships + business-creation feature; library version is a domain-agnostic primitive.
 >
+> **Revised in 0.3.0 (2026-10-24, social-platform hardening AW1–AW4 — [loop doc](account-switcher-loop.md)):** L1 widened (`group`, `description` + `groups` / `itemSize` / `renderItem` / `labels` / `dir`); L7 replaced — the trigger is a listbox button, not a combobox, and the list implements the APG listbox keyboard pattern. The v0.1 text below is kept as the original record; where it conflicts, the revision notes win.
+
 > **Sibling-of:** `app-sidebar` v0.2.0. Designed to mount inside app-sidebar's new `topSlot` (above the brand). No hard dependency — works standalone, slotted anywhere the consumer needs a "current context + switchable other contexts + create-new affordance" UI.
 
 This is the **description** doc. Its job is to pin down what we're building and why, surface open decisions, and earn sign-off before any planning or code.
@@ -70,8 +72,8 @@ interface SwitcherItem {
 **Interaction model**
 
 - Trigger: `role="combobox"`, `aria-expanded`, `aria-label`. Mirrors source's combobox-with-button-list compromise pattern (vs full listbox semantics) — common, accepted, ergonomic.
-- Popover open: click trigger OR `ArrowDown` / `Enter` / `Space` on focused trigger.
-- Inside popover: items are `<button>` elements; navigated via Tab and Arrow keys (Radix Popover's focus trap); `Enter` / `Space` activates.
+- Popover open: click trigger OR `ArrowDown` / `Enter` / `Space` on focused trigger. *(0.3.0: true since then — ↓ / ↑ were never handled by Radix; the library handles them.)*
+- Inside popover: items are `<button>` elements; navigated via Tab and Arrow keys (Radix Popover's focus trap); `Enter` / `Space` activates. *(0.3.0: neither held — every row was a Tab stop and nothing handled arrows. Now one Tab stop, ↑ / ↓ / Home / End, Enter / Space; see the guide §5.)*
 - Active-item rendering: same row as the others, with a trailing `Check` icon and an `aria-current="true"` attribute. Clicking does NOT fire `onSelect` (no-op).
 - Popover closes: Escape, outside click, item activation. Standard Radix Popover behavior.
 - Width: popover content width = trigger width (Radix CSS var `--radix-popover-trigger-width`), so contents align with whatever container the trigger sits in.
@@ -99,11 +101,11 @@ NONE in the library. Consumer pre-filters their `items` array. If the user has n
 
 Documented so the next contributor doesn't drift here without a description re-validation:
 
-- **Search / filtering** inside the popover. Source has none; for >10 items, consumer can compose a Command (cmdk) primitive instead. v0.2 could add `searchable?: boolean` if real consumer demand emerges.
-- **Groups / sections** within the items list (`groupId` field). Source flat-lists items. Sectioning is the consumer's job (insert separator items between groups via a custom rendering — though the v0.1 SwitcherItem has no `separator` kind, so this implies they'd compose multiple AccountSwitcher instances OR use a different primitive entirely).
-- **Custom row renderer** (`renderItem` render-prop slot). The footer is the escape hatch for custom content; the item list is rigid by design.
-- **Trigger variants** (`triggerVariant: "button" | "row" | "compact-icon"`). v0.1 ships one variant (button); `isCollapsed` is the only modifier. Multi-variant ergonomics belong to a richer v0.2 if there's demand.
-- **Per-item `meta` / `description` / `disabled`**. Not in source; speculative until proven.
+- **Search / filtering** inside the popover. Source has none; for >10 items, consumer can compose a Command (cmdk) primitive instead. Not implemented; a `searchable` option would be additive if real consumer demand emerges.
+- *(Shipped in 0.3.0 as `item.group` + `groups`.)* **Groups / sections** within the items list (`groupId` field). Source flat-lists items. Sectioning is the consumer's job (insert separator items between groups via a custom rendering — though the v0.1 SwitcherItem has no `separator` kind, so this implies they'd compose multiple AccountSwitcher instances OR use a different primitive entirely).
+- *(Shipped in 0.3.0 as `renderItem`.)* **Custom row renderer** (`renderItem` render-prop slot). The footer is the escape hatch for custom content; the item list is rigid by design.
+- **Trigger variants** (`triggerVariant: "button" | "row" | "compact-icon"`). v0.1 ships one variant (button); `isCollapsed` is the only modifier. Multi-variant ergonomics are not implemented; additive if there's demand.
+- **Per-item `meta` / `description` / `disabled`**. Not in source; speculative until proven. *(0.3.0: `description` shipped; `meta` / `disabled` still not implemented.)*
 - **`onTriggerOpen?: (open: boolean) => void`**. Source has none — open state is internal to the popover. If consumers need observability, it is a possible future addition.
 - **Async items loading state**. Consumer pre-resolves; if they have a loading state, they render the trigger with their own skeleton during it and pass `items={[]}` + `fallbackActiveItem={someSkeleton}`. Or use a different primitive.
 - **Multi-select / checkbox mode**. This is a SWITCHER not a multi-picker. Different pattern → different procomp.
@@ -197,8 +199,8 @@ The component "works" when ALL of these hold:
 
 1. **Pure rendering primitive.** Consumer feeds derived data; library doesn't import auth stores, membership stores, routers, or anything domain-specific. Zero `next/*` imports.
 2. **Active-state honest.** `activeKey` resolves to an item → that item shows the Check + `aria-current` + no-op click. Doesn't resolve → `fallbackActiveItem` shows in trigger (no mis-labeling).
-3. **Aria-combobox correct.** Trigger has role + expanded + label. Keyboard nav works. Focus return after close. Active item readable as "current item" by screen readers.
-4. **Width-matches-trigger.** Popover content tracks the trigger width via `--radix-popover-trigger-width`. No popover-narrower-than-trigger or jumping width.
+3. **Aria correct** *(0.3.0: listbox button + APG listbox, not combobox)*. Trigger has role + expanded + label. Keyboard nav works. Focus return after close. Active item readable as "current item" by screen readers.
+4. **Width-matches-trigger.** Popover content tracks the trigger width via `--radix-popover-trigger-width` *(0.3.0: or Base UI's `--anchor-width`, class only)*. No popover-narrower-than-trigger or jumping width.
 5. **Footer slot accepts arbitrary state.** `BusinessCreationRequestButton`-style 6-state widget, `<Button>Create</Button>`, `<a href="/settings">Settings</a>` — all work. Library doesn't inspect children.
 6. **Collapse-mode visually clean.** Icon-only 40px trigger; popover opens to the side; selecting an item still routes. No layout shifts.
 7. **F-cross-13 pre-emption.** `Popover.onOpenChange` defensively typeof-guarded per project pattern. No F-cross-13 hits in the path-b smoke.
@@ -212,13 +214,13 @@ These are the calls already made — listed for explicitness so we can re-audit 
 
 | # | Lock |
 |---|---|
-| **L1** | **SwitcherItem shape is `{ key, label, icon?, href? }`** — four fields, three optional. No `description`, `groupId`, `meta`, `disabled`, `tooltipContent`. Tight v0.1. |
+| **L1** | **SwitcherItem shape is `{ key, label, icon?, href? }`** — four fields, three optional. No `description`, `groupId`, `meta`, `disabled`, `tooltipContent`. Tight v0.1. **Revised 0.3.0 (AW3, additive):** + `group?`, `description?`; list-level `groups`, `itemSize`, `renderItem`. `meta` / `disabled` / `tooltipContent` still out. |
 | **L2** | **Single `items` array, consumer-controlled ordering.** No separate `pinnedItems` API. The source's "CMS active context first" is just array prepend at the consumer (analysis F-04). |
 | **L3** | **Dual-entry items via distinct keys.** Same conceptual account can appear twice in `items` (`biz-acme` + `cms-biz-acme`) — key uniqueness IS enforced. Violation behavior (warn vs throw vs silently accept) locked by Q2. |
 | **L4** | **`fallbackActiveItem?: SwitcherItem`** prop — used in trigger when `activeKey` doesn't resolve. Avoids source's governance-mislabel bug (analysis §8.10). |
 | **L5** | **`footerSlot: ReactNode`** is arbitrary content. Library doesn't model a "Create X" state machine; consumer brings their own widget. Separator + slot is the contract. |
 | **L6** | **Library no-ops on active-item clicks.** `onSelect` does NOT fire when the user clicks the already-active item. Matches source behavior. Consumer can re-affirm via their own wrapper if needed. (Was previously a Q-P; promoted to lock since source behavior is unambiguous and matches the established UX expectation.) |
-| **L7** | **Aria pattern: combobox + button-list.** Same as source. Matches Linear, Vercel, GitHub switchers. Listbox semantics not used (combobox is more flexible for the no-listbox-content cases). |
+| **L7** | **Aria pattern: combobox + button-list.** Same as source. Matches Linear, Vercel, GitHub switchers. Listbox semantics not used (combobox is more flexible for the no-listbox-content cases). **Replaced 0.3.0 (AW1, breaking):** the list already declared `role="listbox"` without its keyboard contract; a combobox keeps DOM focus on itself, which would strand the footer slot. Now: trigger = `button` + `aria-haspopup="listbox"`; list = APG listbox with roving focus (one Tab stop, ↑ / ↓ / Home / End, Enter / Space), Escape + focus return via the popover. |
 | **L8** | **Popover from shadcn's `popover` primitive.** Not Command (cmdk) — no search in v0.1. Not DropdownMenu — wrong semantic + no `aria-current` on items. Popover gives the most control. |
 | **L9** | **Width-matches-trigger** via `--radix-popover-trigger-width` CSS var. No `widthMode` prop in v0.1; consumer wraps in a sized container. |
 | **L10** | **Collapsed-mode trigger renders icon-only**; popover content shows full labels regardless. Designed to slot into `app-sidebar`'s icon-collapsed mode. Detail behaviors (popover side, focus return after icon-trigger close, label-hide aria-label fallback) locked at GATE 2 plan. |

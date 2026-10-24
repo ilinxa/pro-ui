@@ -15,7 +15,8 @@ export interface SwitcherItem {
   /**
    * Optional icon. Library accepts both ReactNode (already-rendered JSX) and
    * ComponentType (lucide-react icons, custom icon components, etc.) so
-   * consumers aren't forced into a single icon library (I-4).
+   * consumers aren't forced into a single icon library (I-4). An avatar is a
+   * ReactNode here — pair it with `itemSize="lg"`.
    */
   icon?: ReactNode | ComponentType<{ className?: string }>;
   /**
@@ -24,6 +25,51 @@ export interface SwitcherItem {
    * SSR fallbacks, or both). Library does not render `<a>` tags itself.
    */
   href?: string;
+  /**
+   * Id of the group this item renders under (see `AccountSwitcherProps.groups`).
+   * Items without a group render first. An id missing from `groups` dev-warns and
+   * renders the item ungrouped.
+   */
+  group?: string;
+  /** Optional second line under the label (e.g. a role or a handle). Rows only — not the trigger. */
+  description?: ReactNode;
+}
+
+/** A heading in the list. Order of `groups` = order of the groups on screen and for the keyboard. */
+export interface SwitcherGroup {
+  id: string;
+  /** Heading text; it also names the group (`role="group"` + `aria-labelledby`). */
+  label: ReactNode;
+}
+
+/**
+ * Every user-facing string (consumer contract C2). Pass any subset — a missing or
+ * `undefined` key keeps the default.
+ */
+export interface AccountSwitcherLabels {
+  /**
+   * The trigger's accessible name; `current` is the active item's label, or `null` when
+   * nothing resolves (the disabled empty placeholder). Default:
+   * `"Switch account context, current: <label>"` / `"Switch account context"`.
+   */
+  trigger?: (current: string | null) => string;
+  /** The list's accessible name. Default: `"Switch account context"`. */
+  list?: string;
+  /** Text of the disabled placeholder shown when there are no items. Default: `"No items available"`. */
+  empty?: string;
+}
+
+export const defaultAccountSwitcherLabels: Required<AccountSwitcherLabels> = {
+  trigger: (current) =>
+    current === null ? "Switch account context" : `Switch account context, current: ${current}`,
+  list: "Switch account context",
+  empty: "No items available",
+};
+
+/** State passed to `renderItem`. */
+export interface SwitcherItemRenderState {
+  /** The item is the active one (it carries `aria-selected="true"`). */
+  active: boolean;
 }
 
 /**
@@ -43,13 +89,17 @@ export type AccountSwitcherAriaCurrent =
 
 /**
  * Side of the trigger the popover opens to when `isCollapsed` is true.
- * Defaults to `"right"` (collision-aware auto-flip applied by Radix Popover).
- * Override to `"left"` for right-edge sidebars, etc. (PQ1).
+ * `"start"` / `"end"` follow the direction (`"end"` = right in LTR, left in RTL);
+ * the physical values stay as they are. Default `"end"`.
+ *
+ * The popover still flips to the opposite side when it would not fit — the
+ * primitive's collision handling always applies and is not configurable here.
+ * For strict positioning, constrain the trigger's container instead.
  */
-export type CollapsedPopoverSide = "right" | "left" | "top" | "bottom";
+export type CollapsedPopoverSide = "start" | "end" | "right" | "left" | "top" | "bottom";
 
 export interface AccountSwitcherProps {
-  /** Ordered list. Consumer controls ordering (L2). */
+  /** Ordered list. Consumer controls ordering (L2); `groups` then buckets it. */
   items: ReadonlyArray<SwitcherItem>;
   /**
    * Currently-active item's key. When null OR not found in items, falls
@@ -62,13 +112,33 @@ export interface AccountSwitcherProps {
 
   /** Shown in trigger when `activeKey` doesn't resolve (L4, I-1). */
   fallbackActiveItem?: SwitcherItem;
-  /** Rendered below items, separated by divider when present (L5, Q7). */
+  /** Rendered below items, separated by divider when present (L5, Q7). Reachable with Tab from the list. */
   footerSlot?: ReactNode;
   /** When true, trigger collapses to icon-only mode (L10). */
   isCollapsed?: boolean;
-  /** Side the popover opens to when `isCollapsed` is true. Default `"right"` (PQ1). */
+  /** Side the popover opens to when `isCollapsed` is true. Default `"end"` (inline end). */
   collapsedPopoverSide?: CollapsedPopoverSide;
-  /** Trigger ARIA label. Default `"Switch account context"` (L12). */
+  /**
+   * Text direction for the side and the popover content. Default: the trigger's
+   * resolved direction (nearest `dir`, read after mount).
+   */
+  dir?: "ltr" | "rtl";
+  /** Group headings + order. Items reference them through `item.group`. */
+  groups?: ReadonlyArray<SwitcherGroup>;
+  /** Row size. `"lg"` = 32 px icon / avatar box for a two-line row. Default `"default"`. */
+  itemSize?: "default" | "lg";
+  /**
+   * Replaces a row's content (icon, label, description, check). The option element,
+   * its roles, keyboard and selection stay the library's — don't render interactive
+   * elements inside.
+   */
+  renderItem?: (item: SwitcherItem, state: SwitcherItemRenderState) => ReactNode;
+  /** User-facing strings (C2). */
+  labels?: AccountSwitcherLabels;
+  /**
+   * @deprecated Use `labels.list` and `labels.trigger`. Still honoured when those
+   * aren't given: it names the list, and the trigger reads `"<aria-label>, current: <label>"`.
+   */
   "aria-label"?: string;
   /** Value applied to active item's `aria-current`. Default `"true"` (L14). */
   ariaCurrent?: AccountSwitcherAriaCurrent;

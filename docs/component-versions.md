@@ -126,7 +126,7 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `account-switcher` | Account Switcher | 0.2.1 | alpha | 2026-10-24 |
+| `account-switcher` | Account Switcher | 0.3.0 | alpha | 2026-10-24 |
 | `app-sidebar` | App Sidebar | 0.5.1 | alpha | 2026-10-24 |
 | `file-manager` | File Manager | 0.1.4 | alpha | 2026-10-24 |
 | `file-tree` | File Tree | 0.1.4 | alpha | 2026-10-24 |

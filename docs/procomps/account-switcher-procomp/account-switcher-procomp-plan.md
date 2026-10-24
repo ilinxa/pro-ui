@@ -3,6 +3,8 @@
 > **Stage:** 2 of 3 · **Status:** 🟡 Drafted, awaiting sign-off
 > **Slug:** `account-switcher` · **Category:** `navigation`
 > **Companion to:** [`account-switcher-procomp-description.md`](account-switcher-procomp-description.md) (GATE 1, closed 2026-05-23)
+> **Revised in 0.3.0 (2026-10-24, social-platform hardening AW1–AW4 — [loop doc](account-switcher-loop.md)):** Plan corrections: §11.1 / §11.2 below were wrong (see notes); L1 widened (`group`, `description` + `groups` / `itemSize` / `renderItem` / `labels` / `dir`); L7 replaced — the trigger is a listbox button, not a combobox, and the list implements the APG listbox keyboard pattern. The v0.1 text below is kept as the original record; where it conflicts, the revision notes win.
+
 > **Sibling-of:** `app-sidebar` v0.2.0 (GATE 2 plan: [`../app-sidebar-procomp/app-sidebar-procomp-plan-v0.2.0.md`](../app-sidebar-procomp/app-sidebar-procomp-plan-v0.2.0.md))
 
 This is the **plan** doc. Its job is to translate the description's locks (L1–L14) and resolved Q-Ps into a concrete implementation contract: types, files, state-machine, dependencies, commit chain. Implementation does not start until the plan is signed off.
@@ -483,9 +485,13 @@ Any F-cross-13 hit (Popover, Button, Separator) fires a same-day patch loop. Exp
 
 `ArrowDown` while focused-and-closed should open the popover. Radix Popover handles this natively when the trigger is `asChild` of `<PopoverTrigger>`.
 
+> **Correction (0.3.0):** false — `@radix-ui/react-popover` has no key handlers at all. Since 0.3.0 the trigger handles ↓ / ↑ itself (`account-switcher.tsx`).
+
 ### 11.2 Item keyboard handling (Q8 default)
 
 Each item is `<button type="button">`, getting native Enter + Space activation. No custom keydown handler.
+
+> **Correction (0.3.0):** without one, every row was its own Tab stop and arrows did nothing — the declared `role="listbox"` was not implemented (request AW1). `parts/switcher-list.tsx` now owns ↑ / ↓ / Home / End with a roving `tabIndex`; rows stay native buttons for Enter / Space.
 
 ### 11.3 Active item ARIA (L7, L14)
 
@@ -617,7 +623,7 @@ All PQs below were signed off at GATE 2 close with defaults accepted. Kept here 
 | # | Q | Resolution |
 |---|---|---|
 | **PQ1** | Expose `collapsedPopoverSide?: "right" \| "left" \| "top" \| "bottom"` prop in v0.1? Carry-over from description Q4's hedge. | ✅ **Locked YES** — adds dynamicity for right-edge-sidebar consumers; cost is one prop + one conditional in §9.2; defaults to `"right"`. Add to types.ts at C1; thread through §9.2 at C4. |
-| **PQ2** | `enforceUniqueKeys` runs inside `useMemo([items])` — should we also expose a `disableKeyValidation?` prop for consumers who pre-validated upstream? | ✅ **Locked NO** — keep it always-on. The cost is O(N) per items change; only matters at very large item counts. Out of scope; can add v0.2 if real demand. |
+| **PQ2** | `enforceUniqueKeys` runs inside `useMemo([items])` — should we also expose a `disableKeyValidation?` prop for consumers who pre-validated upstream? | ✅ **Locked NO** — keep it always-on. The cost is O(N) per items change; only matters at very large item counts. Out of scope; additive if real demand. |
 | **PQ3** | `ariaCurrent` resolver — when consumer passes `false` AND item is active, do we still render any DOM signal? | ✅ **Locked YES** — emit `data-active="true"` on the row regardless of aria value, so consumer CSS hooks still work without ARIA noise. |
 | **PQ4** | Should trigger `aria-label` compose with `activeItem.label` for richer screen-reader context? | ✅ **Locked YES** — append ", current: <label>" when an active item resolves. Pure improvement; no API change. Document in guide.md. |
 | **PQ5** | Footer slot — render inside listbox `<ul>` or after it? | ✅ **Locked AFTER the listbox** — outside the `<ul>` boundary. Keyboard nav stays within the listbox; footer is a separate focus zone. Matches source. |
@@ -680,7 +686,7 @@ Per `feedback_re_validation_pass_catches_real_issues`, the draft of this plan wa
 
 - §6 active-item resolution (4-level priority) — matches L4
 - §10 F-cross-13 wrapper boundary placement — correctly at shadcn-primitive boundary, not library-to-consumer
-- §11 aria/keyboard — leverages native button + Radix Popover semantics; no custom handlers needed
+- §11 aria/keyboard — leverages native button + Radix Popover semantics; no custom handlers needed *(wrong — corrected in 0.3.0, see §11)*
 - §13 deps — separator stays in deps list even when conditionally rendered (correct — runtime conditional rendering still requires the import declaration)
 - §14 commit chain — C5's meta-deps timing aligns with manifest visibility
 - §16 PQ1–PQ5 — defaults sensible; no challenges

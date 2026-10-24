@@ -6960,9 +6960,19 @@
           "target": "components/account-switcher/hooks/use-controllable-state.ts"
         },
         {
+          "path": "src/registry/components/navigation/account-switcher/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/account-switcher/hooks/use-direction.ts"
+        },
+        {
           "path": "src/registry/components/navigation/account-switcher/lib/enforce-unique-keys.ts",
           "type": "registry:component",
           "target": "components/account-switcher/lib/enforce-unique-keys.ts"
+        },
+        {
+          "path": "src/registry/components/navigation/account-switcher/lib/order-items.ts",
+          "type": "registry:component",
+          "target": "components/account-switcher/lib/order-items.ts"
         },
         {
           "path": "src/registry/components/navigation/account-switcher/lib/resolve-active-item.ts",
@@ -6985,13 +6995,18 @@
           "target": "components/account-switcher/parts/switcher-item-row.tsx"
         },
         {
+          "path": "src/registry/components/navigation/account-switcher/parts/switcher-list.tsx",
+          "type": "registry:component",
+          "target": "components/account-switcher/parts/switcher-list.tsx"
+        },
+        {
           "path": "src/registry/components/navigation/account-switcher/parts/switcher-trigger.tsx",
           "type": "registry:component",
           "target": "components/account-switcher/parts/switcher-trigger.tsx"
         }
       ],
       "meta": {
-        "version": "0.2.1",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },
@@ -7018,7 +7033,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.1",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },

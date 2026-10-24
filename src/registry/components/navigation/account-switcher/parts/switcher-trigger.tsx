@@ -9,8 +9,8 @@ interface SwitcherTriggerProps {
   activeItem: SwitcherItem | null;
   /** Trigger ARIA label. Composed with active label per PQ4. */
   ariaLabel: string;
-  /** ID of the listbox the trigger controls (jsx-a11y combobox requirement). */
-  ariaControls: string;
+  /** ID of the listbox the trigger controls; set only while it is open (it isn't in the DOM before). */
+  ariaControls?: string;
   /** When true, render icon-only 40x40 square; no label, no chevron (L10). */
   isCollapsed: boolean;
   /** Whether the popover is currently open (drives aria-expanded). */
@@ -24,14 +24,29 @@ interface SwitcherTriggerProps {
 }
 
 /**
- * PQ4 — composed aria-label includes the active item label when one resolves
- * ("Switch account context, current: Acme Corp").
+ * PQ4 — the legacy composed name ("Switch account context, current: Acme Corp").
+ * Since v0.3.0 the assembly names the trigger with `labels.trigger(current)`; this
+ * stays for the deprecated `aria-label` prop and for direct importers.
  */
 export function composeSwitcherTriggerAriaLabel(
   ariaLabel: string,
   activeItem: SwitcherItem | null,
 ): string {
   return activeItem ? `${ariaLabel}, current: ${activeItem.label}` : ariaLabel;
+}
+
+/**
+ * First user-perceived character of a label for the collapsed trigger — a whole
+ * emoji or accented letter, never half a surrogate pair.
+ */
+export function firstGrapheme(label: string | undefined): string | undefined {
+  if (!label) return undefined;
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    // Grapheme boundaries are locale-independent (UAX #29 default rules) → the root locale, explicitly.
+    const first = new Intl.Segmenter("und", { granularity: "grapheme" }).segment(label)[Symbol.iterator]().next();
+    if (!first.done) return first.value.segment;
+  }
+  return Array.from(label)[0];
 }
 
 /**
@@ -90,7 +105,7 @@ export function SwitcherTriggerContent({
       <>{renderIcon(activeItem.icon, "h-4 w-4") as ReactNode}</>
     ) : (
       <span className="text-xs font-medium uppercase">
-        {activeItem?.label?.charAt(0) ?? "?"}
+        {firstGrapheme(activeItem?.label) ?? "?"}
       </span>
     );
   }
@@ -113,8 +128,9 @@ export function SwitcherTriggerContent({
 }
 
 /**
- * Standalone trigger button — v0.1.0 shape, byte-identical rendering, kept
- * for API stability (the part file ships; direct importers keep working).
+ * Standalone trigger button — kept for API stability (the part file ships;
+ * direct importers keep working). Since v0.3.0 it is a plain button with
+ * `aria-haspopup="listbox"` (was `role="combobox"`), matching the assembly.
  * Since v0.1.1 the assembly no longer routes it through
  * `<PopoverTrigger asChild>` (F-cross-13) — see switcherTriggerClassName
  * above for the primitive-trigger path.
@@ -128,10 +144,9 @@ export const SwitcherTrigger = forwardRef<HTMLButtonElement, SwitcherTriggerProp
       <button
         ref={ref}
         type="button"
-        role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls={ariaControls}
+        aria-controls={open ? ariaControls : undefined}
         aria-label={composeSwitcherTriggerAriaLabel(ariaLabel, activeItem)}
         disabled={disabled}
         onClick={onClick}

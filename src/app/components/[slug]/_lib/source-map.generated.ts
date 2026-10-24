@@ -17,14 +17,24 @@ import { AccountSwitcher } from "./account-switcher";
 import {
   ACCOUNT_SWITCHER_DUMMY_ACTIVE_KEY,
   ACCOUNT_SWITCHER_DUMMY_FALLBACK,
+  ACCOUNT_SWITCHER_DUMMY_GROUPED_ITEMS,
+  ACCOUNT_SWITCHER_DUMMY_GROUPED_ITEMS_TR,
+  ACCOUNT_SWITCHER_DUMMY_GROUPS,
+  ACCOUNT_SWITCHER_DUMMY_GROUPS_AR,
+  ACCOUNT_SWITCHER_DUMMY_GROUPS_TR,
   ACCOUNT_SWITCHER_DUMMY_ITEMS,
+  ACCOUNT_SWITCHER_DUMMY_ITEMS_AR,
+  ACCOUNT_SWITCHER_DUMMY_LABELS_AR,
+  ACCOUNT_SWITCHER_DUMMY_LABELS_TR,
 } from "./dummy-data";
 
-const TAB_KEYS = ["sidebar", "topbar", "collapsed", "fallback", "controlled"] as const;
+const TAB_KEYS = ["sidebar", "post-as", "rtl", "topbar", "collapsed", "fallback", "controlled"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 const TAB_LABELS: Record<TabKey, string> = {
   sidebar: "In a sidebar",
+  "post-as": "Groups (post as)",
+  rtl: "RTL",
   topbar: "Standalone in topbar",
   collapsed: "Collapsed mode",
   fallback: "Fallback active item",
@@ -56,6 +66,8 @@ export default function AccountSwitcherDemo() {
 
       <div className="rounded-lg border border-border bg-muted/30 p-6">
         {tab === "sidebar" && <SidebarDemo />}
+        {tab === "post-as" && <PostAsDemo />}
+        {tab === "rtl" && <RtlDemo />}
         {tab === "topbar" && <TopbarDemo />}
         {tab === "collapsed" && <CollapsedDemo />}
         {tab === "fallback" && <FallbackDemo />}
@@ -92,9 +104,67 @@ function SidebarDemo() {
       </div>
       <div className="flex-1 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
         <p className="mb-2 font-medium text-foreground">Canonical use:</p>
-        <p>Mount the switcher inside a sidebar shell — it occupies the &ldquo;top zone&rdquo; (above the brand row in <code>app-sidebar</code> v0.2.0&apos;s upcoming <code>topSlot</code>). Footer slot is the consumer-owned escape hatch for &ldquo;Create new&rdquo; / &ldquo;Request access&rdquo; / multi-state state machines.</p>
+        <p>Mount the switcher inside a sidebar shell — it occupies the &ldquo;top zone&rdquo; (above the brand row, in <code>app-sidebar</code>&apos;s <code>topSlot</code>). Footer slot is the consumer-owned escape hatch for &ldquo;Create new&rdquo; / &ldquo;Request access&rdquo; / multi-state state machines.</p>
         <p className="mt-3">Active key: <code>{activeKey}</code></p>
       </div>
+    </div>
+  );
+}
+
+function PostAsDemo() {
+  const [activeKey, setActiveKey] = useState<string>("me");
+  const [turkish, setTurkish] = useState(false);
+  return (
+    <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+      <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-3 md:w-72">
+        <AccountSwitcher
+          items={turkish ? ACCOUNT_SWITCHER_DUMMY_GROUPED_ITEMS_TR : ACCOUNT_SWITCHER_DUMMY_GROUPED_ITEMS}
+          groups={turkish ? ACCOUNT_SWITCHER_DUMMY_GROUPS_TR : ACCOUNT_SWITCHER_DUMMY_GROUPS}
+          labels={turkish ? ACCOUNT_SWITCHER_DUMMY_LABELS_TR : undefined}
+          itemSize="lg"
+          activeKey={activeKey}
+          onSelect={(item) => setActiveKey(item.key)}
+        />
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked={turkish} onChange={(e) => setTurkish(e.target.checked)} />
+          Turkish labels
+        </label>
+      </div>
+      <div className="flex-1 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+        <p className="mb-2 font-medium text-foreground">Groups, descriptions, avatar rows:</p>
+        <p>
+          <code>groups</code> sets headings and order; each item names its <code>group</code> and can
+          carry a <code>description</code> line. <code>itemSize=&quot;lg&quot;</code> gives a 32&nbsp;px
+          avatar box. Keyboard: ↓ / ↑ on the trigger open the list; ↓ ↑ Home End move in visual order
+          across groups; Enter selects; Escape closes.
+        </p>
+        <p className="mt-3">Active key: <code>{activeKey}</code></p>
+      </div>
+    </div>
+  );
+}
+
+function RtlDemo() {
+  const [activeKey, setActiveKey] = useState<string>("biz-qahwa");
+  const common = {
+    items: ACCOUNT_SWITCHER_DUMMY_ITEMS_AR,
+    groups: ACCOUNT_SWITCHER_DUMMY_GROUPS_AR,
+    labels: ACCOUNT_SWITCHER_DUMMY_LABELS_AR,
+    activeKey,
+    onSelect: (item: { key: string }) => setActiveKey(item.key),
+  };
+  return (
+    <div dir="rtl" lang="ar" className="flex flex-col gap-4 md:flex-row md:gap-6">
+      <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-3 md:w-64">
+        <AccountSwitcher {...common} />
+      </div>
+      <div className="flex w-16 flex-col items-center gap-3 self-start rounded-lg border border-border bg-card p-2">
+        <AccountSwitcher {...common} isCollapsed />
+      </div>
+      <p dir="ltr" className="flex-1 text-sm text-muted-foreground">
+        Inside a <code>dir=&quot;rtl&quot;</code> section: the list renders right-to-left even though it is
+        portaled to the page body, and the collapsed popover opens toward the content (left).
+      </p>
     </div>
   );
 }
@@ -137,7 +207,7 @@ function CollapsedDemo() {
           activeKey={activeKey}
           onSelect={(item) => setActiveKey(item.key)}
           isCollapsed
-          aria-label="Switch workspace"
+          labels={{ list: "Workspaces", trigger: (c) => (c === null ? "Switch workspace" : \`Switch workspace, current: \${c}\`) }}
           footerSlot={
             <button
               type="button"
@@ -158,7 +228,8 @@ function CollapsedDemo() {
         <p className="mb-2 font-medium text-foreground">Icon-only trigger (L10):</p>
         <p>
           When <code>isCollapsed</code> is true, the trigger renders as a 40×40 square. The popover
-          opens to the side (default <code>&quot;right&quot;</code>; override via <code>collapsedPopoverSide</code>).
+          opens toward the content: default <code>&quot;end&quot;</code> (right in LTR, left in RTL); override
+          via <code>collapsedPopoverSide</code>.
           List rows + footer slot still render the full content; only positioning + width differ.
         </p>
         <p className="mt-3">Active key: <code>{activeKey}</code></p>
@@ -249,7 +320,7 @@ function ControlledDemo() {
       <p className="text-sm text-muted-foreground">
         L13: controlled-open triplet (<code>open</code> / <code>defaultOpen</code> /
         <code> onOpenChange</code>) ships from v0.1 per the dynamicity-primacy rule. Consumers
-        wire Cmd+K openers, onboarding flows, test harnesses without waiting for v0.2.
+        wire Cmd+K openers, onboarding flows and test harnesses from the first release.
       </p>
       <div className="rounded-md bg-muted p-3 font-mono text-xs">
         {log.length === 0 ? (

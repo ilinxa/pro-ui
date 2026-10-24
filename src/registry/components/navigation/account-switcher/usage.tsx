@@ -104,7 +104,7 @@ useHotkeys("mod+k", () => setOpen(true));
   activeKey={activeKey}
   onSelect={onSelect}
   isCollapsed={sidebarIsCollapsed}
-  collapsedPopoverSide="right"   // default; flip to "left" on right-edge sidebars
+  collapsedPopoverSide="end"   // default: toward the content (right in LTR, left in RTL)
 />`}</code>
         </pre>
       </section>
@@ -124,6 +124,58 @@ useHotkeys("mod+k", () => setOpen(true));
   onSelect={onSelect}
 />`}</code>
         </pre>
+      </section>
+
+      <section>
+        <h3 className="mb-2 mt-0 text-base font-semibold">Pattern 6 — Groups, descriptions, avatar rows</h3>
+        <p className="mb-2 text-muted-foreground">
+          <code>groups</code> sets the headings and their order; each item names its <code>group</code>
+          and may carry a <code>description</code> line. Items without a group come first. Keyboard order
+          follows the screen across groups.
+        </p>
+        <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+          <code>{`<AccountSwitcher
+  items={[
+    { key: "me", label: "Ayşe", description: "@ayse", icon: <Avatar … />, group: "personal" },
+    { key: "acme", label: "Acme", description: "Owner", icon: <Avatar … />, group: "business" },
+  ]}
+  groups={[
+    { id: "personal", label: "Personal" },
+    { id: "business", label: "Businesses" },
+  ]}
+  itemSize="lg"        // 32 px avatar box
+  activeKey={activeKey}
+  onSelect={onSelect}
+/>`}</code>
+        </pre>
+      </section>
+
+      <section>
+        <h3 className="mb-2 mt-0 text-base font-semibold">Pattern 7 — Labels</h3>
+        <p className="mb-2 text-muted-foreground">
+          Every string is a label; any key you omit keeps its English default. <code>trigger</code> is a
+          function of the active label (<code>null</code> when there are no items).
+        </p>
+        <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+          <code>{`<AccountSwitcher
+  labels={{
+    trigger: (current) => (current === null ? "Hesap değiştir" : \`Hesap değiştir, şu anki: \${current}\`),
+    list: "Hesaplar",
+    empty: "Hesap yok",
+  }}
+  …
+/>`}</code>
+        </pre>
+      </section>
+
+      <section>
+        <h3 className="mb-2 mt-0 text-base font-semibold">Keyboard</h3>
+        <p className="mb-2 text-muted-foreground">
+          ↓ / ↑ / Enter / Space on the trigger open the list on the active item. In the list: ↓ / ↑ move,
+          Home / End jump, Enter / Space select, Escape closes; the list is one Tab stop and Tab moves on to
+          the footer slot. The trigger is a <code>button</code> with <code>aria-haspopup=&quot;listbox&quot;</code>
+          (it was <code>role=&quot;combobox&quot;</code> before 0.3.0).
+        </p>
       </section>
 
       <section>

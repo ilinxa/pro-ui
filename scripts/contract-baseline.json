@@ -5,7 +5,8 @@
     "engagement-bar",
     "media-carousel",
     "video-player",
-    "expandable-text"
+    "expandable-text",
+    "account-switcher"
   ],
   "rules": {
     "palette": {
@@ -1326,9 +1327,6 @@
       "src/registry/components/media/story-viewer/parts/owner-overlay.tsx": [
         "Loading viewers…",
         "No viewers yet."
-      ],
-      "src/registry/components/navigation/account-switcher/parts/empty-placeholder.tsx": [
-        "No items available"
       ],
       "src/registry/components/navigation/file-manager/parts/file-manager-path-bar.tsx": [
         "aria-label=\"Path\"",
