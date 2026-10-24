@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — 0.x minor; composed by post-card, comment-thread, story-viewer → user sign-off) |
-| **Current stage** | U7 — committed locally; push awaits the user's OK |
+| **Current stage** | CLOSED — shipped `91b3ea3`, deploy verified 2026-10-24 |
 | **Sign-off policy** | user-interactive — U1 signed off 2026-10-24 ("ok go a": contract as written, D1 = (a)); ask before push |
 | **Version target** | v0.4.1 → **v0.5.0** |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 (fresh) |
@@ -24,7 +24,7 @@ Order confirmed by the platform 2026-10-24: engagement-bar → media-carousel (t
 - [x] U4 Adversarial review — 2 fresh finders + test author: 18 rows, 15 CONFIRMED + fixed, 3 DROPPED (L4 pre-existing, G7 intended, G8 name); 18 regression tests in `__tests__/u4-regressions.test.tsx` + 2 in post-card, falsified (F1/F3/F5/G3 fixes reverted → 5 fail; restored `cmp`-identical)
 - [x] U5 Runtime & smoke — browser 42/42 (both themes) + story-viewer R1 live; installs 2/2 CLIs (base, fixtures, post-card, story-viewer, comment-thread), consumer tsc 0, edited-primitive negative path held
 - [x] U6 Docs sync & review — spotcheck (broad) [`reviews/2026-10-24-v0.5.0-hardening.md`](reviews/2026-10-24-v0.5.0-hardening.md): **Pass with follow-ups** (7, all owned); roster 20/20 (finder-2 folder walk); blast-radius rows synced (trio, CHANGELOG, STATUS, component-versions, post-card 0.5.3); decision `.claude/decisions/2026-10-24-engagement-bar-v0-5-0.md`; retro appended to `.claude/improvement-log.md`
-- [ ] U7 Ship — ask before push
+- [x] U7 Ship — `91b3ea3` pushed on the user's OK (2026-10-24); live verified: `/r/engagement-bar.json` 0.5.0 (20 files), `-fixtures` 0.5.0, `/r/post-card.json` 0.5.3 — one stamp each, 0 bare deps, no test files; served code carries `resolveLocale`, the picker dialog name, `touch-manipulation` (no `touch-none`), `use-direction`, and post-card's gate fix
 
 ## U0 — Intake
 
