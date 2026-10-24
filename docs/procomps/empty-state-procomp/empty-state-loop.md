@@ -89,3 +89,76 @@ entrance silently plays without enter-state → acceptable degradation, but the 
 fill-mode:both then keeps elements visible — no flash), or because the fixtures item's
 `@ilinxa/empty-state` regDep is resolved before the Vercel deploy finishes (post-deploy re-check
 owned in the review file).
+
+---
+
+## Run 2 — U-loop (0.1.0 → 0.2.0, social-platform hardening)
+
+### Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **minor** — one additive prop; one defect fix in the disabled-link markup) |
+| **Current stage** | U1 — change contract written; awaiting the user's sign-off (generic-set batch) |
+| **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
+| **Version target** | v0.1.0 → **v0.2.0** |
+| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finder: 1 × Sonnet 5 (fresh, browser) |
+| **Started / updated** | 2026-10-24 / 2026-10-24 |
+
+### Stage checklist (U-loop)
+
+- [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
+- [ ] U1 Change contract — **sign-off:** pending
+- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship (ask before push)
+
+Source: request §4.7 ES1 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:774-790`) as amended by the digest
+(`.claude/hardening-request-verification-2026-10-23.md:148`).
+
+### U0 — Intake
+
+**Class: minor.** Additive `linkComponent`; no shipped dependents (imports only from the fixtures item). 0 contract-baseline
+rows; not in `closed`. Built 11.37 KB / budget 20.
+
+| Item | Code today | Verdict |
+|---|---|---|
+| ES1 `href` action renders a plain `<a>` (full page load in a client-routed app) | `empty-state.tsx:93-105` | confirmed |
+| Digest: a ReactNode action already takes a host `<Link>` | `types.ts:279`, `empty-state.tsx:86-88` | confirmed — but the node is unstyled (`buttonVariants` isn't re-exported), and the object form (styled, `disabled`) has no router path → `linkComponent` is still worth it, additive |
+| Request "tests per variant; `role="status"` only on transient variants; `animated={false}`; RTL; axe" | `TRANSIENT_VARIANTS` `:33-37`, roles `:161-162`, motion gates `:147-152`, `:187-189`; no tests, no RTL demo | owed |
+| Request "all copy from the host, tokens only" | no string literals, token classes only | confirmed — so **no `labels` prop** (it would be an inert surface) |
+
+**Also found:** U0-1 a disabled `href` action renders `<a aria-disabled>` with no `href` → no link role, read as plain text
+(`:97-101`). U0-2 guide `:44` "None at v0.1.0 …" is version-pinned. Parked (not requested): `target` / `rel` on object
+actions; per-action `hidden`; root `...rest` passthrough; `error` variant's `role="status"` (locked Q3).
+
+### U1 — Change contract
+
+- **ES1:** `linkComponent?: ElementType` (default `"a"`) renders object actions that have `href`, receiving `href`,
+  `onClick`, `className` (`buttonVariants`) and the label as children. No `asChild`.
+- **U0-1:** a disabled `href` action renders the same disabled `<Button>` the non-link path renders — never the
+  `linkComponent` (a disabled link is not navigable; the button keeps `disabled` semantics).
+- **Docs:** guide section for `linkComponent` + the ReactNode-link recipe; unpin `:44`; RTL demo tab; `usage.tsx` example.
+- **Tests (C11):** the contract kit, with `labels` / `controlled` declared **not applicable** (reason recorded — see the
+  kit change in the generic-set note below); per-variant render; `role="status"` only on search / error / offline;
+  `animated={false}` emits no animation classes or delays; `linkComponent` receives `href` + children; disabled link →
+  disabled button; RTL; axe.
+
+#### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | no `linkComponent` → today's markup byte-for-byte (except the disabled-link fix) |
+| I2 | `linkComponent` renders every enabled `href` action with `href` + children + button styling |
+| I3 | disabled `href` action = disabled button, `linkComponent` not called |
+| I-neg | non-`href` actions and ReactNode actions untouched; `role="status"` only on transient variants |
+
+#### Size
+
+11.37 KB / 20 — no budget change.
+
+### Generic-set note (shared tooling, coordinator-owned)
+
+`tests/helpers/contract-kit.tsx` requires `labels`, `controlled` and `keyboard` specs. empty-state has no strings, no state
+and no keyboard path of its own; four of the five generic-set components hold no controlled data. Change: each of those
+three checks accepts `{ notApplicable: "<reason>" }` — the check then registers as a skipped test whose name carries the
+reason (visible in every run), so an absent check is a recorded decision, never a silent omission. Existing callers
+unchanged.
