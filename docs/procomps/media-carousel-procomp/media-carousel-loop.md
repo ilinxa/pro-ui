@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive API, today's defaults kept; composed by post-card + content-composer) |
-| **Current stage** | U7 — committed locally; push awaits the user's OK |
+| **Current stage** | **CLOSED** — `fdcc17b` pushed 2026-10-24 and verified live |
 | **Sign-off policy** | user-interactive (2026-10-24: the platform team signed off §4.5 + 3 additions; the user asked for a consistency/accuracy review before confirming) |
 | **Version target** | v0.2.1 → **v0.3.0** |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 (fresh) |
@@ -20,7 +20,7 @@ render, default uncontrolled; (3) Turkish locale + RTL demo + C11 kit.
 
 - [x] U0 Intake — class + blast radius + reproductions (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-24 ("go" on the contract below, after the consistency/accuracy review; autoplay assumed off)
-- [x] U2 Implement · [x] U3 Gates (final: tsc 0 · lint 0 / 13 baseline · meta-deps 64/64 · registry:build 0 · build 0 · tests **1069/1069**, 84 files) · [x] U4 Review (1 fresh finder + dependents: 8 findings, all CONFIRMED; F1–F7 fixed; 26 regression tests, falsified) · [x] U5 Runtime & smoke · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (7) · [ ] U7 Ship (ask before push)
+- [x] U2 Implement · [x] U3 Gates (final: tsc 0 · lint 0 / 13 baseline · meta-deps 64/64 · registry:build 0 · build 0 · tests **1069/1069**, 84 files) · [x] U4 Review (1 fresh finder + dependents: 8 findings, all CONFIRMED; F1–F7 fixed; 26 regression tests, falsified) · [x] U5 Runtime & smoke · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (7) · [x] U7 Ship — pushed `91b3ea3..fdcc17b` (user OK, 2026-10-24); live on attempt 9 (~9 min): `media-carousel` 0.3.0 with 14 files (the 5 new hooks/lib files present, no `__tests__`, one stamp, as the `index.ts` trailer), 0 bare deps; `media-carousel-fixtures` 0.3.0 with `Big_Buck_Bunny_720_10s_1MB.mp4` and no `videos.pexels`; `post-card` still 0.5.3
 
 ## U0 — Intake
 
