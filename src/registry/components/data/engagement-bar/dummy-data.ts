@@ -1,7 +1,13 @@
+import { createElement } from "react";
+import { Heart, Laugh, PartyPopper } from "lucide-react";
+import type { LikersStripLabels } from "./parts/likers-strip";
+import type { ShareMenuLabels } from "./parts/share-menu";
 import type {
   EngagementAction,
+  EngagementBarLabels,
   EngagementDelta,
   EngagementLikeUser,
+  EngagementReactionKind,
   Subscribe,
 } from "./types";
 
@@ -81,3 +87,82 @@ export function createDummySubscribe(initialCount = 142): Subscribe<EngagementDe
     return () => clearInterval(id);
   };
 }
+
+// ---------------------------------------------------------------------------
+// v0.5.0 fixtures — RTL (Arabic) sample text + large counts for the locale tab.
+// ---------------------------------------------------------------------------
+
+/** Arabic-named sample users for the RTL tab (LikersStrip + ShareMenu). */
+export const DUMMY_AR_USERS: EngagementLikeUser[] = [
+  { id: "ar1", name: "ليلى الحسن", username: "layla", avatar: "" },
+  { id: "ar2", name: "يوسف المنصور", username: "yousef", avatar: "" },
+  { id: "ar3", name: "مريم الزهراني", username: "maryam", avatar: "" },
+  { id: "ar4", name: "خالد العتيبي", username: "khaled", avatar: "" },
+  { id: "ar5", name: "نور الدين", username: "nour", avatar: "" },
+];
+
+/** Arabic labels for every `EngagementBar` key. */
+export const DUMMY_AR_LABELS: Required<Omit<EngagementBarLabels, "formatCount">> = {
+  like: "إعجاب",
+  unlike: "إلغاء الإعجاب",
+  openLikersPanel: "عرض المعجبين",
+  comment: "تعليق",
+  share: "مشاركة",
+  bookmark: "حفظ",
+  unbookmark: "إزالة الحفظ",
+  viewCount: "المشاهدات",
+  react: "تفاعل",
+  removeReaction: "إزالة التفاعل",
+  openReactionsPanel: "عرض التفاعلات",
+  reactionPickerLabel: "اختر تفاعلاً",
+};
+
+/** Arabic labels for `LikersStrip`. */
+export const DUMMY_AR_LIKERS_LABELS: LikersStripLabels = {
+  heading: "الإعجابات",
+  close: "إخفاء",
+  loading: "…",
+  loadMore: "المزيد",
+  moreAriaLabel: (_count, formatted) => `و${formatted} آخرين`,
+  morePill: (formatted) => `+${formatted}`,
+};
+
+/** Arabic labels for `ShareMenu`. */
+export const DUMMY_AR_SHARE_LABELS: ShareMenuLabels = {
+  heading: "مشاركة مع…",
+  searchPlaceholder: "ابحث عن أشخاص…",
+  searchLabel: "بحث عن أشخاص",
+  empty: "لا توجد نتائج.",
+  close: "إخفاء",
+};
+
+/** Three-kind reaction catalog with Arabic labels (icons via createElement — this is a .ts file). */
+export const DUMMY_AR_REACTION_KINDS: EngagementReactionKind[] = [
+  {
+    key: "love",
+    icon: createElement(Heart, { className: "h-5 w-5 fill-current" }),
+    label: "أحببته",
+    count: 124,
+    color: "var(--destructive)",
+  },
+  {
+    key: "laugh",
+    icon: createElement(Laugh, { className: "h-5 w-5" }),
+    label: "أضحكني",
+    count: 38,
+  },
+  {
+    key: "wow",
+    icon: createElement(PartyPopper, { className: "h-5 w-5" }),
+    label: "رائع",
+    count: 12,
+  },
+];
+
+/** Large counts so compact formatting differs per locale ("1.2K" / "1,2 B" / "1,2 Tsd." / "١٫٢ ألف"). */
+export const DUMMY_LARGE_COUNT_ACTIONS: EngagementAction[] = [
+  { kind: "like", count: 1200, onToggle: noop },
+  { kind: "comment", count: 45_300, onClick: noop },
+  { kind: "share", count: 999, onClick: noop },
+  { kind: "view-count", count: 2_400_000 },
+];

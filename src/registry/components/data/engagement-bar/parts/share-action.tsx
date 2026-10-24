@@ -4,63 +4,68 @@ import { memo } from "react";
 import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EngagementBarVariant, EngagementBarLabels } from "../types";
+import type {
+  EngagementBarVariant,
+  EngagementCount,
+  ResolvedEngagementBarLabels,
+} from "../types";
+import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
 
 interface ShareActionProps {
   variant: EngagementBarVariant;
-  count?: number;
+  count: EngagementCount;
+  disabled?: boolean;
   onClick?: () => void;
   format: (n: number) => string;
-  labels: Required<Omit<EngagementBarLabels, "formatCount">>;
+  labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
 }
 
 function ShareActionInner({
   variant,
   count,
+  disabled = false,
   onClick,
   format,
   labels,
   actionClassName,
 }: ShareActionProps) {
+  const hasCount = count !== null;
+  const name = useActionName(hasCount);
   const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
-  const showCount = count !== undefined;
-
-  if (variant === "stacked") {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        aria-label={labels.share}
-        onClick={onClick}
-        className={cn(
-          "flex h-auto flex-col items-center gap-0.5 px-2 py-1",
-          actionClassName,
-        )}
-      >
-        <Share2 className="h-6 w-6" />
-        {showCount ? (
-          <span className="text-xs font-medium tabular-nums">
-            {format(count)}
-          </span>
-        ) : null}
-      </Button>
-    );
-  }
+  const stacked = variant === "stacked";
+  const handleClick = () => {
+    if (disabled) return;
+    onClick?.();
+  };
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="sm"
-      aria-label={labels.share}
-      onClick={onClick}
-      className={cn(showCount ? "gap-2 px-2" : "px-2", actionClassName)}
+      aria-labelledby={name.labelledBy}
+      aria-disabled={disabled || undefined}
+      onClick={handleClick}
+      className={cn(
+        stacked
+          ? "flex h-auto flex-col items-center gap-0.5 px-2 py-1"
+          : hasCount
+            ? "gap-2 px-2"
+            : "px-2",
+        DISABLED_ACTION_CLASS,
+        actionClassName,
+      )}
     >
-      <Share2 className={iconSizeClass} />
-      {showCount ? (
-        <span className="text-sm font-medium tabular-nums">
+      <Share2 aria-hidden="true" className={stacked ? "h-6 w-6" : iconSizeClass} />
+      <span id={name.labelId} className="sr-only">
+        {labels.share}
+      </span>
+      {hasCount ? (
+        <span
+          id={name.countId}
+          className={cn("font-medium tabular-nums", stacked ? "text-xs" : "text-sm")}
+        >
           {format(count)}
         </span>
       ) : null}

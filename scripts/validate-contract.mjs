@@ -14,7 +14,8 @@
  *                      Allowed, under the same variant: `left-1/2` with `translate-x-1/2`
  *                      (centring), a `left-N right-N` pair (= `inset-x-N`). Escape: `dir-ok:`.
  *   template-fill  R2  `.replace("{…` / `.replaceAll("{…` — filling a `{placeholder}` label
- *                      template. Value strings must be functions.
+ *                      template. Value strings must be functions. Escape: `template-ok:` —
+ *                      ONLY for a deprecated template-string prop kept as an alias.
  *   intl           R3  an `Intl.*` formatter or `toLocale*String` with no locale or `undefined`
  *                      (`.resolvedOptions()` reads are fine), a `new Intl.*` at module scope,
  *                      `Intl.PluralRules("en")`.
@@ -62,6 +63,7 @@ const PREFIX = "src/registry/components/";
 const ESCAPES = {
   palette: "palette-ok",
   physical: "dir-ok",
+  "template-fill": "template-ok",
   clock: "now-ok",
   "jsx-literal": "literal-ok",
   keydown: "keydown-ok",

@@ -2,6 +2,18 @@
 
 > Stage 2: how. The implementation contract.
 >
+> ### v0.5.0 implementation contract (2026-10-24)
+>
+> The API delta, invariants (I1–I13), slice plan and findings live in [`engagement-bar-loop.md`](./engagement-bar-loop.md) (U1 signed off 2026-10-24). Structural decisions:
+>
+> - **One request path.** `useEngagementState` returns `toggleLike` / `toggleBookmark` / `selectReaction` / `reset`; parts and the imperative handle both call them, so gating (`disabled` / `hidden`), the handler call and the optimistic overlay exist once. Semantics copied from the scaffold's `use-controllable-state` (C5): sync handler → uncontrolled applies, controlled waits for props; promise → overlay until it settles, rejection rolls back, latest request decides.
+> - **Overlays by basis, not by effect.** A controlled optimistic entry and a comment / share / view-count delta each record the prop value they were made against; they show only while the prop still equals it (a cleanup effect drops stale ones so A → B → A can't revive them).
+> - **Withheld wins last.** The shown state applies controlled props, then overlays, then forces `null` wherever the current prop withholds the count.
+> - **Accessible names** are `aria-labelledby` = visually-hidden label + visible count (`lib/action-name.ts`), not an `aria-label` that hides the count.
+> - **Direction** resolves once at the bar root (`hooks/use-direction.ts`, the scaffold snippet) and is passed to the portalled picker.
+> - **Locks revised:** Q-PP-4 "reaction counts are NEVER controlled" → superseded by the pair rule (a controlled `viewerReaction` controls the counts too; locked consumer decision 1, opt-in kept). Q-PP-3 Defense 1 (microtask-deferred `onSelect`) kept — the whole select path is now deferred, not only the notify. Defense 2 kept.
+>
+>
 > See [`engagement-bar-procomp-description.md`](./engagement-bar-procomp-description.md) for the what & why.
 >
 > Migration origin: [`docs/migrations/social-posts-system/`](../../migrations/social-posts-system/) — kasder `PostEngagementPanel.tsx` (468 LOC). We extract only the action-row concern; comments → `comment-thread` (next ship), likers carousel → `likersPreview` slot.

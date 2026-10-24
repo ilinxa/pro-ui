@@ -4,59 +4,71 @@ import { memo } from "react";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EngagementBarVariant, EngagementBarLabels } from "../types";
+import type {
+  EngagementBarVariant,
+  EngagementCount,
+  ResolvedEngagementBarLabels,
+} from "../types";
+import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
 
 interface CommentActionProps {
   variant: EngagementBarVariant;
-  count: number;
+  count: EngagementCount;
+  disabled?: boolean;
   onClick?: () => void;
   format: (n: number) => string;
-  labels: Required<Omit<EngagementBarLabels, "formatCount">>;
+  labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
 }
 
 function CommentActionInner({
   variant,
   count,
+  disabled = false,
   onClick,
   format,
   labels,
   actionClassName,
 }: CommentActionProps) {
+  const hasCount = count !== null;
+  const name = useActionName(hasCount);
   const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
-
-  if (variant === "stacked") {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        aria-label={labels.comment}
-        onClick={onClick}
-        className={cn(
-          "flex h-auto flex-col items-center gap-0.5 px-2 py-1",
-          actionClassName,
-        )}
-      >
-        <MessageCircle className="h-6 w-6" />
-        <span className="text-xs font-medium tabular-nums">
-          {format(count)}
-        </span>
-      </Button>
-    );
-  }
+  const stacked = variant === "stacked";
+  const handleClick = () => {
+    if (disabled) return;
+    onClick?.();
+  };
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="sm"
-      aria-label={labels.comment}
-      onClick={onClick}
-      className={cn("gap-2 px-2", actionClassName)}
+      aria-labelledby={name.labelledBy}
+      aria-disabled={disabled || undefined}
+      onClick={handleClick}
+      className={cn(
+        stacked
+          ? "flex h-auto flex-col items-center gap-0.5 px-2 py-1"
+          : hasCount
+            ? "gap-2 px-2"
+            : "px-2",
+        DISABLED_ACTION_CLASS,
+        actionClassName,
+      )}
     >
-      <MessageCircle className={iconSizeClass} />
-      <span className="text-sm font-medium tabular-nums">{format(count)}</span>
+      <MessageCircle aria-hidden="true" className={stacked ? "h-6 w-6" : iconSizeClass} />
+      <span id={name.labelId} className="sr-only">
+        {labels.comment}
+      </span>
+      {hasCount ? (
+        <span
+          id={name.countId}
+          className={cn("font-medium tabular-nums", stacked ? "text-xs" : "text-sm")}
+        >
+          {format(count)}
+        </span>
+      ) : null}
     </Button>
   );
 }

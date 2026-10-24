@@ -3194,10 +3194,20 @@
           "path": "src/registry/components/data/engagement-bar/lib/format-count.ts",
           "type": "registry:component",
           "target": "components/engagement-bar/lib/format-count.ts"
+        },
+        {
+          "path": "src/registry/components/data/engagement-bar/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/engagement-bar/hooks/use-direction.ts"
+        },
+        {
+          "path": "src/registry/components/data/engagement-bar/lib/action-name.ts",
+          "type": "registry:component",
+          "target": "components/engagement-bar/lib/action-name.ts"
         }
       ],
       "meta": {
-        "version": "0.4.1",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -3223,7 +3233,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.1",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -3468,7 +3478,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.2",
+        "version": "0.5.3",
         "status": "alpha"
       }
     },
@@ -3494,7 +3504,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.2",
+        "version": "0.5.3",
         "status": "alpha"
       }
     },

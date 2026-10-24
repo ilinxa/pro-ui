@@ -1,10 +1,11 @@
 "use client";
 
-import { memo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { EngagementLikerProfile } from "../types";
+import { resolveLocale } from "../lib/format-count";
 
 /** Pointer-event drag-to-scroll for the likers strip (desktop). Touch devices get
  * native swipe via `touch-action: pan-x`. */
@@ -70,48 +71,145 @@ function useDragScroll() {
   };
 }
 
-export interface LikersStripProps {
-  /** Total likes on the post (drives the "+N" pill). */
-  totalCount: number;
-  /** Already-loaded likers. */
-  likers: EngagementLikerProfile[];
-  /** Heading label (e.g. "Beğenenler" / "Likes"). */
+/** Every user-facing string of `LikersStrip`. Override per key via `labels`. */
+export interface LikersStripLabels {
   heading: string;
-  /** Fetch more likers. Component appends results to local state. */
+  close: string;
+  loading: string;
+  /** Pill text AND accessible name when the total is withheld (`totalCount={null}`). */
+  loadMore: string;
+  moreAriaLabel: (count: number, formatted: string) => string;
+  morePill: (formatted: string) => string;
+}
+
+export const defaultLikersStripLabels: LikersStripLabels = {
+  heading: "Likes",
+  close: "Hide",
+  loading: "…",
+  loadMore: "More",
+  moreAriaLabel: (_, f) => `+${f} more`,
+  morePill: (f) => `+${f}`,
+};
+
+export interface LikersStripProps {
+  /** Total likes on the post (drives the "+N" pill). `null` = withheld: no number is shown anywhere. */
+  totalCount: number | null;
+  /**
+   * Already-loaded likers. With `onLikersChange` the strip is controlled (shows exactly this
+   * list). Without it, the prop is still shown on every render, plus anything the strip loaded.
+   */
+  likers?: EngagementLikerProfile[];
+  /** Uncontrolled seed, read once. */
+  defaultLikers?: EngagementLikerProfile[];
+  /** Controlled mode: called with the prop list plus the newly loaded likers. */
+  onLikersChange?: (next: EngagementLikerProfile[]) => void;
+  /** Fetch more likers. */
   onLoadMore?: () => Promise<EngagementLikerProfile[]>;
-  /** "+N" pill aria-label template — `{count}` is replaced. Default "+{count} more". */
+  /** Whether more likers exist. Overrides the count-derived pill visibility. */
+  hasMore?: boolean;
+  /** Override any user-facing string. An `undefined` value keeps the default. */
+  labels?: Partial<LikersStripLabels>;
+  /** BCP-47 locale for number formatting and initials. Default "en". */
+  locale?: string;
+  /** Replaces the compact `Intl.NumberFormat` count formatter. */
+  formatCount?: (n: number) => string;
+  /** @deprecated Use `labels.heading`. */
+  heading?: string;
+  /** @deprecated Use `labels.moreAriaLabel`. `{count}` is replaced. */
   moreAriaLabelTemplate?: string;
-  /** Hide-button label (kasder's "Gizle"). When provided, renders a Hide button next to the heading. */
+  /** When provided, renders a Hide button next to the heading. */
   onClose?: () => void;
-  /** Hide-button label text. Default "Hide". */
+  /** @deprecated Use `labels.close`. */
   closeLabel?: string;
   className?: string;
 }
 
-function initials(name: string): string {
+function initials(name: string, locale: string): string {
   return (
     name
       .trim()
       .split(/\s+/)
-      .map((p) => p[0]?.toUpperCase() ?? "")
+      .map((p) => p[0]?.toLocaleUpperCase(locale) ?? "")
       .slice(0, 2)
       .join("") || "?"
   );
 }
 
+function dedupeById(list: EngagementLikerProfile[]): EngagementLikerProfile[] {
+  const seen = new Set<string>();
+  const out: EngagementLikerProfile[] = [];
+  for (const u of list) {
+    if (seen.has(u.id)) continue;
+    seen.add(u.id);
+    out.push(u);
+  }
+  return out;
+}
+
 function LikersStripInner({
   totalCount,
-  likers: initialLikers,
-  heading,
+  likers,
+  defaultLikers,
+  onLikersChange,
   onLoadMore,
-  moreAriaLabelTemplate = "+{count} more",
+  hasMore,
+  labels: labelsProp,
+  locale: localeProp = "en",
+  formatCount,
+  heading,
+  moreAriaLabelTemplate,
   onClose,
-  closeLabel = "Hide",
+  closeLabel,
   className,
 }: LikersStripProps) {
-  const [likers, setLikers] = useState(initialLikers);
+  const locale = useMemo(() => resolveLocale(localeProp), [localeProp]);
+  const controlled = likers !== undefined && onLikersChange !== undefined;
+  // Likers this strip loaded itself (and the uncontrolled seed, read once).
+  const [own, setOwn] = useState<EngagementLikerProfile[]>(() => defaultLikers ?? []);
   const [isLoading, setIsLoading] = useState(false);
-  const remaining = Math.max(0, totalCount - likers.length);
+  const loadingRef = useRef(false);
+
+  const latestLikers = useRef<EngagementLikerProfile[]>(likers ?? []);
+  useEffect(() => {
+    latestLikers.current = likers ?? [];
+  }, [likers]);
+
+  const shown = useMemo(
+    () => (controlled ? likers : dedupeById([...(likers ?? []), ...own])),
+    [controlled, likers, own],
+  );
+
+  const numberFormat = useMemo(
+    () => new Intl.NumberFormat(locale, { notation: "compact" }),
+    [locale],
+  );
+  const format = formatCount ?? numberFormat.format;
+
+  const labels = useMemo<LikersStripLabels>(() => {
+    const merged: LikersStripLabels = {
+      ...defaultLikersStripLabels,
+      heading: heading ?? defaultLikersStripLabels.heading,
+      close: closeLabel ?? defaultLikersStripLabels.close,
+    };
+    if (moreAriaLabelTemplate !== undefined) {
+      const template = moreAriaLabelTemplate;
+      merged.moreAriaLabel = (_, formatted) =>
+        // template-ok: deprecated alias moreAriaLabelTemplate (post-card passes it) — remove in post-card's Part 3 loop
+        template.replace("{count}", formatted);
+    }
+    if (labelsProp) {
+      for (const key of Object.keys(labelsProp) as (keyof LikersStripLabels)[]) {
+        const value = labelsProp[key];
+        if (value !== undefined) (merged as unknown as Record<string, unknown>)[key] = value;
+      }
+    }
+    return merged;
+  }, [labelsProp, heading, closeLabel, moreAriaLabelTemplate]);
+
+  const remaining = totalCount === null ? null : Math.max(0, totalCount - shown.length);
+  const pillVisible =
+    Boolean(onLoadMore) && (hasMore ?? (remaining === null ? true : remaining > 0));
+  const pending = remaining !== null && remaining > 0 ? remaining : null;
   const {
     scrollRef,
     onPointerDown,
@@ -120,21 +218,38 @@ function LikersStripInner({
     onPointerCancel,
   } = useDragScroll();
 
-  const handleLoadMore = async () => {
-    if (!onLoadMore || isLoading) return;
+  const handleLoadMore = useCallback(async () => {
+    if (!onLoadMore || loadingRef.current) return;
+    loadingRef.current = true;
     setIsLoading(true);
     try {
       const next = await onLoadMore();
-      setLikers((prev) => [...prev, ...next]);
+      if (onLikersChange && likers !== undefined) {
+        onLikersChange([...latestLikers.current, ...next]);
+      } else {
+        setOwn((prev) => [...prev, ...next]);
+      }
+    } catch {
+      // A failed load leaves the list unchanged; the button re-enables for a retry.
     } finally {
+      loadingRef.current = false;
       setIsLoading(false);
     }
-  };
+  }, [onLoadMore, onLikersChange, likers]);
+
+  const pillText = isLoading
+    ? labels.loading
+    : pending !== null
+      ? labels.morePill(format(Math.min(pending, 99)))
+      : labels.loadMore;
+  const pillAria = pending !== null
+    ? labels.moreAriaLabel(pending, format(pending))
+    : labels.loadMore;
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold">{heading}</span>
+        <span className="text-sm font-semibold">{labels.heading}</span>
         {onClose ? (
           <Button
             type="button"
@@ -143,7 +258,7 @@ function LikersStripInner({
             onClick={onClose}
             className="h-7 px-2 text-xs"
           >
-            {closeLabel}
+            {labels.close}
           </Button>
         ) : null}
       </div>
@@ -157,7 +272,7 @@ function LikersStripInner({
         className="flex cursor-grab select-none items-stretch gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]"
         role="list"
       >
-        {likers.map((user) => (
+        {shown.map((user) => (
           <div
             key={user.id}
             role="listitem"
@@ -165,7 +280,7 @@ function LikersStripInner({
           >
             <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
               {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
-              <AvatarFallback>{initials(user.name)}</AvatarFallback>
+              <AvatarFallback>{initials(user.name, locale)}</AvatarFallback>
             </Avatar>
             {/* Fixed-height name+username slot — keeps every column the same total height
                 so the strip looks symmetric regardless of which users have a username. */}
@@ -174,13 +289,13 @@ function LikersStripInner({
                 {user.name.split(" ")[0]}
               </span>
               <span className="truncate text-[10px] leading-tight text-muted-foreground">
-                {user.username ? `@${user.username}` : " "}
+                {user.username ? `@${user.username}` : " "}
               </span>
             </div>
           </div>
         ))}
-        {remaining > 0 && onLoadMore ? (
-          <div className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20">
+        {pillVisible ? (
+          <div role="listitem" className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20">
             <Button
               type="button"
               variant="outline"
@@ -188,13 +303,11 @@ function LikersStripInner({
                 void handleLoadMore();
               }}
               disabled={isLoading}
-              aria-label={moreAriaLabelTemplate.replace(
-                "{count}",
-                String(remaining),
-              )}
+              aria-busy={isLoading ? "true" : undefined}
+              aria-label={pillAria}
               className="h-11 w-11 shrink-0 rounded-full p-0 text-xs font-semibold sm:h-12 sm:w-12"
             >
-              {isLoading ? "…" : `+${remaining > 99 ? "99" : remaining}`}
+              {pillText}
             </Button>
             <div className="h-8" aria-hidden="true" />
           </div>

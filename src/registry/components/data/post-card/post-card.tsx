@@ -436,12 +436,14 @@ function PostCardInner(props: PostCardProps) {
 
   // The built-in bar's handle, only when a like can actually be applied through
   // it: bar mounted (null under a `renderEngagementBar` takeover) AND a `like`
-  // action exists (a custom `engagementActions` slot may omit it). The bar's
+  // action exists and is not disabled / hidden (a custom `engagementActions` slot may omit or gate it). The bar's
   // `triggerLike()` silently no-ops otherwise, so no burst may play.
   const getLikeCapableBar = useCallback((): EngagementBarHandle | null => {
     const bar = barRef.current;
     if (!bar) return null;
-    return engagementActionsRef.current.some((a) => a.kind === "like")
+    return engagementActionsRef.current.some(
+      (a) => a.kind === "like" && !a.disabled && !a.hidden,
+    )
       ? bar
       : null;
   }, []);

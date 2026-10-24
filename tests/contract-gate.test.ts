@@ -109,6 +109,11 @@ describe("R2 template-fill", () => {
     expect(rules("const s = t.replaceAll(`{count}`, c);", "x.ts")).toEqual(["template-fill"]);
     expect(rules('const s = t.replace(/\\s+/g, " ");', "x.ts")).toEqual([]);
   });
+
+  it("honours a template-ok escape (deprecated alias) with a reason, not without one", () => {
+    expect(rules('// template-ok: deprecated alias\nconst s = t.replace("{count}", c);', "x.ts")).toEqual([]);
+    expect(rules('// template-ok:\nconst s = t.replace("{count}", c);', "x.ts")).toEqual(["template-fill"]);
+  });
 });
 
 describe("R3 intl + clock", () => {

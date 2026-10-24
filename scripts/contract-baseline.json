@@ -1,7 +1,8 @@
 {
   "closed": [
     "story-rail",
-    "app-sidebar"
+    "app-sidebar",
+    "engagement-bar"
   ],
   "rules": {
     "palette": {
@@ -141,9 +142,6 @@
     },
     "physical": {},
     "template-fill": {
-      "src/registry/components/data/engagement-bar/parts/likers-strip.tsx": [
-        "replace(\"{count}\")"
-      ],
       "src/registry/components/data/news-card/parts/content-sensitive-gate.tsx": [
         "replace(\"{warnings}\")"
       ],
@@ -578,10 +576,6 @@
       ],
       "src/registry/components/data/data-table/data-table.tsx": [
         "child: No records to display."
-      ],
-      "src/registry/components/data/engagement-bar/parts/like-action.tsx": [
-        "aria-label: Show likers",
-        "aria-label: Show likers"
       ],
       "src/registry/components/data/event-calendar/features/editing/parts/calendar-context-menu.tsx": [
         "Copy",

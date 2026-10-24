@@ -2,6 +2,13 @@
 
 > Stage 1: what & why.
 >
+> ### v0.5.0 — consumer-contract hardening (2026-10-24)
+>
+> - **Why:** the ilinxa Social Platform builds its post card on this bar and measured it against the consumer contract C1–C12 (request §4.6, EB1–EB7, as amended by the verification digest). Full signed-off contract, reproductions and invariants: [`engagement-bar-loop.md`](./engagement-bar-loop.md).
+> - **Scope:** withheld counts (`number | null`, nothing in accessible names); a controlled reaction's counts follow the props; promise handlers with optimistic update + rollback (`optimistic`); `disabled` / `hidden` per action; a `trailing` slot; `align: "start" | "end"`, mirrored picker keys, `dir`; `locale` + `formatCount` (Intl compact); typed `labels` + `locale` on `LikersStrip` / `ShareMenu`, controlled `likers`.
+> - **Fixed on the way:** "NaNb" for an absent comment count (story-viewer); inert comment / share / view-count deltas; `ReactionPicker` / `ReactionAction` advertised but not exported; unlabelled share search; stale async search results.
+> - **Breaking** (0.x minor): nullable state counts; controlled reaction no longer applies `reaction-changed`; "1.2K" casing; names include the count. Migration table in the guide.
+>
 > ### v0.1.1 patch (2026-05-03)
 >
 > - **`like.onCountClick?: () => void`** added to the discriminated `EngagementAction` union. When provided, the heart icon and the count number become two separate click targets — heart fires `onToggle`, count fires `onCountClick`. Backwards-compatible: omit it for the original bundled-button behavior.

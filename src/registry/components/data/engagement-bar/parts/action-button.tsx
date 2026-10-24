@@ -4,10 +4,10 @@ import { memo } from "react";
 import type {
   EngagementAction,
   EngagementBarVariant,
-  EngagementBarLabels,
-  EngagementLocalAction,
   EngagementState,
+  ResolvedEngagementBarLabels,
 } from "../types";
+import type { Direction } from "../hooks/use-direction";
 import { LikeAction } from "./like-action";
 import { CommentAction } from "./comment-action";
 import { ShareAction } from "./share-action";
@@ -16,35 +16,35 @@ import { ViewCountAction } from "./view-count-action";
 import { CustomAction } from "./custom-action";
 import { ReactionAction } from "./reaction-action";
 
-interface ControlledFlags {
-  liked: boolean;
-  bookmarked: boolean;
-}
-
 interface ActionButtonProps {
   action: EngagementAction;
   variant: EngagementBarVariant;
+  /** The bar's shown state (props + overlays). */
   state: EngagementState;
-  controlled: ControlledFlags;
-  dispatch: React.Dispatch<EngagementLocalAction>;
+  onToggleLike: () => void;
+  onToggleBookmark: () => void;
+  onSelectReaction: (kind: string | null) => void;
   format: (n: number) => string;
-  labels: Required<Omit<EngagementBarLabels, "formatCount">>;
+  labels: ResolvedEngagementBarLabels;
+  dir: Direction;
   actionClassName?: string;
 }
 
 /**
- * Dispatches to the per-kind action component. Click handlers live INSIDE
- * each per-kind component (not memoized upstream — that would be a hooks-rules
- * violation inside `.map()`). React.memo on each per-kind keeps re-renders cheap.
+ * Dispatches to the per-kind action component. Toggle / select logic lives in the bar's state
+ * hook (one path for clicks and the imperative handle); React.memo on each per-kind part keeps
+ * re-renders cheap.
  */
 function ActionButtonInner({
   action,
   variant,
   state,
-  controlled,
-  dispatch,
+  onToggleLike,
+  onToggleBookmark,
+  onSelectReaction,
   format,
   labels,
+  dir,
   actionClassName,
 }: ActionButtonProps) {
   switch (action.kind) {
@@ -54,12 +54,11 @@ function ActionButtonInner({
           variant={variant}
           liked={state.liked}
           count={state.likeCount}
-          controlled={controlled.liked}
-          onToggle={action.onToggle}
+          disabled={action.disabled}
+          onToggle={onToggleLike}
           onCountClick={action.onCountClick}
           format={format}
           labels={labels}
-          dispatch={dispatch}
           actionClassName={actionClassName}
         />
       );
@@ -68,6 +67,7 @@ function ActionButtonInner({
         <CommentAction
           variant={variant}
           count={state.commentCount}
+          disabled={action.disabled}
           onClick={action.onClick}
           format={format}
           labels={labels}
@@ -78,7 +78,8 @@ function ActionButtonInner({
       return (
         <ShareAction
           variant={variant}
-          count={state.shareCount ?? undefined}
+          count={state.shareCount}
+          disabled={action.disabled}
           onClick={action.onClick}
           format={format}
           labels={labels}
@@ -90,10 +91,9 @@ function ActionButtonInner({
         <BookmarkAction
           variant={variant}
           bookmarked={state.bookmarked}
-          controlled={controlled.bookmarked}
-          onToggle={action.onToggle}
+          disabled={action.disabled}
+          onToggle={onToggleBookmark}
           labels={labels}
-          dispatch={dispatch}
           actionClassName={actionClassName}
         />
       );
@@ -101,7 +101,7 @@ function ActionButtonInner({
       return (
         <ViewCountAction
           variant={variant}
-          count={state.viewCount ?? action.count}
+          count={state.viewCount}
           format={format}
           labels={labels}
           actionClassName={actionClassName}
@@ -114,8 +114,13 @@ function ActionButtonInner({
           id={action.id}
           label={action.label}
           icon={action.icon}
-          count={action.count}
+          count={
+            typeof action.count === "number" && Number.isFinite(action.count)
+              ? action.count
+              : null
+          }
           active={action.active}
+          disabled={action.disabled}
           onClick={action.onClick}
           format={format}
           actionClassName={actionClassName}
@@ -127,9 +132,10 @@ function ActionButtonInner({
           action={action}
           variant={variant}
           state={state}
-          dispatch={dispatch}
+          onSelect={onSelectReaction}
           format={format}
           labels={labels}
+          dir={dir}
           actionClassName={actionClassName}
         />
       );

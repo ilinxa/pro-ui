@@ -1,10 +1,14 @@
 export { EngagementBar } from "./engagement-bar";
 export { EngagementHeartBurst } from "./parts/engagement-heart-burst";
 export type { EngagementHeartBurstProps } from "./parts/engagement-heart-burst";
-export { LikersStrip } from "./parts/likers-strip";
-export type { LikersStripProps } from "./parts/likers-strip";
-export { ShareMenu } from "./parts/share-menu";
-export type { ShareMenuProps } from "./parts/share-menu";
+export { LikersStrip, defaultLikersStripLabels } from "./parts/likers-strip";
+export type { LikersStripProps, LikersStripLabels } from "./parts/likers-strip";
+export { ShareMenu, defaultShareMenuLabels } from "./parts/share-menu";
+export type { ShareMenuProps, ShareMenuLabels } from "./parts/share-menu";
+export { ReactionPicker } from "./parts/reaction-picker";
+export type { ReactionPickerProps } from "./parts/reaction-picker";
+export { ReactionAction } from "./parts/reaction-action";
+export type { ReactionActionProps } from "./parts/reaction-action";
 export {
   engagementReducer,
   useEngagementState,
@@ -21,8 +25,11 @@ export type {
   EngagementBarHandle,
   EngagementBarVariant,
   EngagementBarLabels,
+  ResolvedEngagementBarLabels,
   EngagementAction,
   EngagementActionAlign,
+  EngagementCount,
+  EngagementHandler,
   EngagementDelta,
   EngagementLikeUser,
   EngagementLikerProfile,
@@ -33,5 +40,4 @@ export type {
   Unsubscribe,
 } from "./types";
 
-export { DEFAULT_ENGAGEMENT_BAR_LABELS } from "./types";
-
+export { defaultEngagementBarLabels, DEFAULT_ENGAGEMENT_BAR_LABELS } from "./types";

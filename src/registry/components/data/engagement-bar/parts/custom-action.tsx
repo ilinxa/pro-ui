@@ -3,15 +3,17 @@
 import { memo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EngagementBarVariant } from "../types";
+import type { EngagementBarVariant, EngagementCount } from "../types";
+import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
 
 interface CustomActionProps {
   variant: EngagementBarVariant;
   id: string;
   label: string;
   icon: ReactNode;
-  count?: number;
+  count: EngagementCount;
   active?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
   format: (n: number) => string;
   actionClassName?: string;
@@ -23,54 +25,48 @@ function CustomActionInner({
   icon,
   count,
   active,
+  disabled = false,
   onClick,
   format,
   actionClassName,
 }: CustomActionProps) {
-  const showCount = count !== undefined;
-
-  if (variant === "stacked") {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        aria-label={label}
-        aria-pressed={active ? true : undefined}
-        onClick={onClick}
-        className={cn(
-          "flex h-auto flex-col items-center gap-0.5 px-2 py-1",
-          active && "text-primary",
-          actionClassName,
-        )}
-      >
-        {icon}
-        {showCount ? (
-          <span className="text-xs font-medium tabular-nums">
-            {format(count)}
-          </span>
-        ) : null}
-      </Button>
-    );
-  }
+  const hasCount = count !== null;
+  const name = useActionName(hasCount);
+  const stacked = variant === "stacked";
+  const handleClick = () => {
+    if (disabled) return;
+    onClick?.();
+  };
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="sm"
-      aria-label={label}
+      aria-labelledby={name.labelledBy}
       aria-pressed={active ? true : undefined}
-      onClick={onClick}
+      aria-disabled={disabled || undefined}
+      onClick={handleClick}
       className={cn(
-        showCount ? "gap-2 px-2" : "px-2",
+        stacked
+          ? "flex h-auto flex-col items-center gap-0.5 px-2 py-1"
+          : hasCount
+            ? "gap-2 px-2"
+            : "px-2",
         active && "text-primary",
+        DISABLED_ACTION_CLASS,
         actionClassName,
       )}
     >
       {icon}
-      {showCount ? (
-        <span className="text-sm font-medium tabular-nums">
+      <span id={name.labelId} className="sr-only">
+        {label}
+      </span>
+      {hasCount ? (
+        <span
+          id={name.countId}
+          className={cn("font-medium tabular-nums", stacked ? "text-xs" : "text-sm")}
+        >
           {format(count)}
         </span>
       ) : null}

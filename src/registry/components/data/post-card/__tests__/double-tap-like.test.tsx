@@ -96,6 +96,26 @@ describe("PostCard media double-tap", () => {
     expect(burst(container)).toBeNull();
   });
 
+  // v0.5.3 — engagement-bar 0.5.0 added `disabled` / `hidden`; a gated like ignores
+  // `triggerLike()`, so the burst must not play either.
+  it.each([
+    ["disabled", { disabled: true }],
+    ["hidden", { hidden: true }],
+  ] as const)("shows no burst when the like action is %s", (_name, gate) => {
+    const onToggle = vi.fn();
+    const { container } = render(
+      <PostCard
+        post={makePost(false)}
+        variant="feed"
+        renderMedia={renderMedia}
+        engagementActions={() => [{ kind: "like", count: 10, liked: false, onToggle, ...gate }]}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("media"));
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(burst(container)).toBeNull();
+  });
+
   it("shows no burst under a renderEngagementBar takeover", () => {
     const onLike = vi.fn();
     const { container } = render(

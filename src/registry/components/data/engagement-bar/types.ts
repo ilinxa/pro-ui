@@ -2,7 +2,27 @@ import type { ReactNode } from "react";
 
 export type EngagementBarVariant = "default" | "compact" | "stacked";
 
-export type EngagementActionAlign = "left" | "right" | "auto";
+/**
+ * Which end of the row an action sits at. `"start"` / `"end"` follow the text direction;
+ * `"auto"` (or omitted) = the per-kind default — bookmark + view-count at the end, the rest at
+ * the start.
+ *
+ * `"left"` / `"right"` are deprecated aliases of `"start"` / `"end"` (they always rendered at
+ * the row's start / end, so they mirror under `dir="rtl"`).
+ */
+export type EngagementActionAlign = "start" | "end" | "auto" | "left" | "right";
+
+/**
+ * A count shown beside an action. `null` (or omitting it) withholds the count: no number
+ * renders and no count reaches any accessible name (consumer contract C6). `0` renders "0".
+ */
+export type EngagementCount = number | null;
+
+/**
+ * A toggle / select handler. Return a promise to make the change optimistic: it shows at once,
+ * and a rejection rolls it back (see `EngagementBarProps.optimistic`).
+ */
+export type EngagementHandler<T> = (next: T) => void | Promise<unknown>;
 
 /**
  * Single reaction kind in the host-supplied catalog for the `reaction` action.
@@ -16,66 +36,87 @@ export interface EngagementReactionKind {
   key: string;
   /** Host-supplied icon node (lucide / emoji / image). Library does not ship reaction icons. */
   icon: ReactNode;
-  /** Localized human label — used in picker tooltip + aria-label. */
+  /** Localized human label — used in the picker and in accessible names. */
   label: string;
-  /** Seed tally for this kind. After the bar mounts, live tally lives in `EngagementState.reactionCounts[key]`. */
-  count: number;
+  /**
+   * Tally for this kind. Uncontrolled reaction (no `viewerReaction` passed): the seed — live
+   * tallies then live in `EngagementState.reactionCounts[key]`. Controlled reaction: wins on
+   * every render. `null` / omitted withholds it.
+   */
+  count?: EngagementCount;
   /** Optional tint (any CSS color) applied to the icon when this is the viewer's current reaction. */
   color?: string;
 }
 
+/** Fields every action arm accepts (`view-count` is display-only and takes no `disabled`). */
+interface EngagementActionBase {
+  align?: EngagementActionAlign;
+  /**
+   * Renders the action with `aria-disabled="true"`; it stays focusable but never calls its
+   * handler (click, keyboard, long-press, or the imperative handle).
+   */
+  disabled?: boolean;
+  /** Renders nothing for this action; the imperative handle treats it as absent. */
+  hidden?: boolean;
+}
+
 /** Strict discriminated union — no extra fields. */
 export type EngagementAction =
-  | {
+  | (EngagementActionBase & {
       kind: "like";
-      count: number;
+      /**
+       * Like tally. Uncontrolled (`liked` omitted): read once at mount. Controlled (`liked`
+       * passed): wins on every render, together with `liked`.
+       */
+      count?: EngagementCount;
+      /** Pass to control the like state (with `count`); omit for uncontrolled. */
       liked?: boolean;
-      onToggle?: (next: boolean) => void;
+      onToggle?: EngagementHandler<boolean>;
       /**
        * Optional separate click target for the count number. When provided, the
        * like action splits into two clickable elements:
        *   - the heart icon (fires onToggle)
        *   - the count text (fires onCountClick)
        * Use this for kasder-style "tap heart to like, tap count to open likers panel".
-       * If omitted, the heart + count behave as a single button (backwards-compatible).
+       * If omitted, the heart + count behave as a single button. A withheld count renders no
+       * count button.
        */
       onCountClick?: () => void;
-      align?: EngagementActionAlign;
-    }
-  | {
+    })
+  | (EngagementActionBase & {
       kind: "comment";
-      count: number;
+      /** Wins on every render; a `comment-count-changed` delta shows until this prop next changes. */
+      count?: EngagementCount;
       onClick?: () => void;
-      align?: EngagementActionAlign;
-    }
-  | {
+    })
+  | (EngagementActionBase & {
       kind: "share";
-      count?: number;
+      /** Wins on every render; a `share-count-changed` delta shows until this prop next changes. */
+      count?: EngagementCount;
       onClick?: () => void;
-      align?: EngagementActionAlign;
-    }
-  | {
+    })
+  | (EngagementActionBase & {
       kind: "bookmark";
+      /** Pass to control the bookmark state; omit for uncontrolled. */
       bookmarked?: boolean;
-      onToggle?: (next: boolean) => void;
-      align?: EngagementActionAlign;
-    }
-  | {
+      onToggle?: EngagementHandler<boolean>;
+    })
+  | (Omit<EngagementActionBase, "disabled"> & {
+      /** Display-only: no handler, so no `disabled` (use `hidden` to remove it). */
       kind: "view-count";
-      count: number;
-      align?: EngagementActionAlign;
-    }
-  | {
+      /** Wins on every render; a `view-count-changed` delta shows until this prop next changes. */
+      count?: EngagementCount;
+    })
+  | (EngagementActionBase & {
       kind: "custom";
       id: string;
       label: string;
       icon: ReactNode;
-      count?: number;
+      count?: EngagementCount;
       active?: boolean;
       onClick?: () => void;
-      align?: EngagementActionAlign;
-    }
-  | {
+    })
+  | (EngagementActionBase & {
       /**
        * Multi-kind reaction action (FB / LinkedIn style). One per-content reaction
        * per viewer; choose from `kinds`. Picker opens on tap-when-null, on
@@ -86,14 +127,22 @@ export type EngagementAction =
        * a supported pattern).
        */
       kind: "reaction";
-      /** Ordered kind catalog. Single source of truth for icons + labels + seed counts. */
+      /** Ordered kind catalog. Single source of truth for icons + labels + counts. */
       kinds: EngagementReactionKind[];
-      /** Pre-summed total across all kinds. Drives the action's count label. */
-      totalCount: number;
-      /** Viewer's currently-selected kind key (must match one of `kinds[].key`), or null. */
+      /**
+       * Pre-summed total across all kinds; drives the action's count. Uncontrolled: the seed.
+       * Controlled (`viewerReaction` passed): wins on every render. `null` / omitted withholds it.
+       */
+      totalCount?: EngagementCount;
+      /**
+       * Viewer's currently-selected kind key (must match one of `kinds[].key`), or null.
+       * Passing it (string OR null) controls the reaction: `viewerReaction`, every
+       * `kinds[i].count` and `totalCount` then win on every render, and the bar no longer
+       * applies `reaction-changed` deltas itself (the host gets them via `onSubscribeDelta`).
+       */
       viewerReaction?: string | null;
       /** Fires when viewer picks a kind, or `null` to clear. */
-      onSelect?: (kind: string | null) => void;
+      onSelect?: EngagementHandler<string | null>;
       /**
        * Optional separate click target for the count number — mirrors `like.onCountClick`.
        * Hosts use this to open a reactors panel inline. When unset, count is non-interactive text.
@@ -105,8 +154,7 @@ export type EngagementAction =
        * button is then the clear escape. Long-press always opens the picker regardless.
        */
       clearOnTap?: boolean;
-      align?: EngagementActionAlign;
-    };
+    });
 
 export interface EngagementLikeUser {
   id: string;
@@ -136,7 +184,7 @@ export type EngagementDelta =
   | { kind: "bookmark-changed"; bookmarked: boolean }
   | { kind: "liker-added"; user: EngagementLikeUser }
   | { kind: "liker-removed"; userId: string }
-  /** Server-authoritative replace of all 3 reaction state fields. Wins over local optimistic ops. */
+  /** Server-authoritative replace of all 3 reaction state fields (uncontrolled reaction only). */
   | {
       kind: "reaction-changed";
       counts: Record<string, number>;
@@ -150,34 +198,42 @@ export type EngagementDelta =
 export type Unsubscribe = () => void;
 export type Subscribe<T> = (handler: (delta: T) => void) => Unsubscribe;
 
+/**
+ * Localized strings. Every key is optional on input; omitted (or `undefined`) keys fall back to
+ * {@link defaultEngagementBarLabels}. Action names are read with their count appended
+ * ("Like 12"), unless the count is withheld.
+ */
 export interface EngagementBarLabels {
-  /** Default: "Like". aria-label when not liked. */
+  /** Default: "Like". Name when not liked. */
   like?: string;
-  /** Default: "Unlike". aria-label when liked. */
+  /** Default: "Unlike". Name when liked. */
   unlike?: string;
-  /** Default: "Show likers". aria-label for the count-as-button when split via onCountClick. */
+  /** Default: "Show likers". Name of the count button when split via onCountClick. */
   openLikersPanel?: string;
-  /** Default: "Comment". aria-label on comment action. */
+  /** Default: "Comment". */
   comment?: string;
-  /** Default: "Share". aria-label on share action. */
+  /** Default: "Share". */
   share?: string;
-  /** Default: "Bookmark". aria-label when not bookmarked. */
+  /** Default: "Bookmark". Name when not bookmarked. */
   bookmark?: string;
-  /** Default: "Remove bookmark". aria-label when bookmarked. */
+  /** Default: "Remove bookmark". Name when bookmarked. */
   unbookmark?: string;
-  /** Default: "Views". aria-label on view-count display. */
+  /** Default: "Views". Name of the view-count display. */
   viewCount?: string;
-  /** Default: "React". aria-label on the reaction action trigger when `viewerReaction` is null. */
+  /** Default: "React". Name of the reaction trigger when `viewerReaction` is null. */
   react?: string;
-  /** Default: "Remove reaction". aria-label / button text for the picker's clear-current-reaction control. */
+  /** Default: "Remove reaction". Name of the picker's clear-current-reaction control. */
   removeReaction?: string;
-  /** Default: "Show reactions". aria-label for the count-as-button on the reaction action when split via onCountClick. */
+  /** Default: "Show reactions". Name of the reaction count button when split via onCountClick. */
   openReactionsPanel?: string;
-  /** Default: "Pick a reaction". aria-label on the picker popover (group label). */
+  /** Default: "Pick a reaction". Name of the picker group. */
   reactionPickerLabel?: string;
-  /** Optional locale-aware count formatter. Defaults to formatEngagementCount. */
+  /** @deprecated Use the bar's `formatCount` prop. Still honoured when `formatCount` is not set. */
   formatCount?: (n: number) => string;
 }
+
+/** Fully-resolved labels (what parts receive). */
+export type ResolvedEngagementBarLabels = Required<Omit<EngagementBarLabels, "formatCount">>;
 
 export interface EngagementBarProps {
   /** The actions to render. Required. Order = render order (within each align group). */
@@ -198,8 +254,33 @@ export interface EngagementBarProps {
    * `reactionsPreview`. Host's call to deduplicate if both would be redundant.
    */
   reactionsPreview?: ReactNode;
+  /**
+   * Host content rendered inside the action row, after the end-aligned actions (stacked: after
+   * the last action). Use it for menus the built-in actions can't express (report, more…).
+   */
+  trailing?: ReactNode;
   /** Localized labels. Defaults are English. */
   labels?: EngagementBarLabels;
+  /** BCP 47 locale for the default count formatter. Default `"en"`. */
+  locale?: string;
+  /**
+   * Count formatter. Default: `Intl.NumberFormat(locale, { notation: "compact" })`
+   * ("1.2K" in English, "1,2 B" in Turkish).
+   */
+  formatCount?: (n: number) => string;
+  /**
+   * Applies when `onToggle` / `onSelect` returns a promise. Default `true`: the change shows at
+   * once until the promise settles (controlled: or until the props change); a rejection rolls it
+   * back to the props (controlled) or to the last accepted value (uncontrolled); only the latest
+   * request decides. `false`: only the props (controlled) / only a settled change (uncontrolled)
+   * render. A synchronous handler is never optimistic when controlled.
+   */
+  optimistic?: boolean;
+  /**
+   * Text direction for the picker's arrow keys. Default: the bar's direction after mount
+   * (`"ltr"` before). Layout mirrors through CSS either way.
+   */
+  dir?: "ltr" | "rtl";
   /** Override classes for the wrapping <div>. */
   className?: string;
   /** Override classes for each action button. */
@@ -207,41 +288,42 @@ export interface EngagementBarProps {
 }
 
 export interface EngagementBarHandle {
-  /** Programmatically toggle the like action (flips state + fires onToggle). No-op if no like action present. */
+  /** Toggle the like action (same path as a click). No-op if no like action, or it is disabled / hidden. */
   triggerLike: () => void;
-  /** Programmatically toggle the bookmark action. No-op if no bookmark action present. */
+  /** Toggle the bookmark action. No-op if no bookmark action, or it is disabled / hidden. */
   triggerBookmark: () => void;
   /**
-   * Programmatically set the viewer's reaction (or `null` to clear). Flips local
-   * mirror + fires `action.onSelect` (microtask-deferred per Defense 1). No-op if
-   * no reaction action present. No-op if `kind` is not in the action's `kinds[].key` catalog.
+   * Set the viewer's reaction (or `null` to clear) through the same path as a pick
+   * (microtask-deferred, per Defense 1). No-op if no reaction action, it is disabled / hidden,
+   * or `kind` is not in the action's `kinds[].key` catalog.
    */
   triggerReaction: (kind: string | null) => void;
-  /** Read the current optimistic state of all toggleable actions. Includes reaction fields (null when no reaction action). */
+  /** Read the current shown state of all actions. Includes reaction fields (null when no reaction action). */
   getCurrentState: () => EngagementState;
   /** Convenience read — returns `state.viewerReaction`. Mirrors the `triggerLike`/`getCurrentState` parity. */
   getCurrentReaction: () => string | null;
-  /** Reset internal optimistic state to actions' values (no-op for fully-controlled fields). */
+  /** Reset internal state to the actions' values and drop optimistic / delta overlays. */
   reset: () => void;
 }
 
-/** Internal optimistic state shape. Public-readable via getCurrentState() / engagementReducer. */
+/**
+ * The bar's state shape. `getCurrentState()` returns the shown state (props, optimistic and delta
+ * overlays applied); `engagementReducer` works on the same shape. A `null` count is withheld.
+ */
 export interface EngagementState {
   liked: boolean;
-  likeCount: number;
-  commentCount: number;
-  shareCount: number | null;
-  viewCount: number | null;
+  likeCount: EngagementCount;
+  commentCount: EngagementCount;
+  shareCount: EngagementCount;
+  viewCount: EngagementCount;
   bookmarked: boolean;
   /**
-   * Live per-kind tallies. `null` when no `kind: "reaction"` entry is present in
-   * the actions array. After init, `reactionCounts[key]` is the source of truth
-   * for display — `action.kinds[i].count` is the seed only. Renderers MUST read
-   * `state.reactionCounts[k.key] ?? k.count` per kind.
+   * Per-kind tallies. `null` when no `kind: "reaction"` entry is present in the actions array;
+   * a kind's value is `null` when its count is withheld.
    */
-  reactionCounts: Record<string, number> | null;
-  /** Live total across all kinds. `null` when no reaction action present. */
-  reactionTotalCount: number | null;
+  reactionCounts: Record<string, EngagementCount> | null;
+  /** Total across all kinds. `null` when no reaction action is present or the total is withheld. */
+  reactionTotalCount: EngagementCount;
   /** Viewer's current reaction key, or `null` if none / no reaction action present. */
   viewerReaction: string | null;
 }
@@ -249,15 +331,29 @@ export interface EngagementState {
 /** Reducer action union. Public for hosts driving their own state machines. */
 export type EngagementLocalAction =
   | { kind: "like-toggle" }
+  /** Set `liked`; adjusts the count by one only when the value changes. */
+  | {
+      kind: "like-set";
+      liked: boolean;
+      /** Count to start from when the state's own `likeCount` is `null` (the bar passes the shown count). */
+      baseCount?: EngagementCount;
+    }
   | { kind: "bookmark-toggle" }
+  | { kind: "bookmark-set"; bookmarked: boolean }
   /** Pick a kind (string) or clear (`null`). Updates `viewerReaction` + per-kind counts + total. */
-  | { kind: "reaction-select"; reactionKind: string | null }
+  | {
+      kind: "reaction-select";
+      reactionKind: string | null;
+      /**
+       * Tallies to start from for kinds the state has no live count for (added after mount or
+       * seeded withheld) — the bar passes the shown counts. Live tallies always win.
+       */
+      base?: { counts: Record<string, EngagementCount>; total: EngagementCount };
+    }
   | { kind: "subscribe-delta"; delta: EngagementDelta }
   | { kind: "reset"; next: EngagementState };
 
-export const DEFAULT_ENGAGEMENT_BAR_LABELS: Required<
-  Omit<EngagementBarLabels, "formatCount">
-> = {
+export const defaultEngagementBarLabels: ResolvedEngagementBarLabels = {
   like: "Like",
   unlike: "Unlike",
   openLikersPanel: "Show likers",
@@ -271,3 +367,6 @@ export const DEFAULT_ENGAGEMENT_BAR_LABELS: Required<
   openReactionsPanel: "Show reactions",
   reactionPickerLabel: "Pick a reaction",
 };
+
+/** @deprecated Use {@link defaultEngagementBarLabels}. */
+export const DEFAULT_ENGAGEMENT_BAR_LABELS = defaultEngagementBarLabels;

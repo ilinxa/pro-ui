@@ -3479,7 +3479,7 @@ export default function EmptyStateDemo() {
   "engagement-bar": {
     demo: `﻿"use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Angry,
   Frown,
@@ -3493,6 +3493,13 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EngagementBar } from "./engagement-bar";
@@ -3506,6 +3513,12 @@ import {
   DUMMY_VIEWER,
 } from "@/registry/components/data/comment-thread/dummy-data";
 import {
+  DUMMY_AR_LABELS,
+  DUMMY_AR_LIKERS_LABELS,
+  DUMMY_AR_REACTION_KINDS,
+  DUMMY_AR_SHARE_LABELS,
+  DUMMY_AR_USERS,
+  DUMMY_LARGE_COUNT_ACTIONS,
   DUMMY_LIKE_USERS,
   DUMMY_NEWS_CARD_ENGAGEMENT,
   DUMMY_POST_ENGAGEMENT,
@@ -3776,7 +3789,7 @@ const REACTION_KINDS: EngagementReactionKind[] = [
 ];
 
 const REACTION_TOTAL_COUNT = REACTION_KINDS.reduce(
-  (acc, k) => acc + k.count,
+  (acc, k) => acc + (k.count ?? 0),
   0,
 );
 
@@ -4055,6 +4068,339 @@ function ReactorsPreview() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// v0.5.0 demos
+// ---------------------------------------------------------------------------
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+function CheckRow({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-3.5 w-3.5 accent-primary"
+      />
+      {children}
+    </label>
+  );
+}
+
+/** RTL: \`dir="rtl"\` wrapper, Arabic labels + sample users, \`locale="ar"\`. */
+function RtlDemo() {
+  const [panel, setPanel] = useState<"none" | "likers" | "share">("none");
+  const total = DUMMY_AR_REACTION_KINDS.reduce((a, k) => a + (k.count ?? 0), 0);
+
+  const actions: EngagementAction[] = useMemo(() => {
+    const toggle = (p: "likers" | "share") =>
+      setPanel((prev) => (prev === p ? "none" : p));
+    return [
+      { kind: "like", count: 142, onCountClick: () => toggle("likers") },
+      {
+        kind: "reaction",
+        kinds: DUMMY_AR_REACTION_KINDS,
+        totalCount: total,
+      },
+      { kind: "comment", count: 23 },
+      { kind: "share", count: 8, onClick: () => toggle("share") },
+      { kind: "bookmark" },
+    ] satisfies EngagementAction[];
+  }, [total]);
+
+  return (
+    <div className="space-y-3">
+      <div
+        dir="rtl"
+        lang="ar"
+        className="space-y-3 rounded-xl border border-border bg-card p-4"
+      >
+        <EngagementBar actions={actions} labels={DUMMY_AR_LABELS} locale="ar" />
+        {panel === "likers" ? (
+          <LikersStrip
+            totalCount={DUMMY_AR_USERS.length}
+            likers={DUMMY_AR_USERS}
+            labels={DUMMY_AR_LIKERS_LABELS}
+            locale="ar"
+            onClose={() => setPanel("none")}
+          />
+        ) : null}
+        {panel === "share" ? (
+          <ShareMenu
+            users={DUMMY_AR_USERS}
+            labels={DUMMY_AR_SHARE_LABELS}
+            locale="ar"
+            onShareTo={() => setPanel("none")}
+            onClose={() => setPanel("none")}
+          />
+        ) : null}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        The row mirrors under <code>dir=&quot;rtl&quot;</code> (like on the right, bookmark on the left). Focus the
+        reaction button, open the picker, and try the <kbd>←</kbd> / <kbd>→</kbd> keys — they follow the
+        reading direction (→ moves to the previous kind); <kbd>Home</kbd> / <kbd>End</kbd> jump to the ends.
+        Click the like count for the likers strip, or Share for the share menu (both take Arabic{" "}
+        <code>labels</code>).
+      </p>
+    </div>
+  );
+}
+
+const WITHHELD_KINDS: EngagementReactionKind[] = REACTION_KINDS.map((k) => ({
+  ...k,
+  count: null,
+}));
+const ZERO_KINDS: EngagementReactionKind[] = REACTION_KINDS.map((k) => ({
+  ...k,
+  count: 0,
+}));
+
+const ZERO_ACTIONS: EngagementAction[] = [
+  { kind: "like", count: 0 },
+  { kind: "comment", count: 0 },
+  { kind: "reaction", kinds: ZERO_KINDS, totalCount: 0 },
+  { kind: "view-count", count: 0 },
+];
+
+const WITHHELD_ACTIONS: EngagementAction[] = [
+  { kind: "like", count: null },
+  { kind: "comment", count: null },
+  { kind: "reaction", kinds: WITHHELD_KINDS, totalCount: null },
+  { kind: "view-count", count: null },
+];
+
+/** \`count: null\` (withheld) vs \`count: 0\`. */
+function WithheldDemo() {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <p className="text-xs font-medium">
+          <code>count: 0</code> — renders &quot;0&quot;
+        </p>
+        <EngagementBar actions={ZERO_ACTIONS} />
+      </div>
+      <div className="space-y-1">
+        <p className="text-xs font-medium">
+          <code>count: null</code>, <code>totalCount: null</code> — no digit, no count in the accessible name
+        </p>
+        <EngagementBar actions={WITHHELD_ACTIONS} />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        A withheld count is sticky: click the heart on the second bar — it flips, but the count never appears.
+        An omitted <code>count</code> behaves like <code>null</code>. Withheld like / reaction counts also drop
+        the split count button.
+      </p>
+    </div>
+  );
+}
+
+/** Controlled like + reaction, promise handlers, rollback, \`optimistic\`. */
+function ControlledDemo() {
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(41);
+  const [counts, setCounts] = useState<Record<string, number>>(() =>
+    Object.fromEntries(REACTION_KINDS.map((k) => [k.key, k.count ?? 0])),
+  );
+  const [viewerReaction, setViewerReaction] = useState<string | null>(null);
+  const [failNext, setFailNext] = useState(false);
+  const [optimistic, setOptimistic] = useState(true);
+  const [log, setLog] = useState("No request yet.");
+  const failRef = useRef(false);
+  useEffect(() => {
+    failRef.current = failNext;
+  }, [failNext]);
+
+  const request = useCallback(async (what: string) => {
+    setLog(\`\${what}: request in flight (~800 ms)…\`);
+    await sleep(800);
+    if (failRef.current) {
+      failRef.current = false;
+      setFailNext(false);
+      setLog(\`\${what}: rejected — the bar rolled back.\`);
+      throw new Error("Demo failure");
+    }
+    setLog(\`\${what}: resolved — props updated.\`);
+  }, []);
+
+  const kinds = useMemo<EngagementReactionKind[]>(
+    () => REACTION_KINDS.map((k) => ({ ...k, count: counts[k.key] ?? 0 })),
+    [counts],
+  );
+  const total = useMemo(
+    () => Object.values(counts).reduce((a, n) => a + n, 0),
+    [counts],
+  );
+
+  const actions: EngagementAction[] = useMemo(
+    () => [
+      {
+        kind: "like",
+        liked,
+        count: likeCount,
+        onToggle: async (next) => {
+          await request(next ? "like" : "unlike");
+          setLiked(next);
+          setLikeCount((c) => c + (next ? 1 : -1));
+        },
+      },
+      {
+        kind: "reaction",
+        kinds,
+        totalCount: total,
+        viewerReaction,
+        onSelect: async (kind) => {
+          await request(kind ? \`react (\${kind})\` : "clear reaction");
+          setCounts((prev) => {
+            const nextCounts = { ...prev };
+            if (viewerReaction) nextCounts[viewerReaction] -= 1;
+            if (kind) nextCounts[kind] += 1;
+            return nextCounts;
+          });
+          setViewerReaction(kind);
+        },
+      },
+    ],
+    [liked, likeCount, kinds, total, viewerReaction, request],
+  );
+
+  return (
+    <div className="space-y-3">
+      <EngagementBar actions={actions} optimistic={optimistic} />
+      <div className="flex flex-wrap gap-x-5 gap-y-2">
+        <CheckRow checked={failNext} onChange={setFailNext}>
+          Fail the next request
+        </CheckRow>
+        <CheckRow checked={optimistic} onChange={setOptimistic}>
+          <code>optimistic</code>
+        </CheckRow>
+      </div>
+      <p role="status" className="text-xs font-medium">
+        {log}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Both actions are controlled (<code>liked</code> + <code>count</code>; <code>viewerReaction</code> +
+        per-kind counts) and their handlers return a promise. With <code>optimistic</code> the change shows
+        at once, then settles when the props update — or rolls back if the request fails. Turn{" "}
+        <code>optimistic</code> off and nothing moves until the props change.
+      </p>
+    </div>
+  );
+}
+
+/** \`disabled\` / \`hidden\` per action and the \`trailing\` slot. */
+function GatingDemo() {
+  const [likeDisabled, setLikeDisabled] = useState(false);
+  const [likeHidden, setLikeHidden] = useState(false);
+  const [bookmarkDisabled, setBookmarkDisabled] = useState(false);
+  const [bookmarkHidden, setBookmarkHidden] = useState(false);
+  const [reported, setReported] = useState<string | null>(null);
+
+  const actions: EngagementAction[] = useMemo(
+    () => [
+      { kind: "like", count: 12, disabled: likeDisabled, hidden: likeHidden },
+      { kind: "comment", count: 3 },
+      {
+        kind: "bookmark",
+        disabled: bookmarkDisabled,
+        hidden: bookmarkHidden,
+      },
+    ],
+    [likeDisabled, likeHidden, bookmarkDisabled, bookmarkHidden],
+  );
+
+  return (
+    <div className="space-y-3">
+      <EngagementBar
+        actions={actions}
+        trailing={
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              Report
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-44">
+              {["Spam", "Abuse", "Something else"].map((reason) => (
+                <DropdownMenuItem key={reason} onClick={() => setReported(reason)}>
+                  {reason}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
+      />
+      <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+        <CheckRow checked={likeDisabled} onChange={setLikeDisabled}>
+          like <code>disabled</code>
+        </CheckRow>
+        <CheckRow checked={likeHidden} onChange={setLikeHidden}>
+          like <code>hidden</code>
+        </CheckRow>
+        <CheckRow checked={bookmarkDisabled} onChange={setBookmarkDisabled}>
+          bookmark <code>disabled</code>
+        </CheckRow>
+        <CheckRow checked={bookmarkHidden} onChange={setBookmarkHidden}>
+          bookmark <code>hidden</code>
+        </CheckRow>
+      </div>
+      <p role="status" className="text-xs font-medium">
+        {reported ? \`Reported as: \${reported}\` : "No report sent."}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        A disabled action stays focusable (<code>aria-disabled</code>) and never fires its handler; a hidden
+        one renders nothing. The &quot;Report&quot; menu is the <code>trailing</code> slot — it sits in the
+        row, after the end-aligned actions, in Tab order.
+      </p>
+    </div>
+  );
+}
+
+const LOCALES = [
+  { value: "en", label: "en" },
+  { value: "tr", label: "tr" },
+  { value: "de", label: "de" },
+  { value: "ar", label: "ar" },
+] as const;
+
+/** \`locale\` switches the default compact count formatter. */
+function LocaleDemo() {
+  const [locale, setLocale] = useState<string>("en");
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-muted-foreground">locale</span>
+        {LOCALES.map((l) => (
+          <Button
+            key={l.value}
+            type="button"
+            size="sm"
+            variant={locale === l.value ? "default" : "outline"}
+            aria-pressed={locale === l.value}
+            onClick={() => setLocale(l.value)}
+          >
+            {l.label}
+          </Button>
+        ))}
+      </div>
+      <EngagementBar actions={DUMMY_LARGE_COUNT_ACTIONS} locale={locale} />
+      <p className="text-xs text-muted-foreground">
+        Counts are 1200 / 45 300 / 999 / 2 400 000. The default formatter is{" "}
+        <code>Intl.NumberFormat(locale, {"{ notation: \\"compact\\" }"})</code> — &quot;1.2K&quot; in English,
+        &quot;1,2 B&quot; in Turkish. Pass <code>formatCount</code> to replace it.
+      </p>
+    </div>
+  );
+}
+
 export default function EngagementBarDemo() {
   return (
     <Tabs defaultValue="default">
@@ -4067,6 +4413,11 @@ export default function EngagementBarDemo() {
         <TabsTrigger value="custom">Custom action</TabsTrigger>
         <TabsTrigger value="reactions">Reactions</TabsTrigger>
         <TabsTrigger value="hybrid">Hybrid (like + reaction)</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
+        <TabsTrigger value="withheld">Withheld counts</TabsTrigger>
+        <TabsTrigger value="controlled">Controlled + optimistic</TabsTrigger>
+        <TabsTrigger value="gating">Gating + slot</TabsTrigger>
+        <TabsTrigger value="locale">Locale</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-3">
@@ -4173,6 +4524,22 @@ export default function EngagementBarDemo() {
         <p className="text-xs text-muted-foreground">
           Use case: a product that wants the classic thumbs-up alongside emoji-reactions on the same content. End-user UX is the host&apos;s call — library blesses the configuration, not the visual outcome.
         </p>
+      </TabsContent>
+
+      <TabsContent value="rtl" className="mt-6">
+        <RtlDemo />
+      </TabsContent>
+      <TabsContent value="withheld" className="mt-6">
+        <WithheldDemo />
+      </TabsContent>
+      <TabsContent value="controlled" className="mt-6">
+        <ControlledDemo />
+      </TabsContent>
+      <TabsContent value="gating" className="mt-6">
+        <GatingDemo />
+      </TabsContent>
+      <TabsContent value="locale" className="mt-6">
+        <LocaleDemo />
       </TabsContent>
     </Tabs>
   );

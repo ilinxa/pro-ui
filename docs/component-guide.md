@@ -1601,7 +1601,7 @@ Consumers measure each component against these twelve rules. The ilinxa Social P
 |---|---|---|---|
 | `palette` | C1 | a palette colour (`bg-red-500`, `text-zinc-400/60`) or an arbitrary colour (`bg-[#fff]`, `text-[oklch(…)]`) in any string | `// palette-ok: <reason>` |
 | `physical` | C4 | `ml-`/`mr-`, `pl-`/`pr-`, `left-N`/`right-N`, `text-left`/`text-right`, `rounded-l*`/`rounded-r*`, `border-l`/`border-r`, `float-`/`clear-left/right`, `scroll-ml`/`scroll-pl`, and so on. Centring (`left-1/2 -translate-x-1/2`) and `left-N right-N` pairs pass | `// dir-ok: <reason>` |
-| `template-fill` | C2 | `.replace("{…")` / `.replaceAll("{…")` | — |
+| `template-fill` | C2 | `.replace("{…")` / `.replaceAll("{…")` | `// template-ok: <reason>` — only for a deprecated template-string prop kept as an alias for an existing caller |
 | `intl` | C3 | `Intl.X(undefined`, a module-scope `new Intl.*`, `toLocaleString()` / `toLocaleDateString()` / `toLocaleTimeString()` with no locale, `Intl.PluralRules("en")` | — |
 | `clock` | C3 | a zero-argument `new Date()` / `Date.now()` outside an effect, `useCallback`, a JSX `on*` handler, a `handle*`/`on*` function, or a timer / listener callback | `// now-ok: <reason>` |
 | `jsx-literal` | C2 | a JSX text child containing a letter, or a literal in `aria-label`, `aria-description`, `aria-roledescription`, `aria-valuetext`, `title`, `placeholder`, `alt` or `label` (including the branches of `? :` / `&&` / `\|\|` / `??`) | `// literal-ok: <reason>` |

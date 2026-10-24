@@ -1,33 +1,69 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import type {
   EngagementAction,
+  EngagementCount,
   EngagementDelta,
   EngagementLocalAction,
   EngagementState,
   Subscribe,
 } from "../types";
 
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 interface ControlledFlags {
   liked: boolean;
   likeCount: boolean;
   bookmarked: boolean;
+  /** comment / share / view-count follow their prop whenever the action is present. */
   commentCount: boolean;
   shareCount: boolean;
   viewCount: boolean;
-  /**
-   * Controlled if `action.viewerReaction !== undefined` (host explicitly passes the
-   * value, either `string` or `null`). Reaction `kinds[i].count` is NEVER controlled
-   * per Q-PP-4 source-of-truth rule — state wins after init.
-   */
+  /** Controlled if `action.viewerReaction !== undefined` (string OR null). */
   viewerReaction: boolean;
+  /** Paired with `viewerReaction`: a controlled reaction's `kinds[i].count` + `totalCount` win every render. */
+  reactionCounts: boolean;
 }
+
+type Group = "like" | "bookmark" | "reaction";
+type CountField = "commentCount" | "shareCount" | "viewCount";
+
+interface PendingEntry {
+  seq: number;
+  patch: Partial<EngagementState>;
+  /** The group's props when the request was made — a controlled entry is void once they change. */
+  basis: string;
+}
+type PendingMap = Partial<Record<Group, PendingEntry>>;
+
+interface DeltaOverride {
+  value: number;
+  /** The prop count when the delta arrived — the override shows until the prop changes. */
+  basis: EngagementCount;
+}
+type OverrideMap = Partial<Record<CountField, DeltaOverride>>;
+
+const GROUPS: Group[] = ["like", "bookmark", "reaction"];
+const COUNT_FIELDS: CountField[] = ["commentCount", "shareCount", "viewCount"];
+const COUNT_FIELD_KIND = {
+  commentCount: "comment",
+  shareCount: "share",
+  viewCount: "view-count",
+} as const;
 
 const INITIAL_EMPTY_STATE: EngagementState = {
   liked: false,
-  likeCount: 0,
-  commentCount: 0,
+  likeCount: null,
+  commentCount: null,
   shareCount: null,
   viewCount: null,
   bookmarked: false,
@@ -36,10 +72,34 @@ const INITIAL_EMPTY_STATE: EngagementState = {
   viewerReaction: null,
 };
 
+/** A count the host gave as a finite number, else withheld (`null`). Absent / NaN → withheld. */
+function known(count: EngagementCount | undefined): EngagementCount {
+  return typeof count === "number" && Number.isFinite(count) ? count : null;
+}
+
+/** A delta count must be a finite number; anything else keeps the current value. */
+function sane(count: number, current: EngagementCount): EngagementCount {
+  return Number.isFinite(count) ? Math.max(0, count) : current;
+}
+
+function step(count: EngagementCount | undefined, delta: 1 | -1): EngagementCount {
+  if (count === null) return null;
+  return Math.max(0, (count ?? 0) + delta);
+}
+
+function findAction<K extends EngagementAction["kind"]>(
+  actions: EngagementAction[],
+  kind: K,
+): Extract<EngagementAction, { kind: K }> | undefined {
+  return actions.find(
+    (a): a is Extract<EngagementAction, { kind: K }> => a.kind === kind,
+  );
+}
+
 /**
  * Pure derivation of the initial state shape from the actions array.
  * Each action contributes its initial values to the corresponding field;
- * absent actions use the default (0 / null / false).
+ * absent actions use the default (null / false). Absent counts are withheld (`null`).
  */
 export function deriveStateFromActions(
   actions: EngagementAction[],
@@ -49,30 +109,29 @@ export function deriveStateFromActions(
     switch (action.kind) {
       case "like":
         next.liked = action.liked ?? false;
-        next.likeCount = action.count;
+        next.likeCount = known(action.count);
         break;
       case "comment":
-        next.commentCount = action.count;
+        next.commentCount = known(action.count);
         break;
       case "share":
-        next.shareCount = action.count ?? null;
+        next.shareCount = known(action.count);
         break;
       case "bookmark":
         next.bookmarked = action.bookmarked ?? false;
         break;
       case "view-count":
-        next.viewCount = action.count;
+        next.viewCount = known(action.count);
         break;
       case "reaction":
-        // Per Q-PP-4 source-of-truth rule — kinds[i].count is the SEED only.
-        next.reactionCounts = action.kinds.reduce<Record<string, number>>(
+        next.reactionCounts = action.kinds.reduce<Record<string, EngagementCount>>(
           (acc, k) => {
-            acc[k.key] = k.count;
+            acc[k.key] = known(k.count);
             return acc;
           },
           {},
         );
-        next.reactionTotalCount = action.totalCount;
+        next.reactionTotalCount = known(action.totalCount);
         next.viewerReaction = action.viewerReaction ?? null;
         break;
       // "custom" doesn't contribute to internal state — host owns active/count
@@ -82,40 +141,52 @@ export function deriveStateFromActions(
 }
 
 function deriveControlledFlags(actions: EngagementAction[]): ControlledFlags {
-  const flags: ControlledFlags = {
-    liked: false,
-    likeCount: false,
-    bookmarked: false,
-    commentCount: false,
-    shareCount: false,
-    viewCount: false,
-    viewerReaction: false,
+  const like = findAction(actions, "like");
+  const bookmark = findAction(actions, "bookmark");
+  const reaction = findAction(actions, "reaction");
+  const likeControlled = like?.liked !== undefined;
+  const reactionControlled = reaction !== undefined && reaction.viewerReaction !== undefined;
+  return {
+    liked: likeControlled,
+    // Paired contract: the like count is controlled iff `liked` is.
+    likeCount: likeControlled,
+    bookmarked: bookmark?.bookmarked !== undefined,
+    commentCount: findAction(actions, "comment") !== undefined,
+    shareCount: findAction(actions, "share") !== undefined,
+    viewCount: findAction(actions, "view-count") !== undefined,
+    viewerReaction: reactionControlled,
+    reactionCounts: reactionControlled,
   };
-  for (const action of actions) {
-    switch (action.kind) {
-      case "like":
-        if (action.liked !== undefined) flags.liked = true;
-        // count is always present for like — hybrid: count is "controlled"
-        // only if the host updates it on each render. We treat count as
-        // controlled iff liked is controlled (paired contract).
-        flags.likeCount = flags.liked;
-        break;
-      case "bookmark":
-        if (action.bookmarked !== undefined) flags.bookmarked = true;
-        break;
-      case "reaction":
-        // `viewerReaction` is optional-controlled per the like pattern.
-        // `kinds[i].count` is NEVER controlled — state owns counts after init.
-        if (action.viewerReaction !== undefined) flags.viewerReaction = true;
-        break;
-      // other action kinds don't have separate controlled flags here —
-      // their counts always come from props directly via the resolved state.
-    }
-  }
-  return flags;
 }
 
-/** Pure reducer — exported for hosts driving their own state. */
+function isGroupControlled(group: Group, controlled: ControlledFlags): boolean {
+  if (group === "like") return controlled.liked;
+  if (group === "bookmark") return controlled.bookmarked;
+  return controlled.viewerReaction;
+}
+
+/** A stable key of a group's props — a controlled optimistic value is void once it changes. */
+function basisOf(group: Group, actions: EngagementAction[]): string {
+  if (group === "like") {
+    const a = findAction(actions, "like");
+    return a ? `${String(a.liked)}|${String(known(a.count))}` : "";
+  }
+  if (group === "bookmark") {
+    return String(findAction(actions, "bookmark")?.bookmarked);
+  }
+  const a = findAction(actions, "reaction");
+  if (!a) return "";
+  const kinds = a.kinds.map((k) => `${k.key}:${String(known(k.count))}`).join(",");
+  return `${String(a.viewerReaction)}|${String(known(a.totalCount))}|${kinds}`;
+}
+
+function propCount(actions: EngagementAction[], field: CountField): EngagementCount {
+  const action = actions.find((a) => a.kind === COUNT_FIELD_KIND[field]);
+  if (!action || !("count" in action)) return null;
+  return known(action.count);
+}
+
+/** Pure reducer — exported for hosts driving their own state. A `null` count stays `null`. */
 export function engagementReducer(
   state: EngagementState,
   action: EngagementLocalAction,
@@ -126,26 +197,39 @@ export function engagementReducer(
       return {
         ...state,
         liked: nextLiked,
-        likeCount: Math.max(0, state.likeCount + (nextLiked ? 1 : -1)),
+        likeCount: step(state.likeCount, nextLiked ? 1 : -1),
+      };
+    }
+    case "like-set": {
+      if (state.liked === action.liked) return state;
+      // A count the internal state never knew (seeded withheld) starts from the shown base.
+      const from = state.likeCount ?? action.baseCount ?? null;
+      return {
+        ...state,
+        liked: action.liked,
+        likeCount: step(from, action.liked ? 1 : -1),
       };
     }
     case "bookmark-toggle":
       return { ...state, bookmarked: !state.bookmarked };
+    case "bookmark-set":
+      if (state.bookmarked === action.bookmarked) return state;
+      return { ...state, bookmarked: action.bookmarked };
     case "subscribe-delta": {
       const d = action.delta;
       switch (d.kind) {
         case "like-changed":
           return {
             ...state,
-            likeCount: d.count,
+            likeCount: sane(d.count, state.likeCount),
             liked: d.liked ?? state.liked,
           };
         case "comment-count-changed":
-          return { ...state, commentCount: d.count };
+          return { ...state, commentCount: sane(d.count, state.commentCount) };
         case "share-count-changed":
-          return { ...state, shareCount: d.count };
+          return { ...state, shareCount: sane(d.count, state.shareCount) };
         case "view-count-changed":
-          return { ...state, viewCount: d.count };
+          return { ...state, viewCount: sane(d.count, state.viewCount) };
         case "bookmark-changed":
           return { ...state, bookmarked: d.bookmarked };
         case "liker-added":
@@ -176,28 +260,35 @@ export function engagementReducer(
       return state;
     }
     case "reaction-select": {
-      // Optimistic per-kind tally update. State holds the live count map; a
-      // null reactionKind clears the viewer + decrements the old kind.
-      if (state.reactionCounts === null || state.reactionTotalCount === null) {
-        // No reaction action present — dispatch is a no-op.
+      // Optimistic per-kind tally update. A null reactionKind clears the viewer
+      // + decrements the old kind. Withheld (null) tallies stay withheld.
+      const base = action.base;
+      if (state.reactionCounts === null && !base) {
+        // No reaction action present (and no shown base) — dispatch is a no-op.
         return state;
       }
       const current = state.viewerReaction;
       const next = action.reactionKind;
       if (current === next) return state; // same kind tap = no-op
 
-      const counts = { ...state.reactionCounts };
-      let total = state.reactionTotalCount;
+      // Live internal tallies win; kinds the internal state never knew (added after mount,
+      // or seeded withheld) start from the shown base.
+      const counts: Record<string, EngagementCount> = { ...(base?.counts ?? {}) };
+      for (const [key, value] of Object.entries(state.reactionCounts ?? {})) {
+        if (value !== null && value !== undefined) counts[key] = value;
+        else if (counts[key] === undefined || counts[key] === null) counts[key] = null;
+      }
+      let total = state.reactionTotalCount ?? base?.total ?? null;
 
       if (current !== null) {
-        // Decrement old kind. Counts can never go below 0 (defensive — host
-        // backend should guarantee this, but optimistic ops shouldn't crash on drift).
-        counts[current] = Math.max(0, (counts[current] ?? 0) - 1);
-        total = Math.max(0, total - 1);
+        // Counts can never go below 0 (defensive — host backend should guarantee
+        // this, but optimistic ops shouldn't crash on drift).
+        counts[current] = step(counts[current], -1);
+        total = step(total, -1);
       }
       if (next !== null) {
-        counts[next] = (counts[next] ?? 0) + 1;
-        total = total + 1;
+        counts[next] = step(counts[next], 1);
+        total = step(total, 1);
       }
       return {
         ...state,
@@ -220,25 +311,18 @@ function isControlledForDelta(
       return controlled.liked || controlled.likeCount;
     case "bookmark-changed":
       return controlled.bookmarked;
+    case "reaction-changed":
+      // Pair rule: a controlled reaction owns viewer + counts — the host applies the delta.
+      return controlled.viewerReaction;
     case "comment-count-changed":
-      return controlled.commentCount;
     case "share-count-changed":
-      return controlled.shareCount;
     case "view-count-changed":
-      return controlled.viewCount;
     case "liker-added":
     case "liker-removed":
-      return false; // these never patch internal state anyway
-    case "reaction-changed":
-      // Counts + total are NEVER controlled per Q-PP-4 — always patch from server.
-      // Viewer field also patches; effective-state useMemo overlays the host's
-      // controlled `viewerReaction` if `controlled.viewerReaction === true`.
-      return false;
     case "reactor-added":
     case "reactor-removed":
-      // Never patch internal state (pass-through to host's reactionsPreview slot).
-      // Dispatch is harmless (reducer returns state unchanged) — matches the
-      // existing `liker-added` / `liker-removed` convention.
+      // Count deltas also patch internal state (read when the action is absent); the shown
+      // count comes from the delta overlay. The rest never patch internal state.
       return false;
   }
 }
@@ -247,104 +331,323 @@ export interface UseEngagementStateOptions {
   actions: EngagementAction[];
   subscribe?: Subscribe<EngagementDelta>;
   onSubscribeDelta?: (delta: EngagementDelta) => void;
+  /** See `EngagementBarProps.optimistic`. Default `true`. */
+  optimistic?: boolean;
 }
 
 export interface UseEngagementStateResult {
+  /** The shown state: props, optimistic and delta overlays applied. */
   state: EngagementState;
   dispatch: React.Dispatch<EngagementLocalAction>;
   controlled: ControlledFlags;
+  /** Toggle like through the full path (gating, handler, optimistic, rollback). */
+  toggleLike: () => void;
+  /** Toggle bookmark through the full path. */
+  toggleBookmark: () => void;
+  /** Select (string) or clear (`null`) the viewer's reaction through the full path. Same kind = no-op. */
+  selectReaction: (kind: string | null) => void;
+  /** Re-seed internal state from the actions and drop optimistic / delta overlays. */
+  reset: () => void;
 }
 
 /**
- * Internal-leaning hook (not re-exported) that wires:
- *  - useReducer over engagementReducer
- *  - per-render controlled-vs-uncontrolled flag computation
- *  - effective-state merge (controlled props win per-field)
+ * State for the bar:
+ *  - useReducer over engagementReducer (uncontrolled fields)
+ *  - per-render controlled-vs-uncontrolled flags; controlled props win per field, every render
+ *  - optimistic overlay for promise-returning handlers (latest request decides, rejection rolls back)
+ *  - delta overlay for comment / share / view counts (shows until the prop changes)
  *  - subscription effect that fires onSubscribeDelta and patches uncontrolled fields
  */
 export function useEngagementState(
   opts: UseEngagementStateOptions,
 ): UseEngagementStateResult {
+  const { actions } = opts;
   const initial = useMemo(
-    () => deriveStateFromActions(opts.actions),
+    () => deriveStateFromActions(actions),
     // intentionally only on mount — useReducer ignores initial changes after mount,
     // but we still memoize so the closure is stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   const [internalState, dispatch] = useReducer(engagementReducer, initial);
+  const [pending, setPending] = useState<PendingMap>({});
+  const [overrides, setOverrides] = useState<OverrideMap>({});
 
-  const controlled = useMemo(
-    () => deriveControlledFlags(opts.actions),
-    [opts.actions],
-  );
+  const controlled = useMemo(() => deriveControlledFlags(actions), [actions]);
 
-  // Effective state: controlled props win per-field.
+  // Shown state: controlled props win per field, then valid overlays, then withheld counts.
   const state = useMemo<EngagementState>(() => {
-    const likeAction = opts.actions.find((a) => a.kind === "like");
-    const bookmarkAction = opts.actions.find((a) => a.kind === "bookmark");
-    const commentAction = opts.actions.find((a) => a.kind === "comment");
-    const shareAction = opts.actions.find((a) => a.kind === "share");
-    const viewCountAction = opts.actions.find((a) => a.kind === "view-count");
-    const reactionAction = opts.actions.find((a) => a.kind === "reaction");
+    const like = findAction(actions, "like");
+    const bookmark = findAction(actions, "bookmark");
+    const reaction = findAction(actions, "reaction");
 
-    return {
-      liked:
-        controlled.liked && likeAction?.kind === "like"
-          ? (likeAction.liked ?? false)
-          : internalState.liked,
-      likeCount:
-        controlled.likeCount && likeAction?.kind === "like"
-          ? likeAction.count
-          : internalState.likeCount,
-      commentCount:
-        commentAction?.kind === "comment"
-          ? commentAction.count
-          : internalState.commentCount,
-      shareCount:
-        shareAction?.kind === "share"
-          ? (shareAction.count ?? null)
-          : internalState.shareCount,
-      viewCount:
-        viewCountAction?.kind === "view-count"
-          ? viewCountAction.count
-          : internalState.viewCount,
+    const overlaid = (field: CountField, prop: EngagementCount): EngagementCount => {
+      if (prop === null) return null;
+      const o = overrides[field];
+      return o && o.basis === prop ? o.value : prop;
+    };
+    const countFor = (field: CountField, kind: (typeof COUNT_FIELD_KIND)[CountField]) =>
+      actions.some((a) => a.kind === kind)
+        ? overlaid(field, propCount(actions, field))
+        : internalState[field];
+
+    const likeProp = like ? known(like.count) : null;
+    const totalProp = reaction ? known(reaction.totalCount) : null;
+
+    const shown: EngagementState = {
+      liked: controlled.liked && like ? (like.liked ?? false) : internalState.liked,
+      likeCount: like
+        ? likeProp === null
+          ? null
+          : controlled.likeCount
+            ? likeProp
+            : (internalState.likeCount ?? likeProp)
+        : internalState.likeCount,
+      commentCount: countFor("commentCount", "comment"),
+      shareCount: countFor("shareCount", "share"),
+      viewCount: countFor("viewCount", "view-count"),
       bookmarked:
-        controlled.bookmarked && bookmarkAction?.kind === "bookmark"
-          ? (bookmarkAction.bookmarked ?? false)
+        controlled.bookmarked && bookmark
+          ? (bookmark.bookmarked ?? false)
           : internalState.bookmarked,
-      // Per Q-PP-4 source-of-truth rule: `reactionCounts` and `reactionTotalCount`
-      // are NEVER controlled — state owns them. Renderers read
-      // `state.reactionCounts[k.key] ?? k.count` per kind (action.kinds is the seed).
-      reactionCounts: internalState.reactionCounts,
-      reactionTotalCount: internalState.reactionTotalCount,
-      // `viewerReaction` follows the like-pattern: optional-controlled. When the
-      // host passes `action.viewerReaction !== undefined` (string OR null), host
-      // wins. Otherwise internal state.
+      reactionCounts: reaction
+        ? reaction.kinds.reduce<Record<string, EngagementCount>>((acc, k) => {
+            const p = known(k.count);
+            acc[k.key] =
+              p === null
+                ? null
+                : controlled.reactionCounts
+                  ? p
+                  : (internalState.reactionCounts?.[k.key] ?? p);
+            return acc;
+          }, {})
+        : internalState.reactionCounts,
+      reactionTotalCount: reaction
+        ? totalProp === null
+          ? null
+          : controlled.reactionCounts
+            ? totalProp
+            : (internalState.reactionTotalCount ?? totalProp)
+        : internalState.reactionTotalCount,
       viewerReaction:
-        controlled.viewerReaction && reactionAction?.kind === "reaction"
-          ? (reactionAction.viewerReaction ?? null)
+        controlled.viewerReaction && reaction
+          ? (reaction.viewerReaction ?? null)
           : internalState.viewerReaction,
     };
-  }, [internalState, opts.actions, controlled]);
 
-  // Refs keep the subscription effect stable on `subscribe` identity only.
-  // Re-running it on `controlled` or `onSubscribeDelta` change would drop deltas
-  // in flight between cleanup + re-call.
+    for (const group of GROUPS) {
+      const entry = pending[group];
+      if (!entry) continue;
+      if (isGroupControlled(group, controlled) && entry.basis !== basisOf(group, actions)) continue;
+      Object.assign(shown, entry.patch);
+    }
+
+    // A withheld count stays withheld through every overlay (C6).
+    if (like && likeProp === null) shown.likeCount = null;
+    if (reaction) {
+      if (totalProp === null) shown.reactionTotalCount = null;
+      if (shown.reactionCounts) {
+        const counts = { ...shown.reactionCounts };
+        for (const k of reaction.kinds) if (known(k.count) === null) counts[k.key] = null;
+        shown.reactionCounts = counts;
+      }
+    }
+    return shown;
+  }, [internalState, actions, controlled, pending, overrides]);
+
+  // Refs read by the request functions + the subscription (latest committed values).
+  const shownRef = useRef(state);
+  const actionsRef = useRef(actions);
   const controlledRef = useRef(controlled);
-  useEffect(() => {
-    controlledRef.current = controlled;
-  });
+  const optimisticRef = useRef(opts.optimistic ?? true);
   const onSubscribeDeltaRef = useRef(opts.onSubscribeDelta);
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
+    shownRef.current = state;
+    actionsRef.current = actions;
+    controlledRef.current = controlled;
+    optimisticRef.current = opts.optimistic ?? true;
     onSubscribeDeltaRef.current = opts.onSubscribeDelta;
   });
 
+  // Drop overlays whose basis is gone, so a prop that changes A → B → A can't revive them.
+  // React's "adjust state when a prop changes" pattern (a guarded setState during render):
+  // when the props' basis changes, drop every overlay made against an older basis.
+  const basisKey = [
+    ...GROUPS.map((group) => basisOf(group, actions)),
+    ...COUNT_FIELDS.map((field) => String(propCount(actions, field))),
+  ].join("§");
+  const [seenBasisKey, setSeenBasisKey] = useState(basisKey);
+  if (seenBasisKey !== basisKey) {
+    setSeenBasisKey(basisKey);
+    const stalePending = GROUPS.filter((group) => {
+      const entry = pending[group];
+      return !!entry && isGroupControlled(group, controlled) && entry.basis !== basisOf(group, actions);
+    });
+    if (stalePending.length > 0) {
+      setPending((p) => {
+        const next = { ...p };
+        for (const group of stalePending) delete next[group];
+        return next;
+      });
+    }
+    const staleOverrides = COUNT_FIELDS.filter((field) => {
+      const entry = overrides[field];
+      return !!entry && entry.basis !== propCount(actions, field);
+    });
+    if (staleOverrides.length > 0) {
+      setOverrides((o) => {
+        const next = { ...o };
+        for (const field of staleOverrides) delete next[field];
+        return next;
+      });
+    }
+  }
+
+  const seqRef = useRef<Record<Group, number>>({ like: 0, bookmark: 0, reaction: 0 });
+  const settledRef = useRef<Record<Group, number>>({ like: 0, bookmark: 0, reaction: 0 });
+
+  const clearPending = useCallback((group: Group, id: number) => {
+    setPending((p) => {
+      if (p[group]?.seq !== id) return p;
+      const next = { ...p };
+      delete next[group];
+      return next;
+    });
+  }, []);
+
+  // One request path for like / bookmark / reaction (C5 semantics of the scaffold's
+  // use-controllable-state): sync handler → uncontrolled applies, controlled waits for props;
+  // promise → optimistic overlay until it settles; only the latest request decides.
+  const run = useCallback(
+    (group: Group, patch: Partial<EngagementState>, call: () => unknown, apply: () => void) => {
+      const id = ++seqRef.current[group];
+      const isControlled = isGroupControlled(group, controlledRef.current);
+      const basis = basisOf(group, actionsRef.current);
+      const dropPending = () =>
+        setPending((p) => {
+          if (!p[group]) return p;
+          const next = { ...p };
+          delete next[group];
+          return next;
+        });
+      let result: unknown;
+      try {
+        result = call();
+      } catch (error) {
+        // A throwing handler is a host bug — never leave an older request's overlay stuck.
+        dropPending();
+        throw error;
+      }
+      const isPromise =
+        !!result && typeof (result as PromiseLike<unknown>).then === "function";
+      if (!isPromise) {
+        // This request is now the latest: an older in-flight overlay must not outlive it.
+        dropPending();
+        if (!isControlled) {
+          settledRef.current[group] = id;
+          apply();
+        }
+        return;
+      }
+      if (optimisticRef.current) {
+        setPending((p) => ({ ...p, [group]: { seq: id, patch, basis } }));
+      }
+      (result as PromiseLike<unknown>).then(
+        () => {
+          if (!isControlled && id > settledRef.current[group]) {
+            settledRef.current[group] = id;
+            apply();
+          }
+          if (id === seqRef.current[group]) clearPending(group, id);
+        },
+        () => {
+          if (id === seqRef.current[group]) clearPending(group, id);
+        },
+      );
+    },
+    [clearPending],
+  );
+
+  const toggleLike = useCallback(() => {
+    const action = findAction(actionsRef.current, "like");
+    if (!action || action.disabled || action.hidden) return;
+    const shown = shownRef.current;
+    const target = !shown.liked;
+    run(
+      "like",
+      { liked: target, likeCount: step(shown.likeCount, target ? 1 : -1) },
+      () => action.onToggle?.(target),
+      () => dispatch({ kind: "like-set", liked: target, baseCount: shown.likeCount }),
+    );
+  }, [run]);
+
+  const toggleBookmark = useCallback(() => {
+    const action = findAction(actionsRef.current, "bookmark");
+    if (!action || action.disabled || action.hidden) return;
+    const target = !shownRef.current.bookmarked;
+    run(
+      "bookmark",
+      { bookmarked: target },
+      () => action.onToggle?.(target),
+      () => dispatch({ kind: "bookmark-set", bookmarked: target }),
+    );
+  }, [run]);
+
+  const selectReaction = useCallback(
+    (kind: string | null) => {
+      const action = findAction(actionsRef.current, "reaction");
+      if (!action || action.disabled || action.hidden) return;
+      if (kind !== null && !action.kinds.some((k) => k.key === kind)) return;
+      const shown = shownRef.current;
+      if (kind === shown.viewerReaction) return;
+      const next = engagementReducer(shown, { kind: "reaction-select", reactionKind: kind });
+      run(
+        "reaction",
+        {
+          viewerReaction: next.viewerReaction,
+          reactionCounts: next.reactionCounts,
+          reactionTotalCount: next.reactionTotalCount,
+        },
+        () => action.onSelect?.(kind),
+        () =>
+          dispatch({
+            kind: "reaction-select",
+            reactionKind: kind,
+            base: { counts: shown.reactionCounts ?? {}, total: shown.reactionTotalCount },
+          }),
+      );
+    },
+    [run],
+  );
+
+  const reset = useCallback(() => {
+    // In-flight requests may still settle — they must not re-apply over the reset.
+    for (const group of GROUPS) settledRef.current[group] = seqRef.current[group];
+    setPending({});
+    setOverrides({});
+    dispatch({ kind: "reset", next: deriveStateFromActions(actionsRef.current) });
+  }, []);
+
+  // Subscription — stable on `subscribe` identity only. Re-running it on `controlled` or
+  // `onSubscribeDelta` change would drop deltas in flight between cleanup + re-call.
   const subscribe = opts.subscribe;
   useEffect(() => {
     if (!subscribe) return;
     const unsub = subscribe((delta) => {
       onSubscribeDeltaRef.current?.(delta);
+      const field: CountField | null =
+        delta.kind === "comment-count-changed"
+          ? "commentCount"
+          : delta.kind === "share-count-changed"
+            ? "shareCount"
+            : delta.kind === "view-count-changed"
+              ? "viewCount"
+              : null;
+      if (field && "count" in delta && Number.isFinite(delta.count)) {
+        const value = Math.max(0, delta.count);
+        const basis = propCount(actionsRef.current, field);
+        setOverrides((o) => ({ ...o, [field]: { value, basis } }));
+      }
       if (!isControlledForDelta(delta, controlledRef.current)) {
         dispatch({ kind: "subscribe-delta", delta });
       }
@@ -354,14 +657,11 @@ export function useEngagementState(
 
   // Defense 2 (structural resync guard) per Q-PP-3 — when the host transitions
   // `viewerReaction` from uncontrolled → controlled (or changes the controlled
-  // value), the internal mirror can be stale relative to the effective overlay.
-  // The next `reaction-select` dispatch would read stale internal state and
-  // decrement the wrong kind. This effect syncs the internal `viewerReaction`
-  // to the controlled value without touching counts (counts stay server / state
-  // owned per Q-PP-4 source-of-truth).
-  const reactionAction = opts.actions.find((a) => a.kind === "reaction");
+  // value), keep the internal mirror in step so a later switch back to
+  // uncontrolled resumes from the last controlled value.
+  const reactionAction = findAction(actions, "reaction");
   const controlledViewerReaction =
-    controlled.viewerReaction && reactionAction?.kind === "reaction"
+    controlled.viewerReaction && reactionAction
       ? (reactionAction.viewerReaction ?? null)
       : undefined;
   const internalStateRef = useRef(internalState);
@@ -378,5 +678,5 @@ export function useEngagementState(
     });
   }, [controlledViewerReaction]);
 
-  return { state, dispatch, controlled };
+  return { state, dispatch, controlled, toggleLike, toggleBookmark, selectReaction, reset };
 }

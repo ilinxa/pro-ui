@@ -4,62 +4,35 @@ import { memo } from "react";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type {
-  EngagementBarVariant,
-  EngagementBarLabels,
-  EngagementLocalAction,
-} from "../types";
+import type { EngagementBarVariant, ResolvedEngagementBarLabels } from "../types";
+import { DISABLED_ACTION_CLASS } from "../lib/action-name";
 
 interface BookmarkActionProps {
   variant: EngagementBarVariant;
   bookmarked: boolean;
-  controlled: boolean;
-  onToggle?: (next: boolean) => void;
-  labels: Required<Omit<EngagementBarLabels, "formatCount">>;
-  dispatch: React.Dispatch<EngagementLocalAction>;
+  disabled?: boolean;
+  /** The bar's toggle path (gating, handler, optimistic overlay). */
+  onToggle: () => void;
+  labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
 }
 
 function BookmarkActionInner({
   variant,
   bookmarked,
-  controlled,
+  disabled = false,
   onToggle,
   labels,
-  dispatch,
   actionClassName,
 }: BookmarkActionProps) {
   const handleClick = () => {
-    const next = !bookmarked;
-    if (!controlled) {
-      dispatch({ kind: "bookmark-toggle" });
-    }
-    onToggle?.(next);
+    if (disabled) return;
+    onToggle();
   };
 
   const ariaLabel = bookmarked ? labels.unbookmark : labels.bookmark;
   const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
-
-  if (variant === "stacked") {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        aria-pressed={bookmarked}
-        aria-label={ariaLabel}
-        onClick={handleClick}
-        className={cn(
-          "flex h-auto flex-col items-center gap-0.5 px-2 py-1",
-          actionClassName,
-        )}
-      >
-        <Bookmark
-          className={cn("h-6 w-6 transition-all", bookmarked && "fill-current")}
-        />
-      </Button>
-    );
-  }
+  const stacked = variant === "stacked";
 
   return (
     <Button
@@ -68,13 +41,21 @@ function BookmarkActionInner({
       size="sm"
       aria-pressed={bookmarked}
       aria-label={ariaLabel}
+      aria-disabled={disabled || undefined}
       onClick={handleClick}
-      className={cn("px-2 transition-colors", actionClassName)}
+      className={cn(
+        stacked
+          ? "flex h-auto flex-col items-center gap-0.5 px-2 py-1"
+          : "px-2 motion-safe:transition-colors",
+        DISABLED_ACTION_CLASS,
+        actionClassName,
+      )}
     >
       <Bookmark
+        aria-hidden="true"
         className={cn(
-          iconSizeClass,
-          "transition-all",
+          stacked ? "h-6 w-6" : iconSizeClass,
+          "motion-safe:transition-all",
           bookmarked && "fill-current",
         )}
       />

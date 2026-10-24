@@ -6,21 +6,22 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   EngagementBarVariant,
-  EngagementBarLabels,
-  EngagementLocalAction,
+  EngagementCount,
+  ResolvedEngagementBarLabels,
 } from "../types";
+import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
 
 interface LikeActionProps {
   variant: EngagementBarVariant;
   liked: boolean;
-  count: number;
-  controlled: boolean;
-  onToggle?: (next: boolean) => void;
-  /** When provided, count becomes a separate clickable target. */
+  count: EngagementCount;
+  disabled?: boolean;
+  /** The bar's toggle path (gating, handler, optimistic overlay). */
+  onToggle: () => void;
+  /** When provided, count becomes a separate clickable target (not rendered when withheld). */
   onCountClick?: () => void;
   format: (n: number) => string;
-  labels: Required<Omit<EngagementBarLabels, "formatCount">>;
-  dispatch: React.Dispatch<EngagementLocalAction>;
+  labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
 }
 
@@ -28,25 +29,65 @@ function LikeActionInner({
   variant,
   liked,
   count,
-  controlled,
+  disabled = false,
   onToggle,
   onCountClick,
   format,
   labels,
-  dispatch,
   actionClassName,
 }: LikeActionProps) {
   const handleHeartClick = () => {
-    const next = !liked;
-    if (!controlled) {
-      dispatch({ kind: "like-toggle" });
-    }
-    onToggle?.(next);
+    if (disabled) return;
+    onToggle();
+  };
+  const handleCountClick = () => {
+    if (disabled) return;
+    onCountClick?.();
   };
 
-  const heartAriaLabel = liked ? labels.unlike : labels.like;
-  const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
+  const heartLabel = liked ? labels.unlike : labels.like;
+  const hasCount = count !== null;
   const splitCount = !!onCountClick;
+  const heartName = useActionName(hasCount && !splitCount);
+  const countName = useActionName(true);
+  const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
+  const ariaDisabled = disabled || undefined;
+
+  const heartIcon = (sizeClass: string) => (
+    <Heart
+      aria-hidden="true"
+      className={cn(
+        sizeClass,
+        "motion-safe:transition-transform",
+        liked && "scale-110 fill-current",
+      )}
+    />
+  );
+  const heartLabelNode = (
+    <span id={heartName.labelId} className="sr-only">
+      {heartLabel}
+    </span>
+  );
+  const countButton = (textClass: string) =>
+    hasCount ? (
+      <button
+        type="button"
+        onClick={handleCountClick}
+        aria-labelledby={countName.labelledBy}
+        aria-disabled={ariaDisabled}
+        className={cn(
+          "rounded font-medium tabular-nums hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "motion-safe:transition-colors",
+          textClass,
+          DISABLED_ACTION_CLASS,
+        )}
+      >
+        <span id={countName.labelId} className="sr-only">
+          {labels.openLikersPanel}
+        </span>
+        <span id={countName.countId}>{format(count)}</span>
+      </button>
+    ) : null;
 
   if (variant === "stacked") {
     // Stacked layout: heart icon + count vertically. Split mode wraps each in
@@ -59,25 +100,19 @@ function LikeActionInner({
             variant="ghost"
             size="sm"
             aria-pressed={liked}
-            aria-label={heartAriaLabel}
+            aria-labelledby={heartName.labelledBy}
+            aria-disabled={ariaDisabled}
             onClick={handleHeartClick}
-            className={cn("h-auto px-2 py-1", liked && "text-destructive")}
+            className={cn(
+              "h-auto px-2 py-1",
+              liked && "text-destructive",
+              DISABLED_ACTION_CLASS,
+            )}
           >
-            <Heart
-              className={cn(
-                "h-6 w-6 transition-transform",
-                liked && "scale-110 fill-current",
-              )}
-            />
+            {heartIcon("h-6 w-6")}
+            {heartLabelNode}
           </Button>
-          <button
-            type="button"
-            onClick={onCountClick}
-            aria-label={labels.openLikersPanel ?? "Show likers"}
-            className="rounded text-xs font-medium tabular-nums text-foreground hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {format(count)}
-          </button>
+          {countButton("text-xs text-foreground")}
         </div>
       );
     }
@@ -87,23 +122,27 @@ function LikeActionInner({
         variant="ghost"
         size="sm"
         aria-pressed={liked}
-        aria-label={heartAriaLabel}
+        aria-labelledby={heartName.labelledBy}
+        aria-disabled={ariaDisabled}
         onClick={handleHeartClick}
         className={cn(
           "flex h-auto flex-col items-center gap-0.5 px-2 py-1",
           liked && "text-destructive",
+          DISABLED_ACTION_CLASS,
           actionClassName,
         )}
       >
-        <Heart
-          className={cn(
-            "h-6 w-6 transition-transform",
-            liked && "scale-110 fill-current",
-          )}
-        />
-        <span className="text-xs font-medium tabular-nums" aria-live="polite">
-          {format(count)}
-        </span>
+        {heartIcon("h-6 w-6")}
+        {heartLabelNode}
+        {hasCount ? (
+          <span
+            id={heartName.countId}
+            className="text-xs font-medium tabular-nums"
+            aria-live="polite"
+          >
+            {format(count)}
+          </span>
+        ) : null}
       </Button>
     );
   }
@@ -119,32 +158,19 @@ function LikeActionInner({
           variant="ghost"
           size="sm"
           aria-pressed={liked}
-          aria-label={heartAriaLabel}
+          aria-labelledby={heartName.labelledBy}
+          aria-disabled={ariaDisabled}
           onClick={handleHeartClick}
           className={cn(
-            "h-9 px-2 transition-colors",
+            "h-9 px-2 motion-safe:transition-colors",
             liked && "text-destructive",
+            DISABLED_ACTION_CLASS,
           )}
         >
-          <Heart
-            className={cn(
-              iconSizeClass,
-              "transition-transform",
-              liked && "scale-110 fill-current",
-            )}
-          />
+          {heartIcon(iconSizeClass)}
+          {heartLabelNode}
         </Button>
-        <button
-          type="button"
-          onClick={onCountClick}
-          aria-label={labels.openLikersPanel ?? "Show likers"}
-          className={cn(
-            "rounded text-sm font-medium tabular-nums transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            liked ? "text-destructive" : "text-foreground",
-          )}
-        >
-          {format(count)}
-        </button>
+        {countButton(cn("text-sm", liked ? "text-destructive" : "text-foreground"))}
       </div>
     );
   }
@@ -155,24 +181,28 @@ function LikeActionInner({
       variant="ghost"
       size="sm"
       aria-pressed={liked}
-      aria-label={heartAriaLabel}
+      aria-labelledby={heartName.labelledBy}
+      aria-disabled={ariaDisabled}
       onClick={handleHeartClick}
       className={cn(
-        "gap-2 px-2 transition-colors",
+        hasCount ? "gap-2 px-2" : "px-2",
+        "motion-safe:transition-colors",
         liked && "text-destructive",
+        DISABLED_ACTION_CLASS,
         actionClassName,
       )}
     >
-      <Heart
-        className={cn(
-          iconSizeClass,
-          "transition-transform",
-          liked && "scale-110 fill-current",
-        )}
-      />
-      <span className="text-sm font-medium tabular-nums" aria-live="polite">
-        {format(count)}
-      </span>
+      {heartIcon(iconSizeClass)}
+      {heartLabelNode}
+      {hasCount ? (
+        <span
+          id={heartName.countId}
+          className="text-sm font-medium tabular-nums"
+          aria-live="polite"
+        >
+          {format(count)}
+        </span>
+      ) : null}
     </Button>
   );
 }
