@@ -34,9 +34,9 @@ export const meta: ComponentMeta = {
   ],
   tags: ["media-carousel", "carousel", "media", "embla", "gallery"],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
-  artifactBudgetKB: 55,
+  artifactBudgetKB: 60,
   createdAt: "2026-05-02",
   updatedAt: "2026-10-24",
 

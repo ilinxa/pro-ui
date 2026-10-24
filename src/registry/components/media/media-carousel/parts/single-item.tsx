@@ -51,8 +51,11 @@ export function SingleItem({
 }: SingleItemProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const inView = useInView(rootRef);
+  // Images: double tap on the wrapper. Videos: the player owns it, so its single tap waits out the
+  // double-tap window instead of toggling playback twice (video-player VP7) — as in CarouselTrack.
+  const isVideo = item.type === "video" && !renderItem;
   const handleDoubleTap = useDoubleTap(
-    onDoubleTap ? () => onDoubleTap(item, 0) : undefined,
+    onDoubleTap && !isVideo ? () => onDoubleTap(item, 0) : undefined,
   );
 
   return (
@@ -68,8 +71,8 @@ export function SingleItem({
         item={item}
         ctx={{ isActive: true, inView, index: 0 }}
         renderItem={renderItem}
-        // Already handled at wrapper level; don't double-fire.
-        onDoubleTap={undefined}
+        // Images are handled at wrapper level; don't double-fire.
+        onDoubleTap={isVideo ? onDoubleTap : undefined}
         frame={frame}
         recovery={recovery}
         onNaturalSize={onNaturalSize}

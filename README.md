@@ -53,8 +53,8 @@ A few components rely on extra tokens beyond the canonical set:
 | `--destructive-foreground` | `app-sidebar`, `event-card`, `file-manager`, `file-tree`, `media-editor`, `split-workspace` |
 | `--story-ring-from` | `story-rail` |
 | `--story-ring-to` | `story-rail` |
-| `--media-overlay` | — (utility available; no item maps it yet) |
-| `--media-overlay-foreground` | — (utility available; no item maps it yet) |
+| `--media-overlay` | `video-player` |
+| `--media-overlay-foreground` | `video-player` |
 <!-- END GENERATED TOKENS -->
 
 You **don't** need to copy the brand *values* — keep your own `--primary`, `--background`, etc. Every ilinxa component reads tokens by name, so it inherits whatever palette the host ships. The brand identity (signal-lime + cool off-white + graphite-cool dark) is only authoritative on this demo site.
@@ -193,7 +193,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `pdf-viewer` | media | Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu. |
 | `story-composer` | media | Instagram-style story creation surface — a locked 9:16 wrapper around the media editor. |
 | `story-viewer` | media | Full-screen story viewer — segmented progress, 3D cube transitions, finger-following swipe, tap zones, and an engagemen… |
-| `video-player` | media | Video element wrapper — autoplay-friendly defaults, slot-based controls, carousel-coordinated pause, and double-tap ges… |
+| `video-player` | media | Video player — seek bar, captions, fullscreen, buffering and error states with URL refresh, autoplay groups, composable… |
 | `account-switcher` | navigation | Popover account and context switcher — active label trigger, switchable context list, and a footer slot for create or r… |
 | `app-sidebar` | navigation | App-shell sidebar with a full-label mobile drawer, labels for every string, ancestor-overridable CSS variables, RTL, an… |
 | `file-manager` | navigation | Finder-style file browser — grid and list views, marquee multi-select, cut copy paste, drag-and-drop, and a shared clip… |

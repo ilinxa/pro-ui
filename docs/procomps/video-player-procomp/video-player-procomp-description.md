@@ -28,19 +28,30 @@ Every product surface that plays user-generated video — Instagram-post media, 
 - **SSR-safe** — `<video>` tag renders server-side; client hydrates with state. No DOM-only construction.
 - **`useDoubleTap` hook exported standalone** — reusable for image-carousel double-tap-to-like (where there's no `<video>` involved). Same 300ms-window detection. Public from `index.ts`.
 
-## Out of scope (v0.2 candidates)
+## In scope since v0.3.0 (social-platform hardening, request §5.1 VP1–VP8)
 
-- **Volume slider** — mute-only in v0.1 (matches kasder; matches Instagram). Volume slider is a separate UX with its own risk surface (touch dragging, accessibility, keyboard).
-- **Fullscreen toggle** — `requestFullscreen()` API is supported but adds button + state. Consumer can add via `renderControls`. Default controls stay minimal in v0.1.
-- **Picture-in-picture** — PiP requires an explicit user gesture and toggle UI; defer.
-- **HLS / DASH / streaming formats** — raw `<video src>` only. Streaming is not implemented; possible future paths are a `useHls?: boolean` flag + `hls.js` peer dep, OR via a `renderVideoElement?` slot escape hatch.
-- **Buffering spinner overlay** — kasder doesn't show one; the player trusts the browser's default poster + native loading. Possible future addition.
-- **Error UI** — when video fails to load, `<video>` shows the poster image (browser default). v0.2: `renderError?: (error) => ReactNode` slot for a retry / fallback UX.
-- **Playback rate** — no 1.0× / 1.5× / 2× selector. v0.2.
-- **Per-source resolution switching** — single `src` only. Multi-resolution `<source>` children would require a different prop shape.
-- **Subtitles styling beyond browser default** — `<track>` is rendered; styling stays browser-native. v0.2 if real demand.
-- **Public `useVideoState` hook export** — internal-only in v0.1. The state is delivered to consumers via the `renderControls` slot prop. If real consumers need to render their own `<video>` driven by our state, expose in v0.2.
-- **Server-component compatibility** — the component is `"use client"` (it owns video state, gestures, observers). The `<video>` element itself works in RSC; consumers wanting a pure SSR `<video>` (no controls) can use a raw `<video>` tag — this component is for the interactive-control case.
+Contract and consistency review: [`video-player-loop.md`](./video-player-loop.md) "Run C".
+
+- **Seek bar + time** (on by default; `showSeekBar` / `showTime`), buffered ranges, idle duration badge (`durationHint`), `locale` + `formatDuration`, direction-aware keys (`dir`).
+- **Fullscreen** — opt-in `showFullscreen` (plan Q-P8 keeps it out of the default).
+- **Captions control** — toggle or menu for `tracks`; `crossOrigin`.
+- **Buffering + error states**, `onMediaError` refresh with resume at the same time and play state.
+- **Autoplay in view** — opt-in `autoPlayInView`, `autoplayGroup`.
+- **Controlled `muted`** via `onMutedChange`; imperative `ref` handle; `onProgress`.
+- **Flat parts** for `renderControls` (compound rule — the overlay now has ≥ 3 regions).
+- **Double tap** no longer plays-then-pauses; hidden controls take no clicks and wake on pointer / tap / focus / key.
+
+## Out of scope
+
+- **Volume slider** — mute-only (matches Instagram). A volume slider is a separate UX with its own risk surface (touch dragging, accessibility, keyboard).
+- **Picture-in-picture** — requires an explicit user gesture and toggle UI. Not implemented.
+- **HLS / DASH / streaming formats** — raw `<video src>` only. Not implemented; possible paths are a `useHls` flag + `hls.js` peer dep, or a `renderVideoElement` slot.
+- **Playback rate** — no 1.0× / 1.5× / 2× selector. Not implemented.
+- **Per-source resolution switching** — single `src` only. Multi-resolution `<source>` children would need a different prop shape.
+- **Subtitle styling beyond the browser default** — cues render browser-native.
+- **Controlled playback** — a browser can refuse `play()`, so "the prop wins every render" cannot be honoured; hosts pause through `isActive` and the handle.
+- **Public `useVideoState` hook** — internal. Inside `renderControls`, `useVideoPlayer()` and the flat parts give the same state.
+- **Server-component compatibility** — the component is `"use client"` (it owns video state, gestures, observers). A pure server-rendered `<video>` without controls is a raw `<video>` tag.
 
 ## Target consumers
 

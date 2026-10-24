@@ -18,6 +18,14 @@ import {
 import { FilePreview } from "./file-preview";
 import { useMediaLibrary } from "../hooks/use-media-library";
 
+const PREVIEW_CONTROL =
+  'video, audio, input, select, textarea, [contenteditable="true"], [role="slider"], [role="menu"], [role="menuitemradio"]';
+
+/** A key from inside the previewed content's own controls — not the lightbox's arrows. */
+function isFromPreviewControl(target: EventTarget): boolean {
+  return target instanceof Element && target.closest(PREVIEW_CONTROL) !== null;
+}
+
 export interface FilePreviewLightboxProps {
   nodes: MediaNode[];
   activeId: string | null;
@@ -63,6 +71,8 @@ export function FilePreviewLightbox({
       <DialogContent
         className="h-[88vh] w-[96vw] max-w-[min(96vw,1100px)]! gap-0 overflow-hidden p-0"
         onKeyDown={(e) => {
+          // Keys a preview handled itself (a video's seek bar / focused video, a field) stay there.
+          if (e.defaultPrevented || isFromPreviewControl(e.target)) return;
           if (e.key === "ArrowLeft") goPrev();
           else if (e.key === "ArrowRight") goNext();
         }}

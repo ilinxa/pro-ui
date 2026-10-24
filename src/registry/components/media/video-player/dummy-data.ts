@@ -32,13 +32,35 @@ export const SAMPLE_VIDEO_URL_B =
 export const SAMPLE_VIDEO_URL_C =
   "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4";
 
-/** Sample English captions track. URL is a placeholder — verifies that <track> renders. */
+/**
+ * A clip with a matching caption file (MDN's "friday" example). Both are served with
+ * `access-control-allow-origin: *`, so they work with `crossOrigin="anonymous"` — which a
+ * cross-origin caption file requires. The test-videos.co.uk clips above send no CORS header, so
+ * do NOT combine them with `crossOrigin`.
+ */
+export const SAMPLE_CAPTIONED_VIDEO_URL =
+  "https://developer.mozilla.org/shared-assets/videos/friday.mp4";
+
+/** English captions for `SAMPLE_CAPTIONED_VIDEO_URL` (not shown until the viewer turns them on). */
 export const SAMPLE_TRACKS_EN: VideoTrack[] = [
   {
     kind: "captions",
-    src: "https://example.com/captions/sample-en.vtt",
+    src: "https://developer.mozilla.org/shared-assets/misc/friday.vtt",
     srcLang: "en",
     label: "English",
-    default: true,
   },
 ];
+
+/** Two tracks for the captions menu (the same file under two labels — a stand-in for real translations). */
+export const SAMPLE_TRACKS_MULTI: VideoTrack[] = [
+  ...SAMPLE_TRACKS_EN,
+  {
+    kind: "subtitles",
+    src: "https://developer.mozilla.org/shared-assets/misc/friday.vtt",
+    srcLang: "tr",
+    label: "Türkçe",
+  },
+];
+
+/** RTL sample copy for the demo's right-to-left example (consumer contract C4). */
+export const SAMPLE_RTL_CAPTION = "مقطع فيديو تجريبي";

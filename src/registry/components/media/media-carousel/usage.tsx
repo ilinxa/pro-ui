@@ -179,7 +179,7 @@ export function PostMedia({ post }: { post: Post }) {
       </pre>
 
       <h3 className="mt-6 mb-2 text-base font-semibold">Refreshing expired media: <code>onMediaError</code></h3>
-      <p className="text-muted-foreground">Called when a built-in image or video fails to load (expired signed URL and the like). Resolve a new URL string to retry once with it; a second failure for the same item does not call again, and a new <code>url</code> from the host resets the item. A recovered image drops its <code>srcSet</code> / <code>sizes</code>; a retried video restarts from 0. Not called for <code>renderItem</code> slides.</p>
+      <p className="text-muted-foreground">Called when a built-in image or video fails to load (expired signed URL and the like). Resolve a new URL string to retry once with it; a second failure for the same item does not call again, and a new <code>url</code> from the host resets the item. A recovered image drops its <code>srcSet</code> / <code>sizes</code>; a video shows its loading state meanwhile and resumes at the same time and play state. Not called for <code>renderItem</code> slides.</p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<MediaCarousel
   items={post.media}

@@ -155,7 +155,7 @@ export interface MediaCarouselProps {
   /**
    * A built-in image or video failed to load (an expired signed URL…). Resolve a new URL to
    * retry once; a second failure for the same item does not call again. A new `url` from the
-   * host resets it. A retried video starts from 0.
+   * host resets it. A video shows its loading state meanwhile and resumes at the same time.
    */
   onMediaError?: (item: MediaItem) => Promise<string | void> | string | void;
 

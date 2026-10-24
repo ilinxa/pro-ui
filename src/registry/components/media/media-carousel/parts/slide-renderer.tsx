@@ -114,7 +114,9 @@ export function SlideRenderer({
               }
             : undefined
         }
-        onError={() => recovery.onError(item)}
+        // Through the player, so it shows buffering while the URL refreshes and resumes at the
+        // same time (VP4). The carousel still asks once per item + URL.
+        onMediaError={recovery.enabled ? () => recovery.request(item) : undefined}
       />
     </div>
   );

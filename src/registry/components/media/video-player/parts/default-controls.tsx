@@ -1,133 +1,70 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { Pause, Play, Volume2, VolumeX } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { VideoPlayerLabels, VideoState } from "../types";
+import { VideoPlayerCaptionsButton } from "./captions-button";
+import { VideoPlayerFullscreenButton } from "./fullscreen-button";
+import { VideoPlayerMuteButton } from "./mute-button";
+import { VideoPlayerPlayButton } from "./play-button";
+import { VideoPlayerSeekBar } from "./seek-bar";
+import { VideoPlayerStatus } from "./status";
+import { VideoPlayerDurationBadge, VideoPlayerTime } from "./time";
+import { useVideoPlayer } from "./video-player-context";
 
 interface DefaultControlsProps {
-  state: VideoState;
-  labels: Required<VideoPlayerLabels>;
-  controlsAutoHideMs: number;
+  showSeekBar: boolean;
+  showTime: boolean;
+  showFullscreen: boolean;
   controlsClassName?: string;
 }
 
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
-const subscribeReducedMotion = (callback: () => void) => {
-  if (typeof window === "undefined") return () => {};
-  const mql = window.matchMedia(REDUCED_MOTION_QUERY);
-  mql.addEventListener("change", callback);
-  return () => mql.removeEventListener("change", callback);
-};
-
-const getReducedMotionSnapshot = () =>
-  typeof window === "undefined"
-    ? false
-    : window.matchMedia(REDUCED_MOTION_QUERY).matches;
-
-const getReducedMotionServerSnapshot = () => false;
-
-function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    getReducedMotionSnapshot,
-    getReducedMotionServerSnapshot,
-  );
-}
-
 export function DefaultControls({
-  state,
-  labels,
-  controlsAutoHideMs,
+  showSeekBar,
+  showTime,
+  showFullscreen,
   controlsClassName,
 }: DefaultControlsProps) {
-  const { isPlaying, isMuted, togglePlay, toggleMute } = state;
-  const reducedMotion = usePrefersReducedMotion();
+  const { state, controlsVisible } = useVideoPlayer();
+  const { isPlaying, hasStarted, hasError, isBuffering } = state;
 
-  // Controls are always visible when paused / auto-hide disabled / reduced-motion.
-  const alwaysVisible =
-    !isPlaying || controlsAutoHideMs <= 0 || reducedMotion;
-
-  // Only used in auto-hide mode. Bumped via `wakeKey` to re-arm the timer.
-  const [hidden, setHidden] = useState(false);
-  const [wakeKey, setWakeKey] = useState(0);
-
-  const showControls = alwaysVisible || !hidden;
-
-  useEffect(() => {
-    if (alwaysVisible) return;
-    const t = setTimeout(() => setHidden(true), controlsAutoHideMs);
-    return () => clearTimeout(t);
-  }, [alwaysVisible, controlsAutoHideMs, wakeKey]);
-
-  const wakeControls = useCallback(() => {
-    setHidden(false);
-    setWakeKey((k) => k + 1);
-  }, []);
+  // Auto-hidden groups: fade out, and while hidden stay pointer-events-none so a click lands on the
+  // video. Visible: only the interactive controls take pointer input — a tap on the time chip, the
+  // duration badge or the spacer still reaches the video (play / pause, double tap).
+  const fade = cn(
+    "pointer-events-none motion-safe:transition-opacity motion-safe:duration-300",
+    controlsVisible
+      ? "opacity-100 [&_button]:pointer-events-auto [&_[role=slider]]:pointer-events-auto [&_[role=menu]]:pointer-events-auto"
+      : "opacity-0",
+  );
 
   return (
-    <div
-      className={cn(
-        "pointer-events-none absolute inset-0",
-        controlsClassName,
-      )}
-      onMouseEnter={wakeControls}
-      onMouseMove={wakeControls}
-    >
-      {/* Big center play button — always visible when paused */}
-      {!isPlaying && (
+    <div className={cn("pointer-events-none absolute inset-0", controlsClassName)}>
+      <VideoPlayerStatus />
+
+      {!isPlaying && !hasError && !isBuffering && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            className="pointer-events-auto h-14 w-14 rounded-full bg-background/80 hover:bg-background/90"
-            onClick={togglePlay}
-            aria-label={labels.play}
-          >
-            <Play className="h-6 w-6 fill-current" aria-hidden="true" />
-          </Button>
+          <VideoPlayerPlayButton size="lg" className="pointer-events-auto" />
         </div>
       )}
 
-      {/* Bottom-right mute toggle — auto-hides during playback */}
-      <div
-        className={cn(
-          "absolute end-3 bottom-3 flex gap-2 transition-opacity duration-300",
-          showControls ? "opacity-100" : "opacity-0",
-        )}
-      >
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          className="pointer-events-auto h-8 w-8 rounded-full bg-background/70 hover:bg-background/90"
-          onClick={toggleMute}
-          aria-pressed={isMuted}
-          aria-label={isMuted ? labels.unmute : labels.mute}
-        >
-          {isMuted ? (
-            <VolumeX className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <Volume2 className="h-4 w-4" aria-hidden="true" />
-          )}
-        </Button>
-      </div>
-
-      {/* Bottom-left small pause indicator — only when playing + showing controls */}
-      {isPlaying && showControls && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="pointer-events-auto absolute bottom-3 start-3 h-8 w-8 rounded-full bg-background/70 hover:bg-background/90"
-          onClick={togglePlay}
-          aria-label={labels.pause}
-        >
-          <Pause className="h-4 w-4" aria-hidden="true" />
-        </Button>
+      {/* The error overlay owns the frame — no controls over a failed video. */}
+      {hasError ? null : !hasStarted ? (
+        <>
+          <div className={cn("absolute end-3 top-3", fade)}>
+            <VideoPlayerDurationBadge />
+          </div>
+          <div className={cn("absolute end-3 bottom-(--video-player-controls-bottom,0.75rem)", fade)}>
+            <VideoPlayerMuteButton />
+          </div>
+        </>
+      ) : (
+        <div className={cn("absolute inset-x-3 bottom-(--video-player-controls-bottom,0.75rem) flex items-center gap-2", fade)}>
+          {isPlaying && <VideoPlayerPlayButton size="sm" />}
+          {showSeekBar ? <VideoPlayerSeekBar className="flex-1" /> : <div className="flex-1" />}
+          {showTime && <VideoPlayerTime />}
+          <VideoPlayerCaptionsButton />
+          {showFullscreen && <VideoPlayerFullscreenButton />}
+          <VideoPlayerMuteButton />
+        </div>
       )}
     </div>
   );

@@ -13,6 +13,14 @@ export interface MediaRecovery {
   urlFor: (item: MediaItem) => string;
   /** Call from the media element's `error` event. */
   onError: (item: MediaItem) => void;
+  /**
+   * Same as `onError`, as a promise of the replacement URL (void when there is none, or when this
+   * item + URL was already asked). For `VideoPlayer`'s `onMediaError`, so the player shows its
+   * buffering state while the refresh runs and resumes at the same time afterwards.
+   */
+  request: (item: MediaItem) => Promise<string | void>;
+  /** A host `onMediaError` exists. */
+  enabled: boolean;
 }
 
 /**
@@ -33,27 +41,45 @@ export function useMediaRecovery(onMediaError: Recovery | undefined): MediaRecov
     [replacements],
   );
 
-  const onError = useCallback((item: MediaItem) => {
-    const handler = handlerRef.current;
-    const basis = basisOf(item);
-    if (!handler || askedRef.current.has(basis)) return;
-    askedRef.current.add(basis);
-    const apply = (next: string | void) => {
-      if (typeof next === "string" && next && next !== item.url) {
-        setReplacements((prev) => ({ ...prev, [basis]: next }));
-      }
-    };
-    try {
-      const result = handler(item);
-      if (result && typeof (result as Promise<unknown>).then === "function") {
-        (result as Promise<string | void>).then(apply, () => {});
-      } else {
-        apply(result as string | void);
-      }
-    } catch {
-      // A throwing handler is a failed recovery: keep the broken media, never ask again.
-    }
-  }, []);
+  const request = useCallback(
+    (item: MediaItem) =>
+      new Promise<string | void>((resolve) => {
+        const handler = handlerRef.current;
+        const basis = basisOf(item);
+        if (!handler || askedRef.current.has(basis)) {
+          resolve();
+          return;
+        }
+        askedRef.current.add(basis);
+        const apply = (next: string | void) => {
+          if (typeof next === "string" && next && next !== item.url) {
+            setReplacements((prev) => ({ ...prev, [basis]: next }));
+            resolve(next);
+          } else {
+            resolve();
+          }
+        };
+        try {
+          const result = handler(item);
+          if (result && typeof (result as Promise<unknown>).then === "function") {
+            (result as Promise<string | void>).then(apply, () => resolve());
+          } else {
+            apply(result as string | void);
+          }
+        } catch {
+          // A throwing handler is a failed recovery: keep the broken media, never ask again.
+          resolve();
+        }
+      }),
+    [],
+  );
 
-  return { urlFor, onError };
+  const onError = useCallback(
+    (item: MediaItem) => {
+      void request(item);
+    },
+    [request],
+  );
+
+  return { urlFor, onError, request, enabled: onMediaError !== undefined };
 }

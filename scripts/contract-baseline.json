@@ -3,7 +3,8 @@
     "story-rail",
     "app-sidebar",
     "engagement-bar",
-    "media-carousel"
+    "media-carousel",
+    "video-player"
   ],
   "rules": {
     "palette": {

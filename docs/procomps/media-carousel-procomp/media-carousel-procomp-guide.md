@@ -186,7 +186,8 @@ Fires only on Embla's `select` event (post-snap, not during drag). **Mount-sync 
 ```
 
 One resolved direction drives Embla, the arrow keys (← = next in RTL), the chevrons, the nav-button sides, the edge
-peek and the fades. `rtl` still works as a deprecated alias (`rtl={false}` forces LTR, as in 0.2). The ancestor
+peek and the fades. Keys pressed inside a slide's own controls (a video's seek bar, a button, a field) never move the
+carousel (since 0.3.1). `rtl` still works as a deprecated alias (`rtl={false}` forces LTR, as in 0.2). The ancestor
 direction is read once after mount — pass `dir` if your app switches direction without remounting. An LTR
 carousel inside an RTL page needs `dir="ltr"` on the carousel itself: Tailwind's `rtl:` variant matches any
 descendant of a `[dir="rtl"]` element, so a `dir="ltr"` wrapper alone still flips the chevrons and fades.
@@ -239,14 +240,20 @@ firing on every Embla select, as before.
 ```
 
 A built-in image or video that fails to load calls `onMediaError(item)` once. A resolved string replaces the URL
-and the element retries; if that fails too, it does not ask again. A new `url` for the item resets it. A retried
-video starts from 0.
+and the element retries; if that fails too, it does not ask again. A new `url` for the item resets it. A video
+shows its loading state while you refresh, then resumes at the same time and play state (since 0.3.1, with
+video-player 0.3.0; it went back to 0 before).
 
 ### 12. Video slides
 
 Built-in video slides render `<VideoPlayer>`: the `poster` shows before play, there is no autoplay, only the active
 slide can play, and the playing video pauses while less than half of the carousel is in the viewport. A custom
 `renderItem` video should play only when `ctx.isActive && ctx.inView`.
+
+Since 0.3.1 (with video-player 0.3.0) a video slide has a seek bar: while indicator dots show, the carousel sets
+`--video-player-controls-bottom: 1.75rem` so the player's control row sits above them; dragging the seek bar or
+pressing ← / → in it never moves the carousel, and a single tap on a video waits out the double-tap window when
+`onDoubleTap` is set.
 
 ### 13. Nav buttons on mouse only, counter, look
 
@@ -313,7 +320,6 @@ Sets the precedent for the rest of the social-posts arc: `comment-thread` import
 - **`onSlideChange` mount-sync silent** — `currentIndex` initializes correctly via `useSyncExternalStore`, but the user's callback only fires on real slide changes. Document this if you want to track initial slide views (do it once on mount yourself).
 - **Embla-mounted client-only** — SSR renders the slide track DOM but indicators show after hydration. Acceptable; matches kasder.
 - **Custom `renderItem` for video items** must wire `isActive && inView` themselves — the pause contract is built into the built-in handler, not free for custom ones.
-- **Video resume after a URL refresh** — a recovered video restarts from 0; resuming at the last time is not implemented here (it belongs to `video-player`).
 - **`natural-clamped` without dimensions** changes the frame once, when the first item loads. A custom `renderItem` cannot report a natural size — give items `width` / `height`.
 
 ## Composition siblings

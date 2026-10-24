@@ -138,7 +138,7 @@ Files land relative to the consumer's source root: `components/<slug>/<sub-path>
 - `@ilinxa/pdf-viewer` — Drop-in PDF reader — toolbar, zoom, selectable text, drag-drop, and a themed context menu.
 - `@ilinxa/story-composer` — Instagram-style story creation surface — a locked 9:16 wrapper around the media editor.
 - `@ilinxa/story-viewer` — Full-screen story viewer — segmented progress, 3D cube transitions, finger-following swipe, tap zones, and an engagement overlay.
-- `@ilinxa/video-player` — Video element wrapper — autoplay-friendly defaults, slot-based controls, carousel-coordinated pause, and double-tap gestures.
+- `@ilinxa/video-player` — Video player — seek bar, captions, fullscreen, buffering and error states with URL refresh, autoplay groups, composable controls, and double-tap gestures.
 
 ### navigation
 

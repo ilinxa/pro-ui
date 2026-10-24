@@ -21,7 +21,7 @@ export const meta: ComponentMeta = {
   ],
   tags: ["media", "library", "files", "drive", "upload", "preview", "drag-drop", "folders", "cms"],
 
-  version: "0.2.2",
+  version: "0.2.3",
   status: "alpha",
   artifactBudgetKB: 150,
   createdAt: "2026-06-09",

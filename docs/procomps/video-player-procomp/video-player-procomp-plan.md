@@ -5,6 +5,15 @@
 > See [`video-player-procomp-description.md`](./video-player-procomp-description.md) for the what & why.
 >
 > Migration origin: [`docs/migrations/social-posts-system/`](../../migrations/social-posts-system/) — kasder `PostVideoPlayer.tsx` (128 LOC).
+>
+> **v0.3.0 delta (2026-10-24):** the "Final API" and file-by-file sections below are the v0.1 contract. The v0.3.0
+> contract — new props, labels, handle, flat parts, the state-hook changes, invariants I1–I11 and the U1 consistency
+> review — is [`video-player-loop.md`](./video-player-loop.md) "Run C"; the consumer view is the
+> [guide](./video-player-procomp-guide.md). File layout since 0.3.0: `hooks/` adds `use-autoplay-group`,
+> `use-controls-visibility`, `use-direction`, `use-environment`, `use-fullscreen`; `lib/format.ts`; `parts/` adds
+> `video-player-context` and one file per flat part (`play-button`, `mute-button`, `seek-bar`, `time`,
+> `fullscreen-button`, `captions-button`, `status`). Q-P8 (no fullscreen in the default) holds as an opt-in prop;
+> Q-P2, Q-P4, Q-P5, Q-P7, Q-P9, Q-P10 hold as written.
 
 ## Q-P locks (commitments before code)
 
@@ -1149,15 +1158,8 @@ The video's `onClick={togglePlay}` fires twice in quick succession during a doub
 
 Larger than `expandable-text` (~3 hours) due to the state machine + slot architecture. Establishes the `media` category, the `useDoubleTap` public hook, and the `renderXxx` slot pattern for the rest of the social-posts arc.
 
-## Open follow-ups (post v0.1)
+## Open follow-ups
 
-- v0.2: fullscreen toggle (`requestFullscreen()` + button in default controls)
-- v0.2: volume slider (touch + keyboard considerations)
-- v0.2: HLS/DASH support via `useHls?: boolean` flag + `hls.js` peer dep, OR `renderVideoElement?` slot
-- v0.2: buffering spinner overlay
-- v0.2: error UI via `renderError?: (error) => ReactNode` slot
-- v0.2: playback rate selector
-- v0.2: picture-in-picture toggle
-- v0.2: public `useVideoState` hook export (if consumers genuinely need to drive their own `<video>` with our state)
-- v0.3: subtitle styling override (`captionsStyle?: CaptionStyleProps`)
-- v0.3: programmatic seeking via imperative handle (currently only togglePlay/toggleMute exposed via slot state)
+Landed in v0.3.0: fullscreen toggle, buffering spinner, error UI (overlay + Retry + `onMediaError`), programmatic
+seeking (handle + `state.seek`). Not implemented, no version promised: volume slider, HLS / DASH, playback rate,
+picture-in-picture, subtitle styling override, a public `useVideoState`.

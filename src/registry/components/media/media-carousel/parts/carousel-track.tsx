@@ -1,6 +1,6 @@
 "use client";
 
-import type { KeyboardEvent as ReactKeyboardEvent, ReactNode, Ref } from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode, Ref } from "react";
 import {
   useCallback,
   useEffect,
@@ -80,6 +80,37 @@ interface SlideProps {
 const clampIndex = (i: number, total: number) =>
   Math.min(Math.max(0, Math.trunc(Number.isFinite(i) ? i : 0)), Math.max(0, total - 1));
 
+/** video-player reads it for its bottom control row; dots sit at 0.75rem + 6px. */
+const DOTS_CLEARANCE = { "--video-player-controls-bottom": "1.75rem" } as CSSProperties;
+
+const INTERACTIVE =
+  'button, a[href], input, select, textarea, video, [contenteditable="true"], [role="slider"], [role="button"], [role="menu"], [role="menuitem"], [role="menuitemradio"], [role="listbox"], [role="combobox"], [role="spinbutton"]';
+
+/**
+ * Embla starts a drag on any `mousedown` / `touchstart` except form fields: scrubbing a video's
+ * seek bar (or using a menu) inside a slide would also drag the carousel. Swiping on the video
+ * itself still drags.
+ */
+const allowSlideDrag = (_api: unknown, evt: MouseEvent | TouchEvent) =>
+  !(evt.target instanceof Element && evt.target.closest('[role="slider"], [role="menu"]'));
+
+/**
+ * The key came from an interactive element inside a SLIDE (a video's controls, a button, a field
+ * in `renderItem` content) — not from the region itself or the carousel's own chevrons / dots,
+ * whose arrow keys keep moving the carousel as before.
+ */
+function isFromInteractiveDescendant(e: ReactKeyboardEvent<HTMLElement>): boolean {
+  const target = e.target;
+  if (!(target instanceof Element) || target === e.currentTarget) return false;
+  const control = target.closest(INTERACTIVE);
+  return (
+    control !== null &&
+    control !== e.currentTarget &&
+    e.currentTarget.contains(control) &&
+    control.closest("[data-media-carousel-slide]") !== null
+  );
+}
+
 function Slide({
   item,
   index,
@@ -136,6 +167,7 @@ function Slide({
     "aria-roledescription": labels.slideRoleDescription,
     "aria-label": labels.slideAriaLabel(index + 1, total),
     "aria-hidden": isActive ? undefined : true,
+    "data-media-carousel-slide": "",
   } as const;
 
   if (variant === "gallery") {
@@ -224,6 +256,7 @@ export function CarouselTrack({
       loop,
       direction: dir,
       startIndex,
+      watchDrag: allowSlideDrag,
     }),
     [variant, loop, dir, startIndex],
   );
@@ -301,6 +334,9 @@ export function CarouselTrack({
   // first focusing a child slide.
   const handleKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      // Keys belong to the slide's own controls (a video's seek bar, a button, a form field) —
+      // already handled, or from an interactive element inside the region (review R-06).
+      if (e.defaultPrevented || isFromInteractiveDescendant(e)) return;
       const rtl = dir === "rtl";
       if (e.key === "ArrowLeft") {
         e.preventDefault();
@@ -336,6 +372,8 @@ export function CarouselTrack({
         "group/media-carousel relative outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md",
         className,
       )}
+      // Lift a video slide's control row above the indicator dots (video-player 0.3 has a full-width seek bar).
+      style={showIndicators ? DOTS_CLEARANCE : undefined}
     >
       <div className="overflow-hidden" ref={ref}>
         <div className="flex">
