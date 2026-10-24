@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop, run C (change class: **minor** — additive API, today's defaults kept except where stated; composed by media-carousel, story-viewer, media-library, and post-card through media-carousel) |
-| **Current stage** | U7 — committed locally; push awaits the user's OK |
+| **Current stage** | **CLOSED** — `1cf2d4b` pushed 2026-10-24 and verified live |
 | **Sign-off policy** | user-interactive (sign-offs from earlier loops do not carry over) |
 | **Version target** | v0.2.2 → **v0.3.0** (+ media-carousel v0.3.0 → v0.3.1 for R-03 / R-06) |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 (fresh) |
@@ -15,7 +15,7 @@
 
 - [x] U0 Intake — class, blast radius, reproductions (below)
 - [x] U1 Change contract — consistency review (8 corrections) · **sign-off:** user 2026-10-24 ("review them your self … then go ahead"); seek-bar default delegated → on
-- [x] U2 Implement (slice table below) · [x] U3 Gates (final: tsc 0 · lint 0 / 13 baseline · meta-deps 64/64 · registry:build 0 · build 0 · tests **1267/1267**, 99 files) · [x] U4 Review (1 fresh finder + 2 test authors: 14 rows, all CONFIRMED; 12 fixed + F13 documented; regression tests falsified 13/13) · [x] U5 Runtime & smoke (browser **49/49**; 3 more defects found and fixed — below; installs 2/2 CLIs) · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (6) · [ ] U7 Ship (ask before push)
+- [x] U2 Implement (slice table below) · [x] U3 Gates (final: tsc 0 · lint 0 / 13 baseline · meta-deps 64/64 · registry:build 0 · build 0 · tests **1267/1267**, 99 files) · [x] U4 Review (1 fresh finder + 2 test authors: 14 rows, all CONFIRMED; 12 fixed + F13 documented; regression tests falsified 13/13) · [x] U5 Runtime & smoke (browser **49/49**; 3 more defects found and fixed — below; installs 2/2 CLIs) · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (6) · [x] U7 Ship — pushed `fdcc17b..1cf2d4b` (user OK, 2026-10-24); live on attempt 8 (~8 min): `video-player` 0.3.0 with 21 files, `cssVars.theme` `color-media-overlay` / `-foreground` with fallbacks, one stamp (the entry trailer), 0 bare deps; `video-player-fixtures` 0.3.0 with `friday.vtt`, no `example.com`; `media-carousel` 0.3.1; `media-library` 0.2.3
 
 ## Run C — consumer hardening (request §5.1 VP1–VP8, digest §video-player)
 
