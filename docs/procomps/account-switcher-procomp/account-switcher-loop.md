@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — the trigger's role changes `combobox` → `button` (AW1); everything else additive. No runtime dependents) |
-| **Current stage** | U7 — committed locally; push awaits the user's OK |
+| **Current stage** | **CLOSED** — `d979380` pushed 2026-10-24 and verified live |
 | **Sign-off policy** | user-interactive |
 | **Version target** | v0.2.1 → **v0.3.0** |
 | **Model roster** | architect: main session · implementer: architect (est. diff ~400 lines across 3 new + 6 touched files; one implementer at most for tests) · finders: 2 × Sonnet 5 (fresh, one with a real browser) |
@@ -15,7 +15,7 @@
 
 - [x] U0 Intake — class, blast radius, reproductions (below)
 - [x] U1 Change contract — **sign-off:** user + platform team 2026-10-24 (platform reply: "Build the contract in `account-switcher-loop.md` as written"; role change OK — they do not use account-switcher yet, adopt at their M15; budget 48 KB accepted; `itemSize="lg"` prop as written, no CSS var asked)
-- [x] U2 Implement (architect; falsified 16/16) · [x] U3 Gates (tsc 0 · lint 0 / 13 · meta-deps 0 · registry:build 0, 47.41 / 48 KB · build 0 · tests 102 files / 1344) · [x] U4 Review (2 fresh finders: 13 rows — 11 fixed + falsified 8/8, A7 dropped, B2 upstream) · [x] U5 Runtime & smoke (browser **42/42** light / dark / mobile + app-sidebar; installs **2/2 CLIs**) · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (4) · [ ] U7 Ship (ask before push)
+- [x] U2 Implement (architect; falsified 16/16) · [x] U3 Gates (tsc 0 · lint 0 / 13 · meta-deps 0 · registry:build 0, 47.41 / 48 KB · build 0 · tests 102 files / 1344) · [x] U4 Review (2 fresh finders: 13 rows — 11 fixed + falsified 8/8, A7 dropped, B2 upstream) · [x] U5 Runtime & smoke (browser **42/42** light / dark / mobile + app-sidebar; installs **2/2 CLIs**) · [x] U6 Docs & review — [`reviews/2026-10-24-v0.3.0-hardening.md`](reviews/2026-10-24-v0.3.0-hardening.md): **Pass with follow-ups** (4) · [x] U7 Ship — pushed `9821f82..d979380` (user OK, 2026-10-24; with `927c9c3`); live on poll 5 (~7 min): `account-switcher` 0.3.0 with 13 files (incl. `parts/switcher-list.tsx`), one stamp (the entry trailer), 0 bare registry imports, `lucide-react@^1.11.0`; `account-switcher-fixtures` 0.3.0 with `ACCOUNT_SWITCHER_DUMMY_GROUPED_ITEMS_TR`
 
 Source: request §4.3 AW1–AW4 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:587-625`) as amended by the digest
 §account-switcher (`.claude/hardening-request-verification-2026-10-23.md:121-125`).
