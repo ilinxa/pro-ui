@@ -4,11 +4,13 @@ export type {
   MediaCarouselProps,
   MediaCarouselHandle,
   MediaCarouselLabels,
+  ResolvedMediaCarouselLabels,
   MediaCarouselVariant,
+  MediaCarouselAspect,
+  MediaCarouselDirection,
   MediaItem,
   RenderItemContext,
   LinearAspect,
 } from "./types";
 
-export { DEFAULT_MEDIA_CAROUSEL_LABELS } from "./types";
-
+export { defaultMediaCarouselLabels, DEFAULT_MEDIA_CAROUSEL_LABELS } from "./types";

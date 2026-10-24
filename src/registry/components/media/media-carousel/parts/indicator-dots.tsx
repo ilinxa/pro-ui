@@ -6,7 +6,7 @@ interface IndicatorDotsProps {
   total: number;
   currentIndex: number;
   scrollTo: (index: number) => void;
-  labels: { goToSlide: string };
+  labels: { goToSlide: (position: number) => string };
 }
 
 export function IndicatorDots({
@@ -24,10 +24,10 @@ export function IndicatorDots({
             key={i}
             type="button"
             onClick={() => scrollTo(i)}
-            aria-label={`${labels.goToSlide} ${i + 1}`}
+            aria-label={labels.goToSlide(i + 1)}
             aria-current={isActive ? "true" : undefined}
             className={cn(
-              "h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "h-1.5 rounded-full motion-safe:transition-all motion-safe:duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
                 ? "w-4 bg-primary"
                 : "w-1.5 bg-primary/40 hover:bg-primary/60",

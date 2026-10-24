@@ -1,10 +1,10 @@
 # media-carousel — consumer guide
 
-> Stage 3: usage notes for hosts. Updated for v0.1.1 (kasder slide layout + inactive blur + edge gradients + loop-config fix).
+> Stage 3: usage notes for hosts. Updated for v0.3.0 (consumer-contract hardening: aspect modes, labels, locale, direction, controlled index, media errors, in-view video pause).
 >
 > See [description](./media-carousel-procomp-description.md) for what & why; [plan](./media-carousel-procomp-plan.md) for how it's built.
 
-## v0.1.1 visual notes
+## Visual notes (v0.1.1)
 
 - **Gallery variant** matches kasder's `PostMediaCarousel.tsx` exactly: focused slide centered + sharp; neighbors `scale-95 opacity-60 blur-[1px]` for the canonical Instagram peek-blur effect; soft `from-background to-transparent` gradients on the left + right edges (`w-12` each, `pointer-events-none`, `aria-hidden`) further soften peek edges.
 - **Loop bug fix:** edge padding (`first:ml` / `last:mr` peek) is now applied **only when `loop={false}`**. Under loop, Embla creates clones, and asymmetric padding on the source first/last broke the loop math (you'd hit a stuck state on first→last and last→first wrap). Symmetric-margin slides under loop work correctly across the entire wrap cycle.
@@ -40,20 +40,30 @@ Anywhere a swipeable horizontal strip of mixed images + videos is needed:
 
 ## Sizing the carousel
 
-The component fills its container width naturally. For consistent slide aspect ratios:
+The component fills its container width. The slide frame comes from `aspect` (default `"square"`), for both
+variants and the single-item shortcut:
 
 ```tsx
 <div className="max-w-2xl">
-  <MediaCarousel items={post.media} variant="gallery" />
+  <MediaCarousel items={post.media} variant="gallery" />            {/* square */}
 </div>
+<MediaCarousel items={photos} variant="linear" aspect="video" />     {/* 16:9 */}
+<MediaCarousel items={photos} variant="linear" aspect="portrait" />  {/* 3:4 */}
+<MediaCarousel items={photos} variant="linear" aspect="auto" />      {/* the media's own height */}
 ```
 
-Gallery variant always renders square slides (`aspect-square`). Linear variant uses `aspect` prop:
+`aspect="natural-clamped"` uses the first item's own ratio, clamped to `[minRatio, maxRatio]` (width / height;
+defaults 4/5 and 1.91 — the usual feed limits): 3:4 → 4:5, 16:9 stays, 3:1 → 1.91:1. Every slide of a gallery uses
+that one frame. Give items `width` / `height` so the frame is right on the first paint; without them it is square
+until the first image (or video metadata) loads, then changes once.
 
 ```tsx
-<MediaCarousel items={photos} variant="linear" aspect="video" />
-<MediaCarousel items={photos} variant="linear" aspect="portrait" />
-<MediaCarousel items={photos} variant="linear" aspect="auto" />
+const items = [
+  { id: "a", type: "image", url: "/p/a.jpg", width: 1080, height: 1350, srcSet: "/p/a-540.jpg 540w, /p/a.jpg 1080w", sizes: "(min-width: 640px) 600px, 100vw" },
+  { id: "b", type: "video", url: "/p/b.mp4", poster: "/p/b.jpg", width: 1920, height: 1080 },
+] satisfies MediaItem[];
+
+<MediaCarousel items={items} variant="gallery" aspect="natural-clamped" />
 ```
 
 ## Common recipes
@@ -168,28 +178,109 @@ Fires only on Embla's `select` event (post-snap, not during drag). **Mount-sync 
 ### 8. RTL languages
 
 ```tsx
-<MediaCarousel items={items} variant="gallery" rtl />
+<div dir="rtl" lang="ar">
+  <MediaCarousel items={items} variant="gallery" />   {/* direction read from the element after mount */}
+</div>
+
+<MediaCarousel items={items} variant="gallery" dir="rtl" />  {/* explicit; also writes dir="rtl" on the region */}
 ```
 
-Embla flips drag direction; chevron icons flip via `rtl:rotate-180`. Indicator dot order reverses naturally.
+One resolved direction drives Embla, the arrow keys (← = next in RTL), the chevrons, the nav-button sides, the edge
+peek and the fades. `rtl` still works as a deprecated alias (`rtl={false}` forces LTR, as in 0.2). The ancestor
+direction is read once after mount — pass `dir` if your app switches direction without remounting. An LTR
+carousel inside an RTL page needs `dir="ltr"` on the carousel itself: Tailwind's `rtl:` variant matches any
+descendant of a `[dir="rtl"]` element, so a `dir="ltr"` wrapper alone still flips the chevrons and fades.
 
-### 9. Localized labels
+### 9. Localized labels + locale
 
 ```tsx
 const TR_LABELS = {
   carouselLabel: "Medya galerisi",
   previousSlide: "Önceki",
   nextSlide: "Sonraki",
-  goToSlide: "Slayta git",
-  slideAriaLabel: "Slayt {index} / {total}",
-} as const;
+  goToSlide: (n: number) => `${n}. slayta git`,
+  slideAriaLabel: (n: number, total: number) => `Slayt ${n} / ${total}`,
+  counter: (n: number, total: number, format: (x: number) => string) => `${format(n)}/${format(total)}`,
+  carouselRoleDescription: "galeri",
+  slideRoleDescription: "slayt",
+} satisfies MediaCarouselLabels;
 
-<MediaCarousel items={items} variant="gallery" labels={TR_LABELS} />
+<MediaCarousel items={items} variant="gallery" labels={TR_LABELS} locale="tr" showCounter />
 ```
 
-`{index}` and `{total}` placeholders in `slideAriaLabel` substitute at render time.
+Positions passed to label functions are 1-based. `format` renders a number in `locale` (an invalid tag such as
+`"en_US"` falls back to `"en"`). An `undefined` value keeps the default. The 0.2 string forms still work:
+`goToSlide: "Slayta git"` (a prefix → "Slayta git 3") and `slideAriaLabel: "Slayt {index} / {total}"`.
 
 **Hoist labels to module scope** — defining inline busts the internal `React.memo`.
+
+### 10. Controlled index
+
+```tsx
+const [index, setIndex] = useState(0);
+
+<MediaCarousel items={items} variant="gallery" index={index} onIndexChange={setIndex} />
+<Button onClick={() => setIndex((i) => Math.min(i + 1, items.length - 1))}>Next</Button>
+```
+
+With `index` set, the prop wins on every render. A swipe, a dot or the handle calls `onIndexChange`; if the
+parent does not adopt the new index, the carousel settles back once the swipe ends. `index` without
+`onIndexChange` is read-only. Uncontrolled hosts can start elsewhere with `defaultIndex`. `onSlideChange` keeps
+firing on every Embla select, as before.
+
+### 11. Expired media URLs
+
+```tsx
+<MediaCarousel
+  items={post.media}
+  variant="gallery"
+  onMediaError={async (item) => (await api.refreshMediaUrl(item.id)) ?? undefined}
+/>
+```
+
+A built-in image or video that fails to load calls `onMediaError(item)` once. A resolved string replaces the URL
+and the element retries; if that fails too, it does not ask again. A new `url` for the item resets it. A retried
+video starts from 0.
+
+### 12. Video slides
+
+Built-in video slides render `<VideoPlayer>`: the `poster` shows before play, there is no autoplay, only the active
+slide can play, and the playing video pauses while less than half of the carousel is in the viewport. A custom
+`renderItem` video should play only when `ctx.isActive && ctx.inView`.
+
+### 13. Nav buttons on mouse only, counter, look
+
+```tsx
+<MediaCarousel
+  items={items}
+  variant="gallery"
+  showNavButtons="fine-pointer"   // only under (pointer: fine); resolved after mount
+  showCounter                     // "2/5" chip, aria-hidden (slides are already named)
+  className="[--media-carousel-inactive-blur:0px]"   // the no-blur prototype look
+/>
+```
+
+Set the CSS variables through `className` or on any wrapper (they inherit):
+`--media-carousel-fade` (edge fade colour, default `var(--background)` — set it to `var(--card)` inside a card) and
+`--media-carousel-inactive-blur` (default `1px`). Transitions run only under `prefers-reduced-motion: no-preference`.
+
+### 14. Click a neighbour
+
+In the gallery, clicking or tapping a peeking neighbour scrolls to it. Inactive slides stay out of the tab order and
+the accessibility tree; a click that ends a drag does not count.
+
+## Upgrading to 0.3.0
+
+| 0.2 | 0.3 |
+|---|---|
+| `rtl` | `dir="rtl"`, or nothing under an RTL ancestor — `rtl` still works (deprecated) |
+| `slideAriaLabel: "Slide {index} of {total}"` | `(n, total) => …` — the string still works (deprecated) |
+| `goToSlide: "Go to slide"` (prefix) | `(n) => …` — the string still works (deprecated) |
+| `DEFAULT_MEDIA_CAROUSEL_LABELS` | `defaultMediaCarouselLabels` (function forms) — the old export stays |
+| `aspect` ignored for `variant="gallery"` and the single item | **applies everywhere** — a gallery passing `aspect` changes its frame; no `aspect` = square, as before |
+| single item in a linear carousel was always square | follows `aspect` |
+| custom video `renderItem` checked `isActive` | also check `inView` to pause off-screen |
+| inactive slides: `inert` on the slide | `inert` on its content, `aria-hidden` on the slide (the slide takes the neighbour click) |
 
 ## Anti-patterns
 
@@ -201,7 +292,7 @@ const TR_LABELS = {
 | Expect a fullscreen lightbox on slide-click | Different UX (would be `image-lightbox-01`). |
 | Pass inline `labels` / `tracks` objects | Busts `React.memo`. Hoist to module scope. |
 | Pass inline Embla options | Hook handles memoization; consumers pass typed props directly. |
-| Replace the entire video item via `renderItem` and forget `isActive` | Without forwarding `isActive` to your custom video, it won't auto-pause when off-screen. The built-in handler does this for free; custom renderers must wire it. |
+| Replace the entire video item via `renderItem` and forget `isActive && inView` | Your custom video will not pause when its slide goes inactive or the post scrolls away. The built-in handler does this for free; custom renderers must wire it. |
 
 ## Cross-folder import — the architectural decision
 
@@ -221,7 +312,9 @@ Sets the precedent for the rest of the social-posts arc: `comment-thread` import
 - **No auto-advance / slideshow mode** — that's a story-viewer concern.
 - **`onSlideChange` mount-sync silent** — `currentIndex` initializes correctly via `useSyncExternalStore`, but the user's callback only fires on real slide changes. Document this if you want to track initial slide views (do it once on mount yourself).
 - **Embla-mounted client-only** — SSR renders the slide track DOM but indicators show after hydration. Acceptable; matches kasder.
-- **Custom `renderItem` for video items** must wire `isActive` themselves — the auto-pause-on-inactive contract is built into the built-in handler, not free for custom ones.
+- **Custom `renderItem` for video items** must wire `isActive && inView` themselves — the pause contract is built into the built-in handler, not free for custom ones.
+- **Video resume after a URL refresh** — a recovered video restarts from 0; resuming at the last time is not implemented here (it belongs to `video-player`).
+- **`natural-clamped` without dimensions** changes the frame once, when the first item loads. A custom `renderItem` cannot report a natural size — give items `width` / `height`.
 
 ## Composition siblings
 
@@ -230,7 +323,7 @@ Sets the precedent for the rest of the social-posts arc: `comment-thread` import
 - [`engagement-bar`](../engagement-bar-procomp/) (next ship) — composes alongside this in `post-card` for the full like/comment/share strip + heart-burst overlay.
 - [`post-card`](../post-card-procomp/) (later) — Tier-2 composite combining all primitives.
 
-## v0.2 candidates
+## Candidates (not scheduled)
 
 - `feature-strip` variant (avatar-row layout for likers / story rail / chip carousels)
 - `lazyVideoDistance?: number` (unmount videos > N slides from active for perf)

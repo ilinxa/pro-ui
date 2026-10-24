@@ -7,18 +7,23 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: same-category cross-procomp via relative + specific-file path.
 import { useDoubleTap } from "../../video-player/hooks/use-double-tap";
+import { useDirection } from "../hooks/use-direction";
 import { useEmblaWithState } from "../hooks/use-embla-with-state";
+import { useFinePointer, useInView } from "../hooks/use-environment";
+import type { MediaRecovery } from "../hooks/use-media-recovery";
+import type { FrameStyle } from "../lib/aspect";
 import type {
-  LinearAspect,
+  MediaCarouselDirection,
   MediaCarouselHandle,
-  MediaCarouselLabels,
   MediaCarouselVariant,
   MediaItem,
   RenderItemContext,
+  ResolvedMediaCarouselLabels,
 } from "../types";
 import { IndicatorDots } from "./indicator-dots";
 import { NavButtons } from "./nav-buttons";
@@ -28,15 +33,23 @@ interface CarouselTrackProps {
   items: MediaItem[];
   variant: MediaCarouselVariant;
   peekRatio: number;
-  aspect: LinearAspect;
+  frame: FrameStyle;
   loop: boolean;
   showIndicators: boolean;
-  showNavButtons: boolean;
-  rtl: boolean;
+  showNavButtons: boolean | "fine-pointer";
+  showCounter: boolean;
+  /** Explicit direction (`dir`, or the deprecated `rtl`); otherwise resolved after mount. */
+  dir?: MediaCarouselDirection;
+  formatNumber: (n: number) => string;
+  index?: number;
+  defaultIndex?: number;
+  onIndexChange?: (index: number) => void;
   renderItem?: (item: MediaItem, ctx: RenderItemContext) => ReactNode;
   onSlideChange?: (index: number) => void;
   onDoubleTap?: (item: MediaItem, index: number) => void;
-  labels: Required<MediaCarouselLabels>;
+  recovery: MediaRecovery;
+  onNaturalSize?: (width: number, height: number) => void;
+  labels: ResolvedMediaCarouselLabels;
   className?: string;
   slideClassName?: string;
   ref?: Ref<MediaCarouselHandle>;
@@ -47,31 +60,43 @@ interface SlideProps {
   index: number;
   total: number;
   isActive: boolean;
+  inView: boolean;
   isFirst: boolean;
   isLast: boolean;
   loop: boolean;
   variant: MediaCarouselVariant;
   peekRatio: number;
-  aspect: LinearAspect;
+  frame: FrameStyle;
   renderItem?: (item: MediaItem, ctx: RenderItemContext) => ReactNode;
   onDoubleTap?: (item: MediaItem, index: number) => void;
-  labels: Required<MediaCarouselLabels>;
+  /** Click on a peeking (inactive) neighbour. */
+  onSelectNeighbour: (index: number) => void;
+  recovery: MediaRecovery;
+  onNaturalSize?: (width: number, height: number) => void;
+  labels: ResolvedMediaCarouselLabels;
   slideClassName?: string;
 }
+
+const clampIndex = (i: number, total: number) =>
+  Math.min(Math.max(0, Math.trunc(Number.isFinite(i) ? i : 0)), Math.max(0, total - 1));
 
 function Slide({
   item,
   index,
   total,
   isActive,
+  inView,
   isFirst,
   isLast,
   loop,
   variant,
   peekRatio,
-  aspect,
+  frame,
   renderItem,
   onDoubleTap,
+  onSelectNeighbour,
+  recovery,
+  onNaturalSize,
   labels,
   slideClassName,
 }: SlideProps) {
@@ -84,51 +109,61 @@ function Slide({
       : undefined,
   );
 
-  const slideAriaLabel = labels.slideAriaLabel
-    .replace("{index}", String(index + 1))
-    .replace("{total}", String(total));
+  // An inactive slide's content is `inert` (out of the tab order and the accessibility tree,
+  // and not a pointer target), so a click on it lands on this wrapper — which scrolls to it.
+  // `aria-hidden` keeps the wrapper itself out of the tree too.
+  const handleClick = isActive
+    ? item.type === "image"
+      ? imageDoubleTap
+      : undefined
+    : () => onSelectNeighbour(index);
 
-  // Match kasder layout exactly: outer slide gets flex-basis + small horizontal
-  // gutter via `mx-1`; first/last get larger edge padding so the peek shows on
-  // both ends (only meaningful when loop=false; under loop the clones eat it).
-  // Inner wrapper is the visual frame — scale + opacity for inactive neighbors,
-  // matching the kasder peek-scale aesthetic.
+  const content = (
+    <SlideRenderer
+      item={item}
+      ctx={{ isActive, inView, index }}
+      renderItem={renderItem}
+      onDoubleTap={onDoubleTap}
+      frame={frame}
+      recovery={recovery}
+      onNaturalSize={onNaturalSize}
+      slideClassName={slideClassName}
+    />
+  );
+
+  const a11y = {
+    role: "group",
+    "aria-roledescription": labels.slideRoleDescription,
+    "aria-label": labels.slideAriaLabel(index + 1, total),
+    "aria-hidden": isActive ? undefined : true,
+  } as const;
+
   if (variant === "gallery") {
-    // Edge peek padding only matters when NOT looping. Under loop, Embla clones
-    // the slides so first/last in DOM != first/last in source — applying edge
-    // padding to the source first/last would create asymmetric slide widths
-    // that break Embla's loop math.
+    // Edge peek padding only matters when NOT looping. Under loop, Embla
+    // positions slides so first/last in view != first/last in source —
+    // applying edge padding to the source first/last would create asymmetric
+    // slide widths that break Embla's loop math.
     const edgePeekPercent = peekRatio * 100;
     return (
       <div
-        role="group"
-        aria-roledescription="slide"
-        aria-label={slideAriaLabel}
-        inert={!isActive}
-        className={cn("min-w-0 mx-1 flex-[0_0_85%]")}
+        {...a11y}
+        className={cn("min-w-0 mx-1 flex-[0_0_85%]", !isActive && "cursor-pointer")}
         style={{
-          marginLeft: !loop && isFirst ? `${edgePeekPercent}%` : undefined,
-          marginRight: !loop && isLast ? `${edgePeekPercent}%` : undefined,
+          marginInlineStart: !loop && isFirst ? `${edgePeekPercent}%` : undefined,
+          marginInlineEnd: !loop && isLast ? `${edgePeekPercent}%` : undefined,
         }}
-        onClick={item.type === "image" ? imageDoubleTap : undefined}
+        onClick={handleClick}
       >
         <div
+          inert={!isActive}
           className={cn(
-            "overflow-hidden rounded-lg transition-all duration-300",
+            "overflow-hidden rounded-lg motion-safe:transition-all motion-safe:duration-300",
             isActive
               ? "scale-100 opacity-100"
-              : "scale-95 opacity-60 blur-[1px]",
+              : "scale-95 opacity-60 blur-(--media-carousel-inactive-blur,1px)",
           )}
         >
-          <SlideRenderer
-            item={item}
-            ctx={{ isActive, index }}
-            renderItem={renderItem}
-            onDoubleTap={onDoubleTap}
-            variant={variant}
-            aspect={aspect}
-            slideClassName={slideClassName}
-          />
+          {content}
         </div>
       </div>
     );
@@ -136,23 +171,8 @@ function Slide({
 
   // Linear: full-width slide, no peek, no scale.
   return (
-    <div
-      role="group"
-      aria-roledescription="slide"
-      aria-label={slideAriaLabel}
-      inert={!isActive}
-      className={cn("min-w-0 flex-[0_0_100%]")}
-      onClick={item.type === "image" ? imageDoubleTap : undefined}
-    >
-      <SlideRenderer
-        item={item}
-        ctx={{ isActive, index }}
-        renderItem={renderItem}
-        onDoubleTap={onDoubleTap}
-        variant={variant}
-        aspect={aspect}
-        slideClassName={slideClassName}
-      />
+    <div {...a11y} className="min-w-0 flex-[0_0_100%]" onClick={handleClick}>
+      <div inert={!isActive}>{content}</div>
     </div>
   );
 }
@@ -161,19 +181,37 @@ export function CarouselTrack({
   items,
   variant,
   peekRatio,
-  aspect,
+  frame,
   loop,
   showIndicators,
   showNavButtons,
-  rtl,
+  showCounter,
+  dir: dirProp,
+  formatNumber,
+  index: indexProp,
+  defaultIndex,
+  onIndexChange,
   renderItem,
   onSlideChange,
   onDoubleTap,
+  recovery,
+  onNaturalSize,
   labels,
   className,
   slideClassName,
   ref: forwardedRef,
 }: CarouselTrackProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dir = useDirection(rootRef, dirProp);
+  const inView = useInView(rootRef);
+  const finePointer = useFinePointer();
+  const total = items.length;
+
+  const controlled = indexProp !== undefined;
+  const target = controlled ? clampIndex(indexProp, total) : undefined;
+  // Embla's start slide — read once; later moves go through scrollTo.
+  const [startIndex] = useState(() => clampIndex(indexProp ?? defaultIndex ?? 0, total));
+
   // Memoize Embla options — useEmblaCarousel re-initializes on options identity change.
   // Under loop, Embla force-disables containScroll; we don't set it explicitly there.
   // Under linear+no-loop, we trim duplicate edge snaps so prev/next stop cleanly.
@@ -184,19 +222,56 @@ export function CarouselTrack({
         ? { containScroll: "trimSnaps" as const }
         : {}),
       loop,
-      direction: rtl ? ("rtl" as const) : ("ltr" as const),
+      direction: dir,
+      startIndex,
     }),
-    [variant, loop, rtl],
+    [variant, loop, dir, startIndex],
   );
 
-  const { ref, currentIndex, scrollTo, scrollPrev, scrollNext } =
-    useEmblaWithState({ ...emblaOptions, onSelect: onSlideChange });
-
-  // Stable ref-mirror for currentIndex — keeps imperative handle identity
-  // stable across slide changes. Ref write inside passive useEffect.
-  const currentIndexRef = useRef(currentIndex);
+  // The controlled index, read by the select handler without re-subscribing.
+  const targetRef = useRef(target);
   useEffect(() => {
-    currentIndexRef.current = currentIndex;
+    targetRef.current = target;
+  });
+
+  const handleSelect = useCallback(
+    (i: number) => {
+      onSlideChange?.(i);
+      // Controlled: only a move away from the prop is a request (the settle-back and a
+      // prop-driven scroll land on the prop and stay silent).
+      if (targetRef.current === undefined || i !== targetRef.current) onIndexChange?.(i);
+    },
+    [onSlideChange, onIndexChange],
+  );
+
+  const { ref, api, currentIndex, scrollTo, scrollPrev, scrollNext } =
+    useEmblaWithState({ ...emblaOptions, onSelect: handleSelect });
+
+  // Controlled: the prop wins. Scroll to it when it changes, and settle back to it after a
+  // swipe the parent did not adopt (on `settle`, so a drag in progress is never yanked), and
+  // after a re-init.
+  useEffect(() => {
+    if (!controlled || !api) return;
+    const correct = () => {
+      const t = targetRef.current;
+      if (t !== undefined && api.selectedScrollSnap() !== t) api.scrollTo(t);
+    };
+    correct();
+    api.on("settle", correct);
+    api.on("reInit", correct);
+    return () => {
+      api.off("settle", correct);
+      api.off("reInit", correct);
+    };
+  }, [controlled, api, target]);
+
+  const shownIndex = target ?? currentIndex;
+
+  // Stable ref-mirror for the shown index — keeps imperative handle identity
+  // stable across slide changes. Ref write inside passive useEffect.
+  const currentIndexRef = useRef(shownIndex);
+  useEffect(() => {
+    currentIndexRef.current = shownIndex;
   });
 
   useImperativeHandle(
@@ -210,16 +285,23 @@ export function CarouselTrack({
     [scrollTo, scrollPrev, scrollNext],
   );
 
+  // A click that ends a drag never reaches a slide: Embla stops it in the capture phase on the
+  // slide container.
+  const selectNeighbour = scrollTo;
+
   // Gallery variant gets soft edge fades (mirrors kasder UX). Linear variant doesn't
   // — full-width slides have no peek to soften.
   const showEdgeGradients = variant === "gallery";
+  const navButtonsVisible =
+    showNavButtons === "fine-pointer" ? finePointer : showNavButtons;
 
   // Keyboard nav — APG carousel pattern: ArrowLeft/Right scroll prev/next
-  // (RTL-aware), Home/End jump to first/last. Wired on the focusable region
+  // (direction-aware), Home/End jump to first/last. Wired on the focusable region
   // wrapper so users tabbing into the carousel get arrow-key control without
   // first focusing a child slide.
   const handleKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLDivElement>) => {
+      const rtl = dir === "rtl";
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         if (rtl) scrollNext();
@@ -233,21 +315,25 @@ export function CarouselTrack({
         scrollTo(0);
       } else if (e.key === "End") {
         e.preventDefault();
-        scrollTo(items.length - 1);
+        scrollTo(total - 1);
       }
     },
-    [rtl, scrollPrev, scrollNext, scrollTo, items.length],
+    [dir, scrollPrev, scrollNext, scrollTo, total],
   );
 
   return (
     <div
+      ref={rootRef}
       role="region"
-      aria-roledescription="carousel"
+      aria-roledescription={labels.carouselRoleDescription}
       aria-label={labels.carouselLabel}
+      // Only an explicit direction is written, so an inherited one is never overridden.
+      dir={dirProp}
+      data-dir={dirProp}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={cn(
-        "relative outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md",
+        "group/media-carousel relative outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md",
         className,
       )}
     >
@@ -258,16 +344,20 @@ export function CarouselTrack({
               key={item.id}
               item={item}
               index={index}
-              total={items.length}
-              isActive={index === currentIndex}
+              total={total}
+              isActive={index === shownIndex}
+              inView={inView}
               isFirst={index === 0}
-              isLast={index === items.length - 1}
+              isLast={index === total - 1}
               loop={loop}
               variant={variant}
               peekRatio={peekRatio}
-              aspect={aspect}
+              frame={frame}
               renderItem={renderItem}
               onDoubleTap={onDoubleTap}
+              onSelectNeighbour={selectNeighbour}
+              recovery={recovery}
+              onNaturalSize={index === 0 ? onNaturalSize : undefined}
               labels={labels}
               slideClassName={slideClassName}
             />
@@ -279,18 +369,29 @@ export function CarouselTrack({
         <>
           <div
             aria-hidden="true"
-            // dir-ok: physical edge fade paired with a physical bg-linear-to-r/l gradient direction
-            className="pointer-events-none absolute inset-y-0 left-0 z-5 w-12 bg-linear-to-r from-background to-transparent"
+            className="pointer-events-none absolute inset-y-0 start-0 z-5 w-12 bg-linear-to-r rtl:bg-linear-to-l group-data-[dir=ltr]/media-carousel:bg-linear-to-r from-(--media-carousel-fade,var(--background)) to-transparent"
           />
           <div
             aria-hidden="true"
-            // dir-ok: physical edge fade paired with a physical bg-linear-to-r/l gradient direction
-            className="pointer-events-none absolute inset-y-0 right-0 z-5 w-12 bg-linear-to-l from-background to-transparent"
+            className="pointer-events-none absolute inset-y-0 end-0 z-5 w-12 bg-linear-to-l rtl:bg-linear-to-r group-data-[dir=ltr]/media-carousel:bg-linear-to-l from-(--media-carousel-fade,var(--background)) to-transparent"
           />
         </>
       ) : null}
 
-      {showNavButtons && (
+      {showCounter ? (
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute top-3 z-10 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground",
+            // Gallery: inside the centred slide (85 % wide), not over the peeking neighbour.
+            variant === "gallery" ? "end-[calc(7.5%_+_0.75rem)]" : "end-3",
+          )}
+        >
+          {labels.counter(shownIndex + 1, total, formatNumber)}
+        </div>
+      ) : null}
+
+      {navButtonsVisible && (
         <NavButtons
           scrollPrev={scrollPrev}
           scrollNext={scrollNext}
@@ -300,8 +401,8 @@ export function CarouselTrack({
 
       {showIndicators && (
         <IndicatorDots
-          total={items.length}
-          currentIndex={currentIndex}
+          total={total}
+          currentIndex={shownIndex}
           scrollTo={scrollTo}
           labels={labels}
         />

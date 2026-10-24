@@ -2,7 +2,8 @@
   "closed": [
     "story-rail",
     "app-sidebar",
-    "engagement-bar"
+    "engagement-bar",
+    "media-carousel"
   ],
   "rules": {
     "palette": {
@@ -187,10 +188,6 @@
       "src/registry/components/media/carousel-composer/parts/rail-thumb.tsx": [
         "replace(\"{kind}\")",
         "replace(\"{n}\")",
-        "replace(\"{total}\")"
-      ],
-      "src/registry/components/media/media-carousel/parts/carousel-track.tsx": [
-        "replace(\"{index}\")",
         "replace(\"{total}\")"
       ],
       "src/registry/components/media/media-library/parts/file-grid.tsx": [
@@ -1248,11 +1245,6 @@
       ],
       "src/registry/components/media/content-composer/parts/step-indicator.tsx": [
         "aria-label=\"Composer steps\""
-      ],
-      "src/registry/components/media/media-carousel/parts/carousel-track.tsx": [
-        "aria-roledescription=\"carousel\"",
-        "aria-roledescription=\"slide\"",
-        "aria-roledescription=\"slide\""
       ],
       "src/registry/components/media/media-editor/features/capture/parts/camera-permission-prompt.tsx": [
         "Camera ready",

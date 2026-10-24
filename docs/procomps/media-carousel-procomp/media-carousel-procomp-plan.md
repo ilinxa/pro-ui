@@ -6,6 +6,24 @@
 >
 > Migration origin: [`docs/migrations/social-posts-system/`](../../migrations/social-posts-system/) — kasder `PostMediaCarousel.tsx` (142 LOC).
 
+## v0.3.0 — consumer-contract hardening (2026-10-24)
+
+Contract, invariants (I1–I8, I-neg), clarifications K1–K7 and evidence: [media-carousel-loop.md](./media-carousel-loop.md).
+Build shape (supersedes the file list below where they differ):
+
+| File | Role |
+|---|---|
+| `types.ts` | `MediaCarouselAspect`, `MediaCarouselDirection`, item dimensions, `RenderItemContext.inView`, function labels + `ResolvedMediaCarouselLabels`, `defaultMediaCarouselLabels` (+ deprecated `DEFAULT_MEDIA_CAROUSEL_LABELS`) |
+| `media-carousel.tsx` | resolves labels / locale / number formatter / frame (`natural-clamped` state keyed by the first item id) / direction alias; owns `useMediaRecovery` |
+| `parts/carousel-track.tsx` | `useDirection`, `useInView`, `useFinePointer`; controlled index (scroll on prop change + settle-back on Embla `settle`); neighbour click; counter; logical peek + fades |
+| `parts/slide-renderer.tsx` | frame class / inline `aspect-ratio`; `<img>` attributes + natural size; VideoPlayer `isActive && inView`; `onError` → recovery |
+| `parts/single-item.tsx` | `role="group"`; its own `useInView` |
+| `hooks/use-direction.ts` | canonical `_template/_snippets` copy |
+| `hooks/use-environment.ts` | `useFinePointer` (SSR false) · `useInView` (starts true) |
+| `hooks/use-media-recovery.ts` | one ask per item id + URL; replacement map |
+| `lib/aspect.ts` · `lib/labels.ts` | ratio clamp + frame · label merge (string aliases) + `resolveLocale` |
+| `hooks/use-embla-with-state.ts` | `startIndex` doubles as the server / pre-init snapshot |
+
 ## Q-P locks (commitments before code)
 
 | # | Question (from description) | Locked answer |

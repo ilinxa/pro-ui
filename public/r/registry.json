@@ -3052,10 +3052,35 @@
           "path": "src/registry/components/media/media-carousel/hooks/use-embla-with-state.ts",
           "type": "registry:component",
           "target": "components/media-carousel/hooks/use-embla-with-state.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-carousel/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/media-carousel/hooks/use-direction.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-carousel/hooks/use-environment.ts",
+          "type": "registry:component",
+          "target": "components/media-carousel/hooks/use-environment.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-carousel/hooks/use-media-recovery.ts",
+          "type": "registry:component",
+          "target": "components/media-carousel/hooks/use-media-recovery.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-carousel/lib/aspect.ts",
+          "type": "registry:component",
+          "target": "components/media-carousel/lib/aspect.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-carousel/lib/labels.ts",
+          "type": "registry:component",
+          "target": "components/media-carousel/lib/labels.ts"
         }
       ],
       "meta": {
-        "version": "0.2.1",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },
@@ -3081,7 +3106,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.1",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },

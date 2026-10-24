@@ -2,6 +2,21 @@
 
 > Stage 1: what & why.
 >
+> ### v0.3.0 (2026-10-24) — consumer-contract hardening
+>
+> Social-platform request §4.5 (MC1–MC7) + the platform's additions (video slides, controlled index, Turkish /
+> RTL / C11 kit). Loop record: [media-carousel-loop.md](./media-carousel-loop.md). Additive; defaults kept.
+>
+> - **Frame:** `aspect` applies to both variants and the single item; new `"natural-clamped"` (`minRatio` 4/5 …
+>   `maxRatio` 1.91). Items take `width` / `height` (+ `srcSet` / `sizes` on images).
+> - **Labels:** function forms for slide / dot names and the new counter; role-description labels; string templates
+>   kept as deprecated aliases. `showCounter` + `locale`.
+> - **Direction:** `dir` or the element's direction; `rtl` deprecated. Logical peek + fades.
+> - **Controlled index:** `index` + `onIndexChange` (prop wins), `defaultIndex`.
+> - **Media:** `onMediaError` refresh-once; the active video pauses while the carousel is under half in view.
+> - **Interaction / look:** neighbour click scrolls; `showNavButtons="fine-pointer"`; CSS variables
+>   `--media-carousel-fade` / `--media-carousel-inactive-blur`; motion-safe transitions.
+>
 > ### v0.1.1 patch (2026-05-03)
 >
 > - **Slide layout now matches kasder's `PostMediaCarousel.tsx` exactly.** Outer wrapper is `mx-1 flex-[0_0_85%]` (4px gutter + 85% slide width); inner wrapper is the visual frame (`rounded-lg overflow-hidden transition-all duration-300`). First/last slides get `marginLeft`/`marginRight: peekRatio*100%` ONLY when `loop=false` — under loop, asymmetric edges break Embla's clone math (the v0.1 layout's universal margins were the cause of the loop-wrap bug).
@@ -39,7 +54,7 @@ Every social product surface that lets users post multiple media items needs the
 - **a11y** — `<div role="region" aria-roledescription="carousel" aria-label={labels.carouselLabel}>`; per-slide `role="group" aria-roledescription="slide" aria-label="N of M"`; nav buttons disabled when `loop=false` and at the end; indicator buttons get `aria-current={isActive ? "true" : undefined}`.
 - **RTL support** — Embla's native `direction: "rtl"` flag; chevron icons flip via `rtl:rotate-180`.
 
-## Out of scope (v0.2 candidates)
+## Out of scope (candidates, not scheduled)
 
 - **`feature-strip` variant** — the third variant from the analysis was deferred since no concrete consumer exists in the 8-component scope (engagement-bar's likers-preview is a slot pattern; story-rail uses raw Embla). Add when a third consumer surfaces.
 - **Drag-to-dismiss / swipe-down** — Embla handles horizontal drag natively; vertical swipe-to-dismiss is a story-viewer concern, not carousel.
