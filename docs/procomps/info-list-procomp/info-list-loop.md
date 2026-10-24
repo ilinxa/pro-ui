@@ -5,17 +5,17 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive props; label constant renamed with an alias) |
-| **Current stage** | U1 — change contract written; awaiting the user's sign-off (generic-set batch) |
+| **Current stage** | U2 — implementing (generic-set wave; release order share-bar → people-grid / info-list / empty-state → category-cloud) |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.2.0 → **v0.3.0** |
 | **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finder: 1 × Sonnet 5 (fresh, browser) |
-| **Started / updated** | 2026-10-24 / 2026-10-24 |
+| **Started / updated** | 2026-10-24 / 2026-10-25 |
 
 ## Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — **sign-off:** pending
-- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship (ask before push)
+- [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
+- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
 
 Source: request §4.8 IL1 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:791-806`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:149`).

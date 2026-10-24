@@ -217,6 +217,31 @@ describe("the contract kit fails broken components", () => {
     await expect(check({ ignoreLabels: true }, /labels override/).run()).rejects.toThrow();
   });
 
+  it("a not-applicable check is skipped and carries its reason", () => {
+    const checks = contractChecks({
+      ...spec({}),
+      labels: { notApplicable: "renders no strings" },
+      controlled: { notApplicable: "holds no state" },
+      keyboard: { notApplicable: "nothing focusable" },
+    });
+    const skipped = checks.filter((c) => c.skip);
+    expect(skipped.map((c) => c.name)).toEqual([
+      "applies a labels override — not applicable: renders no strings",
+      "re-renders when the controlled prop changes — not applicable: holds no state",
+      "supports the keyboard path — not applicable: nothing focusable",
+    ]);
+    expect(checks.some((c) => /requested change/.test(c.name))).toBe(false);
+    expect(checks.filter((c) => !c.skip).map((c) => c.name)).toEqual([
+      "renders",
+      "renders right-to-left without axe violations",
+      "has no axe violations",
+    ]);
+  });
+
+  it("a not-applicable check without a reason is rejected", () => {
+    expect(() => contractChecks({ ...spec({}), labels: { notApplicable: " " } })).toThrow(/non-empty reason/);
+  });
+
   it("an unnamed control fails the axe checks", async () => {
     await expect(check({ unlabelled: true }, /has no axe violations/).run()).rejects.toThrow(/button-name/);
     await expect(check({ unlabelled: true }, /right-to-left/).run()).rejects.toThrow(/button-name/);
