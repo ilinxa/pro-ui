@@ -25,15 +25,23 @@ Built ad-hoc across kasder (`PostContent.tsx`) and likely repeated in any feed-s
 - **Render slot for the trigger** — `renderToggle?: (state: { isExpanded; setExpanded }) => ReactNode` for hosts wanting a custom trigger (e.g. a chevron-icon button instead of plain text). Default is the small text button.
 - **a11y** — toggle is a real `<button>` with `aria-expanded={isExpanded}` and `aria-controls={contentId}` (id from `useId`); content `<p>` carries `id={contentId}`. Reduced-motion respected for any future expand/collapse transition.
 
+## In scope since v0.3.0 (social-platform hardening, request §4.4 ET1–ET2)
+
+Contract + consistency review: [`expandable-text-loop.md`](./expandable-text-loop.md).
+
+- **Rich children** — `children` (the host's own safe link / mention renderer) inside the clamp, in a `<div>`; re-measured by a MutationObserver and `measureKey`.
+- **`dir`** (default `"auto"`) — bidi isolation per body.
+- **Clamped from the first paint**; keyboard focus onto hidden text expands it; labels merge keeps defaults; `line-height: normal` measured.
+
 ## Out of scope
 
-- **Rich text** — this is plain-string content only. For HTML / Plate JSON / Markdown bodies, consumers use `rich-text-editor` (which has its own viewer). `expandable-text` is for the simple "expand a paragraph" case.
+- **Document formats** — HTML / Plate JSON / Markdown bodies go to `rich-text-editor` (which has its own viewer). `children` is for the host's own components, not raw HTML.
 - **Per-character / per-word truncation** — line-based only. Word-truncation with ellipsis mid-word is a different UX (typically used in single-line table cells, not multi-line text blocks).
 - **Auto-collapse on click outside** — one-shot expand; user collapses by clicking the toggle.
 - **Read-more navigation to a detail page** — that's a host concern (link styling, routing). The toggle here only controls inline expansion.
-- **Animated height transition on expand** — `expanded ? "visible" : "hidden"` swap is instant. Adding a smooth height animation requires either measuring the unclamped height (extra render pass) or using `interpolate-size: allow-keywords` (limited browser support). a possible future addition if real demand surfaces.
+- **Animated height transition on expand** — `expanded ? "visible" : "hidden"` swap is instant. Adding a smooth height animation requires either measuring the unclamped height (extra render pass) or using `interpolate-size: allow-keywords` (limited browser support). Not implemented.
 - **Show-more inside an inline-flow container** — the toggle renders as a block button under the text. Inline "...more" continuation (Twitter style) is out of scope.
-- **Markdown link / mention / hashtag rendering** — pure text. If consumers want auto-linkification, they preprocess `content` themselves or use `rich-text-editor`.
+- **Link / mention / hashtag detection** — the component renders what it is given; the host turns text into links and passes them as `children`.
 
 ## Target consumers
 
@@ -165,7 +173,7 @@ export { meta } from "./meta";
 4. **Inline `style` for `WebkitLineClamp` vs Tailwind `line-clamp-N` class lookup?** Inline `style` because `maxLines` is dynamic. Tailwind generates static classes only.
 5. **Re-measure on window resize?** Yes — line-height can change with responsive font scaling. Add a `ResizeObserver` on the content element, debounced. Cheap. Lock in plan.
 6. **Default `maxLines` value?** 3 (matches kasder). Could argue for 4 for comments. Plan-stage decision.
-7. **Should `content` accept `ReactNode` instead of `string`?** No — measurement requires a stable text node. Rich content is `rich-text-editor`'s job. Lock to `string`.
+7. **Should `content` accept `ReactNode` instead of `string`?** No (v0.1) — revised in v0.3.0: `content` stays a string and rich content goes in `children` (the measurement works on any children).
 8. **Component category?** `data` (matches sibling primitives like `progress-timeline`, `info-list`, `schedule-list`).
 
 ---

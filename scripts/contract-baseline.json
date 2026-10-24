@@ -4,7 +4,8 @@
     "app-sidebar",
     "engagement-bar",
     "media-carousel",
-    "video-player"
+    "video-player",
+    "expandable-text"
   ],
   "rules": {
     "palette": {

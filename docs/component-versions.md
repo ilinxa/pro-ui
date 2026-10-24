@@ -41,7 +41,7 @@
 | `engagement-bar` | Engagement Bar | 0.5.0 | alpha | 2026-10-24 |
 | `event-calendar` | Event Calendar | 0.5.2 | alpha | 2026-10-24 |
 | `event-card` | Event Card | 0.2.1 | alpha | 2026-10-24 |
-| `expandable-text` | Expandable Text | 0.2.0 | alpha | 2026-08-11 |
+| `expandable-text` | Expandable Text | 0.3.0 | alpha | 2026-10-24 |
 | `flow-canvas` | Flow Canvas | 0.3.1 | alpha | 2026-10-24 |
 | `gantt-timeline` | Gantt Timeline | 0.7.2 | alpha | 2026-10-24 |
 | `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |

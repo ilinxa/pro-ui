@@ -70,7 +70,7 @@ Files land relative to the consumer's source root: `components/<slug>/<sub-path>
 - `@ilinxa/event-calendar` — Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard support, and keyboard navigation.
   ↳ optional slice: `@ilinxa/event-calendar-editing` — Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated actions for the event calendar.
 - `@ilinxa/event-card` — Event preview card with six status states and four layouts — capacity-aware badges, overlay links, and soft-failure item handling.
-- `@ilinxa/expandable-text` — Truncating text block that only shows its toggle when text actually overflows — configurable line clamp, controlled or uncontrolled.
+- `@ilinxa/expandable-text` — Truncating text block — plain or rich children — that shows its toggle only when text overflows; configurable clamp, bidi-safe, controlled or uncontrolled.
 - `@ilinxa/flow-canvas` — Node-and-edge canvas with typed ports, pluggable node renderers, edge and port-type registries, and JSON save and load — built on React Flow.
 - `@ilinxa/gantt-timeline` — Editable Gantt timeline — per-task bars, collapsible summary rows, milestone diamonds, continuous zoom from hours to quarters, and a today line.
 - `@ilinxa/info-list` — Card-framed list of icon-prefixed rows — primary and secondary text, optional actions, per-row links, comfortable and compact variants.

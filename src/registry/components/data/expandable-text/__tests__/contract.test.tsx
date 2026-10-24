@@ -11,6 +11,7 @@ import { ExpandableText } from "../expandable-text";
 import { describeContract, mockLayout, mockResizeObserver } from "../../../../../../tests/helpers";
 
 const LONG = "Ahmet paylaştı: bugün kampüste uzun bir yürüyüş yaptık ve çok güzel fotoğraflar çektik.";
+const AR = "شارك أحمد: قمنا اليوم بنزهة طويلة في الحرم الجامعي والتقطنا صوراً جميلة جداً.";
 const toggle = (s: typeof import("@testing-library/react").screen) => s.getByRole("button");
 
 describeContract("ExpandableText", {
@@ -41,8 +42,12 @@ describeContract("ExpandableText", {
     request: (user, s) => user.click(toggle(s)),
   },
   rtl: {
-    props: { content: "شارك أحمد: قمنا اليوم بنزهة طويلة في الحرم الجامعي والتقطنا صوراً جميلة جداً." },
-    expect: (s) => expect(toggle(s)).toBeInTheDocument(),
+    props: { content: AR },
+    // ET2: the text is bidi-isolated (an Arabic body in an LTR feed starts at the right), and the toggle still works.
+    expect: (s) => {
+      expect(s.getByText(AR)).toHaveAttribute("dir", "auto");
+      expect(toggle(s)).toHaveAttribute("aria-expanded", "false");
+    },
   },
   keyboard: {
     run: async (user) => {

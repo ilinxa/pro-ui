@@ -2,6 +2,8 @@
 
 > Stage 2: how. The implementation contract.
 >
+> **v0.3.0 delta (2026-10-24):** the API below is the v0.1 contract; the v0.3.0 contract (`children`, `measureKey`, `dir`, pre-measure clamp, keyboard-focus expand, labels merge, `line-height: normal`) and its consistency review are in [`expandable-text-loop.md`](./expandable-text-loop.md). Q-P7 is revised; the other locks hold.
+>
 > See [`expandable-text-procomp-description.md`](./expandable-text-procomp-description.md) for the what & why.
 >
 > Migration origin: [`docs/migrations/social-posts-system/`](../../migrations/social-posts-system/) — kasder `PostContent.tsx` (55 LOC).
@@ -16,7 +18,7 @@
 | Q-P4 | Inline `style` for `WebkitLineClamp` vs Tailwind `line-clamp-N` class? | **Inline `style`** — Tailwind generates static classes only; we need a dynamic `maxLines` prop. |
 | Q-P5 | Re-measure on resize? | **Yes — `ResizeObserver`** on the content element. Line-height can change with responsive scaling. Observer fires async; no oscillation since clamp doesn't change scrollHeight. |
 | Q-P6 | Default `maxLines` value? | **3** (matches kasder; sensible feed default). |
-| Q-P7 | `content` accepts `ReactNode`? | **No — `string` only.** Measurement requires a stable text node. Rich content is `rich-text-editor`'s job. |
+| Q-P7 | `content` accepts `ReactNode`? | ~~No — `string` only.~~ **Revised in v0.3.0** (consumer request ET1; the digest refuted the reason — the hook measures the element's `scrollHeight`, which works for any children): `content` stays plain text; rich content goes in `children` (rendered in a `<div>`), re-measured by a MutationObserver + `measureKey`. |
 | Q-P8 | Component category? | **`data`** (matches sibling primitives `progress-timeline`, `info-list`, `schedule-list`). |
 | Q-P9 | Always apply `display: -webkit-box` or only when clamping? | **Always** — matches kasder. Toggle `WebkitLineClamp` between `maxLines` and `"unset"`. Verified: `scrollHeight` reflects natural content height even when `-webkit-box` clamp is applied; no flash-of-untruncated-content. |
 | Q-P10 | When `content` is empty/null? | **Render nothing** (no `<p>` shell, no toggle). Caller's responsibility to conditionally render the component if they want an empty state. |
@@ -477,7 +479,7 @@ The first server render has `isTruncated: false` (no DOM, no measurement). Clien
 
 **Mitigation:** acceptable for v0.1 — matches kasder's existing behavior; the toggle pop-in is small and at the end of the text. Consumers wanting zero-flash SSR can apply Tailwind's static `line-clamp-3` themselves (no toggle) and live with always-clamped content.
 
-**v0.2 candidate:** server-side truncation estimate via character count heuristic (e.g., assume ~50 chars/line for default styling) — gives an SSR-time guess; client refines on hydration.
+**Resolved in v0.3.0** differently: the text is clamped until the first measurement, so the server paint is already clamped (no flash); only the toggle waits for the client.
 
 ### Risk 2: ResizeObserver in older browsers
 
@@ -500,7 +502,7 @@ Our inline `style={{ display: "-webkit-box", ... }}` wins over Tailwind class be
 1. **Pure CSS `line-clamp-N` without measurement** — rejected. The whole point is the toggle should NOT render when content fits. CSS-only loses that signal.
 2. **JS string truncation by character count** — rejected. Doesn't account for font, width, or line-wrapping. Causes "show more" on already-fitting content and vice versa.
 3. **Always-render toggle, let user click to expand even when no overflow** — rejected. Bad UX (button does nothing).
-4. **Animated height transition on expand** — deferred to v0.2. Requires either measuring unclamped height (extra render pass) or `interpolate-size: allow-keywords` (limited browser support).
+4. **Animated height transition on expand** — not implemented. Requires either measuring unclamped height (extra render pass) or `interpolate-size: allow-keywords` (limited browser support).
 5. **Detect via `MutationObserver`** — overkill. Content changes flow through React → hook's useEffect dep covers them. ResizeObserver covers layout-driven cases. MutationObserver would catch DOM mutations from outside React (rare here).
 6. **Hide toggle behind `hover` reveal** — rejected. Mobile users would have no way to discover it.
 
@@ -535,10 +537,6 @@ Our inline `style={{ display: "-webkit-box", ... }}` wins over Tailwind class be
 
 Smallest pro-comp in the social-posts-system arc. Sets the cadence + establishes the labels-object + controlled-or-uncontrolled patterns for the next 7 components.
 
-## Open follow-ups (post v0.1)
+## Open follow-ups
 
-- v0.2: animated height transition on expand/collapse — gated on `interpolate-size: allow-keywords` browser support OR a measure-and-set-height approach
-- v0.2: server-side truncation estimate via character heuristic for zero-flash SSR
-- v0.2: `inline` mode — `<span>` with inline "...more" continuation instead of block toggle below
-- v0.2: `expandSnap` prop — when expanded, scroll the toggle into view (avoid jumping the page when collapsed deep)
-- v0.3: optional rich-content escape hatch via `<ExpandableText><CustomChildren /></ExpandableText>` — but this likely lives in a separate `expandable-block-01` since measurement gets harder with arbitrary children
+Not implemented, no version promised: animated height transition on expand / collapse; an inline `<span>` `…more` continuation; an `expandSnap` prop. The rich-content escape hatch landed in v0.3.0 as `children` (not a separate component).

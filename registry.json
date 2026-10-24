@@ -2844,7 +2844,7 @@
       "name": "expandable-text",
       "type": "registry:block",
       "title": "Expandable Text",
-      "description": "Truncating text block that only shows its toggle when text actually overflows — configurable line clamp, controlled or uncontrolled.",
+      "description": "Truncating text block — plain or rich children — that shows its toggle only when text overflows; configurable clamp, bidi-safe, controlled or uncontrolled.",
       "author": "ilinxa",
       "categories": [
         "data"
@@ -2874,7 +2874,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },
@@ -2900,7 +2900,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },

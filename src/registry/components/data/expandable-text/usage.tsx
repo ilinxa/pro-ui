@@ -10,9 +10,54 @@ export default function ExpandableTextUsage() {
         <code>scrollHeight</code> against{" "}
         <code>lineHeight × maxLines</code> after mount and on resize, so the
         &quot;show more&quot; toggle <strong>only appears when content actually
-        exceeds the budget</strong>. For HTML / Plate JSON / Markdown bodies,
-        use <code>rich-text-editor</code> instead.
+        exceeds the budget</strong>. Links and mentions go in as{" "}
+        <code>children</code> (your own safe renderer). For editing or HTML /
+        Plate JSON / Markdown documents, use <code>rich-text-editor</code>.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Rich children (links, mentions)</h3>
+      <p className="text-muted-foreground">
+        <code>children</code> wins over <code>content</code> and renders in a{" "}
+        <code>&lt;div&gt;</code>, so block children are valid. Changes inside it
+        are re-measured automatically (MutationObserver); pass{" "}
+        <code>measureKey</code> for a change that alters no DOM (a web font
+        finishing loading). Keyboard focus moving onto a link below the clamp
+        expands the text (controlled: <code>onExpandedChange(true)</code>), so
+        focus never lands on hidden text.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<ExpandableText maxLines={3} measureKey={post.updatedAt}>
+  <MentionText content={post.content} mentions={post.mentions} />
+</ExpandableText>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Direction</h3>
+      <p className="text-muted-foreground">
+        The text element has <code>dir=&quot;auto&quot;</code> by default, so an
+        Arabic post in an LTR feed starts at the right. Pass{" "}
+        <code>dir=&quot;ltr&quot;</code> / <code>&quot;rtl&quot;</code> to force one.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Upgrading to 0.3.0</h3>
+      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <li>
+          The text is clamped from the first paint (the server cannot measure),
+          so there is no full-text flash and layout shift on hydration; the
+          toggle still appears only when the text is truncated.
+        </li>
+        <li>
+          <code>dir=&quot;auto&quot;</code> on the text element (was none).
+        </li>
+        <li>
+          <code>content</code> is optional; nothing renders only when there is
+          neither content nor children.
+        </li>
+        <li>
+          <code>DEFAULT_EXPANDABLE_TEXT_LABELS</code> →{" "}
+          <code>defaultExpandableTextLabels</code> (alias kept); an{" "}
+          <code>undefined</code> label keeps its default.
+        </li>
+      </ul>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
@@ -115,10 +160,9 @@ function MyTextBlock({ text }: { text: string }) {
       <h3 className="mb-2 mt-6 text-base font-semibold">Anti-patterns</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>
-          <strong>Don&apos;t pass <code>ReactNode</code></strong> as{" "}
-          <code>content</code> — measurement requires a stable text node. Use{" "}
-          <code>rich-text-editor</code> for rich content (Markdown / Plate JSON
-          / HTML).
+          <strong>Don&apos;t pass untrusted HTML</strong> as children — render
+          links / mentions with your own safe components. Use{" "}
+          <code>rich-text-editor</code> for Markdown / Plate JSON / HTML documents.
         </li>
         <li>
           <strong>Don&apos;t expect auto-collapse on click outside</strong> —

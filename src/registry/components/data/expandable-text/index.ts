@@ -6,11 +6,10 @@ export type {
   ExpandableTextToggleRenderProps,
 } from "./types";
 
-export { DEFAULT_EXPANDABLE_TEXT_LABELS } from "./types";
+export { DEFAULT_EXPANDABLE_TEXT_LABELS, defaultExpandableTextLabels } from "./types";
 
 export {
   useLineClampDetect,
   type UseLineClampDetectOptions,
   type UseLineClampDetectResult,
 } from "./hooks/use-line-clamp-detect";
-

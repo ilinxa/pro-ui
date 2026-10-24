@@ -144,7 +144,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `engagement-bar` | data | Social action row — like, comment, share, bookmark, custom actions, and a multi-reaction picker with realtime counts an… |
 | `event-calendar` | data | Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard s…<br>↳ optional slice: `event-calendar-editing` — Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated acti… |
 | `event-card` | data | Event preview card with six status states and four layouts — capacity-aware badges, overlay links, and soft-failure ite… |
-| `expandable-text` | data | Truncating text block that only shows its toggle when text actually overflows — configurable line clamp, controlled or… |
+| `expandable-text` | data | Truncating text block — plain or rich children — that shows its toggle only when text overflows; configurable clamp, bi… |
 | `flow-canvas` | data | Node-and-edge canvas with typed ports, pluggable node renderers, edge and port-type registries, and JSON save and load… |
 | `gantt-timeline` | data | Editable Gantt timeline — per-task bars, collapsible summary rows, milestone diamonds, continuous zoom from hours to qu… |
 | `info-list` | data | Card-framed list of icon-prefixed rows — primary and secondary text, optional actions, per-row links, comfortable and c… |
