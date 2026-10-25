@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive link mode, `labels`, `locale`) |
-| **Current stage** | U7 — shipping (release 3 of the generic set) |
+| **Current stage** | **Closed** — 0.3.0 shipped (`ca088f2`) and verified live 2026-10-25 |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.2.0 → **v0.3.0** |
 | **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finders: 2 × Sonnet 5 (fresh — code on a frozen snapshot; Chromium) |
@@ -15,7 +15,7 @@
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
-- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [x] U7 Ship (pushed after a final consistency review; live-verified)
 
 Source: request §4.10 CCL1–CCL2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:824-847`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:152-153`).
@@ -115,3 +115,13 @@ tests re-run after the rebuild: 2 files / 32 passed) · category-cloud 30 · `ne
 
 Docs current; CHANGELOG; `docs/component-versions.md` regenerated. GATE 3:
 [`reviews/2026-10-25-v0.3.0-hardening.md`](reviews/2026-10-25-v0.3.0-hardening.md) — **Pass with follow-ups**.
+
+## U7 — Ship
+
+Final consistency review before push (user's condition): 0.3.0 in `meta.ts`, `registry.json`, base + fixtures
+`public/r`, `docs/component-versions.md`, CHANGELOG, STATUS; roster 5 = folder; review counts checked against the test
+files (CCL1 ×8, CCL2 ×6, 30 total); `meta.ts` features match the code (group-name line corrected); source map
+regenerated after the demo fix; `validate:doc-drift` + `validate:inert-surfaces` clean. Commit `ca088f2`, pushed.
+**Live 04:58:** `https://ui.ilinxa.com/r/category-cloud.json` 0.3.0, 5 files, with the U4 fixes in the served source
+(modified-click guard, string-only `href`, `-0`, content-deduped warnings, `\u0000` key separator as escape text — no
+raw NUL); fixtures 0.3.0; detail page 200. Report-back: `.claude/report-back-2026-10-25-category-cloud.md`.
