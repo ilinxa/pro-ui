@@ -20,7 +20,7 @@
 1. **`stories` prop is mount-only initial state.** Subsequent prop reference changes are IGNORED. Use `ref.current.reset(next)` or `dispatch(action)` to push external updates.
 2. **Cursor resets when `(initialStoryIndex, isOpen)` pair changes.** Re-opening with the same `initialStoryIndex` still goes back to item 0. Mid-view nav is preserved.
 3. **`onStoryViewed` is forward-only.** Backward navigation does NOT mark stories viewed (matches Instagram).
-4. **Click-outside / Escape close via Radix Dialog.** No bespoke modal logic; Radix handles focus trap + portal + escape natively.
+4. **Escape and an outside press close the top layer first.** With a sheet, the actions menu, the viewers list or the link drawer open, Escape (or a press outside the dialog) closes only that layer; with none open it closes the viewer. The dialog (Radix or Base UI) handles the focus trap, portal and Escape; the viewer routes its `onOpenChange` (0.5.4).
 5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
 6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
 
@@ -37,6 +37,10 @@ For fixtures (sandbox demos):
 ```bash
 pnpm dlx shadcn@latest add @ilinxa/story-viewer-fixtures
 ```
+
+The fixtures item brings the component with it. On shadcn CLI 3.8.x, add the fixtures item on its own (or both items in
+one command): adding it *after* the component makes 3.8.x ask about overwriting an identical `story-viewer.tsx`, and a
+non-interactive add then writes nothing while exiting 0. CLI 4.x is not affected.
 
 ## Minimal usage
 
@@ -155,7 +159,10 @@ Common patterns:
 
 - **Accumulator-based timer:** the timer tracks `accumulatedMs` across pause/resume cycles, so users can pause for arbitrary durations without losing playback position. Kasder's naive `Date.now() - startTime` re-anchors silently on every pause/resume, which is why kasder's pause "advances" ~50ms per cycle.
 - **Item duration resolution:** `currentItem.duration` (explicit) → video metadata (from video-player's `onLoadedMetadata`) → `defaultItemDuration` (default 5s) — image fallback. Non-video custom items via `renderItem` MUST set `item.duration` explicitly.
-- **Auto-advance source:** progress hits 100% → fires `onItemViewed` then advances. Video items also fire `onEnded` from `<video>` as a parallel completion source (some browsers fire `ended` slightly before progress reaches 100%; the timer's single-fire guard ignores duplicates).
+- **Auto-advance source:** progress hits 100% → fires `onItemViewed` then advances. Timer completion and a video's `ended` share one guard, so an item advances exactly once.
+- **Ready gate (0.5.4):** progress starts only when the item is ready — an image's `load` (or `error`, or already cached), a video's playback, or immediately for a custom `renderItem` frame. A video blocked from autoplay waits at 0 (the user can still tap to the next item).
+- **Video progress (0.5.4):** a video without an explicit `duration` follows its own playback time (`currentTime / duration`) and completes on `ended`; a video whose duration is unknown or infinite (a live stream) or that errors falls back to the timer. Revisiting an item or reopening the viewer starts its bar again.
+- **Testing with jsdom:** jsdom never loads images, so a test that expects an image story to advance must fire `load` on the `<img>` (`fireEvent.load(img)`) or stub `HTMLImageElement.prototype.complete` to `true` (restore it afterwards).
 
 ## Custom item rendering
 
@@ -206,11 +213,12 @@ const TR_LABELS: StoryViewerLabels = {
 
 ## Accessibility
 
-- Modal is `<Dialog>` (Radix) with `<DialogTitle>` (sr-only) using `labels.viewerLabel`. Free focus trap + portal + Escape + backdrop click.
+- Modal is `<Dialog>` (Radix or Base UI) with `<DialogTitle>` (sr-only) using `labels.viewerLabel`. Focus trap + portal; Escape / backdrop press close the top layer first (see the mental model).
+- Layers (0.5.4): an open sheet or the actions menu contains focus — everything behind it is `inert` — and closed sheets can't be tabbed into. Every layer returns focus to the control that opened it. Opening any layer pauses the story; closing the last one restores the paused state from before it opened.
 - Per-segment progress bar has `role="progressbar"` + `aria-valuemin/max/now` so screen readers announce.
 - Each control button has `aria-label` from the `labels` prop. Mute toggle adds `aria-pressed={isMuted}`.
 - Tap zones are `aria-hidden="true"` with `tabIndex={-1}` (touch affordance only — keyboard users use arrow keys instead).
-- Keyboard: ArrowLeft (prev item), ArrowRight (next item), Space (toggle pause; `preventDefault` to stop page scroll), Escape (close — handled by Radix). The window listener ignores events from editable targets (input / textarea / select / contentEditable / `[role="textbox"]` / anything inside `[data-keyboard-ignore]`) and IME composition, and leaves Space on a focused button/link to that element (no pause toggle).
+- Keyboard: ArrowLeft (prev item), ArrowRight (next item), Space (toggle pause; `preventDefault` to stop page scroll), Escape (closes the top layer, else the viewer). While any layer is open the arrow keys and Space don't act on the story. The window listener ignores events from editable targets (input / textarea / select / contentEditable / `[role="textbox"]` / anything inside `[data-keyboard-ignore]`) and IME composition, and leaves Space on a focused button/link to that element (no pause toggle).
 - Pause / mute icons swap via state, not just color — color-blind safe.
 
 ## Composition example: feed + rail + viewer
@@ -414,6 +422,12 @@ Hold anywhere on the viewer past `longPressThresholdMs` (default 200ms — the
 Instagram-feel) to pause; release to resume. Short taps continue to flow
 through the tap zones unchanged, so v0.1 middle-tap-pause keeps working as the
 desktop fallback (Q-V8 lock).
+
+0.5.4: releasing a long press no longer also taps the zone under it. Swipe and
+long-press ignore pointers that start on form controls, links and buttons other
+than the tap zones, inside an open layer, or on `[data-no-swipe]`. Buttons in a
+custom `renderTapZones` slot need `data-story-tapzone` to keep swipe and
+long-press. A tap outside the link drawer or the viewers list only dismisses it.
 
 ### `StoryItem.link` CTA
 

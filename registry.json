@@ -3838,6 +3838,11 @@
           "target": "components/story-viewer/lib/kebab.ts"
         },
         {
+          "path": "src/registry/components/media/story-viewer/lib/focus-wrap.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/lib/focus-wrap.ts"
+        },
+        {
           "path": "src/registry/components/media/story-viewer/lib/is-editable-target.ts",
           "type": "registry:component",
           "target": "components/story-viewer/lib/is-editable-target.ts"
@@ -3884,7 +3889,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.3",
+        "version": "0.5.4",
         "status": "alpha"
       }
     },
@@ -3910,7 +3915,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.3",
+        "version": "0.5.4",
         "status": "alpha"
       }
     },

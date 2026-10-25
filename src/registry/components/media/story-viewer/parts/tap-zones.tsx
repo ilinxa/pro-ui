@@ -34,6 +34,7 @@ export function TapZones({ onPrev, onTogglePause, onNext }: TapZonesProps) {
         }}
         onMouseDown={preventFocusOnPress}
         tabIndex={-1}
+        data-story-tapzone=""
       />
       <button
         type="button"
@@ -44,6 +45,7 @@ export function TapZones({ onPrev, onTogglePause, onNext }: TapZonesProps) {
         }}
         onMouseDown={preventFocusOnPress}
         tabIndex={-1}
+        data-story-tapzone=""
       />
       <button
         type="button"
@@ -54,6 +56,7 @@ export function TapZones({ onPrev, onTogglePause, onNext }: TapZonesProps) {
         }}
         onMouseDown={preventFocusOnPress}
         tabIndex={-1}
+        data-story-tapzone=""
       />
     </div>
   );

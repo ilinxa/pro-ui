@@ -105,6 +105,14 @@ export function useStoryProgress({
     }, tickMs);
 
     return () => {
+      // Bank the elapsed time before stopping: an `itemDurationMs` change
+      // mid-item (video metadata arriving) re-runs this effect, and without
+      // banking the elapsed time the bar would jump back to 0. Item changes /
+      // close reset the accumulator in the effects that run after this cleanup.
+      if (startTimeRef.current !== null) {
+        accumulatedRef.current += performance.now() - startTimeRef.current;
+        startTimeRef.current = null;
+      }
       if (intervalRef.current !== null) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;

@@ -1,10 +1,10 @@
 "use client";
 
-import { Fragment, memo } from "react";
-import { useGlobalKeydown } from "../hooks/use-global-keydown";
+import { Fragment, memo, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { wrapTabWithinLayer } from "../lib/focus-wrap";
 import type {
   ResolvedStoryViewer01Labels,
   StoryKebabMenuItem,
@@ -32,17 +32,33 @@ export interface KebabPanelProps {
  * Items honor `separatorBefore: true` for the moderator section visual break.
  * Destructive items get `text-destructive` styling.
  *
- * Closes on item click + on backdrop tap + on Escape (handled at parent via
- * onClose dispatch).
+ * Closes on item click + on backdrop tap. Escape is handled ONCE, by the root
+ * (the dialog's `onOpenChange` closes the top layer), so there is no listener here.
+ * Focus moves into the menu on open and returns to the opener on close.
  */
 function KebabPanelInner(props: KebabPanelProps) {
-  // Escape closes the panel when open (editable targets and IME composition are skipped).
-  useGlobalKeydown(
-    (e) => {
-      if (e.key === "Escape") props.onClose();
-    },
-    { enabled: props.open },
-  );
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const rendered = props.open && props.items.length > 0;
+
+  useEffect(() => {
+    if (rendered) {
+      const active = document.activeElement;
+      openerRef.current =
+        active instanceof HTMLElement && active !== document.body ? active : null;
+      const first = menuRef.current?.querySelector<HTMLElement>(
+        "[role=\"menuitem\"]:not(:disabled)",
+      );
+      (first ?? menuRef.current)?.focus({ preventScroll: true });
+      return;
+    }
+    const opener = openerRef.current;
+    openerRef.current = null;
+    if (opener && opener.isConnected) {
+      const active = document.activeElement;
+      if (!active || active === document.body) opener.focus({ preventScroll: true });
+    }
+  }, [rendered]);
 
   if (!props.open || props.items.length === 0) return null;
 
@@ -53,15 +69,20 @@ function KebabPanelInner(props: KebabPanelProps) {
         type="button"
         aria-hidden="true"
         tabIndex={-1}
+        data-story-layer="kebab"
         className="absolute inset-0 z-40 cursor-default bg-black/40"
         onClick={props.onClose}
       />
       {/* Action sheet — bottom-anchored. */}
       <div
+        ref={menuRef}
         role="menu"
+        data-story-layer="kebab"
+        tabIndex={-1}
+        onKeyDown={wrapTabWithinLayer}
         aria-label={props.labels.kebabAriaLabel}
         className={cn(
-          "absolute inset-x-0 bottom-0 z-50 max-h-[70%] overflow-y-auto rounded-t-2xl bg-card text-foreground shadow-2xl",
+          "absolute inset-x-0 bottom-0 z-50 max-h-[70%] outline-none overflow-y-auto rounded-t-2xl bg-card text-foreground shadow-2xl",
           props.className,
         )}
       >

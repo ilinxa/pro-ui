@@ -1,9 +1,10 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { wrapTabWithinLayer } from "../lib/focus-wrap";
 
 export interface BottomSheetProps {
   /** Whether the sheet is currently open. Drives translateY animation. */
@@ -43,10 +44,43 @@ export function BottomSheet({
   children,
   className,
 }: BottomSheetProps) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+
+  // Focus: on open, remember the opener and move focus into the sheet; on
+  // close, hand focus back to the opener (when it is still in the document and
+  // focus did not go somewhere meaningful). Restoration runs in the commit that
+  // CLOSES the sheet, after the root has lifted the `inert` it put on the rest.
+  useEffect(() => {
+    if (open) {
+      const active = document.activeElement;
+      openerRef.current =
+        active instanceof HTMLElement && active !== document.body ? active : null;
+      rootRef.current?.focus({ preventScroll: true });
+      return;
+    }
+    const opener = openerRef.current;
+    openerRef.current = null;
+    if (!opener || !opener.isConnected) return;
+    const active = document.activeElement;
+    if (!active || active === document.body || rootRef.current?.contains(active)) {
+      opener.focus({ preventScroll: true });
+    }
+  }, [open]);
+
   return (
     <div
+      ref={rootRef}
+      data-story-layer="sheet"
+      data-open={open ? "true" : "false"}
+      tabIndex={-1}
+      // A closed sheet is always mounted (draft state persists) — `inert` keeps
+      // its buttons out of the tab order and the accessibility tree.
+      inert={!open}
+      onKeyDown={open ? wrapTabWithinLayer : undefined}
       className={cn(
-        "absolute right-0 bottom-0 left-0 z-40 flex flex-col rounded-t-2xl bg-background text-foreground shadow-2xl transition-transform duration-300 ease-out",
+        "outline-none",
+        "absolute inset-x-0 bottom-0 z-40 flex flex-col rounded-t-2xl bg-background text-foreground shadow-2xl transition-transform duration-300 ease-out",
         open ? "translate-y-0 pointer-events-auto" : "translate-y-full pointer-events-none",
         className,
       )}

@@ -80,6 +80,9 @@ function EngagementOverlayInner(props: EngagementOverlayProps) {
         props.className,
       )}
       aria-hidden={expanded ? undefined : "true"}
+      // Collapsed, the rail is invisible and click-through; `inert` also keeps its
+      // buttons out of the tab order (focusable controls inside aria-hidden).
+      inert={!expanded}
     >
       {/* Structural-equivalence cast: StoryEngagementAction is an inline-copy
           of EngagementAction (F-S1 Bug 3 fix). TypeScript can't unify the

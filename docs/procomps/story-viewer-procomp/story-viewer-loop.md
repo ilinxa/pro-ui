@@ -121,7 +121,7 @@ _(architect)_
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — SV1 optional `src`, SV11 / SV17 handler signatures; 0.x minor) |
-| **Current stage** | U1 signed → pre-U2 scope review (release 1 = 0.5.4) |
+| **Current stage** | U7 — release 1 (0.5.4) shipping; 0.6.0 next (needs the user's go) |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.3 → **v0.6.0** (option: the bug fixes first as 0.5.4) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -232,3 +232,126 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 - The stale `swipeJustEndedRef` is also cleared on the next `pointerdown`. [R-07]
 - 0.5.4 is a **patch**: bug fixes + a regression test per fix. Contract closure (baseline rows, `closed`, `describeContract`, RTL demo, `--media-overlay` `cssVars.theme` mapping) lands with 0.6.0. [R-08]
 **0.6.0 additions:** the liked heart's `text-rose-400` → token; `viewerCount: number | null` (SV17); ship the `--media-overlay` mapping on this item; re-run this component's tests + smoke after comment-thread 0.4.0 (it imports `CommentComposer`). [R-09 / F-09 / F-11 / F-19]
+
+## U2 — Implement, release 1 = 0.5.4 (2026-10-25)
+
+User "go" on release 1 (2026-10-25). Class **patch** (no public-API touch). Scope = SV2, SV3, SV5 (minus reaction popover),
+SV6, SV8, SV9 as corrected by the pre-U2 scope review (R-01 … R-08).
+
+### Reproductions (written before fixing; U5 replays them)
+
+| # | Input | Today | Expected |
+|---|---|---|---|
+| P1 SV2 | image item whose `load` hasn't fired; advance 6 s | progress reaches 100 % and advances | progress stays 0 until `load`; then runs the full duration |
+| P2 SV2-neg | image `error`; or `img.complete` already true at mount; or a `renderItem` frame | — | counts as ready: timer runs (today's behaviour) |
+| P3 SV3 | video item, no explicit `duration`, metadata arrives at 3 s into playback | timer restarts → bar jumps back | bar follows `currentTime / duration`; never moves back |
+| P4 SV3 | video plays to `ended` while the timer also completes | `goToNextItem` twice → skips an item, `onItemViewed` ×2 | exactly one advance, one `onItemViewed` |
+| P5 SV5 | open kebab / owner list / link drawer | timer keeps running | paused while open; on close the pre-open paused state is restored |
+| P6 SV5 | host `ref.setPaused(true)`, open + close comments | closing resumes (overrides the host) | stays paused |
+| P7 SV6 | comments sheet open with a typed reply draft elsewhere; press Escape | whole viewer closes, draft lost | only the sheet closes; focus returns to the opener; second Escape closes the viewer |
+| P8 SV6 | kebab open; Escape | kebab listener + dialog both act → viewer closes | only the kebab closes |
+| P9 SV6 | sheet open; Tab ×N | focus can leave the sheet; closed sheets' buttons are tabbable | focus cycles inside the open sheet; closed sheets never receive focus |
+| P10 SV8 | long-press (≥ threshold) on the right tap zone, release | resumes **and** advances | resumes, stays on the item |
+| P11 SV9 | horizontal drag starting inside the reply input | swipes to the next author, captures the pointer | no swipe, no long-press pause |
+| P12 SV9 | swipe ends with the finger off the zone (no click follows); then click the right zone | that later click is swallowed | the click advances |
+
+### Slices
+
+| # | Slice | Owner | Files |
+|---|---|---|---|
+| 1 | SV2 + SV3 (ready gate, media-time progress, completed guard) | implementer A (Sonnet) | `hooks/use-story-progress.ts`, `parts/item-view.tsx`, the progress wiring + `onEnded` in `story-viewer.tsx` (≈ lines 270–292 and the `ItemView` props ≈ 1140–1160), new `__tests__/progress-0-5-4.test.tsx` |
+| 2 | SV5 + SV6 + SV8 + SV9 (layers, Escape, inert, gestures) | implementer B (Sonnet) | `story-viewer.tsx` (panel-pause effect, gesture handlers, `handleOpenChange`, layer state), `hooks/use-long-press-pause.ts`, `parts/bottom-sheet.tsx`, `parts/kebab-panel.tsx`, `parts/owner-overlay.tsx`, `parts/link-cta.tsx`, `parts/viewer-shell.tsx` (only if needed), new `__tests__/layers-gestures-0-5-4.test.tsx` |
+| 3 | version 0.5.4, CHANGELOG, guide notes, existing-test upkeep | architect | `meta.ts`, `CHANGELOG.md`, guide, `index.ts` stamp via build |
+
+### U2 results (2026-10-25)
+
+| Slice | Result | Evidence |
+|---|---|---|
+| 1 SV2 + SV3 | done (implementer A) | `__tests__/progress-0-5-4.test.tsx` 9 tests; falsified 6 fixes, all CAUGHT (the failing-video fallback test is a negative guard). jsdom: `img.complete` is false and `load` never fires, so `regressions-0-5-2` now stubs `HTMLImageElement.prototype.complete` (fixture only) |
+| 2 SV5 + SV6 + SV8 + SV9 | done (implementer B) | `__tests__/layers-gestures-0-5-4.test.tsx` 11 tests; 7 failed on the unfixed code; every fix falsified, all CAUGHT |
+| 3 coordinator | done | `meta.ts` 0.5.4; CHANGELOG bullet; architect additions below |
+
+Architect additions after the slices:
+- **Keyboard behind a layer:** focus now moves into an open layer, so Space / arrows there toggled or navigated the story behind it. `useStoryKeyboardNav` moved below the layer block and disabled while any layer is open. Test P8b; falsified (revert → 1 failed), restored.
+- The layers test file now stubs `complete` too — without it, P5's "progress didn't move" assertion passed vacuously (images never became ready).
+- `parts/bottom-sheet.tsx`: `right-0 … left-0` → `inset-x-0`.
+- Story-viewer files after the additions: 4 files, 38 tests passed.
+
+Known behaviour (documented in the CHANGELOG): a video blocked from autoplay waits at 0 instead of the timer running past it; tests that expect an image story to advance must fire `load` or stub `complete`; custom `renderTapZones` buttons need `data-story-tapzone`.
+
+Parked (from slice 2): stale `commentsOpen` / `shareOpen` / `kebabOpen` across a viewer close → reopen (pre-existing; layer effects are gated on `isOpen`); `ReplyComposer`'s own pause ref vs the layer restore when `onReply` finishes while a layer is open (needs the SV4 reason set, 0.6.0).
+
+## U4 — Adversarial review, release 1 (1 fresh Sonnet finder, code on a frozen snapshot)
+
+U3 first pass (stopped to take these fixes; re-run after): tsc 0 (24 s) · lint 0 (200 s) · registry:build 0 (55 s) ·
+doc-budget 0 · tests stopped mid-run (not a failure).
+
+| # | Finding | Verdict | Fix |
+|---|---|---|---|
+| U4-1 ⚠️ | media `{key, pct}` never reset → revisiting a half-watched video (or reopening) shows the old % and the never-backward guard blocks updates | CONFIRMED | reset on item entry + open transition; test |
+| U4-2 ⚠️ | non-finite / zero duration (live / HLS) keeps the item media-driven and the timer paused → frozen at 0 (0.5.3 advanced it) | CONFIRMED (regression) | timer fallback for that item; test |
+| U4-3 🔸 | dismissing the link drawer / viewers list with a tap also toggles pause or advances (the click lands on a tap zone after the outside-pointerdown close) | CONFIRMED | swallow the click after an outside-press dismiss; tests |
+| U4-4 🔸 | `<img>` keyed by item id, readiness by story:item → reused img across stories with shared item ids bypasses the gate; ready state not cleared on reopen | CONFIRMED | key img + VideoPlayer by story-qualified key; clear on `isOpen`; tests |
+| U4-5 🔸 | CHANGELOG claims focus return for every layer; viewers list / link drawer don't | CONFIRMED | add focus return to both; test |
+| U4-6 🔸 | coverage gaps: layer order, Escape on viewers list / link drawer, `inert` lifted on host close, restore on item change, revisit, non-finite duration | CONFIRMED | tests added with the fixes |
+| U4-7 🔹 | host `setPaused(true)` while a layer is open is overridden by the restore snapshot | ACCEPTED for 0.5.4 (SV4 reason set, 0.6.0) | documented |
+| U4-8 🔹 | siblings mounting while a sheet stays open aren't inert | ACCEPTED for 0.5.4 (0.6.0 layer work) | parked |
+| U4-9 🔹 | a video that fails mid-play falls back to a timer starting at 0 (bar jumps back) | fix if trivial | — |
+| U4-10 🔹 | long-press swallow flag lingers until the next pointerdown (touch holds often fire no click) | CONFIRMED | also clear after ~400 ms; test |
+
+U4 fixes landed (implementers A + B, each falsified — all CAUGHT): U4-1, U4-2, U4-4 (slice 1: progress tests 9 → 15);
+U4-3, U4-5, U4-6, U4-10 (slice 2: layer tests 11 → 23; also: closing the viewer resets every layer flag — fixes the
+parked stale-flag-on-reopen item). U4-9 skipped (needs a seed option on the exported progress hook — not in a patch).
+Architect: tsc caught two effects without a final `return` (TS7030) in `link-cta.tsx` / `owner-overlay.tsx` — fixed.
+Lesson: implementer briefs should include `pnpm tsc --noEmit` (24 s here), not only targeted vitest.
+
+## U3 — Gates, release 1 (after the U4 fixes)
+
+tsc 0 (5 s) · lint 0 errors / 13 warnings (baseline) · registry:build 0 (contract: no new violations; jsx-literal
+635 → 634) · doc-budget 0 · tests **1536 passed / 114 files** (5 skipped) · build 0 (63 s). Artifact
+`public/r/story-viewer.json` **230.76 KB / 240**, 30 files, `meta.version` 0.5.4, no `__tests__`, LF.
+
+## U5 — Runtime & smoke, release 1
+
+**Browser (fresh Sonnet finder, Chromium, production build on `next start -p 3200`):** every reachable 0.5.4 claim PASS —
+held image (3 s `page.route` delay) keeps the bar at 0 until it loads; a 404 image still advances; video bar monotonic
+(incl. a `NaN`-then-known duration); one advance per item; all 5 layers pause and restore (pre-paused and not); Escape
+closes only the top layer, draft kept, second Escape closes; focus returns to each opener; closed sheets never focused
+(40 Tabs); Space / ArrowRight inert behind a sheet; long-press release doesn't advance; drag from the reply input doesn't
+swipe; dismiss-tap only dismisses; light / dark × desktop / 390×844 without overflow; console clean (only its own 404s).
+
+| # | Finding | Verdict |
+|---|---|---|
+| B-1 🔸 | Tab past the last control of a sheet / the actions menu doesn't wrap (the dialog focus scope's first / last candidates ignore `inert`) | CONFIRMED → `lib/focus-wrap.ts` (`wrapTabWithinLayer`) on the sheet root and the menu; tests; falsified CAUGHT |
+| B-2 🔸 | viewers list: focus doesn't move in; chrome behind stays focusable | DROPPED for 0.5.4 — non-modal layer by design (no trap); focus return holds |
+| B-3 🔸 | link drawer: story controls behind stay focusable | DROPPED for 0.5.4 — non-modal, same as B-2 |
+| B-4 🔸 | collapsed reaction rail (`aria-hidden`, invisible, click-through) still takes Tab focus — pre-existing | CONFIRMED → `inert={!expanded}` on the rail; test (the first version was vacuous — matched a closed sheet — rewritten, now CAUGHT) |
+| B-5 🔹 | focus lands on `body` after the viewer closes in the demo (opened by state, not a trigger) | parked — host / demo concern |
+| B-6 🔹 | dark theme: reply pill nearly invisible on a bright photo — pre-existing | parked → 0.6.0 (tokens) |
+| B-7 🔹 | Space on a focused button inside a layer activates it | native behaviour, no change |
+
+New file `lib/focus-wrap.ts` added to `registry.json` (story-viewer files). Story-viewer + video-player dependents tests:
+5 files, 79 passed.
+
+**Installs (`pnpm test:install`, items story-viewer + story-viewer-fixtures):** CLI 4.18.0 all checks pass (base, then
+fixtures; consumer tsc 0). CLI 3.8.5: base alone passes (tsc 0); **fixtures added after the base writes nothing (exit 0)**
+— 3.8.5 asks about overwriting an identical `story-viewer.tsx` during the dependency re-resolve. **Pre-existing:**
+reproduced with a full 0.5.3 artifact built from git HEAD. A single-file item with either version's `story-viewer.tsx`
+re-adds as identical, and `--overwrite` rewrites it byte-identical, so only the full dependency re-resolve trips it.
+Workaround verified: `add @ilinxa/story-viewer-fixtures` alone on 3.8.5 → 0 prompts, all files incl. `lib/focus-wrap.ts`,
+consumer tsc 0. Guide Install section documents it; review follow-up F-01 (root cause, 0.6.0).
+
+## U6 — Docs & review, release 1
+
+Guide (mental model #4, progress notes incl. jsdom testing, accessibility, long-press / gestures, install note), `meta.ts`
+features (dialog / keyboard lines corrected, 0.5.4 line), CHANGELOG bullet, STATUS row + recent activity, decision
+`.claude/decisions/2026-10-25-story-viewer-v0-5-4.md`, review
+[`reviews/2026-10-25-v0.5.4-fixes.md`](reviews/2026-10-25-v0.5.4-fixes.md): **Pass with follow-ups** (5, all → 0.6.0).
+Final gates after the last edits: tsc 0 · lint 0 errors (13 baseline warnings) · registry:build 0 · build 0 · tests
+1539 / 114 files (battery) · story-viewer + dependents 79 / 5 files. Final consistency review: version 0.5.4 on meta /
+STATUS / component-versions / CHANGELOG / served artifact; roster = folder minus demo / usage / meta / dummy-data /
+`__tests__`; meta features and CHANGELOG claims match the code.
+
+## U7 — Ship, release 1
+
+Pushed under the user's Part 3 push grant (after the final consistency review). Live check: see below.

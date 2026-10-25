@@ -21,10 +21,22 @@ const story = (id: string, itemIds: string[]): Story => ({
   createdAt: "2026-01-01T00:00:00Z",
 });
 
-beforeEach(() => vi.useFakeTimers());
+// 0.5.4 ready gate: progress waits for the image to load. jsdom never loads
+// images (`complete` is false), so model already-loaded images here.
+const completeDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "complete");
+beforeEach(() => {
+  vi.useFakeTimers();
+  Object.defineProperty(HTMLImageElement.prototype, "complete", {
+    configurable: true,
+    get: () => true,
+  });
+});
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  if (completeDescriptor) {
+    Object.defineProperty(HTMLImageElement.prototype, "complete", completeDescriptor);
+  }
 });
 
 function mount(stories: Story[], extra: Record<string, unknown> = {}) {

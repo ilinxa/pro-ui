@@ -10,16 +10,17 @@ export const meta: ComponentMeta = {
   context:
     "Use anywhere stories appear — Instagram-style modal viewer over a feed. Pairs with story-rail which fires onItemClick({ item, index }); host opens <StoryViewer isOpen stories={...} initialStoryIndex={index} onClose={...} /> in response. The viewer's onStoryViewed(storyId) callback is what hosts wire back into railRef.current.markViewed(storyId) to clear the unread ring — viewer is fully decoupled from the rail. Image and video items both supported (video composes media/video-player). v0.4 ships pure-CSS 3D cube transitions + pointer-driven swipe (no framer-motion peer dep); the cube engages only during the animation window and the front face sits at the perspective plane (no scale-jump). The engagement overlay (v0.2) composes engagement-bar v0.3.x; the comments panel (v0.3) and share panel (v0.3.1) are bottom-sheet slots typically host-wired to CommentThread and ShareMenu. Migration origin: kasder kas-social-front-v0 StoryViewer.tsx.",
   features: [
+    "v0.5.4 — Progress waits until the item is ready (image load / error / cached, video playback, custom frames at once); videos without a `duration` follow playback time and fall back to the timer for unknown durations; one advance per item. Every layer pauses and restores the prior paused state; Escape closes only the top layer and keeps the reply draft; open sheets and the actions menu contain focus (inert background + Tab wrap) and every layer returns focus to its opener. Long-press release no longer taps; gestures ignore form controls, layers and `[data-no-swipe]`",
     "v0.5.2 — Removing the current item or group (`stories` delta / `reset` / `dispatch`) moves to the next item (or the next group's first item), restarts progress and never replays a ghost; removing the last remaining group closes the viewer. Global keydown ignores editable targets and IME composition, and leaves Space on a focused button to the button. `handle.triggerReply(content)` now pre-fills the reply composer",
     "v0.5.1 — `reactors` / `onLoadReactors` are marked @notImplemented and dev-warn; both were declared and never read",
-    "Radix Dialog modal — focus trap + portal + Escape + backdrop click free",
+    "Dialog modal (Radix or Base UI) — focus trap + portal; Escape and a backdrop press close the top layer (sheet, actions menu, viewers list, link drawer) first, then the viewer",
     "Mobile full-screen (h-dvh) / desktop centered portrait modal (md:h-175 md:w-100)",
     "Segmented progress bars (one per item; CSS `transition-[width]` fill; ARIA progressbar)",
     "Pause-preserving accumulator-based progress timer (fixes kasder's ~50ms drift per pause/resume)",
     "Item duration resolution: explicit `item.duration` → video metadata → default fallback",
     "Tap zones: left=prev item / middle=pause / right=next item (mobile + desktop)",
     "Desktop nav arrows: ← → between stories (story-level navigation)",
-    "Keyboard nav: ArrowLeft/Right (item nav) + Space (pause) + Escape (close)",
+    "Keyboard nav: ArrowLeft/Right (item nav) + Space (pause) + Escape (top layer, else close); arrows and Space stand down while a layer is open",
     "Header: avatar + username + relative time + pause/play + mute (video only) + close",
     "video-player composed for video items (cross-folder via registryDependencies)",
     "Subscribe<StoryViewerDelta> realtime contract: story-added / story-removed / item-added / item-removed / story-viewed",
@@ -71,11 +72,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["story-viewer", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.5.3",
+  version: "0.5.4",
   status: "alpha",
   artifactBudgetKB: 240,
   createdAt: "2026-05-03",
-  updatedAt: "2026-10-24",
+  updatedAt: "2026-10-25",
 
   author: { name: "ilinxa" },
 

@@ -5,9 +5,15 @@ export interface ProgressBarsProps {
   currentItemIndex: number;
   /** Current item progress percentage (0–100). */
   progress: number;
+  /**
+   * Media-driven progress (~4 Hz updates): ease the current bar's width so it
+   * doesn't visibly step. Applies to the current bar only, so the reset on an
+   * item change is never animated.
+   */
+  smooth?: boolean;
 }
 
-export function ProgressBars({ items, currentItemIndex, progress }: ProgressBarsProps) {
+export function ProgressBars({ items, currentItemIndex, progress, smooth = false }: ProgressBarsProps) {
   return (
     <div className="absolute left-0 right-0 top-0 z-20 flex gap-1 p-2">
       {items.map((item, idx) => {
@@ -27,7 +33,11 @@ export function ProgressBars({ items, currentItemIndex, progress }: ProgressBars
             aria-valuenow={Math.round(width)}
           >
             <div
-              className="h-full bg-white transition-[width] duration-100 ease-linear"
+              className={
+                smooth && idx === currentItemIndex
+                  ? "h-full bg-white transition-[width] duration-250 ease-linear"
+                  : "h-full bg-white transition-[width] duration-100 ease-linear"
+              }
               style={{ width: `${width}%` }}
             />
           </div>

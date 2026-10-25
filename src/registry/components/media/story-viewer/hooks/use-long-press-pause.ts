@@ -53,7 +53,12 @@ export function useLongPressPause(opts: UseLongPressPauseOptions) {
     }, longPressThresholdMs);
   }, [isOpen, longPressThresholdMs]);
 
-  const handlePointerUp = useCallback(() => {
+  /**
+   * Ends the press. Returns `true` when the release ended an ACTIVE long
+   * press (the pause had fired) — the caller swallows the click that the
+   * browser fires after that pointerup, so releasing never also taps a zone.
+   */
+  const handlePointerUp = useCallback((): boolean => {
     if (timerRef.current != null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -61,7 +66,9 @@ export function useLongPressPause(opts: UseLongPressPauseOptions) {
     if (isPressingRef.current) {
       isPressingRef.current = false;
       onResumeRef.current();
+      return true;
     }
+    return false;
   }, []);
 
   // Cleanup on unmount.

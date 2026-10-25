@@ -19,6 +19,13 @@ export interface LinkCtaProps {
   linkComponent?: ElementType;
   onLinkClick?: (storyId: string, itemId: string, url: string) => void;
   labels: ResolvedStoryViewer01Labels;
+  /**
+   * Internal (not exported from the barrel): lets the root own the drawer's
+   * open state so it counts as a layer (pauses the timer, closes on Escape).
+   * Uncontrolled when omitted.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -50,26 +57,51 @@ export interface LinkCtaProps {
  */
 export function LinkCta({
   item,
+  open,
+  onOpenChange,
   linkComponent: LinkComponent = "a",
   onLinkClick,
   labels,
   story,
 }: LinkCtaProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const expanded = open ?? localExpanded;
+  const setExpanded = (next: boolean | ((prev: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(expanded) : next;
+    setLocalExpanded(value);
+    onOpenChange?.(value);
+  };
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
 
-  // Outside-pointer-down collapses the drawer.
+  // Outside-pointer-down collapses the drawer; focus returns to the opener
+  // (the chip) when it closes by any route.
   useEffect(() => {
-    if (!expanded) return;
-    const handler = (e: PointerEvent) => {
-      const target = e.target as Node | null;
-      if (containerRef.current && target && !containerRef.current.contains(target)) {
-        setExpanded(false);
+    if (expanded) {
+      const active = document.activeElement;
+      openerRef.current =
+        active instanceof HTMLElement && active !== document.body ? active : null;
+      const handler = (e: PointerEvent) => {
+        const target = e.target as Node | null;
+        if (containerRef.current && target && !containerRef.current.contains(target)) {
+          setLocalExpanded(false);
+          onOpenChange?.(false);
+        }
+      };
+      document.addEventListener("pointerdown", handler);
+      return () => document.removeEventListener("pointerdown", handler);
+    }
+    const opener = openerRef.current;
+    openerRef.current = null;
+    if (opener && opener.isConnected) {
+      const active = document.activeElement;
+      if (!active || active === document.body || drawerRef.current?.contains(active)) {
+        opener.focus({ preventScroll: true });
       }
-    };
-    document.addEventListener("pointerdown", handler);
-    return () => document.removeEventListener("pointerdown", handler);
-  }, [expanded]);
+    }
+    return undefined;
+  }, [expanded, onOpenChange]);
 
   if (!item.link) return null;
   const isDefaultAnchor = LinkComponent === "a";
@@ -106,6 +138,7 @@ export function LinkCta({
   return (
     <div
       ref={containerRef}
+      data-story-layer="link"
       // ProgressBars sit at top z-20 + ViewerHeader at top z-20 with `top-4`.
       // Place the chip at `top-16` so it sits just under the header strip.
       className="pointer-events-auto absolute top-16 end-3 z-25 flex flex-col items-end gap-2"
@@ -138,6 +171,9 @@ export function LinkCta({
             : "pointer-events-none scale-95 opacity-0 -translate-y-2",
         )}
         aria-hidden={expanded ? undefined : "true"}
+        // Closed: out of the tab order and the accessibility tree.
+        inert={!expanded}
+        ref={drawerRef}
       >
         <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -22,6 +22,13 @@ export interface OwnerOverlayProps {
   onLoadViewers?: (storyId: string) => Promise<ViewerListItem[]>;
   labels: ResolvedStoryViewer01Labels;
   className?: string;
+  /**
+   * Internal (not exported from the barrel): lets the root own the viewers
+   * list's open state so it counts as a layer (pauses the timer, closes on
+   * Escape). Uncontrolled when omitted.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 function initials(name: string): string {
@@ -50,7 +57,16 @@ function initials(name: string): string {
  */
 function OwnerOverlayInner(props: OwnerOverlayProps) {
   const eagerCount = props.story.viewerCount ?? props.story.viewers?.length ?? 0;
-  const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = props.open ?? localOpen;
+  const { onOpenChange } = props;
+  const setOpen = useCallback(
+    (next: boolean) => {
+      setLocalOpen(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange],
+  );
   const [viewers, setViewers] = useState<ViewerListItem[]>(props.story.viewers ?? []);
   const [loading, setLoading] = useState(false);
   const [didFetch, setDidFetch] = useState(false);
@@ -63,7 +79,8 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
   const [prevStoryId, setPrevStoryId] = useState(props.story.id);
   if (prevStoryId !== props.story.id) {
     setPrevStoryId(props.story.id);
-    setOpen(false);
+    // The root closes a controlled list on the same cursor change.
+    setLocalOpen(false);
     setViewers(props.story.viewers ?? []);
     setDidFetch(false);
   }
@@ -86,7 +103,33 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
         setLoading(false);
       }
     }
-  }, [open, viewers.length, loading, didFetch, props.onLoadViewers, props.story.id]);
+  }, [open, setOpen, viewers.length, loading, didFetch, props.onLoadViewers, props.story.id]);
+
+  // A tap outside the list dismisses it (no backdrop); focus returns to the
+  // opener on close. The chip carries `data-story-layer` so tapping it only
+  // toggles (via its click), never dismisses-then-reopens.
+  const openerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (open) {
+      const active = document.activeElement;
+      openerRef.current =
+        active instanceof HTMLElement && active !== document.body ? active : null;
+      const onDown = (e: PointerEvent) => {
+        const target = e.target;
+        if (target instanceof Element && target.closest('[data-story-layer="viewers"]')) return;
+        setOpen(false);
+      };
+      document.addEventListener("pointerdown", onDown);
+      return () => document.removeEventListener("pointerdown", onDown);
+    }
+    const opener = openerRef.current;
+    openerRef.current = null;
+    if (opener && opener.isConnected) {
+      const active = document.activeElement;
+      if (!active || active === document.body) opener.focus({ preventScroll: true });
+    }
+    return undefined;
+  }, [open, setOpen]);
 
   const timeStr = props.labels.formatTime(new Date(props.story.createdAt));
   const ariaLabel = props.labels.viewerCountLabel(eagerCount, timeStr);
@@ -103,6 +146,7 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
       >
         <button
           type="button"
+          data-story-layer="viewers"
           onClick={handleToggle}
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
@@ -119,7 +163,7 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
 
       {/* Viewers panel — bottom-anchored sheet that slides up. */}
       {open ? (
-        <div className="absolute inset-x-0 bottom-0 z-40 max-h-[60%] overflow-hidden rounded-t-2xl bg-card text-foreground shadow-2xl">
+        <div data-story-layer="viewers" className="absolute inset-x-0 bottom-0 z-40 max-h-[60%] overflow-hidden rounded-t-2xl bg-card text-foreground shadow-2xl">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="text-sm font-semibold">{props.labels.viewersHeading}</h3>
             <button
