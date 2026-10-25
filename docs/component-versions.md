@@ -71,7 +71,7 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `category-cloud` | Category Cloud | 0.2.0 | alpha | 2026-08-11 |
+| `category-cloud` | Category Cloud | 0.3.0 | alpha | 2026-10-25 |
 | `entity-picker` | Entity Picker | 0.1.4 | alpha | 2026-10-24 |
 | `filter-bar` | Filter Bar | 0.2.1 | alpha | 2026-10-24 |
 | `filter-panel` | Filter Panel | 0.2.1 | alpha | 2026-08-18 |

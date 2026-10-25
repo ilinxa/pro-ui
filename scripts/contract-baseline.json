@@ -10,7 +10,8 @@
     "share-bar",
     "people-grid",
     "info-list",
-    "empty-state"
+    "empty-state",
+    "category-cloud"
   ],
   "rules": {
     "palette": {

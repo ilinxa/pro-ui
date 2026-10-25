@@ -37,31 +37,46 @@ const filteredItems = useMemo(
 </aside>
 ```
 
-### URL-state sync
+### URL-driven filters (link mode)
+
+Pass `getHref` and each chip becomes a real link (`<a>` by default, or your router's link via `linkComponent`). The chip matching `value` gets `aria-current="page"`; there is no `aria-pressed`. `onChange` still fires on click and the default navigation is not prevented, so a router can handle it.
 
 ```tsx
-const searchParams = useSearchParams();
-const router = useRouter();
-const active = searchParams.get("category");
+import Link from "next/link"; // or any router link that accepts href + onClick + className
 
 <CategoryCloud
   items={categories}
-  value={active}
-  onChange={(value) => {
-    const params = new URLSearchParams(searchParams);
-    if (value) params.set("category", value);
-    else params.delete("category");
-    router.push(`?${params.toString()}`);
+  value={activeSlug}               // derive from the current URL
+  getHref={(item) => `/explore?category=${item.value}`}
+  linkComponent={Link}
+/>
+```
+
+`linkComponent` is rendered as an element type (never `asChild`). An item whose `getHref` returns `undefined` stays a button. `toggleable` has no meaning for link chips: clicking the active link reports its own value again, it does not clear. To offer a "clear" chip, include an item whose `getHref` points at the unfiltered URL.
+
+In link mode, control `value` from the current URL: an uncontrolled cloud marks the last clicked chip as the current page, which is wrong after Back / Forward. A click with a modifier key (Ctrl / Cmd / Shift / Alt — open in a new tab or window) neither calls `onChange` nor moves the active chip, so `onChange` is safe for analytics but is not a navigation signal; let the link navigate. Links activate with Enter (not Space, which scrolls the page — the browser default for links); button chips take Enter and Space. A `getHref` that returns anything but a string (`undefined`, `null`) leaves that chip a button.
+
+### Localization (labels + locale)
+
+```tsx
+<CategoryCloud
+  items={items}
+  locale="tr"                                   // counts via Intl.NumberFormat: 12345 -> "12.345"
+  labels={{
+    group: "Kategori filtresi",                 // group name when neither ariaLabel nor title is set
+    count: (_n, formatted) => ` (${formatted} yazı)`,
   }}
 />
 ```
+
+Group name precedence: `ariaLabel` > `title` > `labels.group`. Count text precedence: `formatCount` (full override, receives the raw number) > `labels.count(n, formatted)`. `labels` keys set to `undefined` keep the defaults (`defaultCategoryCloudLabels`). An invalid `locale` falls back to `"en"`. The default count is locale-formatted too, so English counts of 1,000 or more are grouped (`(12,345)`; 0.2.0 printed `(12345)`) — pass `formatCount={(n) => " (" + n + ")"}` for the old text.
 
 ### Custom count format
 
 ```tsx
 <CategoryCloud
   items={items}
-  formatCount={(c) => c > 999 ? ` (${(c / 1000).toFixed(1)}k)` : ` (${c})`}
+  formatCount={(c) => c > 999 ? ` (${(c / 1000).toFixed(1)}k)` : ` (${c})`} // overrides labels.count and locale
 />
 ```
 
@@ -86,6 +101,14 @@ The card is `React.memo`-wrapped. Passing a fresh `items` array every render bre
 ### `<button>` inside `<Badge>` styling
 
 The chip is a real `<button>` wrapping a `<Badge>`. The button has the focus-visible ring; the Badge has the visual style. If you customize Badge styling via className overrides, ensure your hover state doesn't fight the button's outline-on-focus.
+
+### Title font
+
+The default title is the editorial serif-bold heading (`font-serif`). If your app has no serif font configured, or you want the sans stack, override it with `titleClassName` (e.g. `titleClassName="font-sans"`).
+
+### Dev warnings
+
+In development only: a controlled `value` that matches no item (no chip is active), and repeated `item.value`s (repeated chips are all active together), each warn once per change.
 
 ### Heading semantic level
 

@@ -17,3 +17,10 @@ export const DUMMY_CATEGORIES_EN: CategoryCloudItem[] = [
   { value: "announcement", label: "Announcement", count: 4 },
   { value: "research", label: "Research", count: 7 },
 ];
+
+export const DUMMY_CATEGORIES_AR: CategoryCloudItem[] = [
+  { value: "urban-development", label: "التطوير العمراني", count: 12 },
+  { value: "sustainability", label: "الاستدامة", count: 8 },
+  { value: "technology", label: "التقنية", count: 5 },
+  { value: "events", label: "الفعاليات", count: 3 },
+];

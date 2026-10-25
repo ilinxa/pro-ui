@@ -42,9 +42,39 @@ export default function CategoryCloudUsage() {
 />;`}</code>
       </pre>
       <p className="mt-2 text-muted-foreground">
-        For URL-state sync, drive <code>value</code> from your router and
-        update via <code>onChange</code>. Pass <code>null</code> to clear.
+        Pass <code>null</code> to clear. For URL-driven filters use link mode
+        below instead of pushing state from <code>onChange</code>.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Link mode (URL-driven filters)</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<CategoryCloud
+  items={categories}
+  value={activeSlug}
+  getHref={(item) => \`/explore?category=\${item.value}\`}
+  linkComponent={Link} // your router's link; defaults to "a"
+/>;`}</code>
+      </pre>
+      <p className="mt-2 text-muted-foreground">
+        Chips render as links with <code>aria-current=&quot;page&quot;</code> on
+        the one matching <code>value</code> (no <code>aria-pressed</code>).{" "}
+        <code>onChange</code> still fires on click; the default navigation is
+        not prevented. An item whose <code>getHref</code> returns{" "}
+        <code>undefined</code> stays a button. <code>toggleable</code> has no
+        meaning for links.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Localization</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<CategoryCloud
+  items={items}
+  locale="tr" // 12345 -> "12.345"
+  labels={{
+    group: "Kategori filtresi",
+    count: (_n, formatted) => \` (\${formatted} yazi)\`,
+  }}
+/>;`}</code>
+      </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Custom count format</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
@@ -65,14 +95,14 @@ export default function CategoryCloudUsage() {
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
         <li>
           Each chip is a real <code>{"<button>"}</code> with{" "}
-          <code>aria-pressed</code>.
+          <code>aria-pressed</code> (or a link with <code>aria-current</code> in link mode).
         </li>
         <li>
           Container is <code>role=&quot;group&quot;</code>;{" "}
-          <code>aria-label</code> defaults to <code>title</code> if provided.
+          <code>aria-label</code> is <code>ariaLabel</code>, else <code>title</code>, else <code>labels.group</code>.
         </li>
         <li>
-          Tab moves between chips; Enter / Space activates. Focus-visible
+          Tab moves between chips; Enter / Space activates a button chip, Enter a link chip. Focus-visible
           ring per chip.
         </li>
         <li>

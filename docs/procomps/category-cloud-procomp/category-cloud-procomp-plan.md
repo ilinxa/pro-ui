@@ -164,7 +164,7 @@ Headless wrapping; one part for the chip. Native `<button>` for keyboard semanti
 
 - [ ] tsc / lint / build clean.
 - [ ] SSR 200 with all 3 demo tabs.
-- [ ] Tab between chips works; Enter/Space activates.
+- [ ] Tab between chips works; Enter/Space activates (link chips, 0.3.0: Enter).
 
 ## Risks
 

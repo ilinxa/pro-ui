@@ -71,7 +71,7 @@ Sites with categorized content need a sidebar / inline filter affordance: the us
 
 - Renders correctly at sidebar widths (~280px) and full-width inline.
 - Click selects, re-click clears (when `toggleable`).
-- Keyboard: Tab between chips, Enter/Space activates, focus-visible ring per chip.
+- Keyboard: Tab between chips, Enter/Space activates (link chips in link mode: Enter), focus-visible ring per chip.
 - `aria-pressed` correctly reflects state.
 - Generic input — `string[]` and `{value,label,count}[]` both work.
 - `pnpm tsc --noEmit` + `pnpm lint` + `pnpm build` clean.

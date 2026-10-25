@@ -1642,10 +1642,15 @@
           "path": "src/registry/components/forms/category-cloud/parts/category-chip.tsx",
           "type": "registry:component",
           "target": "components/category-cloud/parts/category-chip.tsx"
+        },
+        {
+          "path": "src/registry/components/forms/category-cloud/lib/resolve-locale.ts",
+          "type": "registry:component",
+          "target": "components/category-cloud/lib/resolve-locale.ts"
         }
       ],
       "meta": {
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },
@@ -1671,7 +1676,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.0",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },

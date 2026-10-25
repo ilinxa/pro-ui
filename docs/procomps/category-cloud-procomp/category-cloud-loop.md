@@ -5,17 +5,17 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive link mode, `labels`, `locale`) |
-| **Current stage** | U2 — implementing (generic-set wave; release order share-bar → people-grid / info-list / empty-state → category-cloud) |
+| **Current stage** | U7 — shipping (release 3 of the generic set) |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.2.0 → **v0.3.0** |
-| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finder: 1 × Sonnet 5 (fresh, browser) |
+| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finders: 2 × Sonnet 5 (fresh — code on a frozen snapshot; Chromium) |
 | **Started / updated** | 2026-10-24 / 2026-10-25 |
 
 ## Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
-- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
 
 Source: request §4.10 CCL1–CCL2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:824-847`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:152-153`).
@@ -68,3 +68,50 @@ React keys, two active chips) — both cheap dev-warns. Parked: F-02 touch targe
 ### Size
 
 7.02 KB / 10 — estimate +2.5 KB → close; budget → **12** if needed (decided at U3 on the real number).
+
+## U2 — Implement (2026-10-25)
+
+1 × Sonnet 5 implementer (generic-set wave). Coordinator: `registry.json` += `lib/resolve-locale.ts` (roster 4 → 5),
+`closed` += category-cloud, changelog-baseline row dropped, CHANGELOG bullet (states the grouped-count change and how to
+get the 0.2.0 text back); dev warnings dedupe by content (an inline `items` array re-renders without re-warning — the
+implementer's effect re-warned on every new array identity). **Falsified 14 / 14** (U2) + the U4 fixes below:
+link mode, `aria-current`, `linkComponent`, no toggle-off in link mode, `labels.group` fallback, `labels.count`,
+`locale` formatting, `formatCount` precedence, invalid locale → `en`, `undefined` label, F-03 warn, duplicate warn,
+distinct duplicate keys, warn once per problem.
+
+## U4 — Adversarial review (1 fresh Sonnet finder, code on a frozen snapshot + Node `Intl` probes)
+
+| id | sev | finding | verdict |
+|---|---|---|---|
+| F1 | Medium | default count through `Intl.NumberFormat("en")` groups ≥ 1,000 (`(12,345)` vs 0.2.0 `(12345)`), undisclosed; `-0` → "-0" | CONFIRMED → the contract specifies locale formatting, so kept and disclosed (CHANGELOG + guide, with the `formatCount` recipe for the old text); `-0` prints `0`; tests pin both |
+| F2 | Medium | docs say Enter / Space activates — a link activates on Enter only | CONFIRMED → usage / meta / description / plan / guide qualified; link Enter test. No Space handler (a router link would double-fire) |
+| F3 | Medium | Ctrl / Cmd / Shift / Alt-click a link chip fires `onChange` and moves the uncontrolled active chip though the page does not change | CONFIRMED → modified clicks skip both; test; guide: `onChange` is not a navigation signal |
+| F4 | Low | uncontrolled link mode marks the last click as current, wrong after Back | CONFIRMED → guide: control `value` from the URL |
+| F5 | Low | a `null` from `getHref` made an `href`-less, unfocusable `<a>` | CONFIRMED → only a string makes a link; test |
+| F6 | Low | repeat keys `value#n` could collide with a real value `a#1` | CONFIRMED → NUL separator; test |
+| F7 | Low | no `ar` / `fa` count assertion | DROPPED — locale is covered by the `tr` test; formatting is `Intl`'s |
+| F8 | Low | N instances with the same bad value warn N times | ACCEPTED — per-instance, like info-list |
+| F9 | Low | every chip is a Tab stop (no roving) | DROPPED — already disclosed in the guide |
+
+## U3 — Gates (release 3: category-cloud alone)
+
+tsc 0 · lint 0 errors · registry:build **1 → 0**: `validate:artifact-size` failed at 13.05 KB over the 1.2× cap of the
+10 KB budget → budget **15** (decision file) → 0 high · tests **112 files / 1498 passed / 5 skipped** (repo version
+tests re-run after the rebuild: 2 files / 32 passed) · category-cloud 30 · `next build` 0 (re-run after the demo fix).
+
+## U5 — Runtime & smoke
+
+- **Browser (fresh Sonnet finder, Chromium, production build on :3200) — 7 / 7:** button chips toggle with
+  `aria-pressed` (click, Enter, Space); link chips are `<a href>` with `aria-current="page"` and no `aria-pressed`;
+  Ctrl+click opened a new page with the URL and active chip unchanged; Enter on a link navigated, Space did nothing and
+  threw nothing; `tr` counts `1.545` with Turkish text; RTL chips right to left; axe clean on every group; both themes;
+  zero console output. Finding: the link-mode demo pinned `value` with no `onChange` → wired to state; coordinator
+  re-check on a rebuilt site: plain click moves the active chip (`Technology`), Ctrl+click on `Events` opens a page
+  and leaves `Technology` active, console empty.
+- **Installs:** `INSTALL_TEST_ITEMS=category-cloud,category-cloud-fixtures pnpm test:install` — shadcn 3.8.5 + 4.18.0,
+  every add exit 0, both at 0.3.0 (5-file roster incl. `lib/resolve-locale.ts`), consumer tsc 0 → **2 / 2**.
+
+## U6 — Docs & review
+
+Docs current; CHANGELOG; `docs/component-versions.md` regenerated. GATE 3:
+[`reviews/2026-10-25-v0.3.0-hardening.md`](reviews/2026-10-25-v0.3.0-hardening.md) — **Pass with follow-ups**.
