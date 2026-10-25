@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive target kind + labels; label constant renamed with an alias) |
-| **Current stage** | U7 — shipping (release 1 of the generic set) |
+| **Current stage** | **Closed** — 0.3.0 shipped (`082b1fc`) and verified live 2026-10-25 |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.2.0 → **v0.3.0** |
 | **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finders: 2 × Sonnet 5 (fresh — code; Chromium) |
@@ -15,7 +15,7 @@
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
-- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [x] U7 Ship (pushed after a final consistency review; live-verified)
 
 Source: request §4.9 SB1 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:807-823`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:150-151`).
@@ -122,3 +122,13 @@ changelog-baseline row drop; inert-surfaces 64/64 clean; artifact-size 0 high) �
 Docs current (description, plan banner, guide, usage, meta); CHANGELOG; `docs/component-versions.md` regenerated.
 GATE 3: [`reviews/2026-10-25-v0.3.0-hardening.md`](reviews/2026-10-25-v0.3.0-hardening.md) — **Pass with follow-ups**
 (R-01 real-device native sheet → platform at M8).
+
+## U7 — Ship
+
+Final consistency review before push (user's condition): versions 0.3.0 in `meta.ts`, `registry.json`, both `public/r`
+items, `docs/component-versions.md`, CHANGELOG, STATUS; roster = folder; review-file counts corrected against the test
+files (roster 7 + 1, SB1 ×10); usage / meta / guide match the code; commit holds share-bar only (the other four held in
+`git stash`; their CRLF-rewritten `public/r` artifacts reverted). Commit `082b1fc`, pushed. **Live 03:11:**
+`https://ui.ilinxa.com/r/share-bar.json` 0.3.0 with the U4 fixes in the served source (native kind, in-flight guard,
+`canNativeShare`, no `copy` default); fixtures 0.3.0; detail page 200. Report-back:
+`.claude/report-back-2026-10-25-share-bar.md`.
