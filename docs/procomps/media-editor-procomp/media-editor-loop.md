@@ -94,3 +94,90 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 
 - `PublishingProgressOverlay` uses raw `bg-black` / `text-white` (story-composer) - token loop.
 - story-composer description doc has 3 stale-deferral findings (`validate-inert-surfaces.mjs story-composer`).
+
+---
+
+# Run — Part 3 (social-platform request §5.5 ME1–ME4 + owed C17)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **breaking** — C17 removes the `@internal` `StoryComposerLabels` shim from the public capture seam; 0.x minor) |
+| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
+| **Sign-off policy** | user-interactive; composed by story-composer, carousel-composer and content-composer → breaking parts are always the user's call. Ask before every push. |
+| **Version target** | v0.4.1 → **v0.5.0** (+ `media-editor-capture` 0.5.0), released **together with story-composer 0.6.0** |
+| **Started / updated** | 2026-10-25 / 2026-10-25 |
+
+Source: request §5.5 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1106-1156`) as amended by the digest §Part 3 "media-editor";
+fix-on-touch ledger item **C17** (`.claude/procomp-loop.config.md`).
+
+## Stage checklist (run Part 3)
+
+- [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
+- [ ] U1 Change contract — sign-off: pending
+- [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
+
+## U0 — Intake
+
+Not in `closed`. Baseline: palette 7 (5 in the capture slice: `text-amber-400`, `bg-red-500` ×3; 3 red classes in
+`parts/tool-text-input.tsx`), jsx-literal **39**, clock 4 (`Date.now()` ids / timing, none drive markup). Three test files.
+Built **288.0 KB / budget 290**; capture 53.9 / 65.
+
+| Item | Code today | Verdict |
+|---|---|---|
+| ME1 nested labels | `lib/normalize-labels.ts` maps 24 nested paths onto the flat shape (0.4.0) | already fixed |
+| ME1 hard-coded strings | "Back to capture" (`media-editor.tsx:1172`), crop "Apply" / "Cancel", "({n} crop aspects)", "Reset zoom", `Resize ${corner}`, "Edit tools", "Delete text", `Color ${c}`, "Hex", file-intake / empty / error copy, capture "Camera ready" / "Enable camera" … (the 39 rows) | confirmed |
+| ME1 preset names | English names in `lib/defaults.ts` (backgrounds, fonts), `lib/built-in-stickers.ts`, `lib/konva-filters.ts` (Instagram-style filter names); no label path | confirmed |
+| ME1 typed labels, no story-composer cast (C17) | `story-composer.tsx:351` `as unknown as Partial<MediaEditorLabels>`; the public capture seam types `labels` with the `@internal` shim (`hooks/use-capture-extension.ts:54`) | confirmed (breaking) |
+| ME2 palette | 7 classes, not "throughout"; the rest is black/white on media chrome (decision 3) | partial |
+| ME3 stubs | capture methods, `addText()` with no text, `undo` / `redo`, `open()` all `@notImplemented` + dev-warn; gate clean | already self-disclosing |
+| ME3 Ctrl+Z | the editor binds no keys (`useHistory({ bindKeyboard: false })`, `:400`). The **exported `useHistory` hook** calls `preventDefault` on Ctrl+Z even with an empty stack | request wrong for the editor; true for the hook |
+| ME3 (wider) `VideoTrimBar` | exported, never mounted by the editor (renders fine standalone) | noted, kept |
+| ME4 recorder prefers WebM | `lib/mime-fallback.ts:8-15` WebM first; used by `compositeVideo` and capture; `ExportVideoOpts.mimeType` exists but capture has no override; Firefox has no MP4 `MediaRecorder` | confirmed |
+| ME4 accept / pass-through | both file inputs hard-code `image/*,video/*`; the validator accepts any `video/*`; no-overlay video export returns the original blob, but the tool chip row is not gated by draft kind (video drafts show chips that open nothing); guide example uses `mimeType: "video/webm"` | confirmed |
+
+Blast radius: **story-composer** (wrapper; flat labels cast; `useMediaEditorState`; compat re-exports),
+**carousel-composer** (`EditPanel` mounts `<MediaEditor>`; forwards `labels`), **content-composer** (substrate mounts it with
+`capture`, no labels), the **capture slice** (imports the shim — must release with the base), carousel-composer's
+inline copy of `validateGalleryFile`. **Orphans:** pre-P3 installs still hold six old capture files under `parts/` /
+`hooks/` that compile only because the shim exists — C17 must ship the "Removed in — delete these" list.
+
+## U1 — Change contract (proposed)
+
+- **ME1 strings:** new label keys for every hard-coded string (English defaults identical), nested equivalents in
+  `MediaEditorLabels` (optional groups, additive). `labels.presets?: { backgrounds?, fonts?, stickerSets?, stickers?,
+  filters? }` (id → name maps; fall back to the constant). jsx-literal baseline → 0.
+- **C17 (breaking):** delete the `StoryComposerLabels` shim. Parts and the capture seam take a public, typed labels
+  type owned by media-editor. Flat keys stay accepted by `normalizeEditorLabels` (deprecated, not removed), so existing
+  flat callers keep working at runtime. story-composer passes `labels.editor` without a cast (its run). Orphan list +
+  `scripts/find-orphans.mjs` in the smoke consumer.
+- **ME2:** the 7 palette classes → `destructive` / `warning` tokens; media chrome black/white → `--media-overlay` /
+  `--media-overlay-foreground` (`cssVars.theme`, var fallbacks). Same look in the default theme.
+- **ME3:** keep the stubs self-disclosing (implementing them is a product request). `useHistory` prevents Ctrl+Z only
+  when there is something to undo / redo.
+- **ME4:** `acceptMediaTypes?` (default `["image/*", "video/*"]`) drives both file inputs **and** the validator.
+  `videoOutput?: { mimeTypes?: string[] }` allow-list for re-encode and capture (`selectRecorderMime(allowed)`); no
+  match → video mode hidden + `onValidationError`. Defaults unchanged (WebM-first chain). Tool chips hidden for video
+  drafts. Video export stays pass-through by default. Guide example fixed.
+- **Tests:** `describeContract`, `locale="tr"` / labels (every string), hydration, RTL demo, accept / allow-list with a
+  `MediaRecorder` stub, `useHistory` empty-stack, type test (story-composer passes labels without a cast). Falsify all.
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | flat label keys still accepted and still win over nested |
+| I2 | `capture={mediaCapture}` seam and `MediaCaptureExtension` shape; handle member names |
+| I3 | default accept string, MIME chain order, pass-through shortcut, image export output |
+| I4 | `heavy: true`, `meta.slices`, `lib/` file names in `registry.json` |
+
+### Size
+
+288.0 KB / 290; estimate +5–7 KB → ~294. Budget → **300**.
+
+### Open questions (in the proposal)
+
+1. Release the breaking label change together with story-composer (recommended; it can't land alone).
+2. MP4-only video output: on Firefox video capture is then unavailable. Acceptable?
+3. Translatable preset names (`labels.presets`) as well as passing their own preset data? Recommendation: both.

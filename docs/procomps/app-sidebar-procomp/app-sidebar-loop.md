@@ -178,3 +178,66 @@ reaching the drawer (AS3) · labels incl. badge count (AS4/AS5) · C1–C12 as t
 ## Pre-mortem (U7)
 
 If this breaks for a consumer, it breaks because: their `sheet` lacks `showCloseButton` (old primitive → duplicate English close button), their header trigger sits outside the sidebar without `controls` / `aria-label`, or a theme relied on the 0.4 inline variable defaults winning over an ancestor declaration it did not mean to apply.
+
+---
+
+# Run 2 — follow-ups (Part 3 of the social-platform request)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **minor** — additive trigger `labels`, a keyboard fix, a dev warning) |
+| **Current stage** | U1 — **awaiting sign-off** (bundled with the Part 3 proposal) |
+| **Sign-off policy** | user-interactive. Run 1's delegation does not carry over. Ask before every push. |
+| **Version target** | v0.5.1 → **v0.6.0** |
+| **Started / updated** | 2026-10-25 / 2026-10-25 |
+
+Source: run 1 review follow-ups (`reviews/2026-10-23-v0.5.0-hardening.md` §Follow-ups F-01…F-05) as listed in the
+report-back (`.claude/report-back-2026-10-23-story-rail-app-sidebar.md` §"Not in this ship"). The platform's answer on
+F-03 (keep the raw count in `itemWithBadge` so hosts can pluralize) was relayed in-session and recorded in the arc
+handoff (`.claude/HANDOFF-2026-10-23-social-platform-hardening.md`, "app-sidebar follow-ups … RAW count … won't-change").
+
+## Stage checklist (U-loop, run 2)
+
+- [x] U0 Intake (architect, below)
+- [ ] U1 Change contract — sign-off: pending
+- [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
+
+## U0 — Intake (run 2)
+
+**Class: minor.** No code dependents (grep `registry.json`: nothing lists `@ilinxa/app-sidebar`). Already in the
+contract gate's `closed` list. Built 209.43 KB / budget 230.
+
+| Item | Code today | Verdict |
+|---|---|---|
+| F-01 outside trigger is English | `parts/sidebar-nav-trigger.tsx`: name = `aria-label` prop ?? context `labels.openNavigation` ?? English default; a sibling trigger has no context. Also: `aria-controls={ctx?.sidebarId}` is **absent** outside the subtree, even with `controls` | confirmed, wider (no `aria-controls` either) |
+| F-02 rail arrow-key dead end | `lib/flatten-entries.ts` pushes every collapsible section header; the rail branch of `parts/sidebar-nav-section.tsx:51-80` renders no header (icon/divider is `aria-hidden`), so focus can land on an id with no node | confirmed |
+| F-02 (wider) | in the rail, a section collapsed in expanded mode keeps its items hidden (`{!isCollapsed && …}` in the rail branch) and the rail has no control to expand it — its items are unreachable until the rail expands | confirmed. Pre-existing visual behaviour. Parked, see question 2 |
+| F-03 formatted "9+" in the name | platform: keep the raw count | **won't change** (platform decision) |
+| F-05 `state` silently ignores `isCollapsed` | `app-sidebar.tsx:291` `finalCollapsed = externalState?.collapsed ?? state.collapsed` | confirmed |
+
+## U1 — Change contract (run 2, proposed)
+
+- **F-01:** `AppSidebarTrigger` gets `labels?: Partial<Pick<AppSidebarLabels, "openNavigation">>` (same merge rules as
+  the sidebar: `undefined` keeps the default). Name precedence: `aria-label` > trigger `labels` > context labels >
+  default. `AppSidebarHandle` exposes `sidebarId` (read-only), so a trigger given `controls` sets `aria-controls`. A
+  trigger inside the sidebar is unchanged.
+- **F-02:** while the sidebar is collapsed (rail), `flattenEntriesForKeyboard` omits section headers, so the
+  sequence matches what the rail renders. Expanded mode is unchanged.
+- **F-05:** dev-only warning once when both `state` and `isCollapsed` are passed. No behaviour change.
+- **Tests:** trigger outside the subtree (name from `labels`, `aria-controls` with `controls`); rail + collapsible
+  section: ↓/↑ never lands on a missing node; dev-warn once; falsify each fix.
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | a trigger inside the sidebar: same name and markup as 0.5.1 |
+| I2 | expanded-mode keyboard sequence unchanged (collapsible headers still focusable) |
+| I3 | `itemWithBadge(label, value)` still gets the raw value |
+| I-neg | no new props → 0.5.1 output |
+
+### Size
+
++~1 KB → ~210.5 / 230.

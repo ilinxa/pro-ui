@@ -94,3 +94,92 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 ## Pre-mortem
 
 If this breaks for a consumer: a host relying on double-tap to unlike (unlikely), or a custom bar whose like action lives under a non-`like` kind (burst now suppressed).
+
+---
+
+# Run — Part 3 (social-platform request §5.6 PC1–PC4 + owed forwarding)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **breaking** — label templates become functions; 0.x minor) |
+| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
+| **Sign-off policy** | user-interactive. Ask before every push. |
+| **Version target** | v0.5.3 → **v0.6.0** (ships after comment-thread 0.4.0; an engagement-bar patch drops the LikersStrip alias) |
+| **Started / updated** | 2026-10-25 / 2026-10-25 |
+
+Source: request §5.6 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1157-1255`) as amended by the digest §Part 3; owed items from
+`engagement-bar-procomp/reviews/2026-10-24-v0.5.0-hardening.md` (R-06) and
+`media-carousel-procomp/reviews/2026-10-24-v0.3.0-hardening.md` (R-05).
+
+## Stage checklist (run Part 3)
+
+- [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
+- [ ] U1 Change contract — sign-off: pending
+- [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
+
+## U0 — Intake
+
+Not in `closed`. Baseline 10 rows: template-fill 2 (`parts/poll-widget.tsx` `{count}`, `{time}`), intl 1
+(`parts/edited-suffix.tsx` `toLocaleString()`), clock 3 (`poll-widget.tsx` `new Date()`, `post-card.tsx:189`
+`format(…, new Date())` in render, a `votedAt`), jsx-literal 4 (`parts/list-variant.tsx` "likes ·" / "comments" /
+"· shares", `parts/post-header.tsx` "Post actions"). One test file; no RTL demo. Built 144.1 KB / budget 165.
+
+| Item | Code today | Verdict |
+|---|---|---|
+| PC1 controlled `post` | `useState<Post>(initialPost)` (`post-card.tsx:156`); only `reset()` pushes; `likers` also seeded once (`:175`) | confirmed |
+| PC2 reactions | `Post` is single-like; unlike-on-double-tap already fixed; still: double-tap needs a `like` action (`getLikeCapableBar`), `heartBurstWired` needs `onLike` (`:202-206`) | partial |
+| PC3 header | "Post actions" hard-coded; `renderHeader` drops the kebab; no author link, `subtitle`, notice slot, append-only extra actions, per-item `hidden` | partial (per-action hide exists via `permissions`) |
+| PC4 time | render-time `new Date()` (hydration risk); default formatter is comment-thread's English `defaultRelativeTime`; poll `new Date()` drives "closed"; `{count} votes` template | confirmed |
+| Owed R-05 / R-06 | carousel gets only `items` / `variant` / `onDoubleTap`; bar gets no `locale` / `formatCount`; LikersStrip / ShareMenu get deprecated props; `likersMoreLabel` is a `"+{count} more"` string feeding LikersStrip's `moreAriaLabelTemplate` (`template-ok` escape); expandable-text gets no `labels` | confirmed |
+
+Blast radius: imports comment-thread (component, handle, `defaultRelativeTime`, `toDate`, `CommentMenuItem`, many types),
+engagement-bar (`EngagementBar`, `LikersStrip`, `ShareMenu`), media-carousel, expandable-text. Its permissions matrix is
+inline-copied by story-viewer and news-card (must stay compatible). No code dependents, no feature slices.
+
+## U1 — Change contract (proposed)
+
+- **PC1:** `onPostChange?(next)` beside the existing `post`: controlled when `onPostChange` is passed (`post` wins every
+  render; optimistic like / bookmark shown until the handler settles; a rejected promise rolls back). `optimistic?`
+  (default `true`). Handlers may return a promise. `post` alone stays mount-only; `reset()` works in both modes.
+  `likers` resyncs in controlled mode. Realtime deltas must not fight the controlled value.
+- **PC2:** a card prop `reactions?: { kinds, counts?, viewerReaction?, onReact?, defaultKind?, totalCount? }` (the
+  `Post` shape that story-viewer and news-card mirror stays as is). With it, the default actions build a `reaction`
+  action, double-tap applies `defaultKind` only when nothing is applied, and the burst plays once.
+  `heartBurstWired` = `onLike` or `reactions.onReact`. Without it: today's like path.
+- **PC3:** `getAuthorHref?(author, post)` (avatar + name link via `linkComponent`, above the card overlay link);
+  `subtitle?`; `noticeSlot?(post)`; `labels.kebabAriaLabel`; `renderHeader(post, { currentUser, kebab })` (the kebab
+  survives a custom header); `extraKebabActions?(post)` appended, not gated by `canModerate`; `hidden` on menu items
+  (`CommentMenuItem`, coordinated with comment-thread); per-action disabled via `permissions.disabled?`.
+- **PC4:** `now?`, `locale?`, `timeZone?`. Default `now` captured once on mount, so server and first client render
+  agree. The poll and the edited suffix use them. English output unchanged without `locale`.
+- **Labels become functions (the breaking part):** `likersMoreLabel(count, formatted)`, `pollTotalVotes(count,
+  formatted)`, `pollClosesAt(time)`, list meta counts. Then engagement-bar drops LikersStrip's
+  `moreAriaLabelTemplate` alias and its `template-ok` escape (engagement-bar patch, same release).
+- **Forwarding:** one top-level `locale` reaches carousel, bar, LikersStrip, ShareMenu, expandable-text and the thread.
+  `mediaProps?` (`aspect`, `onMediaError`, labels…), `engagementBarProps?` (`formatCount`, `optimistic`, previews…),
+  `textLabels?`; LikersStrip / ShareMenu get `labels`. Thread passthrough for comment-thread 0.4.0
+  (`onCommentsChange`, `onLoadMoreCursor`, `onLoadReplies`, `onEditComment`, `extraActions`, `locale`).
+- **Tests:** `describeContract`, `locale="tr"` + hydration, controlled post + rollback, reaction-only double-tap,
+  header slots, RTL demo; the 0.5.1 / 0.5.3 double-tap tests stay green.
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | `post` alone = mount-only; handle (`reset`, `getCurrentPost`) unchanged |
+| I2 | English output unchanged without `locale` (relative time "Just now" / "5m") |
+| I3 | double-tap never unlikes; no burst when nothing applies (0.5.1 / 0.5.3 tests) |
+| I4 | `renderHeader` / `renderMedia` / `renderEngagementBar` / `kebabActions` stay takeovers; overlay link below interactive children |
+| I5 | permissions matrix shape compatible with the story-viewer and news-card copies |
+
+### Size
+
+144.1 KB / 165; estimate +14–18 KB → ~158–162. Budget → **180** (decided at U3 on the real number).
+
+### Open questions (in the proposal)
+
+1. Label templates → functions as a breaking 0.6.0 (recommended), or keep strings as deprecated aliases?
+2. Reactions as a card prop (recommended) or new `Post` fields?
+3. M8: do they need part of this sooner than the full release (e.g. forwarding + time + header first)?
