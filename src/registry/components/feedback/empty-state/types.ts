@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 
 /** Semantic tone. Drives default icon + `role="status"` gating (I4). */
 export type EmptyStateVariant =
@@ -16,7 +16,7 @@ export type EmptyStateSize = "sm" | "md" | "lg";
 export interface EmptyStateActionConfig {
   label: string;
   onClick?: () => void;
-  /** Renders `<a className={cn(buttonVariants(...))}>` — never `asChild` (F-cross-13). */
+  /** Renders a button-styled link (`<a>` by default, or the `linkComponent`) — never `asChild` (F-cross-13). With `disabled`, a disabled `<Button>` renders instead. */
   href?: string;
   disabled?: boolean;
 }
@@ -48,5 +48,13 @@ export interface EmptyStateProps {
   animated?: boolean;
   /** Root surface treatment. `"dashed"` = dropzone-style border; `"card"` = raised `bg-card`. Default: `"none"`. */
   frame?: "none" | "dashed" | "card";
+  /**
+   * Element or component that renders object actions carrying an `href` — pass the host router's
+   * `Link` for client-side navigation (an `href`-based one such as `next/link`; a router whose link
+   * takes `to` needs a small adapter). It receives `href`, `onClick`, `className` (button styling)
+   * and the label as `children`. Default: `"a"`. A disabled `href` action never uses it (it renders
+   * a disabled `<Button>`); ReactNode actions are rendered as-is.
+   */
+  linkComponent?: ElementType;
   className?: string;
 }

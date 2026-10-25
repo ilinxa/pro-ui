@@ -1,13 +1,16 @@
 "use client";
 
-import { memo, useId, useMemo } from "react";
+import { memo, useEffect, useId, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
-  DEFAULT_INFO_LIST_LABELS,
+  defaultInfoListLabels,
   type InfoListLabels,
   type InfoListProps,
 } from "./types";
 import { InfoRow } from "./parts/info-row";
+
+/** Would React render something? (`cond && <X />` with `cond` false is not content.) */
+const isShown = (value: unknown) => value != null && value !== false && value !== "";
 
 function InfoListInner({
   items,
@@ -17,6 +20,7 @@ function InfoListInner({
   heading,
   headingAs = "h3",
   linkComponent = "a",
+  wrap = false,
   renderItem,
   labels: labelsProp,
   emptyState,
@@ -28,9 +32,32 @@ function InfoListInner({
   const HeadingTag = headingAs;
 
   const labels = useMemo<Required<InfoListLabels>>(
-    () => ({ ...DEFAULT_INFO_LIST_LABELS, ...labelsProp }),
-    [labelsProp],
+    () => ({
+      // `undefined` must not erase the default.
+      emptyText: labelsProp?.emptyText ?? defaultInfoListLabels.emptyText,
+    }),
+    [labelsProp?.emptyText],
   );
+
+  // Dev-only, once per mount: compact rows are single-line, so `secondary` / `action` are ignored.
+  const warnedRef = useRef(false);
+  const dropsRichFields =
+    process.env.NODE_ENV !== "production" &&
+    variant === "compact" &&
+    !renderItem &&
+    items.some((item) => isShown(item.secondary) || isShown(item.action));
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      dropsRichFields &&
+      !warnedRef.current
+    ) {
+      warnedRef.current = true;
+      console.warn(
+        '[info-list] the "compact" variant ignores `secondary` and `action`. Use variant="comfortable" or `renderItem` to show them.',
+      );
+    }
+  }, [dropsRichFields]);
 
   const isEmpty = items.length === 0;
 
@@ -76,7 +103,22 @@ function InfoListInner({
         >
           {items.map((item, idx) =>
             renderItem ? (
-              <li key={item.id}>{renderItem(item)}</li>
+              <li
+                key={item.id}
+                className={
+                  cn(
+                  // renderItem rows separate only on an explicit `separated`.
+                  separated === true &&
+                    idx > 0 &&
+                    (variant === "comfortable"
+                      ? "pt-4 border-t border-border/50"
+                      : "pt-3 border-t border-border/50"),
+                  itemClassName,
+                  ) || undefined
+                }
+              >
+                {renderItem(item)}
+              </li>
             ) : (
               <InfoRow
                 key={item.id}
@@ -84,6 +126,7 @@ function InfoListInner({
                 variant={variant}
                 separated={separatedResolved && idx > 0}
                 linkComponent={linkComponent}
+                wrap={wrap}
                 itemClassName={itemClassName}
               />
             ),

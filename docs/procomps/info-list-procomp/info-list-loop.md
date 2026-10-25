@@ -5,17 +5,17 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive props; label constant renamed with an alias) |
-| **Current stage** | U2 — implementing (generic-set wave; release order share-bar → people-grid / info-list / empty-state → category-cloud) |
+| **Current stage** | U7 — shipping (release 2 of the generic set) |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.2.0 → **v0.3.0** |
-| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finder: 1 × Sonnet 5 (fresh, browser) |
+| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finders: 2 × Sonnet 5 (fresh — code on a frozen snapshot; Chromium) |
 | **Started / updated** | 2026-10-24 / 2026-10-25 |
 
 ## Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
-- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
 
 Source: request §4.8 IL1 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:791-806`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:149`).
@@ -66,3 +66,41 @@ U0-5 fixtures ship a `<span>` styled as a link (owed review F-01). U0-6 `href` J
 ### Size
 
 9.09 KB / 15 — no budget change expected.
+
+## U2 — Implement (2026-10-25)
+
+1 × Sonnet 5 implementer (generic-set wave). Coordinator: `closed` += info-list, changelog-baseline row dropped,
+CHANGELOG bullet; plan carries a 0.3.0 superseded banner and an unpinned "Open follow-ups" heading. Roster unchanged.
+**Falsified 11 / 11**: IL1 `wrap`, IL1 `title`, IL1 `item.title` wins, U0-1 `emptyText`, U0-3 `itemClassName`, U0-3
+explicit `separated`, U0-5 fixture button, U0-4 dev-warn fires, U0-4 once guard, and U4 F2 / F4 below. (The first
+dev-warn mutation produced a syntax error — not counted; redone as a real mutation.)
+
+## U4 — Adversarial review (1 fresh Sonnet finder, code, frozen snapshot)
+
+| id | sev | finding | verdict |
+|---|---|---|---|
+| F1 | Medium | "once" is per mounted list; the test did not prove the guard | per-instance ACCEPTED (one warning per misused list is useful); test gap CONFIRMED → rich → plain → rich test |
+| F2 | Low | `secondary: cond && <X />` with `cond` false warned | CONFIRMED → fixed (`false` / `""` are not content); test |
+| F3 | Low | the `items.some` scan ran in production | CONFIRMED → gated on `NODE_ENV` |
+| F4 | Low | a numeric `primary` got no `title` | CONFIRMED → fixed; test. `title: ""` keeps suppressing the tooltip (explicit host choice) |
+| F5 | Low | compact `renderItem` separator untested | CONFIRMED → test |
+| F6 | Low | plan snippets stale; "post v0.1" heading pinned | CONFIRMED → banner + heading |
+| F7 | Low | tooltip on rows that are not clipped | DROPPED — the contract asks for `title` "while truncating"; measuring clip is out of scope |
+
+
+## U3 — Gates (release 2: people-grid + info-list + empty-state; category-cloud held in `git stash`)
+
+tsc 0 · lint 0 errors · registry:build 0 (inert-surfaces clean; artifact-size 0 high) · doc-budget ok · tests **110 files /
+1467 passed / 5 skipped** · info-list 30 + 1 skip (kit `controlled`, not applicable) · `next build` 0.
+
+## U5 — Runtime & smoke
+
+- **Browser (fresh Sonnet finder, Chromium, production build on :3200):** default mission row truncates (`scrollWidth > clientWidth`) with `title`; with `wrap` the 193-character mission wraps to four lines with no `title`; sandbox rows still truncate, now with `title`; RTL icon at the start, text start-aligned. axe: lime link `color-contrast` (pre-existing, token-level → R-01); demo `landmark-unique` (R-02). Zero console errors / warnings for
+  the session (no `[info-list]` warning in production).
+- **Installs:** `INSTALL_TEST_ITEMS=people-grid,people-grid-fixtures,info-list,info-list-fixtures,empty-state,empty-state-fixtures
+  pnpm test:install` — shadcn 3.8.5 + 4.18.0, every add exit 0, info-list + fixtures at 0.3.0, consumer tsc 0 → **2 / 2**.
+
+## U6 — Docs & review
+
+Docs current; CHANGELOG; `docs/component-versions.md` regenerated. GATE 3: [`reviews/2026-10-25-v0.3.0-hardening.md`](reviews/2026-10-25-v0.3.0-hardening.md) —
+**Pass with follow-ups**.

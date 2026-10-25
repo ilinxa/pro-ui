@@ -12,16 +12,27 @@ export interface InfoListItem {
   }>;
   /** Primary content (bold in comfortable, plain in compact). Required. */
   primary: ReactNode;
-  /** Secondary content (muted, smaller). Optional — comfortable only renders it; compact ignores. */
+  /**
+   * Secondary content (muted, smaller). Comfortable only.
+   * @notImplemented in the `compact` variant: ignored there, with a one-time dev warning.
+   */
   secondary?: ReactNode;
-  /** Optional action element (e.g., a link Button) — renders below secondary in comfortable. Ignored in compact. */
+  /**
+   * Optional action element (e.g., a link Button) — renders below secondary in comfortable.
+   * @notImplemented in the `compact` variant: ignored there, with a one-time dev warning.
+   */
   action?: ReactNode;
-  /** Optional URL — when supplied + `linkComponent` provided, `primary` wraps in the polymorphic link. */
+  /** Optional URL — when set, `primary` wraps in the link element (`linkComponent`, default `<a>`). */
   href?: string;
+  /**
+   * Plain-text full value, used as the native `title` of a truncated compact row when `primary`
+   * is a node rather than a string. Falls back to `primary` when that is a string or a number.
+   */
+  title?: string;
 }
 
 export interface InfoListLabels {
-  /** Default: "No information." Used when `items` is empty AND `emptyState` not provided. */
+  /** Default: "No information." An `undefined` value keeps the default. Used when `items` is empty AND `emptyState` not provided. */
   emptyText?: string;
 }
 
@@ -32,8 +43,17 @@ export interface InfoListProps {
   /** Visual variant. Default: 'comfortable'. */
   variant?: InfoListVariant;
 
-  /** Insert top-border separators between items. Default: true for comfortable, false for compact. */
+  /**
+   * Insert top-border separators between items. Default: true for comfortable, false for compact.
+   * `renderItem` rows get a separator only when this is passed explicitly as `true`.
+   */
   separated?: boolean;
+
+  /**
+   * Compact only: let long values wrap (`wrap-break-word`) instead of truncating with an
+   * ellipsis. Default `false` — compact rows truncate and carry the full value as `title`.
+   */
+  wrap?: boolean;
 
   /** Wrap in card chrome (`bg-card rounded-2xl p-6 border`). Default: true. */
   framed?: boolean;
@@ -62,11 +82,14 @@ export interface InfoListProps {
   className?: string;
   /** Override classes for the heading. */
   headingClassName?: string;
-  /** Override classes per row. */
+  /** Override classes per row (also applied to `renderItem` rows). */
   itemClassName?: string;
 }
 
 /** Default English labels — exported for consumer composition. */
-export const DEFAULT_INFO_LIST_LABELS: Required<InfoListLabels> = {
+export const defaultInfoListLabels: Required<InfoListLabels> = {
   emptyText: "No information.",
 };
+
+/** @deprecated Use `defaultInfoListLabels` — the same object under its old name. */
+export const DEFAULT_INFO_LIST_LABELS: Required<InfoListLabels> = defaultInfoListLabels;

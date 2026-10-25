@@ -396,11 +396,11 @@ Headless wrapping over a presentational card. Same shape as schedule-list / info
 
 - `<ul role="list">` semantics.
 - `<section aria-labelledby={headingId}>` when `heading` is supplied (id from `useId`).
-- Per-card `<h4 id={nameId}>` for the name.
+- Per-card heading `id={nameId}` for the name — one level below the section heading by default (0.3.0; `cardHeadingAs` overrides).
 - Linked cards: `<linkComponent aria-labelledby={nameId}>` covering the entire card via overlay-link pattern → screen-reader announces just the person's name (clean), not "name + title + image alt".
-- Initials fallback `<div aria-hidden="true">` — decorative; the name is in `<h4>` which screen-reader announces.
-- Image alt: `imageAlt ?? name` (descriptive when provided; name as a sensible default since alt-as-name is acceptable for portrait avatars).
-- Heading levels: `h2` default (people grids are top-level page sections); per-card name uses `h4` (one level below the section heading).
+- Initials fallback `<div aria-hidden="true">` — decorative; the name is in the card heading which screen-reader announces.
+- Image alt: `imageAlt ?? ""` since 0.3.0 (decorative by default — the name is the heading beside it).
+- Heading levels: `h2` default (people grids are top-level page sections); per-card name is one level below the section heading (`h3`; a fixed `h4` before 0.3.0).
 - Decorative avatar borders are CSS-only (no extra DOM).
 
 ## Verification checklist
@@ -422,7 +422,7 @@ For decorative portraits, "Person Name" alt is acceptable per WCAG. For some ima
 
 ### Risk 2: Initials fallback color collision with brand
 
-`bg-primary/10 text-primary` uses the design-system primary (signal-lime in pro-ui). Some consumer brand variations might want a different fallback color. **Mitigation:** v0.2 candidate — `fallbackClassName` prop. v0.1 ships with the consistent default.
+`bg-primary/10 text-primary` uses the design-system primary (signal-lime in pro-ui). Some consumer brand variations might want a different fallback color. **Mitigation:** a `fallbackClassName` prop is not implemented; the consistent default is used.
 
 ### Risk 3: `columns × avatarSize` interaction at narrow viewports
 
@@ -436,9 +436,9 @@ For decorative portraits, "Person Name" alt is acceptable per WCAG. For some ima
 4. **Generic icon fallback (User from lucide-react)** — rejected; initials are more personal + the helper is more reusable.
 5. **Built-in `framed` prop** — rejected; people-grids are typically standalone page sections, not nested cards. Consumer wraps externally if they want chrome.
 
-## Open follow-ups (post v0.1)
+## Open follow-ups
 
-- v0.2: `fallbackClassName` for custom initials avatar tint
-- v0.2: hover-reveal bio panel
-- v0.2: optional social-link slot per person (without forcing renderItem)
-- v0.2: pagination / load-more for large grids
+- `fallbackClassName` for custom initials avatar tint — not implemented
+- hover-reveal bio panel — not implemented
+- social-link slot per person — covered by `renderActions` / `renderBadge` (0.3.0)
+- pagination / load-more for large grids — not implemented

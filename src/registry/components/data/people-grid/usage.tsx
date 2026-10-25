@@ -11,6 +11,22 @@ export default function PeopleGridUsage() {
         <code>image</code> is missing.
       </p>
 
+      <h3 className="mb-2 mt-6 text-base font-semibold">Upgrading to 0.3.0</h3>
+      <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
+        <li>
+          Card names are now one heading level below the section (
+          <code>h2</code> section → <code>h3</code> cards; 0.2.0 always
+          rendered <code>h4</code>). Pass <code>cardHeadingAs=&quot;h4&quot;</code>{" "}
+          to keep the old output.
+        </li>
+        <li>
+          The avatar <code>alt</code> now defaults to <code>&quot;&quot;</code>{" "}
+          (decorative — the name is the heading right beside it). Set{" "}
+          <code>imageAlt</code> per item to restore a text alternative (0.2.0
+          used the name).
+        </li>
+      </ul>
+
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`import { PeopleGrid } from "@/components/people-grid";
@@ -42,7 +58,13 @@ getInitials("Prof. Dr. Elif Kaya") // → "EK"
 getInitials("Madonna")              // → "M"
 getInitials("")                     // → "?"
 
-// Common honorifics skipped: Dr., Prof., Mr., Mrs., Ms., Sr., Jr.`}</code>
+// Locale-aware casing (string shorthand or options object)
+getInitials("ilker yılmaz", "tr")   // → "İY"
+getInitials("Sayın Ali Veli", { honorifics: ["sayın"] }) // → "AV"
+getInitials("", { fallback: "·" })  // → "·"
+
+// Default honorifics skipped: Dr., Prof., Mr., Mrs., Ms., Sr., Jr.
+// (a custom list or RegExp replaces them). First grapheme, not first UTF-16 unit.`}</code>
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
@@ -52,7 +74,7 @@ getInitials("")                     // → "?"
         All grids start at <code>grid-cols-1</code> on mobile and scale up
         at sm/md/lg breakpoints based on <code>columns</code>:
       </p>
-      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+      <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
         <li>
           <code>columns=2</code> — 1 col mobile, 2 col sm:+
         </li>
@@ -117,6 +139,25 @@ getInitials("")                     // → "?"
         title/image-alt.
       </p>
 
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Action + badge slots
+      </h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<PeopleGrid
+  heading="Ekip"
+  locale="tr"
+  items={people}
+  renderBadge={(p) => (p.verified ? <VerifiedMark /> : null)}
+  renderActions={(p) => <Button onClick={() => follow(p.id)}>Takip et</Button>}
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        Slots sit above the card link, so clicking them never navigates.
+        Tab order per card: badge, actions, then the card link. They apply
+        to the default card only — <code>renderItem</code> replaces the whole
+        card.
+      </p>
+
       <h3 className="mb-2 mt-6 text-base font-semibold">Custom renderItem</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<PeopleGrid
@@ -124,7 +165,7 @@ getInitials("")                     // → "?"
   renderItem={(person) => (
     <div className="text-center">
       <Avatar src={person.image} />
-      <h4 className="font-semibold">{person.name}</h4>
+      <p className="font-semibold">{person.name}</p>
       <p className="text-sm text-muted-foreground">{person.title}</p>
       <SocialLinks links={person.social} />
     </div>
@@ -141,7 +182,7 @@ getInitials("")                     // → "?"
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>
-      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+      <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
         <li>
           Renders <code>&lt;ul role=&quot;list&quot;&gt;</code>; section{" "}
           <code>aria-labelledby</code> resolves to the heading id (via{" "}
@@ -149,8 +190,8 @@ getInitials("")                     // → "?"
         </li>
         <li>
           Heading defaults to <code>h2</code> (people grids are top-level
-          page sections — Speakers, Team, Contributors). Differs from
-          sidebar info cards which default to <code>h3</code>.
+          page sections — Speakers, Team, Contributors); card names default
+          to one level below it (<code>cardHeadingAs</code> overrides).
         </li>
         <li>
           No <code>framed</code> prop — people grids are typically
@@ -159,7 +200,7 @@ getInitials("")                     // → "?"
         </li>
         <li>
           Initials fallback is <code>aria-hidden</code>; the name in the
-          adjacent <code>&lt;h4&gt;</code> is what screen readers
+          adjacent card heading is what screen readers
           announce.
         </li>
         <li>

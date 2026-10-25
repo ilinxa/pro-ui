@@ -99,17 +99,17 @@ owned in the review file).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — one additive prop; one defect fix in the disabled-link markup) |
-| **Current stage** | U2 — implementing (generic-set wave; release order share-bar → people-grid / info-list / empty-state → category-cloud) |
+| **Current stage** | U7 — shipping (release 2 of the generic set) |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.1.0 → **v0.2.0** |
-| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finder: 1 × Sonnet 5 (fresh, browser) |
+| **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finders: 2 × Sonnet 5 (fresh — code on a frozen snapshot; Chromium) |
 | **Started / updated** | 2026-10-24 / 2026-10-25 |
 
 ### Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
-- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
 
 Source: request §4.7 ES1 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:774-790`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:148`).
@@ -162,3 +162,40 @@ and no keyboard path of its own; four of the five generic-set components hold no
 three checks accepts `{ notApplicable: "<reason>" }` — the check then registers as a skipped test whose name carries the
 reason (visible in every run), so an absent check is a recorded decision, never a silent omission. Existing callers
 unchanged.
+
+### U2 — Implement (2026-10-25)
+
+1 × Sonnet 5 implementer (generic-set wave). Coordinator: `closed` += empty-state, changelog-baseline row dropped,
+CHANGELOG bullet (states the disabled-link markup change); link class restored to `cn(buttonVariants(…))` so the
+default markup is byte-identical to 0.1.0 (the implementer's tests asserted the raw `buttonVariants` string, which
+differs for `outline` — corrected). Roster unchanged. **Falsified 4 / 4**: ES1 `linkComponent`, U0-1 disabled href →
+Button, the `cn` parity, and the link keyboard path.
+
+### U4 — Adversarial review (1 fresh Sonnet finder, code, frozen snapshot)
+
+| id | sev | finding | verdict |
+|---|---|---|---|
+| F1 | Medium | docs named react-router as a drop-in `linkComponent`; its `Link` takes `to` | CONFIRMED → guide + JSDoc: `href`-based links as is, adapter recipe for `to` routers |
+| F2 | Low | tests compared the class to raw `buttonVariants`, the code used `cn()` | CONFIRMED (baseline failed on `outline`) → tests assert `cn(buttonVariants(…))` = 0.1.0 |
+| F3 | Low | no keyboard test on a link action | CONFIRMED → Tab + Enter test |
+| F4 | Low | the disabled-link markup change only in docs | CONFIRMED → CHANGELOG states it (selectors for `a[aria-disabled]` stop matching) |
+| F5 | Low | from a Server Component, `linkComponent` must be a client reference | CONFIRMED → guide sentence |
+| F6 | Low | no `target` / `rel` on object actions | DROPPED — already disclosed "not implemented" (parked in U0) |
+
+
+### U3 — Gates (release 2: people-grid + info-list + empty-state; category-cloud held in `git stash`)
+
+tsc 0 · lint 0 errors · registry:build 0 (inert-surfaces clean; artifact-size 0 high) · doc-budget ok · tests **110 files /
+1467 passed / 5 skipped** · empty-state 21 + 2 skips (kit `labels` + `controlled`, not applicable) · `next build` 0.
+
+### U5 — Runtime & smoke
+
+- **Browser (fresh Sonnet finder, Chromium, production build on :3200):** router-link tab: the action renders through the demo RouterLink, click logs `router.push("/compose")` with the URL unchanged; the disabled action is a `<button disabled>` skipped by Tab; without `linkComponent` a plain button-styled `<a href>`; `role="status"` only on search / error / offline; RTL mirrored; axe clean except the demo's muted hint (R-02). Zero console errors / warnings for
+  the session (no `[info-list]` warning in production).
+- **Installs:** `INSTALL_TEST_ITEMS=people-grid,people-grid-fixtures,info-list,info-list-fixtures,empty-state,empty-state-fixtures
+  pnpm test:install` — shadcn 3.8.5 + 4.18.0, every add exit 0, empty-state + fixtures at 0.2.0, consumer tsc 0 → **2 / 2**.
+
+### U6 — Docs & review
+
+Docs current; CHANGELOG; `docs/component-versions.md` regenerated. GATE 3: [`reviews/2026-10-25-v0.2.0-hardening.md`](reviews/2026-10-25-v0.2.0-hardening.md) —
+**Pass with follow-ups**.

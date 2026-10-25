@@ -40,8 +40,9 @@ import { Calendar, MapPin, Users } from "lucide-react";
           <code>w-4 h-4 text-muted-foreground</code>. No separators by
           default. Use for contact lists, footer columns, dense info
           summaries. <strong>Compact ignores <code>secondary</code> and{" "}
-          <code>action</code></strong> — they imply a richer row than the
-          variant supports.
+          <code>action</code></strong> (not implemented there) — it logs a
+          dev warning once. Use <code>comfortable</code> or{" "}
+          <code>renderItem</code> for richer rows.
         </li>
       </ul>
 
@@ -59,6 +60,21 @@ import { Calendar, MapPin, Users } from "lucide-react";
     { id: "email", icon: Mail,  primary: "info@example.com",   href: "mailto:info@example.com" },
   ]}
 />`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Long values — truncate or <code>wrap</code>
+      </h3>
+      <p className="text-muted-foreground">
+        Compact rows truncate by default (one line, ellipsis) and carry the
+        full value as a native <code>title</code> — <code>item.title</code>,
+        else <code>primary</code> when it is a string. Set{" "}
+        <code>item.title</code> when <code>primary</code> is a node. Pass{" "}
+        <code>wrap</code> to let long values wrap instead (comfortable rows
+        always wrap).
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<InfoList variant="compact" wrap items={aboutItems} />`}</code>
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Action slot</h3>
@@ -129,6 +145,9 @@ import { Calendar, MapPin, Users } from "lucide-react";
           <code>separated</code> — auto-defaults per variant: comfortable=
           <code>true</code>, compact=<code>false</code>. CSS top-border on
           each row except the first; override by passing the prop.
+          Rows from <code>renderItem</code> get a separator only when you
+          pass <code>separated</code> explicitly, and always get{" "}
+          <code>itemClassName</code>.
         </li>
       </ul>
 
@@ -137,7 +156,8 @@ import { Calendar, MapPin, Users } from "lucide-react";
         Empty <code>items</code> array → renders <code>emptyState</code> if
         provided, else <code>&lt;p role=&quot;status&quot;&gt;</code>{" "}
         with <code>labels.emptyText</code> (default &quot;No
-        information.&quot;).
+        information.&quot;; an <code>undefined</code> label keeps the
+        default — <code>defaultInfoListLabels</code> is exported).
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>

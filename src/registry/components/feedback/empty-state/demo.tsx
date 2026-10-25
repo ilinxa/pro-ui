@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EmptyState } from "./empty-state";
@@ -16,8 +16,43 @@ const ALL_VARIANTS: EmptyStateVariant[] = [
   "first-use",
 ];
 
+/**
+ * Stand-in for a host router's `Link` (next/link, react-router's Link ...): renders an anchor,
+ * intercepts the click and "navigates" by logging. Kept local so the demo stays portable.
+ */
+function makeRouterLink(log: (message: string) => void) {
+  return function RouterLink({
+    href,
+    onClick,
+    className,
+    children,
+  }: {
+    href: string;
+    onClick?: () => void;
+    className?: string;
+    children?: ReactNode;
+  }) {
+    return (
+      <a
+        href={href}
+        className={className}
+        data-router-link=""
+        onClick={(event) => {
+          event.preventDefault();
+          onClick?.();
+          log(`router.push("${href}")`);
+        }}
+      >
+        {children}
+      </a>
+    );
+  };
+}
+
 export default function EmptyStateDemo() {
   const [lastClicked, setLastClicked] = useState<string | null>(null);
+  const [navLog, setNavLog] = useState<string | null>(null);
+  const [RouterLink] = useState(() => makeRouterLink(setNavLog));
 
   return (
     <Tabs defaultValue="variants" className="w-full">
@@ -27,6 +62,8 @@ export default function EmptyStateDemo() {
         <TabsTrigger value="read-only">Read-only</TabsTrigger>
         <TabsTrigger value="illustration">Illustration</TabsTrigger>
         <TabsTrigger value="frames">Frames</TabsTrigger>
+        <TabsTrigger value="router-link">Router link</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       {/* All 6 variants at md size — each variant's default icon + tone + copy. */}
@@ -144,6 +181,52 @@ export default function EmptyStateDemo() {
             description="Connect a service to start syncing data."
             action={{ label: "Connect" }}
             secondaryAction={{ label: "View docs", href: "#" }}
+          />
+        </div>
+      </TabsContent>
+
+      {/* linkComponent: href actions go through the host router's Link; disabled stays a Button. */}
+      <TabsContent value="router-link" className="mt-6 max-w-md mx-auto">
+        <EmptyState
+          size="md"
+          variant="first-use"
+          frame="dashed"
+          title="No posts yet"
+          description="The actions below render through a local RouterLink stand-in."
+          linkComponent={RouterLink}
+          action={{ label: "Write a post", href: "/compose" }}
+          secondaryAction={{ label: "Browse topics", href: "/topics", disabled: true }}
+        />
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          {navLog ? (
+            <>
+              Navigated: <code>{navLog}</code>
+            </>
+          ) : (
+            "Click Write a post: the router link logs instead of navigating. The disabled action is a plain disabled button."
+          )}
+        </p>
+      </TabsContent>
+
+      {/* RTL: logical utilities only, so the layout mirrors with no extra work. */}
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <EmptyState
+            size="md"
+            variant="search"
+            frame="dashed"
+            title="لا توجد نتائج"
+            description="جرّب كلمة بحث مختلفة أو امسح عوامل التصفية."
+            action={{ label: "مسح التصفية" }}
+            secondaryAction={{ label: "عودة", href: "#" }}
+          />
+          <EmptyState
+            size="md"
+            variant="permission"
+            frame="card"
+            title="لا تملك صلاحية الوصول"
+            description="تواصل مع مسؤول مساحة العمل."
+            hint="رمز الخطأ 403"
           />
         </div>
       </TabsContent>

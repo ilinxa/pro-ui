@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { InfoList } from "./info-list";
 import {
+  dummyBusinessAbout,
+  dummyBusinessAboutAr,
   dummyContactItems,
   dummyContactItemsTr,
   dummyEventDetails,
@@ -52,6 +54,8 @@ export default function InfoListDemo() {
         <TabsTrigger value="stacked">Both stacked</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
+        <TabsTrigger value="about">Business about</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       {/* 1. Default — kasder Etkinlik Bilgileri verbatim */}
@@ -146,6 +150,54 @@ export default function InfoListDemo() {
                 </div>
               );
             }}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 6. Business About — compact, long value shown with `wrap` */}
+      <TabsContent value="about" className="mt-6 space-y-6">
+        <div className="max-w-md mx-auto space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            variant=&quot;compact&quot; wrap — the long mission wraps
+          </p>
+          <InfoList
+            heading="About"
+            variant="compact"
+            wrap
+            separated
+            items={dummyBusinessAbout}
+          />
+        </div>
+        <div className="max-w-md mx-auto space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Default (truncates; hover the mission for the full value as a title)
+          </p>
+          <InfoList
+            heading="About"
+            variant="compact"
+            items={dummyBusinessAbout}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 7. RTL */}
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar" className="max-w-md mx-auto space-y-6">
+          <InfoList
+            heading="نبذة عنا"
+            variant="compact"
+            wrap
+            separated
+            items={dummyBusinessAboutAr}
+            labels={{ emptyText: "لا توجد معلومات." }}
+          />
+          <InfoList
+            heading="نبذة عنا"
+            variant="comfortable"
+            items={dummyBusinessAboutAr.slice(1, 3).map((item) => ({
+              ...item,
+              secondary: "ملاحظة",
+            }))}
           />
         </div>
       </TabsContent>

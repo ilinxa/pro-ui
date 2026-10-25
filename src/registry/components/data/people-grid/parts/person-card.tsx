@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ElementType } from "react";
+import { memo, useId, type ElementType, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type {
   PeopleGridAlignment,
@@ -14,6 +14,11 @@ interface PersonCardProps {
   avatarSize: PeopleGridAvatarSize;
   alignment: PeopleGridAlignment;
   linkComponent: ElementType;
+  /** Heading level of the person's name. */
+  headingAs: "h3" | "h4" | "h5" | "h6";
+  locale?: string;
+  renderActions?: (item: PeopleGridItem) => ReactNode;
+  renderBadge?: (item: PeopleGridItem) => ReactNode;
   itemClassName?: string;
 }
 
@@ -26,22 +31,29 @@ const AVATAR_SIZE_MAP: Record<
   lg: { wrapper: "w-24 h-24", initials: "text-2xl" },
 };
 
-export function PersonCard({
+function PersonCardInner({
   item,
   avatarSize,
   alignment,
   linkComponent: LinkComponent,
+  headingAs: Heading,
+  locale,
+  renderActions,
+  renderBadge,
   itemClassName,
 }: PersonCardProps) {
   const nameId = useId();
   const isLinked = item.href != null && item.href.length > 0;
   const sizeClasses = AVATAR_SIZE_MAP[avatarSize];
+  const badge = renderBadge?.(item);
+  const actions = renderActions?.(item);
+  const centered = alignment === "center";
 
   return (
     <li
       className={cn(
         "relative group",
-        alignment === "center" ? "text-center" : "text-start",
+        centered ? "text-center" : "text-start",
         itemClassName,
       )}
     >
@@ -49,14 +61,19 @@ export function PersonCard({
         className={cn(
           "rounded-full overflow-hidden border-4 border-primary/20 mb-3",
           sizeClasses.wrapper,
-          alignment === "center" ? "mx-auto" : "",
+          centered ? "mx-auto" : "",
         )}
       >
         {item.image ? (
           <img
             src={item.image}
-            alt={item.imageAlt ?? item.name}
+            alt={item.imageAlt ?? ""}
+            width={item.imageWidth}
+            height={item.imageHeight}
+            srcSet={item.imageSrcSet}
+            sizes={item.imageSizes}
             loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover"
           />
         ) : (
@@ -67,19 +84,40 @@ export function PersonCard({
               sizeClasses.initials,
             )}
           >
-            {getInitials(item.name)}
+            {getInitials(item.name, locale)}
           </div>
         )}
       </div>
 
-      <h4
-        id={nameId}
-        className="font-semibold text-foreground motion-safe:group-hover:text-primary transition-colors"
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-x-1.5",
+          centered ? "justify-center" : "justify-start",
+        )}
       >
-        {item.name}
-      </h4>
+        <Heading
+          id={nameId}
+          className="font-semibold text-foreground motion-safe:group-hover:text-primary transition-colors"
+        >
+          {item.name}
+        </Heading>
+        {badge != null && badge !== false && (
+          <span className="relative z-10 inline-flex items-center">{badge}</span>
+        )}
+      </div>
       {item.title && (
         <p className="text-sm text-muted-foreground">{item.title}</p>
+      )}
+
+      {actions != null && actions !== false && (
+        <div
+          className={cn(
+            "relative z-10 mt-3 flex flex-wrap gap-2",
+            centered ? "justify-center" : "justify-start",
+          )}
+        >
+          {actions}
+        </div>
       )}
 
       {isLinked && (
@@ -92,3 +130,6 @@ export function PersonCard({
     </li>
   );
 }
+
+export const PersonCard = memo(PersonCardInner);
+PersonCard.displayName = "PersonCard";

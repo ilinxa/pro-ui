@@ -27,7 +27,8 @@
 | Icon | `w-5 h-5 text-primary` | `w-4 h-4 text-muted-foreground` |
 | Layout | Stacked (primary bold + secondary muted + optional action) | Inline single-line |
 | Separators | Default ON (top-border between rows) | Default OFF |
-| Reads | `secondary` + `action` | Ignores `secondary` + `action` (single-line only) |
+| Reads | `secondary` + `action` | Ignores `secondary` + `action` (single-line only; dev warning) |
+| Long values | Wrap | Truncate by default (full value in `title`); `wrap` opts in to wrapping |
 | Use for | Event Details, address blocks, capacity summary, product specs | Contact list, footer columns, dense info ticker |
 
 ## Composition patterns
@@ -126,7 +127,9 @@ import NextLink from "next/link";
 | `action` | optional (comfortable only) | Action block omitted |
 | `href` | optional | Row stays non-interactive |
 
-**Note on compact:** `secondary` and `action` are silently ignored — compact rows are single-line by definition. Pass them in comfortable, or use `renderItem` for richer compact rows.
+**Note on compact:** `secondary` and `action` are not implemented there: they are ignored, and a one-time dev-only `console.warn` says so (both carry `@notImplemented`). Pass them in comfortable, or use `renderItem` for richer compact rows.
+
+`title?: string` is the plain-text full value for a truncated compact row whose `primary` is a node; it falls back to `primary` when that is a string.
 
 ## Linked rows + polymorphic linkComponent
 
@@ -145,12 +148,23 @@ Pass full URLs in `href` (`tel:` / `mailto:` / `https://` / etc.) — no auto-pr
 
 The link's accessible name is the visible `primary` text (no separate `aria-label` needed — WCAG 2.5.3 Label in Name passes naturally).
 
+## Long values: truncate or wrap
+
+Compact rows truncate by default and set the full value as a native `title` (`item.title`, else `primary` when it is a string). Pass `wrap` to wrap long values (`wrap-break-word`) with no `title`:
+
+```tsx
+<InfoList variant="compact" wrap items={aboutItems} />
+```
+
+`dummyBusinessAbout` (in the fixtures) is a business About block — mission, working hours, address, website, phone — whose mission is a long value.
+
 ## Frame + separators
 
 | Prop | Default | Effect |
 |---|---|---|
 | `framed` | `true` | Wraps in card chrome (`bg-card rounded-2xl p-6 border`). Pass `false` for embedded use. |
-| `separated` | comfortable=`true`, compact=`false` | CSS top-border on each row except the first. Override per-need. |
+| `separated` | comfortable=`true`, compact=`false` | CSS top-border on each row except the first. Override per-need. `renderItem` rows separate only when `separated` is passed explicitly. |
+| `itemClassName` | — | Applied to every row, including `renderItem` rows. |
 
 ## Empty state
 
@@ -163,19 +177,22 @@ The link's accessible name is the visible `primary` text (no separate `aria-labe
 <InfoList items={[]} labels={{ emptyText: "Nothing here yet." }} />
 ```
 
+An `undefined` label value keeps the default. `defaultInfoListLabels` is exported (`DEFAULT_INFO_LIST_LABELS` remains as a deprecated alias).
+
 ## Accessibility
 
 - `<ul role="list">` — Safari `list-style: none` workaround.
 - `<section aria-labelledby={headingId}>` when `heading` is supplied (id from `useId`).
 - Decorative icons get `aria-hidden="true"`.
 - Linked rows: link's accessible name = `primary` text content.
+- RTL: only logical utilities are used, so rows mirror inside `dir="rtl"`; the demo has an RTL tab with Arabic rows.
 - Heading levels: `h3` default (sidebar info-cards typically nest under page `h2`).
 
 ## Performance
 
 - `React.memo` at export — pass stable `items` references.
 - `useMemo` over labels merge.
-- No effects, no async — pure presentation.
+- One dev-only effect (the compact `secondary` / `action` warning); no async — pure presentation.
 
 ## Migration origin
 

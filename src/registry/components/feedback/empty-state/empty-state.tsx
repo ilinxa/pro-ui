@@ -1,6 +1,6 @@
 "use client";
 
-import { isValidElement, type ReactNode } from "react";
+import { isValidElement, type ElementType, type ReactNode } from "react";
 import {
   Inbox,
   Lock,
@@ -78,7 +78,11 @@ function isActionConfig(action: EmptyStateAction): action is EmptyStateActionCon
   );
 }
 
-function renderAction(action: EmptyStateAction | undefined, kind: "primary" | "secondary") {
+function renderAction(
+  action: EmptyStateAction | undefined,
+  kind: "primary" | "secondary",
+  LinkTag: ElementType,
+) {
   // Also swallow `false`/`true`/`""` so the conditional-render idiom
   // `action={isAdmin && {…}}` doesn't mount an empty actions row (C5 F2).
   if (action == null || typeof action === "boolean" || action === "") return null;
@@ -90,18 +94,14 @@ function renderAction(action: EmptyStateAction | undefined, kind: "primary" | "s
   const { label, onClick, href, disabled } = action;
   const variant = kind === "primary" ? "default" : "outline";
 
-  if (href) {
-    // F-cross-13: no `asChild` — the anchor IS the styled surface via buttonVariants.
+  // A disabled link is not navigable: it keeps the disabled <Button> semantics (no link role,
+  // real `disabled`) and never reaches `linkComponent`.
+  if (href && !disabled) {
+    // F-cross-13: no `asChild` — the link IS the styled surface via buttonVariants.
     return (
-      <a
-        href={disabled ? undefined : href}
-        onClick={disabled ? (event) => event.preventDefault() : onClick}
-        aria-disabled={disabled || undefined}
-        tabIndex={disabled ? -1 : undefined}
-        className={cn(buttonVariants({ variant }), disabled && "pointer-events-none opacity-50")}
-      >
+      <LinkTag href={href} onClick={onClick} className={cn(buttonVariants({ variant }))}>
         {label}
-      </a>
+      </LinkTag>
     );
   }
 
@@ -137,6 +137,7 @@ export function EmptyState(props: EmptyStateProps) {
     headingLevel = 3,
     animated = true,
     frame = "none",
+    linkComponent = "a",
     className,
   } = props;
 
@@ -152,8 +153,8 @@ export function EmptyState(props: EmptyStateProps) {
     animated ? { animationDelay: `${ms}ms`, animationFillMode: "both" as const } : undefined;
 
   const Icon = VARIANT_ICON[variant];
-  const primaryAction = renderAction(action, "primary");
-  const secondaryActionNode = renderAction(secondaryAction, "secondary");
+  const primaryAction = renderAction(action, "primary", linkComponent);
+  const secondaryActionNode = renderAction(secondaryAction, "secondary", linkComponent);
   const hasActions = primaryAction !== null || secondaryActionNode !== null;
 
   return (

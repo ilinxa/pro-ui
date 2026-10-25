@@ -7,7 +7,10 @@
     "video-player",
     "expandable-text",
     "account-switcher",
-    "share-bar"
+    "share-bar",
+    "people-grid",
+    "info-list",
+    "empty-state"
   ],
   "rules": {
     "palette": {

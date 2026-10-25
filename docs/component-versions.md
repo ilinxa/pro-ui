@@ -44,10 +44,10 @@
 | `expandable-text` | Expandable Text | 0.3.0 | alpha | 2026-10-24 |
 | `flow-canvas` | Flow Canvas | 0.3.1 | alpha | 2026-10-24 |
 | `gantt-timeline` | Gantt Timeline | 0.7.2 | alpha | 2026-10-24 |
-| `info-list` | Info List | 0.2.0 | alpha | 2026-08-11 |
+| `info-list` | Info List | 0.3.0 | alpha | 2026-10-25 |
 | `kanban-board` | Kanban Board | 0.6.1 | alpha | 2026-10-24 |
 | `news-card` | News Card | 0.4.4 | alpha | 2026-10-24 |
-| `people-grid` | People Grid | 0.2.0 | alpha | 2026-08-11 |
+| `people-grid` | People Grid | 0.3.0 | alpha | 2026-10-25 |
 | `post-card` | Post Card | 0.5.3 | alpha | 2026-10-24 |
 | `progress-timeline` | Progress Timeline | 0.2.0 | alpha | 2026-08-11 |
 | `project-card` | Project Card | 0.3.1 | alpha | 2026-10-24 |
@@ -65,7 +65,7 @@
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
 | `detail-panel` | Detail Panel | 0.1.3 | alpha | 2026-10-24 |
-| `empty-state` | Empty State | 0.1.0 | alpha | 2026-08-12 |
+| `empty-state` | Empty State | 0.2.0 | alpha | 2026-10-25 |
 
 ### forms (8)
 

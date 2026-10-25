@@ -7,5 +7,5 @@ export type {
   InfoListVariant,
 } from "./types";
 
-export { DEFAULT_INFO_LIST_LABELS } from "./types";
+export { DEFAULT_INFO_LIST_LABELS, defaultInfoListLabels } from "./types";
 

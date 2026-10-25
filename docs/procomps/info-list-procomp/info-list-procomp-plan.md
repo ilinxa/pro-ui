@@ -3,6 +3,8 @@
 > Stage 2: how. The implementation contract.
 >
 > See [`info-list-procomp-description.md`](./info-list-procomp-description.md) for the what & why.
+>
+> **Superseded in part by 0.3.0** ([loop record](./info-list-loop.md)): the snippets below show the 0.1 design. Compact rows still truncate by default but carry the full value as `title` (`item.title` ?? a string / number `primary`); `wrap` opts into wrapping; `href` links with the default `<a>` (no `linkComponent` needed); compact ignores `secondary` / `action` with a dev warning; `renderItem` rows take `itemClassName` and an explicit `separated`. The [guide](./info-list-procomp-guide.md) is current.
 
 ## Final API
 
@@ -382,7 +384,7 @@ Headless wrapping over a presentational row. Same shape as schedule-list.
 
 ### Risk 1: Compact variant silently drops `secondary` + `action`
 
-A consumer might pass an item with secondary + action expecting it to render, then be confused when compact eats them. **Mitigation:** documented prominently in usage.tsx + the type doc-comments. If repeated user confusion surfaces, add a dev-only `console.warn` in v0.2.
+A consumer might pass an item with secondary + action expecting it to render, then be confused when compact eats them. **Mitigation:** documented prominently in usage.tsx + the type doc-comments. The dev-only `console.warn` (once per mount) is implemented.
 
 ### Risk 2: `<ul>` semantic vs visual list-style override
 
@@ -399,8 +401,8 @@ If both are present, the row has two interactive surfaces (the linked primary + 
 3. **shadcn `Separator` between items** — rejected; CSS top-border on each `<li>` (with `:not(:first-child)` guard) keeps the DOM clean.
 4. **Auto-prefix `tel:` / `mailto:` schemes** — rejected; consumer passes full URL; predictable + minimal.
 
-## Open follow-ups (post v0.1)
+## Open follow-ups
 
-- v0.2: a `medium` density variant if real demand surfaces (between comfortable + compact)
-- v0.2: per-item `tooltip` for icons that need explanation
-- v0.2: `onItemClick(item)` for non-link interactions
+- A `medium` density variant if real demand surfaces (between comfortable + compact)
+- Per-item `tooltip` for icons that need explanation
+- `onItemClick(item)` for non-link interactions

@@ -9,6 +9,7 @@ interface InfoRowProps {
   variant: InfoListVariant;
   separated: boolean;
   linkComponent: ElementType;
+  wrap: boolean;
   itemClassName?: string;
 }
 
@@ -17,33 +18,49 @@ export function InfoRow({
   variant,
   separated,
   linkComponent: LinkComponent,
+  wrap,
   itemClassName,
 }: InfoRowProps) {
   const IconComponent = item.icon;
   const isLinked = item.href != null && item.href.length > 0;
 
   if (variant === "compact") {
+    // Truncated rows carry the full value as a native tooltip; wrapped rows show it all already.
+    const fullValue = wrap
+      ? undefined
+      : (item.title ??
+        (typeof item.primary === "string" || typeof item.primary === "number"
+          ? String(item.primary)
+          : undefined));
+    const valueClass = wrap ? "wrap-break-word" : "truncate";
     return (
       <li
         className={cn(
-          "flex items-center gap-3",
+          wrap ? "flex items-start gap-3" : "flex items-center gap-3",
           separated && "pt-3 border-t border-border/50",
           itemClassName,
         )}
       >
         <IconComponent
           aria-hidden="true"
-          className="w-4 h-4 text-muted-foreground shrink-0"
+          className={cn(
+            "w-4 h-4 text-muted-foreground shrink-0",
+            wrap && "mt-0.5",
+          )}
         />
         {isLinked ? (
           <LinkComponent
             href={item.href}
-            className="text-sm text-primary hover:underline min-w-0 truncate"
+            title={fullValue}
+            className={cn("text-sm text-primary hover:underline min-w-0", valueClass)}
           >
             {item.primary}
           </LinkComponent>
         ) : (
-          <span className="text-sm text-foreground min-w-0 truncate">
+          <span
+            title={fullValue}
+            className={cn("text-sm text-foreground min-w-0", valueClass)}
+          >
             {item.primary}
           </span>
         )}

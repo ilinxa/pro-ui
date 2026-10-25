@@ -1,10 +1,16 @@
-﻿"use client";
+"use client";
 
-import { AtSign, Briefcase, Globe } from "lucide-react";
+import { AtSign, BadgeCheck, Briefcase, Globe } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PeopleGrid } from "./people-grid";
-import { dummyBoard, dummySpeakers, dummyTeam } from "./dummy-data";
+import {
+  dummyBoard,
+  dummyRtlPeople,
+  dummySpeakers,
+  dummyTeam,
+  dummyTurkishPeople,
+} from "./dummy-data";
 
 const speakerSocial: Record<
   string,
@@ -24,6 +30,8 @@ export default function PeopleGridDemo() {
         <TabsTrigger value="columns">Columns 2-5</TabsTrigger>
         <TabsTrigger value="linked">Linked + actions</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
+        <TabsTrigger value="slots">Slots + locale (TR)</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       {/* 1. Default — kasder Konuşmacılar verbatim */}
@@ -137,15 +145,15 @@ export default function PeopleGridDemo() {
                     {item.image && (
                       <img
                         src={item.image}
-                        alt={item.name}
+                        alt=""
                         loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     )}
                   </div>
-                  <h4 className="font-semibold text-foreground">
+                  <h3 className="font-semibold text-foreground">
                     {item.name}
-                  </h4>
+                  </h3>
                   <p className="text-sm text-muted-foreground mb-2">
                     {item.title}
                   </p>
@@ -183,6 +191,66 @@ export default function PeopleGridDemo() {
                 </div>
               );
             }}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 6. Slots + locale — Turkish casing, action button, verified badge */}
+      <TabsContent value="slots" className="mt-6">
+        <div className="max-w-4xl mx-auto space-y-2">
+          <p className="text-sm text-muted-foreground">
+            <code>locale=&quot;tr&quot;</code> upper-cases initials the Turkish
+            way (ilker → İY, şule → ŞÇ). <code>renderBadge</code> and{" "}
+            <code>renderActions</code> sit above the card link, so clicking
+            them never navigates. Tab order: slots, then the card link.
+          </p>
+          <PeopleGrid
+            heading="Ekip"
+            items={dummyTurkishPeople.map((p) => ({ ...p, href: `/ekip/${p.id}` }))}
+            columns={3}
+            locale="tr"
+            renderBadge={(item) =>
+              item.id === "tr1" ? (
+                <BadgeCheck
+                  role="img"
+                  aria-label="Doğrulanmış"
+                  className="w-4 h-4 text-primary"
+                />
+              ) : null
+            }
+            renderActions={(item) => (
+              <button
+                type="button"
+                className="rounded-md border border-border bg-card px-3 py-1 text-sm hover:bg-muted"
+              >
+                {item.id === "tr2" ? "Takip et" : "Bağlan"}
+              </button>
+            )}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 7. RTL — logical alignment, mirrored grid */}
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar" className="max-w-4xl mx-auto space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Inside <code>dir=&quot;rtl&quot;</code>: the grid flows right to
+            left and start-aligned cards align to the right.
+          </p>
+          <PeopleGrid
+            heading="الفريق"
+            items={dummyRtlPeople}
+            columns={3}
+            alignment="start"
+            locale="ar"
+            renderActions={() => (
+              <button
+                type="button"
+                className="rounded-md border border-border bg-card px-3 py-1 text-sm hover:bg-muted"
+              >
+                متابعة
+              </button>
+            )}
           />
         </div>
       </TabsContent>

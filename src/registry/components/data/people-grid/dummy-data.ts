@@ -73,3 +73,17 @@ export const dummyBoard: PeopleGridItem[] = [
   { id: "b4", name: "Şükrü Çelik", title: "Secretary" },
   { id: "b5", name: "Ms. Priya Sharma", title: "Director" },
 ];
+
+/** Turkish names whose initials exercise locale casing (`locale="tr"`: ilker -> İY, şule -> ŞÇ). */
+export const dummyTurkishPeople: PeopleGridItem[] = [
+  { id: "tr1", name: "ilker yılmaz", title: "Ürün Yöneticisi" },
+  { id: "tr2", name: "şule çelik", title: "Tasarım Lideri" },
+  { id: "tr3", name: "Dr. ışıl öztürk", title: "Veri Bilimci" },
+];
+
+/** Persian/Arabic-script names for the RTL tab. */
+export const dummyRtlPeople: PeopleGridItem[] = [
+  { id: "ar1", name: "أحمد الخطيب", title: "مهندس برمجيات" },
+  { id: "ar2", name: "ليلى حسن", title: "مصممة منتجات" },
+  { id: "ar3", name: "يوسف منصور", title: "محلل بيانات" },
+];

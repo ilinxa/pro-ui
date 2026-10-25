@@ -3395,7 +3395,7 @@ export default function DetailPanelDemo() {
   "empty-state": {
     demo: `"use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { EmptyState } from "./empty-state";
@@ -3411,8 +3411,43 @@ const ALL_VARIANTS: EmptyStateVariant[] = [
   "first-use",
 ];
 
+/**
+ * Stand-in for a host router's \`Link\` (next/link, react-router's Link ...): renders an anchor,
+ * intercepts the click and "navigates" by logging. Kept local so the demo stays portable.
+ */
+function makeRouterLink(log: (message: string) => void) {
+  return function RouterLink({
+    href,
+    onClick,
+    className,
+    children,
+  }: {
+    href: string;
+    onClick?: () => void;
+    className?: string;
+    children?: ReactNode;
+  }) {
+    return (
+      <a
+        href={href}
+        className={className}
+        data-router-link=""
+        onClick={(event) => {
+          event.preventDefault();
+          onClick?.();
+          log(\`router.push("\${href}")\`);
+        }}
+      >
+        {children}
+      </a>
+    );
+  };
+}
+
 export default function EmptyStateDemo() {
   const [lastClicked, setLastClicked] = useState<string | null>(null);
+  const [navLog, setNavLog] = useState<string | null>(null);
+  const [RouterLink] = useState(() => makeRouterLink(setNavLog));
 
   return (
     <Tabs defaultValue="variants" className="w-full">
@@ -3422,6 +3457,8 @@ export default function EmptyStateDemo() {
         <TabsTrigger value="read-only">Read-only</TabsTrigger>
         <TabsTrigger value="illustration">Illustration</TabsTrigger>
         <TabsTrigger value="frames">Frames</TabsTrigger>
+        <TabsTrigger value="router-link">Router link</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       {/* All 6 variants at md size — each variant's default icon + tone + copy. */}
@@ -3539,6 +3576,52 @@ export default function EmptyStateDemo() {
             description="Connect a service to start syncing data."
             action={{ label: "Connect" }}
             secondaryAction={{ label: "View docs", href: "#" }}
+          />
+        </div>
+      </TabsContent>
+
+      {/* linkComponent: href actions go through the host router's Link; disabled stays a Button. */}
+      <TabsContent value="router-link" className="mt-6 max-w-md mx-auto">
+        <EmptyState
+          size="md"
+          variant="first-use"
+          frame="dashed"
+          title="No posts yet"
+          description="The actions below render through a local RouterLink stand-in."
+          linkComponent={RouterLink}
+          action={{ label: "Write a post", href: "/compose" }}
+          secondaryAction={{ label: "Browse topics", href: "/topics", disabled: true }}
+        />
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          {navLog ? (
+            <>
+              Navigated: <code>{navLog}</code>
+            </>
+          ) : (
+            "Click Write a post: the router link logs instead of navigating. The disabled action is a plain disabled button."
+          )}
+        </p>
+      </TabsContent>
+
+      {/* RTL: logical utilities only, so the layout mirrors with no extra work. */}
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <EmptyState
+            size="md"
+            variant="search"
+            frame="dashed"
+            title="لا توجد نتائج"
+            description="جرّب كلمة بحث مختلفة أو امسح عوامل التصفية."
+            action={{ label: "مسح التصفية" }}
+            secondaryAction={{ label: "عودة", href: "#" }}
+          />
+          <EmptyState
+            size="md"
+            variant="permission"
+            frame="card"
+            title="لا تملك صلاحية الوصول"
+            description="تواصل مع مسؤول مساحة العمل."
+            hint="رمز الخطأ 403"
           />
         </div>
       </TabsContent>
@@ -7516,6 +7599,8 @@ import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { InfoList } from "./info-list";
 import {
+  dummyBusinessAbout,
+  dummyBusinessAboutAr,
   dummyContactItems,
   dummyContactItemsTr,
   dummyEventDetails,
@@ -7563,6 +7648,8 @@ export default function InfoListDemo() {
         <TabsTrigger value="stacked">Both stacked</TabsTrigger>
         <TabsTrigger value="bare">Bare</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
+        <TabsTrigger value="about">Business about</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       {/* 1. Default — kasder Etkinlik Bilgileri verbatim */}
@@ -7657,6 +7744,54 @@ export default function InfoListDemo() {
                 </div>
               );
             }}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 6. Business About — compact, long value shown with \`wrap\` */}
+      <TabsContent value="about" className="mt-6 space-y-6">
+        <div className="max-w-md mx-auto space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            variant=&quot;compact&quot; wrap — the long mission wraps
+          </p>
+          <InfoList
+            heading="About"
+            variant="compact"
+            wrap
+            separated
+            items={dummyBusinessAbout}
+          />
+        </div>
+        <div className="max-w-md mx-auto space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Default (truncates; hover the mission for the full value as a title)
+          </p>
+          <InfoList
+            heading="About"
+            variant="compact"
+            items={dummyBusinessAbout}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 7. RTL */}
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar" className="max-w-md mx-auto space-y-6">
+          <InfoList
+            heading="نبذة عنا"
+            variant="compact"
+            wrap
+            separated
+            items={dummyBusinessAboutAr}
+            labels={{ emptyText: "لا توجد معلومات." }}
+          />
+          <InfoList
+            heading="نبذة عنا"
+            variant="comfortable"
+            items={dummyBusinessAboutAr.slice(1, 3).map((item) => ({
+              ...item,
+              secondary: "ملاحظة",
+            }))}
           />
         </div>
       </TabsContent>
@@ -11034,13 +11169,19 @@ export default function PdfViewerDemo() {
 `,
   },
   "people-grid": {
-    demo: `﻿"use client";
+    demo: `"use client";
 
-import { AtSign, Briefcase, Globe } from "lucide-react";
+import { AtSign, BadgeCheck, Briefcase, Globe } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { PeopleGrid } from "./people-grid";
-import { dummyBoard, dummySpeakers, dummyTeam } from "./dummy-data";
+import {
+  dummyBoard,
+  dummyRtlPeople,
+  dummySpeakers,
+  dummyTeam,
+  dummyTurkishPeople,
+} from "./dummy-data";
 
 const speakerSocial: Record<
   string,
@@ -11060,6 +11201,8 @@ export default function PeopleGridDemo() {
         <TabsTrigger value="columns">Columns 2-5</TabsTrigger>
         <TabsTrigger value="linked">Linked + actions</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
+        <TabsTrigger value="slots">Slots + locale (TR)</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       {/* 1. Default — kasder Konuşmacılar verbatim */}
@@ -11173,15 +11316,15 @@ export default function PeopleGridDemo() {
                     {item.image && (
                       <img
                         src={item.image}
-                        alt={item.name}
+                        alt=""
                         loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     )}
                   </div>
-                  <h4 className="font-semibold text-foreground">
+                  <h3 className="font-semibold text-foreground">
                     {item.name}
-                  </h4>
+                  </h3>
                   <p className="text-sm text-muted-foreground mb-2">
                     {item.title}
                   </p>
@@ -11219,6 +11362,66 @@ export default function PeopleGridDemo() {
                 </div>
               );
             }}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 6. Slots + locale — Turkish casing, action button, verified badge */}
+      <TabsContent value="slots" className="mt-6">
+        <div className="max-w-4xl mx-auto space-y-2">
+          <p className="text-sm text-muted-foreground">
+            <code>locale=&quot;tr&quot;</code> upper-cases initials the Turkish
+            way (ilker → İY, şule → ŞÇ). <code>renderBadge</code> and{" "}
+            <code>renderActions</code> sit above the card link, so clicking
+            them never navigates. Tab order: slots, then the card link.
+          </p>
+          <PeopleGrid
+            heading="Ekip"
+            items={dummyTurkishPeople.map((p) => ({ ...p, href: \`/ekip/\${p.id}\` }))}
+            columns={3}
+            locale="tr"
+            renderBadge={(item) =>
+              item.id === "tr1" ? (
+                <BadgeCheck
+                  role="img"
+                  aria-label="Doğrulanmış"
+                  className="w-4 h-4 text-primary"
+                />
+              ) : null
+            }
+            renderActions={(item) => (
+              <button
+                type="button"
+                className="rounded-md border border-border bg-card px-3 py-1 text-sm hover:bg-muted"
+              >
+                {item.id === "tr2" ? "Takip et" : "Bağlan"}
+              </button>
+            )}
+          />
+        </div>
+      </TabsContent>
+
+      {/* 7. RTL — logical alignment, mirrored grid */}
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar" className="max-w-4xl mx-auto space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Inside <code>dir=&quot;rtl&quot;</code>: the grid flows right to
+            left and start-aligned cards align to the right.
+          </p>
+          <PeopleGrid
+            heading="الفريق"
+            items={dummyRtlPeople}
+            columns={3}
+            alignment="start"
+            locale="ar"
+            renderActions={() => (
+              <button
+                type="button"
+                className="rounded-md border border-border bg-card px-3 py-1 text-sm hover:bg-muted"
+              >
+                متابعة
+              </button>
+            )}
           />
         </div>
       </TabsContent>

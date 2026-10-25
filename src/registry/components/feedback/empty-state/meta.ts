@@ -14,6 +14,8 @@ export const meta: ComponentMeta = {
     "3 sizes (sm / md / lg) — type scale, icon-tile scale, and padding",
     "icon slot (overrides the variant default) or media slot (illustration; replaces the icon tile + bloom entirely)",
     "Capability-gated action + secondaryAction — object form renders a real Button (or a plain <a> via buttonVariants when href is set, never asChild), ReactNode form for full control; omit both and no button/link renders",
+    "linkComponent — render object actions that have an href through the host router's Link (receives href, onClick, className, label as children); default a plain anchor",
+    "A disabled href action renders a disabled Button (real disabled semantics, never a link, never the linkComponent)",
     "Optional footer hint slot for micro-copy (e.g. a keyboard shortcut)",
     "frame prop — 'none' (bare) / 'dashed' (dropzone-style border) / 'card' (raised bg-card surface)",
     "Semantic heading level via headingLevel (1-6, default 3) so empties participate in the page outline",
@@ -35,11 +37,11 @@ export const meta: ComponentMeta = {
     "placeholder",
   ],
 
-  version: "0.1.0",
+  version: "0.2.0",
   status: "alpha",
   artifactBudgetKB: 20,
   createdAt: "2026-08-12",
-  updatedAt: "2026-08-12",
+  updatedAt: "2026-10-25",
 
   author: { name: "ilinxa" },
 

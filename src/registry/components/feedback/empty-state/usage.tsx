@@ -72,10 +72,29 @@ export function ProjectsTable({ rows, filters, onClearFilters }) {
         <code>action</code> / <code>secondaryAction</code> accept either an
         object — <code>{`{ label, onClick?, href?, disabled? }`}</code> —
         rendered as a real <code>Button</code> (or a plain{" "}
-        <code>{`<a>`}</code> styled via <code>buttonVariants</code> when{" "}
-        <code>href</code> is set), or any <code>ReactNode</code> for full
+        <code>{`<a>`}</code> styled via <code>buttonVariants</code> (or your{" "}
+        <code>linkComponent</code>) when <code>href</code> is set), or any <code>ReactNode</code> for full
         control over the rendered element.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Client-side navigation</h3>
+      <p className="text-muted-foreground">
+        Object actions with an <code>href</code> render a plain anchor by default.
+        Pass your router&apos;s link as <code>linkComponent</code> to navigate
+        without a full page load; it receives <code>href</code>,{" "}
+        <code>onClick</code>, <code>className</code> (the button styling) and
+        the label as <code>children</code>. A <code>disabled</code> action
+        always renders a disabled <code>Button</code>, never the link.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import Link from "next/link"; // or your router's Link
+
+<EmptyState
+  title="No posts yet"
+  linkComponent={Link}
+  action={{ label: "Write a post", href: "/compose" }}
+/>`}</code>
+      </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Sizes</h3>
       <p className="text-muted-foreground">

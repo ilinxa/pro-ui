@@ -21,15 +21,19 @@ export const meta: ComponentMeta = {
     "Empty state slot + labels.emptyText fallback",
     "i18n via labels object",
     "<ul role='list'> semantics + section aria-labelledby",
-    "Compact variant intentionally ignores secondary + action (documented limitation)",
+    "Compact rows truncate by default with the full value as a native title; `wrap` opts in to wrapping long values (`item.title` supplies the text for node-valued primary)",
+    "Compact variant ignores secondary + action, with a one-time dev warning (use comfortable or renderItem for richer rows)",
+    "renderItem rows honour itemClassName and, when separated is passed, the separators",
+    "labels.emptyText: an undefined value keeps the default; defaultInfoListLabels exported (DEFAULT_INFO_LIST_LABELS kept as a deprecated alias)",
+    "Logical (RTL-safe) utilities only; RTL demo tab with Arabic rows",
   ],
   tags: ["info-list", "details", "info", "list", "sidebar"],
 
-  version: "0.2.0",
+  version: "0.3.0",
   status: "alpha",
   artifactBudgetKB: 15,
   createdAt: "2026-05-02",
-  updatedAt: "2026-08-11",
+  updatedAt: "2026-10-25",
 
   author: { name: "ilinxa" },
 
