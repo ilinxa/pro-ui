@@ -6,7 +6,8 @@
     "media-carousel",
     "video-player",
     "expandable-text",
-    "account-switcher"
+    "account-switcher",
+    "share-bar"
   ],
   "rules": {
     "palette": {

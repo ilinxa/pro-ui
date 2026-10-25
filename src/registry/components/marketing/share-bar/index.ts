@@ -1,6 +1,10 @@
 export { ShareBar } from "./share-bar";
 export {
   SHARE_BAR_DEFAULT_LABELS,
+  defaultShareBarLabels,
+  type ResolvedShareBarLabels,
+  type ShareLabelKind,
+  type ShareTargetNative,
   type ShareBarLabels,
   type ShareBarProps,
   type ShareKind,

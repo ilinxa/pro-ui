@@ -3,7 +3,7 @@
 # Component Versions
 
 > Generated snapshot — pure data view derived from every `meta.ts` under `src/registry/components/`. **Do not hand-edit** — regenerate with `pnpm build:component-versions`.
-> Snapshot marker: **2026-10-24** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
+> Snapshot marker: **2026-10-25** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
 
 ## Summary
 
@@ -106,7 +106,7 @@
 | `newsletter-signup` | Newsletter Signup | 0.2.0 | alpha | 2026-08-11 |
 | `page-hero` | Page Hero | 0.2.1 | alpha | 2026-10-24 |
 | `pricing-table` | Pricing Table | 0.2.0 | alpha | 2026-08-11 |
-| `share-bar` | Share Bar | 0.2.0 | alpha | 2026-08-11 |
+| `share-bar` | Share Bar | 0.3.0 | alpha | 2026-10-25 |
 
 ### media (9)
 

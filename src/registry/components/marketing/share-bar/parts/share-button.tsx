@@ -1,7 +1,7 @@
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { DEFAULT_ARIA, DEFAULT_ICONS } from "./icons";
+import { DEFAULT_ICONS } from "./icons";
 import type { ShareTarget } from "../types";
 
 export type CopyState = "idle" | "success" | "error";
@@ -9,17 +9,18 @@ export type CopyState = "idle" | "success" | "error";
 interface ShareButtonProps {
   target: ShareTarget;
   state: CopyState;
+  /** Resolved accessible name (also the tooltip). */
+  label: string;
   onClick: () => void;
   buttonClassName?: string;
-  copyAriaLabel?: string;
 }
 
 export function ShareButton({
   target,
   state,
+  label,
   onClick,
   buttonClassName,
-  copyAriaLabel,
 }: ShareButtonProps) {
   const isCopy = target.kind === "copy";
   const isCustom = target.kind === "custom";
@@ -31,12 +32,6 @@ export function ShareButton({
         ? X
         : target.icon ??
           (isCustom ? null : DEFAULT_ICONS[target.kind]);
-
-  const ariaLabel = isCustom
-    ? target.ariaLabel
-    : isCopy
-      ? target.ariaLabel ?? copyAriaLabel ?? DEFAULT_ARIA.copy
-      : target.ariaLabel ?? DEFAULT_ARIA[target.kind];
 
   return (
     <li>
@@ -50,8 +45,9 @@ export function ShareButton({
           isCopy && state === "error" && "text-destructive",
           buttonClassName
         )}
-        title={ariaLabel}
-        aria-label={ariaLabel}
+        title={label}
+        aria-label={label}
+        disabled={target.disabled}
         onClick={onClick}
       >
         {Icon ? <Icon className="w-4 h-4" /> : null}

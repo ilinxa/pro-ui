@@ -74,7 +74,7 @@ interface ShareBarProps {
 }
 ```
 
-`SHARE_BAR_DEFAULT_LABELS` and `SHARE_TEMPLATES` are also exported for consumers who want to extend defaults or call URL builders directly.
+`defaultShareBarLabels` (with its types `ResolvedShareBarLabels` and `ShareLabelKind`) and `SHARE_TEMPLATES` are also exported for consumers who want to extend defaults or call URL builders directly. `SHARE_BAR_DEFAULT_LABELS` is a deprecated alias of `defaultShareBarLabels`. `labels.targets.copy` has no default: the copy button is named by `copyAria` unless you set it.
 
 ## Built-in platforms
 
@@ -126,7 +126,7 @@ import { Send } from "lucide-react";
 />
 ```
 
-`onShare(targetKind)` fires after a successful share-intent open or successful copy. For granular hooks, use `onCopySuccess` / `onCopyError`.
+`onShare(targetKind)` fires after a share-intent window was opened (the window is opened with `noopener`, so the component cannot know whether the user then completed the share), after a successful copy, after the native share sheet resolved, and after a custom target's `onClick` ran. For granular hooks, use `onCopySuccess` / `onCopyError` / `onShareError`.
 
 ### URL templates with title + hashtags + via
 
@@ -180,7 +180,47 @@ The component is just a strip — wrap it in a sticky container for a side rail:
 </aside>
 ```
 
-Note: vertical layout requires custom `className` since the default is `flex-wrap items-center`. May want to bake a `direction?: "row" | "column"` prop in v0.2 if real demand.
+Note: vertical layout requires custom `className` since the default is `flex-wrap items-center`. There is no `direction` prop; the row layout is set with `className`.
+
+### Native share sheet
+
+```tsx
+<ShareBar
+  url={post.url}
+  title={post.title}
+  targets={[{ kind: "native" }, { kind: "twitter" }, { kind: "copy" }]}
+  onShare={(kind) => analytics.track("post.share", { kind })}
+  onShareError={(error, kind) => report(error, kind)}
+/>
+```
+
+`{ kind: "native" }` is a target like any other, so it composes with the order of `targets`, a custom `icon`, `ariaLabel` and `disabled` / `hidden`. It renders **only after mount**, when `navigator.share` exists and `navigator.canShare` (if present) accepts `{ url, title, text }` (undefined keys are dropped). Server HTML never contains it, so there is no hydration mismatch; where it is unsupported the other targets stay. The click calls `navigator.share` without awaiting anything first, to keep the click's user activation. Success calls `onShare("native")`; dismissing the sheet (`AbortError`) is silent; any other rejection calls `onShareError(error, "native")`.
+
+### Localized names
+
+```tsx
+<ShareBar
+  url={post.url}
+  targets={[{ kind: "native" }, { kind: "twitter" }, { kind: "whatsapp" }, { kind: "copy" }]}
+  labels={{
+    heading: "Paylaş",
+    copySuccess: "Bağlantı kopyalandı",
+    copyError: "Bağlantı kopyalanamadı",
+    targets: {
+      native: "Paylaş",
+      twitter: "X'te paylaş",
+      whatsapp: "WhatsApp'ta paylaş",
+      copy: "Bağlantıyı kopyala",
+    },
+  }}
+/>
+```
+
+`labels` merges per key; a key set to `undefined` keeps its default. `labels.targets` names every built-in kind, `copy` and `native` included (it becomes both `aria-label` and `title`); a target's own `ariaLabel` wins, and for `copy` `labels.targets.copy` wins over `copyAria`. The defaults are exported as `defaultShareBarLabels`; `SHARE_BAR_DEFAULT_LABELS` is a deprecated alias of the same object.
+
+### Disabled and hidden targets
+
+Every target accepts `disabled?` (rendered, inert) and `hidden?` (not rendered).
 
 ### Override an icon
 
@@ -204,32 +244,37 @@ import { Bird } from "lucide-react";   // example: replace TwitterX with a gener
 ## Copy fallback chain
 
 1. `navigator.clipboard.writeText(url)` — modern browsers, HTTPS contexts.
-2. **Fallback:** `document.execCommand("copy")` on a hidden textarea — older browsers, insecure HTTP contexts, embedded webviews.
-3. If both fail, `setCopyState("error")` fires; the icon flips to `X` (`text-destructive`) for `successResetMs` (default 2000ms); `onCopyError` callback fires; `aria-live="alert"` announces the error.
+2. **Fallback:** `document.execCommand("copy")` on a hidden read-only textarea — used when `navigator.clipboard` is missing **or `writeText` rejects** (iframe permissions policy, unfocused document).
+3. If both fail, `setCopyState("error")` fires; the icon flips to `X` (`text-destructive`) for `successResetMs` (default 2000ms); `onCopyError` callback fires; the `role="alert"` region announces the error.
 
 ### `successResetMs` is dual-purpose
 
-The same prop drives BOTH the success-icon revert (Check → Copy) AND the error-icon revert (X → Copy). One number governs the visible-feedback duration for either outcome — there is intentionally no `errorResetMs` sibling in v0.1. Pick a value that reads as "user noticed" without being annoying for the success case (typical values 1500–3000 ms; default 2000 ms).
+The same prop drives BOTH the success-icon revert (Check → Copy) AND the error-icon revert (X → Copy). One number governs the visible-feedback duration for either outcome — there is intentionally no `errorResetMs` sibling. Pick a value that reads as "user noticed" without being annoying for the success case (typical values 1500–3000 ms; default 2000 ms).
 
 ## A11y
 
 - Each icon-only button has a `title` (sighted hover tooltip) + `aria-label` (SR label) — both default per kind, both overridable.
 - External-link buttons open with `target="_blank" rel="noopener noreferrer"`.
 - Buttons render as `<li>` inside `<ul role="list">`.
+- The bar is `role="group"`, named by its heading when `headingAs` is set and by `labels.heading` otherwise.
 - Copy success → `<span role="status" aria-live="polite">{labels.copySuccess}</span>`.
 - Copy error → `<span role="alert">{labels.copyError}</span>`.
-- The 2-second success-reset timer is cleared on unmount (no `setState after unmount` warning).
+- The success-reset timer is cleared on unmount, and a copy that settles after unmount neither sets state nor arms a timer.
+- Logical layout only; the bar follows the inherited text direction (see the RTL demo tab).
 
 ## Performance
 
 - Exported as `React.memo`. Memoize the `targets` array (or use a module-level constant) for the memo to bite.
 - `"use client"` boundary at the component level — uses `useState`, `useEffect`, `navigator.clipboard`.
-- URL templates module is pure (~50 LOC, ~1KB) and tree-shakable; only the templates for the kinds you use end up in your bundle.
+- The URL templates module is pure (~50 LOC, ~1KB) and exported as a single `SHARE_TEMPLATES` object; bundlers keep the whole object.
 
-## Known limits / v0.2 candidates
+## Known limits
 
-- `useNativeShare?: boolean` — replaces button row with a single Share button calling `navigator.share()` (mobile-OS share sheet).
+Not implemented:
+
 - Sticky-rail variant with `direction="column"`.
+- Per-target copied state: two `copy` targets share one copied/failed state.
+- Controlled `copied`.
 - Per-target `successResetMs` override.
 - Share-count display (would require API integration).
 - Internationalized URL templates (`?lang=tr` etc.).

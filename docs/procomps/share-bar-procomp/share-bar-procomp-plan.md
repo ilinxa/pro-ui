@@ -1,6 +1,8 @@
 # share-bar — procomp plan
 
 > Stage 2: how. Implementation blueprint for [`share-bar-procomp-description.md`](./share-bar-procomp-description.md).
+>
+> **Superseded in part by 0.3.0** ([loop record](./share-bar-loop.md)): the code snippets below show the 0.1 design. `DEFAULT_ARIA` is gone (names live in `defaultShareBarLabels.targets`), labels merge per key so an `undefined` keeps its default, `SHARE_BAR_DEFAULT_LABELS` is a deprecated alias typed `ResolvedShareBarLabels`, and the native share sheet is a `{ kind: "native" }` target. The [guide](./share-bar-procomp-guide.md) is current.
 
 ## File map
 
@@ -554,9 +556,9 @@ Component code only:
 
 Estimated minified: ~4.5KB. Under the ≤ 5KB envelope.
 
-## Out of plan (deferred to v0.2 if needed)
+## Out of plan (not implemented)
 
-- `useNativeShare?: boolean` — replaces button row with single Share button calling `navigator.share()`
+- `useNativeShare?: boolean` — replaced by the `{ kind: "native" }` target (see the guide); no row-replacing mode
 - Sticky-rail variant
 - Per-target `successResetMs` override
 - Share-count display (would require API integration)

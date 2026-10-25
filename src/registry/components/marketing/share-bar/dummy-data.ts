@@ -31,6 +31,12 @@ export const SHARE_BAR_DUMMY_TR: ReadonlyArray<ShareTarget> = [
   { kind: "copy" },
 ];
 
+export const SHARE_BAR_DUMMY_NATIVE: ReadonlyArray<ShareTarget> = [
+  { kind: "native" },
+  { kind: "twitter" },
+  { kind: "copy" },
+];
+
 export const SHARE_BAR_DUMMY_URL =
   "https://ui.ilinxa.com/components/share-bar";
 export const SHARE_BAR_DUMMY_TITLE =

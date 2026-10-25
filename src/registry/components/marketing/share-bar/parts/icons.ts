@@ -1,4 +1,4 @@
-import { Copy, Mail, MessageCircle, Send } from "lucide-react";
+import { Copy, Mail, MessageCircle, Send, Share2 } from "lucide-react";
 import type { ComponentType } from "react";
 import {
   Bluesky,
@@ -11,7 +11,7 @@ import {
 import type { ShareKind } from "../types";
 
 export const DEFAULT_ICONS: Record<
-  ShareKind | "copy",
+  ShareKind | "copy" | "native",
   ComponentType<{ className?: string }>
 > = {
   twitter: TwitterX,
@@ -24,17 +24,6 @@ export const DEFAULT_ICONS: Record<
   threads: Threads,
   bluesky: Bluesky,
   copy: Copy,
+  native: Share2,
 };
 
-export const DEFAULT_ARIA: Record<ShareKind | "copy", string> = {
-  twitter: "Share on X",
-  facebook: "Share on Facebook",
-  linkedin: "Share on LinkedIn",
-  reddit: "Share on Reddit",
-  whatsapp: "Share on WhatsApp",
-  telegram: "Share on Telegram",
-  email: "Share via email",
-  threads: "Share on Threads",
-  bluesky: "Share on Bluesky",
-  copy: "Copy link",
-};

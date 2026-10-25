@@ -26,7 +26,7 @@ Every long-form content surface — blog posts, news articles, product pages, vi
 ## Out of scope
 
 - **Share-count metrics** — no API calls to fetch share counts. Pure action surface.
-- **Native Web Share API integration** (`navigator.share()`) — different UX (mobile OS share sheet), different fallback chain. Could ship as a `useNativeShare?: boolean` mode in v0.2 if real demand surfaces.
+- **A `useNativeShare` mode that replaces the row** — not implemented. The native share sheet is instead a `{ kind: "native" }` target that composes with the others and renders only where `navigator.share` exists.
 - **Floating / sticky share rail** — strip only. Consumer wraps in `<aside className="sticky top-24">` for sticky behavior; out of v0.1 scope to ship sticky-rail mode.
 - **Editable URL** — share URL is `props.url ?? window.location.href` at click time; not a controlled input.
 - **Customizable success-reset duration per target** — uniform `successResetMs` only.
@@ -169,7 +169,7 @@ All resolved during the analysis pass:
 1. ✅ **Success tint** — use `text-primary` (signal-lime); no new `--success` token.
 2. ✅ **Tooltips** — native `title` attribute (no shadcn Tooltip dep).
 3. ✅ **`onShare(targetKind)` callback** — included in v0.1 for analytics.
-4. ✅ **Native Web Share API integration** — not implemented; possible future addition.
+4. ✅ **Native Web Share API integration** — delivered in 0.3.0 as a `{ kind: "native" }` target (rendered after mount, only where `navigator.share` exists); no row-replacing mode.
 
 ## Why not...
 

@@ -63,6 +63,46 @@ export function ArticleFooter() {
 />`}</code>
       </pre>
 
+      <h3 className="mb-2 mt-6 text-base font-semibold">Native share sheet</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<ShareBar
+  url={post.url}
+  title={post.title}
+  targets={[{ kind: "native" }, { kind: "twitter" }, { kind: "copy" }]}
+  onShare={(kind) => analytics.track("post.share", { kind })}
+  onShareError={(error, kind) => report(error, kind)}
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        The <code>native</code> target renders only after mount, and only where{" "}
+        <code>navigator.share</code> exists (and <code>navigator.canShare</code>, when present, accepts the
+        payload). Server HTML never contains it. Dismissing the sheet is silent; any other failure calls{" "}
+        <code>onShareError</code>.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Localized names (Turkish)</h3>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<ShareBar
+  url={post.url}
+  targets={[{ kind: "native" }, { kind: "twitter" }, { kind: "whatsapp" }, { kind: "copy" }]}
+  labels={{
+    heading: "Paylaş",
+    copySuccess: "Bağlantı kopyalandı",
+    copyError: "Bağlantı kopyalanamadı",
+    targets: {
+      native: "Paylaş",
+      twitter: "X'te paylaş",
+      whatsapp: "WhatsApp'ta paylaş",
+      copy: "Bağlantıyı kopyala",
+    },
+  }}
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        <code>labels.targets</code> names every built-in kind (also used as the tooltip); a target&apos;s own{" "}
+        <code>ariaLabel</code> wins. Set <code>disabled</code> / <code>hidden</code> on any target.
+      </p>
+
       <h3 className="mb-2 mt-6 text-base font-semibold">Analytics hook</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<ShareBar
@@ -71,8 +111,9 @@ export function ArticleFooter() {
 />`}</code>
       </pre>
       <p className="text-muted-foreground">
-        <code>onShare(targetKind)</code> fires after a successful share-intent
-        open or successful copy. For granular hooks use <code>onCopySuccess</code>{" "}
+        <code>onShare(targetKind)</code> fires after a share-intent window was
+        opened (whether the user then finishes the share is unknowable), a successful copy, a resolved native share, or a
+        custom target&apos;s click. For granular hooks use <code>onCopySuccess</code>{" "}
         / <code>onCopyError</code>.
       </p>
 
@@ -98,7 +139,7 @@ export function ArticleFooter() {
         isn&apos;t available (older browsers, insecure HTTP context, embedded
         webviews), it falls back to the deprecated{" "}
         <code>document.execCommand(&quot;copy&quot;)</code> on a hidden
-        textarea. Both paths are inside a <code>try/catch</code> so the error
+        textarea — also when <code>writeText</code> rejects. Both paths are inside a <code>try/catch</code> so the error
         state surfaces to <code>onCopyError</code> + the icon flip.
       </p>
 
@@ -110,8 +151,8 @@ export function ArticleFooter() {
         </li>
         <li>
           Copy success/error feedback is dual-channel: visible icon flip +{" "}
-          <code>aria-live</code> announcement (<code>polite</code> for success,{" "}
-          <code>alert</code> for errors).
+          live-region announcement (<code>role=&quot;status&quot;</code> for success,{" "}
+          <code>role=&quot;alert&quot;</code> for errors).
         </li>
         <li>
           The 2-second success-reset timeout is cleared on unmount — no{" "}
