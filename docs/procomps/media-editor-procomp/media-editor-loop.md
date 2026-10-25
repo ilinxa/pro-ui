@@ -413,3 +413,6 @@ STATUS, guide banner. Guides: media-editor "Focus on close" under Presentation, 
 removed; story-composer Accessibility note. Follow-ups F-01 / F-05 (media-editor) and F-03 (story-composer) marked done
 in their review files. Patch ladder: no review file. Decision `.claude/decisions/2026-10-26-media-editor-v0-5-1.md`;
 report-back `.claude/report-back-2026-10-26-media-editor-0-5-1.md`.
+
+### U7 — Ship (2026-10-26)
+`0b5556a` pushed (with `58f8cc0`, `9df1a34`); live poll 2 (00:50) serves `/r/media-editor.json` 0.5.1 with `lib/placement.ts`. Patch closed.
