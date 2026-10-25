@@ -121,7 +121,7 @@ _(architect)_
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — SV1 optional `src`, SV11 / SV17 handler signatures; 0.x minor) |
-| **Current stage** | U7 — release 1 (0.5.4) shipping; 0.6.0 next (needs the user's go) |
+| **Current stage** | release 1 (0.5.4) shipped `a842f23`, live-verified 2026-10-25; 0.6.0 next (needs the user's go) |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.3 → **v0.6.0** (option: the bug fixes first as 0.5.4) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -355,3 +355,7 @@ STATUS / component-versions / CHANGELOG / served artifact; roster = folder minus
 ## U7 — Ship, release 1
 
 Pushed under the user's Part 3 push grant (after the final consistency review). Live check: see below.
+
+**Live (2026-10-25, poll 4, ≥ 150 s apart):** `https://ui.ilinxa.com/r/story-viewer.json` serves `meta.version` 0.5.4,
+31 files incl. `lib/focus-wrap.ts`, no `__tests__`, one version stamp, `wrapTabWithinLayer` in the served source;
+`story-viewer-fixtures` 0.5.4. **Release 1 closed.** Next: 0.6.0 on the user's go.
