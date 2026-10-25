@@ -94,7 +94,7 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — camera becomes opt-in (default install drops capture); `labels.editor` follows media-editor C17; 0.x minor) |
-| **Current stage** | **U5 (installs pending)** — release 3 built, uncommitted; resume: `.claude/HANDOFF-2026-10-23-social-platform-hardening.md` RESUME HERE |
+| **Current stage** | **Closed** — release 3 shipped `3259610`, live-verified 2026-10-26 |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.1 → **v0.6.0**, released **together with media-editor 0.5.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -112,7 +112,7 @@ needs a plan").
 - [x] U4 Adversarial review — 2 code finders + browser finder; fix waves falsified, see "U4"
 - [x] U5 Runtime & smoke — browser ✓ (re-verify 8/9 + crop-chip fix, falsified); installs ✓ (story-composer alone 4.18.0 + 3.8.5; capture + dependents 4.18.0; content-composer alone 3.8.5; the 3.8.5 dependency-already-installed abort = story-viewer F-01 class) — see "U5 — installs"
 - [x] U6 Docs sync & review — guide / meta / usage / CHANGELOG / review file; smoke rows; pre-push consistency review (CR-1…) — see "Final consistency review"
-- [ ] U7 Ship — commit + push + live poll pending
+- [x] U7 Ship — `3259610` pushed to master; live 2026-10-26 00:10 (media-editor 0.5.0, media-editor-capture 0.5.0, story-composer 0.6.0 served; story-composer no longer depends on capture)
 
 ## U0 — Intake
 
@@ -318,3 +318,10 @@ the host, and the old content-composer "timeout" was most likely the 3.8.5 overw
 - **Final battery (after the CR fixes):** tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (validators 0
   findings) · doc-budget 0 · tests 138 files / 1900 passed / 6 skipped · `pnpm build` 0 (77 pages). Artifacts:
   media-editor 332.9 / 345 KB, capture 53.7 / 65, story-composer 74.5 / 80.
+
+### U7 — Ship (2026-10-26)
+
+`3259610` pushed to `master` (with `0cd1a7d`). Live poll (≥ 150 s apart): poll 1 (00:07) still 0.4.1 / 0.5.1; poll 2
+(00:10) `/r/media-editor.json` 0.5.0 with `lib/probe-video.ts`, `/r/media-editor-capture.json` 0.5.0 (8 files),
+`/r/story-composer.json` 0.6.0 with `parts/publish-details-step.tsx` and `registryDependencies`
+`@ilinxa/media-editor, button, textarea`. Release 3 closed.
