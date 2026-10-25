@@ -99,7 +99,7 @@ owned in the review file).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — one additive prop; one defect fix in the disabled-link markup) |
-| **Current stage** | U7 — shipping (release 2 of the generic set) |
+| **Current stage** | **Closed** — 0.2.0 shipped (`c2f1d2d`) and verified live 2026-10-25 |
 | **Sign-off policy** | user-interactive (one sign-off for the five generic-set contracts) |
 | **Version target** | v0.1.0 → **v0.2.0** |
 | **Model roster** | architect: main session · implementer: 1 × Sonnet 5 (generic-set wave) · finders: 2 × Sonnet 5 (fresh — code on a frozen snapshot; Chromium) |
@@ -109,7 +109,7 @@ owned in the review file).
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** user, 2026-10-25 (platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_GENERIC_SET.md` accepted both open questions; user confirmed and authorized pushing without asking, after a final consistency review)
-- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship (push authorized after a final consistency review)
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [x] U7 Ship (pushed after a final consistency review; live-verified)
 
 Source: request §4.7 ES1 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:774-790`) as amended by the digest
 (`.claude/hardening-request-verification-2026-10-23.md:148`).
@@ -199,3 +199,12 @@ tsc 0 · lint 0 errors · registry:build 0 (inert-surfaces clean; artifact-size 
 
 Docs current; CHANGELOG; `docs/component-versions.md` regenerated. GATE 3: [`reviews/2026-10-25-v0.2.0-hardening.md`](reviews/2026-10-25-v0.2.0-hardening.md) —
 **Pass with follow-ups**.
+
+### U7 — Ship
+
+Final consistency review before push (user's condition): versions in `meta.ts`, `registry.json`, base + fixtures
+`public/r`, `docs/component-versions.md`, CHANGELOG, STATUS all 0.2.0; roster = folder; review-file test counts
+checked against the test files; `meta.ts` features match the code; commit holds release 2 only (category-cloud held
+in `git stash`, its CRLF-rewritten `public/r` files reverted). Commit `c2f1d2d`, pushed. **Live 04:17:**
+`https://ui.ilinxa.com/r/empty-state.json` 0.2.0 with the U4 fixes in the served source (`cn(buttonVariants(…))` parity, `linkComponent`); fixtures 0.2.0;
+detail page 200. Report-back: `.claude/report-back-2026-10-25-generic-set-release-2.md`.
