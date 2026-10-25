@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** under 0.x, with documented behaviour changes for bug fixes; additive API) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive (composed by post-card → any break is always the user's call). Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive (composed by post-card → any break is always the user's call). Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.3.2 → **v0.4.0** |
 | **Model roster** | architect: main session · intake: 1 × Sonnet 5 (read-only) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -17,7 +17,7 @@ Source: request §5.6 CT1–CT6 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1157-1255
 ## Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship
 
 ## U0 — Intake
@@ -73,13 +73,13 @@ bug fixes marked "fix".
   `length >= pageSize`, recomputed as the list changes (fix). Replies: `onLoadReplies?(commentId, cursor)`; the "view N
   replies" link shows whenever `replyCount > loaded` (fix), with per-node loading, Retry on failure, and "more
   replies" while `nextCursor` is set.
-- **CT4 moderation:** `Comment.permissions?` (`canEdit`, `canDelete`, `canPin`, `canHide`, `canReply`, `canReact`,
-  `canReport`; each defined key beats the ownership heuristic). `Comment.state?: "visible" | "deleted" | "hidden" |
-  "removed"` renders a labelled tombstone that keeps its replies, a `{ kind: "state" }` delta, and
-  `removedMode?: "prune" | "tombstone"` (default `"prune"` = today). `Comment.isPinned?` with a pinned marker. Inline
-  edit through `onEditComment?(id, content)` (reuses the composer, rollback on reject, sets `edited`).
-  `CommentMenuItem.hidden?`, `extraActions?(comment, helpers)` appended to the defaults, `commentActions` stays a
-  takeover; kebab honours `separatorBefore` (F-03).
+- **CT4 permissions (base):** `Comment.permissions?` (`canEdit`, `canDelete`, `canPin`, `canHide`, `canReply`,
+  `canReact`, `canReport`; each defined key beats the ownership heuristic). `CommentMenuItem.hidden?`,
+  `extraActions?(comment, helpers)` appended to the defaults, `commentActions` stays a takeover; kebab honours
+  `separatorBefore` (F-03).
+- **CT4 moderation → add-on `comment-thread-moderation`** (platform reply; full design in the "U1 amendment" at the end
+  of this file): inline edit (`onEditComment`), tombstones (`Comment.state` rendering, `removedMode="tombstone"`) and pin
+  (`isPinned` marker). The base keeps the data types and the `{ kind: "state" }` delta.
 - **CT5 reactions:** `engagementActions?(comment, helpers)` builds the row's engagement-bar actions (default = today's
   single like). `Comment.likes?: number | null` (`null` hides the count).
 - **CT6:** label functions `kebabAriaLabel(name)`, `replyTo(name)`, plus `loadingMore`, `sending`, `postFailed`,
@@ -103,10 +103,10 @@ bug fixes marked "fix".
 
 ### Size
 
-53.9 KB / 60; estimate +25 KB source → **~75–82 KB**. Budget → **85**, or ship CT4 moderation (edit, tombstones, pin)
-as a feature item to keep the base near 62 KB. Question 5.
+53.9 KB / 60; base after the moderation split ~70 KB → budget **75**; `comment-thread-moderation` ~8 KB (see the
+amendment). (The first estimate, ~75–82 KB with moderation in the base, is superseded.)
 
-### Open questions (in the proposal)
+### Open questions (in the proposal — all answered by the platform reply below)
 
 1. Controlled when `onCommentsChange` is passed (recommended; keeps post-card and today's callers working)?
 2. Paging: a new cursor callback beside the page one (recommended) or replace it (breaking, post-card in lockstep)? Do
@@ -151,3 +151,10 @@ Per `docs/feature-slicing-convention.md` (the `media-editor-capture` pilot):
   (today's `removed` semantics) plus one dev-warn; `isPinned` is ignored.
 - **Size:** base ~70 KB (budget 60 → **75**); moderation item ~8 KB.
 - **clientId rule:** reconcile by comment id first, then by `clientId` when present.
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- U1 merged with the amendment (CT4 split, size 75 KB); stale text removed. Negative path follows the feature-slicing convention: `onEditComment` / `removedMode` without the add-on → one dev-warn + today's behaviour, and their JSDoc says "requires `comment-thread-moderation`". A comment whose `state` is `"hidden"` / `"deleted"` / `"removed"` is pruned with its replies when the add-on is absent (today's `removed` semantics). [F-12]
+- U5: re-run story-viewer's tests and smoke (it imports `CommentComposer`, whose labels change in CT6). [F-19]

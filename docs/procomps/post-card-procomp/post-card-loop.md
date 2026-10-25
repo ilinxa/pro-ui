@@ -104,8 +104,8 @@ If this breaks for a consumer: a host relying on double-tap to unlike (unlikely)
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — label templates become functions; 0.x minor) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.3 → **v0.6.0** (ships after comment-thread 0.4.0; an engagement-bar patch drops the LikersStrip alias) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
 
@@ -116,7 +116,7 @@ Source: request §5.6 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1157-1255`) as amen
 ## Stage checklist (run Part 3)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
 
 ## U0 — Intake
@@ -190,3 +190,12 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 
 - M8 does **not** need post-card sooner (they shipped their own card and comment rows for M8; they swap when 0.6.0 + comment-thread 0.4.0 close). Release 4.
 - Label templates → functions (breaking 0.6.0) **confirmed**; reactions as a card prop not contested → as recommended.
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- **Moderation passthrough:** forward `moderation` (the `comment-thread-moderation` extension) to the thread, with tests with and without the add-on — the post-detail page uses it. [F-02]
+- **Names:** the existing keys `likersMoreLabel`, `pollTotalVotesLabel`, `pollClosesAtLabel` become functions (as proposed). List-meta counts get **new** function keys (additive, not breaking). [F-06]
+- **engagement-bar alias stays:** removing LikersStrip's `moreAriaLabelTemplate` would break engagement-bar (public prop + test). post-card stops using it; the alias stays deprecated. No engagement-bar bump for this. [F-07]
+- Pass a stable module-level empty array instead of `commentThread ?? []` (comment-thread's new identity dev-warn would fire every render) + test. [F-13]

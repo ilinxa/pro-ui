@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor with a migration note**: `onChange` stops firing on mount) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.2.1 → **v0.3.0** |
 | **Model roster** | architect: main session · intake: 1 × Sonnet 5 (read-only) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -17,7 +17,7 @@ Source: request §5.3 FB1–FB5 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1034-1077
 ## Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship
 
 ## U0 — Intake
@@ -103,3 +103,9 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 
 - Calendar: **lazy-loading is enough**; the date picker stays in the default bar (no feature item).
 - Mount-fire removal (with `emitInitialChange`) and count formatting only with `locale`: not contested → as recommended.
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- The default date locale changing from the browser's language to `"en"` is listed in the **migration note** beside FB1 (not only a changelog line) and in the report-back. [F-15]

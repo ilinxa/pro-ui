@@ -91,8 +91,8 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking install graph** — editing moves to an optional feature item; everything else additive; 0.x minor) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive; composed by content-composer → always the user's call. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive; composed by content-composer → always the user's call. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.2.2 → **v0.3.0** + new item `carousel-composer-editing` 0.3.0 + a minimal content-composer patch in the same push |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
 
@@ -102,7 +102,7 @@ Source: request §5.2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:966-1033`) as amend
 ## Stage checklist (run Part 3)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
 
 ## U0 — Intake
@@ -190,3 +190,11 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 
 - They will **install ours** (`@ilinxa/carousel-composer-editing`), not inject their own editor. The panel still takes the `renderEditor` shape (public seam).
 - Questions 1, 3, 4 not contested → as recommended (permissive default + `PLATFORM_SAFE_MIME`; controlled `value` for status; no frame picker).
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- **Panel shape, stated honestly:** the editing panel gets a **superset** of the requested `renderEditor` argument — `{ item, aspect, labels, onApply(id, patch), onCancel, editorProps }`; `onApply` takes an id + patch (`ApplyEditPatch`), not a blob. The proposal said "exactly your shape" — corrected in the guide and the report-back (they install ours, so no change on their side). [F-08]
+- Overlay colours ship through the `--media-overlay` `cssVars.theme` mapping on this item. [F-09]
+- Migration note: the deprecated alias `media-carousel-editor-01` (→ carousel-composer) also loses editing unless `carousel-composer-editing` is added. [F-18]

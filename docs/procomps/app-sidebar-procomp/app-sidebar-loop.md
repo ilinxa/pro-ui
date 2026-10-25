@@ -188,8 +188,8 @@ If this breaks for a consumer, it breaks because: their `sheet` lacks `showClose
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive trigger `labels`, a keyboard fix, a dev warning) |
-| **Current stage** | U1 — **awaiting sign-off** (bundled with the Part 3 proposal) |
-| **Sign-off policy** | user-interactive. Run 1's delegation does not carry over. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive. Run 1's delegation does not carry over. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.1 → **v0.6.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
 
@@ -201,7 +201,7 @@ handoff (`.claude/HANDOFF-2026-10-23-social-platform-hardening.md`, "app-sidebar
 ## Stage checklist (U-loop, run 2)
 
 - [x] U0 Intake (architect, below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
 
 ## U0 — Intake (run 2)
@@ -247,3 +247,11 @@ contract gate's `closed` list. Built 209.43 KB / budget 230.
 Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
 
 - Release 6, whenever convenient. Contract unchanged.
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- F-04 (served version + new-york install test): **done** by Part 1 R10 / R12 (`d4f12f0`).
+- The wider F-02 item (a section collapsed in the rail hides its items) stays **parked** — no question is pending on it (the "see question 2" pointer was wrong).
+- `controls` is a declared trigger prop (`types.ts:595`) — that part of the review finding was dropped. Hook controlled options (F-05's second half) stay parked. [F-17]

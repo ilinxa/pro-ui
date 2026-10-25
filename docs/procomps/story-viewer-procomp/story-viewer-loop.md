@@ -121,8 +121,8 @@ _(architect)_
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — SV1 optional `src`, SV11 / SV17 handler signatures; 0.x minor) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive. Ask before every push. |
+| **Current stage** | U1 signed → pre-U2 scope review (release 1 = 0.5.4) |
+| **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.3 → **v0.6.0** (option: the bug fixes first as 0.5.4) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
 
@@ -131,7 +131,7 @@ Source: request §5.7 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1256-1433`) as amen
 ## Stage checklist (run Part 3)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`) + user "go" on release 1 (0.5.4) 2026-10-25; user authorized pushing each Part 3 release without asking, after a final consistency review. The "go" covers 0.5.4; confirm with the user before starting 0.6.0.
 - [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
 
 ## U0 — Intake
@@ -217,3 +217,18 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 - Two releases confirmed: **0.5.4** (SV2 / SV3 / SV5 / SV6 / SV8 / SV9, no API change) first, then **0.6.0**.
 - `reactors` / `onLoadReactors`: **remove** in 0.6.0 (they use the viewers list, SV17).
 - Questions 2 (host pause survives item change; draft survives a sheet Escape) not contested → as recommended.
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+**0.5.4 (release 1):**
+- Custom `renderItem` frames count as ready immediately in 0.5.4 (no `onReady` until SV1 in 0.6.0). [R-01]
+- A media load **failure** also counts as ready (today's behaviour, the story never freezes); a cached image (`img.complete` at mount) is ready at once. [R-02]
+- SV5 on today's single pause flag: remember whether the viewer was paused when the first layer opened and restore that when the last layer closes, so closing a sheet never resumes a host / user pause. The reason set stays 0.6.0 (SV4). Layers in 0.5.4: comments, share, kebab, owner viewers list, link drawer. [R-03]
+- The **reaction popover** can't pause in 0.5.4: engagement-bar exposes no picker open state. Moves to 0.6.0 with an additive engagement-bar prop (`onReactionPickerOpenChange`, engagement-bar minor). [R-04]
+- SV6 Escape goes through the dialog's `onOpenChange` (called by both Radix and Base UI on Escape), which closes only the top layer; the kebab's own window listener is removed (no Radix-only `onEscapeKeyDown`, F-cross-13). Containment: everything behind an open sheet is `inert`, closed sheets are `inert` (both focus managers skip inert). Focus returns to the opener. [R-05]
+- SV3 video progress follows `onTimeUpdate` (~4 Hz), interpolated between updates so the bar doesn't step; explicit-`duration` videos keep the timer. [R-06]
+- The stale `swipeJustEndedRef` is also cleared on the next `pointerdown`. [R-07]
+- 0.5.4 is a **patch**: bug fixes + a regression test per fix. Contract closure (baseline rows, `closed`, `describeContract`, RTL demo, `--media-overlay` `cssVars.theme` mapping) lands with 0.6.0. [R-08]
+**0.6.0 additions:** the liked heart's `text-rose-400` → token; `viewerCount: number | null` (SV17); ship the `--media-overlay` mapping on this item; re-run this component's tests + smoke after comment-thread 0.4.0 (it imports `CommentComposer`). [R-09 / F-09 / F-11 / F-19]

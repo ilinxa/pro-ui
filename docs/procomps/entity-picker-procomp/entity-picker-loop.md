@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive controlled query, async states, `labels`, `locale`) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.1.4 → **v0.2.0** |
 | **Model roster** | architect: main session · intake: 1 × Sonnet 5 (read-only) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -17,7 +17,7 @@ Source: request §5.4 EP1–EP2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1078-1105
 ## Stage checklist (U-loop)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship
 
 ## U0 — Intake
@@ -107,3 +107,9 @@ only the latest `items`).
 Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
 
 - No entity-picker-specific questions were asked; the contract stands as written (host-owned data, no `useEntitySource` helper, "Load more" row).
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- No findings for this component.

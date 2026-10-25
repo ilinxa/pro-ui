@@ -104,8 +104,8 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — C17 removes the `@internal` `StoryComposerLabels` shim from the public capture seam; 0.x minor) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive; composed by story-composer, carousel-composer and content-composer → breaking parts are always the user's call. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive; composed by story-composer, carousel-composer and content-composer → breaking parts are always the user's call. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.4.1 → **v0.5.0** (+ `media-editor-capture` 0.5.0), released **together with story-composer 0.6.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
 
@@ -115,7 +115,7 @@ fix-on-touch ledger item **C17** (`.claude/procomp-loop.config.md`).
 ## Stage checklist (run Part 3)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
 
 ## U0 — Intake
@@ -188,3 +188,11 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 
 - Ships with story-composer 0.6.0 (release 2). MP4-only output accepted: on Firefox only in-browser recording is unavailable; uploading a video file still works.
 - Preset names: as recommended (`labels.presets` + their own preset data).
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- **Overlay focus:** while `props.overlay` is mounted the editor body is `inert` (+ test). No overlay → unchanged (invariant). [F-04]
+- **ME4:** the pass-through shortcut's `"video/webm"` metadata fallback (`media-editor.tsx:881`) becomes the blob's type or the first allowed output type. [F-05]
+- ME2 count corrected: 4 palette classes in the capture slice + 3 in `parts/tool-text-input.tsx` (7). [F-20]

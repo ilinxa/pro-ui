@@ -94,8 +94,8 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — camera becomes opt-in (default install drops capture); `labels.editor` follows media-editor C17; 0.x minor) |
-| **Current stage** | U1 — **awaiting sign-off** (Part 3 proposal) |
-| **Sign-off policy** | user-interactive. Ask before every push. |
+| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.1 → **v0.6.0**, released **together with media-editor 0.5.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
 
@@ -106,7 +106,7 @@ needs a plan").
 ## Stage checklist (run Part 3)
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
-- [ ] U1 Change contract — sign-off: pending
+- [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
 - [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
 
 ## U0 — Intake
@@ -191,3 +191,11 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 
 - Camera opt-in (upload-only default) **confirmed**. No separate no-editing flow needed — they use the editor (Konva staying is accepted).
 - Questions 3 (Blob vs File) and 4 (compat re-exports) not answered → as recommended: keep passing the `Blob`, note it in the guide; remove the stale compat re-exports in this breaking release.
+
+### Pre-U2 scope review (2026-10-25) — corrections
+
+Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
+
+- **SC1 is only real without the capture import graph:** remove the `ComposerCamera` / `EditorCameraProps` re-exports (`index.ts`) along with the static `mediaCapture` import. Smoke: an upload-only install (base item alone) compiles with consumer `tsc` 0 and contains no `features/capture` file. Question 4 resolved: remove the stale compat re-exports. [F-03]
+- Overlay colours ship through the `--media-overlay` `cssVars.theme` mapping on this item (`validate:registry-tokens`). [F-09]
+- Decision 5 waiver (Konva stays with the editor, platform-accepted) is recorded in the U7 decision file. [F-16]
