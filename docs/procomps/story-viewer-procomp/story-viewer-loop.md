@@ -121,7 +121,7 @@ _(architect)_
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — SV1 optional `src`, SV11 / SV17 handler signatures; 0.x minor) |
-| **Current stage** | 0.6.0 U7 (ship); 0.5.4 shipped `a842f23` |
+| **Current stage** | 0.6.0 CLOSED — shipped `c89aac2`, live 2026-10-25; 0.5.4 shipped `a842f23` |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.3 → **v0.6.0** (option: the bug fixes first as 0.5.4) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -577,3 +577,12 @@ features (fade, scrim, Tab wrap, timeout), CHANGELOG (fixed items), STATUS rows 
 follow-ups** (6, owned). engagement-bar review `reviews/2026-10-25-v0.6.0-picker-open-change.md`: **Pass**. Final
 consistency: roster = folder (39 / 21 files), versions agree (meta, artifacts, component-versions `--check`, STATUS),
 tsc 0 · eslint 0 · doc-drift 0 · inert-surfaces 64 / 64 clean · meta-deps 0 · doc-budget 0.
+
+## U7 — Ship, 0.6.0
+
+Commit `c89aac2` (with the docs commits `bbe5cff`, `e87ee58`), pushed under the user's Part 3 grant after the final
+consistency review. Live poll (≥ 150 s apart): 0.5.4 / 0.5.0 at +3 and +6 min, **0.6.0 / 0.6.0 at +9 min**. Live
+`story-viewer.json`: 38 files, no tests, `hooks/use-story-media.ts` + `lib/focus-wrap.ts` present, `lib/format-time.ts`
+gone, the nav-arrow selector fix in, `cssVars.theme` media-overlay mapping. Decision `shipped`; retro in
+`.claude/improvement-log.md`; report-back `.claude/report-back-2026-10-25-story-viewer-0-6-0.md` (to the user for the
+platform). **Next release:** media-editor 0.5.0 + story-composer 0.6.0 — on the user's go.

@@ -237,7 +237,7 @@ reads `getCurrentState()` counts as `number` (now `number | null`, a compile-tim
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — one additive optional prop) |
-| **Current stage** | U7 — ships with story-viewer 0.6.0 |
+| **Current stage** | CLOSED — shipped with story-viewer 0.6.0 (`c89aac2`), live 2026-10-25 |
 | **Sign-off policy** | covered by the story-viewer 0.6.0 contract (platform confirmed 2026-10-25; user go). Push under the user's Part 3 grant. |
 | **Version target** | v0.5.0 → **v0.6.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
