@@ -359,3 +359,43 @@ Pushed under the user's Part 3 push grant (after the final consistency review). 
 **Live (2026-10-25, poll 4, ≥ 150 s apart):** `https://ui.ilinxa.com/r/story-viewer.json` serves `meta.version` 0.5.4,
 31 files incl. `lib/focus-wrap.ts`, no `__tests__`, one version stamp, `wrapTabWithinLayer` in the served source;
 `story-viewer-fixtures` 0.5.4. **Release 1 closed.** Next: 0.6.0 on the user's go.
+
+### Platform reply to 0.5.4 (`E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_STORY_VIEWER_0.5.4.md`)
+
+- They will **not install 0.5.4**; they adopt **0.6.0** once live and contract-closed (their viewer is being split to
+  match the 0.6.0 interface).
+- **Request 1 — delete repair through the controlled prop:** removing an item / story from a controlled `stories` must run
+  the SV10 repair exactly as `dispatch` / `reset` / `subscribe` do (move to the next item, never keep playing the removed
+  one) + a test. → in 0.6.0 SV16 scope; test added to the contract.
+- **Request 2 — keep the names:** frame callbacks `onReady` / `onEnded` / `onProgress(currentTime, duration)` / `onError`,
+  `resolveMedia`, `pauseReasons`, `onLoadViewers(itemId, cursor)`, `onItemViewed`, `{ story, item }` handlers. All match
+  U1. Any rename must be announced in the 0.6.0 change contract before building.
+- **"Behaviour we will rely on (not new scope)" — architect check:**
+  - *Unavailable item (deleted / expired / `resolveMedia` 404) is skipped after a short notice; a single-item story opened
+    from a link shows the notice + a close button* → **NOT in U1** (U1 has `onMediaError` once-then-resume only; no
+    notice UI, skip timing, labels, or "opened from a link" signal). New scope — user decision.
+  - *Auto-advance never enters a group the host marks muted; direct open still works* → **NOT in U1**; `Story` has no
+    muted flag and nothing skips groups. New scope — user decision.
+  - *Viewers list belongs to the author; rendered only when given data* → already holds (owner mode, host-provided data).
+
+## U1 amendment — 0.6.0 change contract (2026-10-25)
+
+User decisions (2026-10-25): **add both** reply behaviours to 0.6.0; **go on 0.6.0 after the change contract is
+confirmed by the platform**. Platform-facing contract: `.claude/contract-2026-10-25-story-viewer-0.6.0.md` (local).
+Additions to the U1 above (everything else as U1 + the pre-U2 corrections + the 0.5.4 review follow-ups F-01…F-05):
+
+- **Muted groups:** `Story.muted?: boolean`; every sequential move (auto-advance, tap / arrow / swipe next and previous,
+  the swipe preview's neighbours) skips muted groups; a direct open (`initialStoryIndex`, `goToStory`) plays one; only
+  muted groups ahead → end-of-last-story behaviour. (Both directions proposed; platform to confirm.)
+- **Unavailable items:** `resolveMedia` → `null` / reject, media error without a new `src` from `onMediaError`, or removal
+  of the on-screen item from `stories` → pause, `labels.unavailable` (polite status) for `unavailableNoticeMs` (default
+  1500; `0` = 0.5.x immediate move), then the SV10 repair. `onItemUnavailable?(storyId, itemId, reason:
+  "resolve" | "media" | "removed")`. `standalone?: boolean` + single-item story → notice stays with
+  `labels.unavailableClose`.
+- **Delete repair through controlled `stories`:** same repair as `dispatch` / `reset` / `subscribe`; tested per path.
+- **Names frozen** (platform builds on them): frame callbacks `onReady` / `onEnded` / `onProgress(currentTime, duration)`
+  / `onError`, `resolveMedia`, `pauseReasons` + `onPauseReasonsChange`, `onLoadViewers(itemId, cursor)`,
+  `onItemViewed(storyId, itemId, itemIndex)` (unchanged signature), `{ story, item }` content handlers.
+- **Release coupling:** engagement-bar 0.5.0 → 0.6.0 (additive `onReactionPickerOpenChange`) ships with story-viewer 0.6.0.
+- Breaking list for the migration note: handlers `{ story, item }`; `onLoadViewers` signature + return; optional `src`;
+  `setPaused` persists; `reactors` removed; removal shows the notice (1.5 s) unless `unavailableNoticeMs={0}`.
