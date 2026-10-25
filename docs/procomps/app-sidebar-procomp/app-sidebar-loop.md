@@ -241,3 +241,9 @@ contract gate's `closed` list. Built 209.43 KB / budget 230.
 ### Size
 
 +~1 KB → ~210.5 / 230.
+
+### Platform reply (run 2)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- Release 6, whenever convenient. Contract unchanged.

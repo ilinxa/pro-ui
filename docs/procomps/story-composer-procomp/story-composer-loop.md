@@ -184,3 +184,10 @@ Konva" is named a non-goal for story-composer in the proposal.
 2. Do they need a no-editor story flow (upload + caption + publish, no tools)? Only then a lean variant.
 3. The uploader gets a `Blob`; do they need the original `File` (name kept)?
 4. Remove the old compat re-exports in this breaking release (recommended) or keep them?
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- Camera opt-in (upload-only default) **confirmed**. No separate no-editing flow needed — they use the editor (Konva staying is accepted).
+- Questions 3 (Blob vs File) and 4 (compat re-exports) not answered → as recommended: keep passing the `Blob`, note it in the guide; remove the stale compat re-exports in this breaking release.

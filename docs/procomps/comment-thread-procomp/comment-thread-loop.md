@@ -122,3 +122,32 @@ as a feature item to keep the base near 62 KB. Question 5.
   controlled pair (post-card loop).
 - `showEmpty` is false forever for live threads (`subscribe` set); revisit with controlled mode.
 - story-viewer inline-copies comment types; keep structurally compatible.
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- **Echo:** their broadcast includes the sender's own socket, so the echo can beat `onAddComment` → idempotent handling is required (as planned).
+- **clientId:** not echoed today; they add it (accept on create, echo in the broadcast) when they adopt 0.4.0. **Match on the comment id first, then `clientId` when present.**
+- **Cursors:** yes for top-level (sorts newest / oldest / top) and per-comment replies; `hasMore` / `nextCursor` fit.
+- **Moderation → add-on** (changes the contract — see the U1 amendment below). The plain thread renders under every feed post and must stay small.
+
+### U1 amendment (2026-10-25, platform reply) — moderation as a feature item
+
+Per `docs/feature-slicing-convention.md` (the `media-editor-capture` pilot):
+
+- **New item `comment-thread-moderation`** (`features/moderation/`, `meta: { featureOf: "comment-thread", budgetKB }`,
+  regDeps `@ilinxa/comment-thread` + the primitives its files import). It carries **inline edit** (edit composer +
+  rollback), **tombstones** (`Comment.state` rendering that keeps replies; `removedMode="tombstone"`) and **pin** (pinned
+  marker). Exported ready value `commentModeration`.
+- **Base seam** `hooks/use-moderation-extension.ts` (type + `createContext(null)` + optional accessor) and ONE prop
+  `moderation?: CommentModerationExtension`. Feature components travel inside the context value; no base file imports
+  a feature file. Consumers may inject their own implementation.
+- **Stays in the base:** the data types (`Comment.state?`, `isPinned?`, `permissions?`), the `{ kind: "state" }` delta in
+  the reducer, per-comment `permissions`, `hidden` / `extraActions`, idempotence, rollback, paging, reactions,
+  labels, locale.
+- **Negative path (tested):** without the add-on — `onEditComment` or `removedMode="tombstone"` → ONE dev-warn, no edit
+  item, removals prune (today's behaviour); a comment whose `state` isn't `"visible"` is pruned with its replies
+  (today's `removed` semantics) plus one dev-warn; `isPinned` is ignored.
+- **Size:** base ~70 KB (budget 60 → **75**); moderation item ~8 KB.
+- **clientId rule:** reconcile by comment id first, then by `clientId` when present.

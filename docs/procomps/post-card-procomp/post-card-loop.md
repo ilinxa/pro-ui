@@ -183,3 +183,10 @@ inline-copied by story-viewer and news-card (must stay compatible). No code depe
 1. Label templates → functions as a breaking 0.6.0 (recommended), or keep strings as deprecated aliases?
 2. Reactions as a card prop (recommended) or new `Post` fields?
 3. M8: do they need part of this sooner than the full release (e.g. forwarding + time + header first)?
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- M8 does **not** need post-card sooner (they shipped their own card and comment rows for M8; they swap when 0.6.0 + comment-thread 0.4.0 close). Release 4.
+- Label templates → functions (breaking 0.6.0) **confirmed**; reactions as a card prop not contested → as recommended.

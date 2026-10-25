@@ -209,3 +209,11 @@ references the props in docs. Decision 3 also applies (`bg-black text-white` she
 1. Two releases (bug fixes SV2/3/5/6/8/9 first as 0.5.4, then the breaking 0.6.0) or one? Recommendation: two.
 2. Host pause survives item changes (recommended), and the draft survives a sheet Escape (recommended)?
 3. Reactors (`@notImplemented` today): remove in the breaking release (recommended) or implement?
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- Two releases confirmed: **0.5.4** (SV2 / SV3 / SV5 / SV6 / SV8 / SV9, no API change) first, then **0.6.0**.
+- `reactors` / `onLoadReactors`: **remove** in 0.6.0 (they use the viewers list, SV17).
+- Questions 2 (host pause survives item change; draft survives a sheet Escape) not contested → as recommended.

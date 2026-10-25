@@ -183,3 +183,10 @@ GATE 1 redesign, not designed here): the tail type band kept; a stable `editing`
    or install ours?
 3. Upload status: controlled `value` (recommended) — confirm.
 4. Poster frame picker needed now? Recommendation: later.
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- They will **install ours** (`@ilinxa/carousel-composer-editing`), not inject their own editor. The panel still takes the `renderEditor` shape (public seam).
+- Questions 1, 3, 4 not contested → as recommended (permissive default + `PLATFORM_SAFE_MIME`; controlled `value` for status; no frame picker).

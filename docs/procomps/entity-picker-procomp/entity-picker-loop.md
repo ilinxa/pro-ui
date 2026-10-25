@@ -101,3 +101,9 @@ only the latest `items`).
 - `ui/command.tsx` physical `pl-2!` (shadcn primitive; registry-wide pass).
 - Selected items missing from current results can't be unticked in the list (chip remove works): `pinSelected`
   only on request.
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- No entity-picker-specific questions were asked; the contract stands as written (host-owned data, no `useEntitySource` helper, "Load more" row).

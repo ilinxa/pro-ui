@@ -181,3 +181,10 @@ inline copy of `validateGalleryFile`. **Orphans:** pre-P3 installs still hold si
 1. Release the breaking label change together with story-composer (recommended; it can't land alone).
 2. MP4-only video output: on Firefox video capture is then unavailable. Acceptable?
 3. Translatable preset names (`labels.presets`) as well as passing their own preset data? Recommendation: both.
+
+### Platform reply (Part 3 run)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope signed off as proposed, including every breaking change. Release order: (1) story-viewer 0.5.4 → 0.6.0 · (2) media-editor 0.5.0 + story-composer 0.6.0 · (3) filter-bar 0.3.0 + entity-picker 0.2.0 · (4) post-card 0.6.0 + comment-thread 0.4.0 · (5) carousel-composer 0.3.0 (+ content-composer patch) · (6) app-sidebar 0.6.0, whenever convenient.
+
+- Ships with story-composer 0.6.0 (release 2). MP4-only output accepted: on Firefox only in-browser recording is unavailable; uploading a video file still works.
+- Preset names: as recommended (`labels.presets` + their own preset data).
