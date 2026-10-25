@@ -27,6 +27,7 @@ interface ActionButtonProps {
   format: (n: number) => string;
   labels: ResolvedEngagementBarLabels;
   dir: Direction;
+  onReactionPickerOpenChange?: (open: boolean) => void;
   actionClassName?: string;
 }
 
@@ -45,6 +46,7 @@ function ActionButtonInner({
   format,
   labels,
   dir,
+  onReactionPickerOpenChange,
   actionClassName,
 }: ActionButtonProps) {
   switch (action.kind) {
@@ -136,6 +138,7 @@ function ActionButtonInner({
           format={format}
           labels={labels}
           dir={dir}
+          onPickerOpenChange={onReactionPickerOpenChange}
           actionClassName={actionClassName}
         />
       );

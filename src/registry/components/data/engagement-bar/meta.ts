@@ -57,11 +57,11 @@ export const meta: ComponentMeta = {
     "reactions",
   ],
 
-  version: "0.5.0",
+  version: "0.6.0",
   status: "alpha",
   artifactBudgetKB: 125,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-24",
+  updatedAt: "2026-10-25",
 
   author: { name: "ilinxa" },
 

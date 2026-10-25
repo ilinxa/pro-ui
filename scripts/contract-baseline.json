@@ -11,7 +11,8 @@
     "people-grid",
     "info-list",
     "empty-state",
-    "category-cloud"
+    "category-cloud",
+    "story-viewer"
   ],
   "rules": {
     "palette": {
@@ -134,9 +135,6 @@
       ],
       "src/registry/components/media/story-composer/parts/publishing-progress-overlay.tsx": [
         "text-amber-400"
-      ],
-      "src/registry/components/media/story-viewer/story-viewer.tsx": [
-        "text-rose-400"
       ],
       "src/registry/components/navigation/file-manager/parts/file-manager-item.tsx": [
         "dark:text-amber-400",
@@ -270,12 +268,6 @@
         "Intl.DateTimeFormat(undefined…)",
         "module-scope new Intl.DateTimeFormat",
         "module-scope new Intl.DateTimeFormat"
-      ],
-      "src/registry/components/media/story-viewer/lib/format-time.ts": [
-        "Intl.DateTimeFormat(undefined…)"
-      ],
-      "src/registry/components/media/story-viewer/types.ts": [
-        "Intl.DateTimeFormat(undefined…)"
       ],
       "src/registry/components/navigation/file-manager/lib/format.ts": [
         "Intl.DateTimeFormat(undefined…)",
@@ -1328,10 +1320,6 @@
       "src/registry/components/media/pdf-viewer/parts/pdf-zoom-controls.tsx": [
         "aria-label: Zoom in",
         "aria-label: Zoom out"
-      ],
-      "src/registry/components/media/story-viewer/parts/owner-overlay.tsx": [
-        "Loading viewers…",
-        "No viewers yet."
       ],
       "src/registry/components/navigation/file-manager/parts/file-manager-path-bar.tsx": [
         "aria-label=\"Path\"",

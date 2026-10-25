@@ -370,7 +370,7 @@ describe("U4 #6 — layer order, Escape per layer, inert lifecycle, item change"
     expect(inert.every((el) => el.getAttribute("data-story-layer") === "sheet")).toBe(true);
   });
 
-  it("(f) a layer open across an item change resumes on the new item", () => {
+  it("(f) a layer open across an item change closes; a host pause (0.6.0) persists on the new item", () => {
     const { ref } = mount(one, viewer);
     act(() => ref.current!.setPaused(true));
     fireEvent.click(screen.getByLabelText("Story actions"));
@@ -378,6 +378,9 @@ describe("U4 #6 — layer order, Escape per layer, inert lifecycle, item change"
     act(() => ref.current!.goToItem(1));
     expect(document.querySelector('[role="menu"]')).toBeNull();
     expect(ref.current!.getCursor().itemIndex).toBe(1);
+    // 0.6.0 (SV4): the `sheet` reason left with the layer; the `host` reason persists.
+    expect(isPausedUi()).toBe(true);
+    act(() => ref.current!.setPaused(false));
     expect(isPausedUi()).toBe(false);
   });
 });

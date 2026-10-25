@@ -10,9 +10,14 @@ export const meta: ComponentMeta = {
   context:
     "Use anywhere stories appear — Instagram-style modal viewer over a feed. Pairs with story-rail which fires onItemClick({ item, index }); host opens <StoryViewer isOpen stories={...} initialStoryIndex={index} onClose={...} /> in response. The viewer's onStoryViewed(storyId) callback is what hosts wire back into railRef.current.markViewed(storyId) to clear the unread ring — viewer is fully decoupled from the rail. Image and video items both supported (video composes media/video-player). v0.4 ships pure-CSS 3D cube transitions + pointer-driven swipe (no framer-motion peer dep); the cube engages only during the animation window and the front face sits at the perspective plane (no scale-jump). The engagement overlay (v0.2) composes engagement-bar v0.3.x; the comments panel (v0.3) and share panel (v0.3.1) are bottom-sheet slots typically host-wired to CommentThread and ShareMenu. Migration origin: kasder kas-social-front-v0 StoryViewer.tsx.",
   features: [
+    "v0.6.0 — Host-resolved media: `StoryItem.src` optional, `resolveMedia(item)` for the current and next item only, frame callbacks (`ctx.onReady` / `onEnded` / `onProgress(currentTime, duration)` / `onError`, `ctx.src` / `ctx.poster`), `onMediaError` retries once and resumes, `loadTimeoutMs`",
+    "v0.6.0 — Unavailable items (resolve / media / timeout / removed) show `labels.unavailable` for `unavailableNoticeMs` (default 1500) and move on; `onItemUnavailable(storyId, itemId, reason)`; `standalone` keeps a single-item story's notice with a close button",
+    "v0.6.0 — Controlled `stories` + `onStoriesChange` (wins every render; removals run the same repair as dispatch / reset / subscribe); `Story.muted` groups are skipped by every sequential move in both directions; `onItemViewed(…, cause: \"completed\" | \"left\")`",
+    "v0.6.0 — Pause reasons (`user` / `host` / `hold` / `reply-focus` / `sheet` / `hidden-tab` / `unavailable`, controlled `pauseReasons` + `onPauseReasonsChange`); `setPaused(true)` persists across items (until resumed or closed); `loadTimeoutMs` counts only while playing; a backgrounded tab and the reaction picker pause",
+    "v0.6.0 — Item-level handlers receive `{ story, item }`; separate `like` permission; per-item `StoryItem.engagement` seeds and `viewerCount` (`number | null`); `onLoadViewers(itemId, cursor)` pages with Retry; `reactors` / `onLoadReactors` removed",
+    "v0.6.0 — Caption (`dir=\"auto\"`), per-item `createdAt` and `locale` relative time; `renderHeaderBadge`; reduced motion (a short fade between authors, no cube); header scrim on the overlay token; Tab wraps inside the viewer; card size CSS variables + `navArrowsPlacement`; screen-reader previous / next buttons + position announcement; RTL keys / swipe / cube; progress ticks don't re-render the root; `--media-overlay` tokens",
     "v0.5.4 — Progress waits until the item is ready (image load / error / cached, video playback, custom frames at once); videos without a `duration` follow playback time and fall back to the timer for unknown durations; one advance per item. Every layer pauses and restores the prior paused state; Escape closes only the top layer and keeps the reply draft; open sheets and the actions menu contain focus (inert background + Tab wrap) and every layer returns focus to its opener. Long-press release no longer taps; gestures ignore form controls, layers and `[data-no-swipe]`",
     "v0.5.2 — Removing the current item or group (`stories` delta / `reset` / `dispatch`) moves to the next item (or the next group's first item), restarts progress and never replays a ghost; removing the last remaining group closes the viewer. Global keydown ignores editable targets and IME composition, and leaves Space on a focused button to the button. `handle.triggerReply(content)` now pre-fills the reply composer",
-    "v0.5.1 — `reactors` / `onLoadReactors` are marked @notImplemented and dev-warn; both were declared and never read",
     "Dialog modal (Radix or Base UI) — focus trap + portal; Escape and a backdrop press close the top layer (sheet, actions menu, viewers list, link drawer) first, then the viewer",
     "Mobile full-screen (h-dvh) / desktop centered portrait modal (md:h-175 md:w-100)",
     "Segmented progress bars (one per item; CSS `transition-[width]` fill; ARIA progressbar)",
@@ -25,7 +30,7 @@ export const meta: ComponentMeta = {
     "video-player composed for video items (cross-folder via registryDependencies)",
     "Subscribe<StoryViewerDelta> realtime contract: story-added / story-removed / item-added / item-removed / story-viewed",
     "ID-anchored cursor (NOT index-based) — story/item insertions / removals don't desync the cursor",
-    "Always-uncontrolled state with `reset(next)` + `dispatch(action)` imperative escape hatches (matches post-card / comment-thread)",
+    "Uncontrolled by default with `reset(next)` + `dispatch(action)` escape hatches; controlled with `stories` + `onStoriesChange` (v0.6.0)",
     "Cursor reset on (initialStoryIndex, isOpen) pair change — re-opening with same initialStoryIndex still goes back to item 0",
     "Forward-only `onStoryViewed` semantics (matches Instagram — backward navigation doesn't mark viewed)",
     "Auto-close at end of last story with synchronous `onAutoCloseAtEnd` callback before `onClose`",
@@ -72,9 +77,9 @@ export const meta: ComponentMeta = {
   ],
   tags: ["story-viewer", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.5.4",
+  version: "0.6.0",
   status: "alpha",
-  artifactBudgetKB: 240,
+  artifactBudgetKB: 340,
   createdAt: "2026-05-03",
   updatedAt: "2026-10-25",
 

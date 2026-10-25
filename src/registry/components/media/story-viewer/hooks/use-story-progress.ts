@@ -15,6 +15,13 @@ export interface UseStoryProgressOptions {
   onComplete: () => void;
   /** Tick interval. Default 50ms. */
   tickMs?: number;
+  /**
+   * Percent (0-100) the timer should already have covered. Raises the accumulator to
+   * `seedPct` of `itemDurationMs` when it is behind (never lowers it), so a hand-over from
+   * another progress source (a video that errored mid-play) continues from where the bar was
+   * instead of restarting at 0. Reset with the item. Default: no seed.
+   */
+  seedPct?: number;
 }
 
 /**
@@ -33,6 +40,7 @@ export function useStoryProgress({
   itemDurationMs,
   onComplete,
   tickMs = 50,
+  seedPct,
 }: UseStoryProgressOptions) {
   const [progress, setProgress] = useState(0);
   const [renderedItemKey, setRenderedItemKey] = useState(itemKey);
@@ -58,6 +66,14 @@ export function useStoryProgress({
     accumulatedRef.current = 0;
     completedRef.current = false;
   }, [itemKey]);
+
+  // Hand-over seed: raise (never lower) the accumulator to the seeded share of the item.
+  // Declared after the reset effect so a new item's seed lands on the cleared accumulator.
+  useEffect(() => {
+    if (seedPct === undefined || !(seedPct > 0)) return;
+    const seeded = (Math.min(seedPct, 100) / 100) * itemDurationMs;
+    if (seeded > accumulatedRef.current) accumulatedRef.current = seeded;
+  }, [seedPct, itemDurationMs, itemKey]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -120,5 +136,6 @@ export function useStoryProgress({
     };
   }, [isOpen, isPaused, itemKey, itemDurationMs, tickMs]);
 
-  return progress;
+  // The seeded share is shown from the first frame; the timer takes over from there.
+  return seedPct !== undefined && seedPct > progress ? Math.min(seedPct, 100) : progress;
 }

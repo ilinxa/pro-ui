@@ -281,6 +281,13 @@ export interface EngagementBarProps {
    * (`"ltr"` before). Layout mirrors through CSS either way.
    */
   dir?: "ltr" | "rtl";
+  /**
+   * Fires when the reaction picker opens (`true`) or closes (`false`) - by a tap, a long-press,
+   * a pick, an outside press, Escape, or the bar unmounting while it is open. Fires only on a
+   * change of state, never on mount. Hosts use it to pause surrounding playback while the
+   * picker is up. Never called when there is no `kind: "reaction"` action.
+   */
+  onReactionPickerOpenChange?: (open: boolean) => void;
   /** Override classes for the wrapping <div>. */
   className?: string;
   /** Override classes for each action button. */

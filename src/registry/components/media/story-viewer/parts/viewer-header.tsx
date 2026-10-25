@@ -1,4 +1,4 @@
-import { type ElementType } from "react";
+import { type ElementType, type ReactNode } from "react";
 import { MoreVertical, Pause, Play, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +31,11 @@ export interface ViewerHeaderProps {
    * owns the bottom-sheet panel state).
    */
   onKebabClick?: () => void;
+  /**
+   * 0.6.0 - badge rendered after the author name, before the time
+   * ({@link StoryViewerProps.renderHeaderBadge}). Absent = nothing.
+   */
+  renderBadge?: (story: Story, item: StoryItem) => ReactNode;
 }
 
 export function ViewerHeader({
@@ -46,6 +51,7 @@ export function ViewerHeader({
   onAuthorClick,
   authorComponent,
   onKebabClick,
+  renderBadge,
 }: ViewerHeaderProps) {
   const initials = story.username.slice(0, 2).toUpperCase();
   const isInteractive = !!onAuthorClick || !!authorComponent;
@@ -55,7 +61,7 @@ export function ViewerHeader({
     className: cn(
       "flex items-center gap-3 rounded-full text-start",
       isInteractive &&
-        "cursor-pointer transition-opacity hover:opacity-80 focus-visible:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+        "cursor-pointer transition-opacity hover:opacity-80 focus-visible:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-media-overlay-foreground/60",
     ),
   };
   if (onAuthorClick) {
@@ -65,16 +71,28 @@ export function ViewerHeader({
     authorRootProps.type = "button";
   }
   return (
-    <div className="absolute left-0 right-0 top-4 z-20 flex items-center justify-between px-4 pt-2">
+    <div className="absolute inset-x-0 top-4 z-20 flex items-center justify-between px-4 pt-2">
+      {/* F2: top scrim so white header text stays legible on bright media. Behind the controls
+          (-z-10 inside this stacking context), above the media, never takes pointer events. */}
+      <div
+        aria-hidden="true"
+        data-story-header-scrim=""
+        className="pointer-events-none absolute inset-x-0 -top-4 -z-10 h-28 bg-linear-to-b from-media-overlay to-transparent"
+      />
       <AuthorRoot {...authorRootProps}>
-        <Avatar className="h-10 w-10 border-2 border-white">
+        <Avatar className="h-10 w-10 border-2 border-media-overlay-foreground">
           {story.avatar ? <AvatarImage src={story.avatar} alt="" /> : null}
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
-        <div>
-          <p className="text-sm font-semibold text-white">{story.username}</p>
-          <p className="text-xs text-white/60">
-            {formatTime(new Date(story.createdAt))}
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-sm font-semibold text-media-overlay-foreground">
+              {story.username}
+            </p>
+            {renderBadge ? renderBadge(story, item) : null}
+          </div>
+          <p className="text-xs text-media-overlay-foreground/60">
+            {formatTime(new Date(item.createdAt ?? story.createdAt))}
           </p>
         </div>
       </AuthorRoot>
@@ -83,7 +101,7 @@ export function ViewerHeader({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
+          className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
           onClick={onTogglePause}
           aria-label={isPaused ? labels.play : labels.pause}
         >
@@ -94,7 +112,7 @@ export function ViewerHeader({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
+            className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
             onClick={onToggleMute}
             aria-label={isMuted ? labels.unmute : labels.mute}
             aria-pressed={isMuted}
@@ -107,7 +125,7 @@ export function ViewerHeader({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
+            className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
             onClick={onKebabClick}
             aria-label={labels.kebabAriaLabel}
           >
@@ -118,7 +136,7 @@ export function ViewerHeader({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-11 w-11 md:h-9 md:w-9 text-white hover:bg-white/20 hover:text-white"
+          className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
           onClick={onClose}
           aria-label={labels.close}
         >

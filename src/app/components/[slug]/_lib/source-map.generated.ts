@@ -14968,7 +14968,9 @@ import { Button } from "@/components/ui/button";
 import { StoryViewer } from "./story-viewer";
 import {
   STORY_VIEWER_DUMMY,
+  STORY_VIEWER_DUMMY_AR,
   STORY_VIEWER_DUMMY_CURRENT_USER,
+  STORY_VIEWER_DUMMY_MUTED,
   STORY_VIEWER_DUMMY_REACTION_KINDS,
   STORY_VIEWER_DUMMY_VIEWERS,
 } from "./dummy-data";
@@ -14997,6 +14999,12 @@ const IMAGE_ONLY: Story[] = [STORY_VIEWER_DUMMY[0]];
 const VIDEO_ONLY: Story[] = [STORY_VIEWER_DUMMY[1]];
 const MIXED: Story[] = [STORY_VIEWER_DUMMY[2]];
 const ALL_STORIES: Story[] = STORY_VIEWER_DUMMY;
+// 0.6.0 - a host-muted group sits between two others: sequential moves skip it.
+const WITH_MUTED: Story[] = [
+  STORY_VIEWER_DUMMY[0],
+  STORY_VIEWER_DUMMY_MUTED,
+  STORY_VIEWER_DUMMY[2],
+];
 
 function OpenButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
@@ -15229,12 +15237,14 @@ function CustomRenderItemTab() {
           // For non-promo items, mimic the default by returning null + relying on
           // the host wrapping pattern. In practice, hosts using renderItem own
           // the full render — including image/video. Keep this minimal for demo.
+          // 0.6.0: read \`ctx.src\` - it is \`item.src\`, or the URL \`resolveMedia\` /
+          // \`onMediaError\` supplied. \`item.src\` can be absent for a resolved item.
           if (item.type === "image") {
-            return <img src={item.src} alt="story" className="h-full w-full object-cover" />;
+            return <img src={ctx.src} alt="story" className="h-full w-full object-cover" />;
           }
           return (
             <video
-              src={item.src}
+              src={ctx.src}
               autoPlay
               muted
               playsInline
@@ -15270,10 +15280,17 @@ function ViewerModeTab() {
         onReactStory={(s, i, kind) => log("react", { s, i, kind })}
         onShareStory={(s, i) => log("share", { s, i })}
         onAddReply={(s, i, content) => log("reply", { s, i, content })}
-        onReport={(s) => log("report", s)}
+        onReport={({ story, item }) => log("report", { story: story.id, item: item.id })}
         onBlockAuthor={(a) => log("block-author", a)}
-        onCopyLink={(s) => log("copy-link", s)}
+        onCopyLink={({ story, item }) => log("copy-link", { story: story.id, item: item.id })}
         onAuthorClick={(s) => log("author-click", s.username)}
+        renderHeaderBadge={(story) =>
+          story.id === "story-1" ? (
+            <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+              Close friends
+            </span>
+          ) : null
+        }
         renderCommentsPanel={(story, item) => (
           <CommentThread
             comments={DUMMY_FLAT_COMMENTS}
@@ -15321,10 +15338,13 @@ function OwnerModeTab() {
   // Lazy-fetch handler — simulates a server round-trip after the eager
   // count chip is tapped (Q-V5 hybrid: viewerCount eager, viewers lazy).
   const onLoadViewers = useMemo(
-    () => async (storyId: string): Promise<ViewerListItem[]> => {
-      log("load-viewers", storyId);
+    () => async (
+      itemId: string,
+      cursor: string | null,
+    ): Promise<{ items: ViewerListItem[]; nextCursor: string | null }> => {
+      log("load-viewers", \`\${itemId} · \${cursor ?? "first page"}\`);
       await new Promise((r) => setTimeout(r, 350));
-      return STORY_VIEWER_DUMMY_VIEWERS;
+      return { items: STORY_VIEWER_DUMMY_VIEWERS, nextCursor: null };
     },
     [],
   );
@@ -15342,10 +15362,133 @@ function OwnerModeTab() {
         onClose={() => setOpen(false)}
         viewerMode="owner"
         onLoadViewers={onLoadViewers}
-        onSaveToHighlights={(s) => log("save-to-highlights", s)}
-        onDeleteStory={(s) => log("delete-story", s)}
-        onShareToFeed={(s) => log("share-to-feed", s)}
+        onSaveToHighlights={({ story, item }) =>
+          log("save-to-highlights", { story: story.id, item: item.id })
+        }
+        onDeleteStory={({ story, item }) => log("delete-story", { story: story.id, item: item.id })}
+        onShareToFeed={({ story, item }) => log("share-to-feed", { story: story.id, item: item.id })}
         isSavedToHighlights={false}
+      />
+    </div>
+  );
+}
+
+function MutedGroupTab() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="px-6 text-center text-sm text-muted-foreground">
+        The middle group has <code>muted: true</code>: auto-advance, tap, arrow keys and swipe all
+        skip it. Open it directly (<code>initialStoryIndex=1</code>) and it still plays.
+      </p>
+      <OpenButton label="Open (muted group skipped)" onClick={() => setOpen(true)} />
+      <StoryViewer
+        stories={WITH_MUTED}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onCursorChange={(s, i) => log("cursor", { s, i })}
+      />
+    </div>
+  );
+}
+
+function RtlTab() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div dir="rtl" lang="ar" className="flex flex-col items-center gap-3 py-8">
+      <p className="px-6 text-center text-sm text-muted-foreground">
+        الاتجاه من اليمين إلى اليسار: يتبدّل السهمان والسحب، وتنعكس أزرار التنقل، ويتبع الوصف
+        اتجاه النص.
+      </p>
+      {/* The viewer renders in a portal: it reads the direction of the nearest [dir] (here the
+          document), so the host sets dir on the document / app root as well. */}
+      <OpenButton
+        label="افتح القصص"
+        onClick={() => {
+          document.documentElement.dir = "rtl";
+          setOpen(true);
+        }}
+      />
+      <StoryViewer
+        stories={STORY_VIEWER_DUMMY_AR}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => {
+          setOpen(false);
+          document.documentElement.removeAttribute("dir");
+        }}
+        locale="ar"
+        viewerMode="viewer"
+        currentUser={{ id: "user-current", name: "أنا" }}
+        labels={{
+          viewerLabel: "عارض القصص",
+          play: "تشغيل",
+          pause: "إيقاف مؤقت",
+          mute: "كتم الصوت",
+          unmute: "إلغاء الكتم",
+          close: "إغلاق",
+          prevStory: "القصة السابقة",
+          nextStory: "القصة التالية",
+          prevItem: "العنصر السابق",
+          nextItem: "العنصر التالي",
+          kebabAriaLabel: "إجراءات القصة",
+          replyComposerPlaceholder: (s) => \`الرد على \${s.username}…\`,
+          replyAriaLabel: (s) => \`الرد على \${s.username}\`,
+          replyComposerSend: "إرسال",
+          replyComposerCancel: "إلغاء",
+          engagementShowLabel: "إظهار التفاعلات",
+          engagementHideLabel: "إخفاء التفاعلات",
+          report: "إبلاغ",
+          copyLink: "نسخ الرابط",
+          position: (author, index, total) => \`\${author}، \${index + 1} من \${total}\`,
+          itemImageAlt: (story, index, total) => \`\${story.username}، صورة القصة \${index + 1} من \${total}\`,
+          reactionPickerLabel: "اختر تفاعلاً",
+          viewerCountLabel: (count, time, formatted) => \`\${formatted ?? count} مشاهدة · \${time}\`,
+          viewersHeading: "المشاهدون",
+          viewersMoreLabel: (count) => \`+\${count} آخرون\`,
+          viewersLoading: "جارٍ تحميل المشاهدين…",
+          viewersEmpty: "لا يوجد مشاهدون بعد.",
+          viewersLoadMore: "تحميل المزيد",
+          viewersError: "تعذّر تحميل المشاهدين.",
+          viewersRetry: "إعادة المحاولة",
+          saveToHighlights: "حفظ في المميزة",
+          unsaveFromHighlights: "إزالة من المميزة",
+          deleteStory: "حذف القصة",
+          shareToFeed: "مشاركة في الخلاصة",
+          blockAuthor: "حظر الكاتب",
+          muteAuthor: "كتم الكاتب",
+          openLink: "فتح الرابط",
+          linkCloseLabel: "إغلاق الرابط",
+          commentsHeading: "التعليقات",
+          commentsCloseLabel: "إغلاق التعليقات",
+          commentsDefaultEmptyState: "لا توجد تعليقات بعد. كن أول من يرد.",
+          shareHeading: "مشاركة",
+          shareCloseLabel: "إغلاق المشاركة",
+          shareDefaultEmptyState: "لم يتم تحميل وجهات المشاركة بعد.",
+          unavailable: "هذه القصة لم تعد متاحة",
+          unavailableClose: "إغلاق",
+          engagementLabels: {
+            like: "إعجاب",
+            unlike: "إلغاء الإعجاب",
+            openLikersPanel: "عرض المعجبين",
+            comment: "تعليق",
+            share: "مشاركة",
+            bookmark: "حفظ",
+            unbookmark: "إزالة الحفظ",
+            viewCount: "المشاهدات",
+            react: "تفاعل",
+            removeReaction: "إزالة التفاعل",
+            openReactionsPanel: "عرض التفاعلات",
+            reactionPickerLabel: "اختر تفاعلاً",
+          },
+          commentLabels: {
+            composerPlaceholder: "اكتب تعليقاً…",
+            composerSend: "إرسال",
+            composerCancel: "إلغاء",
+          },
+        }}
+        onReport={({ story, item }) => log("report", { story: story.id, item: item.id })}
       />
     </div>
   );
@@ -15370,12 +15513,12 @@ function CustomSlotsTab() {
         currentUser={STORY_VIEWER_DUMMY_CURRENT_USER}
         reactionKinds={STORY_VIEWER_DUMMY_REACTION_KINDS}
         renderHeader={(story, _item, helpers) => (
-          <div className="absolute top-4 right-4 left-4 z-20 flex items-center justify-between rounded-lg bg-black/50 px-3 py-2 backdrop-blur-sm">
-            <p className="text-sm font-semibold text-white">@{story.username}</p>
+          <div className="absolute top-4 right-4 left-4 z-20 flex items-center justify-between rounded-lg bg-media-overlay px-3 py-2 backdrop-blur-sm">
+            <p className="text-sm font-semibold text-media-overlay-foreground">@{story.username}</p>
             <Button
               size="sm"
               variant="ghost"
-              className="text-white hover:bg-white/20 hover:text-white"
+              className="text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
               onClick={helpers.onClose}
             >
               Close
@@ -15387,7 +15530,7 @@ function CustomSlotsTab() {
             {items.map((it, i) => (
               <div
                 key={it.id}
-                className="h-1 flex-1 overflow-hidden rounded-full bg-white/20"
+                className="h-1 flex-1 overflow-hidden rounded-full bg-media-overlay-foreground/20"
               >
                 <div
                   className="h-full rounded-full bg-accent transition-[width] duration-100"
@@ -15450,6 +15593,8 @@ export default function StoryViewerDemo() {
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
         <TabsTrigger value="viewer-mode">Viewer mode</TabsTrigger>
         <TabsTrigger value="owner-mode">Owner mode</TabsTrigger>
+        <TabsTrigger value="muted">Muted group</TabsTrigger>
+        <TabsTrigger value="rtl">RTL (Arabic)</TabsTrigger>
         <TabsTrigger value="custom-slots">Custom slots</TabsTrigger>
         <TabsTrigger value="link-longpress">Link + long-press</TabsTrigger>
       </SwipeTabsList>
@@ -15461,6 +15606,8 @@ export default function StoryViewerDemo() {
       <TabsContent value="custom"><CustomRenderItemTab /></TabsContent>
       <TabsContent value="viewer-mode"><ViewerModeTab /></TabsContent>
       <TabsContent value="owner-mode"><OwnerModeTab /></TabsContent>
+      <TabsContent value="muted"><MutedGroupTab /></TabsContent>
+      <TabsContent value="rtl"><RtlTab /></TabsContent>
       <TabsContent value="custom-slots"><CustomSlotsTab /></TabsContent>
       <TabsContent value="link-longpress"><LinkAndLongPressTab /></TabsContent>
     </Tabs>

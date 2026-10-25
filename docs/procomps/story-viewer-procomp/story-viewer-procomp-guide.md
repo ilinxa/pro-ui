@@ -17,12 +17,90 @@
 
 **Six rules:**
 
-1. **`stories` prop is mount-only initial state.** Subsequent prop reference changes are IGNORED. Use `ref.current.reset(next)` or `dispatch(action)` to push external updates.
+1. **`stories` is mount-only unless you control it.** Without `onStoriesChange`, later prop changes are ignored — push updates with `ref.current.reset(next)` / `dispatch(action)` / `subscribe`. With `onStoriesChange` (0.6.0) the prop wins on every render and the viewer reports changes instead of applying them.
 2. **Cursor resets when `(initialStoryIndex, isOpen)` pair changes.** Re-opening with the same `initialStoryIndex` still goes back to item 0. Mid-view nav is preserved.
 3. **`onStoryViewed` is forward-only.** Backward navigation does NOT mark stories viewed (matches Instagram).
 4. **Escape and an outside press close the top layer first.** With a sheet, the actions menu, the viewers list or the link drawer open, Escape (or a press outside the dialog) closes only that layer; with none open it closes the viewer. The dialog (Radix or Base UI) handles the focus trap, portal and Escape; the viewer routes its `onOpenChange` (0.5.4).
 5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
 6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
+
+## v0.6.0 — host-resolved media, controlled stories, pause reasons (breaking)
+
+### Media you resolve
+
+```tsx
+<StoryViewer
+  stories={stories}                       // items may omit `src`
+  resolveMedia={async (item) => {
+    const res = await api.signedUrl(item.id);   // cache inside — it may be asked again
+    return res.ok ? { src: res.url, poster: res.poster } : null; // null = unavailable
+  }}
+  onMediaError={async (item) => (await api.refreshUrl(item.id)) ?? undefined} // one retry, resumes
+  loadTimeoutMs={8000}
+  onItemUnavailable={(storyId, itemId, reason) => log(reason)} // "resolve" | "media" | "timeout" | "removed"
+/>
+```
+
+- `resolveMedia` is called only for items without a `src`, and only for the current and the next item — never the
+  previous one. Results live in component state (at most 8, cleared on close); nothing is written to storage or the URL.
+  The swipe preview of the neighbouring author is therefore blank until its first item resolves.
+- Without `resolveMedia`, an item with no `src` is owned by your `renderItem` frame (a text card, say); with neither a
+  resolver nor a frame it is unavailable (`"resolve"`).
+- An unavailable item shows `labels.unavailable` for `unavailableNoticeMs` (1500) and the viewer moves on; it is never
+  reported through `onItemViewed`. With `standalone` (a story opened from a link), a single-item story keeps the notice
+  with a `labels.unavailableClose` button.
+- Custom frames: `renderItem(item, ctx)` gets `ctx.src` / `ctx.poster` and `ctx.onReady()` (optional — frames are
+  ready on mount), `ctx.onProgress(currentTime, duration)` (drives the bar), `ctx.onEnded()` (advances; progress
+  alone never ends an item), `ctx.onError()` (the `onMediaError` path).
+
+### Controlled stories, muted groups, viewed causes
+
+- `stories` + `onStoriesChange(next, change)`: removing the on-screen item from the prop runs the usual repair after the
+  notice. `Story.muted` groups are skipped by every sequential move (auto-advance, tap / arrow / swipe both ways, the
+  swipe preview); a direct open (`initialStoryIndex`, `goToStory`) plays one.
+- `onItemViewed(storyId, itemId, itemIndex, cause)` — `"completed"` only when the item played to the end (timer or
+  video end); `"left"` when the viewer left it early (tap, arrow key, screen-reader button, swipe or jump to another
+  author, handle navigation).
+- If you remove an item in response to `onItemUnavailable`, the notice already showing counts — no second notice and
+  no `"removed"` event for it.
+
+### Pause reasons
+
+`isPaused` is true while any reason is held: `user` (middle tap / Space — cleared on item change), `host`
+(`setPaused(true)`, persists across items until `setPaused(false)`, the viewer closes, or the person resumes with a
+middle tap / Space / the header button — each of those removes `host` and `user`), `hold` (long press), `reply-focus`,
+`sheet` (any layer, incl. the reaction picker), `hidden-tab`, `unavailable`. Control them with `pauseReasons` +
+`onPauseReasonsChange` (your own strings work too). `setPaused(true)` while the viewer is closed holds on the next open.
+`loadTimeoutMs` only counts while nothing but `unavailable` is held.
+
+### Handlers, engagement, viewers
+
+- `onDeleteStory` / `onReport` / `onCopyLink` / `onSaveToHighlights` / `onShareToFeed` receive `{ story, item }`.
+- `like` is its own permission (`canLike`; follows `react` unless set). `StoryItem.engagement` seeds per-item counts
+  (`null` = withheld); deltas apply on top. The seed is read until the person first interacts with that item; after
+  that, push changes through `subscribe` deltas or the handle.
+- `onLoadViewers(itemId, cursor)` → `{ items, nextCursor }` with load-more and Retry; `viewerCount` on the item
+  (story as fallback), `null` = no number.
+
+### Presentation
+
+`caption` (plain text, `dir="auto"`), per-item `createdAt`, `locale` (relative time; `labels.formatTime` still wins),
+`renderHeaderBadge(story, item)`, `navArrowsPlacement="outside"`, card size via `--story-viewer-card-w` / `-h` (set
+them on `:root` or a wrapper — the dialog is portalled), reduced motion (a short fade between authors, no cube, no neighbour media), RTL from the nearest `[dir]`.
+Media chrome uses `--media-overlay` / `--media-overlay-foreground`.
+
+### Migration from 0.5.x
+
+| 0.5.x | 0.6.0 |
+|---|---|
+| `onDeleteStory(storyId)` (and report / copy link / highlights / share to feed) | `onDeleteStory({ story, item })` |
+| `onLoadViewers(storyId) => ViewerListItem[]` | `onLoadViewers(itemId, cursor) => { items, nextCursor }` |
+| `item.src` always a string | optional — handle `undefined` |
+| `setPaused(true)` reset on the next item | persists until `setPaused(false)`, close, or the person resumes |
+| `reactors` / `onLoadReactors` | removed |
+| removing the on-screen item moves on at once | notice for 1.5 s — `unavailableNoticeMs={0}` for the old move |
+| a failed image / video "counted as ready" (timer) | unavailable notice, then next (non-finite durations still use the timer) |
+| header time as a clock time | relative ("30 min ago") — `labels.formatTime` for the old look |
 
 ## Install
 
@@ -215,6 +293,7 @@ const TR_LABELS: StoryViewerLabels = {
 
 - Modal is `<Dialog>` (Radix or Base UI) with `<DialogTitle>` (sr-only) using `labels.viewerLabel`. Focus trap + portal; Escape / backdrop press close the top layer first (see the mental model).
 - Layers (0.5.4): an open sheet or the actions menu contains focus — everything behind it is `inert` — and closed sheets can't be tabbed into. Every layer returns focus to the control that opened it. Opening any layer pauses the story; closing the last one restores the paused state from before it opened.
+- Viewer focus (0.6.0): on open, focus lands on the dialog itself (not the first button); Tab wraps inside the viewer and skips the collapsed reaction rail (`inert`). Visually hidden previous / next item buttons and a polite position announcement (`labels.prevItem` / `nextItem` / `position`) stay mounted with `disableTapZones`.
 - Per-segment progress bar has `role="progressbar"` + `aria-valuemin/max/now` so screen readers announce.
 - Each control button has `aria-label` from the `labels` prop. Mute toggle adds `aria-pressed={isMuted}`.
 - Tap zones are `aria-hidden="true"` with `tabIndex={-1}` (touch affordance only — keyboard users use arrow keys instead).

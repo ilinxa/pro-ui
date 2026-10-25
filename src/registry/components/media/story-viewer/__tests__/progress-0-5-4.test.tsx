@@ -2,7 +2,7 @@
  * story-viewer 0.5.4 — progress (SV2 / SV3).
  *
  *  P1  image progress waits for `load`
- *  P2  image error / cached image / custom renderItem frame count as ready
+ *  P2  cached image / custom renderItem frame count as ready (0.6.0: an image ERROR is unavailable "media")
  *  P3  video without `duration` follows media time; hook banks elapsed time on a duration change
  *  P4  `ended` + timer completion advance exactly once
  */
@@ -108,12 +108,16 @@ describe("P1 image progress waits for load", () => {
 });
 
 describe("P2 failure / cached / custom frame count as ready", () => {
-  it("image error -> timer runs", () => {
+  it("image error -> unavailable notice (0.6.0), no timer; then the next item", () => {
     const { ref } = mount([story("A", [img("a1"), img("a2")])]);
     tick(1000);
     expect(maxProgress()).toBe(0);
     fireEvent.error(theImage());
-    tick(5200);
+    expect(document.querySelector('[data-story-unavailable="media"]')).not.toBeNull();
+    tick(1000);
+    expect(maxProgress()).toBe(0); // the item never counts down
+    expect(ref.current!.getCursor().itemIndex).toBe(0);
+    tick(600);
     expect(ref.current!.getCursor().itemIndex).toBe(1);
   });
 
@@ -168,10 +172,12 @@ describe("P3 video progress follows media time", () => {
     expect(onItemViewed).toHaveBeenCalledTimes(1);
   });
 
-  it("a failing video falls back to the timer instead of freezing", () => {
+  it("a failing video is unavailable (0.6.0) and moves on after the notice instead of freezing", () => {
     const { ref } = mount([story("A", [vid("v1"), img("a2")])]);
     fireEvent.error(theVideo());
-    tick(5200);
+    expect(document.querySelector('[data-story-unavailable="media"]')).not.toBeNull();
+    expect(ref.current!.getCursor().itemIndex).toBe(0);
+    tick(1600);
     expect(ref.current!.getCursor().itemIndex).toBe(1);
   });
 

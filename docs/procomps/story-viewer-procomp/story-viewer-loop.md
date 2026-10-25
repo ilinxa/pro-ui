@@ -121,7 +121,7 @@ _(architect)_
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — SV1 optional `src`, SV11 / SV17 handler signatures; 0.x minor) |
-| **Current stage** | release 1 (0.5.4) shipped `a842f23`, live-verified 2026-10-25; 0.6.0 next (needs the user's go) |
+| **Current stage** | 0.6.0 U7 (ship); 0.5.4 shipped `a842f23` |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.3 → **v0.6.0** (option: the bug fixes first as 0.5.4) |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -399,3 +399,181 @@ Additions to the U1 above (everything else as U1 + the pre-U2 corrections + the 
 - **Release coupling:** engagement-bar 0.5.0 → 0.6.0 (additive `onReactionPickerOpenChange`) ships with story-viewer 0.6.0.
 - Breaking list for the migration note: handlers `{ story, item }`; `onLoadViewers` signature + return; optional `src`;
   `setPaused` persists; `reactors` removed; removal shows the notice (1.5 s) unless `unavailableNoticeMs={0}`.
+
+## U1 final — 0.6.0 (platform confirmed 2026-10-25; user "go", fold all 5 additions)
+
+Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_STORY_VIEWER_0.6.0_CONTRACT.md`: **confirmed, build.** Muted
+groups skip in **both** directions. Five additive additions, folded in by the user's decision:
+
+1. `onItemViewed(storyId, itemId, itemIndex, cause: "completed" | "left")` — 4th argument; `"left"` for an item left by a
+   jump to another author (the 0.6.0 SV16 addition), `"completed"` when it played to the end.
+2. `loadTimeoutMs?: number` (default off) → the unavailable path with `onItemUnavailable` reason `"timeout"`.
+3. `StoryItem.viewerCount?: number | null` — owner mode shows the current item's count; `Story.viewerCount` is the
+   fallback.
+4. `renderHeaderBadge?(story, item) => ReactNode` — after the author name, before the time; no default content.
+5. Pinned in tests: `resolveMedia` never called for the previous item / story; with the story transition disabled or
+   under reduced motion the swipe preview mounts no second media element; `src` lives only in component state (never
+   storage / URL).
+
+### Semantics fixed by the architect (where the contract was silent)
+
+- **Pause reasons:** `isPaused = reasons.size > 0`. Built-in reasons: `user` (middle tap / Space — cleared on item
+  change, the 0.5.x behaviour), `host` (`setPaused(true)` adds, `setPaused(false)` removes `host` **and** `user`;
+  persists across items), `hold` (long press), `reply-focus` (composer focused), `sheet` (any layer open — replaces the
+  0.5.4 restore snapshot, fixing F-02), `hidden-tab` (`document.visibilityState === "hidden"`), `unavailable` (notice
+  showing). Controlled `pauseReasons` / `onPauseReasonsChange(next)` wins every render (host strings allowed);
+  uncontrolled = internal set.
+- **Unavailable "removed":** when the on-screen item disappears from `stories` (any path: controlled prop, `dispatch`,
+  `reset`, `subscribe`), the viewer keeps a notice frame (no media) for `unavailableNoticeMs`, then runs the SV10 repair.
+  `0` = repair immediately (0.5.x). With `standalone` and a single-item story the notice stays with the close button.
+- **Initial per-item counts:** `StoryItem.engagement?: { likeCount?: number | null; liked?: boolean; reactionCount?:
+  number | null; viewerReaction?: string | null; replyCount?: number | null }` seeds the per-item engagement state
+  (deltas still apply on top). `null` = withheld (no number).
+- **Muted:** sequential moves = auto-advance, tap / arrow / swipe next + previous, cube preview neighbours. Direct open
+  (`initialStoryIndex`, `goToStory`) plays a muted group. Nothing un-muted ahead → end-of-last-story behaviour.
+
+## U2 plan — 0.6.0
+
+| Wave | Slice | Owner | Scope | Files (primary) |
+|---|---|---|---|---|
+| 1 | A — state & data | Sonnet | SV16 controlled `stories` + `onStoriesChange`; delete repair through the prop (+ the removal notice hook-side: pending-removal state, `unavailableNoticeMs`, `standalone`); `onItemViewed` for left items + `cause`; muted groups both directions; SV4 pause-reason model (`pauseReasons` / `onPauseReasonsChange`, `host` / `user` / `hold` / `reply-focus` / `sheet` / `hidden-tab` / `unavailable`) | `hooks/use-story-viewer-state.ts`, `story-viewer.tsx` (state / pause / layer-pause / navigation regions), `types.ts` (Story / props for these), tests |
+| 1 | B — engagement, handlers, viewers | Sonnet | SV11 `{ story, item }` handlers + `like` permission + `StoryItem.engagement` seed; inline-type sync with engagement-bar 0.5.0 + type-level assignability test, drop `as any`; **engagement-bar 0.6.0** `onReactionPickerOpenChange` (additive) + story-viewer pauses on it (`sheet` reason via A's API — coordinate through the root's layer flags); `reactors` / `onLoadReactors` removed; SV17 `onLoadViewers(itemId, cursor)` paging + Retry + labels; `viewerCount: number \| null` on Story + StoryItem; owner list resets per item | `lib/kebab.ts`, `lib/engagement-actions.ts`, `lib/permissions.ts`, `hooks/use-story-engagement-state.ts`, `parts/engagement-overlay.tsx`, `parts/owner-overlay.tsx`, `types.ts` (handler / engagement / viewers sections), `data/engagement-bar/*`, tests |
+| 2 | C — media pipeline | Sonnet | SV1: optional `src`, `resolveMedia` (current + next only, never previous), frame callbacks `onReady` / `onEnded` / `onProgress(currentTime, duration)` / `onError`, `onMediaError` retry once resuming at the same time; unavailable path for `resolve` / `media` / `timeout` (`loadTimeoutMs`) + `onItemUnavailable`; notice UI (`labels.unavailable`, `labels.unavailableClose`); F-04 seed the timer from the media % after a mid-play error; pinned fetch tests (no previous resolve, no second media element without transition / under reduced motion, no storage / URL writes) | `parts/item-view.tsx`, new `parts/unavailable-notice.tsx`, `hooks/use-story-progress.ts`, `story-viewer.tsx` (progress / media regions), `types.ts` (StoryItem / RenderItemContext / media props), tests |
+| 2 | D — presentation & a11y | Sonnet | SV12 caption (`dir="auto"`) + item `createdAt` + `locale` relative time, delete dead `lib/format-time.ts`; SV13 reduced motion (no cube / panel scale, fade); SV14 `--story-viewer-card-w/-h` + `max-height: calc(100dvh - 2rem)` + `navArrowsPlacement`; SV15 labelled previous / next buttons for assistive tech + polite position region; SV18 progress ticks don't re-render the root; SV19 RTL arrow keys / swipe / cube / chevrons; `renderHeaderBadge`; F-03 late-mounting siblings inert while a sheet is open; F-05 reply pill contrast; heart `text-rose-400` → token; media-overlay tokens (`cssVars.theme` mapping on the item, coordinator edits `registry.json`); labels for every remaining string (owner-overlay strings etc.) | `parts/viewer-header.tsx`, `parts/viewer-shell.tsx`, `parts/nav-arrows.tsx`, `parts/tap-zones.tsx`, `parts/progress-bars.tsx`, `parts/reply-composer.tsx`, `hooks/use-cube-transition.ts`, `hooks/use-story-keyboard-nav.ts`, `story-viewer.tsx` (render-tree regions), `types.ts` (labels / presentation props), tests |
+| 3 | E — closure | architect | contract baseline rows → 0, `closed` += story-viewer, RTL demo, `describeContract`, `locale="tr"` + hydration tests, demo updates, F-01 (CLI 3.8.5 fixtures) investigation, docs, CHANGELOG (story-viewer + engagement-bar), budgets (story-viewer 240 → 280), registry roster | coordinator files |
+
+### U2 wave 1 results (2026-10-25)
+
+| Slice | Result | Evidence |
+|---|---|---|
+| A — state & data | done | `__tests__/state-data-0-6-0.test.tsx` 38 tests; controlled `stories` (reported, not applied; id-anchored cursor; parked cube case fixed), delete repair through the prop + removal notice (pending state, `unavailableNoticeMs` 1500, `standalone`), `onItemViewed` `cause`, muted groups both directions, pause-reason model (`user` / `host` / `hold` / `reply-focus` / `sheet` / `hidden-tab` / `unavailable`, controlled pair). Falsified: all CAUGHT except the `onItemUnavailable` call (mutation didn't apply) → slice C falsifies it. Existing tests changed by the contract: `regressions-0-5-2` removal tests → `unavailableNoticeMs: 0` (breaking item 6); `layers-gestures (f)` → host pause persists (breaking item 4) |
+| B — engagement, handlers, viewers | done | `handlers-engagement-0-6-0` 12, `viewers-engagement-0-6-0` 15, `engagement-types` 2 (compile-time assignability + `@ts-expect-error` negatives), engagement-bar `picker-open-change` 6; `{ story, item }` handlers, `like` permission (follows `react` unless set), `StoryItem.engagement` seed, type sync (no `as any`), engagement-bar `onReactionPickerOpenChange`, reaction picker as a `sheet` layer, `reactors` removed, viewers paging / Retry / labels / per-item reset, `viewerCount: number \| null` on Story + StoryItem. Falsified, all CAUGHT |
+| Coordinator | done | `demo.tsx` `onLoadViewers` → new signature; engagement-bar `meta.ts` 0.6.0 + CHANGELOG bullet |
+
+After wave 1: tsc 0; story-viewer (9 files incl. video-player dependents) 146 passed. Notes for docs: the reply box now
+pauses while focused (not only with text); the header pause toggle removes only `user` / `host` (it does nothing visible
+while only `reply-focus` / `sheet` hold the pause — parked); a tap during the removal notice ends it early; `"left"` also
+fires when a previous-item tap crosses into the previous author.
+
+### U2 wave 2 + closure results (2026-10-25)
+
+| Slice | Result | Evidence |
+|---|---|---|
+| C — media pipeline | done (+ 1 correction round) | `media-pipeline-0-6-0` 32 tests; new `hooks/use-story-media.ts`, `parts/unavailable-notice.tsx`; `resolveMedia` (items without `src` only; current + next; cache ≤ 8, cleared on close), frame callbacks + `ctx.src` / `ctx.poster`, `onMediaError` one retry (video resumes via VideoPlayer), `loadTimeoutMs`, one notice for every reason, `onItemUnavailable` (falsified — A couldn't). **Architect corrections:** (1) a media failure is unavailable "media" even without `onMediaError` (contract literal; 0.5.4 "failure counts as ready" retired — P2 / P3 tests in `progress-0-5-4` rewritten); (2) an unavailable item is never reported through `onItemViewed`. `seedPct` stays a public option (no viewer use) |
+| D — presentation & a11y | done | `presentation-0-6-0` 2 (render count over 40 ticks), `presentation-features-0-6-0` 18; new `lib/progress-store.ts`, `lib/relative-time.ts`, `lib/direction.ts`, `hooks/use-reduced-motion.ts`, `parts/sr-nav.tsx`, `parts/caption.tsx`; `lib/format-time.ts` deleted. **Default header time is now relative** (was a clock time) — added to the breaking list / migration table |
+| E — closure | done | `contract-0-6-0` 10 (kit checks, full Turkish label set, controlled `stories` / `pauseReasons`, `locale="tr"`, SSR + hydration, RTL, keyboard, axe on the portalled dialog), `seed-pct-0-6-0` 5; overlay tokens in link-cta / engagement-overlay / kebab-panel / owner-overlay (stage `bg-black` kept — the overlay token is translucent); demo: Muted + RTL (Arabic) tabs, `ctx.src`, badge example; Arabic + muted fixtures |
+| Architect | done | owner view count formatted for `locale` (`viewerCountLabel(count, time, formatted?)` — additive third arg) + test, falsified CAUGHT; `registry.json` roster (+8 files, −`lib/format-time.ts`) + `cssVars.theme` media-overlay mapping; contract baseline lowered (0 story-viewer rows) + `closed` += story-viewer (13); `meta.ts` 0.6.0 + budget 280 + features; engagement-bar 0.6.0 meta + CHANGELOG + guide; story-viewer CHANGELOG (breaking list) + guide (0.6.0 section + migration table) + usage |
+
+Story-viewer + video-player dependents after closure: 14 files, 214 + 1 passed; tsc 0.
+
+## U3 — Gates, 0.6.0
+
+First pass (failed, fixed): lint **9 errors** (React Compiler `preserve-manual-memoization` — `openCommentsPanel` /
+`openSharePanel` / `closeLayer` had `[]` deps around state setters) + 5 new warnings (unused test vars / helper, a `_drop`
+destructure, a stale `eslint-disable`, `noopProgress` params, missing `pendingRemoval` dep) → setters listed in the deps,
+warnings fixed, story-viewer lint 0 / 0. `registry:build` stopped at `validate-barrel-exports --strict`: 2 high —
+`StoryItemViewedCause`, `StoryViewerPendingRemoval` referenced by exported types but not exported → added to `index.ts`
+(with `StoryViewerPauseReason`). Repo tests failed downstream of the stale artifacts (served versions, stamps) plus
+5–26 s timeouts under memory pressure (`next build` took 734 s on that run). tsc 0 throughout. Lesson: slice briefs must
+also run `pnpm exec eslint <folder>` — tsc + vitest don't see React Compiler bail-outs.
+
+Second pass (after the fixes): tsc 0 · lint 0 errors · `registry:build` 0 — artifact `story-viewer.json` **312.32 KB**
+over the 280 KB budget → budget raised to **320** (growth is the contracted features + their JSDoc; nothing shipped by
+accident — no `__tests__`, demo, usage or meta in the artifact) · doc-budget 0 · tests **1682 passed / 124 files** ·
+`pnpm build` OOM twice (Windows commit limit, `Zone Allocation failed`) → host memory freed by the user → build **0**
+(compiled in 31 s, 77/77 pages).
+
+## U4 — Adversarial review, 0.6.0 (1 fresh Sonnet finder, code on a frozen snapshot + the diff vs 0.5.4)
+
+| # | Finding | Verdict |
+|---|---|---|
+| U4-1 ⚠️ | every `goToNextItem` reports `cause: "completed"` — a tap / ArrowRight / screen-reader "next" at 0.5 s counts as completed; the platform counts only items played to the end | CONFIRMED → cause per caller: timer end + video end `"completed"`, every manual or handle move `"left"` |
+| U4-2 ⚠️ | `onMediaError` and `RenderItemContext.onError` JSDoc still describe the 0.5.x "counts as ready" path; the code (and the guide) make the item unavailable | CONFIRMED → both JSDoc blocks rewritten (architect) |
+| U4-3 🔸 | `loadTimeoutMs` runs while the viewer is held paused → a paused, not-yet-ready item times out | CONFIRMED → armed only while no reason but `unavailable` is held; restarts on resume |
+| U4-4 🔸 | inline image ref re-runs every render; a failed `<img>` has `complete === true` → marked ready during a pending `onMediaError` | CONFIRMED → `naturalWidth > 0`, once per element |
+| U4-5 🔸 | removal repair ignores `Story.muted` | CONFIRMED → repair skips muted groups |
+| U4-6 🔸 | host removes an item in response to `onItemUnavailable` → second 1.5 s notice + duplicate `"removed"` event | CONFIRMED → the showing notice counts |
+| U4-7 🔸 | a `renderItem` text frame with no `src` and no `resolveMedia` is unavailable "resolve" at once (unlisted break) | CONFIRMED → frame owns src-less items when there is no resolver; guide |
+| U4-8 🔸 | reaction picker is missing from the "outside press only dismisses" guard → dismiss tap also advances | CONFIRMED → guard covers the picker |
+| U4-9 🔸 | owner overlay time chip uses `story.createdAt` only (header uses the item's) | CONFIRMED → same fallback |
+| U4-10 🔸 | owner overlay `left-0 right-0` (physical) | CONFIRMED → `inset-x-0` |
+| U4-11 🔸 | `like` follows `react` whenever `canLike === canReact`, even when `canLike: true` was set explicitly | CONFIRMED → explicit-ness tracked from the raw prop |
+| U4-12 🔸 | docs say "fade" under reduced motion, code switches instantly; guide says `setPaused(true)` persists until `setPaused(false)` but a middle tap / Space / header button also resume | CONFIRMED → fade implemented (the contract promised it); wording fixed in guide + CHANGELOG |
+| U4-13 🔹 | with `resolveMedia`, the neighbouring author's swipe preview is blank (resolve window = current + next item) | CONFIRMED, by design → documented |
+| U4-14 🔹 | `StoryItem.engagement` seed is frozen after the first interaction | CONFIRMED, by design → documented |
+| U4-15 🔹 | `host` pause survives close → reopens silently paused | CONFIRMED → close clears `host` (a pause set while closed still holds on open) |
+| U4-16 🔹 | controlled `pauseReasons`: a host update landing in a later task leaves a window where a second add drops the first | PARKED → follow-up (narrow; the fix touches same-task compounding) |
+| U4-17 🔹 | `disableTapZones` also removes the screen-reader nav | CONFIRMED → mounted independently |
+| U4-18 🔹 | reaction picker stays open across a cursor change | CONFIRMED → reset with the other layers |
+| U4-19 🔹 | cube ghost header omits the badge; `currentUser as any` in the reply composer | CONFIRMED → badge passed; cast typed |
+
+Fixes: two Sonnet implementers in parallel (X state / media: 1, 3, 5, 6, 7, 11, 15 · Y presentation: 4, 8, 9, 10, 12,
+17, 18, 19), each fix test-first and falsified.
+
+U4 fixes landed: X 7 fixes (`u4-state-media-0-6-0`, all CAUGHT; one existing assertion corrected — a tap-next at 0 s
+is `"left"`), Y 8 fixes (`u4-presentation-0-6-0` 11 tests, all CAUGHT; the picker guard also exempts the portalled
+popover content / trigger; the picker closes on a cursor change by remounting the bar). Battery after both: tsc 0 ·
+lint 0 errors · registry:build 0 (story-viewer **318.16 / 320 KB**) · doc-budget 0 · tests **1712 passed / 126 files**.
+
+## U5 — Runtime & smoke, 0.6.0
+
+**Browser (fresh Sonnet finder, Playwright Chromium, production build on `next start -p 3200`, pre-U4-fix build):**
+PASS — muted skipping both ways (arrows / keys / taps / auto-advance); unavailable notice (image + video 404: polite
+status, bars frozen, moves on at ~1.55 s, not reported viewed; Escape during it closes cleanly); relative time + Arabic
+(`قبل ساعتين`), RTL mirroring (keys, tap zones, bars, chevrons); reduced motion mounts no cube / second media; SR nav
+(Tab, Enter / Space, polite atomic position); owner chip + `onLoadViewers(itemId, null)` loading → list, Escape closes
+only the list; reaction picker pauses, Escape closes only the picker, focus returns; `{ story, item }` payloads on all
+kebab / engagement handlers; reply pill legible in dark (0.5.4 B-6 fixed); 0.5.4 regressions all hold; engagement-bar
+picker + post-card fine; 12 tabs × light / dark × 1280 / 390 no overflow, console clean.
+
+| # | Finding | Verdict |
+|---|---|---|
+| B-1 ⚠️ | desktop story nav arrows never visible — the shell's `[&>button.absolute]:hidden` (hides the dialog's own close button, since 0.2.1) out-specifies `md:flex`; `navArrowsPlacement` therefore does nothing | CONFIRMED → selector excludes `[data-story-nav-arrow]` (an inert surface otherwise) |
+| B-2 🔸 | header illegible on a bright photo — no top scrim | CONFIRMED → top gradient scrim on the overlay token |
+| B-3 🔹 | Arabic demo still shows English (position, engagement, panel strings) | CONFIRMED (demo) → Arabic labels |
+| B-4 🔸 | viewer-mode Tab skips the heart toggle; Tab from it bounces back — the dialog focus scope ignores `inert` (same cause as 0.5.4 B-1) | CONFIRMED → `wrapTabWithinLayer` at the dialog level |
+| B-5 🔹 | focus on `body` after close in the demo | DROPPED — host / demo concern (0.5.4 B-5) |
+| B-6 🔹 | initial focus lands on the visually-hidden "Previous item" | CONFIRMED (new, SR nav) → focus the dialog content on open |
+| B-7 🔹 | viewers list doesn't move focus in | DROPPED — non-modal by design (0.5.4 B-2) |
+| B-8 🔹 | demo fixtures' fixed `NOW` → the demo shows absolute dates, never the relative time | PARKED → demo follow-up |
+
+Untested in the browser (unit-tested instead): direct open on a muted group, `loadTimeoutMs`, owner thousands format,
+load-more / empty / Retry.
+
+**Installs (pre-U4-fix artifacts):** CLI 4.18.0 all checks pass (story-viewer, fixtures, engagement-bar, post-card;
+consumer tsc 0). CLI 3.8.5: fixtures added after the base write nothing (the known pre-existing F-01 case; the harness
+page then fails tsc on the missing `dummy-data`). Re-run after the fixes, plus the documented fixtures-alone path.
+
+U5 fixes (1 Sonnet implementer, `u5-browser-0-6-0` 6 tests, all CAUGHT): B-1 shell selector
+`[&>button.absolute:not([data-story-nav-arrow])]:hidden` (arrows visible at `md+`, `navArrowsPlacement` works); B-2
+header scrim (`from-media-overlay`, `pointer-events-none`, behind the controls); B-4 `wrapTabWithinLayer` on the dialog
+when no layer is open + `tabbablesIn` skips `display:none` / `visibility:hidden` (the CSS-hidden built-in close button
+was the last DOM tabbable); B-3 Arabic demo labels (viewer, engagement, comment composer). **Architect correction on
+B-6:** the implementer used `onOpenAutoFocus` — Radix-only (F-cross-13; Base UI would get an unknown DOM prop and no
+effect) → replaced by a two-frame effect in the shell that focuses the content when focus sits on the dialog's own
+auto-focus target (with the arrows visible again that is the "Next story" arrow on desktop, the hidden SR button on
+mobile); test now `waitFor`, falsified CAUGHT. Budget 320 → **340** (the U4 / U5 fixes put the artifact at the cap).
+
+**Browser re-verify (fresh Sonnet finder, production build after every fix):** PASS — arrows 48×48 visible at 1280,
+next / prev move authors, built-in close stays hidden, arrows hidden at 390, RTL next arrow on the left; header legible
+on a near-white photo (light + dark), scrim doesn't block taps; Tab visits every control incl. "Show reactions", wraps,
+never `body` / inert / stuck, Shift+Tab reverses; focus on open = the dialog (1280 + 390); reduced-motion fade (opacity
+0 → 0.58 → 0.80 over ~200 ms, 0 `matrix3d`, 1 media element); picker dismiss tap doesn't advance, picking registers,
+trigger toggles; Arabic chrome / overlay / sheets have no Latin words; owner chip + full-width bar + viewers list;
+console clean, no overflow. New: R-1 🔹 Tab at 0 ms spacing skips the heart (PARKED, F-05) · R-2 🔹 long badge squeezes
+the username at 390 (PARKED, F-06) · R-3 focus to `body` after close (DROPPED, as B-5) · R-4 SR buttons focusable
+(by design).
+
+**Installs (final artifacts):** CLI 4.18.0 all checks pass (story-viewer, fixtures, engagement-bar, post-card; tsc 0).
+CLI 3.8.5: fixtures after the base write nothing (F-01, pre-existing); fixtures alone + engagement-bar + post-card —
+all checks pass, consumer tsc 0 (the documented path).
+
+## U6 — Docs & review, 0.6.0
+
+Guide (U4 / U5 wording: viewed causes, pause reasons, resolve window, engagement seed, viewer focus), `meta.ts`
+features (fade, scrim, Tab wrap, timeout), CHANGELOG (fixed items), STATUS rows + recent activity, decision
+`.claude/decisions/2026-10-25-story-viewer-v0-6-0.md`, review
+[`reviews/2026-10-25-v0.6.0-platform-contract.md`](reviews/2026-10-25-v0.6.0-platform-contract.md): **Pass with
+follow-ups** (6, owned). engagement-bar review `reviews/2026-10-25-v0.6.0-picker-open-change.md`: **Pass**. Final
+consistency: roster = folder (39 / 21 files), versions agree (meta, artifacts, component-versions `--check`, STATUS),
+tsc 0 · eslint 0 · doc-drift 0 · inert-surfaces 64 / 64 clean · meta-deps 0 · doc-budget 0.

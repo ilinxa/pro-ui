@@ -37,6 +37,8 @@ export interface ReactionActionProps {
   labels: ResolvedEngagementBarLabels;
   /** Direction for the picker's arrow keys + its portal content. Default `"ltr"`. */
   dir?: Direction;
+  /** Fires when the picker opens / closes (changes only, plus a close on unmount while open). */
+  onPickerOpenChange?: (open: boolean) => void;
   actionClassName?: string;
 }
 
@@ -48,9 +50,32 @@ function ReactionActionInner({
   format,
   labels,
   dir = "ltr",
+  onPickerOpenChange,
   actionClassName,
 }: ReactionActionProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  // Report picker open / close to the host: on change only (never on mount), and a close if the
+  // bar unmounts while the picker is up so a host's pause reason cannot stick.
+  const onPickerOpenChangeRef = useRef(onPickerOpenChange);
+  useEffect(() => {
+    onPickerOpenChangeRef.current = onPickerOpenChange;
+  });
+  const reportedOpenRef = useRef(false);
+  useEffect(() => {
+    if (reportedOpenRef.current === pickerOpen) return;
+    reportedOpenRef.current = pickerOpen;
+    onPickerOpenChangeRef.current?.(pickerOpen);
+  }, [pickerOpen]);
+  useEffect(
+    () => () => {
+      if (reportedOpenRef.current) {
+        reportedOpenRef.current = false;
+        onPickerOpenChangeRef.current?.(false);
+      }
+    },
+    [],
+  );
   const disabled = !!action.disabled;
 
   // Long-press detection refs.

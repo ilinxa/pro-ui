@@ -69,9 +69,13 @@ const maxProgress = () =>
   );
 const tick = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
 
+// 0.6.0: removing the on-screen item holds a 1500 ms notice by default; these
+// regressions are about the repair itself, so they opt into the immediate move.
+const immediate = { unavailableNoticeMs: 0 };
+
 describe("(a) removal keeps the cursor valid", () => {
   it("removing the current item shows the next item and progress restarts + advances", () => {
-    const { ref } = mount([story("A", ["a1", "a2"]), story("B", ["b1"])]);
+    const { ref } = mount([story("A", ["a1", "a2"]), story("B", ["b1"])], immediate);
     tick(4000); // a1 nearly done (5s default)
     expect(maxProgress()).toBeGreaterThanOrEqual(70);
 
@@ -89,7 +93,7 @@ describe("(a) removal keeps the cursor valid", () => {
   });
 
   it("removing the current group moves to the next group's first item and navigation still works", () => {
-    const { ref } = mount([story("A", ["a1"]), story("B", ["b1", "b2"])]);
+    const { ref } = mount([story("A", ["a1"]), story("B", ["b1", "b2"])], immediate);
     act(() => ref.current!.dispatch({ kind: "remove-story", storyId: "A" }));
     expect(shownSrc()).toContain("b1.jpg");
     expect(ref.current!.getCursor()).toEqual({ storyIndex: 0, itemIndex: 0 });
@@ -98,7 +102,7 @@ describe("(a) removal keeps the cursor valid", () => {
   });
 
   it("removing the last remaining group closes the viewer", () => {
-    const { ref, onClose } = mount([story("A", ["a1"])]);
+    const { ref, onClose } = mount([story("A", ["a1"])], immediate);
     expect(onClose).not.toHaveBeenCalled();
     act(() => ref.current!.dispatch({ kind: "remove-story", storyId: "A" }));
     expect(onClose).toHaveBeenCalledTimes(1);

@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -11,8 +12,11 @@ import {
 import type {
   Story,
   StoryItem,
+  StoryItemUnavailableReason,
+  StoryItemViewedCause,
   StoryViewerDelta,
   StoryViewerLocalAction,
+  StoryViewerPendingRemoval,
   Subscribe,
 } from "../types";
 
@@ -131,6 +135,14 @@ interface LastPosition {
   itemIndex: number;
 }
 
+/** Last on-screen story/item snapshot — the frame a removal notice keeps. */
+interface LastValid {
+  storyId: string;
+  itemId: string;
+  story: Story;
+  item: StoryItem;
+}
+
 /**
  * Resolve a cursor that may name a removed (or never-seen) story/item.
  *
@@ -145,8 +157,13 @@ function resolveCursor(
   last: LastPosition,
 ): CursorIds | null {
   const sIdx = stories.findIndex((s) => s.id === ids.storyId);
+  // A repair is a sequential move, so it skips groups the host muted (the same
+  // rule as `findAdjacentStoryIndex`). Not before the first real cursor (`""`):
+  // that is the first data arrival, which may legitimately land on a muted group.
+  const skipMuted = ids.storyId !== "";
   const firstOf = (from: number): CursorIds | null => {
     for (let k = Math.max(0, from); k < stories.length; k++) {
+      if (skipMuted && stories[k].muted) continue;
       const first = stories[k].items[0];
       if (first) return { storyId: stories[k].id, itemId: first.id };
     }
@@ -154,6 +171,7 @@ function resolveCursor(
   };
   const lastBefore = (from: number): CursorIds | null => {
     for (let k = Math.min(from, stories.length - 1); k >= 0; k--) {
+      if (skipMuted && stories[k].muted) continue;
       const items = stories[k].items;
       const tail = items[items.length - 1];
       if (tail) return { storyId: stories[k].id, itemId: tail.id };
@@ -174,10 +192,39 @@ function resolveCursor(
   return firstOf(last.storyIndex) ?? lastBefore(last.storyIndex - 1);
 }
 
+/** Report the item at `iIdx` as left (a jump to another author). */
+function fireLeft(
+  cb: UseStoryViewerStateOptions["onItemViewed"],
+  story: Story,
+  iIdx: number,
+): void {
+  const item = story.items[iIdx];
+  if (item) cb?.(story.id, item.id, iIdx, "left");
+}
+
+/**
+ * Index of the nearest group from `from` in `dir` (1 forward, -1 backward) that
+ * the host has not muted, or -1. Every sequential move uses this; direct opens
+ * (`initialStoryIndex`, `goToStoryIndex`) do not.
+ */
+export function findAdjacentStoryIndex(
+  stories: Story[],
+  from: number,
+  dir: 1 | -1,
+): number {
+  for (let k = from + dir; k >= 0 && k < stories.length; k += dir) {
+    if (!stories[k].muted) return k;
+  }
+  return -1;
+}
+
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
 export interface UseStoryViewerStateOptions {
-  /** Captured ON MOUNT only — subsequent prop changes are ignored. */
+  /**
+   * Uncontrolled: captured ON MOUNT only — subsequent changes are ignored.
+   * Controlled (`onStoriesChange` passed): the live list, read on every render.
+   */
   initialStories: Story[];
   /** Re-seeds cursor whenever (initialStoryIndex, isOpen) pair changes. */
   initialStoryIndex: number;
@@ -188,7 +235,12 @@ export interface UseStoryViewerStateOptions {
   onSubscribeDelta?: (delta: StoryViewerDelta) => void;
 
   onStoryViewed?: (storyId: string) => void;
-  onItemViewed?: (storyId: string, itemId: string, itemIndex: number) => void;
+  onItemViewed?: (
+    storyId: string,
+    itemId: string,
+    itemIndex: number,
+    cause: StoryItemViewedCause,
+  ) => void;
   onCursorChange?: (storyIndex: number, itemIndex: number) => void;
   onAutoCloseAtEnd?: () => void;
   onClose: () => void;
@@ -199,18 +251,49 @@ export interface UseStoryViewerStateOptions {
    * opt-out on StoryViewerProps.
    */
   disableAutoClose?: boolean;
+  /**
+   * 0.6.0 — controlled `stories`: when passed, `initialStories` wins on every
+   * render and local mutations are reported here instead of being applied.
+   */
+  onStoriesChange?: (next: Story[], change: StoryViewerLocalAction) => void;
+  /** 0.6.0 — fires once (`"removed"`) when the on-screen item leaves `stories`. */
+  onItemUnavailable?: (
+    storyId: string,
+    itemId: string,
+    reason: StoryItemUnavailableReason,
+  ) => void;
+  /** 0.6.0 — removal notice duration in ms (default 1500; 0 = repair at once). */
+  unavailableNoticeMs?: number;
+  /** 0.6.0 — opened from a link: a single-item story's notice stays until close. */
+  standalone?: boolean;
+  /** 0.6.0 — controlled pause reasons (wins every render when defined). */
+  pauseReasons?: string[];
+  /** 0.6.0 — reports every reason change. */
+  onPauseReasonsChange?: (next: string[]) => void;
 }
 
 export interface UseStoryViewerStateResult {
   stories: Story[];
   /** Public derived cursor (indices for caller; IDs are internal). */
   cursor: { storyIndex: number; itemIndex: number };
+  /** True while any pause reason is active (or a removal notice is held). */
   isPaused: boolean;
   isMuted: boolean;
+  /**
+   * `true` adds the `host` reason, `false` removes `host` + `user`. The
+   * functional form (`p => !p`) is the user toggle: it adds / removes `user`.
+   */
   setPaused: React.Dispatch<React.SetStateAction<boolean>>;
   setMuted: React.Dispatch<React.SetStateAction<boolean>>;
   goToPrevItem: () => void;
-  goToNextItem: () => void;
+  /**
+   * Advance one item. `cause` is what `onItemViewed` reports for the item left:
+   * `"completed"` only when it played to the end (progress completion / video
+   * ended); anything else (taps, keys, screen-reader next, handle) is `"left"`,
+   * which is the default. Any non-`"completed"` argument (e.g. a click event
+   * passed straight through as a handler) is treated as `"left"`.
+   */
+  goToNextItem: (cause?: StoryItemViewedCause) => void;
   goToPrevStory: () => void;
   goToNextStory: () => void;
   goToStoryIndex: (index: number) => void;
@@ -223,6 +306,14 @@ export interface UseStoryViewerStateResult {
    * animation for that snap.
    */
   snapCount: number;
+  /** 0.6.0 — the active pause reasons (controlled list, or the internal one). */
+  pauseReasons: string[];
+  /** 0.6.0 — add a pause reason (no-op when present). Identity-stable. */
+  addPauseReason: (reason: string) => void;
+  /** 0.6.0 — remove pause reasons (no-op when absent). Identity-stable. */
+  removePauseReason: (...reasons: string[]) => void;
+  /** 0.6.0 — set while the removed on-screen item's notice frame is held. */
+  pendingRemoval: StoryViewerPendingRemoval | null;
 }
 
 export function useStoryViewerState(
@@ -240,13 +331,25 @@ export function useStoryViewerState(
     onAutoCloseAtEnd,
     onClose,
     disableAutoClose = false,
+    onStoriesChange,
+    onItemUnavailable,
+    unavailableNoticeMs = 1500,
+    standalone = false,
+    pauseReasons: pauseReasonsProp,
+    onPauseReasonsChange,
   } = opts;
   const disableAutoCloseRef = useRef(disableAutoClose);
   useEffect(() => {
     disableAutoCloseRef.current = disableAutoClose;
   });
 
-  const [stories, dispatch] = useReducer(storyViewerReducer, initialStories);
+  // ─── Stories: uncontrolled reducer, or the controlled prop ──────────────
+  const storiesControlled = onStoriesChange !== undefined;
+  const [localStories, localDispatch] = useReducer(
+    storyViewerReducer,
+    initialStories,
+  );
+  const stories = storiesControlled ? initialStories : localStories;
 
   const initialStoriesRef = useRef(stories);
   useEffect(() => {
@@ -260,6 +363,9 @@ export function useStoryViewerState(
   const onCursorChangeRef = useRef(onCursorChange);
   const onAutoCloseAtEndRef = useRef(onAutoCloseAtEnd);
   const onCloseRef = useRef(onClose);
+  const onStoriesChangeRef = useRef(onStoriesChange);
+  const onItemUnavailableRef = useRef(onItemUnavailable);
+  const onPauseReasonsChangeRef = useRef(onPauseReasonsChange);
   useEffect(() => {
     onSubscribeDeltaRef.current = onSubscribeDelta;
     onStoryViewedRef.current = onStoryViewed;
@@ -267,7 +373,36 @@ export function useStoryViewerState(
     onCursorChangeRef.current = onCursorChange;
     onAutoCloseAtEndRef.current = onAutoCloseAtEnd;
     onCloseRef.current = onClose;
+    onStoriesChangeRef.current = onStoriesChange;
+    onItemUnavailableRef.current = onItemUnavailable;
+    onPauseReasonsChangeRef.current = onPauseReasonsChange;
   });
+
+  // Latest list the controlled prop holds. A mutation computes from it, reports
+  // `next`, and keeps `next` as the base for further mutations in the same task
+  // (several dispatches before the host re-renders); a microtask drops back to
+  // the prop so a change the host rejects can't leak into later ones.
+  const propStoriesRef = useRef(stories);
+  const storiesBaseRef = useRef(stories);
+  useLayoutEffect(() => {
+    propStoriesRef.current = stories;
+    storiesBaseRef.current = stories;
+  });
+  const dispatch = useCallback((action: StoryViewerLocalAction) => {
+    const report = onStoriesChangeRef.current;
+    if (!report) {
+      localDispatch(action);
+      return;
+    }
+    const base = storiesBaseRef.current;
+    const next = storyViewerReducer(base, action);
+    if (next === base) return;
+    storiesBaseRef.current = next;
+    queueMicrotask(() => {
+      storiesBaseRef.current = propStoriesRef.current;
+    });
+    report(next, action);
+  }, []);
 
   // Subscribe wiring (mount-scoped; identity-stable per host convention).
   useEffect(() => {
@@ -277,7 +412,48 @@ export function useStoryViewerState(
       dispatch({ kind: "subscribe-delta", delta });
     });
     return unsub;
-  }, [subscribe]);
+  }, [subscribe, dispatch]);
+
+  // ─── Pause reasons ────────────────────────────────────────────────────────
+  const reasonsControlled = pauseReasonsProp !== undefined;
+  const reasonsControlledRef = useRef(reasonsControlled);
+  const [localReasons, setLocalReasons] = useState<string[]>([]);
+  const reasons = reasonsControlled ? pauseReasonsProp : localReasons;
+  const propReasonsRef = useRef(reasons);
+  const reasonsBaseRef = useRef(reasons);
+  useLayoutEffect(() => {
+    reasonsControlledRef.current = reasonsControlled;
+    propReasonsRef.current = reasons;
+    reasonsBaseRef.current = reasons;
+  });
+  const commitReasons = useCallback((next: string[]) => {
+    reasonsBaseRef.current = next;
+    if (reasonsControlledRef.current) {
+      queueMicrotask(() => {
+        reasonsBaseRef.current = propReasonsRef.current;
+      });
+    } else {
+      setLocalReasons(next);
+    }
+    onPauseReasonsChangeRef.current?.(next);
+  }, []);
+  const addPauseReason = useCallback(
+    (reason: string) => {
+      const cur = reasonsBaseRef.current;
+      if (cur.includes(reason)) return;
+      commitReasons([...cur, reason]);
+    },
+    [commitReasons],
+  );
+  const removePauseReason = useCallback(
+    (...drop: string[]) => {
+      const cur = reasonsBaseRef.current;
+      const next = cur.filter((r) => !drop.includes(r));
+      if (next.length === cur.length) return;
+      commitReasons(next);
+    },
+    [commitReasons],
+  );
 
   // ─── Cursor state (ID-anchored) ───────────────────────────────────────────
   // Lazy initializer — runs once at mount, derived from props.
@@ -311,28 +487,108 @@ export function useStoryViewerState(
     storyIndex: 0,
     itemIndex: 0,
   });
+  const [lastValid, setLastValid] = useState<LastValid | null>(() => {
+    const story = initialStories.find((s) => s.id === cursorIds.storyId);
+    const item = story?.items.find((i) => i.id === cursorIds.itemId);
+    return story && item
+      ? { storyId: story.id, itemId: item.id, story, item }
+      : null;
+  });
   const [snapCount, setSnapCount] = useState(0);
   const resolved = resolveCursor(stories, cursorIds, lastPos);
-  if (
-    resolved &&
-    (resolved.storyId !== cursorIds.storyId || resolved.itemId !== cursorIds.itemId)
-  ) {
+  const cursorInvalid =
+    resolved === null
+      ? cursorIds.storyId !== ""
+      : resolved.storyId !== cursorIds.storyId ||
+        resolved.itemId !== cursorIds.itemId;
+
+  // ─── Removal notice ───────────────────────────────────────────────────────
+  // The on-screen item vanished (controlled prop, dispatch, reset, subscribe):
+  // hold a notice frame for `unavailableNoticeMs`, then repair. `0` repairs now.
+  const removalCandidate =
+    cursorInvalid &&
+    isOpen &&
+    !!lastValid &&
+    lastValid.storyId === cursorIds.storyId &&
+    lastValid.itemId === cursorIds.itemId;
+  const removalKey = `${cursorIds.storyId}:${cursorIds.itemId}`;
+  const stayUntilClosed = standalone && lastValid?.story.items.length === 1;
+  const [releasedKey, setReleasedKey] = useState("");
+  const holding =
+    removalCandidate && unavailableNoticeMs > 0 && releasedKey !== removalKey;
+  // One event per removal, recorded at first sight and fired from an effect
+  // (render may be discarded). `episode` guards against recording twice.
+  const [removalEvent, setRemovalEvent] = useState<CursorIds | null>(null);
+  const [episode, setEpisode] = useState(false);
+  // The host reacted to `onItemUnavailable(…, "resolve" | "media" | "timeout")` by removing
+  // that very item: its notice is already on screen (the media pipeline holds the
+  // `unavailable` reason). The removal is then the same notice, not a second one.
+  const [alreadyNoticed, setAlreadyNoticed] = useState(false);
+  if (removalCandidate && !episode) {
+    setEpisode(true);
+    if (reasons.includes("unavailable")) setAlreadyNoticed(true);
+    else setRemovalEvent({ storyId: cursorIds.storyId, itemId: cursorIds.itemId });
+  } else if (!cursorInvalid && episode) {
+    setEpisode(false);
+    setAlreadyNoticed(false);
+  }
+  if (!cursorInvalid && releasedKey !== "") setReleasedKey("");
+  useEffect(() => {
+    if (!removalEvent) return;
+    onItemUnavailableRef.current?.(
+      removalEvent.storyId,
+      removalEvent.itemId,
+      "removed",
+    );
+  }, [removalEvent]);
+  // When the media notice was already showing, only what is left of it is held.
+  const unavailableSinceRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!holding || stayUntilClosed) return;
+    let ms = unavailableNoticeMs;
+    if (alreadyNoticed) {
+      const since = unavailableSinceRef.current;
+      ms = since === null ? 0 : Math.max(0, ms - (Date.now() - since));
+    }
+    const t = window.setTimeout(() => setReleasedKey(removalKey), ms);
+    return () => window.clearTimeout(t);
+  }, [holding, stayUntilClosed, removalKey, unavailableNoticeMs, alreadyNoticed]);
+
+  if (!holding && cursorInvalid && resolved) {
     setCursorIds(resolved);
     setSnapCount((c) => c + 1);
   }
-  const ids = resolved ?? cursorIds;
+  const ids = holding ? cursorIds : (resolved ?? cursorIds);
+
+  // Remember the last valid on-screen story/item (identity-compared so it
+  // converges): the notice frame is built from it once the item is gone.
+  if (!cursorInvalid && resolved) {
+    const story = stories.find((s) => s.id === resolved.storyId);
+    const item = story?.items.find((i) => i.id === resolved.itemId);
+    if (
+      story &&
+      item &&
+      (lastValid?.story !== story || lastValid?.item !== item)
+    ) {
+      setLastValid({ storyId: story.id, itemId: item.id, story, item });
+    }
+  }
 
   // Derive indices from IDs.
   const cursor = useMemo(() => {
+    if (holding) {
+      return { storyIndex: lastPos.storyIndex, itemIndex: lastPos.itemIndex };
+    }
     const storyIndex = Math.max(0, stories.findIndex((s) => s.id === ids.storyId));
     const story = stories[storyIndex];
     const itemIndex = story
       ? Math.max(0, story.items.findIndex((i) => i.id === ids.itemId))
       : 0;
     return { storyIndex, itemIndex };
-  }, [stories, ids.storyId, ids.itemId]);
+  }, [stories, ids.storyId, ids.itemId, holding, lastPos.storyIndex, lastPos.itemIndex]);
 
   if (
+    !holding &&
     resolved &&
     (lastPos.storyId !== resolved.storyId ||
       lastPos.storyIndex !== cursor.storyIndex ||
@@ -345,9 +601,34 @@ export function useStoryViewerState(
     });
   }
 
+  const pendingRemoval = useMemo<StoryViewerPendingRemoval | null>(
+    () =>
+      holding && lastValid
+        ? {
+            storyId: cursorIds.storyId,
+            itemId: cursorIds.itemId,
+            reason: "removed",
+            story: lastValid.story,
+            item: lastValid.item,
+            stayUntilClosed,
+          }
+        : null,
+    [holding, lastValid, cursorIds.storyId, cursorIds.itemId, stayUntilClosed],
+  );
+  const hasPendingRemoval = pendingRemoval !== null;
+  useLayoutEffect(() => {
+    if (hasPendingRemoval) return;
+    if (!reasons.includes("unavailable")) unavailableSinceRef.current = null;
+    else if (unavailableSinceRef.current === null) unavailableSinceRef.current = Date.now();
+  });
+  useLayoutEffect(() => {
+    if (hasPendingRemoval) addPauseReason("unavailable");
+    else removePauseReason("unavailable");
+  }, [hasPendingRemoval, addPauseReason, removePauseReason]);
+
   // Every group/item was removed while the viewer is open — nothing left to
-  // show, so close (once per transition into the empty state).
-  const removedAll = resolved === null && cursorIds.storyId !== "";
+  // show, so close (once per transition into the empty state), after the notice.
+  const removedAll = resolved === null && cursorIds.storyId !== "" && !holding;
   useEffect(() => {
     if (removedAll && isOpen) onCloseRef.current();
   }, [removedAll, isOpen]);
@@ -363,20 +644,65 @@ export function useStoryViewerState(
   }, [cursor]);
 
   // ─── Pause / mute ────────────────────────────────────────────────────────
-  const [isPaused, setPaused] = useState(false);
   const [isMuted, setMuted] = useState(true);
+  const isPaused = reasons.length > 0 || hasPendingRemoval;
+  const isPausedRef = useRef(isPaused);
+  useLayoutEffect(() => {
+    isPausedRef.current = isPaused;
+  });
+  const setPaused = useCallback<React.Dispatch<React.SetStateAction<boolean>>>(
+    (value) => {
+      const functional = typeof value === "function";
+      const next = functional ? value(isPausedRef.current) : value;
+      if (next) addPauseReason(functional ? "user" : "host");
+      else removePauseReason("host", "user");
+    },
+    [addPauseReason, removePauseReason],
+  );
 
-  // Reset pause on item key change — React 19 pattern: setState during render
-  // when a derived prop changes. Keeps resume from sticking after auto-advance.
+  // `user` (middle tap / Space) is per item: it clears on item change and when
+  // the viewer closes. `host` survives item changes but not a close (a reopen must not
+  // start silently paused); a `setPaused(true)` made while closed still holds,
+  // because it clears on the close TRANSITION, not on open. `hold` can't outlive a closed viewer.
   const itemKey = `${ids.storyId}:${ids.itemId}`;
-  const [renderedItemKey, setRenderedItemKey] = useState(itemKey);
-  if (renderedItemKey !== itemKey) {
-    setRenderedItemKey(itemKey);
-    setPaused(false);
-  }
+  const prevItemKeyRef = useRef(itemKey);
+  useLayoutEffect(() => {
+    if (prevItemKeyRef.current === itemKey) return;
+    prevItemKeyRef.current = itemKey;
+    removePauseReason("user");
+  }, [itemKey, removePauseReason]);
+  useLayoutEffect(() => {
+    if (!isOpen) removePauseReason("user", "hold", "host");
+  }, [isOpen, removePauseReason]);
+
+  // A backgrounded tab pauses; coming back resumes (unless something else holds).
+  useEffect(() => {
+    if (!isOpen || typeof document === "undefined") return;
+    const sync = () => {
+      if (document.visibilityState === "hidden") addPauseReason("hidden-tab");
+      else removePauseReason("hidden-tab");
+    };
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      removePauseReason("hidden-tab");
+    };
+  }, [isOpen, addPauseReason, removePauseReason]);
 
   // ─── Navigation helpers ──────────────────────────────────────────────────
+  // While a removal notice is held, any navigation just ends the notice early
+  // (it repairs to the next item) — unless it must stay until the viewer closes.
+  const releaseNotice = useCallback(() => {
+    if (stayUntilClosed) return;
+    setReleasedKey(removalKey);
+  }, [stayUntilClosed, removalKey]);
+
   const goToPrevItem = useCallback(() => {
+    if (holding) {
+      releaseNotice();
+      return;
+    }
     const snap = initialStoriesRef.current;
     const sIdx = snap.findIndex((s) => s.id === cursorIds.storyId);
     if (sIdx < 0) return;
@@ -386,17 +712,24 @@ export function useStoryViewerState(
       setCursorIds({ storyId: story.id, itemId: story.items[iIdx - 1].id });
       return;
     }
-    if (sIdx > 0) {
-      const prevStory = snap[sIdx - 1];
+    const pIdx = findAdjacentStoryIndex(snap, sIdx, -1);
+    if (pIdx >= 0) {
+      const prevStory = snap[pIdx];
       const lastItem = prevStory.items[prevStory.items.length - 1];
       if (lastItem) {
+        fireLeft(onItemViewedRef.current, story, iIdx);
         setCursorIds({ storyId: prevStory.id, itemId: lastItem.id });
       }
     }
     // else: at the very start; no-op.
-  }, [cursorIds]);
+  }, [cursorIds, holding, releaseNotice]);
 
-  const goToNextItem = useCallback(() => {
+  const goToNextItem = useCallback((cause?: StoryItemViewedCause) => {
+    const viewedCause: StoryItemViewedCause = cause === "completed" ? "completed" : "left";
+    if (holding) {
+      releaseNotice();
+      return;
+    }
     const snap = initialStoriesRef.current;
     const sIdx = snap.findIndex((s) => s.id === cursorIds.storyId);
     if (sIdx < 0) return;
@@ -404,16 +737,17 @@ export function useStoryViewerState(
     const iIdx = story.items.findIndex((i) => i.id === cursorIds.itemId);
     const item = story.items[iIdx];
     if (item) {
-      onItemViewedRef.current?.(story.id, item.id, iIdx);
+      onItemViewedRef.current?.(story.id, item.id, iIdx, viewedCause);
     }
     if (iIdx < story.items.length - 1) {
       setCursorIds({ storyId: story.id, itemId: story.items[iIdx + 1].id });
       return;
     }
-    // At last item — advance to next story (forward).
+    // At last item — advance to the next un-muted story (forward).
     onStoryViewedRef.current?.(story.id);
-    if (sIdx < snap.length - 1) {
-      const nextStory = snap[sIdx + 1];
+    const nIdx = findAdjacentStoryIndex(snap, sIdx, 1);
+    if (nIdx >= 0) {
+      const nextStory = snap[nIdx];
       const firstItem = nextStory.items[0];
       if (firstItem) {
         setCursorIds({ storyId: nextStory.id, itemId: firstItem.id });
@@ -423,37 +757,50 @@ export function useStoryViewerState(
     // No next story — auto-close (gated by disableAutoClose per v0.2.0).
     onAutoCloseAtEndRef.current?.();
     if (!disableAutoCloseRef.current) onCloseRef.current();
-  }, [cursorIds]);
+  }, [cursorIds, holding, releaseNotice]);
 
   const goToPrevStory = useCallback(() => {
+    if (holding) {
+      releaseNotice();
+      return;
+    }
     const snap = initialStoriesRef.current;
     const sIdx = snap.findIndex((s) => s.id === cursorIds.storyId);
     if (sIdx <= 0) return;
-    const prevStory = snap[sIdx - 1];
+    const pIdx = findAdjacentStoryIndex(snap, sIdx, -1);
+    if (pIdx < 0) return;
+    const prevStory = snap[pIdx];
     const firstItem = prevStory.items[0];
     if (firstItem) {
+      const story = snap[sIdx];
+      fireLeft(onItemViewedRef.current, story, story.items.findIndex((i) => i.id === cursorIds.itemId));
       // Backward — does NOT fire onStoryViewed.
       setCursorIds({ storyId: prevStory.id, itemId: firstItem.id });
     }
-  }, [cursorIds]);
+  }, [cursorIds, holding, releaseNotice]);
 
   const goToNextStory = useCallback(() => {
+    if (holding) {
+      releaseNotice();
+      return;
+    }
     const snap = initialStoriesRef.current;
     const sIdx = snap.findIndex((s) => s.id === cursorIds.storyId);
     if (sIdx < 0) return;
     const story = snap[sIdx];
-    onStoryViewedRef.current?.(story.id);
-    if (sIdx < snap.length - 1) {
-      const nextStory = snap[sIdx + 1];
-      const firstItem = nextStory.items[0];
-      if (firstItem) {
-        setCursorIds({ storyId: nextStory.id, itemId: firstItem.id });
-        return;
-      }
+    const nIdx = findAdjacentStoryIndex(snap, sIdx, 1);
+    const nextStory = nIdx >= 0 ? snap[nIdx] : undefined;
+    const firstItem = nextStory?.items[0];
+    if (nextStory && firstItem) {
+      fireLeft(onItemViewedRef.current, story, story.items.findIndex((i) => i.id === cursorIds.itemId));
+      onStoryViewedRef.current?.(story.id);
+      setCursorIds({ storyId: nextStory.id, itemId: firstItem.id });
+      return;
     }
+    onStoryViewedRef.current?.(story.id);
     onAutoCloseAtEndRef.current?.();
     if (!disableAutoCloseRef.current) onCloseRef.current();
-  }, [cursorIds]);
+  }, [cursorIds, holding, releaseNotice]);
 
   const goToStoryIndex = useCallback((index: number) => {
     const snap = initialStoriesRef.current;
@@ -461,6 +808,10 @@ export function useStoryViewerState(
     const target = snap[sIdx];
     if (!target) return;
     const currentSIdx = snap.findIndex((s) => s.id === cursorIds.storyId);
+    if (currentSIdx >= 0 && snap[currentSIdx].id !== target.id) {
+      const current = snap[currentSIdx];
+      fireLeft(onItemViewedRef.current, current, current.items.findIndex((i) => i.id === cursorIds.itemId));
+    }
     // Forward jump — fire onStoryViewed for the leaving story.
     if (sIdx > currentSIdx && currentSIdx >= 0) {
       onStoryViewedRef.current?.(snap[currentSIdx].id);
@@ -482,9 +833,12 @@ export function useStoryViewerState(
     setCursorIds({ storyId: story.id, itemId: item.id });
   }, [cursorIds]);
 
-  const reset = useCallback((next: Story[]) => {
-    dispatch({ kind: "reset", next });
-  }, []);
+  const reset = useCallback(
+    (next: Story[]) => {
+      dispatch({ kind: "reset", next });
+    },
+    [dispatch],
+  );
 
   return {
     stories,
@@ -502,5 +856,9 @@ export function useStoryViewerState(
     reset,
     dispatch,
     snapCount,
+    pauseReasons: reasons,
+    addPauseReason,
+    removePauseReason,
+    pendingRemoval,
   };
 }

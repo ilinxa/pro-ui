@@ -4,11 +4,13 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { resolveLocale } from "../lib/relative-time";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   ResolvedStoryViewer01Labels,
   Story,
   StoryItem,
+  StoryViewersPage,
   ViewerListItem,
 } from "../types";
 
@@ -16,11 +18,13 @@ export interface OwnerOverlayProps {
   story: Story;
   item: StoryItem;
   /**
-   * Lazy-fetch viewers when owner taps the view-count chip. Returns
-   * ViewerListItem[]. Called once per panel-open; result cached locally.
+   * Pages the viewers of the current item: `(item.id, null)` on first open, then the
+   * previous `nextCursor` for each "load more". A rejection shows a Retry row.
    */
-  onLoadViewers?: (storyId: string) => Promise<ViewerListItem[]>;
+  onLoadViewers?: (itemId: string, cursor: string | null) => Promise<StoryViewersPage>;
   labels: ResolvedStoryViewer01Labels;
+  /** Locale for the view count (`Intl.NumberFormat`); invalid / absent → `"en"`. */
+  locale?: string;
   className?: string;
   /**
    * Internal (not exported from the barrel): lets the root own the viewers
@@ -46,9 +50,11 @@ function initials(name: string): string {
  * Owner overlay — bottom-anchored view-count chip + tap-to-expand viewers
  * list panel. Mounts only when `viewerMode === "owner"` + `!disableOwnerOverlay`.
  *
- * Per Q-V5 hybrid lock: count is eager (cheap byte from `story.viewerCount`),
- * users list is lazy (fetched on first tap via `onLoadViewers`). Optional
- * eager seed via `story.viewers` short-circuits the fetch.
+ * Per Q-V5 hybrid lock: count is eager (`item.viewerCount`, falling back to
+ * `story.viewerCount`; `null` = no number), users list is lazy and paged
+ * (`onLoadViewers(itemId, cursor)` on first tap, then on each "load more"; a
+ * rejection shows Retry). Optional eager seed via `story.viewers`
+ * short-circuits the fetch. The list resets when the current item changes.
  *
  * The expanded panel renders avatars + names inline (a simple list — not the
  * cross-cat LikersStrip — to keep the F-S1 surface minimal; LikersStrip can
@@ -56,7 +62,15 @@ function initials(name: string): string {
  * variant).
  */
 function OwnerOverlayInner(props: OwnerOverlayProps) {
-  const eagerCount = props.story.viewerCount ?? props.story.viewers?.length ?? 0;
+  // This item's count wins (`null` = withheld); the story's is the fallback.
+  const itemCount = props.item.viewerCount;
+  const storyCount = props.story.viewerCount;
+  const countValue: number | null =
+    itemCount !== undefined
+      ? itemCount
+      : storyCount !== undefined
+        ? storyCount
+        : (props.story.viewers?.length ?? 0);
   const [localOpen, setLocalOpen] = useState(false);
   const open = props.open ?? localOpen;
   const { onOpenChange } = props;
@@ -67,43 +81,73 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
     },
     [onOpenChange],
   );
+  const seeded = props.story.viewers !== undefined;
   const [viewers, setViewers] = useState<ViewerListItem[]>(props.story.viewers ?? []);
-  const [loading, setLoading] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  // The cursor the failed / in-flight request uses; Retry repeats exactly that call.
+  const [pendingCursor, setPendingCursor] = useState<string | null>(null);
   const [didFetch, setDidFetch] = useState(false);
+  // Bumped on every item change so a response for a previous item is dropped.
+  const requestRef = useRef(0);
 
-  // Reset panel state when story changes (cursor navigation). Render-time
-  // prev-props adjustment (React docs "adjusting state when a prop changes")
-  // instead of an effect — same reset semantics without the
-  // set-state-in-effect cascading-render re-render (and no one-frame stale
-  // panel while the effect waits to fire).
-  const [prevStoryId, setPrevStoryId] = useState(props.story.id);
-  if (prevStoryId !== props.story.id) {
-    setPrevStoryId(props.story.id);
+  // The list belongs to ONE item: reset it when the current item changes (cursor
+  // navigation). Render-time prev-props adjustment (React docs "adjusting state when a
+  // prop changes") instead of an effect — same reset semantics without the
+  // set-state-in-effect cascading re-render (and no one-frame stale panel).
+  const itemKey = `${props.story.id}:${props.item.id}`;
+  const [prevItemKey, setPrevItemKey] = useState(itemKey);
+  if (prevItemKey !== itemKey) {
+    setPrevItemKey(itemKey);
     // The root closes a controlled list on the same cursor change.
     setLocalOpen(false);
     setViewers(props.story.viewers ?? []);
+    setNextCursor(null);
+    setPendingCursor(null);
+    setStatus("idle");
     setDidFetch(false);
   }
+  useEffect(() => {
+    requestRef.current += 1;
+  }, [itemKey]);
 
-  const handleToggle = useCallback(async () => {
+  const { onLoadViewers } = props;
+  const itemId = props.item.id;
+  const loadPage = useCallback(
+    async (cursor: string | null) => {
+      if (!onLoadViewers) return;
+      const token = ++requestRef.current;
+      setStatus("loading");
+      setPendingCursor(cursor);
+      try {
+        const page = await onLoadViewers(itemId, cursor);
+        if (token !== requestRef.current) return;
+        setViewers((prev) => {
+          if (cursor === null) return page.items;
+          const seen = new Set(prev.map((v) => v.id));
+          return prev.concat(page.items.filter((v) => !seen.has(v.id)));
+        });
+        setNextCursor(page.nextCursor);
+        setDidFetch(true);
+        setStatus("idle");
+      } catch {
+        if (token !== requestRef.current) return;
+        setStatus("error");
+      }
+    },
+    [onLoadViewers, itemId],
+  );
+
+  const handleToggle = useCallback(() => {
     if (open) {
       setOpen(false);
       return;
     }
     setOpen(true);
-    if (viewers.length === 0 && props.onLoadViewers && !loading && !didFetch) {
-      setLoading(true);
-      try {
-        const list = await props.onLoadViewers(props.story.id);
-        setViewers(list);
-        setDidFetch(true);
-      } catch {
-        // Swallow; host can re-attempt via re-tap. No retry-with-backoff for v0.2.0.
-      } finally {
-        setLoading(false);
-      }
+    if (!seeded && onLoadViewers && status === "idle" && !didFetch) {
+      void loadPage(null);
     }
-  }, [open, setOpen, viewers.length, loading, didFetch, props.onLoadViewers, props.story.id]);
+  }, [open, setOpen, seeded, onLoadViewers, status, didFetch, loadPage]);
 
   // A tap outside the list dismisses it (no backdrop); focus returns to the
   // opener on close. The chip carries `data-story-layer` so tapping it only
@@ -131,16 +175,23 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
     return undefined;
   }, [open, setOpen]);
 
-  const timeStr = props.labels.formatTime(new Date(props.story.createdAt));
-  const ariaLabel = props.labels.viewerCountLabel(eagerCount, timeStr);
+  const timeStr = props.labels.formatTime(new Date(props.item.createdAt ?? props.story.createdAt));
+  const formattedCount =
+    countValue === null ? "" : new Intl.NumberFormat(resolveLocale(props.locale)).format(countValue);
+  // A withheld (`null`) count renders no number and reaches no accessible name.
+  const ariaLabel =
+    countValue === null
+      ? `${props.labels.viewersHeading} · ${timeStr}`
+      : props.labels.viewerCountLabel(countValue, timeStr, formattedCount);
+  const retry = () => void loadPage(pendingCursor);
 
   return (
     <>
       {/* View-count chip — bottom-left of viewer (replaces reply composer in owner mode). */}
       <div
         className={cn(
-          "absolute left-0 right-0 bottom-0 z-30 flex items-center px-4 pb-4 pt-8",
-          "bg-linear-to-t from-black/60 via-black/40 to-transparent",
+          "absolute inset-x-0 bottom-0 z-30 flex items-center px-4 pb-4 pt-8",
+          "bg-linear-to-t from-media-overlay via-media-overlay/70 to-transparent",
           props.className,
         )}
       >
@@ -150,14 +201,16 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
           onClick={handleToggle}
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
-            "h-11 text-white hover:bg-white/20 hover:text-white",
+            "h-11 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground",
           )}
           aria-label={ariaLabel}
           aria-expanded={open}
         >
           <Eye className="me-2 h-4 w-4" />
-          <span className="font-semibold">{eagerCount}</span>
-          <span className="ms-2 text-white/70">· {timeStr}</span>
+          {countValue === null ? null : <span className="font-semibold">{formattedCount}</span>}
+          <span className={cn("text-media-overlay-foreground/70", countValue !== null && "ms-2")}>
+            {countValue === null ? timeStr : `· ${timeStr}`}
+          </span>
         </button>
       </div>
 
@@ -179,39 +232,78 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
             </button>
           </div>
           <div className="max-h-[50vh] overflow-y-auto">
-            {loading ? (
+            {viewers.length === 0 && status === "loading" ? (
               <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                Loading viewers…
+                {props.labels.viewersLoading}
               </p>
+            ) : viewers.length === 0 && status === "error" ? (
+              <ViewersError labels={props.labels} onRetry={retry} />
             ) : viewers.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                No viewers yet.
+                {props.labels.viewersEmpty}
               </p>
             ) : (
-              <ul className="flex flex-col">
-                {viewers.map((viewer) => (
-                  <li
-                    key={viewer.id}
-                    className="flex items-center gap-3 border-b border-border/30 px-4 py-2 last:border-b-0"
-                  >
-                    <Avatar className="h-8 w-8 shrink-0">
-                      {viewer.avatar ? <AvatarImage src={viewer.avatar} alt="" /> : null}
-                      <AvatarFallback className="text-xs">{initials(viewer.name)}</AvatarFallback>
-                    </Avatar>
-                    <span className="flex-1 text-sm font-medium">{viewer.name}</span>
-                    {viewer.viewedAt ? (
-                      <span className="text-xs text-muted-foreground">
-                        {props.labels.formatTime(new Date(viewer.viewedAt))}
-                      </span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="flex flex-col">
+                  {viewers.map((viewer) => (
+                    <li
+                      key={viewer.id}
+                      className="flex items-center gap-3 border-b border-border/30 px-4 py-2 last:border-b-0"
+                    >
+                      <Avatar className="h-8 w-8 shrink-0">
+                        {viewer.avatar ? <AvatarImage src={viewer.avatar} alt="" /> : null}
+                        <AvatarFallback className="text-xs">{initials(viewer.name)}</AvatarFallback>
+                      </Avatar>
+                      <span className="flex-1 text-sm font-medium">{viewer.name}</span>
+                      {viewer.viewedAt ? (
+                        <span className="text-xs text-muted-foreground">
+                          {props.labels.formatTime(new Date(viewer.viewedAt))}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+                {status === "loading" ? (
+                  <p className="px-4 py-3 text-center text-sm text-muted-foreground">
+                    {props.labels.viewersLoading}
+                  </p>
+                ) : status === "error" ? (
+                  <ViewersError labels={props.labels} onRetry={retry} />
+                ) : nextCursor !== null ? (
+                  <div className="flex justify-center px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => void loadPage(nextCursor)}
+                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    >
+                      {props.labels.viewersLoadMore}
+                    </button>
+                  </div>
+                ) : null}
+              </>
             )}
           </div>
         </div>
       ) : null}
     </>
+  );
+}
+
+function ViewersError(props: { labels: ResolvedStoryViewer01Labels; onRetry: () => void }) {
+  return (
+    <div
+      role="alert"
+      className="flex flex-col items-center gap-2 px-4 py-6 text-center text-sm text-muted-foreground"
+    >
+      <p>{props.labels.viewersError}</p>
+      <button
+        type="button"
+        onClick={props.onRetry}
+        className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+      >
+        {props.labels.viewersRetry}
+      </button>
+    </div>
   );
 }
 

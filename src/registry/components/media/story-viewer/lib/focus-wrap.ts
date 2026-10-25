@@ -5,8 +5,19 @@ const TABBABLE =
 
 function tabbablesIn(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(TABBABLE)).filter(
-    (el) => !el.closest("[inert]") && !el.closest('[aria-hidden="true"]'),
+    (el) => !el.closest("[inert]") && !el.closest('[aria-hidden="true"]') && isRendered(el, root),
   );
+}
+
+/** Not `display: none` / `visibility: hidden` (e.g. the dialog's CSS-hidden built-in close button). */
+function isRendered(el: HTMLElement, root: HTMLElement): boolean {
+  if (typeof getComputedStyle !== "function") return true;
+  if (getComputedStyle(el).visibility === "hidden") return false;
+  for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+    if (getComputedStyle(n).display === "none") return false;
+    if (n === root) break;
+  }
+  return true;
 }
 
 /**

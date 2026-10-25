@@ -48,6 +48,7 @@ export const PERMISSION_DEFAULTS_BY_MODE: Record<
     canShareToFeed: true,
     canSeeViewers: true,
     // viewer-side off for owners (they don't react to their own story)
+    canLike: false,
     canReact: false,
     canReply: false,
     canShare: true,
@@ -65,6 +66,7 @@ export const PERMISSION_DEFAULTS_BY_MODE: Record<
     canShareToFeed: false,
     canSeeViewers: false,
     // viewer-side full
+    canLike: true,
     canReact: true,
     canReply: true,
     canShare: true,
@@ -125,8 +127,19 @@ export function resolveStoryPermissions(
       result[key] = value;
     }
   }
+  // `canLike` defaults to whatever `canReact` resolves to: only a host that sets it
+  // explicitly gates likes separately from reactions.
+  if (permissions.canLike === undefined) result.canLike = result.canReact;
+  else EXPLICIT_LIKE.add(result);
   return result;
 }
+
+/**
+ * Matrices whose `canLike` the host set explicitly (read off the raw `permissions` prop).
+ * Equality with `canReact` cannot tell "unset" from "set to the same value", so the
+ * provenance is recorded here instead of being guessed.
+ */
+const EXPLICIT_LIKE = new WeakSet<object>();
 
 /**
  * Per-action resolution. Returns `true` to allow the action / `false` to deny.
@@ -150,6 +163,12 @@ export function canPerformStoryActionInternal(
   if (canPerformAction) {
     const result = canPerformAction(action, story, item);
     if (result !== undefined) return result;
+    // `like` follows `react` unless the host set `canLike` explicitly, so a host whose
+    // predicate only knows `react` keeps today's output.
+    if (action === "like" && !EXPLICIT_LIKE.has(resolvedMatrix)) {
+      const react = canPerformAction("react", story, item);
+      if (react !== undefined) return react;
+    }
   }
   return resolvedMatrix[actionToPermissionKey(action)] !== false;
 }

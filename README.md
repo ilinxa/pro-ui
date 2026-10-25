@@ -53,8 +53,8 @@ A few components rely on extra tokens beyond the canonical set:
 | `--destructive-foreground` | `app-sidebar`, `event-card`, `file-manager`, `file-tree`, `media-editor`, `split-workspace` |
 | `--story-ring-from` | `story-rail` |
 | `--story-ring-to` | `story-rail` |
-| `--media-overlay` | `video-player` |
-| `--media-overlay-foreground` | `video-player` |
+| `--media-overlay` | `story-viewer`, `video-player` |
+| `--media-overlay-foreground` | `story-viewer`, `video-player` |
 <!-- END GENERATED TOKENS -->
 
 You **don't** need to copy the brand *values* — keep your own `--primary`, `--background`, etc. Every ilinxa component reads tokens by name, so it inherits whatever palette the host ships. The brand identity (signal-lime + cool off-white + graphite-cool dark) is only authoritative on this demo site.

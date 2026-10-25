@@ -227,3 +227,41 @@ If this breaks for a consumer, it breaks because: a host controls `viewerReactio
 `reaction-changed` (now the host's job — upgrade table + CHANGELOG say so); or long-press / scroll behaves
 differently on a real touch device (only jsdom + reasoning cover `touch-manipulation`, review R-02); or a host
 reads `getCurrentState()` counts as `number` (now `number | null`, a compile-time break they will see).
+
+---
+
+# Run — 0.6.0 (Part 3, with story-viewer 0.6.0)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **minor** — one additive optional prop) |
+| **Current stage** | U7 — ships with story-viewer 0.6.0 |
+| **Sign-off policy** | covered by the story-viewer 0.6.0 contract (platform confirmed 2026-10-25; user go). Push under the user's Part 3 grant. |
+| **Version target** | v0.5.0 → **v0.6.0** |
+| **Started / updated** | 2026-10-25 / 2026-10-25 |
+
+## U0 / U1
+
+- **Why:** story-viewer must pause while the reaction picker is open (SV5 for the reaction popover — moved from 0.5.4
+  because engagement-bar exposed no picker open state). Pre-U2 scope review R-04.
+- **Change:** `onReactionPickerOpenChange?: (open: boolean) => void` — fires when the reaction picker opens and closes.
+  Nothing else changes; no prop → identical behaviour. post-card / comment-thread / story-viewer compose engagement-bar;
+  none breaks (additive).
+- **Kept:** LikersStrip's deprecated `moreAriaLabelTemplate` stays (pre-U2 scope review F-07) — removing it would break
+  engagement-bar.
+- **Tests:** opens → `true`, closes (select, Escape, outside) → `false`, once per transition; falsified.
+
+## U2–U6 (with story-viewer 0.6.0)
+
+- Built in story-viewer slice B: `onReactionPickerOpenChange` on `ReactionAction` → `ActionButton` → `EngagementBar`;
+  fires on change only (never on mount), reports `false` on unmount while open (StrictMode-safe). Tests
+  `picker-open-change` (6), falsified CAUGHT.
+- U4 (the story-viewer code finder read the engagement-bar diff): additive, only the one `ActionButton` call site
+  needed the prop; post-card and comment-thread untouched. No findings.
+- U5: engagement-bar docs page (Reactions / Hybrid / Withheld counts / Controlled + optimistic) — picker opens and
+  closes, `aria-expanded` false → true → false, focus returns, console clean, no overflow at 1280 / 390; installs on
+  CLI 3.8.5 + 4.18.0 with story-viewer and post-card (consumer tsc 0). Artifact 116.86 / 125 KB.
+- U6: `meta.ts` 0.6.0, CHANGELOG bullet, guide note; review
+  [`reviews/2026-10-25-v0.6.0-picker-open-change.md`](reviews/2026-10-25-v0.6.0-picker-open-change.md) — **Pass**.

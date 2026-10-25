@@ -70,7 +70,7 @@ function KebabPanelInner(props: KebabPanelProps) {
         aria-hidden="true"
         tabIndex={-1}
         data-story-layer="kebab"
-        className="absolute inset-0 z-40 cursor-default bg-black/40"
+        className="absolute inset-0 z-40 cursor-default bg-media-overlay/70"
         onClick={props.onClose}
       />
       {/* Action sheet — bottom-anchored. */}

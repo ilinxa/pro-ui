@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 cross-cat component import — absolute-with-suffix preserves through
 // the shadcn 4.6.0 rewriter (Bug 3 only affects /types).
@@ -22,7 +22,10 @@ export interface ReplyComposerProps {
   currentUser?: StoryCurrentUser;
   /** Submit handler — story-viewer forwards via onAddReply prop. */
   onAddReply?: (storyId: string, itemId: string, content: string) => Promise<void> | void;
-  /** Pause the story while user types; resume on submit/cancel. */
+  /**
+   * Called with `true` while the composer is focused or holds a draft, `false`
+   * otherwise (and on unmount). The viewer maps it to the `reply-focus` pause reason.
+   */
   onSetPaused: (paused: boolean) => void;
   labels: ResolvedStoryViewer01Labels;
   className?: string;
@@ -75,9 +78,6 @@ function ReplyComposerInner(props: ReplyComposerProps) {
     onActiveChange,
     prefill,
   } = props;
-  // Track whether user has typed anything since last submit; auto-pause
-  // fires only on the FIRST keystroke (cheap idempotent setPaused call).
-  const pausedRef = useRef(false);
   // v0.3.2 — focus + content tracking still fires `onActiveChange` for
   // host-side polish (e.g., a future heart-toggle that only reveals the
   // engagement column when composer is active). v0.3.3 stopped USING the
@@ -99,48 +99,26 @@ function ReplyComposerInner(props: ReplyComposerProps) {
     onActiveChange?.(active);
   }, [active, onActiveChange]);
 
-  const handleChange = useCallback(
-    (value: string) => {
-      setText(value);
-      if (value.length > 0 && !pausedRef.current) {
-        pausedRef.current = true;
-        onSetPaused(true);
-      } else if (value.length === 0 && pausedRef.current) {
-        // User cleared the composer manually — resume the story.
-        pausedRef.current = false;
-        onSetPaused(false);
-      }
-    },
-    [onSetPaused],
-  );
-
-  // A pre-fill counts as typing: pause the story (same as the first keystroke).
-  const prefillNonce = prefill?.nonce;
-  const prefillText = prefill?.text;
+  // The story is paused (`reply-focus`) while the composer is focused or holds a
+  // draft (a pre-fill counts as a draft), and resumes when both clear. The cleanup
+  // releases the reason when the composer unmounts (it is keyed per item).
   useEffect(() => {
-    if (prefillNonce === undefined || !prefillText) return;
-    if (!pausedRef.current) {
-      pausedRef.current = true;
-      onSetPaused(true);
-    }
-  }, [prefillNonce, prefillText, onSetPaused]);
+    onSetPaused(active);
+  }, [active, onSetPaused]);
+  useEffect(() => () => onSetPaused(false), [onSetPaused]);
+
+  const handleChange = useCallback((value: string) => setText(value), []);
 
   const handleSubmit = useCallback(
     async (content: string) => {
-      try {
-        await onAddReply?.(story.id, item.id, content);
-      } finally {
-        pausedRef.current = false;
-        onSetPaused(false);
-      }
+      await onAddReply?.(story.id, item.id, content);
     },
-    [onAddReply, story.id, item.id, onSetPaused],
+    [onAddReply, story.id, item.id],
   );
 
   if (!currentUser) return null;
 
-  // CommentComposer accepts a stricter currentUser shape (CommentThreadCurrentUser).
-  // StoryCurrentUser is structurally identical — cast at the boundary.
+  // StoryCurrentUser is structurally identical to CommentThreadCurrentUser, so it is assignable as is.
   return (
     <div
       onFocusCapture={() => setHasFocus(true)}
@@ -154,14 +132,13 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // extend under the heart toggle that now sits inline in the DM bar
         // row (rendered by story-viewer.tsx at right-3 bottom-3).
         "absolute end-0 bottom-0 start-0 z-31 ps-4 pe-16 pt-3 pb-3 pointer-events-auto",
-        "bg-linear-to-t from-black/60 via-black/40 to-transparent",
+        "bg-linear-to-t from-media-overlay via-media-overlay/70 to-transparent",
         className,
       )}
     >
       <CommentComposer
         ref={composerRef}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        currentUser={currentUser as any}
+        currentUser={currentUser}
         value={text}
         placeholder={labels.replyComposerPlaceholder(story)}
         onChange={handleChange}
@@ -178,7 +155,9 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         // to a single-row height that matches the 8x8 avatar (`min-h-9`)
         // with tighter vertical padding. The textarea still auto-grows up
         // to `maxRows={3}` while typing.
-        className="[&_textarea]:min-h-9 [&_textarea]:py-1.5 [&_textarea]:text-sm"
+        // F-05: the pill is a scrim of its own (not the theme's translucent input fill), so it
+        // stays legible over a bright photo in the dark theme too.
+        className="[&_textarea]:min-h-9 [&_textarea]:py-1.5 [&_textarea]:text-sm [&_textarea]:bg-media-overlay! [&_textarea]:text-media-overlay-foreground! [&_textarea]:border-media-overlay-foreground/40! [&_textarea]:placeholder:text-media-overlay-foreground/70!"
         submitOnEnter
         minRows={1}
         maxRows={3}

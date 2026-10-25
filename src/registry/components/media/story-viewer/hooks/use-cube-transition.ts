@@ -38,6 +38,8 @@ export type CubeTransitionState =
       phase: "auto";
       direction: CubeDirection;
       leaving: CubeFaceSnapshot;
+      /** 0.6.0 (SV19) - right-to-left: the cube sweeps the other way. */
+      mirror: boolean;
     }
   | {
       // User is actively dragging. BOTH prev + next ghosts mounted (drag
@@ -45,6 +47,8 @@ export type CubeTransitionState =
       phase: "dragging";
       prev: CubeFaceSnapshot | null;
       next: CubeFaceSnapshot | null;
+      /** 0.6.0 (SV19) - right-to-left: the previous story sits on the right wall. */
+      mirror: boolean;
     }
   | {
       // User released; angle is animating to its commit/snapback target.
@@ -52,6 +56,7 @@ export type CubeTransitionState =
       phase: "releasing";
       prev: CubeFaceSnapshot | null;
       next: CubeFaceSnapshot | null;
+      mirror: boolean;
     };
 
 export interface UseCubeTransitionResult {
@@ -67,6 +72,8 @@ export interface UseCubeTransitionResult {
   startAuto: (args: {
     direction: CubeDirection;
     leaving: CubeFaceSnapshot;
+    /** Right-to-left: sweep the cube the other way. */
+    mirror?: boolean;
   }) => void;
 
   /**
@@ -76,6 +83,8 @@ export interface UseCubeTransitionResult {
   beginDrag: (args: {
     prev: CubeFaceSnapshot | null;
     next: CubeFaceSnapshot | null;
+    /** Right-to-left: the previous story sits on the right wall. */
+    mirror?: boolean;
   }) => void;
 
   /**
@@ -146,7 +155,8 @@ export function useCubeTransition(durationMs = 400): UseCubeTransitionResult {
     void el.offsetWidth;
     // Frame 2: commit target. CSS transition runs.
     rafRef.current = requestAnimationFrame(() => {
-      writeAngle(state.direction === "next" ? "-90deg" : "90deg");
+      // LTR: next sweeps to -90deg, previous to +90deg; RTL mirrors both.
+      writeAngle((state.direction === "next") !== state.mirror ? "-90deg" : "90deg");
     });
     timerRef.current = setTimeout(() => {
       setState({ phase: "idle" });
@@ -182,13 +192,23 @@ export function useCubeTransition(durationMs = 400): UseCubeTransitionResult {
 
   const startAuto = useCallback<UseCubeTransitionResult["startAuto"]>(
     (args) => {
-      setState({ phase: "auto", direction: args.direction, leaving: args.leaving });
+      setState({
+        phase: "auto",
+        direction: args.direction,
+        leaving: args.leaving,
+        mirror: args.mirror ?? false,
+      });
     },
     [],
   );
 
   const beginDrag = useCallback<UseCubeTransitionResult["beginDrag"]>((args) => {
-    setState({ phase: "dragging", prev: args.prev, next: args.next });
+    setState({
+      phase: "dragging",
+      prev: args.prev,
+      next: args.next,
+      mirror: args.mirror ?? false,
+    });
     // Pin angle to 0 initially. Pointer events drive subsequent updates.
     // Hold a microtask so the rotator ref is wired in the upcoming render.
     queueMicrotask(() => writeAngle("0deg"));
@@ -213,7 +233,7 @@ export function useCubeTransition(durationMs = 400): UseCubeTransitionResult {
       // idle reset + onComplete.
       setState((prev) =>
         prev.phase === "dragging"
-          ? { phase: "releasing", prev: prev.prev, next: prev.next }
+          ? { phase: "releasing", prev: prev.prev, next: prev.next, mirror: prev.mirror }
           : prev,
       );
     },

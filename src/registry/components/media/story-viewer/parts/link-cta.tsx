@@ -151,10 +151,10 @@ export function LinkCta({
         aria-expanded={expanded ? "true" : "false"}
         aria-label={ctaLabel}
         className={cn(
-          "flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white",
+          "flex items-center gap-2 rounded-full bg-media-overlay/80 px-3 py-1.5 text-xs font-medium text-media-overlay-foreground",
           "backdrop-blur-sm transition-colors",
-          "hover:bg-black/70 focus-visible:bg-black/70 focus-visible:outline-none",
-          "focus-visible:ring-2 focus-visible:ring-white/40",
+          "hover:bg-media-overlay focus-visible:bg-media-overlay focus-visible:outline-none",
+          "focus-visible:ring-2 focus-visible:ring-media-overlay-foreground/40",
         )}
       >
         <LinkIcon className="h-3.5 w-3.5" />

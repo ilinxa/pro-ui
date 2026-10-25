@@ -29,6 +29,12 @@ export type {
   StoryViewerDelta,
   StoryViewerLocalAction,
   RenderItemContext,
+  // 0.6.0 — media pipeline
+  StoryResolvedMedia,
+  StoryItemUnavailableReason,
+  StoryItemViewedCause,
+  StoryViewerPauseReason,
+  StoryViewerPendingRemoval,
   Subscribe,
   Unsubscribe,
   // v0.2.0 — role / permissions
@@ -42,9 +48,14 @@ export type {
   StoryEngagementActionAlign,
   StoryEngagementReactionKind,
   StoryEngagementBarLabels,
-  // v0.2.0 — owner overlay + reactors
+  // v0.2.0 — owner overlay (0.6.0: paged viewers)
   ViewerListItem,
-  StoryReactorProfile,
+  StoryViewersPage,
+  // 0.6.0 — item-level handler payload + per-item engagement seed
+  StoryItemTarget,
+  StoryItemEngagement,
+  StoryEngagementCount,
+  StoryEngagementHandler,
   // v0.2.0 — DM composer / reply
   StoryCurrentUser,
   StoryReplyComposerLabels,

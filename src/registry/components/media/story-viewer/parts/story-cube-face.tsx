@@ -8,7 +8,11 @@ export interface StoryCubeFaceProps {
   itemIndex: number;
   progress: number;
   isMuted: boolean;
+  /** Playable URL for the item (`item.src` or a resolved one). No media element mounts without it. */
+  src?: string;
   labels: ResolvedStoryViewer01Labels;
+  /** Same `renderHeaderBadge` as the live header, so the badge does not pop in when the face lands. */
+  renderBadge?: (story: Story, item: StoryItem) => React.ReactNode;
 }
 
 /**
@@ -30,7 +34,9 @@ export function StoryCubeFace({
   itemIndex,
   progress,
   isMuted,
+  src,
   labels,
+  renderBadge,
 }: StoryCubeFaceProps) {
   return (
     <>
@@ -49,17 +55,18 @@ export function StoryCubeFace({
         onClose={() => {}}
         formatTime={labels.formatTime}
         labels={labels}
+        renderBadge={renderBadge}
       />
       <div className="absolute inset-0">
-        {item.type === "image" ? (
+        {src === undefined ? null : item.type === "image" ? (
           <img
-            src={item.src}
+            src={src}
             alt={labels.itemImageAlt(story, itemIndex, story.items.length)}
             className="h-full w-full object-cover"
           />
         ) : (
           <video
-            src={item.src}
+            src={src}
             muted
             playsInline
             preload="metadata"

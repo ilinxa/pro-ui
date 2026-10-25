@@ -55,6 +55,7 @@ function EngagementBarInner({
   formatCount,
   optimistic = true,
   dir: dirProp,
+  onReactionPickerOpenChange,
   className,
   actionClassName,
   ref,
@@ -134,6 +135,7 @@ function EngagementBarInner({
       format={format}
       labels={labels}
       dir={dir}
+      onReactionPickerOpenChange={onReactionPickerOpenChange}
       actionClassName={actionClassName}
     />
   );

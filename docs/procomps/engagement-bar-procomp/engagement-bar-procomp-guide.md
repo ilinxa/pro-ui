@@ -453,6 +453,13 @@ Put the bar under `dir="rtl"` (or pass `dir="rtl"`). The row mirrors through log
 
 `LikersStrip`: `likers` + `onLikersChange` is controlled; `likers` alone shows the prop on every render plus the pages the strip loaded itself (de-duplicated by `id`); `defaultLikers` is read once. A rejected `onLoadMore` leaves the list as it was. `heading`, `closeLabel` and `moreAriaLabelTemplate` still work as deprecated aliases of `labels`. `ShareMenu`: async search is latest-request-wins and falls back to the local filter on a rejection; the local filter lower-cases with `locale`.
 
+
+## 0.6.0 — reaction picker open state
+
+Pass `onReactionPickerOpenChange(open)` to know when the reaction picker opens and closes (tap, long-press, picking,
+Escape, unmount) — for example to pause media behind it, as story-viewer does. Additive: without it nothing changes. A
+tap that clears an applied reaction can report `true` then `false` within one frame.
+
 ## Upgrading to 0.5.0
 
 | 0.4.x | 0.5.0 | Why |

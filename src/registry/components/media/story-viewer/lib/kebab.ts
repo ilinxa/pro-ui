@@ -25,6 +25,7 @@ import type { ReactNode } from "react";
 import type {
   Story,
   StoryItem,
+  StoryItemTarget,
   StoryKebabMenuItem,
   StoryPermissionAction,
   StoryViewerLabels,
@@ -37,20 +38,20 @@ import {
 } from "./permissions";
 
 export interface DefaultStoryKebabHandlers {
-  /** Owner-side: save story to highlights. */
-  onSaveToHighlights?: (storyId: string) => void;
-  /** Owner-side: delete story. */
-  onDeleteStory?: (storyId: string) => void;
-  /** Owner-side: share to feed. */
-  onShareToFeed?: (storyId: string) => void;
-  /** Viewer-side: report. */
-  onReport?: (storyId: string) => void;
+  /** Owner-side: save the current item to highlights. Receives `{ story, item }`. */
+  onSaveToHighlights?: (target: StoryItemTarget) => void;
+  /** Owner-side: delete the current item. Receives `{ story, item }`. */
+  onDeleteStory?: (target: StoryItemTarget) => void;
+  /** Owner-side: share the current item to the feed. Receives `{ story, item }`. */
+  onShareToFeed?: (target: StoryItemTarget) => void;
+  /** Viewer-side: report the current item. Receives `{ story, item }`. */
+  onReport?: (target: StoryItemTarget) => void;
   /** Viewer-side: block author. */
   onBlockAuthor?: (authorId: string) => void;
   /** Viewer-side: mute author. */
   onMuteAuthor?: (authorId: string) => void;
-  /** Common: copy link to the story. */
-  onCopyLink?: (storyId: string) => void;
+  /** Common: copy a link to the current item. Receives `{ story, item }`. */
+  onCopyLink?: (target: StoryItemTarget) => void;
   /** Whether the story is currently saved to highlights (toggles label). */
   isSavedToHighlights?: boolean;
 }
@@ -118,14 +119,14 @@ export function defaultStoryKebabActions(
         ? (opts.labels.unsaveFromHighlights ?? "Remove from highlights")
         : (opts.labels.saveToHighlights ?? "Save to highlights"),
       icon: opts.icons?.saveToHighlights,
-      onClick: () => opts.handlers.onSaveToHighlights!(opts.story.id),
+      onClick: () => opts.handlers.onSaveToHighlights!({ story: opts.story, item: opts.item }),
     });
   }
   if (canDo("shareToFeed") && opts.handlers.onShareToFeed) {
     items.push({
       label: opts.labels.shareToFeed ?? "Share to feed",
       icon: opts.icons?.shareToFeed,
-      onClick: () => opts.handlers.onShareToFeed!(opts.story.id),
+      onClick: () => opts.handlers.onShareToFeed!({ story: opts.story, item: opts.item }),
     });
   }
 
@@ -134,7 +135,7 @@ export function defaultStoryKebabActions(
     items.push({
       label: opts.labels.copyLink ?? "Copy link",
       icon: opts.icons?.copyLink,
-      onClick: () => opts.handlers.onCopyLink!(opts.story.id),
+      onClick: () => opts.handlers.onCopyLink!({ story: opts.story, item: opts.item }),
     });
   }
 
@@ -171,7 +172,7 @@ export function defaultStoryKebabActions(
       label: opts.labels.report ?? "Report",
       icon: opts.icons?.report,
       destructive: true,
-      onClick: () => opts.handlers.onReport!(opts.story.id),
+      onClick: () => opts.handlers.onReport!({ story: opts.story, item: opts.item }),
     });
   }
 
@@ -181,7 +182,7 @@ export function defaultStoryKebabActions(
       label: opts.labels.deleteStory ?? "Delete story",
       icon: opts.icons?.deleteStory,
       destructive: true,
-      onClick: () => opts.handlers.onDeleteStory!(opts.story.id),
+      onClick: () => opts.handlers.onDeleteStory!({ story: opts.story, item: opts.item }),
     });
   }
 

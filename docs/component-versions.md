@@ -38,7 +38,7 @@
 | `card-tree-node` | Card Tree Node | 0.5.2 | alpha | 2026-10-24 |
 | `comment-thread` | Comment Thread | 0.3.2 | alpha | 2026-10-24 |
 | `data-table` | Data Table | 0.1.3 | alpha | 2026-10-24 |
-| `engagement-bar` | Engagement Bar | 0.5.0 | alpha | 2026-10-24 |
+| `engagement-bar` | Engagement Bar | 0.6.0 | alpha | 2026-10-25 |
 | `event-calendar` | Event Calendar | 0.5.2 | alpha | 2026-10-24 |
 | `event-card` | Event Card | 0.2.1 | alpha | 2026-10-24 |
 | `expandable-text` | Expandable Text | 0.3.0 | alpha | 2026-10-24 |
@@ -119,7 +119,7 @@
 | `media-library` | Media Library | 0.2.3 | alpha | 2026-10-24 |
 | `pdf-viewer` | PDF Viewer | 0.1.7 | alpha | 2026-10-24 |
 | `story-composer` | Story Composer | 0.5.1 | alpha | 2026-10-24 |
-| `story-viewer` | Story Viewer | 0.5.4 | alpha | 2026-10-25 |
+| `story-viewer` | Story Viewer | 0.6.0 | alpha | 2026-10-25 |
 | `video-player` | Video Player | 0.3.0 | alpha | 2026-10-24 |
 
 ### navigation (4)

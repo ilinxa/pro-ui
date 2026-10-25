@@ -17,13 +17,18 @@ export interface UseStoryKeyboardNavOptions {
    * StoryViewerProps.
    */
   enabled?: boolean;
+  /**
+   * 0.6.0 (SV19) - read at key time. When it returns true the horizontal arrows swap: ArrowLeft goes
+   * to the NEXT item and ArrowRight to the previous one (right-to-left reading order).
+   */
+  isRtl?: () => boolean;
 }
 
 /**
  * Window-scoped keyboard handlers for the story viewer.
  *
- * - ArrowLeft → onPrevItem
- * - ArrowRight → onNextItem
+ * - ArrowLeft → onPrevItem (onNextItem under RTL)
+ * - ArrowRight → onNextItem (onPrevItem under RTL)
  * - Space → onTogglePause (preventDefault to stop page scroll)
  * - Escape → onClose (when supplied; deduplicated with Radix Dialog)
  *
@@ -47,11 +52,13 @@ export function useStoryKeyboardNav(opts: UseStoryKeyboardNavOptions) {
     (e) => {
       switch (e.key) {
         case "ArrowLeft":
-          refs.current.onPrevItem();
+        case "ArrowRight": {
+          const rtl = refs.current.isRtl?.() ?? false;
+          const forward = (e.key === "ArrowRight") !== rtl;
+          if (forward) refs.current.onNextItem();
+          else refs.current.onPrevItem();
           break;
-        case "ArrowRight":
-          refs.current.onNextItem();
-          break;
+        }
         case " ":
           // Space on a focused button/link activates that element instead.
           if (isActivatableTarget(e.target)) return;

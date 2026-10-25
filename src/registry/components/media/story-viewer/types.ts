@@ -1,4 +1,5 @@
 import type { ElementType, ReactNode } from "react";
+import { formatRelativeTime } from "./lib/relative-time";
 
 // ─── Data shapes ────────────────────────────────────────────────────────
 
@@ -16,14 +17,60 @@ export interface StoryItemLink {
 export interface StoryItem {
   id: string;
   type: "image" | "video";
-  src: string;
+  /**
+   * Media URL. Optional: omit it when the host supplies the URL lazily through
+   * {@link StoryViewerProps.resolveMedia} (called for the current and the next item only).
+   * An item with a `src` is played as is and is never passed to `resolveMedia`. An item with
+   * neither a `src` nor a `resolveMedia` is unavailable (reason `"resolve"`).
+   */
+  src?: string;
   /** Display duration in seconds. Default 5 for images; for videos, viewer reads the actual duration via onLoadedMetadata. */
   duration?: number;
+  /**
+   * 0.6.0 - plain-text caption shown over the lower part of the media. Rendered as a text node
+   * (never as HTML) with `dir="auto"`, so a right-to-left caption in a left-to-right UI (and the
+   * reverse) lays out correctly.
+   */
+  caption?: string;
+  /**
+   * 0.6.0 - ISO date this item was posted. The header time uses it when set, else
+   * {@link Story.createdAt}. Formatted with {@link StoryViewerProps.locale} unless
+   * `labels.formatTime` is given.
+   */
+  createdAt?: string;
   /**
    * v0.2.0 — optional link CTA rendered as a bottom button above the
    * engagement overlay. Polymorphic root via {@link StoryViewerProps.linkComponent}.
    */
   link?: StoryItemLink;
+  /**
+   * Initial per-item engagement counts and the viewer's own state, seeded into the viewer's
+   * per-item engagement state the first time this item is shown. Live changes (a like toggle,
+   * a reaction pick, an `engagementSubscribe` delta, a reply) apply on top of the seed.
+   * `null` for a count = withheld: no number is rendered for it. Omitted fields default to
+   * `0` / `false` / `null` as before.
+   */
+  engagement?: StoryItemEngagement;
+  /**
+   * Owner mode - this item's view count, shown on the view-count chip while this item is
+   * current. `null` = withheld (no number rendered). When omitted, {@link Story.viewerCount}
+   * is the fallback.
+   */
+  viewerCount?: number | null;
+}
+
+/** Initial engagement values for one item - see {@link StoryItem.engagement}. */
+export interface StoryItemEngagement {
+  /** Like tally. `null` = withheld (no number rendered). */
+  likeCount?: number | null;
+  /** Whether the viewer has already liked this item. */
+  liked?: boolean;
+  /** Total reactions across all kinds. `null` = withheld (no number rendered). */
+  reactionCount?: number | null;
+  /** The viewer's current reaction key, or `null` for none. */
+  viewerReaction?: string | null;
+  /** Reply / comment tally. `null` = withheld (no number rendered). */
+  replyCount?: number | null;
 }
 
 /**
@@ -40,6 +87,13 @@ export interface ViewerListItem {
   viewedAt?: string;
 }
 
+/** One page of the owner-mode viewers list - the return type of `onLoadViewers`. */
+export interface StoryViewersPage {
+  items: ViewerListItem[];
+  /** Cursor for the next page, or `null` when this was the last page. */
+  nextCursor: string | null;
+}
+
 export interface Story {
   id: string;
   /** Stable user id — useful for cross-rail wiring. */
@@ -48,13 +102,23 @@ export interface Story {
   avatar?: string;
   items: StoryItem[];
   hasUnread?: boolean;
+  /**
+   * 0.6.0 — host-muted group. Every sequential move skips a muted group, in
+   * both directions: auto-advance at the end of the previous story, next /
+   * previous by tap, arrow key or swipe, and the swipe-preview neighbours. A
+   * direct open (`initialStoryIndex`, `goToStory(index)`) still plays it. When
+   * only muted groups remain ahead, the end of the current story behaves like
+   * the end of the last one (close, or stay open with `disableAutoClose`).
+   */
+  muted?: boolean;
   /** ISO date string (matches the pro-ui convention from event-card / news-card). */
   createdAt: string;
   /**
-   * v0.2.0 — eager view count for the owner overlay. Cheap byte (single number);
-   * the user list itself is lazy via {@link StoryViewerProps.onLoadViewers}.
+   * Eager view count for the owner overlay - the fallback when the current item has no
+   * {@link StoryItem.viewerCount}. `null` = withheld (no number rendered). The user list
+   * itself is lazy via {@link StoryViewerProps.onLoadViewers}.
    */
-  viewerCount?: number;
+  viewerCount?: number | null;
   /**
    * v0.2.0 — optional eager seed for the viewers list (hybrid Q-V5 lock). If
    * present, the owner overlay renders these immediately without waiting for
@@ -62,6 +126,47 @@ export interface Story {
    * triggers `onLoadViewers` on first expand.
    */
   viewers?: ViewerListItem[];
+}
+
+// ─── 0.6.0 — state & data contract ───────────────────────────────────────
+
+/** Why an item stopped being playable (`onItemUnavailable`). */
+export type StoryItemUnavailableReason = "resolve" | "media" | "removed" | "timeout";
+
+/** How an item was left (`onItemViewed`'s 4th argument). */
+export type StoryItemViewedCause = "completed" | "left";
+
+/**
+ * Built-in pause reasons. The viewer is paused while the reason set is not
+ * empty; hosts may add their own strings through `pauseReasons`.
+ * `user` = middle tap / Space (cleared on item change) · `host` =
+ * `ref.setPaused(true)` · `hold` = long press · `reply-focus` = reply composer
+ * focused or holding a draft · `sheet` = any layer open · `hidden-tab` = the
+ * browser tab is in the background · `unavailable` = the removal notice shows.
+ */
+export type StoryViewerPauseReason =
+  | "user"
+  | "host"
+  | "hold"
+  | "reply-focus"
+  | "sheet"
+  | "hidden-tab"
+  | "unavailable";
+
+/**
+ * The on-screen item vanished from `stories`; the viewer keeps this frame (no
+ * media, never playing) for `unavailableNoticeMs`, then repairs the cursor.
+ * `story` / `item` are the last known snapshots, so a notice can still show the
+ * author. With `standalone` and a single-item story it stays until the viewer closes.
+ */
+export interface StoryViewerPendingRemoval {
+  storyId: string;
+  itemId: string;
+  reason: "removed";
+  story: Story;
+  item: StoryItem;
+  /** True when the notice never auto-repairs (standalone + single-item story). */
+  stayUntilClosed: boolean;
 }
 
 // ─── Realtime contract — viewer-state stream (v0.1.x; preserved) ─────────
@@ -101,10 +206,14 @@ export type StoryEngagementDelta =
   | { kind: "viewer-added"; storyId: string; viewer: ViewerListItem }
   | { kind: "view-count-changed"; storyId: string; count: number };
 
+/**
+ * Local engagement actions. `seed` is attached by the viewer: the item's
+ * {@link StoryItem.engagement}, so the first change to an item applies on top of it.
+ */
 export type StoryEngagementLocalAction =
-  | { kind: "like-toggle"; storyId: string; itemId: string; nextLiked: boolean }
-  | { kind: "reaction-select"; storyId: string; itemId: string; reactionKind: string | null }
-  | { kind: "subscribe-delta"; delta: StoryEngagementDelta }
+  | { kind: "like-toggle"; storyId: string; itemId: string; nextLiked: boolean; seed?: StoryItemEngagement }
+  | { kind: "reaction-select"; storyId: string; itemId: string; reactionKind: string | null; seed?: StoryItemEngagement }
+  | { kind: "subscribe-delta"; delta: StoryEngagementDelta; seed?: StoryItemEngagement }
   | { kind: "reset"; storyId: string; itemId: string };
 
 // ─── v0.2.0 — permissions (mirrors post-card v0.3.0 resolver) ─────────
@@ -119,10 +228,20 @@ export type StoryEngagementLocalAction =
 export type StoryViewerMode = "owner" | "viewer";
 
 /**
+ * What an item-level handler (`onDeleteStory`, `onReport`, `onCopyLink`, `onSaveToHighlights`,
+ * `onShareToFeed`) receives: the story and the item that were current when the action was
+ * chosen. `onMuteAuthor` / `onBlockAuthor` act on the author and keep receiving the author id.
+ */
+export interface StoryItemTarget {
+  story: Story;
+  item: StoryItem;
+}
+
+/**
  * Discriminator for the universal `canPerformAction` predicate.
  *
  * - Owner-side: `saveToHighlights`, `deleteStory`, `shareToFeed`, `seeViewers`
- * - Viewer-side: `react`, `reply`, `share`, `dm`, `report`, `blockAuthor`, `muteAuthor`
+ * - Viewer-side: `like`, `react`, `reply`, `share`, `dm`, `report`, `blockAuthor`, `muteAuthor`
  * - Orthogonal: `moderate` (per Q-V11 lock — never auto-derived from viewerMode)
  */
 export type StoryPermissionAction =
@@ -130,6 +249,7 @@ export type StoryPermissionAction =
   | "deleteStory"
   | "shareToFeed"
   | "seeViewers"
+  | "like"
   | "react"
   | "reply"
   | "share"
@@ -156,6 +276,13 @@ export interface StoryViewerPermissions {
   canShareToFeed?: boolean;
   canSeeViewers?: boolean;
   // viewer-side
+  /**
+   * The like (heart) action. When omitted it resolves to the same answer as `canReact`
+   * (the mode default, a `permissions.canReact` override, or `canPerformAction("react")`),
+   * so a host that never sets it sees today's output. Set it to gate likes separately.
+   */
+  canLike?: boolean;
+  /** The reaction picker action. */
   canReact?: boolean;
   canReply?: boolean;
   canShare?: boolean;
@@ -186,10 +313,20 @@ export interface StoryViewerPermissions {
 // are similarly orphaned. Kept as-is so that an upstream EngagementAction
 // passed through a slot still type-checks.
 
-export type StoryEngagementActionAlign = "left" | "right" | "auto";
+/**
+ * Inlined from engagement-bar's `EngagementActionAlign` (0.5.0). `"start"` / `"end"` follow the
+ * text direction; `"left"` / `"right"` are deprecated aliases of them.
+ */
+export type StoryEngagementActionAlign = "start" | "end" | "auto" | "left" | "right";
+
+/** Inlined from engagement-bar's `EngagementCount`. `null` withholds the count (no number rendered). */
+export type StoryEngagementCount = number | null;
+
+/** Inlined from engagement-bar's `EngagementHandler`. A returned promise makes the change optimistic. */
+export type StoryEngagementHandler<T> = (next: T) => void | Promise<unknown>;
 
 /**
- * Inlined from engagement-bar's `EngagementReactionKind` (v0.3.x).
+ * Inlined from engagement-bar's `EngagementReactionKind` (0.5.0).
  * Used by the reaction action in {@link StoryEngagementAction}.
  */
 export interface StoryEngagementReactionKind {
@@ -199,68 +336,74 @@ export interface StoryEngagementReactionKind {
   icon: ReactNode;
   /** Localized human label — used in picker tooltip + aria-label. */
   label: string;
-  /** Seed tally for this kind. */
-  count: number;
+  /** Seed tally for this kind. `null` / omitted withholds it. */
+  count?: StoryEngagementCount;
   /** Optional tint applied to the icon when this is the viewer's current reaction. */
   color?: string;
 }
 
+/** Fields every engagement action arm accepts (`view-count` takes no `disabled`). */
+interface StoryEngagementActionBase {
+  align?: StoryEngagementActionAlign;
+  /** Renders the action `aria-disabled`; it stays focusable but never calls its handler. */
+  disabled?: boolean;
+  /** Renders nothing for this action. */
+  hidden?: boolean;
+}
+
 /**
- * Inlined from engagement-bar's `EngagementAction` discriminated union (v0.3.x).
- * Strict — no extra fields per kind.
+ * Inlined from engagement-bar's `EngagementAction` discriminated union (0.5.0). Must stay
+ * assignable to engagement-bar's own type - guarded by `__tests__/engagement-types.test.ts`.
  */
 export type StoryEngagementAction =
-  | {
+  | (StoryEngagementActionBase & {
       kind: "like";
-      count: number;
+      count?: StoryEngagementCount;
       liked?: boolean;
-      onToggle?: (next: boolean) => void;
+      onToggle?: StoryEngagementHandler<boolean>;
       onCountClick?: () => void;
-      align?: StoryEngagementActionAlign;
-    }
-  | {
+    })
+  | (StoryEngagementActionBase & {
       kind: "comment";
-      count?: number;
+      count?: StoryEngagementCount;
       onClick?: () => void;
-      align?: StoryEngagementActionAlign;
-    }
-  | {
+    })
+  | (StoryEngagementActionBase & {
       kind: "share";
-      count?: number;
+      count?: StoryEngagementCount;
       onClick?: () => void;
-      align?: StoryEngagementActionAlign;
-    }
-  | {
+    })
+  | (StoryEngagementActionBase & {
       kind: "bookmark";
       bookmarked?: boolean;
-      onToggle?: (next: boolean) => void;
-      align?: StoryEngagementActionAlign;
-    }
-  | {
+      onToggle?: StoryEngagementHandler<boolean>;
+    })
+  | (Omit<StoryEngagementActionBase, "disabled"> & {
       kind: "view-count";
-      count: number;
-      align?: StoryEngagementActionAlign;
-    }
-  | {
+      count?: StoryEngagementCount;
+    })
+  | (StoryEngagementActionBase & {
       kind: "custom";
       id: string;
       label: string;
-      icon?: ReactNode;
+      icon: ReactNode;
+      count?: StoryEngagementCount;
       active?: boolean;
       onClick?: () => void;
-      align?: StoryEngagementActionAlign;
-    }
-  | {
+    })
+  | (StoryEngagementActionBase & {
       kind: "reaction";
       kinds: StoryEngagementReactionKind[];
+      /** Pre-summed total across all kinds. `null` / omitted withholds it. */
+      totalCount?: StoryEngagementCount;
       viewerReaction?: string | null;
-      onSelect?: (kind: string | null) => void;
+      onSelect?: StoryEngagementHandler<string | null>;
+      onCountClick?: () => void;
       clearOnTap?: boolean;
-      align?: StoryEngagementActionAlign;
-    };
+    });
 
 /**
- * Inlined from engagement-bar's `EngagementBarLabels` (v0.3.x; 13 keys).
+ * Inlined from engagement-bar's `EngagementBarLabels` (0.5.0).
  * Used as a nested forward inside {@link StoryViewerLabels.engagementLabels}.
  */
 export interface StoryEngagementBarLabels {
@@ -303,22 +446,49 @@ export interface StoryReplyComposerLabels {
   composerCancel?: string;
 }
 
-// ─── v0.2.0 — reactor list (parallel to viewers list) ────────────────────
-
-export interface StoryReactorProfile {
-  id: string;
-  name?: string;
-  avatar?: string;
-  reactionKind?: string;
-}
-
 // ─── Render-prop helpers ────────────────────────────────────────────────
+
+/** The result of {@link StoryViewerProps.resolveMedia}. */
+export interface StoryResolvedMedia {
+  /** The media URL to play. */
+  src: string;
+  /** Poster for a video item (shown before playback). */
+  poster?: string;
+}
 
 export interface RenderItemContext {
   storyIndex: number;
   itemIndex: number;
   isPaused: boolean;
   isMuted: boolean;
+  /**
+   * The media URL to render: `item.src`, else the URL `resolveMedia` returned, or the one
+   * `onMediaError` supplied for the retry. `undefined` only while it is resolving (the frame is
+   * then not ready, so the item does not count down).
+   */
+  src?: string;
+  /** The poster `resolveMedia` returned, if any. */
+  poster?: string;
+  /**
+   * The frame can render. Optional: a custom frame counts as ready as soon as it mounts, so calling
+   * this changes nothing and is always safe.
+   */
+  onReady: () => void;
+  /** The frame's media finished: the item advances. Fires the advance once per item. */
+  onEnded: () => void;
+  /**
+   * The frame's media time, in seconds. Once a frame reports a finite `duration` above zero and the
+   * item has no explicit `duration`, the progress bar follows `currentTime / duration` instead of
+   * the default-duration timer. The item still ends only through `onEnded` (or `item.duration`
+   * when set), so call `onEnded` when the frame's media finishes.
+   */
+  onProgress: (currentTime: number, duration: number) => void;
+  /**
+   * The frame's media failed. With {@link StoryViewerProps.onMediaError} the viewer asks it once for
+   * a new `src` (delivered as `ctx.src`); without a new `src` the item is unavailable
+   * (`"media"`). Without `onMediaError` the item is unavailable (`"media"`) at once.
+   */
+  onError: () => void;
 }
 
 /**
@@ -358,7 +528,19 @@ export interface StoryViewerLabels {
   prevStory?: string;
   /** aria-label for the next-story arrow. Default: "Next story". */
   nextStory?: string;
-  /** Format the relative time shown in the header. */
+  /** 0.6.0 - assistive-tech button: previous item of the current story. Default: "Previous item". */
+  prevItem?: string;
+  /** 0.6.0 - assistive-tech button: next item of the current story. Default: "Next item". */
+  nextItem?: string;
+  /**
+   * 0.6.0 - polite announcement when the item changes. `index` is zero-based (like
+   * `itemImageAlt`). Default: `${author}, ${index + 1} of ${total}`.
+   */
+  position?: (author: string, index: number, total: number) => string;
+  /**
+   * Format the time shown in the header (and the owner overlay). Wins over the default, which is a
+   * relative time ("5 min. ago") formatted with {@link StoryViewerProps.locale}.
+   */
   formatTime?: (date: Date) => string;
   /** Default alt text for image items. */
   itemImageAlt?: (story: Story, itemIndex: number, totalItems: number) => string;
@@ -377,11 +559,22 @@ export interface StoryViewerLabels {
 
   // v0.2.0 — owner overlay
   /** Function so hosts can pluralize / localize. Default: `${count} views · ${time}`. */
-  viewerCountLabel?: (count: number, time: string) => string;
+  /** Owner chip name. `formatted` is `count` formatted for `locale` (0.6.0). */
+  viewerCountLabel?: (count: number, time: string, formatted?: string) => string;
   /** Default: "Viewers". */
   viewersHeading?: string;
   /** Function so hosts can pluralize. Default: `+${count} more`. */
   viewersMoreLabel?: (count: number) => string;
+  /** Viewers list, while a page is loading. Default: "Loading viewers…". */
+  viewersLoading?: string;
+  /** Viewers list, when there are no viewers. Default: "No viewers yet.". */
+  viewersEmpty?: string;
+  /** Viewers list, the button that loads the next page. Default: "Load more". */
+  viewersLoadMore?: string;
+  /** Viewers list, the message shown when loading a page failed. Default: "Could not load viewers.". */
+  viewersError?: string;
+  /** Viewers list, the button that repeats a failed load. Default: "Retry". */
+  viewersRetry?: string;
 
   // v0.2.0 — owner kebab
   /** Default: "Save to highlights". */
@@ -437,6 +630,12 @@ export interface StoryViewerLabels {
   /** Default empty-state copy when no renderSharePanel is supplied. */
   shareDefaultEmptyState?: string;
 
+  // 0.6.0 — unavailable notice
+  /** Notice shown in place of an item that cannot be played. Default: "This story is no longer available". */
+  unavailable?: string;
+  /** Close button of the notice (`standalone` single-item stories). Default: "Close". */
+  unavailableClose?: string;
+
   // v0.2.0 — nested forwards
   /** Nested forward to engagement-bar labels (per Q-V14 — defensive callback contravariance applied). */
   engagementLabels?: StoryEngagementBarLabels;
@@ -470,8 +669,12 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   close: "Close",
   prevStory: "Previous story",
   nextStory: "Next story",
-  formatTime: (date: Date) =>
-    new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(date),
+  prevItem: "Previous item",
+  nextItem: "Next item",
+  position: (author: string, index: number, total: number) => `${author}, ${index + 1} of ${total}`,
+  // Locale-aware relative time (English here). The viewer swaps in `props.locale` unless the host
+  // passes `labels.formatTime`.
+  formatTime: (date: Date) => formatRelativeTime(date, "en"),
   itemImageAlt: (story: Story, idx: number, total: number) =>
     `${story.username}, story image ${idx + 1} of ${total}`,
   // v0.2.0
@@ -479,9 +682,15 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   replyComposerPlaceholder: (story: Story) => `Reply to ${story.username}…`,
   replyComposerSend: "Send",
   replyComposerCancel: "Cancel",
-  viewerCountLabel: (count: number, time: string) => `${count} views · ${time}`,
+  viewerCountLabel: (count: number, time: string, formatted?: string) =>
+    `${formatted ?? count} views · ${time}`,
   viewersHeading: "Viewers",
   viewersMoreLabel: (count: number) => `+${count} more`,
+  viewersLoading: "Loading viewers…",
+  viewersEmpty: "No viewers yet.",
+  viewersLoadMore: "Load more",
+  viewersError: "Could not load viewers.",
+  viewersRetry: "Retry",
   saveToHighlights: "Save to highlights",
   unsaveFromHighlights: "Remove from highlights",
   deleteStory: "Delete story",
@@ -502,6 +711,8 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   shareHeading: "Share",
   shareCloseLabel: "Close share",
   shareDefaultEmptyState: "Share targets not loaded yet.",
+  unavailable: "This story is no longer available",
+  unavailableClose: "Close",
 };
 
 // ─── Imperative handle ──────────────────────────────────────────────────
@@ -512,7 +723,12 @@ export interface StoryViewerHandle {
   goToStory: (index: number) => void;
   /** Jump to a specific item within the current story. */
   goToItem: (index: number) => void;
-  /** Force pause/resume from outside (matches the in-component pause state). */
+  /**
+   * Force pause/resume from outside. `true` adds the `host` pause reason (it
+   * survives item changes, layers and a backgrounded tab); `false` removes the
+   * `host` and `user` reasons — other reasons (an open sheet, a focused reply
+   * box) keep the viewer paused.
+   */
   setPaused: (paused: boolean) => void;
   /** Read current navigation cursor. */
   getCursor: () => { storyIndex: number; itemIndex: number };
@@ -545,8 +761,84 @@ export interface StoryViewerHandle {
 export interface StoryViewerProps {
   // v0.1 (preserved)
 
-  /** Story list. **Mount-only** — subsequent prop changes are ignored; push updates via `ref.current.reset(next)` or `dispatch`. */
+  /**
+   * Story list. **Uncontrolled** (no `onStoriesChange`): mount-only — later prop
+   * changes are ignored; push updates via `ref.current.reset(next)` or
+   * `dispatch`. **Controlled** (`onStoriesChange` passed): this prop wins on
+   * every render; local mutations are reported through `onStoriesChange`
+   * instead of being applied. The cursor is anchored to item ids, so an insert
+   * before the current group keeps the same item on screen, and removing the
+   * on-screen item / story runs the same repair as `dispatch` / `reset` /
+   * `subscribe`.
+   */
   stories: Story[];
+  /**
+   * 0.6.0 — makes `stories` controlled. Called instead of applying a local
+   * mutation (`dispatch`, `reset`, a `subscribe` delta): `next` is the list the
+   * mutation would produce, `change` the mutation (`{ kind: "reset" }` /
+   * `{ kind: "subscribe-delta" }` / the dispatched action). Feed `next` back as
+   * `stories` to accept it, ignore it to reject.
+   */
+  onStoriesChange?: (next: Story[], change: StoryViewerLocalAction) => void;
+  /**
+   * 0.6.0 — fires once when the on-screen item stops being playable: `"removed"` (it left
+   * `stories`), `"resolve"` (`resolveMedia` returned `null` / rejected, or there is neither a `src`
+   * nor a `resolveMedia`), `"media"` (the media failed and `onMediaError` supplied no new `src`)
+   * or `"timeout"` (`loadTimeoutMs` elapsed). The viewer then shows `labels.unavailable` for
+   * `unavailableNoticeMs` and moves on.
+   */
+  onItemUnavailable?: (
+    storyId: string,
+    itemId: string,
+    reason: StoryItemUnavailableReason,
+  ) => void;
+  /**
+   * 0.6.0 — how long (ms) the viewer holds the unavailable notice (any reason) before it
+   * moves on to the next item. While held the item does not play and
+   * the `unavailable` pause reason is active. `0` moves on immediately (the
+   * 0.5.x behaviour for a removal). Default 1500.
+   */
+  unavailableNoticeMs?: number;
+  /**
+   * 0.6.0 — the viewer was opened from a link rather than a rail. With a
+   * single-item story whose item becomes unavailable, the notice stays until
+   * the viewer is closed instead of moving on.
+   */
+  standalone?: boolean;
+  /**
+   * 0.6.0 — supplies the media URL of an item that has no `src`. Called for the CURRENT and the NEXT
+   * item only (never the previous item or story); the URL lives in component state, never in storage
+   * or the URL. Returns the `src` (and optionally a `poster`, used by video items and passed to a
+   * custom frame as `ctx.poster`), or `null` when the media is gone. `null` or a rejection makes the
+   * item unavailable with reason `"resolve"`. While it resolves the item is not ready (the progress
+   * bar waits). The viewer keeps a few results while the viewer is open, so the host does not need to
+   * cache; an item that already has a `src` is never passed here.
+   */
+  resolveMedia?: (item: StoryItem) => Promise<StoryResolvedMedia | null>;
+  /**
+   * 0.6.0 — called ONCE per item when its media fails to load or play. Return a new `src` (a fresh
+   * signed URL) and the viewer retries with it, resuming a video at the same playback time; return
+   * nothing (or reject) and the item is unavailable with reason `"media"`. A second failure of the
+   * retried media is unavailable too. Without this prop a failure makes the item unavailable
+   * (`"media"`) at once: the notice shows for `unavailableNoticeMs` and the viewer moves on. A video
+   * whose duration is not finite still falls back to the timer.
+   */
+  onMediaError?: (item: StoryItem) => Promise<string | void>;
+  /**
+   * 0.6.0 — an item whose media is not ready within this many milliseconds (resolving included)
+   * becomes unavailable with reason `"timeout"`. Default: off. A custom `renderItem` frame is ready
+   * as soon as it mounts, so it only times out while `resolveMedia` is pending.
+   */
+  loadTimeoutMs?: number;
+  /**
+   * 0.6.0 — controlled pause reasons. The viewer is paused while the list is
+   * not empty. Built-ins are {@link StoryViewerPauseReason}; any other string
+   * is the host's own reason. When passed it wins on every render and changes
+   * are reported through `onPauseReasonsChange` instead of being applied.
+   */
+  pauseReasons?: string[];
+  /** 0.6.0 — fires with the next reason list whenever the viewer adds or removes a reason. */
+  onPauseReasonsChange?: (next: string[]) => void;
   /** Which story to open (item always starts at 0). */
   initialStoryIndex: number;
   /** Controlled open state. */
@@ -577,8 +869,18 @@ export interface StoryViewerProps {
 
   /** Forward-completion only — fires when the user advances forward into the next story OR when the last item completes naturally. Does NOT fire on backward navigation (matches Instagram). */
   onStoryViewed?: (storyId: string) => void;
-  /** Fires when an item completes naturally OR is navigated past forward. */
-  onItemViewed?: (storyId: string, itemId: string, itemIndex: number) => void;
+  /**
+   * Fires when an item is finished with. `cause` is `"completed"` when it
+   * played to the end or was tapped past within its story, `"left"` when the
+   * viewer jumped to another author (next / previous story by tap, key, swipe,
+   * `goToStory`, or a previous-item tap that crosses into the previous story).
+   */
+  onItemViewed?: (
+    storyId: string,
+    itemId: string,
+    itemIndex: number,
+    cause: StoryItemViewedCause,
+  ) => void;
   /** Fires whenever the cursor moves (manual nav or auto-advance). */
   onCursorChange?: (storyIndex: number, itemIndex: number) => void;
   /** Fires synchronously immediately before `onClose()` when the auto-close triggers at end of the last story. */
@@ -613,8 +915,17 @@ export interface StoryViewerProps {
 
   // ─── v0.2.0 — owner overlay ───────────────────────────────────────────
 
-  /** Lazy-fetch viewers when owner taps the view-count chip. Returns ViewerListItem[]. */
-  onLoadViewers?: (storyId: string) => Promise<ViewerListItem[]>;
+  /**
+   * Owner mode - pages the viewers list of the CURRENT item. Called with `(itemId, null)` when
+   * the list opens (unless `story.viewers` seeds it), then with the previous `nextCursor` each
+   * time "load more" is pressed while `nextCursor` is non-null. A rejection shows an error row
+   * with a Retry button (`labels.viewersRetry`); Retry repeats the same call. The list resets
+   * when the current item changes.
+   */
+  onLoadViewers?: (
+    itemId: string,
+    cursor: string | null,
+  ) => Promise<StoryViewersPage>;
 
   // ─── v0.2.0 — role-aware mode (opt-in per Q-V11 lock) ─────────────────
 
@@ -661,20 +972,23 @@ export interface StoryViewerProps {
   // before deciding which items to render, so a wired handler only surfaces
   // its kebab item when the matrix allows it.
 
-  /** Owner action — save the current story to highlights. */
-  onSaveToHighlights?: (storyId: string) => void;
-  /** Owner action — delete the current story. */
-  onDeleteStory?: (storyId: string) => void;
-  /** Owner action — re-share the current story to the main feed. */
-  onShareToFeed?: (storyId: string) => void;
-  /** Viewer action — report the current story to moderators. */
-  onReport?: (storyId: string) => void;
+  /**
+   * Owner action — save the current item to highlights. Receives the current `Story` and
+   * `StoryItem` objects (not an id), so the host can act on the item that is on screen.
+   */
+  onSaveToHighlights?: (target: StoryItemTarget) => void;
+  /** Owner action — delete the current item. Receives `{ story, item }`. */
+  onDeleteStory?: (target: StoryItemTarget) => void;
+  /** Owner action — re-share the current item to the main feed. Receives `{ story, item }`. */
+  onShareToFeed?: (target: StoryItemTarget) => void;
+  /** Viewer action — report the current item to moderators. Receives `{ story, item }`. */
+  onReport?: (target: StoryItemTarget) => void;
   /** Viewer action — block the story author. */
   onBlockAuthor?: (authorId: string) => void;
   /** Viewer action — mute the story author. */
   onMuteAuthor?: (authorId: string) => void;
-  /** Viewer action — copy a deep link to the current story. */
-  onCopyLink?: (storyId: string) => void;
+  /** Viewer action — copy a deep link to the current item. Receives `{ story, item }`. */
+  onCopyLink?: (target: StoryItemTarget) => void;
   /**
    * Owner side — whether the current story is already saved to highlights.
    * Drives the default kebab item label toggle
@@ -690,17 +1004,6 @@ export interface StoryViewerProps {
    * the reaction action is suppressed even if `canReact` resolves true.
    */
   reactionKinds?: StoryEngagementReactionKind[];
-  /**
-   * @notImplemented The engagement overlay has no reactions-preview surface,
-   * so nothing reads this. Passing it warns in development. Render reactors
-   * yourself via `renderEngagementOverlay`.
-   */
-  reactors?: StoryReactorProfile[];
-  /**
-   * @notImplemented Paired with {@link StoryViewerProps.reactors}; there is no
-   * reactor list to tap, so this is never called. Warns in development.
-   */
-  onLoadReactors?: (storyId: string, itemId: string) => Promise<StoryReactorProfile[]>;
 
   // ─── v0.2.0 — viewer identity ─────────────────────────────────────────
 
@@ -751,6 +1054,23 @@ export interface StoryViewerProps {
 
   /** Replace the avatar/name/time/buttons header strip. */
   renderHeader?: (story: Story, item: StoryItem, helpers: StoryViewerSlotHelpers) => ReactNode;
+  /**
+   * 0.6.0 - a badge rendered in the default header after the author name and before the time
+   * (a verified tick, a "close friends" mark...). No default content. Ignored when
+   * `renderHeader` replaces the whole header.
+   */
+  renderHeaderBadge?: (story: Story, item: StoryItem) => ReactNode;
+  /**
+   * 0.6.0 - BCP 47 locale for the default relative time in the header ("5 min. ago" / "5 dk. once").
+   * Default `"en"`; an invalid tag falls back to `"en"`. `labels.formatTime` wins when given.
+   */
+  locale?: string;
+  /**
+   * 0.6.0 - where the desktop previous / next story arrows sit: `"inside"` (default, over the
+   * card edges) or `"outside"` (beside the card, so they never cover the media). Mobile has no
+   * arrows either way.
+   */
+  navArrowsPlacement?: "inside" | "outside";
   /** Replace the segmented progress bars. */
   renderProgress?: (
     items: StoryItem[],

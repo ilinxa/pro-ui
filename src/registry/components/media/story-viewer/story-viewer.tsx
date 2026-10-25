@@ -19,9 +19,16 @@ import {
   type StoryViewerLabels,
   type StoryViewerProps,
 } from "./types";
-import { useStoryViewerState } from "./hooks/use-story-viewer-state";
-import { useStoryProgress } from "./hooks/use-story-progress";
+import {
+  findAdjacentStoryIndex,
+  useStoryViewerState,
+} from "./hooks/use-story-viewer-state";
+import { createProgressStore } from "./lib/progress-store";
+import { useStoryMedia } from "./hooks/use-story-media";
 import { useStoryKeyboardNav } from "./hooks/use-story-keyboard-nav";
+import { useReducedMotion } from "./hooks/use-reduced-motion";
+import { isRtlElement } from "./lib/direction";
+import { formatRelativeTime } from "./lib/relative-time";
 import { useStoryEngagementState } from "./hooks/use-story-engagement-state";
 import { useLongPressPause } from "./hooks/use-long-press-pause";
 import {
@@ -29,11 +36,19 @@ import {
   type CubeDirection,
 } from "./hooks/use-cube-transition";
 import { ViewerShell } from "./parts/viewer-shell";
-import { ProgressBars } from "./parts/progress-bars";
+import { wrapTabWithinLayer } from "./lib/focus-wrap";
+import {
+  LiveProgressBars,
+  LiveProgressSlot,
+  ProgressDriver,
+} from "./parts/progress-bars";
 import { ViewerHeader } from "./parts/viewer-header";
 import { TapZones } from "./parts/tap-zones";
 import { NavArrows } from "./parts/nav-arrows";
+import { SrNav } from "./parts/sr-nav";
+import { Caption } from "./parts/caption";
 import { ItemView } from "./parts/item-view";
+import { UnavailableNotice } from "./parts/unavailable-notice";
 // v0.3.7: Heart icon is rendered inline in the DM bar row.
 import { Heart } from "lucide-react";
 import { EngagementOverlay } from "./parts/engagement-overlay";
@@ -64,7 +79,7 @@ function isGestureExempt(target: EventTarget | null): boolean {
   return !!control && !control.hasAttribute("data-story-tapzone");
 }
 
-type LayerId = "comments" | "share" | "kebab" | "viewers" | "link";
+type LayerId = "comments" | "share" | "kebab" | "viewers" | "link" | "reactionPicker";
 
 interface StoryViewerInnerProps extends StoryViewerProps {
   ref?: React.Ref<StoryViewerHandle>;
@@ -83,6 +98,17 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     onItemViewed,
     onCursorChange,
     onAutoCloseAtEnd,
+    // 0.6.0 — controlled stories, removal notice, pause reasons
+    onStoriesChange,
+    onItemUnavailable,
+    unavailableNoticeMs,
+    standalone,
+    pauseReasons: pauseReasonsProp,
+    onPauseReasonsChange,
+    // 0.6.0 — media pipeline
+    resolveMedia,
+    onMediaError,
+    loadTimeoutMs,
     renderItem,
     defaultItemDuration = 5,
     labels: labelsProp,
@@ -98,8 +124,6 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     onReactStory,
     onShareStory,
     reactionKinds,
-    reactors,
-    onLoadReactors,
     disableEngagement = false,
     renderEngagementOverlay,
     // v0.2.0 — reply composer inputs (C4)
@@ -117,6 +141,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     moderatorActions,
     // v0.2.0 — render slots for the 4 default parts (C7)
     renderHeader,
+    renderHeaderBadge,
+    locale,
+    navArrowsPlacement = "inside",
     renderProgress,
     renderNavArrows,
     renderTapZones,
@@ -161,8 +188,28 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     Required<Omit<StoryViewerLabels, "engagementLabels" | "commentLabels">> &
       Pick<StoryViewerLabels, "engagementLabels" | "commentLabels">
   >(
-    () => ({ ...DEFAULT_STORY_VIEWER_LABELS, ...labelsProp }),
-    [labelsProp],
+    () => ({
+      ...DEFAULT_STORY_VIEWER_LABELS,
+      ...labelsProp,
+      // 0.6.0 (SV12): the default time is relative, in `locale`; `labels.formatTime` wins.
+      formatTime:
+        labelsProp?.formatTime ?? ((date: Date) => formatRelativeTime(date, locale)),
+    }),
+    [labelsProp, locale],
+  );
+  // 0.6.0 (SV13) - prefers-reduced-motion: no cube, no panel scale.
+  const reducedMotion = useReducedMotion();
+
+  // An unavailable item is never "viewed": moving on from it (notice timer, `unavailableNoticeMs=0`,
+  // or the user skipping it) fires no `onItemViewed`, neither "completed" nor "left".
+  const unavailableItemRef = useRef("");
+  const onItemViewedProp = onItemViewed;
+  const guardedItemViewed = useCallback<NonNullable<typeof onItemViewed>>(
+    (storyId, itemId, itemIndex, cause) => {
+      if (unavailableItemRef.current === `${storyId}:${itemId}`) return;
+      onItemViewedProp?.(storyId, itemId, itemIndex, cause);
+    },
+    [onItemViewedProp],
   );
 
   const {
@@ -181,6 +228,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     reset,
     dispatch,
     snapCount,
+    addPauseReason,
+    removePauseReason,
+    pendingRemoval,
   } = useStoryViewerState({
     initialStories,
     initialStoryIndex,
@@ -188,34 +238,31 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     subscribe,
     onSubscribeDelta,
     onStoryViewed,
-    onItemViewed,
+    onItemViewed: onItemViewed ? guardedItemViewed : undefined,
     onCursorChange,
     onAutoCloseAtEnd,
     onClose,
     disableAutoClose,
+    onStoriesChange,
+    onItemUnavailable,
+    unavailableNoticeMs,
+    standalone,
+    pauseReasons: pauseReasonsProp,
+    onPauseReasonsChange,
   });
 
-  const currentStory = stories[cursor.storyIndex];
-  const currentItem = currentStory?.items[cursor.itemIndex];
+  // While a removal notice is held the removed item is gone from `stories`: the
+  // frame shows the last known story / item snapshot, and never plays.
+  const currentStory = pendingRemoval
+    ? pendingRemoval.story
+    : stories[cursor.storyIndex];
+  const currentItem = pendingRemoval
+    ? pendingRemoval.item
+    : currentStory?.items[cursor.itemIndex];
 
   // Imperative handle.
   const storiesRef = useRef(stories);
   const cursorRef = useRef(cursor);
-  /*
-   * `reactors` + `onLoadReactors` describe a reactions-preview surface in the
-   * engagement overlay that was never built: no part reads either prop, so a
-   * consumer supplying profiles (or a fetcher) sees nothing and gets no signal.
-   * Building the reactor list is a feature, not a wiring fix — so until it
-   * exists, the props announce themselves rather than swallowing the data.
-   */
-  useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
-    if (reactors === undefined && onLoadReactors === undefined) return;
-    console.warn(
-      "story-viewer: `reactors` / `onLoadReactors` are not implemented — the engagement overlay has no reactions-preview surface yet, so neither prop has any effect. Render reactors yourself via `renderEngagementOverlay`.",
-    );
-  }, [reactors, onLoadReactors]);
-
   useEffect(() => {
     storiesRef.current = stories;
     cursorRef.current = cursor;
@@ -303,6 +350,31 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     : "";
 
   // ─── 0.5.4 ready gate + media-time progress + single advance ────────────
+  // ─── 0.6.0 media pipeline: lazy URLs, one-shot retry, unavailable path ───
+  const media = useStoryMedia({
+    isOpen,
+    stories,
+    cursor,
+    currentStory,
+    currentItem,
+    itemKey,
+    held: !!pendingRemoval,
+    resolveMedia,
+    hasCustomFrame: !!renderItem,
+    onMediaError,
+    onItemUnavailable,
+    unavailableNoticeMs,
+    standalone,
+    addPauseReason,
+    removePauseReason,
+    goToNextItem,
+  });
+  const {
+    reportFailure: reportMediaFailure,
+    markUnavailable: markMediaUnavailable,
+    srcFor: mediaSrcFor,
+  } = media;
+
   // Ready: the current item can start counting (image loaded / failed / cached,
   // video started or failed, custom `renderItem` frame). Keyed by itemKey so it
   // resets per item without an effect.
@@ -310,7 +382,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // Items whose video can't be media-driven (error, live/HLS-style non-finite
   // or zero duration): the default-duration timer drives them instead.
   const [timerFallbackKey, setTimerFallbackKey] = useState("");
-  const [mediaState, setMediaState] = useState({ key: "", pct: 0 });
+  // A custom frame that reported valid `ctx.onProgress` is driven by its own media time.
+  const [frameDrivenKey, setFrameDrivenKey] = useState("");
+  // 0.6.0 (SV18) — per-tick progress (timer + media time) lives in an external store so a tick
+  // re-renders the bars only, never this root.
+  const [progressStore] = useState(createProgressStore);
   // Per-entry reset: whenever the item becomes current again (key change) or
   // the viewer opens / closes, drop ready / fallback / media progress so a
   // revisit starts clean. React 19 setState-during-render pattern.
@@ -319,10 +395,23 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     setEntry({ key: itemKey, open: isOpen });
     setReadyKey("");
     setTimerFallbackKey("");
-    setMediaState({ key: "", pct: 0 });
+    setFrameDrivenKey("");
   }
+  useLayoutEffect(() => {
+    progressStore.resetMedia();
+  }, [progressStore, itemKey, isOpen]);
   const handleItemReady = useCallback(() => setReadyKey(itemKey), [itemKey]);
-  const handleVideoError = useCallback(() => setTimerFallbackKey(itemKey), [itemKey]);
+  // A media failure (image / video / frame): with `onMediaError` the host is asked once for a new
+  // `src`; otherwise, or without one, the item is unavailable ("media").
+  const handleVideoError = useCallback(() => {
+    reportMediaFailure("video");
+  }, [reportMediaFailure]);
+  const handleImageError = useCallback(() => {
+    reportMediaFailure("image");
+  }, [reportMediaFailure]);
+  const handleFrameError = useCallback(() => {
+    reportMediaFailure("frame");
+  }, [reportMediaFailure]);
   const handleItemMetadata = useCallback(
     (duration: number) => {
       if (!Number.isFinite(duration) || !(duration > 0)) setTimerFallbackKey(itemKey);
@@ -337,21 +426,37 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         return;
       }
       const pct = Math.min(Math.max((currentTime / duration) * 100, 0), 100);
-      // Never backward within an item.
-      setMediaState((prev) =>
-        prev.key === itemKey && prev.pct >= pct ? prev : { key: itemKey, pct },
-      );
+      if (renderItem) setFrameDrivenKey(itemKey);
+      // Never backward within an item (the store enforces it).
+      progressStore.setMedia(itemKey, pct);
     },
-    [itemKey],
+    [itemKey, progressStore, renderItem],
   );
-  const isReady = !!renderItem || readyKey === itemKey;
+  // A custom frame is ready as soon as it mounts (0.5.4), but not while its URL resolves.
+  const mediaReady = renderItem ? !media.resolving : readyKey === itemKey;
+  const isReady = mediaReady && !media.unavailable;
+  // Layout effect: it must land before the unavailable-notice effects that move on.
+  useLayoutEffect(() => {
+    unavailableItemRef.current = media.unavailable ? itemKey : "";
+  }, [media.unavailable, itemKey]);
+  // `loadTimeoutMs`: media that is still not ready by then is unavailable ("timeout").
+  // Pause-aware: a held viewer (host / hidden tab / sheet / hold / reply-focus / user) is not
+  // waiting on the network, so the clock runs only while nothing pauses it and restarts in full
+  // on resume. (`unavailable` and a removal notice never coexist with an armed timer.)
+  const timeoutArmed =
+    !!loadTimeoutMs && loadTimeoutMs > 0 && isOpen && !pendingRemoval && !isPaused && !!currentItem;
+  useEffect(() => {
+    if (!timeoutArmed || mediaReady || media.unavailable) return;
+    const t = window.setTimeout(() => markMediaUnavailable("timeout"), loadTimeoutMs);
+    return () => window.clearTimeout(t);
+  }, [timeoutArmed, mediaReady, media.unavailable, loadTimeoutMs, itemKey, markMediaUnavailable]);
   // A video without an explicit duration is driven by its own media time
   // (unless it failed to load — then the default-duration timer takes over so
-  // the story never freezes).
+  // the story never freezes). A custom frame is media-driven once it reports
+  // `ctx.onProgress` (and the item has no explicit duration).
   const mediaDriven =
-    currentItem?.type === "video" &&
-    currentItem.duration == null &&
-    !renderItem &&
+    currentItem?.duration == null &&
+    (renderItem ? frameDrivenKey === itemKey : currentItem?.type === "video") &&
     timerFallbackKey !== itemKey;
 
   // One advance per item: the timer and the video `ended` event both go through
@@ -363,24 +468,15 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   const completeItem = useCallback(() => {
     if (advancedKeyRef.current === itemKey) return;
     advancedKeyRef.current = itemKey;
-    goToNextItem();
+    goToNextItem("completed");
   }, [itemKey, goToNextItem]);
 
-  const timerProgress = useStoryProgress({
-    isOpen: isOpen && !!currentItem,
-    isPaused: isPaused || !isReady || mediaDriven,
-    itemKey,
-    itemDurationMs,
-    onComplete: completeItem,
-  });
-  // Not ready -> 0 (the hook's state may still hold the previous entry's value).
-  const progress = !isReady
-    ? 0
-    : mediaDriven
-    ? mediaState.key === itemKey
-      ? mediaState.pct
-      : 0
-    : timerProgress;
+  // What the bars show, resolved against the store by the subscribers (the timer itself runs
+  // in <ProgressDriver>, rendered below, so its per-tick state never re-renders this root).
+  const progressSelection = useMemo(
+    () => ({ itemKey, isReady, mediaDriven }),
+    [itemKey, isReady, mediaDriven],
+  );
 
   // ─── v0.4.0–v0.4.1 cube transition + swipe ──────────────────────────────
   // Detect story-level cursor changes during render and trigger the AUTO
@@ -420,7 +516,10 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   const [trackedCursor, setTrackedCursor] = useState(trackNow);
   const [trackedSnap, setTrackedSnap] = useState(snapCount);
   const [pendingDragCommit, setPendingDragCommit] = useState(false);
-  if (trackedSnap !== snapCount) {
+  if (pendingRemoval) {
+    // A removal notice is held: the frame stays put; the repair that follows
+    // bumps snapCount and snaps (never a cube toward / away from a ghost).
+  } else if (trackedSnap !== snapCount) {
     // Cursor was repaired because its story/item was removed (or data first
     // arrived) — snap, never animate a cube toward/away from a ghost.
     setTrackedSnap(snapCount);
@@ -440,6 +539,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   } else if (
     isOpen &&
     !disableStoryTransition &&
+    !reducedMotion &&
     cubeState.phase === "idle" &&
     cursor.storyIndex !== trackedCursor.storyIndex &&
     stories.length > 0
@@ -457,6 +557,8 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
           itemIndex: trackedCursor.itemIndex,
           progress: 100,
         },
+        // Read at the moment the cube starts; document-level direction (the viewer is portalled).
+        mirror: typeof document !== "undefined" && isRtlElement(document.body),
       });
     }
     setTrackedCursor(trackNow());
@@ -488,11 +590,14 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   let autoLeavingItemIndex = 0;
   let autoLeavingProgress = 0;
   let autoDirection: CubeDirection | null = null;
+  let autoMirror = false;
   let dragPrev: { story: Story; item: StoryItem; itemIndex: number; progress: number } | null = null;
   let dragNext: { story: Story; item: StoryItem; itemIndex: number; progress: number } | null = null;
+  let dragMirror = false;
   if (cubeState.phase === "auto") {
     const cs = cubeState;
     autoDirection = cs.direction;
+    autoMirror = cs.mirror;
     autoLeavingItemIndex = cs.leaving.itemIndex;
     autoLeavingProgress = cs.leaving.progress;
     autoLeavingStory = stories.find((s) => s.id === cs.leaving.storyId) ?? null;
@@ -503,6 +608,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     cubeState.phase === "releasing"
   ) {
     const cs = cubeState;
+    dragMirror = cs.mirror;
     if (cs.prev) {
       const ps = stories.find((s) => s.id === cs.prev!.storyId);
       const pi = ps?.items.find((i) => i.id === cs.prev!.itemId);
@@ -529,12 +635,18 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     }
   }
 
+  // 0.6.0 (SV19) - the walls are physical: left holds the previous story, right the next; under
+  // RTL they swap.
+  const leftGhost = dragMirror ? dragNext : dragPrev;
+  const rightGhost = dragMirror ? dragPrev : dragNext;
+
   // ─── v0.4.1 swipe gesture ──────────────────────────────────────────────
   // Pointer-driven Instagram-style swipe between stories. Engages when
   // horizontal drag exceeds 10px AND > vertical drag. While engaged,
   // `--story-cube-angle` is driven directly through the cube hook.
   // On release: distance > 30% width OR velocity > 0.5 px/ms → commit.
   // Else: snap back to 0.
+  const gestureRootRef = useRef<HTMLDivElement | null>(null);
   const swipeRef = useRef<{
     pointerId: number;
     startX: number;
@@ -543,6 +655,8 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     active: boolean;
     width: number;
     suppressClick: boolean;
+    /** 0.6.0 (SV19): the gesture started under dir="rtl" - left / right walls swap. */
+    mirror: boolean;
   } | null>(null);
   const swipeJustEndedRef = useRef(false);
   // The swallow flag outlives its purpose when no click follows (a long hold on
@@ -565,7 +679,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     }, 400);
   }, [clearClickSwallow]);
   useEffect(() => clearClickSwallow, [clearClickSwallow]);
-  // Mirror of "a non-modal layer (link drawer / viewers list) is open", for the
+  // Mirror of "a non-modal layer (link drawer / viewers list / reaction picker) is open", for the
   // gesture handlers declared before the layer block.
   const nonModalLayerOpenRef = useRef(false);
   // The gesture handlers themselves are declared LATER in the component,
@@ -579,9 +693,15 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   const longPress = useLongPressPause({
     isOpen,
     longPressThresholdMs,
-    onPause: () => setPaused(true),
-    onResume: () => setPaused(false),
+    onPause: () => addPauseReason("hold"),
+    onResume: () => removePauseReason("hold"),
   });
+
+  // 0.6.0 — the groups a sequential move lands on (muted groups are skipped in
+  // both directions); -1 = none. Drives the swipe preview, rubber-banding and
+  // the previous arrow.
+  const prevStoryIndex = findAdjacentStoryIndex(stories, cursor.storyIndex, -1);
+  const nextStoryIndex = findAdjacentStoryIndex(stories, cursor.storyIndex, 1);
 
   // v0.4.1 — Swipe gesture handlers. Coexist with longPress: pointerdown
   // calls both; if drag intent is detected, longPress is cancelled.
@@ -596,7 +716,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       if (
         nonModalLayerOpenRef.current &&
         e.target instanceof Element &&
-        !e.target.closest("[data-story-layer]")
+        // The reaction picker's popover is portaled (its React events still bubble here) and its
+        // trigger toggles it: neither is an outside press.
+        !e.target.closest('[data-story-layer], [data-slot="popover-content"], [data-slot="popover-trigger"]')
       ) {
         armClickSwallow();
         return;
@@ -619,6 +741,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         active: false,
         width,
         suppressClick: false,
+        mirror: false,
       };
       longPress.handlePointerDown();
     },
@@ -635,10 +758,16 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         // Drag intent: Δx > 10px AND > Δy.
         if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
           swipe.active = true;
+          swipe.mirror = isRtlElement(gestureRootRef.current);
           longPress.handlePointerCancel();
-          const prevStory = stories[cursor.storyIndex - 1];
-          const nextStory = stories[cursor.storyIndex + 1];
-          cubeBeginDrag({
+          // Muted groups are skipped: the preview shows the neighbour a swipe
+          // would actually land on.
+          const prevStory = stories[prevStoryIndex];
+          const nextStory = stories[nextStoryIndex];
+          // Under reduced motion there is no preview: no neighbour media mounts, the swipe
+          // just navigates on release.
+          if (!reducedMotion) cubeBeginDrag({
+            mirror: swipe.mirror,
             prev:
               prevStory && prevStory.items[0]
                 ? {
@@ -668,17 +797,27 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         }
       }
       e.preventDefault();
-      const hasPrev = cursor.storyIndex > 0;
-      const hasNext = cursor.storyIndex < stories.length - 1;
-      // Δx → angle. Drag right (Δx > 0) → +angle (reveals prev, left wall).
-      // Drag left (Δx < 0) → -angle (reveals next, right wall).
+      if (reducedMotion) return;
+      // Walls are physical: the left wall holds the previous story (the next one under RTL).
+      const hasLeft = swipe.mirror ? nextStoryIndex >= 0 : prevStoryIndex >= 0;
+      const hasRight = swipe.mirror ? prevStoryIndex >= 0 : nextStoryIndex >= 0;
+      // Δx → angle. Drag right (Δx > 0) → +angle (reveals the left wall).
+      // Drag left (Δx < 0) → -angle (reveals the right wall).
       let angle = (dx / swipe.width) * 90;
-      if (angle > 0 && !hasPrev) angle = angle * 0.25;
-      if (angle < 0 && !hasNext) angle = angle * 0.25;
+      if (angle > 0 && !hasLeft) angle = angle * 0.25;
+      if (angle < 0 && !hasRight) angle = angle * 0.25;
       angle = Math.max(-90, Math.min(90, angle));
       cubeSetDragAngle(angle);
     },
-    [longPress, stories, cursor.storyIndex, cubeBeginDrag, cubeSetDragAngle],
+    [
+      longPress,
+      stories,
+      prevStoryIndex,
+      nextStoryIndex,
+      cubeBeginDrag,
+      cubeSetDragAngle,
+      reducedMotion,
+    ],
   );
 
   const handlePointerEnd = useCallback(
@@ -706,15 +845,19 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       const velocity = dx / elapsedMs;
       const commitDistance = swipe.width * 0.3;
       const commitVelocity = 0.5;
-      const hasPrev = cursor.storyIndex > 0;
-      const hasNext = cursor.storyIndex < stories.length - 1;
+      // Swiping left reveals the right wall, swiping right the left wall; under RTL the right
+      // wall holds the PREVIOUS story.
+      const hasLeft = swipe.mirror ? nextStoryIndex >= 0 : prevStoryIndex >= 0;
+      const hasRight = swipe.mirror ? prevStoryIndex >= 0 : nextStoryIndex >= 0;
 
-      let snap: "next" | "prev" | "back" = "back";
-      if ((dx <= -commitDistance || velocity <= -commitVelocity) && hasNext) {
-        snap = "next";
-      } else if ((dx >= commitDistance || velocity >= commitVelocity) && hasPrev) {
-        snap = "prev";
+      let side: "left" | "right" | "back" = "back";
+      if ((dx <= -commitDistance || velocity <= -commitVelocity) && hasRight) {
+        side = "right";
+      } else if ((dx >= commitDistance || velocity >= commitVelocity) && hasLeft) {
+        side = "left";
       }
+      const snap: "next" | "prev" | "back" =
+        side === "back" ? "back" : (side === "right") !== swipe.mirror ? "next" : "prev";
 
       // Suppress the click that would fire on this pointerup (tap zones).
       armClickSwallow();
@@ -724,9 +867,15 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         // Already released — safe to ignore.
       }
 
+      if (reducedMotion) {
+        // No cube was started: commit instantly, or do nothing on a snap-back.
+        if (snap === "next") goToNextStory();
+        else if (snap === "prev") goToPrevStory();
+        return;
+      }
       if (snap === "next") {
         cubeReleaseDrag({
-          targetDeg: -90,
+          targetDeg: side === "right" ? -90 : 90,
           onComplete: () => {
             setPendingDragCommit(true);
             goToNextStory();
@@ -734,7 +883,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         });
       } else if (snap === "prev") {
         cubeReleaseDrag({
-          targetDeg: 90,
+          targetDeg: side === "right" ? -90 : 90,
           onComplete: () => {
             setPendingDragCommit(true);
             goToPrevStory();
@@ -744,7 +893,16 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         cubeReleaseDrag({ targetDeg: 0 });
       }
     },
-    [armClickSwallow, cubeReleaseDrag, cursor.storyIndex, goToNextStory, goToPrevStory, longPress, stories.length],
+    [
+      armClickSwallow,
+      cubeReleaseDrag,
+      prevStoryIndex,
+      nextStoryIndex,
+      goToNextStory,
+      goToPrevStory,
+      longPress,
+      reducedMotion,
+    ],
   );
 
   const handleClickCapture = useCallback(
@@ -764,6 +922,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     useStoryEngagementState({
       subscribe: engagementSubscribe,
       onSubscribeDelta: onSubscribeEngagementDelta,
+      // The first change to an item applies on top of its `engagement` seed.
+      getSeed: (storyId, itemId) =>
+        storiesRef.current
+          .find((st) => st.id === storyId)
+          ?.items.find((it) => it.id === itemId)?.engagement,
     });
 
   // (v0.2.0 `composerRef` + kebab state are declared earlier — above the
@@ -805,6 +968,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // knows every open layer (pause, Escape, inert).
   const [ownerViewersOpen, setOwnerViewersOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
+  // The engagement bar's reaction picker (a popover) counts as a layer: the story pauses
+  // while it is open. Mirrors the bar's own state via `onReactionPickerOpenChange`.
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
   const anyPanelOpen = commentsOpen || shareOpen;
   // v0.3.2 introduced a `composerActive` state to fade the engagement
   // overlay when the DM composer was focused. v0.3.3 reverted that —
@@ -824,6 +990,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // "adjusting state when a prop changes") instead of setState-in-effect
   // resets: the close lands in the SAME commit as the navigation, with no
   // extra post-commit render showing stale-open chrome.
+  // Set on the first story change: under reduced motion the incoming story fades in (never on open).
+  const [storyChanged, setStoryChanged] = useState(false);
+  const [pickerEpoch, setPickerEpoch] = useState(0);
   const [prevChromeCursor, setPrevChromeCursor] = useState({
     storyIndex: cursor.storyIndex,
     itemIndex: cursor.itemIndex,
@@ -832,10 +1001,13 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     prevChromeCursor.storyIndex !== cursor.storyIndex ||
     prevChromeCursor.itemIndex !== cursor.itemIndex
   ) {
+    if (prevChromeCursor.storyIndex !== cursor.storyIndex) setStoryChanged(true);
     setPrevChromeCursor({
       storyIndex: cursor.storyIndex,
       itemIndex: cursor.itemIndex,
     });
+    if (reactionPickerOpen) setPickerEpoch((n) => n + 1);
+    setReactionPickerOpen(false);
     setKebabOpen(false);
     setEngagementExpanded(false);
     setCommentsOpen(false);
@@ -854,22 +1026,23 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       setShareOpen(false);
       setOwnerViewersOpen(false);
       setLinkOpen(false);
+      setReactionPickerOpen(false);
     }
   }
   // Mutual exclusion — opening one closes the other.
   const openCommentsPanel = useCallback(() => {
     setShareOpen(false);
     setCommentsOpen(true);
-  }, []);
+  }, [setShareOpen, setCommentsOpen]);
   const openSharePanel = useCallback(() => {
     setCommentsOpen(false);
     setShareOpen(true);
-  }, []);
+  }, [setCommentsOpen, setShareOpen]);
 
   // Resolved kebab items — kebabActions full-takeover wins; otherwise
   // defaultStoryKebabActions assembles per permissions matrix + moderator section.
   const kebabItems = useMemo(() => {
-    if (!currentStory || !currentItem) return [];
+    if (!currentStory || !currentItem || pendingRemoval) return [];
     if (kebabActions) return kebabActions(currentStory, currentItem);
     return defaultStoryKebabActions({
       story: currentStory,
@@ -902,6 +1075,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   }, [
     currentStory,
     currentItem,
+    pendingRemoval,
     kebabActions,
     onSaveToHighlights,
     onDeleteStory,
@@ -920,11 +1094,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
 
   // Resolved engagement actions for the current item (rebuilt per cursor change)
   const engagementOverlayMounted =
-    !!viewerMode && viewerMode === "viewer" && !disableEngagement && !!currentStory && !!currentItem;
+    !!viewerMode && viewerMode === "viewer" && !disableEngagement && !!currentStory && !!currentItem && !pendingRemoval;
   // Reply composer mount gate — viewer mode + opt-in + story/item present.
   // currentUser absent is HANDLED INSIDE the render (composerEmptyState fallback).
   const replyComposerMounted =
-    !!viewerMode && viewerMode === "viewer" && !disableReplyComposer && !!currentStory && !!currentItem;
+    !!viewerMode && viewerMode === "viewer" && !disableReplyComposer && !!currentStory && !!currentItem && !pendingRemoval;
   // Owner overlay mount gate — owner mode + opt-in + story/item present.
   // Mutually exclusive with replyComposerMounted (owner vs viewer modes).
   const ownerOverlayMounted =
@@ -960,7 +1134,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   );
   const engagementActions = useMemo(() => {
     if (!engagementOverlayMounted) return [];
-    const state = getEngagementState(currentStory!.id, currentItem!.id);
+    const state = getEngagementState(
+      currentStory!.id,
+      currentItem!.id,
+      currentItem!.engagement,
+    );
     // False-positive suppression (known class: ref-reading event closures
     // passed to an opaque builder called during render — media-editor
     // v0.1.2 precedent). The builder only STORES onCommentClick (which
@@ -1040,7 +1218,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   useEffect(() => {
     triggerLikeRef.current = () => {
       if (!currentStory || !currentItem) return;
-      const state = getEngagementState(currentStory.id, currentItem.id);
+      const state = getEngagementState(currentStory.id, currentItem.id, currentItem.engagement);
       const nextLiked = !state.liked;
       dispatchEngagement({
         kind: "like-toggle",
@@ -1072,11 +1250,12 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // surface is actually mounted, so a stale flag can never wedge a pause.
   const isViewerMode = !!viewerMode && viewerMode === "viewer";
   const layerOpen: Record<LayerId, boolean> = {
-    comments: isOpen && commentsOpen && isViewerMode && !disableComments,
-    share: isOpen && shareOpen && isViewerMode && !disableSharePanel,
+    comments: isOpen && commentsOpen && isViewerMode && !disableComments && !pendingRemoval,
+    share: isOpen && shareOpen && isViewerMode && !disableSharePanel && !pendingRemoval,
     kebab: isOpen && kebabOpen && kebabItems.length > 0,
     viewers: isOpen && ownerViewersOpen && ownerOverlayMounted && !renderOwnerOverlay,
-    link: isOpen && linkOpen && !!currentItem?.link,
+    link: isOpen && linkOpen && !!currentItem?.link && !pendingRemoval,
+    reactionPicker: isOpen && reactionPickerOpen && engagementOverlayMounted,
   };
   // Open-order stack (last = most recently opened = the one Escape closes).
   // Render-time adjustment, same guarded pattern as the cursor tracking above.
@@ -1094,37 +1273,42 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   ) {
     setLayerOrder(order);
   }
+  // Reduced motion: the incoming story fades in instead of the cube (never on open, never between items).
+  const storyFade = reducedMotion && !disableStoryTransition && storyChanged;
   const hasLayer = order.length > 0;
   const topLayer = order[order.length - 1];
   const modalLayerOpen = layerOpen.comments || layerOpen.share || layerOpen.kebab;
+
+  // The reply box holds the `reply-focus` pause reason while focused or holding a draft.
+  const setReplyFocusPaused = useCallback(
+    (paused: boolean) => {
+      if (paused) addPauseReason("reply-focus");
+      else removePauseReason("reply-focus");
+    },
+    [addPauseReason, removePauseReason],
+  );
 
   const closeLayer = useCallback((id: LayerId) => {
     if (id === "comments") setCommentsOpen(false);
     else if (id === "share") setShareOpen(false);
     else if (id === "kebab") setKebabOpen(false);
     else if (id === "viewers") setOwnerViewersOpen(false);
+    else if (id === "reactionPicker") setReactionPickerOpen(false);
     else setLinkOpen(false);
-  }, []);
+  }, [setCommentsOpen, setShareOpen, setKebabOpen, setOwnerViewersOpen, setReactionPickerOpen, setLinkOpen]);
 
-  // SV5 — remember whether the viewer was already paused when the FIRST layer
-  // opened, pause, and restore exactly that when the LAST layer closes: closing
-  // a layer never resumes a pause the host (`setPaused(true)`) or the user
-  // (middle tap) set. A different item on close means the item-change reset
-  // already ran — resume then, as that reset intends.
-  const isPausedRef = useRef(isPaused);
-  const itemKeyRef = useRef(itemKey);
+  // SV5 — any open layer holds the `sheet` pause reason, and only that reason:
+  // closing the last layer never resumes a pause the host (`setPaused(true)`),
+  // the user (middle tap) or the reply box set. To make another surface a layer,
+  // add its id to `LayerId` + `layerOpen` above.
   useLayoutEffect(() => {
-    isPausedRef.current = isPaused;
-    itemKeyRef.current = itemKey;
-    nonModalLayerOpenRef.current = layerOpen.link || layerOpen.viewers;
+    nonModalLayerOpenRef.current = layerOpen.link || layerOpen.viewers || layerOpen.reactionPicker;
   });
   useEffect(() => {
     if (!hasLayer) return;
-    const restore = isPausedRef.current;
-    const keyAtOpen = itemKeyRef.current;
-    setPaused(true);
-    return () => setPaused(itemKeyRef.current === keyAtOpen ? restore : false);
-  }, [hasLayer, setPaused]);
+    addPauseReason("sheet");
+    return () => removePauseReason("sheet");
+  }, [hasLayer, addPauseReason, removePauseReason]);
 
   // SV6 — Escape (and an outside press) reaches the dialog's `onOpenChange(false)`
   // on both Radix and Base UI: with a layer open it closes only the top layer
@@ -1151,39 +1335,50 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     onPrevItem: goToPrevItem,
     onNextItem: goToNextItem,
     onTogglePause: () => setPaused((p) => !p),
+    isRtl: () => isRtlElement(gestureRootRef.current),
   });
 
   // SV6 — containment: while a sheet or the kebab is open, everything else in
   // the dialog is `inert` so Tab cycles inside the layer (Radix FocusScope and
   // Base UI both skip inert). Closed sheets carry their own `inert`.
-  const gestureRootRef = useRef<HTMLDivElement | null>(null);
   const layerSignature = order.join(",");
   useEffect(() => {
     if (!modalLayerOpen) return;
     const root = gestureRootRef.current?.parentElement;
     if (!root) return;
-    const keep = new Set<Element>();
-    root
-      .querySelectorAll(
-        '[data-story-layer="sheet"][data-open="true"], [data-story-layer="kebab"], [data-story-layer="backdrop"]',
-      )
-      .forEach((layer) => {
-        for (let n: Element | null = layer; n && n !== root; n = n.parentElement) {
-          keep.add(n);
+    const marked = new Set<Element>();
+    const apply = () => {
+      const keep = new Set<Element>();
+      root
+        .querySelectorAll(
+          '[data-story-layer="sheet"][data-open="true"], [data-story-layer="kebab"], [data-story-layer="backdrop"]',
+        )
+        .forEach((layer) => {
+          for (let n: Element | null = layer; n && n !== root; n = n.parentElement) {
+            keep.add(n);
+          }
+        });
+      keep.forEach((node) => {
+        const parent = node.parentElement;
+        if (!parent) return;
+        for (const sibling of Array.from(parent.children)) {
+          if (keep.has(sibling) || sibling.hasAttribute("inert")) continue;
+          if (sibling.classList.contains("sr-only")) continue;
+          sibling.setAttribute("inert", "");
+          marked.add(sibling);
         }
       });
-    const marked: Element[] = [];
-    keep.forEach((node) => {
-      const parent = node.parentElement;
-      if (!parent) return;
-      for (const sibling of Array.from(parent.children)) {
-        if (keep.has(sibling) || sibling.hasAttribute("inert")) continue;
-        if (sibling.classList.contains("sr-only")) continue;
-        sibling.setAttribute("inert", "");
-        marked.push(sibling);
-      }
-    });
-    return () => marked.forEach((el) => el.removeAttribute("inert"));
+    };
+    apply();
+    // F-03: a sibling that MOUNTS while the sheet stays open (the unavailable notice, a late
+    // engagement overlay...) is made inert too. Only child-list changes are observed, and
+    // setting `inert` is an attribute change, so this never feeds itself.
+    const observer = new MutationObserver(apply);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      marked.forEach((el) => el.removeAttribute("inert"));
+    };
   }, [modalLayerOpen, layerSignature]);
 
   if (!currentStory || !currentItem) {
@@ -1206,6 +1401,10 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       onOpenChange={handleOpenChange}
       ariaLabel={labels.viewerLabel}
       className={contentClassName}
+      overflowVisible={navArrowsPlacement === "outside"}
+      // F4: wrap Tab at the dialog level while no layer is open (layers wrap themselves). The
+      // dialog's focus scope ignores `inert`, so at the last REAL control it would not wrap.
+      onKeyDown={hasLayer ? undefined : wrapTabWithinLayer}
     >
       {/* v0.2.0 C7 — renderNavArrows slot wins as full takeover.
           v0.2.0 C8 — `disableNavArrows` suppresses the default mount entirely. */}
@@ -1213,16 +1412,19 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         renderNavArrows(slotHelpers)
       ) : !disableNavArrows ? (
         <NavArrows
-          canPrev={cursor.storyIndex > 0}
+          canPrev={prevStoryIndex >= 0}
           onPrev={goToPrevStory}
           onNext={goToNextStory}
           labels={labels}
+          placement={navArrowsPlacement}
         />
       ) : null}
 
       <div
         className={cn(
           "relative h-full w-full bg-black touch-pan-y",
+          // "outside" arrows need the card to overflow, so the stage clips itself.
+          navArrowsPlacement === "outside" && "overflow-hidden md:rounded-2xl",
           // v0.4.0 — `perspective` + `container-type: inline-size` engage only
           // while the cube is mounted (auto / dragging / releasing); idle
           // state is a flat surface (no 3D context, no container-query
@@ -1285,7 +1487,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
               itemIndex={autoLeavingItemIndex}
               progress={autoLeavingProgress}
               isMuted={isMuted}
+              src={mediaSrcFor(autoLeavingStory, autoLeavingItem)}
               labels={labels}
+              renderBadge={renderHeaderBadge}
             />
           </div>
         ) : null}
@@ -1293,37 +1497,41 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             Mounted during dragging + releasing so the user can swipe to
             either neighbor. */}
         {(cubeState.phase === "dragging" || cubeState.phase === "releasing") &&
-        dragPrev ? (
+        leftGhost ? (
           <div
             className="absolute inset-0 backface-hidden pointer-events-none"
             style={{ transform: "rotateY(-90deg) translateZ(50cqw)" }}
             aria-hidden="true"
           >
             <StoryCubeFace
-              story={dragPrev.story}
-              item={dragPrev.item}
-              itemIndex={dragPrev.itemIndex}
-              progress={dragPrev.progress}
+              story={leftGhost.story}
+              item={leftGhost.item}
+              itemIndex={leftGhost.itemIndex}
+              progress={leftGhost.progress}
               isMuted={isMuted}
+              src={mediaSrcFor(leftGhost.story, leftGhost.item)}
               labels={labels}
+              renderBadge={renderHeaderBadge}
             />
           </div>
         ) : null}
         {/* v0.4.1 drag-mode — Next ghost on the RIGHT wall (rotateY +90deg). */}
         {(cubeState.phase === "dragging" || cubeState.phase === "releasing") &&
-        dragNext ? (
+        rightGhost ? (
           <div
             className="absolute inset-0 backface-hidden pointer-events-none"
             style={{ transform: "rotateY(90deg) translateZ(50cqw)" }}
             aria-hidden="true"
           >
             <StoryCubeFace
-              story={dragNext.story}
-              item={dragNext.item}
-              itemIndex={dragNext.itemIndex}
-              progress={dragNext.progress}
+              story={rightGhost.story}
+              item={rightGhost.item}
+              itemIndex={rightGhost.itemIndex}
+              progress={rightGhost.progress}
               isMuted={isMuted}
+              src={mediaSrcFor(rightGhost.story, rightGhost.item)}
               labels={labels}
+              renderBadge={renderHeaderBadge}
             />
           </div>
         ) : null}
@@ -1343,7 +1551,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             cubeState.phase === "auto" && autoDirection
               ? {
                   transform:
-                    autoDirection === "next"
+                    (autoDirection === "next") !== autoMirror
                       ? "rotateY(90deg) translateZ(50cqw)"
                       : "rotateY(-90deg) translateZ(50cqw)",
                 }
@@ -1356,13 +1564,35 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         {/* v0.2.0 C7 — renderProgress slot wins as full takeover.
             v0.2.0 C8 — `disableProgressBars` suppresses the default mount;
             timer still runs (drives auto-advance). */}
+        {/* 0.6.0 (SV15) - item buttons + position announcement for assistive tech. */}
+        {/* Independent of the tap zones: assistive tech keeps its item buttons and announcement. */}
+        <SrNav
+          story={currentStory}
+          itemIndex={cursor.itemIndex}
+          onPrev={goToPrevItem}
+          onNext={goToNextItem}
+          labels={labels}
+        />
+        <ProgressDriver
+          store={progressStore}
+          isOpen={isOpen && !!currentItem}
+          isPaused={isPaused || !isReady || mediaDriven}
+          itemKey={itemKey}
+          itemDurationMs={itemDurationMs}
+          onComplete={completeItem}
+        />
         {renderProgress ? (
-          renderProgress(currentStory.items, cursor.itemIndex, progress, slotHelpers)
+          <LiveProgressSlot store={progressStore} selection={progressSelection}>
+            {(progress) =>
+              renderProgress(currentStory.items, cursor.itemIndex, progress, slotHelpers)
+            }
+          </LiveProgressSlot>
         ) : !disableProgressBars ? (
-          <ProgressBars
+          <LiveProgressBars
+            store={progressStore}
+            selection={progressSelection}
             items={currentStory.items}
             currentItemIndex={cursor.itemIndex}
-            progress={progress}
             smooth={mediaDriven}
           />
         ) : null}
@@ -1382,6 +1612,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             labels={labels}
             onAuthorClick={onAuthorClick}
             authorComponent={authorComponent}
+            renderBadge={renderHeaderBadge}
             onKebabClick={
               viewerMode && kebabItems.length > 0
                 ? () => setKebabOpen(true)
@@ -1396,10 +1627,33 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             bottom-sheet UX. */}
         <div
           className={cn(
-            "absolute inset-0 origin-top transition-transform duration-300 ease-out",
-            anyPanelOpen && "scale-[0.55] translate-y-[-18%] pointer-events-none",
+            "absolute inset-0 origin-top transition-transform duration-300 ease-out motion-reduce:transition-none",
+            // SV13: under prefers-reduced-motion the stack does not scale (the sheet just covers it).
+            anyPanelOpen &&
+              "scale-[0.55] translate-y-[-18%] pointer-events-none motion-reduce:scale-100 motion-reduce:translate-y-0",
           )}
         >
+          {/* SV13: under prefers-reduced-motion the incoming story's media fades in (a story change
+              only; an item change keeps the key, so it stays a hard cut). `disableStoryTransition` stays a cut. */}
+          <div
+            key={storyFade ? currentStory.id : undefined}
+            data-story-stage=""
+            data-story-fade={storyFade ? "" : undefined}
+            className={cn("absolute inset-0", storyFade && "animate-in fade-in-0 duration-200")}
+          >
+          {pendingRemoval || media.unavailable ? (
+            // 0.6.0 — the item cannot play (removed from `stories`, unresolvable,
+            // failed media, load timeout): no media mounts (nothing can play)
+            // while the notice frame is held.
+            <UnavailableNotice
+              reason={pendingRemoval ? "removed" : media.unavailable!}
+              labels={labels}
+              showClose={
+                pendingRemoval ? pendingRemoval.stayUntilClosed : media.stayUntilClosed
+              }
+              onClose={onClose}
+            />
+          ) : (
           <ItemView
             item={currentItem}
             story={currentStory}
@@ -1407,15 +1661,22 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             cursor={cursor}
             isPaused={isPaused}
             isMuted={isMuted}
+            src={media.src}
+            poster={media.poster}
             onLoadedMetadata={handleItemMetadata}
             onEnded={completeItem}
             onReady={handleItemReady}
             onTimeUpdate={handleVideoTimeUpdate}
             onVideoError={handleVideoError}
+            onImageError={handleImageError}
+            onFrameError={handleFrameError}
+            videoMediaError={media.videoMediaError}
             mediaKey={itemKey}
             renderItem={renderItem}
             labels={labels}
           />
+          )}
+          </div>
           {/* v0.2.0 C7 — renderTapZones slot wins as full takeover.
               v0.2.0 C8 — `disableTapZones` suppresses the default mount entirely. */}
           {renderTapZones ? (
@@ -1428,10 +1689,15 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             />
           ) : null}
 
+          {/* 0.6.0 (SV12) — plain-text caption (dir="auto"), never HTML. */}
+          {!pendingRemoval ? (
+            <Caption item={currentItem} raised={!!viewerMode} />
+          ) : null}
+
           {/* v0.2.0 C9 — StoryItem.link CTA bottom button. Coexists with the
               engagement overlay (sits above it) and the DM input (sits
               below it in viewer mode). Polymorphic root via `linkComponent`. */}
-          {currentItem.link ? (
+          {currentItem.link && !pendingRemoval ? (
             <LinkCta
               story={currentStory}
               item={currentItem}
@@ -1456,11 +1722,16 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
               renderEngagementOverlay(currentStory!, currentItem!, slotHelpers)
             ) : (
               <EngagementOverlay
+                // The bar owns the picker's open state: a cursor change while the picker is up bumps
+                // this key so the bar remounts closed (a pick must not apply to the new item). The
+                // bar reports the close on unmount.
+                key={pickerEpoch}
                 story={currentStory!}
                 item={currentItem!}
                 actions={engagementActions}
                 labels={labels}
                 expanded={engagementExpanded}
+                onReactionPickerOpenChange={setReactionPickerOpen}
                 containerRef={engagementColumnRef}
               />
             )
@@ -1483,7 +1754,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
                 item={currentItem!}
                 currentUser={currentUser}
                 onAddReply={onAddReply}
-                onSetPaused={(p) => setPaused(p)}
+                onSetPaused={setReplyFocusPaused}
                 labels={labels}
                 composerRef={composerRef}
                 prefill={replyPrefill}
@@ -1509,14 +1780,14 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
                   : labels.engagementShowLabel
               }
               className={cn(
-                "absolute end-3 bottom-3 z-32 flex h-9 w-9 items-center justify-center rounded-full text-white pointer-events-auto",
-                "transition-colors hover:bg-white/15 focus-visible:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+                "absolute end-3 bottom-3 z-32 flex h-9 w-9 items-center justify-center rounded-full text-media-overlay-foreground pointer-events-auto",
+                "transition-colors hover:bg-media-overlay-foreground/15 focus-visible:bg-media-overlay-foreground/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-media-overlay-foreground/40",
               )}
             >
               <Heart
                 className={cn(
                   "h-5 w-5 transition-transform duration-200",
-                  engagementExpanded && "scale-110 fill-current text-rose-400",
+                  engagementExpanded && "scale-110 fill-current text-destructive",
                 )}
               />
             </button>
@@ -1533,7 +1804,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             type="button"
             data-story-layer="backdrop"
             tabIndex={-1}
-            className="absolute inset-0 z-35 bg-black/40 transition-opacity duration-300"
+            className="absolute inset-0 z-35 bg-media-overlay/70 transition-opacity duration-300"
             onClick={() => {
               setCommentsOpen(false);
               setShareOpen(false);
@@ -1557,6 +1828,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
               item={currentItem!}
               onLoadViewers={onLoadViewers}
               labels={labels}
+              locale={locale}
               open={ownerViewersOpen}
               onOpenChange={setOwnerViewersOpen}
             />

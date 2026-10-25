@@ -13,15 +13,34 @@ export default function StoryViewerUsage() {
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
-        Footgun: the `stories` prop is mount-only
+        Uncontrolled or controlled <code>stories</code>
       </h3>
       <p className="text-muted-foreground">
-        Component captures <code>stories</code> as initial state on mount;
-        subsequent prop reference changes are <strong>ignored</strong>. Realtime{" "}
-        <code>subscribe</code> mutates the internal store; for external pushes
-        use the imperative handle&apos;s <code>reset(next)</code> or surgical{" "}
-        <code>dispatch(action)</code>. Cursor is ID-anchored (not index-based),
-        so insertions / removals don&apos;t desync your position.
+        Without <code>onStoriesChange</code>, the component captures{" "}
+        <code>stories</code> on mount and later prop changes are{" "}
+        <strong>ignored</strong>: realtime <code>subscribe</code> mutates the
+        internal store, and external pushes use the handle&apos;s{" "}
+        <code>reset(next)</code> or <code>dispatch(action)</code>. Pass{" "}
+        <code>onStoriesChange</code> (0.6.0) and the prop wins on every render
+        — the viewer reports changes instead of applying them. Either way the
+        cursor is ID-anchored, and removing the on-screen item shows the
+        unavailable notice (<code>unavailableNoticeMs</code>, default 1500)
+        before moving on.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Media you resolve (0.6.0)
+      </h3>
+      <p className="text-muted-foreground">
+        Items may omit <code>src</code>: <code>resolveMedia(item)</code>{" "}
+        returns <code>{"{ src, poster }"}</code> (or <code>null</code> =
+        unavailable) for the current and next item only. Item-level handlers
+        (<code>onDeleteStory</code>, <code>onReport</code>,{" "}
+        <code>onCopyLink</code>, <code>onSaveToHighlights</code>,{" "}
+        <code>onShareToFeed</code>) receive <code>{"{ story, item }"}</code>;{" "}
+        <code>onLoadViewers(itemId, cursor)</code> returns{" "}
+        <code>{"{ items, nextCursor }"}</code>. See the guide&apos;s migration
+        table.
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">

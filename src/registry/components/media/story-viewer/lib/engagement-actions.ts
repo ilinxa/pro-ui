@@ -58,8 +58,9 @@ export function buildStoryEngagementActions(
 
   const actions: StoryEngagementAction[] = [];
 
-  // Like (gated by canReact for viewer mode; owners don't like their own — matrix handles it)
-  if (canDo("react")) {
+  // Like (gated by `like`, which resolves to the same answer as `react` unless the host
+  // gates it separately; owners don't like their own — the matrix handles it)
+  if (canDo("like")) {
     actions.push({
       kind: "like",
       count: opts.state.likeCount,
@@ -73,6 +74,12 @@ export function buildStoryEngagementActions(
     actions.push({
       kind: "reaction",
       kinds: opts.reactionKinds,
+      // Seeded / live total. Withheld (`null`) and zero both render no number, so a host
+      // that never seeds a count sees the same bar as before.
+      totalCount:
+        opts.state.reactionCount !== null && opts.state.reactionCount > 0
+          ? opts.state.reactionCount
+          : null,
       viewerReaction: opts.state.viewerReaction,
       onSelect: opts.onReactSelect,
       clearOnTap: true, // Q-V4 lock — inherited engagement-bar v0.3 default
@@ -83,7 +90,10 @@ export function buildStoryEngagementActions(
   if (canDo("reply")) {
     actions.push({
       kind: "comment",
-      count: opts.state.replyCount > 0 ? opts.state.replyCount : undefined,
+      count:
+        opts.state.replyCount !== null && opts.state.replyCount > 0
+          ? opts.state.replyCount
+          : undefined,
       onClick: opts.onCommentClick,
     });
   }

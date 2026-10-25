@@ -17,8 +17,8 @@ export interface EngagementOverlayProps {
   item: StoryItem;
   /**
    * Resolved StoryEngagementAction[] (built via lib/engagement-actions.ts).
-   * Structurally identical to engagement-bar's `EngagementAction[]` —
-   * cast at the EngagementBar boundary (inline-copy structural compat).
+   * An inline copy of engagement-bar's `EngagementAction[]`, assignable to it without a
+   * cast (guarded by `__tests__/engagement-types.test.ts`).
    */
   actions: StoryEngagementAction[];
   labels: ResolvedStoryViewer01Labels;
@@ -29,6 +29,11 @@ export interface EngagementOverlayProps {
    * inline in the DM bar row, rendered by story-viewer.tsx).
    */
   expanded?: boolean;
+  /**
+   * Fires when the reaction picker opens / closes. The root turns an open picker into a
+   * layer so the story pauses while it is up.
+   */
+  onReactionPickerOpenChange?: (open: boolean) => void;
   className?: string;
   /**
    * v0.3.5 — caller-supplied ref for the column root. story-viewer uses
@@ -64,7 +69,7 @@ function EngagementOverlayInner(props: EngagementOverlayProps) {
         // v0.3.7: bottom-20 leaves room for the DM bar row (which sits at
         // bottom-0 with ~56px height including padding). Heart toggle lives
         // inline in the DM bar; this column only renders the icons.
-        "absolute end-3 bottom-20 z-30 flex flex-col items-center gap-3 text-white",
+        "absolute end-3 bottom-20 z-30 flex flex-col items-center gap-3 text-media-overlay-foreground",
         // Each direct child of the bar is an ActionButton; animate each.
         "[&>div>*]:transition-all [&>div>*]:duration-300 [&>div>*]:ease-out",
         // Collapsed: hidden + offset down.
@@ -84,16 +89,11 @@ function EngagementOverlayInner(props: EngagementOverlayProps) {
       // buttons out of the tab order (focusable controls inside aria-hidden).
       inert={!expanded}
     >
-      {/* Structural-equivalence cast: StoryEngagementAction is an inline-copy
-          of EngagementAction (F-S1 Bug 3 fix). TypeScript can't unify the
-          two distinct types even though they share structure; the cast at
-          the single composition boundary keeps the rest of the file fully
-          typed. */}
       <EngagementBar
         variant="stacked"
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actions={props.actions as any}
+        actions={props.actions}
         labels={props.labels.engagementLabels}
+        onReactionPickerOpenChange={props.onReactionPickerOpenChange}
       />
     </div>
   );

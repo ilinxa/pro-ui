@@ -3313,7 +3313,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3339,7 +3339,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3731,6 +3731,12 @@
       "dependencies": [
         "lucide-react@^1.11.0"
       ],
+      "cssVars": {
+        "theme": {
+          "color-media-overlay": "var(--media-overlay, oklch(0 0 0 / 0.55))",
+          "color-media-overlay-foreground": "var(--media-overlay-foreground, oklch(1 0 0))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/media/story-viewer/story-viewer.tsx",
@@ -3796,11 +3802,6 @@
           "path": "src/registry/components/media/story-viewer/hooks/use-story-engagement-state.ts",
           "type": "registry:component",
           "target": "components/story-viewer/hooks/use-story-engagement-state.ts"
-        },
-        {
-          "path": "src/registry/components/media/story-viewer/lib/format-time.ts",
-          "type": "registry:component",
-          "target": "components/story-viewer/lib/format-time.ts"
         },
         {
           "path": "src/registry/components/media/story-viewer/lib/permissions.ts",
@@ -3886,10 +3887,50 @@
           "path": "src/registry/components/media/story-viewer/hooks/use-global-keydown.ts",
           "type": "registry:component",
           "target": "components/story-viewer/hooks/use-global-keydown.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/hooks/use-reduced-motion.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/hooks/use-reduced-motion.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/hooks/use-story-media.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/hooks/use-story-media.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/lib/direction.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/lib/direction.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/lib/progress-store.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/lib/progress-store.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/lib/relative-time.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/lib/relative-time.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/parts/caption.tsx",
+          "type": "registry:component",
+          "target": "components/story-viewer/parts/caption.tsx"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/parts/sr-nav.tsx",
+          "type": "registry:component",
+          "target": "components/story-viewer/parts/sr-nav.tsx"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/parts/unavailable-notice.tsx",
+          "type": "registry:component",
+          "target": "components/story-viewer/parts/unavailable-notice.tsx"
         }
       ],
       "meta": {
-        "version": "0.5.4",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3915,7 +3956,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.4",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
