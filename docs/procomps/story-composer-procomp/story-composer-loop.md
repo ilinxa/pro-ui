@@ -325,3 +325,13 @@ the host, and the old content-composer "timeout" was most likely the 3.8.5 overw
 (00:10) `/r/media-editor.json` 0.5.0 with `lib/probe-video.ts`, `/r/media-editor-capture.json` 0.5.0 (8 files),
 `/r/story-composer.json` 0.6.0 with `parts/publish-details-step.tsx` and `registryDependencies`
 `@ilinxa/media-editor, button, textarea`. Release 3 closed.
+
+
+## Run — media-editor 0.5.1 patch (2026-10-26) — no story-composer version change
+
+Platform request: focus back to the opener after a successful publish closes the dialog (**F-03**). Root cause is in
+media-editor's dialog (Escape and Cancel were affected too — the platform's claim that they worked was refuted); fixed
+there, see `../media-editor-procomp/media-editor-loop.md` "Run — 0.5.1 patch". No shipped story-composer file changes,
+so it stays 0.6.0 and picks the fix up through its media-editor dependency. New regression test here:
+`__tests__/focus-return.test.tsx` (real editor; Escape, Close, publish success, host moving focus after close).
+Guide: Accessibility gains the focus-on-close note.

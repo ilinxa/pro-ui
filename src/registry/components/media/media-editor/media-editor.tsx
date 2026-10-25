@@ -48,6 +48,11 @@ import {
   DEFAULT_TEXT_GRADIENTS,
 } from "./lib/defaults";
 import { useHistory } from "./hooks/use-history";
+import {
+  FALLBACK_PLACEMENT,
+  measureTextBox,
+  visibleImageCenter,
+} from "./lib/placement";
 import type {
   AspectRatio,
   ComposerMode,
@@ -753,15 +758,20 @@ const MediaEditorImpl = React.forwardRef<
     if (lastSeededToolRef.current === "text") return;
     lastSeededToolRef.current = "text";
     const id = `text-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    // Centred on the part of the image currently in view (pan / zoom aware).
+    const fontFamily = resolvedFonts[0]?.family ?? "sans-serif";
+    const fontSize = 40;
+    const center = visibleImageCenter(stageRef.current) ?? FALLBACK_PLACEMENT;
+    const box = measureTextBox(mergedLabels.textPlaceholder, fontFamily, fontSize);
     editor.addTextOverlay({
       id,
       text: mergedLabels.textPlaceholder,
-      x: 100,
-      y: 200,
+      x: center.x - box.width / 2,
+      y: center.y - box.height / 2,
       rotation: 0,
       scale: 1,
-      fontFamily: resolvedFonts[0]?.family ?? "sans-serif",
-      fontSize: 40,
+      fontFamily,
+      fontSize,
       fill: "#ffffff",
       align: "center",
     });
@@ -770,15 +780,17 @@ const MediaEditorImpl = React.forwardRef<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor.activeTool, selectedText, resolvedFonts]);
 
-  // Sticker pick → add at canvas center + select for the transformer.
+  // Sticker pick → add centred on the visible image + select for the
+  // transformer (stickers are drawn centred on their x / y).
   const handleStickerPick = React.useCallback(
     (sticker: StickerOption) => {
       const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const center = visibleImageCenter(stageRef.current) ?? FALLBACK_PLACEMENT;
       editor.addSticker({
         id,
         stickerId: sticker.id,
-        x: 200,
-        y: 200,
+        x: center.x,
+        y: center.y,
         rotation: 0,
         scale: 1,
       });
@@ -1149,8 +1161,7 @@ const MediaEditorImpl = React.forwardRef<
           // now-ok: builds an id inside an imperative handle method; never reaches markup
           id: `sticker-${Date.now()}`,
           stickerId: sticker.id,
-          x: 0,
-          y: 0,
+          ...(visibleImageCenter(stageRef.current) ?? FALLBACK_PLACEMENT),
           rotation: 0,
           scale: 1,
         });
@@ -1289,6 +1300,42 @@ const MediaEditorImpl = React.forwardRef<
       document.removeEventListener("focusin", onFocusIn);
     };
   }, [overlayActive, resolved]);
+
+  // Dialog presentation: hand focus back to the control that opened the dialog
+  // when it closes — Escape, Cancel / Discard, or the host closing it after a
+  // publish. Radix returns focus only to a <DialogTrigger>, and hosts open this
+  // dialog with their own button, so focus was left on <body>. The opener is
+  // read in a layout effect, before the dialog's focus scope moves focus in;
+  // the restore is a passive effect, so it runs after the focus scope has
+  // released its trap. It only acts when focus was left on <body> or inside
+  // the closing dialog (or the discard confirm), so a host that moves focus
+  // itself after the close wins (its effects run after this one).
+  const dialogOpen = resolved === "dialog" && (props.isOpen ?? false);
+  const dialogContentRef = React.useRef<HTMLDivElement | null>(null);
+  const openerRef = React.useRef<HTMLElement | null>(null);
+  React.useLayoutEffect(() => {
+    if (!dialogOpen) return;
+    const active = document.activeElement;
+    openerRef.current =
+      active instanceof HTMLElement && active !== document.body ? active : null;
+  }, [dialogOpen]);
+  const wasDialogOpenRef = React.useRef(dialogOpen);
+  React.useEffect(() => {
+    const wasOpen = wasDialogOpenRef.current;
+    wasDialogOpenRef.current = dialogOpen;
+    if (dialogOpen || !wasOpen) return;
+    const opener = openerRef.current;
+    openerRef.current = null;
+    if (!opener || !opener.isConnected) return;
+    const active = document.activeElement;
+    const stranded =
+      active === null ||
+      active === document.body ||
+      (active instanceof HTMLElement &&
+        (dialogContentRef.current?.contains(active) === true ||
+          active.closest('[role="alertdialog"]') !== null));
+    if (stranded) opener.focus({ preventScroll: true });
+  }, [dialogOpen]);
 
   // ─── Slot context for render* props ─────────────────────────────────
 
@@ -1967,6 +2014,7 @@ const MediaEditorImpl = React.forwardRef<
       }}
     >
       <DialogContent
+        ref={dialogContentRef}
         showCloseButton={false}
         className={cn(
           // Mobile: edge-to-edge fullscreen. Defeat shadcn base centering

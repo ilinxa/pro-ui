@@ -7,6 +7,9 @@
 > wrapper around this; `content-composer`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
+> **v0.5.1 (2026-10-26)** — closing the dialog returns focus to the element that opened it; new text overlays and
+> stickers start centred on the visible part of the image.
+>
 > **v0.5.0 (2026-10-25, breaking)** — every string is a typed label (`MediaEditorLabels`, all keys optional) plus
 > `labels.presets` and `locale`; `acceptMediaTypes` and `videoOutput` (e.g. MP4 only); media chrome uses the
 > `--media-overlay` tokens; the body is `inert` under `overlay`; the exported `useHistory` no longer swallows
@@ -196,6 +199,8 @@ While in the error state the canvas renders the default "Couldn't load source" s
 | `"auto"` (default) | One rule: if `enabledModes` is empty → `inline`, else `dialog`. | — |
 
 **Dialog mode requires `isOpen` + `onClose`.** A dev-only `console.error` fires once per instance when either is missing — runtime falls back to keeping the dialog closed until you wire both.
+
+**Focus on close.** However the dialog closes (Escape, Cancel / Discard, or you setting `isOpen` to false, e.g. after a publish), focus goes back to the element that had it when the dialog opened — normally your opener button. If you want focus somewhere else, move it after the dialog has closed (an effect on your open state, or later); a `focus()` call inside `onClose` runs while the dialog's focus trap is still active and is undone.
 
 Desktop dialog sizing is viewport-relative and aspect-locked, with a min/max **clamp** so it can't collapse on a short window or overflow a tall one. Only the *driver* dimension is sized; the other follows from the aspect ratio:
 
@@ -452,7 +457,6 @@ history. The remaining gaps are narrow:
 
 - **Imperative capture handle** — `takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery` dev-warn and no-op (not implemented). The in-UI camera controls are the supported capture path. (See [Imperative handle](#imperative-handle).)
 - **Library media source** — `mediaSources` supports `camera` + `upload`; a device-library picker is not implemented.
-- **New text position** — a text overlay added by the Text tool starts at a fixed stage position, which can sit off the image (over the letterbox) for wide or tall images; drag it into place.
 - **Sliders and RTL** — the Adjust sliders fill from the left under an inherited `dir="rtl"`.
 - **Video editing** — no tool applies to a video draft (the chips are hidden); videos export as the original file. `VideoTrimBar` is exported but not mounted.
 - **Undo / redo** — not implemented (handle methods dev-warn; the editor binds no Ctrl/Cmd+Z). The exported `useHistory` hook works on its own and only claims the shortcut when its stack is non-empty.

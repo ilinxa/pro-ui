@@ -286,6 +286,8 @@ where they are **not implemented** (dev-warn, no effect) — use `isOpen` and th
 
 - Every button has an accessible name from `labels`; Publish is `aria-busy` while uploading.
 - The editor behind the progress / error / details overlay is `inert`.
+- When the dialog closes (Escape, Close / Discard, or your `onPublished` closing it), focus returns to the element
+  that opened it (media-editor ≥ 0.5.1). To send focus elsewhere, do it after the close, not inside `onClose`.
 - Permission states use `role="alert"`; completion is announced through `role="status"`.
 - RTL: logical utilities only; the demo has an RTL example.
 

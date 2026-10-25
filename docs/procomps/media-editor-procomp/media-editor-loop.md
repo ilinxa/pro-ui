@@ -343,3 +343,73 @@ the host, and the old content-composer "timeout" was most likely the 3.8.5 overw
 (00:10) `/r/media-editor.json` 0.5.0 with `lib/probe-video.ts`, `/r/media-editor-capture.json` 0.5.0 (8 files),
 `/r/story-composer.json` 0.6.0 with `parts/publish-details-step.tsx` and `registryDependencies`
 `@ilinxa/media-editor, button, textarea`. Release 3 closed.
+
+
+## Run — 0.5.1 patch (U-loop, 2026-10-26)
+
+**Trigger:** platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-26_MEDIA_EDITOR_STORY_COMPOSER.md` — two requests;
+user go 2026-10-26 ("patch first"). **Class:** patch (behaviour fixes, no public-API change) → architect self-check, no
+review file, slug install + tsc. Bump 0.5.0 → 0.5.1 (capture follows). story-composer: no shipped file changes (gets
+both fixes through its media-editor dependency) → stays 0.6.0; one new test there.
+
+### U0 — intake / blast radius
+- Follow-ups taken: **F-01** (text start position), **F-05** (focus on close) + story-composer **F-03** (same defect).
+- Same class found while reading: sticker tray placed at a fixed `200,200` (comment claimed "canvas center"),
+  `handle.addSticker` at `0,0` (half off the corner) — taken.
+- Dependents: story-composer, carousel-composer, content-composer, capture slice — none passes coordinates or owns the
+  dialog focus; behaviour change only (focus target on close, initial overlay position).
+
+### U1 — contract
+- Platform claim "Cancel and Escape already return focus" — **refuted** before fixing: Radix's modal content
+  `onCloseAutoFocus` focuses `context.triggerRef` only (react-dialog dist line 146–148); hosts open the editor with
+  their own button (no `DialogTrigger`), so Escape, Cancel and the post-publish close all left focus on `<body>`
+  (reproduction below, red before the fix). A host `focus()` inside `onClose` is also undone (trap still active).
+- Invariants: focus goes back to the element focused when the dialog opened, after every close path, only when focus
+  was stranded (body / inside the closing dialog / the discard alertdialog) — a host that moves focus after the close
+  wins; no Radix-only props (F-cross-13). New text / sticker = centre of (image rect ∩ viewport) in stage space,
+  pan / zoom aware; text centred by its measured box.
+
+### U2 — implement (architect, small diff)
+- `media-editor.tsx`: opener captured in a layout effect when the dialog opens; restore in a passive effect on close
+  (after the focus scope releases its trap); `DialogContent` ref for the "inside the closing dialog" check.
+- New `lib/placement.ts` (`visibleImageCenter(stage)`, `measureTextBox` — canvas `measureText`, 0.6 em fallback in
+  jsdom / SSR; type-only Konva import, lazy boundary intact); `EditorCanvas` names the base image node; text seed,
+  sticker tray and `handle.addSticker` use it. Roster += `lib/placement.ts`.
+- Tests: `story-composer/__tests__/focus-return.test.tsx` (real editor, export stubbed; Escape / Close / publish
+  success / host-moves-focus-after-close) — **red 4/4 before the fix** (one by a wrong ctx name, fixed), green after;
+  falsified (restore disabled → 3 fail). `media-editor/__tests__/placement.test.tsx` (geometry units + stub canvas
+  with a fake stage: Text tool, tray, zoomed `handle.addSticker`) — falsified against the 0.5.0 file → 3 fail.
+
+### U3 — Gate battery (2026-10-26)
+tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (validators 0 findings) · doc-budget 0 · tests **140 files /
+1912 passed** / 6 skipped · `pnpm build` 0. Artifacts: media-editor **338.9 / 345 KB** (+6.0 KB — `lib/placement.ts` + the
+focus restore; 6 KB headroom left, watch it), capture 53.7 / 65. Roster: missing 0 / extra 0 (43 files).
+
+### U4 — Architect self-check (patch ladder)
+Close paths all cross the `isOpen` true→false edge (Escape, Cancel / Discard via `requestClose`, host-driven); the
+overlay's own focus hand-back runs before the restore (publish-success path proven in the browser); StrictMode
+double-mount is a no-op (`wasDialogOpenRef` seeded with the current state); Base UI: no Radix-only props, and if a
+Base UI `DialogContent` does not forward `ref` the check degrades to body / alertdialog only; `stageRef` is nulled by
+the canvas ref callback on unmount, so text mode never reads a stale stage; saved overlay positions and exports are
+untouched. Not covered (unchanged behaviour): a host that unmounts `<MediaEditor>` instead of setting `isOpen` false
+gets Radix's default (no restore). No findings to fix.
+
+### U5 — Runtime proof (production build, `next start -p 3200`, Playwright Chromium)
+| Check | Desktop 1280×900 | Mobile 390×844 |
+|---|---|---|
+| story-composer demo: Escape → focus | BUTTON "Open composer" | BUTTON "Open composer" |
+| story-composer demo: publish (demo uploader; `onPublished` closes) → dialog closed, focus | closed · "Open composer" | closed · "Open composer" |
+| media-editor Chat demo (dialog): Escape → focus | BUTTON "Open editor" | — |
+| 400×1600 PNG uploaded → Text tool | text centred on the image (screenshot) | text centred on the image (screenshot) |
+| → sticker from the tray | centred on the image (screenshot) | centred on the image (screenshot) |
+
+### U5 — installs
+`story-composer` on CLI 3.8.5 + 4.18.0 → story-composer 0.6.0 + **media-editor 0.5.1** (incl. `lib/placement.ts`),
+consumer tsc 0 both; `media-editor-capture` on 4.18.0 → capture 0.5.1 + media-editor 0.5.1, tsc 0.
+
+### U6 — docs + consistency
+0.5.1 on meta.ts, registry.json (base / fixtures / capture), `public/r`, component-versions, CHANGELOG (+ capture line),
+STATUS, guide banner. Guides: media-editor "Focus on close" under Presentation, the "New text position" known gap
+removed; story-composer Accessibility note. Follow-ups F-01 / F-05 (media-editor) and F-03 (story-composer) marked done
+in their review files. Patch ladder: no review file. Decision `.claude/decisions/2026-10-26-media-editor-v0-5-1.md`;
+report-back `.claude/report-back-2026-10-26-media-editor-0-5-1.md`.

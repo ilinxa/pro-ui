@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Maximize2 } from "lucide-react";
 import type { CropRect } from "./tool-crop-overlay";
 import { resolveEditorLabels } from "../lib/normalize-labels";
+import { BASE_IMAGE_NODE_NAME } from "../lib/placement";
 import type {
   DrawingStroke,
   FilterPreset,
@@ -388,6 +389,7 @@ export function EditorCanvas({
             {image && imageUrl ? (
               <KonvaImage
                 ref={imageNodeRef}
+                name={BASE_IMAGE_NODE_NAME}
                 image={image}
                 x={fit.x}
                 y={fit.y}

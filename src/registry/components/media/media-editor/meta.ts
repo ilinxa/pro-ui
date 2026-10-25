@@ -41,7 +41,7 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.5.0",
+  version: "0.5.1",
   status: "alpha",
   heavy: true,
   // Reduced from 365 (pre-P3) — capture's ~1,284 LOC left the base folder;
@@ -55,7 +55,7 @@ export const meta: ComponentMeta = {
   // after the U4 fix wave (U1 estimated ~294) → budget 290 → 345.
   artifactBudgetKB: 345,
   createdAt: "2026-06-02",
-  updatedAt: "2026-10-25",
+  updatedAt: "2026-10-26",
 
   author: { name: "ilinxa" },
 

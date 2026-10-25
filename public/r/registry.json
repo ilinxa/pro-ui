@@ -7425,10 +7425,15 @@
           "path": "src/registry/components/media/media-editor/lib/overlay-focus.ts",
           "type": "registry:component",
           "target": "components/media-editor/lib/overlay-focus.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/placement.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/placement.ts"
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.5.1",
         "status": "alpha"
       }
     },
@@ -7454,7 +7459,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.5.1",
         "status": "alpha"
       }
     },
@@ -7471,7 +7476,7 @@
       "meta": {
         "featureOf": "media-editor",
         "budgetKB": 65,
-        "version": "0.5.0",
+        "version": "0.5.1",
         "status": "alpha"
       },
       "registryDependencies": [
