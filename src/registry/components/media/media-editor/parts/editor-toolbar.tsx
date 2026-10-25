@@ -10,14 +10,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EditTool, StoryComposerLabels } from "../types";
+import type { EditTool, MediaEditorResolvedLabels } from "../types";
 
 export interface EditorToolbarProps {
   activeTool: EditTool | null;
   enabledTools: EditTool[];
   /** Tools that aren't shipped yet — render disabled. */
   pendingTools?: EditTool[];
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
   onSelect: (tool: EditTool | null) => void;
   className?: string;
 }
@@ -25,7 +25,7 @@ export interface EditorToolbarProps {
 interface ToolConfig {
   key: EditTool;
   icon: React.ComponentType<{ className?: string }>;
-  label: (labels: Required<StoryComposerLabels>) => string;
+  label: (labels: MediaEditorResolvedLabels) => string;
 }
 
 const TOOL_ORDER: ToolConfig[] = [
@@ -50,10 +50,10 @@ export function EditorToolbar({
   return (
     <div
       role="toolbar"
-      aria-label="Edit tools"
+      aria-label={labels.editTools}
       className={cn(
         "flex items-center justify-around gap-1 rounded-2xl",
-        "bg-black/70 backdrop-blur-md px-1 py-1.5 text-white",
+        "bg-media-overlay backdrop-brightness-75 backdrop-blur-md px-1 py-1.5 text-media-overlay-foreground",
         className,
       )}
     >
@@ -72,8 +72,8 @@ export function EditorToolbar({
             aria-label={tool.label(labels)}
             onClick={() => onSelect(isActive ? null : tool.key)}
             className={cn(
-              "flex flex-col items-center gap-0.5 h-auto px-2 py-1.5 text-[10px] text-white/80 hover:bg-white/10 hover:text-white",
-              isActive && "text-white bg-white/15",
+              "flex flex-col items-center gap-0.5 h-auto px-2 py-1.5 text-[10px] text-media-overlay-foreground/80 hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground",
+              isActive && "text-media-overlay-foreground bg-media-overlay-foreground/15",
               isPending && "opacity-40",
             )}
           >

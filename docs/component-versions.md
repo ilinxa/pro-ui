@@ -115,10 +115,10 @@
 | `carousel-composer` | Carousel Composer | 0.2.2 | alpha | 2026-10-24 |
 | `content-composer` | Content Composer | 0.3.2 | alpha | 2026-10-24 |
 | `media-carousel` | Media Carousel | 0.3.1 | alpha | 2026-10-24 |
-| `media-editor` | Media Editor | 0.4.1 | alpha | 2026-10-24 |
+| `media-editor` | Media Editor | 0.5.0 | alpha | 2026-10-25 |
 | `media-library` | Media Library | 0.2.3 | alpha | 2026-10-24 |
 | `pdf-viewer` | PDF Viewer | 0.1.7 | alpha | 2026-10-24 |
-| `story-composer` | Story Composer | 0.5.1 | alpha | 2026-10-24 |
+| `story-composer` | Story Composer | 0.6.0 | alpha | 2026-10-25 |
 | `story-viewer` | Story Viewer | 0.6.0 | alpha | 2026-10-25 |
 | `video-player` | Video Player | 0.3.0 | alpha | 2026-10-24 |
 

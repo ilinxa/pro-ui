@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import type { AspectRatio } from "../media-editor";
+import type {
+  AspectRatio,
+  MediaCaptureExtension,
+  MediaEditorLabels,
+  MediaSource,
+} from "../media-editor";
 export type { AspectRatio };
 
 // ─── Modes + stage ──────────────────────────────────────────────────────
@@ -159,6 +164,36 @@ export interface PublishedStory {
   items: PublishedStoryItem[];
 }
 
+/**
+ * Fields collected on the publish details step: the first-class `caption`
+ * plus anything the host adds through `renderPublishFields`. Handed to the
+ * uploader as its third argument and appended to the default upload's FormData.
+ *
+ * FormData rules of the default upload: strings are sent as-is (an empty-string
+ * caption IS sent), other values are `JSON.stringify`-ed, and `null` /
+ * `undefined` values are skipped. A field named `file`, `metadata` or any
+ * `uploadFields` key would overwrite a reserved/host entry, so it is skipped
+ * with a one-time dev warning. A custom `uploader` receives the object untouched.
+ */
+export type PublishFields = { caption?: string } & Record<string, unknown>;
+
+/**
+ * Phase of the publish flow, as seen by `renderPublishFields` / `renderPublishingOverlay`.
+ *
+ * Lifecycle: `idle` -> `compositing` -> `uploading` -> `done` (success) or `error`.
+ * `done` is transient: it announces `labels.published` and settles back to `idle`
+ * when the composer is reopened (`isOpen` false -> true) or the details step is
+ * next opened, whichever comes first. Closing (`isOpen` false), `reset()` and
+ * Cancel return to `idle` (a pending `done` survives the close so the
+ * announcement is not cut off).
+ */
+export type PublishStatus =
+  | "idle"
+  | "compositing"
+  | "uploading"
+  | "done"
+  | "error";
+
 // ─── Slot context ───────────────────────────────────────────────────────
 
 export interface ComposerCtx {
@@ -168,7 +203,15 @@ export interface ComposerCtx {
   publishing: { active: boolean; progress: number };
   setMode: (m: ComposerMode) => void;
   cancel: () => void;
+  /**
+   * Start publishing. With a details step configured (`caption` /
+   * `renderPublishFields`) and not open, it OPENS the step instead. Ignored
+   * while a publish is already running. When the caption rules / `canPublish`
+   * block it, it warns once in development and resolves without publishing.
+   */
   publish: () => Promise<void>;
+  /** Open the details step (for a custom `renderTopBar`). Warns in development when none is configured. */
+  openDetails: () => void;
 }
 
 // ─── Uploader ───────────────────────────────────────────────────────────
@@ -176,6 +219,8 @@ export interface ComposerCtx {
 export type Uploader = (
   blob: Blob,
   metadata: PublishMetadata,
+  /** Caption + host fields from the details step (`{}` when none are configured). */
+  fields?: PublishFields,
 ) => Promise<PublishResult>;
 
 // ─── i18n labels ────────────────────────────────────────────────────────
@@ -216,13 +261,10 @@ export interface StoryComposerLabels {
   drawColor?: string;
   drawBrush?: string;
   drawEraser?: string;
-  drawUndo?: string;
-  drawRedo?: string;
 
   textPlaceholder?: string;
   textFontFamily?: string;
   textFontSize?: string;
-  textAlign?: string;
 
   publish?: string;
   publishing?: string;
@@ -235,17 +277,51 @@ export interface StoryComposerLabels {
   discardCancel?: string;
 
   uploadFailedTitle?: string;
+  uploadFailedBody?: string;
   uploadRetry?: string;
+  /** Cancel in the upload-error state (returns to the editor, draft intact). */
+  uploadCancel?: string;
+  /** Default-uploader error messages (reach `onPublishError` and `getErrorMessage`). */
+  uploadErrorNoDestination?: string;
+  uploadErrorHttp?: (status: number) => string;
+  uploadErrorNetwork?: string;
+  uploadErrorBadResponse?: string;
+  /**
+   * Message of the `AbortError` a cancelled default upload rejects with. The
+   * component swallows that rejection by design (Cancel is not a failure), so it
+   * never reaches `onPublishError`; it is visible only to `useImageUploader`
+   * callers and to a custom flow that does not treat `AbortError` as a cancel.
+   */
+  uploadCancelled?: string;
+
+  /** Details step (shown when `caption` or `renderPublishFields` is set). */
+  detailsTitle?: string;
+  detailsBack?: string;
+  captionLabel?: string;
+  captionPlaceholder?: string;
+  /** Counter text; receives locale-formatted numbers. */
+  captionCounter?: (count: string, max: string) => string;
+  /** Reason shown (and read out) while Publish is disabled because a required caption is empty. */
+  captionRequired?: string;
+  /** Reason shown while Publish is disabled because the caption is over `maxLength`; receives the locale-formatted max. */
+  captionTooLong?: (max: string) => string;
 
   recordingLabel?: string;
-  trimStart?: string;
-  trimEnd?: string;
+
+  /**
+   * Nested media-editor labels, passed straight through. Story-composer's flat
+   * editor keys above win on conflict.
+   */
+  editor?: MediaEditorLabels;
 }
 
-export const DEFAULT_STORY_COMPOSER_LABELS: Required<StoryComposerLabels> = {
-  composerLabel: "Create story",
+/** Every flat label key resolved (the nested `editor` group is optional pass-through). */
+export type ResolvedStoryComposerLabels = Required<Omit<StoryComposerLabels, "editor">>;
+
+export const DEFAULT_STORY_COMPOSER_LABELS: ResolvedStoryComposerLabels = {
+  composerLabel: "Media editor",
   composerDescription:
-    "Create a new story by capturing a photo, recording a video, or composing a text-only message. Tap the close button to exit.",
+    "Capture a photo, record a video, or compose text-only content.",
 
   modePhoto: "Photo",
   modeVideo: "Video",
@@ -260,7 +336,7 @@ export const DEFAULT_STORY_COMPOSER_LABELS: Required<StoryComposerLabels> = {
 
   permissionDeniedTitle: "Camera access blocked",
   permissionDeniedBody:
-    "We need camera permission to capture your story. Enable it in your browser settings, or choose a file from your gallery.",
+    "We need camera permission to capture media. Enable it in your browser settings, or pick a file from your gallery.",
   permissionRetry: "Try again",
   permissionUsePicker: "Use gallery instead",
   permissionRequesting: "Requesting camera…",
@@ -280,31 +356,42 @@ export const DEFAULT_STORY_COMPOSER_LABELS: Required<StoryComposerLabels> = {
   drawColor: "Color",
   drawBrush: "Brush size",
   drawEraser: "Eraser",
-  drawUndo: "Undo",
-  drawRedo: "Redo",
 
   textPlaceholder: "Type something…",
   textFontFamily: "Font",
   textFontSize: "Size",
-  textAlign: "Align",
 
   publish: "Publish",
   publishing: "Publishing…",
   published: "Published",
   close: "Close",
 
-  discardConfirmTitle: "Discard story?",
+  discardConfirmTitle: "Discard?",
   discardConfirmBody:
-    "You'll lose your captured media and edits. This can't be undone.",
+    "You'll lose your captured media and edits.",
   discardConfirm: "Discard",
   discardCancel: "Keep editing",
 
   uploadFailedTitle: "Upload failed",
+  uploadFailedBody: "Something went wrong while publishing. Your story is still here.",
   uploadRetry: "Try again",
+  uploadCancel: "Cancel",
+  uploadErrorNoDestination: "story-composer: pass `uploadUrl` or `uploader` to publish.",
+  uploadErrorHttp: (status) => `Upload failed (HTTP ${status})`,
+  uploadErrorNetwork: "Upload network error",
+  uploadErrorBadResponse: "Upload response was not JSON",
+  uploadCancelled: "Upload cancelled",
+
+  detailsTitle: "Add details",
+  detailsBack: "Back",
+  captionLabel: "Caption",
+  captionPlaceholder: "Write a caption…",
+  captionCounter: (count, max) => `${count} / ${max}`,
+  captionRequired: "Add a caption to publish",
+  captionTooLong: (max) => `Caption is too long (max ${max})`,
 
   recordingLabel: "Recording",
-  trimStart: "Start",
-  trimEnd: "End",
+
 };
 
 // ─── Public component props ─────────────────────────────────────────────
@@ -318,10 +405,51 @@ export interface StoryComposerProps {
   uploadUrl?: string;
   uploader?: Uploader;
   uploadFields?: Record<string, string>;
-  onPublished: (story: PublishedStory) => void;
+  /**
+   * Called when publishing completes. `result` is the uploader's resolved value,
+   * untouched (server ids, extra fields …). One-argument handlers keep working.
+   */
+  onPublished: (story: PublishedStory, result: PublishResult) => void;
   onPublishError?: (error: Error) => void;
+  /** Message shown in the upload-error overlay. Default: `labels.uploadFailedBody`. */
+  getErrorMessage?: (error: Error) => string;
+
+  // Publish details
+  /**
+   * First-class caption field. Setting it makes Publish open a details step
+   * (caption + `renderPublishFields` + Back / Publish) instead of publishing in one tap.
+   */
+  caption?: { maxLength?: number; required?: boolean; placeholder?: string };
+  /** Host fields on the details step. Setting it also enables the details step. */
+  renderPublishFields?: (ctx: {
+    value: PublishFields;
+    onChange: (next: PublishFields) => void;
+    status: PublishStatus;
+  }) => ReactNode;
+  /** Controlled publish fields. When defined it wins on every render. */
+  publishFields?: PublishFields;
+  onPublishFieldsChange?: (next: PublishFields) => void;
+  /**
+   * Extra gate for Publish (details step, or the top bar when there is no details
+   * step). Combined with the caption rules (`required`, `maxLength`) — both must pass.
+   */
+  canPublish?: (fields: PublishFields) => boolean;
 
   // Capture
+  /**
+   * Camera + recording extension. Omit it for an upload-only composer (the
+   * default). To keep the camera, install `@ilinxa/media-editor-capture` and pass
+   * `capture={mediaCapture}`.
+   */
+  capture?: MediaCaptureExtension;
+  /** Intake sources. Default `["camera","upload"]` when `capture` is given, else `["upload"]`. */
+  sources?: MediaSource[];
+  /** MIME types the editor accepts (forwarded to media-editor). */
+  acceptMediaTypes?: string[];
+  /** Allowed video output formats (forwarded to media-editor). */
+  videoOutput?: { mimeTypes?: string[] };
+  /** BCP-47 locale for number formatting (progress %, caption counter); forwarded to media-editor. */
+  locale?: string;
   defaultMode?: ComposerMode;
   hideModes?: ComposerMode[];
   defaultFacing?: "user" | "environment";
@@ -368,6 +496,12 @@ export interface StoryComposerProps {
   renderPublishingOverlay?: (ctx: {
     progress: number;
     mode: ComposerMode;
+    status: PublishStatus;
+    /** The failure, when `status` is "error". */
+    error: Error | null;
+    retry: () => void;
+    /** Dismiss the overlay and return to the editor (draft intact). */
+    cancel: () => void;
   }) => ReactNode;
 }
 

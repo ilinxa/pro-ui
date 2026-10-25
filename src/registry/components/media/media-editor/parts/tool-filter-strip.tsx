@@ -102,8 +102,8 @@ export function ToolFilterStrip({
     <div
       className={cn(
         "flex items-center gap-2 overflow-x-auto overscroll-x-contain",
-        "rounded-2xl bg-black/70 backdrop-blur-md p-2 text-white",
-        "scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent",
+        "rounded-2xl bg-media-overlay backdrop-brightness-75 backdrop-blur-md p-2 text-media-overlay-foreground",
+        "scrollbar-thin scrollbar-thumb-media-overlay-foreground/20 scrollbar-track-transparent",
         className,
       )}
     >
@@ -121,15 +121,15 @@ export function ToolFilterStrip({
             }
             className={cn(
               "flex-none flex flex-col items-center gap-1 outline-none",
-              "focus-visible:ring-2 focus-visible:ring-white rounded-lg",
+              "focus-visible:ring-2 focus-visible:ring-media-overlay-foreground rounded-lg",
             )}
             aria-pressed={isActive}
             aria-label={preset.label}
           >
             <div
               className={cn(
-                "size-14 rounded-lg overflow-hidden bg-black/60 ring-2 transition-shadow",
-                isActive ? "ring-white" : "ring-transparent",
+                "size-14 rounded-lg overflow-hidden bg-media-overlay ring-2 transition-shadow",
+                isActive ? "ring-media-overlay-foreground" : "ring-transparent",
               )}
             >
               {url ? (
@@ -139,7 +139,7 @@ export function ToolFilterStrip({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-white/5 animate-pulse" />
+                <div className="w-full h-full bg-media-overlay-foreground/5 animate-pulse" />
               )}
             </div>
             <span className="text-[10px] font-medium uppercase tracking-wider">

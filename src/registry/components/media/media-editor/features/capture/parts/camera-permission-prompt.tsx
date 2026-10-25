@@ -3,7 +3,7 @@
 import { Camera, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { StoryComposerLabels } from "../../../types";
+import type { MediaEditorResolvedLabels } from "../../../types";
 
 export type PermissionPromptVariant =
   | "idle"
@@ -14,7 +14,7 @@ export type PermissionPromptVariant =
 
 export interface CameraPermissionPromptProps {
   variant: PermissionPromptVariant;
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
   onRetry: () => void;
   onUsePicker: () => void;
   className?: string;
@@ -31,7 +31,7 @@ export function CameraPermissionPrompt({
     return (
       <div
         className={cn(
-          "flex flex-col items-center justify-center gap-3 text-center text-white/70 px-6",
+          "flex flex-col items-center justify-center gap-3 text-center text-media-overlay-foreground/80 px-6",
           className,
         )}
       >
@@ -45,29 +45,29 @@ export function CameraPermissionPrompt({
     return (
       <div
         className={cn(
-          "flex flex-col items-center justify-center gap-4 text-center text-white px-6 max-w-sm mx-auto",
+          "flex flex-col items-center justify-center gap-4 text-center text-media-overlay-foreground px-6 max-w-sm mx-auto",
           className,
         )}
       >
         <Camera className="size-8" />
         <div className="space-y-1.5">
-          <p className="text-base font-medium">Camera ready</p>
-          <p className="text-sm text-white/70 leading-relaxed">
-            Tap below to enable your camera, or pick a file from the gallery.
+          <p className="text-base font-medium">{labels.permissionIdleTitle}</p>
+          <p className="text-sm text-media-overlay-foreground/80 leading-relaxed">
+            {labels.permissionIdleBody}
           </p>
         </div>
         <div className="flex flex-col gap-2 w-full">
           <Button
             onClick={onRetry}
             variant="secondary"
-            className="bg-white text-black hover:bg-white/90"
+            className="bg-media-overlay-foreground text-black hover:bg-media-overlay-foreground/90"
           >
-            Enable camera
+            {labels.permissionEnable}
           </Button>
           <Button
             onClick={onUsePicker}
             variant="ghost"
-            className="text-white hover:bg-white/10 hover:text-white"
+            className="text-media-overlay-foreground hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground"
           >
             {labels.permissionUsePicker}
           </Button>
@@ -78,9 +78,9 @@ export function CameraPermissionPrompt({
 
   const title =
     variant === "no-camera"
-      ? "No camera available"
+      ? labels.permissionNoCameraTitle
       : variant === "error"
-        ? "Camera unavailable"
+        ? labels.permissionErrorTitle
         : labels.permissionDeniedTitle;
 
   return (
@@ -88,14 +88,14 @@ export function CameraPermissionPrompt({
       role="alert"
       aria-live="polite"
       className={cn(
-        "flex flex-col items-center justify-center gap-4 text-center text-white px-6 max-w-sm mx-auto",
+        "flex flex-col items-center justify-center gap-4 text-center text-media-overlay-foreground px-6 max-w-sm mx-auto",
         className,
       )}
     >
-      <AlertTriangle className="size-8 text-amber-400" />
+      <AlertTriangle className="size-8 text-warning" />
       <div className="space-y-1.5">
         <p className="text-base font-medium">{title}</p>
-        <p className="text-sm text-white/70 leading-relaxed">
+        <p className="text-sm text-media-overlay-foreground/80 leading-relaxed">
           {labels.permissionDeniedBody}
         </p>
       </div>
@@ -103,14 +103,14 @@ export function CameraPermissionPrompt({
         <Button
           onClick={onRetry}
           variant="secondary"
-          className="bg-white text-black hover:bg-white/90"
+          className="bg-media-overlay-foreground text-black hover:bg-media-overlay-foreground/90"
         >
           {labels.permissionRetry}
         </Button>
         <Button
           onClick={onUsePicker}
           variant="ghost"
-          className="text-white hover:bg-white/10 hover:text-white"
+          className="text-media-overlay-foreground hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground"
         >
           {labels.permissionUsePicker}
         </Button>

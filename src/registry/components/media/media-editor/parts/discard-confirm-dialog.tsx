@@ -10,11 +10,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { StoryComposerLabels } from "../types";
+import type { MediaEditorResolvedLabels } from "../types";
 
 export interface DiscardConfirmDialogProps {
   open: boolean;
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
   onCancel: () => void;
   onConfirm: () => void;
 }

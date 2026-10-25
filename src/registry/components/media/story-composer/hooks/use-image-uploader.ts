@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type {
-  PublishMetadata,
-  PublishResult,
-  Uploader,
+import {
+  DEFAULT_STORY_COMPOSER_LABELS,
+  type PublishFields,
+  type PublishMetadata,
+  type PublishResult,
+  type ResolvedStoryComposerLabels,
+  type Uploader,
 } from "../types";
 
 export type UploadStatus =
@@ -14,6 +17,16 @@ export type UploadStatus =
   | "error"
   | "cancelled";
 
+/** The label keys the uploader's own error messages come from. */
+export type UploaderMessages = Pick<
+  ResolvedStoryComposerLabels,
+  | "uploadErrorNoDestination"
+  | "uploadErrorHttp"
+  | "uploadErrorNetwork"
+  | "uploadErrorBadResponse"
+  | "uploadCancelled"
+>;
+
 export interface UseImageUploaderOptions {
   /** Server endpoint for default POST FormData upload (Q-P6a). */
   uploadUrl?: string;
@@ -21,6 +34,8 @@ export interface UseImageUploaderOptions {
   uploadFields?: Record<string, string>;
   /** Custom uploader — wins over uploadUrl when both are set. */
   uploader?: Uploader;
+  /** Localized error messages (the component passes its resolved labels). Default: English. */
+  messages?: UploaderMessages;
 }
 
 export interface UseImageUploaderResult {
@@ -28,7 +43,11 @@ export interface UseImageUploaderResult {
   /** 0..1 — determinate when XMLHttpRequest reports lengthComputable. */
   progress: number;
   error: Error | null;
-  upload: (blob: Blob, metadata: PublishMetadata) => Promise<PublishResult>;
+  upload: (
+    blob: Blob,
+    metadata: PublishMetadata,
+    fields?: PublishFields,
+  ) => Promise<PublishResult>;
   cancel: () => void;
   reset: () => void;
 }
@@ -38,15 +57,21 @@ export interface UseImageUploaderResult {
  *
  * XMLHttpRequest, not fetch — fetch lacks upload-progress events in browsers,
  * which the publishing overlay needs for a determinate progress bar.
+ *
+ * Publish fields (caption + host fields) are appended to the FormData next to
+ * `uploadFields`: strings as-is, everything else `JSON.stringify`-ed. A custom
+ * `uploader` receives them as its third argument instead.
  */
 export function useImageUploader(
   options: UseImageUploaderOptions,
 ): UseImageUploaderResult {
   const { uploadUrl, uploadFields, uploader } = options;
+  const messages = options.messages ?? DEFAULT_STORY_COMPOSER_LABELS;
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const warnedKeysRef = useRef(new Set<string>());
 
   const reset = useCallback(() => {
     setStatus("idle");
@@ -61,7 +86,11 @@ export function useImageUploader(
   }, []);
 
   const upload = useCallback(
-    async (blob: Blob, metadata: PublishMetadata): Promise<PublishResult> => {
+    async (
+      blob: Blob,
+      metadata: PublishMetadata,
+      fields: PublishFields = {},
+    ): Promise<PublishResult> => {
       setStatus("uploading");
       setProgress(0);
       setError(null);
@@ -69,12 +98,12 @@ export function useImageUploader(
       // Custom uploader path (S3 pre-signed PUT / Cloudinary / Mux).
       if (uploader) {
         try {
-          const result = await uploader(blob, metadata);
+          const result = await uploader(blob, metadata, fields);
           setStatus("done");
           setProgress(1);
           return result;
         } catch (err) {
-          const e = err as Error;
+          const e = err instanceof Error ? err : new Error(String(err));
           setStatus("error");
           setError(e);
           throw e;
@@ -83,9 +112,7 @@ export function useImageUploader(
 
       // Default POST FormData path.
       if (!uploadUrl) {
-        const e = new Error(
-          "story-composer: pass `uploadUrl` or `uploader` to publish.",
-        );
+        const e = new Error(messages.uploadErrorNoDestination);
         setStatus("error");
         setError(e);
         throw e;
@@ -119,16 +146,16 @@ export function useImageUploader(
               setProgress(1);
               resolve(parsed);
             } catch (parseErr) {
-              const e =
-                parseErr instanceof Error
-                  ? parseErr
-                  : new Error("Upload response was not JSON");
+              // Always the localized message; the parser's own error is the cause.
+              const e = new Error(messages.uploadErrorBadResponse, {
+                cause: parseErr,
+              });
               setStatus("error");
               setError(e);
               reject(e);
             }
           } else {
-            const e = new Error(`Upload failed (HTTP ${xhr.status})`);
+            const e = new Error(messages.uploadErrorHttp(xhr.status));
             setStatus("error");
             setError(e);
             reject(e);
@@ -137,7 +164,7 @@ export function useImageUploader(
 
         xhr.onerror = () => {
           xhrRef.current = null;
-          const e = new Error("Upload network error");
+          const e = new Error(messages.uploadErrorNetwork);
           setStatus("error");
           setError(e);
           reject(e);
@@ -148,7 +175,7 @@ export function useImageUploader(
           // status already set to "cancelled" by cancel(). Reject so awaiting
           // callers don't hang forever — DOMException/AbortError mirrors the
           // fetch abort contract, so callers can filter it from real errors.
-          reject(new DOMException("Upload cancelled", "AbortError"));
+          reject(new DOMException(messages.uploadCancelled, "AbortError"));
         };
 
         const form = new FormData();
@@ -169,10 +196,27 @@ export function useImageUploader(
         if (uploadFields) {
           for (const [k, v] of Object.entries(uploadFields)) form.append(k, v);
         }
+        // Publish fields (caption + host fields): strings as-is (an empty
+        // caption IS sent), the rest JSON; null / undefined are skipped (never
+        // the literal "null"). A key that would overwrite the file, the metadata
+        // or an `uploadFields` entry is skipped with a one-time dev warning.
+        for (const [k, v] of Object.entries(fields)) {
+          if (v === undefined || v === null) continue;
+          if (k === "file" || k === "metadata" || (uploadFields && k in uploadFields)) {
+            if (process.env.NODE_ENV !== "production" && !warnedKeysRef.current.has(k)) {
+              warnedKeysRef.current.add(k);
+              console.warn(
+                `story-composer: publish field "${k}" collides with a reserved upload field (file / metadata / uploadFields) and was not sent.`,
+              );
+            }
+            continue;
+          }
+          form.append(k, typeof v === "string" ? v : JSON.stringify(v));
+        }
         xhr.send(form);
       });
     },
-    [uploadFields, uploadUrl, uploader],
+    [uploadFields, uploadUrl, uploader, messages],
   );
 
   return { status, progress, error, upload, cancel, reset };

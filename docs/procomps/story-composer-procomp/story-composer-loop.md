@@ -94,7 +94,7 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — camera becomes opt-in (default install drops capture); `labels.editor` follows media-editor C17; 0.x minor) |
-| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Current stage** | **U5 (installs pending)** — release 3 built, uncommitted; resume: `.claude/HANDOFF-2026-10-23-social-platform-hardening.md` RESUME HERE |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.5.1 → **v0.6.0**, released **together with media-editor 0.5.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -107,7 +107,12 @@ needs a plan").
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
-- [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
+- [x] U2 Implement — user "go" 2026-10-25; slices A/B (media-editor) + C (story-composer), see "U2 result"
+- [x] U3 Gate battery — two full runs, see "U3"
+- [x] U4 Adversarial review — 2 code finders + browser finder; fix waves falsified, see "U4"
+- [x] U5 Runtime & smoke — browser ✓ (re-verify 8/9 + crop-chip fix, falsified); installs ✓ (story-composer alone 4.18.0 + 3.8.5; capture + dependents 4.18.0; content-composer alone 3.8.5; the 3.8.5 dependency-already-installed abort = story-viewer F-01 class) — see "U5 — installs"
+- [x] U6 Docs sync & review — guide / meta / usage / CHANGELOG / review file; smoke rows; pre-push consistency review (CR-1…) — see "Final consistency review"
+- [ ] U7 Ship — commit + push + live poll pending
 
 ## U0 — Intake
 
@@ -199,3 +204,117 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 - **SC1 is only real without the capture import graph:** remove the `ComposerCamera` / `EditorCameraProps` re-exports (`index.ts`) along with the static `mediaCapture` import. Smoke: an upload-only install (base item alone) compiles with consumer `tsc` 0 and contains no `features/capture` file. Question 4 resolved: remove the stale compat re-exports. [F-03]
 - Overlay colours ship through the `--media-overlay` `cssVars.theme` mapping on this item (`validate:registry-tokens`). [F-09]
 - Decision 5 waiver (Konva stays with the editor, platform-accepted) is recorded in the U7 decision file. [F-16]
+
+## U2 — Implement (release 3, started 2026-10-25 on the user's go)
+
+Architect decisions taken at U2:
+
+- **Publish details step.** When `caption` or `renderPublishFields` is configured, Publish opens a details step (rendered
+  through media-editor `overlay`) with the caption field, the host fields and Back / Publish; `canPublish(fields)`
+  gates its Publish. Without either, Publish stays one tap (today's behaviour).
+- `PublishFields = { caption?: string } & Record<string, unknown>`; the default uploader appends `caption` and each
+  field to the FormData (non-strings JSON-encoded).
+- Labels: story-composer maps its flat editor keys with media-editor's `editorLabelsFromFlat` and merges
+  `labels.editor` (flat-derived wins); the cast goes. Only overrides are forwarded, as today (output unchanged).
+- `labels.published` is rendered as the polite announcement when publishing completes.
+- Every stale compat band in `index.ts` is removed (the "REMOVED in v0.5.0" aliases and the "removed in v0.3.0" lib /
+  defaults / crop re-exports) — question 4, as recommended.
+
+| # | Slice | Owner | Status |
+|---|---|---|---|
+| C | SC1 capture opt-in · SC2 publish fields · SC4 error state · SC5 `onPublished(story, result)` · SC6 labels · housekeeping · tests | Sonnet implementer (wave 1, parallel with media-editor A) | running |
+| — | registry.json (drop `media-editor-capture` dep, roster, cssVars), meta 0.6.0, guide + migration, CHANGELOG, contract closure | architect | queued |
+
+### U2 result (2026-10-25)
+
+- Slice C: done — SC1 (no `features/capture` import in shipped files), SC2 (details step `parts/publish-details-step.tsx`,
+  `PublishFields`, controlled pair, `canPublish`, uploader 3rd arg, FormData), SC4 (Cancel keeps the draft,
+  `getErrorMessage`, localized uploader errors via a `messages` option, overlay ctx), SC5, SC6 (`editorLabelsFromFlat`
+  + deep merge, no cast), `labels.published` → `role="status"`, `locale`, compat bands removed (29 names), RTL + caption
+  demo tabs. Tests: 4 files; every new test falsified (CAUGHT) except 3 green-only rows.
+- Architect: removed the never-rendered `drawUndo` / `drawRedo` / `textAlign` keys (found by a key-reachability scan —
+  the inert-surface gate does not see label keys); the source-scan test now skips unshipped `demo` / `usage` / `meta`;
+  registry (`textarea` dep, `-media-editor-capture`, roster + `publish-details-step.tsx`, cssVars, 0.6.0); stale
+  heavy-edge baseline row deleted; contract `closed` += story-composer; meta 0.6.0, budget 60 → **70** (built 63.6 KB);
+  guide rewritten for 0.6.0 (it still described v0.1.5 and claimed undo/redo + trim/bake on video), usage, CHANGELOG.
+
+### U3 — Gate battery (2026-10-25)
+
+Shared with media-editor — see `../media-editor-procomp/media-editor-loop.md` "U3 — Gate battery (2026-10-25)".
+
+### U4 — Adversarial review (2026-10-25)
+
+Fresh Sonnet finder on a frozen snapshot (story-composer + dependents axis, 17 rows) + browser finder. Architect verdicts:
+
+| # | Sev | Finding | Verdict | Fix (wave 1) |
+|---|---|---|---|---|
+| S1 | ⚠️ | 14 flat editor keys (`shutterPhoto`, `drawColor`, `textPlaceholder`, `composerLabel`, …) no longer forwarded | CONFIRMED (verified `EDITOR_FLAT_KEYS` = 24) | forward every override through `editorLabelsFromFlat` |
+| S2 | ⚠️ | Escape / backdrop under the details step or upload → discard confirm / host closed mid-upload | CONFIRMED | media-editor ignores dialog close under an overlay; Escape in details = Back |
+| S3 | ⚠️ | details step / error / caption survive close + reopen; status stuck at `done` | CONFIRMED | reset on close; `done` → `idle` |
+| S4 | ⚠️ | the guide's `renderPublishFields` example disables the picker on the 2nd story | CONFIRMED | falls out of S3 |
+| S5 | 🔸 | Cancel → Publish races the abandoned flow (single boolean) | CONFIRMED | run token |
+| S6 | 🔸 | no re-entrancy guard; `reset()` mid-publish still reaches `onPublished` | CONFIRMED | guard + reset cancels |
+| S7 | 🔸 | a throwing `onPublished` shows "Upload failed" and Retry re-uploads | CONFIRMED | outside the try |
+| S8 | 🔸 | gated `publish()` resolves silently; custom top bars can't reach the details step | CONFIRMED | opens the step / dev-warns; `ctx.openDetails` |
+| S9 | 🔸 | `uploadErrorBadResponse` dead (SyntaxError passed through in English) | CONFIRMED | wrap with `cause` |
+| S10 | 🔸 | focus lost when overlay content swaps | CONFIRMED | autofocus per state |
+| S11 | 🔸 | details step a11y (counter, invalid / required, disabled reason, live region re-announces %) | CONFIRMED | fixed |
+| S12 | 🔸 | default accept admits WebM; request §5.8 asked for a no-WebM default | DROPPED as a code change — U1 (platform-signed) kept `["image/*","video/*"]`; hosts pass `acceptMediaTypes` / `videoOutput`. Recorded in the U7 decision + report-back |
+| S13 | 🔹 | explicit `undefined` label overrides wipe defaults (function labels crash) | CONFIRMED | filter undefined |
+| S14 | 🔹 | FormData field collisions; `null` sent as `"null"` | CONFIRMED | reserved keys skipped + warn |
+| S15 | 🔹 | `Intl.NumberFormat` per render, throws on a malformed locale | CONFIRMED | memo + `"en"` fallback |
+| S16 | 🔹 | dependents (carousel / content-composer) have 2 tests in total | CONFIRMED — follow-up (owner: carousel-composer 0.3.0 loop, release 5); U5 installs both |
+| S17 | 🔹 | duplicate `PublishStatus` in the hook | CONFIRMED | import |
+
+Browser finder verdicts (story-composer rows; shared rows in the media-editor loop doc):
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| B4 | 🔸 | after a successful publish, reopening shows the published draft | CONFIRMED → S18 (draft consumed on success) |
+| B7 | 🔸 | caption counter 3.26:1 / placeholder ~4.3:1 over a bright image | CONFIRMED → S19 |
+| B9 | 🔹 | caption counter reversed in RTL | CONFIRMED → S20 |
+| B12 | 🔹 | RTL demo leaks English (demo-only) | CONFIRMED → S21 |
+| B13 | 🔹 | in-flight Cancel reads "Keep editing" | DROPPED — today's wording, intentional |
+
+### U4 fix wave (2026-10-25)
+
+Sonnet implementer; tests `__tests__/fix-wave.test.tsx` + `fix-wave-real-editor.test.tsx` (real editor, dialog
+presentation); 27 mutations, all CAUGHT (S6's first test missed the double start — the token masked it; an
+`export()` count fixed the test). S1 whole override object through `editorLabelsFromFlat` · S2 Escape in details = Back,
+no-op on the overlay · S3/S4 close resets the flow, `done` → `idle` · S5 run token · S6 one flow at a time, `reset()`
+cancels · S7 `onPublished` outside the try · S8 `publish()` opens the details step / dev-warns; `ctx.openDetails` · S9
+bad JSON → labelled error with `cause` · S10 autofocus per overlay state · S11 counter `aria-describedby`,
+`aria-invalid` / `aria-required`, visible reason (`captionRequired`, `captionTooLong(max)`), % outside the live region ·
+S13 `definedOnly` · S14 reserved FormData keys · S15 cached formatters, `"en"` fallback · S17 · S18 the editor resets
+after a successful publish · S19 `backdrop-brightness-40` + text alphas (computed, re-measure in the browser) · S20
+`<bdi dir="ltr">` counter · S21 Arabic demo. Final: 6 files / 73 tests.
+
+### U5 — installs (2026-10-25/26)
+
+`pnpm test:install` on the local `public/r` (commit charge 47.4 / 63.8 GB before starting — the earlier timeouts were
+the host, and the old content-composer "timeout" was most likely the 3.8.5 overwrite prompt below waiting on stdin).
+
+| Items | CLI | Result |
+|---|---|---|
+| `story-composer` | 4.18.0 | pass — story-composer 0.6.0 + media-editor 0.5.0, tsc 0, no `features/capture` in the consumer (pre-restart); re-run 2026-10-26 after CR-2/CR-3 on the rebuilt `public/r`: pass, tsc 0 |
+| `story-composer` | 3.8.5 | pass, tsc 0 |
+| `media-editor`, `-capture`, `story-composer-fixtures`, `carousel-composer`, `content-composer` | 4.18.0 | pass — 13 items, tsc 0 |
+| same sequence | 3.8.5 | expected-fail — `content-composer` stops at "types.ts already exists. Overwrite?" (its media-editor dependency was installed by the earlier adds; `--yes` does not answer it), writes nothing, exit 0; json-form tsc errors are fallout. story-viewer F-01 class |
+| `content-composer` alone | 3.8.5 | pass — media-editor 0.5.0 + capture 0.5.0 + the content-composer tree, tsc 0 |
+
+### Final consistency review (pre-push, 2026-10-26)
+
+- **Versions:** 0.5.0 / 0.5.0 / 0.6.0 on meta.ts, registry.json (base, fixtures, capture), `public/r`,
+  component-versions, README, CHANGELOG, STATUS, both guides — consistent.
+- **Roster vs folder:** media-editor, media-editor-capture, story-composer — missing 0, extra 0.
+- **Claims vs code:** fresh Sonnet doc verifier (read-only) over CHANGELOG, both guides, meta, usage, registry.json —
+  12 findings, all confirmed and fixed (recorded as CR-* in each review file): the migration table sent the renamed
+  aliases `ComposerEditor` / `ComposerToolbar` / `ComposerCamera` to media-editor under their old names (High);
+  `enabledTools` documented as gating export + handle methods (it filters the chip row); Cancel's label while uploading;
+  `videoOutput` inert without `capture`; story-composer's exported label defaults never rendered (now equal the
+  rendered English, script-diffed 0); `trimStart` / `trimEnd` inert + dev-warning in the demo (removed); stale sizes;
+  `meta.ts` shadcn deps; four wording items. Video trim/bake and "no MediaRecorder" did not recur.
+- **Counts:** media-editor 9 test files + story-composer 6 = 15 files / 193 passed (1 skipped), run alone.
+- **Final battery (after the CR fixes):** tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (validators 0
+  findings) · doc-budget 0 · tests 138 files / 1900 passed / 6 skipped · `pnpm build` 0 (77 pages). Artifacts:
+  media-editor 332.9 / 345 KB, capture 53.7 / 65, story-composer 74.5 / 80.

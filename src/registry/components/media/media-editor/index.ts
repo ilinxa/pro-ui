@@ -75,6 +75,9 @@ export type {
   EditorCtx,
   // Labels
   MediaEditorLabels,
+  MediaEditorResolvedLabels,
+  MediaEditorDefaultLabels,
+  MediaEditorPresetNames,
   // Public component contracts
   MediaEditorProps,
   MediaEditorHandle,
@@ -159,7 +162,14 @@ export {
 
 // validate-media-file (P3 S3 — extracted from the old use-media-capture.ts;
 // generic file-intake, not a capture concern, so it stayed in base):
-export { validateGalleryFile } from "./lib/validate-media-file";
+export {
+  validateGalleryFile,
+  type ValidateGalleryFileOptions,
+} from "./lib/validate-media-file";
+
+// normalize-labels (C17): flat -> nested label conversion for hosts that keep
+// a flat label object (story-composer).
+export { editorLabelsFromFlat } from "./lib/normalize-labels";
 
 // konva-filters (C4):
 export {

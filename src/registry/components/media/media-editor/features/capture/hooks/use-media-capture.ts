@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type RefObject,
@@ -61,6 +62,11 @@ export interface UseMediaCaptureOptions {
    * browser permission prompts are jarring without a triggering interaction.
    */
   autoAcquire?: boolean;
+  /**
+   * Allowed recording formats in preference order (`videoOutput.mimeTypes`).
+   * Default: the built-in chain (WebM VP9 -> VP8 -> MP4).
+   */
+  videoMimeTypes?: string[];
 }
 
 export interface UseMediaCaptureResult {
@@ -124,6 +130,7 @@ export function useMediaCapture(
     requestAudio = false,
     maxVideoDurationSec = 30,
     autoAcquire = true,
+    videoMimeTypes,
   } = options;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -148,12 +155,17 @@ export function useMediaCapture(
   } | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingMs, setRecordingMs] = useState(0);
-  // Recorder MIME probed once on the first client render via useState's lazy
-  // initializer (SSR yields null; selectRecorderMime is a deterministic
-  // capability check). Replaces the old write-a-ref-during-render init,
-  // which the React Compiler forbids.
-  const [recorderMime] = useState<string | null>(() =>
-    typeof window === "undefined" ? null : selectRecorderMime(),
+  // Recorder MIME probed on the client (SSR yields null; selectRecorderMime is
+  // a deterministic capability check). The allow-list (`videoMimeTypes`, in
+  // preference order) is keyed by content so an inline array literal does not
+  // re-probe every render; "|" cannot occur in a MIME type.
+  const mimeKey = videoMimeTypes?.join("|") ?? "";
+  const recorderMime = useMemo<string | null>(
+    () =>
+      typeof window === "undefined"
+        ? null
+        : selectRecorderMime(mimeKey ? mimeKey.split("|") : undefined),
+    [mimeKey],
   );
 
   // Acquire epoch — a monotonically increasing token claimed per acquire().
@@ -302,7 +314,7 @@ export function useMediaCapture(
     // Defensive re-probe if the lazy init yielded null (matches the old
     // ref-cached behavior — selectRecorderMime is deterministic, so a null
     // here re-probes to null and throws below).
-    const mime = recorderMime ?? selectRecorderMime();
+    const mime = recorderMime ?? selectRecorderMime(mimeKey ? mimeKey.split("|") : undefined);
     if (!mime) {
       throw new Error("This browser does not support video recording");
     }
@@ -359,7 +371,7 @@ export function useMediaCapture(
       },
       maxVideoDurationSec * 1000,
     );
-  }, [clearRecordingTimers, maxVideoDurationSec, recorderMime]);
+  }, [clearRecordingTimers, maxVideoDurationSec, recorderMime, mimeKey]);
 
   const stopRecording = useCallback((): Promise<CapturedVideo> => {
     const rec = recorderRef.current;
@@ -465,6 +477,7 @@ export function useMediaCapture(
 
 /** Suggested filename for a recorded clip — useful for the publish step. */
 export function suggestedVideoFilename(mime: string): string {
+  // now-ok: builds a filename on demand (called from publish handlers); never reaches markup
   return `story-${Date.now()}.${containerFor(mime) === "unknown" ? "bin" : containerFor(mime)}`;
 }
 

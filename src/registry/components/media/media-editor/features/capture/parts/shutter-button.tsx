@@ -116,7 +116,7 @@ export function ShutterButton({
         "relative grid place-items-center size-[clamp(3rem,12vw,4.25rem)] rounded-full",
         "transition-transform active:scale-95",
         "disabled:opacity-40 disabled:cursor-not-allowed",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-media-overlay-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
         className,
       )}
       style={ringStyle}
@@ -124,18 +124,18 @@ export function ShutterButton({
       {/* Outer ring (idle white border; conic on record) */}
       {mode === "video" && isRecording ? (
         // Filled ring is the gradient on the button itself; inner stop-square sits inside
-        <span className="grid place-items-center size-[80%] rounded-full bg-black/60">
-          <span className="size-[36%] rounded-md bg-red-500" />
+        <span className="grid place-items-center size-[80%] rounded-full bg-media-overlay">
+          <span className="size-[36%] rounded-md bg-destructive" />
         </span>
       ) : (
         <span
           className={cn(
-            "size-full rounded-full ring-4 ring-white/30 ring-offset-2 ring-offset-transparent grid place-items-center",
-            "bg-white",
+            "size-full rounded-full ring-4 ring-media-overlay-foreground/30 ring-offset-2 ring-offset-transparent grid place-items-center",
+            "bg-media-overlay-foreground",
           )}
         >
           {mode === "video" ? (
-            <span className="size-[30%] rounded-full bg-red-500" />
+            <span className="size-[30%] rounded-full bg-destructive" />
           ) : null}
         </span>
       )}

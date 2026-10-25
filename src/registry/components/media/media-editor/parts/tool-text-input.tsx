@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ColorSwatchPicker } from "./color-swatch-picker";
+import { formatNumber } from "../lib/format-number";
 import type {
   FontOption,
-  StoryComposerLabels,
+  MediaEditorResolvedLabels,
   TextOverlay,
 } from "../types";
 
@@ -16,7 +17,9 @@ export interface ToolTextInputProps {
   overlay: TextOverlay;
   fonts: FontOption[];
   colorPresets: string[];
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
+  /** BCP 47 locale for the font size shown. Default: `"en"`. */
+  locale?: string;
   onChange: (next: TextOverlay) => void;
   onDelete: () => void;
   className?: string;
@@ -34,6 +37,7 @@ export function ToolTextInput({
   fonts,
   colorPresets,
   labels,
+  locale,
   onChange,
   onDelete,
   className,
@@ -52,7 +56,7 @@ export function ToolTextInput({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-2xl bg-black/70 backdrop-blur-md p-3 text-white",
+        "flex flex-col gap-3 rounded-2xl bg-media-overlay backdrop-brightness-75 backdrop-blur-md p-3 text-media-overlay-foreground",
         className,
       )}
     >
@@ -62,7 +66,7 @@ export function ToolTextInput({
         onChange={(e) => update({ text: e.target.value })}
         placeholder={labels.textPlaceholder}
         rows={2}
-        className="w-full resize-none rounded-md bg-black/40 border border-white/15 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40"
+        className="w-full resize-none rounded-md bg-media-overlay border border-media-overlay-foreground/15 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-media-overlay-foreground/40"
         style={{ fontFamily: overlay.fontFamily }}
       />
 
@@ -75,7 +79,7 @@ export function ToolTextInput({
           id="text-font"
           value={overlay.fontFamily}
           onChange={(e) => update({ fontFamily: e.target.value })}
-          className="flex-1 h-8 rounded-md bg-black/40 border border-white/15 px-2 text-xs"
+          className="min-w-0 flex-1 h-8 rounded-md bg-media-overlay border border-media-overlay-foreground/15 px-2 text-xs"
         >
           {fonts.map((font) => (
             <option
@@ -93,22 +97,29 @@ export function ToolTextInput({
           presets={colorPresets}
           onChange={(color) => update({ fill: color })}
           ariaLabel={labels.drawColor}
+          labels={labels}
         />
 
         {/* Align toggle */}
-        <div className="inline-flex rounded-md bg-black/40 border border-white/15 p-0.5">
+        <div className="inline-flex shrink-0 rounded-md bg-media-overlay border border-media-overlay-foreground/15 p-0.5">
           {(["left", "center", "right"] as const).map((align) => (
             <button
               key={align}
               type="button"
               onClick={() => update({ align })}
-              aria-label={`${labels.textAlign} ${align}`}
+              aria-label={
+                align === "left"
+                  ? labels.textAlignLeft
+                  : align === "center"
+                    ? labels.textAlignCenter
+                    : labels.textAlignRight
+              }
               aria-pressed={overlay.align === align}
               className={cn(
-                "p-1 rounded-sm",
+                "inline-grid min-h-6 min-w-6 place-items-center rounded-sm",
                 overlay.align === align
-                  ? "bg-white text-black"
-                  : "text-white/80 hover:text-white",
+                  ? "bg-media-overlay-foreground text-black"
+                  : "text-media-overlay-foreground/80 hover:text-media-overlay-foreground",
               )}
             >
               {align === "left" ? (
@@ -126,8 +137,8 @@ export function ToolTextInput({
           variant="ghost"
           size="icon"
           onClick={onDelete}
-          aria-label="Delete text"
-          className="size-8 text-red-300 hover:bg-red-500/15 hover:text-red-200"
+          aria-label={labels.textDelete}
+          className="size-8 shrink-0 text-[color-mix(in_oklab,var(--destructive)_45%,var(--media-overlay-foreground,currentColor))] hover:bg-destructive/15 hover:text-[color-mix(in_oklab,var(--destructive)_25%,var(--media-overlay-foreground,currentColor))]"
         >
           <Trash2 className="size-4" />
         </Button>
@@ -135,7 +146,7 @@ export function ToolTextInput({
 
       {/* Font size slider */}
       <div className="flex items-center gap-3">
-        <span className="text-[10px] uppercase tracking-wider text-white/60 w-10">
+        <span className="text-[10px] uppercase tracking-wider text-media-overlay-foreground/75 w-10">
           {labels.textFontSize}
         </span>
         <Slider
@@ -151,7 +162,7 @@ export function ToolTextInput({
           className="flex-1"
         />
         <span className="text-xs font-mono tabular-nums w-8 text-end">
-          {overlay.fontSize}
+          {formatNumber(overlay.fontSize, locale)}
         </span>
       </div>
     </div>

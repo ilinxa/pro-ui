@@ -3,7 +3,7 @@
 import { Loader2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { StoryComposerLabels } from "../types";
+import type { ResolvedStoryComposerLabels } from "../types";
 
 export interface ComposerPublishBarProps {
   isPublishing: boolean;
@@ -21,7 +21,7 @@ export interface ComposerPublishBarProps {
    * capture mode keep close, since there's no Back to fall back to.
    */
   showClose?: boolean;
-  labels: Required<StoryComposerLabels>;
+  labels: ResolvedStoryComposerLabels;
   onPublish: () => void;
   onClose: () => void;
   className?: string;
@@ -59,7 +59,7 @@ export function ComposerPublishBar({
           disabled={isPublishing}
           // Matches the editor's Back arrow (dark scrim circle) so the
           // top-left action looks identical across capture + edit stages.
-          className="rounded-full bg-black/30 text-white backdrop-blur hover:bg-black/45 hover:text-white"
+          className="rounded-full bg-media-overlay text-media-overlay-foreground backdrop-blur hover:bg-media-overlay hover:text-media-overlay-foreground"
         >
           <X className="size-5" />
         </Button>
@@ -72,9 +72,9 @@ export function ComposerPublishBar({
           disabled={!canPublish || isPublishing}
           aria-busy={isPublishing}
           className={cn(
-            // ml-auto keeps Publish pinned right even when the close button is
+            // ms-auto keeps Publish pinned right even when the close button is
             // hidden (otherwise justify-between would pull a lone child left).
-            "ms-auto rounded-full bg-white text-black hover:bg-white/90 gap-1.5 px-4",
+            "ms-auto rounded-full gap-1.5 px-4",
             "disabled:opacity-50",
           )}
         >

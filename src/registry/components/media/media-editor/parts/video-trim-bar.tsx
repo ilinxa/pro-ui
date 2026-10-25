@@ -9,7 +9,8 @@ import {
   type PointerEvent,
 } from "react";
 import { cn } from "@/lib/utils";
-import type { StoryComposerLabels } from "../types";
+import { formatNumber } from "../lib/format-number";
+import type { MediaEditorResolvedLabels } from "../types";
 
 export interface VideoTrimBarProps {
   /** Source video URL (object URL from a Blob is fine). */
@@ -21,7 +22,9 @@ export interface VideoTrimBarProps {
   durationSec: number;
   /** Number of preview thumbnails to generate (default 8). */
   thumbnailCount?: number;
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
+  /** BCP 47 locale for the seconds shown. Default: `"en"`. */
+  locale?: string;
   onChange: (next: { startSec: number; endSec: number }) => void;
   className?: string;
 }
@@ -46,9 +49,11 @@ export function VideoTrimBar({
   durationSec,
   thumbnailCount = 8,
   labels,
+  locale,
   onChange,
   className,
 }: VideoTrimBarProps) {
+  const formatSeconds = (s: number) => formatNumber(s, locale, { min: 1 });
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [thumbs, setThumbs] = useState<FrameThumb[]>([]);
   const draggingRef = useRef<"start" | "end" | null>(null);
@@ -153,15 +158,19 @@ export function VideoTrimBar({
 
   return (
     <div className={cn("flex flex-col gap-2 select-none", className)}>
-      <div className="flex items-center justify-between text-[10px] font-mono text-white/70">
-        <span>{labels.trimStart}: {startSec.toFixed(1)}s</span>
-        <span>{labels.trimEnd}: {endSec.toFixed(1)}s</span>
+      <div className="flex items-center justify-between text-[10px] font-mono text-media-overlay-foreground/80">
+        <span>
+          {labels.trimStart}: {labels.trimSeconds(startSec, formatSeconds(startSec))}
+        </span>
+        <span>
+          {labels.trimEnd}: {labels.trimSeconds(endSec, formatSeconds(endSec))}
+        </span>
       </div>
       <div
         ref={trackRef}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className="relative h-16 rounded-md overflow-hidden bg-black/40 ring-1 ring-white/10"
+        className="relative h-16 rounded-md overflow-hidden bg-media-overlay ring-1 ring-media-overlay-foreground/10"
       >
         {/* Frame strip */}
         <div className="absolute inset-0 flex">
@@ -169,7 +178,7 @@ export function VideoTrimBar({
             typeof entry === "number" ? (
               <div
                 key={i}
-                className="flex-1 bg-gradient-to-b from-white/5 to-white/10 animate-pulse"
+                className="flex-1 bg-linear-to-b from-media-overlay-foreground/5 to-media-overlay-foreground/10 animate-pulse"
               />
             ) : (
               <div
@@ -183,19 +192,19 @@ export function VideoTrimBar({
         {/* Dim out trimmed regions */}
         <div
           // dir-ok: trim overlay sized by startPct/endPct on a left-to-right time axis
-          className="absolute inset-y-0 left-0 bg-black/60"
+          className="absolute inset-y-0 left-0 bg-media-overlay"
           style={{ width: `${startPct}%` }}
           aria-hidden
         />
         <div
           // dir-ok: trim overlay sized by startPct/endPct on a left-to-right time axis
-          className="absolute inset-y-0 right-0 bg-black/60"
+          className="absolute inset-y-0 right-0 bg-media-overlay"
           style={{ width: `${100 - endPct}%` }}
           aria-hidden
         />
         {/* Selection outline */}
         <div
-          className="absolute inset-y-0 border-y-2 border-white pointer-events-none"
+          className="absolute inset-y-0 border-y-2 border-media-overlay-foreground pointer-events-none"
           style={{ left: `${startPct}%`, right: `${100 - endPct}%` }}
           aria-hidden
         />
@@ -205,10 +214,10 @@ export function VideoTrimBar({
           aria-label={labels.trimStart}
           onPointerDown={handlePointerDown("start")}
           // dir-ok: handle placed by inline style left percent on a left-to-right time axis; -ml centres it
-          className="absolute top-0 bottom-0 w-3 -ml-1.5 grid place-items-center bg-white text-black cursor-ew-resize touch-none"
+          className="absolute top-0 bottom-0 w-3 -ml-1.5 grid place-items-center bg-media-overlay-foreground text-black cursor-ew-resize touch-none"
           style={{ left: `${startPct}%` }}
         >
-          <span className="block h-6 w-0.5 bg-black/60" aria-hidden />
+          <span className="block h-6 w-0.5 bg-media-overlay" aria-hidden />
         </button>
         {/* End handle */}
         <button
@@ -216,10 +225,10 @@ export function VideoTrimBar({
           aria-label={labels.trimEnd}
           onPointerDown={handlePointerDown("end")}
           // dir-ok: handle placed by inline style left percent on a left-to-right time axis; -ml centres it
-          className="absolute top-0 bottom-0 w-3 -ml-1.5 grid place-items-center bg-white text-black cursor-ew-resize touch-none"
+          className="absolute top-0 bottom-0 w-3 -ml-1.5 grid place-items-center bg-media-overlay-foreground text-black cursor-ew-resize touch-none"
           style={{ left: `${endPct}%` }}
         >
-          <span className="block h-6 w-0.5 bg-black/60" aria-hidden />
+          <span className="block h-6 w-0.5 bg-media-overlay" aria-hidden />
         </button>
       </div>
     </div>

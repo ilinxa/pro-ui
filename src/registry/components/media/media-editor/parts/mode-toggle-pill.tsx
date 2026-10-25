@@ -1,12 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ComposerMode, StoryComposerLabels } from "../types";
+import type { ComposerMode, MediaEditorResolvedLabels } from "../types";
 
 export interface ModeTogglePillProps {
   mode: ComposerMode;
   visibleModes: ComposerMode[];
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
   onModeChange: (mode: ComposerMode) => void;
   className?: string;
 }
@@ -35,7 +35,7 @@ export function ModeTogglePill({
     <div
       role="group"
       className={cn(
-        "inline-flex rounded-full bg-black/40 backdrop-blur-md p-1 text-white",
+        "inline-flex rounded-full bg-media-overlay backdrop-blur-md p-1 text-media-overlay-foreground",
         className,
       )}
     >
@@ -54,8 +54,8 @@ export function ModeTogglePill({
               "rounded-full px-4 py-1.5 text-xs font-medium tracking-wide uppercase",
               "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
-                ? "bg-white text-black"
-                : "text-white/70 hover:bg-white/10 hover:text-white",
+                ? "bg-media-overlay-foreground text-black"
+                : "text-media-overlay-foreground/80 hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground",
             )}
           >
             {labelFor(m, labels)}
@@ -68,7 +68,7 @@ export function ModeTogglePill({
 
 function labelFor(
   mode: ComposerMode,
-  labels: Required<StoryComposerLabels>,
+  labels: MediaEditorResolvedLabels,
 ): string {
   switch (mode) {
     case "photo":

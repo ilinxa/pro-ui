@@ -50,7 +50,7 @@ export function Example() {
           Four orthogonal props that gate the editor surface. Defaults are
           the maximal configuration.
         </p>
-        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
           <li>
             <code>enabledModes</code> — array of{" "}
             <code>&quot;photo&quot;</code> / <code>&quot;video&quot;</code>{" "}
@@ -63,7 +63,7 @@ export function Example() {
             <code>&quot;stickers&quot;</code> /{" "}
             <code>&quot;filters&quot;</code> /{" "}
             <code>&quot;adjust&quot;</code> / <code>&quot;crop&quot;</code>.
-            Filters the toolbar and skips the corresponding layer at export.
+            Filters the toolbar chips only — handle methods and export are not gated.
           </li>
           <li>
             <code>mediaSources</code> — array of{" "}
@@ -103,8 +103,8 @@ import { mediaCapture } from "@/components/media-editor/features/capture"
           <code>mediaSources</code> falls back to the base file/gallery
           intake surface (a button + hidden file input) — one dev{" "}
           <code>console.warn</code> fires, and the editor stays fully usable:
-          pick a file → edit → export. Base-alone never pulls konva/
-          react-konva-adjacent camera weight it doesn&apos;t need.
+          pick a file → edit → export. Base-alone never ships the camera
+          code (getUserMedia / MediaRecorder capture) it doesn&apos;t need.
         </p>
       </section>
 
@@ -117,7 +117,7 @@ import { mediaCapture } from "@/components/media-editor/features/capture"
           land directly in the edit canvas with the source pre-loaded.
           Three accepted shapes:
         </p>
-        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
           <li>
             <code>{`{ kind: "url", url, mode }`}</code> — editor{" "}
             <code>fetch()</code>es the URL. Same-origin or CORS-friendly
@@ -179,7 +179,7 @@ const { blob, metadata } = await editorRef.current.exportImage({
 })
 
 // Video — perf-shortcut returns the raw blob when no overlays have
-// been added; otherwise re-encodes through MediaRecorder with the
+// been added and there is no crop; otherwise re-encodes through MediaRecorder with the
 // Konva overlay baked in per frame.
 const out = await editorRef.current.exportVideo({
   onProgress: (p) => …,        // ~10 ticks across the re-encode
@@ -193,17 +193,32 @@ const out = await editorRef.current.export()`}</code>
       <section>
         <h3 className="mb-2 text-base font-semibold">Imperative handle</h3>
         <p className="text-muted-foreground">
-          22 methods total — inspect (<code>getIsDirty</code>,{" "}
-          <code>getMode</code>, <code>getState</code>,{" "}
-          <code>loadState</code>), capture (<code>switchCamera</code>,{" "}
-          <code>takePhoto</code>, <code>startRecording</code>,{" "}
-          <code>stopRecording</code>, <code>importFromGallery</code>), edit
-          (<code>addText</code>, <code>addSticker</code>,{" "}
-          <code>setAdjustments</code>, <code>applyFilter</code>,{" "}
-          <code>clearLayer</code>, <code>undo</code>, <code>redo</code>),
-          export (<code>exportImage</code>, <code>exportVideo</code>,{" "}
-          <code>export</code>), and lifecycle (<code>reset</code>,{" "}
-          <code>open</code>, <code>close</code>).
+          Inspect (<code>getIsDirty</code>, <code>getMode</code>,{" "}
+          <code>getState</code>, <code>loadState</code>,{" "}
+          <code>getSourceBlob</code>), edit (<code>addText(text)</code>,{" "}
+          <code>addSticker</code>, <code>setAdjustments</code>,{" "}
+          <code>applyFilter</code>, <code>clearLayer</code>), export (
+          <code>exportImage</code>, <code>exportVideo</code>,{" "}
+          <code>export</code>), lifecycle (<code>reset</code>,{" "}
+          <code>close</code>). Not implemented — they warn in development and
+          do nothing: the capture methods (<code>takePhoto</code>,{" "}
+          <code>startRecording</code>, …), <code>undo</code> /{" "}
+          <code>redo</code>, <code>open</code> and <code>addText()</code>{" "}
+          without text.
+        </p>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-base font-semibold">Labels, locale, formats</h3>
+        <p className="text-muted-foreground">
+          Every string comes from <code>labels</code> (nested, every key
+          optional; templated strings are functions) and preset names from{" "}
+          <code>labels.presets</code>; <code>locale</code> formats the
+          numbers. <code>acceptMediaTypes</code> sets what can be picked;{" "}
+          <code>videoOutput={'{{ mimeTypes: ["video/mp4"] }}'}</code> limits
+          what is recorded or re-encoded — if the browser can record none of
+          them, the video mode is hidden. Videos are not edited (no tool
+          chips) and export as the original file.
         </p>
       </section>
 

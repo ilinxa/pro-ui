@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { normalizeEditorLabels } from "../lib/normalize-labels";
 
 describe("normalizeEditorLabels", () => {
-  it("maps nested MediaEditorLabels keys onto the flat shape", () => {
+  it("maps nested MediaEditorLabels keys onto the flat shape (publish is not a group any more: ignored)", () => {
     const out = normalizeEditorLabels({
       capture: {
         requestingCamera: "R",
@@ -15,7 +15,7 @@ describe("normalizeEditorLabels", () => {
       adjust: { brightness: "b", contrast: "c2", saturation: "s2", blur: "bl" },
       discard: { title: "dt", body: "db", cancel: "dc", confirm: "dk" },
       publish: { exporting: "ignored" },
-      empty: { noSource: "ignored" },
+      empty: { noSource: "NS" },
     });
     expect(out).toEqual({
       permissionRequesting: "R",
@@ -42,6 +42,7 @@ describe("normalizeEditorLabels", () => {
       discardConfirmBody: "db",
       discardCancel: "dc",
       discardConfirm: "dk",
+      emptyNoSource: "NS",
     });
   });
 

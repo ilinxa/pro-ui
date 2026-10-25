@@ -7100,12 +7100,19 @@
       ],
       "registryDependencies": [
         "@ilinxa/media-editor",
-        "@ilinxa/media-editor-capture",
-        "button"
+        "button",
+        "textarea"
       ],
       "dependencies": [
         "lucide-react@^1.11.0"
       ],
+      "cssVars": {
+        "theme": {
+          "color-media-overlay": "var(--media-overlay, oklch(0 0 0 / 0.55))",
+          "color-media-overlay-foreground": "var(--media-overlay-foreground, oklch(1 0 0))",
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/media/story-composer/story-composer.tsx",
@@ -7141,10 +7148,15 @@
           "path": "src/registry/components/media/story-composer/parts/publishing-progress-overlay.tsx",
           "type": "registry:component",
           "target": "components/story-composer/parts/publishing-progress-overlay.tsx"
+        },
+        {
+          "path": "src/registry/components/media/story-composer/parts/publish-details-step.tsx",
+          "type": "registry:component",
+          "target": "components/story-composer/parts/publish-details-step.tsx"
         }
       ],
       "meta": {
-        "version": "0.5.1",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -7170,7 +7182,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.1",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -7198,7 +7210,9 @@
       ],
       "cssVars": {
         "theme": {
-          "color-destructive-foreground": "var(--destructive-foreground, var(--background))"
+          "color-destructive-foreground": "var(--destructive-foreground, var(--background))",
+          "color-media-overlay": "var(--media-overlay, oklch(0 0 0 / 0.55))",
+          "color-media-overlay-foreground": "var(--media-overlay-foreground, oklch(1 0 0))"
         }
       },
       "files": [
@@ -7391,10 +7405,30 @@
           "path": "src/registry/components/media/media-editor/lib/is-editable-target.ts",
           "type": "registry:component",
           "target": "components/media-editor/lib/is-editable-target.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/format-number.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/format-number.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/preset-names.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/preset-names.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/probe-video.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/probe-video.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/overlay-focus.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/overlay-focus.ts"
         }
       ],
       "meta": {
-        "version": "0.4.1",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -7420,7 +7454,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.1",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -7437,7 +7471,7 @@
       "meta": {
         "featureOf": "media-editor",
         "budgetKB": 65,
-        "version": "0.4.1",
+        "version": "0.5.0",
         "status": "alpha"
       },
       "registryDependencies": [
@@ -7447,6 +7481,13 @@
       "dependencies": [
         "lucide-react@^1.11.0"
       ],
+      "cssVars": {
+        "theme": {
+          "color-media-overlay": "var(--media-overlay, oklch(0 0 0 / 0.55))",
+          "color-media-overlay-foreground": "var(--media-overlay-foreground, oklch(1 0 0))",
+          "color-warning": "var(--warning, oklch(0.78 0.16 75))"
+        }
+      },
       "files": [
         {
           "path": "src/registry/components/media/media-editor/features/capture/index.ts",

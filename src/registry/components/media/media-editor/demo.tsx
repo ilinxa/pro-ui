@@ -35,7 +35,7 @@ import type {
  *                  gallery intake fallback (pick file → edit → export) plus
  *                  the one dev console.warn.
  */
-type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture";
+type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture" | "rtl";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "defaults", label: "Defaults" },
@@ -44,6 +44,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "edit-only", label: "Edit-only" },
   { value: "dark", label: "Dark" },
   { value: "no-capture", label: "No-capture (base-alone)" },
+  { value: "rtl", label: "RTL" },
 ];
 
 export default function MediaEditorDemo() {
@@ -77,6 +78,8 @@ export default function MediaEditorDemo() {
         <ChatDemo />
       ) : tab === "edit-only" ? (
         <EditOnlyDemo />
+      ) : tab === "rtl" ? (
+        <RtlDemo />
       ) : tab === "dark" ? (
         <DarkDemo />
       ) : (
@@ -416,6 +419,117 @@ function NoCaptureDemo() {
       </p>
       <MediaEditor ref={editorRef} presentation="inline" />
       <DemoActions editorRef={editorRef} />
+    </div>
+  );
+}
+
+// ─── RTL ──────────────────────────────────────────────────────────────
+
+function RtlDemo() {
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        Right-to-left: the editor inherits <code>dir</code> from its ancestor,
+        so the Back button sits on the start (right) edge and the tool and mode
+        rows mirror. Labels and number formatting come from{" "}
+        <code>labels</code> and <code>locale</code>.
+      </p>
+      <div dir="rtl" lang="ar">
+        <MediaEditor
+          presentation="inline"
+          mediaSources={["upload"]}
+          locale="ar"
+          labels={{
+            shell: {
+              title: "محرر الوسائط",
+              description: "التقط صورة أو سجّل فيديو أو أنشئ محتوى نصيًا.",
+              back: "رجوع",
+              apply: "تطبيق",
+              cancel: "إلغاء",
+              backToCapture: "العودة",
+              editTools: "أدوات التعديل",
+            },
+            intake: {
+              prompt: "اختر صورة أو فيديو للتعديل",
+              unknownType: "غير معروف",
+              unsupportedType: (fileType) => `نوع الملف غير مدعوم: ${fileType}`,
+              fileTooLarge: (_sizeMb, _maxMb, sizeFormatted, maxFormatted) =>
+                `حجم الملف ${sizeFormatted} ميغابايت — الحد الأقصى ${maxFormatted} ميغابايت`,
+            },
+            capture: {
+              galleryButton: "اختيار من المعرض",
+              switchCamera: "تبديل الكاميرا",
+              modes: { photo: "صورة", video: "فيديو", text: "نص" },
+              connectCta: "الاتصال بالكاميرا",
+              connectHint: "اختر وضعًا أعلاه أو انتقل مباشرة إلى الكاميرا.",
+              requestingCamera: "جارٍ طلب الكاميرا…",
+              noCameraTitle: "لا توجد كاميرا متاحة",
+              cameraErrorTitle: "الكاميرا غير متاحة",
+              recording: "تسجيل",
+              shutter: {
+                photo: "التقاط صورة",
+                videoStart: "بدء التسجيل",
+                videoStop: "إيقاف التسجيل",
+              },
+            },
+            toolbar: {
+              text: "نص",
+              draw: "رسم",
+              stickers: "ملصقات",
+              filters: "فلاتر",
+              adjust: "ضبط",
+              crop: "قص",
+            },
+            adjust: {
+              brightness: "السطوع",
+              contrast: "التباين",
+              saturation: "التشبع",
+              blur: "التمويه",
+            },
+            draw: { color: "اللون", brushSize: "حجم الفرشاة", eraser: "ممحاة" },
+            text: {
+              placeholder: "اكتب شيئًا…",
+              fontFamily: "الخط",
+              fontSize: "الحجم",
+              alignLeft: "محاذاة لليسار",
+              alignCenter: "محاذاة للوسط",
+              alignRight: "محاذاة لليمين",
+              delete: "حذف النص",
+              background: "الخلفية",
+            },
+            color: { hex: "سداسي", swatch: (color) => `اللون ${color}` },
+            crop: {
+              free: "حر",
+              aspectCount: (_count, formatted) => `(${formatted} نسب قص)`,
+            },
+            canvas: {
+              label: "لوحة محرر الوسائط — الأسهم للتحريك، + و - للتكبير، 0 للإعادة",
+              resetZoom: "إعادة التكبير",
+              resizeHandle: (corner) => `تغيير الحجم ${corner}`,
+            },
+            discard: {
+              title: "تجاهل؟",
+              body: "ستفقد الوسائط والتعديلات التي أجريتها.",
+              cancel: "متابعة التعديل",
+              confirm: "تجاهل",
+            },
+            empty: {
+              noSource: "لا يوجد مصدر",
+              noSourceHint: "مرّر initialSource أو فعّل وضع التقاط في enabledModes.",
+              noSourceAria: "محرر الوسائط: لا يوجد مصدر. مرّر initialSource أو فعّل وضع التقاط.",
+              loadFailed: "تعذّر تحميل المصدر",
+              attempted: "المحاول",
+              enabled: "المفعّل",
+              type: "النوع",
+              blank: "(فارغ)",
+              none: "(لا شيء)",
+              noCaptureSource: "لا يوجد مصدر التقاط",
+              aspect: "النسبة:",
+              sources: "المصادر:",
+            },
+          }}
+        />
+      </div>
     </div>
   );
 }

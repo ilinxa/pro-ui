@@ -260,7 +260,10 @@ export interface ExportImageOpts {
 }
 
 export interface ExportVideoOpts {
-  /** Default auto-pick via mime-fallback chain (vp9 → vp8 → mp4). */
+  /**
+   * Default: the first type in `videoOutput.mimeTypes` this browser can record,
+   * else the built-in chain (WebM VP9 → VP8 → MP4).
+   */
   mimeType?: string;
   /** Default browser-chosen. */
   bitsPerSecond?: number;
@@ -272,8 +275,14 @@ export type ExportOpts = ExportImageOpts | ExportVideoOpts;
 
 export interface ExportMetadata {
   mode: ComposerMode;
+  /**
+   * Output pixel size. For an unedited video returned as the original file this
+   * is the file's own size (from the capture, or read from its metadata); only
+   * if that cannot be determined does it fall back to 720 x 1280.
+   */
   width: number;
   height: number;
+  /** Video length. For an unedited video, omitted when it cannot be determined. */
   durationMs?: number;
   mimeType: string;
   textOverlays: TextOverlay[];
@@ -298,81 +307,179 @@ export interface EditorCtx {
   aspect: AspectRatio;
 }
 
-// ─── Compile-time shim for v0.1.5 part label deps (REMOVED IN C17) ──────
-// Several parts (camera-permission-prompt, discard-confirm-dialog, editor-camera,
-// editor-toolbar, mode-toggle-pill, text-only-canvas, tool-*) were authored
-// against story-composer's flat StoryComposerLabels shape. Refactoring
-// each part to use MediaEditorLabels is C17-territory (wrapper refactor).
-// This temporary alias mirrors the v0.1.5 shape verbatim so the parts compile
-// post-move. NOT exported via barrel — purely an internal compile shim.
+// ─── i18n labels ────────────────────────────────────────────────────────
+//
+// `MediaEditorLabels` (nested, every group and key optional) is the ONLY typed
+// input for the `labels` prop. `MediaEditorResolvedLabels` (flat, fully
+// populated) is what the editor hands to its parts and to a capture surface
+// after merging the consumer's labels over `DEFAULT_LABELS`. Parameterised
+// strings are functions, never templates with placeholders.
 
-/** @internal — temporary shim; refactored to MediaEditorLabels in C17. */
-export interface StoryComposerLabels {
-  composerLabel?: string;
-  composerDescription?: string;
-  modePhoto?: string;
-  modeVideo?: string;
-  modeText?: string;
-  shutterPhoto?: string;
-  shutterVideoStart?: string;
-  shutterVideoStop?: string;
-  galleryPicker?: string;
-  switchCamera?: string;
-  permissionDeniedTitle?: string;
-  permissionDeniedBody?: string;
-  permissionRetry?: string;
-  permissionUsePicker?: string;
-  permissionRequesting?: string;
-  toolText?: string;
-  toolDraw?: string;
-  toolStickers?: string;
-  toolFilters?: string;
-  toolAdjust?: string;
-  toolCrop?: string;
-  adjustBrightness?: string;
-  adjustContrast?: string;
-  adjustSaturation?: string;
-  adjustBlur?: string;
-  drawColor?: string;
-  drawBrush?: string;
-  drawEraser?: string;
-  drawUndo?: string;
-  drawRedo?: string;
-  textPlaceholder?: string;
-  textFontFamily?: string;
-  textFontSize?: string;
-  textAlign?: string;
-  publish?: string;
-  publishing?: string;
-  published?: string;
-  close?: string;
-  discardConfirmTitle?: string;
-  discardConfirmBody?: string;
-  discardConfirm?: string;
-  discardCancel?: string;
-  uploadFailedTitle?: string;
-  uploadRetry?: string;
-  recordingLabel?: string;
-  trimStart?: string;
-  trimEnd?: string;
+/**
+ * The flat, fully populated label set the editor hands to its parts and to a
+ * capture surface (`MediaCaptureSurfaceProps.labels`). Every key has exactly
+ * one nested path in `MediaEditorLabels` (see `lib/normalize-labels.ts`).
+ * Consumers pass `MediaEditorLabels`; only a custom capture surface or a
+ * direct user of the exported parts reads this shape.
+ */
+export interface MediaEditorResolvedLabels {
+  // shell
+  composerLabel: string;
+  composerDescription: string;
+  back: string;
+  apply: string;
+  cancel: string;
+  backToCapture: string;
+  editTools: string;
+  // capture surface
+  modePhoto: string;
+  modeVideo: string;
+  modeText: string;
+  shutterPhoto: string;
+  shutterVideoStart: string;
+  shutterVideoStop: string;
+  galleryPicker: string;
+  switchCamera: string;
+  recordingLabel: string;
+  connectCamera: string;
+  connectHint: string;
+  permissionRequesting: string;
+  permissionIdleTitle: string;
+  permissionIdleBody: string;
+  permissionEnable: string;
+  permissionDeniedTitle: string;
+  permissionDeniedBody: string;
+  permissionRetry: string;
+  permissionUsePicker: string;
+  permissionNoCameraTitle: string;
+  permissionErrorTitle: string;
+  videoUnsupported: string;
+  videoFailed: string;
+  /** `ValidationError.message` when `videoOutput.mimeTypes` names no format this browser can record. */
+  videoCodecUnavailable: string;
+  // toolbar + tools
+  toolText: string;
+  toolDraw: string;
+  toolStickers: string;
+  toolFilters: string;
+  toolAdjust: string;
+  toolCrop: string;
+  adjustBrightness: string;
+  adjustContrast: string;
+  adjustSaturation: string;
+  adjustBlur: string;
+  drawColor: string;
+  drawBrush: string;
+  drawEraser: string;
+  textPlaceholder: string;
+  textFontFamily: string;
+  textFontSize: string;
+  textAlignLeft: string;
+  textAlignCenter: string;
+  textAlignRight: string;
+  textDelete: string;
+  textBackground: string;
+  colorHex: string;
+  colorSwatch: (color: string) => string;
+  cropAspectFree: string;
+  /** `formatted` is `count` through `Intl.NumberFormat(locale)`. */
+  cropAspectCount: (count: number, formatted: string) => string;
+  // canvas
+  canvasAriaLabel: string;
+  resetZoom: string;
+  /** `corner` is "NW" | "NE" | "SW" | "SE". */
+  resizeHandle: (corner: string) => string;
+  // trim bar
+  trimStart: string;
+  trimEnd: string;
+  /** `formatted` is `seconds` through `Intl.NumberFormat(locale)`, one decimal. */
+  trimSeconds: (seconds: number, formatted: string) => string;
+  // discard guard
+  discardConfirmTitle: string;
+  discardConfirmBody: string;
+  discardConfirm: string;
+  discardCancel: string;
+  // file intake + validation messages
+  intakePrompt: string;
+  fileUnknownType: string;
+  fileUnsupportedType: (fileType: string) => string;
+  /** Sizes are in MB; `*Formatted` are the numbers through `Intl.NumberFormat(locale)`. */
+  fileTooLarge: (
+    sizeMb: number,
+    maxMb: number,
+    sizeFormatted: string,
+    maxFormatted: string,
+  ) => string;
+  // empty / error copy
+  emptyNoSource: string;
+  emptyNoSourceHint: string;
+  emptyNoSourceAria: string;
+  emptyLoadFailed: string;
+  emptyAttempted: string;
+  emptyEnabled: string;
+  emptyType: string;
+  emptyBlank: string;
+  emptyNone: string;
+  emptyNoCaptureSource: string;
+  emptyAspect: string;
+  emptySources: string;
 }
 
-// ─── i18n labels (NEW — full key tree per description §11) ──────────────
+/** Id -> display-name maps for the built-in (or consumer-supplied) preset data. */
+export interface MediaEditorPresetNames {
+  /** Text-only background gradients, keyed by `GradientPreset.id`. */
+  backgrounds?: Record<string, string>;
+  /** Font options, keyed by `FontOption.id`. */
+  fonts?: Record<string, string>;
+  /** Sticker set tabs, keyed by `StickerSet.id`. */
+  stickerSets?: Record<string, string>;
+  /** Sticker alt texts, keyed by `StickerOption.id`. */
+  stickers?: Record<string, string>;
+  /** Filter strip names, keyed by `FilterPreset.id`. */
+  filters?: Record<string, string>;
+}
 
+/** Nested, fully optional input for the `labels` prop. Anything omitted falls back to `DEFAULT_LABELS`. */
 export interface MediaEditorLabels {
-  capture: {
+  shell?: {
+    /** Dialog title (screen-reader only). */
+    title?: string;
+    /** Dialog description (screen-reader only). */
+    description?: string;
+    back?: string;
+    apply?: string;
+    cancel?: string;
+    backToCapture?: string;
+    /** Accessible name of the edit-tools toolbar. */
+    editTools?: string;
+  };
+  capture?: {
     requestingCamera?: string;
-    cameraDenied: {
+    /** Shown before the camera is enabled. */
+    cameraIdle?: { title?: string; body?: string; enableCta?: string };
+    cameraDenied?: {
       title?: string;
       body?: string;
       retryCta?: string;
       useGalleryCta?: string;
     };
+    noCameraTitle?: string;
+    cameraErrorTitle?: string;
     galleryButton?: string;
     switchCamera?: string;
-    modes: { photo?: string; video?: string; text?: string };
+    modes?: { photo?: string; video?: string; text?: string };
+    shutter?: { photo?: string; videoStart?: string; videoStop?: string };
+    recording?: string;
+    connectCta?: string;
+    connectHint?: string;
+    /** Messages for `ValidationError.message` raised by the camera. */
+    errors?: {
+      videoUnsupported?: string;
+      videoFailed?: string;
+      videoCodecUnavailable?: string;
+    };
   };
-  toolbar: {
+  toolbar?: {
     text?: string;
     draw?: string;
     stickers?: string;
@@ -380,29 +487,94 @@ export interface MediaEditorLabels {
     adjust?: string;
     crop?: string;
   };
-  adjust: {
+  adjust?: {
     brightness?: string;
     contrast?: string;
     saturation?: string;
     blur?: string;
   };
+  draw?: { color?: string; brushSize?: string; eraser?: string };
+  text?: {
+    placeholder?: string;
+    fontFamily?: string;
+    fontSize?: string;
+    alignLeft?: string;
+    alignCenter?: string;
+    alignRight?: string;
+    delete?: string;
+    /** Text-only mode background picker button. */
+    background?: string;
+  };
+  color?: {
+    hex?: string;
+    swatch?: (color: string) => string;
+  };
+  crop?: {
+    free?: string;
+    aspectCount?: (count: number, formatted: string) => string;
+  };
+  canvas?: {
+    label?: string;
+    resetZoom?: string;
+    resizeHandle?: (corner: string) => string;
+  };
   /**
-   * @notImplemented No editor surface renders publish copy — these keys are accepted but
-   * have no effect (a dev-only warning fires when they are passed).
+   * Labels for the exported `VideoTrimBar`.
+   *
+   * @notImplemented `<MediaEditor>` does not mount the trim bar; these keys
+   * reach only an exported `VideoTrimBar` you mount yourself, through its
+   * `labels` prop. Passing them to `<MediaEditor labels>` has no effect (and
+   * warns once in development).
    */
-  publish: { exporting?: string; cancel?: string; ready?: string };
-  discard: {
+  trim?: {
+    start?: string;
+    end?: string;
+    seconds?: (seconds: number, formatted: string) => string;
+  };
+  discard?: {
     title?: string;
     body?: string;
     cancel?: string;
     confirm?: string;
   };
-  /**
-   * @notImplemented The editor has no "no source" empty copy of its own — use `renderEmpty`.
-   * Accepted but has no effect (a dev-only warning fires when it is passed).
-   */
-  empty: { noSource?: string };
+  intake?: {
+    prompt?: string;
+    unknownType?: string;
+    unsupportedType?: (fileType: string) => string;
+    fileTooLarge?: (
+      sizeMb: number,
+      maxMb: number,
+      sizeFormatted: string,
+      maxFormatted: string,
+    ) => string;
+  };
+  /** The editor's own empty / error copy (rendered when no `renderEmpty` slot replaces it). */
+  empty?: {
+    noSource?: string;
+    noSourceHint?: string;
+    noSourceAria?: string;
+    loadFailed?: string;
+    attempted?: string;
+    enabled?: string;
+    type?: string;
+    blank?: string;
+    none?: string;
+    noCaptureSource?: string;
+    aspect?: string;
+    sources?: string;
+  };
+  /** Display names for preset data (id -> name). Falls back to each preset's own label. */
+  presets?: MediaEditorPresetNames;
 }
+
+type DeepRequired<T> = T extends (...args: never[]) => unknown
+  ? T
+  : T extends object
+    ? { [K in keyof T]-?: DeepRequired<NonNullable<T[K]>> }
+    : T;
+
+/** Fully populated nested defaults (every string the editor renders). `presets` has no defaults. */
+export type MediaEditorDefaultLabels = Omit<DeepRequired<MediaEditorLabels>, "presets">;
 
 // ─── Public component props ─────────────────────────────────────────────
 
@@ -452,6 +624,24 @@ export interface MediaEditorProps {
   onValidationError?: (error: ValidationError) => void;
   onPermissionDenied?: () => void;
 
+  // === Intake + output formats ===
+  /**
+   * MIME types the editor accepts, for both file pickers (base and capture)
+   * and the file validator. MIME types only (wildcards like `video/*` allowed),
+   * not file extensions; `initialSource` is not validated against it.
+   * Default `["image/*", "video/*"]`.
+   */
+  acceptMediaTypes?: string[];
+  /**
+   * Allowed video output formats, for re-encoding and camera recording.
+   * `mimeTypes` is an allow-list in order of preference (for example
+   * `["video/mp4"]`); entries are exact MIME types (no wildcards). When the browser can record none of them, the video
+   * mode is hidden and `onValidationError` fires once. Default: the built-in
+   * chain (WebM VP9 → WebM VP8 → MP4). An unedited video is passed through
+   * as the original file either way.
+   */
+  videoOutput?: { mimeTypes?: string[] };
+
   // === Edit-tool config ===
   stickers?: StickerSet[];
   replaceBuiltinStickers?: boolean;
@@ -467,8 +657,20 @@ export interface MediaEditorProps {
   confirmOnDiscard?: boolean;
 
   // === Localization ===
-  /** Nested `MediaEditorLabels` keys are honored. Flat internal keys (as passed by story-composer) are also accepted and win on conflict. */
-  labels?: Partial<MediaEditorLabels>;
+  /**
+   * Nested, fully optional `MediaEditorLabels`. Anything omitted falls back to
+   * `DEFAULT_LABELS`. Flat `MediaEditorResolvedLabels` keys are still accepted
+   * at runtime (deprecated; they win over nested on conflict) — use
+   * `editorLabelsFromFlat` to convert a flat object to the nested shape.
+   */
+  labels?: MediaEditorLabels;
+  /**
+   * BCP 47 locale tag used to format the numbers the editor shows (trim
+   * seconds, crop-aspect count, adjust values). Default `"en"`; an invalid tag
+   * falls back to `"en"`.
+   * Pass it explicitly for output that is identical on server and client.
+   */
+  locale?: string;
 
   // === State change observability ===
   /** Fires whenever the active capture mode changes (tab switch, gallery pick,
@@ -499,6 +701,14 @@ export interface MediaEditorProps {
    * content). In dialog presentation it renders inside the dialog content, so
    * controls in the overlay are interactive despite the modal. Position it
    * `absolute inset-0` with `z-40` or higher (editor chrome uses up to `z-30`).
+   *
+   * While it renders something, the rest of the editor is `inert`, and focus
+   * moves to its first focusable element (or to the overlay itself when it has
+   * none) and back to the control that held it when the overlay unmounts. In a
+   * dialog, Escape / backdrop presses do not close the dialog or open the
+   * discard confirm while the overlay is mounted — the overlay owns
+   * interaction. `null`, `undefined`, booleans and `""` render nothing and
+   * leave the editor interactive (`0` renders "0", so it counts as an overlay).
    */
   overlay?: ReactNode;
 }
@@ -589,19 +799,51 @@ export interface MediaEditorHandle {
 }
 
 // ─── Default labels ─────────────────────────────────────────────────────
+// Single source of the English strings: the editor's runtime fallback is
+// derived from this object (`resolveEditorLabels` in lib/normalize-labels.ts).
 
-export const DEFAULT_LABELS: MediaEditorLabels = {
+export const DEFAULT_LABELS: MediaEditorDefaultLabels = {
+  shell: {
+    title: "Media editor",
+    description: "Capture a photo, record a video, or compose text-only content.",
+    back: "Back",
+    apply: "Apply",
+    cancel: "Cancel",
+    backToCapture: "Back to capture",
+    editTools: "Edit tools",
+  },
   capture: {
     requestingCamera: "Requesting camera…",
+    cameraIdle: {
+      title: "Camera ready",
+      body: "Tap below to enable your camera, or pick a file from the gallery.",
+      enableCta: "Enable camera",
+    },
     cameraDenied: {
       title: "Camera access blocked",
-      body: "We need camera permission to continue. Enable it in your browser settings, or choose a file from your gallery.",
+      body: "We need camera permission to capture media. Enable it in your browser settings, or pick a file from your gallery.",
       retryCta: "Try again",
       useGalleryCta: "Use gallery instead",
     },
+    noCameraTitle: "No camera available",
+    cameraErrorTitle: "Camera unavailable",
     galleryButton: "Choose from gallery",
     switchCamera: "Switch camera",
     modes: { photo: "Photo", video: "Video", text: "Text" },
+    shutter: {
+      photo: "Take photo",
+      videoStart: "Start recording",
+      videoStop: "Stop recording",
+    },
+    recording: "Recording",
+    connectCta: "Connect to camera",
+    connectHint: "Pick a mode above, or jump straight to the camera.",
+    errors: {
+      videoUnsupported: "Video recording is not supported here",
+      videoFailed: "Video recording failed",
+      videoCodecUnavailable:
+        "None of the allowed video formats can be recorded in this browser",
+    },
   },
   toolbar: {
     text: "Text",
@@ -617,18 +859,61 @@ export const DEFAULT_LABELS: MediaEditorLabels = {
     saturation: "Saturation",
     blur: "Blur",
   },
-  publish: {
-    exporting: "Exporting…",
-    cancel: "Cancel",
-    ready: "Ready",
+  draw: { color: "Color", brushSize: "Brush size", eraser: "Eraser" },
+  text: {
+    placeholder: "Type something…",
+    fontFamily: "Font",
+    fontSize: "Size",
+    alignLeft: "Align left",
+    alignCenter: "Align center",
+    alignRight: "Align right",
+    delete: "Delete text",
+    background: "Background",
+  },
+  color: {
+    hex: "Hex",
+    swatch: (color) => `Color ${color}`,
+  },
+  crop: {
+    free: "free",
+    aspectCount: (_count, formatted) => `(${formatted} crop aspects)`,
+  },
+  canvas: {
+    label: "Media editor canvas — arrow keys pan, +/- zoom, 0 resets",
+    resetZoom: "Reset zoom",
+    resizeHandle: (corner) => `Resize ${corner}`,
+  },
+  trim: {
+    start: "Trim start",
+    end: "Trim end",
+    seconds: (_seconds, formatted) => `${formatted}s`,
   },
   discard: {
-    title: "Discard changes?",
-    body: "You'll lose your captured media and edits. This can't be undone.",
+    title: "Discard?",
+    body: "You'll lose your captured media and edits.",
     cancel: "Keep editing",
     confirm: "Discard",
   },
+  intake: {
+    prompt: "Pick a photo or video from your device.",
+    unknownType: "unknown",
+    unsupportedType: (fileType) => `Unsupported file type: ${fileType}`,
+    fileTooLarge: (_sizeMb, _maxMb, sizeFormatted, maxFormatted) =>
+      `File is ${sizeFormatted} MB — maximum is ${maxFormatted} MB`,
+  },
   empty: {
-    noSource: "No source provided.",
+    noSource: "No source provided",
+    noSourceHint: "Pass initialSource or enable a capture mode in enabledModes.",
+    noSourceAria:
+      "Media editor: no source provided. Pass initialSource or enable a capture mode.",
+    loadFailed: "Couldn't load source",
+    attempted: "attempted",
+    enabled: "enabled",
+    type: "type",
+    blank: "(blank)",
+    none: "(none)",
+    noCaptureSource: "No capture source available",
+    aspect: "aspect:",
+    sources: "sources:",
   },
 };

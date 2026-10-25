@@ -8,26 +8,21 @@ export const meta: ComponentMeta = {
   description:
     "Instagram-style story creation surface — a locked 9:16 wrapper around the media editor.",
   context:
-    "Third and final component in the story-system trilogy alongside story-rail (discovery) and story-viewer (consumption). v0.2.0 delegates the capture + edit surface (camera, multi-layer Konva editor, all six tools, discard guard, history) to @ilinxa/media-editor (requires 0.4.0+ for the in-dialog publishing overlay), then layers the story-specific publish pipeline on top: ComposerPublishBar in the renderTopBar slot, PublishingProgressOverlay during upload, and a 14-method handle whose publish/exportBlob methods bridge ExportMetadata → PublishMetadata → PublishedStory. Camera-first defaults: rear camera on mobile, front on desktop, microphone for video. Public API 100% preserved across the v0.1.5 → v0.2.0 boundary; the 73-name export snapshot at docs/procomps/media-editor-procomp/story-composer-v0.1.5-exports.snapshot.txt resolves through the v0.2.0 barrel without omission.",
+    "Third component in the story-system trilogy alongside story-rail (discovery) and story-viewer (consumption). It wraps @ilinxa/media-editor (requires 0.5.0+) for the capture + edit surface and layers the story publish flow on top: ComposerPublishBar in the renderTopBar slot, an optional details step (caption + host fields), and the progress / error overlay — both rendered through the editor's overlay prop, with the editor body inert behind them. The default install is upload-only; camera capture is opt-in by passing capture={mediaCapture} from @ilinxa/media-editor-capture, which keeps camera capture and recording out of the default install. Konva stays with the editor.",
   features: [
-    "v0.5.0 — the publishing overlay (default and `renderPublishingOverlay`) now renders inside media-editor's dialog via its `overlay` prop, so Retry / Cancel are clickable; requires media-editor >= 0.4.0 (minor: a coupling change — update media-editor with it, re-adding with --overwrite); the overlay also inherits the surface radius",
+    "v0.6.0 — **breaking:** camera opt-in — the default install is upload-only and no longer depends on `@ilinxa/media-editor-capture`; pass `capture={mediaCapture}` to add it (`sources` defaults follow). `acceptMediaTypes` and `videoOutput` (e.g. MP4 only) are forwarded to media-editor. Details step: `caption` (`maxLength`, `required`), `renderPublishFields`, controlled `publishFields` / `onPublishFieldsChange`, `canPublish(fields)`; the uploader receives the fields as a third argument and the default upload adds them to its FormData. Error state: Cancel keeps the draft, `getErrorMessage`, localized uploader errors, `renderPublishingOverlay` gets `status` / `error` / `retry` / `cancel`. `onPublished(story, result)` passes the uploader's result untouched; a successful publish consumes the draft (the editor resets); one publish at a time, and close / `reset()` / Cancel cancel it; `publish()` opens the details step when one is configured; `ctx.openDetails`; Escape in the details step is Back and never closes the dialog. `labels.editor` takes media-editor's nested labels (no cast); `locale`; `labels.published` is announced. Overlay colours use `--media-overlay` tokens. Removed: the stale compat re-exports (ComposerCamera / ComposerEditor / ComposerToolbar / ColorSwatchPicker and the lib / default-token / crop helpers — import them from media-editor) and the never-rendered `drawUndo` / `drawRedo` / `textAlign` label keys",
+    "v0.5.0 — the publishing overlay (default and `renderPublishingOverlay`) renders inside media-editor's dialog via its `overlay` prop, so Retry / Cancel are clickable",
     "v0.4.1 — `editorBackground` is marked @notImplemented and dev-warns; it was declared and never applied",
-    "Camera capture (photo + video + text-only modes) via getUserMedia + MediaRecorder",
-    "Gallery picker fallback when camera is denied or unavailable",
-    "Multi-layer Konva editor: image / drawing / stickers / text / UI",
-    "Six edit tools — Text, Draw (vector + eraser), Stickers (36 built-in emoji + extensible), Filters (10 Instagram-style presets with pre-rendered thumbs), Adjust (brightness/contrast/saturation/blur), and opt-in Crop (9:16 / 1:1 / 4:5). Default `enabledTools` ships the first five; consumers add `\"crop\"` when their flow isn't 9:16-locked.",
-    "Pan + zoom on the editor canvas (1×–4×): single-pointer drag-to-pan (mouse or 1-finger; yields to draggable text/sticker overlays), 2-finger touch pinch, mouse wheel anchored to cursor (native non-passive — beats browser page-zoom), keyboard arrows pan in image direction, +/-/0 zoom/reset",
-    "Video record: long-press hold OR tap-to-toggle shutter; auto-stop at maxVideoDuration; two-handle trim bar; overlays bake into final video via canvas.captureStream + MediaRecorder pipeline",
-    "Built-in upload via XHR POST FormData with progress, plus `uploader` escape hatch for signed-URL flows (S3 / Cloudinary / Mux)",
-    "Responsive: mobile-fullscreen / desktop-modal sized to a viewport-relative 9:16 with a min/max clamp (can't collapse or overflow) and safe-area awareness; top bar follows the IG chrome model (X swaps to a back arrow in the edit stage; Publish hidden during photo/video capture)",
-    "Undo/redo on every overlay + stroke command (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z; 50-deep stack)",
-    "Permission-denied auto-retry via navigator.permissions.query",
+    "Photo, video and text-only modes; file upload by default, camera (photo + video recording) with the capture add-on",
+    "Multi-layer Konva editor: image / drawing / stickers / text",
+    "Edit tools — Text, Draw (with eraser), Stickers (built-in emoji + your own), Filters (built-in presets with thumbnails), Adjust (brightness / contrast / saturation / blur), and opt-in Crop. Default `enabledTools` ships the first five",
+    "Pan + zoom on the editor canvas (1×–4×): drag to pan (yields to draggable overlays), two-finger pinch, wheel anchored to the cursor, arrow keys, +/-/0",
+    "Video: picked or recorded videos are uploaded as the original file — no tool edits video (the tool chips are hidden for video drafts)",
+    "Built-in upload via XHR POST FormData with progress, plus an `uploader` escape hatch for signed-URL flows",
+    "Responsive: mobile full-screen / desktop 9:16 modal, safe-area aware; top bar follows the IG chrome model",
     "Discard-confirm guard for unsaved edits (opt-out via confirmOnDiscard: false)",
-    "Live-region announcer for screen readers (Konva canvas is opaque to SR)",
-    "Five exported sealed-folder parts + three exported hooks for advanced compositions",
-    "14-method imperative handle (open/close/reset, switchCamera/takePhoto/startRecording/stopRecording/importFromGallery, addText/addSticker/setAdjustments/applyFilter, publish/exportBlob)",
-    "v0.2.0 architecture: thin wrapper around @ilinxa/media-editor — capture + edit surface delegated; story-shaped publish flow + ComposerPublishBar layered on top",
-    "v0.4.0 — P3 feature-slicing lockstep: camera capture now flows through media-editor's `capture={mediaCapture}` extension (`@ilinxa/media-editor-capture`) instead of a static import; the v0.1.5 backward-compat re-exports scheduled for v0.3.0 removal (ComposerCamera/ComposerEditor/ComposerToolbar/ColorSwatchPicker + their Props types, and useMediaCapture/validateGalleryFile/suggestedVideoFilename/CapturedPhoto/CapturedVideo/CaptureStatus/FacingMode + their option types) are removed — breaking for any consumer still on the v0.1.5 names.",
+    "Exported parts: ComposerPublishBar, PublishDetailsStep; hooks: useStoryComposerState, useImageUploader",
+    "Imperative handle: publish / exportBlob / reset / close and the editor's edit methods (addText, addSticker, setAdjustments, applyFilter); the capture methods and open forward to the editor, where they are not implemented",
   ],
   tags: [
     "story-composer",
@@ -40,27 +35,25 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.5.1",
+  version: "0.6.0",
   status: "alpha",
-  artifactBudgetKB: 60,
+  // 0.6.0: details step + publish fields + labels + the publish state machine
+  // (run token, close reset). Built 74.7 KB after the U4 fix wave → 60 → 80.
+  artifactBudgetKB: 80,
   createdAt: "2026-05-31",
-  updatedAt: "2026-10-24",
+  updatedAt: "2026-10-25",
 
   author: { name: "ilinxa" },
 
   dependencies: {
-    // Shadcn primitives directly imported by story-composer: just `button`
-    // (composer-publish-bar + publishing-progress-overlay). `dialog` is no
-    // longer imported here — the wrapper's MediaEditor mount owns the dialog
-    // chrome, so dialog resolves transitively via the @ilinxa/media-editor
-    // registry dependency. Other primitives (alert-dialog, popover, slider,
-    // toggle-group) moved with their consumer parts to media-editor.
-    shadcn: ["button"],
+    // Shadcn primitives directly imported by story-composer: `button`
+    // (publish bar, overlay, details step) and `textarea` (details step
+    // caption). `dialog` resolves transitively via @ilinxa/media-editor.
+    shadcn: ["button", "textarea"],
     npm: {
       "lucide-react": "^1.11.0",
       // konva + react-konva resolve transitively via the @ilinxa/media-editor
-      // registryDependency — the C16 wrapper refactor dropped the type-only
-      // Konva.Stage ref that v0.1.5 held directly.
+      // registryDependency.
     },
     internal: ["media-editor"],
   },

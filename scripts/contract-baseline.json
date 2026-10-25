@@ -12,7 +12,9 @@
     "info-list",
     "empty-state",
     "category-cloud",
-    "story-viewer"
+    "story-viewer",
+    "media-editor",
+    "story-composer"
   ],
   "rules": {
     "palette": {
@@ -82,21 +84,6 @@
       "src/registry/components/forms/signup-form/parts/strength-meter.tsx": [
         "bg-amber-500"
       ],
-      "src/registry/components/media/media-editor/features/capture/parts/camera-permission-prompt.tsx": [
-        "text-amber-400"
-      ],
-      "src/registry/components/media/media-editor/features/capture/parts/editor-camera.tsx": [
-        "bg-red-500"
-      ],
-      "src/registry/components/media/media-editor/features/capture/parts/shutter-button.tsx": [
-        "bg-red-500",
-        "bg-red-500"
-      ],
-      "src/registry/components/media/media-editor/parts/tool-text-input.tsx": [
-        "hover:bg-red-500/15",
-        "hover:text-red-200",
-        "text-red-300"
-      ],
       "src/registry/components/media/media-library/parts/file-visuals.tsx": [
         "bg-orange-500/15",
         "bg-red-500/15",
@@ -132,9 +119,6 @@
         "bg-red-500",
         "bg-sky-500",
         "bg-violet-500"
-      ],
-      "src/registry/components/media/story-composer/parts/publishing-progress-overlay.tsx": [
-        "text-amber-400"
       ],
       "src/registry/components/navigation/file-manager/parts/file-manager-item.tsx": [
         "dark:text-amber-400",
@@ -339,16 +323,6 @@
         "Date.now()"
       ],
       "src/registry/components/media/content-composer/content-composer.tsx": [
-        "Date.now()"
-      ],
-      "src/registry/components/media/media-editor/features/capture/hooks/use-media-capture.ts": [
-        "Date.now()"
-      ],
-      "src/registry/components/media/media-editor/lib/composite-video.ts": [
-        "Date.now()",
-        "Date.now()"
-      ],
-      "src/registry/components/media/media-editor/media-editor.tsx": [
         "Date.now()"
       ],
       "src/registry/components/media/media-library/lib/format.ts": [
@@ -1245,61 +1219,6 @@
       ],
       "src/registry/components/media/content-composer/parts/step-indicator.tsx": [
         "aria-label=\"Composer steps\""
-      ],
-      "src/registry/components/media/media-editor/features/capture/parts/camera-permission-prompt.tsx": [
-        "Camera ready",
-        "Enable camera",
-        "Tap below to enable your camera, or pick a file from the gallery."
-      ],
-      "src/registry/components/media/media-editor/media-editor.tsx": [
-        "Apply",
-        "Apply",
-        "Back",
-        "Cancel",
-        "Connect to camera",
-        "Couldn&apos;t load source",
-        "No capture source available",
-        "No source provided",
-        "Pass",
-        "Pick a mode above, or jump straight to the camera.",
-        "Pick a photo or video from your device.",
-        "aria-label=\"Back to capture\"",
-        "aria-label=\"Media editor: no source provided. Pass initialSource or enable a capture mode.\"",
-        "aspect:",
-        "child: (blank)",
-        "child: (none)",
-        "child: (none)",
-        "child: · attempted",
-        "child: · enabled",
-        "child: · type",
-        "crop aspects)",
-        "enabledModes",
-        "initialSource",
-        "or enable a capture mode in",
-        "· sources:"
-      ],
-      "src/registry/components/media/media-editor/parts/color-swatch-picker.tsx": [
-        "Hex",
-        "aria-label: Color",
-        "placeholder=\"#ffffff\""
-      ],
-      "src/registry/components/media/media-editor/parts/editor-canvas.tsx": [
-        "aria-label: Resize",
-        "aria-label=\"Media editor canvas — arrow keys pan, +/- zoom, 0 resets\"",
-        "aria-label=\"Reset zoom\""
-      ],
-      "src/registry/components/media/media-editor/parts/editor-toolbar.tsx": [
-        "aria-label=\"Edit tools\""
-      ],
-      "src/registry/components/media/media-editor/parts/text-only-canvas.tsx": [
-        "Background"
-      ],
-      "src/registry/components/media/media-editor/parts/tool-text-input.tsx": [
-        "aria-label=\"Delete text\""
-      ],
-      "src/registry/components/media/media-editor/parts/video-trim-bar.tsx": [
-        "s",
-        "s"
       ],
       "src/registry/components/media/media-library/parts/breadcrumbs.tsx": [
         "aria-label=\"Breadcrumb\""

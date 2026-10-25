@@ -1,5 +1,5 @@
 import * as React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MediaEditor } from "../media-editor";
 
@@ -37,20 +37,72 @@ describe("media-editor overlay prop", () => {
         onClose={() => {}}
         enabledModes={["photo", "video", "text"]}
         mediaSources={["upload"]}
-        labels={{ capture: { modes: { photo: "Foto" } } } as never}
+        labels={{ capture: { modes: { photo: "Foto" } } }}
       />,
     );
     expect(within(screen.getByRole("dialog")).getByText("Foto")).toBeTruthy();
   });
 
-  it("dev-warns once when the inert `labels.publish` / `labels.empty` groups are passed", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+});
+
+describe("media-editor overlay makes the editor body inert", () => {
+  const body = () => document.querySelector<HTMLElement>('[data-slot="media-editor-body"]')!;
+  const inertNodes = () => document.querySelectorAll("[inert]");
+  const Overlay = () => (
+    <div data-testid="ov">
+      <button type="button">overlay-btn</button>
+    </div>
+  );
+
+  for (const presentation of ["inline", "dialog"] as const) {
+    it(`${presentation}: body inert, overlay not inert, none without an overlay`, () => {
+      const props =
+        presentation === "dialog"
+          ? ({ presentation, isOpen: true, onClose: () => {} } as const)
+          : ({ presentation } as const);
+      const { rerender } = render(<MediaEditor {...props} mediaSources={["upload"]} />);
+      expect(inertNodes().length).toBe(0);
+      expect(body().hasAttribute("inert")).toBe(false);
+
+      rerender(<MediaEditor {...props} mediaSources={["upload"]} overlay={<Overlay />} />);
+      expect(body().hasAttribute("inert")).toBe(true);
+      expect(inertNodes().length).toBe(1);
+      const ov = screen.getByTestId("ov");
+      expect(ov.closest("[inert]")).toBeNull();
+      // the editor's own controls are behind the overlay
+      expect(
+        (screen.getByText("Choose from gallery") as HTMLElement).closest("[inert]"),
+      ).toBe(body());
+
+      rerender(<MediaEditor {...props} mediaSources={["upload"]} />);
+      expect(inertNodes().length).toBe(0);
+    });
+  }
+
+  it("moves focus off the inert body into the overlay when it mounts", () => {
     const { rerender } = render(
-      <MediaEditor presentation="inline" enabledModes={[]} labels={{ empty: { noSource: "x" } } as never} />,
+      <MediaEditor presentation="inline" mediaSources={["upload"]} />,
     );
-    rerender(<MediaEditor presentation="inline" enabledModes={[]} labels={{ empty: { noSource: "y" } } as never} />);
-    const hits = warn.mock.calls.filter((c) => String(c[0]).includes("labels.publish"));
-    expect(hits).toHaveLength(1);
-    warn.mockRestore();
+    const gallery = screen.getByText("Choose from gallery");
+    gallery.focus();
+    expect(document.activeElement).toBe(gallery);
+    rerender(
+      <MediaEditor presentation="inline" mediaSources={["upload"]} overlay={<Overlay />} />,
+    );
+    expect(document.activeElement).toBe(screen.getByText("overlay-btn"));
+    // and hands it back when the overlay goes away
+    rerender(<MediaEditor presentation="inline" mediaSources={["upload"]} />);
+    expect(document.activeElement).toBe(gallery);
+  });
+
+  it("leaves focus alone when the overlay already took it", () => {
+    function Autofocus() {
+      return <input aria-label="ov-input" autoFocus />;
+    }
+    const { rerender } = render(<MediaEditor presentation="inline" mediaSources={["upload"]} />);
+    rerender(
+      <MediaEditor presentation="inline" mediaSources={["upload"]} overlay={<Autofocus />} />,
+    );
+    expect(document.activeElement).toBe(screen.getByLabelText("ov-input"));
   });
 });

@@ -104,7 +104,7 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking** — C17 removes the `@internal` `StoryComposerLabels` shim from the public capture seam; 0.x minor) |
-| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Current stage** | **U5 (installs pending)** — release 3 built, uncommitted; resume: `.claude/HANDOFF-2026-10-23-social-platform-hardening.md` RESUME HERE |
 | **Sign-off policy** | user-interactive; composed by story-composer, carousel-composer and content-composer → breaking parts are always the user's call. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.4.1 → **v0.5.0** (+ `media-editor-capture` 0.5.0), released **together with story-composer 0.6.0** |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -116,7 +116,12 @@ fix-on-touch ledger item **C17** (`.claude/procomp-loop.config.md`).
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
-- [ ] U2 · [ ] U3 · [ ] U4 · [ ] U5 · [ ] U6 · [ ] U7
+- [x] U2 Implement — user "go" 2026-10-25; slices A/B (media-editor) + C (story-composer), see "U2 result"
+- [x] U3 Gate battery — two full runs, see "U3"
+- [x] U4 Adversarial review — 2 code finders + browser finder; fix waves falsified, see "U4"
+- [x] U5 Runtime & smoke — browser ✓ (re-verify 8/9 + crop-chip fix, falsified); installs ✓ (story-composer alone 4.18.0 + 3.8.5; capture + dependents 4.18.0; content-composer alone 3.8.5; the 3.8.5 dependency-already-installed abort = story-viewer F-01 class) — see "U5 — installs"
+- [x] U6 Docs sync & review — guide / meta / usage / CHANGELOG / review file; smoke rows; pre-push consistency review (CR-1…) — see "Final consistency review"
+- [ ] U7 Ship — commit + push + live poll pending
 
 ## U0 — Intake
 
@@ -196,3 +201,138 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 - **Overlay focus:** while `props.overlay` is mounted the editor body is `inert` (+ test). No overlay → unchanged (invariant). [F-04]
 - **ME4:** the pass-through shortcut's `"video/webm"` metadata fallback (`media-editor.tsx:881`) becomes the blob's type or the first allowed output type. [F-05]
 - ME2 count corrected: 4 palette classes in the capture slice + 3 in `parts/tool-text-input.tsx` (7). [F-20]
+
+## U2 — Implement (release 3, started 2026-10-25 on the user's go)
+
+Architect decisions taken at U2 (the U1 contract left them open):
+
+- **C17 shape.** `StoryComposerLabels` shim deleted. New public `MediaEditorResolvedLabels` (flat, fully populated, the
+  existing flat key names kept, new keys added; templates are functions) is what parts and the capture seam
+  (`MediaCaptureSurfaceProps.labels`) take. `MediaEditorLabels` (nested) is the only typed input: every group and key
+  optional. Flat keys stay accepted at runtime by `normalizeEditorLabels` (deprecated). New public helper
+  `editorLabelsFromFlat(flat)` → nested, for legacy flat callers (story-composer uses it).
+- `labels.empty.*` becomes implemented (the editor's own empty / error copy). `labels.publish.*` (never rendered, no
+  editor surface) is removed — breaking, in the migration note.
+- `DEFAULT_LABELS` is aligned with the strings the editor actually renders (today it differs from the internal fallback).
+- `locale?` prop added (trim-bar seconds and counts through `Intl.NumberFormat`).
+- ME4 prop names fixed before the slices: `acceptMediaTypes?: string[]`, `videoOutput?: { mimeTypes?: string[] }`
+  (declared in `types.ts` by the architect).
+- Media chrome: scrims → `bg-media-overlay` (opacity adjusted to keep the look), white → `media-overlay-foreground`;
+  the opaque black stage stays `bg-black` (tolerated over media, story-viewer precedent).
+
+| # | Slice | Owner | Status |
+|---|---|---|---|
+| A | C17 + ME1: labels type, every hard-coded string, presets labels, `locale`, capture-slice labels, tests | Sonnet implementer (wave 1) | running |
+| B | ME2 tokens · ME3 `useHistory` · ME4 accept / video allow-list / chip gating / webm fallback · overlay `inert` · tests | Sonnet implementer (wave 2, after A) | queued |
+| — | registry.json roster + `cssVars.theme` media-overlay mapping, meta 0.5.0 + budget 300, guide, CHANGELOG, contract closure | architect | queued |
+
+### U2 result (2026-10-25)
+
+- Slice A (labels / C17 / `locale` / presets): done — 81 resolved keys, nested tree all-optional, `editorLabelsFromFlat`,
+  `DEFAULT_LABELS` = rendered English (4 strings reconciled), 8 jsx-literal rows → 0; tests `labels-lib.test.ts`,
+  `labels.test.tsx` (falsified, all CAUGHT except the "no warn" half of one test).
+- Slice B (ME2 / ME3 / ME4 / `inert` / contract): done — palette 7 → 0, black/white → media-overlay tokens (`/70` panels
+  get `backdrop-brightness-75`; opaque stage `bg-black` kept), `useHistory` empty-stack + Ctrl+Y, accept list + MIME
+  allow-list + video-mode hiding + re-encode rejection + F-05 fallback, video drafts show no chips (no tool edits video),
+  body `inert` + focus move/restore under `overlay`; tests `formats`, `contract-0-5-0`, `tokens`, `overlay`,
+  `history-keyboard` (31 mutations; generic SSR test NOT CAUGHT — the MediaRecorder hydration test is the real one).
+- Architect: `formatNumber` default `"en"` (was the runtime locale — server / client could differ); `now-ok` on the
+  `onstop` `Date.now()`; registry roster (+`lib/format-number.ts`, `lib/preset-names.ts`), `cssVars.theme`
+  media-overlay pair, versions 0.5.0 (base, fixtures, capture); baseline lowered — **0 rows**, `closed` += media-editor;
+  meta 0.5.0, budget 290 → **330** (built 317.9 KB; U1 estimate ~294 was low); guide (Formats, Labels and locale,
+  Overlay, Migration 0.4 → 0.5, orphan warning now mandatory), usage, CHANGELOG.
+
+### U3 — Gate battery (2026-10-25)
+
+| Gate | Result |
+|---|---|
+| tsc | exit 0, 0 errors |
+| lint | exit 0 — 0 errors, 11 warnings |
+| registry:build | first run exit 1: stale `scripts/heavy-edges-baseline.json` row (story-composer → media-editor-capture no longer exists — intended) → row deleted → exit 0; artifact-size 0 high (media-editor 317.9 / 300 before the budget raise, capture 53.7 / 65) |
+| doc-budget | exit 0 |
+| tests (`NODE_ENV=production`, threads) | 133 / 135 files, 1837 passed, 3 failed — all 3 from the stale baseline (registry-deps gate + served versions not regenerated); after the fix `registry-versions` + `registry-deps-gate` 30 / 30 |
+| build | exit 0 (381 s) |
+| validate-contract | 0 new violations; media-editor + story-composer 0 rows, 15 closed |
+
+### U4 — Adversarial review (2026-10-25)
+
+Fresh Sonnet code finder on a frozen snapshot (`ad9bb…`, 13 rows) + the story-composer finder's dependents axis + a
+browser finder on `next start -p 3200`. Architect verdicts:
+
+| # | Sev | Finding | Verdict | Fix (wave 1) |
+|---|---|---|---|---|
+| M1 | ⚠️ | `labels.shell.editTools` + `labels.trim.*` inert in `<MediaEditor>` (chip row has no toolbar role; trim bar never mounted) | CONFIRMED | chip row `role="toolbar"` + label; `trim` `@notImplemented` + dev-warn |
+| M2 | 🔸 | `defaultMode="video"` + unrecordable allow-list stays video after hydration | CONFIRMED | post-hydration reset |
+| M3 | 🔸 | `color-mix(… var(--media-overlay-foreground))` — the bare var is undefined in a consumer install | CONFIRMED | fallbacks + token test |
+| M4 | 🔸 | English size-limit text changed ("2.25" → "2.3", "1000" → "1,000") — invariant I3 | CONFIRMED | no grouping, 3 digits |
+| M5 | 🔸 | `overlay=""` / `0` / `true` makes the body inert with nothing shown | CONFIRMED | children-based check |
+| M6 | 🔸 | overlay without a focusable control leaves focus on an inert element | CONFIRMED | host `tabIndex=-1` fallback |
+| M7 | 🔸 | video hiding + `unsupported-codec` fire in upload-only configs; `presentation="auto"` flips | CONFIRMED | gate on camera + capture wired; presentation from declared modes |
+| M8 | 🔹 | hover affordance lost (`hover:` = base) | CONFIRMED | visible hover |
+| M9 | 🔹 | JSDoc says locale default is the runtime locale; brush / font sizes unformatted | CONFIRMED | fixed |
+| M10 | 🔹 | stale JSDoc (`ExportVideoOpts.mimeType`, `overlay`, `acceptMediaTypes` extensions) | CONFIRMED | reworded |
+| M11 | 🔹 | pass-through metadata reports 720×1280 and no duration (architect) | CONFIRMED | draft dimensions / duration |
+| M12 | 🔹 | vacuous focus test; missing cases | CONFIRMED | tests added with each fix |
+| M13 | 🔹 | handle identity changes with inline `labels` | CONFIRMED (optional) | label via ref |
+| SC-2 | ⚠️ | dialog Escape / backdrop under an overlay opens the discard confirm or closes the host mid-upload (story-composer finder) | CONFIRMED | dialog ignores close requests while `overlay` is mounted |
+
+Browser finder (`next start -p 3200`, Chromium + WebKit; 14 demo tabs, light + dark, zero console errors / hydration
+warnings) — verdicts:
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| B1 | 🔸 | Tab sticks at the ends of an overlay in dialog presentation (focus trap targets inert body) | CONFIRMED → M14 (explicit wrap, story-viewer `focus-wrap` precedent) |
+| B2 | 🔸 | Escape under the details step / error overlay opens Discard | = SC-2 |
+| B3 | 🔸 | focus stays on DialogContent when the overlay mounts (dialog presentation) | CONFIRMED → M15 |
+| B5 | 🔸 | text Color swatch collapses to 7 px in a narrow inline editor | CONFIRMED → M16 |
+| B6 | 🔸 | new text overlay spawns off-centre (stage units) | CONFIRMED → M20 (timeboxed; park if pre-existing + large) |
+| B7 | 🔸 | "(N crop aspects)" hint ~3.6:1 | CONFIRMED → M17 |
+| B8 | 🔹 | touch targets < 24 px (align, aspect chips, sticker tabs, crop handles) | CONFIRMED → M18 |
+| B10 | 🔹 | sliders ignore inherited `dir="rtl"` | CONFIRMED — follow-up (F-cross-13 carrier: Radix vs Base UI `dir`; owner: media-editor next patch) |
+| B11 | 🔹 | focus lands on BODY after the controlled dialog closes | CONFIRMED — follow-up (host owns the trigger; guide note) |
+| B12 | 🔹 | RTL demo leaks English (demo-only) | CONFIRMED → M19 |
+
+### U4 fix wave (2026-10-25)
+
+Sonnet implementer; tests in `__tests__/u4-fixes.test.tsx` (+ `formats`, `tokens`, `contract-0-5-0`); every fix
+falsified — all CAUGHT. M1a toolbar role + label · M1b `labels.trim` `@notImplemented` + dev-warn · M2 post-hydration
+reset · M3 `var(--media-overlay-foreground,currentColor)` + raw-var token test · M4 English size text identical
+(`grouping:false`) · M5 `hasRenderableOverlay` · M6 + M14 + M15 new `lib/overlay-focus.ts` (host `tabIndex=-1`, Tab
+wrap, dialog focus pull-back after Radix FocusScope's `focus(container)` — `@radix-ui/react-focus-scope` dist lines
+71–85) · M7 `recordingReachable` + presentation from declared modes · M8 hover · M9 JSDoc + brush / font size via
+`formatNumber` · M10 JSDoc · M11 new `lib/probe-video.ts` (real size / duration) · M16 `shrink-0` · M17 crop hint
+`text-muted-foreground`, scrim text /60→/75, /70→/80 · M18 24 px targets (crop handles: 24 px hit area around the 14 px
+dot) · M19 Arabic demo labels · SC-2 `onOpenChange` ignores close while an overlay renders.
+Not taken: **M13** (handle identity — the hook result is a fresh object each render; pre-existing) and **M20** (new text
+at a fixed `x:100, y:200` — pre-existing since `HEAD`) → follow-ups. Roster += `lib/probe-video.ts`, `lib/overlay-focus.ts`.
+The overlay host is now an `absolute inset-0` box (was `display: contents`; a `contents` box cannot take focus).
+
+### U5 — installs (2026-10-25/26)
+
+`pnpm test:install` on the local `public/r` (commit charge 47.4 / 63.8 GB before starting — the earlier timeouts were
+the host, and the old content-composer "timeout" was most likely the 3.8.5 overwrite prompt below waiting on stdin).
+
+| Items | CLI | Result |
+|---|---|---|
+| `story-composer` | 4.18.0 | pass — story-composer 0.6.0 + media-editor 0.5.0, tsc 0, no `features/capture` in the consumer (pre-restart); re-run 2026-10-26 after CR-2/CR-3 on the rebuilt `public/r`: pass, tsc 0 |
+| `story-composer` | 3.8.5 | pass, tsc 0 |
+| `media-editor`, `-capture`, `story-composer-fixtures`, `carousel-composer`, `content-composer` | 4.18.0 | pass — 13 items, tsc 0 |
+| same sequence | 3.8.5 | expected-fail — `content-composer` stops at "types.ts already exists. Overwrite?" (its media-editor dependency was installed by the earlier adds; `--yes` does not answer it), writes nothing, exit 0; json-form tsc errors are fallout. story-viewer F-01 class |
+| `content-composer` alone | 3.8.5 | pass — media-editor 0.5.0 + capture 0.5.0 + the content-composer tree, tsc 0 |
+
+### Final consistency review (pre-push, 2026-10-26)
+
+- **Versions:** 0.5.0 / 0.5.0 / 0.6.0 on meta.ts, registry.json (base, fixtures, capture), `public/r`,
+  component-versions, README, CHANGELOG, STATUS, both guides — consistent.
+- **Roster vs folder:** media-editor, media-editor-capture, story-composer — missing 0, extra 0.
+- **Claims vs code:** fresh Sonnet doc verifier (read-only) over CHANGELOG, both guides, meta, usage, registry.json —
+  12 findings, all confirmed and fixed (recorded as CR-* in each review file): the migration table sent the renamed
+  aliases `ComposerEditor` / `ComposerToolbar` / `ComposerCamera` to media-editor under their old names (High);
+  `enabledTools` documented as gating export + handle methods (it filters the chip row); Cancel's label while uploading;
+  `videoOutput` inert without `capture`; story-composer's exported label defaults never rendered (now equal the
+  rendered English, script-diffed 0); `trimStart` / `trimEnd` inert + dev-warning in the demo (removed); stale sizes;
+  `meta.ts` shadcn deps; four wording items. Video trim/bake and "no MediaRecorder" did not recur.
+- **Counts:** media-editor 9 test files + story-composer 6 = 15 files / 193 passed (1 skipped), run alone.
+- **Final battery (after the CR fixes):** tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (validators 0
+  findings) · doc-budget 0 · tests 138 files / 1900 passed / 6 skipped · `pnpm build` 0 (77 pages). Artifacts:
+  media-editor 332.9 / 345 KB, capture 53.7 / 65, story-composer 74.5 / 80.

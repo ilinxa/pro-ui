@@ -5,7 +5,7 @@ import {
   useMediaEditorState,
   type UseMediaEditorStateResult,
 } from "../../media-editor";
-import type { ComposerMode, ComposerStage } from "../types";
+import type { ComposerMode, ComposerStage, PublishStatus } from "../types";
 
 /**
  * useStoryComposerState — v0.2.0.
@@ -32,12 +32,9 @@ import type { ComposerMode, ComposerStage } from "../types";
 
 const ALL_MODES: ComposerMode[] = ["photo", "video", "text"];
 
-export type PublishStatus =
-  | "idle"
-  | "compositing"
-  | "uploading"
-  | "done"
-  | "error";
+// Single definition lives in ../types (identical union); re-exported so imports
+// of `PublishStatus` from this hook keep working.
+export type { PublishStatus };
 
 export interface UseStoryComposerStateOptions {
   defaultMode?: ComposerMode;

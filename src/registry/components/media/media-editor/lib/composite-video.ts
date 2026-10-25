@@ -17,6 +17,11 @@ export interface CompositeVideoOptions {
   fps?: number;
   /** Override mime selection; falls back to selectRecorderMime() chain. */
   mimeType?: string;
+  /**
+   * Allow-list in preference order (`videoOutput.mimeTypes`), used when
+   * `mimeType` is not set. Rejects when the browser records none of them.
+   */
+  allowedMimeTypes?: readonly string[];
   /** MediaRecorder bitsPerSecond (browser default if omitted). */
   bitsPerSecond?: number;
   /**
@@ -62,14 +67,17 @@ export async function compositeVideo(
     outputHeight,
     fps = 30,
     mimeType,
+    allowedMimeTypes,
     bitsPerSecond,
     onProgress,
   } = opts;
 
-  const mime = mimeType ?? selectRecorderMime();
+  const mime = mimeType ?? selectRecorderMime(allowedMimeTypes);
   if (!mime) {
     throw new Error(
-      "This browser does not support MediaRecorder — video publish unavailable.",
+      allowedMimeTypes
+        ? `None of the allowed video formats (${allowedMimeTypes.join(", ")}) can be recorded in this browser.`
+        : "This browser does not support MediaRecorder — video publish unavailable.",
     );
   }
 
@@ -128,6 +136,7 @@ export async function compositeVideo(
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
 
+    // now-ok: measures elapsed re-encode time for durationMs; never reaches markup
     const startedAt = Date.now();
 
     // Progress is bucketed into 10% steps to satisfy the ExportVideoOpts
@@ -177,6 +186,7 @@ export async function compositeVideo(
         if (failed) return; // stop forced by a failure path — already rejected
         onProgress?.(1);
         const blob = new Blob(chunks, { type: mime });
+        // now-ok: elapsed recording time for durationMs; never reaches markup
         resolve({ blob, durationMs: Date.now() - startedAt, mimeType: mime });
       };
       recorder.onerror = (ev) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { ComposerMode, StoryComposerLabels, ValidationError } from "../types";
+import type { ComposerMode, MediaEditorResolvedLabels, ValidationError } from "../types";
 
 /**
  * Capture injection seam (P3 S3 — feature-slicing, strategy b: injection
@@ -51,7 +51,14 @@ export interface MediaCaptureSurfaceProps {
   maxVideoDurationSec?: number;
   captureAspectRatio?: number | null;
   autoAcquireOverride?: boolean;
-  labels: Required<StoryComposerLabels>;
+  /** The editor's fully resolved labels (consumer labels over the defaults). */
+  labels: MediaEditorResolvedLabels;
+  /** BCP 47 locale for numbers in validation messages (`MediaEditorProps.locale`). */
+  locale?: string;
+  /** Accepted MIME types for the gallery picker and its validator (`MediaEditorProps.acceptMediaTypes`). */
+  acceptMediaTypes?: string[];
+  /** Allowed video recording formats in preference order (`MediaEditorProps.videoOutput.mimeTypes`). */
+  videoMimeTypes?: string[];
   onPhoto: (photo: CapturedPhotoLike) => void;
   onVideo: (video: CapturedVideoLike) => void;
   /** Loads an image / video file picked from the gallery into the editor. */

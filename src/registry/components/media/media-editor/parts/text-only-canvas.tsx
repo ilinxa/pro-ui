@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ColorSwatchPicker } from "./color-swatch-picker";
 import type { GradientPreset, FontOption } from "../../media-editor";
-import type { StoryComposerLabels } from "../types";
+import type { MediaEditorResolvedLabels } from "../types";
 
 export interface TextOnlyCanvasProps {
   gradients: GradientPreset[];
   fonts: FontOption[];
   colorPresets: string[];
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
   className?: string;
 }
 
@@ -86,7 +86,7 @@ export const TextOnlyCanvas = forwardRef<
         }}
       >
         {pickerOpen === "gradient" ? (
-          <div className="flex items-center gap-2 overflow-x-auto rounded-2xl bg-black/70 backdrop-blur-md p-2">
+          <div className="flex items-center gap-2 overflow-x-auto rounded-2xl bg-media-overlay backdrop-brightness-75 backdrop-blur-md p-2">
             {gradients.map((g) => {
               const isActive = g.id === value.gradientId;
               return (
@@ -98,7 +98,7 @@ export const TextOnlyCanvas = forwardRef<
                   aria-pressed={isActive}
                   className={cn(
                     "flex-none size-10 rounded-full ring-2 transition-shadow",
-                    isActive ? "ring-white" : "ring-transparent",
+                    isActive ? "ring-media-overlay-foreground" : "ring-transparent",
                   )}
                   style={{ background: g.background }}
                 />
@@ -107,7 +107,7 @@ export const TextOnlyCanvas = forwardRef<
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-2 rounded-2xl bg-black/70 backdrop-blur-md p-2 text-white">
+        <div className="flex items-center justify-between gap-2 rounded-2xl bg-media-overlay backdrop-brightness-75 backdrop-blur-md p-2 text-media-overlay-foreground">
           <Button
             variant="ghost"
             size="sm"
@@ -115,14 +115,14 @@ export const TextOnlyCanvas = forwardRef<
               setPickerOpen((p) => (p === "gradient" ? null : "gradient"))
             }
             aria-pressed={pickerOpen === "gradient"}
-            className="text-xs gap-2 text-white hover:bg-white/10 hover:text-white"
+            className="text-xs gap-2 text-media-overlay-foreground hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground"
           >
             <span
-              className="inline-block size-4 rounded-full ring-2 ring-white/40"
+              className="inline-block size-4 rounded-full ring-2 ring-media-overlay-foreground/40"
               style={{ background: activeGradient?.background ?? "#000" }}
               aria-hidden
             />
-            <span>Background</span>
+            <span>{labels.textBackground}</span>
           </Button>
 
           <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export const TextOnlyCanvas = forwardRef<
               value={value.fontFamily}
               onChange={(e) => update({ fontFamily: e.target.value })}
               aria-label={labels.textFontFamily}
-              className="h-7 rounded-md bg-black/40 border border-white/15 px-2 text-xs"
+              className="h-7 rounded-md bg-media-overlay border border-media-overlay-foreground/15 px-2 text-xs"
             >
               {fonts.map((font) => (
                 <option
@@ -147,6 +147,7 @@ export const TextOnlyCanvas = forwardRef<
               presets={colorPresets}
               onChange={(c) => update({ textColor: c })}
               ariaLabel={labels.drawColor}
+              labels={labels}
             />
           </div>
         </div>

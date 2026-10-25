@@ -12,6 +12,8 @@ export interface ToolCropOverlayProps {
   availableAspects: AspectRatio[];
   /** Raw "Crop" label text. Defaults to "Crop". */
   cropLabel?: string;
+  /** Name of the "free" (unconstrained) aspect. Defaults to "Free". */
+  freeLabel?: string;
   onAspectChange: (aspect: AspectRatio) => void;
   className?: string;
 }
@@ -28,17 +30,18 @@ export function ToolCropOverlay({
   activeAspect,
   availableAspects,
   cropLabel = "Crop",
+  freeLabel = ASPECT_LABEL.free,
   onAspectChange,
   className,
 }: ToolCropOverlayProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center gap-2 rounded-2xl bg-black/70 backdrop-blur-md p-2 text-white",
+        "flex items-center justify-center gap-2 rounded-2xl bg-media-overlay backdrop-brightness-75 backdrop-blur-md p-2 text-media-overlay-foreground",
         className,
       )}
     >
-      <span className="text-[10px] uppercase tracking-wider text-white/60 px-2">
+      <span className="text-[10px] uppercase tracking-wider text-media-overlay-foreground/75 px-2">
         {cropLabel}
       </span>
       {availableAspects.map((aspect) => {
@@ -50,13 +53,13 @@ export function ToolCropOverlay({
             onClick={() => onAspectChange(aspect)}
             aria-pressed={isActive}
             className={cn(
-              "rounded-full px-3 py-1 text-xs font-medium tracking-wide transition-colors",
+              "min-h-6 rounded-full px-3 py-1 text-xs font-medium tracking-wide transition-colors",
               isActive
-                ? "bg-white text-black"
-                : "text-white/70 hover:bg-white/10 hover:text-white",
+                ? "bg-media-overlay-foreground text-black"
+                : "text-media-overlay-foreground/80 hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground",
             )}
           >
-            {ASPECT_LABEL[aspect]}
+            {aspect === "free" ? freeLabel : ASPECT_LABEL[aspect]}
           </button>
         );
       })}

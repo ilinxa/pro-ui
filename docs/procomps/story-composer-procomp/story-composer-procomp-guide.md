@@ -1,8 +1,9 @@
 # story-composer — consumer guide
 
-> v0.1.5 alpha. Third (and final) component in the story-system trilogy:
+> v0.6.0 alpha. Third component in the story-system trilogy:
 > [`story-rail`](../story-rail-procomp/) (discovery), [`story-viewer`](../story-viewer-procomp/) (consumption),
-> **`story-composer`** (creation). Builds on `react-konva` v19 + `konva` v10. Camera-first.
+> **`story-composer`** (creation). A locked 9:16 wrapper around [`media-editor`](../media-editor-procomp/) that adds the
+> story publish flow (upload, progress, details step, error recovery).
 
 ## Install
 
@@ -10,11 +11,27 @@
 pnpm dlx shadcn@latest add @ilinxa/story-composer
 ```
 
-Adds: 37 source files, 2 peer deps (`konva ^10.3.0` + `react-konva ^19.2.4`), 6 shadcn primitives (`alert-dialog`, `button`, `dialog`, `popover`, `slider`, `toggle-group`).
+This installs story-composer and `@ilinxa/media-editor` (≥ 0.5.0; Konva + react-konva come with the editor). The
+default install is **upload-only**: no camera code and no `getUserMedia` — the editor only records (re-encodes) when
+overlays are baked into a video, which its tools never do today.
 
-Optional fixtures item (`@ilinxa/story-composer-fixtures`) ships sample dummy data for demos.
+To add the camera, install the capture add-on and pass it in:
 
-> **Requires `media-editor` >= 0.4.0.** The publishing overlay is passed through media-editor's `overlay` prop (so Retry / Cancel sit inside the dialog and are clickable). When updating story-composer, re-add `media-editor` too, overwriting: `pnpm dlx shadcn@latest add @ilinxa/media-editor --overwrite`. An older media-editor ignores `overlay`, so the overlay would not show.
+```bash
+pnpm dlx shadcn@latest add @ilinxa/media-editor-capture
+```
+
+```tsx
+import { mediaCapture } from "@/components/media-editor/features/capture";
+
+<StoryComposer capture={mediaCapture} … />
+```
+
+Optional fixtures item (`@ilinxa/story-composer-fixtures`) ships the sample data used by the docs demo.
+
+> **Release together with media-editor 0.5.0.** story-composer 0.6.0 uses media-editor's typed labels, `locale`,
+> `acceptMediaTypes`, `videoOutput` and its `inert` body under overlays. When updating, re-add both:
+> `pnpm dlx shadcn@latest add @ilinxa/story-composer @ilinxa/media-editor --overwrite`.
 
 ## Quick start
 
@@ -32,8 +49,8 @@ export function CreateStoryButton() {
         isOpen={open}
         onClose={() => setOpen(false)}
         uploadUrl="/api/stories"
-        onPublished={(story) => {
-          console.log("published:", story);
+        onPublished={(story, result) => {
+          // `result` is exactly what your upload returned (server ids, timestamps, …)
           setOpen(false);
         }}
       />
@@ -42,222 +59,243 @@ export function CreateStoryButton() {
 }
 ```
 
+## Sources and formats
+
+| Prop | Default | Effect |
+|---|---|---|
+| `capture` | — | The camera add-on (`mediaCapture` from `@ilinxa/media-editor-capture`). Without it there is no camera tab. |
+| `sources` | `["camera","upload"]` with `capture`, else `["upload"]` | Intake sources passed to the editor. |
+| `acceptMediaTypes` | `["image/*","video/*"]` | What the file picker offers **and** what the validator accepts (wildcards allowed). |
+| `videoOutput` | built-in chain (WebM VP9 → VP8 → MP4) | `{ mimeTypes: ["video/mp4"] }` restricts re-encoding and recording to those types. With `capture`, if the browser can record none of them (Firefox has no MP4 recorder), in-browser recording is unavailable and `onValidationError` fires once; uploading a video file still works. Without `capture` nothing is recorded or re-encoded, so it has no effect. |
+| `maxFileSizeMb` | `50` | Larger files are rejected through `onValidationError`. |
+| `maxVideoDuration` | `30` | Camera recording limit, in seconds. |
+
+An unedited video is uploaded as the original file (no re-encode). The uploader always receives a `Blob`, not the
+original `File`; read `metadata.mimeType` for its type.
+
 ## Capture modes
 
-| Mode | Behavior |
+| Mode | Behaviour |
 |---|---|
-| **`photo`** (default) | Tap shutter → snap → editor with all 6 tools |
-| **`video`** | Long-press hold OR tap-to-toggle. Auto-stop at `maxVideoDuration` (default 30s). Trim UI in edit stage. Overlays bake into final video on publish (Q-P1a). |
-| **`text`** | 8 gradient backgrounds + centered text + font + color picker. PNG output on publish. |
+| **`photo`** (default) | Pick or take a photo, then edit. |
+| **`video`** | Pick a video (or record with `capture`: long-press or tap-to-toggle, auto-stop at `maxVideoDuration`). Videos are not edited: no tools apply to a video draft, and it is uploaded as the original file. |
+| **`text`** | Gradient background + centred text + font and colour picker. PNG output. |
 
-Hide modes via `hideModes={["video", "text"]}`. Change default via `defaultMode="text"`.
+Hide modes with `hideModes={["video","text"]}`; pick the start mode with `defaultMode`.
 
 ## Edit tools
 
-Five tools ship enabled by default; **Crop is opt-in** (since v0.1.4) because stories are 9:16-locked by platform convention — most consumers don't need it. Default `enabledTools` is `["text","draw","stickers","filters","adjust"]`.
+Default `enabledTools` is `["text","draw","stickers","filters","adjust"]`; **Crop is opt-in** (stories are 9:16).
 
-| Tool | Default? | Behavior |
-|---|---|---|
-| **Text** | ✅ | Draggable, rotatable, scaleable text overlays. Font / size / color / align. Multiple overlays per story. |
-| **Draw** | ✅ | Vector freehand strokes (Konva.Line) with eraser (composite-out). Color + brush size (1-60px). |
-| **Stickers** | ✅ | 36 built-in emoji stickers + your own via `stickers={[…]}`. Draggable, rotatable, scaleable. |
-| **Filters** | ✅ | 10 presets (Clarendon / Gingham / Moon / Lark / Reyes / Juno / Slumber / Crema / Ludwig + Original). Pre-rendered thumbnails on edit-mode entry. |
-| **Adjust** | ✅ | Brightness / Contrast / Saturation / Blur sliders. Applied via Konva's filter chain on top of any preset. |
-| **Crop** | ❌ opt-in | 3 aspect ratios (9:16, 1:1, 4:5). Crop is a viewport-export concern — overlays stay where they are; pixels outside the rect get clipped on publish. Enable for post-style composers that aren't 9:16-locked. |
+| Tool | Behaviour |
+|---|---|
+| **Text** | Draggable, rotatable, scalable overlays; font / size / colour / align. |
+| **Draw** | Freehand strokes with eraser; colour + brush size. |
+| **Stickers** | Built-in emoji stickers plus yours via `stickers`. |
+| **Filters** | Built-in presets with thumbnails; add or replace with `filterPresets` / `replaceBuiltinFilters`. |
+| **Adjust** | Brightness / contrast / saturation / blur. |
+| **Crop** | Opt-in; ratios from `cropAspects`. |
 
-Customize the toolbar via `enabledTools`:
+Video drafts show no tool chips — none of the tools edits video yet.
 
-```tsx
-// Default — five tools, no crop (story flow)
-<StoryComposer isOpen={open} onClose={…} />
-
-// Post-style composer that lets users pick 9:16 / 1:1 / 4:5
-<StoryComposer
-  enabledTools={["text", "draw", "stickers", "filters", "adjust", "crop"]}
-  cropAspects={["9:16", "1:1", "4:5"]}
-/>
-
-// Minimal — text + filters only
-<StoryComposer enabledTools={["text", "filters"]} />
-```
-
-Undo/redo on every overlay command + every drawing stroke. Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z. 50-deep stack, FIFO past cap.
+There is no undo / redo: `undo` / `redo` on the editor handle are not implemented and the editor binds no Ctrl/Cmd+Z.
 
 ## Pan + zoom
 
-The editor canvas supports 1× → 4× zoom anchored to the cursor / pinch midpoint. Single-pointer **drag-to-pan** landed in v0.2.1; zoom landed in v0.1.3 and was refined through v0.1.5.
+The editor canvas zooms 1× → 4×, anchored to the cursor or pinch midpoint.
 
-| Gesture | Behavior |
+| Gesture | Behaviour |
 |---|---|
-| **Drag** (single pointer — mouse or 1 finger) | **Pan.** Yields to draggable text/sticker overlays — a drag that starts on an overlay moves that overlay instead. A tap (< ~4px) never pans, so selection/placement still works. |
-| **2-finger pinch** (touch) | Zoom anchored to the midpoint; simultaneous 2-finger drag pans |
-| **Mouse wheel** (desktop) | Zoom anchored to the cursor. Native non-passive listener so the canvas wins over the browser's Ctrl+wheel page-zoom |
-| **Arrow keys** | Pan in the arrow's direction (→ moves image right, ↓ moves image down, etc.) |
-| **`+` / `=` / `-` / `_`** | Zoom in / out |
-| **`0`** | Reset to 1× / origin |
+| **Drag** (one pointer) | Pan. A drag that starts on a text / sticker overlay moves the overlay instead; a tap never pans. |
+| **Two-finger pinch** | Zoom around the midpoint; a two-finger drag pans. |
+| **Mouse wheel** | Zoom around the cursor. |
+| **Arrow keys** | Pan. |
+| **`+` / `-` / `0`** | Zoom in / out / reset. |
 
-A drag that lands on a text/sticker overlay is yielded to that overlay (hit-tested on pointer-down), so dragging overlays still works. The hook auto-disables pan/zoom during drawing (pointer-pipeline conflict) and during crop (DOM overlay can't ride the Stage transform yet — v0.2 rewrite queued).
+Pan and zoom are off while drawing and while cropping.
 
-## Top bar behavior
+## Top bar
 
-The composer's top bar follows the Instagram chrome model (delegated to `media-editor`):
-
-| | **Capture stage** | **Edit stage** (after capture) |
+| | **Capture stage** | **Edit stage** |
 |---|---|---|
-| Top-left | **✕ Close** | **← Back to capture** (replaces Close) |
-| Top-center | Photo / Video / Text tabs | — (tabs hidden) |
-| Top-right | Publish — **hidden** during photo/video capture; shown for text | **Publish** |
+| Start | **✕ Close** | **← Back to capture** |
+| Centre | Photo / Video / Text tabs | — |
+| End | Publish — hidden during photo / video capture, shown for text | **Publish** |
 
-`ComposerPublishBar` drives this from the slot-context: `showPublish = !isCapturing || mode === "text"` and `showClose = isCapturing || !hasCaptureMode`. Back is rendered by `media-editor` (it clears the draft and reopens the camera in the same mode); the publish bar hides its own ✕ in the edit stage so the two don't collide.
-
-A `Reset zoom (NNN%)` chip appears top-left while the canvas is zoomed or panned.
+`ComposerPublishBar` renders this in the editor's `renderTopBar` slot; pass `renderTopBar` to replace it.
 
 ## Publish
 
-Pick one:
-
-**Default POST FormData** — composer uploads to your endpoint as multipart with `file` + `metadata` JSON fields:
+**Default upload** — `POST` multipart `FormData` with `file`, `metadata` (JSON), every `uploadFields` entry, and the
+publish fields (`caption` and your fields; non-strings JSON-encoded):
 
 ```tsx
-<StoryComposer
-  uploadUrl="/api/stories"
-  uploadFields={{ csrfToken: token }} // extra fields appended
-  onPublished={(story) => /* story.items[0].src = uploaded URL */}
-/>
+<StoryComposer uploadUrl="/api/stories" uploadFields={{ csrfToken: token }} onPublished={…} />
 ```
 
-**Custom uploader** — for S3 pre-signed PUT, Cloudinary direct upload, Mux, etc.:
+**Custom uploader** — signed URLs, direct-to-storage, etc. It wins over `uploadUrl`:
 
 ```tsx
 <StoryComposer
-  uploader={async (blob, metadata) => {
-    const presigned = await fetch("/api/presign").then(r => r.json());
+  uploader={async (blob, metadata, fields) => {
+    const presigned = await fetch("/api/presign").then((r) => r.json());
     await fetch(presigned.uploadUrl, { method: "PUT", body: blob });
-    return { url: presigned.publicUrl, thumbnailUrl: presigned.thumbUrl };
+    return { url: presigned.publicUrl, id: presigned.storyId, caption: fields?.caption };
   }}
-  onPublished={(story) => /* … */}
+  onPublished={(story, result) => {/* result.id is your server id */}}
 />
 ```
 
-The custom uploader takes precedence over `uploadUrl` if both are passed.
+`onPublished(story, result)`: `story` is a convenience shape (`items[0].src = result.url`, client-made ids and
+`createdAt`); **`result` is your uploader's resolved value, untouched** — use it for server ids and timestamps.
+One-argument handlers keep working.
 
-The progress / error overlay (default, or your `renderPublishingOverlay` output) is rendered through media-editor's `overlay` prop, i.e. inside the dialog content in dialog presentation.
+### Details step (caption and your fields)
+
+Set `caption` or `renderPublishFields` and Publish opens a details step over the editor (Back / Publish) instead of
+publishing in one tap:
+
+```tsx
+<StoryComposer
+  caption={{ maxLength: 220, required: false }}
+  renderPublishFields={({ value, onChange, status }) => (
+    <AudiencePicker
+      value={value.audience as string | undefined}
+      disabled={status !== "idle"}
+      onChange={(audience) => onChange({ ...value, audience })}
+    />
+  )}
+  canPublish={(fields) => fields.audience !== undefined}
+  …
+/>
+```
+
+- `publishFields` + `onPublishFieldsChange` make the fields controlled (the prop wins every render); otherwise they
+  reset after a successful publish, on close and on `reset()`.
+- The details Publish is enabled only when the caption rules (`required`, `maxLength`) **and** `canPublish(fields)`
+  pass; a caption problem is shown under the field (`labels.captionRequired`, `labels.captionTooLong(max)`). A host
+  `canPublish` gives no reason of its own — render one in your fields. Without a details step, `canPublish` gates the
+  top-bar Publish.
+- Escape inside the details step is Back. The counter is isolated for RTL.
+- `handle.publish()` and `ctx.publish()` open the details step when one is configured and closed; with the step open
+  (or none configured) they publish. When `caption` or `canPublish` blocks it they warn once in development and resolve
+  without publishing. One publish runs at a time. A custom `renderTopBar` opens the step with `ctx.openDetails()`.
+- Publish fields named `file`, `metadata` or any `uploadFields` key are skipped (one dev warning); `null` / `undefined`
+  values are skipped; an empty caption is sent.
+
+### Status lifecycle
+
+`status` runs `idle` → `compositing` → `uploading` → `done` or `error`. `done` announces `labels.published` and settles
+to `idle` the next time the composer opens or the details step opens. Closing (`isOpen` false), `reset()` and Cancel
+return to `idle` and cancel any publish in flight (a pending `done` survives a close, so the announcement is not cut
+off, and settles on reopen). **A successful publish consumes the draft:** the editor is reset after
+`onPublished`, so the next open starts fresh. Cancel and errors keep the draft.
+
+### Progress and errors
+
+The progress / error overlay renders inside the editor surface (inside the dialog in dialog presentation), and the
+editor behind it is `inert`.
+
+- **Retry** re-runs the publish; **Cancel** returns to the editor with the draft intact. Its label is
+  `labels.discardCancel` ("Keep editing") while uploading and `labels.uploadCancel` ("Cancel") in the error state.
+- The message is `getErrorMessage?.(error) ?? labels.uploadFailedBody`. The default uploader's own errors are labels
+  too (`uploadErrorHttp(status)`, `uploadErrorNetwork`, `uploadErrorBadResponse` — a non-JSON 2xx response, with the
+  parser error as `cause` — and `uploadErrorNoDestination`), so `onPublishError` receives a localized message.
+  `uploadCancelled` is what `useImageUploader().upload()` rejects with on cancel; the composer treats that as a cancel,
+  not an error.
+- A throwing `onPublished` does not show the error overlay or fire `onPublishError`; the error reaches the `publish()`
+  caller.
+- Escape does nothing while the progress / error overlay is up (use its buttons), and the dialog does not close.
+- `renderPublishingOverlay({ progress, mode, status, error, retry, cancel })` replaces the default overlay.
+- When publishing completes, `labels.published` is announced to screen readers.
+
+## Localization
+
+- `labels` — story-composer's own strings (publish bar, details step, overlay, uploader errors). Templated strings are
+  functions: `captionCounter(count, max)`, `uploadErrorHttp(status)`.
+- `labels.editor` — the editor's nested labels (`MediaEditorLabels`, see the media-editor guide), passed straight
+  through. The older flat editor keys on `labels` (`modePhoto`, `toolText`, …) still work and win over
+  `labels.editor` on conflict.
+- `locale` — BCP 47 tag for numbers (progress %, caption counter) and the editor's numbers.
 
 ## Responsive
 
-- **Mobile** (`< md`): full-screen, edge-to-edge, safe-area-aware (notch + bottom home bar).
-- **Desktop** (`≥ md`): centered 400×711 modal (true 9:16 portrait).
-- Override via `presentation="fullscreen" | "modal" | "auto"`.
+- **Mobile** (`< md`): full-screen, safe-area aware.
+- **Desktop** (`≥ md`): centred 9:16 modal.
+- `presentation="fullscreen" | "modal" | "auto"` (default `"auto"`). `"fullscreen"` and `"modal"` behave the same —
+  both use the editor's dialog, which is full-screen on mobile and a modal on desktop; `"auto"` lets the editor decide.
 
-## Permissions
+## Permissions (with `capture`)
 
-- Camera permission is requested on open (via `getUserMedia`).
-- Video mode also requests microphone (set `recordAudio={false}` to skip).
-- Denied state shows a retry + "use gallery instead" fallback.
-- **Auto-retry** on settings change via `navigator.permissions.query` watch (Chrome/Firefox/Edge). Safari falls back to manual retry.
-- Fires `onPermissionDenied` once per denial cycle for consumer-side UX (analytics, help banner, etc.).
-
-**Requires HTTPS** (or `localhost`). `getUserMedia` rejects on non-secure origins.
+- Camera permission is requested on open; video mode also asks for the microphone (`recordAudio={false}` skips it).
+- A denied state shows retry + "use gallery instead"; it re-checks automatically through
+  `navigator.permissions.query` where supported.
+- `onPermissionDenied` fires once per denial. Requires HTTPS (or `localhost`).
 
 ## Customization
 
 | Prop | Default | What it changes |
 |---|---|---|
-| `defaultFacing` | `"environment"` on touch UAs, `"user"` elsewhere | Initial camera facing |
-| `maxVideoDuration` | `30` | Max recording length in seconds |
-| `maxFileSizeMb` | `50` | Gallery pick size limit; rejected with `onValidationError` |
-| `fonts` | 8 (Onest + JetBrains Mono + 6 web-safe) | Text-tool font list |
-| `colorPresets` | 12 brand-friendly | Color picker swatches |
-| `filterPresets` | 10 built-in | Add or replace (via `replaceBuiltinFilters: true`) |
-| `stickers` | 36 built-in (4 categories) | Add or replace (via `replaceBuiltinStickers: true`) |
-| `cropAspects` | `["9:16","1:1","4:5"]` | Crop ratio buttons |
-| `editorBackground` | `"#000"` | Canvas surface background |
-| `confirmOnDiscard` | `true` | Q-P10a — confirm before discarding dirty edits |
-| `presentation` | `"auto"` | `"fullscreen"` / `"modal"` / `"auto"` |
-| `labels` | 45 keys (English) | i18n + copy customization |
+| `defaultFacing` | rear on touch devices, front elsewhere | Initial camera (with `capture`) |
+| `fonts` / `colorPresets` | built-in sets | Text-tool fonts, colour swatches |
+| `filterPresets` / `stickers` | built-in sets | Add, or replace with `replaceBuiltinFilters` / `replaceBuiltinStickers` |
+| `cropAspects` | editor default | Crop ratio buttons (with the crop tool) |
+| `confirmOnDiscard` | `true` | Confirm before discarding unsaved work |
+| `editorBackground` | — | **Not implemented** — accepted, dev-warns, no effect |
 
-## Slot extension points
+## Exports
 
-Five sealed-folder parts exported for consumers who want to compose their own shell:
-
-```tsx
-import {
-  ComposerCamera,
-  ComposerEditor,
-  ComposerToolbar,
-  ComposerPublishBar,
-  ColorSwatchPicker,
-} from "@/components/story-composer";
-```
-
-Plus three exported hooks:
-
-```tsx
-import {
-  useStoryComposerState,
-  useMediaCapture,
-  useImageUploader,
-} from "@/components/story-composer";
-```
+- `StoryComposer`, `ComposerPublishBar`, `PublishDetailsStep`, `useStoryComposerState`, `useImageUploader`,
+  `DEFAULT_STORY_COMPOSER_LABELS`, `DEFAULT_ADJUSTMENTS`, and the types (`StoryComposerProps`, `StoryComposerHandle`,
+  `StoryComposerLabels`, `PublishFields`, `PublishStatus`, `Uploader`, `PublishResult`, `PublishedStory`, …).
+- Editor parts and helpers come from `@/components/media-editor`; the camera from
+  `@/components/media-editor/features/capture`.
 
 ## Imperative handle
 
 ```tsx
-const composerRef = useRef<StoryComposerHandle>(null);
-
-// 15 methods total:
-composerRef.current.open();
-composerRef.current.close();
-composerRef.current.reset();
-composerRef.current.switchCamera();
-composerRef.current.takePhoto();
-composerRef.current.startRecording();
-composerRef.current.stopRecording();
-composerRef.current.importFromGallery();
-composerRef.current.addText("Hello!");
-composerRef.current.addSticker(stickerOption);
-composerRef.current.setAdjustments({ brightness: 0.2 });
-composerRef.current.applyFilter("clarendon");
-composerRef.current.publish();
-composerRef.current.exportBlob();
+const ref = useRef<StoryComposerHandle>(null);
+ref.current?.publish();      // respects the caption / canPublish gates
+ref.current?.exportBlob();   // { blob, metadata } without uploading
+ref.current?.reset();
+ref.current?.addText("Hello!");
+ref.current?.addSticker(sticker);
+ref.current?.setAdjustments({ brightness: 0.2 });
+ref.current?.applyFilter("clarendon");
+ref.current?.close();
 ```
+
+`open`, `switchCamera`, `takePhoto`, `startRecording`, `stopRecording` and `importFromGallery` forward to the editor,
+where they are **not implemented** (dev-warn, no effect) — use `isOpen` and the in-UI controls.
+
+## Migration 0.5 → 0.6
+
+| Change | What to do |
+|---|---|
+| **Camera is opt-in.** A default install has no camera tab and no `media-editor-capture` dependency. | `pnpm dlx shadcn@latest add @ilinxa/media-editor-capture` and pass `capture={mediaCapture}`. |
+| `onPublished(story, result)` | Nothing — one-argument handlers still compile. Read server data from `result`. |
+| `Uploader(blob, metadata, fields?)` | Nothing — two-argument uploaders still compile. |
+| Removed renamed aliases: `ComposerEditor` / `ComposerEditorProps`, `ComposerToolbar` / `ComposerToolbarProps`, `ComposerCamera` / `ComposerCameraProps` | Use the real names: `EditorCanvas` / `EditorCanvasProps` and `EditorToolbar` / `EditorToolbarProps` from `@/components/media-editor`; `EditorCamera` / `EditorCameraProps` from `@/components/media-editor/features/capture`. |
+| Removed re-exports (same name in media-editor): `ColorSwatchPicker` / `ColorSwatchPickerProps`, `resolveFilterPresets`, `BUILT_IN_FILTER_PRESETS`, `resolveStickerSets`, `BUILT_IN_STICKER_SETS`, `exportPhotoBlob`, `exportTextOnlyBlob`, `ExportPhotoOptions`, `compositeVideo`, `CompositeVideoOptions`, `CompositeVideoResult`, `selectRecorderMime`, `containerFor`, `PREFERRED_RECORDER_MIME_TYPES`, `RecorderMimeType`, `DEFAULT_TEXT_GRADIENTS`, `DEFAULT_FONTS`, `DEFAULT_COLOR_PRESETS`, `GradientPreset`, `fitCropToStage`, `ASPECT_RATIO_VALUES`, `CropRect` | Import them from `@/components/media-editor`. |
+| Removed label keys `drawUndo`, `drawRedo`, `textAlign`, `trimStart`, `trimEnd` (nothing rendered them) | Use `labels.editor.text.alignLeft` / `alignCenter` / `alignRight`; drop the rest. |
+| `DEFAULT_STORY_COMPOSER_LABELS` now equals the English the editor renders (`composerLabel` "Media editor", `discardConfirmTitle` "Discard?", …) — the old values never reached the screen | Set `labels.composerLabel` (e.g. "Create story") if you want a story-specific dialog title. |
+| Overlay colours use `--media-overlay` / `--media-overlay-foreground`; the warning icon uses `--warning`. The overlay's Retry / Publish buttons use the default button colour. | Defaults ship with the item (`cssVars`); set the variables to theme them. |
+| `Required<StoryComposerLabels>` → `ResolvedStoryComposerLabels` for the parts' `labels` prop | Only if you render `ComposerPublishBar` yourself. |
 
 ## Accessibility
 
-- Keyboard: Tab through controls; Ctrl/Cmd+Z + Ctrl/Cmd+Shift+Z for undo/redo (ignored while typing in inputs).
-- Live-region announcer surfaces "Text added", "Sticker added: X", etc. since the Konva canvas itself is opaque to screen readers.
-- All buttons have `aria-label`; toggles use `aria-pressed`; publish button is `aria-busy` during upload.
-- Color pickers are keyboard-navigable.
-- Permission-denied state uses `role="alert"` + `aria-live="polite"`.
-
-## Browser support
-
-| Browser | Camera | Video record | Composite export |
-|---|---|---|---|
-| Chrome desktop / Android | ✅ | ✅ VP9 → VP8 | ✅ |
-| Safari iOS / macOS | ✅ | ✅ MP4 H.264 | ✅ (audio mix best-effort) |
-| Firefox | ✅ | ✅ VP8 | ✅ |
-| Edge | ✅ | ✅ VP9 → VP8 | ✅ |
-
-`navigator.permissions.query({name:"camera"})` works in Chrome/Firefox/Edge; Safari falls back to direct `getUserMedia` probing.
-
-## Not in v0.1 (deferred)
-
-- AR face filters / face tracking (would need MediaPipe / TF.js)
-- Music overlay (audio mixing + licensing UI)
-- Polls / quizzes / question stickers (interactive sticker types)
-- GIF stickers
-- Boomerang / slow-mo / hyperlapse
-- Multi-segment stories (one capture per publish in v0.1; multi-segment v0.2)
-- Draft persistence (IndexedDB save/restore)
-- "Free" crop aspect (only ratio-locked in v0.1)
+- Every button has an accessible name from `labels`; Publish is `aria-busy` while uploading.
+- The editor behind the progress / error / details overlay is `inert`.
+- Permission states use `role="alert"`; completion is announced through `role="status"`.
+- RTL: logical utilities only; the demo has an RTL example.
 
 ## Related
 
-- [`story-rail`](../story-rail-procomp/) — discovery surface (horizontal user rail)
-- [`story-viewer`](../story-viewer-procomp/) — consumption surface (full-screen modal with cube transitions)
-- [`post-card`](../post-card-procomp/) — companion feed card
+- [`media-editor`](../media-editor-procomp/) — the editor this wraps (labels, formats, handle)
+- [`story-rail`](../story-rail-procomp/) · [`story-viewer`](../story-viewer-procomp/) · [`post-card`](../post-card-procomp/)
 
 ## Substrate decisions
 
-See [`story-composer-procomp-description.md`](./story-composer-procomp-description.md) §"Substrate decisions" for the full rationale — chiefly: react-konva chosen over Fabric.js for the official React-19 binding; SVG-data-URL stickers chosen over PNG-base64 for bundle weight; XHR (not fetch) for upload because of progress events; React.lazy (not next/dynamic) for the SSR boundary.
+See [`story-composer-procomp-description.md`](./story-composer-procomp-description.md) §"Substrate decisions" —
+react-konva over Fabric.js for the official React 19 binding; XHR (not fetch) for upload progress. Konva stays with
+the editor (platform-accepted 2026-10-25); only the camera / recorder is optional.

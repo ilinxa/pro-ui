@@ -13,13 +13,26 @@ import {
 import { useMediaEditorState } from "./hooks/use-media-editor-state";
 import { useCaptureExtensionOptional } from "./hooks/use-capture-extension";
 import { resolvePresentation } from "./lib/presentation-resolver";
-import { normalizeEditorLabels } from "./lib/normalize-labels";
+import { probeVideo } from "./lib/probe-video";
+import { focusOverlay, wrapTabWithinOverlay } from "./lib/overlay-focus";
+import { resolveEditorLabels } from "./lib/normalize-labels";
+import { formatNumber } from "./lib/format-number";
+import {
+  renameBackgrounds,
+  renameFilters,
+  renameFonts,
+  renameStickerSets,
+} from "./lib/preset-names";
 import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
 import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
 import { compositeVideo } from "./lib/composite-video";
-import { validateGalleryFile } from "./lib/validate-media-file";
+import {
+  acceptAttribute,
+  validateGalleryFile,
+} from "./lib/validate-media-file";
+import { selectRecorderMime } from "./lib/mime-fallback";
 import { DiscardConfirmDialog } from "./parts/discard-confirm-dialog";
 import { TextOnlyCanvas } from "./parts/text-only-canvas";
 import { ToolAdjustSliders } from "./parts/tool-adjust-sliders";
@@ -51,7 +64,8 @@ import type {
   MediaEditorState,
   SourceError,
   StickerOption,
-  StoryComposerLabels,
+  MediaEditorPresetNames,
+  MediaEditorResolvedLabels,
   ValidationError,
 } from "./types";
 import type {
@@ -99,62 +113,26 @@ const NOT_IMPLEMENTED_MARKER =
 const NOT_WIRED_HISTORY_MARKER =
   "media-editor: undo/redo is not wired (no mutations are recorded as commands) — no-op.";
 
-// English fallback for the flat StoryComposerLabels shape that several
-// part files (EditorCamera, EditorToolbar, DiscardConfirmDialog, etc.) still
-// require until the C17 refactor moves them onto MediaEditorLabels.
-// Module-scoped; not exported via the barrel. Consumers override individual
-// strings via the `labels` prop (nested MediaEditorLabels or flat keys,
-// normalized by normalizeEditorLabels).
-const INTERNAL_LABELS_FALLBACK: Required<StoryComposerLabels> = {
-  composerLabel: "Media editor",
-  composerDescription: "Capture a photo, record a video, or compose text-only content.",
-  modePhoto: "Photo",
-  modeVideo: "Video",
-  modeText: "Text",
-  shutterPhoto: "Take photo",
-  shutterVideoStart: "Start recording",
-  shutterVideoStop: "Stop recording",
-  galleryPicker: "Choose from gallery",
-  switchCamera: "Switch camera",
-  permissionDeniedTitle: "Camera access blocked",
-  permissionDeniedBody:
-    "We need camera permission to capture media. Enable it in your browser settings, or pick a file from your gallery.",
-  permissionRetry: "Try again",
-  permissionUsePicker: "Use gallery instead",
-  permissionRequesting: "Requesting camera…",
-  toolText: "Text",
-  toolDraw: "Draw",
-  toolStickers: "Stickers",
-  toolFilters: "Filters",
-  toolAdjust: "Adjust",
-  toolCrop: "Crop",
-  adjustBrightness: "Brightness",
-  adjustContrast: "Contrast",
-  adjustSaturation: "Saturation",
-  adjustBlur: "Blur",
-  drawColor: "Color",
-  drawBrush: "Brush size",
-  drawEraser: "Eraser",
-  drawUndo: "Undo",
-  drawRedo: "Redo",
-  textPlaceholder: "Type something…",
-  textFontFamily: "Font",
-  textFontSize: "Size",
-  textAlign: "Align",
-  publish: "Publish",
-  publishing: "Publishing…",
-  published: "Published",
-  close: "Close",
-  discardConfirmTitle: "Discard?",
-  discardConfirmBody: "You'll lose your captured media and edits.",
-  discardConfirm: "Discard",
-  discardCancel: "Keep editing",
-  uploadFailedTitle: "Upload failed",
-  uploadRetry: "Retry",
-  recordingLabel: "Recording",
-  trimStart: "Trim start",
-  trimEnd: "Trim end",
-};
+/**
+ * True when the `overlay` prop renders something. `null`, `undefined`, `true`,
+ * `false` and `""` render nothing and must not lock the editor behind an
+ * invisible overlay; `0` renders "0" (React prints it), so it counts as active.
+ */
+function hasRenderableOverlay(node: React.ReactNode): boolean {
+  return React.Children.toArray(node).some((c) => c !== "");
+}
+
+/** `useSyncExternalStore` subscribe for a value that never notifies (browser capability probes). */
+const subscribeNever = () => () => {};
+
+/**
+ * Edit tools that have a working UI on a VIDEO draft. None today: the tool
+ * panels (text / stickers / filters / adjust / draw / crop) are all mounted
+ * only for image drafts, and a video draft renders as a plain `<video>`. Add a
+ * tool here when it gains a video implementation; until then its chip stays
+ * hidden rather than opening nothing.
+ */
+const VIDEO_DRAFT_TOOLS: readonly EditTool[] = [];
 
 function devWarnOnce(memo: Set<string>, key: string, message: string) {
   if (process.env.NODE_ENV === "production") return;
@@ -188,7 +166,41 @@ const MediaEditorImpl = React.forwardRef<
   MediaEditorProps
 >(function MediaEditorImpl(props, ref) {
   const captureExt = useCaptureExtensionOptional();
-  const { defaultMode } = props;
+
+  // ─── Output / intake formats (ME4) ──────────────────────────────────
+  // `videoOutput.mimeTypes` keyed by content so an inline array literal does
+  // not change identity every parent render. An empty list means "no
+  // allow-list" (the built-in chain).
+  const videoMimeKey = props.videoOutput?.mimeTypes?.join("\n") ?? "";
+  const allowedVideoMimes = React.useMemo(
+    () => (videoMimeKey ? videoMimeKey.split("\n") : undefined),
+    [videoMimeKey],
+  );
+  // With an allow-list, can this browser record any of it? Read through
+  // useSyncExternalStore so the server render and the hydration pass both see
+  // `true` (MediaRecorder is absent on the server); the client then re-renders
+  // with the real answer, without a hydration mismatch.
+  const recorderCanEncodeAllowList = React.useSyncExternalStore(
+    subscribeNever,
+    () =>
+      allowedVideoMimes === undefined ||
+      selectRecorderMime(allowedVideoMimes) !== null,
+    () => true,
+  );
+  // Recording is only REACHABLE when the camera source is on AND a capture
+  // extension is wired. Without it there is no recorder to restrict, so video
+  // stays available (a video FILE needs no recorder) and nothing is reported.
+  // Both inputs are identical on the server and the client, so this cannot
+  // flip between SSR and hydration.
+  const recordingReachable =
+    (props.mediaSources ?? ["camera", "upload"]).includes("camera") &&
+    captureExt?.CameraSurface != null;
+  const videoRecordable = recorderCanEncodeAllowList || !recordingReachable;
+  // A video start mode is meaningless when video is hidden.
+  const defaultMode =
+    props.defaultMode === "video" && !videoRecordable
+      ? undefined
+      : props.defaultMode;
 
   // Seed the editor's cropAspect with the first allowed option (the hook's
   // "free" fallback may not be in the consumer-derived list). Computed
@@ -203,6 +215,27 @@ const MediaEditorImpl = React.forwardRef<
   });
 
   const warnedRef = React.useRef<Set<string>>(new Set());
+
+  // ─── Labels ─────────────────────────────────────────────────────────
+  // DEFAULT_LABELS (the single English source) merged with the consumer's
+  // nested labels; flat keys (deprecated) are still accepted and win.
+  const mergedLabels: MediaEditorResolvedLabels = React.useMemo(
+    () => resolveEditorLabels(props.labels),
+    [props.labels],
+  );
+  const presetNames = props.labels?.presets;
+  // `labels.trim` only reaches the exported VideoTrimBar, which this component
+  // never mounts — say so instead of silently ignoring it.
+  const hasTrimLabels = props.labels?.trim !== undefined;
+  React.useEffect(() => {
+    if (!hasTrimLabels) return;
+    devWarnOnce(
+      warnedRef.current,
+      "labels-trim-inert",
+      "media-editor: labels.trim has no effect on <MediaEditor> — the editor does not mount the trim bar. Pass those labels to an exported VideoTrimBar you mount yourself (its `labels` prop).",
+    );
+  }, [hasTrimLabels]);
+  const { locale } = props;
 
   // ─── Observability emitters (onModeChange / onEditAction) ──────────
   // Latest-callback refs so the emit effects below depend only on the state
@@ -248,14 +281,58 @@ const MediaEditorImpl = React.forwardRef<
     prevEmitToolRef.current = curr;
   }, [editor.activeTool, emitEditAction]);
 
+  // The server snapshot above says "recordable", so a `defaultMode="video"` can
+  // be seeded into state and hydrated; once the real answer arrives and video
+  // is hidden, leave the capture stage with no mode (what a client-only render
+  // shows) instead of sitting on a mode that is not offered.
+  const { setMode: setEditorMode } = editor;
+  React.useEffect(() => {
+    if (
+      !videoRecordable &&
+      editor.state.mode === "video" &&
+      editor.state.stage === "capture"
+    ) {
+      setEditorMode(null);
+    }
+  }, [videoRecordable, editor.state.mode, editor.state.stage, setEditorMode]);
+
   // ─── Capability defaults (description §8 — Q-P-locked) ─────────────
 
   // Memoized so the `??`-fallback arrays keep a stable identity across
   // renders (both feed hook dependency arrays further down).
-  const enabledModes = React.useMemo(
+  const declaredModes = React.useMemo(
     () => props.enabledModes ?? (["photo", "video", "text"] as const),
     [props.enabledModes],
   );
+  // Video mode is hidden when `videoOutput.mimeTypes` names nothing this
+  // browser can record. Uploading a video FILE still works (pass-through needs
+  // no recorder), so the loader below keeps checking the declared modes.
+  const enabledModes = React.useMemo(
+    () =>
+      videoRecordable
+        ? declaredModes
+        : declaredModes.filter((m) => m !== "video"),
+    [declaredModes, videoRecordable],
+  );
+
+  // Tell the host once per mount that video recording was hidden because none
+  // of `videoOutput.mimeTypes` is recordable here. Skipped when the consumer
+  // never enabled video mode (nothing was lost).
+  const onValidationErrorRef = React.useRef(props.onValidationError);
+  React.useEffect(() => {
+    onValidationErrorRef.current = props.onValidationError;
+  });
+  const codecErrorFiredRef = React.useRef(false);
+  React.useEffect(() => {
+    if (videoRecordable || codecErrorFiredRef.current) return;
+    if (!declaredModes.includes("video")) return;
+    codecErrorFiredRef.current = true;
+    onValidationErrorRef.current?.({
+      kind: "unsupported-codec",
+      message: mergedLabels.videoCodecUnavailable,
+    });
+  }, [videoRecordable, declaredModes, mergedLabels]);
+
   const enabledTools = React.useMemo(
     () =>
       props.enabledTools ??
@@ -292,9 +369,11 @@ const MediaEditorImpl = React.forwardRef<
   // array identity churn. enabledModes is read by the loader at the moment
   // the source changes; subsequent toggles of enabledModes don't retrigger
   // a re-fetch (which would be surprising — and slow on URL sources).
-  const enabledModesRef = React.useRef<readonly ComposerMode[]>(enabledModes);
+  // The loader gets the DECLARED modes: a video FILE still loads when the
+  // allow-list hides the video recorder (pass-through needs no recorder).
+  const enabledModesRef = React.useRef<readonly ComposerMode[]>(declaredModes);
   React.useEffect(() => {
-    enabledModesRef.current = enabledModes;
+    enabledModesRef.current = declaredModes;
   });
 
   // Value-based effect key: url-kind sources are idiomatically passed as
@@ -455,6 +534,20 @@ const MediaEditorImpl = React.forwardRef<
   const showEditCanvas =
     !sourceError && editor.state.stage === "edit" && hasLoadedSource;
 
+  // Tool chips follow what the draft can actually do: a video draft is a plain
+  // `<video>` with no tool panels, so only the tools in VIDEO_DRAFT_TOOLS show
+  // (none today) instead of chips that open nothing.
+  const isVideoEdit =
+    editor.draft?.kind === "video" ||
+    (editor.draft === null && editor.state.mode === "video");
+  const visibleTools = React.useMemo(
+    () =>
+      isVideoEdit
+        ? enabledTools.filter((t) => VIDEO_DRAFT_TOOLS.includes(t))
+        : enabledTools,
+    [isVideoEdit, enabledTools],
+  );
+
   // ─── R2: Capture flow handlers ─────────────────────────────────────
   // Camera + gallery callbacks promote captured media to a draft and
   // transition to the edit stage. EditorCanvas takes over from there.
@@ -521,22 +614,38 @@ const MediaEditorImpl = React.forwardRef<
   );
 
   // ─── R3: Tool-panel resolved data ─────────────────────────────────
+  // `labels.presets` renames presets by id. Keyed by content so an inline
+  // `labels={{ ... }}` literal does not rebuild the preset arrays every render
+  // (the filter strip re-renders its thumbnails when the array identity changes).
+  const presetNamesKey = JSON.stringify(presetNames ?? null);
+  const names = React.useMemo(
+    () => JSON.parse(presetNamesKey) as MediaEditorPresetNames | null,
+    [presetNamesKey],
+  );
   const resolvedStickerSets = React.useMemo(
     () =>
-      resolveStickerSets(props.stickers, !!props.replaceBuiltinStickers),
-    [props.stickers, props.replaceBuiltinStickers],
+      renameStickerSets(
+        resolveStickerSets(props.stickers, !!props.replaceBuiltinStickers),
+        names?.stickerSets,
+        names?.stickers,
+      ),
+    [props.stickers, props.replaceBuiltinStickers, names],
   );
   const resolvedFilterPresets = React.useMemo(
     () =>
-      resolveFilterPresets(
-        props.filterPresets,
-        !!props.replaceBuiltinFilters,
+      renameFilters(
+        resolveFilterPresets(props.filterPresets, !!props.replaceBuiltinFilters),
+        names?.filters,
       ),
-    [props.filterPresets, props.replaceBuiltinFilters],
+    [props.filterPresets, props.replaceBuiltinFilters, names],
   );
   const resolvedFonts = React.useMemo(
-    () => props.fonts ?? DEFAULT_FONTS,
-    [props.fonts],
+    () => renameFonts(props.fonts ?? DEFAULT_FONTS, names?.fonts),
+    [props.fonts, names],
+  );
+  const resolvedGradients = React.useMemo(
+    () => renameBackgrounds(DEFAULT_TEXT_GRADIENTS, names?.backgrounds),
+    [names],
   );
   const resolvedColorPresets = React.useMemo(
     () => props.colorPresets ?? DEFAULT_COLOR_PRESETS,
@@ -646,7 +755,7 @@ const MediaEditorImpl = React.forwardRef<
     const id = `text-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     editor.addTextOverlay({
       id,
-      text: INTERNAL_LABELS_FALLBACK.textPlaceholder,
+      text: mergedLabels.textPlaceholder,
       x: 100,
       y: 200,
       rotation: 0,
@@ -677,26 +786,6 @@ const MediaEditorImpl = React.forwardRef<
     },
     [editor],
   );
-
-  const mergedLabels: Required<StoryComposerLabels> = React.useMemo(() => {
-    // Nested MediaEditorLabels keys are mapped onto the internal flat shape;
-    // flat string keys (story-composer) win on conflict. Non-strings ignored.
-    return { ...INTERNAL_LABELS_FALLBACK, ...normalizeEditorLabels(props.labels) };
-  }, [props.labels]);
-
-  // `labels.publish` / `labels.empty` are typed but nothing renders them
-  // (@notImplemented) — say so once per mount instead of failing silently.
-  const warnedInertLabelsRef = React.useRef(false);
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === "production" || warnedInertLabelsRef.current) return;
-    const l = props.labels as Record<string, unknown> | undefined;
-    if (l && (l.publish !== undefined || l.empty !== undefined)) {
-      warnedInertLabelsRef.current = true;
-      console.warn(
-        "[MediaEditor] `labels.publish` and `labels.empty` are not implemented: no editor surface renders them, so they have no effect. Use `renderEmpty` for empty-state copy.",
-      );
-    }
-  }, [props.labels]);
 
   // Capture surface is mounted when the editor is in capture stage AND the
   // current mode is photo/video AND a camera extension is actually wired.
@@ -774,7 +863,9 @@ const MediaEditorImpl = React.forwardRef<
 
   // ─── Presentation resolution (description §6) ───────────────────────
 
-  const resolved = resolvePresentation(props.presentation, enabledModes);
+  // Resolved from the DECLARED modes: hiding video after hydration must not
+  // flip the presentation (dialog -> inline) under the consumer.
+  const resolved = resolvePresentation(props.presentation, declaredModes);
 
   // Dev-only required-prop guard: dialog mode needs isOpen + onClose.
   React.useEffect(() => {
@@ -858,6 +949,13 @@ const MediaEditorImpl = React.forwardRef<
     [editor.state],
   );
 
+  // Read through a ref so an inline `labels` literal does not change the
+  // handle's identity every render.
+  const videoCodecUnavailableRef = React.useRef(mergedLabels.videoCodecUnavailable);
+  React.useEffect(() => {
+    videoCodecUnavailableRef.current = mergedLabels.videoCodecUnavailable;
+  });
+
   const exportVideo = React.useCallback(
     async (opts?: ExportVideoOpts) => {
       const videoBlob = editor.state.videoBlob;
@@ -870,19 +968,49 @@ const MediaEditorImpl = React.forwardRef<
       const shortcut = !hasAnyOverlay(editor.state) && !editor.state.crop;
       if (shortcut) {
         opts?.onProgress?.(0);
+        // Report the real file's size and length: the draft knows them for a
+        // capture; otherwise read them from the blob's own metadata. Only when
+        // that fails too do the old portrait constants stand in.
+        const draft = editor.draft?.blob === videoBlob ? editor.draft : null;
+        let width = draft?.width;
+        let height = draft?.height;
+        let durationMs = draft?.durationMs;
+        if (!width || !height || durationMs === undefined) {
+          const probed = await probeVideo(videoBlob);
+          if (probed) {
+            if (!width || !height) {
+              width = probed.width;
+              height = probed.height;
+            }
+            durationMs ??= probed.durationMs;
+          }
+        }
         opts?.onProgress?.(1);
         return {
           blob: videoBlob,
           metadata: buildExportMetadata(
             editor.state,
             "video",
-            editor.state.crop?.width ?? 720,
-            editor.state.crop?.height ?? 1280,
-            videoBlob.type || "video/webm",
+            width && height ? width : 720,
+            width && height ? height : 1280,
+            // A typeless blob reports the preferred allowed output type, else the
+            // long-standing WebM default.
+            videoBlob.type || allowedVideoMimes?.[0] || "video/webm",
+            durationMs,
           ),
         };
       }
-      // Full re-encode path: bake Konva overlays into each video frame.
+      // Full re-encode path: bake Konva overlays into each video frame. With an
+      // allow-list and no recordable match there is nothing to encode into —
+      // reject instead of silently producing a format the host did not allow.
+      // (An explicit per-call `opts.mimeType` still wins.)
+      if (
+        !opts?.mimeType &&
+        allowedVideoMimes &&
+        selectRecorderMime(allowedVideoMimes) === null
+      ) {
+        throw new Error(videoCodecUnavailableRef.current);
+      }
       const stage = stageRef.current;
       const cropRect = editor.state.crop;
       const ow = cropRect?.width ?? stage?.width() ?? 720;
@@ -894,6 +1022,7 @@ const MediaEditorImpl = React.forwardRef<
         outputWidth: Math.round(ow),
         outputHeight: Math.round(oh),
         mimeType: opts?.mimeType,
+        allowedMimeTypes: allowedVideoMimes,
         bitsPerSecond: opts?.bitsPerSecond,
         onProgress: opts?.onProgress,
         renderFrame: (ctx, video) => {
@@ -931,7 +1060,7 @@ const MediaEditorImpl = React.forwardRef<
         ),
       };
     },
-    [editor.state],
+    [editor.state, editor.draft, allowedVideoMimes],
   );
 
   const exportPolymorphic = React.useCallback(
@@ -1017,6 +1146,7 @@ const MediaEditorImpl = React.forwardRef<
       },
       addSticker: (sticker: StickerOption) => {
         editor.addSticker({
+          // now-ok: builds an id inside an imperative handle method; never reaches markup
           id: `sticker-${Date.now()}`,
           stickerId: sticker.id,
           x: 0,
@@ -1084,6 +1214,82 @@ const MediaEditorImpl = React.forwardRef<
     ],
   );
 
+  // ─── Overlay focus (F-04) ───────────────────────────────────────────
+  // While a consumer `overlay` is mounted, everything BEHIND it (the editor
+  // body) is `inert` — unreachable by keyboard, pointer and assistive tech —
+  // so the overlay behaves as a modal layer in both presentations. The
+  // overlay itself sits outside the inert wrapper. A dialog's focus trap does
+  // not look at `inert`, so focus is moved into the overlay explicitly when
+  // the overlay mounts and focus is not already inside it, and handed back to
+  // the control that held it when the overlay goes away.
+  const overlayActive = hasRenderableOverlay(props.overlay);
+  const bodyRef = React.useRef<HTMLDivElement | null>(null);
+  const overlayHostRef = React.useRef<HTMLDivElement | null>(null);
+  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
+  React.useLayoutEffect(() => {
+    if (!overlayActive) {
+      const prev = restoreFocusRef.current;
+      restoreFocusRef.current = null;
+      const active = document.activeElement;
+      if (
+        prev &&
+        prev.isConnected &&
+        (active === null || active === document.body)
+      ) {
+        prev.focus({ preventScroll: true });
+      }
+      return;
+    }
+    const body = bodyRef.current;
+    const host = overlayHostRef.current;
+    if (!host) return;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && body?.contains(active)) {
+      restoreFocusRef.current = active;
+    }
+    if (!(active instanceof HTMLElement) || !host.contains(active)) {
+      // No reachable control inside (a read-only notice, a spinner): focus the
+      // host itself so keyboard focus is not stranded on the inert body.
+      focusOverlay(host);
+    }
+  }, [overlayActive]);
+
+  // Dialog presentation: the dialog's focus scope (Radix FocusScope: its mount
+  // effect focuses the first tabbable candidate, which ignores `inert` — that
+  // lands inside the inert body, the focus() is a no-op, and it falls back to
+  // focusing the dialog root) can run AFTER the layout effect above, and its
+  // content may not even be mounted yet then (the portal mounts a pass later).
+  // So, while an overlay is up, (a) retry the move for a couple of frames and
+  // (b) pull focus back whenever it lands on the dialog root itself.
+  // See node_modules/@radix-ui/react-focus-scope/dist/index.mjs (`focus(container)`).
+  React.useEffect(() => {
+    if (!overlayActive || resolved !== "dialog") return;
+    const move = () => {
+      const host = overlayHostRef.current;
+      if (!host) return;
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && host.contains(active)) return;
+      focusOverlay(host);
+    };
+    let frame = requestAnimationFrame(() => {
+      move();
+      frame = requestAnimationFrame(move);
+    });
+    const onFocusIn = (e: FocusEvent) => {
+      const host = overlayHostRef.current;
+      const target = e.target;
+      if (!host || !(target instanceof HTMLElement)) return;
+      if (target.getAttribute("role") === "dialog" && target.contains(host)) {
+        focusOverlay(host);
+      }
+    };
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, [overlayActive, resolved]);
+
   // ─── Slot context for render* props ─────────────────────────────────
 
   const slotCtx = React.useMemo(
@@ -1121,6 +1327,16 @@ const MediaEditorImpl = React.forwardRef<
       data-presentation={resolved}
       data-aspect={aspect}
     >
+      {/* Editor body — `display: contents` keeps the children in the surface's
+          flex/absolute layout; the wrapper exists only to carry `inert` while a
+          consumer overlay is mounted (the overlay and the discard dialog stay
+          outside it). */}
+      <div
+        ref={bodyRef}
+        className="contents"
+        data-slot="media-editor-body"
+        inert={overlayActive}
+      >
       {props.renderTopBar?.(slotCtx)}
 
       {/* Top-center control — absolutely centered so it shares the consumer
@@ -1169,8 +1385,8 @@ const MediaEditorImpl = React.forwardRef<
           <button
             type="button"
             onClick={backToCapture}
-            aria-label="Back to capture"
-            className="inline-flex size-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition-colors hover:bg-black/45"
+            aria-label={mergedLabels.backToCapture}
+            className="inline-flex size-9 items-center justify-center rounded-full bg-media-overlay text-media-overlay-foreground backdrop-blur transition-colors hover:bg-media-overlay-foreground/10"
           >
             <ArrowLeft className="size-5" />
           </button>
@@ -1209,7 +1425,7 @@ const MediaEditorImpl = React.forwardRef<
           {sourceError ? (
             <div className="flex flex-col items-center gap-1 p-4">
               <p className="font-medium text-destructive">
-                Couldn&apos;t load source
+                {mergedLabels.emptyLoadFailed}
               </p>
               <p className="text-[11px] text-muted-foreground">
                 <code>{sourceError.kind}</code>
@@ -1221,16 +1437,18 @@ const MediaEditorImpl = React.forwardRef<
                 ) : null}
                 {sourceError.kind === "mode-not-enabled" ? (
                   <>
-                    {" · attempted "}
+                    {` · ${mergedLabels.emptyAttempted} `}
                     <code>{sourceError.attempted}</code>
-                    {" · enabled "}
-                    <code>{sourceError.enabled.join(",") || "(none)"}</code>
+                    {` · ${mergedLabels.emptyEnabled} `}
+                    <code>
+                      {sourceError.enabled.join(",") || mergedLabels.emptyNone}
+                    </code>
                   </>
                 ) : null}
                 {sourceError.kind === "unsupported-file-type" ? (
                   <>
-                    {" · type "}
-                    <code>{sourceError.fileType || "(blank)"}</code>
+                    {` · ${mergedLabels.emptyType} `}
+                    <code>{sourceError.fileType || mergedLabels.emptyBlank}</code>
                   </>
                 ) : null}
               </p>
@@ -1239,7 +1457,7 @@ const MediaEditorImpl = React.forwardRef<
           ) : isEmptyConfig ? (
             <div
               role="status"
-              aria-label="Media editor: no source provided. Pass initialSource or enable a capture mode."
+              aria-label={mergedLabels.emptyNoSourceAria}
               className="flex flex-col items-center gap-2 p-6 text-muted-foreground"
               data-empty-config=""
             >
@@ -1248,12 +1466,9 @@ const MediaEditorImpl = React.forwardRef<
               ) : (
                 <>
                   <p className="font-medium text-foreground">
-                    No source provided
+                    {mergedLabels.emptyNoSource}
                   </p>
-                  <p className="text-[11px]">
-                    Pass <code>initialSource</code> or enable a capture mode
-                    in <code>enabledModes</code>.
-                  </p>
+                  <p className="text-[11px]">{mergedLabels.emptyNoSourceHint}</p>
                 </>
               )}
             </div>
@@ -1302,6 +1517,7 @@ const MediaEditorImpl = React.forwardRef<
                     (f) => f.id === editor.state.filter,
                   ) ?? null
                 }
+                labels={mergedLabels}
                 onStageReady={(s) => {
                   stageRef.current = s;
                 }}
@@ -1313,7 +1529,7 @@ const MediaEditorImpl = React.forwardRef<
             enabledModes.includes("text") ? (
             <TextOnlyCanvas
               ref={textOnlyRef}
-              gradients={DEFAULT_TEXT_GRADIENTS}
+              gradients={resolvedGradients}
               fonts={resolvedFonts}
               colorPresets={resolvedColorPresets}
               labels={mergedLabels}
@@ -1331,6 +1547,9 @@ const MediaEditorImpl = React.forwardRef<
               captureAspectRatio={aspectAsRatio(aspect)}
               autoAcquireOverride={userInitiatedCamera}
               labels={mergedLabels}
+              locale={locale}
+              acceptMediaTypes={props.acceptMediaTypes}
+              videoMimeTypes={allowedVideoMimes}
               onPhoto={handlePhoto}
               onVideo={handleVideo}
               onGalleryFile={handleGalleryFile}
@@ -1341,7 +1560,7 @@ const MediaEditorImpl = React.forwardRef<
           ) : captureSurfaceReady ? (
             <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Pick a mode above, or jump straight to the camera.
+                {mergedLabels.connectHint}
               </p>
               <button
                 type="button"
@@ -1356,7 +1575,7 @@ const MediaEditorImpl = React.forwardRef<
                 }}
                 className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Connect to camera
+                {mergedLabels.connectCamera}
               </button>
             </div>
           ) : mediaSources.includes("upload") ||
@@ -1368,7 +1587,9 @@ const MediaEditorImpl = React.forwardRef<
             // through the SAME draft path as a camera capture would
             // (handleGalleryFile → editor.setDraft → stage "edit").
             <FileIntakeSurface
-              galleryLabel={mergedLabels.galleryPicker}
+              labels={mergedLabels}
+              locale={locale}
+              acceptMediaTypes={props.acceptMediaTypes}
               maxFileSizeMb={props.maxFileSizeMb ?? 50}
               onFile={handleGalleryFile}
               onValidationError={props.onValidationError}
@@ -1376,11 +1597,12 @@ const MediaEditorImpl = React.forwardRef<
           ) : (
             <>
               <p className="font-medium text-foreground">
-                No capture source available
+                {mergedLabels.emptyNoCaptureSource}
               </p>
               <p>
-                aspect: <code>{aspect}</code> · sources:{" "}
-                <code>{mediaSources.join(",") || "(none)"}</code>
+                {mergedLabels.emptyAspect} <code>{aspect}</code>
+                {` · ${mergedLabels.emptySources} `}
+                <code>{mediaSources.join(",") || mergedLabels.emptyNone}</code>
               </p>
             </>
           )}
@@ -1399,13 +1621,13 @@ const MediaEditorImpl = React.forwardRef<
           (flex-1) shrinks to reserve the space, keeping every handle reachable.
           Other tools are sliders/inputs (no canvas-edge handles), so they keep
           the space-saving overlay. */}
-      {showEditCanvas ? (
+      {showEditCanvas && !(isVideoEdit && visibleTools.length === 0) ? (
         <div
           className={cn(
             "flex flex-col items-stretch gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] *:pointer-events-auto",
             editor.activeTool === "crop"
               ? "relative pt-2"
-              : "pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-black/70 via-black/30 to-transparent pt-10",
+              : "pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-media-overlay to-transparent pt-10",
           )}
         >
           {/* Active tool panel — keyed by editor.activeTool. Renders above the
@@ -1414,12 +1636,17 @@ const MediaEditorImpl = React.forwardRef<
           {editor.draft?.kind === "image" ? (
             <>
               {editor.activeTool === "text" && selectedText ? (
-                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                <ToolPanelFrame
+                  labels={mergedLabels}
+                  onBack={handleBackTool}
+                  onApply={handleApplyTool}
+                >
                   <ToolTextInput
                     overlay={selectedText}
                     fonts={resolvedFonts}
                     colorPresets={resolvedColorPresets}
                     labels={mergedLabels}
+                    locale={locale}
                     onChange={(next) =>
                       editor.updateTextOverlay(next.id, next)
                     }
@@ -1431,7 +1658,11 @@ const MediaEditorImpl = React.forwardRef<
                 </ToolPanelFrame>
               ) : null}
               {editor.activeTool === "stickers" ? (
-                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                <ToolPanelFrame
+                  labels={mergedLabels}
+                  onBack={handleBackTool}
+                  onApply={handleApplyTool}
+                >
                   <ToolStickerPicker
                     sets={resolvedStickerSets}
                     onPick={handleStickerPick}
@@ -1439,7 +1670,11 @@ const MediaEditorImpl = React.forwardRef<
                 </ToolPanelFrame>
               ) : null}
               {editor.activeTool === "filters" && editor.draft.url ? (
-                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                <ToolPanelFrame
+                  labels={mergedLabels}
+                  onBack={handleBackTool}
+                  onApply={handleApplyTool}
+                >
                   <ToolFilterStrip
                     presets={resolvedFilterPresets}
                     sourceUrl={editor.draft.url}
@@ -1449,22 +1684,32 @@ const MediaEditorImpl = React.forwardRef<
                 </ToolPanelFrame>
               ) : null}
               {editor.activeTool === "adjust" ? (
-                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                <ToolPanelFrame
+                  labels={mergedLabels}
+                  onBack={handleBackTool}
+                  onApply={handleApplyTool}
+                >
                   <ToolAdjustSliders
                     value={editor.state.adjustments}
                     onChange={(next) => editor.setAdjustments(next)}
                     labels={mergedLabels}
+                    locale={locale}
                   />
                 </ToolPanelFrame>
               ) : null}
               {editor.activeTool === "draw" ? (
-                <ToolPanelFrame onBack={handleBackTool} onApply={handleApplyTool}>
+                <ToolPanelFrame
+                  labels={mergedLabels}
+                  onBack={handleBackTool}
+                  onApply={handleApplyTool}
+                >
                   <ToolDrawControls
                     color={editor.drawingTool.color}
                     brushSize={editor.drawingTool.brushSize}
                     mode={editor.drawingTool.mode}
                     colorPresets={resolvedColorPresets}
                     labels={mergedLabels}
+                    locale={locale}
                     onColorChange={(color) => editor.setDrawingTool({ color })}
                     onBrushSizeChange={(brushSize) =>
                       editor.setDrawingTool({ brushSize })
@@ -1486,13 +1731,13 @@ const MediaEditorImpl = React.forwardRef<
                             editor.setCrop(null);
                           }}
                           className={cn(
-                            "rounded px-2 py-0.5 text-xs font-medium transition-colors",
+                            "min-h-6 min-w-6 rounded px-2 py-0.5 text-xs font-medium transition-colors",
                             editor.cropAspect === a
                               ? "bg-primary text-primary-foreground"
                               : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {a}
+                          {a === "free" ? mergedLabels.cropAspectFree : a}
                         </button>
                       ))}
                     </div>
@@ -1601,7 +1846,7 @@ const MediaEditorImpl = React.forwardRef<
                     }}
                     className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
                   >
-                    Apply
+                    {mergedLabels.apply}
                   </button>
                   <button
                     type="button"
@@ -1611,7 +1856,7 @@ const MediaEditorImpl = React.forwardRef<
                     }}
                     className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                   >
-                    Cancel
+                    {mergedLabels.cancel}
                   </button>
                 </div>
               ) : null}
@@ -1623,10 +1868,15 @@ const MediaEditorImpl = React.forwardRef<
           nothing to do during capture / text-only / empty-config. Centered when
           the chips fit, horizontally scrollable when they don't, so they never
           crop on narrow (9:16) widths. */}
-          {enabledTools.length > 0 && !isEmptyConfig ? (
+          {visibleTools.length > 0 && !isEmptyConfig ? (
             <div className="max-w-full self-center overflow-x-auto rounded-full border border-border bg-background/80 backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="mx-auto flex w-max items-center gap-1 p-1">
-                {enabledTools.map((tool) => (
+              <div
+                role="toolbar"
+                aria-label={mergedLabels.editTools}
+                aria-orientation="horizontal"
+                className="mx-auto flex w-max items-center gap-1 p-1"
+              >
+                {visibleTools.map((tool) => (
                   <button
                     key={tool}
                     type="button"
@@ -1642,9 +1892,12 @@ const MediaEditorImpl = React.forwardRef<
                     {toolChipLabel(tool, mergedLabels)}
                   </button>
                 ))}
-                {enabledTools.includes("crop") && resolvedCropAspects.length > 1 ? (
-                  <span className="ms-2 shrink-0 self-center text-[10px] text-muted-foreground/70">
-                    ({resolvedCropAspects.length} crop aspects)
+                {visibleTools.includes("crop") && resolvedCropAspects.length > 1 ? (
+                  <span className="ms-2 shrink-0 self-center text-[10px] text-muted-foreground" dir="auto">
+                    {mergedLabels.cropAspectCount(
+                      resolvedCropAspects.length,
+                      formatNumber(resolvedCropAspects.length, locale),
+                    )}
                   </span>
                 ) : null}
               </div>
@@ -1654,6 +1907,7 @@ const MediaEditorImpl = React.forwardRef<
       ) : null}
 
       {props.renderBottomToolbar?.(slotCtx)}
+      </div>
 
       {/* Discard confirm — fires from requestClose() when isDirty + close
           attempt (backdrop / Escape / handle.close()). Q-P10a. */}
@@ -1670,7 +1924,20 @@ const MediaEditorImpl = React.forwardRef<
 
       {/* Consumer overlay — last child of the surface so it stacks above the
           editor and, in dialog presentation, lives inside the dialog content. */}
-      {props.overlay}
+      {overlayActive ? (
+        <div
+          ref={overlayHostRef}
+          // A box (not `display: contents`) so the host can take focus when the
+          // overlay has no focusable control; consumers position their overlay
+          // `absolute inset-0` inside it, which resolves to the same area.
+          className="absolute inset-0 outline-none"
+          tabIndex={-1}
+          data-slot="media-editor-overlay"
+          onKeyDown={wrapTabWithinOverlay}
+        >
+          {props.overlay}
+        </div>
+      ) : null}
     </div>
   );
 
@@ -1691,7 +1958,12 @@ const MediaEditorImpl = React.forwardRef<
     <Dialog
       open={props.isOpen ?? false}
       onOpenChange={(open) => {
-        if (!open) requestClose();
+        // While a consumer overlay is mounted it owns interaction: Escape, a
+        // backdrop press or the dialog's own close request must not reach
+        // requestClose() (discard confirm over the overlay / closing the host
+        // mid-upload). Gated here, not via Radix-only props, so it holds for
+        // Base UI dialogs too.
+        if (!open && !overlayActive) requestClose();
       }}
     >
       <DialogContent
@@ -1775,13 +2047,17 @@ function aspectAsRatio(aspect: AspectRatio): number {
  * no new visual language.
  */
 function FileIntakeSurface({
-  galleryLabel,
+  labels,
+  locale,
+  acceptMediaTypes,
   maxFileSizeMb,
   onFile,
   onValidationError,
 }: {
-  galleryLabel: string;
+  labels: MediaEditorResolvedLabels;
+  locale?: string;
   maxFileSizeMb: number;
+  acceptMediaTypes?: string[];
   onFile: (file: File) => void;
   onValidationError?: (error: ValidationError) => void;
 }) {
@@ -1792,30 +2068,35 @@ function FileIntakeSurface({
       data-intake-surface="file"
     >
       <p className="text-sm text-muted-foreground">
-        Pick a photo or video from your device.
+        {labels.intakePrompt}
       </p>
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
         className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
       >
-        {galleryLabel}
+        {labels.galleryPicker}
       </button>
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,video/*"
+        accept={acceptAttribute(acceptMediaTypes)}
         onChange={(e) => {
           const file = e.target.files?.[0];
           e.target.value = ""; // reset so picking the same file twice re-fires
           if (!file) return;
-          const err = validateGalleryFile(file, maxFileSizeMb);
+          const err = validateGalleryFile(file, maxFileSizeMb, {
+            labels,
+            locale,
+            acceptMediaTypes,
+          });
           if (err) {
             onValidationError?.(err);
             return;
           }
           onFile(file);
         }}
+        hidden
         className="hidden"
       />
     </div>
@@ -1831,10 +2112,12 @@ function FileIntakeSurface({
  * image into a new blob — that's outside the generic snapshot/restore model.
  */
 function ToolPanelFrame({
+  labels,
   onBack,
   onApply,
   children,
 }: {
+  labels: MediaEditorResolvedLabels;
   onBack: () => void;
   onApply: () => void;
   children: React.ReactNode;
@@ -1847,14 +2130,14 @@ function ToolPanelFrame({
           onClick={onBack}
           className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
         >
-          Back
+          {labels.back}
         </button>
         <button
           type="button"
           onClick={onApply}
           className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
         >
-          Apply
+          {labels.apply}
         </button>
       </div>
       {children}
@@ -1865,7 +2148,7 @@ function ToolPanelFrame({
 /** Chip label for an edit tool — routed through the labels prop (i18n). */
 function toolChipLabel(
   tool: EditTool,
-  labels: Required<StoryComposerLabels>,
+  labels: MediaEditorResolvedLabels,
 ): string {
   switch (tool) {
     case "text":

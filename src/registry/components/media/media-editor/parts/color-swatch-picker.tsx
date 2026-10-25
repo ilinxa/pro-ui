@@ -7,12 +7,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { resolveEditorLabels } from "../lib/normalize-labels";
+import type { MediaEditorResolvedLabels } from "../types";
+
+const DEFAULT_LABELS_RESOLVED = resolveEditorLabels(undefined);
 
 export interface ColorSwatchPickerProps {
   value: string;
   presets: string[];
   onChange: (color: string) => void;
   ariaLabel: string;
+  /** Hex field + swatch names. Default: the English defaults. */
+  labels?: Pick<MediaEditorResolvedLabels, "colorHex" | "colorSwatch">;
   triggerClassName?: string;
 }
 
@@ -34,6 +40,7 @@ export function ColorSwatchPicker({
   presets,
   onChange,
   ariaLabel,
+  labels = DEFAULT_LABELS_RESOLVED,
   triggerClassName,
 }: ColorSwatchPickerProps) {
   const [hexDraft, setHexDraft] = useState(value);
@@ -51,8 +58,8 @@ export function ColorSwatchPicker({
       <PopoverTrigger
         aria-label={ariaLabel}
         className={cn(
-          "inline-grid place-items-center size-7 rounded-full ring-2 ring-white/40 hover:ring-white transition-shadow",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+          "inline-grid shrink-0 place-items-center size-7 rounded-full ring-2 ring-media-overlay-foreground/40 hover:ring-media-overlay-foreground transition-shadow",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-media-overlay-foreground",
           triggerClassName,
         )}
         style={{ background: value }}
@@ -74,7 +81,7 @@ export function ColorSwatchPicker({
                   onChange(color);
                   setHexDraft(color);
                 }}
-                aria-label={`Color ${color}`}
+                aria-label={labels.colorSwatch(color)}
                 aria-pressed={isActive}
                 className={cn(
                   "size-7 rounded-full ring-2 ring-offset-1 ring-offset-popover",
@@ -87,7 +94,7 @@ export function ColorSwatchPicker({
         </div>
         <div className="mt-3 flex items-center gap-2">
           <label className="text-xs text-muted-foreground" htmlFor="color-hex">
-            Hex
+            {labels.colorHex}
           </label>
           <input
             id="color-hex"
@@ -101,6 +108,7 @@ export function ColorSwatchPicker({
                 setOpen(false);
               }
             }}
+            // literal-ok: hex colour syntax example, not language
             placeholder="#ffffff"
             className="flex-1 min-w-0 h-7 rounded-md border border-input bg-background px-2 text-xs font-mono"
           />

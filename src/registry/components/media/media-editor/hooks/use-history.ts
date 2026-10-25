@@ -12,7 +12,7 @@ export interface Command {
 export interface UseHistoryOptions {
   /** Hard cap on undo depth. Oldest entries FIFO-evicted past this. Default 50. */
   capacity?: number;
-  /** When true, Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z bind to undo/redo. */
+  /** When true, Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y redo. The key is claimed (preventDefault) only when there is something to undo / redo. */
   bindKeyboard?: boolean;
 }
 
@@ -101,10 +101,23 @@ export function useHistory(
     (e) => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
-      if (e.key.toLowerCase() !== "z") return;
-      e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
+      const key = e.key.toLowerCase();
+      // Ctrl/Cmd+Z = undo, Shift+Ctrl/Cmd+Z and Ctrl/Cmd+Y = redo.
+      const isRedo = (key === "z" && e.shiftKey) || (key === "y" && !e.shiftKey);
+      const isUndo = key === "z" && !e.shiftKey;
+      if (!isRedo && !isUndo) return;
+      // Claim the key only when there is something to undo / redo. With an
+      // empty stack the event is left alone, so the browser's own undo (page
+      // form fields, contentEditable outside the editor) keeps working.
+      if (isRedo) {
+        if (futureRef.current.length === 0) return;
+        e.preventDefault();
+        redo();
+      } else {
+        if (pastRef.current.length === 0) return;
+        e.preventDefault();
+        undo();
+      }
     },
     { enabled: bindKeyboard },
   );

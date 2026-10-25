@@ -18,12 +18,6 @@
     "owner": "Part 3 story-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
   },
   {
-    "from": "story-composer",
-    "to": "media-editor-capture",
-    "via": "registryDependencies",
-    "owner": "Part 3 story-composer loop — reach media-editor-capture through a slot / optional feature slice (locked decision 5)"
-  },
-  {
     "from": "content-composer",
     "to": "rich-text-editor",
     "via": "registryDependencies",

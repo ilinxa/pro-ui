@@ -7,6 +7,13 @@
 > wrapper around this; `content-composer`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
+> **v0.5.0 (2026-10-25, breaking)** — every string is a typed label (`MediaEditorLabels`, all keys optional) plus
+> `labels.presets` and `locale`; `acceptMediaTypes` and `videoOutput` (e.g. MP4 only); media chrome uses the
+> `--media-overlay` tokens; the body is `inert` under `overlay`; the exported `useHistory` no longer swallows
+> Ctrl/Cmd+Z on an empty stack. Upgrading from a pre-0.3 install: **delete the six old capture files first** (see
+> [Removed in v0.3.0](#removed-in-v030-p3-capture-split--delete-these-by-hand)). Full list:
+> [Migration 0.4 → 0.5](#migration-04--05).
+>
 > v0.1.1 (2026-06-03) landed a post-walkthrough UX sweep: single-pointer
 > drag-to-pan, an Instagram-style chrome model (capture-only mode tabs that
 > swap to a back-to-capture arrow once a draft exists; bottom edit tools
@@ -99,7 +106,7 @@ export function AttachmentEditor() {
 <MediaEditor ref={editorRef} presentation="inline" />
 ```
 
-Default capabilities: all three modes (photo / video / text), all six edit tools, both media sources (camera + upload), free aspect. The `presentation` override keeps the auto-rule from picking `dialog` (which would need `isOpen` wiring).
+Default capabilities: all three modes (photo / video / text), all six edit tools, both media sources (camera + upload), free aspect. The camera needs the `capture` extension (`@ilinxa/media-editor-capture`); without it the editor warns once in development and falls back to file upload. The `presentation` override keeps the auto-rule from picking `dialog` (which would need `isOpen` wiring).
 
 ## Capability dials
 
@@ -129,7 +136,7 @@ Four orthogonal props. Pass arrays narrower than the default to gate the surface
 | `adjust` | ✅ | When brightness/contrast/saturation are managed elsewhere |
 | `crop` | ✅ | When aspect is already locked (e.g. `aspect="9:16"` stories) |
 
-Disabling a tool removes it from the toolbar AND skips the corresponding layer at export time. The ref handle method for that tool (e.g., `addText()`) becomes a no-op + warns in dev.
+Disabling a tool removes its chip from the toolbar (and from the slot context's `enabledTools`). It does not gate anything else: the handle methods (`addText()`, `addSticker()`, `setAdjustments()`, `applyFilter()`) still work and `exportImage()` still bakes every layer the draft holds. To keep a tool's output out of an export, don't call its handle method.
 
 ### `mediaSources`
 
@@ -248,11 +255,13 @@ const { blob, metadata } = await editorRef.current.exportImage({
   onProgress: (p) => setProgress(p), // fires (0) at start, (1) on done
 });
 
-// Video — perf-shortcut returns the raw blob when nothing has been
-// overlaid AND no crop. Otherwise re-encodes through MediaRecorder
-// with the Konva overlay baked per frame.
+// Video — returns the original blob when nothing has been overlaid AND no
+// crop (always the case from the UI: no tool edits video yet). Otherwise
+// re-encodes through MediaRecorder with the Konva overlay baked per frame.
 const out = await editorRef.current.exportVideo({
-  mimeType: "video/webm",          // optional; auto-picks via mime-fallback
+  // optional. Default: the first type allowed by `videoOutput.mimeTypes`, else
+  // the built-in chain (WebM VP9 → VP8 → MP4). An explicit value wins.
+  mimeType: "video/mp4",
   bitsPerSecond: 2_000_000,        // optional
   onProgress: (p) => setProgress(p), // ~10 ticks during re-encode, or 2 if shortcut
 });
@@ -261,7 +270,63 @@ const out = await editorRef.current.exportVideo({
 const out = await editorRef.current.export();
 ```
 
-`metadata: ExportMetadata` includes `width`, `height`, `mimeType`, `durationMs?` (video), `textOverlays`, `stickers`, `drawingStrokes` (count), `appliedFilter`, `adjustments`, `crop?`.
+`metadata: ExportMetadata` includes `width`, `height`, `mimeType`, `durationMs?` (video), `textOverlays`, `stickers`, `drawingStrokes` (count), `appliedFilter`, `adjustments`, `crop?`. For a passed-through video, `mimeType` is the file's own type (else the first allowed output type).
+
+## Formats: what goes in, what comes out
+
+| Prop | Default | Effect |
+|---|---|---|
+| `acceptMediaTypes` | `["image/*","video/*"]` | Both file pickers (base and capture) offer only these, and the validator rejects anything else with `onValidationError({ kind: "unsupported-type" })`. MIME types with wildcards (`video/*`), not file extensions. `initialSource` is not checked against it. The editor still handles only images and videos. |
+| `videoOutput` | built-in chain | `{ mimeTypes: ["video/mp4"] }` is an allow-list, in preference order, for re-encoding and camera recording. Exact MIME types, no wildcards. When recording is reachable (`"camera"` in `mediaSources` **and** a `capture` extension wired) but the browser can record none of them (Firefox has no MP4 recorder), the **video mode is hidden** and `onValidationError({ kind: "unsupported-codec" })` fires once (only when video was in `enabledModes`). Upload-only configs keep the video mode — a video file needs no recorder. A re-encode with no allowed recorder rejects instead of producing WebM. |
+
+Video drafts show no tool chips: none of the six tools edits video yet, so a picked or recorded video exports as the
+original file; its metadata carries the real width / height / duration (read from the file), falling back to
+720×1280 with no duration only when they can't be read. `VideoTrimBar` is exported for hand-built UIs but the editor
+does not mount it — so `labels.trim.*` has no effect on `<MediaEditor>` (it dev-warns); pass trim labels to your own
+`VideoTrimBar` through its `labels` prop.
+
+## Labels and locale
+
+`labels` takes the nested `MediaEditorLabels` tree; every group and key is optional and anything you leave out keeps
+its English default (`DEFAULT_LABELS`, which is exactly what renders). Groups: `shell`, `capture` (with `cameraIdle`,
+`cameraDenied`, `modes`, `shutter`, `errors`), `toolbar`, `adjust`, `draw`, `text`, `color`, `crop`, `canvas`,
+`trim`, `discard`, `intake`, `empty`, `presets`. Templated strings are functions, e.g.
+`crop.aspectCount(count, formatted)`, `trim.seconds(seconds, formatted)`, `intake.fileTooLarge(sizeMb, maxMb,
+sizeFormatted, maxFormatted)`, `canvas.resizeHandle(corner)`, `color.swatch(color)`.
+
+```tsx
+<MediaEditor
+  locale="tr"
+  labels={{
+    capture: { modes: { photo: "Fotoğraf", video: "Video", text: "Metin" } },
+    toolbar: { text: "Metin", draw: "Çiz" },
+    trim: { seconds: (_s, formatted) => `${formatted} sn` },
+    presets: { filters: { clarendon: "Parlak" }, fonts: { onest: "Varsayılan" } },
+  }}
+/>
+```
+
+- `labels.presets` maps preset ids to display names for the built-in backgrounds, fonts, sticker sets, stickers and
+  filters; your own preset data (`fonts`, `stickers`, `filterPresets`) still works.
+- `locale` (BCP 47, default `"en"`; an invalid tag falls back to `"en"`) formats trim seconds, the crop-aspect count,
+  adjust values and file sizes.
+- Flat keys (`modePhoto`, `toolText`, …) are still accepted at runtime and win over nested keys (deprecated).
+  `editorLabelsFromFlat(flat)` converts a flat object to the nested shape.
+- `MediaEditorResolvedLabels` is the fully populated flat set the editor hands its parts and a capture surface
+  (`MediaCaptureSurfaceProps.labels`) — use it when you write your own capture implementation.
+
+## Overlay
+
+`overlay` renders in an `absolute inset-0` host, last in the editor surface (inside the dialog content in dialog
+presentation). While it renders something (`null`, `undefined`, booleans and `""` count as no overlay):
+
+- the rest of the editor is `inert`;
+- focus moves to the overlay's first focusable element (or the overlay itself) and returns when it unmounts;
+- Tab / Shift+Tab wrap inside the overlay;
+- the dialog ignores its own close requests (Escape, backdrop) — the overlay owns the interaction; handle Escape in
+  it if you want one.
+
+Give it `z-40` or higher (editor chrome uses up to `z-30`).
 
 ## Imperative handle
 
@@ -287,7 +352,7 @@ const out = await editorRef.current.export();
 
 Camera capture ships as a separate, opt-in registry item — `@ilinxa/media-editor-capture` — not bundled into the base install.
 
-**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **282.0KB**. `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.5KB**. Combined they replace the pre-split single artifact (**315KB**). `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
+**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **332.9 KB** at 0.5.0 (282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
 
 **Injection wiring.** Base owns the extension type + context (`hooks/use-capture-extension.ts`) and the optional `capture?: MediaCaptureExtension` prop; it never statically imports the feature package — the camera-shaped types it needs (`CapturedPhotoLike`, `MediaCaptureSurfaceProps`, …) are structurally duplicated in base rather than imported, so the base folder carries zero static dependency on `features/capture/`.
 
@@ -316,16 +381,33 @@ parts/shutter-button.tsx               hooks/use-media-capture.ts
 hooks/use-camera-permissions.ts        hooks/use-multi-instance-guard.ts
 ```
 
-Found 2026-08-17 by `node scripts/find-orphans.mjs` in the smoke consumer — on its first run, in a
-tree whose `tsc` was clean. **That last part is the trap:** these still compile today only because
-`types.ts` retains the `@internal` `StoryComposerLabels` shim, which
-`camera-permission-prompt.tsx` and `editor-camera.tsx` both import. The **C17 refactor that
-deletes that shim will break every consumer still holding them**, with errors pointing at
-media-editor's new types rather than at their own stale files — so C17 must ship this list, and
-should re-run the detector first. Convention:
+Found 2026-08-17 by `node scripts/find-orphans.mjs` in the smoke consumer. Until 0.5.0 they still compiled because
+`types.ts` kept the `@internal` `StoryComposerLabels` shim they import. **0.5.0 deletes that shim (C17), so a tree
+that still holds these files fails `tsc` with errors that point at media-editor's types** — delete the six files
+(or run `find-orphans.mjs`) before or right after upgrading. Convention:
 [`docs/feature-slicing-convention.md`](../../feature-slicing-convention.md).
 
-**story-composer compat band.** `story-composer` still re-exports 8 v0.1.5-era names (`ComposerCamera`, `ComposerEditor`, `ColorSwatchPicker`, their prop types, …) that now resolve through `@ilinxa/media-editor` / `@ilinxa/media-editor-capture` internally — see [`story-composer-v0.1.5-exports.snapshot.txt`](./story-composer-v0.1.5-exports.snapshot.txt) (the historical v0.1.5 contract snapshot, left as-is). That band had drifted to a bare `@deprecated` with no announced removal version, in violation of the snapshot's own "must still resolve" contract; the 2026-08-11 P3 review (finding MED-2) restored it with a real schedule — **removal in v0.5.0** — so downstream consumers get one more full minor version of notice before the aliases disappear.
+**story-composer compat band.** story-composer's v0.1.5-era re-exports were removed in story-composer 0.6.0. Three
+were renamed aliases — use the real names: `ComposerEditor` → `EditorCanvas`, `ComposerToolbar` → `EditorToolbar`
+(both from `@/components/media-editor`), `ComposerCamera` → `EditorCamera` (from `…/features/capture`); the same for
+their `…Props` types. The rest (`ColorSwatchPicker`, the lib / default-token / crop helpers, …) keep their names —
+import them from `@/components/media-editor`. The historical contract snapshot
+[`story-composer-v0.1.5-exports.snapshot.txt`](./story-composer-v0.1.5-exports.snapshot.txt) is kept as a record only.
+
+## Migration 0.4 → 0.5
+
+| Change | What to do |
+|---|---|
+| `StoryComposerLabels` (the `@internal` shim) is gone; parts and `MediaCaptureSurfaceProps.labels` take `MediaEditorResolvedLabels` | Custom capture surfaces: type `labels` as `MediaEditorResolvedLabels`. Delete the six pre-0.3 capture files if you still have them (above). |
+| `labels.publish` removed (it never rendered anything) | Drop it; publish copy belongs to your publish UI (story-composer has its own labels). |
+| `labels.empty.noSource` now renders (it was ignored) | Nothing, unless you passed it expecting no effect. |
+| `labels` is `MediaEditorLabels` with every group / key optional | Nothing — partial nested objects now type-check without a cast. |
+| `DEFAULT_LABELS` now equals what renders (e.g. discard title "Discard?", not "Discard changes?") | Only matters if you read `DEFAULT_LABELS` yourself. |
+| Media chrome colours use `--media-overlay` / `--media-overlay-foreground` (`cssVars` on the item); recording dot / shutter use `--destructive`, the camera warning `--warning` | Nothing — defaults ship with the item. Set the variables to theme the chrome. Scrims are a single 0.55 overlay (some were lighter or heavier). |
+| `useHistory` (exported) no longer `preventDefault`s Ctrl/Cmd+Z on an empty stack; Ctrl+Y is redo | Nothing, unless you relied on the shortcut being swallowed. |
+| Video drafts show no tool chips | Nothing — the chips opened nothing on video. |
+| `selectRecorderMime(allowed?)` takes an optional allow-list (then returns `string \| null`) | Nothing — with no argument it keeps the chain and its return type. |
+| `locale` defaults to `"en"` | Pass your locale for number formatting. |
 
 ## Footguns
 
@@ -370,7 +452,10 @@ history. The remaining gaps are narrow:
 
 - **Imperative capture handle** — `takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery` dev-warn and no-op (not implemented). The in-UI camera controls are the supported capture path. (See [Imperative handle](#imperative-handle).)
 - **Library media source** — `mediaSources` supports `camera` + `upload`; a device-library picker is not implemented.
-- **`labels` prop** — the documented nested `MediaEditorLabels` keys for `capture`, `toolbar`, `adjust` and `discard` are honored. `publish.*` and `empty.noSource` have no consumer in the editor and are accepted but unused. The flat internal keys (`composerLabel`, `shutterPhoto`, `textPlaceholder`, …, what `story-composer` passes) are also accepted and win over a nested key on conflict.
+- **New text position** — a text overlay added by the Text tool starts at a fixed stage position, which can sit off the image (over the letterbox) for wide or tall images; drag it into place.
+- **Sliders and RTL** — the Adjust sliders fill from the left under an inherited `dir="rtl"`.
+- **Video editing** — no tool applies to a video draft (the chips are hidden); videos export as the original file. `VideoTrimBar` is exported but not mounted.
+- **Undo / redo** — not implemented (handle methods dev-warn; the editor binds no Ctrl/Cmd+Z). The exported `useHistory` hook works on its own and only claims the shortcut when its stack is non-empty.
 - **`onEditAction` coverage** — emits the navigation + lifecycle actions (`mode-change`, `tool-open`, `tool-close`, `reset`). The fine-grained content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`, `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are not emitted (no per-mutation instrumentation) — the `EditAction` union is complete so you can switch exhaustively.
 
 **Closed in v0.1.2:** `onModeChange` + `onEditAction` now emit; the

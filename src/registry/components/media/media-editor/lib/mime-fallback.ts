@@ -16,17 +16,46 @@ export const PREFERRED_RECORDER_MIME_TYPES = [
 
 export type RecorderMimeType = (typeof PREFERRED_RECORDER_MIME_TYPES)[number];
 
+function supported(mime: string): boolean {
+  try {
+    return MediaRecorder.isTypeSupported(mime);
+  } catch {
+    // Some browsers throw on unknown MIMEs — treat as unsupported.
+    return false;
+  }
+}
+
+/** Container part of a MIME string: `"video/mp4;codecs=avc1"` -> `"video/mp4"`. */
+function baseType(mime: string): string {
+  return (mime.split(";")[0] ?? "").trim().toLowerCase();
+}
+
 /**
  * Picks the highest-preference MIME the current browser supports for
  * MediaRecorder. Returns null when nothing matches (very old browsers).
+ *
+ * `allowed` is an allow-list in preference order (`videoOutput.mimeTypes`).
+ * Each entry is probed as written; an entry without parameters
+ * (`"video/mp4"`) also allows the codec variants of the built-in chain with
+ * the same container. With no `allowed` the built-in chain is walked in
+ * order (WebM VP9 -> VP8 -> MP4).
  */
-export function selectRecorderMime(): RecorderMimeType | null {
+export function selectRecorderMime(): RecorderMimeType | null;
+export function selectRecorderMime(allowed?: readonly string[]): string | null;
+export function selectRecorderMime(allowed?: readonly string[]): string | null {
   if (typeof MediaRecorder === "undefined") return null;
-  for (const mime of PREFERRED_RECORDER_MIME_TYPES) {
-    try {
-      if (MediaRecorder.isTypeSupported(mime)) return mime;
-    } catch {
-      // Some browsers throw on unknown MIMEs — keep looking.
+  if (!allowed) {
+    for (const mime of PREFERRED_RECORDER_MIME_TYPES) {
+      if (supported(mime)) return mime;
+    }
+    return null;
+  }
+  for (const entry of allowed) {
+    if (supported(entry)) return entry;
+    if (entry.includes(";")) continue;
+    const base = baseType(entry);
+    for (const mime of PREFERRED_RECORDER_MIME_TYPES) {
+      if (baseType(mime) === base && supported(mime)) return mime;
     }
   }
   return null;

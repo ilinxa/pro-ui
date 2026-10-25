@@ -21,10 +21,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Maximize2 } from "lucide-react";
 import type { CropRect } from "./tool-crop-overlay";
+import { resolveEditorLabels } from "../lib/normalize-labels";
 import type {
   DrawingStroke,
   FilterPreset,
   ImageAdjustments,
+  MediaEditorResolvedLabels,
   PlacedSticker,
   StickerOption,
   TextOverlay,
@@ -77,8 +79,17 @@ export interface EditorCanvasProps {
   onStageSize?: (size: { width: number; height: number }) => void;
   /** Surfaces the underlying Konva.Stage instance for export (C12). */
   onStageReady?: (stage: Konva.Stage | null) => void;
+  /** Accessible names. Default: the English defaults. */
+  labels?: CanvasLabels;
   className?: string;
 }
+
+type CanvasLabels = Pick<
+  MediaEditorResolvedLabels,
+  "canvasAriaLabel" | "resetZoom" | "resizeHandle"
+>;
+
+const DEFAULT_CANVAS_LABELS: CanvasLabels = resolveEditorLabels(undefined);
 
 /**
  * Multi-layer Konva canvas with:
@@ -119,6 +130,7 @@ export function EditorCanvas({
   onCropChange,
   onStageSize,
   onStageReady,
+  labels = DEFAULT_CANVAS_LABELS,
   className,
 }: EditorCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -315,7 +327,7 @@ export function EditorCanvas({
       // focus. role/aria-label name the region for AT.
       tabIndex={0}
       role="group"
-      aria-label="Media editor canvas — arrow keys pan, +/- zoom, 0 resets"
+      aria-label={labels.canvasAriaLabel}
       className={cn(
         "relative w-full h-full overflow-hidden touch-none",
         "outline-hidden focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-inset",
@@ -511,8 +523,8 @@ export function EditorCanvas({
           variant="secondary"
           size="sm"
           onClick={panZoom.reset}
-          aria-label="Reset zoom"
-          className="absolute top-3 start-3 z-20 gap-1.5 bg-black/60 backdrop-blur-md text-white hover:bg-black/80 hover:text-white"
+          aria-label={labels.resetZoom}
+          className="absolute top-3 start-3 z-20 gap-1.5 bg-media-overlay backdrop-blur-md text-media-overlay-foreground hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground"
         >
           <Maximize2 className="size-3.5" />
           <span className="text-xs font-mono tabular-nums">
@@ -528,6 +540,7 @@ export function EditorCanvas({
           stageWidth={stageSize.width}
           stageHeight={stageSize.height}
           aspectRatio={cropAspectRatio ?? null}
+          resizeHandleLabel={labels.resizeHandle}
           onChange={onCropChange}
         />
       ) : null}
@@ -542,10 +555,13 @@ interface CropOverlayProps {
   stageWidth: number;
   stageHeight: number;
   aspectRatio: number | null;
+  resizeHandleLabel: (corner: string) => string;
   onChange?: (next: CropRect) => void;
 }
 
 const HANDLE_SIZE = 14;
+/** Hit area of a corner handle (WCAG 2.5.8 minimum target is 24px); the dot stays HANDLE_SIZE. */
+const HANDLE_HIT = 24;
 const MIN_CROP = 40;
 
 function CropOverlay({
@@ -553,6 +569,7 @@ function CropOverlay({
   stageWidth,
   stageHeight,
   aspectRatio,
+  resizeHandleLabel,
   onChange,
 }: CropOverlayProps) {
   const dragStateRef = useRef<{
@@ -679,16 +696,16 @@ function CropOverlay({
     >
       {/* Dim 4 quadrants outside the crop rect */}
       <div
-        className="absolute inset-x-0 top-0 bg-black/60"
+        className="absolute inset-x-0 top-0 bg-media-overlay"
         style={{ height: rect.y }}
       />
       <div
-        className="absolute inset-x-0 bottom-0 bg-black/60"
+        className="absolute inset-x-0 bottom-0 bg-media-overlay"
         style={{ height: stageHeight - rect.y - rect.height }}
       />
       <div
         // dir-ok: dim mask sized in px from Konva stage coordinates (rect.x), physical axis
-        className="absolute left-0 bg-black/60"
+        className="absolute left-0 bg-media-overlay"
         style={{
           top: rect.y,
           height: rect.height,
@@ -697,7 +714,7 @@ function CropOverlay({
       />
       <div
         // dir-ok: dim mask sized in px from Konva stage coordinates (rect.x), physical axis
-        className="absolute right-0 bg-black/60"
+        className="absolute right-0 bg-media-overlay"
         style={{
           top: rect.y,
           height: rect.height,
@@ -707,7 +724,7 @@ function CropOverlay({
 
       {/* Crop frame (movable) */}
       <div
-        className="absolute border-2 border-white pointer-events-auto cursor-move"
+        className="absolute border-2 border-media-overlay-foreground pointer-events-auto cursor-move"
         style={{
           left: rect.x,
           top: rect.y,
@@ -719,7 +736,7 @@ function CropOverlay({
         {/* Rule-of-thirds grid */}
         <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
           {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="border border-white/20" />
+            <div key={i} className="border border-media-overlay-foreground/20" />
           ))}
         </div>
 
@@ -729,33 +746,41 @@ function CropOverlay({
             type="button"
             key={corner}
             onPointerDown={(e) => beginDrag(corner, e)}
-            className="absolute bg-white rounded-full shadow"
+            className="absolute grid place-items-center"
             style={{
-              width: HANDLE_SIZE,
-              height: HANDLE_SIZE,
+              width: HANDLE_HIT,
+              height: HANDLE_HIT,
               left:
                 corner === "nw" || corner === "sw"
-                  ? -HANDLE_SIZE / 2
+                  ? -HANDLE_HIT / 2
                   : undefined,
               right:
                 corner === "ne" || corner === "se"
-                  ? -HANDLE_SIZE / 2
+                  ? -HANDLE_HIT / 2
                   : undefined,
               top:
                 corner === "nw" || corner === "ne"
-                  ? -HANDLE_SIZE / 2
+                  ? -HANDLE_HIT / 2
                   : undefined,
               bottom:
                 corner === "sw" || corner === "se"
-                  ? -HANDLE_SIZE / 2
+                  ? -HANDLE_HIT / 2
                   : undefined,
               cursor:
                 corner === "nw" || corner === "se"
                   ? "nwse-resize"
                   : "nesw-resize",
             }}
-            aria-label={`Resize ${corner.toUpperCase()}`}
-          />
+            aria-label={resizeHandleLabel(corner.toUpperCase())}
+          >
+            {/* The visible dot stays HANDLE_SIZE and centred on the corner; the
+                button around it is the >= 24px hit area. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none block rounded-full bg-media-overlay-foreground shadow"
+              style={{ width: HANDLE_SIZE, height: HANDLE_SIZE }}
+            />
+          </button>
         ))}
       </div>
     </div>

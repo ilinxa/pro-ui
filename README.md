@@ -46,15 +46,15 @@ A few components rely on extra tokens beyond the canonical set:
 | `--brand-foreground` | `app-sidebar` |
 | `--success` | `app-sidebar` |
 | `--success-foreground` | — (utility available; no item maps it yet) |
-| `--warning` | `app-sidebar`, `card-tree-node`, `event-card` |
+| `--warning` | `app-sidebar`, `card-tree-node`, `event-card`, `media-editor-capture`, `story-composer` |
 | `--warning-foreground` | `event-card` |
 | `--info` | — (utility available; no item maps it yet) |
 | `--info-foreground` | — (utility available; no item maps it yet) |
 | `--destructive-foreground` | `app-sidebar`, `event-card`, `file-manager`, `file-tree`, `media-editor`, `split-workspace` |
 | `--story-ring-from` | `story-rail` |
 | `--story-ring-to` | `story-rail` |
-| `--media-overlay` | `story-viewer`, `video-player` |
-| `--media-overlay-foreground` | `story-viewer`, `video-player` |
+| `--media-overlay` | `media-editor`, `media-editor-capture`, `story-composer`, `story-viewer`, `video-player` |
+| `--media-overlay-foreground` | `media-editor`, `media-editor-capture`, `story-composer`, `story-viewer`, `video-player` |
 <!-- END GENERATED TOKENS -->
 
 You **don't** need to copy the brand *values* — keep your own `--primary`, `--background`, etc. Every ilinxa component reads tokens by name, so it inherits whatever palette the host ships. The brand identity (signal-lime + cool off-white + graphite-cool dark) is only authoritative on this demo site.

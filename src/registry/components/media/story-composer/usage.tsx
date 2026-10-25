@@ -5,11 +5,10 @@ export default function StoryComposerUsage() {
         <h3 className="mb-2 mt-0 text-base font-semibold">When to use</h3>
         <p className="text-muted-foreground">
           <code>StoryComposer</code> is the creation surface for
-          Instagram-style stories. It composes with{" "}
-          <code>StoryRail</code> (discovery) and{" "}
-          <code>StoryViewer</code> (consumption) to form the full story
-          system, but doesn&apos;t depend on them. Use it whenever you need
-          camera-first capture + on-canvas editing + one-tap publish.
+          Instagram-style stories: pick (or capture) media, edit it on a 9:16
+          canvas, publish. It composes with <code>StoryRail</code> (discovery)
+          and <code>StoryViewer</code> (consumption) but doesn&apos;t depend on
+          them. It wraps <code>MediaEditor</code>.
         </p>
       </section>
 
@@ -29,9 +28,8 @@ export function Example() {
         isOpen={open}
         onClose={() => setOpen(false)}
         uploadUrl="/api/stories/upload"
-        onPublished={(story) => {
-          // story.items[0].src = the uploaded media URL
-          console.log("uploaded:", story)
+        onPublished={(story, result) => {
+          // result = exactly what your upload returned
           setOpen(false)
         }}
       />
@@ -42,80 +40,85 @@ export function Example() {
       </section>
 
       <section>
-        <h3 className="mb-2 text-base font-semibold">Capture modes</h3>
-        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <h3 className="mb-2 text-base font-semibold">Camera (opt-in)</h3>
+        <p className="text-muted-foreground">
+          The default install is upload-only — no camera code and no{" "}
+          <code>getUserMedia</code>. To add the camera, install{" "}
+          <code>@ilinxa/media-editor-capture</code> and pass it in:
+        </p>
+        <pre className="mt-2 overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+          <code>{`import { mediaCapture } from "@/components/media-editor/features/capture"
+
+<StoryComposer capture={mediaCapture} … />`}</code>
+        </pre>
+        <p className="mt-2 text-muted-foreground">
+          <code>acceptMediaTypes</code> limits what can be picked;{" "}
+          <code>videoOutput={'{{ mimeTypes: ["video/mp4"] }}'}</code> limits
+          what is recorded or re-encoded. An unedited video is uploaded as the
+          original file.
+        </p>
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-base font-semibold">Modes and tools</h3>
+        <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
           <li>
-            <strong>Photo</strong> — camera tap → instant editor with the
-            default toolbar (Text / Draw / Stickers / Filters / Adjust). Crop
-            is opt-in via{" "}
-            <code>enabledTools={'{[…, "crop"]}'}</code> — stories are 9:16-locked,
-            so default flows don&apos;t need it.
+            <strong>Photo</strong> / <strong>Video</strong> — pick (or capture)
+            then edit with Text / Draw / Stickers / Filters / Adjust. Crop is
+            opt-in via <code>enabledTools</code>. Videos are not edited: a video
+            draft has no tool chips and uploads as the original file.
           </li>
           <li>
-            <strong>Video</strong> — long-press hold OR tap-to-toggle shutter.
-            Auto-stop at <code>maxVideoDuration</code> (default 30s). Edit
-            stage shows a two-handle trim bar; overlays bake into the final
-            video on publish.
-          </li>
-          <li>
-            <strong>Text</strong> — 8 gradient backgrounds + centered text +
-            font + color picker. Renders to PNG on publish.
+            <strong>Text</strong> — gradient background + centred text; PNG on
+            publish.
           </li>
         </ul>
         <p className="mt-2 text-muted-foreground">
-          Hide modes you don&apos;t want via{" "}
-          <code>hideModes={'{["video","text"]}'}</code>.
+          Hide modes with <code>hideModes={'{["video","text"]}'}</code>.
         </p>
       </section>
 
       <section>
         <h3 className="mb-2 text-base font-semibold">Publish</h3>
-        <p className="text-muted-foreground">
-          Two paths — pick one:
-        </p>
-        <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+        <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
           <li>
-            <code>uploadUrl=&quot;/api/upload&quot;</code> — composer POSTs FormData
-            ({"{ file, metadata }"}) with progress events.
+            <code>uploadUrl</code> — POSTs FormData (<code>file</code>,{" "}
+            <code>metadata</code>, <code>uploadFields</code>, caption and your
+            fields) with progress.
           </li>
           <li>
-            <code>uploader={"{async (blob, meta) => …}"}</code> — custom
-            uploader for signed-URL flows (S3 PUT, Cloudinary, Mux). Must
-            return <code>{"{ url, thumbnailUrl? }"}</code>.
+            <code>uploader={"{async (blob, meta, fields) => …}"}</code> — your
+            own upload (signed URLs etc.); return at least{" "}
+            <code>{"{ url }"}</code>.
+          </li>
+          <li>
+            <code>caption</code> / <code>renderPublishFields</code> — Publish
+            opens a details step first; <code>canPublish(fields)</code> gates
+            it.
+          </li>
+          <li>
+            On failure: Retry, or Cancel back to the editor with the draft
+            intact; <code>getErrorMessage</code> sets the message.
           </li>
         </ul>
       </section>
 
       <section>
-        <h3 className="mb-2 text-base font-semibold">Pan + zoom</h3>
-        <p className="text-muted-foreground">
-          Drag (single pointer — mouse or 1 finger) to pan; a drag that starts
-          on a text/sticker overlay moves that overlay instead, and a tap never
-          pans. Zoom 1× → 4× via 2-finger pinch (touch) or mouse wheel anchored
-          to the cursor (desktop — native non-passive, beats the
-          browser&apos;s Ctrl+wheel page-zoom). Arrow keys pan in the arrow
-          direction; <code>+</code> / <code>-</code> / <code>0</code> zoom in /
-          out / reset. Disabled while drawing or cropping.
-        </p>
-      </section>
-
-      <section>
         <h3 className="mb-2 text-base font-semibold">Imperative handle</h3>
         <p className="text-muted-foreground">
-          Pass a <code>ref</code> to drive the composer programmatically:{" "}
-          <code>takePhoto</code>, <code>switchCamera</code>,{" "}
-          <code>startRecording</code>, <code>addText</code>,{" "}
-          <code>addSticker</code>, <code>applyFilter</code>,{" "}
-          <code>publish</code>, <code>exportBlob</code>, and more (14
-          methods total).
+          <code>publish</code>, <code>exportBlob</code>, <code>reset</code>,{" "}
+          <code>close</code>, <code>addText</code>, <code>addSticker</code>,{" "}
+          <code>setAdjustments</code>, <code>applyFilter</code>. The capture
+          methods and <code>open</code> are not implemented (they warn in
+          development) — use <code>isOpen</code> and the in-UI controls.
         </p>
       </section>
 
       <section>
         <h3 className="mb-2 text-base font-semibold">More</h3>
         <p className="text-muted-foreground">
-          Full reference + slot extension points + accessibility notes live
-          in <code>docs/procomps/story-composer-procomp/story-composer-procomp-guide.md</code>.
+          Full reference, labels, and the 0.5 → 0.6 migration table live in{" "}
+          <code>docs/procomps/story-composer-procomp/story-composer-procomp-guide.md</code>.
         </p>
       </section>
     </div>

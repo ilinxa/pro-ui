@@ -14,12 +14,15 @@ import { cn } from "@/lib/utils";
 import { useMediaCapture, type CapturedPhoto, type CapturedVideo } from "../hooks/use-media-capture";
 import { useCameraPermissions } from "../hooks/use-camera-permissions";
 import { useMultiInstanceGuard } from "../hooks/use-multi-instance-guard";
-import { validateGalleryFile } from "../../../lib/validate-media-file";
+import {
+  acceptAttribute,
+  validateGalleryFile,
+} from "../../../lib/validate-media-file";
 import { CameraPermissionPrompt } from "./camera-permission-prompt";
 import { ShutterButton } from "./shutter-button";
 import type {
   ComposerMode,
-  StoryComposerLabels,
+  MediaEditorResolvedLabels,
   ValidationError,
 } from "../../../types";
 
@@ -46,7 +49,13 @@ export interface EditorCameraProps {
    * Default behavior auto-acquires only when `perms.state === "granted"`.
    */
   autoAcquireOverride?: boolean;
-  labels: Required<StoryComposerLabels>;
+  labels: MediaEditorResolvedLabels;
+  /** BCP 47 locale for the numbers in validation messages. Default: `"en"`. */
+  locale?: string;
+  /** Accepted MIME types for the gallery picker and its validator. Default `["image/*", "video/*"]`. */
+  acceptMediaTypes?: string[];
+  /** Allowed video recording formats in preference order. Default: the built-in chain. */
+  videoMimeTypes?: string[];
   onPhoto: (photo: CapturedPhoto) => void;
   onVideo: (video: CapturedVideo) => void;
   /** Loads an image / video file picked from the gallery into the editor. */
@@ -76,6 +85,9 @@ export function EditorCamera({
   captureAspectRatio,
   autoAcquireOverride,
   labels,
+  locale,
+  acceptMediaTypes,
+  videoMimeTypes,
   onPhoto,
   onVideo,
   onGalleryFile,
@@ -126,6 +138,7 @@ export function EditorCamera({
     defaultFacing,
     requestAudio,
     maxVideoDurationSec,
+    videoMimeTypes,
     autoAcquire: autoAcquireOverride || perms.state === "granted",
   });
 
@@ -169,9 +182,11 @@ export function EditorCamera({
     } catch (err) {
       onValidationError?.({
         kind: "unsupported-codec",
-        message:
-          (err as Error)?.message ?? "Video recording is not supported here",
+        message: labels.videoUnsupported,
       });
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("media-editor: startRecording failed", err);
+      }
     }
   };
 
@@ -186,8 +201,11 @@ export function EditorCamera({
       // channel handleVideoStart already uses.
       onValidationError?.({
         kind: "unsupported-codec",
-        message: (err as Error)?.message ?? "Video recording failed",
+        message: labels.videoFailed,
       });
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("media-editor: stopRecording failed", err);
+      }
     } finally {
       setBusy(false);
     }
@@ -201,7 +219,11 @@ export function EditorCamera({
     const file = e.target.files?.[0];
     e.target.value = ""; // reset so picking the same file twice re-fires
     if (!file) return;
-    const err = validateGalleryFile(file, maxFileSizeMb);
+    const err = validateGalleryFile(file, maxFileSizeMb, {
+      labels,
+      locale,
+      acceptMediaTypes,
+    });
     if (err) {
       onValidationError?.(err);
       return;
@@ -306,9 +328,9 @@ export function EditorCamera({
         <div
           role="status"
           aria-live="polite"
-          className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md px-3 py-1.5 text-white"
+          className="absolute top-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-media-overlay backdrop-blur-md px-3 py-1.5 text-media-overlay-foreground"
         >
-          <span className="size-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="size-2 rounded-full bg-destructive animate-pulse" />
           <span className="text-xs font-mono tabular-nums">
             {formatRecordingTime(recordingMs)}
           </span>
@@ -329,7 +351,7 @@ export function EditorCamera({
           size="icon"
           onClick={handleGalleryClick}
           aria-label={labels.galleryPicker}
-          className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
+          className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-media-overlay backdrop-blur-md text-media-overlay-foreground hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground"
         >
           <ImageIcon className="size-[55%]" />
         </Button>
@@ -374,7 +396,7 @@ export function EditorCamera({
             size="icon"
             onClick={() => void switchCamera()}
             aria-label={labels.switchCamera}
-            className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-black/60 hover:text-white"
+            className="size-[clamp(2rem,9cqw,2.5rem)] rounded-full bg-media-overlay backdrop-blur-md text-media-overlay-foreground hover:bg-media-overlay-foreground/10 hover:text-media-overlay-foreground"
           >
             <SwitchCamera className="size-[55%]" />
           </Button>
@@ -387,8 +409,9 @@ export function EditorCamera({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,video/*"
+        accept={acceptAttribute(acceptMediaTypes)}
         onChange={handleFileChange}
+        hidden
         className="hidden"
       />
     </div>

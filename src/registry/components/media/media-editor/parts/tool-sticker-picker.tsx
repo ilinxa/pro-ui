@@ -28,7 +28,7 @@ export function ToolStickerPicker({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-2xl bg-black/70 backdrop-blur-md p-3 text-white",
+        "flex flex-col gap-2 rounded-2xl bg-media-overlay backdrop-brightness-75 backdrop-blur-md p-3 text-media-overlay-foreground",
         className,
       )}
     >
@@ -44,10 +44,10 @@ export function ToolStickerPicker({
                 onClick={() => setActiveSetId(set.id)}
                 aria-pressed={isActive}
                 className={cn(
-                  "flex-none rounded-full px-3 py-1 text-[10px] font-medium tracking-wider uppercase transition-colors",
+                  "min-h-6 flex-none rounded-full px-3 py-1 text-[10px] font-medium tracking-wider uppercase transition-colors",
                   isActive
-                    ? "bg-white text-black"
-                    : "text-white/70 hover:text-white hover:bg-white/10",
+                    ? "bg-media-overlay-foreground text-black"
+                    : "text-media-overlay-foreground/80 hover:text-media-overlay-foreground hover:bg-media-overlay-foreground/10",
                 )}
               >
                 {set.label}
@@ -70,7 +70,7 @@ export function ToolStickerPicker({
             type="button"
             onClick={() => onPick(sticker)}
             aria-label={sticker.alt}
-            className="aspect-square rounded-lg bg-white/5 hover:bg-white/15 active:scale-95 transition-transform p-1 grid place-items-center"
+            className="aspect-square rounded-lg bg-media-overlay-foreground/5 hover:bg-media-overlay-foreground/15 active:scale-95 transition-transform p-1 grid place-items-center"
           >
             <img
               src={sticker.src}
