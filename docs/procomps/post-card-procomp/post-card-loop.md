@@ -206,7 +206,7 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 
 | Field | Value |
 |---|---|
-| **Current stage** | U6 done (U2–U6 below) — final installs + battery, then U7 ship in one release commit |
+| **Current stage** | CLOSED — shipped `424f34a`, live-verified 2026-10-26 |
 | **Go** | user 2026-10-26 ("go … end to end and properly"); execution delegated for this release; scope signed by the platform 2026-10-25. Ships with comment-thread 0.4.0 (see that loop doc's "Run — Part 3 release 5"). |
 
 ## U2 — architect decisions (types fixed before the slice)
@@ -271,3 +271,8 @@ verifier", "U5 — installs"). post-card rows: W3 (panel Hide focus), W4 (RTL me
 re-verified. Install finding: the `post-card-fixtures` item failed consumer tsc (TS2305) — `dummy-data.ts` imported
 comment-thread / engagement-bar types, which the CLI rewrites to those components' main files inside the fixtures item;
 fixed by deriving every type from post-card's own `./types`.
+
+## U7 — Ship (release 5)
+
+Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Live `post-card.json`: 27 files, no tests; `post-card-fixtures.json` imports only `./types`. Detail:
+comment-thread-loop.md "U7 — Ship".

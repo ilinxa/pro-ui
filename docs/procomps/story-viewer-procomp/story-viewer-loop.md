@@ -596,7 +596,7 @@ platform). **Next release:** media-editor 0.5.0 + story-composer 0.6.0 — on th
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **patch** — no public API removed; one optional label added) |
-| **Current stage** | U6 done — ships in the release 5 commit (see `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
+| **Current stage** | CLOSED — shipped in the release 5 commit `424f34a`, live-verified 2026-10-26 (record: `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
 | **Sign-off policy** | user go 2026-10-26 ("update story-viewer to use comment-thread 0.4.0 … end to end"); platform constraint from `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-26_ME051_FB_EP.md` |
 | **Version target** | v0.6.0 → **v0.6.1** |
 
@@ -619,3 +619,7 @@ platform). **Next release:** media-editor 0.5.0 + story-composer 0.6.0 — on th
 - U5: browser regression sweep "story-viewer failed reply" PASS; demo close-focus parked (W8, host-owned `isOpen`).
   Installs: final matrix on CLI 4.18.0 + 3.8.5 (6 runs, all PASS, consumer tsc 0 — see comment-thread-loop.md "U5 — installs").
 - U6: `meta.ts` 0.6.1, CHANGELOG bullet, guide section "v0.6.1". Artifact 321.7 / 340 KB.
+
+### U7 — Ship (release 5)
+
+Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Detail: comment-thread-loop.md "U7 — Ship".

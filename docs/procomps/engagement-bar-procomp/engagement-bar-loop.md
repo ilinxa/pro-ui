@@ -275,7 +275,7 @@ reads `getCurrentState()` counts as `number` (now `number | null`, a compile-tim
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **patch** — behaviour fix, no API change) |
-| **Current stage** | U6 done — ships in the release 5 commit (see `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
+| **Current stage** | CLOSED — shipped in the release 5 commit `424f34a`, live-verified 2026-10-26 (record: `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
 | **Sign-off policy** | user go 2026-10-26 (release 5 "end to end"); patch found by the release's browser finder |
 | **Version target** | v0.6.0 → **v0.6.1** |
 
@@ -293,3 +293,7 @@ reads `getCurrentState()` counts as `number` (now `number | null`, a compile-tim
   drag past the threshold, released-elsewhere press — the last one found by the pre-push doc verifier), each falsified.
 - U5 re-verify: W1 and W5 PASS in Chromium on `next start -p 3200`. Installs: final matrix on CLI 4.18.0 + 3.8.5 (6 runs, all PASS, consumer tsc 0 — see comment-thread-loop.md "U5 — installs").
 - U6: `meta.ts` 0.6.1, CHANGELOG bullet, guide section "0.6.1 — likers pill". Artifact 117.9 / 125 KB.
+
+### U7 — Ship (release 5)
+
+Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Detail: comment-thread-loop.md "U7 — Ship".

@@ -88,7 +88,7 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **patch** — honours a field the shared menu type gained) |
-| **Current stage** | U6 done — ships in the release 5 commit (see `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
+| **Current stage** | CLOSED — shipped in the release 5 commit `424f34a`, live-verified 2026-10-26 (record: `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
 | **Sign-off policy** | user go 2026-10-26 (release 5 "end to end") |
 
 - **Why:** comment-thread 0.4.0 adds `CommentMenuItem.hidden`; news-card reuses the type for its kebab and would have
@@ -98,3 +98,7 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
   `openKebab()` with every item hidden armed a later pop-open — `news-card.tsx` now guards it.
 - **Tests:** `__tests__/kebab-hidden.test.tsx` (4), every one falsified. Installs: final matrix on CLI 4.18.0 + 3.8.5 (6 runs, all PASS, consumer tsc 0 — see comment-thread-loop.md "U5 — installs"). Artifact 181.8 / 210 KB.
 - **Docs:** `meta.ts` 0.4.5, CHANGELOG bullet, guide note.
+
+### U7 — Ship (release 5)
+
+Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Detail: comment-thread-loop.md "U7 — Ship".

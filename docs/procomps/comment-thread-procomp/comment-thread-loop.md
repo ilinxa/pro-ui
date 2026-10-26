@@ -165,7 +165,7 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 
 | Field | Value |
 |---|---|
-| **Current stage** | U6 done (U2–U6 below) — final installs + battery, then U7 ship in one release commit |
+| **Current stage** | CLOSED — shipped `424f34a`, live-verified 2026-10-26 |
 | **Go** | user 2026-10-26: "confirmed you can go and make them done end to end and properly" — and story-viewer must move to comment-thread 0.4.0 in the same release (platform reply `PROUI_REPLY_2026-10-26_ME051_FB_EP.md`). Execution delegated by the user for this release; scope signed by the platform 2026-10-25. |
 | **Release** | comment-thread 0.4.0 · comment-thread-moderation 0.4.0 (new feature item; a feature item carries its base's version) · post-card 0.6.0 · story-viewer 0.6.1 · engagement-bar 0.6.1 (patch: likers pill click + full count) · news-card 0.4.5 (patch: honour `CommentMenuItem.hidden`) |
 | **Roster** | architect: main session · implementers: Sonnet 5 (comment-thread base + moderation; post-card) · finders: fresh Sonnet 5 |
@@ -319,3 +319,12 @@ moderation 6.6 / 8, post-card 183.6 / 190, engagement-bar 117.9 / 125, story-vie
 181.8 / 210) · doc-budget 0 · tests (`NODE_ENV=production`) **176 files / 2473 passed, 6 skipped, 0 failed, no
 timeouts** — comment-thread 17 files / 251, post-card 14 / 190 · `pnpm build` 0 (77 pages). Runtime min + gzip
 re-measured: `<CommentThread>` 11.6 KB, post-card's own code 12.8 KB (unchanged by the last fixes).
+
+## U7 — Ship
+
+Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Live artifacts: `comment-thread.json` 22 files, `comment-thread-moderation.json` 4 files
+(`features/moderation/…`, none in the base), `post-card.json` 27, `story-viewer.json` 38, `engagement-bar.json` 20,
+`news-card.json` 24 — no tests / demo / usage / meta; the `align="end"` kebab, the `renderNode` tree, the 4 px drag
+threshold and `post-card-fixtures` importing only `./types` are in. Decision `shipped`; retro in
+`.claude/improvement-log.md`; report-back `.claude/report-back-2026-10-26-comment-thread-0-4-0-post-card-0-6-0.md` (to
+the user for the platform). **Next release:** carousel-composer 0.3.0 — on the user's go.
