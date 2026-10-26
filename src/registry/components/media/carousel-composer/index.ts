@@ -8,8 +8,23 @@ export type {
   CarouselComposerProps,
   CarouselComposerHandle,
   CarouselComposerLabels,
+  CarouselAspectRatio,
+  CarouselExportMeta,
+  CarouselEditingExtension,
+  CarouselEditorPanelProps,
+  ApplyEditPatch,
+  MediaCarouselItemPatch,
+  MediaCarouselItemStatus,
+  MediaCarouselErrorKind,
+  CarouselComposerLabelsInput,
+  CarouselComposerErrorLabels,
+  CarouselComposerDragLabels,
 } from "./types";
-export { DEFAULT_CAROUSEL_LABELS } from "./types";
+export {
+  defaultCarouselComposerLabels,
+  PLATFORM_SAFE_MIME,
+  DEFAULT_CAROUSEL_LABELS,
+} from "./types";
 
 // Headless state primitive — for consumers that recompose the surface from the
 // parts below and need the model (items / selection / editing / URL lifecycle).
@@ -18,7 +33,6 @@ export type {
   UseCarouselStateOptions,
   UseCarouselStateResult,
   CarouselStateCallbacks,
-  ApplyEditPatch,
 } from "./hooks/use-carousel-state";
 
 // Public parts — for sealed-folder consumers that want to recompose the surface.
@@ -30,5 +44,7 @@ export { RailThumb } from "./parts/rail-thumb";
 export type { RailThumbProps } from "./parts/rail-thumb";
 export { MainPreview } from "./parts/main-preview";
 export type { MainPreviewProps } from "./parts/main-preview";
-export { EditPanel } from "./parts/edit-panel";
-export type { EditPanelProps } from "./parts/edit-panel";
+
+// Image editing is the opt-in `@ilinxa/carousel-composer-editing` item
+// (`features/editing/`). The base barrel never exports it, so the base installs
+// without media-editor.

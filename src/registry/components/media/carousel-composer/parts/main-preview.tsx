@@ -8,8 +8,10 @@ export interface MainPreviewProps {
   item: MediaCarouselItem | null;
   /** CSS `aspect-ratio` value for the frame (the shared carousel aspect). */
   aspectCss: string;
-  /** False for video items in v0.1 (edit deferred). */
+  /** True when the editing add-on is wired and this item may be edited. */
   canEdit: boolean;
+  /** True when the editing add-on is wired. Without it the preview shows no edit UI. */
+  editingEnabled?: boolean;
   labels: { edit: string; videoNotEditable: string };
   onEdit: () => void;
 }
@@ -17,7 +19,7 @@ export interface MainPreviewProps {
 /**
  * The large preview of the currently-selected item, with an Edit affordance.
  * Images fill the shared-aspect frame (`object-cover`); videos keep their own
- * aspect on a black mat (`object-contain`). Video isn't editable in v0.1 — instead
+ * aspect on a media-overlay mat (`object-contain`). A video is never editable — instead
  * of a disabled (unfocusable, unreadable) button we show a static caption that
  * IS in the reading order, so keyboard + screen-reader users get the reason.
  */
@@ -25,6 +27,7 @@ export function MainPreview({
   item,
   aspectCss,
   canEdit,
+  editingEnabled = false,
   labels,
   onEdit,
 }: MainPreviewProps) {
@@ -57,28 +60,31 @@ export function MainPreview({
               /* seeking unsupported — leave as-is */
             }
           }}
-          className="size-full bg-black object-contain"
+          poster={item.posterUrl}
+          className="size-full bg-media-overlay object-contain"
         />
       ) : (
         <img
           src={item.url}
-          alt={item.fileName ?? ""}
+          alt={item.alt ?? item.fileName ?? ""}
           className="size-full object-cover"
         />
       )}
 
-      <div className="absolute end-3 top-3">
-        {canEdit ? (
-          <Button type="button" size="sm" onClick={onEdit}>
+      {canEdit ? (
+        <div className="absolute end-3 top-3">
+          <Button type="button" size="sm" onClick={onEdit} data-edit-button="">
             <Pencil className="size-4" aria-hidden />
             {labels.edit}
           </Button>
-        ) : (
-          <span className="rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium text-white">
+        </div>
+      ) : editingEnabled && item.kind === "video" ? (
+        <div className="absolute end-3 top-3">
+          <span className="rounded-full bg-media-overlay px-2.5 py-1 text-xs font-medium text-media-overlay-foreground">
             {labels.videoNotEditable}
           </span>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

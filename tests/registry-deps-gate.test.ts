@@ -94,6 +94,25 @@ describe("B — transitive heavy edges", () => {
     ]);
     expect(heavy.has("plain")).toBe(false);
   });
+
+  it("a feature slice may reach a heavy item (it is the opt-in route), but an edge into it still counts", () => {
+    const heavy = new Set(["media-editor"]);
+    const items = [
+      { name: "carousel-composer", registryDependencies: ["button"] },
+      {
+        name: "carousel-composer-editing",
+        meta: { featureOf: "carousel-composer" },
+        registryDependencies: ["@ilinxa/carousel-composer", "@ilinxa/media-editor"],
+      },
+      { name: "content-composer", registryDependencies: ["@ilinxa/carousel-composer-editing"] },
+    ];
+    const edges = transitiveHeavyEdges(items, heavy, () => "");
+    expect(edges.map((e: { from: string; to: string }) => `${e.from}→${e.to}`)).toEqual([
+      "content-composer→carousel-composer-editing",
+    ]);
+    expect(heavy.has("carousel-composer-editing")).toBe(true);
+    expect(heavy.has("carousel-composer")).toBe(false);
+  });
 });
 
 describe("wiring + catalog", () => {

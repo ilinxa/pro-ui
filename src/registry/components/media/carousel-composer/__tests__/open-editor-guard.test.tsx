@@ -31,6 +31,25 @@ describe("openEditor", () => {
     expect(String(warn.mock.calls[0][0])).toContain("only image items");
   });
 
+  it("is a no-op (with a dev warning) for an image the canEdit predicate refuses", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const onEditOpen = vi.fn();
+    const { result } = renderHook(() =>
+      useCarouselState({
+        defaultValue: ITEMS,
+        maxItems: 10,
+        onEditOpen,
+        canEdit: (it) => it.id !== "img",
+      }),
+    );
+
+    act(() => result.current.openEditor("img"));
+
+    expect(result.current.editingId).toBeNull();
+    expect(onEditOpen).not.toHaveBeenCalled();
+    expect(String(warn.mock.calls[0][0])).toContain("canEditItem");
+  });
+
   it("still opens the editor for an image item", () => {
     const onEditOpen = vi.fn();
     const { result } = renderHook(() =>

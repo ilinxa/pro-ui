@@ -3,7 +3,7 @@
   "name": "media-carousel-editor-01",
   "title": "Carousel Composer (deprecated alias)",
   "author": "ilinxa",
-  "description": "Deprecated alias — renamed to carousel-composer in the 2026-08 naming canon. Install @ilinxa/carousel-composer instead; this alias will be removed after a grace window.",
+  "description": "Deprecated alias — renamed to carousel-composer. Install @ilinxa/carousel-composer instead; image editing is the separate @ilinxa/carousel-composer-editing.",
   "registryDependencies": [
     "@ilinxa/carousel-composer"
   ],

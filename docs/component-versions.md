@@ -112,8 +112,8 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `carousel-composer` | Carousel Composer | 0.2.2 | alpha | 2026-10-24 |
-| `content-composer` | Content Composer | 0.3.2 | alpha | 2026-10-24 |
+| `carousel-composer` | Carousel Composer | 0.3.0 | alpha | 2026-10-26 |
+| `content-composer` | Content Composer | 0.3.3 | alpha | 2026-10-24 |
 | `media-carousel` | Media Carousel | 0.3.1 | alpha | 2026-10-24 |
 | `media-editor` | Media Editor | 0.5.1 | alpha | 2026-10-26 |
 | `media-library` | Media Library | 0.2.3 | alpha | 2026-10-24 |

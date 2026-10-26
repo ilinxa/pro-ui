@@ -6,7 +6,11 @@ import {
 } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import type { MediaCarouselItem, MediaKind } from "../types";
+import type {
+  CarouselComposerLabels,
+  MediaCarouselItem,
+  MediaKind,
+} from "../types";
 import { MediaDropzone } from "./media-dropzone";
 import { RailThumb } from "./rail-thumb";
 
@@ -19,20 +23,31 @@ export interface PreviewRailProps {
   /** Ingestion in progress — spinner on the add-more tile. */
   busy?: boolean;
   accept: MediaKind[];
+  acceptMime?: readonly string[];
   maxItems: number;
-  labels: {
-    remove: string;
-    reorderHint: string;
-    itemAria: string;
-    dropzoneTitle: string;
-    dropzoneBrowse: string;
-    dropzoneHint: string;
-    addMore: string;
-    finishEditingHint: string;
-  };
+  labels: Pick<
+    CarouselComposerLabels,
+    | "removeItem"
+    | "reorderHint"
+    | "itemAria"
+    | "dropzoneTitle"
+    | "dropzoneBrowse"
+    | "dropzoneHint"
+    | "dropzoneBusy"
+    | "addMore"
+    | "finishEditingHint"
+    | "uploadProgress"
+    | "uploadFailed"
+    | "retry"
+    | "durationLabel"
+  >;
+  formatDuration: (seconds: number) => string;
+  onRetry?: (item: MediaCarouselItem) => void;
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
   onFiles: (files: File[] | FileList) => void;
+  /** Resolved text direction. Radix ScrollArea needs it explicitly. */
+  dir?: "ltr" | "rtl";
 }
 
 /**
@@ -47,20 +62,25 @@ export function PreviewRail({
   canAddMore,
   busy,
   accept,
+  acceptMime,
   maxItems,
   labels,
+  formatDuration,
+  onRetry,
   onSelect,
   onRemove,
   onFiles,
+  dir,
 }: PreviewRailProps) {
   return (
-    <ScrollArea className="w-full">
+    <ScrollArea className="w-full" dir={dir}>
       {disabled ? (
         <p className="px-1 pb-1 text-xs text-muted-foreground">
           {labels.finishEditingHint}
         </p>
       ) : null}
       <div
+        dir={dir}
         className={cn(
           "flex items-center gap-2 p-1 transition-opacity",
           disabled && "pointer-events-none opacity-60",
@@ -79,8 +99,10 @@ export function PreviewRail({
               selected={item.id === selectedId}
               disabled={disabled}
               labels={labels}
+              formatDuration={formatDuration}
               onSelect={onSelect}
               onRemove={onRemove}
+              onRetry={onRetry}
             />
           ))}
         </SortableContext>
@@ -88,6 +110,7 @@ export function PreviewRail({
           <MediaDropzone
             variant="add-more"
             accept={accept}
+            acceptMime={acceptMime}
             maxItems={maxItems}
             busy={busy}
             labels={labels}

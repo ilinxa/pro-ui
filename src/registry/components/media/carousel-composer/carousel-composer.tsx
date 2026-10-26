@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -21,26 +22,34 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  DEFAULT_CAROUSEL_LABELS,
-  type CarouselComposerHandle,
-  type CarouselComposerProps,
+import type {
+  CarouselComposerHandle,
+  CarouselComposerProps,
+  MediaCarouselItem,
+  MediaCarouselItemStatus,
 } from "./types";
 import { useCarouselState } from "./hooks/use-carousel-state";
 import { filesToItems } from "./lib/file-intake";
 import { clampSources } from "./lib/clamp-sources";
 import { aspectToCss, resolveAspect } from "./lib/aspect";
+import { mergeLabels } from "./lib/labels";
+import { formatDuration as defaultFormatDuration } from "./lib/format-duration";
+import { useWarnOnce } from "./hooks/use-warn-once";
+import { ItemStatus } from "./parts/item-status";
+import { AltField } from "./parts/alt-field";
 import { MediaDropzone } from "./parts/media-dropzone";
 import { PreviewRail } from "./parts/preview-rail";
 import { MainPreview } from "./parts/main-preview";
-import { EditPanel } from "./parts/edit-panel";
+import { useEditingExtension } from "./hooks/use-editing-extension";
+import { useDirection } from "./hooks/use-direction";
+import { EditFrame } from "./parts/edit-frame";
 
 /**
  * carousel-composer — a multi-item media composer (Instagram-feed-post
  * semantics): drag-drop / browse one-or-more mixed photo+video files into an
- * ordered, reorderable rail with a main preview, and edit any item through a
- * single shared `media-editor` instance (loaded serially, never N at once).
- * Composes media-editor without modifying it.
+ * ordered, reorderable rail with a main preview, alt text and host-driven upload
+ * status. Image editing is injected through `editing` (the
+ * `carousel-composer-editing` feature item); the base imports nothing from it.
  */
 function CarouselComposerImpl(
   props: CarouselComposerProps,
@@ -53,8 +62,19 @@ function CarouselComposerImpl(
     maxItems = 10,
     maxFileSizeMb = 50,
     accept,
+    acceptMime,
+    maxVideoSeconds,
+    enableAltText = false,
+    maxAltLength: maxAltLengthProp,
+    onRetry,
+    posterAt,
+    formatDuration: formatDurationProp,
+    locale = "en",
+    dir: dirProp,
     sources,
     aspect = "auto",
+    editing: editingProp,
+    canEditItem,
     editorProps,
     labels: labelOverrides,
     className,
@@ -70,15 +90,29 @@ function CarouselComposerImpl(
     onMaxItemsExceeded,
   } = props;
 
-  const labels = useMemo(
-    () => ({ ...DEFAULT_CAROUSEL_LABELS, ...labelOverrides }),
-    [labelOverrides],
+  const merged = useMemo(() => mergeLabels(labelOverrides), [labelOverrides]);
+  const { labels } = merged;
+  const legacyKeyList = merged.legacyKeys.join(",");
+  const warnOnce = useWarnOnce();
+  useEffect(() => {
+    if (!legacyKeyList) return;
+    legacyKeyList.split(",").forEach((key) =>
+      warnOnce(
+        `legacy-label:${key}`,
+        `[CarouselComposer] labels.${key} is a function now (0.2 passed a string template); the string is ignored and the English default is used.`,
+      ),
+    );
+  }, [legacyKeyList, warnOnce]);
+  const maxAltLength = Math.max(1, maxAltLengthProp ?? 200);
+  const formatDuration = useMemo(
+    () => formatDurationProp ?? ((s: number) => defaultFormatDuration(s, locale)),
+    [formatDurationProp, locale],
   );
   const acceptKinds = useMemo(
     () => accept ?? ["image" as const, "video" as const],
     [accept],
   );
-  // v0.1: "library" is clamped out — intake is upload-only (drop / browse).
+  // "library" is clamped out — intake is upload-only (drop / browse).
   const uploadEnabled = useMemo(
     () => clampSources(sources).includes("upload"),
     [sources],
@@ -87,10 +121,33 @@ function CarouselComposerImpl(
   const [ingesting, setIngesting] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [announce, setAnnounce] = useState("");
+  // The live region only speaks when its text changes, so a repeat of the same
+  // text alternates a trailing zero-width space.
+  const say = useCallback(
+    (text: string) => setAnnounce((prev) => (prev === text ? `${text}\u200B` : text)),
+    [],
+  );
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dir = useDirection(rootRef, dirProp);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  // Where focus goes once the element the user acted on is gone.
+  const focusTargetRef = useRef<
+    { type: "retry"; id: string } | { type: "remove"; id: string; next: string | null } | null
+  >(null);
 
-  const fillTemplate = (tpl: string) => tpl.replace("{max}", String(maxItems));
+  const { editing, warnOpenWithoutEditing } = useEditingExtension({
+    editing: editingProp,
+    editorProps,
+  });
 
   const state = useCarouselState({
+    canEdit: (it) => canEditItem?.(it) !== false,
     value,
     defaultValue,
     onChange,
@@ -99,11 +156,10 @@ function CarouselComposerImpl(
     onItemAdd,
     onItemRemove: (id) => {
       onItemRemove?.(id);
-      setAnnounce(labels.remove);
+      say(labels.itemRemoved);
     },
     onReorder: (items) => {
       onReorder?.(items);
-      setAnnounce(labels.reorderHint);
     },
     onSelect,
     onEditOpen,
@@ -111,17 +167,114 @@ function CarouselComposerImpl(
     onEditCancel,
     onMaxItemsExceeded: (attempted, max) => {
       onMaxItemsExceeded?.(attempted, max);
-      const msg = fillTemplate(labels.maxReached);
+      const msg = labels.maxReached(max);
+      // The error list below is a role="alert" region and announces this once.
       setErrors((prev) => (prev.includes(msg) ? prev : [...prev, msg]));
-      setAnnounce(msg);
     },
   });
 
-  // Latest items for stable async reads (file intake + imperative handle).
-  const itemsRef = useRef(state.items);
+  // Announce each item's status or error CHANGE (never the statuses present at
+  // mount or on first sight of an item, never progress ticks).
+  const prevStatuses = useRef<Map<
+    string,
+    { status: MediaCarouselItemStatus | undefined; error: string | undefined }
+  > | null>(null);
   useEffect(() => {
-    itemsRef.current = state.items;
-  });
+    const prev = prevStatuses.current;
+    const next = new Map<
+      string,
+      { status: MediaCarouselItemStatus | undefined; error: string | undefined }
+    >();
+    const spoken: string[] = [];
+    state.items.forEach((it, i) => {
+      next.set(it.id, { status: it.status, error: it.error });
+      const before = prev?.get(it.id);
+      if (
+        before &&
+        it.status &&
+        (before.status !== it.status || before.error !== it.error)
+      ) {
+        spoken.push(
+          labels.uploadStatus({
+            status: it.status,
+            position: i + 1,
+            total: state.items.length,
+            error: it.error,
+          }),
+        );
+      }
+    });
+    prevStatuses.current = next;
+    if (spoken.length > 0) say(spoken.join(". "));
+  }, [state.items, labels, say]);
+
+  // Open edit that can no longer happen: the item left `items`, `editing` was
+  // removed, or `canEditItem` now refuses it. Close it (fires onEditCancel once).
+  const { editingId, cancelEdit } = state;
+  useEffect(() => {
+    if (editingId === null) return;
+    const item = state.items.find((it) => it.id === editingId);
+    const stillValid =
+      editing !== undefined &&
+      item !== undefined &&
+      item.kind === "image" &&
+      canEditItem?.(item) !== false;
+    if (!stillValid) cancelEdit();
+  }, [editingId, state.items, editing, canEditItem, cancelEdit]);
+
+  // Hand focus on after Retry / Remove unmount the focused control. Only acts when
+  // focus was lost to <body>, so it never pulls focus from where the user went.
+  useEffect(() => {
+    const target = focusTargetRef.current;
+    const root = rootRef.current;
+    if (!target || !root) return;
+    const item = state.items.find((it) => it.id === target.id);
+    const find = (attr: string, id: string) =>
+      Array.from(root.querySelectorAll<HTMLElement>(`[${attr}]`)).find(
+        (el) => el.getAttribute(attr) === id,
+      );
+    const lost = () =>
+      document.activeElement === null || document.activeElement === document.body;
+    if (target.type === "retry") {
+      if (!item) {
+        focusTargetRef.current = null;
+        return;
+      }
+      if (item.status === "error") return;
+      focusTargetRef.current = null;
+      if (!lost()) return;
+      (find("data-progress-for", item.id) ?? find("data-thumb-select", item.id))?.focus();
+      return;
+    }
+    if (item) return;
+    focusTargetRef.current = null;
+    if (!lost()) return;
+    const el = target.next
+      ? find("data-thumb-select", target.next)
+      : root.querySelector<HTMLElement>("[data-dropzone-browse]");
+    el?.focus();
+  }, [state.items]);
+
+  // Closing the edit (Done, Cancel or an automatic close) removes the panel and the focus
+  // with it. Hand focus back to the Edit button, else the selected thumb, but only if it
+  // was lost: never pull it from where the user went.
+  const isEditingNow =
+    editing !== undefined && state.editingId !== null && state.editingItem !== null;
+  const wasEditingRef = useRef(false);
+  const selectedIdNow = state.selectedId;
+  useEffect(() => {
+    const was = wasEditingRef.current;
+    wasEditingRef.current = isEditingNow;
+    if (!was || isEditingNow) return;
+    const root = rootRef.current;
+    if (!root) return;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    const thumb = Array.from(root.querySelectorAll<HTMLElement>("[data-thumb-select]")).find(
+      (el) => el.getAttribute("data-thumb-select") === selectedIdNow,
+    );
+    (root.querySelector<HTMLElement>("[data-edit-button]") ?? thumb)?.focus();
+  }, [isEditingNow, selectedIdNow]);
 
   const resolvedAspect = useMemo(
     () => resolveAspect(state.items, aspect),
@@ -134,22 +287,72 @@ function CarouselComposerImpl(
     try {
       const res = await filesToItems(files, {
         accept: acceptKinds,
+        acceptMime,
         maxFileSizeMb,
+        maxVideoSeconds,
+        posterAt,
+        errors: labels.errors,
       });
+      if (!mountedRef.current) {
+        // Unmounted while reading the files: release what intake created.
+        res.items.forEach((it) => {
+          URL.revokeObjectURL(it.url);
+          if (it.posterUrl) URL.revokeObjectURL(it.posterUrl);
+        });
+        return;
+      }
       res.errors.forEach((err) => onValidationError?.(err));
       if (res.errors.length > 0) {
         setErrors((prev) => [...prev, ...res.errors.map((e) => e.message)]);
       }
       // addItems caps to maxItems synchronously + fires onMaxItemsExceeded.
       if (res.items.length > 0) {
+        const before = state.getItems().length;
         state.addItems(res.items);
-        setAnnounce(
-          `${res.items.length} item${res.items.length === 1 ? "" : "s"} added`,
-        );
+        // Count what was kept, not what was offered (the cap may drop some).
+        const added = state.getItems().length - before;
+        if (added > 0) say(labels.itemsAdded(added));
       }
     } finally {
-      setIngesting(false);
+      if (mountedRef.current) setIngesting(false);
     }
+  };
+  // The handle calls the latest closure, so label / limit changes apply.
+  const addFilesRef = useRef(addFiles);
+  useEffect(() => {
+    addFilesRef.current = addFiles;
+  });
+
+  const handleRetry = onRetry
+    ? (item: MediaCarouselItem) => {
+        focusTargetRef.current = { type: "retry", id: item.id };
+        onRetry(item);
+      }
+    : undefined;
+
+  const handleRemove = (id: string) => {
+    const list = state.getItems();
+    const idx = list.findIndex((it) => it.id === id);
+    const neighbour = idx < 0 ? undefined : (list[idx + 1] ?? list[idx - 1]);
+    focusTargetRef.current = { type: "remove", id, next: neighbour?.id ?? null };
+    state.removeItem(id);
+  };
+
+  // The dismiss button is about to unmount; keep focus in the component.
+  const dismissErrors = () => {
+    const root = rootRef.current;
+    const candidates = [
+      "[data-dropzone-browse]",
+      "[data-dropzone-add-more]",
+      `[data-thumb-select="${state.selectedId ?? ""}"]`,
+    ];
+    for (const selector of candidates) {
+      const el = root?.querySelector<HTMLElement>(selector);
+      if (!el || (el as HTMLButtonElement).disabled) continue;
+      el.focus();
+      if (document.activeElement === el) break;
+    }
+    setErrors([]);
   };
 
   const sensors = useSensors(
@@ -159,87 +362,146 @@ function CarouselComposerImpl(
     }),
   );
 
+  // Rebuilt when `labels.drag` changes, so a locale switch reaches the announcements.
+  const dragLabels = labels.drag;
+  const { getItems } = state;
+  // Final index of the item just dropped, set in onDragEnd. The announcement can run
+  // after the reorder, when the over item's position has already shifted.
+  const droppedRef = useRef<{ id: string | number; position: number } | null>(null);
   const dndAnnouncements: Announcements = useMemo(() => {
     const pos = (id: string | number) =>
-      itemsRef.current.findIndex((it) => it.id === id) + 1;
-    const total = () => itemsRef.current.length;
+      getItems().findIndex((it) => it.id === id) + 1;
+    const total = () => getItems().length;
     return {
-      onDragStart: ({ active }) => `Picked up item ${pos(active.id)}.`,
+      onDragStart: ({ active }) => dragLabels.pickedUp(pos(active.id), total()),
       onDragOver: ({ active, over }) =>
-        over ? `Item ${pos(active.id)} over position ${pos(over.id)}.` : "",
-      onDragEnd: ({ active, over }) =>
-        over
-          ? `Item dropped at position ${pos(over.id)} of ${total()}.`
-          : `Item ${pos(active.id)} dropped.`,
-      onDragCancel: ({ active }) =>
-        `Reorder cancelled; item ${pos(active.id)} returned.`,
+        over ? dragLabels.over(pos(active.id), pos(over.id), total()) : "",
+      onDragEnd: ({ active, over }) => {
+        const dropped = droppedRef.current;
+        droppedRef.current = null;
+        if (!over) return dragLabels.droppedInPlace(pos(active.id));
+        const final = dropped && dropped.id === active.id ? dropped.position : pos(over.id);
+        return dragLabels.dropped(final, total());
+      },
+      onDragCancel: ({ active }) => dragLabels.cancelled(pos(active.id)),
     };
-  }, []);
+  }, [dragLabels, getItems]);
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const items = itemsRef.current;
+    const items = getItems();
     const oldIndex = items.findIndex((it) => it.id === active.id);
     const newIndex = items.findIndex((it) => it.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
+    droppedRef.current = { id: active.id, position: newIndex + 1 };
     state.reorder(arrayMove(items, oldIndex, newIndex));
   };
 
+  const {
+    removeItem,
+    updateItem,
+    select: selectItem,
+    openEditor: openEditorState,
+    reset: resetItems,
+  } = state;
   useImperativeHandle(
     ref,
     (): CarouselComposerHandle => ({
-      getItems: () => itemsRef.current.map((it) => ({ ...it })),
-      export: async () => itemsRef.current.map((it) => ({ ...it })),
-      addFiles,
-      removeItem: state.removeItem,
-      select: state.select,
-      openEditor: state.openEditor,
-      reset: state.reset,
+      getItems: () => getItems().map((it) => ({ ...it })),
+      export: async () => getItems().map((it) => ({ ...it })),
+      addFiles: (files) => addFilesRef.current(files),
+      removeItem,
+      updateItem,
+      select: selectItem,
+      openEditor: (id: string) => {
+        if (!editing) {
+          warnOpenWithoutEditing(id);
+          return;
+        }
+        openEditorState(id);
+      },
+      reset: resetItems,
     }),
-    // addFiles is recreated each render (intentional); the rest are stable.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.removeItem, state.select, state.openEditor, state.reset],
+    [removeItem, updateItem, selectItem, openEditorState, resetItems, getItems, editing, warnOpenWithoutEditing],
   );
 
   const isEmpty = state.items.length === 0;
-  const isEditing = state.editingId !== null && state.editingItem !== null;
+  const isEditing =
+    editing !== undefined && state.editingId !== null && state.editingItem !== null;
+  const EditingPanel = editing?.Panel;
+  const sel = state.selectedItem;
+  const canEdit =
+    editing !== undefined &&
+    sel !== null &&
+    sel.kind === "image" &&
+    canEditItem?.(sel) !== false;
   const canAddMore = uploadEnabled && state.items.length < maxItems;
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <div ref={rootRef} dir={dirProp} className={cn("flex flex-col gap-3", className)}>
       {isEmpty ? (
         uploadEnabled ? (
           <MediaDropzone
             variant="empty"
             accept={acceptKinds}
+            acceptMime={acceptMime}
             maxItems={maxItems}
             busy={ingesting}
             labels={labels}
             onFiles={addFiles}
           />
         ) : null
-      ) : isEditing ? (
-        <EditPanel
-          key={state.editingItem!.id}
+      ) : isEditing && EditingPanel ? (
+        <EditFrame key={state.editingItem!.id} label={labels.edit}>
+        <EditingPanel
           item={state.editingItem!}
           aspect={resolvedAspect}
           editorProps={editorProps}
-          labels={labels}
+          labels={{
+            editDone: labels.editDone,
+            editCancel: labels.editCancel,
+            editSaving: labels.editSaving,
+            editError: labels.editError,
+          }}
           onApply={state.applyEdit}
           onCancel={state.cancelEdit}
         />
+        </EditFrame>
       ) : (
         <MainPreview
           item={state.selectedItem}
           aspectCss={aspectToCss(resolvedAspect)}
-          canEdit={state.selectedItem?.kind === "image"}
+          canEdit={canEdit}
+          editingEnabled={editing !== undefined}
           labels={labels}
           onEdit={() =>
             state.selectedItem && state.openEditor(state.selectedItem.id)
           }
         />
       )}
+
+      {!isEmpty && !isEditing ? (
+        <>
+          <ItemStatus
+            item={state.selectedItem}
+            labels={labels}
+            position={state.items.findIndex((it) => it.id === state.selectedId) + 1}
+            total={state.items.length}
+            onRetry={handleRetry}
+          />
+          {enableAltText ? (
+            <AltField
+              item={state.selectedItem}
+              maxLength={maxAltLength}
+              labels={labels}
+              onChange={(id, alt) =>
+                state.updateItem(id, { alt: alt === "" ? undefined : alt })
+              }
+            />
+          ) : null}
+        </>
+      ) : null}
 
       {errors.length > 0 ? (
         <div
@@ -257,8 +519,8 @@ function CarouselComposerImpl(
           </ul>
           <button
             type="button"
-            aria-label="Dismiss"
-            onClick={() => setErrors([])}
+            aria-label={labels.dismissErrors}
+            onClick={dismissErrors}
             className="shrink-0 rounded p-0.5 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="size-4" aria-hidden />
@@ -270,7 +532,10 @@ function CarouselComposerImpl(
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          accessibility={{ announcements: dndAnnouncements }}
+          accessibility={{
+            announcements: dndAnnouncements,
+            screenReaderInstructions: { draggable: labels.drag.instructions },
+          }}
           onDragEnd={onDragEnd}
         >
           <PreviewRail
@@ -280,11 +545,15 @@ function CarouselComposerImpl(
             canAddMore={canAddMore}
             busy={ingesting}
             accept={acceptKinds}
+            acceptMime={acceptMime}
             maxItems={maxItems}
             labels={labels}
+            formatDuration={formatDuration}
+            onRetry={handleRetry}
             onSelect={state.select}
-            onRemove={state.removeItem}
+            onRemove={handleRemove}
             onFiles={addFiles}
+            dir={dir}
           />
         </DndContext>
       ) : null}
@@ -312,4 +581,20 @@ export type {
   CarouselComposerProps,
   CarouselComposerHandle,
   CarouselComposerLabels,
+  CarouselAspectRatio,
+  CarouselExportMeta,
+  CarouselEditingExtension,
+  CarouselEditorPanelProps,
+  ApplyEditPatch,
+  MediaCarouselItemPatch,
+  MediaCarouselItemStatus,
+  MediaCarouselErrorKind,
+  CarouselComposerLabelsInput,
+  CarouselComposerErrorLabels,
+  CarouselComposerDragLabels,
+} from "./types";
+export {
+  defaultCarouselComposerLabels,
+  PLATFORM_SAFE_MIME,
+  DEFAULT_CAROUSEL_LABELS,
 } from "./types";

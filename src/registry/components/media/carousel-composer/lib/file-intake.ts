@@ -1,4 +1,10 @@
-import type { MediaCarouselError, MediaCarouselItem, MediaKind } from "../types";
+import type {
+  CarouselComposerErrorLabels,
+  MediaCarouselError,
+  MediaCarouselItem,
+  MediaKind,
+} from "../types";
+import { grabPoster, probeVideo, releaseVideo } from "./poster";
 import { validateMediaFile } from "./validate-media-file";
 
 // Per-module-load random prefix so the counter fallback can't collide with ids
@@ -22,20 +28,15 @@ function readImageDims(url: string): Promise<{ width: number; height: number }> 
   });
 }
 
-function readVideoDims(url: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve) => {
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () =>
-      resolve({ width: video.videoWidth, height: video.videoHeight });
-    video.onerror = () => resolve({ width: 0, height: 0 });
-    video.src = url;
-  });
-}
-
 export interface FilesToItemsOptions {
   accept: MediaKind[];
+  acceptMime?: readonly string[];
   maxFileSizeMb: number;
+  /** Refuse videos longer than this many seconds. */
+  maxVideoSeconds?: number;
+  /** Seconds into a video for its poster frame; `false` = none. Default 0.5. */
+  posterAt?: number | false;
+  errors: CarouselComposerErrorLabels;
 }
 
 export interface FilesToItemsResult {
@@ -59,7 +60,12 @@ export async function filesToItems(
   const accepted: File[] = [];
 
   for (const file of files) {
-    const err = validateMediaFile(file, opts.maxFileSizeMb, opts.accept);
+    const err = validateMediaFile(file, {
+      maxFileSizeMb: opts.maxFileSizeMb,
+      accept: opts.accept,
+      acceptMime: opts.acceptMime,
+      errors: opts.errors,
+    });
     if (err) {
       errors.push(err);
       continue;
@@ -67,25 +73,81 @@ export async function filesToItems(
     accepted.push(file);
   }
 
-  const items = await Promise.all(
-    accepted.map(async (file): Promise<MediaCarouselItem> => {
-      const kind: MediaKind = file.type.startsWith("video/")
-        ? "video"
-        : "image";
-      const url = URL.createObjectURL(file);
-      const dims =
-        kind === "image" ? await readImageDims(url) : await readVideoDims(url);
-      return {
-        id: nextId(),
-        kind,
-        url,
-        blob: file,
-        fileName: file.name,
-        width: dims.width || undefined,
-        height: dims.height || undefined,
-      };
-    }),
+  const posterAt = opts.posterAt === undefined ? 0.5 : opts.posterAt;
+
+  const built = await Promise.all(
+    accepted.map(
+      async (
+        file,
+      ): Promise<{ item: MediaCarouselItem } | { error: MediaCarouselError }> => {
+        const kind: MediaKind = file.type.startsWith("video/")
+          ? "video"
+          : "image";
+        const url = URL.createObjectURL(file);
+        if (kind === "image") {
+          const dims = await readImageDims(url);
+          return {
+            item: {
+              id: nextId(),
+              kind,
+              url,
+              blob: file,
+              fileName: file.name,
+              width: dims.width || undefined,
+              height: dims.height || undefined,
+            },
+          };
+        }
+        const probe = await probeVideo(url);
+        const { duration } = probe;
+        if (
+          opts.maxVideoSeconds !== undefined &&
+          duration !== undefined &&
+          duration > opts.maxVideoSeconds
+        ) {
+          releaseVideo(probe.video);
+          URL.revokeObjectURL(url);
+          return {
+            error: {
+              kind: "video-too-long",
+              message: opts.errors.videoTooLong({
+                file,
+                seconds: duration,
+                maxSeconds: opts.maxVideoSeconds,
+              }),
+              file,
+              durationSeconds: duration,
+              maxSeconds: opts.maxVideoSeconds,
+            },
+          };
+        }
+        let posterBlob: Blob | undefined;
+        if (posterAt !== false) {
+          posterBlob = (await grabPoster(probe.video, posterAt, duration)) ?? undefined;
+        }
+        releaseVideo(probe.video);
+        return {
+          item: {
+            id: nextId(),
+            kind,
+            url,
+            blob: file,
+            fileName: file.name,
+            width: probe.width || undefined,
+            height: probe.height || undefined,
+            duration,
+            posterBlob,
+            posterUrl: posterBlob ? URL.createObjectURL(posterBlob) : undefined,
+          },
+        };
+      },
+    ),
   );
 
+  const items: MediaCarouselItem[] = [];
+  for (const b of built) {
+    if ("item" in b) items.push(b.item);
+    else errors.push(b.error);
+  }
   return { items, errors };
 }

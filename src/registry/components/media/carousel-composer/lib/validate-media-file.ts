@@ -1,38 +1,65 @@
-import type { MediaCarouselError, MediaKind } from "../types";
+import type {
+  CarouselComposerErrorLabels,
+  MediaCarouselError,
+  MediaKind,
+} from "../types";
+
+export interface ValidateMediaOptions {
+  maxFileSizeMb: number;
+  /** Which kinds are accepted. */
+  accept: MediaKind[];
+  /** Exact MIME allow-list; when set the file's type must be in it. */
+  acceptMime?: readonly string[];
+  errors: CarouselComposerErrorLabels;
+}
 
 /**
- * Local reimplementation of media-editor's `validateGalleryFile` — type +
- * size check, plus an `accept` gate. Kept local (NOT imported) to hold the
- * cross-procomp surface to one module (F-01) and keep media-editor untouched.
+ * Type + size check for one file: it must be an image or a video, in `accept`,
+ * in `acceptMime` when that is set, and within the size cap. Messages come from
+ * `errors`. The video length limit is checked later, once metadata is read.
  */
 export function validateMediaFile(
   file: File,
-  maxFileSizeMb: number,
-  accept: MediaKind[],
+  opts: ValidateMediaOptions,
 ): MediaCarouselError | null {
-  const isImage = file.type.startsWith("image/");
-  const isVideo = file.type.startsWith("video/");
+  const type = file.type;
+  const isImage = type.startsWith("image/");
+  const isVideo = type.startsWith("video/");
   const kind: MediaKind | null = isImage ? "image" : isVideo ? "video" : null;
 
   if (!kind) {
     return {
       kind: "unsupported-type",
-      message: `Unsupported file type: ${file.type || "unknown"}`,
+      message: opts.errors.unsupportedType({ file, type }),
       file,
     };
   }
-  if (!accept.includes(kind)) {
+  if (
+    opts.acceptMime &&
+    !opts.acceptMime.some((m) => m.toLowerCase() === type.toLowerCase())
+  ) {
     return {
       kind: "unsupported-type",
-      message: `${kind === "image" ? "Image" : "Video"} files are not accepted here.`,
+      message: opts.errors.unsupportedType({ file, type }),
       file,
     };
   }
-  const maxBytes = maxFileSizeMb * 1024 * 1024;
+  if (!opts.accept.includes(kind)) {
+    return {
+      kind: "unsupported-type",
+      message: opts.errors.kindNotAccepted({ file, kind }),
+      file,
+    };
+  }
+  const maxBytes = opts.maxFileSizeMb * 1024 * 1024;
   if (file.size > maxBytes) {
     return {
       kind: "file-too-large",
-      message: `File is ${(file.size / 1024 / 1024).toFixed(1)} MB — maximum is ${maxFileSizeMb} MB.`,
+      message: opts.errors.fileTooLarge({
+        file,
+        sizeMb: file.size / 1024 / 1024,
+        maxMb: opts.maxFileSizeMb,
+      }),
       file,
     };
   }

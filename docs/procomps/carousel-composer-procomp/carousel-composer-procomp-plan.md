@@ -1,5 +1,7 @@
 # carousel-composer — procomp plan
 
+> **v0.3.0 (2026-10-26) supersedes parts of this document:** image editing is no longer built into the base — it is the opt-in feature item `carousel-composer-editing` (`features/editing/`, through the `editing` prop), and the base adds alt text, host-owned upload status, MIME / duration limits and a video poster. The change contract and its decisions are in [carousel-composer-loop.md](carousel-composer-loop.md) ("Run — Part 3" U1 and "Run — Part 3 release 6" U2); the current behaviour is in the [guide](carousel-composer-procomp-guide.md).
+
 > Stage 2: how (the implementation contract). **GATE 2 — awaiting sign-off.** No code until signed off.
 >
 > Builds on the signed-off [description](./carousel-composer-procomp-description.md). Category `media`. Composes the shipped [`media-editor`](../media-editor-procomp/) v0.1.2 as a **single, serially-loaded edit panel** — media-editor source is NOT modified.

@@ -5,27 +5,36 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MediaEditor } from "@/registry/components/media/media-editor/media-editor";
 import type {
-  AspectRatio,
   InitialSource,
-  CarouselComposerProps,
-  MediaCarouselItem,
   MediaEditorHandle,
-} from "../types";
-import type { ApplyEditPatch } from "../hooks/use-carousel-state";
-import { aspectToCss } from "../lib/aspect";
+  MediaEditorProps,
+  MediaEditorState,
+} from "@/registry/components/media/media-editor/media-editor";
+import type {
+  CarouselEditorPanelProps,
+  MediaCarouselItem,
+} from "../../../types";
+import { aspectToCss } from "../../../lib/aspect";
 
-export interface EditPanelProps {
-  item: MediaCarouselItem;
-  aspect: AspectRatio;
-  editorProps?: CarouselComposerProps["editorProps"];
-  labels: {
-    editDone: string;
-    editCancel: string;
-    editSaving: string;
-    editError: string;
-  };
-  onApply: (id: string, patch: ApplyEditPatch) => void;
-  onCancel: () => void;
+/** The only `editorProps` keys forwarded to media-editor; the rest stay the panel's. */
+const FORWARDED_EDITOR_PROPS = [
+  "enabledTools",
+  "stickers",
+  "fonts",
+  "colorPresets",
+  "filterPresets",
+  "labels",
+] as const;
+
+function pickEditorProps(
+  editorProps: Readonly<Record<string, unknown>> | undefined,
+): Partial<MediaEditorProps> {
+  const picked: Record<string, unknown> = {};
+  if (!editorProps) return picked;
+  for (const key of FORWARDED_EDITOR_PROPS) {
+    if (editorProps[key] !== undefined) picked[key] = editorProps[key];
+  }
+  return picked as Partial<MediaEditorProps>;
 }
 
 function initialSourceFor(item: MediaCarouselItem): InitialSource {
@@ -48,14 +57,14 @@ function initialSourceFor(item: MediaCarouselItem): InitialSource {
  * the re-applied overlays (double overlays). `initialSource` is only for the
  * first edit, before any `editorState` exists.
  */
-export function EditPanel({
+export function CarouselEditPanel({
   item,
   aspect,
   editorProps,
   labels,
   onApply,
   onCancel,
-}: EditPanelProps) {
+}: CarouselEditorPanelProps) {
   const editorRef = useRef<MediaEditorHandle | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -69,7 +78,7 @@ export function EditPanel({
   // one instead of opening on a black canvas (review 1.3).
   useEffect(() => {
     if (item.editorState && editorRef.current) {
-      editorRef.current.loadState(item.editorState, {
+      editorRef.current.loadState(item.editorState as MediaEditorState, {
         sourceBlob: item.sourceBlob ?? null,
       });
     }
@@ -81,7 +90,7 @@ export function EditPanel({
     if (isEditable) return;
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[CarouselComposer] EditPanel refused item "${item.id}": it is a ${item.kind}; only image items can be edited.`,
+        `[CarouselComposer] CarouselEditPanel refused item "${item.id}": it is a ${item.kind}; only image items can be edited.`,
       );
     }
     onCancel();
@@ -130,7 +139,7 @@ export function EditPanel({
           initialSource={seedSource}
           aspect={aspect}
           cropAspects={[aspect]}
-          {...editorProps}
+          {...pickEditorProps(editorProps)}
         />
       </div>
       {failed ? (

@@ -7,27 +7,92 @@ export default function CarouselComposerUsage() {
         assemble <strong>one or more</strong> media items into an ordered set —
         an Instagram-style feed post, an album, a product gallery, or chat
         attachments. It mixes photos and videos in a single rail, reorders by
-        drag-and-drop, and edits any item through a shared{" "}
-        <code>media-editor</code> panel. For a single hero image/video, use{" "}
-        <code>media-editor</code> directly; to <em>display</em> a finished
-        set, use <code>media-carousel</code>.
+        drag-and-drop, and can edit images through the optional editing
+        add-on. For a single hero image/video, use <code>media-editor</code>{" "}
+        directly; to <em>display</em> a finished set, use{" "}
+        <code>media-carousel</code>.
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Basic example</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
-        <code>{`import { CarouselComposer } from "@/components/carousel-composer"
+        <code>{`import { CarouselComposer, PLATFORM_SAFE_MIME, type MediaCarouselItem } from "@/components/carousel-composer";
 
 export function PostMedia() {
-  const [items, setItems] = React.useState([])
+  const [items, setItems] = React.useState<MediaCarouselItem[]>([]);
   return (
     <CarouselComposer
       value={items}
       onChange={setItems}
       maxItems={10}
-      editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
+      acceptMime={PLATFORM_SAFE_MIME} // no WebM
+      maxVideoSeconds={60}
+      enableAltText
     />
-  )
+  );
 }`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Image editing (add-on)</h3>
+      <p className="text-muted-foreground">
+        Editing is a separate registry item, so a plain install pulls no
+        media-editor or Konva. Install{" "}
+        <code>@ilinxa/carousel-composer-editing</code> and pass it in; without
+        it there is no Edit button. <code>canEditItem</code> decides per item
+        (videos are never edited — their output is the original file).
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`import { carouselEditing, type CarouselEditorProps } from "@/components/carousel-composer/features/editing";
+
+const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "adjust"] };
+
+<CarouselComposer
+  value={items}
+  onChange={setItems}
+  editing={carouselEditing}
+  editorProps={editorProps}
+  canEditItem={(item) => item.status !== "uploading"}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Upload status</h3>
+      <p className="text-muted-foreground">
+        Upload on add and write the state onto the item — the carousel shows a
+        progress indicator, the error with a Retry, and announces each status
+        change politely. Controlled hosts set it in <code>value</code>;
+        uncontrolled hosts call <code>ref.current.updateItem(id, patch)</code>.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`const patch = (id, p) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...p } : it)));
+
+async function upload(item) {
+  patch(item.id, { status: "uploading", progress: 0, error: undefined });
+  try {
+    const { url } = await api.upload(item.blob, { onProgress: (progress) => patch(item.id, { progress }) });
+    patch(item.id, { status: "uploaded", url });
+  } catch (e) {
+    patch(item.id, { status: "error", error: e.message });
+  }
+}
+
+<CarouselComposer value={items} onChange={setItems} onItemAdd={upload} onRetry={upload} />`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Labels and locale</h3>
+      <p className="text-muted-foreground">
+        Every string is in <code>labels</code>; strings that carry a value are
+        functions. <code>errors</code> and <code>drag</code> merge key by key.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<CarouselComposer
+  locale="tr"
+  labels={{
+    dropzoneTitle: "Fotoğraf ve videoları buraya sürükleyin",
+    dropzoneHint: (max) => \`veya en fazla \${max} dosya bırakın\`,
+    maxReached: (max) => \`En fazla \${max} öğe eklenebilir\`,
+    itemAria: ({ position, total, kind }) => \`\${total} öğeden \${position}., \${kind === "video" ? "video" : "fotoğraf"}\`,
+    errors: { videoTooLong: ({ maxSeconds }) => \`Video en fazla \${maxSeconds} sn olabilir.\` },
+  }}
+/>`}</code>
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Pull-only export</h3>
@@ -40,29 +105,26 @@ export function PostMedia() {
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Notes</h3>
-      <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
+      <ul className="ms-5 list-disc space-y-1 text-muted-foreground">
         <li>
           Intake is file-based — the file&apos;s MIME type decides{" "}
           <code>image</code> vs <code>video</code>, so there are no photo/video
-          capture tabs.
+          capture tabs. <code>&quot;library&quot;</code> in{" "}
+          <code>sources</code> is ignored.
         </li>
         <li>
           All items share one aspect (Instagram behaviour). <code>aspect</code>{" "}
           defaults to <code>&quot;auto&quot;</code> (derived from item 1);
-          override with a fixed <code>AspectRatio</code>.
+          override with a fixed <code>CarouselAspectRatio</code>.
         </li>
         <li>
-          Editing mounts a single <code>media-editor</code> instance, loaded
-          serially per item — never N at once.
+          A video gets a JPEG poster frame (<code>posterAt</code>, default
+          0.5 s; <code>false</code> for none) and a duration badge; the video
+          itself is never re-encoded.
         </li>
         <li>
-          Video items support preview / reorder / remove; video editing is
-          not available. <code>&quot;library&quot;</code>{" "}
-          source is clamped to upload-only.
-        </li>
-        <li>
-          Object URLs created during intake/edit are revoked on remove, replace,
-          reset, and unmount.
+          Object URLs created during intake / edit (items and posters) are
+          revoked on remove, replace, reset, and unmount.
         </li>
       </ul>
     </div>

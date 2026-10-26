@@ -5,6 +5,13 @@ import { CarouselComposer } from "@/registry/components/media/carousel-composer/
 import type { MediaCarouselItem } from "@/registry/components/media/carousel-composer/carousel-composer";
 // ↑ import from the .tsx component-file path (the F-01-safe entry — its tail band
 //   re-exports the types; a barrel/`/types` import gets mangled by the rewriter).
+// Image editing is the opt-in carousel-composer-editing add-on. Relative (same
+// category) like the media-editor capture import in media-substrate.tsx.
+import {
+  carouselEditing,
+  editorStateOf,
+  exportMetaOf,
+} from "../../carousel-composer/features/editing";
 import type {
   MediaCarouselItemRef,
   MediaCarouselSlotValue,
@@ -64,10 +71,10 @@ function serialize(items: MediaCarouselItem[]): MediaCarouselSlotValue {
         kind: it.kind,
         exportedUrl: durable ? it.url : undefined,
         editorState:
-          durable && it.editorState
-            ? { ...it.editorState, videoBlob: null }
+          durable && editorStateOf(it)
+            ? { ...editorStateOf(it)!, videoBlob: null }
             : undefined,
-        exportMetadata: durable ? it.exportMeta : undefined,
+        exportMetadata: durable ? exportMetaOf(it) : undefined,
       };
     }),
   };
@@ -153,10 +160,16 @@ export function MediaCarouselSubstrateMount({
     if (!cache) return;
     const prev = cache.current.get(stepId);
     if (prev && prev !== items) {
-      const next = new Set(items.map((it) => it.url));
+      const next = new Set<string>();
+      items.forEach((it) => {
+        next.add(it.url);
+        if (it.posterUrl) next.add(it.posterUrl);
+      });
       const tombs = carouselDisplacedUrls(cache.current);
       for (const it of prev) {
-        if (it.url.startsWith("blob:") && !next.has(it.url)) tombs.add(it.url);
+        for (const u of [it.url, it.posterUrl]) {
+          if (u?.startsWith("blob:") && !next.has(u)) tombs.add(u);
+        }
       }
     }
     cache.current.set(stepId, items);
@@ -188,6 +201,7 @@ export function MediaCarouselSubstrateMount({
       // The shell cache + composer-root cleanup own URL revocation across step
       // nav; don't let the carousel revoke on its (frequent) step unmounts.
       revokeOnUnmount={false}
+      editing={carouselEditing}
       maxItems={slotConfig.maxItems ?? 10}
       maxFileSizeMb={slotConfig.maxFileSizeMb}
       accept={slotConfig.accept ?? ["image", "video"]}

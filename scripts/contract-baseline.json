@@ -2,6 +2,7 @@
   "closed": [
     "account-switcher",
     "app-sidebar",
+    "carousel-composer",
     "category-cloud",
     "comment-thread",
     "empty-state",
@@ -168,17 +169,6 @@
       ],
       "src/registry/components/marketing/pricing-table/parts/format.ts": [
         "replace(\"{amount}\")"
-      ],
-      "src/registry/components/media/carousel-composer/carousel-composer.tsx": [
-        "replace(\"{max}\")"
-      ],
-      "src/registry/components/media/carousel-composer/parts/media-dropzone.tsx": [
-        "replace(\"{max}\")"
-      ],
-      "src/registry/components/media/carousel-composer/parts/rail-thumb.tsx": [
-        "replace(\"{kind}\")",
-        "replace(\"{n}\")",
-        "replace(\"{total}\")"
       ],
       "src/registry/components/media/media-library/parts/file-grid.tsx": [
         "replace(\"{kind}\")",
@@ -1133,12 +1123,6 @@
       ],
       "src/registry/components/marketing/pricing-table/parts/price-display.tsx": [
         "aria-label: Was per month"
-      ],
-      "src/registry/components/media/carousel-composer/carousel-composer.tsx": [
-        "aria-label=\"Dismiss\""
-      ],
-      "src/registry/components/media/carousel-composer/parts/media-dropzone.tsx": [
-        "child: Adding media…"
       ],
       "src/registry/components/media/content-composer/parts/body-substrate-plaintext.tsx": [
         "placeholder: Write…"

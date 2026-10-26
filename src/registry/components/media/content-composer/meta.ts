@@ -32,7 +32,7 @@ export const meta: ComponentMeta = {
     "shell",
   ],
 
-  version: "0.3.2",
+  version: "0.3.3",
   status: "alpha",
   artifactBudgetKB: 180,
   createdAt: "2026-06-04",

@@ -1,8 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ExportMetadata, MediaCarouselItem, MediaEditorState } from "../types";
+import type {
+  ApplyEditPatch,
+  MediaCarouselItem,
+  MediaCarouselItemPatch,
+} from "../types";
 import { useControllableState } from "./use-controllable-state";
+import { useWarnOnce } from "./use-warn-once";
 
 export interface CarouselStateCallbacks {
   onItemAdd?: (item: MediaCarouselItem) => void;
@@ -26,18 +31,14 @@ export interface UseCarouselStateOptions extends CarouselStateCallbacks {
    * carousel cache) sets this false and owns the final cleanup itself.
    */
   revokeOnUnmount?: boolean;
+  /**
+   * Whether an item may be edited. Images only by default; `openEditor` ignores
+   * (with a dev warning) any item this refuses.
+   */
+  canEdit?: (item: MediaCarouselItem) => boolean;
 }
 
-export interface ApplyEditPatch {
-  url: string;
-  blob?: Blob;
-  editorState?: MediaEditorState;
-  /** Blob backing `editorState.imageSrc` — see MediaCarouselItem.sourceBlob. */
-  sourceBlob?: Blob;
-  exportMeta?: ExportMetadata;
-  width?: number;
-  height?: number;
-}
+export type { ApplyEditPatch };
 
 export interface UseCarouselStateResult {
   items: MediaCarouselItem[];
@@ -52,7 +53,11 @@ export interface UseCarouselStateResult {
   openEditor: (id: string) => void;
   cancelEdit: () => void;
   applyEdit: (id: string, patch: ApplyEditPatch) => void;
+  /** Merge a patch into one item (upload status, alt…). No-op for an unknown id. */
+  updateItem: (id: string, patch: MediaCarouselItemPatch) => void;
   reset: () => void;
+  /** The latest items, including changes made earlier in the same tick. Stable identity. */
+  getItems: () => MediaCarouselItem[];
 }
 
 /** Only object URLs we created are ours to revoke; remote/consumer URLs aren't. */
@@ -90,7 +95,7 @@ export function useCarouselState(
       ? rawSelectedId
       : (items[0]?.id ?? null);
 
-  const cbRef = useRef<CarouselStateCallbacks>(opts);
+  const cbRef = useRef<CarouselStateCallbacks & Pick<UseCarouselStateOptions, "canEdit">>(opts);
   useEffect(() => {
     cbRef.current = opts;
   });
@@ -105,6 +110,8 @@ export function useCarouselState(
     selectedIdRef.current = selectedId;
     editingIdRef.current = editingId;
   });
+  const warnOnce = useWarnOnce();
+  const getItems = useCallback(() => itemsRef.current, []);
 
   /** Synchronous-ref write + state set, so chained mutators compose correctly. */
   const setItems = useCallback(
@@ -115,35 +122,42 @@ export function useCarouselState(
     [setItemsRaw],
   );
 
-  // Object-URL ownership.
+  // Object-URL ownership. A URL is revoked by the orphan effect once it has been
+  // committed in `items` at least once and then dropped. A URL the host has not
+  // rendered yet (a controlled host that echoes `onChange` late) is never revoked
+  // by an unrelated commit.
   const ownedUrls = useRef<Set<string>>(new Set());
-  const revoke = useCallback((url: string) => {
-    if (ownedUrls.current.has(url)) {
-      URL.revokeObjectURL(url);
-      ownedUrls.current.delete(url);
-    }
-  }, []);
+  const seenUrls = useRef<Set<string>>(new Set());
 
-  // Catch-all: revoke any owned URL no longer present in items — including
-  // drops via a controlled `value` swap that never went through removeItem.
   useEffect(() => {
-    const present = new Set(items.map((it) => it.url));
+    const present = new Set<string>();
+    items.forEach((it) => {
+      present.add(it.url);
+      if (it.posterUrl) present.add(it.posterUrl);
+    });
+    present.forEach((u) => seenUrls.current.add(u));
     ownedUrls.current.forEach((u) => {
-      if (!present.has(u)) {
+      if (!present.has(u) && seenUrls.current.has(u)) {
         URL.revokeObjectURL(u);
         ownedUrls.current.delete(u);
+        seenUrls.current.delete(u);
       }
     });
   }, [items]);
 
+  // Read at unmount time, so flipping the flag at runtime revokes nothing.
+  const revokeOnUnmountRef = useRef(revokeOnUnmount);
+  useEffect(() => {
+    revokeOnUnmountRef.current = revokeOnUnmount;
+  });
   useEffect(() => {
     const owned = ownedUrls.current;
     return () => {
-      if (!revokeOnUnmount) return;
+      if (!revokeOnUnmountRef.current) return;
       owned.forEach((u) => URL.revokeObjectURL(u));
       owned.clear();
     };
-  }, [revokeOnUnmount]);
+  }, []);
 
   const addItems = useCallback(
     (incoming: MediaCarouselItem[]) => {
@@ -155,10 +169,16 @@ export function useCarouselState(
       // Revoke object URLs of items we won't keep (intake created them).
       dropped.forEach((it) => {
         if (isOwnable(it.url)) URL.revokeObjectURL(it.url);
+        if (it.posterUrl && isOwnable(it.posterUrl)) {
+          URL.revokeObjectURL(it.posterUrl);
+        }
       });
       if (toAdd.length > 0) {
         toAdd.forEach((it) => {
           if (isOwnable(it.url)) ownedUrls.current.add(it.url);
+          if (it.posterUrl && isOwnable(it.posterUrl)) {
+            ownedUrls.current.add(it.posterUrl);
+          }
         });
         setItems([...itemsRef.current, ...toAdd]);
         toAdd.forEach((it) => cbRef.current.onItemAdd?.(it));
@@ -178,7 +198,6 @@ export function useCarouselState(
       const cur = itemsRef.current;
       const idx = cur.findIndex((it) => it.id === id);
       if (idx < 0) return;
-      revoke(cur[idx].url);
       const next = cur.filter((it) => it.id !== id);
       setItems(next);
       cbRef.current.onItemRemove?.(id);
@@ -189,11 +208,12 @@ export function useCarouselState(
         cbRef.current.onSelect?.(nid);
       }
       if (editingIdRef.current === id) {
+        editingIdRef.current = null;
         setEditingId(null);
         cbRef.current.onEditCancel?.(id);
       }
     },
-    [revoke, setItems],
+    [setItems],
   );
 
   const reorder = useCallback(
@@ -213,7 +233,8 @@ export function useCarouselState(
     // Only images are editable — a video must never reach the editor, whose
     // export() would re-encode it.
     const target = itemsRef.current.find((it) => it.id === id);
-    if (target && target.kind !== "image") {
+    if (!target) return;
+    if (target.kind !== "image") {
       if (process.env.NODE_ENV !== "production") {
         console.warn(
           `[CarouselComposer] openEditor("${id}") ignored: item is a ${target.kind}; only image items can be edited.`,
@@ -221,6 +242,16 @@ export function useCarouselState(
       }
       return;
     }
+    if (cbRef.current.canEdit?.(target) === false) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[CarouselComposer] openEditor("${id}") ignored: canEditItem refused this item.`,
+        );
+      }
+      return;
+    }
+    // Written now, not in a later effect: a Panel may call onCancel in its mount effect.
+    editingIdRef.current = id;
     setSelectedId(id);
     setEditingId(id);
     cbRef.current.onEditOpen?.(id);
@@ -229,6 +260,7 @@ export function useCarouselState(
   const cancelEdit = useCallback(() => {
     const id = editingIdRef.current;
     if (id == null) return;
+    editingIdRef.current = null;
     setEditingId(null);
     cbRef.current.onEditCancel?.(id);
   }, []);
@@ -237,10 +269,29 @@ export function useCarouselState(
     (id: string, patch: ApplyEditPatch) => {
       const cur = itemsRef.current;
       const idx = cur.findIndex((it) => it.id === id);
-      if (idx < 0) return;
+      if (editingIdRef.current !== id || idx < 0) {
+        // Not the open edit (foreign id, unknown id, or a repeat after it closed).
+        // A blob URL the panel minted for it would leak, so release it.
+        const inUse = cur.some(
+          (it) => it.url === patch.url || it.posterUrl === patch.url,
+        );
+        if (
+          isOwnable(patch.url) &&
+          !ownedUrls.current.has(patch.url) &&
+          !inUse
+        ) {
+          URL.revokeObjectURL(patch.url);
+        }
+        warnOnce(
+          "applyEdit-not-editing",
+          `[CarouselComposer] onApply("${id}") ignored: that item is not the one being edited.`,
+        );
+        return;
+      }
       const prev = cur[idx];
-      if (prev.url !== patch.url) revoke(prev.url);
       if (isOwnable(patch.url)) ownedUrls.current.add(patch.url);
+      // The edited media is not the uploaded one: drop the upload state. The host
+      // re-uploads from onEditApply. The old URL is released by the orphan effect.
       const updated: MediaCarouselItem = {
         ...prev,
         url: patch.url,
@@ -251,11 +302,28 @@ export function useCarouselState(
         width: patch.width ?? prev.width,
         height: patch.height ?? prev.height,
       };
+      delete updated.status;
+      delete updated.progress;
+      delete updated.error;
       setItems(cur.map((it, i) => (i === idx ? updated : it)));
+      editingIdRef.current = null;
       setEditingId(null);
       cbRef.current.onEditApply?.(updated);
     },
-    [revoke, setItems],
+    [setItems, warnOnce],
+  );
+
+  const updateItem = useCallback(
+    (id: string, patch: MediaCarouselItemPatch) => {
+      const cur = itemsRef.current;
+      const idx = cur.findIndex((it) => it.id === id);
+      if (idx < 0) return;
+      const updated: MediaCarouselItem = { ...cur[idx], ...patch };
+      // A new blob: URL from the host is the host's to revoke; the old owned one
+      // is released by the orphan effect once it leaves `items`.
+      setItems(cur.map((it, i) => (i === idx ? updated : it)));
+    },
+    [setItems],
   );
 
   const reset = useCallback(() => {
@@ -263,6 +331,7 @@ export function useCarouselState(
     ownedUrls.current.clear();
     setItems([]);
     setSelectedId(null);
+    editingIdRef.current = null;
     setEditingId(null);
   }, [setItems]);
 
@@ -282,6 +351,8 @@ export function useCarouselState(
     openEditor,
     cancelEdit,
     applyEdit,
+    updateItem,
     reset,
+    getItems,
   };
 }

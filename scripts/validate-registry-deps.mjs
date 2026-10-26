@@ -9,7 +9,9 @@
  *      pdf-viewer…) through a `registryDependencies` entry or a static import. Heavy
  *      composition goes through a slot or render prop, so the consumer chooses (locked
  *      decision 5: an optional feature-slice add-on). Exempt: an item's own fixtures and
- *      feature slices. Transitive: an item that reaches a heavy item (even through a
+ *      feature slices, and a feature slice's own edges — the slice IS the opt-in route
+ *      (`carousel-composer-editing` → media-editor); a slice that reaches a heavy item is
+ *      heavy itself, so an edge INTO it still counts. Transitive: an item that reaches a heavy item (even through a
  *      baselined edge) counts as heavy for edges INTO it — depending on json-form pulls Plate. Edges present when the rule landed are listed in
  *      scripts/heavy-edges-baseline.json — `[{ from, to, via }]`, shrink-only (a row that no
  *      longer occurs fails, so it must be deleted).
@@ -89,6 +91,8 @@ export function heavyEdges(items, heavy, read) {
   };
   for (const item of items) {
     if (item.meta?.deprecated) continue;
+    // A feature slice is the sanctioned way to reach a heavy item; see sliceCarriesWeight.
+    if (item.meta?.featureOf) continue;
     const owner = ownerOf(item);
     for (const dep of item.registryDependencies ?? []) {
       const to = dep.replace(/^@ilinxa\//, "");
@@ -111,13 +115,26 @@ export function heavyEdges(items, heavy, read) {
  * nothing new is reached; returns the final edge list.
  */
 export function transitiveHeavyEdges(items, heavy, read) {
+  const grow = () => {
+    for (const item of items) if (sliceCarriesWeight(item, heavy)) heavy.add(item.name);
+  };
   let edges = heavyEdges(items, heavy, read);
   for (let size = -1; heavy.size !== size; ) {
     size = heavy.size;
     for (const e of edges) heavy.add(e.from.replace(/-fixtures$/, ""));
+    grow();
     edges = heavyEdges(items, heavy, read);
   }
   return edges;
+}
+
+/** A feature slice that depends on a heavy item (other than its own base) carries that weight. */
+export function sliceCarriesWeight(item, heavy) {
+  if (!item.meta?.featureOf || item.meta?.deprecated) return false;
+  return (item.registryDependencies ?? []).some((dep) => {
+    const to = dep.replace(/^@ilinxa\//, "");
+    return dep.startsWith("@ilinxa/") && heavy.has(to) && to !== item.meta.featureOf;
+  });
 }
 
 const key = (e) => `${e.from}|${e.to}|${e.via}`;

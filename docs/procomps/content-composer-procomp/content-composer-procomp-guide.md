@@ -2,7 +2,7 @@
 
 > Stage 3: how to *use* it. Companion to the [description](./content-composer-procomp-description.md) (what & why) and the [plan](./content-composer-procomp-plan.md) (how it's built).
 >
-> **Status:** v0.2.1 alpha. News **and** post configs both ship. News authors a single hero (`mediaSlot` → media-editor); post authors **multi-media** (`mediaCarouselSlot` → carousel-composer — drop/browse N mixed photo+video → reorder → per-item edit). Post **authoring is fully live**; only its publish path (the `post-content-item` adapter + durable multi-blob upload-at-publish) is not implemented yet (pending the post backend) — publishing a post today surfaces a visible "no adapter" message, no silent loss. Install: `pnpm dlx shadcn@latest add @ilinxa/content-composer`.
+> **Status:** v0.3.3 alpha. News **and** post configs both ship. News authors a single hero (`mediaSlot` → media-editor); post authors **multi-media** (`mediaCarouselSlot` → carousel-composer — drop/browse N mixed photo+video → reorder → per-item edit). Post **authoring is fully live**; only its publish path (the `post-content-item` adapter + durable multi-blob upload-at-publish) is not implemented yet (pending the post backend) — publishing a post today surfaces a visible "no adapter" message, no silent loss. Install: `pnpm dlx shadcn@latest add @ilinxa/content-composer`.
 
 ---
 
@@ -160,19 +160,20 @@ The `post` config (`postComposerConfig`) is a second, **live** content type that
 proves config-only divergence. Instead of news's single `mediaSlot`, its media
 step is a **`mediaCarouselSlot`** backed by carousel-composer: drop/browse
 N mixed photo+video, reorder them, and edit any photo through the carousel's
-shared editor. Step navigation is **lossless within a session** — the shell caches
+editing add-on (`@ilinxa/carousel-composer-editing`, installed with content-composer since
+0.3.3 — carousel-composer 0.3.0 moved editing out of its base). Step navigation is **lossless within a session** — the shell caches
 the live carousel items (blobs included) across step unmounts.
 
 **Post authoring is fully live.** Only the publish path is deferred: the
 `post-content-item` adapter and the durable **multi-blob upload-at-publish** ship
-together behind the v0.3 post backend. Publishing a post today surfaces a visible
+together with the post backend. Publishing a post today surfaces a visible
 "no adapter registered for `post-content-item`" message (no silent loss); local
 blobs that haven't been uploaded don't survive a full page reload — that rides
 with the upload-at-publish backend.
 
 ---
 
-## Scope notes & known limits (as of v0.2.1)
+## Scope notes & known limits
 
 - **Post publish is not implemented yet (pending the post backend)** — the `post-content-item`
   adapter + durable multi-blob upload-at-publish ship together. Post *authoring*
@@ -180,8 +181,7 @@ with the upload-at-publish backend.
   is stubbed (surfaces a visible "no adapter" alert).
 - **Inline body images** fall back to Plate's URL-prompt — the composer
   `uploader` is `ExportMetadata`-shaped (media-specific), so it isn't wired to
-  Plate's image upload in v0.1. A dedicated body-image uploader is a v0.1.x
-  follow-up.
+  Plate's image upload. A dedicated body-image uploader is not implemented.
 - **Non-active step gates** check required-field presence; full json-form
   validation (pattern / custom validators) runs live on the step you're editing.
 - **Publisher** and **auto-slug-from-title** are not implemented (the slug is a plain

@@ -126,6 +126,7 @@ export const ContentComposer = React.forwardRef<
       cache.forEach((items) =>
         items.forEach((it) => {
           if (it.url.startsWith("blob:")) URL.revokeObjectURL(it.url);
+          if (it.posterUrl?.startsWith("blob:")) URL.revokeObjectURL(it.posterUrl);
         }),
       );
       // F13: URLs displaced from the cache mid-session (re-edit of a

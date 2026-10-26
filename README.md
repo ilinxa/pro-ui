@@ -50,11 +50,11 @@ A few components rely on extra tokens beyond the canonical set:
 | `--warning-foreground` | `event-card` |
 | `--info` | — (utility available; no item maps it yet) |
 | `--info-foreground` | — (utility available; no item maps it yet) |
-| `--destructive-foreground` | `app-sidebar`, `event-card`, `file-manager`, `file-tree`, `media-editor`, `split-workspace` |
+| `--destructive-foreground` | `app-sidebar`, `carousel-composer`, `event-card`, `file-manager`, `file-tree`, `media-editor`, `split-workspace` |
 | `--story-ring-from` | `story-rail` |
 | `--story-ring-to` | `story-rail` |
-| `--media-overlay` | `media-editor`, `media-editor-capture`, `story-composer`, `story-viewer`, `video-player` |
-| `--media-overlay-foreground` | `media-editor`, `media-editor-capture`, `story-composer`, `story-viewer`, `video-player` |
+| `--media-overlay` | `carousel-composer`, `media-editor`, `media-editor-capture`, `story-composer`, `story-viewer`, `video-player` |
+| `--media-overlay-foreground` | `carousel-composer`, `media-editor`, `media-editor-capture`, `story-composer`, `story-viewer`, `video-player` |
 <!-- END GENERATED TOKENS -->
 
 You **don't** need to copy the brand *values* — keep your own `--primary`, `--background`, etc. Every ilinxa component reads tokens by name, so it inherits whatever palette the host ships. The brand identity (signal-lime + cool off-white + graphite-cool dark) is only authoritative on this demo site.
@@ -185,7 +185,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `page-hero` | marketing | Full-bleed gradient hero band — badge, title, highlight, description, stats row, and a reveal-on-mount animation. |
 | `pricing-table` | marketing | Pricing tiers side by side — monthly and annual toggle, highlighted tier, per-feature tooltips, and a comparison layout. |
 | `share-bar` | marketing | Social share button row — nine built-in platforms, custom targets, and copy-link with success feedback. |
-| `carousel-composer` | media | Multi-item media post composer — drag in photos and videos, reorder them on a rail, and edit each through a shared edit… |
+| `carousel-composer` | media | Multi-item media post composer — drag in photos and videos, reorder them on a rail, alt text and upload status per item…<br>↳ optional slice: `carousel-composer-editing` — Image editing for Carousel Composer through media-editor — the edit panel and typed readers for the edit fields. |
 | `content-composer` | media | Multi-step content authoring shell — each content type is a JSON config composing form, rich text, and media editing st… |
 | `media-carousel` | media | Embla image and video carousel — gallery or linear variants, coordinated video pause for inactive slides. |
 | `media-editor` | media | Media capture and edit surface for photo, video, and text — capability dials and an Instagram-style chrome model.<br>↳ optional slice: `media-editor-capture` — Camera photo/video capture for Media Editor — permission flows, shutter control, multi-instance guard. |

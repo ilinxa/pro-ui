@@ -19,6 +19,12 @@
   },
   {
     "from": "content-composer",
+    "to": "carousel-composer-editing",
+    "via": "registryDependencies",
+    "owner": "content-composer re-design (GATE 1, queued) — reach the carousel editing add-on through a slot / optional feature slice (locked decision 5); 0.3.3 wires it so installed trees keep editing"
+  },
+  {
+    "from": "content-composer",
     "to": "rich-text-editor",
     "via": "registryDependencies",
     "owner": "Part 3 content-composer loop — reach rich-text-editor through a slot / optional feature slice (locked decision 5)"
@@ -46,18 +52,6 @@
     "to": "media-editor",
     "via": "static import",
     "owner": "Part 3 content-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
-  },
-  {
-    "from": "carousel-composer",
-    "to": "media-editor",
-    "via": "registryDependencies",
-    "owner": "Part 3 carousel-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
-  },
-  {
-    "from": "carousel-composer",
-    "to": "media-editor",
-    "via": "static import",
-    "owner": "Part 3 carousel-composer loop — reach media-editor through a slot / optional feature slice (locked decision 5)"
   },
   {
     "from": "media-library",
@@ -103,21 +97,9 @@
   },
   {
     "from": "content-composer",
-    "to": "carousel-composer",
-    "via": "registryDependencies",
-    "owner": "next content-composer loop — reach carousel-composer through a slot / optional feature slice (locked decision 5)"
-  },
-  {
-    "from": "content-composer",
     "to": "json-form",
     "via": "static import",
     "owner": "next content-composer loop — reach json-form through a slot / optional feature slice (locked decision 5)"
-  },
-  {
-    "from": "content-composer",
-    "to": "carousel-composer",
-    "via": "static import",
-    "owner": "next content-composer loop — reach carousel-composer through a slot / optional feature slice (locked decision 5)"
   },
   {
     "from": "media-library",

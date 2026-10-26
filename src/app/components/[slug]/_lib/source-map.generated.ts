@@ -2217,9 +2217,17 @@ import { Button } from "@/components/ui/button";
 import { CarouselComposer } from "./carousel-composer";
 import type {
   CarouselComposerHandle,
+  CarouselComposerLabelsInput,
   MediaCarouselItem,
 } from "./types";
-import { dummyCarouselItems } from "./dummy-data";
+import { PLATFORM_SAFE_MIME } from "./types";
+import { carouselEditing } from "./features/editing";
+import {
+  arabicLabels,
+  dummyCarouselItems,
+  dummyStatusItems,
+  turkishLabels,
+} from "./dummy-data";
 
 function Status({ children }: { children: React.ReactNode }) {
   return (
@@ -2233,6 +2241,10 @@ function EmptyTab() {
     <div className="mx-auto max-w-md">
       <CarouselComposer
         onChange={(items) => setCount(items.length)}
+        editing={carouselEditing}
+        enableAltText
+        acceptMime={PLATFORM_SAFE_MIME}
+        maxVideoSeconds={30}
         editorProps={{ enabledTools: ["crop", "filters", "adjust", "text"] }}
       />
       <Status>
@@ -2247,6 +2259,7 @@ function SeededTab() {
     <div className="mx-auto max-w-md">
       <CarouselComposer
         defaultValue={dummyCarouselItems}
+        editing={carouselEditing}
         editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
       />
       <Status>
@@ -2311,6 +2324,59 @@ function MaxTab() {
   );
 }
 
+function StatusTab() {
+  const [items, setItems] = React.useState<MediaCarouselItem[]>(dummyStatusItems);
+  const [retries, setRetries] = React.useState(0);
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        value={items}
+        onChange={setItems}
+        onRetry={(item) => {
+          setRetries((n) => n + 1);
+          setItems((cur) =>
+            cur.map((it) =>
+              it.id === item.id
+                ? { ...it, status: "uploading", progress: 0.1, error: undefined }
+                : it,
+            ),
+          );
+        }}
+      />
+      <Status>
+        Host-owned upload state: item 1 is uploading at 40 %, item 2 failed.
+        Select item 2 and press Retry ({retries} retries).
+      </Status>
+    </div>
+  );
+}
+
+function LocaleTab({
+  dir,
+  locale,
+  labels,
+  note,
+}: {
+  dir: "ltr" | "rtl";
+  locale: string;
+  labels: CarouselComposerLabelsInput;
+  note: string;
+}) {
+  return (
+    <div className="mx-auto max-w-md" dir={dir} lang={locale}>
+      <CarouselComposer
+        defaultValue={dummyCarouselItems.map((it) =>
+          it.kind === "video" ? { ...it, duration: 75 } : it,
+        )}
+        locale={locale}
+        labels={labels}
+        enableAltText
+      />
+      <Status>{note}</Status>
+    </div>
+  );
+}
+
 export default function CarouselComposerDemo() {
   const [tab, setTab] = React.useState("seeded");
   return (
@@ -2320,6 +2386,9 @@ export default function CarouselComposerDemo() {
         <TabsTrigger value="seeded">Seeded (re-edit)</TabsTrigger>
         <TabsTrigger value="controlled">Controlled + export</TabsTrigger>
         <TabsTrigger value="max">Max 3</TabsTrigger>
+        <TabsTrigger value="status">Upload status</TabsTrigger>
+        <TabsTrigger value="tr">Türkçe</TabsTrigger>
+        <TabsTrigger value="ar">العربية (RTL)</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="empty" className="pt-4">
@@ -2333,6 +2402,15 @@ export default function CarouselComposerDemo() {
       </TabsContent>
       <TabsContent value="max" className="pt-4">
         <MaxTab />
+      </TabsContent>
+      <TabsContent value="status" className="pt-4">
+        <StatusTab />
+      </TabsContent>
+      <TabsContent value="tr" className="pt-4">
+        <LocaleTab dir="ltr" locale="tr" labels={turkishLabels} note="Turkish labels and tr-locale formatting. Turkish writes digits the same way as English, so the video length still reads 1:15." />
+      </TabsContent>
+      <TabsContent value="ar" className="pt-4">
+        <LocaleTab dir="rtl" locale="ar-EG" labels={arabicLabels} note="Arabic labels, right-to-left rail, Arabic-Indic digits." />
       </TabsContent>
     </Tabs>
   );
