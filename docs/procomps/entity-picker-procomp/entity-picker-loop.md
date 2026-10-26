@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive controlled query, async states, `labels`, `locale`) |
-| **Current stage** | **U2** — release 4 started 2026-10-26 on the user's go (with filter-bar) |
+| **Current stage** | **Closed** — release 4 shipped `33c5440` (with filter-bar), live-verified 2026-10-26 |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.1.4 → **v0.2.0** |
 | **Model roster** | architect: main session · intake: 1 × Sonnet 5 (read-only) |
@@ -18,7 +18,7 @@ Source: request §5.4 EP1–EP2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1078-1105
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
-- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [x] U7 Ship
 
 ## U0 — Intake
 
@@ -199,3 +199,7 @@ adding filter-bar (all 13 filter-bar files written), so the next add hit `ERR_PN
 upstream version-shuffle bug (memory: 4.6.0, fixed by 4.17), now also seen on 3.8.5; filter-bar's deps are unchanged
 since 0.2.1. Reported to the platform with the check / workaround; filter-bar F-04 (trim the npm list, re-test). The
 first 3.8.5 attempt timed out inside the consumer's own `pnpm install` (commit charge 58 / 70 GB).
+
+### U7 — Ship (2026-10-26)
+`33c5440` pushed; live poll 3 (03:20) serves `/r/filter-bar.json` 0.3.0 (with `parts/calendar-error-boundary.tsx`) and
+`/r/entity-picker.json` 0.2.0 (with `hooks/use-direction.ts`). Release 4 closed.
