@@ -91,7 +91,7 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking install graph** — editing moves to an optional feature item; everything else additive; 0.x minor) |
-| **Current stage** | U2 implement (release 6) — see "Run — Part 3 release 6" below |
+| **Current stage** | CLOSED (release 6, `e8976ac`) — see "Run — Part 3 release 6" below |
 | **Sign-off policy** | user-interactive; composed by content-composer → always the user's call. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.2.2 → **v0.3.0** + new item `carousel-composer-editing` 0.3.0 + a minimal content-composer patch in the same push |
 | **Started / updated** | 2026-10-25 / 2026-10-25 |
@@ -205,7 +205,7 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 
 | Field | Value |
 |---|---|
-| **Current stage** | U2 implement |
+| **Current stage** | CLOSED — shipped `e8976ac`, live-verified 2026-10-26 |
 | **Go** | user 2026-10-26 ("go", after the platform's release-5 reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-26_RELEASE5.md` said go on release 6). Execution delegated for this release; scope signed by the platform 2026-10-25. Push under the Part 3 grant after a final consistency review. |
 | **Release** | carousel-composer 0.3.0 (breaking: install graph + label functions + opaque `editorState`) · new feature item `carousel-composer-editing` 0.3.0 · content-composer 0.3.3 (patch: wires the add-on) |
 | **Ladder** | breaking → 2 fresh finders + dependents axis (content-composer, the `media-carousel-editor-01` alias) · broad spotcheck · smoke slug + content-composer + the feature item + base-without-feature |
@@ -411,3 +411,7 @@ sweep PASS (Remove / Retry focus, alt limit, MP4 poster + badge, refusals, edit 
 | d | content-composer | 4.18.0 | PASS, tsc 0 | pulls carousel-composer 0.3.0 + carousel-composer-editing 0.3.0 + media-editor, json-form, rich-text-editor, news-card … |
 | e | carousel-composer alone | 3.8.5 | PASS, tsc 0 | `carousel-composer` only — **no media-editor** |
 | f | carousel-composer-editing | 3.8.5 | PASS, tsc 0 | `carousel-composer`, `media-editor` |
+
+## U7 — Ship
+
+Commit `e8976ac`, pushed 15:33 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): 0.2.2 / — / 0.3.2 at +3 / +6 / +9 min, **all three new at +12 min** (carousel-composer 0.3.0, carousel-composer-editing 0.3.0, content-composer 0.3.3). Live artifacts: base 23 files, no tests, deps `button` / `input` / `scroll-area`, no import of media-editor (only comments mention it), `cssVars.theme` media-overlay + destructive-foreground; add-on 3 files under `features/editing/`, `import type` re-exports; content-composer depends on the add-on and passes `editing={carouselEditing}`; the alias description names the add-on. Decision `shipped`; retro in `.claude/improvement-log.md`; report-back `.claude/report-back-2026-10-26-carousel-composer-0-3-0.md` (to the user for the platform). **Next:** app-sidebar 0.6.0 (whenever convenient) and the media-editor patch when the platform's note arrives (it takes follow-up F-05).
