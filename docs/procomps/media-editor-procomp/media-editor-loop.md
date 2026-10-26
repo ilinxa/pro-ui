@@ -425,7 +425,7 @@ report-back `.claude/report-back-2026-10-26-media-editor-0-5-1.md`.
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **breaking minor** — `ExportMetadata.width/height` and the default image export change values; composed by story-composer, carousel-composer(-editing), content-composer → always the user's call) |
-| **Current stage** | **U4 — fix wave 1** (U3 run 1 green; 2 finders → 26 merged rows) |
+| **Current stage** | **Closed** — shipped `143dcec`, live-verified 2026-10-26 23:27 |
 | **Sign-off policy** | user-interactive (composed component). Push grant: **given 2026-10-26** — push after the pre-push doc verifier's fixes + re-run gates, then verify live. |
 | **Version target** | v0.5.1 → **v0.6.0** (+ `media-editor-capture` 0.6.0); dependents per U1 |
 | **Started / updated** | 2026-10-26 / 2026-10-26 |
@@ -438,7 +438,7 @@ follow-up **F-05** (`docs/procomps/carousel-composer-procomp/reviews/2026-10-26-
 
 - [x] U0 Intake — 2 fresh read-only Sonnet validators (asks split by subsystem) + architect spot-checks (below)
 - [x] U1 Change contract — below; **sign-off: user 2026-10-26** (4 decisions, all as recommended)
-- [x] U2 Implement · [x] U3 Gate battery (run 1) · [ ] U4 Adversarial review (findings in; fix wave 1 running) (2 finders + dependents axis) · [ ] U5 Runtime & smoke (slug + ALL dependents + capture + carousel-composer-editing) · [ ] U6 Docs & review file · [ ] U7 Ship
+- [x] U2 Implement · [x] U3 Gate battery (runs 1–7) · [x] U4 Adversarial review (2 finders, 26 rows) · [x] U5 Runtime & smoke (2 browser passes, 8/8 installs) · [x] U6 Docs & review (doc verifier, review file) · [x] U7 Ship (2 finders + dependents axis) · [ ] U5 Runtime & smoke (slug + ALL dependents + capture + carousel-composer-editing) · [ ] U6 Docs & review file · [ ] U7 Ship
 
 ### U0 — validation of the asks (source-level; runtime proof owed at U5)
 
@@ -695,3 +695,10 @@ Run 6: STATUS 0.1 KB over its budget (slimmed) + one new `exhaustive-deps` warni
 `exportImage`, not `exportImageOrText`; fixed). **Run 7: tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 ·
 doc-budget 0 · tests 201 files / 2780 passed / 6 skipped · `pnpm build` 0.** Artifacts: media-editor **431.7 / 440 KB**,
 capture 53.7, story-composer 75.2, carousel-composer 105.4, carousel-composer-editing 10.3.
+
+### U7 — Ship (2026-10-26)
+`143dcec` pushed with `7902628` (23:14). Live poll (≥ 150 s apart): polls 1–3 (23:18–23:24) still 0.5.1; **poll 4
+(23:27) `/r/media-editor.json` 0.6.0 with `lib/frame-map.ts` (stamp `@ilinxa/media-editor 0.6.0`),
+`/r/media-editor-capture.json` 0.6.0, `/r/story-composer.json` 0.6.1, `/r/carousel-composer.json` and
+`/r/carousel-composer-editing.json` 0.3.1**; `/components/media-editor` 200. Retro in `.claude/improvement-log.md`.
+Follow-ups F-07 (content-composer), F-08 (text-card preview), F-09 (WebKit) in the review file. Run closed.
