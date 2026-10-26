@@ -1,21 +1,23 @@
 interface DefaultEmptyStateProps {
   query: string;
   itemCount: number;
+  nothingToPick: string;
+  noResults: string;
+  /** Server-filtered mode: a non-empty query with no items is "no results", not "nothing to pick". */
+  serverFiltered?: boolean;
 }
 
 export function DefaultEmptyState({
+  query,
   itemCount,
+  nothingToPick,
+  noResults,
+  serverFiltered = false,
 }: DefaultEmptyStateProps) {
-  if (itemCount === 0) {
-    return (
-      <p role="status" className="px-2 text-center text-xs text-muted-foreground">
-        Nothing to pick from
-      </p>
-    );
-  }
+  const nothing = itemCount === 0 && !(serverFiltered && query.length > 0);
   return (
     <p role="status" className="px-2 text-center text-xs text-muted-foreground">
-      No results
+      {nothing ? nothingToPick : noResults}
     </p>
   );
 }

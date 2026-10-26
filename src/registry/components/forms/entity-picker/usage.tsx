@@ -60,14 +60,18 @@ export function NodePicker() {
         value. Each <code>KindMeta</code> has a <code>label</code> and an
         optional <code>color</code> (CSS variable name or OKLCH literal).
         Badges render in result rows + chips; toggle with{" "}
-        <code>showKindBadges</code> (defaults to true iff any item has a
-        kind).
+        <code>showKindBadges</code> (defaults to true iff any item or any
+        selected value has a kind, so chips keep their badge while{" "}
+        <code>items</code> is empty).
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Custom match</h3>
       <p className="text-muted-foreground">
         Default match is case-insensitive substring on{" "}
-        <code>item.label</code> via <code>String.toLowerCase()</code>. Pass{" "}
+        <code>item.label</code> via <code>String.toLowerCase()</code>, or{" "}
+        <code>toLocaleLowerCase(locale)</code> when you pass{" "}
+        <code>locale</code> (so <code>locale=&quot;tr&quot;</code> finds
+        &quot;İstanbul&quot; for &quot;istanbul&quot;). Pass{" "}
         <code>{`match: (item, query) => boolean`}</code> for richer search
         (e.g., search across <code>description</code>, fuzzy-rank via
         Fuse.js, or <code>Intl.Collator</code> for accent-insensitive
@@ -149,9 +153,7 @@ ref.current?.clear();`}</code>
       <p className="text-muted-foreground">
         <code>onChange</code> fires only when the id-set of the selection
         changes. Same-id new-reference values do not fire (avoids spurious
-        re-renders when the host re-derives entity objects upstream). v0.2
-        will upgrade to ordered-array equality when drag-to-reorder lands —
-        non-breaking.
+        re-renders when the host re-derives entity objects upstream).
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
@@ -166,15 +168,86 @@ ref.current?.clear();`}</code>
         <li>Backspace on empty search (multi mode) — remove last chip.</li>
       </ul>
 
-      <h3 className="mb-2 mt-6 text-base font-semibold">What ships in v0.2+</h3>
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Server-side search (the host owns the data)
+      </h3>
+      <p className="text-muted-foreground">
+        The picker never fetches. You own the query, the request and the{" "}
+        <code>items</code>; the picker shows what you give it. Control the
+        search text with <code>query</code> / <code>onQueryChange</code>, turn
+        the built-in filter off with <code>{`filterItems={false}`}</code>
+        (rows render as given, <code>match</code> is ignored), and report the
+        request state with <code>loading</code>, <code>error</code> and{" "}
+        <code>onRetry</code>. Precedence is loading, then error, then empty;
+        the Retry button renders only when <code>onRetry</code> is passed.
+        Pagination is a &quot;Load more&quot; row that appears only when both{" "}
+        <code>hasMore</code> and <code>onLoadMore</code> are passed (
+        <code>loadingMore</code> disables it while a page loads). Guard against
+        stale responses in your fetch layer, and pass only the latest result.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`const [query, setQuery] = useState("");
+const { data, isFetching, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } =
+  useMyInfiniteSearch(query);
+
+<EntityPicker<User>
+  items={data ?? []}
+  value={value}
+  onChange={setValue}
+  query={query}
+  onQueryChange={(q) => setQuery(q)}   // reason: "input" | "reset" (on close)
+  filterItems={false}
+  loading={isFetching && !isFetchingNextPage}
+  error={isError}
+  onRetry={refetch}
+  hasMore={hasNextPage}
+  onLoadMore={fetchNextPage}
+  loadingMore={isFetchingNextPage}
+/>`}</code>
+      </pre>
+      <p className="text-muted-foreground">
+        When loading settles while the popover is open, a polite live region
+        announces <code>labels.resultsCount(count, formatted)</code> once (not per keystroke).
+        Use <code>renderLoading</code> / <code>renderError</code> to replace
+        the default rows.
+      </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Labels and locale</h3>
+      <p className="text-muted-foreground">
+        Every string is a key of <code>labels</code> (a partial of{" "}
+        <code>EntityPickerLabels</code>; an <code>undefined</code> key keeps
+        the default). The English defaults are exported as{" "}
+        <code>defaultEntityPickerLabels</code>. <code>placeholder</code> and{" "}
+        <code>triggerLabel</code> still work as deprecated aliases and win over
+        their keys. <code>locale</code> drives the default match&apos;s case
+        folding and the number passed to <code>resultsCount</code>.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<EntityPicker<City>
+  items={cities}
+  value={city}
+  onChange={setCity}
+  locale="tr"
+  labels={{
+    searchPlaceholder: "Ara…",
+    searchLabel: "Şehir ara",
+    triggerPlaceholder: "Şehir seç…",
+    removeChip: (label) => label + " öğesini kaldır",
+    noResults: "Sonuç yok",
+    nothingToPick: "Seçenek yok",
+    resultsCount: (n, formatted) => formatted + " sonuç",
+  }}
+/>`}</code>
+      </pre>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">Not implemented</h3>
       <ul className="ml-5 list-disc space-y-1 text-muted-foreground">
-        <li>Async <code>loadItems(query, page)</code> for paginated remote search.</li>
-        <li>Virtualization for &gt;500-item lists.</li>
+        <li>Virtualization for very long lists.</li>
         <li>&quot;Create new&quot; affordance via <code>onCreate(query)</code>.</li>
         <li>Multi-section grouping via <code>groups</code>.</li>
         <li>Drag-to-reorder chips (multi mode).</li>
         <li>Fuzzy-rank via <code>{`rank: (item, query) => number`}</code>.</li>
-        <li>Ordered-array selection equality (non-breaking).</li>
+        <li>Infinite scroll (pagination is the &quot;Load more&quot; row).</li>
       </ul>
     </div>
   );

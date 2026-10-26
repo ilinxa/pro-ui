@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useId,
   useImperativeHandle,
   useLayoutEffect,
@@ -27,21 +28,38 @@ import type {
   SinglePickerProps,
 } from "./types";
 import { defaultMatch } from "./lib/default-match";
+import { formatCount, resolveLabels } from "./lib/labels";
 import {
   multiSelectionEqual,
   singleSelectionEqual,
 } from "./lib/selection-equality";
 import { useItemsById } from "./hooks/use-items-by-id";
 import { useOpenState } from "./hooks/use-open-state";
+import { useDirection } from "./hooks/use-direction";
 import { TriggerButton } from "./parts/trigger-button";
 import { ResultRow } from "./parts/result-row";
 import { DefaultEmptyState } from "./parts/default-empty-state";
+import { ErrorRow, LoadingRow } from "./parts/status-rows";
 
 function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
   const {
     items,
     match,
-    placeholder = "Search…",
+    placeholder,
+    query: controlledQuery,
+    onQueryChange,
+    filterItems = true,
+    loading = false,
+    error,
+    onRetry,
+    renderLoading,
+    renderError,
+    hasMore,
+    onLoadMore,
+    loadingMore = false,
+    labels: labelsProp,
+    locale,
+    dir: dirProp,
     open: controlledOpen,
     onOpenChange,
     kinds,
@@ -67,28 +85,126 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
     onOpenChange,
   });
 
-  const [query, setQuery] = useState("");
+  const labels = resolveLabels(labelsProp);
+  // Deprecated aliases win over their label keys. `triggerLabel` has always named
+  // the trigger text, the trigger button and the search input.
+  const searchPlaceholder = placeholder ?? labels.searchPlaceholder;
+  const triggerPlaceholder = triggerLabel ?? labels.triggerPlaceholder;
+  const searchLabel = triggerLabel ?? labels.searchLabel;
 
-  const setOpen = useCallback(
-    (next: boolean) => {
-      if (!next) setQuery("");
-      rawSetOpen(next);
-    },
-    [rawSetOpen],
-  );
+  const queryControlled = controlledQuery !== undefined;
+  const [internalQuery, setInternalQuery] = useState("");
+  const query = queryControlled ? controlledQuery : internalQuery;
+
+  const onQueryChangeRef = useRef(onQueryChange);
+  useLayoutEffect(() => {
+    onQueryChangeRef.current = onQueryChange;
+  });
+
+  const handleQueryInput = useCallback((next: string) => {
+    setInternalQuery(next);
+    onQueryChangeRef.current?.(next, "input");
+  }, []);
 
   const itemsById = useItemsById(items);
 
+  // The one predicate behind the list: cmdk's `filter` and the announced count.
+  const matchItem = useCallback(
+    (item: T, search: string): boolean => {
+      try {
+        return match ? match(item, search) : defaultMatch(item, search, locale);
+      } catch (err) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error(
+            `[entity-picker] match threw for item "${item.id}":`,
+            err,
+          );
+        }
+        return false;
+      }
+    },
+    [match, locale],
+  );
+
+  const filterFn = useCallback(
+    (entityId: string, search: string): number => {
+      const item = itemsById.get(entityId);
+      return item && matchItem(item, search) ? 1 : 0;
+    },
+    [itemsById, matchItem],
+  );
+
+  // Server mode: cmdk keeps its highlight on the row it was on when the list is
+  // swapped, so the highlight is controlled there and returns to the first row
+  // whenever the rows change (and when the popover closes).
+  const [highlight, setHighlight] = useState<string>(items[0]?.id ?? "");
+  const [prevItems, setPrevItems] = useState(items);
+  if (prevItems !== items) {
+    setPrevItems(items);
+    const same =
+      prevItems.length === items.length &&
+      prevItems.every((it, i) => it.id === items[i].id);
+    if (!same) setHighlight(items[0]?.id ?? "");
+  }
+
+  const [announcement, setAnnouncement] = useState("");
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevLoading, setPrevLoading] = useState(loading);
+  // Derived-state transitions (set during render, never in an effect): the
+  // uncontrolled query clears when the popover closes, however it closes; the
+  // results announcement is armed when loading settles while open, once.
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (!open) {
+      setInternalQuery("");
+      setAnnouncement("");
+      setHighlight(items[0]?.id ?? "");
+    }
+  }
+  if (prevLoading !== loading) {
+    setPrevLoading(loading);
+    if (loading) {
+      setAnnouncement("");
+    } else if (open && !error) {
+      // Count what the list shows: all rows in server mode, the matching rows
+      // in client mode. An errored settle announces nothing (the alert speaks).
+      const shown =
+        filterItems && query !== ""
+          ? items.filter((it) => matchItem(it, query)).length
+          : items.length;
+      setAnnouncement(labels.resultsCount(shown, formatCount(shown, locale)));
+    }
+  }
+
+  // The host hears the reset after commit, for every way the popover can close
+  // (selection, Esc, outside press, handle, a controlled `open` going false).
+  const wasOpenRef = useRef(open);
+  useEffect(() => {
+    if (wasOpenRef.current && !open) onQueryChangeRef.current?.("", "reset");
+    wasOpenRef.current = open;
+  }, [open]);
+
+  const setOpen = rawSetOpen;
+
+  // Kind badges come from the rows AND the selection: chips must keep their
+  // badge while `items` is empty (loading, server returned nothing).
+  const selectedHasKind = Array.isArray(props.value)
+    ? props.value.some((v) => !!v.kind)
+    : !!props.value?.kind;
   const showKindBadges =
     showKindBadgesProp !== undefined
       ? showKindBadgesProp
-      : items.some((i) => !!i.kind);
+      : items.some((i) => !!i.kind) || selectedHasKind;
 
   // Track the trigger element via state (not a ref) so the setter is React's
   // own setState — passes the React Compiler-aware lint rule that flags
   // ref-accessor functions passed to user-rendered functions during render.
   // The ref-fn is stable across renders (React guarantees setState identity).
   const [triggerNode, setTriggerNode] = useState<HTMLElement | null>(null);
+
+  // The popover is portalled out of the host's layout, so it cannot inherit `dir`: resolve
+  // it from the trigger (canonical useDirection snippet) and set it on the content.
+  const popoverDir = useDirection(triggerNode, dirProp);
 
   // F-cross-13 consumer-trigger path: when a press lands while the popover is
   // open, Radix/Base UI's outside-press dismiss closes it BEFORE the click
@@ -199,28 +315,6 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
     [query, mode, props, handleRemoveChip],
   );
 
-  const filterFn = useCallback(
-    (entityId: string, search: string): number => {
-      const item = itemsById.get(entityId);
-      if (!item) return 0;
-      try {
-        const result = match
-          ? match(item, search)
-          : defaultMatch(item, search);
-        return result ? 1 : 0;
-      } catch (err) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error(
-            `[entity-picker] match threw for item "${item.id}":`,
-            err,
-          );
-        }
-        return 0;
-      }
-    },
-    [itemsById, match],
-  );
-
   // F-cross-13: no `asChild` on either path. Default path — TriggerButton
   // renders the PopoverTrigger <button> internally. Consumer path — the node
   // can no longer BE the trigger (Slot semantics need asChild), so a hidden
@@ -270,6 +364,8 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
       open={open}
       disabled={disabled}
       triggerLabel={triggerLabel}
+      placeholderText={triggerPlaceholder}
+      removeChipLabel={labels.removeChip}
       kinds={kinds}
       showKindBadges={showKindBadges}
       listboxId={listboxId}
@@ -291,32 +387,58 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
     return out;
   })();
 
+  const errorActive = !loading && !!error;
+  const errorMessage = typeof error === "string" ? error : labels.error;
+  const emptyNode = renderEmpty ? (
+    renderEmpty({ query, itemCount: items.length })
+  ) : (
+    <DefaultEmptyState
+      query={query}
+      itemCount={items.length}
+      nothingToPick={labels.nothingToPick}
+      noResults={labels.noResults}
+      serverFiltered={!filterItems}
+    />
+  );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       {renderTriggerNode}
       <PopoverContent
+        id={listboxId}
+        dir={popoverDir}
         align="start"
         sideOffset={4}
+        aria-label={searchLabel}
         // Radix exposes --radix-popover-trigger-width, Base UI --anchor-width
         // (F-cross-13) — cover both; min-w-60 is the last-resort floor.
         className="w-(--radix-popover-trigger-width,var(--anchor-width)) min-w-60 p-0"
       >
-        <Command filter={filterFn} loop>
+        {/* cmdk names the input through its own `label` (aria-labelledby wins
+            over aria-label), so the search name must be passed here too. */}
+        <Command
+          label={searchLabel}
+          filter={filterFn}
+          shouldFilter={filterItems}
+          value={filterItems ? undefined : highlight}
+          onValueChange={setHighlight}
+          loop
+        >
           <CommandInput
-            placeholder={placeholder}
+            placeholder={searchPlaceholder}
             value={query}
-            onValueChange={setQuery}
+            onValueChange={handleQueryInput}
             onKeyDown={handleSearchKeyDown}
-            aria-label={triggerLabel ?? "Search entities"}
+            aria-label={searchLabel}
           />
-          <CommandList id={listboxId} aria-multiselectable={mode === "multi"}>
-            <CommandEmpty>
-              {renderEmpty ? (
-                renderEmpty({ query, itemCount: items.length })
-              ) : (
-                <DefaultEmptyState query={query} itemCount={items.length} />
-              )}
-            </CommandEmpty>
+          <CommandList
+            label={labels.listLabel}
+            aria-multiselectable={mode === "multi"}
+            aria-busy={loading || undefined}
+          >
+            {filterItems && !loading && !errorActive ? (
+              <CommandEmpty>{emptyNode}</CommandEmpty>
+            ) : null}
             {items.map((item) => {
               const selected = valueMap.has(item.id);
               const kindMeta: KindMeta | undefined =
@@ -331,12 +453,67 @@ function EntityPickerImpl<T extends EntityLike>(props: EntityPickerProps<T>) {
                   selected={selected}
                   kindMeta={kindMeta}
                   showKindBadges={showKindBadges}
+                  selectedText={labels.selectedState}
                   onSelect={() => handleSelect(item)}
                   customRender={customNode}
                 />
               );
             })}
           </CommandList>
+          {/* Status rows and Load more sit beside the listbox, not inside it: a
+              listbox may only own options, and status/alert children fail axe.
+              cmdk's root swallows Enter (preventDefault + selects the
+              highlighted row), so Enter/Space on these controls must not
+              bubble to it or the button never clicks. */}
+          <div
+            data-slot="entity-picker-footer"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+            }}
+          >
+          {loading
+            ? renderLoading
+              ? renderLoading({ query, itemCount: items.length })
+              : <LoadingRow text={labels.loading} />
+            : null}
+          {errorActive
+            ? renderError
+              ? renderError({ message: errorMessage, query, onRetry })
+              : (
+                  <ErrorRow
+                    message={errorMessage}
+                    retryText={labels.retry}
+                    onRetry={onRetry}
+                  />
+                )
+            : null}
+          {!filterItems && !loading && !errorActive && items.length === 0
+            ? emptyNode
+            : null}
+          {hasMore && onLoadMore ? (
+            <button
+              type="button"
+              data-slot="entity-picker-load-more"
+              // aria-disabled, not disabled: a disabled button drops keyboard focus to <body>
+              // the moment the host sets loadingMore, stranding the user outside the popover.
+              aria-disabled={loadingMore || undefined}
+              onClick={() => {
+                if (!loadingMore) onLoadMore();
+              }}
+              className="flex w-full items-center justify-center rounded-sm px-2 py-1.5 text-xs text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:cursor-default aria-disabled:opacity-50 aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted-foreground"
+            >
+              {loadingMore ? labels.loading : labels.loadMore}
+            </button>
+          ) : null}
+          </div>
+          <div
+            aria-live="polite"
+            aria-atomic="true"
+            data-slot="entity-picker-announcer"
+            className="sr-only"
+          >
+            {open ? announcement : ""}
+          </div>
         </Command>
       </PopoverContent>
     </Popover>

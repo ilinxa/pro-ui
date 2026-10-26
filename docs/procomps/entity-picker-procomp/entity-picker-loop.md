@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive controlled query, async states, `labels`, `locale`) |
-| **Current stage** | U1 signed (scope: platform 2026-10-25) — U2 starts on the user's go for its release |
+| **Current stage** | **U2** — release 4 started 2026-10-26 on the user's go (with filter-bar) |
 | **Sign-off policy** | user-interactive. Push: the user granted push-without-asking for each Part 3 release after a final consistency review (2026-10-25). |
 | **Version target** | v0.1.4 → **v0.2.0** |
 | **Model roster** | architect: main session · intake: 1 × Sonnet 5 (read-only) |
@@ -18,7 +18,7 @@ Source: request §5.4 EP1–EP2 (`E:/tmp/social-ui-v2/PROUI_HANDOFF.md:1078-1105
 
 - [x] U0 Intake — read-only intake agent (Sonnet 5) + architect verdicts (below)
 - [x] U1 Change contract — **sign-off:** platform 2026-10-25 (`PROUI_REPLY_2026-10-25_PART3.md`); the user's go is given per release (order in the platform reply)
-- [ ] U2 Implement · [ ] U3 Gates · [ ] U4 Review · [ ] U5 Runtime & smoke · [ ] U6 Docs & review · [ ] U7 Ship
+- [x] U2 Implement · [x] U3 Gates · [x] U4 Review · [x] U5 Runtime & smoke · [x] U6 Docs & review · [ ] U7 Ship
 
 ## U0 — Intake
 
@@ -113,3 +113,89 @@ Platform reply `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-25_PART3.md`: scope sign
 Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + architect). Where these lines differ from the text above, these win.
 
 - No findings for this component.
+
+## U2 — Implement (release 4, started 2026-10-26 on the user's go)
+
+One Sonnet 5 implementer per component, in parallel (filter-bar / entity-picker folders only); brief from the agent
+template + this loop doc's U1 as the spec. Coordinator owns `registry.json`, `scripts/contract-baseline.json`,
+CHANGELOG and the guide (written after the U4 fix wave, so docs describe the final code).
+
+### U2 result (2026-10-26)
+Implementer report verified by the coordinator (re-ran: folder vitest 2 files / **44 passed**, eslint 0). Every
+contract item done; 20 fixes falsified (one survivor fixed by removing an early `return 1` that made `shouldFilter`
+redundant). New shipped files: `lib/labels.ts`, `parts/status-rows.tsx`. **Beyond the contract (a11y fixes found by
+the kit / axe):** `label` on cmdk `Command` (cmdk's `aria-labelledby` was overriding `aria-label` → the search input had
+no name) and `aria-label` on the popover dialog. **U2-A (architect):** closing the component under the contract gate
+flagged `formatCount`'s `Intl.NumberFormat()` fallback without a locale; the primary path also used the runtime locale
+when `locale` was unset → both now `"en"` (gate clean, 44/44). Coordinator: roster +2, baseline `jsx-literal` rows (3
+files) removed, `entity-picker` → `closed` (17); guide's "deferred to v0.2" / "v0.2 candidate" removed; CHANGELOG 0.2.0.
+Parked by the implementer: an empty cmdk listbox fails axe `aria-required-children` (pre-existing structure, cmdk sets
+the role); status rows render beside the list, not inside it (axe forbids status/alert inside a listbox).
+
+### U3 — Gate battery (2026-10-26, both components)
+See filter-bar loop U3. For entity-picker: **artifact 42.34 KB > 1.2 × 35** → budget set after the fix wave on the
+real number (U1 said "decided at U3").
+
+### U4 — Adversarial review (fresh Sonnet finder on the frozen snapshot; cmdk claims verified in its dist)
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| 1 | ⚠️ | Enter on Retry: cmdk's root `onKeyDown` `preventDefault`s every Enter and selects the highlighted row instead | CONFIRMED (verified `case"Enter":{e.preventDefault();…`) |
+| 2 | 🔸 | "Load more" is a forced cmdk item → auto-highlighted; Enter on a no-match query loads more | CONFIRMED → plain button after the list |
+| 3 | 🔸 | it counts in cmdk `filtered.count` → empty rows missing / shown beside it | CONFIRMED (same fix) |
+| 4 | 🔸 | announcement says "0 results" on error; counts unfiltered items in client mode | CONFIRMED |
+| 5 | 🔸 | listbox named by cmdk's English default "Suggestions" | CONFIRMED → `listLabel` key |
+| 6 | 🔸 | server results: highlight stays on a row that moved | CONFIRMED |
+| 7 | 🔹 | multi-select state invisible to screen readers (cmdk overwrites `aria-selected`) — pre-existing | CONFIRMED → sr-only `selectedState` label |
+| 8 | 🔹 | trigger `aria-controls` points at an id cmdk overwrites — pre-existing | CONFIRMED |
+| 9 | 🔹 | cmdk scores stale after a relabel with the same id | PARKED (client mode edge) |
+| 10 | 🔹 | I1 "identical markup" not literal (new label / announcer nodes) | DOC wording |
+| 11 | 🔹 | test gaps for the above | covered by the fix wave |
+
+### U4 fix wave (2026-10-26)
+Sonnet implementer; 7 CONFIRMED rows fixed, 8 mutations CAUGHT. Status rows, empty row and Load more sit in a footer
+after the list whose `onKeyDown` stops Enter / Space reaching cmdk (covers custom `renderError` buttons too); Load more
+is a plain button (not a cmdk item); announcement skipped on error and counts matching rows in client mode; label keys
+`listLabel` ("Suggestions") and `selectedState` ("selected", sr-only in chosen rows); server-mode cmdk `value` controlled
+→ highlight returns to the first row when the item ids change; `id` moved to `PopoverContent` and trigger
+`aria-controls` only while open (both override Radix's `contentId` together, so they still match — architect check).
+Folder: 2 files / **54 passed**. Size **44.6 KB** → budget 35 → **50**, rationale in `meta.ts`.
+
+### U5 — Browser finder (production build, Playwright Chromium, desktop + mobile)
+PASS: popover width = trigger; focus to the search on open, back to the trigger on Escape; list named "Suggestions";
+`aria-controls` null closed / resolves open; chosen rows carry hidden "selected"; multi Down+Enter, Backspace removes
+the last chip, chip remove; server tab: loading row + `aria-busy`, first row highlighted after results change, live
+region "4 results" once; Load more outside the listbox, never reached by arrows; failure → "The server did not answer."
++ Retry; Tab→Retry→Enter retries with no row picked; no-match Enter does nothing; dark theme; no console errors.
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| B1 | 🔸 | Enter on Load more → focus drops to `<body>` (the button became `disabled` while `loadingMore`) | CONFIRMED → `aria-disabled` + click guard; test asserts it is never `disabled` and keeps identity / focus; falsified |
+| B2 | 🔸 | RTL host: the portalled popover is `direction: ltr` (search icon, badges, check mark unmirrored) | CONFIRMED → new `dir` prop + direction read from the trigger (element variant of the canonical `useDirection` snippet, new shipped `hooks/use-direction.ts`); set on `PopoverContent`; 2 tests, falsified |
+Not verified in the browser (no demo path): `locale="tr"` matching (unit-tested), Load more on a no-match query
+(unit-tested). Lint note: the first `dir` attempt (setState in a plain layout effect, then a ref callback passed into
+`renderTrigger`) tripped `react-hooks/set-state-in-effect` / `react-hooks/refs` — the snippet's element variant passes.
+
+### U5 — browser re-verify of B1 / B2 (final build, 2026-10-26)
+entity-picker, desktop + mobile: RTL popover `dir="rtl"`, computed `direction: rtl` (screenshot mirrored); keyboard Load
+more → focus stays on the button while it reads "Loading…" (`aria-disabled="true"`) and after the rows load (4 → 8);
+0 page errors.
+
+### Final consistency review (pre-push, 2026-10-26)
+- **Versions:** filter-bar 0.3.0 / entity-picker 0.2.0 on meta.ts, registry.json (base + fixtures), `public/r`,
+  component-versions, CHANGELOG, STATUS, both guides.
+- **Roster vs folder:** both — missing 0, extra 0 (filter-bar 10 files, entity-picker 17); fixtures ship `dummy-data.ts`.
+- **Claims vs code:** fresh Sonnet doc verifier (read-only) over CHANGELOG, both guides, meta / usage / demo,
+  registry.json and the report-back — 0 High, 3 Medium, 11 Low. Fixed: popover direction is read when the trigger mounts
+  (docs said "each time it opens") → guide, `dir` JSDoc, report-back; the guide promised a `triggerRef` dev warning that
+  doesn't exist (pre-existing) → removed; **the unstable-`items` dev warning never reset its counter, so server search
+  (a new array per fetch) got "wrap with useMemo" after 6 fetches** → the check now runs every render, 2 tests, falsified;
+  Pattern 1 / walkthrough used `placeholder` for trigger text (it's the search's) → `labels.*Placeholder`; `align` is
+  logical (left = start); skeleton is one month on phones; `clear()` fires only with a selection; single mode has no chip;
+  Pattern 6 imports; `role=search` is on the wrapper; `resultsCount(count, formatted)`.
+
+### U5 — installs (2026-10-26)
+4.18.0: `filter-bar` + `entity-picker` pass (tsc 0); both fixtures items pass. 3.8.5: `entity-picker` alone passes (tsc 0);
+`filter-bar` then `entity-picker` fails — CLI 3.8.5 rewrote the consumer's `@tailwindcss/postcss` to `^9.14.0` while
+adding filter-bar (all 13 filter-bar files written), so the next add hit `ERR_PNPM_NO_MATCHING_VERSION`: the known
+upstream version-shuffle bug (memory: 4.6.0, fixed by 4.17), now also seen on 3.8.5; filter-bar's deps are unchanged
+since 0.2.1. Reported to the platform with the check / workaround; filter-bar F-04 (trim the npm list, re-test). The
+first 3.8.5 attempt timed out inside the consumer's own `pnpm install` (commit charge 58 / 70 GB).

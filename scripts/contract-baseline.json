@@ -1,20 +1,22 @@
 {
   "closed": [
-    "story-rail",
-    "app-sidebar",
-    "engagement-bar",
-    "media-carousel",
-    "video-player",
-    "expandable-text",
     "account-switcher",
-    "share-bar",
-    "people-grid",
-    "info-list",
-    "empty-state",
+    "app-sidebar",
     "category-cloud",
-    "story-viewer",
+    "empty-state",
+    "engagement-bar",
+    "entity-picker",
+    "expandable-text",
+    "filter-bar",
+    "info-list",
+    "media-carousel",
     "media-editor",
-    "story-composer"
+    "people-grid",
+    "share-bar",
+    "story-composer",
+    "story-rail",
+    "story-viewer",
+    "video-player"
   ],
   "rules": {
     "palette": {
@@ -246,12 +248,6 @@
       "src/registry/components/data/task-card/lib/time.ts": [
         "Intl.DateTimeFormat(undefined…)",
         "Intl.RelativeTimeFormat(undefined…)"
-      ],
-      "src/registry/components/forms/filter-bar/lib/format-default.ts": [
-        "Intl.DateTimeFormat(undefined…)",
-        "Intl.DateTimeFormat(undefined…)",
-        "module-scope new Intl.DateTimeFormat",
-        "module-scope new Intl.DateTimeFormat"
       ],
       "src/registry/components/navigation/file-manager/lib/format.ts": [
         "Intl.DateTimeFormat(undefined…)",
@@ -998,16 +994,6 @@
       ],
       "src/registry/components/feedback/detail-panel/parts/selection-announcer.tsx": [
         "Selection changed"
-      ],
-      "src/registry/components/forms/entity-picker/entity-picker.tsx": [
-        "aria-label: Search entities"
-      ],
-      "src/registry/components/forms/entity-picker/parts/chip.tsx": [
-        "aria-label: Remove"
-      ],
-      "src/registry/components/forms/entity-picker/parts/default-empty-state.tsx": [
-        "No results",
-        "Nothing to pick from"
       ],
       "src/registry/components/forms/filter-panel/parts/filter-custom.tsx": [
         "Custom filter crashed — see console."

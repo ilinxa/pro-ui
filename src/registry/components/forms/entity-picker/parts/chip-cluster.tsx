@@ -8,6 +8,7 @@ interface ChipClusterProps<T extends EntityLike> {
   kinds: Record<string, KindMeta> | undefined;
   showKindBadges: boolean;
   onRemove: (id: string) => void;
+  removeChipLabel: (label: string) => string;
   disabled?: boolean;
 }
 
@@ -16,6 +17,7 @@ export function ChipCluster<T extends EntityLike>({
   kinds,
   showKindBadges,
   onRemove,
+  removeChipLabel,
   disabled,
 }: ChipClusterProps<T>) {
   if (value.length === 0) return null;
@@ -31,6 +33,7 @@ export function ChipCluster<T extends EntityLike>({
           kindMeta={entity.kind ? kinds?.[entity.kind] : undefined}
           showKind={showKindBadges}
           onRemove={() => onRemove(entity.id)}
+          removeLabel={removeChipLabel(entity.label)}
           disabled={disabled}
         />
       ))}

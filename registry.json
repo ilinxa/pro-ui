@@ -1134,10 +1134,25 @@
           "path": "src/registry/components/forms/entity-picker/parts/trigger-button.tsx",
           "type": "registry:component",
           "target": "components/entity-picker/parts/trigger-button.tsx"
+        },
+        {
+          "path": "src/registry/components/forms/entity-picker/lib/labels.ts",
+          "type": "registry:component",
+          "target": "components/entity-picker/lib/labels.ts"
+        },
+        {
+          "path": "src/registry/components/forms/entity-picker/parts/status-rows.tsx",
+          "type": "registry:component",
+          "target": "components/entity-picker/parts/status-rows.tsx"
+        },
+        {
+          "path": "src/registry/components/forms/entity-picker/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/entity-picker/hooks/use-direction.ts"
         }
       ],
       "meta": {
-        "version": "0.1.4",
+        "version": "0.2.0",
         "status": "alpha"
       }
     },
@@ -1164,7 +1179,7 @@
         }
       ],
       "meta": {
-        "version": "0.1.4",
+        "version": "0.2.0",
         "status": "alpha"
       }
     },
@@ -1736,10 +1751,25 @@
           "path": "src/registry/components/forms/filter-bar/parts/date-range-picker.tsx",
           "type": "registry:component",
           "target": "components/filter-bar/parts/date-range-picker.tsx"
+        },
+        {
+          "path": "src/registry/components/forms/filter-bar/parts/date-range-calendar.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/parts/date-range-calendar.tsx"
+        },
+        {
+          "path": "src/registry/components/forms/filter-bar/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/filter-bar/hooks/use-direction.ts"
+        },
+        {
+          "path": "src/registry/components/forms/filter-bar/parts/calendar-error-boundary.tsx",
+          "type": "registry:component",
+          "target": "components/filter-bar/parts/calendar-error-boundary.tsx"
         }
       ],
       "meta": {
-        "version": "0.2.1",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },
@@ -1765,7 +1795,7 @@
         }
       ],
       "meta": {
-        "version": "0.2.1",
+        "version": "0.3.0",
         "status": "alpha"
       }
     },

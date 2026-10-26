@@ -22,6 +22,9 @@ export function useItemsById<T extends EntityLike>(
     return out;
   }, [items]);
 
+  // Runs after EVERY render (no deps): a render with the same `items` resets the count, so
+  // only an array that changes on consecutive renders warns — not a host that swaps `items`
+  // when a server search returns (renders in between keep the same array).
   const stabilityRef = useRef({ last: items, count: 0, warned: false });
   useEffect(() => {
     const tracker = stabilityRef.current;
@@ -42,7 +45,7 @@ export function useItemsById<T extends EntityLike>(
           "Wrap with `useMemo` or hoist to module scope to avoid re-derivation.",
       );
     }
-  }, [items]);
+  });
 
   return map;
 }

@@ -28,7 +28,7 @@ export function ChipRow({
     <div
       role="group"
       aria-label={ariaLabel}
-      className={cn("flex flex-wrap justify-center gap-2", className)}
+      className={cn("flex flex-wrap gap-2", className)}
     >
       <Button
         variant={value === null ? "default" : "outline"}

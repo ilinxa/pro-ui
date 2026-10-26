@@ -1,15 +1,31 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import { ar, tr } from "date-fns/locale";
 import { FilterBar } from "./filter-bar";
 import {
+  DUMMY_CATEGORIES_AR,
   DUMMY_CATEGORIES_EN,
+  DUMMY_LABELS_AR,
   DUMMY_LABELS_TR,
   formatDateRangeTR,
 } from "./dummy-data";
 import type { FilterBarValue } from "./types";
+
+function AccessoryButton({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+    >
+      <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
+    </button>
+  );
+}
 
 export default function FilterBarDemo() {
   const [controlledValue, setControlledValue] = useState<FilterBarValue>({
@@ -25,6 +41,8 @@ export default function FilterBarDemo() {
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="partial">Partial usage</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
+        <TabsTrigger value="options">Options</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6">
@@ -90,9 +108,46 @@ export default function FilterBarDemo() {
         <FilterBar
           categories={DUMMY_CATEGORIES_EN}
           labels={DUMMY_LABELS_TR}
+          calendarLocale={tr}
           formatDateRange={formatDateRangeTR}
           resultsCount={12}
         />
+      </TabsContent>
+
+      <TabsContent value="options" className="mt-6 space-y-8">
+        <div>
+          <p className="mb-2 text-sm font-semibold text-foreground">
+            searchAccessory + align=&quot;left&quot; + locale=&quot;tr&quot; (dates and grouped count)
+          </p>
+          <FilterBar
+            categories={DUMMY_CATEGORIES_EN}
+            align="left"
+            locale="tr"
+            defaultDateRange={{ from: new Date(2026, 9, 5), to: new Date(2026, 9, 19) }}
+            resultsCount={1234}
+            searchAccessory={<AccessoryButton label="Search options" />}
+          />
+        </div>
+        <div>
+          <p className="mb-2 text-sm font-semibold text-foreground">
+            align=&quot;right&quot; (the chip row follows it too)
+          </p>
+          <FilterBar categories={DUMMY_CATEGORIES_EN} align="right" resultsCount={1} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar">
+          <FilterBar
+            categories={DUMMY_CATEGORIES_AR}
+            labels={DUMMY_LABELS_AR}
+            locale="ar"
+            calendarLocale={ar}
+            align="left"
+            resultsCount={12}
+            searchAccessory={<AccessoryButton label="خيارات البحث" />}
+          />
+        </div>
       </TabsContent>
     </Tabs>
   );

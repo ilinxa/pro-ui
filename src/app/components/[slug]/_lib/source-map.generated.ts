@@ -5053,6 +5053,153 @@ function HandleDemo() {
   );
 }
 
+const PAGE_SIZE = 4;
+
+/** A fake server: filters GRAPH_NODES by \`query\`, one page at a time, with latency. */
+function fakeSearch(
+  query: string,
+  page: number,
+  fail: boolean,
+): Promise<{ items: GraphNode[]; hasMore: boolean }> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (fail) {
+        reject(new Error("The server did not answer."));
+        return;
+      }
+      const q = query.toLowerCase();
+      const all = GRAPH_NODES.filter((n) => n.label.toLowerCase().includes(q));
+      const end = (page + 1) * PAGE_SIZE;
+      resolve({ items: all.slice(0, end), hasMore: end < all.length });
+    }, 600);
+  });
+}
+
+function ServerSearchDemo() {
+  const [value, setValue] = useState<GraphNode[]>([]);
+  const [query, setQuery] = useState("");
+  const [items, setItems] = useState<GraphNode[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [failNext, setFailNext] = useState(false);
+  // Stale-response guard: only the latest request may write state.
+  const latest = useRef(0);
+
+  function load(q: string, nextPage: number, more: boolean) {
+    const id = ++latest.current;
+    setError(undefined);
+    if (more) setLoadingMore(true);
+    else setLoading(true);
+    fakeSearch(q, nextPage, failNext)
+      .then((res) => {
+        if (id !== latest.current) return;
+        setItems(res.items);
+        setHasMore(res.hasMore);
+        setPage(nextPage);
+        setFailNext(false);
+      })
+      .catch((e: Error) => {
+        if (id === latest.current) setError(e.message);
+      })
+      .finally(() => {
+        if (id !== latest.current) return;
+        setLoading(false);
+        setLoadingMore(false);
+      });
+  }
+
+  return (
+    <DemoFrame>
+      <div className="flex flex-col gap-3">
+        <p className="text-xs text-muted-foreground">
+          The host owns the data: controlled <code>query</code>,{" "}
+          <code>{\`filterItems={false}\`}</code>, <code>loading</code> /{" "}
+          <code>error</code> + <code>onRetry</code>, and a <code>hasMore</code>{" "}
+          / <code>onLoadMore</code> pair. The fake server answers after 600 ms.
+        </p>
+        <EntityPicker<GraphNode>
+          mode="multi"
+          items={items}
+          value={value}
+          onChange={setValue}
+          kinds={NODE_KINDS}
+          query={query}
+          onQueryChange={(q, reason) => {
+            setQuery(q);
+            if (reason === "input") load(q, 0, false);
+          }}
+          onOpenChange={(open) => {
+            if (open) load(query, 0, false);
+          }}
+          filterItems={false}
+          loading={loading}
+          error={error}
+          onRetry={() => load(query, 0, false)}
+          hasMore={hasMore}
+          onLoadMore={() => load(query, page + 1, true)}
+          loadingMore={loadingMore}
+          labels={{ searchPlaceholder: "Search the server…" }}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={failNext ? "default" : "outline"}
+            aria-pressed={failNext}
+            onClick={() => setFailNext((f) => !f)}
+          >
+            Fail the next request
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Selected: <span className="font-mono">{value.length}</span>
+          </span>
+        </div>
+      </div>
+    </DemoFrame>
+  );
+}
+
+const AR_NODES: GraphNode[] = [
+  { id: "ar-1", label: "القاهرة", kind: "org" },
+  { id: "ar-2", label: "الرياض", kind: "org" },
+  { id: "ar-3", label: "عمّان", kind: "org" },
+];
+
+const AR_LABELS = {
+  searchPlaceholder: "ابحث…",
+  searchLabel: "ابحث عن كيان",
+  triggerPlaceholder: "اختر…",
+  removeChip: (label: string) => \`إزالة \${label}\`,
+  nothingToPick: "لا يوجد ما يمكن اختياره",
+  noResults: "لا توجد نتائج",
+};
+
+function RtlDemo() {
+  const [value, setValue] = useState<GraphNode[]>([AR_NODES[0]]);
+  return (
+    <DemoFrame>
+      <div dir="rtl" lang="ar" className="flex flex-col gap-3">
+        <p className="text-xs text-muted-foreground">
+          Right-to-left host: logical spacing, localized <code>labels</code>,
+          and <code>{\`locale="ar"\`}</code> for case folding.
+        </p>
+        <EntityPicker<GraphNode>
+          mode="multi"
+          items={AR_NODES}
+          value={value}
+          onChange={setValue}
+          kinds={NODE_KINDS}
+          labels={AR_LABELS}
+          locale="ar"
+        />
+      </div>
+    </DemoFrame>
+  );
+}
+
 export default function EntityPickerDemo() {
   return (
     <Tabs defaultValue="single">
@@ -5065,6 +5212,8 @@ export default function EntityPickerDemo() {
         <TabsTrigger value="custom-empty">Custom empty</TabsTrigger>
         <TabsTrigger value="custom-trigger">Custom trigger</TabsTrigger>
         <TabsTrigger value="handle">Imperative handle</TabsTrigger>
+        <TabsTrigger value="server">Server search</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
       <TabsContent value="single" className="mt-4">
         <SingleDemo />
@@ -5089,6 +5238,12 @@ export default function EntityPickerDemo() {
       </TabsContent>
       <TabsContent value="handle" className="mt-4">
         <HandleDemo />
+      </TabsContent>
+      <TabsContent value="server" className="mt-4">
+        <ServerSearchDemo />
+      </TabsContent>
+      <TabsContent value="rtl" className="mt-4">
+        <RtlDemo />
       </TabsContent>
     </Tabs>
   );
@@ -6519,15 +6674,31 @@ export default function FileTreeDemo() {
     demo: `﻿"use client";
 
 import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
+import { ar, tr } from "date-fns/locale";
 import { FilterBar } from "./filter-bar";
 import {
+  DUMMY_CATEGORIES_AR,
   DUMMY_CATEGORIES_EN,
+  DUMMY_LABELS_AR,
   DUMMY_LABELS_TR,
   formatDateRangeTR,
 } from "./dummy-data";
 import type { FilterBarValue } from "./types";
+
+function AccessoryButton({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+    >
+      <SlidersHorizontal aria-hidden="true" className="h-4 w-4" />
+    </button>
+  );
+}
 
 export default function FilterBarDemo() {
   const [controlledValue, setControlledValue] = useState<FilterBarValue>({
@@ -6543,6 +6714,8 @@ export default function FilterBarDemo() {
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="partial">Partial usage</TabsTrigger>
         <TabsTrigger value="i18n">Localized</TabsTrigger>
+        <TabsTrigger value="options">Options</TabsTrigger>
+        <TabsTrigger value="rtl">RTL</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="basic" className="mt-6">
@@ -6608,9 +6781,46 @@ export default function FilterBarDemo() {
         <FilterBar
           categories={DUMMY_CATEGORIES_EN}
           labels={DUMMY_LABELS_TR}
+          calendarLocale={tr}
           formatDateRange={formatDateRangeTR}
           resultsCount={12}
         />
+      </TabsContent>
+
+      <TabsContent value="options" className="mt-6 space-y-8">
+        <div>
+          <p className="mb-2 text-sm font-semibold text-foreground">
+            searchAccessory + align=&quot;left&quot; + locale=&quot;tr&quot; (dates and grouped count)
+          </p>
+          <FilterBar
+            categories={DUMMY_CATEGORIES_EN}
+            align="left"
+            locale="tr"
+            defaultDateRange={{ from: new Date(2026, 9, 5), to: new Date(2026, 9, 19) }}
+            resultsCount={1234}
+            searchAccessory={<AccessoryButton label="Search options" />}
+          />
+        </div>
+        <div>
+          <p className="mb-2 text-sm font-semibold text-foreground">
+            align=&quot;right&quot; (the chip row follows it too)
+          </p>
+          <FilterBar categories={DUMMY_CATEGORIES_EN} align="right" resultsCount={1} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="rtl" className="mt-6">
+        <div dir="rtl" lang="ar">
+          <FilterBar
+            categories={DUMMY_CATEGORIES_AR}
+            labels={DUMMY_LABELS_AR}
+            locale="ar"
+            calendarLocale={ar}
+            align="left"
+            resultsCount={12}
+            searchAccessory={<AccessoryButton label="خيارات البحث" />}
+          />
+        </div>
       </TabsContent>
     </Tabs>
   );

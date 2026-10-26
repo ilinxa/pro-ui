@@ -10,6 +10,7 @@ interface ResultRowProps<T extends EntityLike> {
   selected: boolean;
   kindMeta: KindMeta | undefined;
   showKindBadges: boolean;
+  selectedText: string;
   onSelect: () => void;
   customRender?: ReactNode;
 }
@@ -19,6 +20,7 @@ export function ResultRow<T extends EntityLike>({
   selected,
   kindMeta,
   showKindBadges,
+  selectedText,
   onSelect,
   customRender,
 }: ResultRowProps<T>) {
@@ -38,6 +40,7 @@ export function ResultRow<T extends EntityLike>({
           <span className="truncate">{item.label}</span>
         </>
       )}
+      {selected ? <span className="sr-only">{selectedText}</span> : null}
     </CommandItem>
   );
 }

@@ -10,6 +10,7 @@ interface ChipProps<T extends EntityLike> {
   kindMeta: KindMeta | undefined;
   showKind: boolean;
   onRemove: () => void;
+  removeLabel: string;
   disabled?: boolean;
 }
 
@@ -18,6 +19,7 @@ export function Chip<T extends EntityLike>({
   kindMeta,
   showKind,
   onRemove,
+  removeLabel,
   disabled,
 }: ChipProps<T>) {
   return (
@@ -43,7 +45,7 @@ export function Chip<T extends EntityLike>({
       <span className="truncate">{entity.label}</span>
       <button
         type="button"
-        aria-label={`Remove ${entity.label}`}
+        aria-label={removeLabel}
         disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();

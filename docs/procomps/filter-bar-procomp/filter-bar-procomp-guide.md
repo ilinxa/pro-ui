@@ -1,6 +1,7 @@
 # filter-bar — procomp guide
 
-> Stage 3.
+> Stage 3 · v0.3.0 (2026-10-26). Upgrading from 0.2.x: read [Migration 0.2 → 0.3](#migration-02--03) first — `onChange`
+> no longer fires on mount and the default date format is `"en"`.
 
 ## When to use
 
@@ -81,45 +82,75 @@ const [filters, setFilters] = useState<FilterBarValue>({
 ### Localization
 
 ```tsx
+import { tr } from "date-fns/locale";
+
 <FilterBar
   categories={categories}
+  locale="tr"                 // dates on the trigger + the results count number
+  timeZone="Europe/Istanbul"  // optional; also given to the calendar
+  calendarLocale={tr}         // month / weekday names inside the calendar (date-fns Locale you import)
   labels={{
-    searchPlaceholder: "Haber ara...",
+    searchPlaceholder: "Haber ara…",
+    searchAriaLabel: "Haber ara",
     allLabel: "Tümü",
-    dateButtonText: "Tarih Filtrele",
-    clearDateText: "Tarihi Temizle",
-    resultsCountText: (n) => `${n} haber bulundu`,
+    dateButtonText: "Tarihe göre filtrele",
+    clearDateLabel: "Tarih filtresini temizle",
+    clearDateText: "Tarihi temizle",
+    categoriesAriaLabel: "Kategoriye göre filtrele",
+    resultsCountText: (n) => `${new Intl.NumberFormat("tr").format(n)} haber bulundu`,
+    calendarLoadErrorText: "Takvim yüklenemedi.",
+    calendarRetryText: "Tekrar dene",
   }}
-  formatDateRange={({ from, to }) => {
-    const fmt = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short" });
-    return `${fmt.format(from)} - ${fmt.format(to)}`;
-  }}
+/>
+```
+
+- `locale` (default `"en"`; an invalid or unsupported tag falls back to `"en"`) formats the trigger dates. Without
+  `locale` the count reads "12345 items found"; with it the number is grouped for that locale ("12.345").
+- The default count text uses plural rules: "1 item found" / "{n} items found". `resultsCountText` gets the raw number.
+- Every label key is optional; passing `undefined` for a key keeps its default.
+- `formatDate` / `formatDateRange` still override the date text completely.
+- `dir` (`"ltr"` / `"rtl"`) is needed because the date popover renders in a portal and does not inherit direction
+  from your layout. Without it the bar reads the nearest `dir` after mounting.
+
+### Search accessory, alignment
+
+```tsx
+<FilterBar
+  align="left"                      // "left" | "center" (default) | "right" — both rows; logical: "left" = start (right under RTL)
+  searchAccessory={<Kbd>⌘K</Kbd>}   // inline end of the search field, after the input in tab order
 />
 ```
 
 ## Gotchas
 
-### Debounce only in uncontrolled mode
+### When `onChange` fires
 
-In **uncontrolled** mode, search debounces 250ms before firing `onSearchChange`. In **controlled** mode (you pass `search`), debounce is bypassed — every keystroke fires `onSearchChange` immediately. If you need debounce in controlled mode, debounce yourself or use `useDeferredValue`.
+Once per user interaction (a chip, a date pick, clearing the date, a committed search), with the merged value. Never on
+mount (unless `emitInitialChange`), never because your `onChange` changed identity, never because you changed a
+controlled prop. If a chip or date is used while a search is still debouncing, that search is committed first and
+included in the same call — no second, late search-only call follows. `onSearchChange` / `onCategoryChange` /
+`onDateRangeChange` keep firing for their own control.
 
-### `onChange` fires on initial mount
+### Search debounce
 
-The combined `onChange` callback fires once on mount with initial values. If you want to skip the initial call, track it with a ref:
+Uncontrolled search commits after `searchDebounceMs` (default 250). Controlled search (`search` passed) fires on every
+keystroke unless you set `debounceControlledSearch`: then the field keeps a local echo and commits after the delay.
+Your `search` prop wins whenever it changes to something that is not one of our pending commits (a reset, a URL change),
+and a host that adopts commits late (router / URL state) does not make the field jump back. If you never adopt a
+commit, the field keeps showing the typed text until your prop next changes. A commit still pending when the bar
+unmounts is dropped.
 
-```tsx
-const initialFire = useRef(true);
-<FilterBar
-  onChange={(value) => {
-    if (initialFire.current) { initialFire.current = false; return; }
-    setFilters(value);
-  }}
-/>
-```
+### The calendar loads lazily
 
-### Date Popover uses shadcn Calendar
+The date picker is the shadcn `Calendar` (range, two months). Its code loads only when the date popover first opens,
+behind a calendar skeleton (two months from `md` up, one on phones); with `hideDateRange` it never loads. The install still includes `calendar`,
+`react-day-picker` and `date-fns`. If the chunk fails to load (offline, a stale tab after a deploy) the popover shows
+`labels.calendarLoadErrorText` with a `labels.calendarRetryText` button instead of crashing the page.
 
-The date picker is a shadcn `Calendar` primitive in range mode (2 months). It pulls in `react-day-picker` + `date-fns` as transitive peers. If you've already installed Calendar for another reason, no extra cost.
+### Server rendering with a preset date range
+
+The default time zone is the runtime's. If you server-render a preset `dateRange`, pass `timeZone` so the server and the
+browser format the same day.
 
 ### "All" chip is the sentinel
 
@@ -129,7 +160,17 @@ The first chip in the row is the "All" chip — clicking it clears `category` to
 
 If you don't pass `categories` (or pass `[]`) AND `hideCategories` is false, the chip row is automatically hidden. You don't need both. Same for `dateRange` — the picker always renders if `hideDateRange` is false (no auto-hide based on data).
 
-## Migration notes
+## Migration 0.2 → 0.3
+
+| Before | Now | What to do |
+|---|---|---|
+| `onChange` fired once on mount, again when its identity changed, and when a controlled prop changed | Fires only from user interactions | Drop any "skip the first call" ref. If you seeded state from the mount call, pass `emitInitialChange` (one call on mount). |
+| Dates formatted in the browser's language | Formatted in `"en"` unless `locale` is passed (no hydration mismatch) | Pass `locale` (and `timeZone`) to localize. |
+| "1 items found" | "1 item found" | Nothing, unless you matched the old text. |
+| Chip row always centred | `align` applies to the chip row too | Nothing for the default (`center`). |
+| Calendar in the initial bundle | Loads when the popover opens | Nothing. |
+
+## Migration notes (from the source app)
 
 Supersedes the search/filter section in kasder `kas-social-front-v0` `NewsMagazineGrid.tsx` (lines 128–200). The migration:
 
@@ -144,6 +185,5 @@ The shadcn Calendar primitive was newly installed for this component (first user
 - Not implemented: multi-select on categories.
 - Not implemented: saved filter presets (chip-row of preset names + "Save current").
 - Not implemented: reset-all button.
-- Not implemented: `locale` pass-through for Calendar (date-fns locales).
-- v0.3: numeric range / dropdown / multi-tag sub-controls.
-- v0.3: chip row could optionally render as `category-cloud` (with counts) when consumer prefers — currently the bar uses Button-as-chip (visually different from category-cloud's Badge-as-chip).
+- Not implemented: numeric range / dropdown / multi-tag sub-controls.
+- Not implemented: the chip row could optionally render as `category-cloud` (with counts) when consumer prefers — currently the bar uses Button-as-chip (visually different from category-cloud's Badge-as-chip).

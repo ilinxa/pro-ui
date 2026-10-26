@@ -15,6 +15,8 @@ interface TriggerButtonProps<T extends EntityLike> {
   open: boolean;
   disabled?: boolean;
   triggerLabel?: string;
+  placeholderText: string;
+  removeChipLabel: (label: string) => string;
   kinds?: Record<string, KindMeta>;
   showKindBadges: boolean;
   listboxId: string;
@@ -35,6 +37,8 @@ function TriggerButtonInner<T extends EntityLike>(
     open,
     disabled,
     triggerLabel,
+    placeholderText,
+    removeChipLabel,
     kinds,
     showKindBadges,
     listboxId,
@@ -45,7 +49,7 @@ function TriggerButtonInner<T extends EntityLike>(
   } = props;
 
   const contentId = useId();
-  const placeholder = triggerLabel ?? "Select…";
+  const placeholder = placeholderText;
   const isMulti = mode === "multi";
   const multiValue = Array.isArray(value) ? value : [];
   const singleValue = !Array.isArray(value) ? value : null;
@@ -77,7 +81,7 @@ function TriggerButtonInner<T extends EntityLike>(
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls={listboxId}
+        aria-controls={open ? listboxId : undefined}
         aria-label={!ariaLabelledBy && triggerLabel ? triggerLabel : undefined}
         aria-labelledby={ariaLabelledBy ?? (triggerLabel ? undefined : contentId)}
         onKeyDown={onKeyDown}
@@ -95,6 +99,7 @@ function TriggerButtonInner<T extends EntityLike>(
               kinds={kinds}
               showKindBadges={showKindBadges}
               onRemove={onRemoveChip}
+              removeChipLabel={removeChipLabel}
               disabled={disabled}
             />
           )

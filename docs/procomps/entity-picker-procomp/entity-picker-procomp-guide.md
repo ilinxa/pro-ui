@@ -2,6 +2,8 @@
 
 > **Audience:** consumer using `<EntityPicker />` to pick one or more typed entities from a searchable list.
 >
+> **Version:** v0.2.0 (2026-10-26) — server search (controlled `query`, `filterItems={false}`, loading / error / Load more), `labels`, `locale`.
+>
 > **Companion docs:** [description](entity-picker-procomp-description.md) (what & why), [plan](entity-picker-procomp-plan.md) (how it's built).
 
 ---
@@ -28,8 +30,8 @@ Examples that fit:
 ## When NOT to use EntityPicker
 
 - **Pure free-text input.** This is a picker — values must come from `items`. For arbitrary string entry, use a plain `<Input>` or wait for a future `combobox-with-create` host.
-- **Async-loaded items > 5000.** v0.1 renders all items in the popover (no virtualization). For large lists, paginate at the source (filter `items` upstream by query) — the picker stays consumer-controlled.
-- **Hierarchical / grouped lists.** v0.1 is flat. If you need section headers, render them via `renderItem` returning `null` plus parent-rendered separators — but it's smoother to use shadcn's `Command` directly.
+- **Huge client-side lists.** The popover renders every item it is given (no virtualization). For large sets, search on the server: controlled `query` + `filterItems={false}` + `hasMore` / `onLoadMore` (see [Server search](#server-search-you-own-the-fetch)).
+- **Hierarchical / grouped lists.** The list is flat. If you need section headers, render them via `renderItem` returning `null` plus parent-rendered separators — but it's smoother to use shadcn's `Command` directly.
 - **Filterable on multiple axes.** `match` is one predicate. For multi-axis (kind + label + tag) filter UIs, consider `filter-panel` instead.
 - **Inline-editable picker** (type-and-create). Out of scope; create-on-the-fly UIs need a different host.
 
@@ -60,7 +62,7 @@ export function AssigneeField() {
       items={USERS}
       value={assignees}
       onChange={setAssignees}
-      placeholder="Search members…"
+      labels={{ searchPlaceholder: "Search members…" }}
       kinds={{
         owner:  { label: "Owner",  color: "var(--chart-1)" },
         admin:  { label: "Admin",  color: "var(--chart-2)" },
@@ -94,7 +96,7 @@ The mode determines the typing of `value` + `onChange` via TypeScript function o
 2. **Popover content** — shadcn `Command` (cmdk) for search + filtered items, with a default item renderer or a consumer-provided one.
 3. **Selection equality is id-based** — `onChange` only fires when the SET of selected IDs changes, not on identity-only changes (a re-fetched user with a different object reference but same id is treated as the same selection).
 4. **Multi mode** — selected items render as chips above (or alongside) the trigger. Each chip has a remove button. Backspace on an empty search input removes the last chip.
-5. **`mode` is the discriminant** for the function-overloaded value type. Single = `T | null`, multi = `T[]`. v0.1 doesn't allow mode-flipping at runtime (would break the typing contract).
+5. **`mode` is the discriminant** for the function-overloaded value type. Single = `T | null`, multi = `T[]`. The mode can't flip at runtime (it would break the typing contract).
 6. **Custom triggers + items + empty states** — three render slots. Default renderers cover the common case; slots are escape hatches for richer UIs.
 
 The component is generic: `<EntityPicker<Project>>` types every callback's argument as `Project`, including `renderItem`, `renderTrigger`, `match`.
@@ -113,11 +115,12 @@ const [owner, setOwner] = useState<User | null>(null);
   items={USERS}
   value={owner}
   onChange={setOwner}
-  placeholder="Pick an owner"
+  labels={{ triggerPlaceholder: "Pick an owner" }}
 />
 ```
 
-`value` is `User | null` (not `User`); a null value renders the placeholder in the trigger.
+`value` is `User | null` (not `User`); a null value shows `labels.triggerPlaceholder` (default "Select…") in the
+trigger. `labels.searchPlaceholder` is the search input's placeholder.
 
 ### Pattern 2: multi picker with kind badges
 
@@ -215,7 +218,7 @@ Default trigger is a full-field overlay `<button>` showing chips (multi) or labe
 />
 ```
 
-The `triggerRef` MUST be attached to the focusable element — this is what `EntityPickerHandle.focus()` targets. Without it, `focus()` silently no-ops (dev-only `console.warn`).
+The `triggerRef` MUST be attached to the focusable element — this is what `EntityPickerHandle.focus()` targets. Without it, `focus()` silently does nothing (no warning).
 
 Since v0.1.2 (F-cross-13) your node is no longer slot-merged into the Popover trigger — the picker wraps it in an `inline-flex max-w-full` span that owns open-on-click, with a hidden anchor button providing popover positioning. Three consequences:
 
@@ -230,7 +233,7 @@ Pass a `ref` for parent-driven control:
 ```tsx
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { EntityPicker, type EntityPickerHandle } from "@/components/entity-picker";
 
 export function CommandPaletteAssignee() {
@@ -289,7 +292,7 @@ TypeScript catches the mismatch via function overloads. At runtime, passing `Use
 
 ### `triggerRef` in custom triggers is mandatory
 
-If you use `renderTrigger` and forget to attach `triggerRef`, the imperative `focus()` silently no-ops. In development, you get a one-time `console.warn`; in production, no signal. Always attach it to your focusable root element (the `<button>` / `<div role="button">` / etc.).
+If you use `renderTrigger` and forget to attach `triggerRef`, the imperative `focus()` silently does nothing — there is no warning in any environment. Always attach it to your focusable root element (the `<button>` / `<div role="button">` / etc.).
 
 ### The default trigger is a full-field overlay `<button>`
 
@@ -332,7 +335,7 @@ const ref = useRef<EntityPickerHandle>(null);
 </>
 ```
 
-`clear()` resets to `null` (single) or `[]` (multi) and fires `onChange`.
+`clear()` resets to `null` (single) or `[]` (multi) and fires `onChange` when something was selected.
 
 ### Use as a form field via properties-form custom renderer
 
@@ -360,33 +363,93 @@ const schema: PropertiesFormField[] = [
 
 The form stores the id (string); the picker shows the entity. Two-way conversion happens inside the renderer.
 
-### Async items (load after user types ≥ 2 chars)
+### Server search (you own the fetch)
+
+The picker never fetches. You own the query, the request and the results; the picker renders what you pass.
 
 ```tsx
 const [query, setQuery] = useState("");
 const [items, setItems] = useState<User[]>([]);
+const [hasMore, setHasMore] = useState(false);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+const [attempt, setAttempt] = useState(0);
 
 useEffect(() => {
-  if (query.length < 2) { setItems([]); return; }
-  let cancelled = false;
-  api.searchUsers(query).then((results) => {
-    if (!cancelled) setItems(results);
-  });
-  return () => { cancelled = true; };
-}, [query]);
+  const ctrl = new AbortController(); // your stale-response guard
+  setLoading(true);
+  setError(null);
+  api.searchUsers({ q: query, page: 1, signal: ctrl.signal })
+    .then((r) => { setItems(r.items); setHasMore(r.hasMore); })
+    .catch((e) => { if (!ctrl.signal.aborted) setError(e.message); })
+    .finally(() => { if (!ctrl.signal.aborted) setLoading(false); });
+  return () => ctrl.abort();
+}, [query, attempt]);
 
 <EntityPicker
-  mode="single"
+  mode="multi"
   items={items}
   value={selected}
   onChange={setSelected}
-  // The picker calls match(item, query) per item; we want it to bypass that and trust our pre-filtered items
-  match={() => true}
-  // Wire the query to our fetcher via renderEmpty's ctx OR via cmdk's onValueChange directly... requires shadcn Command escape hatch
+  query={query}
+  onQueryChange={(q) => setQuery(q)} // reason: "input" while typing, "reset" ("") when the popover closes
+  filterItems={false}                 // render items as given; match is not used
+  loading={loading}
+  error={error ?? false}              // true → labels.error; a string is shown as is
+  onRetry={() => setAttempt((n) => n + 1)}
+  hasMore={hasMore}
+  onLoadMore={loadNextPage}
+  loadingMore={loadingMore}
 />
 ```
 
-> **Note:** v0.1 doesn't expose a public `query` prop. Async items work but you don't have direct access to the search string. v0.2 may add `value`/`onValueChange` for the search input. For now, pre-load `items` or use a wide enough match function.
+- `query` wins every render. Closing the popover calls `onQueryChange("", "reset")` once. Without `query` the picker
+  keeps its own search and clears it on close, as before.
+- Precedence: loading > error > empty. Loading with rows keeps the rows and adds a loading row; `aria-busy` is on the
+  list while loading. Retry renders only when you pass `onRetry`. `renderLoading({ query, itemCount })` and
+  `renderError({ message, query, onRetry })` replace the default rows.
+- "Load more" is a button after the list, rendered only with both `hasMore` and `onLoadMore`; it keeps the popover open
+  and ignores presses while `loadingMore` (`aria-disabled`, showing `labels.loading`; it stays focusable so keyboard focus
+  isn't lost). Status rows, the server-mode empty row and Load more sit below the list, outside it; Enter / Space on
+  them never selects a row.
+- When loading settles while the popover is open, `labels.resultsCount` is announced once to screen readers (not per
+  keystroke, not on an error). With client filtering it counts the rows that match.
+- With `filterItems={false}` the highlight goes back to the first row when the result ids change. Selected chips stay
+  even when their items are not in the current results (they render from `value`).
+
+### Labels and locale
+
+```tsx
+<EntityPicker
+  locale="tr" // the default match folds case with Turkish rules: "istanbul" finds "İstanbul"
+  labels={{
+    searchPlaceholder: "Ara…",
+    searchLabel: "Kişi ara",
+    triggerPlaceholder: "Seçin…",
+    removeChip: (label) => `${label} kaldır`,
+    nothingToPick: "Seçilecek bir şey yok",
+    noResults: "Sonuç yok",
+    loading: "Yükleniyor…",
+    error: "Bir şeyler ters gitti",
+    retry: "Tekrar dene",
+    loadMore: "Daha fazla yükle",
+    resultsCount: (count, formatted) => `${formatted} sonuç`,
+    listLabel: "Öneriler",
+    selectedState: "seçili",
+  }}
+  …
+/>
+```
+
+Every key is optional; `undefined` keeps the default (`defaultEntityPickerLabels`). The English defaults are the text
+the picker showed before 0.2.0. `listLabel` names the result list (default "Suggestions") and `selectedState` is
+read out for chosen rows. `resultsCount` gets the count and the count formatted for `locale` (default `"en"`).
+`placeholder` and `triggerLabel` still work and win over `searchPlaceholder` / `triggerPlaceholder`; they are
+deprecated. Without `locale` matching uses plain `toLowerCase()`, as before.
+
+The popover renders in a portal, outside your layout, so it cannot inherit `dir`. It reads the trigger's direction after the
+trigger mounts; pass `dir="rtl"` / `"ltr"` to set it explicitly — and pass it if your app switches direction at runtime
+without remounting, or if a custom trigger doesn't attach `triggerRef`.
 
 ### Custom empty state
 
@@ -408,11 +471,13 @@ useEffect(() => {
 
 ---
 
-## Known limitations / deferred to v0.2
+## Known limitations
 
 - **No mode flip at runtime.** Locked at the call site.
+- **Fetching is yours.** No built-in loader, abort or stale-response guard — keep that in your data layer.
+- **Selected items missing from the current results can't be unticked in the list.** In multi mode remove the chip; in
+  single mode use the handle's `clear()`.
 - **No virtualization.** Render budget ~500 items in the popover. Past that, filter `items` upstream.
-- **No public `query` / `onQueryChange` for async items.** v0.2 candidate.
 - **No "create new" affordance.** Out of scope; would need a separate `combobox-with-create` host.
 - **Single trigger style** for the default. The `renderTrigger` slot covers visual customization; the underlying focus model + a11y wiring is fixed.
 
@@ -420,7 +485,11 @@ useEffect(() => {
 
 ## Migration notes
 
-This is the v0.1.0 component. No prior version.
+**0.1.x → 0.2.0** is additive: without the new props the picker renders, filters and reads as before. Two accessibility
+additions change the open markup slightly: the result list has an explicit name ("Suggestions", which cmdk already gave
+it) and chosen rows carry a hidden "selected". `placeholder` / `triggerLabel` are deprecated in favour of
+`labels.searchPlaceholder` / `labels.triggerPlaceholder`. If you used `match={() => true}` for server results, switch to
+`filterItems={false}` + `query`.
 
 If migrating from `react-select`, the closest mapping:
 
@@ -440,8 +509,7 @@ The mental shift: react-select is uncontrolled-by-default with deep customizatio
 
 ## Open follow-ups
 
-- v0.2 public `query` / `onQueryChange` for async-load patterns
-- v0.2 maybe a `groupBy` prop for hierarchical popover lists
+- Not implemented: a `groupBy` prop for hierarchical popover lists
 - Compose-with-properties-form recipe documented + tested as a sweep-tracker entry
 - Integration with `markdown-editor`'s wikilink autocomplete (different code paths today; future shared substrate possible)
 
@@ -454,20 +522,23 @@ The mental shift: react-select is uncontrolled-by-default with deep customizatio
 ```ts
 // from @/components/entity-picker
 export { EntityPicker } from "./entity-picker";
+export { defaultEntityPickerLabels } from "./types";
 export type {
   CommonPickerProps,
   EntityLike,
   EntityPickerHandle,
+  EntityPickerLabels,
   EntityPickerProps,
   KindMeta,
   MultiPickerProps,
   PickerMode,
   RenderEmptyContext,
+  RenderErrorContext,
   RenderItemContext,
+  RenderLoadingContext,
   RenderTriggerContext,
   SinglePickerProps,
 } from "./types";
-export { meta } from "./meta";
 ```
 
 ### Imperative handle
