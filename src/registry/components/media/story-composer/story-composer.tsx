@@ -328,6 +328,8 @@ export const StoryComposer = forwardRef<
         drawingStrokes: metadata.drawingStrokes,
         appliedFilter: metadata.appliedFilter,
         adjustments: metadata.adjustments,
+        frame: metadata.frame,
+        textOnly: metadata.textOnly,
       };
       setPublishStatus("uploading");
       // Upload runs the second half of the bar; uploader_.progress is mirrored
@@ -452,7 +454,13 @@ export const StoryComposer = forwardRef<
         // round-trip through the editor's typed state surface to flip just the
         // mode. getState() is non-null, so no cast/fallback is needed.
         const editor = editorRef.current;
-        if (editor) editor.loadState({ ...editor.getState(), mode: m });
+        // keepModified: a mode flip is not a new source, so the discard
+        // confirm must still see the user's edits.
+        if (editor)
+          editor.loadState(
+            { ...editor.getState(), mode: m },
+            { keepModified: true },
+          );
       },
       cancel: () => onClose(),
       publish: requestPublish,
@@ -510,6 +518,8 @@ export const StoryComposer = forwardRef<
           drawingStrokes: out.metadata.drawingStrokes,
           appliedFilter: out.metadata.appliedFilter,
           adjustments: out.metadata.adjustments,
+          frame: out.metadata.frame,
+          textOnly: out.metadata.textOnly,
         };
         return { blob: out.blob, metadata: publishMeta };
       },

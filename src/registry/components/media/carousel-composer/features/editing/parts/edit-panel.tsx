@@ -100,10 +100,22 @@ export function CarouselEditPanel({
   const handleDone = async () => {
     const editor = editorRef.current;
     if (!editor || !isEditable) return;
+    // Nothing changed since the source loaded: keep the item as it is instead
+    // of re-encoding it (a re-encode would bake the letterbox into the photo).
+    // `isModified` is media-editor 0.6.0+; an older vendored editor has none,
+    // so treat it as modified (the 0.3.0 behaviour: always re-export).
+    const modified =
+      typeof editor.isModified === "function" ? editor.isModified() : true;
+    if (!modified) {
+      onCancel();
+      return;
+    }
     setBusy(true);
     setFailed(false);
     try {
-      const { blob, metadata } = await editor.export();
+      // Export only the photo's displayed area (no letterbox bars), at the
+      // photo's own resolution; metadata width / height are the blob's pixels.
+      const { blob, metadata } = await editor.exportImage({ region: "media" });
       const url = URL.createObjectURL(blob);
       onApply(item.id, {
         url,

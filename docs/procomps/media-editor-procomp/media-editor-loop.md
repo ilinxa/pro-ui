@@ -416,3 +416,282 @@ report-back `.claude/report-back-2026-10-26-media-editor-0-5-1.md`.
 
 ### U7 — Ship (2026-10-26)
 `0b5556a` pushed (with `58f8cc0`, `9df1a34`); live poll 2 (00:50) serves `/r/media-editor.json` 0.5.1 with `lib/placement.ts`. Patch closed.
+
+
+## Run — 0.6.0 (U-loop, platform note M7E + F-05, started 2026-10-26)
+
+### Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **breaking minor** — `ExportMetadata.width/height` and the default image export change values; composed by story-composer, carousel-composer(-editing), content-composer → always the user's call) |
+| **Current stage** | **U4 — fix wave 1** (U3 run 1 green; 2 finders → 26 merged rows) |
+| **Sign-off policy** | user-interactive (composed component). Push grant: **given 2026-10-26** — push after the pre-push doc verifier's fixes + re-run gates, then verify live. |
+| **Version target** | v0.5.1 → **v0.6.0** (+ `media-editor-capture` 0.6.0); dependents per U1 |
+| **Started / updated** | 2026-10-26 / 2026-10-26 |
+
+**Trigger:** user go 2026-10-26 ("start the media-editor 0.6.0 U-loop with that check"). Input: platform note
+`E:/tmp/social-ui-v2/PROUI_NOTE_M7E_MEDIA_EDITOR.md` (11 asks, production build, Chromium + WebKit) + carousel-composer
+follow-up **F-05** (`docs/procomps/carousel-composer-procomp/reviews/2026-10-26-v0.3.0-platform-contract.md`).
+
+### Stage checklist
+
+- [x] U0 Intake — 2 fresh read-only Sonnet validators (asks split by subsystem) + architect spot-checks (below)
+- [x] U1 Change contract — below; **sign-off: user 2026-10-26** (4 decisions, all as recommended)
+- [x] U2 Implement · [x] U3 Gate battery (run 1) · [ ] U4 Adversarial review (findings in; fix wave 1 running) (2 finders + dependents axis) · [ ] U5 Runtime & smoke (slug + ALL dependents + capture + carousel-composer-editing) · [ ] U6 Docs & review file · [ ] U7 Ship
+
+### U0 — validation of the asks (source-level; runtime proof owed at U5)
+
+Architect re-read the decisive lines: `parts/editor-canvas.tsx:205-229` (crop frame = 80 % of the stage),
+`:234-247` (`node.cache()` deps `[image, activeFilter, adjustments]`; Konva 10.3 `Image._attrsAffectingSize = ['image']`),
+`media-editor.tsx:255-287,495` (only 4 of 15 `EditAction` kinds emitted), `hooks/use-media-editor-state.ts:292-303`
+(`isDirty`), `types.ts:278` (`ExportMetadata.width` documented as "Output pixel size").
+
+| # | Ask | Verdict | Root cause (file:line) | Wider than reported |
+|---|---|---|---|---|
+| 1 | crop presets / free frame fit the stage, not the photo | CONFIRMED (mechanism mis-attributed) | auto-init frame `editor-canvas.tsx:205-229`; drag/resize clamps to stage `:612-636,677`; Apply intersects with the fit rect (`media-editor.tsx:1819-1841`) → a 1:1 preset on a letterboxed photo bakes non-square | `fitCropToStage` / `ToolCropOverlay` / `ASPECT_RATIO_VALUES` are exported but never used by the editor; Done with the crop tool still open exports the raw stage rect incl. letterbox (`media-editor.tsx:906-921`) |
+| 2 | `textOnly` missing from state; text export via `foreignObject` | CONFIRMED both | `textOnly` is a separate `useState` (`use-media-editor-state.ts:247`); `exportText` → SVG `foreignObject` → canvas (`lib/export-blob.ts:131-147`) | text export ignores `format` / `quality` / `pixelRatio` (always 2× PNG); content-composer `lib/gates.ts:93` reads a typed text card as "no media" (same cause) |
+| 3 | dialog grid tracks unconstrained | CONFIRMED | shadcn `DialogContent` is `grid` (auto tracks); `media-editor.tsx:2019-2048` adds none; root min-content (chip row `w-max` + in-flow crop panel) grows the track; no className prop exists | — |
+| 4 | metadata = CSS px; output follows the stage; no size / region opts | CONFIRMED (image + text); video already real px | `media-editor.tsx:905,920-921`; `export-blob.ts:47-53,142-143`; `ExportImageOpts` `types.ts:251-260` | contradicts our own doc (`types.ts:278` "Output pixel size") → a bug, not a design; image export is down-sampled to the viewport (a 4000 px photo exports at 2 × stage) |
+| 5 | `getIsDirty()` true after `initialSource` loads | CONFIRMED (by design) | `use-media-editor-state.ts:292-303` | **11 of 15 `EditAction` kinds (`text-*`, `sticker-*`, `draw-stroke`, `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are declared, never emitted** — disclosed in the `onEditAction` JSDoc (so not an inert-surface defect), but the platform's ask needs them; `isDirty` ignores `adjustments`; the editor's own discard-confirm asks on an untouched `initialSource` photo. content-composer uses `getIsDirty` as "has media" at 3 sites → must NOT change; add `isModified` |
+| 6 | focus not returned when the host unmounts on Done | PARTIAL | `isOpen` true→false path works (pinned by story-composer `focus-return.test.tsx`); unmount (no effect cleanup, `media-editor.tsx:1316-1338`) and inline presentation (no opener captured) are broken; `handle.close()` = `requestClose`, no focus | — |
+| 7 | no export background colour | PARTIAL | Konva stage unfilled; preview bg `#000` is CSS on the container (`editor-canvas.tsx:110,337`); JPEG (default) flattens to black = preview, PNG/WebP keep alpha ≠ preview | video composite also `clearRect` (`media-editor.tsx:1041`) |
+| 8 | chip row cut at ~396 px, no scroll cue | PARTIAL | no scroll cue — true (`media-editor.tsx:1919-1924`, scrollbar hidden); no "centred overflow clips the start" bug in the classes → the cut chips are most likely #3 (root wider than the overflow-hidden dialog). Re-check in the browser after #3 | `role="toolbar"` without roving tabindex / arrow keys |
+| 9 | export during a crop source swap | CONFIRMED (mechanism; wording partly off) | Apply sets the new draft synchronously (`media-editor.tsx:1878-1887`) → `getSourceBlob()` new at once; `useImage` keeps the old element until load (`editor-canvas.tsx:866-907`); `exportImage` awaits nothing | same window on first `initialSource` load (stage mounted, `image === null` → blank export) and after `loadState({sourceBlob})`; a `useImage` error makes exports silently blank |
+| 10 | overlays stored in stage CSS px | CONFIRMED, WIDER | text x/y/fontSize, sticker x/y, stroke points/brushSize, crop — all stage px; `loadState` replaces verbatim (`use-media-editor-state.ts:160`) | **crop Apply does not remap overlays** → after a crop they no longer sit on the same picture content, in one session |
+| 11 | stale layout after crop closes | CONFIRMED symptom; **the proposed fix (reset pan/zoom) would not work** | stale Konva `node.cache()` bitmap: cache effect never re-runs on a fit-size change; 386/504 = 0.766 matches the reported ~0.77 | every stage resize after load (rotate, window resize) — and inline editors (carousel-editing, content-composer) resize on every crop open/close |
+| F-05 | Done on an untouched photo bakes black bars | CONFIRMED | full-stage export (no crop) → transparent letterbox → JPEG black; carousel stores `metadata.width/height` (CSS, stage) as the item size | no image pass-through (video has one); any filter / text edit bakes the bars too |
+
+**Blast radius:** story-composer (`story-composer.tsx:313-330,455,495-515` — forwards `metadata` + overlay coords to the
+host uploader), carousel-composer-editing (`features/editing/parts/edit-panel.tsx:79-117` — inline, `cropAspects=[aspect]`,
+stores metadata size + `editorState`), content-composer (`content-composer.tsx:190-211,281-310`, `parts/media-substrate.tsx:56-225`,
+`lib/gates.ts:93,200` — persists `editorState` + `exportMetadata`, uses `getIsDirty` as "has media"), capture slice (no
+handle/state use), `carousel-composer/types.ts:15` duplicate aspect union. Tests pinning behaviour: `u4-fixes.test.tsx`
+(video metadata = real px). Size: **338.9 / 345 KB** (6 KB headroom).
+
+**Parked:** `fitCropToStage` exported but stage-only (fix to take a bounds rect); toolbar roving tabindex; physical
+`left`/`translate-x` dialog centring (marked `dir-ok`); `setDraft` revokes the old URL while it may still paint.
+
+### U1 — Change contract (signed off by the user 2026-10-26)
+
+User decisions: (1) `ExportMetadata.width/height` **fixed** to the blob's pixel size (our doc already promised it; video
+already did) — breaking value change, migration table; (2) default image export stays the **full stage**; new opt-in
+`region: "media"`; carousel-composer-editing uses it, and an untouched Done keeps the original item; (3) overlays:
+**additive** `MediaEditorState.frame` + remap (no state-format change); (4) build now on the user's sign-off; the
+platform gets the report-back at ship.
+
+Public contract (architect-written in `types.ts` before U2 — the source of truth):
+
+| Ask | Public surface |
+|---|---|
+| 1 | `CropAspect = AspectRatio \| "original" \| \`${number}:${number}\``; `cropAspects?: CropAspect[]` (invalid → dropped + dev-warn); label `crop.original`; frames laid out on / clamped to the photo's displayed rect; `fitCropToStage` gains an optional bounds rect |
+| 2 | `MediaEditorState.textOnly?` (always filled by `getState`, restored by `loadState`); `textContent` / `textBackground` kept in sync while in text mode; text card drawn with Canvas 2D (`exportTextOnlyBlob` stays exported, `@deprecated`); `ExportMetadata.textOnly?` |
+| 3 | grid tracks `minmax(0,1fr)` on the dialog content; `dialogClassName?` |
+| 4 | `ExportImageOpts.region / width / height / maxEdge`; `pixelRatio` default 2, photo's own resolution for `region: "media"`; metadata = blob pixels; `ExportMetadata.frame?` |
+| 5 | `handle.isModified()` + `EditorCtx.isModified` (set by any committed content change, cleared by a load / reset); discard confirm uses it; all content `EditAction`s emitted on commit (`undo` / `redo` stay unemitted — no undo stack); `getIsDirty` unchanged (content-composer reads it as "has media"), but now also counts adjustments |
+| 6 | focus restore also on unmount-while-focused and in inline presentation; `close()` doc |
+| 7 | `ExportImageOpts.backgroundColor?`; `canvasBackground?` prop (preview + export default fill) |
+| 8 | inline-start / inline-end fade cue on the chip row when it overflows; re-check the cut chips after #3 |
+| 9 | `handle.isSettled()` / `whenSettled({ timeoutMs })`; `exportImage` awaits it and rejects instead of exporting a blank canvas |
+| 10 | `MediaEditorState.frame?: StateFrame` (stage size + media rect); `loadState` maps from it once the new layout is known; overlays follow the photo on every media-rect change (resize, rotate) and on crop Apply |
+| 11 | re-cache the Konva image node when the fitted size changes |
+| F-05 | carousel-composer-editing: Done with `!isModified()` keeps the item; else `export({ region: "media" })`, item size = blob pixels |
+
+**Invariants (regression targets):** I1 `getIsDirty` semantics unchanged except adjustments; I2 default image export =
+full stage at pixelRatio 2 (only the metadata numbers change); I3 video metadata / pass-through unchanged
+(`u4-fixes.test.tsx`); I4 old snapshots (no `frame` / `textOnly`) load exactly as before; I5 flat labels still accepted;
+I6 the 0.5.1 focus restore on `isOpen` true→false; I7 `exportPhotoBlob` / `exportTextOnlyBlob` / `useMediaEditorState`
+signatures keep compiling for existing callers; I8 no new `EditAction` union members (exhaustive host switches).
+
+**Slices:** A (Sonnet) — `lib/crop-aspect.ts`, `lib/frame-map.ts`, `lib/export-geometry.ts`, `lib/text-card-export.ts`,
+`renderPhoto` in `lib/export-blob.ts`, `lib/resolve-crop-aspects.ts`, `parts/tool-crop-overlay.tsx`,
+`parts/editor-canvas.tsx` (#1 frame + clamps, #11, new callbacks). B (Sonnet) — `media-editor.tsx`,
+`hooks/use-media-editor-state.ts`, `parts/text-only-canvas.tsx` wiring (#2 sync, 3, 4 wiring, 5, 6, 7, 8, 9, 10 wiring).
+Architect — typed stubs for A's modules (written before U2), carousel-composer-editing (F-05), docs.
+**Size:** 338.9 / 345 KB, estimate +12–15 KB; budget set after the last fix wave.
+
+### U2 — Implement (started 2026-10-26)
+
+- **Architect, before the slices:** public contract in `types.ts` (+ `crop.original` label, `CropAspect` / `StateFrame`
+  barrel exports); typed stubs for slice A's seams (`lib/crop-aspect.ts`, `lib/frame-map.ts`, `lib/export-geometry.ts`,
+  `lib/text-card-export.ts`, `renderPhoto` + `ExportPhotoOptions.backgroundColor` in `lib/export-blob.ts`,
+  `EditorCanvasProps.onMediaRect / onImagePainted(url, natural) / onImageError`). tsc after the contract: 6 errors, all
+  owed by slice B.
+- **Architect, F-05 (carousel-composer-editing):** `features/editing/parts/edit-panel.tsx` — Done with
+  `!isModified()` closes like Cancel (no re-encode, no apply); otherwise `exportImage({ region: "media" })`, item size =
+  blob pixels. `__tests__/editing-seam.test.tsx`: mock handle → `isModified` / `exportImage`; asserts the region and
+  a new "Done with no change keeps the item" test — 8/8 alone; **falsified** (guard + region removed → both fail),
+  restored.
+- Slices A and B: two Sonnet implementers launched in parallel (background), briefs from the template.
+- **Slice A** (Sonnet): the 4 seam libs, `renderPhoto`, `resolveCropAspects` widened, `fitCropToStage(…, bounds?)`,
+  canvas #11 re-cache / #1 fit-rect frame + clamps / `onMediaRect` / `onImagePainted` / `onImageError`. 7 new test
+  files (64 tests), mutation-falsified (one equivalent mutant). **Slice B** (Sonnet): state sync, `isModified` +
+  EditActions, settled, export wiring, frame remap (a)/(b)/(c), dialog grid + `dialogClassName`, chip-row cue,
+  focus on unmount / inline, `canvasBackground`; `shell-0-6-0.test.tsx` (39 tests), 35 mutations all killed.
+- **Architect after the slices:** B parked "story-composer's mode switch `loadState({...getState(), mode})` now clears
+  `isModified`" → a regression (edit → switch tab → Cancel closes without the discard confirm). Fixed with additive
+  `LoadStateOpts.keepModified` (media-editor) + story-composer passes it (→ story-composer **0.6.1**); tests in
+  `shell-0-6-0.test.tsx` and `story-composer-0-6-0.test.tsx` (mock gains `loadState` recording) — falsified (both fail
+  without the fix), restored. Versions: media-editor / capture 0.6.0, story-composer 0.6.1, carousel-composer /
+  -editing 0.3.1 (meta + CHANGELOG). Roster: 4 new `lib/` files added to the `media-editor` item; roster diff clean.
+
+### U3 — Gate battery (2026-10-26, run 1 — `E:/tmp/ilinxa-release-kit/logs/battery-me060-1`)
+tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (all validators) · doc-budget 0 · tests (`NODE_ENV=production`)
+**197 files / 2688 passed / 6 skipped** · `pnpm build` 0. Artifact **media-editor 401.7 / 345 KB** (−16.4 %, under the
+1.2× hard fail; +62.8 KB vs 0.5.1 — U1 estimated +12–15: the shell grew ~800 lines) · capture 53.7 / 65.
+
+### U4 — Adversarial review (2026-10-26) — 2 fresh Sonnet finders on the frozen snapshot `E:/tmp/ilinxa-release-kit/snap-me060`
+Finder 1 = core correctness (17 rows, runtime probes P1–P3 under `E:/tmp/ilinxa-release-kit/finder1/`); finder 2 =
+dependents / public surface / a11y / contract (20 rows). Merged + architect verdicts (F = finder 1, D = finder 2).
+Fix owner: **A** = fix-wave implementer A (libs + canvas), **B** = fix-wave implementer B (shell + hook), **Arch** = architect.
+
+| Row | Sev | Finding | Verdict | Owner |
+|---|---|---|---|---|
+| R1 (F1, D10) | ⚠️ | settled ignores the pending overlay remap → export right after crop Apply / `loadState` bakes pre-remap overlays; metadata read from the closure's stale state | CONFIRMED (probe P1) | B |
+| R2 (F2, D3) | ⚠️ | image node always `cache()`d at device pixel ratio → `region:"media"` (and the 2× default on 1× screens, pre-existing) up-scales a screen-size bitmap | CONFIRMED (Konva `Node.js:177-193,285-295`) | A |
+| R3 (F3, D4) | 🔸 | natural-resolution export uncapped → 48 MP photo exceeds iOS canvas area (blank / `toBlob` null) | CONFIRMED | A |
+| R4 (F4) | 🔸 | hidden container (0×0) → `onMediaRect(null)` drops the media baseline → next resize maps by stage ratios (50 px off in probe P3) | CONFIRMED (probe P3) | A (canvas: no null while stage is 0) + B (keep baseline when media goes null for the same source) |
+| R5 (F5, D7, D18) | ⚠️ | text-card export font = 7 % of card width vs preview `clamp(1.5rem,7vw,3rem)` (viewport) → 0.6× on desktop, different wrapping; no `ctx.direction` | CONFIRMED | A (options) + B (measure the live textarea) |
+| R6 (F6) | 🔸 | Back leaves `isModified` true (Text tool auto-seeds an overlay) → discard confirm + F-05 re-encode; `text-add` with no compensating remove | CONFIRMED (probe P2) | B |
+| R7 (F7, D1) | 🔸 | Back restores the entry snapshot's coordinates without its frame → displaced after a resize during the tool | CONFIRMED | B |
+| R8 (F8, D12) | 🔹 | invalid `cropAspects` warns on every render | CONFIRMED | A (module-level dedupe) + B (memoize the call) |
+| R9 (F9, D16) | 🔹 | text snapshot without `textOnly` keeps the old card; `handle.addText` in text mode invisible | CONFIRMED | B |
+| R10 (F10, D17) | 🔹 | adjust debounce survives reset / load / new source; not flushed by an export | CONFIRMED | B |
+| R11 (F11) | 🔹 | crop Apply in flight can be overtaken by `loadState`; export during Apply's encode is "settled" | CONFIRMED (source ordering) | B |
+| R12 (F12) | 🔹 | `overrideUrlRef` not cleared by intake handlers → stuck unsettled after an odd `loadState` | CONFIRMED | B |
+| R13 (F13) | 🔹 | `backgroundColor` / `canvasBackground` with `var()` / invalid → canvas ignores it | CONFIRMED | A |
+| R14 (F14, D14, D15, D17) | 🔹 | doc mismatches: `pixelRatio` vs `maxEdge`; text card ignores `region` / `backgroundColor`; `frame` on composite video; per-keystroke `text-update` | CONFIRMED | Arch (types.ts docs, done) + B (frame on composited video) |
+| R15 (F15) | 🔹 | selected item's Transformer handles baked into the export (pre-existing) | CONFIRMED | A |
+| R16 (F16) | 🔹 | `onImagePainted` waits on rAF → hidden tab stalls `whenSettled` to the 10 s timeout | CONFIRMED | A |
+| R17 (F17) | 🔹 | `getState()` can pair the committed state with a newer frame for one tick | PLAUSIBLE → fix with R1 | B |
+| R18 (D2) | ⚠️ | story-composer `PublishMetadata` width/height now blob px while overlays stay stage px, no `frame` | CONFIRMED | Arch — `frame` / `textOnly` forwarded + documented, test falsified |
+| R19 (D5) | 🔸 | sub-pixel dark fringe on `region:"media"` JPEG | PLAUSIBLE — U5 corner-pixel check after R2 | U5 |
+| R20 (D6) | ⚠️ | content-composer still exports an untouched photo full-stage (bars) | DEFERRED — content-composer re-design (queued, owns F-04 / F-06); follow-up F-07 | content-composer |
+| R21 (D8) | 🔸 | `isSettled()` true during the `initialSource` fetch / decode | CONFIRMED | B |
+| R22 (D9) | 🔸 | canvas remount (mode switch, dialog reopen) keeps `paintedUrlRef` → "settled" on a fresh stage | CONFIRMED | B (tie painted to the stage instance) |
+| R23 (D11) | 🔸 | discard confirm no longer covers an unedited camera / gallery capture (not in CHANGELOG) | CONFIRMED | B (confirm when modified OR captured this session; doc done) |
+| R24 (D13) | 🔸 | carousel-composer-editing 0.3.1 on a vendored media-editor 0.5.1: `isModified` undefined | CONFIRMED | Arch — `typeof` guard |
+| R25 (D19) | 🔹 | artifact 401.7 / 345 KB | CONFIRMED | Arch — budget after the last wave |
+| R26 (D20) | 🔹 | inline unmount with focus on `<body>` (route change) focuses a stale opener | CONFIRMED | B (inline: restore only when focus was inside) |
+
+### U4 fix wave 1 (2026-10-26)
+- **Wave A** (Sonnet; libs + canvas): R2 (cache only when a filter / adjustment is active; exports re-cache the base
+  image node at the export ratio, restored in `finally`), R3 (`NATURAL_MAX_EDGE` 4096 for the `region:"media"`
+  default, `MAX_OUTPUT_PIXELS` 16 777 216 on every geometry result; single-canvas encode when sizes match), R4 canvas
+  half, R5 lib half (`fontSizePx` / `textBoxWidth` / `direction`), R8 lib half (module-level dev-warning dedupe), R13
+  (`resolveFillColor` via computed style), R15 (UI layer + transformer named and hidden during the render), R16 (rAF
+  raced with a 100 ms timer). Every fix mutation-falsified; no row refuted.
+- **Wave B** (Sonnet; shell + hook): R1 + R17 (commit tick; settled waits for pending AND committed remaps;
+  `exportImage` / `getState` read the committed state + frame), R4 shell half, R5 shell half (`measureTextInput` via
+  `data-slot="text-only-input"`), R6 + R7 (Back restores the entry flag, maps the entry snapshot onto the live frame,
+  emits compensating removes), R8 shell half, R9, R10 (drop on reset / load / new source; flush on export; a
+  `keepModified` round-trip flushes), R11 (`sourceEpochRef` token, Apply in flight = unsettled), R12, R14 (frame on
+  composited video), R21 (`sourceLoadingRef`), R22 (painted tied to the stage instance), R23 (`capturedRef`: confirm
+  when modified OR captured this session), R26. New `__tests__/shell-0-6-0-fixes.test.tsx` (31 tests); 26 mutations,
+  one vacuous test found by its own mutation and replaced.
+- **Architect:** R18 (story-composer `PublishMetadata.frame` / `textOnly`, falsified), R24 (`typeof isModified` guard),
+  R14 docs, the two parked gaps: a second Apply press while the first encodes is ignored, and `rgb(0 0 0 / 0)` counts
+  as transparent. **My first double-Apply test was vacuous** — the crop stub keeps one `release` slot, so a second
+  encode could never complete; the mutation run caught it; the test now asserts one `toBlob` call. Both falsified
+  through a Python harness (a `sed` regex mutation silently did not apply — check that a mutation APPLIED before
+  trusting a green run).
+- Demo: Edit-only tab gains a Region toggle (stage / media) and an output readout (`W × H px`, `modified`).
+
+### U3 — Gate battery runs 2–3 (after fix wave 1)
+- **Run 2:** `registry:build` 1 + tests 1 — `validate:registry-tokens` read the selector string
+  `[data-slot="text-only-input"]` as a Tailwind `text-*` colour class ("only-input"). Renamed the slot to
+  `textcard-input` (validator 0 findings). Lesson: a data-slot / selector string that starts with a utility prefix
+  (`text-`, `bg-`, `border-`) is scanned as a class.
+- **Run 3:** tsc 0 · lint 0 errors / 11 warnings · tests **198 files / 2758 passed / 6 skipped** · `pnpm build` 0 ·
+  `registry:build` artifacts built, only `validate:artifact-size` red: **media-editor 422.9 / 345 KB** (over the 1.2×
+  hard fail). Runtime (rolldown, Konva / React external, min + gzip): **0.5.1 25.5 KB → 0.6.0 32.8 KB gzip (+7.3,
+  +29 %)**; the source artifact grew +84 KB (the shell ~+1 000 lines incl. JSDoc that ships vendored). Budget set at
+  the final battery (after the browser fix wave), per the release-6 retro.
+
+### U5 — Runtime (production build, `next start -p 3200`, started 2026-10-26)
+Browser finder (Sonnet, brief `E:/tmp/ilinxa-release-kit/briefs/brief-me060-browser.md`) on media-editor /
+story-composer / carousel-composer pages — results below.
+**Browser finder result (Chromium, 1280×900 + 390×844, light / dark; WebKit not installed on this machine — not
+covered; artefacts `E:/tmp/ilinxa-release-kit/browser-me060/`).** Console clean on all three pages; no page overflow
+at 390.
+
+| Row | Sev | Finding | Verdict |
+|---|---|---|---|
+| W1 | ⚠️ | text overlays draw at ~10 px whatever `fontSize`: the default font families are `var(--font-…)` strings, which a canvas rejects (`ctx.font` reads back `10px sans-serif`) — on screen and in exports; pre-existing since the fonts became tokens | CONFIRMED (in-page probe) → fix wave 2 |
+| W2 | 🔸 | discard confirm → "Keep editing" leaves focus on `<body>` with the dialog open | CONFIRMED → fix wave 2 |
+| W3 | 🔹 | inline editor: a tool panel's Apply unmounts → focus `<body>` (carousel edit panel) | CONFIRMED → fix wave 2 |
+| W4 | 🔸 | `region:"media"` smears at 3000×2000 / 3000×2250 (right size, resampled; other sizes pixel-exact) | CONFIRMED → fix wave 2 (likely a ±1 px rescale in `renderPhoto`) |
+| W5 | 🔹 | text card shows only the last 3 lines while editing a long text; the export draws all | DEFERRED — preview design (`rows={3}`); follow-up F-08 |
+| W6 | 🔹 | text-card font is `clamp(1.5rem, 7vw, 3rem)` — viewport-relative, so card-relative size differs by viewport (the export now matches the preview) | DEFERRED — follow-up F-08 (container-query units) |
+| W7–W8 | — | chip row narrower with Crop open (cue present); demo export after Reset errors (expected) | DROPPED |
+
+**Passing (measured):** #3 dialog (Apply / Cancel inside the dialog box, clickable, both viewports, both themes) · #8
+chip-row cue (LTR + RTL, flips on scroll) · #1 crop (every preset inside the photo, ratios exact to <1 %, drag /
+resize clamped, 1:1 Apply → 960×960) · #11 (picture centred + fitted after Apply and across 1280→390→1280→700×600; an
+export right after Apply has opaque photo corners) · #4 / F-05 (stage `W × H` = the blob's natural size; `media` = the
+photo's own size, no letterbox, **no edge fringe — R19 refuted**; a 1600×1200 PNG round-trips with mean diff 0) ·
+F-05 carousel (untouched Done keeps the same blob + size; an edit gives a bar-free item at the image's pixels;
+re-edit puts the overlay back on the same content) · #5 discard (gallery / camera pick untouched → asks) · #6 focus
+(every close path → the opener; carousel Done / Cancel → Edit) · #2 text card (export = preview for six fonts and
+three gradients at both widths) · #10 overlays (same photo-relative spot across viewport changes; the sticker follows
+a crop). Not reachable from the docs demos: an untouched `initialSource` in a dialog, `backgroundColor` /
+`canvasBackground` (unit-tested only).
+
+### U5 fix wave 2 (2026-10-26) — Sonnet implementer; all four rows mutation-falsified (harness prints "applied")
+- **W1** `resolveCanvasFontFamily` (`lib/placement.ts`): a `var()` family is resolved through computed style (cached,
+  SSR-safe, falls back to the `var()` fallback list) before it reaches Konva `<Text>` and `measureTextBox`; stored
+  `fontFamily` stays the token. `__tests__/u5-fonts.test.tsx` (canvas stub rejects `var(` like Chromium).
+- **W2** the discard confirm records the focused element when it opens and restores it (else the dialog content) when
+  it closes without discarding. **W3** a tool closing with focus on `<body>` focuses its chip. `__tests__/u5-focus.test.tsx`.
+- **W4** root cause confirmed by arithmetic: Konva sizes `toCanvas` as `floor(size × pixelRatio)`; with
+  `pixelRatio = natural / media.width`, e.g. `309 × (3000 / 309) = 2999.9999999999995` → a 2999-px canvas for a
+  3000-px target → the whole image resampled by 3000/2999. `snapPixelRatio` nudges the ratio by a few ulps; a Konva
+  canvas within ±1 px of the target is copied 1:1. `__tests__/u5-export-pixel-grid.test.ts`.
+- Media folder: 85 files / 1073 passed / 1 skipped; tsc / eslint / registry-tokens clean.
+- Budget: `artifactBudgetKB` 345 → **440** (set at the final battery; rationale in `meta.ts`).
+
+### U5 browser re-verify (fresh Sonnet, production build after fix wave 2; `E:/tmp/ilinxa-release-kit/browser-me060/reverify/`)
+**W1–W4 PASS** — text overlays draw at `fontSize` (≈0.7 × size cap height; export 2×) and scale with a crop exactly
+like stickers; "Keep editing" → focus on the editor dialog content (Chat + story-composer, 1280 / 390); a tool's Apply /
+Back → its chip (media-editor Edit-only + carousel inline, every tool, both viewports); `region:"media"` pixel-exact
+(diff 0 everywhere, edges 0) for 15 sizes at 7 window widths incl. 3000×2000 / 3000×2250. **Regression sweep PASS**
+(#3, #1, #11, F-05 carousel, #6, #8); console clean on all three pages (every tab, both viewports); no page overflow.
+
+| Row | Sev | Finding | Verdict |
+|---|---|---|---|
+| NEW-1 | 🔸 | narrow stage (390 → 256-px stage): the Text tool's seed overlay is centred by the placeholder width ("Type something…" ≈ 327 px at 40 px) → `x = −35.6`, text clipped ("ELLO"), baked into exports and the carousel item; hidden before W1 by the 10-px rendering | CONFIRMED → fixed by the architect: `visibleImageArea` + `fitTextInArea` (`lib/placement.ts`) — the seed shrinks (≥ 12 px) when wider than 90 % of the visible picture and is clamped inside it; `placement.test.tsx` (+3 tests), falsified (widened area → fails), restored |
+
+### U3 — final battery (run 5, after NEW-1; `E:/tmp/ilinxa-release-kit/logs/battery-me060-5`)
+tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (all validators) · doc-budget 0 · tests (`NODE_ENV=production`)
+**201 files / 2778 passed / 6 skipped** · `pnpm build` 0 (77 pages). Artifacts: media-editor **431.7 / 440 KB**,
+capture 53.7 / 65, story-composer 75.2 / 80, carousel-composer 105.4 / 115, carousel-composer-editing 10.3 / 11. (Run 4
+had two 5 s timeouts in comment-thread / entity-picker under load — 86 / 86 alone, known flake.) NEW-1 re-checked in
+the browser on this build: 256-px stage → seed `x = 13.5`, `fontSize` 28, whole word visible in editor and export.
+
+### U5 — installs (`E:/tmp/ilinxa-release-kit/installs-me060.sh`, `pnpm test:install` against local `public/r`)
+| Run | Items @ CLI | Result |
+|---|---|---|
+| a | media-editor @ 4.18.0 | pass, tsc 0 — **no `features/capture` folder** (base alone ships no camera code) |
+| b | media-editor + media-editor-capture @ 4.18.0 | pass, tsc 0 — `features/capture` lands |
+| c | media-editor + media-editor-fixtures @ 3.8.5 | pass, tsc 0 |
+| d / e | story-composer @ 4.18.0 / 3.8.5 | pass, tsc 0 — brings media-editor 0.6.0 |
+| f | carousel-composer + carousel-composer-editing @ 4.18.0 | pass, tsc 0 |
+| g | carousel-composer-editing @ 3.8.5 | pass, tsc 0 |
+| h | content-composer @ 3.8.5 | pass, tsc 0 (10 component folders) |
+Installed files carry `// @ilinxa/media-editor 0.6.0` / `carousel-composer-editing 0.3.1`; the 4 new `lib/` files land.
+
+### U6 — pre-push doc verifier (fresh Sonnet, read-only; 2026-10-26)
+Media suite 85 files / 1076 passed; inert-surfaces 64/64; doc-drift green; links 0 broken; roster + artifact sizes match.
+11 rows: **2 code bugs** — the handle's `exportImage` threw in text mode (only `export()` reached the Canvas 2D card,
+while the guide and the report-back told the platform to call `exportImage` for stories) → `exportImageOrText`
+delegates; text cards had no 16.7 MP cap (docs said "every export") → capped. Both with tests, falsified (harness
+prints "applied"). 9 doc rows fixed: text-card default PNG and `maxEdge` capping; `getIsDirty` "now also counts
+adjustments"; seeding from `textBackground`; the `video/webm` fallback; the `region:"media"` coordinate formula (guide +
+`ExportMetadata.frame` JSDoc + report-back); story-composer `meta.ts` floor 0.6.0+; the editing add-on's CHANGELOG
+wording; what triggers the discard confirm (Escape / backdrop / `handle.close()` — a host Cancel must call `close()`).
+
+### U3 — final battery after the doc-verifier fixes (runs 6–7)
+Run 6: STATUS 0.1 KB over its budget (slimmed) + one new `exhaustive-deps` warning (`useImperativeHandle` deps named
+`exportImage`, not `exportImageOrText`; fixed). **Run 7: tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 ·
+doc-budget 0 · tests 201 files / 2780 passed / 6 skipped · `pnpm build` 0.** Artifacts: media-editor **431.7 / 440 KB**,
+capture 53.7, story-composer 75.2, carousel-composer 105.4, carousel-composer-editing 10.3.

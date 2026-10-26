@@ -8,6 +8,13 @@
 
 > **P3 addendum (2026-08-11).** The "Sealed-folder file map (LOCKED)" tree directly below places `editor-camera.tsx` / `camera-permission-prompt.tsx` / `shutter-button.tsx` under `parts/`, and `use-media-capture.ts` / `use-camera-permissions.ts` / `use-multi-instance-guard.ts` under `hooks/`, all re-exported from `media-editor/index.ts`. That location is **superseded** by the P3 feature-slicing split (v0.3.0): all six files moved to `features/capture/parts/` and `features/capture/hooks/` respectively, ship as the separate `@ilinxa/media-editor-capture` registry item, and are exported from `features/capture/index.ts`, not the base barrel. The base's own file count is also stale here (this plan's 33; the pre-P3 guide's 38; current base is 35 post-split, per `registry.json`) — treat this tree as historical intent, not current disk layout. Current layout + wiring: [`media-editor-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./media-editor-procomp-guide.md#feature-slices-p3-2026-08-11).
 
+> **0.6.0 addendum (2026-10-26).** New internal modules `lib/crop-aspect.ts`, `lib/frame-map.ts`,
+> `lib/export-geometry.ts`, `lib/text-card-export.ts` (in `registry.json`); `EditorCanvas` gains `onMediaRect`,
+> `onImagePainted(url, natural)`, `onImageError`; public types `CropAspect`, `StateFrame`; handle `isModified`,
+> `isSettled`, `whenSettled`; `LoadStateOpts.keepModified`; props `dialogClassName`, `canvasBackground`. The
+> implementation record (slices, fix waves, invariants I1–I8) is [`media-editor-loop.md` → "Run — 0.6.0"](./media-editor-loop.md);
+> the types in `types.ts` are the source of truth over the LOCKED sections below.
+
 ## Sealed-folder file map (LOCKED)
 
 ```

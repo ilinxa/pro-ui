@@ -1,6 +1,6 @@
 # `carousel-composer` — Pro-component Guide (Stage 3)
 
-> **Status:** shipped · **v0.3.0** · maturity `alpha` · category `media`
+> **Status:** shipped · **v0.3.1** · maturity `alpha` · category `media`
 > **Planning trio:** [description](carousel-composer-procomp-description.md) · [plan](carousel-composer-procomp-plan.md) · this guide
 > **Loop record:** [carousel-composer-loop.md](carousel-composer-loop.md) ("Run — Part 3 release 6")
 >
@@ -103,6 +103,10 @@ const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "ad
   `canEditItem` turns false for it (`onEditCancel` fires).
 - **Focus:** the panel takes focus when it opens (unless your Panel moves focus inside it) and focus
   returns to the Edit button, or the selected thumb, when it closes.
+- **Done with no change keeps the item** (0.3.1): nothing is re-encoded and `onEditCancel` fires, as for Cancel.
+  After a change, the add-on exports only the photo's area (`region: "media"`) at the photo's own resolution (capped
+  at 4096 px), so no letterbox bars are baked in, and the item's `width` / `height` are the image's pixels. Needs
+  media-editor 0.6.0 (with an older vendored editor the add-on falls back to always re-exporting).
 - **Applying an edit clears the item's `status` / `progress` / `error`** — the edited media is not
   the file you uploaded; re-upload it from `onEditApply`.
 - **Typed edit fields:** the base keeps `item.editorState` opaque (`unknown`) and `item.exportMeta` as

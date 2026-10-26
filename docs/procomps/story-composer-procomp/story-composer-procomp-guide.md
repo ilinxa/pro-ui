@@ -1,6 +1,7 @@
 # story-composer — consumer guide
 
-> v0.6.0 alpha. Third component in the story-system trilogy:
+> v0.6.1 alpha (0.6.1: a mode switch keeps the editor's modified flag; `PublishMetadata` carries `frame` / `textOnly`;
+> needs media-editor 0.6.0). Third component in the story-system trilogy:
 > [`story-rail`](../story-rail-procomp/) (discovery), [`story-viewer`](../story-viewer-procomp/) (consumption),
 > **`story-composer`** (creation). A locked 9:16 wrapper around [`media-editor`](../media-editor-procomp/) that adds the
 > story publish flow (upload, progress, details step, error recovery).
@@ -11,7 +12,7 @@
 pnpm dlx shadcn@latest add @ilinxa/story-composer
 ```
 
-This installs story-composer and `@ilinxa/media-editor` (≥ 0.5.0; Konva + react-konva come with the editor). The
+This installs story-composer and `@ilinxa/media-editor` (≥ 0.6.0; Konva + react-konva come with the editor). The
 default install is **upload-only**: no camera code and no `getUserMedia` — the editor only records (re-encodes) when
 overlays are baked into a video, which its tools never do today.
 
@@ -72,6 +73,11 @@ export function CreateStoryButton() {
 
 An unedited video is uploaded as the original file (no re-encode). The uploader always receives a `Blob`, not the
 original `File`; read `metadata.mimeType` for its type.
+
+`metadata.width` / `height` are the uploaded blob's pixels (with media-editor 0.6.0; before, a photo story reported
+half that — the editor's on-screen size). `metadata.textOverlays` / `stickers` positions are editor stage CSS pixels;
+`metadata.frame` says which layout they are in (map a point with `x * width / frame.stageWidth`), and a text story
+carries its card in `metadata.textOnly`.
 
 ## Capture modes
 

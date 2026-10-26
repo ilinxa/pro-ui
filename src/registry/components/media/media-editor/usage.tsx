@@ -175,8 +175,12 @@ import { mediaCapture } from "@/components/media-editor/features/capture"
 const { blob, metadata } = await editorRef.current.exportImage({
   format: "image/jpeg",        // or "image/png" | "image/webp"
   quality: 0.9,
+  region: "media",             // photo only, no letterbox (default "stage")
+  maxEdge: 2048,               // optional; also width / height
   onProgress: (p) => …,        // fires (0) at start, (1) on completion
 })
+// metadata.width / height = the blob's pixels; overlay positions are in
+// metadata.frame (stage CSS px). exportImage waits for a crop / load swap.
 
 // Video — perf-shortcut returns the raw blob when no overlays have
 // been added and there is no crop; otherwise re-encodes through MediaRecorder with the
@@ -193,9 +197,10 @@ const out = await editorRef.current.export()`}</code>
       <section>
         <h3 className="mb-2 text-base font-semibold">Imperative handle</h3>
         <p className="text-muted-foreground">
-          Inspect (<code>getIsDirty</code>, <code>getMode</code>,{" "}
-          <code>getState</code>, <code>loadState</code>,{" "}
-          <code>getSourceBlob</code>), edit (<code>addText(text)</code>,{" "}
+          Inspect (<code>getIsDirty</code>, <code>isModified</code>,{" "}
+          <code>getMode</code>, <code>getState</code>,{" "}
+          <code>loadState</code>, <code>getSourceBlob</code>,{" "}
+          <code>isSettled</code>, <code>whenSettled</code>), edit (<code>addText(text)</code>,{" "}
           <code>addSticker</code>, <code>setAdjustments</code>,{" "}
           <code>applyFilter</code>, <code>clearLayer</code>), export (
           <code>exportImage</code>, <code>exportVideo</code>,{" "}

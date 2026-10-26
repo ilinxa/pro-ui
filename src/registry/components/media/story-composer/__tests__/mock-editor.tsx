@@ -10,12 +10,15 @@ export const editorMock = {
   exportImpl: null as null | (() => Promise<unknown>),
   /** Calls to the editor's `reset()` handle method. */
   resetCalls: 0,
+  /** Arguments of every `loadState(state, opts)` call. */
+  loadStateCalls: [] as unknown[][],
 };
 
 export function resetEditorMock() {
   editorMock.props = null;
   editorMock.exportImpl = null;
   editorMock.resetCalls = 0;
+  editorMock.loadStateCalls = [];
 }
 
 export const EXPORT_METADATA = {
@@ -41,6 +44,10 @@ export function createMockEditor() {
       const [draft, setDraft] = React.useState("loaded");
       React.useImperativeHandle(ref, () => ({
         getMode: () => "photo",
+        getState: () => ({ mode: "photo" }),
+        loadState: (...args: unknown[]) => {
+          editorMock.loadStateCalls.push(args);
+        },
         reset: () => {
           editorMock.resetCalls += 1;
           setDraft("");

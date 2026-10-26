@@ -36,7 +36,7 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.3.0",
+  version: "0.3.1",
   status: "alpha",
   // 0.3.0: 70 → 115 on the built size after both fix waves (105.3 KB; U1 estimated ~64).
   // The growth is the labels surface + JSDoc in types.ts, the alt / upload-status /

@@ -10,6 +10,7 @@ import { MediaEditor } from "../media-editor";
 import type { MediaEditorHandle } from "../types";
 import {
   BASE_IMAGE_NODE_NAME,
+  fitTextInArea,
   measureTextBox,
   visibleImageCenter,
 } from "../lib/placement";
@@ -68,6 +69,20 @@ describe("visibleImageCenter", () => {
     });
     const away = fakeStage({ ...TALL, x: 1000 }); // viewport x -1000..-600: no overlap
     expect(visibleImageCenter(away)).toEqual({ x: -800, y: 150 });
+  });
+});
+
+describe("fitTextInArea", () => {
+  const measure = (size: number) => ({ width: size * 9, height: size });
+  it("keeps the size and centres a box that fits", () => {
+    expect(fitTextInArea({ x: 0, y: 0, width: 400, height: 300 }, 40, measure)).toEqual({ x: 20, y: 130, fontSize: 40 });
+  });
+  it("shrinks a box wider than 90 % of the area, never below 12 px, and clamps it inside", () => {
+    const r = fitTextInArea({ x: 10, y: 0, width: 200, height: 300 }, 40, measure);
+    expect(r.fontSize).toBe(20);
+    expect(r.x).toBeGreaterThanOrEqual(10);
+    expect(r.x + r.fontSize * 9).toBeLessThanOrEqual(210);
+    expect(fitTextInArea({ x: 0, y: 0, width: 50, height: 300 }, 40, measure).fontSize).toBe(12);
   });
 });
 
@@ -148,6 +163,22 @@ describe("new overlays start centred on the visible image", () => {
     const box = measureTextBox(o.text, o.fontFamily, o.fontSize);
     expect(o.x + box.width / 2).toBeCloseTo(200);
     expect(o.y + box.height / 2).toBeCloseTo(150);
+  });
+
+  it("on a stage narrower than the placeholder, the first text starts inside the picture (smaller, clamped)", async () => {
+    // 256-px phone stage, photo fills it; "Type something…" at 40 px (0.6em/char in jsdom) is 360 px wide.
+    canvas.stage = fakeStage({ width: 256, height: 254, image: { x: 0, y: 0, width: 256, height: 254 } });
+    render(<EditStage />);
+    await screen.findByLabelText("Back to capture");
+    fireEvent.click(chip("text"));
+    const overlays = () => (canvas.props?.textOverlays ?? []) as Overlay[];
+    await vi.waitFor(() => expect(overlays()).toHaveLength(1));
+    const o = overlays()[0]!;
+    const box = measureTextBox(o.text, o.fontFamily, o.fontSize);
+    expect(o.fontSize).toBeLessThan(40);
+    expect(o.x).toBeGreaterThanOrEqual(0);
+    expect(o.x + box.width).toBeLessThanOrEqual(256);
+    expect(o.y).toBeGreaterThanOrEqual(0);
   });
 
   it("a sticker picked from the tray is centred on the image", async () => {

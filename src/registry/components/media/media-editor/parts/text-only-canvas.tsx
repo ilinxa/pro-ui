@@ -61,6 +61,7 @@ export const TextOnlyCanvas = forwardRef<
         style={{ background: activeGradient?.background ?? "#000" }}
       >
         <textarea
+          data-slot="textcard-input"
           value={value.text}
           onChange={(e) => update({ text: e.target.value })}
           placeholder={labels.textPlaceholder}

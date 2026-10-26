@@ -49,6 +49,8 @@ export type {
   FontOption,
   // Aspect + tools
   AspectRatio,
+  CropAspect,
+  StateFrame,
   EditTool,
   // Source intake
   MediaSource,

@@ -7,6 +7,12 @@
 > wrapper around this; `content-composer`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
+> **v0.6.0 (2026-10-26, breaking)** — `ExportMetadata.width` / `height` are the exported blob's pixels (they were
+> the on-screen size); crop frames fit the photo; export `region` / `width` / `height` / `maxEdge` /
+> `backgroundColor`; `isModified()`, `isSettled()` / `whenSettled()`; every content `EditAction` is emitted;
+> snapshots carry the text card and their layout (`frame`); text overlays draw at their real size; several layout /
+> focus fixes. See [Migration 0.5 → 0.6](#migration-05--06).
+>
 > **v0.5.1 (2026-10-26)** — closing the dialog returns focus to the element that opened it; new text overlays and
 > stickers start centred on the visible part of the image.
 >
@@ -162,6 +168,12 @@ Disabling a tool removes its chip from the toolbar (and from the slot context's 
 
 The aspect drives canvas dimensions, the default crop choice, and (in dialog mode) the modal size. Pass `cropAspects` to override the crop-tool aspect choices.
 
+`cropAspects` takes every value above plus `"original"` (the loaded photo's own ratio — the chip reads
+`labels.crop.original`) and any `"W:H"` string with positive numbers (`"3:2"`, `"1.91:1"`). Invalid entries are dropped
+with one development warning each. Crop frames — the default frame, every preset and every drag / resize — are laid
+out on and clamped to the **photo's displayed area**, so a `1:1` crop of a letterboxed photo is square. `aspect` itself
+stays one of the five values (it sizes the dialog).
+
 ## Initial source (CMS re-edit / draft restore)
 
 ```ts
@@ -200,7 +212,22 @@ While in the error state the canvas renders the default "Couldn't load source" s
 
 **Dialog mode requires `isOpen` + `onClose`.** A dev-only `console.error` fires once per instance when either is missing — runtime falls back to keeping the dialog closed until you wire both.
 
-**Focus on close.** However the dialog closes (Escape, Cancel / Discard, or you setting `isOpen` to false, e.g. after a publish), focus goes back to the element that had it when the dialog opened — normally your opener button. If you want focus somewhere else, move it after the dialog has closed (an effect on your open state, or later); a `focus()` call inside `onClose` runs while the dialog's focus trap is still active and is undone.
+**Discard confirm.** With `confirmOnDiscard` (default true), Escape, a backdrop press and `handle.close()` (wire your
+own Cancel button to it) ask first when the content
+was changed (`isModified()`) or the media came from the camera or the file picker in this session (a capture cannot be
+re-loaded). An untouched `initialSource` or `loadState` closes without asking.
+
+**Dialog content classes.** `dialogClassName` is merged last onto the dialog's content element. Its grid tracks are
+`minmax(0, 1fr)`, so the crop panel (which sits in flow) can no longer push crop Apply / Cancel or Done out of the
+dialog.
+
+**Canvas background.** `canvasBackground` (any CSS colour, `var(--token)` too) is shown behind the photo and is the
+default fill of image exports, so what you see is what is exported. Without it the canvas is black on screen and an
+export leaves uncovered areas transparent (JPEG encodes them black).
+
+**Focus on close.** However the dialog closes (Escape, Cancel / Discard, or you setting `isOpen` to false, e.g. after a publish), focus goes back to the element that had it when the dialog opened — normally your opener button. If you want focus somewhere else, move it after the dialog has closed (an effect on your open state, or later); a `focus()` call inside `onClose` runs while the dialog's focus trap is still active and is undone. Focus also goes back
+to the opener when you **unmount** `<MediaEditor>` while it holds focus (dialog or inline), and after the discard
+confirm's "Keep editing" it returns into the editor.
 
 Desktop dialog sizing is viewport-relative and aspect-locked, with a min/max **clamp** so it can't collapse on a short window or overflow a tall one. Only the *driver* dimension is sized; the other follows from the aspect ratio:
 
@@ -252,13 +279,16 @@ A "reset zoom" chip appears (with the current %) whenever the transform isn't at
 Imperative — call from your publish flow.
 
 ```tsx
-// Photo / text — image output. Default mime image/jpeg, quality 0.9.
+// Photo / text — image output. Default mime image/jpeg (text cards: png), quality 0.9.
 const { blob, metadata } = await editorRef.current.exportImage({
   format: "image/jpeg",            // "image/png" | "image/webp"
   quality: 0.9,
-  pixelRatio: 2,                   // retina sharpness; default 2
+  region: "media",                 // "stage" (default) | "media" — the photo only, no letterbox
+  maxEdge: 2048,                   // optional cap on the longer edge
+  backgroundColor: "var(--card)",  // optional fill under transparent areas
   onProgress: (p) => setProgress(p), // fires (0) at start, (1) on done
 });
+// metadata.width / height are the blob's pixels.
 
 // Video — returns the original blob when nothing has been overlaid AND no
 // crop (always the case from the UI: no tool edits video yet). Otherwise
@@ -275,7 +305,38 @@ const out = await editorRef.current.exportVideo({
 const out = await editorRef.current.export();
 ```
 
-`metadata: ExportMetadata` includes `width`, `height`, `mimeType`, `durationMs?` (video), `textOverlays`, `stickers`, `drawingStrokes` (count), `appliedFilter`, `adjustments`, `crop?`. For a passed-through video, `mimeType` is the file's own type (else the first allowed output type).
+**Region and size.**
+
+| Option | Effect |
+|---|---|
+| `region: "stage"` (default) | The whole canvas, or the crop frame while one is set. Areas the photo does not cover are transparent (JPEG: black) unless filled. Unchanged from 0.5 apart from the metadata numbers. |
+| `region: "media"` | Only the photo's displayed area (∩ the crop frame) — no letterbox; overlays outside it are cut. Default size = the photo's own resolution, capped at 4096 px on the longer edge. |
+| `pixelRatio` | Output pixels per canvas CSS pixel. Default 2 (or the photo's resolution for `"media"`). |
+| `width` / `height` | Exact output size. One of them: the other follows the region's aspect. Both: the region is centre-trimmed to that aspect. Wins over `maxEdge` and `pixelRatio`. |
+| `maxEdge` | Caps the longer edge of the size the other options give; never scales up. |
+| `backgroundColor` | Fill painted under the content (any CSS colour, incl. `var()`); default `canvasBackground`, else none. An unresolvable value is ignored with a development warning. |
+
+Every image export is also capped at 16.7 million pixels (the iOS canvas limit). Exports draw the photo at the export
+resolution (not the screen copy), and selection handles never appear in an export.
+
+**Text cards** (text mode) are drawn with Canvas 2D at the size shown on screen (`pixelRatio` default 2) and honour
+`format` / `quality` (default PNG); `region` and `backgroundColor` do not apply, and `width` / `height` scale the card
+with its aspect kept (`width` wins), `maxEdge` capping the result. `exportImage()` and `export()` both reach it in text
+mode. Metadata carries `textOnly`.
+
+**Waiting for the canvas.** A crop Apply, `loadState` or `initialSource` swaps the source asynchronously. `exportImage`
+waits until the new source is painted and the overlays have been moved onto it (`whenSettled`, 10 s timeout), and
+rejects — instead of exporting a blank or half-updated canvas — when the source failed to load. `isSettled()` reports
+it synchronously.
+
+`metadata: ExportMetadata` includes `width` / `height` (**the blob's pixels**), `mimeType`, `durationMs?` (video),
+`textOverlays`, `stickers`, `drawingStrokes` (count), `appliedFilter`, `adjustments`, `crop?`, `textOnly?` (text
+card) and `frame?`. Overlay and crop coordinates are **stage CSS pixels**, not blob pixels; `frame` (`stageWidth`,
+`stageHeight`, `media?`) is the layout they are in — map a point onto a whole-stage export with
+`x * width / frame.stageWidth`, onto a `region: "media"` export with
+`(x - frame.media.x) * width / frame.media.width` (with a crop set, the exported rect is the crop ∩ `frame.media`;
+use its origin and width instead). For a passed-through video, `mimeType` is the file's own type (else the first allowed
+output type, else `video/webm`) and `frame` is omitted.
 
 ## Formats: what goes in, what comes out
 
@@ -335,17 +396,32 @@ Give it `z-40` or higher (editor chrome uses up to `z-30`).
 
 ## Imperative handle
 
-23 methods grouped by role. Pass a `ref<MediaEditorHandle>` to access.
+26 methods grouped by role. Pass a `ref<MediaEditorHandle>` to access.
 
 | Group | Methods |
 |---|---|
-| Inspect | `getIsDirty`, `getMode`, `getState`, `loadState`, `getSourceBlob` |
+| Inspect | `getIsDirty`, `isModified`, `getMode`, `getState`, `loadState`, `getSourceBlob`, `isSettled`, `whenSettled` |
 | Capture (not implemented) | `switchCamera`, `takePhoto`, `startRecording`, `stopRecording`, `importFromGallery` |
 | Edit | `addText` (with a text argument; the no-argument form is not implemented), `addSticker`, `setAdjustments`, `applyFilter`, `clearLayer`, `undo` (not implemented), `redo` (not implemented) |
 | Export | `exportImage`, `exportVideo`, `export` |
 | Lifecycle | `reset`, `open` (not implemented), `close` |
 
 `getState()` returns a serializable `MediaEditorState` snapshot for draft persistence; `loadState()` restores it.
+
+- **Text cards** round-trip: `getState().textOnly` holds the text, font, colour and background (and `textContent` /
+  `textBackground` mirror it in text mode). A text snapshot without `textOnly` (from before 0.6.0) seeds the card from
+  its `textContent` and `textBackground`.
+- **Layout.** `getState().frame` records the stage size and the photo's displayed rect the coordinates were taken in.
+  `loadState` maps text / stickers / strokes / crop from that frame onto the current layout once the photo is shown,
+  so a draft reopened on another screen size (or a rotated phone) keeps its overlays on the same picture content.
+  Overlays also follow the photo when the canvas resizes or a crop is applied. Snapshots without `frame` load as before.
+- `isModified()` is false right after a load (`initialSource`, `loadState`, a capture / pick) and true after any
+  content change; `getIsDirty()` still means "has something loaded or edited". `loadState(state, { keepModified:
+  true })` keeps the flag — for a round-trip of the editor's own state (`loadState({ ...getState(), mode })`).
+- `onEditAction` emits `text-add` / `text-update` / `text-remove`, `sticker-add` / `sticker-remove`, `draw-stroke`,
+  `filter-apply`, `adjust-change` (once a slider has been still for 250 ms, flushed by an export) and `crop-set` on
+  commit, besides `mode-change` / `tool-open` / `tool-close` / `reset`. Loading emits none; Back on a tool panel emits
+  removes for what it discards.
 
 > ⚠️ **Not implemented.** These handle members dev-warn and do nothing (each carries `@notImplemented` in `types.ts`):
 > the imperative capture methods (`takePhoto` / `startRecording` / `stopRecording` / `switchCamera` / `importFromGallery`) —
@@ -357,7 +433,7 @@ Give it `z-40` or higher (editor chrome uses up to `z-30`).
 
 Camera capture ships as a separate, opt-in registry item — `@ilinxa/media-editor-capture` — not bundled into the base install.
 
-**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **332.9 KB** at 0.5.0 (282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
+**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **431.7 KB** at 0.6.0 (332.9 KB at 0.5.0, 282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
 
 **Injection wiring.** Base owns the extension type + context (`hooks/use-capture-extension.ts`) and the optional `capture?: MediaCaptureExtension` prop; it never statically imports the feature package — the camera-shaped types it needs (`CapturedPhotoLike`, `MediaCaptureSurfaceProps`, …) are structurally duplicated in base rather than imported, so the base folder carries zero static dependency on `features/capture/`.
 
@@ -414,6 +490,20 @@ import them from `@/components/media-editor`. The historical contract snapshot
 | `selectRecorderMime(allowed?)` takes an optional allow-list (then returns `string \| null`) | Nothing — with no argument it keeps the chain and its return type. |
 | `locale` defaults to `"en"` | Pass your locale for number formatting. |
 
+## Migration 0.5 → 0.6
+
+| Change | What to do |
+|---|---|
+| **`ExportMetadata.width` / `height` are the blob's pixels** for photo and text exports (they were the canvas CSS size; at the default `pixelRatio` 2 the numbers double) | If you stored them as the item size, nothing — they are now right. If you placed `textOverlays` / `stickers` against them, scale by `width / frame.stageWidth`. |
+| Crop frames fit the photo, not the canvas | Nothing — a preset now yields its ratio on a letterboxed photo. |
+| The discard confirm follows `isModified()` (and captures); an untouched `initialSource` closes without asking | Nothing, unless you relied on the question. |
+| Snapshots gain optional `textOnly` and `frame` | Nothing — both optional; old snapshots load as before. Persist them with the rest of the state. |
+| `onEditAction` emits content actions | Ignore the kinds you don't handle; the `EditAction` union is unchanged. |
+| `exportImage` waits for a source swap and rejects on a failed / blank source | Catch it as you catch other export errors. |
+| `exportTextOnlyBlob` is deprecated (the editor draws text cards with Canvas 2D) | Keep it for your own DOM surfaces, or draw with Canvas 2D. |
+| `cropAspects` type is `CropAspect[]` | Nothing — a wider type. |
+| Text overlays draw at their real `fontSize` (a canvas cannot read a `var(--font-…)` family, so they drew at 10 px) | Check text placed with older versions — it renders at the size it was given now. |
+
 ## Footguns
 
 ### `enabledModes: []` AND no `initialSource`
@@ -460,7 +550,11 @@ history. The remaining gaps are narrow:
 - **Sliders and RTL** — the Adjust sliders fill from the left under an inherited `dir="rtl"`.
 - **Video editing** — no tool applies to a video draft (the chips are hidden); videos export as the original file. `VideoTrimBar` is exported but not mounted.
 - **Undo / redo** — not implemented (handle methods dev-warn; the editor binds no Ctrl/Cmd+Z). The exported `useHistory` hook works on its own and only claims the shortcut when its stack is non-empty.
-- **`onEditAction` coverage** — emits the navigation + lifecycle actions (`mode-change`, `tool-open`, `tool-close`, `reset`). The fine-grained content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`, `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are not emitted (no per-mutation instrumentation) — the `EditAction` union is complete so you can switch exhaustively.
+- **`undo` / `redo` actions** — never emitted (there is no undo stack); every other `EditAction` kind is.
+- **Text card preview** — the editing surface shows three lines and scrolls (the export draws every line), and its font
+  size follows the viewport width (`clamp(1.5rem, 7vw, 3rem)`), so the text's size relative to the card differs
+  between a phone and a desktop dialog; the export matches what is on screen.
+- **Moving a sticker** sets `isModified()` but has no `EditAction` kind (the union has no `sticker-update`).
 
 **Closed in v0.1.2:** `onModeChange` + `onEditAction` now emit; the
 `renderPermissionDenied` slot is honored for the denied state; the pan-zoom

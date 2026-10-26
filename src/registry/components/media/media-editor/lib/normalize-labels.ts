@@ -62,6 +62,7 @@ const NESTED_TO_FLAT = [
   [["color", "hex"], "colorHex"],
   [["color", "swatch"], "colorSwatch"],
   [["crop", "free"], "cropAspectFree"],
+  [["crop", "original"], "cropAspectOriginal"],
   [["crop", "aspectCount"], "cropAspectCount"],
   [["canvas", "label"], "canvasAriaLabel"],
   [["canvas", "resetZoom"], "resetZoom"],

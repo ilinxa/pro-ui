@@ -7,7 +7,7 @@ import { hydrateRoot } from "react-dom/client";
 import fs from "node:fs";
 import path from "node:path";
 import { describeContract } from "../../../../../../tests/helpers";
-import { editorMock, resetEditorMock } from "./mock-editor";
+import { EXPORT_METADATA, editorMock, resetEditorMock } from "./mock-editor";
 
 // The real editor is Konva-heavy; these tests are about story-composer's own wiring, so
 // the editor is replaced by a stand-in that records the props it receives (the real editor
@@ -230,6 +230,23 @@ describe("SC2 publish fields", () => {
     expect(blob).toBeInstanceOf(Blob);
     expect(metadata.mode).toBe("photo");
     expect(fields).toEqual({ caption: "hello", audience: "friends" });
+  });
+
+  it("forwards the editor's frame and textOnly so overlay coordinates can be mapped (media-editor 0.6.0)", async () => {
+    const frame = { stageWidth: 400, stageHeight: 700, media: { x: 0, y: 100, width: 400, height: 500 } };
+    const textOnly = { text: "hi", fontFamily: "sans", textColor: "white", gradientId: "g1" };
+    editorMock.exportImpl = async () => ({
+      blob: new Blob(["x"], { type: "image/png" }),
+      metadata: { ...EXPORT_METADATA, width: 800, height: 1400, frame, textOnly },
+    });
+    const uploader = vi.fn<Uploader>(okUploader);
+    const user = userEvent.setup();
+    render(composer({ uploader, caption: { maxLength: 100 } }));
+    await user.click(topBarPublish());
+    await user.click(within(details()).getByRole("button", { name: "Publish" }));
+    await waitFor(() => expect(uploader).toHaveBeenCalledTimes(1));
+    const [, metadata] = uploader.mock.calls[0];
+    expect(metadata).toMatchObject({ width: 800, height: 1400, frame, textOnly });
   });
 
   it("the default uploader appends caption + every field to the FormData", async () => {
@@ -603,5 +620,26 @@ describe("handle publish honours the caption gate", () => {
     // with the step open and the caption still empty the gate blocks (and says so)
     await act(async () => ref.current!.publish());
     expect(uploader).not.toHaveBeenCalled();
+  });
+});
+
+describe("mode switch keeps the editor's modified flag (media-editor 0.6.0)", () => {
+  beforeEach(() => resetEditorMock());
+  afterEach(() => cleanup());
+
+  it("setMode round-trips the state with keepModified, so the discard confirm still sees edits", () => {
+    let setMode: ((m: "photo" | "video" | "text") => void) | undefined;
+    render(
+      composer({
+        renderTopBar: (ctx) => {
+          setMode = ctx.setMode;
+          return null;
+        },
+      }),
+    );
+    act(() => setMode!("text"));
+    expect(editorMock.loadStateCalls).toEqual([
+      [{ mode: "text" }, { keepModified: true }],
+    ]);
   });
 });

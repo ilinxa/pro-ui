@@ -10249,7 +10249,13 @@ function EditOnlyDemo() {
     url: string;
     size: number;
     mime: string;
+    width: number;
+    height: number;
+    modified: boolean;
   } | null>(null);
+  const [exportRegion, setExportRegion] = React.useState<"stage" | "media">(
+    "stage",
+  );
   const [exportProgress, setExportProgress] = React.useState<number | null>(
     null,
   );
@@ -10306,13 +10312,22 @@ function EditOnlyDemo() {
     if (!editorRef.current) return;
     setExportProgress(0);
     try {
+      const modified = editorRef.current.isModified();
       const { blob, metadata } = await editorRef.current.exportImage({
         format: exportFormat,
         quality: 0.9,
+        region: exportRegion,
         onProgress: setExportProgress,
       });
       const url = URL.createObjectURL(blob);
-      setExportPreview({ url, size: blob.size, mime: blob.type });
+      setExportPreview({
+        url,
+        size: blob.size,
+        mime: blob.type,
+        width: metadata.width,
+        height: metadata.height,
+        modified,
+      });
       console.log("export metadata:", metadata);
     } catch (e) {
       console.error("export failed:", e);
@@ -10388,6 +10403,25 @@ function EditOnlyDemo() {
             </Chip>
           ))}
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-28 shrink-0 font-medium text-muted-foreground">
+            Region
+          </span>
+          {(
+            [
+              ["stage", "stage (whole canvas)"],
+              ["media", "media (photo only)"],
+            ] as const
+          ).map(([value, label]) => (
+            <Chip
+              key={value}
+              active={exportRegion === value}
+              onClick={() => setExportRegion(value)}
+            >
+              {label}
+            </Chip>
+          ))}
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -10405,6 +10439,7 @@ function EditOnlyDemo() {
             onClick={() => {
               console.log("getState:", editorRef.current?.getState());
               console.log("isDirty:", editorRef.current?.getIsDirty());
+              console.log("isModified:", editorRef.current?.isModified());
               console.log("mode:", editorRef.current?.getMode());
             }}
           >
@@ -10426,7 +10461,14 @@ function EditOnlyDemo() {
             <p className="text-[11px] text-muted-foreground">
               Exported{" "}
               <code>{Math.round(exportPreview.size / 1024)} KB</code> ·{" "}
-              <code>{exportPreview.mime}</code>
+              <code>{exportPreview.mime}</code> ·{" "}
+              <code data-testid="export-size">
+                {exportPreview.width} × {exportPreview.height} px
+              </code>{" "}
+              · modified:{" "}
+              <code data-testid="export-modified">
+                {String(exportPreview.modified)}
+              </code>
             </p>
             <img
               src={exportPreview.url}

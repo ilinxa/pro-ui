@@ -26,7 +26,14 @@ import {
 import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
-import { exportPhotoBlob, exportTextOnlyBlob } from "./lib/export-blob";
+import { renderPhoto } from "./lib/export-blob";
+import { exportTextCardBlob } from "./lib/text-card-export";
+import {
+  MAX_OUTPUT_PIXELS,
+  computeExportGeometry,
+} from "./lib/export-geometry";
+import { cropAspectToRatio } from "./lib/crop-aspect";
+import { mapToFrame, remapForCrop } from "./lib/frame-map";
 import { compositeVideo } from "./lib/composite-video";
 import {
   acceptAttribute,
@@ -50,12 +57,16 @@ import {
 import { useHistory } from "./hooks/use-history";
 import {
   FALLBACK_PLACEMENT,
+  fitTextInArea,
   measureTextBox,
+  visibleImageArea,
   visibleImageCenter,
 } from "./lib/placement";
 import type {
   AspectRatio,
   ComposerMode,
+  CropAspect,
+  CropRect,
   EditAction,
   EditTool,
   ExportImageOpts,
@@ -67,8 +78,11 @@ import type {
   MediaEditorHandle,
   MediaEditorProps,
   MediaEditorState,
+  PlacedSticker,
   SourceError,
+  StateFrame,
   StickerOption,
+  TextOverlay,
   MediaEditorPresetNames,
   MediaEditorResolvedLabels,
   ValidationError,
@@ -210,16 +224,130 @@ const MediaEditorImpl = React.forwardRef<
   // Seed the editor's cropAspect with the first allowed option (the hook's
   // "free" fallback may not be in the consumer-derived list). Computed
   // inline here — the memoized version below covers the render path.
-  const initialCropAspect =
-    resolveCropAspects(props.aspect ?? "free", props.cropAspects)[0] ?? "free";
+  // `cropAspects` is keyed by content (like `videoOutput.mimeTypes`) so an inline
+  // array literal neither re-resolves every render nor re-fires the invalid-entry
+  // dev warning; the resolved list is memoised once for both consumers below.
+  const aspect = props.aspect ?? "free";
+  const cropAspectsKey = props.cropAspects ? props.cropAspects.join("\n") : null;
+  const declaredCropAspects = React.useMemo(
+    () =>
+      cropAspectsKey === null
+        ? undefined
+        : cropAspectsKey === ""
+          ? ([] as CropAspect[])
+          : (cropAspectsKey.split("\n") as CropAspect[]),
+    [cropAspectsKey],
+  );
+  const resolvedCropAspects = React.useMemo(
+    () => resolveCropAspects(aspect, declaredCropAspects),
+    [aspect, declaredCropAspects],
+  );
+  const initialCropAspect = resolvedCropAspects[0] ?? "free";
+
+  // `labels.presets` renames presets by id. Keyed by content so an inline
+  // `labels={{ ... }}` literal does not rebuild the preset arrays every render
+  // (the filter strip re-renders its thumbnails when the array identity changes).
+  // Derived above the state hook: the hook syncs the text card's background
+  // from these same presets.
+  const presetNamesKey = JSON.stringify(props.labels?.presets ?? null);
+  const names = React.useMemo(
+    () => JSON.parse(presetNamesKey) as MediaEditorPresetNames | null,
+    [presetNamesKey],
+  );
+  const resolvedGradients = React.useMemo(
+    () => renameBackgrounds(DEFAULT_TEXT_GRADIENTS, names?.backgrounds),
+    [names],
+  );
 
   const editor = useMediaEditorState({
     defaultMode,
     defaultCropAspect: initialCropAspect,
+    gradients: resolvedGradients,
     onDirtyChange: props.onDirtyChange,
   });
 
   const warnedRef = React.useRef<Set<string>>(new Set());
+
+  // ─── Modified flag (0.6.0) ──────────────────────────────────────────
+  // "Content changed since the source loaded". The ref is the synchronous
+  // truth (a handle read right after a change must see it); the state mirrors
+  // it for the slot context. Cleared by every source load and by reset.
+  const [modified, setModified] = React.useState(false);
+  const modifiedRef = React.useRef(false);
+
+  // ─── Commit tracking (0.6.0 fix wave) ───────────────────────────────
+  // Working copies (refs) are updated synchronously by handlers; React state
+  // commits later. "Settled" must also mean the state a change dispatched has
+  // COMMITTED, so every dispatch that matters (a content change, a remap, a
+  // baseline change, a load) bumps a tick and sets `awaitingCommitRef`; the
+  // layout effect below clears it once the render containing the change has
+  // committed, and records the state / frame that render shows.
+  const [, setSyncTick] = React.useState(0);
+  const awaitingCommitRef = React.useRef(false);
+  const bumpCommit = React.useCallback(() => {
+    awaitingCommitRef.current = true;
+    setSyncTick((t) => t + 1);
+  }, []);
+  const committedRef = React.useRef<MediaEditorState>(editor.state);
+  /** The frame recorded with the committed state (never ahead of it). */
+  const committedFrameRef = React.useRef<StateFrame | undefined>(undefined);
+
+  const markModified = React.useCallback(() => {
+    modifiedRef.current = true;
+    setModified(true);
+    bumpCommit();
+  }, [bumpCommit]);
+  const setModifiedFlag = React.useCallback((value: boolean) => {
+    modifiedRef.current = value;
+    setModified(value);
+  }, []);
+  const clearModified = React.useCallback(() => setModifiedFlag(false), [setModifiedFlag]);
+  /** The media came from the camera / file picker in this session (not re-loadable). */
+  const capturedRef = React.useRef(false);
+  /** Bumped by every source load / reset: a stale crop Apply compares it and gives up. */
+  const sourceEpochRef = React.useRef(0);
+  /** Crop Applies in flight (encoding the cropped image). */
+  const applyInFlightRef = React.useRef(0);
+  /** True while `initialSource` is being fetched / decoded. */
+  const sourceLoadingRef = React.useRef(props.initialSource != null);
+
+  // ─── Canvas bookkeeping (0.6.0) ─────────────────────────────────────
+  // Konva stage handle (C10 export wiring): EditorCanvas surfaces its
+  // Konva.Stage via onStageReady; the export methods snapshot it.
+  const stageRef = React.useRef<Konva.Stage | null>(null);
+  const stageSizeRef = React.useRef<{ width: number; height: number } | null>(null);
+  /** The photo's displayed rect on the stage, as last reported by the canvas. */
+  const mediaRectRef = React.useRef<CropRect | null>(null);
+  /** URL of the image the canvas last painted, its natural size, and the last load failure. */
+  const paintedUrlRef = React.useRef<string | null>(null);
+  /** The Konva stage that painted it: a remounted canvas (new stage) is unsettled until it paints again. */
+  const paintedStageRef = React.useRef<Konva.Stage | null>(null);
+  const naturalRef = React.useRef<{ width: number; height: number } | null>(null);
+  const errorUrlRef = React.useRef<string | null>(null);
+  const [mediaRatio, setMediaRatio] = React.useState<number | null>(null);
+  /** The layout the snapshot's coordinates are currently in (+ the image it was measured for). */
+  const frameRef = React.useRef<StateFrame | null>(null);
+  const frameUrlRef = React.useRef<string | null>(null);
+  /** Remaps waiting for the new image's media rect (crop Apply / loadState with a frame). */
+  const pendingCropRef = React.useRef<{ url: string; cropInMedia: CropRect } | null>(null);
+  const pendingLoadRef = React.useRef<{ url: string | null; frame: StateFrame } | null>(null);
+  /** The image URL the editor is about to show (set synchronously by Apply / loadState). */
+  const overrideUrlRef = React.useRef<string | null>(null);
+  /** The image URL the canvas should be showing; null when no photo is expected. */
+  const targetUrlRef = React.useRef<string | null>(null);
+  const transformRef = React.useRef(editor.transformState);
+  const snapshotCacheRef = React.useRef<{
+    base: MediaEditorState;
+    frame: StateFrame;
+    out: MediaEditorState;
+  } | null>(null);
+  const mountedRef = React.useRef(true);
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // ─── Labels ─────────────────────────────────────────────────────────
   // DEFAULT_LABELS (the single English source) merged with the consumer's
@@ -228,7 +356,6 @@ const MediaEditorImpl = React.forwardRef<
     () => resolveEditorLabels(props.labels),
     [props.labels],
   );
-  const presetNames = props.labels?.presets;
   // `labels.trim` only reaches the exported VideoTrimBar, which this component
   // never mounts — say so instead of silently ignoring it.
   const hasTrimLabels = props.labels?.trim !== undefined;
@@ -285,6 +412,82 @@ const MediaEditorImpl = React.forwardRef<
     }
     prevEmitToolRef.current = curr;
   }, [editor.activeTool, emitEditAction]);
+
+  // ─── Settle core (0.6.0) ────────────────────────────────────────────
+  // "Settled" = the canvas shows the current source AND nothing that moves the
+  // snapshot is in flight: no source fetch / decode, no crop Apply encoding, no
+  // overlay remap waiting for the new media rect, and the state those produced
+  // has committed. Declared before the effects / handlers that touch it.
+  const waitersRef = React.useRef<Set<SettleWaiter>>(new Set());
+  const settleStatus = React.useCallback((): "settled" | "pending" | "error" => {
+    const target = targetUrlRef.current;
+    if (target !== null && errorUrlRef.current === target) return "error";
+    if (
+      sourceLoadingRef.current ||
+      applyInFlightRef.current > 0 ||
+      awaitingCommitRef.current ||
+      pendingCropRef.current !== null
+    ) {
+      return "pending";
+    }
+    const pendingLoad = pendingLoadRef.current;
+    // A load with no image (video / text) can only remap once a stage reports.
+    if (pendingLoad && (pendingLoad.url !== null || stageSizeRef.current !== null)) {
+      return "pending";
+    }
+    if (target !== null) {
+      const stage = stageRef.current;
+      if (
+        paintedUrlRef.current !== target ||
+        stage === null ||
+        paintedStageRef.current !== stage
+      ) {
+        return "pending";
+      }
+    }
+    return "settled";
+  }, []);
+  const checkWaiters = React.useCallback(() => {
+    const status = settleStatus();
+    if (status === "pending") return;
+    for (const w of [...waitersRef.current]) {
+      waitersRef.current.delete(w);
+      clearTimeout(w.timer);
+      if (status === "error") {
+        w.reject(new Error(loadErrorMessage(targetUrlRef.current ?? "")));
+      } else {
+        w.resolve();
+      }
+    }
+  }, [settleStatus]);
+
+  // adjust-change: one trailing-debounced action per slider gesture. Not
+  // driven by the slider's own commit event (Radix onValueCommit): consumers
+  // may run Base UI. `flushAdjust` emits now (an export, Apply); `dropAdjust`
+  // forgets the pending gesture (a reset / load / new source replaced what it
+  // described).
+  const adjustPatchRef = React.useRef<Partial<ImageAdjustments>>({});
+  const adjustTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flushAdjust = React.useCallback(() => {
+    if (adjustTimerRef.current !== null) clearTimeout(adjustTimerRef.current);
+    adjustTimerRef.current = null;
+    const patch = adjustPatchRef.current;
+    adjustPatchRef.current = {};
+    if (Object.keys(patch).length > 0) {
+      emitEditAction({ kind: "adjust-change", patch });
+    }
+  }, [emitEditAction]);
+  const dropAdjust = React.useCallback(() => {
+    if (adjustTimerRef.current !== null) clearTimeout(adjustTimerRef.current);
+    adjustTimerRef.current = null;
+    adjustPatchRef.current = {};
+  }, []);
+  React.useEffect(
+    () => () => {
+      if (adjustTimerRef.current !== null) clearTimeout(adjustTimerRef.current);
+    },
+    [],
+  );
 
   // The server snapshot above says "recordable", so a `defaultMode="video"` can
   // be seeded into state and hydrated; once the real answer arrives and video
@@ -345,13 +548,6 @@ const MediaEditorImpl = React.forwardRef<
     [props.enabledTools],
   );
   const mediaSources = props.mediaSources ?? (["camera", "upload"] as const);
-  const aspect = props.aspect ?? "free";
-
-  // Crop aspects derivation per description §4.
-  const resolvedCropAspects = React.useMemo(
-    () => resolveCropAspects(aspect, props.cropAspects),
-    [aspect, props.cropAspects],
-  );
 
   // Mode pill is hidden when ≤1 mode enabled (per description §1).
   const showModePill = enabledModes.length >= 2;
@@ -398,6 +594,8 @@ const MediaEditorImpl = React.forwardRef<
   React.useEffect(() => {
     const source = props.initialSource;
     if (!source) {
+      sourceLoadingRef.current = false;
+      checkWaiters();
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSourceError(null);
       return;
@@ -405,6 +603,8 @@ const MediaEditorImpl = React.forwardRef<
 
     let cancelled = false;
     let allocatedUrl: string | null = null;
+    // Fetching / decoding: not settled until the source lands (or fails).
+    sourceLoadingRef.current = true;
 
     (async () => {
       const result = await loadInitialSource(source, enabledModesRef.current);
@@ -413,11 +613,25 @@ const MediaEditorImpl = React.forwardRef<
         return;
       }
       if (!result.ok) {
+        sourceLoadingRef.current = false;
         setSourceError(result.error);
         onInitialSourceErrorRef.current?.(result.error);
+        checkWaiters();
         return;
       }
       allocatedUrl = result.loaded.objectUrl;
+      // A new source: it supersedes the pending adjust gesture, any crop Apply
+      // in flight and a stale image override, and it is not a capture.
+      sourceEpochRef.current += 1;
+      capturedRef.current = false;
+      dropAdjust();
+      overrideUrlRef.current =
+        result.loaded.mode === "photo" ? result.loaded.objectUrl : null;
+      if (result.loaded.mode === "photo") {
+        targetUrlRef.current = result.loaded.objectUrl;
+      }
+      sourceLoadingRef.current = false;
+      bumpCommit();
       setSourceError(null);
       editor.setMode(result.loaded.mode);
       if (result.loaded.mode === "photo") {
@@ -436,6 +650,9 @@ const MediaEditorImpl = React.forwardRef<
         mimeType: result.loaded.blob.type,
       });
       editor.setStage("edit");
+      clearModified();
+      pendingCropRef.current = null;
+      pendingLoadRef.current = null;
     })();
 
     return () => {
@@ -484,6 +701,10 @@ const MediaEditorImpl = React.forwardRef<
   const history = useHistory({ capacity: 50, bindKeyboard: false });
 
   const [showDiscardConfirm, setShowDiscardConfirm] = React.useState(false);
+  // Control that held focus when the discard confirm opened; "Keep editing"
+  // hands focus back to it (Radix would return it to a trigger, and there is none).
+  // `undefined` = nothing pending; `null` = nothing held focus (restore to the surface).
+  const discardReturnFocusRef = React.useRef<HTMLElement | null | undefined>(undefined);
   const textOnlyRef = React.useRef<HTMLDivElement | null>(null);
 
   // Run a clean reset that also drops the history stack. Emits the `reset`
@@ -492,25 +713,40 @@ const MediaEditorImpl = React.forwardRef<
   const performReset = React.useCallback(() => {
     editor.reset();
     history.reset();
+    clearModified();
+    capturedRef.current = false;
+    sourceEpochRef.current += 1;
+    dropAdjust();
+    pendingCropRef.current = null;
+    pendingLoadRef.current = null;
+    overrideUrlRef.current = null;
+    bumpCommit();
     emitEditAction({ kind: "reset" });
-  }, [editor, history, emitEditAction]);
+  }, [editor, history, emitEditAction, clearModified, dropAdjust, bumpCommit]);
 
   // Close path with confirm-on-discard. Mirrors v0.1.5 Q-P10a:
-  //   - In dialog mode, fires onClose unless dirty (then shows confirm).
+  //   - In dialog mode, fires onClose unless modified (then shows confirm).
   //   - In inline mode, just lets the consumer know via onClose (no UI
   //     close to perform).
   const requestClose = React.useCallback(() => {
-    if (props.confirmOnDiscard !== false && editor.isDirty) {
+    // A capture / file pick cannot be re-loaded, so discarding it asks even
+    // before any edit; an `initialSource` / `loadState` stays recoverable.
+    if (
+      props.confirmOnDiscard !== false &&
+      (modifiedRef.current || capturedRef.current)
+    ) {
+      const active = document.activeElement;
+      discardReturnFocusRef.current =
+        active instanceof HTMLElement &&
+        active !== document.body &&
+        active.closest('[role="alertdialog"]') === null
+          ? active
+          : null;
       setShowDiscardConfirm(true);
       return;
     }
     props.onClose?.();
-  }, [editor.isDirty, props]);
-
-  // ─── Konva stage handle (C10 export wiring) ─────────────────────────
-  // EditorCanvas surfaces its Konva.Stage via onStageReady. The handle's
-  // export methods read this ref to snapshot the canvas at publish time.
-  const stageRef = React.useRef<Konva.Stage | null>(null);
+  }, [props]);
 
   // Derive a stable object URL from the loaded video blob so EditorCanvas
   // can play it. Allocated lazily and revoked when the blob identity
@@ -539,6 +775,252 @@ const MediaEditorImpl = React.forwardRef<
   const showEditCanvas =
     !sourceError && editor.state.stage === "edit" && hasLoadedSource;
 
+  // ─── Settled + frame tracking (0.6.0) ───────────────────────────────
+  // The canvas reports what it painted (`onImagePainted`), failed to load
+  // (`onImageError`) and where the photo sits on the stage (`onMediaRect`).
+  // "Settled" = the painted image is the one the editor is showing.
+  const canvasImageUrl =
+    editor.draft?.kind === "image" ? editor.draft.url : editor.state.imageSrc;
+  const expectedUrl =
+    showEditCanvas && editor.state.mode === "photo" ? canvasImageUrl : null;
+
+  React.useLayoutEffect(() => {
+    // The render that just committed: record the state / frame it shows (what
+    // `getState()` and an awaiting export read), then settle waiters.
+    committedRef.current = editor.state;
+    committedFrameRef.current = frameRef.current ?? undefined;
+    awaitingCommitRef.current = false;
+    if (overrideUrlRef.current !== null && overrideUrlRef.current === expectedUrl) {
+      overrideUrlRef.current = null;
+    }
+    targetUrlRef.current = overrideUrlRef.current ?? expectedUrl;
+    checkWaiters();
+  });
+  React.useEffect(() => {
+    const waiters = waitersRef.current;
+    return () => {
+      for (const w of waiters) {
+        clearTimeout(w.timer);
+        w.reject(new Error("media-editor: unmounted while waiting for the image"));
+      }
+      waiters.clear();
+    };
+  }, []);
+
+  const isSettled = React.useCallback(() => settleStatus() === "settled", [settleStatus]);
+  const whenSettled = React.useCallback(
+    (opts?: { timeoutMs?: number }) =>
+      new Promise<void>((resolve, reject) => {
+        const status = settleStatus();
+        if (status === "settled") {
+          resolve();
+          return;
+        }
+        if (status === "error") {
+          reject(new Error(loadErrorMessage(targetUrlRef.current ?? "")));
+          return;
+        }
+        const timeoutMs = opts?.timeoutMs ?? 10000;
+        const waiter: SettleWaiter = {
+          resolve,
+          reject,
+          timer: setTimeout(() => {
+            waitersRef.current.delete(waiter);
+            reject(
+              new Error(
+                `media-editor: the image was not painted within ${timeoutMs} ms`,
+              ),
+            );
+          }, timeoutMs),
+        };
+        waitersRef.current.add(waiter);
+      }),
+    [settleStatus],
+  );
+
+  // Overlay / stroke / crop coordinates are stage px. Keep them on the same
+  // picture content when the layout under them changes:
+  //   (a) same image, new stage size / media rect (resize, rotate, crop panel
+  //       open / close) -> mapToFrame(old -> new);
+  //   (b) crop Apply -> remapForCrop once the cropped image is painted;
+  //   (c) loadState with a frame -> mapToFrame(state.frame -> current) once the
+  //       loaded image's media rect is known.
+  // (b) and (c) wait for the paint and block (a) meanwhile. None of them is a
+  // modification and none emits an EditAction.
+  const setBaseline = React.useCallback(
+    (cur: StateFrame, url: string | null) => {
+      if (!frameRef.current || !sameFrame(frameRef.current, cur)) {
+        frameRef.current = cur;
+        // `getState()` reads the frame recorded with the committed state: make
+        // sure a render commits it.
+        bumpCommit();
+      }
+      frameUrlRef.current = url;
+    },
+    [bumpCommit],
+  );
+  /** Run a remap inside the reducer and mark the editor unsettled until it commits. */
+  const dispatchRemap = React.useCallback(
+    (fn: (st: MediaEditorState) => MediaEditorState) => {
+      transformRef.current(fn);
+      bumpCommit();
+    },
+    [bumpCommit],
+  );
+  const runLayoutSync = React.useCallback(() => {
+    const size = stageSizeRef.current;
+    if (!size) return;
+    const media = mediaRectRef.current;
+    const cur: StateFrame = {
+      stageWidth: size.width,
+      stageHeight: size.height,
+      ...(media ? { media } : {}),
+    };
+    const pendingCrop = pendingCropRef.current;
+    if (pendingCrop) {
+      if (paintedUrlRef.current === pendingCrop.url && media) {
+        pendingCropRef.current = null;
+        const { cropInMedia } = pendingCrop;
+        dispatchRemap((st) => remapForCrop(st, cropInMedia, media));
+        setBaseline(cur, pendingCrop.url);
+      }
+      return;
+    }
+    const pendingLoad = pendingLoadRef.current;
+    if (pendingLoad) {
+      const ready =
+        pendingLoad.url === null ||
+        (paintedUrlRef.current === pendingLoad.url && media !== null);
+      if (ready) {
+        pendingLoadRef.current = null;
+        const to: StateFrame =
+          pendingLoad.url === null
+            ? { stageWidth: size.width, stageHeight: size.height }
+            : cur;
+        const from = pendingLoad.frame;
+        dispatchRemap((st) => mapToFrame(st, from, to));
+        setBaseline(to, pendingLoad.url);
+      }
+      return;
+    }
+    const prev = frameRef.current;
+    const url = targetUrlRef.current;
+    if (prev && frameUrlRef.current === url) {
+      // The photo's rect vanished for the SAME source (a hidden / 0x0 container
+      // reports no media): keep the baseline so the next real layout maps from it.
+      if (prev.media && !cur.media) return;
+      if (!sameFrame(prev, cur)) {
+        dispatchRemap((st) => mapToFrame(st, prev, cur));
+      }
+    }
+    setBaseline(cur, url);
+  }, [setBaseline, dispatchRemap]);
+  // Coalesced to a microtask: the canvas reports from its own effects, which
+  // may run before this component's layout effect has recorded the new target.
+  const syncScheduledRef = React.useRef(false);
+  const scheduleLayoutSync = React.useCallback(() => {
+    if (syncScheduledRef.current) return;
+    syncScheduledRef.current = true;
+    queueMicrotask(() => {
+      syncScheduledRef.current = false;
+      if (mountedRef.current) runLayoutSync();
+    });
+  }, [runLayoutSync]);
+
+  // The canvas calls this with `null` then the stage on every render (inline
+  // ref), so nothing is cleared here: "painted" is compared by stage identity.
+  const handleStageReady = React.useCallback((st: Konva.Stage | null) => {
+    stageRef.current = st;
+  }, []);
+  const handleStageSize = React.useCallback(
+    (size: { width: number; height: number }) => {
+      if (size.width <= 0 || size.height <= 0) return;
+      stageSizeRef.current = size;
+      scheduleLayoutSync();
+    },
+    [scheduleLayoutSync],
+  );
+  const handleMediaRect = React.useCallback(
+    (rect: CropRect | null) => {
+      mediaRectRef.current = rect;
+      scheduleLayoutSync();
+    },
+    [scheduleLayoutSync],
+  );
+  const handleImagePainted = React.useCallback(
+    (url: string, natural: { width: number; height: number }) => {
+      paintedUrlRef.current = url;
+      paintedStageRef.current = stageRef.current;
+      naturalRef.current = natural;
+      if (errorUrlRef.current === url) errorUrlRef.current = null;
+      setMediaRatio(
+        natural.width > 0 && natural.height > 0
+          ? natural.width / natural.height
+          : null,
+      );
+      scheduleLayoutSync();
+      checkWaiters();
+    },
+    [scheduleLayoutSync, checkWaiters],
+  );
+  const handleImageError = React.useCallback(
+    (url: string) => {
+      errorUrlRef.current = url;
+      if (pendingCropRef.current?.url === url) pendingCropRef.current = null;
+      if (pendingLoadRef.current?.url === url) pendingLoadRef.current = null;
+      checkWaiters();
+    },
+    [checkWaiters],
+  );
+  /** The frame recorded with the committed state, else the live layout. */
+  const currentFrame = React.useCallback((): StateFrame | undefined => {
+    if (committedFrameRef.current) return committedFrameRef.current;
+    const size = stageSizeRef.current;
+    if (!size) return undefined;
+    const media = mediaRectRef.current;
+    return {
+      stageWidth: size.width,
+      stageHeight: size.height,
+      ...(media ? { media } : {}),
+    };
+  }, []);
+
+  // ─── Edit-action commits (0.6.0) ────────────────────────────────────
+  // Every committed content change marks the editor modified; most also emit
+  // one EditAction. Loading a source emits / marks nothing.
+  const commitTextUpdate = (next: TextOverlay) => {
+    const cur = editor.state.textOverlays.find((o) => o.id === next.id);
+    editor.updateTextOverlay(next.id, next);
+    markModified();
+    if (!cur) return;
+    const patch = shallowPatch(cur, next);
+    if (Object.keys(patch).length > 0) {
+      emitEditAction({ kind: "text-update", id: next.id, patch });
+    }
+  };
+  const commitTextRemove = (id: string) => {
+    editor.removeTextOverlay(id);
+    markModified();
+    emitEditAction({ kind: "text-remove", id });
+  };
+  const commitFilter = React.useCallback(
+    (name: string | null) => {
+      editor.setFilter(name);
+      markModified();
+      emitEditAction({ kind: "filter-apply", name });
+    },
+    [editor, markModified, emitEditAction],
+  );
+  const commitAdjust = (next: ImageAdjustments) => {
+    const patch = shallowPatch(editor.state.adjustments, next);
+    editor.setAdjustments(next);
+    markModified();
+    if (Object.keys(patch).length === 0) return;
+    adjustPatchRef.current = { ...adjustPatchRef.current, ...patch };
+    if (adjustTimerRef.current !== null) clearTimeout(adjustTimerRef.current);
+    adjustTimerRef.current = setTimeout(flushAdjust, ADJUST_DEBOUNCE_MS);
+  };
+
   // Tool chips follow what the draft can actually do: a video draft is a plain
   // `<video>` with no tool panels, so only the tools in VIDEO_DRAFT_TOOLS show
   // (none today) instead of chips that open nothing.
@@ -557,6 +1039,20 @@ const MediaEditorImpl = React.forwardRef<
   // Camera + gallery callbacks promote captured media to a draft and
   // transition to the edit stage. EditorCanvas takes over from there.
 
+  // A camera / file-picker source: a new source (supersedes adjust gesture, crop
+  // Apply in flight, remaps, a stale image override), flagged as a capture so the
+  // dialog's discard confirm covers it even before any edit.
+  const beginCapturedSource = React.useCallback(() => {
+    clearModified();
+    capturedRef.current = true;
+    sourceEpochRef.current += 1;
+    dropAdjust();
+    pendingCropRef.current = null;
+    pendingLoadRef.current = null;
+    overrideUrlRef.current = null;
+    bumpCommit();
+  }, [clearModified, dropAdjust, bumpCommit]);
+
   const handlePhoto = React.useCallback(
     (photo: CapturedPhoto) => {
       const url = URL.createObjectURL(photo.blob);
@@ -572,8 +1068,9 @@ const MediaEditorImpl = React.forwardRef<
       editor.setMode("photo");
       editor.setImageSrc(url);
       editor.setStage("edit");
+      beginCapturedSource();
     },
-    [editor],
+    [editor, beginCapturedSource],
   );
 
   const handleVideo = React.useCallback(
@@ -590,8 +1087,9 @@ const MediaEditorImpl = React.forwardRef<
       editor.setMode("video");
       editor.setVideoBlob(video.blob);
       editor.setStage("edit");
+      beginCapturedSource();
     },
-    [editor],
+    [editor, beginCapturedSource],
   );
 
   const handleGalleryFile = React.useCallback(
@@ -614,19 +1112,13 @@ const MediaEditorImpl = React.forwardRef<
         editor.setVideoBlob(file);
       }
       editor.setStage("edit");
+      beginCapturedSource();
     },
-    [editor],
+    [editor, beginCapturedSource],
   );
 
   // ─── R3: Tool-panel resolved data ─────────────────────────────────
-  // `labels.presets` renames presets by id. Keyed by content so an inline
-  // `labels={{ ... }}` literal does not rebuild the preset arrays every render
-  // (the filter strip re-renders its thumbnails when the array identity changes).
-  const presetNamesKey = JSON.stringify(presetNames ?? null);
-  const names = React.useMemo(
-    () => JSON.parse(presetNamesKey) as MediaEditorPresetNames | null,
-    [presetNamesKey],
-  );
+  // (`names` / `resolvedGradients` are derived above the state hook.)
   const resolvedStickerSets = React.useMemo(
     () =>
       renameStickerSets(
@@ -647,10 +1139,6 @@ const MediaEditorImpl = React.forwardRef<
   const resolvedFonts = React.useMemo(
     () => renameFonts(props.fonts ?? DEFAULT_FONTS, names?.fonts),
     [props.fonts, names],
-  );
-  const resolvedGradients = React.useMemo(
-    () => renameBackgrounds(DEFAULT_TEXT_GRADIENTS, names?.backgrounds),
-    [names],
   );
   const resolvedColorPresets = React.useMemo(
     () => props.colorPresets ?? DEFAULT_COLOR_PRESETS,
@@ -702,21 +1190,34 @@ const MediaEditorImpl = React.forwardRef<
     // pure. Closure-read of the current stroke is fine here.
     if (currentDrawingStroke && currentDrawingStroke.points.length >= 4) {
       editor.addDrawingStroke(currentDrawingStroke);
+      markModified();
+      emitEditAction({ kind: "draw-stroke", stroke: currentDrawingStroke });
     }
     setCurrentDrawingStroke(null);
-  }, [currentDrawingStroke, editor]);
+  }, [currentDrawingStroke, editor, markModified, emitEditAction]);
 
   // Tool-panel state snapshot: captures editor.state at the moment the user
   // enters a tool (activeTool flips from null → tool) so a "Back" button can
   // revert any in-tool changes. Cleared on tool exit so re-entering captures
   // a fresh baseline.
-  const toolEntrySnapshot = React.useRef<MediaEditorState | null>(null);
+  // The entry also records the layout the snapshot's coordinates were in and
+  // the modified flag, so Back can put both back (a Back is not a modification
+  // and must not leave coordinates behind a resize that happened meanwhile).
+  const toolEntrySnapshot = React.useRef<{
+    state: MediaEditorState;
+    frame: StateFrame | undefined;
+    modified: boolean;
+  } | null>(null);
   const prevActiveToolRef = React.useRef<EditTool | null>(null);
   React.useEffect(() => {
     const prev = prevActiveToolRef.current;
     const curr = editor.activeTool;
     if (prev === null && curr !== null) {
-      toolEntrySnapshot.current = editor.state;
+      toolEntrySnapshot.current = {
+        state: editor.state,
+        frame: committedFrameRef.current,
+        modified: modifiedRef.current,
+      };
     } else if (curr === null) {
       toolEntrySnapshot.current = null;
     }
@@ -726,17 +1227,39 @@ const MediaEditorImpl = React.forwardRef<
   }, [editor.activeTool]);
 
   const handleApplyTool = React.useCallback(() => {
+    flushAdjust();
     editor.setSelectedTextId(null);
     editor.setSelectedStickerId(null);
     editor.setActiveTool(null);
-  }, [editor]);
+  }, [editor, flushAdjust]);
   const handleBackTool = React.useCallback(() => {
-    const snap = toolEntrySnapshot.current;
-    if (snap) editor.loadState(snap);
+    dropAdjust();
+    const entry = toolEntrySnapshot.current;
+    if (entry) {
+      // Items that exist now but not at entry go away: tell the host.
+      const now = committedRef.current;
+      const hadText = new Set(entry.state.textOverlays.map((o) => o.id));
+      const hadSticker = new Set(entry.state.stickers.map((x) => x.id));
+      const removedText = now.textOverlays.filter((o) => !hadText.has(o.id));
+      const removedStickers = now.stickers.filter((x) => !hadSticker.has(x.id));
+      // The entry snapshot is in the entry frame; map it onto the layout now.
+      const live = currentFrame();
+      const restored =
+        entry.frame && live
+          ? mapToFrame(entry.state, entry.frame, live)
+          : entry.state;
+      editor.loadState(restored);
+      setModifiedFlag(entry.modified);
+      bumpCommit();
+      for (const o of removedText) emitEditAction({ kind: "text-remove", id: o.id });
+      for (const x of removedStickers) {
+        emitEditAction({ kind: "sticker-remove", id: x.id });
+      }
+    }
     editor.setSelectedTextId(null);
     editor.setSelectedStickerId(null);
     editor.setActiveTool(null);
-  }, [editor]);
+  }, [editor, dropAdjust, currentFrame, setModifiedFlag, bumpCommit, emitEditAction]);
 
   const selectedText = React.useMemo(
     () =>
@@ -758,23 +1281,39 @@ const MediaEditorImpl = React.forwardRef<
     if (lastSeededToolRef.current === "text") return;
     lastSeededToolRef.current = "text";
     const id = `text-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    // Centred on the part of the image currently in view (pan / zoom aware).
+    // Centred on the part of the image currently in view (pan / zoom aware),
+    // and fully inside it: on a narrow stage the placeholder can be wider than
+    // the picture, so the starting size shrinks to fit.
     const fontFamily = resolvedFonts[0]?.family ?? "sans-serif";
-    const fontSize = 40;
-    const center = visibleImageCenter(stageRef.current) ?? FALLBACK_PLACEMENT;
-    const box = measureTextBox(mergedLabels.textPlaceholder, fontFamily, fontSize);
-    editor.addTextOverlay({
+    const area = visibleImageArea(stageRef.current);
+    const measure = (size: number) =>
+      measureTextBox(mergedLabels.textPlaceholder, fontFamily, size);
+    const placed = area
+      ? fitTextInArea(area, 40, measure)
+      : (() => {
+          const box = measure(40);
+          return {
+            x: FALLBACK_PLACEMENT.x - box.width / 2,
+            y: FALLBACK_PLACEMENT.y - box.height / 2,
+            fontSize: 40,
+          };
+        })();
+    const fontSize = placed.fontSize;
+    const overlay: TextOverlay = {
       id,
       text: mergedLabels.textPlaceholder,
-      x: center.x - box.width / 2,
-      y: center.y - box.height / 2,
+      x: placed.x,
+      y: placed.y,
       rotation: 0,
       scale: 1,
       fontFamily,
       fontSize,
       fill: "#ffffff",
       align: "center",
-    });
+    };
+    editor.addTextOverlay(overlay);
+    markModified();
+    emitEditAction({ kind: "text-add", overlay });
     editor.setSelectedTextId(id);
     // editor methods are stable; only activeTool/selectedText/fonts drive seed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -786,17 +1325,20 @@ const MediaEditorImpl = React.forwardRef<
     (sticker: StickerOption) => {
       const id = `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const center = visibleImageCenter(stageRef.current) ?? FALLBACK_PLACEMENT;
-      editor.addSticker({
+      const placed: PlacedSticker = {
         id,
         stickerId: sticker.id,
         x: center.x,
         y: center.y,
         rotation: 0,
         scale: 1,
-      });
+      };
+      editor.addSticker(placed);
+      markModified();
+      emitEditAction({ kind: "sticker-add", placed });
       editor.setSelectedStickerId(id);
     },
-    [editor],
+    [editor, markModified, emitEditAction],
   );
 
   // Capture surface is mounted when the editor is in capture stage AND the
@@ -898,67 +1440,129 @@ const MediaEditorImpl = React.forwardRef<
 
   const exportImage = React.useCallback(
     async (opts?: ExportImageOpts) => {
+      // A crop Apply / loadState / first load swaps the source asynchronously;
+      // exporting before the canvas shows it would produce a blank (or stale)
+      // image, so wait for it. A pending adjust gesture is reported first.
+      flushAdjust();
+      await whenSettled();
+      // Everything below reads the state the settled render COMMITTED (a ref),
+      // never the closure of the call: a crop Apply / loadState remap may have
+      // landed during the wait.
+      const committed = committedRef.current;
       const stage = stageRef.current;
       if (!stage) throw new Error("media-editor: editor canvas not ready");
+      if (!paintedUrlRef.current) {
+        throw new Error(
+          "media-editor: no image is painted on the canvas — nothing to export",
+        );
+      }
       const format = opts?.format ?? "image/jpeg";
       const quality = opts?.quality ?? 0.9;
-      const pixelRatio = opts?.pixelRatio ?? 2;
-      const cropRect = editor.state.crop;
+      const geometry = computeExportGeometry({
+        stage: { width: stage.width(), height: stage.height() },
+        media: mediaRectRef.current,
+        crop: committed.crop,
+        naturalWidth: naturalRef.current?.width,
+        opts: {
+          region: opts?.region,
+          pixelRatio: opts?.pixelRatio,
+          width: opts?.width,
+          height: opts?.height,
+          maxEdge: opts?.maxEdge,
+        },
+      });
       // Identity-transform guard: exporting while pan/zoomed would bake the
       // viewport transform into the output (stage.toCanvas captures the
       // rendered stage). Normalize, snapshot, restore.
-      const blob = await withStageIdentityTransform(stage, () =>
-        exportPhotoBlob({
+      const rendered = await withStageIdentityTransform(stage, () =>
+        renderPhoto({
           stage,
-          cropRect,
+          rect: geometry.rect,
+          pixelRatio: geometry.pixelRatio,
+          width: geometry.width,
+          height: geometry.height,
           mimeType: format,
           quality,
-          pixelRatio,
+          backgroundColor: opts?.backgroundColor ?? props.canvasBackground,
           onProgress: opts?.onProgress,
         }),
       );
-      const width = cropRect?.width ?? stage.width();
-      const height = cropRect?.height ?? stage.height();
       return {
-        blob,
+        blob: rendered.blob,
         metadata: buildExportMetadata(
-          editor.state,
+          committed,
           "photo",
-          width,
-          height,
+          rendered.width,
+          rendered.height,
           format,
+          undefined,
+          { frame: currentFrame() },
         ),
       };
     },
-    [editor.state],
+    [whenSettled, flushAdjust, currentFrame, props.canvasBackground],
   );
 
-  // Text-only mode rasterizes the styled DOM surface (no Konva stage exists in
-  // text mode) — review 1.2: without this branch, publishing a text story
+  // Text-only mode draws the text card with Canvas 2D (no Konva stage exists
+  // in text mode) — review 1.2: without this branch, publishing a text story
   // threw "editor canvas not ready".
   const exportText = React.useCallback(
     async (opts?: ExportImageOpts) => {
+      flushAdjust();
       const el = textOnlyRef.current;
       if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) {
         throw new Error("media-editor: text canvas not ready");
       }
+      // Measure the live text surface so the card is drawn the way the preview
+      // shows it (font size is viewport-relative, the box is capped, RTL).
+      const input = el.querySelector<HTMLTextAreaElement>(
+        '[data-slot="textcard-input"]',
+      );
+      const measured = measureTextInput(input);
       const width = el.offsetWidth;
       const height = el.offsetHeight;
+      const mimeType = opts?.format ?? "image/png";
+      // Size options turn into a pixel ratio on the card (width wins over
+      // height; maxEdge caps the result, never scaling up).
+      let pixelRatio = opts?.pixelRatio ?? 2;
+      if (opts?.width) pixelRatio = opts.width / width;
+      else if (opts?.height) pixelRatio = opts.height / height;
+      if (opts?.maxEdge) {
+        pixelRatio = Math.min(pixelRatio, opts.maxEdge / Math.max(width, height));
+      }
+      // The same canvas-area cap as photo exports (iOS limit).
+      if (width * pixelRatio * height * pixelRatio > MAX_OUTPUT_PIXELS) {
+        pixelRatio = Math.sqrt(MAX_OUTPUT_PIXELS / (width * height));
+      }
       opts?.onProgress?.(0);
-      const blob = await exportTextOnlyBlob(el, width, height);
+      const result = await exportTextCardBlob({
+        textOnly: editor.textOnly,
+        background:
+          resolvedGradients.find((g) => g.id === editor.textOnly.gradientId) ??
+          null,
+        fonts: resolvedFonts,
+        width,
+        height,
+        pixelRatio,
+        mimeType,
+        quality: opts?.quality,
+        ...measured,
+      });
       opts?.onProgress?.(1);
       return {
-        blob,
+        blob: result.blob,
         metadata: buildExportMetadata(
           editor.state,
           "text",
-          width,
-          height,
-          "image/png",
+          result.width,
+          result.height,
+          mimeType,
+          undefined,
+          { textOnly: editor.textOnly },
         ),
       };
     },
-    [editor.state],
+    [editor.state, editor.textOnly, resolvedGradients, resolvedFonts, flushAdjust],
   );
 
   // Read through a ref so an inline `labels` literal does not change the
@@ -970,6 +1574,7 @@ const MediaEditorImpl = React.forwardRef<
 
   const exportVideo = React.useCallback(
     async (opts?: ExportVideoOpts) => {
+      flushAdjust();
       const videoBlob = editor.state.videoBlob;
       if (!videoBlob) {
         throw new Error("media-editor: no video blob loaded");
@@ -1069,10 +1674,11 @@ const MediaEditorImpl = React.forwardRef<
           Math.round(oh),
           result.mimeType,
           result.durationMs,
+          { frame: currentFrame() },
         ),
       };
     },
-    [editor.state, editor.draft, allowedVideoMimes],
+    [editor.state, editor.draft, allowedVideoMimes, flushAdjust, currentFrame],
   );
 
   const exportPolymorphic = React.useCallback(
@@ -1089,6 +1695,14 @@ const MediaEditorImpl = React.forwardRef<
     [editor.state.mode, exportImage, exportVideo, exportText],
   );
 
+  // The handle's `exportImage` covers text cards too (no Konva stage exists in
+  // text mode, so the photo path alone would throw "canvas not ready").
+  const exportImageOrText = React.useCallback(
+    (opts?: ExportImageOpts) =>
+      editor.state.mode === "text" ? exportText(opts) : exportImage(opts),
+    [editor.state.mode, exportImage, exportText],
+  );
+
   // ─── Imperative handle ──────────────────────────────────────────────
   // Inspect / state / export / edit-overlay methods are fully wired. The
   // imperative CAPTURE methods (takePhoto / startRecording / stopRecording /
@@ -1099,10 +1713,28 @@ const MediaEditorImpl = React.forwardRef<
     (): MediaEditorHandle => ({
       // === Inspect ===
       getIsDirty: () => editor.isDirty,
+      isModified: () => modifiedRef.current,
+      isSettled,
+      whenSettled,
       getMode: () => editor.state.mode,
-      getState: () => editor.state,
+      getState: () => {
+        // Stable while nothing changed (callers compare snapshots by identity).
+        // The frame recorded with the committed state (not the live baseline,
+        // which a pending remap may have moved ahead of it).
+        const frame = committedFrameRef.current;
+        if (!frame) return editor.state;
+        const cached = snapshotCacheRef.current;
+        if (cached && cached.base === editor.state && cached.frame === frame) {
+          return cached.out;
+        }
+        const out: MediaEditorState = { ...editor.state, frame };
+        snapshotCacheRef.current = { base: editor.state, frame, out };
+        return out;
+      },
       loadState: (state: MediaEditorState, opts?: LoadStateOpts) => {
         const sourceBlob = opts?.sourceBlob ?? null;
+        // The image URL the loaded snapshot will show (null: no photo).
+        let loadedUrl: string | null = null;
         if (sourceBlob && state.mode !== "video") {
           // Re-materialize (review 1.3): a persisted snapshot's imageSrc is a
           // dead object URL once the capturing editor unmounted. Mint a fresh
@@ -1118,9 +1750,36 @@ const MediaEditorImpl = React.forwardRef<
             url,
             mimeType: sourceBlob.type || "image/jpeg",
           });
+          loadedUrl = url;
         } else {
           editor.loadState(state);
+          if (state.mode === "photo") {
+            loadedUrl =
+              (editor.draft?.kind === "image"
+                ? editor.draft.url
+                : state.imageSrc) ?? null;
+          }
         }
+        // A load is not a modification (unless the caller keeps the flag, e.g.
+        // a mode round-trip); it supersedes any remap, crop Apply and pending
+        // adjust gesture in flight. A round-trip of the editor's own state keeps
+        // the gesture's action (the edit is still in the state) and the capture flag.
+        if (opts?.keepModified) {
+          flushAdjust();
+        } else {
+          clearModified();
+          capturedRef.current = false;
+          dropAdjust();
+        }
+        sourceEpochRef.current += 1;
+        pendingCropRef.current = null;
+        overrideUrlRef.current = loadedUrl;
+        if (loadedUrl !== null) targetUrlRef.current = loadedUrl;
+        pendingLoadRef.current = state.frame
+          ? { url: loadedUrl, frame: state.frame }
+          : null;
+        bumpCommit();
+        if (state.frame) scheduleLayoutSync();
       },
       getSourceBlob: () =>
         editor.draft && editor.draft.kind === "image"
@@ -1147,7 +1806,10 @@ const MediaEditorImpl = React.forwardRef<
       // === Edit ===
       addText: (text?: string) => {
         if (text !== undefined) {
-          editor.setTextContent(text);
+          // In text mode the card's text IS `textOnly.text` (textContent follows it).
+          if (editor.state.mode === "text") editor.setTextOnly({ text });
+          else editor.setTextContent(text);
+          markModified();
         } else {
           devWarnOnce(
           warnedRef.current,
@@ -1157,20 +1819,46 @@ const MediaEditorImpl = React.forwardRef<
         }
       },
       addSticker: (sticker: StickerOption) => {
-        editor.addSticker({
+        const placed: PlacedSticker = {
           // now-ok: builds an id inside an imperative handle method; never reaches markup
           id: `sticker-${Date.now()}`,
           stickerId: sticker.id,
           ...(visibleImageCenter(stageRef.current) ?? FALLBACK_PLACEMENT),
           rotation: 0,
           scale: 1,
-        });
+        };
+        editor.addSticker(placed);
+        markModified();
+        emitEditAction({ kind: "sticker-add", placed });
       },
-      setAdjustments: (adj: Partial<ImageAdjustments>) =>
-        editor.setAdjustments(adj),
-      applyFilter: (name: string | null) => editor.setFilter(name),
-      clearLayer: (layer: "drawing" | "stickers" | "text") =>
-        editor.clearLayer(layer),
+      setAdjustments: (adj: Partial<ImageAdjustments>) => {
+        editor.setAdjustments(adj);
+        markModified();
+        if (Object.keys(adj).length > 0) {
+          emitEditAction({ kind: "adjust-change", patch: adj });
+        }
+      },
+      applyFilter: (name: string | null) => commitFilter(name),
+      clearLayer: (layer: "drawing" | "stickers" | "text") => {
+        const st = editor.state;
+        editor.clearLayer(layer);
+        if (layer === "stickers") {
+          for (const x of st.stickers) {
+            emitEditAction({ kind: "sticker-remove", id: x.id });
+          }
+        } else if (layer === "text") {
+          for (const x of st.textOverlays) {
+            emitEditAction({ kind: "text-remove", id: x.id });
+          }
+        }
+        const had =
+          layer === "drawing"
+            ? st.drawingStrokes.length > 0
+            : layer === "stickers"
+              ? st.stickers.length > 0
+              : st.textOverlays.length > 0 || st.textContent !== null;
+        if (had) markModified();
+      },
       // No execute() callers exist — the stack is always empty, so these are
       // honest (dev-warning) no-ops, not silent ones.
       undo: () => {
@@ -1181,7 +1869,7 @@ const MediaEditorImpl = React.forwardRef<
       },
 
       // === Export (C10) ===
-      exportImage,
+      exportImage: exportImageOrText,
       exportVideo,
       export: exportPolymorphic,
 
@@ -1216,12 +1904,22 @@ const MediaEditorImpl = React.forwardRef<
     }),
     [
       editor,
-      exportImage,
+      exportImageOrText,
       exportVideo,
       exportPolymorphic,
       resolved,
       performReset,
       requestClose,
+      isSettled,
+      whenSettled,
+      markModified,
+      clearModified,
+      emitEditAction,
+      scheduleLayoutSync,
+      commitFilter,
+      flushAdjust,
+      dropAdjust,
+      bumpCommit,
     ],
   );
 
@@ -1235,6 +1933,7 @@ const MediaEditorImpl = React.forwardRef<
   // the control that held it when the overlay goes away.
   const overlayActive = hasRenderableOverlay(props.overlay);
   const bodyRef = React.useRef<HTMLDivElement | null>(null);
+  const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   const overlayHostRef = React.useRef<HTMLDivElement | null>(null);
   const restoreFocusRef = React.useRef<HTMLElement | null>(null);
   React.useLayoutEffect(() => {
@@ -1313,6 +2012,52 @@ const MediaEditorImpl = React.forwardRef<
   const dialogOpen = resolved === "dialog" && (props.isOpen ?? false);
   const dialogContentRef = React.useRef<HTMLDivElement | null>(null);
   const openerRef = React.useRef<HTMLElement | null>(null);
+  // Read at unmount: inline hands focus back only when it was inside the editor.
+  const inlinePresentationRef = React.useRef(resolved === "inline");
+  React.useEffect(() => {
+    inlinePresentationRef.current = resolved === "inline";
+  }, [resolved]);
+  // Inline presentation has no open transition: the opener is whatever held
+  // focus when the editor mounted (outside the editor itself).
+  React.useLayoutEffect(() => {
+    if (resolved !== "inline") return;
+    const active = document.activeElement;
+    openerRef.current =
+      active instanceof HTMLElement &&
+      active !== document.body &&
+      surfaceRef.current?.contains(active) !== true
+        ? active
+        : null;
+  }, [resolved]);
+  // Unmount while focus is inside the editor (or lost to <body> with the
+  // unmount): hand focus back to the opener if it is still in the document.
+  // A layout cleanup runs before React detaches the DOM, so "was focus
+  // inside" is still answerable; the focus move waits a microtask for the
+  // detach. Best effort; a host that moves focus itself afterwards wins.
+  React.useLayoutEffect(() => {
+    return () => {
+      const opener = openerRef.current;
+      if (!opener) return;
+      const active = document.activeElement;
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- read at unmount, on purpose
+      const surface = dialogContentRef.current ?? surfaceRef.current;
+      const wasInside =
+        active instanceof HTMLElement &&
+        (surface?.contains(active) === true ||
+          active.closest('[role="alertdialog"]') !== null);
+      const inline = inlinePresentationRef.current;
+      queueMicrotask(() => {
+        if (!opener.isConnected) return;
+        const now = document.activeElement;
+        // Inline: focus parked on <body> (a route change, a click on empty
+        // space) is not ours to move; only focus that was inside the editor is.
+        // Dialog: it is, since focus was trapped inside the dialog.
+        if (wasInside || (!inline && (now === null || now === document.body))) {
+          opener.focus({ preventScroll: true });
+        }
+      });
+    };
+  }, []);
   React.useLayoutEffect(() => {
     if (!dialogOpen) return;
     const active = document.activeElement;
@@ -1337,6 +2082,68 @@ const MediaEditorImpl = React.forwardRef<
     if (stranded) opener.focus({ preventScroll: true });
   }, [dialogOpen]);
 
+  // "Keep editing" (or Escape on the confirm): focus goes back to the control
+  // that had it before the confirm opened, else to the editor's own surface.
+  // The confirm's focus scope releases a pass or two after `open` flips, so the
+  // restore retries for a few frames; it only acts while focus is stranded on
+  // <body> / inside the closing confirm, so a control the user focused wins.
+  const wasDiscardOpenRef = React.useRef(false);
+  React.useEffect(() => {
+    const was = wasDiscardOpenRef.current;
+    wasDiscardOpenRef.current = showDiscardConfirm;
+    if (showDiscardConfirm || !was) return;
+    const target = discardReturnFocusRef.current;
+    discardReturnFocusRef.current = undefined;
+    if (target === undefined) return;
+    const restore = () => {
+      const active = document.activeElement;
+      const stranded =
+        active === null ||
+        active === document.body ||
+        (active instanceof HTMLElement &&
+          active.closest('[role="alertdialog"]') !== null);
+      if (!stranded) return true;
+      const host = target?.isConnected
+        ? target
+        : (dialogContentRef.current ?? surfaceRef.current);
+      if (!host?.isConnected) return true;
+      if (host !== target && !host.hasAttribute("tabindex")) {
+        host.setAttribute("tabindex", "-1");
+      }
+      host.focus({ preventScroll: true });
+      return document.activeElement === host;
+    };
+    let frames = 0;
+    let frame = 0;
+    const tick = () => {
+      if (restore() || ++frames >= 4) return;
+      frame = requestAnimationFrame(tick);
+    };
+    restore();
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [showDiscardConfirm]);
+
+  // A tool panel's Apply / Back unmounts the panel with focus inside it, which
+  // strands focus on <body>. The tool's chip stays mounted: focus goes there.
+  const focusToolRef = React.useRef<EditTool | null>(null);
+  React.useEffect(() => {
+    const tool = editor.activeTool;
+    if (tool !== null) {
+      focusToolRef.current = tool;
+      return;
+    }
+    const prev = focusToolRef.current;
+    focusToolRef.current = null;
+    if (!prev) return;
+    const active = document.activeElement;
+    if (active !== null && active !== document.body) return;
+    const chip = surfaceRef.current?.querySelector<HTMLElement>(
+      `[role="toolbar"] [data-tool="${prev}"]`,
+    );
+    chip?.focus({ preventScroll: true });
+  }, [editor.activeTool]);
+
   // ─── Slot context for render* props ─────────────────────────────────
 
   const slotCtx = React.useMemo(
@@ -1344,6 +2151,7 @@ const MediaEditorImpl = React.forwardRef<
       mode: editor.state.mode,
       stage: editor.state.stage,
       isDirty: editor.isDirty,
+      isModified: modified,
       isCapturing: editor.state.stage === "capture",
       isExporting: editor.state.stage === "publishing",
       activeTool: editor.activeTool,
@@ -1351,18 +2159,19 @@ const MediaEditorImpl = React.forwardRef<
       enabledModes: [...enabledModes] as ComposerMode[],
       aspect,
     }),
-    [editor, enabledTools, enabledModes, aspect],
+    [editor, modified, enabledTools, enabledModes, aspect],
   );
 
   // ─── Render — inner surface (shared by inline + dialog branches) ──
 
   const inner = (
     <div
+      ref={surfaceRef}
       className={cn(
         // `relative` anchors the floating top-center control (mode pill / Back)
         // and the consumer's renderTopBar (X / Publish) to the SAME box so they
         // share one row instead of stacking.
-        "relative flex h-full w-full flex-col gap-3 p-4",
+        "relative flex h-full w-full min-h-0 min-w-0 flex-col gap-3 p-4",
         // Inline-only: gets its own card chrome. In dialog mode, DialogContent
         // provides the chrome and we go edge-to-edge inside it.
         resolved === "inline" &&
@@ -1522,7 +2331,14 @@ const MediaEditorImpl = React.forwardRef<
           ) : showEditCanvas ? (
             <React.Suspense
               fallback={
-                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                <div
+                  className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground"
+                  style={
+                    props.canvasBackground
+                      ? { background: props.canvasBackground }
+                      : undefined
+                  }
+                >
                   <Loader2
                     className="size-6 animate-spin text-primary"
                     aria-hidden="true"
@@ -1541,12 +2357,15 @@ const MediaEditorImpl = React.forwardRef<
                 }
                 textOverlays={editor.state.textOverlays}
                 selectedTextId={editor.selectedTextId}
-                onTextChange={(next) => editor.updateTextOverlay(next.id, next)}
+                onTextChange={commitTextUpdate}
                 onTextSelect={editor.setSelectedTextId}
                 stickers={editor.state.stickers}
                 resolveSticker={resolveSticker}
                 selectedStickerId={editor.selectedStickerId}
-                onStickerChange={(next) => editor.updateSticker(next.id, next)}
+                onStickerChange={(next) => {
+                  editor.updateSticker(next.id, next);
+                  markModified();
+                }}
                 onStickerSelect={editor.setSelectedStickerId}
                 drawingStrokes={editor.state.drawingStrokes}
                 currentDrawingStroke={currentDrawingStroke}
@@ -1556,7 +2375,7 @@ const MediaEditorImpl = React.forwardRef<
                 onDrawEnd={handleDrawEnd}
                 cropRect={editor.state.crop}
                 cropActive={editor.activeTool === "crop"}
-                cropAspectRatio={aspectAsRatio(editor.cropAspect)}
+                cropAspectRatio={cropAspectToRatio(editor.cropAspect, mediaRatio)}
                 onCropChange={editor.setCrop}
                 adjustments={editor.state.adjustments}
                 activeFilter={
@@ -1565,9 +2384,12 @@ const MediaEditorImpl = React.forwardRef<
                   ) ?? null
                 }
                 labels={mergedLabels}
-                onStageReady={(s) => {
-                  stageRef.current = s;
-                }}
+                onStageReady={handleStageReady}
+                onStageSize={handleStageSize}
+                onMediaRect={handleMediaRect}
+                onImagePainted={handleImagePainted}
+                onImageError={handleImageError}
+                background={props.canvasBackground}
                 className="h-full w-full"
               />
             </React.Suspense>
@@ -1581,7 +2403,10 @@ const MediaEditorImpl = React.forwardRef<
               colorPresets={resolvedColorPresets}
               labels={mergedLabels}
               value={editor.textOnly}
-              onChange={(next) => editor.setTextOnly(next)}
+              onChange={(next) => {
+                editor.setTextOnly(next);
+                markModified();
+              }}
             />
           ) : showCameraSurface && CameraSurface ? (
             <CameraSurface
@@ -1694,11 +2519,9 @@ const MediaEditorImpl = React.forwardRef<
                     colorPresets={resolvedColorPresets}
                     labels={mergedLabels}
                     locale={locale}
-                    onChange={(next) =>
-                      editor.updateTextOverlay(next.id, next)
-                    }
+                    onChange={commitTextUpdate}
                     onDelete={() => {
-                      editor.removeTextOverlay(selectedText.id);
+                      commitTextRemove(selectedText.id);
                       editor.setSelectedTextId(null);
                     }}
                   />
@@ -1726,7 +2549,7 @@ const MediaEditorImpl = React.forwardRef<
                     presets={resolvedFilterPresets}
                     sourceUrl={editor.draft.url}
                     activeId={editor.state.filter}
-                    onSelect={(id) => editor.setFilter(id)}
+                    onSelect={commitFilter}
                   />
                 </ToolPanelFrame>
               ) : null}
@@ -1738,7 +2561,7 @@ const MediaEditorImpl = React.forwardRef<
                 >
                   <ToolAdjustSliders
                     value={editor.state.adjustments}
-                    onChange={(next) => editor.setAdjustments(next)}
+                    onChange={commitAdjust}
                     labels={mergedLabels}
                     locale={locale}
                   />
@@ -1784,7 +2607,11 @@ const MediaEditorImpl = React.forwardRef<
                               : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {a === "free" ? mergedLabels.cropAspectFree : a}
+                          {a === "free"
+                            ? mergedLabels.cropAspectFree
+                            : a === "original"
+                              ? mergedLabels.cropAspectOriginal
+                              : a}
                         </button>
                       ))}
                     </div>
@@ -1807,6 +2634,16 @@ const MediaEditorImpl = React.forwardRef<
                         editor.setActiveTool(null);
                         return;
                       }
+                      // A second press while the first Apply encodes is ignored
+                      // (both would race to replace the draft).
+                      if (applyInFlightRef.current > 0) return;
+                      // Token: a loadState / reset / new source while this encodes
+                      // supersedes the Apply, which must then touch nothing (it
+                      // would overwrite the newer draft). In flight = unsettled.
+                      const epoch = sourceEpochRef.current;
+                      const stale = () =>
+                        sourceEpochRef.current !== epoch || !mountedRef.current;
+                      applyInFlightRef.current += 1;
                       try {
                         const img = new Image();
                         img.crossOrigin = "anonymous";
@@ -1816,6 +2653,7 @@ const MediaEditorImpl = React.forwardRef<
                             reject(new Error("image load failed"));
                           img.src = sourceUrl;
                         });
+                        if (stale()) return;
                         // Compute the image's object-contain fit region in stage
                         // coords (mirrors the Konva canvas's fitInto helper).
                         const stageW = stage.width();
@@ -1867,11 +2705,22 @@ const MediaEditorImpl = React.forwardRef<
                         const blob = await new Promise<Blob | null>((res) => {
                           canvas.toBlob(res, "image/jpeg", 0.92);
                         });
+                        if (stale()) return;
                         if (!blob) {
                           editor.setActiveTool(null);
                           return;
                         }
                         const newUrl = URL.createObjectURL(blob);
+                        // The content inside the crop (stage px) is shown at
+                        // the new image's media rect once it is painted — the
+                        // overlays follow (see runLayoutSync). Until then the
+                        // editor is "unsettled" on the new URL.
+                        pendingCropRef.current = {
+                          url: newUrl,
+                          cropInMedia: { x: ix, y: iy, width: iw, height: ih },
+                        };
+                        overrideUrlRef.current = newUrl;
+                        targetUrlRef.current = newUrl;
                         // Replace draft + imageSrc with the cropped image so the
                         // tool sub-panel gate (editor.draft?.kind === "image")
                         // stays true and re-crop works on the new image.
@@ -1887,8 +2736,16 @@ const MediaEditorImpl = React.forwardRef<
                         editor.setImageSrc(newUrl);
                         editor.setCrop(null);
                         editor.setActiveTool(null);
+                        markModified();
+                        emitEditAction({
+                          kind: "crop-set",
+                          crop: { x: ix, y: iy, width: iw, height: ih },
+                        });
                       } catch {
-                        editor.setActiveTool(null);
+                        if (!stale()) editor.setActiveTool(null);
+                      } finally {
+                        applyInFlightRef.current -= 1;
+                        checkWaiters();
                       }
                     }}
                     className="rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
@@ -1916,7 +2773,7 @@ const MediaEditorImpl = React.forwardRef<
           the chips fit, horizontally scrollable when they don't, so they never
           crop on narrow (9:16) widths. */}
           {visibleTools.length > 0 && !isEmptyConfig ? (
-            <div className="max-w-full self-center overflow-x-auto rounded-full border border-border bg-background/80 backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ChipRowScroller>
               <div
                 role="toolbar"
                 aria-label={mergedLabels.editTools}
@@ -1948,7 +2805,7 @@ const MediaEditorImpl = React.forwardRef<
                   </span>
                 ) : null}
               </div>
-            </div>
+            </ChipRowScroller>
           ) : null}
         </div>
       ) : null}
@@ -1963,6 +2820,7 @@ const MediaEditorImpl = React.forwardRef<
         labels={mergedLabels}
         onCancel={() => setShowDiscardConfirm(false)}
         onConfirm={() => {
+          discardReturnFocusRef.current = undefined;
           setShowDiscardConfirm(false);
           performReset();
           props.onClose?.();
@@ -2040,6 +2898,11 @@ const MediaEditorImpl = React.forwardRef<
           orientation === "portrait"
             ? "md:h-[clamp(24rem,85dvh,44rem)] md:w-auto md:max-w-[90vw]"
             : "md:w-[clamp(28rem,85vw,60rem)] md:h-auto md:max-h-[85dvh]",
+          // shadcn's DialogContent is a grid with auto tracks: the editor
+          // root's min-content (chip row, in-flow crop panel) would widen the
+          // track past the overflow-hidden box. Pin both tracks to the box.
+          "grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)]",
+          props.dialogClassName,
         )}
         style={{
           // aspect-ratio is driven inline (Tailwind v4's md:aspect-[…] doesn't
@@ -2056,6 +2919,66 @@ const MediaEditorImpl = React.forwardRef<
     </Dialog>
   );
 });
+
+// ─── 0.6.0 helpers ────────────────────────────────────────────────────
+
+/** Trailing debounce for `adjust-change` (one action per slider gesture). */
+const ADJUST_DEBOUNCE_MS = 250;
+
+interface SettleWaiter {
+  resolve: () => void;
+  reject: (error: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+}
+
+function loadErrorMessage(url: string): string {
+  return `media-editor: the image could not be loaded (${url})`;
+}
+
+/** The keys of `next` whose value differs from `prev`. */
+function shallowPatch<T extends object>(prev: T, next: T): Partial<T> {
+  const patch: Partial<T> = {};
+  for (const key of Object.keys(next) as (keyof T)[]) {
+    if (prev[key] !== next[key]) patch[key] = next[key];
+  }
+  return patch;
+}
+
+/**
+ * Measure the live text-card input so the exported card matches the preview:
+ * its computed font size, the width its text wraps in (content box) and the
+ * text direction. A value the environment cannot report is left out.
+ */
+function measureTextInput(el: HTMLTextAreaElement | null): {
+  fontSizePx?: number;
+  textBoxWidth?: number;
+  direction?: "ltr" | "rtl";
+} {
+  if (!el || typeof getComputedStyle === "undefined") return {};
+  const cs = getComputedStyle(el);
+  const out: { fontSizePx?: number; textBoxWidth?: number; direction?: "ltr" | "rtl" } = {};
+  const fontSize = parseFloat(cs.fontSize);
+  if (Number.isFinite(fontSize) && fontSize > 0) out.fontSizePx = fontSize;
+  const padding =
+    (parseFloat(cs.paddingInlineStart) || 0) + (parseFloat(cs.paddingInlineEnd) || 0);
+  const box = el.clientWidth - padding;
+  if (box > 0) out.textBoxWidth = box;
+  if (cs.direction === "rtl" || cs.direction === "ltr") out.direction = cs.direction;
+  return out;
+}
+
+function sameRect(a: CropRect | undefined, b: CropRect | undefined): boolean {
+  if (!a || !b) return a === b;
+  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
+
+function sameFrame(a: StateFrame, b: StateFrame): boolean {
+  return (
+    a.stageWidth === b.stageWidth &&
+    a.stageHeight === b.stageHeight &&
+    sameRect(a.media, b.media)
+  );
+}
 
 // ─── Export-time helpers ──────────────────────────────────────────────
 
@@ -2147,6 +3070,65 @@ function FileIntakeSurface({
         hidden
         className="hidden"
       />
+    </div>
+  );
+}
+
+/**
+ * Scroll container for the tool chip row. When the chips overflow, a fade
+ * (CSS mask) appears on the inline-start / inline-end edge that has hidden
+ * content, so the row reads as scrollable. RTL-correct: the distance from the
+ * start edge is |scrollLeft| in every direction (modern browsers report a
+ * negative scrollLeft in RTL), and the mask direction follows the computed
+ * `direction`. Exposes `data-overflow-start` / `data-overflow-end`.
+ */
+function ChipRowScroller({ children }: { children: React.ReactNode }) {
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const [cue, setCue] = React.useState({ start: false, end: false, rtl: false });
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      const fromStart = Math.abs(el.scrollLeft);
+      const rtl = (getComputedStyle(el).direction || "ltr") === "rtl";
+      const next = {
+        start: max > 1 && fromStart > 1,
+        end: max > 1 && fromStart < max - 1,
+        rtl,
+      };
+      setCue((prev) =>
+        prev.start === next.start && prev.end === next.end && prev.rtl === next.rtl
+          ? prev
+          : next,
+      );
+    };
+    measure();
+    el.addEventListener("scroll", measure, { passive: true });
+    const ro =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    ro?.observe(el);
+    if (el.firstElementChild) ro?.observe(el.firstElementChild);
+    return () => {
+      el.removeEventListener("scroll", measure);
+      ro?.disconnect();
+    };
+  }, []);
+  const mask =
+    cue.start || cue.end
+      ? `linear-gradient(${cue.rtl ? "to left" : "to right"}, ${
+          cue.start ? "transparent 0, black 1.5rem" : "black 0"
+        }, ${cue.end ? "black calc(100% - 1.5rem), transparent 100%" : "black 100%"})`
+      : undefined;
+  return (
+    <div
+      ref={ref}
+      data-overflow-start={cue.start ? "" : undefined}
+      data-overflow-end={cue.end ? "" : undefined}
+      style={{ maskImage: mask, WebkitMaskImage: mask }}
+      className="max-w-full self-center overflow-x-auto rounded-full border border-border bg-background/80 backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {children}
     </div>
   );
 }
@@ -2269,6 +3251,7 @@ function buildExportMetadata(
   height: number,
   mimeType: string,
   durationMs?: number,
+  extra?: Pick<ExportMetadata, "frame" | "textOnly">,
 ): ExportMetadata {
   return {
     mode,
@@ -2282,6 +3265,8 @@ function buildExportMetadata(
     appliedFilter: state.filter ?? undefined,
     adjustments: state.adjustments,
     crop: state.crop ?? undefined,
+    ...(extra?.frame ? { frame: extra.frame } : {}),
+    ...(extra?.textOnly ? { textOnly: extra.textOnly } : {}),
   };
 }
 

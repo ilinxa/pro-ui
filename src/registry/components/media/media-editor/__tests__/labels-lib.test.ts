@@ -46,7 +46,7 @@ const ALL_KEYS: Record<keyof MediaEditorResolvedLabels, true> = {
   drawColor: true, drawBrush: true, drawEraser: true, textPlaceholder: true, textFontFamily: true,
   textFontSize: true, textAlignLeft: true, textAlignCenter: true, textAlignRight: true,
   textDelete: true, textBackground: true, colorHex: true, colorSwatch: true, cropAspectFree: true,
-  cropAspectCount: true, canvasAriaLabel: true, resetZoom: true, resizeHandle: true,
+  cropAspectOriginal: true, cropAspectCount: true, canvasAriaLabel: true, resetZoom: true, resizeHandle: true,
   trimStart: true, trimEnd: true, trimSeconds: true, discardConfirmTitle: true,
   discardConfirmBody: true, discardConfirm: true, discardCancel: true, intakePrompt: true,
   fileUnknownType: true, fileUnsupportedType: true, fileTooLarge: true, emptyNoSource: true,

@@ -117,6 +117,13 @@ export interface FontOption {
 
 export type AspectRatio = "9:16" | "1:1" | "16:9" | "4:5" | "free";
 
+/**
+ * A crop choice. Every `AspectRatio`, plus `"original"` (the loaded photo's own
+ * ratio) and any `"W:H"` string with positive numbers (for example `"3:2"`).
+ * Crop choices only — the editor canvas `aspect` stays an `AspectRatio`.
+ */
+export type CropAspect = AspectRatio | "original" | `${number}:${number}`;
+
 export type EditTool =
   | "text"
   | "draw"
@@ -212,12 +219,26 @@ export interface GradientPreset {
   background: string;
 }
 
+/**
+ * The layout that the coordinates in a snapshot (overlay positions, stroke
+ * points, crop) were recorded in. All values are stage CSS pixels.
+ */
+export interface StateFrame {
+  /** Stage size when the snapshot was taken. */
+  stageWidth: number;
+  stageHeight: number;
+  /** The photo's displayed rect on that stage, when a photo was loaded. */
+  media?: CropRect;
+}
+
 export interface MediaEditorState {
   mode: ComposerMode | null;
   stage: ComposerStage;
   imageSrc: string | null;
   videoBlob: Blob | null;
+  /** Text-card background. Kept in sync with `textOnly` while in text mode. */
   textBackground: GradientPreset | null;
+  /** Text-card text. Kept in sync with `textOnly` while in text mode. */
   textContent: string | null;
   textOverlays: TextOverlay[];
   stickers: PlacedSticker[];
@@ -225,6 +246,21 @@ export interface MediaEditorState {
   filter: string | null;
   adjustments: ImageAdjustments;
   crop: CropRect | null;
+  /**
+   * Full text-card content (text, font, colour, background). `getState()`
+   * always fills it; `loadState` restores it. Optional so snapshots taken
+   * before 0.6.0 still load.
+   */
+  textOnly?: TextOnlyState;
+  /**
+   * The layout the coordinates in this snapshot were recorded in. `getState()`
+   * always fills it once the canvas has measured. `loadState` uses it to map
+   * overlay positions, stroke points and the crop onto the current layout (the
+   * photo's displayed rect when both have one, else the stage size), so a
+   * re-open at another size keeps them on the same picture content. Absent
+   * (snapshots before 0.6.0): coordinates are used as they are.
+   */
+  frame?: StateFrame;
 }
 
 // ─── Edit action (NEW — analytics + undo sync) ──────────────────────────
@@ -249,12 +285,49 @@ export type EditAction =
 // ─── Export contracts (NEW — locked at Q-P3 sign-off) ───────────────────
 
 export interface ExportImageOpts {
-  /** Default "image/jpeg" (Q-P3 lock). */
+  /** Default "image/jpeg" (Q-P3 lock); text cards default to "image/png". */
   format?: "image/jpeg" | "image/png" | "image/webp";
   /** 0..1; default 0.9; only meaningful for jpeg/webp. */
   quality?: number;
-  /** Default 2 (retina). */
+  /**
+   * What to export.
+   * - `"stage"` (default): the whole canvas, or the crop frame while one is
+   *   set. Areas the photo does not cover are transparent (JPEG encodes them
+   *   black) unless `backgroundColor` / `canvasBackground` fills them.
+   * - `"media"`: only the photo's displayed area (intersected with the crop
+   *   frame while one is set) — no letterbox. Overlays outside it are cut.
+   *
+   * Text cards export the whole card: `region` and `backgroundColor` do not
+   * apply, and the size options scale the card with its aspect kept (`width`
+   * wins over `height`; `maxEdge` still caps the result).
+   */
+  region?: "stage" | "media";
+  /**
+   * Output pixels per canvas CSS pixel. Default 2, except for
+   * `region: "media"` with no size option, where the default is the photo's
+   * own resolution (capped at 4096 px on the longer edge). Ignored when
+   * `width` or `height` is given; `maxEdge` caps the size it gives. Every
+   * export is also capped at 16.7 million pixels (the iOS canvas limit).
+   */
   pixelRatio?: number;
+  /**
+   * Exact output width / height in pixels. With only one of them the other
+   * follows the region's aspect; with both, the region is first trimmed
+   * (centred) to that aspect. Wins over `maxEdge` and `pixelRatio`.
+   */
+  width?: number;
+  height?: number;
+  /**
+   * Upper bound for the longer output edge, in pixels. Applied to the size
+   * `pixelRatio` (or its default) would give; never scales up.
+   */
+  maxEdge?: number;
+  /**
+   * Fill painted under the canvas content before encoding — any CSS colour,
+   * including `var(--token)` (resolved against the editor). Default:
+   * `canvasBackground` when set, else none (transparent).
+   */
+  backgroundColor?: string;
   /** 0..1; fires twice (start, end) for jpeg/png; webp may fire interim. */
   onProgress?: (progress: number) => void;
 }
@@ -276,9 +349,11 @@ export type ExportOpts = ExportImageOpts | ExportVideoOpts;
 export interface ExportMetadata {
   mode: ComposerMode;
   /**
-   * Output pixel size. For an unedited video returned as the original file this
-   * is the file's own size (from the capture, or read from its metadata); only
-   * if that cannot be determined does it fall back to 720 x 1280.
+   * Pixel size of the exported blob (photo, text card and video alike). For an
+   * unedited video returned as the original file this is the file's own size
+   * (from the capture, or read from its metadata); only if that cannot be
+   * determined does it fall back to 720 x 1280. Before 0.6.0 photo and text
+   * exports reported the on-screen (CSS) size here instead.
    */
   width: number;
   height: number;
@@ -291,6 +366,16 @@ export interface ExportMetadata {
   appliedFilter?: string;
   adjustments: ImageAdjustments;
   crop?: CropRect;
+  /** Text-card content, for a text-mode export. */
+  textOnly?: TextOnlyState;
+  /**
+   * The layout `textOverlays`, `stickers` and `crop` coordinates are in (stage
+   * CSS pixels — not the blob's pixels). Whole-stage export: blob x =
+   * `x * width / frame.stageWidth`; `region: "media"`: blob x =
+   * `(x - frame.media.x) * width / frame.media.width`. Omitted for text-card
+   * exports and for a video returned as the original file.
+   */
+  frame?: StateFrame;
 }
 
 // ─── Slot context (NEW — replaces ComposerCtx for editor-only consumers) ─
@@ -299,6 +384,8 @@ export interface EditorCtx {
   mode: ComposerMode | null;
   stage: ComposerStage;
   isDirty: boolean;
+  /** Content changed since the source loaded (see `MediaEditorHandle.isModified`). */
+  isModified: boolean;
   isCapturing: boolean;
   isExporting: boolean;
   activeTool: EditTool | null;
@@ -382,6 +469,7 @@ export interface MediaEditorResolvedLabels {
   colorHex: string;
   colorSwatch: (color: string) => string;
   cropAspectFree: string;
+  cropAspectOriginal: string;
   /** `formatted` is `count` through `Intl.NumberFormat(locale)`. */
   cropAspectCount: (count: number, formatted: string) => string;
   // canvas
@@ -511,6 +599,8 @@ export interface MediaEditorLabels {
   };
   crop?: {
     free?: string;
+    /** Chip name for the `"original"` crop aspect (the photo's own ratio). */
+    original?: string;
     aspectCount?: (count: number, formatted: string) => string;
   };
   canvas?: {
@@ -600,6 +690,18 @@ export interface MediaEditorProps {
   isOpen?: boolean;
   /** Required when presentation resolves to "dialog". */
   onClose?: () => void;
+  /**
+   * Extra classes for the dialog's content element (dialog presentation only),
+   * merged after the editor's own.
+   */
+  dialogClassName?: string;
+  /**
+   * CSS colour shown behind the photo on the canvas. When set, image exports
+   * are filled with it too (an export's `backgroundColor` still wins), so the
+   * preview matches what is exported. Default: black on screen, no fill in the
+   * export (transparent; JPEG encodes it black).
+   */
+  canvasBackground?: string;
 
   // === Capture extension (P3 S3 — install @ilinxa/media-editor-capture) ===
   /**
@@ -649,11 +751,16 @@ export interface MediaEditorProps {
   colorPresets?: string[];
   filterPresets?: FilterPreset[];
   replaceBuiltinFilters?: boolean;
-  /** Overrides default crop choices. Default derivation: if aspect !== "free" → [aspect]; else all 5. */
-  cropAspects?: AspectRatio[];
+  /**
+   * Overrides default crop choices. Default derivation: if aspect !== "free" →
+   * [aspect]; else all 5. Accepts `"original"` (the photo's own ratio) and
+   * `"W:H"` strings; invalid entries are dropped with a dev warning. Crop
+   * frames are laid out on, and clamped to, the photo's displayed area.
+   */
+  cropAspects?: CropAspect[];
 
   // === Discard guard ===
-  /** Default true. Dialog mode only — fires on Escape/backdrop click/programmatic close() when dirty. Inline mode ignores (consumer owns navigation guarding via getIsDirty() handle). */
+  /** Default true. Dialog mode only — fires on Escape/backdrop click/programmatic close() when modified (see `isModified`) or when the media came from the camera or the file picker in this session (a capture is not re-loadable). Inline mode ignores (consumer owns navigation guarding via getIsDirty() handle). */
   confirmOnDiscard?: boolean;
 
   // === Localization ===
@@ -678,12 +785,16 @@ export interface MediaEditorProps {
   onModeChange?: (mode: ComposerMode | null) => void;
   onDirtyChange?: (isDirty: boolean) => void;
   /**
-   * Analytics/undo-sync hook. Emits the navigation + lifecycle actions:
-   * `mode-change`, `tool-open`, `tool-close`, and `reset`. The fine-grained
-   * content-mutation actions (`text-*`, `sticker-*`, `draw-stroke`,
-   * `filter-apply`, `adjust-change`, `crop-set`, `undo`, `redo`) are not
-   * emitted — there is no per-mutation instrumentation layer. The
-   * `EditAction` union is complete so consumers can switch exhaustively.
+   * Analytics/undo-sync hook. Emits navigation + lifecycle actions
+   * (`mode-change`, `tool-open`, `tool-close`, `reset`) and one action per
+   * committed content change (`text-add`, `text-update`, `text-remove`,
+   * `sticker-add`, `sticker-remove`, `draw-stroke`, `filter-apply`,
+   * `adjust-change`, `crop-set`): drag / transform / stroke end, each text
+   * or style edit, and `adjust-change` once a slider has been still for
+   * 250 ms (flushed early by an export). Back on a tool panel emits
+   * `text-remove` / `sticker-remove` for items added since the tool opened.
+   * Loading a source emits none of them. `undo` / `redo` are not emitted (the
+   * editor has no undo stack).
    */
   onEditAction?: (action: EditAction) => void;
 
@@ -725,12 +836,39 @@ export interface LoadStateOpts {
    * Obtain it from `getSourceBlob()` at snapshot time. (Review 1.3.)
    */
   sourceBlob?: Blob | null;
+  /**
+   * Keep the current `isModified()` value instead of clearing it. For a
+   * round-trip of the editor's own state (`loadState({ ...getState(), mode })`)
+   * that is not a new source. Default false.
+   */
+  keepModified?: boolean;
 }
 
 export interface MediaEditorHandle {
   // === Inspect ===
   /** True iff the user has captured OR loaded OR edited something. Capture without edit IS dirty. */
   getIsDirty: () => boolean;
+  /**
+   * True once content changed relative to the loaded source — the
+   * `initialSource`, a `loadState`, or a capture / gallery pick. Loading alone
+   * is not a modification (unlike `getIsDirty`). The dialog's discard confirm
+   * uses it.
+   */
+  isModified: () => boolean;
+  /**
+   * True when the canvas shows the current source: no source load (incl.
+   * `initialSource`), crop Apply or `loadState` swap, or overlay remap is in
+   * flight.
+   */
+  isSettled: () => boolean;
+  /**
+   * Resolves once the canvas shows the current source and the overlays have
+   * been moved onto it (after a crop Apply or `loadState`); rejects when the
+   * source fails to load, the editor unmounts, or `timeoutMs` (default 10000)
+   * passes. `exportImage` awaits it, and rejects instead of exporting a blank
+   * canvas.
+   */
+  whenSettled: (opts?: { timeoutMs?: number }) => Promise<void>;
   getMode: () => ComposerMode | null;
   /** Serializable snapshot — for draft persistence. */
   getState: () => MediaEditorState;
@@ -794,7 +932,12 @@ export interface MediaEditorHandle {
    * @notImplemented Dev-warns and does nothing. Set `isOpen` on the component instead.
    */
   open: () => void;
-  /** Dialog mode only — no-op in inline. */
+  /**
+   * Dialog mode only — no-op in inline. Asks to close (the discard confirm
+   * shows when modified); the host closes by setting `isOpen` false in
+   * `onClose`. Focus returns to the element that opened the editor on close
+   * and when the editor unmounts while holding focus.
+   */
   close: () => void;
 }
 
@@ -876,6 +1019,7 @@ export const DEFAULT_LABELS: MediaEditorDefaultLabels = {
   },
   crop: {
     free: "free",
+    original: "original",
     aspectCount: (_count, formatted) => `(${formatted} crop aspects)`,
   },
   canvas: {

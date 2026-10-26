@@ -84,28 +84,36 @@ export const ASPECT_RATIO_VALUES: Record<AspectRatio, number | null> = {
 };
 
 /**
- * Centered, max-fitting rect for the given aspect ratio inside the stage.
- * Returns the full stage rect for "free" (no constraint).
+ * Centered, max-fitting rect for the given aspect ratio inside the stage — or
+ * inside `bounds` (for example the photo's displayed rect) when given.
+ * Returns the whole stage / bounds rect for "free" (no constraint).
  */
 export function fitCropToStage(
   aspect: AspectRatio,
   stageWidth: number,
   stageHeight: number,
+  bounds?: CropRect,
 ): CropRect {
+  const box: CropRect = bounds ?? {
+    x: 0,
+    y: 0,
+    width: stageWidth,
+    height: stageHeight,
+  };
   const ratio = ASPECT_RATIO_VALUES[aspect];
   if (ratio === null) {
-    return { x: 0, y: 0, width: stageWidth, height: stageHeight };
+    return { ...box };
   }
-  // Find largest rect with the given aspect that fits inside stage.
-  let width = stageWidth;
-  let height = stageWidth / ratio;
-  if (height > stageHeight) {
-    height = stageHeight;
-    width = stageHeight * ratio;
+  // Find largest rect with the given aspect that fits inside the box.
+  let width = box.width;
+  let height = box.width / ratio;
+  if (height > box.height) {
+    height = box.height;
+    width = box.height * ratio;
   }
   return {
-    x: (stageWidth - width) / 2,
-    y: (stageHeight - height) / 2,
+    x: box.x + (box.width - width) / 2,
+    y: box.y + (box.height - height) / 2,
     width,
     height,
   };

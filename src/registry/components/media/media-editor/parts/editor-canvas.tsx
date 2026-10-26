@@ -22,7 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Maximize2 } from "lucide-react";
 import type { CropRect } from "./tool-crop-overlay";
 import { resolveEditorLabels } from "../lib/normalize-labels";
-import { BASE_IMAGE_NODE_NAME } from "../lib/placement";
+import {
+  BASE_IMAGE_NODE_NAME,
+  TRANSFORMER_NODE_NAME,
+  UI_LAYER_NAME,
+  resolveCanvasFontFamily,
+} from "../lib/placement";
 import type {
   DrawingStroke,
   FilterPreset,
@@ -80,6 +85,23 @@ export interface EditorCanvasProps {
   onStageSize?: (size: { width: number; height: number }) => void;
   /** Surfaces the underlying Konva.Stage instance for export (C12). */
   onStageReady?: (stage: Konva.Stage | null) => void;
+  /**
+   * The photo's displayed (fitted) rect on the stage, CSS px — fires whenever
+   * it changes (stage resize, new image), and `null` when no image is shown.
+   * SLICE A (0.6.0).
+   */
+  onMediaRect?: (rect: CropRect | null) => void;
+  /**
+   * Fires once the Konva layer has drawn the image for `imageUrl` (after it
+   * loaded and the next frame painted), with the image's natural size.
+   * SLICE A (0.6.0).
+   */
+  onImagePainted?: (
+    url: string,
+    natural: { width: number; height: number },
+  ) => void;
+  /** Fires when the image for `imageUrl` fails to load. SLICE A (0.6.0). */
+  onImageError?: (url: string) => void;
   /** Accessible names. Default: the English defaults. */
   labels?: CanvasLabels;
   className?: string;
@@ -131,6 +153,9 @@ export function EditorCanvas({
   onCropChange,
   onStageSize,
   onStageReady,
+  onMediaRect,
+  onImagePainted,
+  onImageError,
   labels = DEFAULT_CANVAS_LABELS,
   className,
 }: EditorCanvasProps) {
@@ -180,8 +205,43 @@ export function EditorCanvas({
     if (cropActive) panZoomReset();
   }, [cropActive, panZoomReset]);
 
-  const [image, imageSize] = useImage(imageUrl);
+  const [image, imageSize, loadedSrc] = useImage(imageUrl, onImageError);
   const fit = fitInto(imageSize, stageSize);
+  const hasFit = fit.width > 0 && fit.height > 0;
+  // Where the crop frame lives: the photo's displayed rect, else the stage.
+  const bounds: CropRect = hasFit
+    ? { x: fit.x, y: fit.y, width: fit.width, height: fit.height }
+    : { x: 0, y: 0, width: stageSize.width, height: stageSize.height };
+  const boundsX = bounds.x;
+  const boundsY = bounds.y;
+  const boundsW = bounds.width;
+  const boundsH = bounds.height;
+
+  // Report the photo's displayed rect — on change only (value compare).
+  const onMediaRectRef = useRef(onMediaRect);
+  useEffect(() => {
+    onMediaRectRef.current = onMediaRect;
+  });
+  const lastMediaRectRef = useRef<CropRect | null>(null);
+  useEffect(() => {
+    // A 0x0 stage (hidden container) is not "no image": keep the last report.
+    if (!hasFit && image && imageUrl) return;
+    const next: CropRect | null = hasFit
+      ? { x: fit.x, y: fit.y, width: fit.width, height: fit.height }
+      : null;
+    const prev = lastMediaRectRef.current;
+    const same =
+      prev === next ||
+      (prev !== null &&
+        next !== null &&
+        prev.x === next.x &&
+        prev.y === next.y &&
+        prev.width === next.width &&
+        prev.height === next.height);
+    if (same) return;
+    lastMediaRectRef.current = next;
+    onMediaRectRef.current?.(next);
+  }, [hasFit, fit.x, fit.y, fit.width, fit.height, image, imageUrl]);
 
   // Plain-<img> underlay: visible while Konva decodes the blob URL into its
   // own HTMLImageElement and waits for the Stage's ResizeObserver to fire.
@@ -207,10 +267,9 @@ export function EditorCanvas({
     if (cropRect) return;
     if (stageSize.width <= 0 || stageSize.height <= 0) return;
     if (!onCropChange) return;
-    const sw = stageSize.width;
-    const sh = stageSize.height;
-    let rw = sw * 0.8;
-    let rh = sh * 0.8;
+    // 80 % of the photo's displayed rect (the stage when no photo is shown).
+    let rw = boundsW * 0.8;
+    let rh = boundsH * 0.8;
     if (cropAspectRatio && cropAspectRatio > 0) {
       // Fit the largest centered rect with cropAspectRatio inside 80%-of-stage.
       const boxAspect = rw / rh;
@@ -221,30 +280,103 @@ export function EditorCanvas({
       }
     }
     onCropChange({
-      x: (sw - rw) / 2,
-      y: (sh - rh) / 2,
+      x: boundsX + (boundsW - rw) / 2,
+      y: boundsY + (boundsH - rh) / 2,
       width: rw,
       height: rh,
     });
-  }, [cropActive, cropRect, stageSize, cropAspectRatio, onCropChange]);
+  }, [
+    cropActive,
+    cropRect,
+    stageSize,
+    boundsX,
+    boundsY,
+    boundsW,
+    boundsH,
+    cropAspectRatio,
+    onCropChange,
+  ]);
 
   // Apply filter chain + adjustments to the image node.
   // Konva requires .cache() before filters take effect. Re-cache when the
   // image source changes; re-apply filter params on every change.
+  // Re-cache when the fitted size changes too: a cached bitmap keeps the size
+  // it was taken at, so a stage resize / crop open-close would otherwise draw a
+  // stale, wrongly scaled copy. Nothing to cache while the fitted size is 0.
+  const fitWidth = fit.width;
+  const fitHeight = fit.height;
   useEffect(() => {
     const node = imageNodeRef.current;
     if (!node || !image) return;
+    if (fitWidth <= 0 || fitHeight <= 0) return;
     const filterChain = buildKonvaFilterChain(
       activeFilter ?? null,
       adjustments,
     );
-    node.cache();
-    // The Konva.Filters array type is loose; chain is a list of filter fns.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    node.filters(filterChain as any);
+    node.clearCache();
+    if (filterChain.length > 0) {
+      // Only a filtered image needs the cached bitmap (Konva filters run on
+      // it). A plain image stays uncached so it draws at full resolution -
+      // a cache is taken at the screen pixel ratio and would make every
+      // export an up-scaled copy of the on-screen bitmap.
+      node.cache();
+      // The Konva.Filters array type is loose; chain is a list of filter fns.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      node.filters(filterChain as any);
+    } else {
+      node.filters([]);
+    }
     applyFilterParams(node, activeFilter ?? null, adjustments);
     node.getLayer()?.batchDraw();
-  }, [image, activeFilter, adjustments]);
+  }, [image, activeFilter, adjustments, fitWidth, fitHeight]);
+
+  // Tell the host once the image for the CURRENT `imageUrl` is on screen: it
+  // has loaded (not the previous image kept during a src change), the node has
+  // been drawn, and one more frame has passed.
+  const onImagePaintedRef = useRef(onImagePainted);
+  useEffect(() => {
+    onImagePaintedRef.current = onImagePainted;
+  });
+  const paintedUrlRef = useRef<string | null>(null);
+  const naturalWidth = imageSize.width;
+  const naturalHeight = imageSize.height;
+  useEffect(() => {
+    if (!imageUrl) {
+      paintedUrlRef.current = null;
+      return;
+    }
+    if (paintedUrlRef.current === imageUrl) return;
+    if (!image || loadedSrc !== imageUrl) return;
+    const node = imageNodeRef.current;
+    if (!node || fitWidth <= 0 || fitHeight <= 0) return;
+    node.getLayer()?.batchDraw();
+    const url = imageUrl;
+    const natural = { width: naturalWidth, height: naturalHeight };
+    // rAF is throttled / suspended in a hidden tab; a short timer backs it up.
+    // Whichever fires first reports, once.
+    let done = false;
+    const fire = () => {
+      if (done) return;
+      done = true;
+      paintedUrlRef.current = url;
+      onImagePaintedRef.current?.(url, natural);
+    };
+    const raf = requestAnimationFrame(fire);
+    const timer = setTimeout(fire, PAINT_TIMER_FALLBACK_MS);
+    return () => {
+      done = true;
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [
+    imageUrl,
+    image,
+    loadedSrc,
+    fitWidth,
+    fitHeight,
+    naturalWidth,
+    naturalHeight,
+  ]);
 
   const textNodeRefs = useRef<Map<string, Konva.Text>>(new Map());
   const stickerNodeRefs = useRef<Map<string, Konva.Image>>(new Map());
@@ -465,7 +597,7 @@ export function EditorCanvas({
                 x={overlay.x}
                 y={overlay.y}
                 text={overlay.text}
-                fontFamily={overlay.fontFamily}
+                fontFamily={resolveCanvasFontFamily(overlay.fontFamily)}
                 fontSize={overlay.fontSize}
                 fill={overlay.fill}
                 align={overlay.align}
@@ -503,9 +635,10 @@ export function EditorCanvas({
             ))}
           </Layer>
           {/* ui layer — Transformer attached on selection */}
-          <Layer>
+          <Layer name={UI_LAYER_NAME}>
             <Transformer
               ref={transformerRef}
+              name={TRANSFORMER_NODE_NAME}
               rotateEnabled
               keepRatio={false}
               boundBoxFunc={(_oldBox, newBox) => {
@@ -541,6 +674,7 @@ export function EditorCanvas({
           rect={cropRect}
           stageWidth={stageSize.width}
           stageHeight={stageSize.height}
+          bounds={bounds}
           aspectRatio={cropAspectRatio ?? null}
           resizeHandleLabel={labels.resizeHandle}
           onChange={onCropChange}
@@ -556,6 +690,8 @@ interface CropOverlayProps {
   rect: CropRect;
   stageWidth: number;
   stageHeight: number;
+  /** The frame is clamped to this rect (the photo's displayed rect, else the stage). */
+  bounds: CropRect;
   aspectRatio: number | null;
   resizeHandleLabel: (corner: string) => string;
   onChange?: (next: CropRect) => void;
@@ -570,10 +706,13 @@ function CropOverlay({
   rect,
   stageWidth,
   stageHeight,
+  bounds,
   aspectRatio,
   resizeHandleLabel,
   onChange,
 }: CropOverlayProps) {
+  const boundsRight = bounds.x + bounds.width;
+  const boundsBottom = bounds.y + bounds.height;
   const dragStateRef = useRef<{
     mode: "move" | "ne" | "nw" | "se" | "sw";
     startX: number;
@@ -609,8 +748,8 @@ function CropOverlay({
     const r = aspectRatio; // null = free
 
     if (ds.mode === "move") {
-      x = clamp(ds.startRect.x + dx, 0, stageWidth - ds.startRect.width);
-      y = clamp(ds.startRect.y + dy, 0, stageHeight - ds.startRect.height);
+      x = clamp(ds.startRect.x + dx, bounds.x, boundsRight - ds.startRect.width);
+      y = clamp(ds.startRect.y + dy, bounds.y, boundsBottom - ds.startRect.height);
     } else {
       // Resize from a corner. Compute signed "growth" for each axis (positive
       // = corner drag enlarges the rect). When aspect-locked, the rect must
@@ -626,12 +765,12 @@ function CropOverlay({
       // Max additional growth allowed in each axis, given the anchor.
       const maxGrowX =
         ds.mode === "ne" || ds.mode === "se"
-          ? stageWidth - (ds.startRect.x + ds.startRect.width)
-          : ds.startRect.x;
+          ? boundsRight - (ds.startRect.x + ds.startRect.width)
+          : ds.startRect.x - bounds.x;
       const maxGrowY =
         ds.mode === "sw" || ds.mode === "se"
-          ? stageHeight - (ds.startRect.y + ds.startRect.height)
-          : ds.startRect.y;
+          ? boundsBottom - (ds.startRect.y + ds.startRect.height)
+          : ds.startRect.y - bounds.y;
       const maxNextW = ds.startRect.width + maxGrowX;
       const maxNextH = ds.startRect.height + maxGrowY;
 
@@ -674,8 +813,8 @@ function CropOverlay({
 
       // Stage-bound clamp (safety; aspect-respecting cap above should make
       // these no-ops in normal cases).
-      x = clamp(x, 0, stageWidth - nextWidth);
-      y = clamp(y, 0, stageHeight - nextHeight);
+      x = clamp(x, bounds.x, boundsRight - nextWidth);
+      y = clamp(y, bounds.y, boundsBottom - nextHeight);
 
       width = nextWidth;
       height = nextHeight;
@@ -865,9 +1004,17 @@ interface Size {
 /** Load an image element + report its natural size. Returns [image, size]. */
 function useImage(
   src: string | null,
-): [HTMLImageElement | null, Size] {
+  onError?: (url: string) => void,
+): [HTMLImageElement | null, Size, string | null] {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
+  // Which src the current `image` was loaded from (a src->src change keeps the
+  // old image until the new one lands, so `image` may belong to an older src).
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+    onErrorRef.current = onError;
+  });
 
   // Reset when the source is CLEARED — during render via the guarded
   // prev-props pattern (React docs "adjusting state when props change"), so
@@ -880,6 +1027,7 @@ function useImage(
     if (!src) {
       setImage(null);
       setSize({ width: 0, height: 0 });
+      setLoadedSrc(null);
     }
   }
 
@@ -892,10 +1040,13 @@ function useImage(
       if (cancelled) return;
       setImage(img);
       setSize({ width: img.naturalWidth, height: img.naturalHeight });
+      setLoadedSrc(src);
     };
     img.onerror = () => {
       if (cancelled) return;
       setImage(null);
+      setLoadedSrc(null);
+      onErrorRef.current?.(src);
     };
     img.src = src;
     return () => {
@@ -903,8 +1054,11 @@ function useImage(
     };
   }, [src]);
 
-  return [image, size];
+  return [image, size, loadedSrc];
 }
+
+/** Hidden-tab backstop for the post-paint frame wait (ms). */
+const PAINT_TIMER_FALLBACK_MS = 100;
 
 // ─── Filter helpers ───────────────────────────────────────────────────
 

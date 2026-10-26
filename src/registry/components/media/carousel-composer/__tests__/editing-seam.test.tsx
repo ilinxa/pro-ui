@@ -6,16 +6,25 @@ import { createRef, forwardRef, useImperativeHandle } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 
+const editor = vi.hoisted(() => ({
+  modified: true,
+  exportCalls: [] as unknown[],
+}));
+
 vi.mock("@/registry/components/media/media-editor/media-editor", () => ({
   MediaEditor: forwardRef(function MockMediaEditor(
     props: Record<string, unknown>,
     ref,
   ) {
     useImperativeHandle(ref, () => ({
-      export: async () => ({
-        blob: new Blob(["edited"], { type: "image/png" }),
-        metadata: { width: 10, height: 10, mimeType: "image/png" },
-      }),
+      isModified: () => editor.modified,
+      exportImage: async (opts: unknown) => {
+        editor.exportCalls.push(opts);
+        return {
+          blob: new Blob(["edited"], { type: "image/png" }),
+          metadata: { width: 10, height: 10, mimeType: "image/png" },
+        };
+      },
       getState: () => ({ imageSrc: "blob:old" }),
       getSourceBlob: () => null,
       loadState: () => {},
@@ -43,6 +52,8 @@ beforeEach(() => {
   warn = vi.spyOn(console, "warn").mockImplementation(() => {});
   URL.createObjectURL = vi.fn(() => "blob:edited");
   URL.revokeObjectURL = vi.fn();
+  editor.modified = true;
+  editor.exportCalls = [];
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -111,6 +122,30 @@ describe("with editing={carouselEditing}", () => {
     const applied = onEditApply.mock.calls[0][0] as MediaCarouselItem;
     expect(applied).toMatchObject({ id: "a", url: "blob:edited", width: 10, height: 10 });
     expect(applied.editorState).toMatchObject({ imageSrc: "blob:old" });
+    // F-05: only the photo's area is exported (no letterbox bars).
+    expect(editor.exportCalls).toEqual([{ region: "media" }]);
+  });
+
+  it("Done with no change keeps the item: no export, no apply, closes like Cancel (F-05)", async () => {
+    editor.modified = false;
+    const onEditApply = vi.fn();
+    const onEditCancel = vi.fn();
+    render(
+      <CarouselComposer
+        defaultValue={ITEMS}
+        editing={carouselEditing}
+        onEditApply={onEditApply}
+        onEditCancel={onEditCancel}
+      />,
+    );
+    fireEvent.click(editButton()!);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    });
+    expect(screen.queryByTestId("mock-editor")).toBeNull();
+    expect(editor.exportCalls).toEqual([]);
+    expect(onEditApply).not.toHaveBeenCalled();
+    expect(onEditCancel).toHaveBeenCalledWith("a");
   });
 
   it("never opens a video: no button, the handle ignores it with a warning", () => {

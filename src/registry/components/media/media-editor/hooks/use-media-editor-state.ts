@@ -1,14 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import type {
-  AspectRatio,
   ComposerMode,
   ComposerStage,
+  CropAspect,
   CropRect,
   DraftMedia,
   DrawingToolConfig,
   EditTool,
+  GradientPreset,
   ImageAdjustments,
   MediaEditorState,
   PlacedSticker,
@@ -61,6 +69,10 @@ type Action =
   | { type: "set-crop"; crop: CropRect | null }
   | { type: "clear-layer"; layer: "drawing" | "stickers" | "text" }
   | { type: "load-state"; state: MediaEditorState }
+  | {
+      type: "transform";
+      fn: (state: MediaEditorState) => MediaEditorState;
+    }
   | { type: "reset" };
 
 // ─── Initial state ──────────────────────────────────────────────────────
@@ -157,8 +169,16 @@ function reducer(state: MediaEditorState, action: Action): MediaEditorState {
         return { ...state, stickers: [] };
       }
       return { ...state, textOverlays: [], textContent: null };
-    case "load-state":
-      return action.state;
+    case "load-state": {
+      // `textOnly` / `frame` ride on a snapshot but are not reducer state:
+      // `textOnly` lives in its own useState and `frame` in the editor shell.
+      const next = { ...action.state };
+      delete next.textOnly;
+      delete next.frame;
+      return next;
+    }
+    case "transform":
+      return action.fn(state);
     case "reset":
       return INITIAL_STATE;
     default:
@@ -170,7 +190,13 @@ function reducer(state: MediaEditorState, action: Action): MediaEditorState {
 
 export interface UseMediaEditorStateOptions {
   defaultMode?: ComposerMode;
-  defaultCropAspect?: AspectRatio;
+  /** Any `CropAspect` (an `AspectRatio`, `"original"` or `"W:H"`). */
+  defaultCropAspect?: CropAspect;
+  /**
+   * Text-card backgrounds used to resolve `textOnly.gradientId` when the
+   * snapshot syncs `textBackground`. Default: the built-in presets.
+   */
+  gradients?: GradientPreset[];
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
@@ -186,7 +212,7 @@ export interface UseMediaEditorStateResult {
   selectedTextId: string | null;
   selectedStickerId: string | null;
   drawingTool: DrawingToolConfig;
-  cropAspect: AspectRatio;
+  cropAspect: CropAspect;
   textOnly: TextOnlyState;
 
   // === Persistent-snapshot actions ===
@@ -207,6 +233,12 @@ export interface UseMediaEditorStateResult {
   setCrop: (crop: CropRect | null) => void;
   clearLayer: (layer: "drawing" | "stickers" | "text") => void;
   loadState: (state: MediaEditorState) => void;
+  /**
+   * Replace the snapshot with `fn(current)`. `fn` runs inside the reducer, so
+   * it always sees the latest state (use it for coordinate remaps). Returning
+   * the same reference is a no-op.
+   */
+  transformState: (fn: (state: MediaEditorState) => MediaEditorState) => void;
   reset: () => void;
 
   // === Working-state actions ===
@@ -216,14 +248,14 @@ export interface UseMediaEditorStateResult {
   setSelectedTextId: (id: string | null) => void;
   setSelectedStickerId: (id: string | null) => void;
   setDrawingTool: (patch: Partial<DrawingToolConfig>) => void;
-  setCropAspect: (aspect: AspectRatio) => void;
+  setCropAspect: (aspect: CropAspect) => void;
   setTextOnly: (patch: Partial<TextOnlyState>) => void;
 }
 
 export function useMediaEditorState(
   opts: UseMediaEditorStateOptions = {},
 ): UseMediaEditorStateResult {
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE, (init) => ({
+  const [rawState, dispatch] = useReducer(reducer, INITIAL_STATE, (init) => ({
     ...init,
     mode: opts.defaultMode ?? null,
   }));
@@ -241,7 +273,7 @@ export function useMediaEditorState(
   const [drawingTool, setDrawingToolState] = useState<DrawingToolConfig>(
     INITIAL_DRAWING_TOOL,
   );
-  const [cropAspect, setCropAspectState] = useState<AspectRatio>(
+  const [cropAspect, setCropAspectState] = useState<CropAspect>(
     opts.defaultCropAspect ?? "9:16",
   );
   const [textOnly, setTextOnlyState] = useState<TextOnlyState>(INITIAL_TEXT_ONLY);
@@ -280,25 +312,46 @@ export function useMediaEditorState(
   const setDrawingTool = useCallback((patch: Partial<DrawingToolConfig>) => {
     setDrawingToolState((prev) => ({ ...prev, ...patch }));
   }, []);
-  const setCropAspect = useCallback((aspect: AspectRatio) => {
+  const setCropAspect = useCallback((aspect: CropAspect) => {
     setCropAspectState(aspect);
   }, []);
   const setTextOnly = useCallback((patch: Partial<TextOnlyState>) => {
     setTextOnlyState((prev) => ({ ...prev, ...patch }));
   }, []);
 
+  // The public snapshot: `textOnly` is always filled, and while in text mode
+  // `textContent` / `textBackground` follow it (the gradient resolved by id from
+  // the presets the editor uses), so a consumer reading only the 0.5 fields
+  // still sees the text card.
+  const gradients = opts.gradients ?? DEFAULT_TEXT_GRADIENTS;
+  const state = useMemo<MediaEditorState>(() => {
+    if (rawState.mode !== "text") return { ...rawState, textOnly };
+    return {
+      ...rawState,
+      textOnly,
+      textContent: textOnly.text,
+      textBackground:
+        gradients.find((g) => g.id === textOnly.gradientId) ?? null,
+    };
+  }, [rawState, textOnly, gradients]);
+
   // Dirty derivation: any non-initial state counts as dirty. Includes draft
   // (capture-without-edit IS dirty per description §7) and text-only edits.
+  const adj = rawState.adjustments;
   const isDirty =
-    state.mode !== null ||
-    state.imageSrc !== null ||
-    state.videoBlob !== null ||
-    state.textContent !== null ||
-    state.textOverlays.length > 0 ||
-    state.stickers.length > 0 ||
-    state.drawingStrokes.length > 0 ||
-    state.filter !== null ||
-    state.crop !== null ||
+    rawState.mode !== null ||
+    rawState.imageSrc !== null ||
+    rawState.videoBlob !== null ||
+    rawState.textContent !== null ||
+    rawState.textOverlays.length > 0 ||
+    rawState.stickers.length > 0 ||
+    rawState.drawingStrokes.length > 0 ||
+    rawState.filter !== null ||
+    rawState.crop !== null ||
+    adj.brightness !== 0 ||
+    adj.contrast !== 0 ||
+    adj.saturation !== 0 ||
+    adj.blur !== 0 ||
     draft !== null ||
     textOnly.text.length > 0;
 
@@ -362,7 +415,26 @@ export function useMediaEditorState(
       dispatch({ type: "set-adjustments", adjustments }),
     setCrop: (crop) => dispatch({ type: "set-crop", crop }),
     clearLayer: (layer) => dispatch({ type: "clear-layer", layer }),
-    loadState: (s) => dispatch({ type: "load-state", state: s }),
+    loadState: (s) => {
+      dispatch({ type: "load-state", state: s });
+      if (s.textOnly) {
+        setTextOnlyState(s.textOnly);
+      } else if (
+        s.mode === "text" &&
+        (s.textContent !== null || s.textBackground !== null)
+      ) {
+        // A text-mode snapshot without `textOnly` (a 0.5 snapshot): seed the
+        // card from the fields it does carry; the rest stays as it was.
+        const text = s.textContent;
+        const gradientId = s.textBackground?.id;
+        setTextOnlyState((prev) => ({
+          ...prev,
+          ...(text !== null ? { text } : {}),
+          ...(gradientId !== undefined ? { gradientId } : {}),
+        }));
+      }
+    },
+    transformState: (fn) => dispatch({ type: "transform", fn }),
     reset,
 
     setActiveTool,

@@ -8,6 +8,15 @@
 >
 > **P3 addendum (2026-08-11).** This doc designs `media-editor` as one sealed, always-together package — camera capture (Q-P5 multi-instance guard, `useMediaCapture`, `<EditorCamera>`) included. As of the P3 feature-slicing split (v0.3.0), capture is no longer part of the base install: it moved to the opt-in `@ilinxa/media-editor-capture` registry item, injected via a `capture?: MediaCaptureExtension` prop the base never statically imports. The Q-P5 multi-instance dev-warn design below is unchanged in behavior but now only exists — and only fires — when that feature item is installed and wired; a base-alone (capture-less) install has no camera code to contend for a device in the first place. Packaging + wiring detail: [`media-editor-procomp-guide.md` § Feature slices (P3, 2026-08-11)](./media-editor-procomp-guide.md#feature-slices-p3-2026-08-11).
 
+> **0.6.0 addendum (2026-10-26).** Scope extended by an external host's production note (11 asks) + carousel
+> follow-up F-05: crop frames laid out on the photo (custom `"W:H"` / `"original"` aspects); export sizing that does
+> not depend on the viewport (`region`, `width` / `height` / `maxEdge`, `backgroundColor`, metadata in blob pixels,
+> natural resolution, size caps); a content-change signal (`isModified`, every content `EditAction`) separate from
+> `getIsDirty`; settled exports (`isSettled` / `whenSettled`); snapshots that carry the text card and their layout
+> (`textOnly`, `frame`) so overlays survive resizes, re-opens and crops; text cards drawn with Canvas 2D. The
+> "partial use" principle is unchanged — every addition is opt-in or a fix. Contract, user decisions and invariants:
+> [`media-editor-loop.md` → "Run — 0.6.0"](./media-editor-loop.md).
+
 ## Problem
 
 Story-composer-01's editor surface (capture → on-canvas edit → export) is the most reusable thing in our media stack — and it's currently sealed inside one procomp. Every adjacent surface that needs media authoring is forced to choose between:

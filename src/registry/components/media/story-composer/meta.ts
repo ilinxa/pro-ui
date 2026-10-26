@@ -8,8 +8,9 @@ export const meta: ComponentMeta = {
   description:
     "Instagram-style story creation surface — a locked 9:16 wrapper around the media editor.",
   context:
-    "Third component in the story-system trilogy alongside story-rail (discovery) and story-viewer (consumption). It wraps @ilinxa/media-editor (requires 0.5.0+) for the capture + edit surface and layers the story publish flow on top: ComposerPublishBar in the renderTopBar slot, an optional details step (caption + host fields), and the progress / error overlay — both rendered through the editor's overlay prop, with the editor body inert behind them. The default install is upload-only; camera capture is opt-in by passing capture={mediaCapture} from @ilinxa/media-editor-capture, which keeps camera capture and recording out of the default install. Konva stays with the editor.",
+    "Third component in the story-system trilogy alongside story-rail (discovery) and story-viewer (consumption). It wraps @ilinxa/media-editor (requires 0.6.0+) for the capture + edit surface and layers the story publish flow on top: ComposerPublishBar in the renderTopBar slot, an optional details step (caption + host fields), and the progress / error overlay — both rendered through the editor's overlay prop, with the editor body inert behind them. The default install is upload-only; camera capture is opt-in by passing capture={mediaCapture} from @ilinxa/media-editor-capture, which keeps camera capture and recording out of the default install. Konva stays with the editor.",
   features: [
+    "v0.6.1 — a mode switch keeps media-editor's modified flag, so Cancel after an edit still asks to discard (media-editor 0.6.0 `loadState(…, { keepModified })`)",
     "v0.6.0 — **breaking:** camera opt-in — the default install is upload-only and no longer depends on `@ilinxa/media-editor-capture`; pass `capture={mediaCapture}` to add it (`sources` defaults follow). `acceptMediaTypes` and `videoOutput` (e.g. MP4 only) are forwarded to media-editor. Details step: `caption` (`maxLength`, `required`), `renderPublishFields`, controlled `publishFields` / `onPublishFieldsChange`, `canPublish(fields)`; the uploader receives the fields as a third argument and the default upload adds them to its FormData. Error state: Cancel keeps the draft, `getErrorMessage`, localized uploader errors, `renderPublishingOverlay` gets `status` / `error` / `retry` / `cancel`. `onPublished(story, result)` passes the uploader's result untouched; a successful publish consumes the draft (the editor resets); one publish at a time, and close / `reset()` / Cancel cancel it; `publish()` opens the details step when one is configured; `ctx.openDetails`; Escape in the details step is Back and never closes the dialog. `labels.editor` takes media-editor's nested labels (no cast); `locale`; `labels.published` is announced. Overlay colours use `--media-overlay` tokens. Removed: the stale compat re-exports (ComposerCamera / ComposerEditor / ComposerToolbar / ColorSwatchPicker and the lib / default-token / crop helpers — import them from media-editor) and the never-rendered `drawUndo` / `drawRedo` / `textAlign` label keys",
     "v0.5.0 — the publishing overlay (default and `renderPublishingOverlay`) renders inside media-editor's dialog via its `overlay` prop, so Retry / Cancel are clickable",
     "v0.4.1 — `editorBackground` is marked @notImplemented and dev-warns; it was declared and never applied",
@@ -35,7 +36,7 @@ export const meta: ComponentMeta = {
     "publish",
   ],
 
-  version: "0.6.0",
+  version: "0.6.1",
   status: "alpha",
   // 0.6.0: details step + publish fields + labels + the publish state machine
   // (run token, close reset). Built 74.7 KB after the U4 fix wave → 60 → 80.

@@ -7316,7 +7316,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -7342,7 +7342,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -7590,10 +7590,30 @@
           "path": "src/registry/components/media/media-editor/lib/placement.ts",
           "type": "registry:component",
           "target": "components/media-editor/lib/placement.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/crop-aspect.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/crop-aspect.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/export-geometry.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/export-geometry.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/frame-map.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/frame-map.ts"
+        },
+        {
+          "path": "src/registry/components/media/media-editor/lib/text-card-export.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/text-card-export.ts"
         }
       ],
       "meta": {
-        "version": "0.5.1",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -7619,7 +7639,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.1",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -7636,7 +7656,7 @@
       "meta": {
         "featureOf": "media-editor",
         "budgetKB": 65,
-        "version": "0.5.1",
+        "version": "0.6.0",
         "status": "alpha"
       },
       "registryDependencies": [
@@ -8068,7 +8088,7 @@
         }
       ],
       "meta": {
-        "version": "0.3.0",
+        "version": "0.3.1",
         "status": "alpha"
       },
       "cssVars": {
@@ -8101,7 +8121,7 @@
         }
       ],
       "meta": {
-        "version": "0.3.0",
+        "version": "0.3.1",
         "status": "alpha"
       }
     },
@@ -8118,7 +8138,7 @@
       "meta": {
         "featureOf": "carousel-composer",
         "budgetKB": 11,
-        "version": "0.3.0",
+        "version": "0.3.1",
         "status": "alpha"
       },
       "registryDependencies": [

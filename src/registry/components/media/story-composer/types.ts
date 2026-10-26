@@ -4,6 +4,8 @@ import type {
   MediaCaptureExtension,
   MediaEditorLabels,
   MediaSource,
+  StateFrame,
+  TextOnlyState,
 } from "../media-editor";
 export type { AspectRatio };
 
@@ -133,6 +135,7 @@ export type EditTool =
 
 export interface PublishMetadata {
   mode: ComposerMode;
+  /** Pixel size of the published blob. */
   width: number;
   height: number;
   durationMs?: number;
@@ -142,6 +145,14 @@ export interface PublishMetadata {
   drawingStrokes: number;
   appliedFilter?: string;
   adjustments: ImageAdjustments;
+  /**
+   * The layout `textOverlays` / `stickers` coordinates are in — editor stage
+   * CSS pixels, not the blob's pixels. Map a point with
+   * `x * width / frame.stageWidth` for a whole-stage export.
+   */
+  frame?: StateFrame;
+  /** Text-card content, for a text-mode story. */
+  textOnly?: TextOnlyState;
 }
 
 export interface PublishResult {
