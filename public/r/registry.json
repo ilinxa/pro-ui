@@ -1509,7 +1509,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.4",
+        "version": "0.4.5",
         "status": "alpha"
       }
     },
@@ -1536,7 +1536,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.4",
+        "version": "0.4.5",
         "status": "alpha"
       }
     },
@@ -3343,7 +3343,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -3369,7 +3369,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -3449,10 +3449,65 @@
           "path": "src/registry/components/data/comment-thread/lib/format-time.ts",
           "type": "registry:component",
           "target": "components/comment-thread/lib/format-time.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/hooks/use-comment-tree.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/hooks/use-comment-tree.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/hooks/use-paging.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/hooks/use-paging.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/hooks/use-warn-once.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/hooks/use-warn-once.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/hooks/use-moderation-extension.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/hooks/use-moderation-extension.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/lib/labels.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/lib/labels.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/lib/tree.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/lib/tree.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/lib/permissions.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/lib/permissions.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/lib/reactions.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/lib/reactions.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/lib/menu-items.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/lib/menu-items.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/thread-context.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/thread-context.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/hooks/use-direction.ts"
         }
       ],
       "meta": {
-        "version": "0.3.2",
+        "version": "0.4.0",
         "status": "alpha"
       }
     },
@@ -3478,9 +3533,54 @@
         }
       ],
       "meta": {
-        "version": "0.3.2",
+        "version": "0.4.0",
         "status": "alpha"
       }
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "comment-thread-moderation",
+      "type": "registry:block",
+      "title": "Comment Thread — Moderation",
+      "description": "Inline edit, tombstones and a pinned marker for Comment Thread. Wire in via the moderation prop.",
+      "author": "ilinxa",
+      "categories": [
+        "data"
+      ],
+      "meta": {
+        "featureOf": "comment-thread",
+        "budgetKB": 8,
+        "version": "0.4.0",
+        "status": "alpha"
+      },
+      "registryDependencies": [
+        "@ilinxa/comment-thread"
+      ],
+      "dependencies": [
+        "lucide-react@^1.11.0"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/data/comment-thread/features/moderation/index.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/features/moderation/index.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/features/moderation/parts/edit-composer.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/features/moderation/parts/edit-composer.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/features/moderation/parts/pinned-marker.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/features/moderation/parts/pinned-marker.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/features/moderation/parts/tombstone.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/features/moderation/parts/tombstone.tsx"
+        }
+      ]
     },
     {
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
@@ -3611,10 +3711,40 @@
           "path": "src/registry/components/data/post-card/lib/permissions.ts",
           "type": "registry:component",
           "target": "components/post-card/lib/permissions.ts"
+        },
+        {
+          "path": "src/registry/components/data/post-card/hooks/use-now.ts",
+          "type": "registry:component",
+          "target": "components/post-card/hooks/use-now.ts"
+        },
+        {
+          "path": "src/registry/components/data/post-card/hooks/use-post-state.ts",
+          "type": "registry:component",
+          "target": "components/post-card/hooks/use-post-state.ts"
+        },
+        {
+          "path": "src/registry/components/data/post-card/lib/labels.ts",
+          "type": "registry:component",
+          "target": "components/post-card/lib/labels.ts"
+        },
+        {
+          "path": "src/registry/components/data/post-card/parts/variant-nodes.tsx",
+          "type": "registry:component",
+          "target": "components/post-card/parts/variant-nodes.tsx"
+        },
+        {
+          "path": "src/registry/components/data/post-card/hooks/use-direction.ts",
+          "type": "registry:component",
+          "target": "components/post-card/hooks/use-direction.ts"
+        },
+        {
+          "path": "src/registry/components/data/post-card/hooks/use-panel-focus.ts",
+          "type": "registry:component",
+          "target": "components/post-card/hooks/use-panel-focus.ts"
         }
       ],
       "meta": {
-        "version": "0.5.3",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3640,7 +3770,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.3",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3960,7 +4090,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -3986,7 +4116,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },

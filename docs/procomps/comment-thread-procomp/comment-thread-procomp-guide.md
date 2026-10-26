@@ -1,33 +1,44 @@
 # comment-thread — consumer guide
 
-> Stage 3: how to use it. Authored alongside the v0.1 implementation.
+> Stage 3: how to use it. Current for **v0.4.0** (+ the `comment-thread-moderation` add-on, versioned with it).
 >
 > See [`comment-thread-procomp-description.md`](./comment-thread-procomp-description.md) for what & why,
-> and [`comment-thread-procomp-plan.md`](./comment-thread-procomp-plan.md) for the implementation contract.
+> [`comment-thread-procomp-plan.md`](./comment-thread-procomp-plan.md) for the original implementation contract, and
+> [`comment-thread-loop.md`](./comment-thread-loop.md) for the 0.4.0 change contract.
 
 ## 30-second mental model
 
-`<CommentThread>` is a recursive comment panel with built-in composer + optimistic state + realtime. It composes [`expandable-text`](../expandable-text-procomp/) for long bodies and [`engagement-bar`](../engagement-bar-procomp/) `variant="compact"` for the per-row like action.
+`<CommentThread>` is a recursive comment panel with a composer, optimistic updates and realtime. It composes
+[`expandable-text`](../expandable-text-procomp/) for long bodies and [`engagement-bar`](../engagement-bar-procomp/)
+`variant="compact"` for each row's like (or reaction) action.
 
-Three rules to internalize:
+Four rules:
 
-1. **`comments` prop is initial state ON MOUNT only.** Subsequent prop reference changes are IGNORED. To push external updates, use the imperative handle's `reset(next)` or `dispatch(action)`.
-2. **Realtime via `Subscribe<CommentDelta>`.** Identity-stable required (`useCallback` over a stable channel). Component re-subscribes on identity change.
-3. **`currentUser` absent → composer hidden.** Use `composerEmptyState` to render a sign-in CTA in its place.
+1. **`comments` is read once, at mount — unless you pass `onCommentsChange`.** With it, `comments` is controlled: it
+   wins on every render, pending operations show over it, and accepted changes are *reported* to you, never applied.
+   Without it, push updates with the handle's `reset(next)` / `dispatch(action)` or with realtime deltas.
+2. **Realtime is idempotent.** An `added` delta for a comment already on screen never duplicates — including your own
+   comment, when the server's broadcast beats `onAddComment`. Send the `clientId` the thread gives you and echo it back
+   for exact matching.
+3. **Handlers may return promises.** The change shows at once; a rejection rolls it back and calls `onError`. Nothing
+   leaks as an unhandled rejection.
+4. **`currentUser` absent → composer hidden.** Use `composerEmptyState` for a sign-in CTA.
 
-## Install (consumer side)
+## Install
 
 ```bash
 pnpm dlx shadcn@latest add @ilinxa/comment-thread
-```
-
-This auto-pulls `expandable-text` + `engagement-bar` (cross-folder dependencies declared via `registryDependencies`) plus shadcn primitives `avatar`, `button`, `dropdown-menu`, `textarea`. No `react-textarea-autosize`, no `date-fns`, no `framer-motion` peer deps.
-
-For fixtures (sandbox demos):
-
-```bash
+# optional: inline edit, tombstones, pinned marker
+pnpm dlx shadcn@latest add @ilinxa/comment-thread-moderation
+# optional: the demo's sample data
 pnpm dlx shadcn@latest add @ilinxa/comment-thread-fixtures
 ```
+
+The base pulls `expandable-text` and `engagement-bar` plus the shadcn primitives `avatar`, `button`, `dropdown-menu`,
+`textarea`. The moderation add-on pulls the base. No `react-textarea-autosize`, `date-fns` or `framer-motion`.
+
+Size: the base installs ~135 KB (much of it JSDoc in `types.ts`); `<CommentThread>` costs ~11.6 KB minified + gzip
+in your bundle (0.3.2: ~5 KB). The moderation add-on is ~6.6 KB.
 
 ## Minimal usage
 
@@ -37,84 +48,207 @@ import { CommentThread } from "@/components/comment-thread";
 <CommentThread comments={post.comments} />
 ```
 
-Read-only thread. No composer, no realtime, no callbacks.
+Read-only: no composer (no `currentUser`), no callbacks.
 
-## With composer + optimistic add
+## Posting, liking, deleting — with rollback
 
 ```tsx
 <CommentThread
   comments={post.initialComments}
   currentUser={{ id: viewer.id, name: viewer.name, avatar: viewer.avatarUrl }}
-  onAddComment={async (content, parentId) => {
-    const created = await api.addComment(post.id, { content, parentId });
-    return created; // component swaps temp comment for the real one
-  }}
-  onLikeComment={(id, nextLiked) => api.likeComment(id, nextLiked)}
-  onDeleteComment={(id) => api.deleteComment(id)}
+  onAddComment={(content, parentId, options) =>
+    api.addComment(post.id, { content, parentId, clientId: options?.clientId }) // return the created Comment
+  }
+  onLikeComment={(id, liked) => api.likeComment(id, liked)}      // a promise → rolls back on reject
+  onDeleteComment={(id) => api.deleteComment(id)}                // a promise → restored on reject
   onReportComment={(id) => openReportDialog(id)}
+  onError={(error, { kind }) => toast.error(kind)}
 />
 ```
 
-- Posting: temp comment appears at the top instantly with `id: temp-${uuid}`. Once `onAddComment` resolves with a real `Comment`, the temp is swapped for the real one (real id wins for downstream like/delete).
-- If the host returns `void`, the temp comment persists with its temporary id. Host is responsible for updating via realtime delta or via `ref.current.reset(next)`.
-- Like / delete fire optimistic state changes locally first, then call back. Hosts revert via realtime delta or `reset(next)`.
+- **Posting.** A pending comment appears at once (head of the list; replies at the end of their parent) with a
+  temporary id and a `clientId`. While it is pending, its like / reply / delete are disabled, Edit is not offered,
+  and its time reads `labels.sending` — **the built-in actions never hand its temporary id to your handlers** (nor do
+  the `renderNode` helpers); your own slots get `helpers.isPending`. Without `onAddComment` a posted comment is a
+  local comment and keeps its local id.
+  - Resolve with the created `Comment` → it replaces the pending one (keeping any replies).
+  - Reject → the pending comment is removed, the composer keeps the text and shows `labels.postFailed`
+    (`role="alert"`), `onError(error, { kind: "add", commentId: tempId, parentId })`.
+  - Resolve with nothing → uncontrolled: the pending comment stays (actions disabled) until a delta or `reset` brings
+    the real one; controlled: it is removed (your `comments` prop is the truth).
+- **Like / reaction / delete / edit.** Shown at once. A rejected promise rolls back (a deleted comment comes back at
+  its position) and calls `onError`. Only the latest request per comment decides — an older one settling late never
+  overrides a newer one.
+- **`optimistic={false}`**: no pending row (the comment appears once the server returns it); likes and deletes wait
+  for their promise.
 
-## Realtime via `Subscribe<CommentDelta>`
+## Controlled mode
 
 ```tsx
-import type { Subscribe, CommentDelta } from "@/components/comment-thread";
+const [comments, setComments] = useState<Comment[]>(initial);
 
+<CommentThread
+  comments={comments}
+  onCommentsChange={(next, change) => setComments(next)}
+  currentUser={viewer}
+  onAddComment={api.addComment}
+  onLikeComment={api.likeComment}
+/>
+```
+
+`onCommentsChange(next, change)` is called **once a change is accepted**: after the handler's promise resolves, at
+once for a like / reaction / delete / edit handler that returns nothing, and at once for realtime deltas, loaded
+pages / replies and handle calls. A post whose `onAddComment` returns nothing is not reported — the pending comment is
+removed and your `comments` (or a delta) brings the real one.
+`next` is the change applied to your current `comments`. While a promise is in flight the change is an overlay over
+your prop; a rejection drops it and reports nothing, so you never have to revert. A refetch that replaces `comments`
+replaces stale optimism too. `change` is a `CommentsChange`
+(`added` · `liked` · `reacted` · `deleted` · `edited` · `page` · `replies` · `delta` · `dispatch`).
+
+Development warnings: `comments` changing identity while uncontrolled (pass `onCommentsChange`, or a stable array),
+and switching modes after mount.
+
+## Realtime
+
+```tsx
 const subscribe = useCallback<Subscribe<CommentDelta>>(
   (handler) => channel.on("comment", handler),
   [channel],
 );
 
-<CommentThread
-  comments={post.initialComments}
-  currentUser={viewer}
-  subscribe={subscribe}
-  onSubscribeDelta={(d) => analytics.track("comment-delta", d)}
-/>
+<CommentThread comments={initial} currentUser={viewer} subscribe={subscribe} />
 ```
-
-The contract:
 
 ```ts
 type CommentDelta =
-  | { kind: "added";   comment: Comment; parentId?: string }
-  | { kind: "edited";  commentId: string; content: string }
-  | { kind: "removed"; commentId: string }
-  | { kind: "liked";   commentId: string; liked: boolean; count: number };
+  | { kind: "added"; comment: Comment; parentId?: string }
+  | { kind: "edited"; commentId: string; content: string }          // also sets edited: true
+  | { kind: "removed"; commentId: string }                          // prunes (or tombstones, see moderation)
+  | { kind: "liked"; commentId: string; liked: boolean; count: number | null }
+  | { kind: "state"; commentId: string; state: CommentState }
+  | { kind: "reacted"; commentId: string; reactions: CommentReactions };
 ```
 
-- **Hosts must memoize `subscribe`** via `useCallback` over a stable channel reference. Identity changes trigger a clean teardown + re-call. Rapid identity churn drops in-flight deltas.
-- `onSubscribeDelta` fires for every delta the subscription emits — useful for analytics / cross-component coordination.
-- The component does NOT manage transport (websocket / SSE / channel) — the host owns that. We just consume a stream contract.
+- **Memoize `subscribe`** — a new identity tears the subscription down and re-subscribes.
+- **Idempotent:** an `added` delta whose id is already in the tree changes nothing; one whose id is new but whose
+  `comment.clientId` matches a pending comment replaces that pending comment. Match = id first, then `clientId`.
+- An `added` delta for an unknown `parentId` is dropped (one development warning).
+- Controlled mode: deltas are reported (`{ kind: "delta" }`), not applied.
 
-## Custom kebab actions
+## Pages and replies
 
 ```tsx
-import type { CommentMenuItem } from "@/components/comment-thread";
+<CommentThread
+  comments={firstPage.items}
+  nextCursor={firstPage.nextCursor}
+  onLoadMoreCursor={(cursor) => api.comments(post.id, { cursor })}  // → { items, nextCursor, hasMore? }
+  onLoadReplies={(commentId, cursor) => api.replies(commentId, { cursor })}
+/>
+```
+
+- **Top level.** `onLoadMoreCursor(cursor)` wins over the legacy `onLoadMore(page)`. An explicit `hasMore` wins on
+  every render (the button still needs a loader); `nextCursor` applies with `onLoadMoreCursor`. Legacy heuristic: "Load more" shows while the thread holds at least
+  `pageSize` top-level comments and the last page was full — recomputed as the list changes (so an async first load
+  works). Loading shows `labels.loadingMore` and keeps focus on the button; a failure shows `labels.loadFailed` with
+  `labels.retry`. Pages are deduped by id.
+- **Replies.** A "View N replies" link shows when `onLoadReplies` is wired and `replyCount` is larger than the
+  loaded replies or `comment.repliesCursor` is set (or when loaded replies are hidden past `maxDepth`). The first cursor is `comment.repliesCursor ?? null`.
+  Per-comment loading (`labels.loadingReplies`), failure (`labels.loadRepliesFailed` + Retry), and
+  `labels.moreReplies` while more exist.
+
+## Permissions and the actions menu
+
+```tsx
+const comment: Comment = {
+  /* … */
+  permissions: { canDelete: true, canReply: false },   // each defined key beats the default
+};
 
 <CommentThread
   comments={comments}
   currentUser={viewer}
-  commentActions={(comment, { isOwn, currentUser }) =>
-    [
-      isOwn && { label: "Pin", onClick: () => api.pinComment(comment.id) },
-      isOwn && { label: "Delete", destructive: true, onClick: () => api.deleteComment(comment.id) },
-      !isOwn && { label: "Block author", onClick: () => api.block(comment.author.id) },
-      { label: "Report", onClick: () => openReportDialog(comment.id) },
-    ].filter(Boolean) as CommentMenuItem[]
-  }
+  extraActions={(comment, { permissions, isPending }) => [
+    { label: "Pin", hidden: !permissions.canPin, disabled: isPending, onClick: () => api.pin(comment.id) },
+    { label: "Copy link", separatorBefore: true, onClick: () => copy(comment.id) },
+  ]}
 />
 ```
 
-- Returning `[]` hides the kebab entirely for that comment.
-- Default kebab (when `commentActions` is omitted) is **own-only Delete + Report**:
-  - **Delete** appears only when `currentUser?.id === comment.author.id`.
-  - **Report** appears only when `onReportComment` is wired.
-- Hosts wanting moderator semantics override `commentActions` and ignore the `isOwn` check.
+Defaults: `canDelete` / `canEdit` = the viewer wrote it; `canReply` = signed in; `canReact` = `true` (false → the action
+renders disabled); `canReport` = the viewer did **not** write it (and `onReportComment` is wired); `canPin` / `canHide`
+= `false` — they gate nothing built in; read them in your own items. `extraActions` items are appended after the
+defaults; `commentActions` still takes the whole menu over (both receive `CommentActionHelpers`: `currentUser`,
+`isOwn`, `depth`, `permissions`, `isPending`). Menu items take `hidden`, `disabled`, `destructive`, `separatorBefore`;
+a menu whose items are all hidden is not rendered.
+
+## Reactions per row
+
+```tsx
+<CommentThread
+  comments={comments}          // Comment.reactions: { viewerReaction, counts, totalCount }
+  reactionKinds={[{ key: "love", icon: <Heart />, label: "Love" }, { key: "laugh", icon: "😂", label: "Haha" }]}
+  onReactComment={(id, kind) => api.react(id, kind)}   // kind = null clears
+/>
+```
+
+With both props each row's action is an engagement-bar reaction picker; a rejected promise rolls the reaction back.
+Without them the row shows the like (`likes: null` withholds the count — no number, nothing in the accessible name).
+`engagementActions(comment, helpers)` builds the row's actions yourself (`helpers.defaultActions` is the default).
+
+## Moderation add-on (`comment-thread-moderation`)
+
+```tsx
+import { commentModeration } from "@/components/comment-thread/features/moderation";
+
+<CommentThread
+  comments={comments}
+  currentUser={viewer}
+  moderation={commentModeration}
+  removedMode="tombstone"
+  onEditComment={(id, content) => api.editComment(id, content)}
+/>
+```
+
+- **Inline edit:** an Edit item (`labels.edit`) for comments with `permissions.canEdit` (default: your own), not while
+  pending. Save applies the content (`edited: true`) at once; a rejection restores it and shows `labels.editFailed`.
+- **Tombstones:** a comment whose `state` is `"hidden"`, `"deleted"` or `"removed"` renders `labels.tombstone(state)`
+  in its place, and **its replies stay**. `removedMode="tombstone"` turns a `removed` delta into state `"removed"` (and
+  your own delete into `"deleted"`).
+- **Pinned:** `isPinned` shows `labels.pinned` beside the author's name.
+- **Without the add-on:** `onEditComment` → one development warning, no Edit item; `removedMode="tombstone"` → one
+  warning, removals prune; a non-visible comment is left out **with its replies** (one warning); `isPinned` is ignored.
+- The seam is public: pass your own `CommentModerationExtension` (`{ EditComposer, Tombstone, PinnedMarker }`).
+
+## Labels, locale and time
+
+```tsx
+<CommentThread
+  locale="tr"
+  timeZone="Europe/Istanbul"
+  labels={{
+    composerPlaceholder: "Yorum yaz…",
+    reply: "Yanıtla",
+    viewReplies: (n) => `${n} yanıtı gör`,
+    kebabAriaLabel: (name) => `${name} için işlemler`,
+    replyTo: (name) => `${name} adlı kişiye yanıt`,
+    postFailed: "Yorum gönderilemedi.",
+  }}
+  {...rest}
+/>
+```
+
+- Every string is a label; a string with a value is a function (`viewReplies(count)`, `kebabAriaLabel(name)`,
+  `replyTo(name)`, `tombstone(state)`). `defaultCommentThreadLabels` has the English defaults; an `undefined` value
+  keeps the default.
+- **Time:** `locale` (default `"en"`) and `timeZone` build the default formatter — English stays "Just now" / "5m" /
+  "2h" / "3d" / "2w" / "March 5"; other locales use `Intl.RelativeTimeFormat` ("5 dk. önce"). Replace it with the
+  `formatRelativeTime` prop (`createRelativeTimeFormatter(locale, timeZone)` is exported). A comment stamped ahead of
+  the viewer's clock reads as now.
+- **"now":** pass `now` to render relative times immediately (and deterministically). Without it the thread reads the
+  clock after mount and every minute — the server and the first client render show no relative text, so they agree.
+- `formatCount` formats like / reaction counts (default compact `Intl.NumberFormat(locale)`); `dir` sets the reaction
+  pickers' arrow keys and the direction of the portaled actions menu (default: read after mount).
+- Replies indent with `padding-inline-start`, so they mirror under `dir="rtl"`.
 
 ## Standalone composer
 
@@ -123,206 +257,66 @@ import { CommentComposer } from "@/components/comment-thread";
 
 <CommentComposer
   currentUser={viewer}
-  placeholder="Share your thoughts on this article…"
   onSubmit={async (content) => api.addArticleComment(article.id, content)}
+  labels={{ postFailed: "Couldn't post." }}
+  onError={(error) => log(error)}
 />
 ```
 
-Use cases:
-- Article-page hero CTAs ("Comment as a reply") that don't render a thread yet
-- Document-annotation surfaces where the composer appears outside the thread context
-- Tighter control over keyboard / autosize without inheriting thread state
+A rejected `onSubmit` keeps the text and shows `labels.postFailed` under the box (style it with `errorClassName`); it
+is never re-thrown. `value` + `onChange` make the text controlled (story-viewer's reply box does this).
 
-The standalone composer is **fire-and-forget** (`onSubmit: (content) => Promise<void> | void`). It doesn't track posted comments, no realtime, no `Comment` return swap.
+## Slots
 
-## Pagination — load older comments
+- `renderNode(comment, depth, helpers)` — replaces the row, its actions menu included (build your own from
+  `helpers`); the thread keeps the tree below it: the reply composer, the replies (each through `renderNode`) and the
+  "view / more replies" links. `helpers` carries `permissions` and `isPending`; its `onLike` / `onReply` / `onDelete`
+  do nothing while pending. (Before 0.4.0 the replies under a `renderNode` row were not rendered.)
+- `renderViewReplies(parentId, count)` — replaces the inline-expand link shown at `maxDepth`; the on-demand
+  `onLoadReplies` link stays built in.
+- `renderComposer(state, helpers)` — replaces the bottom composer. `helpers.submit` never rejects; a failure sets
+  `state.hasError` and keeps `state.value`.
+- `composerEmptyState` — shown instead of the composer without `currentUser` (`null` hides it).
+- `emptyState` — shown for an empty thread with no realtime.
 
-```tsx
-<CommentThread
-  comments={post.firstPage}
-  pageSize={10}
-  onLoadMore={(page) => api.fetchComments(post.id, page)}
-/>
-```
-
-- The "Load older comments" button only appears when `comments.length === pageSize` AND `onLoadMore` is provided.
-- Subsequent pages append below (`commentReducer` handles `append-page`).
-- Direction is fixed: newest at top, "Load older" at bottom. There's no upward pagination in v0.1.
-
-## Slots — full takeover
-
-### `renderNode` — rich per-row UI
-
-```tsx
-<CommentThread
-  comments={comments}
-  currentUser={viewer}
-  renderNode={(comment, depth, helpers) => (
-    <RichCommentRow
-      comment={comment}
-      depth={depth}
-      mentions={parseMentions(comment.content)}
-      onLike={helpers.onLike}
-      onReply={helpers.onReply}
-      onDelete={helpers.onDelete}
-    />
-  )}
-/>
-```
-
-The thread still owns the recursive structure, the inline reply composer, and the kebab. `renderNode` only replaces the row's body.
-
-### `renderViewReplies` — navigate-to-detail link
-
-Default behavior past `maxDepth` is inline-expand. Override for a navigate-to-detail-page link:
-
-```tsx
-<CommentThread
-  comments={comments}
-  renderViewReplies={(parentId, count) => (
-    <Link
-      href={`/posts/${post.slug}/comments/${parentId}`}
-      className="mt-2 text-xs text-muted-foreground hover:text-foreground"
-    >
-      View {count} replies →
-    </Link>
-  )}
-/>
-```
-
-### `composerEmptyState` — sign-in CTA
-
-```tsx
-<CommentThread
-  comments={comments}
-  currentUser={undefined}
-  composerEmptyState={
-    <Card className="flex items-center justify-between p-3">
-      <span className="text-sm text-muted-foreground">Sign in to comment.</span>
-      <Button size="sm" onClick={onSignIn}>Sign in</Button>
-    </Card>
-  }
-/>
-```
-
-Pass `null` to suppress the bottom area entirely.
-
-## Controlled-mode escape hatch
-
-Hosts driving comments via external state (Redux / Zustand / TanStack Query):
-
-```tsx
-const ref = useRef<CommentThreadHandle>(null);
-
-useEffect(() => {
-  ref.current?.reset(externalComments);
-}, [externalComments]);
-
-<CommentThread ref={ref} comments={externalComments} />
-```
-
-Or for surgical updates without overwriting the whole tree:
-
-```tsx
-ref.current?.dispatch({
-  kind: "patch-content",
-  commentId: "c123",
-  content: "(server-side translation arrived)",
-});
-```
-
-The full reducer is publicly exported for hosts that want to drive comments from their own store entirely:
-
-```tsx
-import { commentReducer, useCommentState } from "@/components/comment-thread";
-```
-
-## Compact variant for side rails
-
-```tsx
-<CommentThread
-  variant="compact"
-  comments={comments}
-  currentUser={viewer}
-  maxDepth={1}
-  indentPx={16}
-/>
-```
-
-`variant="compact"` tightens body line-clamp (`bodyMaxLines` defaults to 2 in compact, 4 in default). Use for narrow side-rails / popovers.
-
-## Imperative handle reference
+## Imperative handle
 
 ```ts
 interface CommentThreadHandle {
-  focusComposer: () => void;
-  openReply: (parentId: string) => void;
-  getCurrentComments: () => Comment[];
-  reset: (next: Comment[]) => void;
-  dispatch: (action: CommentLocalAction) => void;
+  focusComposer(): void;
+  openReply(parentId: string): void;
+  getCurrentComments(): Comment[];      // the shown tree (overlay applied)
+  reset(next: Comment[]): void;         // controlled: reported
+  dispatch(action: CommentLocalAction): void; // controlled: reported
 }
 ```
 
-Common patterns:
-
-- **Auto-focus composer** on mount: `useEffect(() => ref.current?.focusComposer(), []);`
-- **Programmatically open reply** (e.g., from a "Reply to top comment" CTA): `ref.current?.openReply(topCommentId);`
-- **Read current state** (e.g., before submit): `const current = ref.current?.getCurrentComments();`
-
-## i18n
-
-Pass a `labels` object to override defaults:
-
-```tsx
-const TR_LABELS: CommentThreadLabels = {
-  composerPlaceholder: "Yorum yaz…",
-  composerSend: "Gönder",
-  composerCancel: "İptal",
-  like: "Beğen",
-  unlike: "Beğeniyi geri al",
-  reply: "Yanıtla",
-  delete: "Sil",
-  report: "Şikayet et",
-  viewReplies: (count) => `${count} yanıtı görüntüle`,
-  loadMore: "Daha eski yorumları yükle",
-  emptyState: "Henüz yorum yok — ilk siz olun.",
-  signInPrompt: "Yorum yapmak için giriş yapın",
-  formatRelativeTime: (date, now) => formatDistanceToNow(date, { addSuffix: true, locale: tr }),
-};
-
-<CommentThread labels={TR_LABELS} {...rest} />
-```
-
-`DEFAULT_COMMENT_THREAD_LABELS` is exported for spread + override.
+`commentReducer` and `useCommentState` stay exported for hosts that run their own store.
 
 ## Accessibility
 
-- Each comment is a `<article role="article" aria-labelledby={authorNameId}>` (auto-generated via `useId()`).
-- Like button uses `aria-pressed` (inherited from `engagement-bar`'s compact like).
-- "View N replies" link uses `aria-controls={repliesContainerId}`.
-- Reply / delete / report buttons have explicit `aria-label` from `labels`.
-- Composer textarea is labelled (`aria-label`); `aria-busy` flips during submit.
-- Kebab is `pointer-coarse:opacity-100` (touch users see it without hover) + `group-focus-within:opacity-100` (keyboard users see it without hover).
-- Inline reply composer focus management: on submit/cancel, focus returns to the parent comment's "Reply" button.
+- Each comment is an `<article aria-labelledby>`; the actions menu is named `labels.kebabAriaLabel(name)`; the inline
+  reply box `labels.replyTo(name)`.
+- Busy controls (Send, Load more, Retry) use `aria-disabled` so focus stays on them; the textarea is read-only while
+  a post is in flight.
+- Failures are announced (`role="alert"`). The kebab shows on hover, focus-within and coarse pointers.
+- After an inline reply is sent or cancelled, focus returns to the comment's Reply button.
 
-## What's NOT in v0.1
+## Migration 0.3 → 0.4
 
-- **Edit affordance** — `CommentDelta.edited` is in the realtime contract for forward-compatibility, but no UI for editing in v0.1.
-- **Mentions / hashtags** — render rich content via `renderNode` if you need them now; built-in tag UI is not implemented.
-- **Voting (up/down)** — like-only.
-- **Per-comment subscription** — one subscribe for the whole thread; no per-node subscribe.
-- **Lazy-load deeper replies (`onLoadReplies`)** — the component trusts `replies` to be fully loaded for visible nodes. possible future addition.
-- **Animated insert/remove** — no framer-motion.
-- **Search within thread** — out of scope.
+- **`Comment.likes` is `number | null`.** Code that does arithmetic on `likes` needs a null check.
+- **Report no longer shows on your own comments** (default `canReport`). Set `permissions.canReport: true` to keep it.
+- **"View N replies" now shows when `replyCount` > loaded** and `onLoadReplies` is wired; before, nothing showed until
+  replies were loaded.
+- **"Load more"** no longer requires the first page to be exactly `pageSize` long.
+- **Relative times render after mount** (or immediately with `now`) — fixes hydration mismatches.
+- `onAddComment` receives a third argument `{ clientId }`; `onLikeComment` / `onDeleteComment` may return promises.
+- `DEFAULT_COMMENT_THREAD_LABELS` → `defaultCommentThreadLabels` (the old name stays as a deprecated alias);
+  `labels.formatRelativeTime` → the `formatRelativeTime` prop (still honoured).
+- `CommentMenuItem` gains `hidden`; `CommentNodeHelpers` / `CommentComposerState` gain fields (additive).
 
-## Composing into Tier-2 / Tier-3
+## Not implemented
 
-When `post-card` (next ship) lands, it'll forward `subscribe` / `currentUser` / `commentActions` from the post card down into `<CommentThread>`. The realtime contract is identical between `engagement-bar` and `comment-thread` — a single `Subscribe<TDelta>` mental model across the family.
-
-## Cross-folder import contract
-
-When this component composes another registry component (cross-folder import), it imports only from the OTHER component's `<slug>.tsx` file — never from `lib/`, `hooks/`, or `parts/` sub-folders. Conversely, when other registry components compose `comment-thread`, they import only from `comment-thread.tsx`.
-
-The constraint comes from how `pnpm dlx shadcn add` rewrites import paths in installed copies; sub-folder paths often don't survive cleanly. Anything you want shareable across folder boundaries MUST be re-exported from `<slug>.tsx`.
-
-See [`docs/component-guide.md` §11.6](../../component-guide.md) — *Cross-folder import constraint*.
+- Mentions / hashtags in the body (use `renderNode`), up / down voting, per-comment subscriptions, animated
+  insert / remove, search within a thread.
+- A reply to a pending comment is blocked until it is confirmed (not queued).

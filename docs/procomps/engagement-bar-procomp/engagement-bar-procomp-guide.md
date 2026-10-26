@@ -454,6 +454,13 @@ Put the bar under `dir="rtl"` (or pass `dir="rtl"`). The row mirrors through log
 `LikersStrip`: `likers` + `onLikersChange` is controlled; `likers` alone shows the prop on every render plus the pages the strip loaded itself (de-duplicated by `id`); `defaultLikers` is read once. A rejected `onLoadMore` leaves the list as it was. `heading`, `closeLabel` and `moreAriaLabelTemplate` still work as deprecated aliases of `labels`. `ShareMenu`: async search is latest-request-wins and falls back to the local filter on a rejection; the local filter lower-cases with `locale`.
 
 
+## 0.6.1 — likers pill
+
+A mouse click on LikersStrip's "+N" pill loads more again — the drag-to-scroll used to capture the pointer on press,
+so the click went to the strip (keyboard worked). A drag now starts after 4 px of movement. The pill shows the full
+compact count ("+379", "+1.2K"; `labels.morePill(formatted)`) instead of capping at "+99", so its visible text is part
+of its accessible name (`labels.moreAriaLabel`).
+
 ## 0.6.0 — reaction picker open state
 
 Pass `onReactionPickerOpenChange(open)` to know when the reaction picker opens and closes (tap, long-press, picking,

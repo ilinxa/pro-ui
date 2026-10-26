@@ -437,13 +437,16 @@ export interface StoryCurrentUser {
 }
 
 /**
- * Inlined subset of CommentThreadLabels (the 3 composer-relevant keys).
+ * Inlined subset of CommentThreadLabels (the composer-relevant keys).
  * Used as a nested forward inside {@link StoryViewerLabels.commentLabels}.
  */
 export interface StoryReplyComposerLabels {
+  /** Used while `replyComposerPlaceholder` is left at its default (an explicit one wins). */
   composerPlaceholder?: string;
   composerSend?: string;
   composerCancel?: string;
+  /** Wins over `replyFailed` (0.6.1). */
+  postFailed?: string;
 }
 
 // ─── Render-prop helpers ────────────────────────────────────────────────
@@ -556,6 +559,11 @@ export interface StoryViewerLabels {
   replyComposerSend?: string;
   /** Default: "Cancel". */
   replyComposerCancel?: string;
+  /**
+   * Shown under the reply box when `onAddReply` rejects; the typed text stays (0.6.1).
+   * Default: "Couldn't send your reply. Try again.".
+   */
+  replyFailed?: string;
 
   // v0.2.0 — owner overlay
   /** Function so hosts can pluralize / localize. Default: `${count} views · ${time}`. */
@@ -682,6 +690,7 @@ export const DEFAULT_STORY_VIEWER_LABELS: Required<
   replyComposerPlaceholder: (story: Story) => `Reply to ${story.username}…`,
   replyComposerSend: "Send",
   replyComposerCancel: "Cancel",
+  replyFailed: "Couldn't send your reply. Try again.",
   viewerCountLabel: (count: number, time: string, formatted?: string) =>
     `${formatted ?? count} views · ${time}`,
   viewersHeading: "Viewers",

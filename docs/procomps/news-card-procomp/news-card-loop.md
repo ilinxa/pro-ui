@@ -80,3 +80,21 @@ Batch-wide numbers copied from `docs/plans/fix-now-batch-plan.md` (2026-10-23).
 ### Parked
 
 - Stale version-pinned deferrals flagged by `validate:inert-surfaces` (pre-existing backlog, T1).
+
+---
+
+## Run — news-card v0.4.4 -> v0.4.5 (Part 3 release 5, with comment-thread 0.4.0)
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **patch** — honours a field the shared menu type gained) |
+| **Current stage** | U6 done — ships in the release 5 commit (see `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
+| **Sign-off policy** | user go 2026-10-26 (release 5 "end to end") |
+
+- **Why:** comment-thread 0.4.0 adds `CommentMenuItem.hidden`; news-card reuses the type for its kebab and would have
+  rendered hidden items.
+- **Change:** `news-kebab.tsx` leaves out hidden items; the featured / large / list / medium variants render no trigger
+  when every item is hidden (the list variant then keeps its arrow). The pre-push doc verifier found that
+  `openKebab()` with every item hidden armed a later pop-open — `news-card.tsx` now guards it.
+- **Tests:** `__tests__/kebab-hidden.test.tsx` (4), every one falsified. Installs: final matrix on CLI 4.18.0 + 3.8.5 (6 runs, all PASS, consumer tsc 0 — see comment-thread-loop.md "U5 — installs"). Artifact 181.8 / 210 KB.
+- **Docs:** `meta.ts` 0.4.5, CHANGELOG bullet, guide note.

@@ -4,42 +4,27 @@ import { memo } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: cross-procomp imports via relative + specific-file paths.
 import { ExpandableText } from "../../expandable-text/expandable-text";
-import { EngagementBar } from "../../engagement-bar/engagement-bar";
-import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
+import { buildEngagementNode, buildHeaderNode } from "./variant-nodes";
 import type { VariantInnerProps } from "./variant-shared";
 
 function CompactVariantInner(props: VariantInnerProps) {
   const {
     post,
-    currentUser,
     authorId,
-    formattedTime,
-    kebabOpen,
-    onKebabOpenChange,
-    kebabItems,
-    engagementActions,
-    engagementBarRef,
     engagementClassName,
-    engagementLabels,
-    engagementSubscribeNoop,
     bodyMaxLines,
     bodyClassName,
-    headingAs,
-    labels,
+    textLabels,
     cardLinkable,
     linkHref,
     LinkComponent,
-    renderHeader,
     renderContent,
     renderMedia,
-    renderEngagementBar,
-    onLocationClick,
-    onMentionClick,
+    noticeSlot,
     onTagClick,
     inlinePanelNode,
     className,
-    headerClassName,
     mediaClassName,
   } = props;
 
@@ -57,31 +42,13 @@ function CompactVariantInner(props: VariantInnerProps) {
       ? post.media[0]
       : null;
 
-  const headerNode = renderHeader ? (
-    renderHeader(post, { currentUser })
-  ) : (
-    <PostHeader
-      post={post}
-      kebabOpen={kebabOpen}
-      onKebabOpenChange={onKebabOpenChange}
-      kebabItems={kebabItems}
-      headingAs={headingAs}
-      formattedTime={formattedTime}
-      authorId={authorId}
-      labels={labels}
-      onLocationClick={onLocationClick}
-      onMentionClick={onMentionClick}
-      compact
-      className={headerClassName}
-    />
-  );
-
   const contentNode = renderContent ? (
     renderContent(post)
   ) : (
     <ExpandableText
       content={post.content}
       maxLines={bodyMaxLines}
+      labels={textLabels}
       contentClassName={cn("text-xs md:text-sm", bodyClassName)}
     />
   );
@@ -89,6 +56,7 @@ function CompactVariantInner(props: VariantInnerProps) {
   return (
     <article
       role="article"
+      tabIndex={-1}
       aria-labelledby={authorId}
       className={cn(
         "relative overflow-hidden rounded-lg border border-border bg-card p-2.5 sm:p-3",
@@ -97,7 +65,8 @@ function CompactVariantInner(props: VariantInnerProps) {
     >
       {overlayLink}
       <div className="relative z-10 flex flex-col gap-2">
-        {headerNode}
+        {buildHeaderNode(props, true)}
+        {noticeSlot?.(post)}
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">{contentNode}</div>
           {firstMedia ? (
@@ -123,17 +92,7 @@ function CompactVariantInner(props: VariantInnerProps) {
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
         <div className={cn("relative z-10 mt-1", engagementClassName)}>
-          {renderEngagementBar ? (
-            renderEngagementBar(post, { actions: engagementActions })
-          ) : (
-            <EngagementBar
-              ref={engagementBarRef}
-              variant="compact"
-              actions={engagementActions}
-              onSubscribeDelta={engagementSubscribeNoop}
-              labels={engagementLabels}
-            />
-          )}
+          {buildEngagementNode(props, true)}
         </div>
         {inlinePanelNode ? (
           <div className="relative z-10 mt-2 border-t border-border/60 pt-2">

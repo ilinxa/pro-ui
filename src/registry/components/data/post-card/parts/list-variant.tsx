@@ -4,41 +4,30 @@ import { memo } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: cross-procomp imports via relative + specific-file paths.
 import { ExpandableText } from "../../expandable-text/expandable-text";
-import { EngagementBar } from "../../engagement-bar/engagement-bar";
-import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
+import { buildEngagementNode, buildHeaderNode } from "./variant-nodes";
 import type { VariantInnerProps } from "./variant-shared";
 
 function ListVariantInner(props: VariantInnerProps) {
   const {
     post,
-    currentUser,
     authorId,
-    formattedTime,
-    kebabOpen,
-    onKebabOpenChange,
-    kebabItems,
-    engagementActions,
-    engagementBarRef,
     engagementClassName,
-    engagementLabels,
-    engagementSubscribeNoop,
+    engagementActions,
+    renderEngagementBar,
     bodyMaxLines,
     bodyClassName,
-    headingAs,
+    textLabels,
     labels,
+    formatCount,
     cardLinkable,
     linkHref,
     LinkComponent,
-    renderHeader,
     renderContent,
     renderMedia,
-    renderEngagementBar,
-    onLocationClick,
-    onMentionClick,
+    noticeSlot,
     onTagClick,
     className,
-    headerClassName,
     mediaClassName,
   } = props;
 
@@ -56,31 +45,13 @@ function ListVariantInner(props: VariantInnerProps) {
       />
     ) : null;
 
-  const headerNode = renderHeader ? (
-    renderHeader(post, { currentUser })
-  ) : (
-    <PostHeader
-      post={post}
-      kebabOpen={kebabOpen}
-      onKebabOpenChange={onKebabOpenChange}
-      kebabItems={kebabItems}
-      headingAs={headingAs}
-      formattedTime={formattedTime}
-      authorId={authorId}
-      labels={labels}
-      onLocationClick={onLocationClick}
-      onMentionClick={onMentionClick}
-      compact
-      className={headerClassName}
-    />
-  );
-
   const contentNode = renderContent ? (
     renderContent(post)
   ) : (
     <ExpandableText
       content={post.content}
       maxLines={bodyMaxLines}
+      labels={textLabels}
       contentClassName={cn("text-xs md:text-sm", bodyClassName)}
     />
   );
@@ -88,8 +59,15 @@ function ListVariantInner(props: VariantInnerProps) {
   // Default for list: counts-only meta row, no interactive bar.
   const defaultMeta = (
     <span className="text-xs text-muted-foreground">
-      {post.likes} likes · {post.comments} comments
-      {post.shares !== undefined ? ` · ${post.shares} shares` : ""}
+      {labels.listLikes(post.likes, formatCount(post.likes))}
+      <span aria-hidden="true"> · </span>
+      {labels.listComments(post.comments, formatCount(post.comments))}
+      {post.shares !== undefined ? (
+        <>
+          <span aria-hidden="true"> · </span>
+          {labels.listShares(post.shares, formatCount(post.shares))}
+        </>
+      ) : null}
     </span>
   );
 
@@ -128,25 +106,16 @@ function ListVariantInner(props: VariantInnerProps) {
           firstMedia ? "p-2.5 sm:p-3" : "",
         )}
       >
-        {headerNode}
+        {buildHeaderNode(props, true)}
+        {noticeSlot?.(post)}
         {contentNode}
         {post.tags && post.tags.length > 0 ? (
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
         <div className={cn("relative z-10 mt-auto", engagementClassName)}>
-          {renderEngagementBar ? (
-            renderEngagementBar(post, { actions: engagementActions })
-          ) : engagementActions.length > 0 ? (
-            <EngagementBar
-              ref={engagementBarRef}
-              variant="compact"
-              actions={engagementActions}
-              onSubscribeDelta={engagementSubscribeNoop}
-              labels={engagementLabels}
-            />
-          ) : (
-            defaultMeta
-          )}
+          {renderEngagementBar || engagementActions.length > 0
+            ? buildEngagementNode(props, true)
+            : defaultMeta}
         </div>
       </div>
     </article>

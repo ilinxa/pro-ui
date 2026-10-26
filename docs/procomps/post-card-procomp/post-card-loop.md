@@ -199,3 +199,75 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 - **Names:** the existing keys `likersMoreLabel`, `pollTotalVotesLabel`, `pollClosesAtLabel` become functions (as proposed). List-meta counts get **new** function keys (additive, not breaking). [F-06]
 - **engagement-bar alias stays:** removing LikersStrip's `moreAriaLabelTemplate` would break engagement-bar (public prop + test). post-card stops using it; the alias stays deprecated. No engagement-bar bump for this. [F-07]
 - Pass a stable module-level empty array instead of `commentThread ?? []` (comment-thread's new identity dev-warn would fire every render) + test. [F-13]
+
+---
+
+# Run — Part 3 release 5 (0.6.0)
+
+| Field | Value |
+|---|---|
+| **Current stage** | U6 done (U2–U6 below) — final installs + battery, then U7 ship in one release commit |
+| **Go** | user 2026-10-26 ("go … end to end and properly"); execution delegated for this release; scope signed by the platform 2026-10-25. Ships with comment-thread 0.4.0 (see that loop doc's "Run — Part 3 release 5"). |
+
+## U2 — architect decisions (types fixed before the slice)
+
+1. **Controlled = "reported once accepted"**, same model as comment-thread: `onPostChange(next, change)` after the
+   handler's promise resolves (at once for a sync handler and for engagement deltas). In flight: an overlay over the
+   prop; a rejection drops it. Uncontrolled: the local mirror rolls back on rejection. `PostChange` union.
+2. **Reactions** = `reactions?: PostReactions` card prop; it replaces the like action in the default actions.
+   Double-tap = `triggerReaction(defaultKind)` only when the bar's current reaction is `null`; burst once.
+3. **Comment passthrough = one bag** `commentThreadProps` (cursor paging, `onLoadReplies`, `onCommentsChange`,
+   `moderation`, `extraActions`, reactions…); the card's own comment props win when defined. Stable module-level empty
+   array instead of `commentThread ?? []` (F-13).
+4. **Nested labels** `likersLabels` / `shareLabels` / `textLabels`; LikersStrip / ShareMenu get `labels` + `locale`
+   (no deprecated props; the `moreAriaLabelTemplate` alias stays in engagement-bar, F-07). `defaultPostCardLabels` +
+   `ResolvedPostCardLabels`; `DEFAULT_POST_CARD_LABELS` deprecated alias.
+5. **`permissions.disabled`** (per action) renders kebab items disabled; `CommentMenuItem.hidden` honoured.
+6. **`likers`** goes straight to LikersStrip (it shows the prop on every render plus what it loaded) — resyncs in both modes.
+
+## U2 — result
+
+Implementer report: 10 files / 151 tests, 58 mutations falsified. Architect follow-ups: post-card's own
+`lib/format-time.ts` deleted in favour of comment-thread's shared formatter; `labels.openRepost(name)` added (the
+quoted card's link name was hard-coded English, `repost-label.test.tsx`); a poll closing in the future reads
+"Closes in 3d" (`poll-countdown.test.tsx`); `votePoll` JSDoc corrected. 4 new shipped files added to `registry.json`.
+
+## U3 — gate battery (run 1): see comment-thread-loop.md "Run — release 5 / U3" (one battery for the release).
+post-card 171.2 KB built before the review fixes; budget 190 pending the final number.
+
+## U4 — adversarial review (fresh Sonnet finder B on a frozen snapshot)
+
+19 rows. Verdicts (architect): 15 CONFIRMED → fixed (post-card fix wave, `__tests__/fix-wave.test.tsx`, 25 tests, each
+failing without its fix) or fixed by the architect, 2 docs, 2 recorded as follow-up/docs.
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| B1 | ⚠️ | controlled reports built from a passive-effect base → two changes before a commit lose one | CONFIRMED → synchronous working post |
+| B2 | ⚠️ | controlled state not bound to `post.id` (pending like / reveal / panel / vote carried to the next post) | CONFIRMED → reset on id change, late settles ignored |
+| B3 | 🔸 | list meta + poll total now compact ("8.7K likes", "1 vote") — English output changed | CONFIRMED → kept (consistent with the bar); CHANGELOG + usage say so |
+| B4 | 🔸 | nested repost card mount-only → stale under a controlled outer card | CONFIRMED → follows its prop |
+| B5 | 🔸 | `timeZone` alone changed English relative text | CONFIRMED → architect fixed the shared formatter |
+| B6 | 🔸 | `reactions` without `onReact` + `onLike` → double-tap set a reaction nobody heard | CONFIRMED → burst needs `onReact` |
+| B7 | 🔸 | likers pill used `post.likes` with `reactions` (a withheld total leaked) | CONFIRMED → `reactions.totalCount` |
+| B8 | 🔸 | `renderCommentSection` helpers ignored `commentThreadProps` | CONFIRMED → merged handlers |
+| B9 | 🔹 | double vote with `optimistic={false}`; focus to `<body>` when the vote button unmounts | CONFIRMED → fixed |
+| B10 | 🔹 | controlled no-op changes reported | CONFIRMED → skipped |
+| B11 | 🔹 | an old string label silently ignored | CONFIRMED → one dev warning per key |
+| B12 | 🔹 | handle identity churned with an inline `onVotePoll` | CONFIRMED → stable |
+| B13 | 🔹 | host `formatRelativeTime` gets a future date (poll) | CONFIRMED → documented in `types.ts` |
+| B14 | 🔹 | poll percentages not locale-formatted | CONFIRMED → `Intl.NumberFormat` percent |
+| B15 | 🔹 | `openKebab()` with no items armed a later pop-open | CONFIRMED → no-op |
+| B16 | 🔹 | news-card `showKebab` on unfiltered items | CONFIRMED → architect fixed (news-card 0.4.5) |
+| B17 | 🔹 | composer alert survived a story-viewer prefill | CONFIRMED → fixed in comment-thread's composer |
+| B18 | 🔹 | fixtures read the clock at module load | CONFIRMED → fixed `DUMMY_NOW` |
+| B19 | 🔹 | `commentThread` stays read-once while `post` is controlled — undocumented | CONFIRMED → documented in `types.ts` + guide |
+
+Fix wave result: 13 files / 180 tests, every fix falsified.
+
+## U5 / U6 — browser, doc verifier, installs
+
+One record for the release: see `../comment-thread-procomp/comment-thread-loop.md` ("U5 — runtime", "U6 — pre-push doc
+verifier", "U5 — installs"). post-card rows: W3 (panel Hide focus), W4 (RTL menu), W6/W7 (demo labels) — fixed and
+re-verified. Install finding: the `post-card-fixtures` item failed consumer tsc (TS2305) — `dummy-data.ts` imported
+comment-thread / engagement-bar types, which the CLI rewrites to those components' main files inside the fixtures item;
+fixed by deriving every type from post-card's own `./types`.

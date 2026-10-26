@@ -302,6 +302,12 @@ function NewsCardImpl(props: NewsCardProps) {
 
   // ─── Imperative handle (11 methods) ──────────────────────────────────────
   const [kebabOpen, setKebabOpen] = useState(false);
+  // 0.4.5: `openKebab()` is a no-op when no item is visible — it used to arm the menu, which then
+  // popped open by itself once an item appeared.
+  const hasVisibleKebabRef = useRef(false);
+  useEffect(() => {
+    hasVisibleKebabRef.current = kebabItems.some((it) => !it.hidden);
+  });
 
   useImperativeHandle(
     ref,
@@ -312,7 +318,9 @@ function NewsCardImpl(props: NewsCardProps) {
        * rendered, so the root could not reach it; the menu is now controlled
        * from here and every variant forwards that state to its kebab.
        */
-      openKebab: () => setKebabOpen(true),
+      openKebab: () => {
+        if (hasVisibleKebabRef.current) setKebabOpen(true);
+      },
       triggerEdit: () => onEdit?.(effectiveItem.id),
       triggerDelete: () => onDelete?.(effectiveItem.id),
       triggerPublish: () => onPublish?.(effectiveItem.id),

@@ -158,3 +158,164 @@ Source: `.claude/review-2026-10-25-part3-scope.md` (fresh Sonnet finder + archit
 
 - U1 merged with the amendment (CT4 split, size 75 KB); stale text removed. Negative path follows the feature-slicing convention: `onEditComment` / `removedMode` without the add-on → one dev-warn + today's behaviour, and their JSDoc says "requires `comment-thread-moderation`". A comment whose `state` is `"hidden"` / `"deleted"` / `"removed"` is pruned with its replies when the add-on is absent (today's `removed` semantics). [F-12]
 - U5: re-run story-viewer's tests and smoke (it imports `CommentComposer`, whose labels change in CT6). [F-19]
+
+---
+
+# Run — Part 3 release 5 (0.4.0 + `comment-thread-moderation` 0.4.0)
+
+| Field | Value |
+|---|---|
+| **Current stage** | U6 done (U2–U6 below) — final installs + battery, then U7 ship in one release commit |
+| **Go** | user 2026-10-26: "confirmed you can go and make them done end to end and properly" — and story-viewer must move to comment-thread 0.4.0 in the same release (platform reply `PROUI_REPLY_2026-10-26_ME051_FB_EP.md`). Execution delegated by the user for this release; scope signed by the platform 2026-10-25. |
+| **Release** | comment-thread 0.4.0 · comment-thread-moderation 0.4.0 (new feature item; a feature item carries its base's version) · post-card 0.6.0 · story-viewer 0.6.1 · engagement-bar 0.6.1 (patch: likers pill click + full count) · news-card 0.4.5 (patch: honour `CommentMenuItem.hidden`) |
+| **Roster** | architect: main session · implementers: Sonnet 5 (comment-thread base + moderation; post-card) · finders: fresh Sonnet 5 |
+
+## U2 — architect decisions (types fixed before the slices)
+
+`types.ts` was rewritten by the architect first so the parallel slices agree. Decisions beyond the U1 text:
+
+1. **Controlled reporting = "once accepted".** `onCommentsChange(next, change)` fires after the handler's promise
+   resolves, at once for a handler that returns nothing, and at once for deltas, loaded pages and handle calls. While a
+   promise is in flight the change is an overlay over the prop; a rejection drops the overlay and reports nothing, so
+   the host never has to revert. (`CommentsChange` union in `types.ts`.)
+2. **Built-in reactions per row** (beyond the U1 slot): `reactionKinds` + `onReactComment` make each row's default
+   action an engagement-bar reaction picker fed by `Comment.reactions`; `{ kind: "reacted" }` delta. The
+   `engagementActions(comment, helpers)` slot still takes over (`helpers.defaultActions`).
+3. **`Comment.likes: number | null`** (type widened: `null` withholds the count — C6). Readers doing arithmetic on
+   `likes` need a null check; documented in the migration note.
+4. **Report on own comments is a fix**: default `canReport` = not own (it showed on your own comments).
+5. **Composer owns the failure UI**: `CommentComposer` catches a rejected `onSubmit` (no unhandled rejection), keeps the
+   text and shows `labels.postFailed` (`role="alert"`); the thread removes the pending comment and re-throws to it.
+   This is the story-viewer coupling — story-viewer 0.6.1 forwards the label and styles the alert for media.
+6. **"now"**: `now` prop wins; otherwise read in an effect after mount and every 60 s. Before mount no relative text
+   renders (SSR = first client render).
+7. **Tombstone state is a render filter, not a reducer branch**: the reducer stores `state`; without the add-on a
+   non-visible comment (and its replies) is not rendered + one dev-warn. `removedMode="tombstone"` converts a
+   `removed` delta into `state: "removed"` before dispatch (needs the add-on, else warn + prune).
+8. **Seam**: `CommentModerationExtension` (in `types.ts`) = `{ EditComposer, Tombstone, PinnedMarker }`; base owns
+   edit state and the Edit item (shown when `moderation` + `onEditComment` + `permissions.canEdit` and not pending).
+   Feature folder `features/moderation/`, ready value `commentModeration`.
+9. **Labels**: `defaultCommentThreadLabels` + `ResolvedCommentThreadLabels`; `DEFAULT_COMMENT_THREAD_LABELS` stays as a
+   deprecated alias. `labels.formatRelativeTime` deprecated in favour of the `formatRelativeTime` prop.
+
+## U2 — slices
+
+| # | Slice | Owner | Status |
+|---|---|---|---|
+| A | comment-thread base 0.4.0 (state, controlled overlay, idempotence, rollback, paging, replies, permissions, reactions, labels, locale/now, RTL indent) + `features/moderation/` + tests | Sonnet 5 implementer | in progress |
+| B | post-card 0.6.0 | Sonnet 5 implementer | in progress |
+| C | story-viewer 0.6.1, news-card 0.4.5, registry.json, meta / CHANGELOG | architect | after A |
+
+## U2 — result (slice A)
+
+Implementer report: 13 files / 201 tests, 40 fixes falsified (each revert caught). Architect spot-checks: re-ran the
+suite (one demo test timed out at 5 s under the parallel run → explicit 30 s budget); replaced `lib/format-time.ts` with
+one shared, future-aware formatter (post-card now imports it, its own copy deleted): a future date reads "in 3d" (a poll
+closing time read "Closes Just now"), comment rows clamp a timestamp ahead of the viewer's clock to "now", an invalid
+locale / zone falls back. New shipped files (10 base + 4 moderation) added to `registry.json`; roster = folder.
+
+## U3 — gate battery (run 1, before the review fixes)
+
+tsc 0 · lint 0 errors / 11 warnings · registry:build 0 (comment-thread 119.5 KB, moderation 6.6 KB, post-card 171.2 KB,
+story-viewer 321.1 KB, news-card 181.4 KB; artifact-size 0 high) · doc-budget 0 · tests 2379 passed, 4 failed — all
+`Test timed out in 5000ms` under load (3 repo gate tests + 1 entity-picker test; re-run alone at U3 run 2) · build 0.
+
+Size: the U1 estimate (base ~70 KB, budget 75) was wrong — the base is ~134 KB built after the fixes (~15 KB is JSDoc in
+`types.ts`). Runtime cost of `<CommentThread>` (rolldown, minified + gzip, externals = react / ui / lucide / sibling
+procomps): **5.1 KB (0.3.2) → 10.2 KB**. Budget raised to 140 and the numbers go to the platform in the report-back.
+`comment-thread-moderation` carries the base's version (0.4.0) — `sync-registry-versions` stamps feature items with
+their base's version (same as `media-editor-capture`).
+
+## U4 — adversarial review (fresh Sonnet finder A on a frozen snapshot)
+
+16 rows. Verdicts (architect): 14 CONFIRMED → fixed (implementer fix wave, each with a regression test that fails
+without it — `__tests__/fixes.test.tsx`, 34 tests), 1 docs, 1 DROPPED.
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| A1 | ⚠️ | void `onAddComment` after the server echo (same clientId) re-added the temp → duplicate forever | CONFIRMED → fixed |
+| A2 | ⚠️ | accept / unknown-parent check read the layout-effect base → two accepts in one tick drop one (controlled); parent + child deltas in one tick drop the child (both modes) | CONFIRMED → synchronous working tree |
+| A3 | 🔸 | a finished reply closed whichever reply composer was open | CONFIRMED → fixed |
+| A4 | 🔸 | no `onAddComment` (local thread) → posted comments stuck pending | CONFIRMED → normal comment |
+| A5 | 🔸 | Enter during IME composition submitted (pre-existing; story-viewer + edit composer depend on it) | CONFIRMED → guarded |
+| A6 | 🔸 | focus to `<body>` when the focused Edit Save/Cancel, replies link or Load more unmounts | CONFIRMED → focus moved (kebab trigger / first new item) |
+| A7 | 🔸 | `replyCount` never maintained → spurious "View more replies" after a delete | CONFIRMED → kept in step |
+| A8 | 🔹 | "a temp id never reaches your server" overstated (custom slots get it, with `isPending`) | CONFIRMED → docs |
+| A9 | 🔹 | a throwing `onCommentsChange` / `onSubscribeDelta` → unhandled rejection / false "Couldn't post" | CONFIRMED → guarded |
+| A10 | 🔹 | legacy "Load more" heuristic counted the viewer's own posts | CONFIRMED → server-delivered only |
+| A11 | 🔹 | reply / page loads survived `reset` and landed on the new tree | CONFIRMED → epoch + cleared state |
+| A12 | 🔹 | `handle.openReply` kept a stale focus target | CONFIRMED → fixed |
+| A13 | 🔹 | `labels.signInPrompt` read by nothing (inert since 0.1) | CONFIRMED → self-disclosing (`@deprecated @notImplemented` + one dev warning), not rendered (I1) |
+| A14 | 🔹 | JSDoc lies: automatic destructive divider; `removedMode` also covers own deletes | CONFIRMED → architect fixed `types.ts` |
+| A15 | 🔹 | reaction rows borrowed `kinds[].count` as their tally | CONFIRMED → withheld |
+| A16 | 🔹 | `canReact: false` also disables the plain like | DROPPED — intended (gates the row's action); documented |
+
+Second finder (post-card axis, rows that touch comment-thread / its dependents): B5 `timeZone` alone changed the English
+relative text → CONFIRMED, architect fixed the shared formatter (`format-time-zone.test.ts`); B16 news-card variants
+decided `showKebab` on unfiltered items → CONFIRMED, architect fixed 4 variants (news-card 0.4.5, test); B17 the
+composer's failure alert survived a controlled prefill (story-viewer `triggerReply`) → CONFIRMED, fixed in the
+composer; story-viewer ignored `commentLabels.composerPlaceholder` → CONFIRMED, architect fixed (story-viewer 0.6.1, test).
+
+Fix wave result: 15 files / 239 tests, every fix falsified. Parked by the implementer: focus hand-off after a load
+assumes the items land in the same batch (a controlled host applying the page later leaves focus on the body).
+
+## U5 — runtime (browser finder on `next start -p 3200`, Chromium; then a re-verify on a rebuilt production build)
+
+First pass, 8 rows (release-wide): W1 ⚠️ likers "+N" pill ignored mouse clicks (engagement-bar `useDragScroll` captured
+the pointer on press → the click retargeted to the strip) — CONFIRMED, fixed in engagement-bar 0.6.1 (capture after
+4 px; released-elsewhere guard); W2 ⚠️ focus to `<body>` after Delete / a moderator removal in comment-thread —
+CONFIRMED, fixed (next / previous article, composer, tombstone); W3 ⚠️ post-card likers / share Hide dropped focus —
+CONFIRMED, fixed (opener, else the card); W4 🔸 portaled menus laid out LTR in RTL — CONFIRMED, fixed (`dir` DOM
+attribute on the content); W5 🔸 pill "+99" vs name "+379 more" — CONFIRMED, fixed (full compact count); W6/W7 🔹
+Turkish / Arabic demo tabs left English — fixed (demo); W8 🔹 story-viewer demo returns no focus on close — parked
+(host-owned `isOpen`).
+
+Re-verify: W1, W2, W3, W5 PASS. W4 first fix (dir attribute + `align` flipped to "start") PARTIAL — direction and text
+right, position still mirrored the wrong way: Radix passes the content's `dir` to the positioned wrapper, so
+floating-ui already mirrors `align` for an RTL element and the flip undid it. Architect fix: keep `align="end"`; test
+asserts the wrapper carries `dir="rtl"`; re-run of the finder's script: RTL menus 177–305 / 369–497 (aligned to the
+kebab's left edge, opening toward the row), LTR unchanged, in-viewport at 390 px. W6/W7 PASS after the architect
+completed the visibility / carousel / comment-menu labels. Regression sweep (pending + failed post, load-more and
+replies focus, moderation edit focus, reactions picker, poll focus, controlled rollback, double-tap, header slots,
+story-viewer failed reply): all PASS. Console: 0 errors / warnings / hydration messages on all four pages; 0 overflow
+at 390 px.
+
+## U6 — pre-push doc verifier (fresh Sonnet, read-only)
+
+25 rows. 3 were code bugs, all fixed + falsified by the architect:
+- **High, pre-existing since 0.1:** a `renderNode` row returned early, so its replies, on-demand reply loading and
+  links were never rendered (every guide since 0.1 said "the thread keeps the tree"). Now the tree renders below the
+  slot; the menu is the slot's (documented). `render-node-tree.test.tsx`.
+- news-card `openKebab()` with every item hidden armed a later pop-open (0.4.5 scope). `kebab-hidden.test.tsx`.
+- engagement-bar likers strip: a press released outside the strip could start a capture-less-button drag on return.
+  `likers-strip.test.tsx`.
+The other 22 were doc / sample / stale-comment rows (usage sample that failed strict tsc with an optional `options`
+argument, the "`timeZone` switches to Intl" line, controlled-add reporting, temp-id wording, `hasMore` / `nextCursor`
+scope, `renderViewReplies` scope, `dir` scope, stale post-card mirror / `pollVote` / `reset` JSDoc, samples reading
+non-existent `Post` fields, pre-existing install-path / overlay-label lines, the meta size comment) — all corrected.
+
+## U5 — installs (`pnpm test:install`, local `public/r`, fresh Next consumer, consumer `tsc --noEmit`)
+
+Final artifacts (`registry:build` after the last fix), six runs, each a fresh Next consumer + `shadcn add` from the
+local `public/r` + consumer `tsc --noEmit`:
+
+| Run | Items | CLI | Result | Installed (with dependencies) |
+|---|---|---|---|---|
+| a | comment-thread, comment-thread-moderation, post-card, story-viewer, news-card, engagement-bar | 4.18.0 | PASS, tsc 0 | + expandable-text 0.3.0, video-player 0.3.0, media-carousel 0.3.1 |
+| b | comment-thread-fixtures, post-card-fixtures | 4.18.0 | PASS, tsc 0 | bases 0.4.0 / 0.6.0 + their dependencies |
+| c | comment-thread alone | 4.18.0 | PASS, tsc 0 | + expandable-text 0.3.0, engagement-bar 0.6.1 |
+| d | post-card | 3.8.5 | PASS, tsc 0 | + comment-thread 0.4.0, engagement-bar 0.6.1, media-carousel, video-player, expandable-text |
+| e | story-viewer | 3.8.5 | PASS, tsc 0 | + comment-thread 0.4.0, engagement-bar 0.6.1, video-player, expandable-text |
+| f | comment-thread-moderation | 3.8.5 | PASS, tsc 0 | + comment-thread 0.4.0, engagement-bar 0.6.1, expandable-text |
+
+The first matrix (artifacts from before the last fixes) failed run b: `post-card-fixtures` consumer tsc TS2305 —
+`dummy-data.ts` imported comment-thread / engagement-bar types, and inside a fixtures item the CLI rewrites those
+imports to the other components' main files. Fixed by deriving every type from `./types`; run b above is the re-run.
+
+## U3 final — battery on the final tree (after every fix, before the commit)
+
+tsc 0 · lint 0 errors / 11 warnings (baseline) · `registry:build` 0 (artifact-size 0 high: comment-thread 134.6 / 150,
+moderation 6.6 / 8, post-card 183.6 / 190, engagement-bar 117.9 / 125, story-viewer 321.7 / 340, news-card
+181.8 / 210) · doc-budget 0 · tests (`NODE_ENV=production`) **176 files / 2473 passed, 6 skipped, 0 failed, no
+timeouts** — comment-thread 17 files / 251, post-card 14 / 190 · `pnpm build` 0 (77 pages). Runtime min + gzip
+re-measured: `<CommentThread>` 11.6 KB, post-card's own code 12.8 KB (unchanged by the last fixes).

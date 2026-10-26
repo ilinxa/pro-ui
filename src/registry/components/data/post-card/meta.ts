@@ -8,8 +8,14 @@ export const meta: ComponentMeta = {
   description:
     "Social post composite in four layouts — text expansion, media carousel, engagement bar, and comment thread wired together.",
   context:
-    "Sixth ship in the 8-component social-posts-system arc. Third cross-folder import precedent in pro-ui (after media-carousel → video-player and comment-thread → expandable-text + engagement-bar) — declares all five Tier-1 social-posts siblings as registryDependencies; consumer install auto-pulls the family. Migration origin: kasder kas-social-front-v0 AdvancedPostCard.tsx (167 LOC) + PostEngagementPanel.tsx inline-panel UX. Component owns a stateful local mirror initialized from `post` on mount (R-Plan-1) — engagement bar runs always-controlled with mirror values, optimistic onLike/onBookmark dispatches mirror first then fires host handler, realtime engagementSubscribe deltas patch mirror + fire onSubscribeEngagementDelta callback. Inline panels (engagementMode default 'inline'): tap heart toggles like, tap count opens likers strip; tap comment toggles inline CommentThread (with composer); tap share opens searchable user list. `engagementMode='navigate'` deactivates panels for hosts that prefer page navigation. Heart-burst heuristic auto-wires when `post.media?.length > 0` AND `onLike` AND `variant ∈ {feed, detail}` (disableHeartBurst opts out). `getHref` double-duty: overlay-link in non-detail variants + Copy-link kebab item. Detail variant embeds <CommentThread> always (ignores engagementMode) with auto-default + `renderCommentSection` slot for full takeover.",
+    "Sixth ship in the 8-component social-posts-system arc. Third cross-folder import precedent in pro-ui (after media-carousel → video-player and comment-thread → expandable-text + engagement-bar) — declares all five Tier-1 social-posts siblings as registryDependencies; consumer install auto-pulls the family. Migration origin: kasder kas-social-front-v0 AdvancedPostCard.tsx (167 LOC) + PostEngagementPanel.tsx inline-panel UX. `post` is mount-only (a local mirror) unless `onPostChange` is passed (controlled since 0.6.0: the prop wins every render, like / bookmark / poll vote show as an overlay while their promise is in flight and are reported once accepted, rejections roll back); the engagement bar is controlled by the card; realtime engagementSubscribe deltas are applied (uncontrolled) or reported (controlled) and fire onSubscribeEngagementDelta. Inline panels (engagementMode default 'inline'): tap heart toggles like, tap count opens likers strip; tap comment toggles inline CommentThread (with composer); tap share opens searchable user list. `engagementMode='navigate'` deactivates panels for hosts that prefer page navigation. Heart-burst auto-wires when `post.media?.length > 0` AND (`onLike`, or `reactions.onReact` when `reactions` is set) AND `variant ∈ {feed, detail}` (disableHeartBurst opts out). `getHref` double-duty: overlay-link in non-detail variants + Copy-link kebab item. Detail variant embeds <CommentThread> always (ignores engagementMode) with auto-default + `renderCommentSection` slot for full takeover.",
   features: [
+    "v0.6.0 — controlled `post` + `onPostChange(next, change)`: the prop wins on every render; like / bookmark / poll vote show at once while their promise is in flight and are reported once accepted; a rejection rolls back (both modes); latest request wins; `optimistic`",
+    "v0.6.0 — `reactions` (kinds, counts, viewer reaction, `onReact`, `defaultKind`) replaces the like with a reaction picker; double-tap applies the default reaction when none is set and bursts once",
+    "v0.6.0 — header: `getAuthorHref` (avatar + name links), `subtitle`, `noticeSlot`, labelled kebab that survives `renderHeader(post, { kebab })`, `extraKebabActions` appended, `hidden` items, `permissions.disabled`",
+    "v0.6.0 — `locale`, `timeZone`, `now`, `formatRelativeTime`, `formatCount`: no clock read during render (relative time renders after mount), the poll uses the same clock, the edited tooltip is locale-formatted; one `locale` reaches the carousel, bar, likers, share menu and thread",
+    "v0.6.0 — forwarding bags `mediaProps`, `engagementBarProps`, `commentThreadProps` (cursor paging, replies, `onCommentsChange`, the `moderation` add-on…); nested `likersLabels` / `shareLabels` / `textLabels`",
+    "v0.6.0 — **breaking:** `likersMoreLabel`, `pollTotalVotesLabel`, `pollClosesAtLabel` are functions (`(count, formatted) => …` / `(time) => …`); list meta via `listLikes` / `listComments` / `listShares`; `openRepost(name)`",
     "4 variants: feed (Instagram-post) / compact (sidebar widget) / list (admin row, full-height thumb) / detail (full page + embedded thread)",
     "Composes 5 Tier-1 social siblings via cross-folder imports (declared registryDependencies)",
     "Inline engagement panels DEFAULT — tap heart to like, tap count to open likers strip; tap comment for inline thread+composer; tap share for searchable user list",
@@ -32,8 +38,8 @@ export const meta: ComponentMeta = {
     "LikersStrip part — horizontal swipable avatar strip + paginating +N pill (touch swipe + desktop drag-to-scroll)",
     "ShareMenu part — searchable user picker; local filter when no async wired, optional onShareSearch for backend search",
     "Auto-wired canonical heart-burst on double-tap (heuristic; disableHeartBurst opt-out)",
-    "Local engagement mirror — bar runs always-controlled, realtime + optimistic flow into single source of truth",
-    "Wrapped engagement handlers — defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?) gets pre-wrapped handlers",
+    "Engagement bar runs controlled by the card: realtime deltas and optimistic changes flow through one shown post",
+    "Wrapped engagement handlers — defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?, reactions?) gets pre-wrapped handlers",
     "Default kebab — Bookmark / Share / Copy link / Report (legacy); role-aware kebab with Edit / Delete / Pin / Change visibility / Mark sensitive / See analytics / Block / Mute / Translate when viewerMode set",
     "kebabActions slot for full takeover (moderator semantics)",
     "engagementActions slot — defaultPostEngagementActions exported for extend-not-replace",
@@ -43,7 +49,7 @@ export const meta: ComponentMeta = {
     "renderHeader / renderContent / renderMedia / renderEngagementBar slots — full takeover at every seam",
     "v0.2.0 — Additional slots: renderPoll / renderLinkPreview / renderRepostOf / renderSensitiveGate + disableXxxRender opt-outs",
     "VerifiedBadge sub-export — RSC-compatible (no `\"use client\"`)",
-    "Always-uncontrolled — `post` prop is mount-only; ref.current.reset(next) for external state push (clears optimistic pollVote + sensitiveRevealed)",
+    "`post` is mount-only unless `onPostChange` is passed (controlled); ref.current.reset(next) pushes a post in uncontrolled mode and clears overlays, the poll vote and the sensitive reveal in both",
     "Tailwind v4-clean (no legacy class names)",
     "No new shadcn primitives needed (avatar / button / card / dropdown-menu / input / popover present)",
     "No framer-motion — inherits engagement-heart-burst CSS from engagement-bar",
@@ -68,11 +74,11 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.5.3",
+  version: "0.6.0",
   status: "alpha",
-  artifactBudgetKB: 165,
+  artifactBudgetKB: 190,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-24",
+  updatedAt: "2026-10-26",
 
   author: { name: "ilinxa" },
 

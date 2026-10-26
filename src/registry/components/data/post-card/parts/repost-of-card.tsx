@@ -3,7 +3,10 @@
 import { useMemo, type ElementType } from "react";
 import { cn } from "@/lib/utils";
 import { PostCard } from "../post-card";
-import type { Post, PostCardProps } from "../types";
+import { defaultPostCardLabels, type Post, type PostCardProps } from "../types";
+
+/** Makes the nested card controlled, so it follows its `post` prop instead of keeping the first one. */
+const FOLLOW_PROP = () => {};
 
 export interface RepostOfCardProps {
   /** The original post being reposted (`statefulPost.repostOf`). */
@@ -21,6 +24,12 @@ export interface RepostOfCardProps {
   linkComponent?: PostCardProps["linkComponent"];
   /** Forwarded to the nested compact `<PostCard>` for header label strings. */
   labels?: PostCardProps["labels"];
+  /** Forwarded to the nested card: locale, time zone and "now" (see `PostCardProps`). */
+  locale?: PostCardProps["locale"];
+  timeZone?: PostCardProps["timeZone"];
+  now?: PostCardProps["now"];
+  formatRelativeTime?: PostCardProps["formatRelativeTime"];
+  formatCount?: PostCardProps["formatCount"];
   className?: string;
 }
 
@@ -51,6 +60,11 @@ export function RepostOfCard({
   getHref,
   linkComponent,
   labels,
+  locale,
+  timeZone,
+  now,
+  formatRelativeTime,
+  formatCount,
   className,
 }: RepostOfCardProps) {
   // Recursion-strip: prevent infinite nesting of repost mini-cards.
@@ -62,7 +76,9 @@ export function RepostOfCard({
   const overlayClasses =
     "absolute inset-0 z-10 cursor-pointer rounded-lg transition-colors hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-  const ariaLabel = `Open ${originalPost.author.name}'s post`;
+  const ariaLabel = (labels?.openRepost ?? defaultPostCardLabels.openRepost)(
+    originalPost.author.name,
+  );
 
   return (
     <div
@@ -78,7 +94,13 @@ export function RepostOfCard({
           viewerMode="viewer"
           engagementActions={() => []}
           post={strippedOriginal}
+          onPostChange={FOLLOW_PROP}
           labels={labels}
+          locale={locale}
+          timeZone={timeZone}
+          now={now}
+          formatRelativeTime={formatRelativeTime}
+          formatCount={formatCount}
         />
       </div>
       {onClick ? (

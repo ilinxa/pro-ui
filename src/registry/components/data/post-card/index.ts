@@ -62,7 +62,18 @@ export type {
   PostVisibility,
 } from "./types";
 
-export { DEFAULT_POST_CARD_LABELS } from "./types";
+export { defaultPostCardLabels, DEFAULT_POST_CARD_LABELS } from "./types";
+
+// 0.6.0 - controlled `post`, reactions, forwarded options, header helpers, resolved labels.
+export type {
+  PostChange,
+  PostCardNestedLabelKeys,
+  PostEngagementBarProps,
+  PostHeaderRenderHelpers,
+  PostMediaProps,
+  PostReactions,
+  ResolvedPostCardLabels,
+} from "./types";
 
 // Re-exports for consumer convenience — single import.
 // v0.3.1 F-S1 lock: relative + specific-file paths.

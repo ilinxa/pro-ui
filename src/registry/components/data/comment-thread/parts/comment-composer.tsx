@@ -3,6 +3,7 @@
 import {
   memo,
   useEffect,
+  useId,
   useImperativeHandle,
   useState,
   type ReactNode,
@@ -13,7 +14,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAutosizeTextarea } from "../hooks/use-autosize-textarea";
-import type { CommentThreadCurrentUser, CommentThreadLabels } from "../types";
+import {
+  defaultCommentThreadLabels,
+  type CommentThreadCurrentUser,
+  type CommentThreadLabels,
+} from "../types";
 
 export interface CommentComposerProps {
   currentUser?: CommentThreadCurrentUser;
@@ -24,8 +29,13 @@ export interface CommentComposerProps {
   /** Controlled value — pair with onChange. */
   value?: string;
   onChange?: (next: string) => void;
-  /** Required when used standalone. Fire-and-forget. */
+  /**
+   * Required when used standalone. A rejected promise keeps the text, shows `labels.postFailed`
+   * (`role="alert"`) and calls `onError`; it never escapes the composer.
+   */
   onSubmit: (content: string) => Promise<void> | void;
+  /** Called with the error when `onSubmit` rejects (or throws). */
+  onError?: (error: unknown) => void;
   /** Optional Cancel button — only renders when provided. */
   onCancel?: () => void;
   /** Force-disable the composer (sign-out / network down). */
@@ -44,9 +54,11 @@ export interface CommentComposerProps {
   /** Auto-focus on mount (use for inline reply composers). */
   autoFocus?: boolean;
   className?: string;
+  /** Classes for the failure alert. */
+  errorClassName?: string;
   labels?: Pick<
     CommentThreadLabels,
-    "composerPlaceholder" | "composerSend" | "composerCancel"
+    "composerPlaceholder" | "composerSend" | "composerCancel" | "postFailed"
   >;
   ref?: React.Ref<CommentComposerHandle>;
 }
@@ -73,6 +85,7 @@ function CommentComposerInner({
   value: controlledValue,
   onChange,
   onSubmit,
+  onError,
   onCancel,
   disabled = false,
   isSubmitting: controlledSubmitting,
@@ -83,6 +96,7 @@ function CommentComposerInner({
   avatarSlot,
   autoFocus = false,
   className,
+  errorClassName,
   labels,
   ref,
 }: CommentComposerProps) {
@@ -95,6 +109,17 @@ function CommentComposerInner({
   const isSubmitting = isSubmittingControlled
     ? controlledSubmitting
     : internalSubmitting;
+
+  const [hasError, setHasError] = useState(false);
+  // A controlled value replaced from outside (a prefill) is a new draft: the old failure no
+  // longer describes it. The echo of the user's own typing already clears the error.
+  const [typed, setTyped] = useState<string | null>(null);
+  const [seenValue, setSeenValue] = useState(controlledValue);
+  if (isValueControlled && controlledValue !== seenValue) {
+    setSeenValue(controlledValue);
+    if (controlledValue !== typed) setHasError(false);
+  }
+  const errorId = useId();
 
   const textareaRef = useAutosizeTextarea(value, { minRows, maxRows });
 
@@ -111,6 +136,7 @@ function CommentComposerInner({
       blur: () => textareaRef.current?.blur(),
       clear: () => {
         if (!isValueControlled) setInternalValue("");
+        setHasError(false);
         onChange?.("");
       },
     }),
@@ -126,14 +152,21 @@ function CommentComposerInner({
     if (!isSubmittingControlled) setInternalSubmitting(true);
     try {
       await onSubmit(trimmed);
+      setHasError(false);
       if (!isValueControlled) setInternalValue("");
       onChange?.("");
+    } catch (error) {
+      // Keep the text so the user can try again; the failure is shown, never thrown.
+      setHasError(true);
+      onError?.(error);
     } finally {
       if (!isSubmittingControlled) setInternalSubmitting(false);
     }
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter / Escape during IME composition belong to the input method (keyCode 229 on older engines).
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (submitOnEnter && e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       void submit();
@@ -146,9 +179,11 @@ function CommentComposerInner({
   };
 
   const placeholderText =
-    placeholder ?? labels?.composerPlaceholder ?? "Write a comment…";
-  const sendLabel = labels?.composerSend ?? "Send";
-  const cancelLabel = labels?.composerCancel ?? "Cancel";
+    placeholder ?? labels?.composerPlaceholder ?? defaultCommentThreadLabels.composerPlaceholder;
+  const sendLabel = labels?.composerSend ?? defaultCommentThreadLabels.composerSend;
+  const cancelLabel = labels?.composerCancel ?? defaultCommentThreadLabels.composerCancel;
+  const failedLabel = labels?.postFailed ?? defaultCommentThreadLabels.postFailed;
+  const sendBlocked = !value.trim() || isSubmitting || disabled;
 
   return (
     <div className={cn("flex items-start gap-2", className)}>
@@ -167,14 +202,19 @@ function CommentComposerInner({
           value={value}
           onChange={(e) => {
             if (!isValueControlled) setInternalValue(e.target.value);
+            setHasError(false);
+            setTyped(e.target.value);
             onChange?.(e.target.value);
           }}
           onKeyDown={onKeyDown}
           placeholder={placeholderText}
           rows={minRows}
-          disabled={disabled || isSubmitting}
+          disabled={disabled}
+          readOnly={isSubmitting}
           aria-label={ariaLabel ?? placeholderText}
           aria-busy={isSubmitting}
+          aria-invalid={hasError || undefined}
+          aria-describedby={hasError ? errorId : undefined}
           className="resize-none border-0 bg-muted/50 pe-10"
         />
         <Button
@@ -184,9 +224,11 @@ function CommentComposerInner({
           onClick={() => {
             void submit();
           }}
-          disabled={!value.trim() || isSubmitting || disabled}
+          // aria-disabled, not disabled: a focused Send that turns disabled drops focus to <body>.
+          aria-disabled={sendBlocked || undefined}
+          disabled={disabled}
           aria-label={sendLabel}
-          className="absolute end-1 top-1.5 h-7 w-7"
+          className="absolute end-1 top-1.5 h-7 w-7 aria-disabled:pointer-events-none aria-disabled:opacity-50"
         >
           <Send
             className={cn(
@@ -195,6 +237,15 @@ function CommentComposerInner({
             )}
           />
         </Button>
+        {hasError ? (
+          <p
+            id={errorId}
+            role="alert"
+            className={cn("mt-1 text-xs text-destructive", errorClassName)}
+          >
+            {failedLabel}
+          </p>
+        ) : null}
       </div>
       {onCancel ? (
         <Button

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { Fragment, memo, useCallback, useMemo, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -8,68 +8,41 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type {
-  Comment,
-  CommentMenuItem,
-  CommentThreadCurrentUser,
-  CommentThreadLabels,
-} from "../types";
+import { useDirection } from "../hooks/use-direction";
+import type { CommentMenuItem } from "../types";
+
+// `dir` is a plain DOM attribute (works on Radix and Base UI) that the primitive's props type omits.
+const DIR_ATTR = { ltr: { dir: "ltr" }, rtl: { dir: "rtl" } } as Record<"ltr" | "rtl", object>;
 
 export interface CommentKebabProps {
-  comment: Comment;
-  currentUser?: CommentThreadCurrentUser;
-  isOwn: boolean;
-  depth: number;
-  labels: Required<Omit<CommentThreadLabels, "formatRelativeTime">>;
-  /** Default kebab onClick handlers — used when commentActions is not provided. */
-  onDelete: () => void;
-  onReport: () => void;
-  /** True when host wired onReportComment — drives the default Report item visibility. */
-  onReportPresent: boolean;
-  /** Override the default kebab items entirely. Returning [] hides the kebab. */
-  commentActions?: (
-    comment: Comment,
-    helpers: {
-      currentUser?: CommentThreadCurrentUser;
-      isOwn: boolean;
-      depth: number;
-    },
-  ) => CommentMenuItem[];
+  /** The menu's items (see `buildMenuItems`). Hidden ones are left out; none left = no kebab. */
+  items: CommentMenuItem[];
+  /** Accessible name of the trigger. */
+  ariaLabel: string;
+  /** Lets the row return focus to the trigger (after an edit closes). */
+  triggerRef?: (el: HTMLButtonElement | null) => void;
+  /** Text direction of the menu. Default: read from the trigger's surroundings after mount. */
+  dir?: "ltr" | "rtl";
   className?: string;
 }
 
-function CommentKebabInner({
-  comment,
-  currentUser,
-  isOwn,
-  depth,
-  labels,
-  onDelete,
-  onReport,
-  onReportPresent,
-  commentActions,
-  className,
-}: CommentKebabProps) {
-  const items: CommentMenuItem[] = commentActions
-    ? commentActions(comment, { currentUser, isOwn, depth })
-    : [
-        ...(onReportPresent
-          ? [{ label: labels.report, onClick: onReport }]
-          : []),
-        ...(isOwn
-          ? [
-              {
-                label: labels.delete,
-                destructive: true,
-                onClick: onDelete,
-              },
-            ]
-          : []),
-      ];
-
-  if (items.length === 0) return null;
+function CommentKebabInner({ items, ariaLabel, triggerRef, dir: dirProp, className }: CommentKebabProps) {
+  // The menu is portaled out of the thread, so it must carry the direction itself.
+  const [triggerEl, setTriggerEl] = useState<HTMLButtonElement | null>(null);
+  const elRef = useMemo(() => ({ current: triggerEl }), [triggerEl]);
+  const dir = useDirection(elRef, dirProp);
+  const setTrigger = useCallback(
+    (el: HTMLButtonElement | null) => {
+      setTriggerEl(el);
+      triggerRef?.(el);
+    },
+    [triggerRef],
+  );
+  const visible = items.filter((item) => !item.hidden);
+  if (visible.length === 0) return null;
 
   // F-cross-13: drop `asChild` + render the Radix/Base-UI primitive directly
   // as a <button>. The shadcn CLI rewrites `asChild` to `render={<Button …>}`
@@ -82,26 +55,26 @@ function CommentKebabInner({
   );
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className={triggerClass}
-        aria-label={`Comment actions for ${comment.author.name}`}
-      >
+      <DropdownMenuTrigger ref={setTrigger} className={triggerClass} aria-label={ariaLabel}>
         <MoreHorizontal className="h-3 w-3" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {items.map((item, i) => (
-          <DropdownMenuItem
-            key={`${item.label}-${i}`}
-            onClick={item.onClick}
-            disabled={item.disabled}
-            className={cn(
-              item.destructive &&
-                "text-destructive focus:text-destructive",
-            )}
-          >
-            {item.icon ? <span className="me-2">{item.icon}</span> : null}
-            {item.label}
-          </DropdownMenuItem>
+      {/* `align` stays "end": with `dir` on the content, the positioner (floating-ui) treats the menu as
+          RTL and mirrors the alignment itself — flipping it here too undid that (browser re-verify). */}
+      <DropdownMenuContent align="end" {...DIR_ATTR[dir]}>
+        {visible.map((item, i) => (
+          <Fragment key={`${item.label}-${i}`}>
+            {item.separatorBefore && i > 0 ? <DropdownMenuSeparator /> : null}
+            <DropdownMenuItem
+              onClick={item.onClick}
+              disabled={item.disabled}
+              className={cn(
+                item.destructive && "text-destructive focus:text-destructive",
+              )}
+            >
+              {item.icon ? <span className="me-2">{item.icon}</span> : null}
+              {item.label}
+            </DropdownMenuItem>
+          </Fragment>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

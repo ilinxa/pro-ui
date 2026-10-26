@@ -3,6 +3,7 @@
     "account-switcher",
     "app-sidebar",
     "category-cloud",
+    "comment-thread",
     "empty-state",
     "engagement-bar",
     "entity-picker",
@@ -12,6 +13,7 @@
     "media-carousel",
     "media-editor",
     "people-grid",
+    "post-card",
     "share-bar",
     "story-composer",
     "story-rail",
@@ -151,10 +153,6 @@
       "src/registry/components/data/news-card/parts/sponsor-badge.tsx": [
         "replace(\"{name}\")"
       ],
-      "src/registry/components/data/post-card/parts/poll-widget.tsx": [
-        "replace(\"{count}\")",
-        "replace(\"{time}\")"
-      ],
       "src/registry/components/forms/signup-form/hooks/use-strength-meter.ts": [
         "replace(\"{level}\")"
       ],
@@ -234,9 +232,6 @@
       "src/registry/components/data/news-card/lib/format-default.ts": [
         "toLocaleDateString() without a locale"
       ],
-      "src/registry/components/data/post-card/parts/edited-suffix.tsx": [
-        "toLocaleString() without a locale"
-      ],
       "src/registry/components/data/registration-card/lib/format-default.ts": [
         "Intl.PluralRules(\"en\")",
         "module-scope new Intl.PluralRules"
@@ -268,15 +263,6 @@
       "src/registry/components/data/card-tree/parts/field-add.tsx": [
         "new Date()"
       ],
-      "src/registry/components/data/comment-thread/comment-thread.tsx": [
-        "Date.now()"
-      ],
-      "src/registry/components/data/comment-thread/lib/format-time.ts": [
-        "new Date()"
-      ],
-      "src/registry/components/data/comment-thread/parts/comment-node.tsx": [
-        "new Date()"
-      ],
       "src/registry/components/data/event-calendar/hooks/use-calendar-cursor.ts": [
         "new Date()"
       ],
@@ -287,13 +273,6 @@
         "new Date()"
       ],
       "src/registry/components/data/news-card/hooks/use-relative-time.ts": [
-        "new Date()"
-      ],
-      "src/registry/components/data/post-card/parts/poll-widget.tsx": [
-        "new Date()"
-      ],
-      "src/registry/components/data/post-card/post-card.tsx": [
-        "new Date()",
         "new Date()"
       ],
       "src/registry/components/data/progress-timeline/lib/timeline-state.ts": [
@@ -538,9 +517,6 @@
         "title=\"Redo (Cmd/Ctrl+Shift+Z)\"",
         "title=\"Undo (Cmd/Ctrl+Z)\""
       ],
-      "src/registry/components/data/comment-thread/parts/comment-kebab.tsx": [
-        "aria-label: Comment actions for"
-      ],
       "src/registry/components/data/data-table/data-table.tsx": [
         "child: No records to display."
       ],
@@ -781,14 +757,6 @@
       "src/registry/components/data/news-card/parts/small.tsx": [
         "aria-label: Category:",
         "aria-label: Category:"
-      ],
-      "src/registry/components/data/post-card/parts/list-variant.tsx": [
-        "child: · shares",
-        "comments",
-        "likes ·"
-      ],
-      "src/registry/components/data/post-card/parts/post-header.tsx": [
-        "aria-label=\"Post actions\""
       ],
       "src/registry/components/data/rich-text-editor/parts/editor-toolbar.tsx": [
         "Default font",

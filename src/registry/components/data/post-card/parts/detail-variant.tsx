@@ -4,48 +4,33 @@ import { memo } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: cross-procomp imports via relative + specific-file paths.
 import { ExpandableText } from "../../expandable-text/expandable-text";
-// Cross-category: absolute-with-suffix (relative would resolve to non-existent
-// `src/media/...` in consumer's flat tree).
-import { MediaCarousel } from "@/registry/components/media/media-carousel/media-carousel";
-import { EngagementBar } from "../../engagement-bar/engagement-bar";
 import { EngagementHeartBurst } from "../../engagement-bar/parts/engagement-heart-burst";
 import { CommentThread } from "../../comment-thread/comment-thread";
-import { PostHeader } from "./post-header";
 import { TagChips } from "./tag-chips";
 import { SensitiveGate } from "./sensitive-gate";
 import { LinkPreviewCard } from "./link-preview-card";
-import { RepostOfCard } from "./repost-of-card";
-import { PollWidget } from "./poll-widget";
+import {
+  buildEngagementNode,
+  buildHeaderNode,
+  buildMediaNode,
+  buildPollNode,
+  buildRepostNode,
+} from "./variant-nodes";
 import type { DetailVariantInnerProps } from "./variant-shared";
 
 function DetailVariantInner(props: DetailVariantInnerProps) {
   const {
     post,
-    currentUser,
     authorId,
-    formattedTime,
-    kebabOpen,
-    onKebabOpenChange,
-    kebabItems,
-    engagementActions,
-    engagementBarRef,
-    engagementClassName,
-    engagementLabels,
-    engagementSubscribeNoop,
     bodyMaxLines,
     bodyClassName,
-    headingAs,
+    textLabels,
     labels,
     burstKey,
     heartBurstWired,
-    onMediaDoubleTap,
-    renderHeader,
     renderContent,
-    renderMedia,
-    renderEngagementBar,
     renderCommentSection,
-    onLocationClick,
-    onMentionClick,
+    noticeSlot,
     onTagClick,
     sensitiveRevealed,
     onSensitiveReveal,
@@ -54,54 +39,16 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     onLinkPreviewClick,
     disableLinkPreviewRender,
     renderLinkPreview,
-    onRepostOfClick,
-    disableRepostOfRender,
-    renderRepostOf,
-    getHref,
-    linkComponent,
-    cardLabels,
-    onPollVote,
-    pollOptimisticVote,
-    isOwnerView,
-    disablePollRender,
-    renderPoll,
-    formatRelativeTime,
     commentThread,
-    commentPageSize,
-    commentSubscribe,
-    onSubscribeCommentDelta,
-    onAddComment,
-    onLikeComment,
-    onDeleteComment,
-    onReportComment,
-    onLoadMoreComments,
-    commentActions,
-    commentLabels,
+    threadProps,
+    commentHandlers,
     threadRef,
     commentSectionClassName,
     commentsHeading,
+    engagementClassName,
     className,
-    headerClassName,
     mediaClassName,
   } = props;
-
-  const headerNode = renderHeader ? (
-    renderHeader(post, { currentUser })
-  ) : (
-    <PostHeader
-      post={post}
-      kebabOpen={kebabOpen}
-      onKebabOpenChange={onKebabOpenChange}
-      kebabItems={kebabItems}
-      headingAs={headingAs}
-      formattedTime={formattedTime}
-      authorId={authorId}
-      labels={labels}
-      onLocationClick={onLocationClick}
-      onMentionClick={onMentionClick}
-      className={headerClassName}
-    />
-  );
 
   const contentNode = renderContent ? (
     renderContent(post)
@@ -110,6 +57,7 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
       content={post.content}
       // bodyMaxLines may be 0 in detail (no clamp); ExpandableText handles 0 as no clamp
       maxLines={bodyMaxLines || 999}
+      labels={textLabels}
       contentClassName={cn(
         "text-[15px] leading-relaxed sm:text-sm lg:text-base",
         bodyClassName,
@@ -117,54 +65,12 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
     />
   );
 
-  const mediaNode =
-    post.media && post.media.length > 0
-      ? renderMedia
-        ? renderMedia(post.media, { onDoubleTap: onMediaDoubleTap })
-        : (
-            <MediaCarousel
-              items={post.media}
-              variant="gallery"
-              onDoubleTap={onMediaDoubleTap}
-            />
-          )
-      : null;
-
-  const engagementNode = renderEngagementBar ? (
-    renderEngagementBar(post, { actions: engagementActions })
-  ) : (
-    <EngagementBar
-      ref={engagementBarRef}
-      actions={engagementActions}
-      onSubscribeDelta={engagementSubscribeNoop}
-      labels={engagementLabels}
-    />
-  );
+  const mediaNode = buildMediaNode(props);
 
   const commentSectionNode = renderCommentSection ? (
-    renderCommentSection(post, {
-      onAddComment,
-      onLikeComment,
-      onDeleteComment,
-      onReportComment,
-      onLoadMoreComments,
-    })
+    renderCommentSection(post, commentHandlers)
   ) : (
-    <CommentThread
-      ref={threadRef}
-      comments={commentThread}
-      currentUser={currentUser}
-      pageSize={commentPageSize}
-      subscribe={commentSubscribe}
-      onSubscribeDelta={onSubscribeCommentDelta}
-      onAddComment={onAddComment}
-      onLikeComment={onLikeComment}
-      onDeleteComment={onDeleteComment}
-      onReportComment={onReportComment}
-      onLoadMore={onLoadMoreComments}
-      commentActions={commentActions}
-      labels={commentLabels}
-    />
+    <CommentThread ref={threadRef} comments={commentThread} {...threadProps} />
   );
 
   return (
@@ -177,36 +83,13 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
       )}
     >
       <div className="flex flex-col gap-3 p-3 sm:p-4 md:p-5 lg:p-6">
-        {headerNode}
+        {buildHeaderNode(props, false)}
+        {noticeSlot?.(post)}
         {contentNode}
         {post.tags && post.tags.length > 0 ? (
           <TagChips tags={post.tags} onTagClick={onTagClick} />
         ) : null}
-        {!disablePollRender && post.poll
-          ? renderPoll
-            ? renderPoll(post, { onVote: onPollVote, isOwnerView })
-            : (
-              <PollWidget
-                poll={post.poll}
-                hasVoted={
-                  pollOptimisticVote !== null || (post.poll.hasVoted ?? false)
-                }
-                isOwnerView={isOwnerView}
-                optimisticVoteOptionId={
-                  pollOptimisticVote?.optionId ?? post.poll.viewerVoteOptionId
-                }
-                optimisticIncrement={pollOptimisticVote !== null}
-                onVote={onPollVote}
-                labels={{
-                  pollHeading: labels.pollHeading,
-                  pollTotalVotesLabel: labels.pollTotalVotesLabel,
-                  pollClosesAtLabel: labels.pollClosesAtLabel,
-                  pollClosedLabel: labels.pollClosedLabel,
-                }}
-                formatRelativeTime={formatRelativeTime}
-              />
-            )
-          : null}
+        {buildPollNode(props)}
         {!disableLinkPreviewRender && post.linkPreview
           ? renderLinkPreview
             ? renderLinkPreview(post)
@@ -217,23 +100,7 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
               />
             )
           : null}
-        {!disableRepostOfRender && post.repostOf
-          ? renderRepostOf
-            ? renderRepostOf(post, {
-                onClick: onRepostOfClick
-                  ? () => post.repostOf && onRepostOfClick(post.repostOf)
-                  : undefined,
-              })
-            : (
-              <RepostOfCard
-                originalPost={post.repostOf}
-                onClick={onRepostOfClick}
-                getHref={getHref}
-                linkComponent={linkComponent}
-                labels={cardLabels}
-              />
-            )
-          : null}
+        {buildRepostNode(props)}
       </div>
       {mediaNode ? (
         <div className={cn("relative", mediaClassName)}>
@@ -263,7 +130,7 @@ function DetailVariantInner(props: DetailVariantInnerProps) {
           engagementClassName,
         )}
       >
-        {engagementNode}
+        {buildEngagementNode(props, false)}
       </div>
       <div
         className={cn(

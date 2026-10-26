@@ -52,6 +52,7 @@ export const PERMISSION_DEFAULTS_BY_MODE: Record<
     // moderation is orthogonal to viewerMode — never auto-derived; host opts in
     // explicitly via permissions.canModerate or canPerformAction("moderate", …).
     canModerate: false,
+    disabled: {},
   },
   viewer: {
     canEdit: false,
@@ -66,6 +67,7 @@ export const PERMISSION_DEFAULTS_BY_MODE: Record<
     canBlockAuthor: true,
     canMuteAuthor: true,
     canModerate: false,
+    disabled: {},
   },
 };
 
@@ -104,11 +106,15 @@ export function resolvePostPermissions(
   // Required<PostPermissions> contract: every returned field is a definite boolean.
   const result: Required<PostPermissions> = { ...base };
   for (const key of Object.keys(permissions) as (keyof PostPermissions)[]) {
+    if (key === "disabled") continue;
     const value = permissions[key];
     if (value !== undefined) {
       result[key] = value;
     }
   }
+  // `disabled` is additive: it never changes whether an action is allowed, only whether its
+  // item is usable.
+  result.disabled = { ...permissions.disabled };
   return result;
 }
 

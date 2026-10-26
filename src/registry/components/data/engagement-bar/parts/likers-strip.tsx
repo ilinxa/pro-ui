@@ -7,17 +7,22 @@ import { Button } from "@/components/ui/button";
 import type { EngagementLikerProfile } from "../types";
 import { resolveLocale } from "../lib/format-count";
 
+/** Pixels the mouse must move before a press becomes a drag (a smaller move is a click). */
+const DRAG_THRESHOLD_PX = 4;
+
 /** Pointer-event drag-to-scroll for the likers strip (desktop). Touch devices get
  * native swipe via `touch-action: pan-x`. */
 function useDragScroll() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef<{
     down: boolean;
+    dragging: boolean;
     startX: number;
     startScroll: number;
     pointerId: number | null;
   }>({
     down: false,
+    dragging: false,
     startX: 0,
     startScroll: 0,
     pointerId: null,
@@ -29,20 +34,38 @@ function useDragScroll() {
     if (!el) return;
     stateRef.current = {
       down: true,
+      dragging: false,
       startX: e.clientX,
       startScroll: el.scrollLeft,
       pointerId: e.pointerId,
     };
-    el.setPointerCapture(e.pointerId);
-    el.style.cursor = "grabbing";
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const s = stateRef.current;
     if (!s.down || s.pointerId !== e.pointerId) return;
+    // The button was released outside the strip (no pointerup reached it): the press is over.
+    if (e.buttons === 0) {
+      s.down = false;
+      s.pointerId = null;
+      return;
+    }
     const el = scrollRef.current;
     if (!el) return;
     const dx = e.clientX - s.startX;
+    // Capture only once the pointer really drags: capturing on pointerdown retargeted the
+    // click of a button inside the strip (the "+N" pill) to the strip, so a mouse click
+    // on the pill did nothing (0.6.1).
+    if (!s.dragging) {
+      if (Math.abs(dx) < DRAG_THRESHOLD_PX) return;
+      s.dragging = true;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // the pointer may already be gone
+      }
+      el.style.cursor = "grabbing";
+    }
     el.scrollLeft = s.startScroll - dx;
   };
 
@@ -51,8 +74,10 @@ function useDragScroll() {
     if (!s.down) return;
     s.down = false;
     s.pointerId = null;
+    const wasDragging = s.dragging;
+    s.dragging = false;
     const el = scrollRef.current;
-    if (el) {
+    if (el && wasDragging) {
       el.style.cursor = "";
       try {
         el.releasePointerCapture(e.pointerId);
@@ -194,7 +219,7 @@ function LikersStripInner({
     if (moreAriaLabelTemplate !== undefined) {
       const template = moreAriaLabelTemplate;
       merged.moreAriaLabel = (_, formatted) =>
-        // template-ok: deprecated alias moreAriaLabelTemplate (post-card passes it) — remove in post-card's Part 3 loop
+        // template-ok: deprecated alias moreAriaLabelTemplate, kept for existing callers (post-card stopped passing it in 0.6.0)
         template.replace("{count}", formatted);
     }
     if (labelsProp) {
@@ -240,7 +265,9 @@ function LikersStripInner({
   const pillText = isLoading
     ? labels.loading
     : pending !== null
-      ? labels.morePill(format(Math.min(pending, 99)))
+      ? // The full count (compact), so the visible text is part of the accessible name
+        // (WCAG 2.5.3) — it was capped at "+99" while the name said "+379 more" (0.6.1).
+        labels.morePill(format(pending))
       : labels.loadMore;
   const pillAria = pending !== null
     ? labels.moreAriaLabel(pending, format(pending))

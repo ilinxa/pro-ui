@@ -18,7 +18,16 @@ export {
   type UseAutosizeTextareaOptions,
 } from "./hooks/use-autosize-textarea";
 
-export { defaultRelativeTime, toDate } from "./lib/format-time";
+export {
+  CommentModerationContext,
+  useCommentModerationOptional,
+} from "./hooks/use-moderation-extension";
+
+export {
+  createRelativeTimeFormatter,
+  defaultRelativeTime,
+  toDate,
+} from "./lib/format-time";
 
 export type {
   Comment,
@@ -26,16 +35,31 @@ export type {
   CommentThreadHandle,
   CommentThreadVariant,
   CommentThreadLabels,
+  ResolvedCommentThreadLabels,
   CommentThreadCurrentUser,
   CommentNodeHelpers,
+  CommentActionHelpers,
+  CommentEngagementHelpers,
   CommentComposerState,
   CommentComposerHelpers,
   CommentMenuItem,
   CommentDelta,
   CommentLocalAction,
+  CommentsChange,
+  CommentErrorContext,
+  CommentPage,
+  CommentAddOptions,
+  CommentState,
+  CommentTombstoneState,
+  CommentPermissions,
+  ResolvedCommentPermissions,
+  CommentReactions,
+  CommentModerationExtension,
+  CommentEditComposerProps,
+  CommentTombstoneProps,
+  CommentPinnedMarkerProps,
   Subscribe,
   Unsubscribe,
 } from "./types";
 
-export { DEFAULT_COMMENT_THREAD_LABELS } from "./types";
-
+export { DEFAULT_COMMENT_THREAD_LABELS, defaultCommentThreadLabels } from "./types";

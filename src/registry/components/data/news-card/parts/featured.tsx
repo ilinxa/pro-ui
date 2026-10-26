@@ -64,7 +64,7 @@ export function FeaturedPart(props: ResolvedPartProps) {
   } = props;
 
   const isEditorMode = viewerMode === "editor";
-  const showKebab = kebabItems.length > 0;
+  const showKebab = kebabItems.some((it) => !it.hidden);
 
   const heroMedia = (
     <>

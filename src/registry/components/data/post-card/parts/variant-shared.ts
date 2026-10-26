@@ -1,13 +1,10 @@
-import type { ElementType } from "react";
+import type { ElementType, ReactNode } from "react";
 // F-S1 lock: cross-procomp imports use RELATIVE paths to specific files.
 import type {
   Comment,
-  CommentDelta,
-  CommentMenuItem,
-  CommentThreadCurrentUser,
-  CommentThreadLabels,
   CommentThreadHandle,
-  Subscribe,
+  CommentThreadProps,
+  CommentThreadCurrentUser,
 } from "../../comment-thread/types";
 import type {
   EngagementAction,
@@ -15,10 +12,11 @@ import type {
   EngagementBarLabels,
   EngagementDelta,
 } from "../../engagement-bar/types";
+import type { ExpandableTextLabels } from "../../expandable-text/types";
 import type {
   Post,
-  PostCardLabels,
   PostCardProps,
+  ResolvedPostCardLabels,
 } from "../types";
 
 /**
@@ -29,30 +27,47 @@ export interface VariantInnerProps {
   post: Post;
   currentUser?: CommentThreadCurrentUser;
   authorId: string;
-  formattedTime: string;
+  /** The relative time, or `null` before the card knows "now". */
+  formattedTime: string | null;
 
-  kebabOpen: boolean;
-  onKebabOpenChange: (next: boolean) => void;
-  kebabItems: CommentMenuItem[];
+  /** The default actions menu, built once (`null` when it has no visible items). */
+  kebab: ReactNode;
 
   engagementActions: EngagementAction[];
   engagementBarRef?: React.Ref<EngagementBarHandle>;
   engagementClassName?: string;
   engagementLabels?: EngagementBarLabels;
+  engagementBarProps?: PostCardProps["engagementBarProps"];
+  /** The card's `optimistic` (the bar's picker follows it unless `engagementBarProps` sets its own). */
+  optimistic?: boolean;
   /** No-op forwarded to the bar's onSubscribeDelta — the root subscribes to the realtime channel itself. */
   engagementSubscribeNoop?: (delta: EngagementDelta) => void;
 
   bodyMaxLines: number;
   bodyClassName?: string;
+  textLabels?: ExpandableTextLabels;
 
   headingAs: "h2" | "h3" | "h4";
 
-  labels: Required<
-    Omit<
-      PostCardLabels,
-      "formatRelativeTime" | "engagementLabels" | "commentLabels"
-    >
-  >;
+  labels: ResolvedPostCardLabels;
+
+  /** Resolved BCP 47 locale (never undefined). */
+  locale: string;
+  timeZone?: string;
+  /** "Now", or `undefined` before the card knows it. */
+  now?: Date;
+  formatCount: (n: number) => string;
+  formatRelativeTime: (date: Date, now: Date) => string;
+  /** The props the host set explicitly, handed on to the nested repost card. */
+  repostForwarding: {
+    formatRelativeTime?: PostCardProps["formatRelativeTime"];
+    formatCount?: PostCardProps["formatCount"];
+  };
+
+  getAuthorHref?: PostCardProps["getAuthorHref"];
+  subtitle?: PostCardProps["subtitle"];
+  noticeSlot?: PostCardProps["noticeSlot"];
+  mediaProps?: PostCardProps["mediaProps"];
 
   burstKey: number;
   heartBurstWired: boolean;
@@ -93,18 +108,16 @@ export interface VariantInnerProps {
   renderLinkPreview?: PostCardProps["renderLinkPreview"];
 
   // v0.2.0 poll widget (C9) — feed + detail variants only per description §1.3.
-  /** Per-card vote dispatcher — wraps setPollVote(local-mirror) + onVotePoll(host). */
+  /** Per-card vote dispatcher. */
   onPollVote?: (optionId: string) => void;
-  /** Local-mirror optimistic vote (from useState in post-card.tsx). */
-  pollOptimisticVote: { optionId: string; votedAt: Date } | null;
+  /** A vote is in flight (further votes are ignored). */
+  pollBusy?: boolean;
   /** Resolved owner view flag — true when viewerMode === "owner". */
   isOwnerView: boolean;
   /** When true, suppresses the default poll-widget render even if post.poll is set. */
   disablePollRender?: PostCardProps["disablePollRender"];
   /** Full takeover for the poll widget. */
   renderPoll?: PostCardProps["renderPoll"];
-  /** Relative-time formatter for the closesAt countdown line. */
-  formatRelativeTime?: (date: Date, now: Date) => string;
 
   // v0.2.0 repost mini-card (C8) — feed + detail variants only per description §1.3.
   /** Click handler — overrides default getHref-based navigation on the nested repost card. */
@@ -121,27 +134,28 @@ export interface VariantInnerProps {
   cardLabels?: PostCardProps["labels"];
 
   /** Inline likes/comments panel rendered below the engagement bar (feed + compact only). */
-  inlinePanelNode?: import("react").ReactNode;
+  inlinePanelNode?: ReactNode;
 
   className?: string;
   headerClassName?: string;
   mediaClassName?: string;
 }
 
-/** Detail variant adds comment-thread props on top. */
+/** Detail variant adds the comment thread on top. */
 export interface DetailVariantInnerProps extends VariantInnerProps {
+  /** The comments (a stable empty array when the host gave none). */
   commentThread: Comment[];
-  commentPageSize: number;
-  commentSubscribe?: Subscribe<CommentDelta>;
-  onSubscribeCommentDelta?: (delta: CommentDelta) => void;
-  onAddComment?: PostCardProps["onAddComment"];
-  onLikeComment?: PostCardProps["onLikeComment"];
-  onDeleteComment?: PostCardProps["onDeleteComment"];
-  onReportComment?: PostCardProps["onReportComment"];
-  onLoadMoreComments?: PostCardProps["onLoadMoreComments"];
-  commentActions?: PostCardProps["commentActions"];
+  /** The thread's props, built once by the card and shared with the inline panel. */
+  threadProps: Omit<CommentThreadProps, "comments">;
+  /** What `renderCommentSection` receives. */
+  commentHandlers: {
+    onAddComment?: PostCardProps["onAddComment"];
+    onLikeComment?: PostCardProps["onLikeComment"];
+    onDeleteComment?: PostCardProps["onDeleteComment"];
+    onReportComment?: PostCardProps["onReportComment"];
+    onLoadMoreComments?: PostCardProps["onLoadMoreComments"];
+  };
   renderCommentSection?: PostCardProps["renderCommentSection"];
-  commentLabels?: CommentThreadLabels;
   threadRef?: React.Ref<CommentThreadHandle>;
   commentSectionClassName?: string;
   commentsHeading: string;

@@ -11,24 +11,33 @@ import {
   useState,
 } from "react";
 // F-S1 lock: cross-procomp imports use RELATIVE paths to specific files.
-import type { CommentThreadHandle } from "../comment-thread/types";
-import { defaultRelativeTime, toDate } from "../comment-thread/lib/format-time";
 import type {
+  Comment,
+  CommentThreadHandle,
+  CommentThreadProps,
+} from "../comment-thread/types";
+import type {
+  EngagementAction,
   EngagementBarHandle,
   EngagementDelta,
 } from "../engagement-bar/types";
-import {
-  DEFAULT_POST_CARD_LABELS,
-  type Post,
-  type PostCardProps,
-  type PostCardLabels,
-  type PostHandlers,
-  type PostLikeUser,
-} from "./types";
+import type { LikersStripLabels } from "../engagement-bar/parts/likers-strip";
+import type { ShareMenuLabels } from "../engagement-bar/parts/share-menu";
+import type { Post, PostCardProps, PostHandlers } from "./types";
 import {
   defaultPostEngagementActions,
   defaultPostKebabActions,
 } from "./lib/defaults";
+import { mergeLabels, resolveLabels } from "./lib/labels";
+import {
+  createRelativeTimeFormatter,
+  resolveLocale,
+  toDate,
+} from "../comment-thread/lib/format-time";
+import { useNow } from "./hooks/use-now";
+import { usePanelFocus } from "./hooks/use-panel-focus";
+import { usePostState } from "./hooks/use-post-state";
+import { PostKebab } from "./parts/post-header";
 import { FeedVariant } from "./parts/feed-variant";
 import { CompactVariant } from "./parts/compact-variant";
 import { ListVariant } from "./parts/list-variant";
@@ -37,14 +46,37 @@ import { LikersStrip } from "../engagement-bar/parts/likers-strip";
 import { ShareMenu } from "../engagement-bar/parts/share-menu";
 import { CommentThread } from "../comment-thread/comment-thread";
 
+/**
+ * Stands in for `commentThread` when the host passes none. A module-level array keeps the
+ * thread's `comments` identity stable across renders (a fresh `[]` each render would trip its
+ * "comments changing identity" warning).
+ */
+const EMPTY_COMMENTS: Comment[] = [];
+
 function PostCardInner(props: PostCardProps) {
   const {
     variant,
-    post: initialPost,
+    post: postProp,
+    onPostChange,
+    optimistic,
     currentUser,
 
+    reactions,
+    getAuthorHref,
+    subtitle,
+    noticeSlot,
+    extraKebabActions,
+    locale: localeProp,
+    timeZone,
+    now: nowProp,
+    formatRelativeTime: formatRelativeTimeProp,
+    formatCount: formatCountProp,
+    mediaProps,
+    engagementBarProps,
+    commentThreadProps,
+
     commentThread,
-    commentPageSize = 10,
+    commentPageSize,
 
     onLike,
     onComment,
@@ -119,7 +151,7 @@ function PostCardInner(props: PostCardProps) {
     disableHeartBurst = false,
 
     engagementMode = "inline",
-    likers: initialLikers,
+    likers,
     onLoadMoreLikers,
     shareSuggestions,
     onShareSearch,
@@ -152,16 +184,18 @@ function PostCardInner(props: PostCardProps) {
     ref,
   } = props;
 
-  // ─── Always-uncontrolled `post` — stateful from mount; updated via reset() handle ───
-  const [statefulPost, setStatefulPost] = useState<Post>(initialPost);
+  // ─── Post state: the prop (controlled, with `onPostChange`) or a mount-only mirror ───
+  const postState = usePostState({ post: postProp, onPostChange, optimistic });
+  const {
+    shown: statefulPost,
+    like: stateLike,
+    bookmark: stateBookmark,
+    vote: stateVote,
+    delta: stateDelta,
+    reset: stateReset,
+    voting: pollVoting,
+  } = postState;
 
-  // ─── v0.2.0 local-mirror additions (per plan C3 / Q-P32 / Q-P33) ───
-  // Optimistic poll vote — host can reject by calling `ref.current.reset(originalPost)`
-  // which clears this alongside the rest of the mirror.
-  const [pollVote, setPollVote] = useState<{
-    optionId: string;
-    votedAt: Date;
-  } | null>(null);
   // Sensitive-media gate state — flips to `true` when viewer taps "Show".
   // Resets on `ref.current.reset(...)`.
   const [sensitiveRevealed, setSensitiveRevealed] = useState(false);
@@ -172,21 +206,48 @@ function PostCardInner(props: PostCardProps) {
   const [activePanel, setActivePanel] = useState<
     "none" | "likes" | "comments" | "share"
   >(inlineModeActive ? defaultInlinePanel : "none");
-  const [statefulLikers, setStatefulLikers] = useState<PostLikeUser[]>(
-    initialLikers ?? [],
+
+  // Focus follows the panels (see the hook).
+  const {
+    open: openPanel,
+    close: closePanel,
+    toggle: togglePanel,
+    panelRef,
+  } = usePanelFocus(activePanel, setActivePanel);
+
+  // A label that must be a function but is not (an untyped upgrade from a template string) is
+  // ignored; development builds say so once per key per card.
+  const [warnedKeys] = useState(() => new Set<string>());
+  const labels = useMemo(
+    () =>
+      resolveLabels(labelsProp, (key) => {
+        if (process.env.NODE_ENV === "production" || warnedKeys.has(key)) return;
+        warnedKeys.add(key);
+        console.warn(
+          `PostCard: labels.${key} must be a function since 0.6.0 (it was a template string); the default is used. See the usage notes on label functions.`,
+        );
+      }),
+    [labelsProp, warnedKeys],
   );
 
-  const labels = useMemo<
-    Required<
-      Omit<PostCardLabels, "formatRelativeTime" | "engagementLabels" | "commentLabels">
-    >
-  >(
-    () => ({ ...DEFAULT_POST_CARD_LABELS, ...labelsProp }),
-    [labelsProp],
+  // ─── Locale, count and time formatting ───
+  const locale = resolveLocale(localeProp);
+  const formatCount = useMemo(() => {
+    if (formatCountProp) return formatCountProp;
+    const nf = new Intl.NumberFormat(locale, { notation: "compact" });
+    return (n: number) => nf.format(n);
+  }, [formatCountProp, locale]);
+  const defaultFormatRelativeTime = useMemo(
+    () => createRelativeTimeFormatter(locale, timeZone),
+    [locale, timeZone],
   );
-
-  const format = labelsProp?.formatRelativeTime ?? defaultRelativeTime;
-  const formattedTime = format(toDate(statefulPost.createdAt), new Date());
+  const formatRelativeTime =
+    formatRelativeTimeProp ?? labelsProp?.formatRelativeTime ?? defaultFormatRelativeTime;
+  // "Now" is `null` on the server and the first client render, so no relative text renders there.
+  const now = useNow(nowProp);
+  const formattedTime = now
+    ? formatRelativeTime(toDate(statefulPost.createdAt), now)
+    : null;
 
   // ─── Heart-burst + variant defaults ───
   const resolvedHeadingAs: "h2" | "h3" | "h4" =
@@ -202,14 +263,15 @@ function PostCardInner(props: PostCardProps) {
   const heartBurstWired =
     !disableHeartBurst &&
     (statefulPost.media?.length ?? 0) > 0 &&
-    !!onLike &&
+    // With `reactions` the like is replaced by a reaction action, so only `onReact` is told.
+    (reactions ? !!reactions.onReact : !!onLike) &&
     (variant === "feed" || variant === "detail");
 
   const cardLinkable = !!getHref && variant !== "detail";
   const linkHref = getHref ? getHref(statefulPost) : undefined;
   const LinkComponent = linkComponent ?? "a";
 
-  // ─── Local mirror updates via realtime subscribe (R-Plan-1 + R-Plan-4) ───
+  // ─── Realtime engagement deltas: applied to the mirror, or reported when controlled ───
   const onSubscribeEngagementDeltaRef = useRef(onSubscribeEngagementDelta);
   useEffect(() => {
     onSubscribeEngagementDeltaRef.current = onSubscribeEngagementDelta;
@@ -219,53 +281,28 @@ function PostCardInner(props: PostCardProps) {
     if (!engagementSubscribe) return;
     const unsub = engagementSubscribe((delta: EngagementDelta) => {
       onSubscribeEngagementDeltaRef.current?.(delta);
-      setStatefulPost((prev) => {
-        switch (delta.kind) {
-          case "like-changed":
-            return {
-              ...prev,
-              likes: delta.count,
-              isLiked: delta.liked ?? prev.isLiked,
-            };
-          case "bookmark-changed":
-            return { ...prev, isBookmarked: delta.bookmarked };
-          case "comment-count-changed":
-            return { ...prev, comments: delta.count };
-          case "share-count-changed":
-            return { ...prev, shares: delta.count };
-          case "view-count-changed":
-            return { ...prev, viewCount: delta.count };
-          default:
-            return prev;
-        }
-      });
+      stateDelta(delta);
     });
     return unsub;
-  }, [engagementSubscribe]);
+  }, [engagementSubscribe, stateDelta]);
 
-  // ─── Wrapped handlers (R-Plan-2) — dispatch local mirror first, then fire host's handler ───
+  // ─── Wrapped handlers (R-Plan-2) — the post state first, then the host's handler ───
   const handleLike = useCallback(
     (id: string, next: boolean) => {
-      setStatefulPost((prev) => ({
-        ...prev,
-        isLiked: next,
-        likes: next ? prev.likes + 1 : Math.max(0, prev.likes - 1),
-      }));
-      onLike?.(id, next);
+      stateLike(next, () => onLike?.(id, next));
       // Inline mode: open likers panel on a fresh like (kasder UX).
       if (inlineModeActive && next && openLikersOnLike) {
-        setActivePanel("likes");
+        openPanel("likes");
       }
     },
-    [onLike, inlineModeActive, openLikersOnLike],
+    [stateLike, onLike, inlineModeActive, openLikersOnLike, openPanel],
   );
 
   const handleBookmark = useCallback(
     (id: string, next: boolean) => {
-      setStatefulPost((prev) => ({ ...prev, isBookmarked: next }));
-      onBookmark?.(id, next);
+      stateBookmark(next, () => onBookmark?.(id, next));
     },
-    [onBookmark],
+    [stateBookmark, onBookmark],
   );
 
   // Under inline mode, comment-icon click toggles the inline comments panel
@@ -273,12 +310,12 @@ function PostCardInner(props: PostCardProps) {
   const handleComment = useCallback(
     (id: string) => {
       if (inlineModeActive) {
-        setActivePanel((prev) => (prev === "comments" ? "none" : "comments"));
+        togglePanel("comments");
       } else {
         onComment?.(id);
       }
     },
-    [inlineModeActive, onComment],
+    [inlineModeActive, onComment, togglePanel],
   );
 
   // Under inline mode + shareSuggestions provided, share toggles the share panel
@@ -286,12 +323,12 @@ function PostCardInner(props: PostCardProps) {
   const handleShare = useCallback(
     (id: string) => {
       if (inlineModeActive && shareSuggestions) {
-        setActivePanel((prev) => (prev === "share" ? "none" : "share"));
+        togglePanel("share");
       } else {
         onShare?.(id);
       }
     },
-    [inlineModeActive, shareSuggestions, onShare],
+    [inlineModeActive, shareSuggestions, onShare, togglePanel],
   );
 
   const wrappedHandlers: PostHandlers = useMemo(
@@ -337,8 +374,8 @@ function PostCardInner(props: PostCardProps) {
   // (heart icon stays bound to onToggle).
   const handleLikeCountClick = useCallback(() => {
     if (!inlineModeActive) return;
-    setActivePanel((prev) => (prev === "likes" ? "none" : "likes"));
-  }, [inlineModeActive]);
+    togglePanel("likes");
+  }, [inlineModeActive, togglePanel]);
 
   // ─── Engagement actions array (mirrored post + wrapped handlers) ───
   const engagementActionsArr = useMemo(
@@ -350,6 +387,7 @@ function PostCardInner(props: PostCardProps) {
             wrappedHandlers,
             variant,
             inlineModeActive ? handleLikeCountClick : undefined,
+            reactions,
           ),
     [
       engagementActionsSlot,
@@ -358,6 +396,7 @@ function PostCardInner(props: PostCardProps) {
       variant,
       inlineModeActive,
       handleLikeCountClick,
+      reactions,
     ],
   );
 
@@ -365,6 +404,7 @@ function PostCardInner(props: PostCardProps) {
   // The helper is dual-mode: when viewerMode + permissions + canPerformAction are
   // ALL undefined, it takes the v0.1 legacy code path (zero drift). When ANY is set,
   // it resolves the matrix + assembles role-aware items per plan §3 resolution order.
+  // `kebabActions` is a full takeover: `extraKebabActions` is then ignored.
   const kebabItems = useMemo(() => {
     if (kebabActions) return kebabActions(statefulPost);
     return defaultPostKebabActions(
@@ -392,6 +432,7 @@ function PostCardInner(props: PostCardProps) {
       },
       onTranslate,
       moderatorActions,
+      extraKebabActions?.(statefulPost),
     );
   }, [
     kebabActions,
@@ -417,17 +458,47 @@ function PostCardInner(props: PostCardProps) {
     onMuteAuthor,
     onTranslate,
     moderatorActions,
+    extraKebabActions,
   ]);
 
   // ─── State + refs ───
   const [kebabOpen, setKebabOpen] = useState(false);
   const [burstKey, setBurstKey] = useState(0);
+
+  // A different post (controlled): the reveal, the open panel and the open menu belonged to the
+  // old one. The in-flight changes are dropped by the post state.
+  const [seenPostId, setSeenPostId] = useState(postProp.id);
+  if (onPostChange !== undefined && seenPostId !== postProp.id) {
+    setSeenPostId(postProp.id);
+    setSensitiveRevealed(false);
+    setActivePanel(inlineModeActive ? defaultInlinePanel : "none");
+    setKebabOpen(false);
+  }
   const barRef = useRef<EngagementBarHandle | null>(null);
   const threadRef = useRef<CommentThreadHandle | null>(null);
   const statefulPostRef = useRef<Post>(statefulPost);
+  const reactionsRef = useRef(reactions);
+  const heartBurstWiredRef = useRef(heartBurstWired);
   useEffect(() => {
     statefulPostRef.current = statefulPost;
+    reactionsRef.current = reactions;
+    heartBurstWiredRef.current = heartBurstWired;
   });
+
+  // The actions menu is built once; the default header places it, and `renderHeader` receives it.
+  const hasKebab = kebabItems.some((item) => !item.hidden);
+  const hasKebabRef = useRef(hasKebab);
+  useEffect(() => {
+    hasKebabRef.current = hasKebab;
+  });
+  const kebab = hasKebab ? (
+    <PostKebab
+      open={kebabOpen}
+      onOpenChange={setKebabOpen}
+      items={kebabItems}
+      ariaLabel={labels.kebabAriaLabel}
+    />
+  ) : null;
 
   const engagementActionsRef = useRef(engagementActionsArr);
   useEffect(() => {
@@ -448,16 +519,44 @@ function PostCardInner(props: PostCardProps) {
       : null;
   }, []);
 
-  // Double-tap never REMOVES a like: unliked -> like + burst; already liked ->
-  // burst only; no like applicable -> nothing. "Liked" is read from the bar's
-  // own state (it is the source `triggerLike` toggles against).
+  // The same for a `reaction` action (the `reactions` prop, or one from a custom actions slot).
+  const getReactionTarget = useCallback((): {
+    bar: EngagementBarHandle;
+    kind: string;
+  } | null => {
+    const bar = barRef.current;
+    if (!bar) return null;
+    const action = engagementActionsRef.current.find(
+      (a): a is Extract<EngagementAction, { kind: "reaction" }> =>
+        a.kind === "reaction" && !a.disabled && !a.hidden,
+    );
+    if (!action) return null;
+    const wanted = reactionsRef.current?.defaultKind;
+    const kind = action.kinds.some((k) => k.key === wanted)
+      ? (wanted as string)
+      : action.kinds[0]?.key;
+    return kind === undefined ? null : { bar, kind };
+  }, []);
+
+  // Double-tap never REMOVES a like or a reaction: unliked -> like + burst; already liked ->
+  // burst only; no reaction yet -> the default reaction + burst; a reaction set -> burst only;
+  // nothing applicable -> nothing. "Liked" / "reacted" are read from the bar's own state (it is
+  // the source `triggerLike` / `triggerReaction` act on).
   const onMediaDoubleTap = useCallback(() => {
     if (!heartBurstWired) return;
+    const reaction = getReactionTarget();
+    if (reaction) {
+      if (reaction.bar.getCurrentReaction() === null) {
+        reaction.bar.triggerReaction(reaction.kind);
+      }
+      setBurstKey((k) => k + 1);
+      return;
+    }
     const bar = getLikeCapableBar();
     if (!bar) return;
     if (!bar.getCurrentState().liked) bar.triggerLike();
     setBurstKey((k) => k + 1);
-  }, [heartBurstWired, getLikeCapableBar]);
+  }, [heartBurstWired, getReactionTarget, getLikeCapableBar]);
 
   // C6 — sensitive-media reveal: single handler combining local-state flip
   // + host's onRevealSensitive callback (analytics hook). Used by the gate
@@ -468,54 +567,68 @@ function PostCardInner(props: PostCardProps) {
     onRevealSensitive?.(statefulPostRef.current.id);
   }, [onRevealSensitive]);
 
-  // C9 — poll vote dispatcher: optimistic flip + host callback. Used by the
-  // PollWidget in feed + detail variants. The imperative handle's votePoll()
-  // does the same flip via the ref pattern in C3 (handler-ref capture).
+  // C9 — poll vote dispatcher, used by the PollWidget in feed + detail variants and by the
+  // imperative handle's votePoll(). The vote shows over the post while the host's promise is in
+  // flight; a rejection drops it.
   const onPollVote = useCallback(
     (optionId: string) => {
-      setPollVote({ optionId, votedAt: new Date() });
-      onVotePoll?.(statefulPostRef.current.id, optionId);
+      stateVote(optionId, () => onVotePoll?.(statefulPostRef.current.id, optionId));
     },
-    [onVotePoll],
+    [stateVote, onVotePoll],
   );
+  // The handle goes through a ref so its identity does not follow an inline `onVotePoll`.
+  const onPollVoteRef = useRef(onPollVote);
+  useEffect(() => {
+    onPollVoteRef.current = onPollVote;
+  });
   const isOwnerView = viewerMode === "owner";
 
   // ─── Imperative handle (R-Plan-3 + v0.2.0 C3 additions) ───
   // Handler refs — useImperativeHandle deps + closure capture pattern. v0.2.0
-  // mutation handlers (onEdit / onDelete / onPin / onRevealSensitive / onVotePoll)
+  // mutation handlers (onEdit / onDelete / onPin / onRevealSensitive)
   // are accessed via refs so the handle identity doesn't churn on every handler
   // identity change (host typically re-creates them per render).
   const onEditRef = useRef(onEdit);
   const onDeleteRef = useRef(onDelete);
   const onPinRef = useRef(onPin);
   const onRevealSensitiveRef = useRef(onRevealSensitive);
-  const onVotePollRef = useRef(onVotePoll);
   useEffect(() => {
     onEditRef.current = onEdit;
     onDeleteRef.current = onDelete;
     onPinRef.current = onPin;
     onRevealSensitiveRef.current = onRevealSensitive;
-    onVotePollRef.current = onVotePoll;
   });
 
   useImperativeHandle(
     ref,
     () => ({
-      openKebab: () => setKebabOpen(true),
+      // No menu (every item hidden): nothing to open, and it must not pop open later.
+      openKebab: () => {
+        if (hasKebabRef.current) setKebabOpen(true);
+      },
       triggerLike: () => {
-        // Toggle semantics are kept; the burst plays only when the result is liked.
+        // Toggle semantics are kept; the burst plays only when the result is liked / reacted.
+        const reaction = getReactionTarget();
+        if (reaction) {
+          if (reaction.bar.getCurrentReaction() === null) {
+            reaction.bar.triggerReaction(reaction.kind);
+            if (heartBurstWiredRef.current) setBurstKey((k) => k + 1);
+          } else {
+            reaction.bar.triggerReaction(null);
+          }
+          return;
+        }
         const bar = getLikeCapableBar();
         if (!bar) return;
         const wasLiked = bar.getCurrentState().liked;
         bar.triggerLike();
-        if (!wasLiked && heartBurstWired) setBurstKey((k) => k + 1);
+        if (!wasLiked && heartBurstWiredRef.current) setBurstKey((k) => k + 1);
       },
       getCurrentPost: () => statefulPostRef.current,
       reset: (next: Post) => {
-        setStatefulPost(next);
-        // Clear v0.2.0 local-mirror state — caller's "reset to known state" intent
-        // covers the optimistic poll vote + the sensitive-gate reveal.
-        setPollVote(null);
+        // Drops the in-flight changes and (uncontrolled) replaces the mirror; the controlled
+        // `post` prop still wins. Also clears the sensitive-gate reveal.
+        stateReset(next);
         setSensitiveRevealed(false);
       },
       getEngagementHandle: () => barRef.current,
@@ -538,95 +651,47 @@ function PostCardInner(props: PostCardProps) {
         setSensitiveRevealed(true);
         onRevealSensitiveRef.current?.(statefulPostRef.current.id);
       },
-      votePoll: (optionId: string) => {
-        setPollVote({ optionId, votedAt: new Date() });
-        onVotePollRef.current?.(statefulPostRef.current.id, optionId);
-      },
+      votePoll: (optionId: string) => onPollVoteRef.current(optionId),
     }),
-    // heartBurstWired re-derives per render; capture via ref if needed.
-    // For v0.1 simplicity, identity churns when heartBurstWired changes — acceptable.
-    [heartBurstWired, getLikeCapableBar],
+    // Everything the handle reads changes through refs, so its identity is stable.
+    [getLikeCapableBar, getReactionTarget, stateReset],
   );
 
   const authorId = useId();
 
-  const handleLoadMoreLikers = useCallback(async (): Promise<PostLikeUser[]> => {
-    if (!onLoadMoreLikers) return [];
-    const next = await onLoadMoreLikers();
-    setStatefulLikers((prev) => [...prev, ...next]);
-    return next;
-  }, [onLoadMoreLikers]);
-
-  // ─── Inline panel node (only built when inline mode + a panel is open) ───
-  const inlinePanelNode = useMemo(() => {
-    if (!inlineModeActive || activePanel === "none") return null;
-    if (activePanel === "likes") {
-      return (
-        <LikersStrip
-          totalCount={statefulPost.likes}
-          likers={statefulLikers}
-          heading={labels.likersHeading}
-          onLoadMore={onLoadMoreLikers ? handleLoadMoreLikers : undefined}
-          moreAriaLabelTemplate={labels.likersMoreLabel}
-          onClose={() => setActivePanel("none")}
-          closeLabel={labels.hidePanelLabel}
-        />
-      );
+  // ─── Comment thread props, built once for the inline panel and the detail variant ───
+  // The card's own comment props win over `commentThreadProps` when defined. `locale`,
+  // `timeZone` and `now` are the card's unless `commentThreadProps` sets them; the card's
+  // `commentLabels` are laid over `commentThreadProps.labels`.
+  const threadProps = useMemo<Omit<CommentThreadProps, "comments">>(() => {
+    const own: Partial<Omit<CommentThreadProps, "comments">> = {
+      currentUser,
+      pageSize: commentPageSize,
+      subscribe: commentSubscribe,
+      onSubscribeDelta: onSubscribeCommentDelta,
+      onAddComment,
+      onLikeComment,
+      onDeleteComment,
+      onReportComment,
+      onLoadMore: onLoadMoreComments,
+      commentActions,
+    };
+    const merged: Record<string, unknown> = { ...commentThreadProps };
+    for (const [key, value] of Object.entries(own)) {
+      if (value !== undefined) merged[key] = value;
     }
-    if (activePanel === "share") {
-      return (
-        <ShareMenu
-          users={shareSuggestions ?? []}
-          onSearch={onShareSearch}
-          onShareTo={(user) => {
-            onShareTo?.(statefulPost.id, user);
-            setActivePanel("none");
-          }}
-          heading={labels.shareHeading}
-          searchPlaceholder={labels.shareSearchPlaceholder}
-          emptyLabel={labels.shareEmptyLabel}
-          onClose={() => setActivePanel("none")}
-          closeLabel={labels.hidePanelLabel}
-        />
-      );
-    }
-    // comments
-    return (
-      <div
-        style={{ maxHeight: inlineCommentsMaxHeight }}
-        className="overflow-y-auto"
-      >
-        <CommentThread
-          ref={threadRef}
-          comments={commentThread ?? []}
-          currentUser={currentUser}
-          pageSize={commentPageSize}
-          subscribe={commentSubscribe}
-          onSubscribeDelta={onSubscribeCommentDelta}
-          onAddComment={onAddComment}
-          onLikeComment={onLikeComment}
-          onDeleteComment={onDeleteComment}
-          onReportComment={onReportComment}
-          onLoadMore={onLoadMoreComments}
-          commentActions={commentActions}
-          labels={labelsProp?.commentLabels}
-        />
-      </div>
+    merged.locale = commentThreadProps?.locale ?? locale;
+    merged.timeZone = commentThreadProps?.timeZone ?? timeZone;
+    merged.now = commentThreadProps?.now ?? nowProp;
+    merged.formatRelativeTime = commentThreadProps?.formatRelativeTime ?? formatRelativeTimeProp;
+    merged.formatCount = commentThreadProps?.formatCount ?? formatCountProp;
+    merged.labels = mergeLabels(
+      commentThreadProps?.labels ?? {},
+      labelsProp?.commentLabels,
     );
+    return merged as Omit<CommentThreadProps, "comments">;
   }, [
-    inlineModeActive,
-    activePanel,
-    statefulPost.id,
-    statefulPost.likes,
-    statefulLikers,
-    labels,
-    onLoadMoreLikers,
-    handleLoadMoreLikers,
-    shareSuggestions,
-    onShareSearch,
-    onShareTo,
-    inlineCommentsMaxHeight,
-    commentThread,
+    commentThreadProps,
     currentUser,
     commentPageSize,
     commentSubscribe,
@@ -637,7 +702,94 @@ function PostCardInner(props: PostCardProps) {
     onReportComment,
     onLoadMoreComments,
     commentActions,
+    locale,
+    timeZone,
+    nowProp,
+    formatRelativeTimeProp,
+    formatCountProp,
     labelsProp?.commentLabels,
+  ]);
+
+  const comments = commentThread ?? EMPTY_COMMENTS;
+
+  // ─── Inline panel node (only built when inline mode + a panel is open) ───
+  const inlinePanelNode = useMemo(() => {
+    if (!inlineModeActive || activePanel === "none") return null;
+    if (activePanel === "likes") {
+      const likersLabels = mergeLabels<Partial<LikersStripLabels>>(
+        {
+          heading: labels.likersHeading,
+          close: labels.hidePanelLabel,
+          moreAriaLabel: labels.likersMoreLabel,
+        },
+        labelsProp?.likersLabels,
+      );
+      return (
+        <LikersStrip
+          // With `reactions` the shown count is the reactions' total; `null` stays withheld.
+          totalCount={reactions ? (reactions.totalCount === undefined ? statefulPost.likes : reactions.totalCount) : statefulPost.likes}
+          likers={likers}
+          onLoadMore={onLoadMoreLikers}
+          labels={likersLabels}
+          locale={locale}
+          formatCount={formatCount}
+          onClose={closePanel}
+        />
+      );
+    }
+    if (activePanel === "share") {
+      const shareLabels = mergeLabels<Partial<ShareMenuLabels>>(
+        {
+          heading: labels.shareHeading,
+          searchPlaceholder: labels.shareSearchPlaceholder,
+          empty: labels.shareEmptyLabel,
+          close: labels.hidePanelLabel,
+        },
+        labelsProp?.shareLabels,
+      );
+      return (
+        <ShareMenu
+          users={shareSuggestions ?? []}
+          onSearch={onShareSearch}
+          onShareTo={(user) => {
+            onShareTo?.(statefulPost.id, user);
+            closePanel();
+          }}
+          labels={shareLabels}
+          locale={locale}
+          onClose={closePanel}
+        />
+      );
+    }
+    // comments
+    return (
+      <div
+        style={{ maxHeight: inlineCommentsMaxHeight }}
+        className="overflow-y-auto"
+      >
+        <CommentThread ref={threadRef} comments={comments} {...threadProps} />
+      </div>
+    );
+  }, [
+    inlineModeActive,
+    activePanel,
+    closePanel,
+    reactions,
+    statefulPost.id,
+    statefulPost.likes,
+    likers,
+    labels,
+    labelsProp?.likersLabels,
+    labelsProp?.shareLabels,
+    locale,
+    formatCount,
+    onLoadMoreLikers,
+    shareSuggestions,
+    onShareSearch,
+    onShareTo,
+    inlineCommentsMaxHeight,
+    comments,
+    threadProps,
   ]);
 
   // ─── Common props bundle ───
@@ -646,24 +798,38 @@ function PostCardInner(props: PostCardProps) {
     currentUser,
     authorId,
     formattedTime,
-    kebabOpen,
-    onKebabOpenChange: setKebabOpen,
-    kebabItems,
+    kebab,
     engagementActions: engagementActionsArr,
     engagementBarRef: barRef,
     engagementClassName,
     engagementLabels: labelsProp?.engagementLabels,
+    engagementBarProps,
+    optimistic,
     engagementSubscribeNoop: undefined,
     bodyMaxLines: resolvedBodyMaxLines,
     bodyClassName,
+    textLabels: labelsProp?.textLabels,
     headingAs: resolvedHeadingAs,
     labels,
+    locale,
+    timeZone,
+    now: now ?? undefined,
+    formatCount,
+    formatRelativeTime,
+    repostForwarding: {
+      formatRelativeTime: formatRelativeTimeProp,
+      formatCount: formatCountProp,
+    },
+    getAuthorHref,
+    subtitle,
+    noticeSlot,
+    mediaProps,
     burstKey,
     heartBurstWired,
     onMediaDoubleTap: heartBurstWired ? onMediaDoubleTap : undefined,
     cardLinkable,
     linkHref,
-    inlinePanelNode,
+    inlinePanelNode: inlinePanelNode ? <div ref={panelRef}>{inlinePanelNode}</div> : null,
     LinkComponent,
     renderHeader,
     renderContent,
@@ -686,11 +852,10 @@ function PostCardInner(props: PostCardProps) {
     linkComponent,
     cardLabels: labelsProp,
     onPollVote,
-    pollOptimisticVote: pollVote,
+    pollBusy: pollVoting,
     isOwnerView,
     disablePollRender,
     renderPoll,
-    formatRelativeTime: format,
     className,
     headerClassName,
     mediaClassName,
@@ -707,18 +872,16 @@ function PostCardInner(props: PostCardProps) {
       return (
         <DetailVariant
           {...baseProps}
-          commentThread={commentThread ?? []}
-          commentPageSize={commentPageSize}
-          commentSubscribe={commentSubscribe}
-          onSubscribeCommentDelta={onSubscribeCommentDelta}
-          onAddComment={onAddComment}
-          onLikeComment={onLikeComment}
-          onDeleteComment={onDeleteComment}
-          onReportComment={onReportComment}
-          onLoadMoreComments={onLoadMoreComments}
-          commentActions={commentActions}
+          commentThread={comments}
+          threadProps={threadProps}
+          commentHandlers={{
+            onAddComment: threadProps.onAddComment,
+            onLikeComment: threadProps.onLikeComment,
+            onDeleteComment: threadProps.onDeleteComment,
+            onReportComment: threadProps.onReportComment,
+            onLoadMoreComments: threadProps.onLoadMore,
+          }}
           renderCommentSection={renderCommentSection}
-          commentLabels={labelsProp?.commentLabels}
           threadRef={threadRef}
           commentSectionClassName={commentSectionClassName}
           commentsHeading={labels.commentsHeading}

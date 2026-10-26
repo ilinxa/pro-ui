@@ -265,3 +265,31 @@ reads `getCurrentState()` counts as `number` (now `number | null`, a compile-tim
   CLI 3.8.5 + 4.18.0 with story-viewer and post-card (consumer tsc 0). Artifact 116.86 / 125 KB.
 - U6: `meta.ts` 0.6.0, CHANGELOG bullet, guide note; review
   [`reviews/2026-10-25-v0.6.0-picker-open-change.md`](reviews/2026-10-25-v0.6.0-picker-open-change.md) — **Pass**.
+
+---
+
+# Run — 0.6.1 (Part 3 release 5, with comment-thread 0.4.0 + post-card 0.6.0)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **patch** — behaviour fix, no API change) |
+| **Current stage** | U6 done — ships in the release 5 commit (see `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
+| **Sign-off policy** | user go 2026-10-26 (release 5 "end to end"); patch found by the release's browser finder |
+| **Version target** | v0.6.0 → **v0.6.1** |
+
+## U0 / U1
+
+- **Why:** release 5 browser finder W1 — a mouse click on the likers "+N" pill did nothing: `useDragScroll` captured
+  the pointer on press, so the click was retargeted to the strip. W5 — the pill read "+99" while its name said
+  "+379 more" (WCAG 2.5.3).
+- **Change:** pointer capture starts only after 4 px of movement; a press released outside the strip ends on return
+  (`buttons === 0`). The pill shows the full compact count (`labels.morePill(format(pending))`, no 99 cap).
+
+## U2–U6
+
+- Built by the architect in `parts/likers-strip.tsx`; tests in `__tests__/likers-strip.test.tsx` (click after press,
+  drag past the threshold, released-elsewhere press — the last one found by the pre-push doc verifier), each falsified.
+- U5 re-verify: W1 and W5 PASS in Chromium on `next start -p 3200`. Installs: final matrix on CLI 4.18.0 + 3.8.5 (6 runs, all PASS, consumer tsc 0 — see comment-thread-loop.md "U5 — installs").
+- U6: `meta.ts` 0.6.1, CHANGELOG bullet, guide section "0.6.1 — likers pill". Artifact 117.9 / 125 KB.

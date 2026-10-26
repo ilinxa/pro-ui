@@ -1,0 +1,49 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "comment-thread-moderation",
+  "title": "Comment Thread — Moderation",
+  "author": "ilinxa",
+  "description": "Inline edit, tombstones and a pinned marker for Comment Thread. Wire in via the moderation prop.",
+  "dependencies": [
+    "lucide-react@^1.11.0"
+  ],
+  "registryDependencies": [
+    "@ilinxa/comment-thread"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/comment-thread/features/moderation/index.ts",
+      "content": "// comment-thread moderation feature — inline edit, tombstones, pinned marker.\n//\n// Injected into the base with `moderation={commentModeration}` (CommentThreadProps — see\n// `../../hooks/use-moderation-extension.ts`). Ships as its own registry item,\n// `@ilinxa/comment-thread-moderation`, which depends on `@ilinxa/comment-thread`. The base never\n// imports this folder.\n\nimport type { CommentModerationExtension } from \"../../types\";\nimport { CommentEditComposer } from \"./parts/edit-composer\";\nimport { CommentPinnedMarker } from \"./parts/pinned-marker\";\nimport { CommentTombstone } from \"./parts/tombstone\";\n\n/** Pass straight through: `<CommentThread moderation={commentModeration} />`. */\nexport const commentModeration: CommentModerationExtension = {\n  EditComposer: CommentEditComposer,\n  Tombstone: CommentTombstone,\n  PinnedMarker: CommentPinnedMarker,\n};\n\nexport { CommentEditComposer } from \"./parts/edit-composer\";\nexport { CommentTombstone } from \"./parts/tombstone\";\nexport { CommentPinnedMarker } from \"./parts/pinned-marker\";\n\n// @ilinxa/comment-thread-moderation 0.4.0\n",
+      "type": "registry:component",
+      "target": "components/comment-thread/features/moderation/index.ts"
+    },
+    {
+      "path": "src/registry/components/data/comment-thread/features/moderation/parts/edit-composer.tsx",
+      "content": "\"use client\";\n\nimport { memo, useEffect, useMemo, useRef } from \"react\";\nimport {\n  CommentComposer,\n  type CommentComposerHandle,\n} from \"../../../parts/comment-composer\";\nimport type { CommentEditComposerProps } from \"../../../types\";\n\n/**\n * Inline editor that replaces a comment's body. Reuses the thread's composer: the text starts as\n * the comment's content, Save posts it, Cancel and Escape leave it, and a rejected save keeps the\n * text and shows `labels.editFailed` in a `role=\"alert\"` line (the composer owns that failure UI).\n */\nfunction CommentEditComposerInner({\n  comment,\n  labels,\n  onSave,\n  onCancel,\n  submitOnEnter,\n  minRows,\n  maxRows,\n  className,\n}: CommentEditComposerProps) {\n  const composerLabels = useMemo(\n    () => ({\n      composerPlaceholder: labels.edit,\n      composerSend: labels.save,\n      composerCancel: labels.composerCancel,\n      postFailed: labels.editFailed,\n    }),\n    [labels.edit, labels.save, labels.composerCancel, labels.editFailed],\n  );\n\n  // The Edit item lives in a menu that hands focus back to its trigger a beat after it closes,\n  // which is after the editor mounts. Keep the caret in the editor: focus it, and take focus\n  // back once if it lands outside the editor right after.\n  const hostRef = useRef<HTMLDivElement>(null);\n  const composerRef = useRef<CommentComposerHandle>(null);\n  useEffect(() => {\n    const focusEditor = () => composerRef.current?.focus();\n    const first = setTimeout(focusEditor, 0);\n    const reclaim = (event: FocusEvent) => {\n      const host = hostRef.current;\n      if (host && event.target instanceof Node && !host.contains(event.target)) focusEditor();\n    };\n    document.addEventListener(\"focusin\", reclaim);\n    const stop = setTimeout(() => document.removeEventListener(\"focusin\", reclaim), 300);\n    return () => {\n      clearTimeout(first);\n      clearTimeout(stop);\n      document.removeEventListener(\"focusin\", reclaim);\n    };\n  }, []);\n\n  return (\n    <div ref={hostRef} className={className}>\n      <CommentComposer\n        ref={composerRef}\n        initialValue={comment.content}\n        onSubmit={onSave}\n        onCancel={onCancel}\n        submitOnEnter={submitOnEnter}\n        minRows={minRows}\n        maxRows={maxRows}\n        labels={composerLabels}\n        ariaLabel={labels.edit}\n        autoFocus\n      />\n    </div>\n  );\n}\n\nexport const CommentEditComposer = memo(CommentEditComposerInner);\nCommentEditComposer.displayName = \"CommentEditComposer\";\n",
+      "type": "registry:component",
+      "target": "components/comment-thread/features/moderation/parts/edit-composer.tsx"
+    },
+    {
+      "path": "src/registry/components/data/comment-thread/features/moderation/parts/pinned-marker.tsx",
+      "content": "\"use client\";\n\nimport { memo } from \"react\";\nimport { Pin } from \"lucide-react\";\nimport { cn } from \"@/lib/utils\";\nimport type { CommentPinnedMarkerProps } from \"../../../types\";\n\n/** The \"Pinned\" marker shown beside a pinned comment's author name. */\nfunction CommentPinnedMarkerInner({ labels, className }: CommentPinnedMarkerProps) {\n  return (\n    <span\n      className={cn(\n        \"inline-flex items-center gap-1 text-xs font-medium text-muted-foreground\",\n        className,\n      )}\n    >\n      <Pin className=\"h-3 w-3\" aria-hidden=\"true\" />\n      {labels.pinned}\n    </span>\n  );\n}\n\nexport const CommentPinnedMarker = memo(CommentPinnedMarkerInner);\nCommentPinnedMarker.displayName = \"CommentPinnedMarker\";\n",
+      "type": "registry:component",
+      "target": "components/comment-thread/features/moderation/parts/pinned-marker.tsx"
+    },
+    {
+      "path": "src/registry/components/data/comment-thread/features/moderation/parts/tombstone.tsx",
+      "content": "\"use client\";\n\nimport { memo } from \"react\";\nimport { cn } from \"@/lib/utils\";\nimport type { CommentTombstoneProps } from \"../../../types\";\n\n/** Stands in for a deleted, hidden or removed comment; its replies render below it. */\nfunction CommentTombstoneInner({ state, labels, className }: CommentTombstoneProps) {\n  return (\n    <p\n      data-comment-state={state}\n      className={cn(\n        \"rounded-xl bg-muted/30 px-3 py-2 text-sm italic text-muted-foreground\",\n        className,\n      )}\n    >\n      {labels.tombstone(state)}\n    </p>\n  );\n}\n\nexport const CommentTombstone = memo(CommentTombstoneInner);\nCommentTombstone.displayName = \"CommentTombstone\";\n",
+      "type": "registry:component",
+      "target": "components/comment-thread/features/moderation/parts/tombstone.tsx"
+    }
+  ],
+  "meta": {
+    "featureOf": "comment-thread",
+    "budgetKB": 8,
+    "version": "0.4.0",
+    "status": "alpha"
+  },
+  "categories": [
+    "data"
+  ],
+  "type": "registry:block"
+}

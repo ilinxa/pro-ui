@@ -1,6 +1,7 @@
 import type {
   Comment,
   CommentDelta,
+  CommentPage,
   CommentThreadCurrentUser,
   Subscribe,
 } from "./types";
@@ -327,4 +328,126 @@ export function createDummySubscribe(): Subscribe<CommentDelta> {
     }, 6000);
     return () => clearInterval(id);
   };
+}
+
+// ─── 0.4.0 ───────────────────────────────────────────────────────────────────
+
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** A signed-in Arabic reader, for the RTL example. */
+export const DUMMY_RTL_VIEWER: CommentThreadCurrentUser = { id: "viewer-ar", name: "ليلى حداد" };
+
+/** Arabic sample text — render inside `<div dir="rtl" lang="ar">`. */
+export const DUMMY_RTL_COMMENTS: Comment[] = [
+  {
+    id: "ar1",
+    author: { id: "ar-u1", name: "سارة النجار", username: "sara" },
+    content: "مقال رائع، شكراً على المشاركة. أعجبتني فكرة تقسيم الحالة بين الخادم والعميل.",
+    createdAt: minutesAgo(12),
+    likes: 24,
+    replies: [
+      {
+        id: "ar1r1",
+        author: { id: "ar-u2", name: "يوسف العلي", username: "yousef" },
+        content: "أتفق معك تماماً، خاصة في الجزء المتعلق بالتخزين المؤقت.",
+        createdAt: minutesAgo(6),
+        likes: 3,
+      },
+    ],
+  },
+  {
+    id: "ar2",
+    author: { id: "viewer-ar", name: "ليلى حداد", username: "layla" },
+    content: "تعليقي الخاص: هل يمكن إضافة مثال عملي في الجزء الأخير؟",
+    createdAt: hoursAgo(2),
+    likes: null,
+  },
+  {
+    id: "ar3",
+    author: { id: "ar-u3", name: "عمر خليل", username: "omar" },
+    content: "ملاحظة سريعة: الرابط الثاني لا يعمل عندي.",
+    createdAt: daysAgo(2),
+    likes: 1,
+    isLiked: true,
+  },
+];
+
+/** Moderation showcase: a pinned comment, tombstones that keep their replies, an edited own comment. */
+export const DUMMY_MODERATION_COMMENTS: Comment[] = [
+  {
+    id: "m1",
+    author: { id: "u1", name: "Mira Solano", username: "mira" },
+    content: "Pinned by the moderators: please keep the discussion on topic.",
+    createdAt: daysAgo(2),
+    likes: 31,
+    isPinned: true,
+  },
+  {
+    id: "m2",
+    author: { id: "u2", name: "Theo Zarrin", username: "theoz" },
+    content: "This text is never shown — the comment was hidden.",
+    createdAt: hoursAgo(5),
+    likes: 0,
+    state: "hidden",
+    replies: [
+      {
+        id: "m2r1",
+        author: { id: "u3", name: "Ines Park", username: "ines" },
+        content: "The replies under a tombstone stay readable.",
+        createdAt: hoursAgo(4),
+        likes: 2,
+      },
+    ],
+  },
+  {
+    id: "m3",
+    author: { id: "viewer-1", name: "Sina Aytaç", username: "sina" },
+    content: "My own comment — open its menu and choose Edit.",
+    createdAt: hoursAgo(1),
+    likes: 4,
+    permissions: { canEdit: true },
+  },
+  {
+    id: "m4",
+    author: { id: "u4", name: "Renee Bishop", username: "renee" },
+    content: "Removed for breaking the rules.",
+    createdAt: daysAgo(1),
+    likes: 0,
+    state: "removed",
+  },
+];
+
+/** A first page for the controlled / cursor demo: some comments know their reply total. */
+export const DUMMY_CURSOR_FIRST_PAGE: Comment[] = [
+  { ...DUMMY_FLAT_COMMENTS[0]!, id: "k1", replyCount: 3, repliesCursor: "r-k1-0" },
+  { ...DUMMY_FLAT_COMMENTS[1]!, id: "k2", replyCount: 0 },
+  { ...DUMMY_FLAT_COMMENTS[2]!, id: "k3", replyCount: 1, repliesCursor: "r-k3-0" },
+];
+
+/** Sandbox cursor loader: three pages, then done. Pass `DUMMY_CURSOR_FIRST_PAGE` as the first. */
+export async function loadCursorPage(cursor: string | null): Promise<CommentPage> {
+  await delay(450);
+  const page = cursor === null ? 1 : Number(cursor.replace("page-", ""));
+  const items = Array.from({ length: 3 }, (_, i): Comment => ({
+    id: `cursor-${page}-${i}`,
+    author: { id: `u${(i % 5) + 1}`, name: ["Mira Solano", "Theo Zarrin", "Ines Park"][i % 3]! },
+    content: `Older comment ${i + 1} from cursor page ${page}.`,
+    createdAt: daysAgo(page * 3 + i),
+    likes: i,
+  }));
+  return { items, nextCursor: page >= 3 ? null : `page-${page + 1}` };
+}
+
+/** Sandbox replies loader: two replies per call, three calls per comment. */
+export async function loadReplyPage(commentId: string, cursor: string | null): Promise<CommentPage> {
+  await delay(350);
+  const step = cursor === null ? 0 : Number(cursor.split("-").pop());
+  const items = Array.from({ length: 2 }, (_, i): Comment => ({
+    id: `${commentId}-reply-${step}-${i}`,
+    author: { id: `u${(i % 5) + 3}`, name: ["Ines Park", "Renee Bishop"][i % 2]! },
+    content: `Reply ${step * 2 + i + 1} to ${commentId}.`,
+    createdAt: minutesAgo(40 - step * 10 - i),
+    likes: 0,
+  }));
+  return { items, nextCursor: step >= 1 ? null : `r-${commentId}-${step + 1}` };
 }

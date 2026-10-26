@@ -62,7 +62,7 @@ export function ListPart(props: ResolvedPartProps) {
   } = props;
 
   const isEditorMode = viewerMode === "editor";
-  const showKebab = kebabItems.length > 0;
+  const showKebab = kebabItems.some((it) => !it.hidden);
 
   // Paywall scope: list has no image, so the gate wraps the excerpt area
   // (Q-PG — gates excerpt + media; in list there's only excerpt).

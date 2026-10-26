@@ -1,6 +1,16 @@
-import type { Comment, CommentDelta, CommentThreadCurrentUser, Subscribe } from "@/registry/components/data/comment-thread";
-import type { EngagementDelta } from "@/registry/components/data/engagement-bar";
-import type { Post, PostLikeUser } from "./types";
+import type { Post, PostCardProps, PostLikeUser, PostReactions } from "./types";
+
+// Every type this fixtures file needs is derived from post-card's own `./types`. The fixtures
+// item ships only this file, and the shadcn CLI rewrites imports of other components' types inside
+// it to those components' main files, which do not export them (consumer tsc failed, 0.6.0).
+type Comment = NonNullable<PostCardProps["commentThread"]>[number];
+type CommentThreadCurrentUser = NonNullable<PostCardProps["currentUser"]>;
+type CommentPage = Awaited<
+  ReturnType<NonNullable<NonNullable<PostCardProps["commentThreadProps"]>["onLoadMoreCursor"]>>
+>;
+type EngagementReactionKind = PostReactions["kinds"][number];
+type EngagementSubscribe = NonNullable<PostCardProps["engagementSubscribe"]>;
+type CommentSubscribe = NonNullable<PostCardProps["commentSubscribe"]>;
 
 export const DUMMY_LIKERS: PostLikeUser[] = [
   { id: "l-ayse", name: "Ayşe Demir", username: "ayse_demir", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces&q=80" },
@@ -39,7 +49,13 @@ export const DUMMY_VIEWER: CommentThreadCurrentUser = {
   avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces&q=80",
 };
 
-const NOW = new Date();
+/**
+ * The fixtures' "now". A fixed instant, not the clock: a module-scope `new Date()` differs between
+ * the server render and the client, and every fixture date would mismatch on hydration. Pass it as
+ * the card's `now` so the relative times (and each poll's closing time) stay consistent.
+ */
+export const DUMMY_NOW = new Date("2026-10-26T12:00:00Z");
+const NOW = DUMMY_NOW;
 const minutesAgo = (n: number) => new Date(NOW.getTime() - n * 60 * 1000);
 const hoursAgo = (n: number) => new Date(NOW.getTime() - n * 60 * 60 * 1000);
 const daysAgo = (n: number) =>
@@ -504,7 +520,7 @@ export const DUMMY_DETAIL_THREAD: Comment[] = [
   },
 ];
 
-export function createDummyEngagementSubscribe(): Subscribe<EngagementDelta> {
+export function createDummyEngagementSubscribe(): EngagementSubscribe {
   return (handler) => {
     let tick = 0;
     const id = setInterval(() => {
@@ -533,7 +549,7 @@ const LIVE_COMMENT_AVATARS = [
   "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&crop=faces&q=80",
 ];
 
-export function createDummyCommentSubscribe(): Subscribe<CommentDelta> {
+export function createDummyCommentSubscribe(): CommentSubscribe {
   return (handler) => {
     let tick = 0;
     const id = setInterval(() => {
@@ -555,5 +571,103 @@ export function createDummyCommentSubscribe(): Subscribe<CommentDelta> {
       });
     }, 7000);
     return () => clearInterval(id);
+  };
+}
+
+// ─── 0.6.0 fixtures ─────────────────────────────────────────────────────────
+
+/** Reaction catalog for `reactions.kinds`. Icons are host-supplied; emoji keep the fixture dependency-free. */
+export const DUMMY_REACTION_KINDS: EngagementReactionKind[] = [
+  { key: "like", icon: "👍", label: "Like", count: 212 },
+  { key: "love", icon: "❤️", label: "Love", count: 131 },
+  { key: "laugh", icon: "😂", label: "Laugh", count: 29 },
+  { key: "wow", icon: "😮", label: "Wow", count: 12 },
+];
+
+/** Arabic (right-to-left) sample for the RTL demo. */
+export const DUMMY_RTL_POST: Post = {
+  id: "post-rtl",
+  author: {
+    id: "u-layla",
+    name: "ليلى المنصوري",
+    username: "layla_m",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces&q=80",
+    isVerified: true,
+  },
+  content:
+    "قضينا نهاية الأسبوع في الجبال، والمناظر كانت أجمل مما توقعنا. شكراً لكل من شاركنا الرحلة، وسنعود قريباً بإذن الله.",
+  createdAt: hoursAgo(5),
+  editedAt: hoursAgo(4),
+  visibility: "followers",
+  location: { name: "الدار البيضاء" },
+  tags: ["رحلات", "جبال"],
+  likes: 1240,
+  isLiked: false,
+  comments: 3,
+  shares: 18,
+  poll: {
+    options: [
+      { id: "opt-a", label: "الجبال", voteCount: 64 },
+      { id: "opt-b", label: "البحر", voteCount: 41 },
+    ],
+    closesAt: hoursAgo(-24),
+    totalVotes: 105,
+  },
+};
+
+export const DUMMY_RTL_THREAD: Comment[] = [
+  {
+    id: "c-ar-1",
+    author: { id: "u-omar", name: "عمر الحداد", username: "omar_h" },
+    content: "صور رائعة! أين التقطت الصورة الثانية؟",
+    createdAt: minutesAgo(35),
+    likes: 4,
+    isLiked: false,
+    replies: [
+      {
+        id: "c-ar-1-r-1",
+        author: { id: "u-layla", name: "ليلى المنصوري", username: "layla_m" },
+        content: "عند القمة، قبل الغروب بقليل.",
+        createdAt: minutesAgo(20),
+        likes: 1,
+      },
+    ],
+  },
+  {
+    id: "c-ar-2",
+    author: { id: "u-sara", name: "سارة بن علي", username: "sara_b" },
+    content: "أتمنى لو كنت معكم!",
+    createdAt: minutesAgo(10),
+    likes: 0,
+  },
+];
+
+const CURSOR_PAGE_SIZE = 3;
+
+/** Top-level comments for the cursor-paging demo (newest first). */
+export const DUMMY_CURSOR_COMMENTS: Comment[] = Array.from({ length: 11 }, (_, i) => ({
+  id: `c-cur-${i + 1}`,
+  author: {
+    id: `u-cur-${i % 4}`,
+    name: ["Mira Solano", "Theo Zarrin", "Ayşe Demir", "Ali Öztürk"][i % 4]!,
+    username: ["mira", "theoz", "ayse_demir", "ali_ozturk"][i % 4]!,
+  },
+  content: `Comment ${i + 1} of 11 — loaded through the cursor loader.`,
+  createdAt: minutesAgo(10 + i * 7),
+  likes: i % 5,
+  isLiked: false,
+}));
+
+/**
+ * A cursor-paged loader over {@link DUMMY_CURSOR_COMMENTS}: `null` starts at the first page after
+ * the one the thread was seeded with; the cursor is the next start index as a string.
+ */
+export async function loadDummyCommentPage(cursor: string | null): Promise<CommentPage> {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const start = cursor === null ? CURSOR_PAGE_SIZE : Number(cursor);
+  const end = start + CURSOR_PAGE_SIZE;
+  return {
+    items: DUMMY_CURSOR_COMMENTS.slice(start, end),
+    nextCursor: end < DUMMY_CURSOR_COMMENTS.length ? String(end) : null,
   };
 }

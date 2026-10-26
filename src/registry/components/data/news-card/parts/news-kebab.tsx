@@ -37,7 +37,9 @@ interface NewsKebabProps {
  * Base UI's Slot composition surface). All callback contravariance handled
  * by the items' `onClick` lambdas.
  *
- * Returns `null` when `items` is empty — caller's responsibility to skip
+ * Items with `hidden: true` are left out.
+ *
+ * Returns `null` when no item is visible — caller's responsibility to skip
  * rendering the kebab cluster entirely when no items.
  */
 export function NewsKebab({
@@ -47,7 +49,10 @@ export function NewsKebab({
   open,
   onOpenChange,
 }: NewsKebabProps) {
-  if (items.length === 0) return null;
+  // `hidden` items (comment-thread 0.4.0's `CommentMenuItem.hidden`) are left out; a menu whose
+  // items are all hidden is not rendered.
+  const visible = items.filter((it) => !it.hidden);
+  if (visible.length === 0) return null;
 
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
@@ -61,7 +66,7 @@ export function NewsKebab({
         <MoreHorizontal className="size-5" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {items.map((it, idx) => (
+        {visible.map((it, idx) => (
           <KebabRow
             key={`${it.label}-${idx}`}
             item={it}

@@ -8,8 +8,17 @@ export const meta: ComponentMeta = {
   description:
     "Recursive comment thread with composer, optimistic add, like, and delete, inline expansion past max depth, and realtime subscription hooks.",
   context:
-    "Fifth ship in the 8-component social-posts-system arc and the second cross-folder import in pro-ui (after media-carousel → video-player). Component is always-uncontrolled — `comments` prop is initial state on mount only; subsequent prop changes are IGNORED. Use the imperative handle's `reset(next)` or `dispatch(action)` to push external updates. Realtime via Subscribe<CommentDelta> matches engagement-bar's shape one-to-one (single mental model). Per-row engagement-bar is always controlled by the thread reducer to keep state coherent under realtime + optimistic flow. No framer-motion, no react-textarea-autosize peer dep, no date-fns peer dep. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx (468 LOC), CommentItem sub-component lines 413–467.",
+    "Fifth ship in the social-posts-system arc. Since 0.4.0 the thread closes under the consumer contract: `comments` is read once at mount unless `onCommentsChange` is passed, which makes it controlled (pending operations show as an overlay over the prop; accepted changes are reported, not applied). Realtime via Subscribe<CommentDelta> is idempotent (id first, then `clientId`). Moderation (inline edit, tombstones, pin marker) is the opt-in feature item `comment-thread-moderation`, wired through the `moderation` prop; the base never imports it. Per-row engagement-bar is controlled by the thread state. No framer-motion, no textarea-autosize dep, no date-fns dep. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx.",
   features: [
+    "v0.4.0 — controlled `comments` + `onCommentsChange(next, change)`: the prop wins on every render, pending operations show over it, accepted changes are reported once accepted",
+    "v0.4.0 — idempotent realtime: an `added` delta for an id already shown never duplicates, and `clientId` (sent through `onAddComment(content, parentId, { clientId })`) reconciles your own echo with the pending comment",
+    "v0.4.0 — rollback: a failed post removes the pending comment and keeps the text (`labels.postFailed`); like, reaction, delete and edit roll back when their promise rejects; latest request wins; `optimistic`, `onError`; no unhandled rejections",
+    "v0.4.0 — pending comments cannot be liked, replied to or deleted, so a temporary id never reaches your server",
+    "v0.4.0 — cursor paging (`onLoadMoreCursor`, `hasMore`, `nextCursor`) beside `onLoadMore(page)`; Retry on failure; replies loaded on demand (`onLoadReplies`, `replyCount`, `repliesCursor`)",
+    "v0.4.0 — per-comment `permissions`, `extraActions` appended to the defaults, `hidden` / `separatorBefore` menu items; Report no longer shows on your own comments",
+    "v0.4.0 — reactions per row (`reactionKinds` + `onReactComment`, `Comment.reactions`) or your own row actions (`engagementActions`); `likes: null` withholds a count",
+    "v0.4.0 — every string is a label (`kebabAriaLabel(name)`, `replyTo(name)`, …); `locale`, `timeZone`, `now`, `formatRelativeTime`, `formatCount`; relative time renders only after mount, so the server and the first client render agree; indentation mirrors in RTL",
+    "v0.4.0 — moderation add-on `comment-thread-moderation` (inline edit, tombstones that keep replies, pinned marker) through the `moderation` prop; `removedMode=\"tombstone\"`",
     "v0.3.1 — the `renderComposer` slot now receives real helpers: `setValue` / `submit` / `cancel` were empty-bodied stubs, so a custom composer could not set a value, send, or clear",
     "Recursive Comment[] with optional `replies?` per node — depth-aware indentation",
     "maxDepth default 2; past it, inline-expand 'view N replies' (slot-overridable)",
@@ -17,22 +26,22 @@ export const meta: ComponentMeta = {
     "Keyboard ergonomics — Enter submits, Shift+Enter newline, Escape cancels",
     "Optimistic add (head insertion top-level; tail insertion replies)",
     "Optimistic like flip via thread reducer (per-row engagement-bar always-controlled)",
-    "Optimistic delete + revert via host's comments prop or realtime delta",
-    "Realtime via Subscribe<CommentDelta> — added / edited / removed / liked",
+    "Optimistic delete; a rejected promise restores the comment at its position",
+    "Realtime via Subscribe<CommentDelta> — added / edited / removed / liked / state / reacted",
     "onSubscribeDelta callback fires for every delta regardless of mode",
     "v0.2.0 — `Comment.edited` first-paint flag + `(edited)` suffix render after timestamp; realtime `{ kind: \"edited\" }` delta also flips `edited:true` so first-paint and post-edit UI behave identically",
     "v0.2.0 — `CommentMenuItem.separatorBefore` opt-in divider above any kebab item (used by post-card's moderator section; reusable for host-grouped kebabs)",
     "v0.2.1 — F-cross-13 + F-S1 cleanup: `<CommentKebab>` drops `<Button asChild>` wrapper (shadcn CLI rewrites `asChild` to `render={…}` at install-time which breaks consumers on Radix); render trigger directly as `<button>` via `buttonVariants(…)`. Cross-procomp imports in `comment-node.tsx` converted to relative + specific-file paths. Zero public-API change.",
     "Pagination — onLoadMore(page) appends; pageSize default 10",
     "Inline reply composer per row (kasder UX); single composer in DOM at a time",
-    "Default kebab — Delete (own only) + Report (when wired); commentActions slot for full takeover",
+    "Default kebab from per-comment permissions — Delete (own), Report (others', when wired), Edit (with the moderation add-on); `extraActions` appends, `commentActions` takes over",
     "renderNode / renderViewReplies / renderComposer full-takeover slots",
     "composerEmptyState slot for sign-in CTA when currentUser absent",
     "Imperative handle — focusComposer / openReply / getCurrentComments / reset / dispatch",
     "commentReducer + useCommentState publicly exported (external state coordination)",
     "useAutosizeTextarea publicly exported (composer behaviour without the thread)",
     "CommentComposer publicly exported standalone (article-page hero CTAs)",
-    "i18n via 12-key labels object with English defaults",
+    "i18n via a typed labels object with English defaults (`defaultCommentThreadLabels`)",
     "a11y — role=article + aria-labelledby; aria-pressed on like; useId() per node",
     "Touch-friendly kebab via pointer-coarse:opacity-100 (Tailwind v4)",
   ],
@@ -47,11 +56,13 @@ export const meta: ComponentMeta = {
     "expandable",
   ],
 
-  version: "0.3.2",
+  version: "0.4.0",
   status: "alpha",
-  artifactBudgetKB: 60,
+  // 0.4.0: 75 KB was the U1 estimate; the built artifact is ~135 KB (~15 KB of it is JSDoc in
+  // types.ts). Runtime cost of <CommentThread>, minified + gzip: 5.1 KB (0.3.2) → 11.6 KB.
+  artifactBudgetKB: 150,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-24",
+  updatedAt: "2026-10-26",
 
   author: { name: "ilinxa" },
 
@@ -62,6 +73,15 @@ export const meta: ComponentMeta = {
     },
     internal: ["expandable-text", "engagement-bar"],
   },
+
+  slices: [
+    {
+      name: "moderation",
+      item: "comment-thread-moderation",
+      description:
+        "Inline edit, tombstones that keep replies, and a pinned marker, wired in through the moderation prop.",
+    },
+  ],
 
   related: [
     "expandable-text",

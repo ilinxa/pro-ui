@@ -26,6 +26,7 @@ import type {
   PostMutationHandlers,
   PostPermissionAction,
   PostPermissions,
+  PostReactions,
   PostViewerMode,
 } from "../types";
 import {
@@ -43,16 +44,39 @@ export function defaultPostEngagementActions(
    * firing `onCountClick` (kasder UX — heart toggles like, count opens likers panel).
    */
   onLikeCountClick?: () => void,
+  /**
+   * With reactions, a `kind: "reaction"` action takes the place of the like: `counts` merge into
+   * the kinds' tallies, `viewerReaction` / `totalCount` / `clearOnTap` pass through and a pick
+   * calls `reactions.onReact(post.id, kind)`.
+   */
+  reactions?: PostReactions,
 ): EngagementAction[] {
-  const like: EngagementAction = {
-    kind: "like",
-    count: post.likes,
-    liked: post.isLiked ?? false,
-    onToggle: handlers.onLike
-      ? (next) => handlers.onLike!(post.id, next)
-      : undefined,
-    onCountClick: onLikeCountClick,
-  };
+  const like: EngagementAction = reactions
+    ? {
+        kind: "reaction",
+        kinds: reactions.kinds.map((k) => {
+          const tally = reactions.counts?.[k.key];
+          return tally === undefined ? k : { ...k, count: tally };
+        }),
+        totalCount: reactions.totalCount,
+        viewerReaction: reactions.viewerReaction,
+        clearOnTap: reactions.clearOnTap,
+        onSelect: reactions.onReact
+          ? (kind) => reactions.onReact!(post.id, kind)
+          : undefined,
+        onCountClick: onLikeCountClick,
+      }
+    : {
+        kind: "like",
+        count: post.likes,
+        liked: post.isLiked ?? false,
+        onToggle: handlers.onLike
+          ? (next) => {
+              handlers.onLike!(post.id, next);
+            }
+          : undefined,
+        onCountClick: onLikeCountClick,
+      };
 
   const comment: EngagementAction = {
     kind: "comment",
@@ -160,11 +184,28 @@ export function defaultPostKebabActions(
    * `permissions.canModerate` or `canPerformAction("moderate", post)`.
    */
   moderatorActions?: (post: Post) => CommentMenuItem[],
+  /**
+   * 0.6.0 - items appended after every default item (after the destructive group, not gated by
+   * `canModerate`), in both modes. `hidden` items are left out later, by the menu.
+   */
+  extraItems?: CommentMenuItem[],
 ): CommentMenuItem[] {
+  // `permissions` that only carries `disabled` does not switch on role-aware mode: the legacy
+  // handler-driven items stay, with the named ones disabled.
+  const permissionsOnlyDisables =
+    permissions !== undefined &&
+    permissions.disabled !== undefined &&
+    (Object.keys(permissions) as (keyof PostPermissions)[]).every(
+      (k) => k === "disabled" || permissions[k] === undefined,
+    );
   const roleAwareMode =
     viewerMode !== undefined ||
-    permissions !== undefined ||
+    (permissions !== undefined && !permissionsOnlyDisables) ||
     canPerformAction !== undefined;
+  const isDisabled = (action: PostPermissionAction) =>
+    permissions?.disabled?.[action] === true;
+  const withExtras = (items: CommentMenuItem[]) =>
+    extraItems && extraItems.length > 0 ? [...items, ...extraItems] : items;
 
   // ─── Legacy mode (v0.1 path) ─── unchanged behavior; resolver NOT called
   if (!roleAwareMode) {
@@ -173,6 +214,7 @@ export function defaultPostKebabActions(
       items.push({
         label: post.isBookmarked ? labels.unbookmark : labels.bookmark,
         icon: <Bookmark className="h-4 w-4" />,
+        disabled: isDisabled("bookmark") || undefined,
         onClick: () =>
           handlers.onBookmark!(post.id, !(post.isBookmarked ?? false)),
       });
@@ -181,6 +223,7 @@ export function defaultPostKebabActions(
       items.push({
         label: labels.share,
         icon: <Share2 className="h-4 w-4" />,
+        disabled: isDisabled("share") || undefined,
         onClick: () => handlers.onShare!(post.id),
       });
     }
@@ -196,10 +239,11 @@ export function defaultPostKebabActions(
         label: labels.report,
         icon: <Flag className="h-4 w-4" />,
         destructive: true,
+        disabled: isDisabled("report") || undefined,
         onClick: () => handlers.onReport!(post.id),
       });
     }
-    return items;
+    return withExtras(items);
   }
 
   // ─── Role-aware mode (v0.2.0) ─── resolve matrix + assemble items per resolution order
@@ -213,6 +257,7 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.edit ?? "Edit",
       icon: <Pencil className="h-4 w-4" />,
+      disabled: isDisabled("edit") || undefined,
       onClick: () => mutationHandlers.onEdit!(post.id),
     });
   }
@@ -220,6 +265,7 @@ export function defaultPostKebabActions(
     items.push({
       label: post.isPinned ? (labels.unpin ?? "Unpin") : (labels.pin ?? "Pin to top"),
       icon: post.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />,
+      disabled: isDisabled("pin") || undefined,
       onClick: () => mutationHandlers.onPin!(post.id, !(post.isPinned ?? false)),
     });
   }
@@ -227,6 +273,7 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.changeVisibility ?? "Change visibility",
       icon: <Globe className="h-4 w-4" />,
+      disabled: isDisabled("changeVisibility") || undefined,
       onClick: () => mutationHandlers.onChangeVisibility!(post.id, post.visibility),
     });
   }
@@ -236,6 +283,7 @@ export function defaultPostKebabActions(
         ? (labels.unmarkSensitive ?? "Remove sensitive mark")
         : (labels.markSensitive ?? "Mark as sensitive"),
       icon: post.isSensitive ? <EyeOff className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />,
+      disabled: isDisabled("markSensitive") || undefined,
       onClick: () =>
         mutationHandlers.onMarkSensitive!(post.id, !(post.isSensitive ?? false)),
     });
@@ -244,6 +292,7 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.seeAnalytics ?? "See analytics",
       icon: <BarChart3 className="h-4 w-4" />,
+      disabled: isDisabled("seeAnalytics") || undefined,
       onClick: () => mutationHandlers.onSeeAnalytics!(post.id),
     });
   }
@@ -253,6 +302,7 @@ export function defaultPostKebabActions(
     items.push({
       label: post.isBookmarked ? labels.unbookmark : labels.bookmark,
       icon: <Bookmark className="h-4 w-4" />,
+      disabled: isDisabled("bookmark") || undefined,
       onClick: () =>
         handlers.onBookmark!(post.id, !(post.isBookmarked ?? false)),
     });
@@ -261,6 +311,7 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.share,
       icon: <Share2 className="h-4 w-4" />,
+      disabled: isDisabled("share") || undefined,
       onClick: () => handlers.onShare!(post.id),
     });
   }
@@ -287,7 +338,9 @@ export function defaultPostKebabActions(
   // The first moderator item carries `separatorBefore: true` so the host
   // kebab renders a divider above the whole group.
   if (canDo("moderate") && moderatorActions) {
-    const modItems = moderatorActions(post);
+    const modItems = moderatorActions(post).map((m) =>
+      isDisabled("moderate") ? { ...m, disabled: true } : m,
+    );
     if (modItems.length > 0) {
       items.push({ ...modItems[0], separatorBefore: true });
       for (let i = 1; i < modItems.length; i++) {
@@ -301,6 +354,7 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.muteAuthor ?? "Mute author",
       icon: <VolumeX className="h-4 w-4" />,
+      disabled: isDisabled("muteAuthor") || undefined,
       onClick: () => mutationHandlers.onMuteAuthor!(post.author.id),
     });
   }
@@ -308,6 +362,7 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.blockAuthor ?? "Block author",
       icon: <UserX className="h-4 w-4" />,
+      disabled: isDisabled("blockAuthor") || undefined,
       destructive: true,
       onClick: () => mutationHandlers.onBlockAuthor!(post.author.id),
     });
@@ -317,6 +372,7 @@ export function defaultPostKebabActions(
       label: labels.report,
       icon: <Flag className="h-4 w-4" />,
       destructive: true,
+      disabled: isDisabled("report") || undefined,
       onClick: () => handlers.onReport!(post.id),
     });
   }
@@ -326,10 +382,11 @@ export function defaultPostKebabActions(
     items.push({
       label: labels.delete ?? "Delete",
       icon: <Trash2 className="h-4 w-4" />,
+      disabled: isDisabled("delete") || undefined,
       destructive: true,
       onClick: () => mutationHandlers.onDelete!(post.id),
     });
   }
 
-  return items;
+  return withExtras(items);
 }

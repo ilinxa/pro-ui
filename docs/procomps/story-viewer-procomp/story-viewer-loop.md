@@ -586,3 +586,36 @@ consistency review. Live poll (≥ 150 s apart): 0.5.4 / 0.5.0 at +3 and +6 min,
 gone, the nav-arrow selector fix in, `cssVars.theme` media-overlay mapping. Decision `shipped`; retro in
 `.claude/improvement-log.md`; report-back `.claude/report-back-2026-10-25-story-viewer-0-6-0.md` (to the user for the
 platform). **Next release:** media-editor 0.5.0 + story-composer 0.6.0 — on the user's go.
+
+---
+
+# Run — 0.6.1 (Part 3 release 5, with comment-thread 0.4.0 + post-card 0.6.0)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **patch** — no public API removed; one optional label added) |
+| **Current stage** | U6 done — ships in the release 5 commit (see `docs/procomps/comment-thread-procomp/comment-thread-loop.md`, "Run — Part 3 release 5") |
+| **Sign-off policy** | user go 2026-10-26 ("update story-viewer to use comment-thread 0.4.0 … end to end"); platform constraint from `E:/tmp/social-ui-v2/PROUI_REPLY_2026-10-26_ME051_FB_EP.md` |
+| **Version target** | v0.6.0 → **v0.6.1** |
+
+## U0 / U1
+
+- **Why:** comment-thread 0.4.0 changes the composer contract (a rejected post keeps the draft and shows
+  `labels.postFailed`). The platform asked that story-viewer keep working on 0.4.0 or move in the same release.
+- **Change:** the reply box runs on comment-thread 0.4.0. A rejected `onAddReply` keeps the typed text and shows
+  `labels.replyFailed` (or `labels.commentLabels.postFailed`) under the box on a media scrim; the story stays paused
+  while the draft is there; the rejection is handled (it was unhandled). `labels.commentLabels.composerPlaceholder`
+  now reaches the reply box while `replyComposerPlaceholder` is left at its default (it had no effect); an explicit
+  `replyComposerPlaceholder` still wins.
+
+## U2–U6
+
+- Built by the architect (`types.ts` label + `StoryReplyComposerLabels.postFailed`, `parts/reply-composer.tsx`).
+  Test `__tests__/reply-failure-0-6-1.test.tsx` (5), falsified. The placeholder change first broke the contract test
+  (an explicit placeholder lost to the comment label) — fixed with the explicit-wins rule.
+- U4: read by the release's two code finders (story-viewer rows: none open after the fix waves).
+- U5: browser regression sweep "story-viewer failed reply" PASS; demo close-focus parked (W8, host-owned `isOpen`).
+  Installs: final matrix on CLI 4.18.0 + 3.8.5 (6 runs, all PASS, consumer tsc 0 — see comment-thread-loop.md "U5 — installs").
+- U6: `meta.ts` 0.6.1, CHANGELOG bullet, guide section "v0.6.1". Artifact 321.7 / 340 KB.

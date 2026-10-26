@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { useNow } from "../hooks/use-now";
+import { resolveLocale, toDate } from "../../comment-thread/lib/format-time";
 import type { PostPoll, PostPollOption } from "../types";
 
 export interface PollWidgetProps {
@@ -34,18 +36,28 @@ export interface PollWidgetProps {
   onVote?: (optionId: string) => void;
   labels: {
     pollHeading: string;
-    pollTotalVotesLabel: string;
-    pollClosesAtLabel: string;
+    /** `formatted` is the count in the card's locale. */
+    pollTotalVotesLabel: (count: number, formatted: string) => string;
+    pollClosesAtLabel: (time: string) => string;
     pollClosedLabel: string;
   };
   /** Relative-time formatter for the closesAt countdown. */
   formatRelativeTime?: (date: Date, now: Date) => string;
+  /** Count formatter for the total. Default: the plain number. */
+  formatCount?: (n: number) => string;
+  /**
+   * "Now" for the closed check and the countdown. Without it the widget reads the clock after
+   * mount (before that the poll counts as open and shows no countdown).
+   */
+  now?: Date;
+  /** BCP 47 locale of the percentages. Default "en". */
+  locale?: string;
+  /**
+   * A vote is in flight: the vote buttons stay (`aria-disabled`) and ignore taps, so a second tap
+   * cannot send a second vote.
+   */
+  busy?: boolean;
   className?: string;
-}
-
-function toDate(value: Date | string | number): Date {
-  if (value instanceof Date) return value;
-  return new Date(value);
 }
 
 function clampPct(n: number): number {
@@ -67,11 +79,9 @@ interface ResolvedOption extends PostPollOption {
  *     transition (Q-P17 / Q-P41 motion-reduce safe). Viewer's option is
  *     highlighted via accent ring.
  *
- * Optimistic vote per Q-D5 / Q-P32 — when `optimisticVoteOptionId` comes from
- * the local mirror (`optimisticIncrement === true`), the picked option's
- * displayed count + the displayed total both get +1 immediately. Host can
- * reject by calling `ref.current.reset(originalPost)`, which clears the
- * local mirror upstream.
+ * Optimistic vote: the card applies the vote to the shown post itself and passes
+ * `optimisticIncrement={false}`; `optimisticIncrement` remains for standalone use, where
+ * the caller wants the picked option's count + the total bumped by one.
  *
  * Multi-select polls are not supported — single-vote
  * behavior renders regardless of `poll.multiSelect` (not implemented).
@@ -86,12 +96,35 @@ export function PollWidget({
   onVote,
   labels,
   formatRelativeTime,
+  formatCount,
+  now: nowProp,
+  locale,
+  busy = false,
   className,
 }: PollWidgetProps) {
-  const now = new Date();
+  const now = useNow(nowProp);
+  const percent = useMemo(
+    () => new Intl.NumberFormat(resolveLocale(locale), { style: "percent", maximumFractionDigits: 0 }),
+    [locale],
+  );
   const closesDate = poll.closesAt ? toDate(poll.closesAt) : undefined;
-  const isClosed = !!(closesDate && closesDate.getTime() <= now.getTime());
+  const isClosed = !!(closesDate && now && closesDate.getTime() <= now.getTime());
   const showResults = isOwnerView || hasVoted || isClosed;
+
+  // Tapping a vote button unmounts it when the view flips to the results; focus moves to the
+  // poll group (a programmatic target only) instead of falling to <body>.
+  const groupRef = useRef<HTMLDivElement>(null);
+  const refocus = useRef(false);
+  useEffect(() => {
+    if (showResults) {
+      if (refocus.current) {
+        refocus.current = false;
+        groupRef.current?.focus();
+      }
+    } else if (!busy) {
+      refocus.current = false;
+    }
+  }, [showResults, busy]);
 
   const { resolvedOptions, displayedTotal } = useMemo(() => {
     const bumpedTotal =
@@ -113,23 +146,18 @@ export function PollWidget({
     return { resolvedOptions: resolved, displayedTotal: bumpedTotal };
   }, [poll, optimisticVoteOptionId, optimisticIncrement]);
 
-  // Closes-at line. Computed inline (not memoized) so the relative-time string
-  // refreshes whenever the parent re-renders. Memoization would freeze `now`
-  // on first render — same hydration / refresh convention as `formattedTime`
-  // in post-card.tsx.
+  // Closes-at line. Needs "now": before it is known (the server and the first client render)
+  // the poll counts as open and shows no countdown.
   let closesAtLine: string | undefined;
   if (isClosed) {
     closesAtLine = labels.pollClosedLabel;
-  } else if (closesDate && formatRelativeTime) {
-    closesAtLine = labels.pollClosesAtLabel.replace(
-      "{time}",
-      formatRelativeTime(closesDate, now),
-    );
+  } else if (closesDate && now && formatRelativeTime) {
+    closesAtLine = labels.pollClosesAtLabel(formatRelativeTime(closesDate, now));
   }
 
-  const totalVotesLine = labels.pollTotalVotesLabel.replace(
-    "{count}",
-    String(displayedTotal),
+  const totalVotesLine = labels.pollTotalVotesLabel(
+    displayedTotal,
+    formatCount ? formatCount(displayedTotal) : String(displayedTotal),
   );
 
   return (
@@ -140,6 +168,8 @@ export function PollWidget({
       )}
       role="group"
       aria-label={labels.pollHeading}
+      ref={groupRef}
+      tabIndex={-1}
     >
       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
         <span className="font-semibold text-foreground">{labels.pollHeading}</span>
@@ -172,7 +202,7 @@ export function PollWidget({
                   {opt.label}
                 </span>
                 <span className="relative shrink-0 tabular-nums text-xs text-muted-foreground">
-                  {Math.round(opt.pct)}%
+                  {percent.format(opt.pct / 100)}
                 </span>
               </div>
             </li>
@@ -184,12 +214,22 @@ export function PollWidget({
             <li key={opt.id}>
               <button
                 type="button"
-                onClick={onVote ? () => onVote(opt.id) : undefined}
+                onClick={
+                  onVote
+                    ? () => {
+                        if (busy) return;
+                        refocus.current = true;
+                        onVote(opt.id);
+                      }
+                    : undefined
+                }
                 disabled={!onVote}
+                aria-disabled={busy ? true : undefined}
                 className={cn(
                   "flex h-11 w-full items-center justify-start rounded-md border border-border bg-background px-3 text-sm font-medium",
                   "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  "disabled:cursor-not-allowed disabled:opacity-60",
+                  "disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60",
+                  "focus:outline-none",
                 )}
               >
                 <span className="min-w-0 truncate">{opt.label}</span>

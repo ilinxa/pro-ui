@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LikersStrip, defaultLikersStripLabels } from "../parts/likers-strip";
 import type { EngagementLikerProfile } from "../types";
@@ -50,7 +50,7 @@ describe("LikersStrip", () => {
     expect(screen.getByText("Beğenenler")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gizle" })).toBeInTheDocument();
     const pill = screen.getByRole("button", { name: /kişi daha \(1198\)/ });
-    expect(pill).toHaveTextContent("~99");
+    expect(pill).toHaveTextContent("~1.2K");
   });
 
   it("labels.loading and labels.loadMore", async () => {
@@ -252,11 +252,57 @@ describe("LikersStrip", () => {
       expect(screen.getByRole("button")).toBeInTheDocument();
     });
 
-    it("caps the pill text at 99 but not the aria count", () => {
+    it("shows the full (compact) count, so the visible text is part of the name", () => {
       render(<LikersStrip totalCount={500} likers={A} onLoadMore={async () => []} />);
       const pill = screen.getByRole("button");
-      expect(pill).toHaveTextContent("+99");
+      expect(pill).toHaveTextContent("+498");
       expect(pill).toHaveAttribute("aria-label", "+498 more");
+      expect(pill.getAttribute("aria-label")).toContain(pill.textContent ?? "");
+    });
+
+    it("a mouse press on the pill without dragging is a click (it loads more)", async () => {
+      const onLoadMore = vi.fn(async () => []);
+      const { container } = render(
+        <LikersStrip totalCount={500} likers={A} onLoadMore={onLoadMore} />,
+      );
+      const pill = screen.getByRole("button");
+      const strip = pill.closest("[class*='overflow-x']") ?? container.firstElementChild!;
+      const capture = vi.fn();
+      (strip as HTMLElement).setPointerCapture = capture;
+      fireEvent.pointerDown(pill, { pointerType: "mouse", pointerId: 1, clientX: 10 });
+      fireEvent.pointerMove(pill, { pointerType: "mouse", pointerId: 1, clientX: 11 });
+      fireEvent.pointerUp(pill, { pointerType: "mouse", pointerId: 1, clientX: 11 });
+      expect(capture).not.toHaveBeenCalled();
+      fireEvent.click(pill);
+      await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1));
+    });
+
+    it("a press released outside the strip does not start a drag when the pointer comes back", () => {
+      const { container } = render(
+        <LikersStrip totalCount={500} likers={A} onLoadMore={async () => []} />,
+      );
+      const pill = screen.getByRole("button");
+      const strip = pill.closest("[class*='overflow-x']") ?? container.firstElementChild!;
+      const capture = vi.fn();
+      (strip as HTMLElement).setPointerCapture = capture;
+      fireEvent.pointerDown(pill, { pointerType: "mouse", pointerId: 1, clientX: 10, buttons: 1 });
+      // released elsewhere: the next move over the strip has no button held
+      fireEvent.pointerMove(pill, { pointerType: "mouse", pointerId: 1, clientX: 60, buttons: 0 });
+      fireEvent.pointerMove(pill, { pointerType: "mouse", pointerId: 1, clientX: 90, buttons: 0 });
+      expect(capture).not.toHaveBeenCalled();
+    });
+
+    it("a real drag captures the pointer", () => {
+      const { container } = render(
+        <LikersStrip totalCount={500} likers={A} onLoadMore={async () => []} />,
+      );
+      const pill = screen.getByRole("button");
+      const strip = pill.closest("[class*='overflow-x']") ?? container.firstElementChild!;
+      const capture = vi.fn();
+      (strip as HTMLElement).setPointerCapture = capture;
+      fireEvent.pointerDown(pill, { pointerType: "mouse", pointerId: 1, clientX: 10, buttons: 1 });
+      fireEvent.pointerMove(pill, { pointerType: "mouse", pointerId: 1, clientX: 40, buttons: 1 });
+      expect(capture).toHaveBeenCalledWith(1);
     });
   });
 

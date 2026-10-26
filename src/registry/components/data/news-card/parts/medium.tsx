@@ -74,7 +74,7 @@ export function MediumPart(props: ResolvedPartProps) {
   } = props;
 
   const isEditorMode = viewerMode === "editor";
-  const showKebab = kebabItems.length > 0;
+  const showKebab = kebabItems.some((it) => !it.hidden);
   // State-group badges (top-right overlay): Breaking / Live / Pinned /
   // Sponsored / Status. Curation-group badges (Exclusive / Featured) render
   // as a kicker above the title — checked separately at the body where

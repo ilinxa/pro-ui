@@ -204,6 +204,9 @@ See [`news-card-procomp-description-v0.3.0.md`](./news-card-procomp-description-
 - `viewerMode === "editor"` → kebab shows Edit / Publish / Schedule / Feature / Pin / Change visibility / Change category / Mark sensitive / See analytics / Delete (gated by which handlers are wired + the permissions matrix)
 - `viewerMode === "viewer"` → kebab shows Bookmark / Share / Copy link / Translate / Report / Mute author / Block author / Unfollow topic
 
+Menu items use comment-thread's `CommentMenuItem`; since 0.4.5 an item with `hidden: true` is left out, and a menu
+whose items are all hidden renders no trigger.
+
 ### Permissions matrix
 
 Override the mode-derived defaults per action:

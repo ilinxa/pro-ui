@@ -44,15 +44,108 @@ import type {
   CommentThreadCurrentUser,
   CommentThreadLabels,
   CommentThreadHandle,
+  CommentThreadProps,
   Subscribe,
 } from "../comment-thread/types";
 import type {
   EngagementAction,
   EngagementBarHandle,
   EngagementBarLabels,
+  EngagementBarProps,
   EngagementDelta,
   EngagementLikerProfile,
+  EngagementReactionKind,
 } from "../engagement-bar/types";
+import type { LikersStripLabels } from "../engagement-bar/parts/likers-strip";
+import type { ShareMenuLabels } from "../engagement-bar/parts/share-menu";
+import type { ExpandableTextLabels } from "../expandable-text/types";
+
+/**
+ * The media carousel options the card forwards (`mediaProps`). Structurally a subset of
+ * `@ilinxa/media-carousel`'s props — inlined because cross-category TYPE imports do not survive
+ * the shadcn path rewriter. Keep in sync with media-carousel.
+ */
+export interface PostMediaProps {
+  /** Slide frame ratio. Default `"square"`. */
+  aspect?: "square" | "video" | "portrait" | "auto" | "natural-clamped";
+  /** `natural-clamped` lower bound (width / height). */
+  minRatio?: number;
+  /** `natural-clamped` upper bound (width / height). */
+  maxRatio?: number;
+  /** Gallery peek ratio per side. */
+  peekRatio?: number;
+  loop?: boolean;
+  showIndicators?: boolean;
+  showNavButtons?: boolean | "fine-pointer";
+  showCounter?: boolean;
+  /** A built-in image / video failed to load: resolve a fresh URL to retry once. */
+  onMediaError?: (item: PostMediaItem) => Promise<string | void> | string | void;
+  /** Carousel labels (media-carousel's `MediaCarouselLabels`). */
+  labels?: {
+    carouselLabel?: string;
+    previousSlide?: string;
+    nextSlide?: string;
+    goToSlide?: string | ((position: number) => string);
+    slideAriaLabel?: string | ((position: number, total: number) => string);
+    counter?: (position: number, total: number, format: (n: number) => string) => string;
+    carouselRoleDescription?: string;
+    slideRoleDescription?: string;
+  };
+  className?: string;
+  slideClassName?: string;
+}
+
+/** The engagement-bar options the card forwards (`engagementBarProps`). */
+export type PostEngagementBarProps = Pick<
+  EngagementBarProps,
+  | "formatCount"
+  | "optimistic"
+  | "likersPreview"
+  | "reactionsPreview"
+  | "trailing"
+  | "onReactionPickerOpenChange"
+  | "className"
+  | "actionClassName"
+>;
+
+/**
+ * Reactions for the post (`reactions` prop). With it, the default actions show a reaction picker
+ * in place of the like, and double-tap applies `defaultKind` when the viewer has no reaction yet.
+ * The `Post` shape does not change.
+ */
+export interface PostReactions {
+  /** Ordered reaction catalog (icon + label per key). */
+  kinds: EngagementReactionKind[];
+  /**
+   * The viewer's reaction key, or `null`. Passing it (string or `null`) controls the reaction:
+   * it, `counts` and `totalCount` win on every render. Omit it for an uncontrolled picker.
+   */
+  viewerReaction?: string | null;
+  /** Per-kind tallies (merged into `kinds[].count`). A `null` tally is withheld. */
+  counts?: Record<string, number | null>;
+  /** Total across kinds. `null` withholds it. */
+  totalCount?: number | null;
+  /** Pick (or clear, `null`). Return a promise: a rejection rolls the change back. */
+  onReact?: (postId: string, reaction: string | null) => void | Promise<unknown>;
+  /** Kind double-tap applies. Default: the first of `kinds`. */
+  defaultKind?: string;
+  /** Tap with a reaction set clears it (`true`, default) or opens the picker (`false`). */
+  clearOnTap?: boolean;
+}
+
+/** What changed, reported with the next post to `onPostChange` (controlled mode), once accepted. */
+export type PostChange =
+  | { kind: "like"; liked: boolean }
+  | { kind: "bookmark"; bookmarked: boolean }
+  | { kind: "poll-vote"; optionId: string }
+  | { kind: "delta"; delta: EngagementDelta };
+
+/** Helpers `renderHeader` receives. */
+export interface PostHeaderRenderHelpers {
+  currentUser?: CommentThreadCurrentUser;
+  /** The default actions menu (trigger + items), or `null` when there are no items. Place it anywhere. */
+  kebab: ReactNode;
+}
 
 export type PostCardVariant = "feed" | "compact" | "list" | "detail";
 
@@ -147,6 +240,11 @@ export interface PostPermissions {
    * moderators must be opted in explicitly by the host's permission resolver.
    */
   canModerate?: boolean;
+  /**
+   * Actions that stay visible but cannot be used: their kebab items render disabled. Works in
+   * role-aware mode and in the legacy handler-driven mode.
+   */
+  disabled?: Partial<Record<PostPermissionAction, boolean>>;
 }
 
 /**
@@ -214,9 +312,8 @@ export interface PostPollOption {
 
 /**
  * Inline poll on the post body. Viewer sees vote buttons; owner sees live
- * results. Optimistic vote flow per Q-D5 lock — host calls `onVotePoll`,
- * library flips local-mirror immediately, host reverts via `ref.current.reset()`
- * on failure.
+ * results. Optimistic vote: the card shows the vote at once and calls `onVotePoll`;
+ * a returned promise that rejects rolls it back (controlled: reported once accepted).
  */
 export interface PostPoll {
   options: PostPollOption[];
@@ -318,12 +415,15 @@ export interface Post {
   poll?: PostPoll;
 }
 
-/** Engagement-action handlers only — comment handlers stay separate. */
+/**
+ * Engagement-action handlers only — comment handlers stay separate. `onLike` / `onBookmark` may
+ * return a promise: the change shows at once and a rejection rolls it back (`optimistic`).
+ */
 export interface PostHandlers {
-  onLike?: (postId: string, nextLiked: boolean) => void;
+  onLike?: (postId: string, nextLiked: boolean) => void | Promise<unknown>;
   onComment?: (postId: string) => void;
   onShare?: (postId: string) => void;
-  onBookmark?: (postId: string, nextBookmarked: boolean) => void;
+  onBookmark?: (postId: string, nextBookmarked: boolean) => void | Promise<unknown>;
 }
 
 export interface PostCardLabels {
@@ -336,8 +436,11 @@ export interface PostCardLabels {
   commentsHeading?: string;
   /** Inline likers panel heading. Default "Likes". */
   likersHeading?: string;
-  /** Likers panel "+N" pill aria-label template; `{count}` is replaced. Default "+{count} more". */
-  likersMoreLabel?: string;
+  /**
+   * Likers panel "+N" pill accessible name. `formatted` is the count in `locale`.
+   * Default `` (_, f) => `+${f} more` ``. (A string template before 0.6.0.)
+   */
+  likersMoreLabel?: (count: number, formatted: string) => string;
   /** Inline panel "Hide" button label. Default "Hide". */
   hidePanelLabel?: string;
   /** Share panel heading. Default "Share with…". */
@@ -346,9 +449,28 @@ export interface PostCardLabels {
   shareSearchPlaceholder?: string;
   /** Share panel empty-state. Default "No matches." */
   shareEmptyLabel?: string;
+  /** @deprecated Use the card's `formatRelativeTime` prop. Still honoured when the prop is not set. */
   formatRelativeTime?: (date: Date, now: Date) => string;
   engagementLabels?: EngagementBarLabels;
   commentLabels?: CommentThreadLabels;
+  /** Nested: the inline likers panel (LikersStrip). Wins over `likersHeading` / `likersMoreLabel` / `hidePanelLabel`. */
+  likersLabels?: Partial<LikersStripLabels>;
+  /** Nested: the inline share panel (ShareMenu). Wins over the `share*` keys and `hidePanelLabel`. */
+  shareLabels?: Partial<ShareMenuLabels>;
+  /** Nested: the body's "Show more" / "Show less" toggle (ExpandableText). */
+  textLabels?: ExpandableTextLabels;
+
+  // ─── 0.6.0 ───
+  /** Name of the post's actions menu. Default "Post actions". */
+  kebabAriaLabel?: string;
+  /** List variant meta: likes. Default `` (n, f) => `${f} ${n === 1 ? "like" : "likes"}` ``. */
+  listLikes?: (count: number, formatted: string) => string;
+  /** List variant meta: comments. Default `` (n, f) => `${f} ${n === 1 ? "comment" : "comments"}` ``. */
+  listComments?: (count: number, formatted: string) => string;
+  /** List variant meta: shares. Default `` (n, f) => `${f} ${n === 1 ? "share" : "shares"}` ``. */
+  listShares?: (count: number, formatted: string) => string;
+  /** Name of the quoted (repost) mini-card's link. Default `` (name) => `Open ${name}'s post` ``. */
+  openRepost?: (authorName: string) => string;
 
   // ─── v0.2.0 kebab labels (role-aware items) ───
 
@@ -409,20 +531,30 @@ export interface PostCardLabels {
 
   /** Poll widget heading. Default "Poll". */
   pollHeading?: string;
-  /** Poll "X votes" pluralization template; `{count}` is replaced. Default "{count} votes". */
-  pollTotalVotesLabel?: string;
-  /** Poll countdown text when active; `{time}` is replaced with relative time. Default "Closes {time}". */
-  pollClosesAtLabel?: string;
+  /**
+   * Poll total. `formatted` is the count in `locale`.
+   * Default `` (n, f) => `${f} ${n === 1 ? "vote" : "votes"}` ``. (A `{count}` template before 0.6.0.)
+   */
+  pollTotalVotesLabel?: (count: number, formatted: string) => string;
+  /** Poll countdown while open; `time` is the relative time. Default `` (t) => `Closes ${t}` ``. (A `{time}` template before 0.6.0.) */
+  pollClosesAtLabel?: (time: string) => string;
   /** Poll countdown text when closed. Default "Poll closed". */
   pollClosedLabel?: string;
 }
 
-export const DEFAULT_POST_CARD_LABELS: Required<
-  Omit<
-    PostCardLabels,
-    "formatRelativeTime" | "engagementLabels" | "commentLabels"
-  >
-> = {
+/** The nested and deprecated keys — everything else in {@link PostCardLabels} is resolved. */
+export type PostCardNestedLabelKeys =
+  | "formatRelativeTime"
+  | "engagementLabels"
+  | "commentLabels"
+  | "likersLabels"
+  | "shareLabels"
+  | "textLabels";
+
+/** Fully-resolved flat labels (what parts receive). */
+export type ResolvedPostCardLabels = Required<Omit<PostCardLabels, PostCardNestedLabelKeys>>;
+
+export const defaultPostCardLabels: ResolvedPostCardLabels = {
   verifiedBadgeLabel: "Verified account",
   bookmark: "Bookmark",
   unbookmark: "Remove bookmark",
@@ -431,7 +563,7 @@ export const DEFAULT_POST_CARD_LABELS: Required<
   report: "Report",
   commentsHeading: "Comments",
   likersHeading: "Likes",
-  likersMoreLabel: "+{count} more",
+  likersMoreLabel: (_, f) => `+${f} more`,
   hidePanelLabel: "Hide",
   shareHeading: "Share with…",
   shareSearchPlaceholder: "Search people…",
@@ -461,15 +593,76 @@ export const DEFAULT_POST_CARD_LABELS: Required<
   sensitiveHeading: "Sensitive content",
   sensitiveRevealLabel: "Show",
   pollHeading: "Poll",
-  pollTotalVotesLabel: "{count} votes",
-  pollClosesAtLabel: "Closes {time}",
+  pollTotalVotesLabel: (n, f) => `${f} ${n === 1 ? "vote" : "votes"}`,
+  pollClosesAtLabel: (t) => `Closes ${t}`,
   pollClosedLabel: "Poll closed",
+  kebabAriaLabel: "Post actions",
+  listLikes: (n, f) => `${f} ${n === 1 ? "like" : "likes"}`,
+  listComments: (n, f) => `${f} ${n === 1 ? "comment" : "comments"}`,
+  listShares: (n, f) => `${f} ${n === 1 ? "share" : "shares"}`,
+  openRepost: (name) => `Open ${name}'s post`,
 };
+
+/** @deprecated Use {@link defaultPostCardLabels}. */
+export const DEFAULT_POST_CARD_LABELS = defaultPostCardLabels;
 
 export interface PostCardProps extends PostHandlers, PostMutationHandlers {
   variant: PostCardVariant;
+  /**
+   * The post. Without `onPostChange` it is read once, at mount (use the handle's `reset(next)` to
+   * push updates). With `onPostChange` it is controlled: it wins on every render, optimistic
+   * like / bookmark / poll vote show over it while their promise is in flight, and accepted
+   * changes are reported, not applied.
+   */
   post: Post;
+  /** Makes `post` controlled. Called with the next post and what changed, once a change is accepted. */
+  onPostChange?: (next: Post, change: PostChange) => void;
+  /**
+   * Show like / bookmark / poll vote at once while their promise is in flight (default `true`).
+   * A rejection rolls it back; only the latest request per action decides.
+   */
+  optimistic?: boolean;
   currentUser?: CommentThreadCurrentUser;
+
+  // ─── 0.6.0 ───
+
+  /** Reactions in place of the like; see {@link PostReactions}. */
+  reactions?: PostReactions;
+  /** Link for the author's avatar and name (rendered with `linkComponent`). */
+  getAuthorHref?: (author: PostAuthor, post: Post) => string | undefined;
+  /** Extra line under the author's name (e.g. "Sponsored", a role). */
+  subtitle?: ReactNode | ((post: Post) => ReactNode);
+  /** Notice above the content (e.g. "Under review"). Return `null` for none. */
+  noticeSlot?: (post: Post) => ReactNode;
+  /** Items appended to the end of the default actions menu (not gated by `canModerate`). */
+  extraKebabActions?: (post: Post) => CommentMenuItem[];
+  /** BCP 47 locale for times, counts and every composed child. Default `"en"`. */
+  locale?: string;
+  /** Time zone for absolute dates (the edited tooltip). Default: the runtime's. */
+  timeZone?: string;
+  /**
+   * "Now" for relative times and the poll's closed check. Without it the card reads the clock
+   * after mount (no relative text renders on the server or the first client render) and again
+   * every minute.
+   */
+  now?: Date;
+  /**
+   * Relative-time formatter. Default: English "5m" / "2h" for `"en"`, `Intl.RelativeTimeFormat`
+   * otherwise. Also called with a FUTURE date — the poll's closing time ("in 3d") — so handle both.
+   */
+  formatRelativeTime?: (date: Date, now: Date) => string;
+  /** Count formatter for every count the card renders (list meta, poll total, likers pill) and the bar / thread unless they get their own. Default `Intl.NumberFormat(locale, { notation: "compact" })`. */
+  formatCount?: (n: number) => string;
+  /** Media carousel options; see {@link PostMediaProps}. */
+  mediaProps?: PostMediaProps;
+  /** Engagement bar options; see {@link PostEngagementBarProps}. */
+  engagementBarProps?: PostEngagementBarProps;
+  /**
+   * Anything else for the comment thread (cursor paging, `onLoadReplies`, `onCommentsChange`,
+   * `moderation`, `extraActions`, reactions…). The card's own comment props (`onAddComment`,
+   * `commentActions`, …) win over the same keys here when they are defined.
+   */
+  commentThreadProps?: Omit<Partial<CommentThreadProps>, "comments">;
 
   // ─── v0.2.0 role-aware mode (opt-in per Q-D1 lock) ───
 
@@ -493,8 +686,8 @@ export interface PostCardProps extends PostHandlers, PostMutationHandlers {
 
   // ─── v0.2.0 schema-expansion render handlers ───
 
-  /** Fired when the viewer taps a poll option (optimistic flow). */
-  onVotePoll?: (postId: string, optionId: string) => void;
+  /** Fired when the viewer taps a poll option (optimistic; return a promise to roll back on reject). */
+  onVotePoll?: (postId: string, optionId: string) => void | Promise<unknown>;
   /** Fired when the viewer dismisses the sensitive-media gate. Analytics hook. */
   onRevealSensitive?: (postId: string) => void;
   /** Fired when the kebab "Translate" item is tapped (visible only if `post.language` is set). */
@@ -510,15 +703,16 @@ export interface PostCardProps extends PostHandlers, PostMutationHandlers {
   /** Fired when the nested repost mini-card is tapped. Overrides the default `getHref(repostOf)` navigation. */
   onRepostOfClick?: (originalPost: Post) => void;
 
+  /**
+   * The comments for the thread. Read once by the thread, even when `post` is controlled — to make
+   * it controlled too, pass `commentThreadProps.onCommentsChange`.
+   */
   commentThread?: Comment[];
   commentPageSize?: number;
 
-  onAddComment?: (
-    content: string,
-    parentId?: string,
-  ) => Promise<Comment | void> | Comment | void;
-  onLikeComment?: (commentId: string, nextLiked: boolean) => void;
-  onDeleteComment?: (commentId: string) => void;
+  onAddComment?: CommentThreadProps["onAddComment"];
+  onLikeComment?: CommentThreadProps["onLikeComment"];
+  onDeleteComment?: CommentThreadProps["onDeleteComment"];
   onReportComment?: (commentId: string) => void;
   onLoadMoreComments?: (page: number) => Promise<Comment[]>;
   onCopyLink?: (postId: string) => void;
@@ -561,10 +755,8 @@ export interface PostCardProps extends PostHandlers, PostMutationHandlers {
   /** Auto-open the likers panel on like (matches kasder). Default true under inline mode. */
   openLikersOnLike?: boolean;
 
-  renderHeader?: (
-    post: Post,
-    helpers: { currentUser?: CommentThreadCurrentUser },
-  ) => ReactNode;
+  /** Full takeover for the header. `helpers.kebab` is the default actions menu, so it can survive. */
+  renderHeader?: (post: Post, helpers: PostHeaderRenderHelpers) => ReactNode;
   renderContent?: (post: Post) => ReactNode;
   renderMedia?: (
     media: MediaItem[],
@@ -662,7 +854,7 @@ export interface PostCardHandle {
   triggerLike: () => void;
   /** Read the current local mirror state (post + engagement deltas applied). */
   getCurrentPost: () => Post;
-  /** Replace the post (re-derives local engagement mirror; clears pollVote + sensitiveRevealed). */
+  /** Replace the post (uncontrolled) and clear overlays, the poll vote and the sensitive reveal (both modes). */
   reset: (next: Post) => void;
   getEngagementHandle: () => EngagementBarHandle | null;
   getThreadHandle: () => CommentThreadHandle | null;
@@ -684,9 +876,9 @@ export interface PostCardHandle {
   /** Sets local `sensitiveRevealed=true` (clears the gate) + fires `onRevealSensitive` if wired. */
   revealSensitive: () => void;
   /**
-   * Optimistic poll vote — sets local `pollVote = { optionId, votedAt }` + fires
-   * `onVotePoll(post.id, optionId)` if wired. Host can reject by calling `reset(originalPost)`,
-   * which clears the local pollVote alongside the rest of the mirror.
+   * Optimistic poll vote — applies the vote to the shown post (`poll.hasVoted`,
+   * `viewerVoteOptionId`, the totals) and fires `onVotePoll(post.id, optionId)` if wired. A
+   * returned promise that rejects rolls it back; controlled mode reports it once accepted.
    */
   votePoll: (optionId: string) => void;
 }

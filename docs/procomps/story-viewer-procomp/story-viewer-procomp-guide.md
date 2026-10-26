@@ -24,6 +24,14 @@
 5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
 6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
 
+## v0.6.1 — reply failures (on comment-thread 0.4.0)
+
+The reply box is comment-thread's `CommentComposer`. Since comment-thread 0.4.0 a rejected `onAddReply` no longer
+escapes as an unhandled rejection: the typed text stays, `labels.replyFailed` (default "Couldn't send your reply. Try
+again."; `labels.commentLabels.postFailed` wins when set) shows under the box as a media scrim, and the story stays
+paused while the draft is there. A successful send clears both. Install story-viewer and comment-thread together
+(`shadcn add` fetches comment-thread with it); story-viewer 0.6.1 needs comment-thread ≥ 0.4.0.
+
 ## v0.6.0 — host-resolved media, controlled stories, pause reasons (breaking)
 
 ### Media you resolve

@@ -8,11 +8,12 @@ import {
   CommentComposer,
   type CommentComposerHandle,
 } from "@/registry/components/data/comment-thread/parts/comment-composer";
-import type {
-  ResolvedStoryViewer01Labels,
-  Story,
-  StoryCurrentUser,
-  StoryItem,
+import {
+  DEFAULT_STORY_VIEWER_LABELS,
+  type ResolvedStoryViewer01Labels,
+  type Story,
+  type StoryCurrentUser,
+  type StoryItem,
 } from "../types";
 
 export interface ReplyComposerProps {
@@ -140,7 +141,14 @@ function ReplyComposerInner(props: ReplyComposerProps) {
         ref={composerRef}
         currentUser={currentUser}
         value={text}
-        placeholder={labels.replyComposerPlaceholder(story)}
+        // An explicit `replyComposerPlaceholder` wins; the nested comment-thread label applies
+        // while the story label is still the default (0.6.1 — it had no effect at all).
+        placeholder={
+          labels.replyComposerPlaceholder === DEFAULT_STORY_VIEWER_LABELS.replyComposerPlaceholder &&
+          labels.commentLabels?.composerPlaceholder !== undefined
+            ? labels.commentLabels.composerPlaceholder
+            : labels.replyComposerPlaceholder(story)
+        }
         onChange={handleChange}
         onSubmit={handleSubmit}
         // v0.3.3: Cancel button removed per UX feedback — Instagram-canonical
@@ -168,12 +176,17 @@ function ReplyComposerInner(props: ReplyComposerProps) {
                 composerPlaceholder: labels.commentLabels.composerPlaceholder,
                 composerSend: labels.commentLabels.composerSend ?? labels.replyComposerSend,
                 composerCancel: labels.commentLabels.composerCancel ?? labels.replyComposerCancel,
+                postFailed: labels.commentLabels.postFailed ?? labels.replyFailed,
               }
             : {
                 composerSend: labels.replyComposerSend,
                 composerCancel: labels.replyComposerCancel,
+                postFailed: labels.replyFailed,
               }
         }
+        // 0.6.1 (comment-thread 0.4.0): a rejected `onAddReply` keeps the text and shows the
+        // composer's alert; styled as a media scrim so it reads over a bright photo.
+        errorClassName="mt-1 w-fit rounded-md bg-media-overlay/80 px-2 py-0.5 text-xs text-media-overlay-foreground"
       />
     </div>
   );

@@ -1,6 +1,7 @@
 # post-card — consumer guide
 
-> Stage 3: how to use it. Updated for v0.1.1 (inline panels default-on, share menu, swipable likers, kasder slide layout).
+> Stage 3: how to use it. Current for **v0.6.0**: read the "v0.6.0 — consumer contract" section at the end first; the
+> earlier sections still hold unless that section says otherwise.
 >
 > See [`post-card-procomp-description.md`](./post-card-procomp-description.md) for what & why,
 > and [`post-card-procomp-plan.md`](./post-card-procomp-plan.md) for the implementation contract.
@@ -11,7 +12,7 @@
 
 **Three rules:**
 
-1. **`post` prop is mount-only initial state.** Subsequent prop reference changes are IGNORED. Use `ref.current.reset(next)` to push external updates.
+1. **`post` is mount-only — unless you pass `onPostChange`.** With it, `post` is controlled (it wins on every render; accepted changes are reported). Without it, use `ref.current.reset(next)` to push external updates.
 2. **`variant` is required.** Choose: `feed` / `compact` / `list` / `detail`.
 3. **Inline panels are the default** — tap heart to like, tap count to open likers; tap comment for inline thread; tap share for searchable user list. Pass `engagementMode="navigate"` to deactivate.
 
@@ -21,7 +22,7 @@
 pnpm dlx shadcn@latest add @ilinxa/post-card
 ```
 
-Auto-pulls all 5 Tier-1 social siblings + 6 shadcn primitives (`avatar`, `button`, `card`, `dropdown-menu`, `input`, `popover`). Third cross-folder dependency precedent in pro-ui after `media-carousel → video-player` and `comment-thread → expandable-text + engagement-bar`.
+Auto-pulls all 5 Tier-1 social siblings + the shadcn primitives `avatar`, `button`, `card`, `dropdown-menu` (and, through engagement-bar, `input` / `popover`). Third cross-folder dependency precedent in pro-ui after `media-carousel → video-player` and `comment-thread → expandable-text + engagement-bar`.
 
 For fixtures (sandbox demos):
 
@@ -117,7 +118,7 @@ const commentSubscribe = useCallback<Subscribe<CommentDelta>>(
 ```
 
 The two subscribe props are **separate and parallel**:
-- `engagementSubscribe` is owned by post-card; deltas patch the local mirror + fire `onSubscribeEngagementDelta`.
+- `engagementSubscribe` is owned by post-card; deltas patch the shown post (controlled: reported through `onPostChange`) + fire `onSubscribeEngagementDelta`.
 - `commentSubscribe` forwards directly to `<CommentThread>` (detail variant's permanent thread, OR feed/compact's inline panel when opened).
 
 Memoize both via `useCallback` over stable channel references — identity changes trigger clean teardown + re-call.
@@ -169,7 +170,7 @@ import { Wand2 } from "lucide-react";
 />
 ```
 
-The `handlers` you receive in the `engagementActions` slot are **pre-wrapped** — calling `h.onLike(id, true)` updates the local mirror first, then fires your host's `onLike`. You don't need to know about the mirror.
+The `handlers` you receive in the `engagementActions` slot are **pre-wrapped** — calling `h.onLike(id, true)` calls your host's `onLike` and applies the change to the shown post (at once for a sync handler; as an overlay while a returned promise is in flight).
 
 `defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?)` accepts an optional fourth arg. When the card is in inline mode it supplies its own `onLikeCountClick` to wire the count→panel toggle. Hosts overriding the slot get a no-op for that arg unless they explicitly opt in.
 
@@ -226,7 +227,7 @@ interface PostCardHandle {
 Common patterns:
 
 - **Programmatic like + burst** from a feed-level keyboard shortcut: `ref.current?.triggerLike()` (canonical "Instagram tap").
-- **Double-tap semantics** (media double-tap, v0.5.1): never removes a like. Unliked → likes + heart burst; already liked → burst only; no like applicable (the `engagementActions` slot omitted `like`, or `renderEngagementBar` replaced the bar) → no burst. Burst still requires `onLike` (heart-burst wiring). The handle's `triggerLike()` is a true toggle (unlike is possible) and bursts only on the liked result.
+- **Double-tap semantics** (media double-tap, v0.5.1): never removes a like. Unliked → likes + heart burst; already liked → burst only; no like applicable (the `engagementActions` slot omitted `like`, or `renderEngagementBar` replaced the bar) → no burst. Burst requires `onLike` (or `reactions.onReact` when `reactions` is set). The handle's `triggerLike()` is a true toggle (unlike is possible) and bursts only on the liked result.
 - **Surgical engagement-bar control** without burst: `ref.current?.getEngagementHandle()?.triggerLike()`.
 - **Push external state**: `ref.current?.reset(updatedPost)`.
 - **Read current mirrored state** (post + engagement deltas applied): `ref.current?.getCurrentPost()`.
@@ -257,13 +258,12 @@ const TR_LABELS: PostCardLabels = {
   commentsHeading: "Yorumlar",
   // inline panels
   likersHeading: "Beğenenler",
-  likersMoreLabel: "+{count} kişi daha",
+  likersMoreLabel: (count, formatted) => `+${formatted} kişi daha`, // a function since 0.6.0
   shareHeading: "Şununla paylaş…",
   shareSearchPlaceholder: "Kişi ara…",
   shareEmptyLabel: "Eşleşme yok.",
   hidePanelLabel: "Gizle",
-  // formatters
-  formatRelativeTime: (date, now) => formatDistanceToNow(date, { addSuffix: true, locale: tr }),
+  // since 0.6.0: pass locale="tr" on the card for Turkish relative times (or the formatRelativeTime prop)
   // forwarded
   engagementLabels: { /* engagement-bar labels */ },
   commentLabels: { /* comment-thread labels */ },
@@ -272,7 +272,7 @@ const TR_LABELS: PostCardLabels = {
 <PostCard labels={TR_LABELS} {...rest} />
 ```
 
-`DEFAULT_POST_CARD_LABELS` exported for spread + override. `labels.engagementLabels` and `labels.commentLabels` are forwarded straight to the child components — same shapes they accept directly.
+`defaultPostCardLabels` exported for spread + override (`DEFAULT_POST_CARD_LABELS` is its deprecated alias). `labels.engagementLabels` and `labels.commentLabels` are forwarded straight to the child components — same shapes they accept directly.
 
 ## Accessibility
 
@@ -282,7 +282,7 @@ const TR_LABELS: PostCardLabels = {
 - Heart-burst is `aria-hidden="true"` (decorative — like state announces via `aria-pressed` on the bar's like action, inherited from engagement-bar).
 - Carousel a11y inherits from `<MediaCarousel>`.
 - Detail variant has `<h3>` for the comments section heading (default "Comments", configurable via `labels.commentsHeading`).
-- Overlay-link in feed/compact/list has `aria-label={post.content.slice(0, 80)}` for screen-reader announcement.
+- Overlay-link in feed/compact/list is named by the start of the post (`post.content.slice(0, 80)`; compact: 60 characters).
 - Likers strip uses `role="list"` + `role="listitem"`; hide button is a real `<button>`.
 - Share panel uses `role="list"` + `role="status"` for the empty-state.
 
@@ -447,7 +447,7 @@ Every field is optional — v0.1 consumers' narrower `Post` shapes still satisfy
 
 ## Sensitive-media gate
 
-When `post.isSensitive === true`, the media block renders behind a backdrop-blur overlay with a "Show" button. Viewer tap fires `onRevealSensitive(postId)` (analytics hook) and flips the local mirror `sensitiveRevealed` to `true`. The gate is per-post, not per-`MediaItem`.
+When `post.isSensitive === true`, the media block renders behind a backdrop-blur overlay with a "Show" button. Viewer tap fires `onRevealSensitive(postId)` (analytics hook) and reveals the media (the reveal resets on `ref.current.reset()` and when a controlled `post` switches to another id). The gate is per-post, not per-`MediaItem`.
 
 - Wired in feed + detail variants only (per description §1.3). Compact + list ignore.
 - Host can opt out via `disableSensitiveGate` or take over the render via `renderSensitiveGate?(post, { onReveal })`.
@@ -457,7 +457,7 @@ When `post.isSensitive === true`, the media block renders behind a backdrop-blur
 
 Renders below content + above any link-preview. Two views:
 
-- **Vote view** — viewer hasn't voted yet + poll not closed. List of vote buttons (`h-11` per WCAG 2.5.5). Tap fires `onVotePoll(postId, optionId)` + optimistically flips the local mirror.
+- **Vote view** — viewer hasn't voted yet + poll not closed. List of vote buttons (`h-11` per WCAG 2.5.5). Tap fires `onVotePoll(postId, optionId)` and shows the vote at once (rolled back if the returned promise rejects).
 - **Results view** — owner OR voted OR closed. Bar chart with `transition-[width]` (motion-reduce safe). Viewer's option highlighted via `ring-1 ring-primary`.
 
 ```tsx
@@ -468,7 +468,7 @@ Renders below content + above any link-preview. Two views:
 />
 ```
 
-Optimistic vote semantics: the library increments the picked option's `voteCount` + the displayed total immediately. Host can **reject** by calling `ref.current.reset(originalPost)` — that clears the local mirror so the bars roll back to the server-resolved counts.
+Optimistic vote semantics: the vote is applied to the shown post at once (`hasVoted`, the picked option's `voteCount`, the total). Since 0.6.0, return a promise from `onVotePoll`: a rejection rolls the vote back (controlled mode reports an accepted vote through `onPostChange`). `ref.current.reset(originalPost)` still clears it.
 
 **Multi-select polls** (`poll.multiSelect: true`) currently render the same single-vote UI. Multi-select behavior is not implemented.
 
@@ -553,7 +553,7 @@ interface PostCardHandle {
 
 Triggers bypass the permission matrix — the matrix gates the UI, the handle is the programmatic escape hatch. If the corresponding handler isn't wired, the method is a no-op.
 
-`reset(next)` clears the local mirror including v0.2.0 fields (`pollVote`, `sensitiveRevealed`).
+`reset(next)` replaces the post (uncontrolled) and clears overlays, the poll vote and the sensitive reveal (both modes).
 
 ## Sub-exports
 
@@ -567,7 +567,7 @@ import {
   defaultPostEngagementActions,
   defaultPostKebabActions,
   LikersStrip, ShareMenu, // v0.2.0 — re-exported from engagement-bar for soft-compat
-} from "@ilinxa/post-card";
+} from "@/components/post-card";
 ```
 
 `LinkPreviewCard` and `SensitiveGate` are NOT sub-exported in v0.2.0 — flagged as potential v0.2.x consistency follow-ups (the asymmetry is documented in the GATE 3 review).
@@ -577,3 +577,108 @@ import {
 - **List variant image — width shrink.** The list-thumb column dropped at every breakpoint to give the text column more room on narrow containers (sidebar / column / true mobile). Before: `w-20 sm:w-28 md:w-32 lg:w-40`; after: `w-16 sm:w-20 md:w-24 lg:w-28`. `self-stretch` preserved — the image still spans the full card height. No public-API change, no demo behavior change.
 
 
+# v0.6.0 — consumer contract (2026-10-26)
+
+Ships with comment-thread 0.4.0 (its new props reach the thread through `commentThreadProps`). The change contract is
+in [`post-card-loop.md`](./post-card-loop.md) ("Run — Part 3" and "release 5").
+
+## Migration from 0.5.x — the breaking part
+
+Three labels that were `{count}` / `{time}` templates are functions (a template cannot pluralise):
+
+| Label | 0.5.x | 0.6.0 |
+|---|---|---|
+| `likersMoreLabel` | `"+{count} more"` | ``(count, formatted) => `+${formatted} more` `` |
+| `pollTotalVotesLabel` | `"{count} votes"` | ``(count, formatted) => `${formatted} ${count === 1 ? "vote" : "votes"}` `` |
+| `pollClosesAtLabel` | `"Closes {time}"` | ``(time) => `Closes ${time}` `` |
+
+`formatted` is the count in `locale`. Also changed: relative times render **after mount** (or at once with `now`), so
+the server and the first client render agree; a poll closing in the future reads "Closes in 3d" (it read "Closes Just
+now"); handlers `onLike` / `onBookmark` / `onVotePoll` may return promises (rolled back on reject); LikersStrip and
+ShareMenu now get `labels` + `locale` (the card no longer passes their deprecated props). Requires comment-thread 0.4.0
+(installed with the card).
+
+## Controlled `post`
+
+```tsx
+const [post, setPost] = useState(initial);
+
+<PostCard
+  variant="feed"
+  post={post}
+  onPostChange={(next, change) => setPost(next)}
+  onLike={(id, liked) => api.like(id, liked)}         // a promise: shown at once, rolled back on reject
+  onBookmark={(id, saved) => api.bookmark(id, saved)}
+/>
+```
+
+- `post` wins on every render. Like / bookmark / poll vote show at once while their promise is in flight and are
+  **reported once accepted** (`onPostChange(next, { kind: "like" | "bookmark" | "poll-vote" | "delta" })`); a rejection
+  drops the change and reports nothing. A handler that returns nothing is reported at once and shows when your prop
+  changes. Only the latest request per action decides.
+- Realtime `engagementSubscribe` deltas: uncontrolled → applied; controlled → reported (`{ kind: "delta" }`).
+- Uncontrolled (no `onPostChange`): today's mount-only mirror, which now also rolls back a rejected promise.
+- `optimistic={false}` shows only settled values. `ref.current.reset(next)` clears overlays in both modes.
+
+## Reactions
+
+```tsx
+<PostCard
+  variant="feed"
+  post={post}
+  reactions={{
+    kinds: [{ key: "love", icon: <Heart />, label: "Love" }, { key: "haha", icon: "😂", label: "Haha" }],
+    viewerReaction: myReactions[post.id] ?? null, // your own data — pass it (string or null) to control the picker
+    counts: reactionCounts[post.id],
+    totalCount: reactionTotals[post.id],
+    onReact: (id, kind) => api.react(id, kind),
+    defaultKind: "love",                        // what double-tap applies
+  }}
+/>
+```
+
+The reaction picker replaces the like in the default actions. Double-tap on media applies `defaultKind` (default: the
+first kind) when no reaction is set and plays the burst once; with a reaction set it only bursts; it never clears one.
+The `Post` shape does not change.
+
+## Header
+
+```tsx
+<PostCard
+  variant="feed"
+  post={post}
+  linkComponent={Link}
+  getAuthorHref={(author) => `/u/${author.username}`}
+  subtitle={(p) => (p.id === sponsoredId ? "Sponsored" : null)}
+  noticeSlot={(p) => (underReview.has(p.id) ? <Notice>Under review</Notice> : null)}
+  extraKebabActions={(p) => [{ label: "Copy text", onClick: () => copy(p.content) }]}
+  permissions={{ disabled: { share: !online } }}
+  renderHeader={(p, { kebab }) => <MyHeader post={p} actions={kebab} />}
+/>
+```
+
+- `getAuthorHref` makes the avatar and the name links (above the card's overlay link; the avatar link is hidden from
+  the tab order and screen readers — the name link is the accessible one).
+- `renderHeader` now receives the default actions menu as `kebab`, so it survives a custom header.
+- `extraKebabActions` is appended after the default items (not gated by `canModerate`; ignored when `kebabActions`
+  takes over). Menu items honour `hidden`; `permissions.disabled[action]` renders that item disabled.
+- `labels.kebabAriaLabel` names the menu (default "Post actions"); `labels.openRepost(name)` the quoted card's link.
+
+## Locale, time zone and "now"
+
+`locale` (default `"en"`) reaches every composed child — carousel, bar, likers, share menu, comment thread, the quoted
+card. `timeZone` formats the edited tooltip and absolute dates. `now` renders relative times at once; without it the
+card reads the clock after mount and every minute. `formatRelativeTime` / `formatCount` replace the defaults (the old
+`labels.formatRelativeTime` is still honoured). English output without `locale` is unchanged ("Just now", "5m").
+
+## Forwarding bags
+
+- `mediaProps` → every MediaCarousel (`aspect`, `onMediaError`, `showCounter`, `labels`, …).
+- `engagementBarProps` → every built-in EngagementBar (`formatCount`, `optimistic`, `likersPreview`, `trailing`, …).
+- `commentThreadProps` → the thread (inline panel and detail): `onCommentsChange`, `onLoadMoreCursor`, `nextCursor`,
+  `hasMore`, `onLoadReplies`, `moderation` (the `comment-thread-moderation` add-on), `removedMode`, `onEditComment`,
+  `extraActions`, `reactionKinds` / `onReactComment`, `onError`, … The card's own comment props (`onAddComment`,
+  `commentActions`, …) win over the same keys when they are defined. `commentThread` stays read-once even when `post` is
+  controlled — pass `commentThreadProps.onCommentsChange` to control the comments too.
+- Nested labels: `likersLabels`, `shareLabels`, `textLabels` (and the existing `engagementLabels`, `commentLabels`).
+- List variant meta: `listLikes` / `listComments` / `listShares` (`(count, formatted) => …`).

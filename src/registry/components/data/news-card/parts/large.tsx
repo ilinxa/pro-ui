@@ -61,7 +61,7 @@ export function LargePart(props: ResolvedPartProps) {
   } = props;
 
   const isEditorMode = viewerMode === "editor";
-  const showKebab = kebabItems.length > 0;
+  const showKebab = kebabItems.some((it) => !it.hidden);
 
   const mediaBlock = (
     <div className="relative h-64 overflow-hidden md:h-full md:min-h-75">
