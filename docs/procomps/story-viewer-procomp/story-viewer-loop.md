@@ -631,7 +631,7 @@ Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final con
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **patch** — no public API added or removed; behaviour fixes + one JSDoc fix) |
-| **Current stage** | U6 done — ships with release 7 (one commit); awaiting the user's push go |
+| **Current stage** | CLOSED — shipped with release 7 in `bc3089f`, live-verified 2026-10-28 |
 | **Sign-off policy** | patch → architect proceeds (ladder). User chose this patch 2026-10-28 ("1. a"): ship it in parallel with release 7, ahead of story-viewer 0.7.0 |
 | **Version target** | v0.6.1 → **v0.6.2** |
 | **Model roster** | architect: main session · implementer: Sonnet 5 · review: architect self-check (patch) |
@@ -688,3 +688,7 @@ Deferred to 0.7.0 (minor): SV-4 (8) hide failed media, (13) `left` at auto-close
   `label-content-name-mismatch`) — story-viewer 0.7.0. Installs: `comment-thread-loop.md` "U5 — installs".
 - **U6:** guide "v0.6.2 — accessibility fixes", CHANGELOG bullet, `meta.ts` 0.6.2, STATUS row. Patch → no review
   file required (rigor ladder); the EB-1 wiring is covered by engagement-bar's 0.7.0 spot-check.
+
+## U7 — Ship (0.6.2, with release 7)
+
+Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Detail: comment-thread-loop.md "Run — release 7".

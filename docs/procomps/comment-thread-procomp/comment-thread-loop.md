@@ -338,7 +338,7 @@ This file is the lead state doc for release 7 (as for release 5); `engagement-ba
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor**, additive API, plus bug fixes) on engagement-bar + comment-thread; **patch** on post-card / story-viewer (EB-1 wiring + post-card's Safari opener fix) |
-| **Current stage** | U7 — built, every gate green, installs 8/8, GATE 3 Pass with follow-ups; awaiting the user's commit + push go |
+| **Current stage** | CLOSED — shipped in `bc3089f`, live-verified 2026-10-28 (U7 below) |
 | **Sign-off policy** | user-interactive (both are composed by post-card / story-viewer / news-card → U1 is the user's call). User "3. yes" (2026-10-28) = go for the run; the scope split below is still open |
 | **Version target** | engagement-bar v0.6.1 → **v0.7.0** · comment-thread v0.4.0 → **v0.5.0** · post-card v0.6.0 → v0.6.1 · story-viewer → next patch after 0.6.2 |
 | **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 (fresh) |
@@ -554,4 +554,4 @@ inside `aria-hidden` ghosts idle / mid-drag), R6 (release outside resumes), R7 (
 
 ## U7 — Ship
 
-Awaiting the user's go to commit + push (new release; the Part 3 push grant does not cover it).
+Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Decision `shipped`; reply to the platform `.claude/report-back-2026-10-28-request-verification.md` (to the user to send). **Next release:** 7b (engagement-bar 0.8.0 + comment-thread 0.6.0 compound split) — on the user's go.

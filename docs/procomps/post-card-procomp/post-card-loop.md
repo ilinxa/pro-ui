@@ -285,3 +285,7 @@ inline panels carry `aria-expanded` / `aria-controls`; the opener is the clicked
 focus returns on Safari / macOS Firefox. Test `__tests__/disclosure-0-6-1.test.tsx` (10; the old `activeElement` code
 fails the 3 Safari tests). Follow-ups: **FU-1** heart-tap likers panel still uses `activeElement` (needs an event on
 `onToggle`), **FU-2** the `engagementActions` slot gets no disclosure state (post-card 0.7.0).
+
+### U7 — Ship (release 7)
+
+Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Detail: comment-thread-loop.md "Run — release 7".

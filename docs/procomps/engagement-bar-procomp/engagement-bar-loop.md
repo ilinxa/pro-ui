@@ -303,4 +303,8 @@ Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final con
 Lead state doc: `docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7". Ground truth:
 `.claude/platform-request-verification-2026-10-28.md` §Group 1. Release 7 scope for engagement-bar (proposed): EB-1
 disclosure state + event-passing handlers, EB-5 `hideZeroCounts`; EB-2 / EB-3 / EB-4 / EB-6 → 0.8.0 (release 7b).
-Status: U1 proposed, awaiting the user's sign-off.
+U1 signed by the user ("A", 2026-10-28). Built, reviewed and shipped with release 7.
+
+### U7 — Ship (release 7)
+
+Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Detail: comment-thread-loop.md "Run — release 7".
