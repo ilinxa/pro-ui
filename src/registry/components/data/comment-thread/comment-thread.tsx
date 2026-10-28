@@ -80,6 +80,10 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
     emptyState,
     moderation,
     removedMode = "prune",
+    renderContent,
+    getAuthorHref,
+    linkComponent = "a",
+    closed = false,
     labels: labelsProp,
     locale = "en",
     timeZone,
@@ -189,6 +193,12 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
     replyOpenRef.current = replyParentId;
   });
   const composerRef = useRef<CommentComposerHandle | null>(null);
+  const closedRef = useRef(closed);
+  useLayoutEffect(() => {
+    closedRef.current = closed;
+  });
+  // A thread that closes drops any open reply composer (state adjusted during render).
+  if (closed && replyParentId !== null) setReplyParentId(null);
 
   // Stable refs for the imperative handle.
   const commentsRef = useRef<Comment[]>(comments);
@@ -199,8 +209,18 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
   useImperativeHandle(
     ref,
     () => ({
-      focusComposer: () => composerRef.current?.focus(),
+      focusComposer: () => {
+        if (closedRef.current) {
+          warnOnce("closed-handle", "CommentThread: the thread is `closed`; focusComposer() does nothing.");
+          return;
+        }
+        composerRef.current?.focus();
+      },
       openReply: (parentId: string) => {
+        if (closedRef.current) {
+          warnOnce("closed-handle", "CommentThread: the thread is `closed`; openReply() does nothing.");
+          return;
+        }
         if (isPending(parentId)) return;
         replyTriggerRef.current = null; // never leave an earlier row's Reply button as the focus target
         setReplyParentId(parentId);
@@ -209,7 +229,7 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
       reset: (next: Comment[]) => dispatchAndForget({ kind: "reset", next }),
       dispatch: dispatchAndForget,
     }),
-    [dispatchAndForget, isPending],
+    [dispatchAndForget, isPending, warnOnce],
   );
 
   // ─── Development warnings (effects: render may run twice) ─────────────────
@@ -297,6 +317,8 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
   const openReply = useCallback(
     (parentId: string, triggerEl: HTMLElement | null) => {
       if (isPending(parentId)) return;
+      // A closed thread opens no reply box — for the handle and the `renderNode` helpers alike.
+      if (closedRef.current) return;
       replyTriggerRef.current = triggerEl;
       setReplyParentId(parentId);
     },
@@ -372,12 +394,16 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
       submitOnEnter,
       composerClassName,
       nodeClassName,
+      closed,
+      renderContent,
+      getAuthorHref,
+      linkComponent,
       locale,
       dir,
       formatCount,
       formatTime,
       pendingMap: tree.pendingMap,
-      replyParentId,
+      replyParentId: closed ? null : replyParentId,
       openReply,
       cancelReply,
       submitReply,
@@ -414,6 +440,10 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
       submitOnEnter,
       composerClassName,
       nodeClassName,
+      closed,
+      renderContent,
+      getAuthorHref,
+      linkComponent,
       locale,
       dir,
       formatCount,
@@ -552,7 +582,9 @@ function CommentThreadInner(props: CommentThreadInnerProps) {
             </div>
           ) : null}
 
-          {currentUser ? (
+          {closed ? (
+            <p className="text-center text-sm text-muted-foreground">{labels.closed}</p>
+          ) : currentUser ? (
             renderComposer ? (
               renderComposer(
                 {

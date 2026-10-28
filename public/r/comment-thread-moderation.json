@@ -13,7 +13,7 @@
   "files": [
     {
       "path": "src/registry/components/data/comment-thread/features/moderation/index.ts",
-      "content": "// comment-thread moderation feature — inline edit, tombstones, pinned marker.\n//\n// Injected into the base with `moderation={commentModeration}` (CommentThreadProps — see\n// `../../hooks/use-moderation-extension.ts`). Ships as its own registry item,\n// `@ilinxa/comment-thread-moderation`, which depends on `@ilinxa/comment-thread`. The base never\n// imports this folder.\n\nimport type { CommentModerationExtension } from \"../../types\";\nimport { CommentEditComposer } from \"./parts/edit-composer\";\nimport { CommentPinnedMarker } from \"./parts/pinned-marker\";\nimport { CommentTombstone } from \"./parts/tombstone\";\n\n/** Pass straight through: `<CommentThread moderation={commentModeration} />`. */\nexport const commentModeration: CommentModerationExtension = {\n  EditComposer: CommentEditComposer,\n  Tombstone: CommentTombstone,\n  PinnedMarker: CommentPinnedMarker,\n};\n\nexport { CommentEditComposer } from \"./parts/edit-composer\";\nexport { CommentTombstone } from \"./parts/tombstone\";\nexport { CommentPinnedMarker } from \"./parts/pinned-marker\";\n\n// @ilinxa/comment-thread-moderation 0.4.0\n",
+      "content": "// comment-thread moderation feature — inline edit, tombstones, pinned marker.\n//\n// Injected into the base with `moderation={commentModeration}` (CommentThreadProps — see\n// `../../hooks/use-moderation-extension.ts`). Ships as its own registry item,\n// `@ilinxa/comment-thread-moderation`, which depends on `@ilinxa/comment-thread`. The base never\n// imports this folder.\n\nimport type { CommentModerationExtension } from \"../../types\";\nimport { CommentEditComposer } from \"./parts/edit-composer\";\nimport { CommentPinnedMarker } from \"./parts/pinned-marker\";\nimport { CommentTombstone } from \"./parts/tombstone\";\n\n/** Pass straight through: `<CommentThread moderation={commentModeration} />`. */\nexport const commentModeration: CommentModerationExtension = {\n  EditComposer: CommentEditComposer,\n  Tombstone: CommentTombstone,\n  PinnedMarker: CommentPinnedMarker,\n};\n\nexport { CommentEditComposer } from \"./parts/edit-composer\";\nexport { CommentTombstone } from \"./parts/tombstone\";\nexport { CommentPinnedMarker } from \"./parts/pinned-marker\";\n\n// @ilinxa/comment-thread-moderation 0.5.0\n",
       "type": "registry:component",
       "target": "components/comment-thread/features/moderation/index.ts"
     },
@@ -39,7 +39,7 @@
   "meta": {
     "featureOf": "comment-thread",
     "budgetKB": 8,
-    "version": "0.4.0",
+    "version": "0.5.0",
     "status": "alpha"
   },
   "categories": [

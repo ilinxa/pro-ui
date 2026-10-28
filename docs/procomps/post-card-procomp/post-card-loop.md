@@ -276,3 +276,12 @@ fixed by deriving every type from post-card's own `./types`.
 
 Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Live `post-card.json`: 27 files, no tests; `post-card-fixtures.json` imports only `./types`. Detail:
 comment-thread-loop.md "U7 — Ship".
+
+# Run — 0.6.1 (release 7, with engagement-bar 0.7.0 + comment-thread 0.5.0)
+
+Lead state doc: `docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7". Patch (no new
+props; one optional parameter + exported type `PostInlineDisclosure` on the public `defaultPostEngagementActions`):
+inline panels carry `aria-expanded` / `aria-controls`; the opener is the clicked button (`event.currentTarget`), so
+focus returns on Safari / macOS Firefox. Test `__tests__/disclosure-0-6-1.test.tsx` (10; the old `activeElement` code
+fails the 3 Safari tests). Follow-ups: **FU-1** heart-tap likers panel still uses `activeElement` (needs an event on
+`onToggle`), **FU-2** the `engagementActions` slot gets no disclosure state (post-card 0.7.0).

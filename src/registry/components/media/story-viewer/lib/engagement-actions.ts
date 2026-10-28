@@ -42,6 +42,10 @@ export interface BuildEngagementActionsOptions {
   onCommentClick?: () => void;
   /** Share click handler. */
   onShareClick?: () => void;
+  /** Disclosure state of the comments sheet the comment action opens (absent: no sheet). */
+  commentDisclosure?: { expanded: boolean; controls: string };
+  /** Disclosure state of the share sheet the share action opens (absent: no sheet). */
+  shareDisclosure?: { expanded: boolean; controls: string };
 }
 
 export function buildStoryEngagementActions(
@@ -95,6 +99,7 @@ export function buildStoryEngagementActions(
           ? opts.state.replyCount
           : undefined,
       onClick: opts.onCommentClick,
+      ...opts.commentDisclosure,
     });
   }
 
@@ -103,6 +108,7 @@ export function buildStoryEngagementActions(
     actions.push({
       kind: "share",
       onClick: opts.onShareClick,
+      ...opts.shareDisclosure,
     });
   }
 

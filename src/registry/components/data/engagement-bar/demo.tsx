@@ -48,6 +48,7 @@ import {
 } from "./dummy-data";
 import type {
   EngagementAction,
+  EngagementActionEvent,
   EngagementBarHandle,
   EngagementReactionKind,
 } from "./types";
@@ -98,8 +99,16 @@ function InteractiveDefaultDemo() {
     "none" | "likers" | "share" | "comments"
   >("none");
 
-  const toggle = (p: "likers" | "share" | "comments") =>
+  // The button that opened the panel (event.currentTarget, 0.7.0) - focus returns to it on close.
+  const openerRef = useRef<HTMLElement | null>(null);
+  const toggle = (p: "likers" | "share" | "comments", event: EngagementActionEvent) => {
+    openerRef.current = event.currentTarget;
     setActivePanel((prev) => (prev === p ? "none" : p));
+  };
+  const closePanel = () => {
+    setActivePanel("none");
+    openerRef.current?.focus();
+  };
 
   const actions: EngagementAction[] = useMemo(
     () => [
@@ -108,56 +117,64 @@ function InteractiveDefaultDemo() {
         count: 142,
         onToggle: (next) => console.log("[demo] like →", next),
         // Split heart-vs-count: heart fires onToggle; count opens likers panel.
-        onCountClick: () => toggle("likers"),
+        onCountClick: (event) => toggle("likers", event),
+        countExpanded: activePanel === "likers",
+        countControls: "demo-panel-likers",
       },
       {
         kind: "comment",
         count: 23,
-        onClick: () => toggle("comments"),
+        onClick: (event) => toggle("comments", event),
+        expanded: activePanel === "comments",
+        controls: "demo-panel-comments",
       },
       {
         kind: "share",
         count: 8,
-        onClick: () => toggle("share"),
+        onClick: (event) => toggle("share", event),
+        expanded: activePanel === "share",
+        controls: "demo-panel-share",
       },
       {
         kind: "bookmark",
         onToggle: (next) => console.log("[demo] bookmark →", next),
       },
     ],
-    [],
+    [activePanel],
   );
 
   return (
     <div className="space-y-3">
       <EngagementBar actions={actions} />
       {activePanel === "likers" ? (
-        <LikersStrip
-          totalCount={142}
-          likers={DUMMY_LIKE_USERS}
-          heading="Likes"
-          onClose={() => setActivePanel("none")}
-        />
+        <div id="demo-panel-likers">
+          <LikersStrip
+            totalCount={142}
+            likers={DUMMY_LIKE_USERS}
+            heading="Likes"
+            onClose={closePanel}
+          />
+        </div>
       ) : null}
       {activePanel === "share" ? (
-        <div className="rounded-lg border border-border bg-card p-3">
+        <div id="demo-panel-share" className="rounded-lg border border-border bg-card p-3">
           <ShareMenu
             users={DUMMY_LIKE_USERS}
             onShareTo={(user) => {
               console.log("[demo] share to", user.name);
-              setActivePanel("none");
+              closePanel();
             }}
-            onClose={() => setActivePanel("none")}
+            onClose={closePanel}
           />
         </div>
       ) : null}
       {activePanel === "comments" ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-card p-4 text-sm">
+        <div id="demo-panel-comments" className="overflow-hidden rounded-lg border border-border bg-card p-4 text-sm">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-medium">Comments</p>
             <button
               type="button"
-              onClick={() => setActivePanel("none")}
+              onClick={closePanel}
               className="text-xs text-muted-foreground hover:text-foreground"
             >
               Hide
@@ -714,6 +731,12 @@ function WithheldDemo() {
           <code>count: null</code>, <code>totalCount: null</code> — no digit, no count in the accessible name
         </p>
         <EngagementBar actions={WITHHELD_ACTIONS} />
+      </div>
+      <div className="space-y-1">
+        <p className="text-xs font-medium">
+          <code>count: 0</code> with <code>hideZeroCounts</code> (0.7.0) — no digit for a zero; like it and the 1 shows
+        </p>
+        <EngagementBar actions={ZERO_ACTIONS} hideZeroCounts />
       </div>
       <p className="text-xs text-muted-foreground">
         A withheld count is sticky: click the heart on the second bar — it flips, but the count never appears.

@@ -26,6 +26,15 @@ describe("inline engagement types vs engagement-bar", () => {
     expect(label({ like: "x" })).toEqual({ like: "x" });
   });
 
+  it("0.6.2 - the comment / share disclosure fields stay assignable (engagement-bar 0.7.0)", () => {
+    const widen = (action: StoryEngagementAction): EngagementAction => action;
+    const samples: StoryEngagementAction[] = [
+      { kind: "comment", count: 2, expanded: true, controls: "sheet-c", onClick: () => {} },
+      { kind: "share", expanded: false, controls: "sheet-s", onClick: () => {} },
+    ];
+    expect(samples.map(widen)).toEqual(samples);
+  });
+
   it("the assignability check can fail (non-vacuous)", () => {
     // @ts-expect-error - an arm the real type does not have
     const bad: EngagementAction = { kind: "nope" };

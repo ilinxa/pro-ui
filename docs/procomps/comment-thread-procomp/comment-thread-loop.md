@@ -328,3 +328,230 @@ Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final con
 threshold and `post-card-fixtures` importing only `./types` are in. Decision `shipped`; retro in
 `.claude/improvement-log.md`; report-back `.claude/report-back-2026-10-26-comment-thread-0-4-0-post-card-0-6-0.md` (to
 the user for the platform). **Next release:** carousel-composer 0.3.0 — on the user's go.
+
+# Run — release 7 (engagement-bar 0.7.0 + comment-thread 0.5.0; platform request 2026-10-27, group 1)
+
+This file is the lead state doc for release 7 (as for release 5); `engagement-bar-loop.md` carries a pointer section.
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **minor**, additive API, plus bug fixes) on engagement-bar + comment-thread; **patch** on post-card / story-viewer (EB-1 wiring + post-card's Safari opener fix) |
+| **Current stage** | U7 — built, every gate green, installs 8/8, GATE 3 Pass with follow-ups; awaiting the user's commit + push go |
+| **Sign-off policy** | user-interactive (both are composed by post-card / story-viewer / news-card → U1 is the user's call). User "3. yes" (2026-10-28) = go for the run; the scope split below is still open |
+| **Version target** | engagement-bar v0.6.1 → **v0.7.0** · comment-thread v0.4.0 → **v0.5.0** · post-card v0.6.0 → v0.6.1 · story-viewer → next patch after 0.6.2 |
+| **Model roster** | architect: main session · implementers: Sonnet 5 · finders: Sonnet 5 (fresh) |
+| **Started / updated** | 2026-10-28 / 2026-10-28 |
+
+Source: `.claude/platform-request-verification-2026-10-28.md` §Group 1 (verified at `415be85`; it wins over the request).
+
+## U0 — Intake & impact
+
+- **Asks:** BLOCKING EB-1, CT-1, CT-2 · non-blocking EB-2…EB-6, CT-3…CT-6 · CT-7 (our F-01). Ground truth + design
+  notes per ask in the digest. Extra defects in scope: post-card inline panels lack disclosure state and lose the opener
+  on Safari (`post-card/hooks/use-panel-focus.ts:21-22`); comment-thread "View replies" hard-codes
+  `aria-expanded={false}` with a dangling `aria-controls`; `initials()` not locale-aware.
+- **Blast radius (registry.json):** engagement-bar ← comment-thread, post-card, story-viewer, engagement-bar-fixtures ·
+  comment-thread ← news-card, post-card, story-viewer, comment-thread-moderation (feature item),
+  comment-thread-fixtures. story-viewer inline-copies engagement-bar action types (guard
+  `story-viewer/__tests__/engagement-types.test.ts`) and imports `CommentComposer` + handle (keep unchanged). Interop:
+  `CommentMenuItem` / `Comment` shapes used by news-card / event-card / blackboard / post-card — additive only.
+- **Size (built):** engagement-bar 120.7 / 125 KB · comment-thread 137.9 / 150 · post-card 188.0 / 190 (gate fails at
+  1.2× budget). Every ask grows a base → measure after the last fix wave; post-card has ~2 KB of headroom.
+- **Owed follow-ups touched:** comment-thread 0.4.0 F-01 (size → CT-7). Fix-on-touch: `--radix-popover-trigger-width`
+  audit (engagement-bar reaction picker popover).
+
+## U1 — Change contract (proposed)
+
+**Scope split (needs the user's call).** The platform asks that release 7 ship the BLOCKING asks fast and keep CT-3 out
+(`PROUI_REPLY_2026-10-28_VERIFIED.md`). The user chose a compound split for CT-3 (with CT-7). Proposal:
+
+| | Release 7 (fast) | Release 7b (next) |
+|---|---|---|
+| engagement-bar | **0.7.0:** EB-1 disclosure + event, EB-5 hide zero | **0.8.0:** EB-2 tap = primary, EB-3 likers links, EB-4 touch size, EB-6 share header / send state |
+| comment-thread | **0.5.0:** CT-1 `renderContent`, CT-2 labels (incl. every engagement label), CT-4 author links, CT-6 closed, view-replies aria fix, locale `initials` | **0.6.0:** compound split (Root + List / LoadMore / Composer parts) carrying CT-3 auto-load + pinned composer, CT-5 confirm delete (add-on), CT-7 base-size reduction, EB-4 size forwarding |
+| post-card | 0.6.1: EB-1 state on its 3 inline panels + Safari-safe opener (event target, not `activeElement`) | forwards EB-3 links |
+| story-viewer | patch: EB-1 state on comment / share | — |
+
+Why this cut: release 7 = 3 blocking + 4 small (S) asks, all additive, no structural change, so it can ship quickly.
+Everything medium-sized or structural (EB-2/3/4/6 are M; CT-3/5/7 are the compound split) moves to 7b, where the
+compound split and the size work belong together.
+
+**Contract — release 7:**
+
+- **EB-1:** handlers receive the event: `onClick?(event)` (comment / share / custom), `onCountClick?(event)` (like /
+  reaction); zero-arg handlers stay assignable. New optional `expanded?: boolean` + `controls?: string` on comment /
+  share / custom; on like / reaction they apply to the **count button** only (the heart is `aria-pressed`, the reaction
+  trigger is a PopoverTrigger with its own `aria-expanded`), named `countExpanded` / `countControls`. Rendered as
+  `aria-expanded`; `aria-controls` only while expanded (a closed panel may be unmounted). Not given → markup unchanged.
+  A custom action that is `aria-pressed` and given `expanded` → `expanded` wins, dev-warn. Split-count mode covered.
+  Demo "Default (post)" wires its three panels.
+- **EB-5:** bar-level `hideZeroCounts?: boolean`: `0` renders no digit and no count in the accessible name, for every
+  counted action (like, comment, share, view-count, custom; reaction already does). story-viewer drops its in-repo
+  workaround only if behaviour is identical (else keep).
+- **CT-1:** `renderContent?(comment, { depth }) => ReactNode` rendered as expandable-text `children`; `measureKey`
+  defaults to `comment.content`; plain `content` path unchanged; the edit composer edits raw `content`.
+- **CT-2:** `labels.showMore` / `labels.showLess` forwarded to each row's expandable-text; nested
+  `labels.engagement?: Partial<EngagementBarLabels>` forwarded to every row's bar (merged under the existing
+  `like` / `unlike` keys, which keep precedence for compatibility). `initials()` → `toLocaleUpperCase(locale)` (also in
+  `comment-composer.tsx`).
+- **CT-4:** `getAuthorHref?(author, comment)` + `linkComponent` (default `"a"`), post-card shape: avatar link
+  `aria-hidden` + `tabIndex={-1}`, name link accessible; name in `<bdi>`, `@handle` `dir="ltr"`.
+- **CT-6:** `closed?: boolean` + `labels.closed`: no bottom composer, no Reply, open reply composers close,
+  `handle.openReply` / `focusComposer` no-op (dev-warn); likes / menus unchanged.
+- **Fix:** "View replies" reflects its real state (`aria-expanded` true/false) and sets `aria-controls` only when the
+  list is rendered.
+- **post-card 0.6.1:** inline-mode actions pass `expanded` / `controls` for comments / likers / share; the opener is
+  taken from the triggering event's `currentTarget` (fallback `activeElement`), so focus returns on Safari / macOS
+  Firefox.
+- **story-viewer patch:** comment / share actions report `expanded` while their panel is open.
+- **Tests (C11):** each ask's accept criteria from the request, axe in both states, a non-English labels test that
+  finds no English default in the DOM or accessible names (CT-2's accept), falsify every fix. Browser pass on
+  `next start`, incl. Safari-like focus (WebKit is not installed here → Chromium with click-focus suppressed, plus a note).
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | No new props → identical markup and behaviour (except the view-replies aria fix) |
+| I2 | `CommentComposerProps` / `CommentComposerHandle` unchanged (story-viewer imports them) |
+| I3 | engagement-bar action types change additively; story-viewer's inline-copy assignability test stays green |
+| I4 | `Comment` / `CommentMenuItem` additive only; comment-thread-moderation installs and works over 0.5.0 |
+| I5 | post-card and news-card compile and render unchanged with no new props |
+| I6 | No `asChild` on custom components; direct triggers (F-cross-13) |
+
+### Size
+
+Release 7 asks are S each: estimate +3–5 KB engagement-bar (budget 125, likely raised to 130), +4–6 KB comment-thread
+(150 OK), post-card +1 KB (188 / 190, raise to 195 if needed). Measure after the last fix wave (retro rule).
+
+### Open question for the user (U1 sign-off)
+
+1. Release 7 / 7b split as proposed (recommended), or everything in one release 7?
+
+**U1 signed — user, 2026-10-28: "A"** (release 7 / 7b split as proposed) + "run parallel agents … if it's possible and
+safe". Parallel plan: the architect writes the public types first (retro rule, release 5), then one implementer per
+folder (no shared files; coordinator owns registry.json / CHANGELOG / docs). story-viewer's EB-1 wiring waits for the
+0.6.2 implementer to leave that folder.
+
+## U2 — architect decisions (types fixed before the slices)
+
+- engagement-bar `types.ts`: `EngagementActionEvent = MouseEvent<HTMLElement>` (exported); comment / share / custom
+  take `expanded` / `controls`; like / reaction take `countExpanded` / `countControls`; every `onClick` /
+  `onCountClick` receives the event; bar prop `hideZeroCounts`. Custom `active` + `expanded` → `expanded` wins (dev-warn).
+- comment-thread `types.ts`: labels `showMore` / `showLess` / `closed` + nested `engagement?: EngagementBarLabels`
+  (resolved type keeps it optional); props `renderContent(comment, { depth })`, `getAuthorHref(author, comment)`,
+  `linkComponent`, `closed`.
+
+## U2 — slices (2026-10-28, 3 Sonnet implementers in parallel, one folder each)
+
+| Slice | Result | Coordinator spot-check |
+|---|---|---|
+| engagement-bar 0.7.0 (EB-1, EB-5) | `__tests__/disclosure-0-7-0.test.tsx` (51, each fix falsified); demo "Default (post)" wires its 3 panels; 287 tests in the folder + story-viewer's inline-type guard green | `custom-action.tsx` conflict rule read; no `aria-controls` without `expanded === true` |
+| comment-thread 0.5.0 (CT-1, CT-2, CT-4, CT-6, view-replies fix, locale initials) | `__tests__/release-7-0-5-0.test.tsx` (23, falsified); 274 tests in the folder green; `CommentComposerProps` / `Handle` unchanged (locale read from context) | `comment-node.tsx` label merge + `view-replies-link.tsx` read |
+| post-card 0.6.1 (disclosure + Safari opener) | `__tests__/disclosure-0-6-1.test.tsx` (10; old `activeElement` code fails the 3 Safari tests); 200 tests green | `hooks/use-panel-focus.ts` diff read: `event.currentTarget` first, `activeElement` fallback |
+| story-viewer EB-1 wiring (architect) | sheet ids via `useId`, `commentDisclosure` / `shareDisclosure` only where a sheet mounts; `__tests__/disclosure-0-6-2.test.tsx` (3; wiring removed → 2 fail) | — |
+
+## U3 — gate battery (run 1, before the review fixes)
+
+tsc 0 · lint 0 errors / 11 warnings (baseline 13 — fewer) · meta-deps ✓ · registry validators ✓ (whitelist, registry-json,
+naming, no-control-chars, barrel `--strict`, inert `--strict`) · registry:build ✓ (incl. tokens, contract, changelog,
+artifact-size) · doc-drift ✓ · doc-budget ✓ · tests 2882 passed / 1 failed / 6 skipped (206 files) — the failure is
+code-block `review-regressions` "loads the grammar into EVERY instance" timing out at 5 s (known load flake; passes
+alone 4/4). Sizes: engagement-bar 123.5 / 125 KB · comment-thread 140.4 / 150 · post-card 185.6 / 190 · story-viewer
+329.7 / 340.
+
+## U4 — adversarial review (2 fresh Sonnet finders, read-only, on the working tree)
+
+| # | Finding | Source | Verdict | Fix |
+|---|---|---|---|---|
+| A1 | post-card: the likers panel a heart tap auto-opens (`openLikersOnLike`) gets no event → on Safari the opener is `body`, focus returns to the card; meta over-claimed | finder A | CONFIRMED | meta + guide say the opener fix covers the 3 bar buttons; follow-up FU-1 (needs an event on `onToggle` — engagement-bar API) |
+| A2 | post-card: actions built in the `engagementActions` slot get no disclosure state (slot has no access to the open panel / ids) | finder A | CONFIRMED | documented (meta, `PostInlineDisclosure` JSDoc); follow-up FU-2 (post-card 0.7.0: pass the disclosure to the slot) |
+| A3 | `defaultPostEngagementActions` (public) gained a parameter whose type was not exported | finder A | CONFIRMED | renamed `PostInlineDisclosure`, exported from the barrel |
+| A4 | post-card `meta.ts` documented the old `defaultPostEngagementActions` signature | finder A | CONFIRMED | updated |
+| A5 | custom action warned on `active={false}` + `expanded` (no real conflict) | finder A | CONFIRMED | warn only when `active === true`; test added |
+| A6 | story-viewer's type-parity test sampled only a like arm | finder A | CONFIRMED | comment / share samples with `expanded` / `controls` added |
+| B1 | `labels.engagement.like` / `unlike` could never apply (the resolved thread default always won) — a dead public surface | finder B | CONFIRMED | explicit thread label > engagement label > default (`lib/labels.ts`); JSDoc + guide; test (falsified) |
+| B2 | the paged "more replies" link announced `aria-expanded="true"` though pressing it loads more | finder B | CONFIRMED | `ViewRepliesLink` `disclosure` prop: that link carries no `aria-expanded`, keeps `aria-controls` on the shown list; test (falsified) |
+| B3 | `closed`: the `renderNode` helper's `onReply` still reached `openReply` (silent, stale trigger ref) | finder B | CONFIRMED (hygiene — the render-phase reset already kept the box closed, so no visible change; the test pins the behaviour and does not fail without the guard) | `openReply` returns early while closed |
+| B4 | `closed` drops a half-typed draft and the notice is not announced | finder B | CONFIRMED (minor) | documented in the guide |
+| B5 | story-viewer: the removal notice after a paused media notice computes remaining time from wall clock | finder B | CONFIRMED (edge) | follow-up FU-3 (story-viewer 0.7.0) |
+| B6 | story-viewer: Play does nothing during a notice on a single-item, stay-until-closed story | finder B | CONFIRMED (edge) | follow-up FU-4 (story-viewer 0.7.0) |
+
+Both finders: no Blocker / High. "Checked and clean" lists in their reports (I1 markup, aria-controls targets, event
+synchronicity, imperative handle, hooks rules, barrel, R1–R8 mechanics, the modified `progress-0-5-4` test).
+
+## U5 — runtime (browser finder, fresh Sonnet, `next start -p 3200` on the battery-4 build; Chromium, 1280 + 390, light + dark)
+
+Brief: `E:/tmp/ilinxa-release-kit/briefs/brief-r7-browser.md`; scripts + screenshots `E:/tmp/ilinxa-release-kit/browser-r7/`.
+Safari focus simulated with `dispatchEvent(new MouseEvent("click"))` (WebKit not available in the helper).
+
+| # | Finding | Verdict | Fix |
+|---|---|---|---|
+| W1 | comment-thread RTL tab: `@sara` rendered as `sara@` — the handle was isolated only when author links were on (implementer kept I1 strictly), while the guide promises it always | CONFIRMED (ours) | name always in `<bdi>`, `@handle` always `dir="ltr"` (invisible in LTR); I1 amended like the view-replies fix; test added |
+| W2 | comment-thread: "View N replies" past maxDepth unmounts on click → focus to `<body>`; its `aria-expanded="true"` is never observable | CONFIRMED (pre-existing since 0.4.0, in this release's area) | focus moves to the first revealed reply (`focusFirstShown` effect); test added |
+| W3 | story-viewer link-drawer opener: `aria-label="Shop now"` vs visible "example.com" (axe `label-content-name-mismatch`) | CONFIRMED (pre-existing) | follow-up FU-5 (story-viewer 0.7.0) |
+| W4 | light-mode contrast: engagement-bar liked count `text-destructive` 4.44:1; comment-thread `text-muted-foreground/80` timestamps 4.25–4.48:1 | CONFIRMED (pre-existing) | follow-up FU-6 |
+| W5 | engagement-bar LikersStrip scroller at 390 px: axe `scrollable-region-focusable` | CONFIRMED (pre-existing) | follow-up FU-7 (with EB-3, release 7b) |
+| W6 | story-viewer unfilled progress tracks faint over white (filled segment clear; R3 met) | DROPPED (R3 asks "visible"; tracks are the 30 % track by design) | — |
+| W7 | Turkish "14 dk. önce" wraps to 3 lines in a narrow nested row at 390 px | PARKED (cosmetic) | — |
+| W8 | docs-site install tabs: `aria-controls` to a missing Radix id | PARKED (site shell, not a component) | — |
+
+Passing (evidence in the agent report): EB-1 on all 3 demo panels × normal / Safari-like click × 1280 / 390 (24
+combinations, focus returns, `aria-controls` targets exist); `hideZeroCounts` names carry no "0"; no new
+`aria-expanded` on other tabs (I1); comment-thread Rich & links (links, Tab order skips the avatar link, Show more,
+closed / reopen), Türkçe (no English strings), view-replies ids; post-card panel switches never dangle and Safari-like
+focus returns; story-viewer R1 (X / Escape / auto-close, click / Enter), R2 (one named progressbar), R4 (no focusable
+inside `aria-hidden` ghosts idle / mid-drag), R6 (release outside resumes), R7 (Space / Play end the notice), sheets'
+`aria-expanded`. 0 console errors across 16 page × viewport × scheme runs; no horizontal overflow.
+
+## U5 — re-verify + installs
+
+- **Browser re-verify** (rebuilt production server, `E:/tmp/ilinxa-release-kit/browser-r7/reverify-w1w2.mjs` +
+  `dbg-w1.mjs`): W1 — RTL tab, every `@handle` `dir="ltr"`, `unicode-bidi: isolate`, name in `<bdi>`
+  (screenshot `reverify-rtl-1280.png`); W2 — after "View 1 reply" on Nested d3 focus is the revealed reply's
+  `<article>` at 1280 and 390; 0 console messages.
+- **Installs** (`pnpm test:install`, local `public/r`, fresh Next consumer, `E:/tmp/ilinxa-release-kit/installs-r7.sh`):
+
+| Run | Items | CLI | Result | Components landed |
+|---|---|---|---|---|
+| a2 | engagement-bar | 4.18.0 | PASS, consumer tsc 0 | engagement-bar |
+| b2 | comment-thread + comment-thread-moderation | 4.18.0 | PASS, tsc 0 | comment-thread, engagement-bar, expandable-text |
+| c | comment-thread-fixtures | 3.8.5 | PASS, tsc 0 | comment-thread, engagement-bar, expandable-text |
+| d | post-card | 3.8.5 | PASS, tsc 0 | + media-carousel, post-card, video-player |
+| e | story-viewer | 4.18.0 | PASS, tsc 0 | comment-thread, engagement-bar, expandable-text, story-viewer, video-player |
+| f | story-viewer | 3.8.5 | PASS, tsc 0 | same |
+| g | news-card (dependent of comment-thread) | 4.18.0 | PASS, tsc 0 | comment-thread, engagement-bar, expandable-text, news-card |
+| h | engagement-bar-fixtures | 3.8.5 | PASS, tsc 0 | engagement-bar |
+
+  The first a / b runs failed before installing anything: the consumer's `pnpm install` hit its 600 s timeout (cold
+  store under host load); re-run unchanged → pass. Negative path: run h installs the fixtures item alone and lands only
+  engagement-bar.
+- **Final battery (run 5, serial tests):** tsc 0 · lint 0 errors / 11 warnings · every validator ✓ · registry:build ✓ ·
+  doc-drift ✓ · doc-budget ✓ · build ✓ · tests 203 / 206 files in the run (2830 passed) — the 3 others (filter-bar
+  hardening, code-block review-regressions, entity-picker hardening) failed only on worker-start / 5 s / 60 s
+  timeouts under host load from other projects' test runs, and pass alone (49 / 4 / 52). Sizes: engagement-bar 123.5 /
+  125 · comment-thread 141.4 / 150 · post-card 185.9 / 190 · story-viewer 329.7 / 340 KB.
+
+## U6 — pre-push doc verifier (fresh Sonnet, read-only) + final battery
+
+- 21 rows, no High. Medium: the reply over-claimed (the composer story-viewer imports changed — locale initials;
+  post-card's heart-tap likers panel; only `onClick` / `onCountClick` get the event), a stale story-viewer guide line
+  (every segment a progressbar), and **one real gap: story-viewer's close-focus fix did nothing after a mouse / touch
+  open on Safari / macOS Firefox** (a clicked button is not focused, so the opener was `body`). Fixed in code: while
+  closed, each viewer remembers the last pressed control (`pointerdown`, capture) and uses it when nothing is focused;
+  test "Safari-like open" (fallback removed → fails); browser re-verify `reverify-sv-safari.mjs`: focus back on "Open
+  image-only story" at 1280 and 390. All Low rows fixed in the guides / CHANGELOG / meta (`updatedAt`) /
+  `PostInlineDisclosure` field docs.
+- **Final battery (run 6, final tree):** tsc 0 · lint 0 errors / 11 warnings · meta-deps ✓ · whitelist ✓ ·
+  registry-json ✓ · naming ✓ · no-control-chars ✓ · barrel ✓ · inert ✓ · registry:build ✓ · doc-drift ✓ ·
+  doc-budget ✓ · **tests 206 / 206 files, 2890 passed, 6 skipped** · build ✓. Sizes: engagement-bar 123.5 / 125 ·
+  comment-thread 141.8 / 150 · post-card 186.3 / 190 · story-viewer 330.8 / 340 KB.
+- GATE 3: `engagement-bar-procomp/reviews/2026-10-28-v0.7.0-disclosure.md` and
+  `comment-thread-procomp/reviews/2026-10-28-v0.5.0-release-7.md` — both **Pass with follow-ups**. post-card 0.6.1 and
+  story-viewer 0.6.2 are patches (no review file required).
+
+## U7 — Ship
+
+Awaiting the user's go to commit + push (new release; the Part 3 push grant does not cover it).

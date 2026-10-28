@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Use anywhere stories appear — Instagram-style modal viewer over a feed. Pairs with story-rail which fires onItemClick({ item, index }); host opens <StoryViewer isOpen stories={...} initialStoryIndex={index} onClose={...} /> in response. The viewer's onStoryViewed(storyId) callback is what hosts wire back into railRef.current.markViewed(storyId) to clear the unread ring — viewer is fully decoupled from the rail. Image and video items both supported (video composes media/video-player). v0.4 ships pure-CSS 3D cube transitions + pointer-driven swipe (no framer-motion peer dep); the cube engages only during the animation window and the front face sits at the perspective plane (no scale-jump). The engagement overlay (v0.2) composes engagement-bar v0.3.x; the comments panel (v0.3) and share panel (v0.3.1) are bottom-sheet slots typically host-wired to CommentThread and ShareMenu. Migration origin: kasder kas-social-front-v0 StoryViewer.tsx.",
   features: [
+    "v0.6.2 — a11y and bug patch, no API change: focus returns to the opener on close (the focused element, or on Safari / macOS Firefox the control last pressed); only the current progress segment is a named `progressbar` (`labels.position`); bars sit above the header scrim with a soft shadow; cube ghost faces are `inert`; notice timers wait while another pause reason holds; a long-press ends on window pointerup / pointercancel / blur; Play / Space / middle tap ends a notice early; `onItemViewed` docs corrected",
     "v0.6.1 — on comment-thread 0.4.0: a rejected `onAddReply` keeps the typed text and shows `labels.replyFailed` (or `labels.commentLabels.postFailed`) under the reply box, styled as a media scrim; the story stays paused while the draft is there, and no rejection goes unhandled; `labels.commentLabels.composerPlaceholder` reaches the reply box while `replyComposerPlaceholder` is at its default",
     "v0.6.0 — Host-resolved media: `StoryItem.src` optional, `resolveMedia(item)` for the current and next item only, frame callbacks (`ctx.onReady` / `onEnded` / `onProgress(currentTime, duration)` / `onError`, `ctx.src` / `ctx.poster`), `onMediaError` retries once and resumes, `loadTimeoutMs`",
     "v0.6.0 — Unavailable items (resolve / media / timeout / removed) show `labels.unavailable` for `unavailableNoticeMs` (default 1500) and move on; `onItemUnavailable(storyId, itemId, reason)`; `standalone` keeps a single-item story's notice with a close button",
@@ -78,11 +79,11 @@ export const meta: ComponentMeta = {
   ],
   tags: ["story-viewer", "story", "viewer", "modal", "dialog", "media", "social"],
 
-  version: "0.6.1",
+  version: "0.6.2",
   status: "alpha",
   artifactBudgetKB: 340,
   createdAt: "2026-05-03",
-  updatedAt: "2026-10-26",
+  updatedAt: "2026-10-28",
 
   author: { name: "ilinxa" },
 

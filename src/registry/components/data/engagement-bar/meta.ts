@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "Highest-leverage primitive in the social-posts-system arc. Three variants: default (post body), compact (news/event card retrofits), stacked (TikTok/Reels overlay). Per-action controlled vs uncontrolled mode (controlled props win per-render). subscribe contract is the same Subscribe<EngagementDelta> shape comment-thread will use. Heart-burst is a sibling RSC-compatible sub-export — retrofit consumers that don't import it pay zero animation cost. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx (468 LOC); we extract only the action-row concern, decomposing comments → comment-thread (next ship) and likers carousel → likersPreview slot. Fourth ship in the 8-component social-posts-system arc.",
   features: [
+    "v0.7.0 — disclosure state + event-passing handlers: `onClick` / `onCountClick` receive the click event (use `event.currentTarget` to return focus to the opener); `expanded` + `controls` on comment / share / custom (and `countExpanded` + `countControls` on the like / reaction count button) render `aria-expanded`, with `aria-controls` only while open; bar prop `hideZeroCounts` renders a count of 0 as no digit and no count in the accessible name",
     "v0.6.1 — LikersStrip: a mouse click on the \"+N\" pill loads more again (the drag-to-scroll captured the pointer on press, so the click went to the strip); the pill shows the full compact count (\"+379\", \"+1.2K\") instead of capping at \"+99\", so its visible text is part of its accessible name",
     "Discriminated actions[] — like / comment / share / bookmark / view-count / custom / reaction — order preserved",
     "Split heart-vs-count tap targets via `like.onCountClick` — heart fires onToggle, count fires onCountClick (kasder UX). Backwards-compatible: omit onCountClick for the bundled-button behavior.",
@@ -58,11 +59,11 @@ export const meta: ComponentMeta = {
     "reactions",
   ],
 
-  version: "0.6.1",
+  version: "0.7.0",
   status: "alpha",
   artifactBudgetKB: 125,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-26",
+  updatedAt: "2026-10-28",
 
   author: { name: "ilinxa" },
 

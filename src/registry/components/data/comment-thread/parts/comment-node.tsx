@@ -32,11 +32,11 @@ export interface CommentNodeProps {
   forceShowAllReplies?: boolean;
 }
 
-function initials(name: string): string {
+function initials(name: string, locale: string): string {
   return name
     .trim()
     .split(/\s+/)
-    .map((part) => part[0]?.toUpperCase() ?? "")
+    .map((part) => (part[0] ? part[0].toLocaleUpperCase(locale) : ""))
     .slice(0, 2)
     .join("") || "?";
 }
@@ -96,6 +96,9 @@ function CommentNodeInner({
     }
   }, [replyLoading, moreToLoad, loadedCount]);
 
+  // "View N replies" past maxDepth unmounts as the replies appear: hand focus to the first one.
+  const focusFirstShown = useRef(false);
+
   // Closing the editor unmounts the focused Save / Cancel: send focus to the row's actions menu.
   const closeEditor = () => {
     setIsEditing(false);
@@ -131,13 +134,18 @@ function CommentNodeInner({
     [actionHelpers, like, openReply, remove, report, commentId],
   );
 
+  // The thread's own `like` / `unlike` win over `labels.engagement`'s (compatibility).
   const barLabels = useMemo<EngagementBarLabels>(
-    () => ({ like: labels.like, unlike: labels.unlike }),
-    [labels.like, labels.unlike],
+    () => ({ ...labels.engagement, like: labels.like, unlike: labels.unlike }),
+    [labels.engagement, labels.like, labels.unlike],
+  );
+  const expandableLabels = useMemo(
+    () => ({ showMore: labels.showMore, showLess: labels.showLess }),
+    [labels.showMore, labels.showLess],
   );
 
   const replyComposer =
-    isReplyOpen && currentUser ? (
+    isReplyOpen && currentUser && !ctx.closed ? (
       <CommentComposer
         currentUser={currentUser}
         placeholder={labels.composerPlaceholder}
@@ -174,7 +182,11 @@ function CommentNodeInner({
         count={hiddenCountLabel}
         label={labels.viewReplies(hiddenCountLabel)}
         controlsId={repliesId}
-        onExpand={() => setExpandedToDepth((d) => d + 1)}
+        expanded={showReplies}
+        onExpand={() => {
+          focusFirstShown.current = true;
+          setExpandedToDepth((d) => d + 1);
+        }}
       />
     );
   } else if (moreToLoad) {
@@ -196,6 +208,8 @@ function CommentNodeInner({
           count={count}
           label={label}
           controlsId={repliesId}
+          expanded={showReplies}
+          disclosure={!showReplies}
           loading={replyLoad?.loading}
           loadingLabel={labels.loadingReplies}
           onExpand={() => {
@@ -208,6 +222,12 @@ function CommentNodeInner({
       </div>
     );
   }
+
+  useEffect(() => {
+    if (!focusFirstShown.current || !showReplies) return;
+    focusFirstShown.current = false;
+    repliesListRef.current?.querySelector<HTMLElement>("article, [data-comment-id]")?.focus();
+  }, [showReplies]);
 
   const repliesBlock = (
     <>
@@ -328,6 +348,18 @@ function CommentNodeInner({
     ? ctx.engagementActions(comment, { ...actionHelpers, defaultActions })
     : defaultActions;
 
+  // Author links (0.5.0): no href -> the markup is unchanged.
+  const authorHref = ctx.getAuthorHref?.(comment.author, comment);
+  const LinkComponent = ctx.linkComponent;
+  const avatarNode = (
+    <Avatar className="h-8 w-8 shrink-0">
+      {comment.author.avatar ? (
+        <AvatarImage src={comment.author.avatar} alt="" />
+      ) : null}
+      <AvatarFallback>{initials(comment.author.name, ctx.locale)}</AvatarFallback>
+    </Avatar>
+  );
+
   return (
     <article
       role="article"
@@ -339,21 +371,38 @@ function CommentNodeInner({
       tabIndex={-1}
       className={cn("group flex items-start gap-2 outline-none", ctx.nodeClassName)}
     >
-      <Avatar className="h-8 w-8 shrink-0">
-        {comment.author.avatar ? (
-          <AvatarImage src={comment.author.avatar} alt="" />
-        ) : null}
-        <AvatarFallback>{initials(comment.author.name)}</AvatarFallback>
-      </Avatar>
+      {authorHref ? (
+        // The name link is the accessible one; this larger hit area stays out of the tab order
+        // and the accessibility tree.
+        <LinkComponent
+          href={authorHref}
+          aria-hidden="true"
+          tabIndex={-1}
+          className="shrink-0 rounded-full"
+        >
+          {avatarNode}
+        </LinkComponent>
+      ) : (
+        avatarNode
+      )}
 
       <div className="min-w-0 flex-1">
         <div className="rounded-xl bg-muted/50 px-3 py-2">
           <div className="flex flex-wrap items-center gap-1">
             <span id={authorId} className="text-sm font-semibold">
-              {comment.author.name}
+              {authorHref ? (
+                <LinkComponent
+                  href={authorHref}
+                  className="hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  <bdi>{comment.author.name}</bdi>
+                </LinkComponent>
+              ) : (
+                <bdi>{comment.author.name}</bdi>
+              )}
             </span>
             {comment.author.username ? (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground" dir="ltr">
                 @{comment.author.username}
               </span>
             ) : null}
@@ -381,10 +430,15 @@ function CommentNodeInner({
             />
           ) : (
             <ExpandableText
-              content={comment.content}
+              {...(ctx.renderContent
+                ? { measureKey: comment.content }
+                : { content: comment.content })}
               maxLines={bodyMaxLines}
+              labels={expandableLabels}
               contentClassName="text-sm mt-0.5"
-            />
+            >
+              {ctx.renderContent ? ctx.renderContent(comment, { depth }) : undefined}
+            </ExpandableText>
           )}
         </div>
 
@@ -410,7 +464,7 @@ function CommentNodeInner({
             formatCount={ctx.formatCount}
             dir={ctx.dir}
           />
-          {currentUser && permissions.canReply ? (
+          {currentUser && permissions.canReply && !ctx.closed ? (
             <button
               type="button"
               onClick={(e) => openReply(comment.id, e.currentTarget)}

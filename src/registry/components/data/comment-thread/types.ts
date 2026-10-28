@@ -1,7 +1,8 @@
-import type { ComponentType, ReactNode } from "react";
+import type { ComponentType, ElementType, ReactNode } from "react";
 // F-S1 lock: same-category cross-procomp type import via a relative, specific-file path.
 import type {
   EngagementAction,
+  EngagementBarLabels,
   EngagementReactionKind,
 } from "../engagement-bar/types";
 
@@ -260,12 +261,28 @@ export interface CommentThreadLabels {
   save?: string;
   /** Alert after a failed edit (`comment-thread-moderation`). Default "Couldn't save your edit.". */
   editFailed?: string;
+
+  // ─── 0.5.0 ───
+  /** Expand control of a clamped comment body (forwarded to expandable-text). Default "Show more". */
+  showMore?: string;
+  /** Collapse control of an expanded comment body. Default "Show less". */
+  showLess?: string;
+  /** Shown in place of the bottom composer when the thread is `closed`. Default "Comments are turned off.". */
+  closed?: string;
+  /**
+   * Labels forwarded to every row's engagement-bar: the names of host actions added with
+   * `engagementActions` (comment, share, bookmark, view count, likers panel) and of the reaction
+   * picker. An explicitly set thread `like` / `unlike` wins over `engagement.like` /
+   * `engagement.unlike`; either one localizes the heart.
+   */
+  engagement?: EngagementBarLabels;
 }
 
-/** Fully-resolved labels (what parts receive). */
+/** Fully-resolved labels (what parts receive). `engagement` stays optional. */
 export type ResolvedCommentThreadLabels = Required<
-  Omit<CommentThreadLabels, "formatRelativeTime">
->;
+  Omit<CommentThreadLabels, "formatRelativeTime" | "engagement">
+> &
+  Pick<CommentThreadLabels, "engagement">;
 
 export const defaultCommentThreadLabels: ResolvedCommentThreadLabels = {
   composerPlaceholder: "Write a comment…",
@@ -302,6 +319,9 @@ export const defaultCommentThreadLabels: ResolvedCommentThreadLabels = {
   edit: "Edit",
   save: "Save",
   editFailed: "Couldn't save your edit.",
+  showMore: "Show more",
+  showLess: "Show less",
+  closed: "Comments are turned off.",
 };
 
 /** @deprecated Use {@link defaultCommentThreadLabels}. */
@@ -535,7 +555,7 @@ export interface CommentThreadProps {
   /** Override the inline-expand "view N replies" link shown at `maxDepth` (the on-demand `onLoadReplies` link stays built in). */
   renderViewReplies?: (parentId: string, count: number) => ReactNode;
 
-  /** Override the bottom composer entirely. */
+  /** Override the bottom composer entirely. Not called while `closed` (the `labels.closed` notice renders instead). */
   renderComposer?: (
     state: CommentComposerState,
     helpers: CommentComposerHelpers,
@@ -556,6 +576,29 @@ export interface CommentThreadProps {
    * add-on it logs one development warning and prunes.
    */
   removedMode?: "prune" | "tombstone";
+
+  // ─── 0.5.0 ───
+  /**
+   * Render a comment's body yourself (links, mentions, hashtags) while keeping the line clamp and
+   * "Show more": the result is rendered inside the row's expandable-text, which re-measures when it
+   * changes. Default: the plain `content` text. The moderation add-on's edit composer still edits
+   * the raw `content`. Return safe markup — the thread renders it as given.
+   */
+  renderContent?: (comment: Comment, context: { depth: number }) => ReactNode;
+  /**
+   * Link for a row's author. Returns `undefined` for no link. The avatar and the name each become a
+   * link (rendered with `linkComponent`); the avatar link is hidden from assistive technology and
+   * the keyboard, so the name link is the one that is announced.
+   */
+  getAuthorHref?: (author: Comment["author"], comment: Comment) => string | undefined;
+  /** Component for author links (a router `Link`, for example). Receives `href`. Default `"a"`. */
+  linkComponent?: ElementType;
+  /**
+   * Closes the thread: no bottom composer (a notice, `labels.closed`, renders in its place), no
+   * Reply for anyone, any open reply composer closes, and `handle.openReply` / `focusComposer` do
+   * nothing (one development warning). Likes and menus are unchanged. Default `false`.
+   */
+  closed?: boolean;
 
   labels?: CommentThreadLabels;
   /** BCP 47 locale for times and counts. Default `"en"`. */

@@ -103,7 +103,7 @@ describe("P1 image progress waits for load", () => {
     expect(ref.current!.getCursor().itemIndex).toBe(1);
     tick(6000);
     expect(ref.current!.getCursor().itemIndex).toBe(1); // a2 not loaded yet
-    expect(barValues()[1]).toBe(0);
+    expect(barValues()).toEqual([0]); // 0.6.2: only the current segment is a progressbar (a2, at 0)
   });
 });
 

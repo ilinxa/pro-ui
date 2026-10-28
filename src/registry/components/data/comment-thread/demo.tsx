@@ -268,6 +268,64 @@ function ModerationTab() {
   );
 }
 
+// 0.5.0 — renderContent: turn @mentions and URLs into links without injecting HTML.
+function linkify(text: string) {
+  return text.split(/(@\w+|https?:\/\/\S+)/g).map((part, i) => {
+    if (part.startsWith("@")) {
+      return (
+        <a key={i} href={`#/u/${part.slice(1)}`} className="font-medium text-foreground underline decoration-primary underline-offset-2">
+          {part}
+        </a>
+      );
+    }
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a key={i} href={part} className="underline underline-offset-2" target="_blank" rel="noreferrer">
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
+const RICH_COMMENTS: Comment[] = DUMMY_FLAT_COMMENTS.map((c, i) =>
+  i === 0
+    ? { ...c, content: `${c.content} cc @marta, notes at https://ui.ilinxa.com/components/comment-thread` }
+    : i === 1
+      ? { ...c, content: `@leo agreed. ${c.content}` }
+      : c,
+);
+
+function RichLinksTab() {
+  const [closed, setClosed] = useState(false);
+  return (
+    <div className="flex flex-col gap-3">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="self-start"
+        aria-pressed={closed}
+        onClick={() => setClosed((c) => !c)}
+      >
+        {closed ? "Reopen comments" : "Close comments"}
+      </Button>
+      <CommentThread
+        comments={RICH_COMMENTS}
+        currentUser={DUMMY_VIEWER}
+        closed={closed}
+        renderContent={(c) => <p className="whitespace-pre-wrap">{linkify(c.content)}</p>}
+        getAuthorHref={(author) => (author.username ? `#/u/${author.username}` : undefined)}
+        onAddComment={async (content) => {
+          ConsoleSink({ tag: "add", payload: content });
+        }}
+        onLikeComment={(id, liked) => ConsoleSink({ tag: "like", payload: { id, liked } })}
+      />
+    </div>
+  );
+}
+
 function TurkishTab() {
   return (
     <CommentThread
@@ -290,6 +348,10 @@ function TurkishTab() {
         sending: "Gönderiliyor…",
         postFailed: "Yorumunuz gönderilemedi. Tekrar deneyin.",
         editedSuffix: "(düzenlendi)",
+        showMore: "Devamını gör",
+        showLess: "Daha az göster",
+        closed: "Yorumlar kapatıldı.",
+        engagement: { comment: "Yorum", share: "Paylaş", react: "Tepki ver" },
       }}
       onReportComment={() => {}}
     />
@@ -336,6 +398,7 @@ export default function CommentThreadDemo() {
         <TabsTrigger value="paginated">Paginated</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="moderation">Moderation</TabsTrigger>
+        <TabsTrigger value="rich">Rich &amp; links</TabsTrigger>
         <TabsTrigger value="reactions">Reactions</TabsTrigger>
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="disabled">No user</TabsTrigger>
@@ -361,6 +424,9 @@ export default function CommentThreadDemo() {
       </TabsContent>
       <TabsContent value="moderation" className="mt-4">
         <ModerationTab />
+      </TabsContent>
+      <TabsContent value="rich" className="mt-4">
+        <RichLinksTab />
       </TabsContent>
       <TabsContent value="reactions" className="mt-4">
         <ReactionsTab />

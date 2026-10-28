@@ -4,6 +4,7 @@ import {
   memo,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -230,6 +231,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     snapCount,
     addPauseReason,
     removePauseReason,
+    pauseReasons: activePauseReasons,
     pendingRemoval,
   } = useStoryViewerState({
     initialStories,
@@ -365,10 +367,26 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     onItemUnavailable,
     unavailableNoticeMs,
     standalone,
+    pauseReasons: activePauseReasons,
     addPauseReason,
     removePauseReason,
     goToNextItem,
   });
+
+  // 0.6.2 - Play / Space / middle tap. While a notice (unavailable media or a removed item) is the
+  // only thing holding the viewer, "play" ends the notice early (the same advance as its timer);
+  // otherwise it toggles the user pause as before.
+  const noticeOnly =
+    (!!pendingRemoval || !!media.unavailable) &&
+    activePauseReasons.every((r) => r === "unavailable");
+  const noticeStays = pendingRemoval ? pendingRemoval.stayUntilClosed : media.stayUntilClosed;
+  const togglePause = useCallback(() => {
+    if (noticeOnly) {
+      if (!noticeStays) goToNextItem("left");
+      return;
+    }
+    setPaused((p) => !p);
+  }, [noticeOnly, noticeStays, goToNextItem, setPaused]);
   const {
     reportFailure: reportMediaFailure,
     markUnavailable: markMediaUnavailable,
@@ -964,6 +982,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   // ─── v0.3.1 share panel state — opens on share-icon tap ──────────────
   const [shareOpen, setShareOpen] = useState(false);
+  // 0.6.2 — sheet ids for the comment / share actions' disclosure state (engagement-bar 0.7.0).
+  const commentsPanelId = useId();
+  const sharePanelId = useId();
   // Owner viewers list + link drawer: their open state lives here so the root
   // knows every open layer (pause, Escape, inert).
   const [ownerViewersOpen, setOwnerViewersOpen] = useState(false);
@@ -1192,8 +1213,21 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         }
         onShareStory?.(currentStory!.id, currentItem!.id);
       },
+      // Only where the action opens a sheet (the sheets mount in viewer mode, unless opted out).
+      commentDisclosure:
+        viewerMode === "viewer" && !disableComments
+          ? { expanded: commentsOpen, controls: commentsPanelId }
+          : undefined,
+      shareDisclosure:
+        viewerMode === "viewer" && !disableSharePanel
+          ? { expanded: shareOpen, controls: sharePanelId }
+          : undefined,
     });
   }, [
+    commentsOpen,
+    shareOpen,
+    commentsPanelId,
+    sharePanelId,
     engagementOverlayMounted,
     currentStory,
     currentItem,
@@ -1334,7 +1368,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     enabled: !disableKeyboardNav && !hasLayer,
     onPrevItem: goToPrevItem,
     onNextItem: goToNextItem,
-    onTogglePause: () => setPaused((p) => !p),
+    onTogglePause: togglePause,
     isRtl: () => isRtlElement(gestureRootRef.current),
   });
 
@@ -1480,6 +1514,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             className="absolute inset-0 backface-hidden pointer-events-none"
             style={{ transform: "translateZ(50cqw)" }}
             aria-hidden="true"
+            inert
           >
             <StoryCubeFace
               story={autoLeavingStory}
@@ -1502,6 +1537,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             className="absolute inset-0 backface-hidden pointer-events-none"
             style={{ transform: "rotateY(-90deg) translateZ(50cqw)" }}
             aria-hidden="true"
+            inert
           >
             <StoryCubeFace
               story={leftGhost.story}
@@ -1522,6 +1558,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             className="absolute inset-0 backface-hidden pointer-events-none"
             style={{ transform: "rotateY(90deg) translateZ(50cqw)" }}
             aria-hidden="true"
+            inert
           >
             <StoryCubeFace
               story={rightGhost.story}
@@ -1594,6 +1631,8 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             items={currentStory.items}
             currentItemIndex={cursor.itemIndex}
             smooth={mediaDriven}
+            author={currentStory.username}
+            labels={labels}
           />
         ) : null}
         {/* v0.2.0 C7 — renderHeader slot wins as full takeover. */}
@@ -1605,7 +1644,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             item={currentItem}
             isPaused={isPaused}
             isMuted={isMuted}
-            onTogglePause={() => setPaused((p) => !p)}
+            onTogglePause={togglePause}
             onToggleMute={() => setMuted((m) => !m)}
             onClose={onClose}
             formatTime={labels.formatTime}
@@ -1684,7 +1723,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
           ) : !disableTapZones ? (
             <TapZones
               onPrev={goToPrevItem}
-              onTogglePause={() => setPaused((p) => !p)}
+              onTogglePause={togglePause}
               onNext={goToNextItem}
             />
           ) : null}
@@ -1857,6 +1896,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             so non-viewer modes / opt-outs don't ship the panel at all. */}
         {!!viewerMode && viewerMode === "viewer" && !disableComments ? (
           <CommentsPanel
+            id={commentsPanelId}
             story={currentStory}
             item={currentItem}
             open={commentsOpen}
@@ -1877,6 +1917,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             open/close cycles. */}
         {!!viewerMode && viewerMode === "viewer" && !disableSharePanel ? (
           <SharePanel
+            id={sharePanelId}
             story={currentStory}
             item={currentItem}
             open={shareOpen}

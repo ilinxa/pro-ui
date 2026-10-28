@@ -10,6 +10,11 @@ export const meta: ComponentMeta = {
   context:
     "Fifth ship in the social-posts-system arc. Since 0.4.0 the thread closes under the consumer contract: `comments` is read once at mount unless `onCommentsChange` is passed, which makes it controlled (pending operations show as an overlay over the prop; accepted changes are reported, not applied). Realtime via Subscribe<CommentDelta> is idempotent (id first, then `clientId`). Moderation (inline edit, tombstones, pin marker) is the opt-in feature item `comment-thread-moderation`, wired through the `moderation` prop; the base never imports it. Per-row engagement-bar is controlled by the thread state. No framer-motion, no textarea-autosize dep, no date-fns dep. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx.",
   features: [
+    "v0.5.0 — `renderContent(comment, { depth })`: your own links / mentions / hashtags inside the row's clamped body (Show more still works); the edit composer still edits the raw `content`",
+    "v0.5.0 — labels reach every row: `labels.showMore` / `showLess`, and `labels.engagement` (all engagement-bar labels: comment, share, bookmark, view count, reaction picker); the thread's `like` / `unlike` win over `engagement.like` / `unlike`; avatar initials follow `locale`",
+    "v0.5.0 — author links: `getAuthorHref(author, comment)` + `linkComponent`; the avatar link is hidden from assistive technology and the tab order, the name link is the one announced; name in `<bdi>`, `@handle` `dir=\"ltr\"`",
+    "v0.5.0 — `closed` + `labels.closed`: no composer (a notice instead; `renderComposer` is not called), no Reply, open reply composers close, `handle.openReply` / `focusComposer` do nothing (one development warning); likes and menus unchanged",
+    "v0.5.0 — fix: the \"View replies\" link reports its real `aria-expanded` and sets `aria-controls` only while the list it controls is in the DOM",
     "v0.4.0 — controlled `comments` + `onCommentsChange(next, change)`: the prop wins on every render, pending operations show over it, accepted changes are reported once accepted",
     "v0.4.0 — idempotent realtime: an `added` delta for an id already shown never duplicates, and `clientId` (sent through `onAddComment(content, parentId, { clientId })`) reconciles your own echo with the pending comment",
     "v0.4.0 — rollback: a failed post removes the pending comment and keeps the text (`labels.postFailed`); like, reaction, delete and edit roll back when their promise rejects; latest request wins; `optimistic`, `onError`; no unhandled rejections",
@@ -56,13 +61,13 @@ export const meta: ComponentMeta = {
     "expandable",
   ],
 
-  version: "0.4.0",
+  version: "0.5.0",
   status: "alpha",
   // 0.4.0: 75 KB was the U1 estimate; the built artifact is ~135 KB (~15 KB of it is JSDoc in
   // types.ts). Runtime cost of <CommentThread>, minified + gzip: 5.1 KB (0.3.2) → 11.6 KB.
   artifactBudgetKB: 150,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-26",
+  updatedAt: "2026-10-28",
 
   author: { name: "ilinxa" },
 

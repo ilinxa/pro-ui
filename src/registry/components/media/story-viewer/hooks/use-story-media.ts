@@ -44,6 +44,8 @@ export interface UseStoryMediaOptions {
   ) => void;
   unavailableNoticeMs?: number;
   standalone?: boolean;
+  /** Active pause reasons. The notice timer waits while any reason other than `unavailable` holds. */
+  pauseReasons?: string[];
   addPauseReason: (reason: string) => void;
   removePauseReason: (...reasons: string[]) => void;
   goToNextItem: (cause?: "completed" | "left") => void;
@@ -95,6 +97,7 @@ export function useStoryMedia(opts: UseStoryMediaOptions): UseStoryMediaResult {
     onMediaError,
     unavailableNoticeMs = 1500,
     standalone = false,
+    pauseReasons,
     addPauseReason,
     removePauseReason,
   } = opts;
@@ -349,15 +352,32 @@ export function useStoryMedia(opts: UseStoryMediaOptions): UseStoryMediaResult {
   }, [unavailable, itemKey, currentStory, currentItem]);
 
   const stayUntilClosed = standalone && currentStory?.items.length === 1;
+  // 0.6.2 - the notice counts down only while nothing else holds the viewer: another pause reason
+  // (sheet, hold, hidden tab, host...) stops the clock and the rest of the time runs afterwards.
+  const otherHolds = !!pauseReasons && pauseReasons.some((r) => r !== "unavailable");
+  const noticeLeftRef = useRef<{ sig: string; ms: number } | null>(null);
   useEffect(() => {
-    if (!unavailable || stayUntilClosed) return;
+    if (!unavailable || stayUntilClosed) {
+      noticeLeftRef.current = null;
+      return;
+    }
     if (unavailableNoticeMs <= 0) {
       goNextRef.current("left");
       return;
     }
-    const t = window.setTimeout(() => goNextRef.current("left"), unavailableNoticeMs);
-    return () => window.clearTimeout(t);
-  }, [unavailable, itemKey, stayUntilClosed, unavailableNoticeMs]);
+    const sig = `${itemKey}|${unavailable}`;
+    if (noticeLeftRef.current?.sig !== sig) {
+      noticeLeftRef.current = { sig, ms: unavailableNoticeMs };
+    }
+    if (otherHolds) return;
+    const left = noticeLeftRef.current;
+    const startedAt = Date.now();
+    const t = window.setTimeout(() => goNextRef.current("left"), left.ms);
+    return () => {
+      window.clearTimeout(t);
+      left.ms = Math.max(0, left.ms - (Date.now() - startedAt));
+    };
+  }, [unavailable, itemKey, stayUntilClosed, unavailableNoticeMs, otherHolds]);
 
   const srcFor = useCallback(
     (story: Story, item: StoryItem): string | undefined =>

@@ -1,6 +1,6 @@
 # post-card — consumer guide
 
-> Stage 3: how to use it. Current for **v0.6.0**: read the "v0.6.0 — consumer contract" section at the end first; the
+> Stage 3: how to use it. Current for **v0.6.1** (0.6.1 adds panel disclosure state — see "Inline engagement panels"): read the "v0.6.0 — consumer contract" section at the end first; the
 > earlier sections still hold unless that section says otherwise.
 >
 > See [`post-card-procomp-description.md`](./post-card-procomp-description.md) for what & why,
@@ -49,6 +49,13 @@ When `engagementMode="inline"` (the default) and the card is feed / compact / li
 - **Tap share icon** → toggle inline searchable user list (when `shareSuggestions` provided; otherwise fires `onShare(postId)`).
 
 Only one panel is open at a time. Each panel has a "Hide" button (kasder's "Gizle") to close.
+
+**0.6.1:** the comment, likers-count and share buttons carry `aria-expanded` / `aria-controls` for the panel they open
+(engagement-bar 0.7.0), and closing a panel returns focus to the button that opened it — also on Safari / macOS
+Firefox, which do not focus a clicked button. Two limits: the likers panel that a heart tap opens
+(`openLikersOnLike`) still takes the focused element as its opener (on Safari that is the card); and actions you build
+in the `engagementActions` slot carry no disclosure state — `defaultPostEngagementActions(...)` called from the slot
+omits its `inline` argument (`PostInlineDisclosure`).
 
 ## Minimal feed (with all three panels enabled)
 
@@ -172,7 +179,7 @@ import { Wand2 } from "lucide-react";
 
 The `handlers` you receive in the `engagementActions` slot are **pre-wrapped** — calling `h.onLike(id, true)` calls your host's `onLike` and applies the change to the shown post (at once for a sync handler; as an overlay while a returned promise is in flight).
 
-`defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?)` accepts an optional fourth arg. When the card is in inline mode it supplies its own `onLikeCountClick` to wire the count→panel toggle. Hosts overriding the slot get a no-op for that arg unless they explicitly opt in.
+`defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?, reactions?, inline?)` accepts optional trailing args (`onLikeCountClick` receives the click event since 0.6.1; `inline` is post-card's own `PostInlineDisclosure`). When the card is in inline mode it supplies its own `onLikeCountClick` to wire the count→panel toggle. Hosts overriding the slot get a no-op for that arg unless they explicitly opt in.
 
 ## Custom kebab actions (moderator surfaces)
 

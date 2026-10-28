@@ -21,6 +21,8 @@ export interface BottomSheetProps {
   children?: ReactNode;
   /** Optional className override for the outer sheet wrapper. */
   className?: string;
+  /** `id` of the sheet root — the target of the opening action's `aria-controls`. */
+  id?: string;
 }
 
 /**
@@ -43,6 +45,7 @@ export function BottomSheet({
   heightPct = 62,
   children,
   className,
+  id,
 }: BottomSheetProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -71,6 +74,7 @@ export function BottomSheet({
   return (
     <div
       ref={rootRef}
+      id={id}
       data-story-layer="sheet"
       data-open={open ? "true" : "false"}
       tabIndex={-1}

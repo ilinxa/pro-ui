@@ -28,6 +28,7 @@ export {
   defaultPostEngagementActions,
   defaultPostKebabActions,
 } from "./lib/defaults";
+export type { PostInlineDisclosure } from "./lib/defaults";
 
 export type {
   Post,

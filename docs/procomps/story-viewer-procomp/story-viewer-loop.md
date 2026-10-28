@@ -623,3 +623,68 @@ platform). **Next release:** media-editor 0.5.0 + story-composer 0.6.0 — on th
 ### U7 — Ship (release 5)
 
 Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Detail: comment-thread-loop.md "U7 — Ship".
+
+# Run — 0.6.2 (a11y / bug patch from the platform request of 2026-10-27)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **patch** — no public API added or removed; behaviour fixes + one JSDoc fix) |
+| **Current stage** | U6 done — ships with release 7 (one commit); awaiting the user's push go |
+| **Sign-off policy** | patch → architect proceeds (ladder). User chose this patch 2026-10-28 ("1. a"): ship it in parallel with release 7, ahead of story-viewer 0.7.0 |
+| **Version target** | v0.6.1 → **v0.6.2** |
+| **Model roster** | architect: main session · implementer: Sonnet 5 · review: architect self-check (patch) |
+| **Started / updated** | 2026-10-28 / 2026-10-28 |
+
+## U0 — Intake & impact
+
+- Source: `.claude/platform-request-verification-2026-10-28.md` §Group 3 (asks SV-1, SV-4 (2) (4) (6) (10) (11), plus
+  two defects we found: the header scrim over the bars and focusable buttons inside `aria-hidden` ghost faces).
+- **Blast radius:** story-viewer only. No dependents compose story-viewer (`registry.json` grep: no item lists
+  `@ilinxa/story-viewer`). It composes comment-thread (`CommentComposer`) and engagement-bar (inline-copied types) —
+  untouched. Docs: `meta.ts`, CHANGELOG, guide "v0.6.2" section, STATUS row, component-versions.
+- Owed follow-ups overlapping this touch: none of 0.6.0 F-01…F-06 is in scope (F-02, the `pauseReasons` late-update
+  drop, stays parked — note it in the guide's known issues is already done).
+- Loop rows B-5 / R-3 / 0.6.1 W8 ("focus lands on body after close — host concern") are **reversed** by this run.
+
+## U1 — Change contract (patch; recorded, no pause)
+
+Reproductions (write before fixing; U5 replays them):
+
+| # | Reproduction | Expected after fix |
+|---|---|---|
+| R1 | Open the viewer from a host button (no `DialogTrigger`), close with X / Escape / auto-close | Focus returns to the element that was focused when the viewer opened, if it is still connected and focus would otherwise be on `body`; no double focus when the backend (Base UI) already restored it. The false comment in `parts/viewer-shell.tsx` is corrected. |
+| R2 | axe on an open viewer with a 3-item story | No `aria-progressbar-name`: only the current segment is `role="progressbar"`, named by the existing `labels.position(author, index, total)`; the other segments are `aria-hidden`. |
+| R3 | Story on a pure-white image | The bars are visible: they sit above the header scrim (not under it) and carry a subtle shadow. Pure-black image unchanged. |
+| R4 | Drag the cube (ghost faces mounted), Tab | No focusable element inside an `aria-hidden` ghost face (`inert` on the ghost wrappers). |
+| R5 | Unavailable notice showing, then a host pause reason (e.g. `sheet`) arrives | The notice timer stops while any OTHER pause reason holds and resumes with the remaining time after; same for the removal notice. |
+| R6 | Long-press on the card, release the mouse outside the card / alt-tab | The hold ends on window `pointerup` / `pointercancel` / `blur`; the story resumes. |
+| R7 | Unavailable / removal notice showing, press Play / Space / middle tap zone | The notice ends early (advances as if its timer elapsed). |
+| R8 | `onItemViewed` JSDoc | Says taps report `"left"`, not `"completed"`; matches the guide. |
+
+Invariants that must still hold: every existing story-viewer test; `pauseReasons` controlled-mode semantics; reduced
+motion; the 0.6.1 reply-failure behaviour; RTL; the cube/swipe thresholds; `renderProgress` replaces the bars entirely
+(the new naming applies to the default bars only).
+
+Deferred to 0.7.0 (minor): SV-4 (8) hide failed media, (13) `left` at auto-close + item on `onAutoCloseAtEnd`,
+`returnFocusTo`, `--story-viewer-progress-height`, and every feature ask.
+
+## U2–U6 (2026-10-28)
+
+- **U2:** Sonnet implementer, R1–R8 at source; `__tests__/a11y-bugs-0-6-2.test.tsx` (16), each fix reverted → its test
+  failed, restored → 16 / 16. `progress-0-5-4.test.tsx` L106 updated (only the current segment is a progressbar now —
+  the regression it guards still asserts). The architect added the release-7 EB-1 wiring to this patch (same push):
+  sheet ids, `commentDisclosure` / `shareDisclosure`, `__tests__/disclosure-0-6-2.test.tsx` (3; wiring removed → 2
+  fail), inline-type parity samples for comment / share.
+- **U3:** see the release-7 battery in `comment-thread-loop.md` (artifact 329.7 / 340 KB).
+- **U4:** finder B (fresh Sonnet) read R1–R8: no Blocker / High; two edge rows → follow-ups **FU-3** (removal notice
+  after a paused media notice uses wall-clock remaining time) and **FU-4** (Play does nothing during a notice on a
+  single-item, stay-until-closed story) — story-viewer 0.7.0.
+- **U5:** browser finder: R1 (X / Escape / auto-close, click / Enter / Safari-like click with the opener focused), R2
+  (one named progressbar, axe clean for it), R3 (bars visible over a white image), R4 (no focusable inside
+  `aria-hidden` ghosts, idle / mid-drag), R6, R7, sheet disclosure — all pass. New pre-existing row **FU-5**: the
+  link-drawer opener's `aria-label` ("Shop now") does not match its visible text (axe
+  `label-content-name-mismatch`) — story-viewer 0.7.0. Installs: `comment-thread-loop.md` "U5 — installs".
+- **U6:** guide "v0.6.2 — accessibility fixes", CHANGELOG bullet, `meta.ts` 0.6.2, STATUS row. Patch → no review
+  file required (rigor ladder); the EB-1 wiring is covered by engagement-bar's 0.7.0 spot-check.

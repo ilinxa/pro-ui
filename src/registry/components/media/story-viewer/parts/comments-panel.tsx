@@ -16,6 +16,8 @@ export interface CommentsPanelProps {
    * empty-state is rendered.
    */
   children?: ReactNode;
+  /** `id` of the sheet (the comment action's `aria-controls` target). */
+  id?: string;
 }
 
 /**
@@ -28,10 +30,12 @@ export function CommentsPanel({
   onClose,
   labels,
   children,
+  id,
 }: CommentsPanelProps) {
   void story;
   return (
     <BottomSheet
+      id={id}
       open={open}
       onClose={onClose}
       heading={labels.commentsHeading}

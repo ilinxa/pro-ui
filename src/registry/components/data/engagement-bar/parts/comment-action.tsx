@@ -5,6 +5,7 @@ import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
+  EngagementActionEvent,
   EngagementBarVariant,
   EngagementCount,
   ResolvedEngagementBarLabels,
@@ -15,7 +16,11 @@ interface CommentActionProps {
   variant: EngagementBarVariant;
   count: EngagementCount;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (event: EngagementActionEvent) => void;
+  /** Disclosure state (0.7.0): rendered as aria-expanded; undefined = no attribute. */
+  expanded?: boolean;
+  /** aria-controls target, rendered only while `expanded === true`. */
+  controls?: string;
   format: (n: number) => string;
   labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
@@ -26,6 +31,8 @@ function CommentActionInner({
   count,
   disabled = false,
   onClick,
+  expanded,
+  controls,
   format,
   labels,
   actionClassName,
@@ -34,9 +41,9 @@ function CommentActionInner({
   const name = useActionName(hasCount);
   const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
   const stacked = variant === "stacked";
-  const handleClick = () => {
+  const handleClick = (event: EngagementActionEvent) => {
     if (disabled) return;
-    onClick?.();
+    onClick?.(event);
   };
 
   return (
@@ -46,6 +53,8 @@ function CommentActionInner({
       size="sm"
       aria-labelledby={name.labelledBy}
       aria-disabled={disabled || undefined}
+      aria-expanded={expanded}
+      aria-controls={expanded === true ? controls : undefined}
       onClick={handleClick}
       className={cn(
         stacked

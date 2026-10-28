@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import type {
   EngagementAction,
+  EngagementActionEvent,
   EngagementBarVariant,
   EngagementState,
   ResolvedEngagementBarLabels,
@@ -40,6 +41,8 @@ export interface ReactionActionProps {
   /** Fires when the picker opens / closes (changes only, plus a close on unmount while open). */
   onPickerOpenChange?: (open: boolean) => void;
   actionClassName?: string;
+  /** Bar-level `hideZeroCounts`: a total of exactly 0 renders no count. */
+  hideZeroCounts?: boolean;
 }
 
 function ReactionActionInner({
@@ -52,6 +55,7 @@ function ReactionActionInner({
   dir = "ltr",
   onPickerOpenChange,
   actionClassName,
+  hideZeroCounts = false,
 }: ReactionActionProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -224,7 +228,8 @@ function ReactionActionInner({
   // Q-PP-5 visibility rule — count hides when withheld, or when total is 0 AND viewer is null.
   const totalCount = state.reactionTotalCount;
   const showCount =
-    totalCount !== null && (totalCount > 0 || state.viewerReaction !== null);
+    totalCount !== null &&
+    (totalCount > 0 || (state.viewerReaction !== null && !hideZeroCounts));
   const splitCount = !!action.onCountClick;
 
   const triggerName = useActionName(showCount && !splitCount);
@@ -249,11 +254,13 @@ function ReactionActionInner({
     splitCount && showCount ? (
       <button
         type="button"
-        onClick={() => {
+        onClick={(event: EngagementActionEvent) => {
           if (disabled) return;
-          action.onCountClick?.();
+          action.onCountClick?.(event);
         }}
         aria-labelledby={countName.labelledBy}
+        aria-expanded={action.countExpanded}
+        aria-controls={action.countExpanded === true ? action.countControls : undefined}
         aria-disabled={disabled || undefined}
         className={cn(
           "rounded text-sm font-medium tabular-nums text-foreground motion-safe:transition-colors",

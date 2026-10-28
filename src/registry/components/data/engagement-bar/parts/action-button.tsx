@@ -3,6 +3,7 @@
 import { memo } from "react";
 import type {
   EngagementAction,
+  EngagementCount,
   EngagementBarVariant,
   EngagementState,
   ResolvedEngagementBarLabels,
@@ -29,6 +30,7 @@ interface ActionButtonProps {
   dir: Direction;
   onReactionPickerOpenChange?: (open: boolean) => void;
   actionClassName?: string;
+  hideZeroCounts?: boolean;
 }
 
 /**
@@ -48,17 +50,22 @@ function ActionButtonInner({
   dir,
   onReactionPickerOpenChange,
   actionClassName,
+  hideZeroCounts = false,
 }: ActionButtonProps) {
+  // `hideZeroCounts`: a count of exactly 0 is withheld (null) so no digit and no name part render.
+  const shown = (n: EngagementCount): EngagementCount => (hideZeroCounts && n === 0 ? null : n);
   switch (action.kind) {
     case "like":
       return (
         <LikeAction
           variant={variant}
           liked={state.liked}
-          count={state.likeCount}
+          count={shown(state.likeCount)}
           disabled={action.disabled}
           onToggle={onToggleLike}
           onCountClick={action.onCountClick}
+          countExpanded={action.countExpanded}
+          countControls={action.countControls}
           format={format}
           labels={labels}
           actionClassName={actionClassName}
@@ -68,9 +75,11 @@ function ActionButtonInner({
       return (
         <CommentAction
           variant={variant}
-          count={state.commentCount}
+          count={shown(state.commentCount)}
           disabled={action.disabled}
           onClick={action.onClick}
+          expanded={action.expanded}
+          controls={action.controls}
           format={format}
           labels={labels}
           actionClassName={actionClassName}
@@ -80,9 +89,11 @@ function ActionButtonInner({
       return (
         <ShareAction
           variant={variant}
-          count={state.shareCount}
+          count={shown(state.shareCount)}
           disabled={action.disabled}
           onClick={action.onClick}
+          expanded={action.expanded}
+          controls={action.controls}
           format={format}
           labels={labels}
           actionClassName={actionClassName}
@@ -103,7 +114,7 @@ function ActionButtonInner({
       return (
         <ViewCountAction
           variant={variant}
-          count={state.viewCount}
+          count={shown(state.viewCount)}
           format={format}
           labels={labels}
           actionClassName={actionClassName}
@@ -116,14 +127,16 @@ function ActionButtonInner({
           id={action.id}
           label={action.label}
           icon={action.icon}
-          count={
+          count={shown(
             typeof action.count === "number" && Number.isFinite(action.count)
               ? action.count
-              : null
-          }
+              : null,
+          )}
           active={action.active}
           disabled={action.disabled}
           onClick={action.onClick}
+          expanded={action.expanded}
+          controls={action.controls}
           format={format}
           actionClassName={actionClassName}
         />
@@ -139,6 +152,7 @@ function ActionButtonInner({
           labels={labels}
           dir={dir}
           onPickerOpenChange={onReactionPickerOpenChange}
+          hideZeroCounts={hideZeroCounts}
           actionClassName={actionClassName}
         />
       );

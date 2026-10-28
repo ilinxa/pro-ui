@@ -297,3 +297,10 @@ reads `getCurrentState()` counts as `number` (now `number | null`, a compile-tim
 ### U7 — Ship (release 5)
 
 Commit `424f34a`, pushed 12:52 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): old versions at +3 / +6 / +9 min, **all six new at +12 min** (comment-thread 0.4.0, comment-thread-moderation 0.4.0, post-card 0.6.0, story-viewer 0.6.1, engagement-bar 0.6.1, news-card 0.4.5). Detail: comment-thread-loop.md "U7 — Ship".
+
+# Run — 0.7.0 (release 7, with comment-thread 0.5.0; platform request 2026-10-27)
+
+Lead state doc: `docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7". Ground truth:
+`.claude/platform-request-verification-2026-10-28.md` §Group 1. Release 7 scope for engagement-bar (proposed): EB-1
+disclosure state + event-passing handlers, EB-5 `hideZeroCounts`; EB-2 / EB-3 / EB-4 / EB-6 → 0.8.0 (release 7b).
+Status: U1 proposed, awaiting the user's sign-off.

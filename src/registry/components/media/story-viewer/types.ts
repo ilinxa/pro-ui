@@ -367,11 +367,19 @@ export type StoryEngagementAction =
       kind: "comment";
       count?: StoryEngagementCount;
       onClick?: () => void;
+      /** engagement-bar 0.7.0 disclosure state: the comments sheet is open. */
+      expanded?: boolean;
+      /** `id` of the comments sheet; rendered as `aria-controls` while `expanded`. */
+      controls?: string;
     })
   | (StoryEngagementActionBase & {
       kind: "share";
       count?: StoryEngagementCount;
       onClick?: () => void;
+      /** engagement-bar 0.7.0 disclosure state: the share sheet is open. */
+      expanded?: boolean;
+      /** `id` of the share sheet; rendered as `aria-controls` while `expanded`. */
+      controls?: string;
     })
   | (StoryEngagementActionBase & {
       kind: "bookmark";
@@ -879,10 +887,10 @@ export interface StoryViewerProps {
   /** Forward-completion only — fires when the user advances forward into the next story OR when the last item completes naturally. Does NOT fire on backward navigation (matches Instagram). */
   onStoryViewed?: (storyId: string) => void;
   /**
-   * Fires when an item is finished with. `cause` is `"completed"` when it
-   * played to the end or was tapped past within its story, `"left"` when the
-   * viewer jumped to another author (next / previous story by tap, key, swipe,
-   * `goToStory`, or a previous-item tap that crosses into the previous story).
+   * Fires when an item is finished with. `cause` is `"completed"` only when the
+   * item played to the end (timer or video end), `"left"` when the viewer left it
+   * early (tap, arrow key, screen-reader button, swipe or jump to another author,
+   * handle navigation).
    */
   onItemViewed?: (
     storyId: string,

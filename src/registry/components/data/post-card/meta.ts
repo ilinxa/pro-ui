@@ -16,6 +16,7 @@ export const meta: ComponentMeta = {
     "v0.6.0 — `locale`, `timeZone`, `now`, `formatRelativeTime`, `formatCount`: no clock read during render (relative time renders after mount), the poll uses the same clock, the edited tooltip is locale-formatted; one `locale` reaches the carousel, bar, likers, share menu and thread",
     "v0.6.0 — forwarding bags `mediaProps`, `engagementBarProps`, `commentThreadProps` (cursor paging, replies, `onCommentsChange`, the `moderation` add-on…); nested `likersLabels` / `shareLabels` / `textLabels`",
     "v0.6.0 — **breaking:** `likersMoreLabel`, `pollTotalVotesLabel`, `pollClosesAtLabel` are functions (`(count, formatted) => …` / `(time) => …`); list meta via `listLikes` / `listComments` / `listShares`; `openRepost(name)`",
+    "v0.6.1 — inline panels carry disclosure state (`aria-expanded` / `aria-controls` on the comment, share and likers-count buttons, via the engagement bar's `expanded` / `controls`); for those three buttons the opener is the clicked button, so focus returns to it on Safari and macOS Firefox (the likers panel a heart tap auto-opens still takes `document.activeElement` as the opener, which is the card on Safari); actions built in the `engagementActions` slot carry no disclosure state",
     "4 variants: feed (Instagram-post) / compact (sidebar widget) / list (admin row, full-height thumb) / detail (full page + embedded thread)",
     "Composes 5 Tier-1 social siblings via cross-folder imports (declared registryDependencies)",
     "Inline engagement panels DEFAULT — tap heart to like, tap count to open likers strip; tap comment for inline thread+composer; tap share for searchable user list",
@@ -39,7 +40,7 @@ export const meta: ComponentMeta = {
     "ShareMenu part — searchable user picker; local filter when no async wired, optional onShareSearch for backend search",
     "Auto-wired canonical heart-burst on double-tap (heuristic; disableHeartBurst opt-out)",
     "Engagement bar runs controlled by the card: realtime deltas and optimistic changes flow through one shown post",
-    "Wrapped engagement handlers — defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?, reactions?) gets pre-wrapped handlers",
+    "Wrapped engagement handlers — defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?(event), reactions?, inline?) gets pre-wrapped handlers",
     "Default kebab — Bookmark / Share / Copy link / Report (legacy); role-aware kebab with Edit / Delete / Pin / Change visibility / Mark sensitive / See analytics / Block / Mute / Translate when viewerMode set",
     "kebabActions slot for full takeover (moderator semantics)",
     "engagementActions slot — defaultPostEngagementActions exported for extend-not-replace",
@@ -74,11 +75,11 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.6.0",
+  version: "0.6.1",
   status: "alpha",
   artifactBudgetKB: 190,
   createdAt: "2026-05-02",
-  updatedAt: "2026-10-26",
+  updatedAt: "2026-10-28",
 
   author: { name: "ilinxa" },
 

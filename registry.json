@@ -3343,7 +3343,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.1",
+        "version": "0.7.0",
         "status": "alpha"
       }
     },
@@ -3369,7 +3369,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.1",
+        "version": "0.7.0",
         "status": "alpha"
       }
     },
@@ -3507,7 +3507,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.0",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -3533,7 +3533,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.0",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -3550,7 +3550,7 @@
       "meta": {
         "featureOf": "comment-thread",
         "budgetKB": 8,
-        "version": "0.4.0",
+        "version": "0.5.0",
         "status": "alpha"
       },
       "registryDependencies": [
@@ -3744,7 +3744,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -3770,7 +3770,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.0",
+        "version": "0.6.1",
         "status": "alpha"
       }
     },
@@ -4090,7 +4090,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.1",
+        "version": "0.6.2",
         "status": "alpha"
       }
     },
@@ -4116,7 +4116,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.1",
+        "version": "0.6.2",
         "status": "alpha"
       }
     },

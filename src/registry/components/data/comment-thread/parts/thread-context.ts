@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, type ElementType, type ReactNode } from "react";
 import type { EngagementReactionKind } from "../../engagement-bar/types";
 import type {
   Comment,
@@ -30,6 +30,12 @@ export interface CommentThreadContextValue {
   submitOnEnter: boolean;
   composerClassName?: string;
   nodeClassName?: string;
+
+  /** 0.5.0 */
+  closed: boolean;
+  renderContent?: (comment: Comment, context: { depth: number }) => ReactNode;
+  getAuthorHref?: (author: Comment["author"], comment: Comment) => string | undefined;
+  linkComponent: ElementType;
 
   locale: string;
   dir?: "ltr" | "rtl";

@@ -18,6 +18,7 @@ import type {
 } from "../comment-thread/types";
 import type {
   EngagementAction,
+  EngagementActionEvent,
   EngagementBarHandle,
   EngagementDelta,
 } from "../engagement-bar/types";
@@ -207,6 +208,12 @@ function PostCardInner(props: PostCardProps) {
     "none" | "likes" | "comments" | "share"
   >(inlineModeActive ? defaultInlinePanel : "none");
 
+  const panelBase = useId();
+  const panelIds = useMemo(
+    () => ({ likes: `${panelBase}-likes`, comments: `${panelBase}-comments`, share: `${panelBase}-share` }),
+    [panelBase],
+  );
+
   // Focus follows the panels (see the hook).
   const {
     open: openPanel,
@@ -308,9 +315,9 @@ function PostCardInner(props: PostCardProps) {
   // Under inline mode, comment-icon click toggles the inline comments panel
   // instead of firing the host's onComment.
   const handleComment = useCallback(
-    (id: string) => {
+    (id: string, event?: EngagementActionEvent) => {
       if (inlineModeActive) {
-        togglePanel("comments");
+        togglePanel("comments", event);
       } else {
         onComment?.(id);
       }
@@ -321,9 +328,9 @@ function PostCardInner(props: PostCardProps) {
   // Under inline mode + shareSuggestions provided, share toggles the share panel
   // instead of firing the host's onShare.
   const handleShare = useCallback(
-    (id: string) => {
+    (id: string, event?: EngagementActionEvent) => {
       if (inlineModeActive && shareSuggestions) {
-        togglePanel("share");
+        togglePanel("share", event);
       } else {
         onShare?.(id);
       }
@@ -372,9 +379,9 @@ function PostCardInner(props: PostCardProps) {
 
   // Inline-mode: count tap on the like action toggles the likers panel
   // (heart icon stays bound to onToggle).
-  const handleLikeCountClick = useCallback(() => {
+  const handleLikeCountClick = useCallback((event: EngagementActionEvent) => {
     if (!inlineModeActive) return;
-    togglePanel("likes");
+    togglePanel("likes", event);
   }, [inlineModeActive, togglePanel]);
 
   // ─── Engagement actions array (mirrored post + wrapped handlers) ───
@@ -388,6 +395,15 @@ function PostCardInner(props: PostCardProps) {
             variant,
             inlineModeActive ? handleLikeCountClick : undefined,
             reactions,
+            inlineModeActive
+              ? {
+                  open: activePanel,
+                  ids: panelIds,
+                  shareOpens: !!shareSuggestions,
+                  comment: (e) => handleComment(statefulPost.id, e),
+                  share: (e) => handleShare(statefulPost.id, e),
+                }
+              : undefined,
           ),
     [
       engagementActionsSlot,
@@ -397,6 +413,11 @@ function PostCardInner(props: PostCardProps) {
       inlineModeActive,
       handleLikeCountClick,
       reactions,
+      activePanel,
+      panelIds,
+      shareSuggestions,
+      handleComment,
+      handleShare,
     ],
   );
 
@@ -829,7 +850,9 @@ function PostCardInner(props: PostCardProps) {
     onMediaDoubleTap: heartBurstWired ? onMediaDoubleTap : undefined,
     cardLinkable,
     linkHref,
-    inlinePanelNode: inlinePanelNode ? <div ref={panelRef}>{inlinePanelNode}</div> : null,
+    inlinePanelNode: inlinePanelNode
+      ? <div ref={panelRef} id={activePanel === "none" ? undefined : panelIds[activePanel]}>{inlinePanelNode}</div>
+      : null,
     LinkComponent,
     renderHeader,
     renderContent,

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -34,12 +34,74 @@ export function ViewerShell({
   onKeyDown,
   children,
 }: ViewerShellProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   // Focus the dialog itself on open, not its first tabbable (the visually hidden "Previous
   // item" button, or a nav arrow on desktop). Both Radix and Base UI auto-focus inside the
   // dialog after it mounts, so this runs two frames later and takes over from that auto-focus
   // (nobody has moved focus by hand yet). Not `onOpenAutoFocus`: that prop is Radix-only
-  // (F-cross-13). Close still returns focus to the opener (dialog default).
+  // (F-cross-13).
+  //
+  // Focus on close: the dialog has no `DialogTrigger` (the host opens it from its own button), so
+  // the dialog default has nothing to return focus to and it lands on `body`. We remember the
+  // element that was focused when the viewer opened and, once the dialog content is gone, put
+  // focus back on it - only if it is still connected and focus is on `body` (so a backend that
+  // already restored it, or a host that moved it elsewhere, is never double-focused).
+  const openerRef = useRef<HTMLElement | null>(null);
+  // Safari / macOS Firefox do not focus a clicked button, so at open `activeElement` is `body`
+  // after a mouse or touch open. While closed, remember the last control pressed (per instance)
+  // and use it as the opener when nothing is focused.
+  const lastPressedRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (isOpen) return;
+    const onPress = (e: PointerEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      const control = target?.closest<HTMLElement>(
+        'button, a[href], [role="button"], [tabindex]:not([tabindex="-1"]), input, select, textarea, summary',
+      );
+      lastPressedRef.current = control ?? null;
+    };
+    document.addEventListener("pointerdown", onPress, true);
+    return () => document.removeEventListener("pointerdown", onPress, true);
+  }, [isOpen]);
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    const active = document.activeElement;
+    const pressed = lastPressedRef.current;
+    lastPressedRef.current = null;
+    if (active instanceof HTMLElement && active !== document.body && !contentRef.current?.contains(active)) {
+      openerRef.current = active;
+    } else if (pressed?.isConnected && !contentRef.current?.contains(pressed)) {
+      openerRef.current = pressed;
+    } else {
+      openerRef.current = null;
+    }
+  }, [isOpen]);
+  // After close: wait for the dialog content to be gone (its exit animation, then its own close
+  // focus handling), then focus the opener if focus fell to `body`. Abandoned as soon as focus is
+  // somewhere else (host moved it, or the backend already restored it) - never double-focus.
+  useEffect(() => {
+    if (isOpen) return;
+    const opener = openerRef.current;
+    if (!opener) return;
+    let tries = 0;
+    const finish = (id: ReturnType<typeof setInterval>) => {
+      clearInterval(id);
+      openerRef.current = null;
+    };
+    const id = setInterval(() => {
+      tries += 1;
+      const active = document.activeElement;
+      const content = contentRef.current;
+      const gone = !content || !content.isConnected;
+      if (gone && opener.isConnected && (!active || active === document.body)) {
+        opener.focus({ preventScroll: true });
+        finish(id);
+      } else if (tries >= 20 || !opener.isConnected || (gone && active && active !== document.body)) {
+        finish(id);
+      }
+    }, 50);
+    return () => clearInterval(id);
+  }, [isOpen]);
   useEffect(() => {
     if (!isOpen) return;
     let inner = 0;

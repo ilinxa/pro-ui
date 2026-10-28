@@ -16,6 +16,8 @@ export interface SharePanelProps {
    * default empty-state is rendered.
    */
   children?: ReactNode;
+  /** `id` of the sheet (the share action's `aria-controls` target). */
+  id?: string;
 }
 
 /**
@@ -30,10 +32,12 @@ export function SharePanel({
   onClose,
   labels,
   children,
+  id,
 }: SharePanelProps) {
   void story;
   return (
     <BottomSheet
+      id={id}
       open={open}
       onClose={onClose}
       heading={labels.shareHeading}

@@ -53,6 +53,7 @@ function EngagementBarInner({
   labels: labelsProp,
   locale: localeProp = "en",
   formatCount,
+  hideZeroCounts = false,
   optimistic = true,
   dir: dirProp,
   onReactionPickerOpenChange,
@@ -137,6 +138,7 @@ function EngagementBarInner({
       dir={dir}
       onReactionPickerOpenChange={onReactionPickerOpenChange}
       actionClassName={actionClassName}
+      hideZeroCounts={hideZeroCounts}
     />
   );
 

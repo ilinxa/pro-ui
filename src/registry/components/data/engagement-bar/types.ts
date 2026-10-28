@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
 export type EngagementBarVariant = "default" | "compact" | "stacked";
 
@@ -14,7 +14,8 @@ export type EngagementActionAlign = "start" | "end" | "auto" | "left" | "right";
 
 /**
  * A count shown beside an action. `null` (or omitting it) withholds the count: no number
- * renders and no count reaches any accessible name (consumer contract C6). `0` renders "0".
+ * renders and no count reaches any accessible name (consumer contract C6). `0` renders "0",
+ * unless the bar's `hideZeroCounts` is set.
  */
 export type EngagementCount = number | null;
 
@@ -46,6 +47,34 @@ export interface EngagementReactionKind {
   count?: EngagementCount;
   /** Optional tint (any CSS color) applied to the icon when this is the viewer's current reaction. */
   color?: string;
+}
+
+/**
+ * The click event an action handler receives (0.7.0). Use `event.currentTarget` to return focus
+ * to the button that opened a panel — Safari does not focus a clicked button, so
+ * `document.activeElement` is not a reliable opener. Zero-argument handlers stay assignable.
+ */
+export type EngagementActionEvent = MouseEvent<HTMLElement>;
+
+/**
+ * Disclosure state for an action that opens a panel (0.7.0). Pass `expanded` while the panel is
+ * open or closed; the button then carries `aria-expanded`, and `aria-controls={controls}` while
+ * expanded (a closed panel may be unmounted, so the reference is dropped). Omit `expanded` and the
+ * markup is unchanged.
+ */
+interface EngagementDisclosure {
+  /** Whether the panel this action opens is open. Omit for an action that opens nothing. */
+  expanded?: boolean;
+  /** The `id` of the panel this action opens. Rendered only while `expanded` is `true`. */
+  controls?: string;
+}
+
+/** Disclosure state for a split count button (like / reaction), whose main button is a toggle. */
+interface EngagementCountDisclosure {
+  /** Whether the panel the count button opens is open. See {@link EngagementDisclosure}. */
+  countExpanded?: boolean;
+  /** The `id` of the panel the count button opens. Rendered only while `countExpanded` is `true`. */
+  countControls?: string;
 }
 
 /** Fields every action arm accepts (`view-count` is display-only and takes no `disabled`). */
@@ -81,20 +110,20 @@ export type EngagementAction =
        * If omitted, the heart + count behave as a single button. A withheld count renders no
        * count button.
        */
-      onCountClick?: () => void;
-    })
+      onCountClick?: (event: EngagementActionEvent) => void;
+    } & EngagementCountDisclosure)
   | (EngagementActionBase & {
       kind: "comment";
       /** Wins on every render; a `comment-count-changed` delta shows until this prop next changes. */
       count?: EngagementCount;
-      onClick?: () => void;
-    })
+      onClick?: (event: EngagementActionEvent) => void;
+    } & EngagementDisclosure)
   | (EngagementActionBase & {
       kind: "share";
       /** Wins on every render; a `share-count-changed` delta shows until this prop next changes. */
       count?: EngagementCount;
-      onClick?: () => void;
-    })
+      onClick?: (event: EngagementActionEvent) => void;
+    } & EngagementDisclosure)
   | (EngagementActionBase & {
       kind: "bookmark";
       /** Pass to control the bookmark state; omit for uncontrolled. */
@@ -113,9 +142,14 @@ export type EngagementAction =
       label: string;
       icon: ReactNode;
       count?: EngagementCount;
+      /**
+       * Renders `aria-pressed` (a toggle). An action that opens a panel passes `expanded` instead;
+       * when both are set, `expanded` wins (a button is not both a toggle and a disclosure) and a
+       * development warning is logged.
+       */
       active?: boolean;
-      onClick?: () => void;
-    })
+      onClick?: (event: EngagementActionEvent) => void;
+    } & EngagementDisclosure)
   | (EngagementActionBase & {
       /**
        * Multi-kind reaction action (FB / LinkedIn style). One per-content reaction
@@ -147,14 +181,14 @@ export type EngagementAction =
        * Optional separate click target for the count number — mirrors `like.onCountClick`.
        * Hosts use this to open a reactors panel inline. When unset, count is non-interactive text.
        */
-      onCountClick?: () => void;
+      onCountClick?: (event: EngagementActionEvent) => void;
       /**
        * Tap-with-current-reaction behavior. Default `true` (tap-clears, Twitter-heart style).
        * Set `false` for FB-Reactions parity — tap opens the picker; the picker's `Remove`
        * button is then the clear escape. Long-press always opens the picker regardless.
        */
       clearOnTap?: boolean;
-    });
+    } & EngagementCountDisclosure);
 
 export interface EngagementLikeUser {
   id: string;
@@ -268,6 +302,12 @@ export interface EngagementBarProps {
    * ("1.2K" in English, "1,2 B" in Turkish).
    */
   formatCount?: (n: number) => string;
+  /**
+   * 0.7.0. When `true`, a count of `0` renders no digit and no count in the accessible name, for
+   * every counted action (like, comment, share, view-count, custom, reaction); a later `1` renders
+   * normally. Default `false` (`0` renders "0"; the reaction action already hides a zero total).
+   */
+  hideZeroCounts?: boolean;
   /**
    * Applies when `onToggle` / `onSelect` returns a promise. Default `true`: the change shows at
    * once until the promise settles (controlled: or until the props change); a rejection rolls it

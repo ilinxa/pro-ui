@@ -543,16 +543,32 @@ export function useStoryViewerState(
   }, [removalEvent]);
   // When the media notice was already showing, only what is left of it is held.
   const unavailableSinceRef = useRef<number | null>(null);
+  // 0.6.2 - the notice counts down only while no OTHER pause reason holds (the notice's own
+  // reason is `unavailable`); the remaining time carries across the pause.
+  const otherHolds = reasons.some((r) => r !== "unavailable");
+  const removalLeftRef = useRef<{ key: string; ms: number } | null>(null);
   useEffect(() => {
-    if (!holding || stayUntilClosed) return;
-    let ms = unavailableNoticeMs;
-    if (alreadyNoticed) {
-      const since = unavailableSinceRef.current;
-      ms = since === null ? 0 : Math.max(0, ms - (Date.now() - since));
+    if (!holding || stayUntilClosed) {
+      removalLeftRef.current = null;
+      return;
     }
-    const t = window.setTimeout(() => setReleasedKey(removalKey), ms);
-    return () => window.clearTimeout(t);
-  }, [holding, stayUntilClosed, removalKey, unavailableNoticeMs, alreadyNoticed]);
+    if (removalLeftRef.current?.key !== removalKey) {
+      let ms = unavailableNoticeMs;
+      if (alreadyNoticed) {
+        const since = unavailableSinceRef.current;
+        ms = since === null ? 0 : Math.max(0, ms - (Date.now() - since));
+      }
+      removalLeftRef.current = { key: removalKey, ms };
+    }
+    if (otherHolds) return;
+    const left = removalLeftRef.current;
+    const startedAt = Date.now();
+    const t = window.setTimeout(() => setReleasedKey(removalKey), left.ms);
+    return () => {
+      window.clearTimeout(t);
+      left.ms = Math.max(0, left.ms - (Date.now() - startedAt));
+    };
+  }, [holding, stayUntilClosed, removalKey, unavailableNoticeMs, alreadyNoticed, otherHolds]);
 
   if (!holding && cursorInvalid && resolved) {
     setCursorIds(resolved);

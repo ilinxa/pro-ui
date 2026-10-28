@@ -6,6 +6,7 @@ import {
   useId,
   useImperativeHandle,
   useState,
+  useContext,
   type ReactNode,
 } from "react";
 import { Send } from "lucide-react";
@@ -14,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAutosizeTextarea } from "../hooks/use-autosize-textarea";
+import { CommentThreadContext } from "./thread-context";
 import {
   defaultCommentThreadLabels,
   type CommentThreadCurrentUser,
@@ -69,11 +71,11 @@ export interface CommentComposerHandle {
   clear: () => void;
 }
 
-function initials(name: string): string {
+function initials(name: string, locale: string): string {
   return name
     .trim()
     .split(/\s+/)
-    .map((part) => part[0]?.toUpperCase() ?? "")
+    .map((part) => (part[0] ? part[0].toLocaleUpperCase(locale) : ""))
     .slice(0, 2)
     .join("") || "?";
 }
@@ -100,6 +102,8 @@ function CommentComposerInner({
   labels,
   ref,
 }: CommentComposerProps) {
+  // Inside a thread: its locale (no new prop on the composer). Standalone: "en".
+  const threadLocale = useContext(CommentThreadContext)?.locale ?? "en";
   const isValueControlled = controlledValue !== undefined;
   const [internalValue, setInternalValue] = useState(initialValue);
   const value = isValueControlled ? controlledValue : internalValue;
@@ -193,7 +197,7 @@ function CommentComposerInner({
             {currentUser.avatar ? (
               <AvatarImage src={currentUser.avatar} alt="" />
             ) : null}
-            <AvatarFallback>{initials(currentUser.name)}</AvatarFallback>
+            <AvatarFallback>{initials(currentUser.name, threadLocale)}</AvatarFallback>
           </Avatar>
         ) : null)}
       <div className="relative flex-1">

@@ -1,6 +1,6 @@
 # engagement-bar — consumer guide
 
-> Stage 3: usage notes for hosts. Updated for v0.5.0 — withheld counts, optimistic handlers, `disabled` / `hidden`, `trailing`, RTL, `locale`. Upgrading from 0.4.x: see [Upgrading to 0.5.0](#upgrading-to-050).
+> Stage 3: usage notes for hosts. Current for v0.7.0 (see the 0.7.0 / 0.6.x sections below). Updated for v0.5.0 — withheld counts, optimistic handlers, `disabled` / `hidden`, `trailing`, RTL, `locale`. Upgrading from 0.4.x: see [Upgrading to 0.5.0](#upgrading-to-050).
 >
 > See [description](./engagement-bar-procomp-description.md) for what & why; [plan](./engagement-bar-procomp-plan.md) for how it's built.
 
@@ -238,7 +238,7 @@ import { Wand2 } from "lucide-react";
 />
 ```
 
-`kind: "custom"` accepts your own `icon`, `label` (the first part of the accessible name — "Remix 3" with a count; `aria-pressed` reflects `active` when provided), optional `count`, and `onClick`. Use it for "Remix" / "Tip" / "Dispute" / "Report" / anything domain-specific.
+`kind: "custom"` accepts your own `icon`, `label` (the first part of the accessible name — "Remix 3" with a count; `aria-pressed` reflects `active` when provided — unless `expanded` is set, which wins, see 0.7.0), optional `count`, and `onClick`. Use it for "Remix" / "Tip" / "Dispute" / "Report" / anything domain-specific.
 
 ### 8. Drive your own state externally with `engagementReducer`
 
@@ -416,7 +416,7 @@ const current = barRef.current?.getCurrentReaction(); // string | null
 />
 ```
 
-`null` (or omitting `count`) renders no number and keeps the count out of every accessible name ("Like", not "Like 0"). `0` still renders "0". A withheld count stays withheld through clicks, deltas and optimistic updates — liking flips the heart, the number stays hidden. A split like (`onCountClick`) with a withheld count renders no count button.
+`null` (or omitting `count`) renders no number and keeps the count out of every accessible name ("Like", not "Like 0"). `0` still renders "0" (unless the bar sets `hideZeroCounts`, 0.7.0). A withheld count stays withheld through clicks, deltas and optimistic updates — liking flips the heart, the number stays hidden. A split like (`onCountClick`) with a withheld count renders no count button.
 
 ### 13. Gating and host actions
 
@@ -453,6 +453,45 @@ Put the bar under `dir="rtl"` (or pass `dir="rtl"`). The row mirrors through log
 
 `LikersStrip`: `likers` + `onLikersChange` is controlled; `likers` alone shows the prop on every render plus the pages the strip loaded itself (de-duplicated by `id`); `defaultLikers` is read once. A rejected `onLoadMore` leaves the list as it was. `heading`, `closeLabel` and `moreAriaLabelTemplate` still work as deprecated aliases of `labels`. `ShareMenu`: async search is latest-request-wins and falls back to the local filter on a rejection; the local filter lower-cases with `locale`.
 
+
+## 0.7.0 — disclosure state, the click event, `hideZeroCounts`
+
+An action that opens a panel (comments, likers, share) can now say so. Pass `expanded` (and the panel's `id` as
+`controls`) on a comment / share / custom action; on like / reaction use `countExpanded` / `countControls` — they apply
+to the **count button** (which exists only when you pass `onCountClick`), because the heart is a toggle (`aria-pressed`) and the reaction trigger owns its own picker
+state. The button renders `aria-expanded`, and `aria-controls` only while expanded (your closed panel may be
+unmounted). Without them the markup is unchanged.
+
+Every `onClick` / `onCountClick` now receives the click event (`EngagementActionEvent`). Keep `event.currentTarget`
+as the opener and focus it when your panel closes — Safari does not focus a clicked button, so
+`document.activeElement` is not the opener there. Read `currentTarget` **inside the handler**: React clears it after
+the event. Zero-argument handlers keep working.
+
+```tsx
+const opener = useRef<HTMLElement | null>(null);
+const [open, setOpen] = useState(false);
+const panelId = useId();
+
+<EngagementBar
+  actions={[
+    {
+      kind: "comment",
+      count: 4,
+      expanded: open,
+      controls: panelId,
+      onClick: (event) => {
+        opener.current = event.currentTarget;
+        setOpen((o) => !o);
+      },
+    },
+  ]}
+/>;
+{open && <CommentsPanel id={panelId} onClose={() => { setOpen(false); opener.current?.focus(); }} />}
+```
+
+A custom action given both `active` (a toggle) and `expanded` renders the disclosure state and warns once in
+development. `hideZeroCounts` (bar prop) makes a count of `0` render no digit and no count in the accessible name, for
+every counted action; a later `1` renders normally.
 
 ## 0.6.1 — likers pill
 

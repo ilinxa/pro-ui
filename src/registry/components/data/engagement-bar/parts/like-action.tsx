@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
+  EngagementActionEvent,
   EngagementBarVariant,
   EngagementCount,
   ResolvedEngagementBarLabels,
@@ -19,7 +20,11 @@ interface LikeActionProps {
   /** The bar's toggle path (gating, handler, optimistic overlay). */
   onToggle: () => void;
   /** When provided, count becomes a separate clickable target (not rendered when withheld). */
-  onCountClick?: () => void;
+  onCountClick?: (event: EngagementActionEvent) => void;
+  /** Disclosure state of the panel the COUNT button opens (0.7.0). */
+  countExpanded?: boolean;
+  /** aria-controls for the count button, rendered only while `countExpanded === true`. */
+  countControls?: string;
   format: (n: number) => string;
   labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
@@ -32,6 +37,8 @@ function LikeActionInner({
   disabled = false,
   onToggle,
   onCountClick,
+  countExpanded,
+  countControls,
   format,
   labels,
   actionClassName,
@@ -40,9 +47,9 @@ function LikeActionInner({
     if (disabled) return;
     onToggle();
   };
-  const handleCountClick = () => {
+  const handleCountClick = (event: EngagementActionEvent) => {
     if (disabled) return;
-    onCountClick?.();
+    onCountClick?.(event);
   };
 
   const heartLabel = liked ? labels.unlike : labels.like;
@@ -74,6 +81,8 @@ function LikeActionInner({
         type="button"
         onClick={handleCountClick}
         aria-labelledby={countName.labelledBy}
+        aria-expanded={countExpanded}
+        aria-controls={countExpanded === true ? countControls : undefined}
         aria-disabled={ariaDisabled}
         className={cn(
           "rounded font-medium tabular-nums hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",

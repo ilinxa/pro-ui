@@ -28,6 +28,7 @@ export type {
   ResolvedEngagementBarLabels,
   EngagementAction,
   EngagementActionAlign,
+  EngagementActionEvent,
   EngagementCount,
   EngagementHandler,
   EngagementDelta,

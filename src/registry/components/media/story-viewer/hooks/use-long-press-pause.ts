@@ -44,14 +44,10 @@ export function useLongPressPause(opts: UseLongPressPauseOptions) {
     onResumeRef.current = onResume;
   });
 
-  const handlePointerDown = useCallback(() => {
-    if (!isOpen) return;
-    if (timerRef.current != null) return;
-    timerRef.current = window.setTimeout(() => {
-      isPressingRef.current = true;
-      onPauseRef.current();
-    }, longPressThresholdMs);
-  }, [isOpen, longPressThresholdMs]);
+  // 0.6.2 - while a press is in flight, a release / cancel / blur ANYWHERE ends it, so a hold
+  // released outside the card (or lost to an alt-tab) can never leave the story paused.
+  const detachRef = useRef<(() => void) | null>(null);
+  const endPressRef = useRef<() => boolean>(() => false);
 
   /**
    * Ends the press. Returns `true` when the release ended an ACTIVE long
@@ -59,6 +55,8 @@ export function useLongPressPause(opts: UseLongPressPauseOptions) {
    * browser fires after that pointerup, so releasing never also taps a zone.
    */
   const handlePointerUp = useCallback((): boolean => {
+    detachRef.current?.();
+    detachRef.current = null;
     if (timerRef.current != null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -71,10 +69,36 @@ export function useLongPressPause(opts: UseLongPressPauseOptions) {
     return false;
   }, []);
 
+  useEffect(() => {
+    endPressRef.current = handlePointerUp;
+  }, [handlePointerUp]);
+
+  const handlePointerDown = useCallback(() => {
+    if (!isOpen) return;
+    if (timerRef.current != null) return;
+    timerRef.current = window.setTimeout(() => {
+      isPressingRef.current = true;
+      onPauseRef.current();
+    }, longPressThresholdMs);
+    const end = () => {
+      endPressRef.current();
+    };
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    window.addEventListener("blur", end);
+    detachRef.current = () => {
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+      window.removeEventListener("blur", end);
+    };
+  }, [isOpen, longPressThresholdMs]);
+
   // Cleanup on unmount.
   useEffect(
     () => () => {
       if (timerRef.current != null) clearTimeout(timerRef.current);
+      detachRef.current?.();
+      detachRef.current = null;
     },
     [],
   );

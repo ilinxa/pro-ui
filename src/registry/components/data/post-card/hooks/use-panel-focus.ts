@@ -17,8 +17,10 @@ export function usePanelFocus(active: InlinePanel, setActive: Dispatch<SetStateA
   });
 
   const open = useCallback(
-    (next: Exclude<InlinePanel, "none">) => {
-      const el = document.activeElement;
+    (next: Exclude<InlinePanel, "none">, event?: { currentTarget: EventTarget | null }) => {
+      // The clicked control, not `activeElement`: Safari / macOS Firefox do not focus a clicked button.
+      const target = event?.currentTarget;
+      const el = target instanceof HTMLElement ? target : document.activeElement;
       opener.current = el instanceof HTMLElement && el !== document.body ? el : null;
       setActive(next);
     },
@@ -33,9 +35,9 @@ export function usePanelFocus(active: InlinePanel, setActive: Dispatch<SetStateA
     setActive("none");
   }, [setActive]);
   const toggle = useCallback(
-    (kind: Exclude<InlinePanel, "none">) => {
+    (kind: Exclude<InlinePanel, "none">, event?: { currentTarget: EventTarget | null }) => {
       if (current.current === kind) close();
-      else open(kind);
+      else open(kind, event);
     },
     [open, close],
   );

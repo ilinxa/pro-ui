@@ -24,6 +24,19 @@
 5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
 6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
 
+## v0.6.2 — accessibility fixes
+
+No API change for hosts. Closing the viewer (X, Escape, auto-close) returns focus to the element that opened it — the
+one focused at open, or, on Safari / macOS Firefox where a clicked button does not take focus, the control last pressed
+(a story-rail tile, a profile ring) — unless your code already moved focus somewhere else. Only the current progress
+segment is a `progressbar`, named with `labels.position(author, index, total)` (the others are hidden from assistive
+technology); the bars sit above the header's scrim and carry a shadow, so they stay visible on a white photo. The
+neighbour faces of the cube are `inert`. The "no longer available" and removal notices wait while another pause reason
+holds (a sheet, a hidden tab, your `pauseReasons`) and resume with the time they had left; Play / Space during a notice
+ends it early (except the standalone single-item notice, which stays until the viewer closes). A long press ends when the pointer is released outside the card or the window loses focus. The comment
+and share actions report `aria-expanded` / `aria-controls` for their sheets (needs engagement-bar 0.7.0, which
+`shadcn add` installs with it). If you replaced the bars with `renderProgress`, name your own bars.
+
 ## v0.6.1 — reply failures (on comment-thread 0.4.0)
 
 The reply box is comment-thread's `CommentComposer`. Since comment-thread 0.4.0 a rejected `onAddReply` no longer
@@ -300,9 +313,9 @@ const TR_LABELS: StoryViewerLabels = {
 ## Accessibility
 
 - Modal is `<Dialog>` (Radix or Base UI) with `<DialogTitle>` (sr-only) using `labels.viewerLabel`. Focus trap + portal; Escape / backdrop press close the top layer first (see the mental model).
-- Layers (0.5.4): an open sheet or the actions menu contains focus — everything behind it is `inert` — and closed sheets can't be tabbed into. Every layer returns focus to the control that opened it. Opening any layer pauses the story; closing the last one restores the paused state from before it opened.
+- Layers (0.5.4): an open sheet or the actions menu contains focus — everything behind it is `inert` — and closed sheets can't be tabbed into. Every layer returns focus to the control that opened it (for the sheets: the control that had focus — on Safari / macOS Firefox a mouse-clicked comment / share button is not focused). Opening any layer pauses the story; closing the last one restores the paused state from before it opened.
 - Viewer focus (0.6.0): on open, focus lands on the dialog itself (not the first button); Tab wraps inside the viewer and skips the collapsed reaction rail (`inert`). Visually hidden previous / next item buttons and a polite position announcement (`labels.prevItem` / `nextItem` / `position`) stay mounted with `disableTapZones`.
-- Per-segment progress bar has `role="progressbar"` + `aria-valuemin/max/now` so screen readers announce.
+- The current progress segment is a `progressbar` (`aria-valuemin/max/now`) named `labels.position(author, index, total)`; the other segments are `aria-hidden` (0.6.2).
 - Each control button has `aria-label` from the `labels` prop. Mute toggle adds `aria-pressed={isMuted}`.
 - Tap zones are `aria-hidden="true"` with `tabIndex={-1}` (touch affordance only — keyboard users use arrow keys instead).
 - Keyboard: ArrowLeft (prev item), ArrowRight (next item), Space (toggle pause; `preventDefault` to stop page scroll), Escape (closes the top layer, else the viewer). While any layer is open the arrow keys and Space don't act on the story. The window listener ignores events from editable targets (input / textarea / select / contentEditable / `[role="textbox"]` / anything inside `[data-keyboard-ignore]`) and IME composition, and leaves Space on a focused button/link to that element (no pause toggle).

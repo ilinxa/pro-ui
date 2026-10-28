@@ -16,7 +16,7 @@ import {
   VolumeX,
 } from "lucide-react";
 // F-S1 lock: cross-procomp imports via relative + specific-file paths.
-import type { EngagementAction } from "../../engagement-bar/types";
+import type { EngagementAction, EngagementActionEvent } from "../../engagement-bar/types";
 import type { CommentMenuItem } from "../../comment-thread/types";
 import type {
   Post,
@@ -34,6 +34,24 @@ import {
   resolvePostPermissions,
 } from "./permissions";
 
+/**
+ * Disclosure wiring for post-card's inline panels (0.6.1). post-card passes it to its default
+ * actions in inline mode; a host calling `defaultPostEngagementActions` from the
+ * `engagementActions` slot omits it (its actions then carry no `aria-expanded`).
+ */
+export interface PostInlineDisclosure {
+  /** The inline panel that is open. */
+  open: "none" | "likes" | "comments" | "share";
+  /** The panels' element ids (`aria-controls` targets). */
+  ids: { likes: string; comments: string; share: string };
+  /** Share opens a panel (`shareSuggestions` is set); otherwise the share action carries no disclosure state. */
+  shareOpens: boolean;
+  /** Toggles the comments panel, taking the clicked button as the opener. */
+  comment: (event: EngagementActionEvent) => void;
+  /** Toggles the share panel, taking the clicked button as the opener. */
+  share: (event: EngagementActionEvent) => void;
+}
+
 export function defaultPostEngagementActions(
   post: Post,
   handlers: PostHandlers,
@@ -43,14 +61,17 @@ export function defaultPostEngagementActions(
    * heart icon stays on `onToggle` and the count text becomes its own button
    * firing `onCountClick` (kasder UX — heart toggles like, count opens likers panel).
    */
-  onLikeCountClick?: () => void,
+  onLikeCountClick?: (event: EngagementActionEvent) => void,
   /**
    * With reactions, a `kind: "reaction"` action takes the place of the like: `counts` merge into
    * the kinds' tallies, `viewerReaction` / `totalCount` / `clearOnTap` pass through and a pick
    * calls `reactions.onReact(post.id, kind)`.
    */
   reactions?: PostReactions,
+  /** Inline mode only: which panel is open, the panels' ids, and the event-aware openers. */
+  inline?: PostInlineDisclosure,
 ): EngagementAction[] {
+  const likeD = inline ? { countExpanded: inline.open === "likes", countControls: inline.ids.likes } : null;
   const like: EngagementAction = reactions
     ? {
         kind: "reaction",
@@ -65,6 +86,7 @@ export function defaultPostEngagementActions(
           ? (kind) => reactions.onReact!(post.id, kind)
           : undefined,
         onCountClick: onLikeCountClick,
+        ...likeD,
       }
     : {
         kind: "like",
@@ -76,14 +98,18 @@ export function defaultPostEngagementActions(
             }
           : undefined,
         onCountClick: onLikeCountClick,
+        ...likeD,
       };
 
   const comment: EngagementAction = {
     kind: "comment",
     count: post.comments,
-    onClick: handlers.onComment
-      ? () => handlers.onComment!(post.id)
-      : undefined,
+    onClick: inline
+      ? inline.comment
+      : handlers.onComment
+        ? () => handlers.onComment!(post.id)
+        : undefined,
+    ...(inline ? { expanded: inline.open === "comments", controls: inline.ids.comments } : null),
   };
 
   if (variant === "compact") {
@@ -102,7 +128,8 @@ export function defaultPostEngagementActions(
     {
       kind: "share",
       count: post.shares,
-      onClick: handlers.onShare ? () => handlers.onShare!(post.id) : undefined,
+      onClick: inline ? inline.share : handlers.onShare ? () => handlers.onShare!(post.id) : undefined,
+      ...(inline?.shareOpens ? { expanded: inline.open === "share", controls: inline.ids.share } : null),
     },
     {
       kind: "bookmark",

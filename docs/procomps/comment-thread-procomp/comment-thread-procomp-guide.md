@@ -1,6 +1,6 @@
 # comment-thread — consumer guide
 
-> Stage 3: how to use it. Current for **v0.4.0** (+ the `comment-thread-moderation` add-on, versioned with it).
+> Stage 3: how to use it. Current for **v0.5.0** (+ the `comment-thread-moderation` add-on, versioned with it).
 >
 > See [`comment-thread-procomp-description.md`](./comment-thread-procomp-description.md) for what & why,
 > [`comment-thread-procomp-plan.md`](./comment-thread-procomp-plan.md) for the original implementation contract, and
@@ -174,7 +174,7 @@ const comment: Comment = {
 />
 ```
 
-Defaults: `canDelete` / `canEdit` = the viewer wrote it; `canReply` = signed in; `canReact` = `true` (false → the action
+Defaults: `canDelete` / `canEdit` = the viewer wrote it; `canReply` = signed in (and the thread is not `closed`); `canReact` = `true` (false → the action
 renders disabled); `canReport` = the viewer did **not** write it (and `onReportComment` is wired); `canPin` / `canHide`
 = `false` — they gate nothing built in; read them in your own items. `extraActions` items are appended after the
 defaults; `commentActions` still takes the whole menu over (both receive `CommentActionHelpers`: `currentUser`,
@@ -302,6 +302,31 @@ interface CommentThreadHandle {
 - Failures are announced (`role="alert"`). The kebab shows on hover, focus-within and coarse pointers.
 - After an inline reply is sent or cancelled, focus returns to the comment's Reply button.
 
+## 0.5.0 — rich bodies, labels everywhere, author links, closed threads
+
+Additive; without the new props the only changes are the markup / accessibility fixes listed below. Needs
+expandable-text 0.3.0 or later (installed with it).
+
+- **`renderContent(comment, { depth })`** — render the body yourself (links, mentions, hashtags) and keep the line
+  clamp and "Show more". The result renders inside the row's expandable-text, which re-measures when it changes and
+  when the comment's `content` changes. Return safe markup: the thread renders it as given. The moderation add-on's
+  edit box still edits the raw `content`.
+- **Labels reach every row.** `labels.showMore` / `showLess` name the clamp control; nested `labels.engagement` (any
+  `EngagementBarLabels` key) names the row actions — the reaction picker and any comment / share / bookmark / view-count
+  action you add with `engagementActions`. The thread's own `like` / `unlike` keys win over `engagement.like` /
+  `engagement.unlike`. Avatar initials use `locale`.
+- **Author links** — `getAuthorHref(author, comment)` + `linkComponent` (default `"a"`, receives `href`), as in
+  post-card: the avatar link is hidden from assistive technology and the keyboard, the name link is the one announced.
+  With or without links, the name is isolated (`<bdi>`) and the `@handle` stays left-to-right inside a right-to-left
+  page.
+- **`closed`** — no bottom composer (`labels.closed`, default "Comments are turned off.", renders in its place and
+  `renderComposer` is not called), no Reply, open reply boxes close, `handle.openReply` / `focusComposer` do nothing
+  (one development warning); the `renderNode` helpers' `onReply` does nothing either. Likes and menus are unchanged.
+  Closing an open thread drops a half-typed draft in the default composer, and the notice is plain text (not
+  announced) — tell users yourself if the thread closes while they read it.
+- **Fixed:** "View replies" reports its real `aria-expanded` and sets `aria-controls` only while the replies list is
+  rendered; expanding past `maxDepth` moves focus to the first revealed reply instead of dropping it.
+
 ## Migration 0.3 → 0.4
 
 - **`Comment.likes` is `number | null`.** Code that does arithmetic on `likes` needs a null check.
@@ -317,6 +342,6 @@ interface CommentThreadHandle {
 
 ## Not implemented
 
-- Mentions / hashtags in the body (use `renderNode`), up / down voting, per-comment subscriptions, animated
+- Built-in mention / hashtag parsing (render them with `renderContent`), up / down voting, per-comment subscriptions, animated
   insert / remove, search within a thread.
 - A reply to a pending comment is blocked until it is confirmed (not queued).
