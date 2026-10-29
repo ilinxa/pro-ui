@@ -566,7 +566,7 @@ Lead state doc for release 7b (as for releases 5 and 7); `engagement-bar-loop.md
 | Field | Value |
 |---|---|
 | **Mode** | U-loop, change class **minor** (additive API) on engagement-bar and comment-thread; post-card **minor** (forwarding + FU-2 slot parameter); story-viewer / news-card re-smoke (patch only if a guard needs it) |
-| **Current stage** | U7 — every gate green (battery 3 + the post-doc-fix re-run), installs 10/10, browser re-verified, GATE 3 Pass with follow-ups ×3; shipping (push delegated) |
+| **Current stage** | CLOSED — shipped in `28bf3f7`, live-verified 2026-10-29 (U7 below) |
 | **Sign-off policy** | **delegated by user** ("Go and finish them end to end and properly", 2026-10-28, after release 7 went live) — U1 sign-off and the push are the architect's for this run. No breaking change to a composed component is in scope (that would still go to the user). |
 | **Version target** | engagement-bar 0.7.0 → **0.8.0** · comment-thread 0.5.0 → **0.6.0** · comment-thread-moderation 0.5.0 → follows base · NEW `comment-thread-confirm-delete` 0.6.0 · post-card 0.6.1 → **0.7.0** |
 | **Model roster** | architect: main session · implementers: 4 × Sonnet (A1 bar actions, A2 likers / share panels, B1 compound root + parts, B2 rows + confirm add-on) · finders: 2 × fresh Sonnet (U4) |
@@ -813,3 +813,17 @@ comment-thread-confirm-delete 5.0 / 6, comment-thread-moderation 6.6 / 8 KB) · 
 GATE 3: `engagement-bar-procomp/reviews/2026-10-29-v0.8.0-release-7b.md`,
 `comment-thread-procomp/reviews/2026-10-29-v0.6.0-release-7b.md`, `post-card-procomp/reviews/2026-10-29-v0.7.0-forwarding.md`
 — all **Pass with follow-ups**.
+
+### U6 — pre-push doc verifier
+
+A fresh Sonnet doc verifier read every release-7b doc against the code: 10 rows, all fixed before the push — the guide's
+ShareBar example did not type-check; FU-6 wording ignored the stacked variant; `ShareMenuLabels` gained three
+**required** keys (a consumer's full label object would stop compiling — made optional in the public type, the component
+works on `Required<>`); `CommentActionHelpers.onDelete` documented; the timestamp claim was the "(edited)" suffix; the
+handle listing, helpers listing, install block, size line, keyshortcuts value and touch lists were stale; a stray JSDoc
+line in `likers-strip.tsx`. Re-run after the fixes: tsc 0, lint 0 errors, registry:build 0, the four components' tests
+77 / 77 files, 1 167 passed (JSON report — a default-reporter run had dropped 4 files under load).
+
+### U7 — Ship
+
+Commit `28bf3f7`, pushed 02:26 UTC 2026-10-29 under the user's delegation ("Go and finish them end to end and properly"). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and everything new at +12 min** — `engagement-bar.json` serves `tapAction`, `comment-thread.json` `CommentThreadScrollArea`, `comment-thread-confirm-delete.json` answers 200, `post-card.json` `likersStripProps`. Decision `shipped`; reply to the platform `.claude/report-back-2026-10-29-release-7b.md` (to the user to send). **Next release:** 8 (composer media) — on the user's go.

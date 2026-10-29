@@ -298,3 +298,7 @@ Lead state doc: `docs/procomps/comment-thread-procomp/comment-thread-loop.md` �
 (only when there is one), FU-1 (heart-tap opener) and FU-2 (slot gets `PostInlineDisclosure`, now with `likes`), the
 inline thread in a `CommentThreadScrollArea`. Test `__tests__/forwarding-0-7-0.test.tsx` (falsified). Review
 `reviews/2026-10-29-v0.7.0-forwarding.md` — Pass with follow-ups. Sign-off delegated by the user for this run.
+
+### U7 — Ship (release 7b)
+
+Commit `28bf3f7`, pushed 02:26 UTC 2026-10-29 under the user's delegation ("Go and finish them end to end and properly"). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and everything new at +12 min** — `engagement-bar.json` serves `tapAction`, `comment-thread.json` `CommentThreadScrollArea`, `comment-thread-confirm-delete.json` answers 200, `post-card.json` `likersStripProps`. Detail: comment-thread-loop.md "Run — release 7b".
