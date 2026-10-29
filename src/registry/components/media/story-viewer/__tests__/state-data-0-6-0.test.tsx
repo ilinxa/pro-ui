@@ -355,7 +355,7 @@ describe("onItemViewed(storyId, itemId, itemIndex, cause)", () => {
     mount([story("A", ["a1", "a2"])], { onItemViewed });
     tick(5100);
     expect(onItemViewed).toHaveBeenCalledTimes(1);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "completed");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "completed", { direction: "forward" });
   });
 
   it('"left" for next story, previous story and goToStory', () => {
@@ -365,11 +365,11 @@ describe("onItemViewed(storyId, itemId, itemIndex, cause)", () => {
       { onItemViewed },
     );
     fireEvent.click(nextStoryBtn());
-    expect(onItemViewed).toHaveBeenLastCalledWith("A", "a1", 0, "left");
+    expect(onItemViewed).toHaveBeenLastCalledWith("A", "a1", 0, "left", { direction: "forward" });
     fireEvent.click(prevStoryBtn());
-    expect(onItemViewed).toHaveBeenLastCalledWith("B", "b1", 0, "left");
+    expect(onItemViewed).toHaveBeenLastCalledWith("B", "b1", 0, "left", { direction: "backward" });
     act(() => ref.current!.goToStory(2));
-    expect(onItemViewed).toHaveBeenLastCalledWith("A", "a1", 0, "left");
+    expect(onItemViewed).toHaveBeenLastCalledWith("A", "a1", 0, "left", { direction: "forward" });
     expect(onItemViewed).toHaveBeenCalledTimes(3);
   });
 
@@ -388,14 +388,14 @@ describe("onItemViewed(storyId, itemId, itemIndex, cause)", () => {
     pointer("pointermove", z, { clientX: 100, clientY: 100 });
     pointer("pointerup", document.querySelector(".touch-pan-y")!, { clientX: 100, clientY: 100 });
     tick(600);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left", { direction: "forward" });
   });
 
   it('tapping past an item inside the story is "left" (it did not play to the end)', () => {
     const onItemViewed = vi.fn();
     mount([story("A", ["a1", "a2"])], { onItemViewed });
     fireEvent.click(zones()[2]);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left", { direction: "forward" });
   });
 });
 

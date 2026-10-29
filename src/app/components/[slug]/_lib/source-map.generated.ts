@@ -16587,7 +16587,7 @@ export default function StoryRailDemo() {
   "story-viewer": {
     demo: `﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { Button } from "@/components/ui/button";
@@ -16610,7 +16610,9 @@ import { DUMMY_LIKE_USERS } from "@/registry/components/data/engagement-bar/dumm
 import type {
   Story,
   StoryItem,
+  StoryResolvedMedia,
   StoryViewerDelta,
+  StoryViewerHandle,
   Subscribe,
   ViewerListItem,
 } from "./types";
@@ -16692,6 +16694,7 @@ function MultiStoryTab() {
   const [open, setOpen] = useState(false);
   const [initialIdx, setInitialIdx] = useState(0);
   const [disableCube, setDisableCube] = useState(false);
+  const [swipe, setSwipe] = useState(true);
   const [duration, setDuration] = useState(400);
   return (
     <div className="flex flex-col items-center gap-3 py-8">
@@ -16728,6 +16731,15 @@ function MultiStoryTab() {
           <code>disableStoryTransition</code>
         </label>
         <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={swipe}
+            onChange={(e) => setSwipe(e.target.checked)}
+            className="size-4"
+          />
+          <code>storySwipe</code>
+        </label>
+        <label className="flex items-center gap-2">
           <span>
             <code>storyTransitionDurationMs</code>: {duration}
           </span>
@@ -16748,9 +16760,207 @@ function MultiStoryTab() {
         isOpen={open}
         onClose={() => setOpen(false)}
         onStoryViewed={(id) => log("story-viewed", id)}
-        onAutoCloseAtEnd={() => log("auto-close-at-end", null)}
+        onAutoCloseAtEnd={(s, i) => log("auto-close-at-end", { s, i })}
         disableStoryTransition={disableCube}
+        storySwipe={swipe}
         storyTransitionDurationMs={duration}
+      />
+    </div>
+  );
+}
+
+// 0.7.0 - the host contract: ambient backdrop, open at an item, view events with a direction,
+// extra kebab items without a viewer mode.
+function HostContractTab() {
+  const [open, setOpen] = useState(false);
+  const [ambient, setAmbient] = useState(true);
+  const [startItem, setStartItem] = useState(1);
+  const [events, setEvents] = useState<string[]>([]);
+  const push = (line: string) => setEvents((prev) => [line, ...prev].slice(0, 8));
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="px-6 text-center text-sm text-muted-foreground">
+        On a desktop window the area around the card shows the current photo, blurred
+        (<code>backdrop=&quot;ambient&quot;</code>). The viewer opens on the chosen item of the first
+        story, reports <code>onItemReady</code> when an item starts to count down and
+        <code> onItemViewed</code> with a direction, and the actions menu carries a host item.
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={ambient}
+            onChange={(e) => setAmbient(e.target.checked)}
+            className="size-4"
+          />
+          <code>backdrop=&quot;ambient&quot;</code>
+        </label>
+        <label className="flex items-center gap-2">
+          <code>initialItemIndex</code>
+          <select
+            value={startItem}
+            onChange={(e) => setStartItem(Number(e.target.value))}
+            className="rounded-md border border-input bg-background px-2 py-1 text-foreground"
+          >
+            {ALL_STORIES[0].items.map((item, idx) => (
+              <option key={item.id} value={idx}>
+                {idx}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <Button onClick={() => setOpen(true)}>Open at item {startItem}</Button>
+      <ol
+        aria-label="Viewer events"
+        className="w-full max-w-md space-y-1 px-6 font-mono text-xs text-muted-foreground"
+      >
+        {events.map((line, idx) => (
+          <li key={\`\${idx}-\${line}\`}>{line}</li>
+        ))}
+      </ol>
+      <StoryViewer
+        stories={ALL_STORIES}
+        initialStoryIndex={0}
+        initialItemIndex={startItem}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        backdrop={ambient ? "ambient" : "dim"}
+        onItemReady={(s, i) => push(\`ready \${s}/\${i}\`)}
+        onItemViewed={(s, i, _idx, cause, info) => push(\`viewed \${s}/\${i} \${cause} \${info.direction}\`)}
+        onAutoCloseAtEnd={(s, i) => push(\`auto-close \${s}/\${i}\`)}
+        extraKebabActions={(story) => [
+          { label: "Download", onClick: () => push(\`download \${story.id}\`) },
+          { label: "Owner only", hidden: true },
+        ]}
+      />
+    </div>
+  );
+}
+
+// 0.7.0 - host-resolved media: srcSet, a lifetime, a failing URL refreshed by onMediaError,
+// a gone item, invalidateMedia, and the standalone notice.
+const unsplash = (id: string, w: number) =>
+  \`https://images.unsplash.com/\${id}?w=\${w}&h=\${Math.round((w * 16) / 9)}&fit=crop\`;
+const PIPELINE_PHOTOS: Record<string, string> = {
+  p1: "photo-1517842645767-c639042777db",
+  p2: "photo-1504711434969-e33886168f5c",
+  p3: "photo-1465101046530-73398c7f28ca",
+};
+const PIPELINE_STORIES: Story[] = [
+  {
+    id: "pipeline",
+    userId: "u-pipeline",
+    username: "resolved_media",
+    createdAt: "2026-10-29T08:00:00Z",
+    items: [
+      { id: "p1", type: "image" },
+      { id: "p2", type: "image", caption: "Its first URL is broken: onMediaError supplies a fresh one" },
+      { id: "p3", type: "image" },
+      { id: "gone", type: "image", caption: "resolveMedia returns null" },
+    ],
+  },
+  STORY_VIEWER_DUMMY[2],
+];
+const STANDALONE_GONE: Story[] = [
+  {
+    id: "standalone",
+    userId: "u-standalone",
+    username: "shared_link",
+    createdAt: "2026-10-29T08:00:00Z",
+    items: [{ id: "only", type: "image" }],
+  },
+];
+
+function MediaPipelineTab() {
+  const ref = useRef<StoryViewerHandle>(null);
+  const [open, setOpen] = useState(false);
+  const [standaloneOpen, setStandaloneOpen] = useState(false);
+  const [maxAgeMs, setMaxAgeMs] = useState(10000);
+  const [events, setEvents] = useState<string[]>([]);
+  const push = (line: string) => setEvents((prev) => [line, ...prev].slice(0, 12));
+  const resolveMedia = async (item: StoryItem): Promise<StoryResolvedMedia | null> => {
+    push(\`resolve \${item.id}\`);
+    await new Promise((r) => setTimeout(r, 600));
+    const photo = PIPELINE_PHOTOS[item.id];
+    if (!photo) return null;
+    // A broken URL with no srcSet (a srcSet would let the browser skip the broken \`src\`).
+    if (item.id === "p2") return { src: unsplash("photo-0000000000000-broken", 900), maxAgeMs };
+    return {
+      src: unsplash(photo, 900),
+      srcSet: \`\${unsplash(photo, 480)} 480w, \${unsplash(photo, 900)} 900w\`,
+      sizes: "(min-width: 768px) 400px, 100vw",
+      maxAgeMs,
+    };
+  };
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <p className="px-6 text-center text-sm text-muted-foreground">
+        Every item of the first story has no <code>src</code>: <code>resolveMedia</code> answers
+        after 600 ms with a <code>srcSet</code> and a <code>maxAgeMs</code>. The second item&apos;s
+        URL is broken and <code>onMediaError</code> returns a fresh one; the last is gone. The next
+        item is warmed off-screen (<code>preloadNext</code>).
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <label className="flex items-center gap-2">
+          <code>maxAgeMs</code>
+          <select
+            value={maxAgeMs}
+            onChange={(e) => setMaxAgeMs(Number(e.target.value))}
+            className="rounded-md border border-input bg-background px-2 py-1 text-foreground"
+          >
+            <option value={3000}>3 s</option>
+            <option value={10000}>10 s</option>
+            <option value={300000}>5 min</option>
+          </select>
+        </label>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            push("invalidateMedia() in 3 s");
+            setTimeout(() => ref.current?.invalidateMedia(), 3000);
+          }}
+        >
+          Invalidate all in 3 s
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <Button onClick={() => setOpen(true)}>Open resolved stories</Button>
+        <Button variant="outline" onClick={() => setStandaloneOpen(true)}>
+          Open a gone shared story
+        </Button>
+      </div>
+      <ol
+        aria-label="Media events"
+        className="w-full max-w-md space-y-1 px-6 font-mono text-xs text-muted-foreground"
+      >
+        {events.map((line, idx) => (
+          <li key={\`\${idx}-\${line}\`}>{line}</li>
+        ))}
+      </ol>
+      <StoryViewer
+        ref={ref}
+        stories={PIPELINE_STORIES}
+        initialStoryIndex={0}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        resolveMedia={resolveMedia}
+        onMediaError={async (item) => {
+          push(\`media-error \${item.id}\`);
+          const photo = PIPELINE_PHOTOS[item.id];
+          return photo ? unsplash(photo, 900) : undefined;
+        }}
+        onItemUnavailable={(_s, itemId, reason) => push(\`unavailable \${itemId} \${reason}\`)}
+        onItemReady={(_s, itemId) => push(\`ready \${itemId}\`)}
+      />
+      <StoryViewer
+        stories={STANDALONE_GONE}
+        initialStoryIndex={0}
+        isOpen={standaloneOpen}
+        onClose={() => setStandaloneOpen(false)}
+        standalone
+        resolveMedia={async () => null}
       />
     </div>
   );
@@ -17215,6 +17425,8 @@ export default function StoryViewerDemo() {
         <TabsTrigger value="video">Video only</TabsTrigger>
         <TabsTrigger value="mixed">Mixed</TabsTrigger>
         <TabsTrigger value="multi">Cube + swipe</TabsTrigger>
+        <TabsTrigger value="host-contract">Backdrop + events</TabsTrigger>
+        <TabsTrigger value="media-pipeline">Media pipeline</TabsTrigger>
         <TabsTrigger value="realtime">Realtime</TabsTrigger>
         <TabsTrigger value="custom">Custom renderItem</TabsTrigger>
         <TabsTrigger value="viewer-mode">Viewer mode</TabsTrigger>
@@ -17228,6 +17440,8 @@ export default function StoryViewerDemo() {
       <TabsContent value="video"><VideoOnlyTab /></TabsContent>
       <TabsContent value="mixed"><MixedTab /></TabsContent>
       <TabsContent value="multi"><MultiStoryTab /></TabsContent>
+      <TabsContent value="host-contract"><HostContractTab /></TabsContent>
+      <TabsContent value="media-pipeline"><MediaPipelineTab /></TabsContent>
       <TabsContent value="realtime"><RealtimeTab /></TabsContent>
       <TabsContent value="custom"><CustomRenderItemTab /></TabsContent>
       <TabsContent value="viewer-mode"><ViewerModeTab /></TabsContent>

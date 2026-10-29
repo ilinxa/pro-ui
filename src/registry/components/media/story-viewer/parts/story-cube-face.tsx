@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ProgressBars } from "./progress-bars";
 import { ViewerHeader } from "./viewer-header";
 import type { ResolvedStoryViewer01Labels, Story, StoryItem } from "../types";
@@ -38,6 +39,8 @@ export function StoryCubeFace({
   labels,
   renderBadge,
 }: StoryCubeFaceProps) {
+  // 0.7.0 - a ghost image that fails to load is hidden (no broken-image glyph on the swiping face).
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
   return (
     <>
       <ProgressBars
@@ -63,6 +66,8 @@ export function StoryCubeFace({
             src={src}
             alt={labels.itemImageAlt(story, itemIndex, story.items.length)}
             className="h-full w-full object-cover"
+            style={brokenSrc === src ? { visibility: "hidden" } : undefined}
+            onError={() => setBrokenSrc(src)}
           />
         ) : (
           <video

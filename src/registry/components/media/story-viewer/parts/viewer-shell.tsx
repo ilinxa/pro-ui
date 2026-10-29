@@ -14,6 +14,11 @@ export interface ViewerShellProps {
   overflowVisible?: boolean;
   /** Keydown on the dialog content (the viewer wraps Tab here when no layer is open). */
   onKeyDown?: (e: React.KeyboardEvent<HTMLElement>) => void;
+  /**
+   * 0.7.0 - where focus goes after the viewer closes: an element, a function returning one (`null`
+   * falls back to the opener), or `false` (the viewer moves no focus). Default: the opener.
+   */
+  returnFocusTo?: HTMLElement | (() => HTMLElement | null) | false;
   children: React.ReactNode;
 }
 
@@ -32,6 +37,7 @@ export function ViewerShell({
   className,
   overflowVisible = false,
   onKeyDown,
+  returnFocusTo,
   children,
 }: ViewerShellProps) {
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -79,9 +85,27 @@ export function ViewerShell({
   // After close: wait for the dialog content to be gone (its exit animation, then its own close
   // focus handling), then focus the opener if focus fell to `body`. Abandoned as soon as focus is
   // somewhere else (host moved it, or the backend already restored it) - never double-focus.
+  const returnFocusToRef = useRef(returnFocusTo);
   useEffect(() => {
-    if (isOpen) return;
-    const opener = openerRef.current;
+    returnFocusToRef.current = returnFocusTo;
+  });
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen) {
+      wasOpenRef.current = true;
+      return;
+    }
+    if (!wasOpenRef.current) return;
+    wasOpenRef.current = false;
+    const remembered = openerRef.current;
+    // 0.7.0 (A4): `false` = hands off; an element / function result overrides the remembered opener.
+    const wanted = returnFocusToRef.current;
+    if (wanted === false) {
+      openerRef.current = null;
+      return;
+    }
+    const explicit = typeof wanted === "function" ? wanted() : (wanted ?? null);
+    const opener = explicit ?? remembered;
     if (!opener) return;
     let tries = 0;
     const finish = (id: ReturnType<typeof setInterval>) => {
@@ -93,10 +117,14 @@ export function ViewerShell({
       const active = document.activeElement;
       const content = contentRef.current;
       const gone = !content || !content.isConnected;
-      if (gone && opener.isConnected && (!active || active === document.body)) {
-        opener.focus({ preventScroll: true });
+      // An explicit target also takes over from a backend that already put focus back on the
+      // remembered opener; the default never moves focus that went anywhere else.
+      const focusFree =
+        !active || active === document.body || (explicit !== null && active === remembered);
+      if (gone && opener.isConnected && focusFree) {
+        if (active !== opener) opener.focus({ preventScroll: true });
         finish(id);
-      } else if (tries >= 20 || !opener.isConnected || (gone && active && active !== document.body)) {
+      } else if (tries >= 20 || !opener.isConnected || (gone && !focusFree)) {
         finish(id);
       }
     }, 50);

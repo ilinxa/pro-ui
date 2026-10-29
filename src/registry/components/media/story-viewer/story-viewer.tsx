@@ -49,6 +49,7 @@ import { NavArrows } from "./parts/nav-arrows";
 import { SrNav } from "./parts/sr-nav";
 import { Caption } from "./parts/caption";
 import { ItemView } from "./parts/item-view";
+import { AmbientBackdrop } from "./parts/ambient-backdrop";
 import { UnavailableNotice } from "./parts/unavailable-notice";
 // v0.3.7: Heart icon is rendered inline in the DM bar row.
 import { Heart } from "lucide-react";
@@ -60,7 +61,7 @@ import { LinkCta } from "./parts/link-cta";
 import { CommentsPanel } from "./parts/comments-panel";
 import { SharePanel } from "./parts/share-panel";
 import { StoryCubeFace } from "./parts/story-cube-face";
-import { defaultStoryKebabActions } from "./lib/kebab";
+import { defaultStoryKebabActions, visibleKebabItems } from "./lib/kebab";
 import { buildStoryEngagementActionsWithMatrix } from "./lib/engagement-actions";
 import type { CommentComposerHandle } from "@/registry/components/data/comment-thread/parts/comment-composer";
 
@@ -90,8 +91,13 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   const {
     stories: initialStories,
     initialStoryIndex,
+    initialItemIndex,
     isOpen,
     onClose,
+    returnFocusTo,
+    onItemReady,
+    extraKebabActions,
+    storySwipe,
     ref,
     subscribe,
     onSubscribeDelta,
@@ -170,6 +176,10 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     // v0.4.0 — Instagram-canonical 3D cube transition between stories
     disableStoryTransition = false,
     storyTransitionDurationMs = 400,
+    // 0.7.0 — desktop backdrop + next-item preload
+    backdrop,
+    renderBackdrop,
+    preloadNext = true,
     // v0.2.0 — kebab item handlers (mirrors post-card v0.2.0; flattened
     // on Props rather than a discrete StoryMutationHandlers interface). All
     // optional; gated by the permissions matrix in defaultStoryKebabActions.
@@ -200,15 +210,19 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   );
   // 0.6.0 (SV13) - prefers-reduced-motion: no cube, no panel scale.
   const reducedMotion = useReducedMotion();
+  // 0.7.0 (A5): the swipe defaults to on unless the cube is off; with the cube off (or under
+  // reduced motion) a swipe is a hard cut - no preview, no neighbour media mounted.
+  const swipeEnabled = storySwipe ?? !disableStoryTransition;
+  const swipeHardCut = reducedMotion || disableStoryTransition;
 
   // An unavailable item is never "viewed": moving on from it (notice timer, `unavailableNoticeMs=0`,
   // or the user skipping it) fires no `onItemViewed`, neither "completed" nor "left".
   const unavailableItemRef = useRef("");
   const onItemViewedProp = onItemViewed;
   const guardedItemViewed = useCallback<NonNullable<typeof onItemViewed>>(
-    (storyId, itemId, itemIndex, cause) => {
+    (storyId, itemId, itemIndex, cause, info) => {
       if (unavailableItemRef.current === `${storyId}:${itemId}`) return;
-      onItemViewedProp?.(storyId, itemId, itemIndex, cause);
+      onItemViewedProp?.(storyId, itemId, itemIndex, cause, info);
     },
     [onItemViewedProp],
   );
@@ -236,6 +250,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   } = useStoryViewerState({
     initialStories,
     initialStoryIndex,
+    initialItemIndex,
     isOpen,
     subscribe,
     onSubscribeDelta,
@@ -289,6 +304,8 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   } | null>(null);
   // ─── v0.2.0 kebab state (C6) — shared between engagement-overlay placement + header fallback ──
   const [kebabOpen, setKebabOpen] = useState(false);
+  // 0.7.0 - `handle.invalidateMedia` forwards to the media pipeline (declared further down).
+  const invalidateMediaRef = useRef<(itemId?: string, storyId?: string) => void>(() => {});
 
   useImperativeHandle(
     ref,
@@ -318,22 +335,33 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       },
       triggerShare: () => triggerShareRef.current(),
       openKebab: () => setKebabOpen(true),
+      invalidateMedia: (itemId?: string, storyId?: string) =>
+        invalidateMediaRef.current(itemId, storyId),
     }),
     [goToStoryIndex, goToItemIndex, setPaused, setMuted, reset, dispatch],
   );
 
   // Per-item video metadata duration cache.
+  // 0.7.0 - keyed `${storyId}:${itemId}` (stories may reuse item ids) and cleared on close.
+  const itemKey = currentStory && currentItem
+    ? `${currentStory.id}:${currentItem.id}`
+    : "";
   const [videoMetadataMs, setVideoMetadataMs] = useState<Record<string, number>>({});
+  const [metaOpen, setMetaOpen] = useState(isOpen);
+  if (metaOpen !== isOpen) {
+    setMetaOpen(isOpen);
+    if (!isOpen) setVideoMetadataMs({});
+  }
   const handleVideoMetadata = useCallback(
     (duration: number) => {
-      if (!currentItem) return;
+      if (!itemKey) return;
       if (!Number.isFinite(duration) || duration <= 0) return;
       setVideoMetadataMs((prev) => {
-        if (prev[currentItem.id] != null) return prev;
-        return { ...prev, [currentItem.id]: duration * 1000 };
+        if (prev[itemKey] != null) return prev;
+        return { ...prev, [itemKey]: duration * 1000 };
       });
     },
-    [currentItem],
+    [itemKey],
   );
 
   // Resolve item duration (R-Plan-4): explicit → video metadata → default.
@@ -341,15 +369,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     if (!currentItem) return defaultItemDuration * 1000;
     if (currentItem.duration != null) return currentItem.duration * 1000;
     if (currentItem.type === "video") {
-      const meta = videoMetadataMs[currentItem.id];
+      const meta = videoMetadataMs[itemKey];
       if (meta != null) return meta;
     }
     return defaultItemDuration * 1000;
-  }, [currentItem, videoMetadataMs, defaultItemDuration]);
-
-  const itemKey = currentStory && currentItem
-    ? `${currentStory.id}:${currentItem.id}`
-    : "";
+  }, [currentItem, itemKey, videoMetadataMs, defaultItemDuration]);
 
   // ─── 0.5.4 ready gate + media-time progress + single advance ────────────
   // ─── 0.6.0 media pipeline: lazy URLs, one-shot retry, unavailable path ───
@@ -371,7 +395,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     addPauseReason,
     removePauseReason,
     goToNextItem,
+    preloadNext,
   });
+  useEffect(() => {
+    invalidateMediaRef.current = media.invalidateMedia;
+  }, [media.invalidateMedia]);
 
   // 0.6.2 - Play / Space / middle tap. While a notice (unavailable media or a removed item) is the
   // only thing holding the viewer, "play" ends the notice early (the same advance as its timer);
@@ -380,13 +408,18 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     (!!pendingRemoval || !!media.unavailable) &&
     activePauseReasons.every((r) => r === "unavailable");
   const noticeStays = pendingRemoval ? pendingRemoval.stayUntilClosed : media.stayUntilClosed;
+  // 0.7.0 (A9): a notice that stays until the viewer closes has nothing to play - no pause
+  // toggle at all (middle tap, Space, header), whatever else holds the viewer.
+  const stayNoticeShown =
+    pendingRemoval ? pendingRemoval.stayUntilClosed : !!media.unavailable && media.stayUntilClosed;
   const togglePause = useCallback(() => {
+    if (stayNoticeShown) return;
     if (noticeOnly) {
       if (!noticeStays) goToNextItem("left");
       return;
     }
     setPaused((p) => !p);
-  }, [noticeOnly, noticeStays, goToNextItem, setPaused]);
+  }, [stayNoticeShown, noticeOnly, noticeStays, goToNextItem, setPaused]);
   const {
     reportFailure: reportMediaFailure,
     markUnavailable: markMediaUnavailable,
@@ -418,7 +451,18 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   useLayoutEffect(() => {
     progressStore.resetMedia();
   }, [progressStore, itemKey, isOpen]);
-  const handleItemReady = useCallback(() => setReadyKey(itemKey), [itemKey]);
+  const markMediaLoaded = media.markLoaded;
+  const handleItemReady = useCallback(() => {
+    setReadyKey(itemKey);
+    // A retried URL that loaded re-arms the one-shot `onMediaError` retry (0.7.0).
+    markMediaLoaded();
+  }, [itemKey, markMediaLoaded]);
+  // 0.7.0 - the URL the stage image actually loaded (`currentSrc`): the ambient backdrop reuses it.
+  const [loadedImage, setLoadedImage] = useState<{ key: string; src: string } | null>(null);
+  const handleImageLoaded = useCallback(
+    (loadedSrc: string) => setLoadedImage({ key: itemKey, src: loadedSrc }),
+    [itemKey],
+  );
   // A media failure (image / video / frame): with `onMediaError` the host is asked once for a new
   // `src`; otherwise, or without one, the item is unavailable ("media").
   const handleVideoError = useCallback(() => {
@@ -457,6 +501,23 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   useLayoutEffect(() => {
     unavailableItemRef.current = media.unavailable ? itemKey : "";
   }, [media.unavailable, itemKey]);
+  // 0.7.0 (A3): `onItemReady` - once per visit, when the item is ready AND nothing pauses the viewer
+  // (its timer starts). The first effect resets the visit; never for an unavailable item or a
+  // removal notice frame.
+  const readyFiredRef = useRef("");
+  const onItemReadyRef = useRef(onItemReady);
+  useEffect(() => {
+    onItemReadyRef.current = onItemReady;
+  });
+  useEffect(() => {
+    readyFiredRef.current = "";
+  }, [itemKey, isOpen]);
+  useEffect(() => {
+    if (!isOpen || !isReady || isPaused || pendingRemoval || !currentStory || !currentItem) return;
+    if (readyFiredRef.current === itemKey) return;
+    readyFiredRef.current = itemKey;
+    onItemReadyRef.current?.(currentStory.id, currentItem.id);
+  }, [isOpen, isReady, isPaused, pendingRemoval, currentStory, currentItem, itemKey]);
   // `loadTimeoutMs`: media that is still not ready by then is unavailable ("timeout").
   // Pause-aware: a held viewer (host / hidden tab / sheet / hold / reply-focus / user) is not
   // waiting on the network, so the clock runs only while nothing pauses it and restarts in full
@@ -742,7 +803,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         return;
       }
       if (isGestureExempt(e.target)) return;
-      if (disableStoryTransition) {
+      if (!swipeEnabled) {
         longPress.handlePointerDown();
         return;
       }
@@ -763,7 +824,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       };
       longPress.handlePointerDown();
     },
-    [disableStoryTransition, longPress, clearClickSwallow, armClickSwallow],
+    [swipeEnabled, longPress, clearClickSwallow, armClickSwallow],
   );
 
   const handlePointerMove = useCallback(
@@ -784,7 +845,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
           const nextStory = stories[nextStoryIndex];
           // Under reduced motion there is no preview: no neighbour media mounts, the swipe
           // just navigates on release.
-          if (!reducedMotion) cubeBeginDrag({
+          if (!swipeHardCut) cubeBeginDrag({
             mirror: swipe.mirror,
             prev:
               prevStory && prevStory.items[0]
@@ -815,7 +876,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         }
       }
       e.preventDefault();
-      if (reducedMotion) return;
+      if (swipeHardCut) return;
       // Walls are physical: the left wall holds the previous story (the next one under RTL).
       const hasLeft = swipe.mirror ? nextStoryIndex >= 0 : prevStoryIndex >= 0;
       const hasRight = swipe.mirror ? prevStoryIndex >= 0 : nextStoryIndex >= 0;
@@ -834,7 +895,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       nextStoryIndex,
       cubeBeginDrag,
       cubeSetDragAngle,
-      reducedMotion,
+      swipeHardCut,
     ],
   );
 
@@ -885,7 +946,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         // Already released — safe to ignore.
       }
 
-      if (reducedMotion) {
+      if (swipeHardCut) {
         // No cube was started: commit instantly, or do nothing on a snap-back.
         if (snap === "next") goToNextStory();
         else if (snap === "prev") goToPrevStory();
@@ -919,7 +980,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       goToNextStory,
       goToPrevStory,
       longPress,
-      reducedMotion,
+      swipeHardCut,
     ],
   );
 
@@ -970,7 +1031,11 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       if (!target) return;
       const insideColumn = engagementColumnRef.current?.contains(target);
       const insideToggle = engagementToggleRef.current?.contains(target);
-      if (!insideColumn && !insideToggle) {
+      // 0.7.0 - a press inside one of the viewer's layers (the comments / share sheet the rail
+      // opened, the actions menu, the link drawer) is not outside: collapsing the rail there made
+      // the sheet's opener `inert`, so its close button dropped focus to the page.
+      const insideLayer = target instanceof Element && !!target.closest("[data-story-layer]");
+      if (!insideColumn && !insideToggle && !insideLayer) {
         setEngagementExpanded(false);
       }
     };
@@ -1064,7 +1129,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
   // defaultStoryKebabActions assembles per permissions matrix + moderator section.
   const kebabItems = useMemo(() => {
     if (!currentStory || !currentItem || pendingRemoval) return [];
-    if (kebabActions) return kebabActions(currentStory, currentItem);
+    if (kebabActions) return visibleKebabItems(kebabActions(currentStory, currentItem));
     return defaultStoryKebabActions({
       story: currentStory,
       item: currentItem,
@@ -1092,6 +1157,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       permissions,
       canPerformAction,
       moderatorActions,
+      extraActions: extraKebabActions,
     });
   }, [
     currentStory,
@@ -1111,6 +1177,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     permissions,
     canPerformAction,
     moderatorActions,
+    extraKebabActions,
   ]);
 
   // Resolved engagement actions for the current item (rebuilt per cursor change)
@@ -1423,6 +1490,7 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
         onOpenChange={handleOpenChange}
         ariaLabel={labels.viewerLabel}
         className={contentClassName}
+        returnFocusTo={returnFocusTo}
       >
         <span />
       </ViewerShell>
@@ -1435,11 +1503,31 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
       onOpenChange={handleOpenChange}
       ariaLabel={labels.viewerLabel}
       className={contentClassName}
+      returnFocusTo={returnFocusTo}
       overflowVisible={navArrowsPlacement === "outside"}
       // F4: wrap Tab at the dialog level while no layer is open (layers wrap themselves). The
       // dialog's focus scope ignores `inert`, so at the last REAL control it would not wrap.
       onKeyDown={hasLayer ? undefined : wrapTabWithinLayer}
     >
+      {/* 0.7.0 (SV-2) - desktop backdrop: portalled, under the dialog overlay, click-through. */}
+      {backdrop === "ambient" || renderBackdrop ? (
+        <AmbientBackdrop
+          open={isOpen}
+          mode={backdrop}
+          story={currentStory}
+          item={currentItem}
+          src={
+            currentItem.type === "image" && isReady && loadedImage?.key === itemKey
+              ? loadedImage.src
+              : undefined
+          }
+          poster={currentItem.type === "video" ? media.poster : undefined}
+          isReady={isReady}
+          loading={!isReady && !media.unavailable && !pendingRemoval}
+          reducedMotion={reducedMotion}
+          renderBackdrop={renderBackdrop}
+        />
+      ) : null}
       {/* v0.2.0 C7 — renderNavArrows slot wins as full takeover.
           v0.2.0 C8 — `disableNavArrows` suppresses the default mount entirely. */}
       {renderNavArrows ? (
@@ -1653,10 +1741,10 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             authorComponent={authorComponent}
             renderBadge={renderHeaderBadge}
             onKebabClick={
-              viewerMode && kebabItems.length > 0
-                ? () => setKebabOpen(true)
-                : undefined
+              kebabItems.length > 0 ? () => setKebabOpen(true) : undefined
             }
+            kebabOpen={kebabOpen}
+            hidePause={stayNoticeShown}
           />
         )}
         {/* v0.3.0 — scaling wrapper: when the comments or share panel is
@@ -1702,6 +1790,9 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
             isMuted={isMuted}
             src={media.src}
             poster={media.poster}
+            srcSet={media.srcSet}
+            sizes={media.sizes}
+            onImageLoaded={handleImageLoaded}
             onLoadedMetadata={handleItemMetadata}
             onEnded={completeItem}
             onReady={handleItemReady}

@@ -14,6 +14,7 @@ import type {
   StoryItem,
   StoryItemUnavailableReason,
   StoryItemViewedCause,
+  StoryItemViewedInfo,
   StoryViewerDelta,
   StoryViewerLocalAction,
   StoryViewerPendingRemoval,
@@ -192,16 +193,6 @@ function resolveCursor(
   return firstOf(last.storyIndex) ?? lastBefore(last.storyIndex - 1);
 }
 
-/** Report the item at `iIdx` as left (a jump to another author). */
-function fireLeft(
-  cb: UseStoryViewerStateOptions["onItemViewed"],
-  story: Story,
-  iIdx: number,
-): void {
-  const item = story.items[iIdx];
-  if (item) cb?.(story.id, item.id, iIdx, "left");
-}
-
 /**
  * Index of the nearest group from `from` in `dir` (1 forward, -1 backward) that
  * the host has not muted, or -1. Every sequential move uses this; direct opens
@@ -228,6 +219,8 @@ export interface UseStoryViewerStateOptions {
   initialStories: Story[];
   /** Re-seeds cursor whenever (initialStoryIndex, isOpen) pair changes. */
   initialStoryIndex: number;
+  /** 0.7.0 - item of the opening story to start on (clamped; default 0). Read with `initialStoryIndex`. */
+  initialItemIndex?: number;
   /** Re-seeds cursor whenever (initialStoryIndex, isOpen) pair changes. */
   isOpen: boolean;
 
@@ -240,9 +233,10 @@ export interface UseStoryViewerStateOptions {
     itemId: string,
     itemIndex: number,
     cause: StoryItemViewedCause,
+    info: StoryItemViewedInfo,
   ) => void;
   onCursorChange?: (storyIndex: number, itemIndex: number) => void;
-  onAutoCloseAtEnd?: () => void;
+  onAutoCloseAtEnd?: (storyId: string, itemId: string) => void;
   onClose: () => void;
   /**
    * v0.2.0 — when true, the auto-close at end of the last story fires
@@ -322,6 +316,7 @@ export function useStoryViewerState(
   const {
     initialStories,
     initialStoryIndex,
+    initialItemIndex = 0,
     isOpen,
     subscribe,
     onSubscribeDelta,
@@ -457,28 +452,33 @@ export function useStoryViewerState(
 
   // ─── Cursor state (ID-anchored) ───────────────────────────────────────────
   // Lazy initializer — runs once at mount, derived from props.
-  const [cursorIds, setCursorIds] = useState<CursorIds>(() => {
-    const idx = Math.max(0, Math.min(initialStoryIndex, initialStories.length - 1));
-    const story = initialStories[idx];
-    return {
-      storyId: story?.id ?? "",
-      itemId: story?.items[0]?.id ?? "",
-    };
-  });
-
-  // Reset cursor when (initialStoryIndex, isOpen) pair changes.
-  // Read stories from ref to keep deps narrow.
-  useEffect(() => {
-    if (!isOpen) return;
-    const snap = initialStoriesRef.current;
-    const idx = Math.max(0, Math.min(initialStoryIndex, snap.length - 1));
-    const story = snap[idx];
-    if (!story) return;
-    setCursorIds({
-      storyId: story.id,
-      itemId: story.items[0]?.id ?? "",
-    });
-  }, [initialStoryIndex, isOpen]);
+  const seedCursor = (list: Story[]): CursorIds | null => {
+    const idx = Math.max(0, Math.min(initialStoryIndex, list.length - 1));
+    const story = list[idx];
+    if (!story) return null;
+    const iIdx = Math.max(0, Math.min(Math.trunc(initialItemIndex) || 0, story.items.length - 1));
+    return { storyId: story.id, itemId: story.items[iIdx]?.id ?? "" };
+  };
+  const [cursorIdsState, setCursorIds] = useState<CursorIds>(
+    () => seedCursor(initialStories) ?? { storyId: "", itemId: "" },
+  );
+  // 0.7.0 (A1) - re-seed the cursor when the viewer opens or `initialStoryIndex` changes, DURING
+  // render: the render with the stale cursor is discarded (it never commits), so no other item is
+  // rendered or handed to `resolveMedia` first - also on a reopen. A seed needs a story: opened on an
+  // empty list, the seed waits (the key stays unmatched) and lands with the first data.
+  const seedKey = isOpen ? `${initialStoryIndex}` : "";
+  const [prevSeedKey, setPrevSeedKey] = useState(() =>
+    seedCursor(initialStories) ? seedKey : "",
+  );
+  let cursorIds = cursorIdsState;
+  if (prevSeedKey !== seedKey) {
+    const seeded = isOpen ? seedCursor(stories) : null;
+    if (seeded || !isOpen) setPrevSeedKey(seedKey);
+    if (seeded) {
+      setCursorIds(seeded);
+      cursorIds = seeded;
+    }
+  }
 
   // Repair a cursor that names a removed id (render-time setState — the
   // discarded pass never commits, so there is no flash of the stale cursor).
@@ -541,8 +541,10 @@ export function useStoryViewerState(
       "removed",
     );
   }, [removalEvent]);
-  // When the media notice was already showing, only what is left of it is held.
-  const unavailableSinceRef = useRef<number | null>(null);
+  // When the media notice was already showing, only what is left of it is held. 0.7.0 (A8): the
+  // time it already ran counts only while no OTHER pause reason held (`elapsed` + the running
+  // segment `since`), so a pause before the hand-over never shortens the removal notice.
+  const noticeClockRef = useRef<{ since: number | null; elapsed: number }>({ since: null, elapsed: 0 });
   // 0.6.2 - the notice counts down only while no OTHER pause reason holds (the notice's own
   // reason is `unavailable`); the remaining time carries across the pause.
   const otherHolds = reasons.some((r) => r !== "unavailable");
@@ -555,8 +557,9 @@ export function useStoryViewerState(
     if (removalLeftRef.current?.key !== removalKey) {
       let ms = unavailableNoticeMs;
       if (alreadyNoticed) {
-        const since = unavailableSinceRef.current;
-        ms = since === null ? 0 : Math.max(0, ms - (Date.now() - since));
+        const clock = noticeClockRef.current;
+        const used = clock.elapsed + (clock.since === null ? 0 : Date.now() - clock.since);
+        ms = Math.max(0, ms - used);
       }
       removalLeftRef.current = { key: removalKey, ms };
     }
@@ -634,8 +637,20 @@ export function useStoryViewerState(
   const hasPendingRemoval = pendingRemoval !== null;
   useLayoutEffect(() => {
     if (hasPendingRemoval) return;
-    if (!reasons.includes("unavailable")) unavailableSinceRef.current = null;
-    else if (unavailableSinceRef.current === null) unavailableSinceRef.current = Date.now();
+    const clock = noticeClockRef.current;
+    if (!reasons.includes("unavailable")) {
+      clock.since = null;
+      clock.elapsed = 0;
+      return;
+    }
+    if (otherHolds) {
+      if (clock.since !== null) {
+        clock.elapsed += Date.now() - clock.since;
+        clock.since = null;
+      }
+    } else if (clock.since === null) {
+      clock.since = Date.now();
+    }
   });
   useLayoutEffect(() => {
     if (hasPendingRemoval) addPauseReason("unavailable");
@@ -706,6 +721,47 @@ export function useStoryViewerState(
     };
   }, [isOpen, addPauseReason, removePauseReason]);
 
+  // ─── onItemViewed: once per item visit, with a direction (0.7.0, A2) ─────────
+  // A visit starts when the item becomes current (or the viewer opens) and ends when the cursor
+  // leaves it. `viewedKeyRef` holds the item already reported in this visit, so the several paths
+  // that can end it (a play-through, then the auto-close, then `isOpen` -> false) report it once.
+  const viewedKeyRef = useRef("");
+  const visitKey = `${cursorIds.storyId}:${cursorIds.itemId}`;
+  useLayoutEffect(() => {
+    if (isOpen) viewedKeyRef.current = "";
+  }, [isOpen, visitKey]);
+  const fireViewed = useCallback(
+    (
+      story: Story,
+      iIdx: number,
+      cause: StoryItemViewedCause,
+      direction: StoryItemViewedInfo["direction"],
+    ) => {
+      const item = story.items[iIdx];
+      if (!item) return;
+      const key = `${story.id}:${item.id}`;
+      if (viewedKeyRef.current === key) return;
+      viewedKeyRef.current = key;
+      onItemViewedRef.current?.(story.id, item.id, iIdx, cause, { direction });
+    },
+    [],
+  );
+  // Closing the viewer on an item (close button, Escape, backdrop, `isOpen` false) leaves it.
+  const prevOpenRef = useRef(isOpen);
+  useLayoutEffect(() => {
+    const wasOpen = prevOpenRef.current;
+    prevOpenRef.current = isOpen;
+    if (!wasOpen || isOpen) return;
+    const story = initialStoriesRef.current.find((s) => s.id === cursorIds.storyId);
+    if (!story) return;
+    fireViewed(
+      story,
+      story.items.findIndex((i) => i.id === cursorIds.itemId),
+      "left",
+      "close",
+    );
+  }, [isOpen, cursorIds, fireViewed]);
+
   // ─── Navigation helpers ──────────────────────────────────────────────────
   // While a removal notice is held, any navigation just ends the notice early
   // (it repairs to the next item) — unless it must stay until the viewer closes.
@@ -725,6 +781,7 @@ export function useStoryViewerState(
     const story = snap[sIdx];
     const iIdx = story.items.findIndex((i) => i.id === cursorIds.itemId);
     if (iIdx > 0) {
+      fireViewed(story, iIdx, "left", "backward");
       setCursorIds({ storyId: story.id, itemId: story.items[iIdx - 1].id });
       return;
     }
@@ -733,12 +790,12 @@ export function useStoryViewerState(
       const prevStory = snap[pIdx];
       const lastItem = prevStory.items[prevStory.items.length - 1];
       if (lastItem) {
-        fireLeft(onItemViewedRef.current, story, iIdx);
+        fireViewed(story, iIdx, "left", "backward");
         setCursorIds({ storyId: prevStory.id, itemId: lastItem.id });
       }
     }
     // else: at the very start; no-op.
-  }, [cursorIds, holding, releaseNotice]);
+  }, [cursorIds, holding, releaseNotice, fireViewed]);
 
   const goToNextItem = useCallback((cause?: StoryItemViewedCause) => {
     const viewedCause: StoryItemViewedCause = cause === "completed" ? "completed" : "left";
@@ -751,10 +808,7 @@ export function useStoryViewerState(
     if (sIdx < 0) return;
     const story = snap[sIdx];
     const iIdx = story.items.findIndex((i) => i.id === cursorIds.itemId);
-    const item = story.items[iIdx];
-    if (item) {
-      onItemViewedRef.current?.(story.id, item.id, iIdx, viewedCause);
-    }
+    fireViewed(story, iIdx, viewedCause, "forward");
     if (iIdx < story.items.length - 1) {
       setCursorIds({ storyId: story.id, itemId: story.items[iIdx + 1].id });
       return;
@@ -771,9 +825,9 @@ export function useStoryViewerState(
       }
     }
     // No next story — auto-close (gated by disableAutoClose per v0.2.0).
-    onAutoCloseAtEndRef.current?.();
+    onAutoCloseAtEndRef.current?.(story.id, cursorIds.itemId);
     if (!disableAutoCloseRef.current) onCloseRef.current();
-  }, [cursorIds, holding, releaseNotice]);
+  }, [cursorIds, holding, releaseNotice, fireViewed]);
 
   const goToPrevStory = useCallback(() => {
     if (holding) {
@@ -789,11 +843,11 @@ export function useStoryViewerState(
     const firstItem = prevStory.items[0];
     if (firstItem) {
       const story = snap[sIdx];
-      fireLeft(onItemViewedRef.current, story, story.items.findIndex((i) => i.id === cursorIds.itemId));
+      fireViewed(story, story.items.findIndex((i) => i.id === cursorIds.itemId), "left", "backward");
       // Backward — does NOT fire onStoryViewed.
       setCursorIds({ storyId: prevStory.id, itemId: firstItem.id });
     }
-  }, [cursorIds, holding, releaseNotice]);
+  }, [cursorIds, holding, releaseNotice, fireViewed]);
 
   const goToNextStory = useCallback(() => {
     if (holding) {
@@ -807,16 +861,18 @@ export function useStoryViewerState(
     const nIdx = findAdjacentStoryIndex(snap, sIdx, 1);
     const nextStory = nIdx >= 0 ? snap[nIdx] : undefined;
     const firstItem = nextStory?.items[0];
+    const iIdx = story.items.findIndex((i) => i.id === cursorIds.itemId);
     if (nextStory && firstItem) {
-      fireLeft(onItemViewedRef.current, story, story.items.findIndex((i) => i.id === cursorIds.itemId));
+      fireViewed(story, iIdx, "left", "forward");
       onStoryViewedRef.current?.(story.id);
       setCursorIds({ storyId: nextStory.id, itemId: firstItem.id });
       return;
     }
+    fireViewed(story, iIdx, "left", "forward");
     onStoryViewedRef.current?.(story.id);
-    onAutoCloseAtEndRef.current?.();
+    onAutoCloseAtEndRef.current?.(story.id, cursorIds.itemId);
     if (!disableAutoCloseRef.current) onCloseRef.current();
-  }, [cursorIds, holding, releaseNotice]);
+  }, [cursorIds, holding, releaseNotice, fireViewed]);
 
   const goToStoryIndex = useCallback((index: number) => {
     const snap = initialStoriesRef.current;
@@ -824,9 +880,14 @@ export function useStoryViewerState(
     const target = snap[sIdx];
     if (!target) return;
     const currentSIdx = snap.findIndex((s) => s.id === cursorIds.storyId);
-    if (currentSIdx >= 0 && snap[currentSIdx].id !== target.id) {
+    if (currentSIdx >= 0) {
       const current = snap[currentSIdx];
-      fireLeft(onItemViewedRef.current, current, current.items.findIndex((i) => i.id === cursorIds.itemId));
+      const cIdx = current.items.findIndex((i) => i.id === cursorIds.itemId);
+      // Direction by where the cursor goes (the target story opens on its first item); no event
+      // when it lands where it already is.
+      if (sIdx !== currentSIdx || cIdx > 0) {
+        fireViewed(current, cIdx, "left", sIdx > currentSIdx ? "forward" : "backward");
+      }
     }
     // Forward jump — fire onStoryViewed for the leaving story.
     if (sIdx > currentSIdx && currentSIdx >= 0) {
@@ -836,7 +897,7 @@ export function useStoryViewerState(
       storyId: target.id,
       itemId: target.items[0]?.id ?? "",
     });
-  }, [cursorIds]);
+  }, [cursorIds, fireViewed]);
 
   const goToItemIndex = useCallback((index: number) => {
     const snap = initialStoriesRef.current;
@@ -846,8 +907,12 @@ export function useStoryViewerState(
     const iIdx = Math.max(0, Math.min(index, story.items.length - 1));
     const item = story.items[iIdx];
     if (!item) return;
+    const cIdx = story.items.findIndex((i) => i.id === cursorIds.itemId);
+    if (cIdx >= 0 && cIdx !== iIdx) {
+      fireViewed(story, cIdx, "left", iIdx > cIdx ? "forward" : "backward");
+    }
     setCursorIds({ storyId: story.id, itemId: item.id });
-  }, [cursorIds]);
+  }, [cursorIds, fireViewed]);
 
   const reset = useCallback(
     (next: Story[]) => {

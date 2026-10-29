@@ -49,6 +49,23 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  // Safari / Firefox on macOS do not focus a clicked button, so at open `activeElement` is `body`
+  // after a mouse or touch open. While closed, remember the last control pressed and use it as the
+  // opener when nothing is focused (the same fallback as the viewer shell).
+  const lastPressedRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (open) return undefined;
+    const onPress = (e: PointerEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      const control = target?.closest<HTMLElement>(
+        'button, a[href], [role="button"], [tabindex]:not([tabindex="-1"])',
+      );
+      // The tap zones sit in an `aria-hidden` wrapper: never an opener.
+      lastPressedRef.current = control && !control.closest('[aria-hidden="true"]') ? control : null;
+    };
+    document.addEventListener("pointerdown", onPress, true);
+    return () => document.removeEventListener("pointerdown", onPress, true);
+  }, [open]);
 
   // Focus: on open, remember the opener and move focus into the sheet; on
   // close, hand focus back to the opener (when it is still in the document and
@@ -57,18 +74,47 @@ export function BottomSheet({
   useEffect(() => {
     if (open) {
       const active = document.activeElement;
+      const pressed = lastPressedRef.current;
+      lastPressedRef.current = null;
+      // The viewer dialog itself (focused on open) is not an opener: nothing was focused.
+      const viewerDialog = rootRef.current?.parentElement?.closest('[role="dialog"]') ?? null;
       openerRef.current =
-        active instanceof HTMLElement && active !== document.body ? active : null;
+        active instanceof HTMLElement && active !== document.body && active !== viewerDialog
+          ? active
+          : pressed?.isConnected && !rootRef.current?.contains(pressed)
+            ? pressed
+            : null;
       rootRef.current?.focus({ preventScroll: true });
-      return;
+      return undefined;
     }
     const opener = openerRef.current;
     openerRef.current = null;
-    if (!opener || !opener.isConnected) return;
-    const active = document.activeElement;
-    if (!active || active === document.body || rootRef.current?.contains(active)) {
-      opener.focus({ preventScroll: true });
-    }
+    if (!opener || !opener.isConnected) return undefined;
+    // 0.7.0 (A11): focus counts as "lost" on `body`, inside the sheet, or on the viewer dialog
+    // itself (its focus trap grabs focus back when the sheet's own focused node goes inert).
+    const dialogEl = rootRef.current?.parentElement?.closest('[role="dialog"]') ?? null;
+    const restore = () => {
+      const active = document.activeElement;
+      const lost =
+        !active ||
+        active === document.body ||
+        active === dialogEl ||
+        !!rootRef.current?.contains(active);
+      if (lost && opener.isConnected && !opener.closest("[inert]")) {
+        opener.focus({ preventScroll: true });
+      }
+    };
+    restore();
+    // A browser applies the sheet's `inert` (and drops the focus inside it) after this effect on
+    // an Escape close: check again over the next frames, abandoning once focus is somewhere real.
+    let frame = 0;
+    let tries = 0;
+    const again = () => {
+      restore();
+      if (++tries < 3) frame = requestAnimationFrame(again);
+    };
+    frame = requestAnimationFrame(again);
+    return () => cancelAnimationFrame(frame);
   }, [open]);
 
   return (

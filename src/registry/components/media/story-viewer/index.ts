@@ -33,6 +33,8 @@ export type {
   StoryResolvedMedia,
   StoryItemUnavailableReason,
   StoryItemViewedCause,
+  StoryItemViewedInfo,
+  StoryBackdropContext,
   StoryViewerPauseReason,
   StoryViewerPendingRemoval,
   Subscribe,

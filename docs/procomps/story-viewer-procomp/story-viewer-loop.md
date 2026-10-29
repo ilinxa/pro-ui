@@ -701,3 +701,186 @@ unchanged; only an optional `size` added). Re-checked: story-viewer tests green 
 4.18.0 and 3.8.5 PASS (consumer tsc 0); browser — viewer, comments sheet, reply, close with no console errors. Found
 pre-existing: Escape on the comments sheet leaves focus on `<body>` → FU-8, story-viewer 0.7.0 (release 9). Record:
 `docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7b".
+
+# Run — release 9 = 0.7.0 (platform request 2026-10-27, group 3 features)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **minor** — additive props / handle method / type members; two behaviour changes listed under U1) |
+| **Current stage** | U7 — ship (GATE 3 Pass with follow-ups; battery, browser pass, installs and doc check done) |
+| **Sign-off policy** | U1 minor → **delegated by user** ("go and close it end to end", 2026-10-29). Not a breaking change to a composed component: no registry item depends on story-viewer (U0). |
+| **Version target** | v0.6.2 → **v0.7.0** |
+| **Model roster** | architect: main session · implementers: 2 × Sonnet 5 (slices M, N) · finders: 2 × fresh Sonnet 5 (code + browser) |
+| **Started / updated** | 2026-10-29 / 2026-10-29 |
+
+## U0 — Intake & impact
+
+- Source: `.claude/platform-request-verification-2026-10-28.md` §Group 3 (wins over the request) + the request's SV-2/3/4/5/6
+  text (`E:/tmp/social-ui-v2/PROUI_REQUEST_2026-10-27.md` L211-262) + `PROUI_NOTE_M7A_STORY_VIEWER.md` asks 1-13.
+  Scope = SV-2, SV-3, SV-5, SV-6, SV-4 (1) (3) (4) (5) (6 `returnFocusTo`) (7) (8) (9) (13), the progress-height
+  variable (SV-1 rest), and owed follow-ups FU-3, FU-4, FU-5, FU-8.
+- Not taken: `labels.progressSegment` (0.6.2 already names the current bar with `labels.position(author, index,
+  total)`; a second label for the same string would be a duplicate) — said in the reply.
+- **Blast radius:** story-viewer only. `registry.json`: no item lists `@ilinxa/story-viewer`. It composes comment-thread
+  (`CommentComposer`) and engagement-bar (inline type copy) — not touched. Docs: `meta.ts`, CHANGELOG, guide (0.7.0
+  section + migration notes), description/plan API delta note, STATUS row, component-versions, demo/usage.
+- Fix-on-touch ledger: no row for story-viewer. 0.6.0 F-02 (`pauseReasons` late-update drop) stays parked.
+
+## U1 — Change contract (minor; sign-off delegated)
+
+Public types written first by the architect in `types.ts` (the contract): `StoryItem.srcSet/sizes`,
+`StoryResolvedMedia.srcSet/sizes/maxAgeMs/expiresAt`, `StoryBackdropContext`, `RenderItemContext.srcSet/sizes`,
+`StoryItemViewedInfo`, `StoryViewerHandle.invalidateMedia`, props `initialItemIndex`, `returnFocusTo`, `onItemReady`,
+`onItemViewed` 5th arg, `onAutoCloseAtEnd(storyId, itemId)`, `extraKebabActions`, `storySwipe`, `backdrop`,
+`renderBackdrop`, `preloadNext`, `StoryKebabMenuItem.hidden`. Zero-arg / 4-arg host callbacks stay assignable.
+
+**Behaviour changes (minor, documented as migration notes):**
+1. `onItemViewed` now also fires on `goToItem` / `goToStory` (handle), on close (`"left"`, direction `"close"`) and for
+   the last item before the auto-close (forward move past the last author). A host that also marks in
+   `onAutoCloseAtEnd` gets the item twice (idempotent marks are unaffected).
+2. `onMediaError` may be asked again for the same item after a retried URL LOADED and then failed (was: once per item).
+
+Reproductions / acceptance (U2 writes a failing test first for each; U5 replays the browser-only ones):
+
+| # | Ask | Reproduction | Expected after |
+|---|---|---|---|
+| A1 | SV-4(3) | open with `initialStoryIndex=1, initialItemIndex=2` (resolveMedia spy); close; reopen at 0/0 | opens on item 2; `resolveMedia` never called with items 0/1 of that story; no render of a stale cursor on reopen; clamps out-of-range |
+| A2 | SV-4(4)(13) | tap back; `goToItem(0)` from 2; X close; play-through of last item of last author; tap forward on it | back → `left/backward`; goToItem → `left/backward`; X → `left/close`; play-through → `completed/forward` then `onAutoCloseAtEnd(sid, iid)`; tap forward on last → `left/forward` then `onAutoCloseAtEnd`; each item fires once per visit |
+| A3 | SV-4(1) | open with `pauseReasons=["host"]`, image loads, then clear | `onItemReady` not before the clear; once after; again on revisit; never for an unavailable item |
+| A4 | SV-4(6) | `returnFocusTo={el}` / fn→null / `false` | focus goes to `el` / opener / untouched |
+| A5 | SV-4(7) | `disableStoryTransition` alone; + `storySwipe`; `storySwipe={false}` alone | no swipe (0.6 compat); swipe = hard cut with no ghost faces mounted, RTL mirrored, not from controls; cube without swipe gesture |
+| A6 | SV-5 | `extraKebabActions` w/o `viewerMode`; `hidden` item; with `kebabActions` | kebab shows with the extras; hidden left out (also in defaults/moderator/takeover lists); takeover ignores extras |
+| A7 | progress var | set `--story-viewer-progress-height: 6px` | default bars 6 px; unset = 2 px |
+| A8 | FU-3 | media notice paused by a sheet, then removal notice | removal notice gets its full time from when nothing else holds (no wall-clock leak) |
+| A9 | FU-4 | standalone single-item story, unavailable notice | no dead Play: the play/pause control and middle-tap pause are not offered while a stay-until-closed notice shows |
+| A10 | FU-5 | link with `cta="Shop now"` | opener accessible name contains its visible text (axe `label-content-name-mismatch` clean) |
+| A11 | FU-8 | open comments sheet, Escape | focus returns to the comment button (not `body`) |
+| B1 | SV-6 | resolveMedia → `{src, srcSet, sizes}`; then image error + `onMediaError` new src | `<img srcset sizes>`; after retry no `srcset` (only new `src`); `ctx.srcSet` for a custom frame |
+| B2 | SV-4(5) | retry URL loads, later fails | host asked again; retry URL failing BEFORE load → unavailable, not asked twice; video same |
+| B3 | SV-4(8) | image `error` with a pending `onMediaError` | failed `<img>` hidden at once (no broken glyph); ghost-face img error hidden too |
+| B4 | SV-4(9) | result `maxAgeMs: 1000`; long pause on current; move next / revisit | next/revisited item resolved again; current never swapped; `invalidateMedia(itemId)` → re-resolve on next need; negative cache retried once when the failed item becomes current; retry URL reused on revisit; `videoMetadataMs` keyed `storyId:itemId`, cleared on close |
+| B5 | SV-3 | delayed image next; `preloadNext={false}`; `saveData` | `Image()` + `decode()` for next once its URL is known, no DOM node; video = off-DOM metadata only; nothing for previous; off when disabled / saveData |
+| B6 | SV-2 | `backdrop="ambient"` desktop; reduced motion; video w/o poster; `renderBackdrop` | layer under the overlay with the stage's loaded URL (no new request); dim before ready / no poster / reduced motion; outside-click still closes; hidden < md; slot wins |
+
+Invariants (regression targets): every existing story-viewer test (19 files); `pauseReasons` controlled semantics;
+reduced motion; RTL; cube thresholds; 0.6.2 a11y fixes (opener focus, named current bar, inert ghosts, notice pause,
+hold release, Play ends notice); resolve window = current + next only; `renderItem` frame contract; F-cross-13 (no
+Radix-only props).
+
+## U2 — Implement
+
+| Slice | Owner | Files (exclusive) | Rows |
+|---|---|---|---|
+| M media | Sonnet 5 | `hooks/use-story-media.ts`, `parts/item-view.tsx`, `parts/story-cube-face.tsx`, new `parts/ambient-backdrop.tsx`, new `lib/preload.ts`; `story-viewer.tsx` media regions | B1-B6 |
+| N navigation / chrome | Sonnet 5 | `hooks/use-story-viewer-state.ts`, `hooks/use-long-press-pause.ts`, `parts/viewer-shell.tsx`, `parts/progress-bars.tsx`, `parts/link-cta.tsx`, `parts/bottom-sheet.tsx`, `parts/comments-panel.tsx`, `parts/share-panel.tsx`, `parts/viewer-header.tsx`, `parts/tap-zones.tsx`, `lib/kebab.ts`, `parts/kebab-panel.tsx`; `story-viewer.tsx` nav/kebab/swipe/handle regions | A1-A11 |
+
+`types.ts` / `index.ts` / `meta.ts` / docs: architect.
+
+### U2 results (2026-10-29)
+
+- **Slice M** (Sonnet): B1–B6 at source; `__tests__/media-0-7-0.test.tsx` (25), each row reverted by a mutation script →
+  its tests failed, restored → green. New files `lib/preload.ts`, `parts/ambient-backdrop.tsx` (`react-dom`
+  `createPortal`; not declared — catalog precedent, `react-dom` is never a declared registry dep; meta-deps exit 0).
+  `use-story-media.ts` rewritten: results carry an expiry; an aged-out NEXT result re-resolves (wake-up timer, 500 ms
+  re-fetch floor so `maxAgeMs: 0` cannot spin); the on-screen item is never swapped (`invalidateMedia` parks the fresh
+  answer in `entry.next` until the item is left); a retried video URL is echoed into `src` (video-player resumes into
+  an echoed refresh URL by design, `use-video-state.ts` L171-184).
+- **Slice N** (Sonnet): A1–A11 at source; `__tests__/nav-0-7-0.test.tsx` (42); four 0.6 test files updated for the 5th
+  `onItemViewed` argument and the link chip selector (A10 dropped its `aria-label`). Newly firing: a back tap inside a
+  story (`left` / `backward`) — recorded as a behaviour change. `story-viewer.tsx` was edited by both slices; the
+  coordinator re-grepped every slice-M wiring point after slice N's whole-file edits (all present).
+- **Coordinator spot-check** (riskiest functions read in full: `use-story-media.ts`, the state hook's seed + `fireViewed`,
+  `ambient-backdrop.tsx`, `preload.ts`): one defect fixed by the architect — opened on an empty list, the seed key was
+  consumed with nothing to seed, so `initialItemIndex` was lost when the stories arrived (slice N had parked it).
+  Fix: the key stays unmatched until a story exists; test "opened before the data arrives…" (fails with the old line,
+  verified). Noted for review: `videoMetadataMs` re-key has no failing-without-fix test (the cached value is only read
+  for a video whose metadata duration is invalid).
+- Parked by implementers (→ U4 to judge): stale `swipeRef` after a mouse release outside the card (pre-existing,
+  widened by `storySwipe`); `KebabPanel` has no last-pressed opener fallback (Safari); ghost-face `<video>` has no
+  hide-on-error; A11's original browser cause not reproduced in jsdom (browser pass).
+- Coordinator: `registry.json` +2 files (roster diff clean after), `meta.ts` 0.7.0, CHANGELOG, guide 0.7.0 section +
+  migration table + handle section, demo tab "Backdrop + events" + `storySwipe` toggle, STATUS row.
+
+## U4 — Adversarial review (fresh Sonnet finder, code; static — its test runs hit worker timeouts during the battery)
+
+| # | Finding | Sev | Verdict | Action |
+|---|---|---|---|---|
+| F1 | An aged-out NEXT result is re-asked while the viewer sits on the current item (once per lifetime, floor 500 ms) — JSDoc said "next time it needs the item" | 🔸 | CONFIRMED (doc) / behaviour kept | Kept on purpose: it is the platform's "long pause, then move on" case (M7A ask 9, S4). JSDoc + guide now say it, with the 500 ms floor |
+| F2 | Ambient backdrop never cross-fades: `isReady` is false between items, so the layer passes through dim | 🔸 | CONFIRMED | `loading` prop: the shown image holds while the next item loads (not when it is unavailable / a removal frame), then two layers for one fade; test (fails without: layer list empties on the item change) |
+| F3 | `kebabActions` without `viewerMode` now renders the menu (0.6: none) | 🔹 | CONFIRMED (behaviour change, intended by the JSDoc) | Migration row added; stale legacy-mode comment in `lib/kebab.ts` fixed |
+| F4 | `bg-black/50` literal in the backdrop | 🔹 | CONFIRMED | `bg-media-overlay` token |
+| F5 | Edited 0.6 test "goToItem leaves with left" asserted only a negative | 🔹 | CONFIRMED | Positive `left` / `forward`, called once |
+| F6 | A stale video `timeupdate` from the failed URL could re-arm the retry before the retry URL loaded | 🔹 | CONFIRMED (timing) | `markLoaded` counts only when the stage `src` is the awaited retry URL |
+| F7 | Reopen on an EMPTY list renders the previous session's cursor (possible spurious removal notice) | 🔹 | CONFIRMED pre-existing (HEAD's effect-based reset returned early the same way) | Follow-up FU-9 (story-viewer next minor) |
+
+Checked and found correct by the finder (static): `onItemViewed` dedupe and directions on every path, auto-close
+ordering, unavailable guard on close, `initialItemIndex` clamping, `onItemReady` gating, resolve ticket races,
+`invalidateMedia` on-screen parking, image retry gating, video echo vs `use-video-state.ts`, srcSet drop, preload
+scope, backdrop SSR / z-order / click-through, `returnFocusTo` (no Radix-only props), sheet fallback, swipe gating, kebab
+`hidden`, A8 clock, A9 / A10 tests.
+
+## U5 — Runtime: browser finder (fresh Sonnet, Chromium / Playwright on `next start -p 3200`; WebKit not runnable — Playwright 1.62.1 wants webkit-2336, 2248 installed)
+
+Passed in the browser (numbers in `E:/tmp/ilinxa-release-kit/browser-r9/`): ambient backdrop under the z-50 overlay
+(z-40, child of `body`), same URL as the stage `currentSrc`, requested once, cross-fade 2 layers → 1 at ~300 ms,
+outside click closes, `display:none` at 390, none under reduced motion / dim; opens on the chosen item; every event
+line (`completed forward`, `left backward`, `left forward`, `left close` for X and Escape, last author `completed
+forward` + `auto-close`); `ready` not while paused; kebab extras without `viewerMode`, `hidden` left out, focus back on
+the trigger; swipe matrix (cube+swipe, hard cut with no ghost faces, controls exempt, cube without drag, RTL mirrored,
+hold released off-window and on blur); srcset/sizes, preload before current with no DOM node, no broken-image frame,
+retry without srcset, gone notice + negative-cache retry, `maxAgeMs` 3 s re-resolve once per lifetime, invalidate
+without a blank; standalone notice without Play, Space inert, Close returns focus; default opener focus 12/12;
+progress 2 px / 6 px; A10 axe clean; 11 demo tabs axe-clean, zero console errors at both widths.
+
+| # | Finding | Sev | Verdict | Action |
+|---|---|---|---|---|
+| F-1 | Paused, then moved onto a video: header says playing, `<video>` stays paused at 0, bar never fills | ⚠️ | CONFIRMED, **pre-existing** (identical on live 0.6.2, `f1-compare.mjs`); wider than reported: **any pause + resume of a video froze it** (`f1-resume.mjs`: t=2.28 before and after, live too). `isActive={false}` pauses the player; nothing ever called `play()` | Fixed in `parts/item-view.tsx`: the player handle's `play()` on every paused → playing change; 2 tests (both red without) |
+| F-2 | Mouse click on the comments / share sheet's own close button leaves focus on `body` (Escape and keyboard fine) | ⚠️ | CONFIRMED (`f2-probe.mjs`: the press collapsed the reactions rail → the comment action `inert`) | The rail's outside-press ignores presses inside `[data-story-layer]`; test with the real pointerdown sequence (red without) — slice N's close-button test fired only `click` |
+| F-3 | Owner mode view-count chip: `aria-label` "47 views · May 3, 2026" vs visible "47· May 3, 2026" (axe `label-content-name-mismatch`) | 🔸 | CONFIRMED, pre-existing (owner overlay untouched) | Follow-up FU-10 (next minor: the name comes from the host's `labels.viewerCountLabel`, so the fix touches the label contract) |
+| F-4 | Swipe commits at 30 % width / 0.5 px·ms, the brief said 60 px | — | DROPPED (brief error; the guide documents 30 % / velocity) | — |
+| F-5 | Actions button has no `aria-haspopup` / `aria-expanded` | 🔹 | CONFIRMED, pre-existing | Fixed: `aria-haspopup="menu"` + `aria-expanded`; test |
+
+Not runnable here: WebKit (the Safari opener fallback, A4 / A11) — platform side, as in release 8.
+
+Browser replay of the fixes on a rebuilt production server (`f1-resume.mjs`, `f1-compare.mjs`, `f2-probe.mjs`, `t3b.mjs`):
+pause → resume t 2.26 → 3.79 playing; paused move onto a video plays (t 2.42 → 6.42, bar 23 → 63); mouse close of the
+comments sheet → focus on "Comment", rail still expanded, no `inert` ancestor; actions button `aria-haspopup=menu
+aria-expanded=true`. Coordinator follow-on: the shadcn Button's `aria-expanded:bg-muted` would paint a light chip on
+the media header while the menu is open — overridden to the overlay look.
+
+Orphan note: stopping `next start` through the background task killed only the pnpm wrapper; its node child kept port
+3200 and a handle on `public/r` (a `registry:build` EPERM, then an EADDRINUSE). Stop the server by the PID listening on
+the port.
+
+### U5 — installs (`E:/tmp/ilinxa-release-kit/installs-r9.sh`, `pnpm test:install` on the local `public/r`)
+
+| Run | Items | CLI | Result |
+|---|---|---|---|
+| A / B (first) | — | — | timed out in the consumer's own `pnpm install` (600 s, host load) before any add — re-run |
+| A2 | story-viewer, story-viewer-fixtures | 4.18.0 | pass — 41 files incl. `lib/preload.ts` + `parts/ambient-backdrop.tsx`, `dummy-data.ts`, stamp `0.7.0`, consumer `tsc` 0 |
+| B2 | story-viewer-fixtures alone (brings the base; the 0.5.3 F-01 workaround) | 3.8.5 | pass — 41 files, stamp `0.7.0`, consumer `tsc` 0 |
+| C | story-viewer alone (negative path) | 4.18.0 | pass — 40 files, no `dummy-data.ts`, consumer `tsc` 0 |
+
+Each consumer also gets comment-thread, engagement-bar, expandable-text and video-player through `registryDependencies`.
+
+## U6 — Docs & review
+
+Doc verifier (fresh Sonnet, read-only): no false statement; 7 imprecise ones — all corrected (cursor re-seed also on an
+`initialStoryIndex` change while open; the PREVIOUS author's cube face shows nothing for an aged-out answer; usage
+`invalidateMedia(itemId?, storyId?)` + own-`src` items unaffected; "never for an unavailable item"; the removal notice
+"no longer loses the time the media notice spent paused" (not "its full time"); reduced motion swipe is a hard cut
+too). Review file: [`reviews/2026-10-29-v0.7.0-host-contract.md`](reviews/2026-10-29-v0.7.0-host-contract.md) — Pass with
+follow-ups (FU-9 … FU-13). Reply: `.claude/report-back-2026-10-29-release-9.md`.
+
+## U3 — final battery (2026-10-29, after every U4 / U5 / U6 change)
+
+tsc 0 · lint 0 errors / 11 warnings (baseline) · meta-deps 0 · whitelist / registry-json / naming / control-chars /
+barrel `--strict` / inert `--strict` 0 · doc-drift 0 · doc-budget 0 · `registry:build` 0 (story-viewer 378.6 / 390 KB)
+· `pnpm build` 0 · tests 233 files / 3 243 passed, 0 failed (`--maxWorkers=3`; the default pool lost 30 files to worker
+start-up timeouts, 0 failures among the rest).
+
+## U7 — Ship
+
+GATE 3: Pass with follow-ups (review file above). Commit + push under the user's "close it end to end"; live poll below.

@@ -44,15 +44,44 @@ export default function StoryViewerUsage() {
       </p>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">
-        Cursor reset semantics
+        Media lifetime, preload, backdrop (0.7.0)
       </h3>
       <p className="text-muted-foreground">
-        Cursor resets to <code>(initialStoryIndex, 0)</code> whenever the{" "}
-        <code>(initialStoryIndex, isOpen)</code> pair changes — opening with a
-        different index re-seeds; re-opening with the same index also goes back
-        to item 0. Mid-view, in-component nav (tap zones / arrows / keyboard) is
-        preserved across renders.
+        A <code>resolveMedia</code> answer may carry <code>maxAgeMs</code> /{" "}
+        <code>expiresAt</code> (asked again once it ages out) and{" "}
+        <code>srcSet</code> / <code>sizes</code>;{" "}
+        <code>ref.current.invalidateMedia(itemId?, storyId?)</code> forgets
+        resolved answers (items with their own <code>src</code> are unaffected). The
+        next item is warmed off-screen (<code>preloadNext</code>, default on).{" "}
+        <code>backdrop=&quot;ambient&quot;</code> fills the desktop window with
+        the current photo, blurred; <code>renderBackdrop</code> draws your own.
       </p>
+
+      <h3 className="mb-2 mt-6 text-base font-semibold">
+        Opening and counting views
+      </h3>
+      <p className="text-muted-foreground">
+        The cursor is set when the viewer opens: <code>initialStoryIndex</code>{" "}
+        and <code>initialItemIndex</code> (0.7.0, default 0); re-opening goes
+        back there (it also re-seeds if <code>initialStoryIndex</code> changes while
+        open); otherwise mid-view nav is preserved.{" "}
+        <code>onItemReady(storyId, itemId)</code> fires when an item starts to
+        count down; <code>onItemViewed</code>&apos;s 5th argument carries{" "}
+        <code>direction</code> — count a view on <code>&quot;forward&quot;</code>{" "}
+        only.
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<StoryViewer
+  stories={stories}
+  initialStoryIndex={storyIndex}
+  initialItemIndex={firstUnseen}
+  isOpen={open}
+  onClose={() => setOpen(false)}
+  onItemViewed={(storyId, itemId, _i, _cause, { direction }) => {
+    if (direction === "forward") markSeen(storyId, itemId);
+  }}
+/>`}</code>
+      </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Minimal usage</h3>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
@@ -131,7 +160,8 @@ ref.current?.dispatch({
   storyId: "story-1",
   partial: { username: "newName" },
 });
-ref.current?.reset(updatedStories);`}</code>
+ref.current?.reset(updatedStories);
+ref.current?.invalidateMedia(itemId); // 0.7.0 - its signed URL expired`}</code>
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Custom item rendering</h3>

@@ -496,7 +496,7 @@ describe("M8 an unavailable item is never viewed", () => {
     mount([story("A", [img("a1"), img("a2")])], { onItemViewed });
     fireEvent.load(theImage()!);
     tick(5200);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "completed");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "completed", { direction: "forward" });
   });
 });
 

@@ -3,8 +3,9 @@
  * post-card v0.3.0's `defaultPostKebabActions`:
  *
  *   - **Legacy mode (v0.1 compat):** when `viewerMode` / `permissions` /
- *     `canPerformAction` are ALL undefined, returns []. Kebab is not rendered
- *     in legacy mode (v0.1 story viewer had no kebab).
+ *     `canPerformAction` are ALL undefined, returns only the host's
+ *     `extraKebabActions` (0.7.0; `[]` without them). The kebab renders whenever
+ *     the final list has a visible item.
  *
  *   - **Role-aware mode (v0.2.0):** when ANY of the three role-aware args is
  *     set, the helper calls `resolveStoryPermissions` +
@@ -82,6 +83,11 @@ export interface BuildStoryKebabActionsOptions {
   ) => boolean | undefined;
   /** Optional moderator section supplier (additive — does NOT replace defaults). */
   moderatorActions?: (story: Story, item: StoryItem) => StoryKebabMenuItem[];
+  /**
+   * 0.7.0 - items appended after the defaults and the moderator section; not permission-gated.
+   * They are the whole menu when no role-aware arg is set (the kebab has no defaults then).
+   */
+  extraActions?: (story: Story, item: StoryItem) => StoryKebabMenuItem[];
   /** Optional icons for each canonical action (host can override). */
   icons?: Partial<Record<
     | "saveToHighlights"
@@ -95,16 +101,22 @@ export interface BuildStoryKebabActionsOptions {
   >>;
 }
 
+/** 0.7.0 - drops `hidden` items (every kebab list goes through this). */
+export function visibleKebabItems(items: StoryKebabMenuItem[]): StoryKebabMenuItem[] {
+  return items.some((i) => i.hidden) ? items.filter((i) => !i.hidden) : items;
+}
+
 export function defaultStoryKebabActions(
   opts: BuildStoryKebabActionsOptions,
 ): StoryKebabMenuItem[] {
+  const extras = visibleKebabItems(opts.extraActions?.(opts.story, opts.item) ?? []);
   const roleAwareMode =
     opts.viewerMode !== undefined ||
     opts.permissions !== undefined ||
     opts.canPerformAction !== undefined;
 
-  // Legacy mode — no kebab in v0.1. Return empty.
-  if (!roleAwareMode) return [];
+  // Legacy mode — no default items; only the host's extras (0.7.0).
+  if (!roleAwareMode) return extras;
 
   const matrix = resolveStoryPermissions(opts.viewerMode, opts.permissions);
   const canDo = (action: StoryPermissionAction) =>
@@ -141,7 +153,7 @@ export function defaultStoryKebabActions(
 
   // ─── Moderator section (additive; gated by canModerate + moderatorActions) ──
   if (canDo("moderate") && opts.moderatorActions) {
-    const modItems = opts.moderatorActions(opts.story, opts.item);
+    const modItems = visibleKebabItems(opts.moderatorActions(opts.story, opts.item));
     if (modItems.length > 0) {
       // First moderator item carries `separatorBefore: true` (visual section break).
       items.push({ ...modItems[0], separatorBefore: true });
@@ -186,5 +198,5 @@ export function defaultStoryKebabActions(
     });
   }
 
-  return items;
+  return [...items, ...extras];
 }

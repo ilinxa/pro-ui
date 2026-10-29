@@ -59,7 +59,8 @@ export function ProgressBars({
           <div
             key={item.id}
             // 0.6.2 - a soft scrim-coloured shadow so a white bar still reads on a white photo.
-            className="h-0.5 flex-1 overflow-hidden rounded-full bg-media-overlay-foreground/30 shadow-[0_0_3px] shadow-media-overlay"
+            // 0.7.0 - the bar height is `--story-viewer-progress-height` (default 2px).
+            className="h-[var(--story-viewer-progress-height,2px)] flex-1 overflow-hidden rounded-full bg-media-overlay-foreground/30 shadow-[0_0_3px] shadow-media-overlay"
             {...a11y}
           >
             <div

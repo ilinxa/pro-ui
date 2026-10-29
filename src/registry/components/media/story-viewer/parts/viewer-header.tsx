@@ -31,6 +31,13 @@ export interface ViewerHeaderProps {
    * owns the bottom-sheet panel state).
    */
   onKebabClick?: () => void;
+  /** 0.7.0 - the actions menu is open (the kebab button's `aria-expanded`). */
+  kebabOpen?: boolean;
+  /**
+   * 0.7.0 - leave the Play / Pause control out: the notice on screen stays until the viewer closes,
+   * so there is nothing to play.
+   */
+  hidePause?: boolean;
   /**
    * 0.6.0 - badge rendered after the author name, before the time
    * ({@link StoryViewerProps.renderHeaderBadge}). Absent = nothing.
@@ -51,6 +58,8 @@ export function ViewerHeader({
   onAuthorClick,
   authorComponent,
   onKebabClick,
+  kebabOpen = false,
+  hidePause = false,
   renderBadge,
 }: ViewerHeaderProps) {
   const initials = story.username.slice(0, 2).toUpperCase();
@@ -97,16 +106,18 @@ export function ViewerHeader({
         </div>
       </AuthorRoot>
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
-          onClick={onTogglePause}
-          aria-label={isPaused ? labels.play : labels.pause}
-        >
-          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-        </Button>
+        {hidePause ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
+            onClick={onTogglePause}
+            aria-label={isPaused ? labels.play : labels.pause}
+          >
+            {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          </Button>
+        )}
         {item.type === "video" ? (
           <Button
             type="button"
@@ -125,9 +136,12 @@ export function ViewerHeader({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground"
             onClick={onKebabClick}
+            // The button's own `aria-expanded:` look is a light chip; keep the media overlay one.
+            className="h-11 w-11 md:h-9 md:w-9 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground aria-expanded:bg-media-overlay-foreground/20 aria-expanded:text-media-overlay-foreground"
             aria-label={labels.kebabAriaLabel}
+            aria-haspopup="menu"
+            aria-expanded={kebabOpen}
           >
             <MoreVertical className="h-5 w-5" />
           </Button>

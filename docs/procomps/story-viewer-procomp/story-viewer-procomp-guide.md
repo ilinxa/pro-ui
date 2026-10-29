@@ -18,11 +18,95 @@
 **Six rules:**
 
 1. **`stories` is mount-only unless you control it.** Without `onStoriesChange`, later prop changes are ignored — push updates with `ref.current.reset(next)` / `dispatch(action)` / `subscribe`. With `onStoriesChange` (0.6.0) the prop wins on every render and the viewer reports changes instead of applying them.
-2. **Cursor resets when `(initialStoryIndex, isOpen)` pair changes.** Re-opening with the same `initialStoryIndex` still goes back to item 0. Mid-view nav is preserved.
+2. **The cursor is set when the viewer opens** (and again if `initialStoryIndex` changes while it is open): `initialStoryIndex` at `initialItemIndex` (0.7.0, default 0); re-opening goes back there. Otherwise mid-view nav is preserved.
 3. **`onStoryViewed` is forward-only.** Backward navigation does NOT mark stories viewed (matches Instagram).
 4. **Escape and an outside press close the top layer first.** With a sheet, the actions menu, the viewers list or the link drawer open, Escape (or a press outside the dialog) closes only that layer; with none open it closes the viewer. The dialog (Radix or Base UI) handles the focus trap, portal and Escape; the viewer routes its `onOpenChange` (0.5.4).
 5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
 6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
+
+## v0.7.0 — host contract: backdrop, preload, media lifetime, view events
+
+Additive props, one handle method, and two behaviour changes (see "Migration 0.6 → 0.7" below).
+
+### Opening, focus, view counting
+
+- **`initialItemIndex`** — open at an item of the opening story (e.g. the first unseen one), read with
+  `initialStoryIndex` when the viewer opens and clamped to the story. The viewer opens straight on it: no other item of
+  that story is rendered or passed to `resolveMedia` first, so an open does not mint a URL you throw away.
+- **`returnFocusTo`** — where focus goes after the viewer closes. Default (since 0.6.2): the element that opened it.
+  Pass an element, a function returning one (`null` = the default), or `false` to leave focus to the dialog.
+- **`onItemReady(storyId, itemId)`** — once per visit, when the item starts to count down (media ready and the viewer
+  not paused). Fires again on a revisit, never for an unavailable item. Count a "shown" view here.
+- **`onItemViewed(storyId, itemId, itemIndex, cause, info)`** — `info.direction` is `"forward"`, `"backward"` or
+  `"close"`. `cause: "left"` covers backward moves too, so mark an item seen on `"forward"` only:
+
+```tsx
+<StoryViewer
+  onItemReady={(storyId, itemId) => startDwell(storyId, itemId)}
+  onItemViewed={(storyId, itemId, _index, _cause, { direction }) => {
+    if (direction === "forward") markSeen(storyId, itemId);
+  }}
+  onAutoCloseAtEnd={(storyId, itemId) => analytics.finished(storyId, itemId)}
+/>
+```
+
+### Media
+
+- **`StoryResolvedMedia.maxAgeMs` / `expiresAt`** — a lifetime for a `resolveMedia` answer. Past it the viewer asks
+  again the next time it needs the item (it becomes next or current, a revisit, the cube's next-author face; the previous author's face shows no media for
+  an aged-out answer); the NEXT item
+  is asked again as soon as its answer ages out while it waits, so it is fresh after a long pause (one call per lifetime,
+  at most every 500 ms). The item on screen keeps playing what it loaded; a failure after that goes through
+  `onMediaError` as before.
+- **`handle.invalidateMedia(itemId?, storyId?)`** — forget answers yourself: no arguments = all, `itemId` = that item in
+  any story, both = one entry. A remembered `resolveMedia` failure is forgotten too. Items in the current / next window
+  resolve again at once; the on-screen item keeps its media until its next visit.
+- A `resolveMedia` failure for the NEXT item is retried once when that item becomes current (it used to stay
+  unavailable). A new `src` from `onMediaError` is reused when the person comes back to the item while the viewer is
+  open.
+- **`srcSet` / `sizes`** on `StoryItem` and on `StoryResolvedMedia` (images) reach the stage `<img>` and a custom frame
+  (`ctx.srcSet` / `ctx.sizes`). After an `onMediaError` retry only the new `src` is used.
+- **`preloadNext`** (default `true`) — once the next item's URL is known, an image is fetched and decoded off-DOM and a
+  video loads its metadata only; nothing is mounted, the previous item is never warmed, and Data Saver turns it off.
+- A failed `<img>` is hidden at once (no broken-image glyph while `onMediaError` is pending), on the card and on the
+  cube's neighbour faces.
+
+### Desktop backdrop
+
+`backdrop="ambient"` fills the window around the card (md and up; smaller screens are full screen) with the current
+image — or a video's poster — scaled, blurred and dimmed, cross-fading between items (the image shown holds while the next one loads). It uses the URL the card already
+loaded (no extra request, never a neighbour's media) and stays the plain dim overlay before the item is ready, for a
+video without a poster, and under reduced motion. Clicking it still closes the viewer. `renderBackdrop(story, item,
+ctx)` draws your own in the same full-window, click-through, `aria-hidden` layer; `ctx` is `{ src, poster, isReady,
+reducedMotion }`.
+
+### Gestures, menu, progress
+
+- **`storySwipe`** — the swipe between authors is its own switch. Default: on unless `disableStoryTransition` (as in
+  0.6). `disableStoryTransition` + `storySwipe` = swipe with a hard cut, no cube and no neighbour media mounted (under
+  reduced motion the swipe is a hard cut too).
+- **`extraKebabActions(story, item)`** — items appended after the default actions (and the moderator section), not
+  gated by permissions; `hidden: true` leaves an item out (works in every kebab list). The menu shows whenever it has a
+  visible item, with or without `viewerMode`. Ignored when `kebabActions` takes over the menu.
+- **`--story-viewer-progress-height`** — the default bars' height (default `2px`).
+
+### Fixes
+
+The standalone single-item notice no longer offers a Play button that does nothing; a removal notice that follows a
+media notice no longer loses the time that notice spent paused; the link-drawer button's name starts with its visible text; Escape, or a click on the sheet's own close button,
+returns focus from the comments or share sheet to the action that opened it. **A paused video now plays again when the
+viewer resumes** — before, a video paused by Space / Pause, a sheet, a hold or a paused move onto it stayed frozen at
+its frame while the header showed it playing. The actions button reports `aria-haspopup="menu"` / `aria-expanded`.
+
+### Migration 0.6 → 0.7
+
+| What changed | Who is affected | What to do |
+|---|---|---|
+| `onItemViewed` also fires on `goToItem` / `goToStory`, on a back tap inside a story, on close (`"left"`, `"close"`) and for the last item before the auto-close | hosts that also mark the last item in `onAutoCloseAtEnd`, or count every `onItemViewed` call | mark on `info.direction === "forward"`; marks that are idempotent need nothing |
+| `onMediaError` can be asked again for an item whose retried URL loaded and later failed | hosts that assumed one call per item | return a fresh URL each time, or nothing to give up |
+| `onAutoCloseAtEnd` receives `(storyId, itemId)`; `onItemViewed` gets a 5th argument | none (shorter callbacks stay assignable) | — |
+| The actions menu no longer needs `viewerMode`: with `kebabActions` (or `extraKebabActions`) it shows whenever it has a visible item | hosts that pass `kebabActions` without `viewerMode` and relied on no menu | stop passing `kebabActions`, or return `[]` / `hidden` items |
+| `StoryViewerHandle` gains `invalidateMedia` | a hand-written handle mock typed as `StoryViewerHandle` | add the method |
 
 ## v0.6.2 — accessibility fixes
 
@@ -242,6 +326,7 @@ interface StoryViewerHandle {
   getCurrentStories: () => Story[];
   reset: (next: Story[]) => void;
   dispatch: (action: StoryViewerLocalAction) => void;
+  invalidateMedia: (itemId?: string, storyId?: string) => void; // 0.7.0
   /** Note: there's no `markViewed` here — hosts fire that on the rail, not the viewer. */
 }
 ```
@@ -252,7 +337,8 @@ Common patterns:
 - **Surgical update:** `ref.current?.dispatch({ kind: "patch-story", storyId, partial: { username: "newName" } })`.
 - **Force-pause from outside:** `ref.current?.setPaused(true)` (e.g., when a confirmation dialog opens over the viewer).
 - **Jump to a specific story:** `ref.current?.goToStory(2)` (item index resets to 0; fires `onStoryViewed` on the leaving story IF it's a forward jump).
-- **Jump to a specific item within current story:** `ref.current?.goToItem(1)` (does NOT fire `onStoryViewed` — story unchanged).
+- **Jump to a specific item within current story:** `ref.current?.goToItem(1)` (does NOT fire `onStoryViewed` — story unchanged; since 0.7.0 it reports the item it leaves through `onItemViewed`, `"left"`, with its direction).
+- **Refresh expired media:** `ref.current?.invalidateMedia(itemId)` (0.7.0) after your signed URL for it expired.
 
 ## Pause / progress timer notes
 

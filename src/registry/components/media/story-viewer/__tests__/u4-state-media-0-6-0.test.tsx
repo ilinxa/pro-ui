@@ -103,7 +103,7 @@ describe("F1 onItemViewed cause", () => {
     tick(500);
     fireEvent.click(zones()[2]);
     expect(onItemViewed).toHaveBeenCalledTimes(1);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left", { direction: "forward" });
   });
 
   it('ArrowRight mid-item reports "left"', () => {
@@ -111,7 +111,7 @@ describe("F1 onItemViewed cause", () => {
     mount([story("A", [img("a1"), img("a2")])], { onItemViewed });
     tick(500);
     fireEvent.keyDown(document.body, { key: "ArrowRight" });
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left", { direction: "forward" });
   });
 
   it('the handle goToItem leaves with "left"', () => {
@@ -119,7 +119,10 @@ describe("F1 onItemViewed cause", () => {
     const { ref } = mount([story("A", [img("a1"), img("a2")])], { onItemViewed });
     tick(500);
     act(() => ref.current!.goToItem(1));
-    expect(onItemViewed).not.toHaveBeenCalledWith("A", "a1", 0, "completed");
+    expect(onItemViewed).not.toHaveBeenCalledWith("A", "a1", 0, "completed", { direction: "forward" });
+    // 0.7.0 - the handle reports the item it leaves.
+    expect(onItemViewed).toHaveBeenCalledTimes(1);
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left", { direction: "forward" });
   });
 
   it('auto-advance after the full duration reports "completed"', () => {
@@ -127,7 +130,7 @@ describe("F1 onItemViewed cause", () => {
     mount([story("A", [img("a1"), img("a2")])], { onItemViewed });
     tick(5100);
     expect(onItemViewed).toHaveBeenCalledTimes(1);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "completed");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "completed", { direction: "forward" });
   });
 
   it('tapping past the LAST item reports "left"', () => {
@@ -136,8 +139,8 @@ describe("F1 onItemViewed cause", () => {
     tick(500);
     fireEvent.click(zones()[2]);
     expect(onClose).toHaveBeenCalled();
-    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left");
-    expect(onItemViewed).not.toHaveBeenCalledWith("A", "a1", 0, "completed");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "a1", 0, "left", { direction: "forward" });
+    expect(onItemViewed).not.toHaveBeenCalledWith("A", "a1", 0, "completed", { direction: "forward" });
   });
 
   it('a video that ends reports "completed"', () => {
@@ -145,7 +148,7 @@ describe("F1 onItemViewed cause", () => {
     mount([story("A", [vid("v1"), img("a2")])], { onItemViewed });
     fireEvent.ended(document.querySelector("video")!);
     expect(onItemViewed).toHaveBeenCalledTimes(1);
-    expect(onItemViewed).toHaveBeenCalledWith("A", "v1", 0, "completed");
+    expect(onItemViewed).toHaveBeenCalledWith("A", "v1", 0, "completed", { direction: "forward" });
   });
 });
 

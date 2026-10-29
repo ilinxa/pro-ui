@@ -149,7 +149,6 @@ export function LinkCta({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded ? "true" : "false"}
-        aria-label={ctaLabel}
         className={cn(
           "flex items-center gap-2 rounded-full bg-media-overlay/80 px-3 py-1.5 text-xs font-medium text-media-overlay-foreground",
           "backdrop-blur-sm transition-colors",
@@ -159,6 +158,9 @@ export function LinkCta({
       >
         <LinkIcon className="h-3.5 w-3.5" />
         <span className="max-w-32 truncate">{host}</span>
+        {/* 0.7.0 - no `aria-label` (it did not contain the visible host text): the name is the
+            visible text plus the CTA, read after it. */}
+        <span className="sr-only">{ctaLabel}</span>
       </button>
       {/* Drawer — slides down + fades in when expanded. Closes via the X
           button (top-right of the drawer) or outside-pointer-down. */}

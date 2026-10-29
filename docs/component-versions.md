@@ -119,7 +119,7 @@
 | `media-library` | Media Library | 0.2.3 | alpha | 2026-10-24 |
 | `pdf-viewer` | PDF Viewer | 0.1.7 | alpha | 2026-10-24 |
 | `story-composer` | Story Composer | 0.6.1 | alpha | 2026-10-25 |
-| `story-viewer` | Story Viewer | 0.6.2 | alpha | 2026-10-28 |
+| `story-viewer` | Story Viewer | 0.7.0 | alpha | 2026-10-29 |
 | `video-player` | Video Player | 0.3.0 | alpha | 2026-10-24 |
 
 ### navigation (4)

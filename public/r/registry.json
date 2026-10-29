@@ -4084,6 +4084,16 @@
           "target": "components/story-viewer/lib/is-editable-target.ts"
         },
         {
+          "path": "src/registry/components/media/story-viewer/lib/preload.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/lib/preload.ts"
+        },
+        {
+          "path": "src/registry/components/media/story-viewer/parts/ambient-backdrop.tsx",
+          "type": "registry:component",
+          "target": "components/story-viewer/parts/ambient-backdrop.tsx"
+        },
+        {
           "path": "src/registry/components/media/story-viewer/parts/link-cta.tsx",
           "type": "registry:component",
           "target": "components/story-viewer/parts/link-cta.tsx"
@@ -4165,7 +4175,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.2",
+        "version": "0.7.0",
         "status": "alpha"
       }
     },
@@ -4191,7 +4201,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.2",
+        "version": "0.7.0",
         "status": "alpha"
       }
     },

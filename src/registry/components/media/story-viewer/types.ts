@@ -24,6 +24,13 @@ export interface StoryItem {
    * neither a `src` nor a `resolveMedia` is unavailable (reason `"resolve"`).
    */
   src?: string;
+  /**
+   * 0.7.0 - responsive candidates for an image item (the `<img srcset>` syntax). Ignored for video.
+   * Used with `src`; a URL from {@link StoryResolvedMedia} brings its own `srcSet`.
+   */
+  srcSet?: string;
+  /** 0.7.0 - `<img sizes>` for {@link StoryItem.srcSet}. Without it the browser assumes `100vw`. */
+  sizes?: string;
   /** Display duration in seconds. Default 5 for images; for videos, viewer reads the actual duration via onLoadedMetadata. */
   duration?: number;
   /**
@@ -135,6 +142,17 @@ export type StoryItemUnavailableReason = "resolve" | "media" | "removed" | "time
 
 /** How an item was left (`onItemViewed`'s 4th argument). */
 export type StoryItemViewedCause = "completed" | "left";
+
+/**
+ * 0.7.0 - `onItemViewed`'s 5th argument: where the viewer went from the item.
+ * `"forward"` = to a later item or author (a play-through, a tap / arrow / swipe forward, or a jump
+ * to a later index), or past the last item when the viewer closes at the end · `"backward"` = to an
+ * earlier item or author (count a view on `"forward"` only to never mark an item the person went
+ * back from) · `"close"` = the viewer closed on it (close button, Escape, backdrop, `isOpen` false).
+ */
+export interface StoryItemViewedInfo {
+  direction: "forward" | "backward" | "close";
+}
 
 /**
  * Built-in pause reasons. The viewer is paused while the reason set is not
@@ -465,6 +483,33 @@ export interface StoryResolvedMedia {
   src: string;
   /** Poster for a video item (shown before playback). */
   poster?: string;
+  /** 0.7.0 - responsive candidates for an image (`<img srcset>`). Dropped when `onMediaError` supplies a new `src`. */
+  srcSet?: string;
+  /** 0.7.0 - `<img sizes>` for `srcSet`. */
+  sizes?: string;
+  /**
+   * 0.7.0 - how long (ms) this result may be reused. Past it, the viewer asks `resolveMedia` again
+   * the next time it needs the item (entering the current / next window, a revisit, the cube's next-author face; the previous author's
+   * face shows no media for an aged-out answer),
+   * and a NEXT item whose answer ages out while it waits is asked again at that moment (so it is fresh
+   * after a long pause; at most every 500 ms). The item on screen is never swapped mid-play because its
+   * URL aged out.
+   */
+  maxAgeMs?: number;
+  /** 0.7.0 - absolute expiry (epoch ms, e.g. a signed URL's). Same effect as `maxAgeMs`; the earlier of the two wins. */
+  expiresAt?: number;
+}
+
+/** 0.7.0 - what {@link StoryViewerProps.renderBackdrop} receives for the current item. */
+export interface StoryBackdropContext {
+  /** The image URL the stage loaded (its `currentSrc`), or `undefined` for a video / before it is ready. */
+  src?: string;
+  /** The video poster, when the item is a video and has one. */
+  poster?: string;
+  /** The current item is ready (its media loaded). */
+  isReady: boolean;
+  /** The person asked for reduced motion. */
+  reducedMotion: boolean;
 }
 
 export interface RenderItemContext {
@@ -480,6 +525,10 @@ export interface RenderItemContext {
   src?: string;
   /** The poster `resolveMedia` returned, if any. */
   poster?: string;
+  /** 0.7.0 - `srcSet` from the item or `resolveMedia` (images; absent after an `onMediaError` retry). */
+  srcSet?: string;
+  /** 0.7.0 - `sizes` that goes with `srcSet`. */
+  sizes?: string;
   /**
    * The frame can render. Optional: a custom frame counts as ready as soon as it mounts, so calling
    * this changes nothing and is always safe.
@@ -771,6 +820,15 @@ export interface StoryViewerHandle {
   triggerShare: () => void;
   /** Programmatically open the kebab dropdown. */
   openKebab: () => void;
+
+  /**
+   * 0.7.0 - forget resolved media so the next time the viewer needs it, `resolveMedia` is asked
+   * again (e.g. after the host's signed URL expired). No arguments = every item; `itemId` = that
+   * item in any story; `itemId` + `storyId` = that one entry. A remembered `resolveMedia` failure
+   * is forgotten too. An item in the current / next window is resolved again at once, but the item
+   * on screen keeps playing the media it has; its new URL is used from its next visit.
+   */
+  invalidateMedia: (itemId?: string, storyId?: string) => void;
 }
 
 // ─── Props ──────────────────────────────────────────────────────────────
@@ -833,12 +891,16 @@ export interface StoryViewerProps {
    */
   resolveMedia?: (item: StoryItem) => Promise<StoryResolvedMedia | null>;
   /**
-   * 0.6.0 — called ONCE per item when its media fails to load or play. Return a new `src` (a fresh
+   * 0.6.0 — called when the item's media fails to load or play. Return a new `src` (a fresh
    * signed URL) and the viewer retries with it, resuming a video at the same playback time; return
-   * nothing (or reject) and the item is unavailable with reason `"media"`. A second failure of the
-   * retried media is unavailable too. Without this prop a failure makes the item unavailable
-   * (`"media"`) at once: the notice shows for `unavailableNoticeMs` and the viewer moves on. A video
-   * whose duration is not finite still falls back to the timer.
+   * nothing (or reject) and the item is unavailable with reason `"media"`. If the retried media
+   * fails before it ever loaded, the item is unavailable too (no second ask). 0.7.0: once a retried
+   * URL has loaded, a later failure of it asks again (a long-held video whose fresh URL also
+   * expired), so the host is asked once per URL that loaded, never twice for one that did not.
+   * The new `src` is remembered for the item's next visit while the viewer stays open. Without this
+   * prop a failure makes the item unavailable (`"media"`) at once: the notice shows for
+   * `unavailableNoticeMs` and the viewer moves on. A video whose duration is not finite still falls
+   * back to the timer.
    */
   onMediaError?: (item: StoryItem) => Promise<string | void>;
   /**
@@ -856,12 +918,25 @@ export interface StoryViewerProps {
   pauseReasons?: string[];
   /** 0.6.0 — fires with the next reason list whenever the viewer adds or removes a reason. */
   onPauseReasonsChange?: (next: string[]) => void;
-  /** Which story to open (item always starts at 0). */
+  /** Which story to open. Read when the viewer opens (and again if it changes while open). */
   initialStoryIndex: number;
+  /**
+   * 0.7.0 - which item of the opening story to start on (e.g. the first unseen one). Read when the
+   * viewer opens, with `initialStoryIndex`; clamped to the story's items. Default 0. The viewer opens
+   * straight on it: no other item of that story is rendered or passed to `resolveMedia` first.
+   */
+  initialItemIndex?: number;
   /** Controlled open state. */
   isOpen: boolean;
   /** Fires on Escape, backdrop click, close button, or auto-close at end of last story. */
   onClose: () => void;
+  /**
+   * 0.7.0 - where focus goes after the viewer closes. Default: the element that was focused (or last
+   * pressed) when the viewer opened, if focus would otherwise land on `body`. An element or a
+   * function returning one overrides that (a function returning `null` falls back to the default);
+   * `false` leaves focus where the dialog puts it.
+   */
+  returnFocusTo?: HTMLElement | (() => HTMLElement | null) | false;
   /** Imperative handle. */
   ref?: React.Ref<StoryViewerHandle>;
 
@@ -887,21 +962,34 @@ export interface StoryViewerProps {
   /** Forward-completion only — fires when the user advances forward into the next story OR when the last item completes naturally. Does NOT fire on backward navigation (matches Instagram). */
   onStoryViewed?: (storyId: string) => void;
   /**
-   * Fires when an item is finished with. `cause` is `"completed"` only when the
-   * item played to the end (timer or video end), `"left"` when the viewer left it
-   * early (tap, arrow key, screen-reader button, swipe or jump to another author,
-   * handle navigation).
+   * Fires once when an item is finished with. `cause` is `"completed"` only when the item played to
+   * the end (timer or video end), `"left"` when the viewer left it early: a tap, arrow key,
+   * screen-reader button, swipe, jump to another author, handle navigation (`goToItem` /
+   * `goToStory` included), and - 0.7.0 - closing the viewer on it. `"left"` also covers BACKWARD
+   * moves: 0.7.0 adds `info.direction` (`"forward"` / `"backward"` / `"close"`), so count a view on
+   * `"forward"` only. The last item fires before the viewer closes at the end (play-through or a
+   * forward move past the last author).
    */
   onItemViewed?: (
     storyId: string,
     itemId: string,
     itemIndex: number,
     cause: StoryItemViewedCause,
+    info: StoryItemViewedInfo,
   ) => void;
+  /**
+   * 0.7.0 - fires once per visit when the item starts to count down: its media is ready and the
+   * viewer is not paused (the progress timer is running). Fires again on a revisit. Never for an
+   * unavailable item. Use it to count a view only when the item was really shown.
+   */
+  onItemReady?: (storyId: string, itemId: string) => void;
   /** Fires whenever the cursor moves (manual nav or auto-advance). */
   onCursorChange?: (storyIndex: number, itemIndex: number) => void;
-  /** Fires synchronously immediately before `onClose()` when the auto-close triggers at end of the last story. */
-  onAutoCloseAtEnd?: () => void;
+  /**
+   * Fires synchronously immediately before `onClose()` when the auto-close triggers at end of the
+   * last story (after the last item's `onItemViewed`). 0.7.0: receives that last item.
+   */
+  onAutoCloseAtEnd?: (storyId: string, itemId: string) => void;
 
   // ─── v0.2.0 — engagement handlers ─────────────────────────────────────
 
@@ -979,6 +1067,13 @@ export interface StoryViewerProps {
    * `kebabActions` is supplied (full-takeover wins).
    */
   moderatorActions?: (story: Story, item: StoryItem) => StoryKebabMenuItem[];
+  /**
+   * 0.7.0 - items appended to the end of the kebab (after the defaults and the moderator section),
+   * e.g. an owner-only "Download". Not gated by permissions; use `hidden` per item. Ignored when
+   * `kebabActions` takes over the menu. The kebab shows whenever it has a visible item, with or
+   * without `viewerMode`.
+   */
+  extraKebabActions?: (story: Story, item: StoryItem) => StoryKebabMenuItem[];
 
   // ─── v0.2.0 — kebab item handlers (mirrors post-card v0.2.0) ──────
   //
@@ -1182,11 +1277,37 @@ export interface StoryViewerProps {
    */
   disableStoryTransition?: boolean;
   /**
+   * 0.7.0 - a horizontal swipe on the card moves to the previous / next author (mirrored in RTL;
+   * ignored when it starts on a control). Default: on unless `disableStoryTransition` (the 0.6
+   * behaviour, where turning the cube off also turned the swipe off). With `disableStoryTransition`
+   * and `storySwipe` both on, the swipe is a hard cut: no cube, no neighbour media mounted.
+   */
+  storySwipe?: boolean;
+  /**
    * v0.4.0 — duration of the 3D cube transition in milliseconds. Default 400
    * (matches Instagram's perceived feel). Ignored when `disableStoryTransition`
    * is true.
    */
   storyTransitionDurationMs?: number;
+  /**
+   * 0.7.0 - what fills the window around the card on desktop (md+; on smaller screens the card is
+   * full screen). `"dim"` (default) = the dialog's plain overlay. `"ambient"` = the current item's
+   * image (or a video's poster) scaled up, blurred and dimmed, cross-fading on item change. It
+   * reuses the URL the card already loaded (no extra request, never a neighbour's media) and falls
+   * back to `"dim"` before the item is ready, for a video without a poster, and under reduced motion.
+   */
+  backdrop?: "dim" | "ambient";
+  /**
+   * 0.7.0 - draws the desktop backdrop yourself (wins over `backdrop`). Rendered in a fixed,
+   * full-window, `aria-hidden`, click-through layer under the dialog overlay; return `null` for none.
+   */
+  renderBackdrop?: (story: Story, item: StoryItem, ctx: StoryBackdropContext) => ReactNode;
+  /**
+   * 0.7.0 - warm the next item's media once its URL is known, without mounting it: an image is
+   * fetched and decoded off-DOM, a video loads its metadata only. Never the previous item. Skipped
+   * when the browser reports Data Saver. Default `true`.
+   */
+  preloadNext?: boolean;
 
   // ─── Defaults ──────────────────────────────────────────────────────────
   /** Default item duration in seconds when neither item.duration nor video metadata is available. Default 5. */
@@ -1219,4 +1340,6 @@ export interface StoryKebabMenuItem {
    * `defaultStoryKebabActions` (first moderator item carries `separatorBefore: true`).
    */
   separatorBefore?: boolean;
+  /** 0.7.0 - leave the item out (e.g. an owner-only action for a viewer). */
+  hidden?: boolean;
 }

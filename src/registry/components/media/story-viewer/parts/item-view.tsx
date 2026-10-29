@@ -1,6 +1,7 @@
 // F-S1 lock: same-category cross-procomp via relative + specific-file path.
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VideoPlayer } from "../../video-player/video-player";
+import type { VideoPlayerHandle } from "../../video-player/types";
 import type {
   RenderItemContext,
   ResolvedStoryViewer01Labels,
@@ -19,6 +20,11 @@ export interface ItemViewProps {
   src: string | undefined;
   /** Poster for a video item (from `resolveMedia`). */
   poster?: string;
+  /** 0.7.0 - `srcset` / `sizes` for an image (item or resolved; absent after a retry). Video ignores them. */
+  srcSet?: string;
+  sizes?: string;
+  /** 0.7.0 - the stage image loaded; `currentSrc` is the URL the browser actually picked. */
+  onImageLoaded?: (currentSrc: string) => void;
   onLoadedMetadata: (duration: number) => void;
   onEnded: () => void;
   /** The item can start counting down: image loaded (or failed / was cached), video started (or failed). */
@@ -54,6 +60,9 @@ export function ItemView({
   isMuted,
   src,
   poster,
+  srcSet,
+  sizes,
+  onImageLoaded,
   onLoadedMetadata,
   onEnded,
   onReady,
@@ -74,6 +83,19 @@ export function ItemView({
   // render, so neither a failure nor a repeat render may mark an element ready.
   const failedImages = useRef(new WeakSet<HTMLImageElement>());
   const readyImages = useRef(new WeakSet<HTMLImageElement>());
+  // 0.7.0 - the src whose image failed: it is hidden at once (no broken-image glyph) until a new
+  // src replaces it.
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
+  // 0.7.0 - `isActive={false}` pauses the player but nothing restarted it: a video paused (Space,
+  // a sheet, a hold, a paused move onto it) stayed frozen after the viewer resumed. Play it on every
+  // paused -> playing change; a refusal (autoplay policy) is swallowed by the player.
+  const videoRef = useRef<VideoPlayerHandle>(null);
+  const wasPausedRef = useRef(isPaused);
+  useEffect(() => {
+    const was = wasPausedRef.current;
+    wasPausedRef.current = isPaused;
+    if (was && !isPaused) void videoRef.current?.play();
+  }, [isPaused]);
   if (renderItem) {
     return (
       <div className="absolute inset-0 flex items-center justify-center">
@@ -84,6 +106,8 @@ export function ItemView({
           isMuted,
           src,
           poster,
+          srcSet,
+          sizes,
           onReady: onReady ?? noop,
           onEnded,
           onProgress: onTimeUpdate ?? noopProgress,
@@ -107,16 +131,24 @@ export function ItemView({
             if (!el || !el.complete || readyImages.current.has(el)) return;
             if (el.naturalWidth === 0 && failedImages.current.has(el)) return;
             readyImages.current.add(el);
+            onImageLoaded?.(el.currentSrc || el.src);
             onReady?.();
           }}
           src={src}
+          srcSet={srcSet}
+          sizes={sizes}
           alt={labels.itemImageAlt(story, cursor.itemIndex, totalItems)}
           className="h-full w-full object-cover"
-          onLoad={onReady}
+          style={brokenSrc === src ? { visibility: "hidden" } : undefined}
+          onLoad={(e) => {
+            onImageLoaded?.(e.currentTarget.currentSrc || e.currentTarget.src);
+            onReady?.();
+          }}
           // A failed image counts as ready — the story must never freeze on it —
           // unless the caller takes the failure over (retry / unavailable).
           onError={(e) => {
             failedImages.current.add(e.currentTarget);
+            setBrokenSrc(src);
             if (!onImageError) {
               onReady?.();
               return;
@@ -133,6 +165,7 @@ export function ItemView({
   return (
     <div className="absolute inset-0">
       <VideoPlayer
+        ref={videoRef}
         key={elementKey}
         src={src}
         poster={poster}

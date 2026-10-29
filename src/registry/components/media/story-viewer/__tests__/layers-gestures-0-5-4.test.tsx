@@ -133,7 +133,7 @@ describe("SV5 — layers pause the timer and restore the pre-open state", () => 
 
   it("P5 link drawer: pauses while open, resumes on close", () => {
     mount([story("A", [item("a1", { link: { url: "https://example.com/x" } }), item("a2")])], viewer);
-    fireEvent.click(document.querySelector('button[aria-label="Open link"]')!);
+    fireEvent.click(document.querySelector('[data-story-layer="link"] button[aria-expanded]')!);
     expect(isPausedUi()).toBe(true);
     fireEvent.click(screen.getByLabelText("Close link"));
     expect(isPausedUi()).toBe(false);
@@ -264,7 +264,7 @@ describe("SV8 / SV9 — gestures", () => {
 
 // ─── U4 review fixes ─────────────────────────────────────────────────────
 const linked = [story("A", [item("a1", { link: { url: "https://example.com/x" } }), item("a2")])];
-const linkChip = () => document.querySelector<HTMLElement>('button[aria-label="Open link"]')!;
+const linkChip = () => document.querySelector<HTMLElement>('[data-story-layer="link"] button[aria-expanded]')!;
 const viewersChip = () => document.querySelector<HTMLElement>('button[aria-expanded]')!;
 const tap = (target: Element) => {
   pointer("pointerdown", target, { clientX: 50, clientY: 50 });
