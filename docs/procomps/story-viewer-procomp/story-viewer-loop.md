@@ -895,7 +895,7 @@ is `.claude/report-back-2026-10-29-release-9.md` (the user sends it).
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **patch** — no public type added / removed; behaviour + a11y fixes) |
-| **Current stage** | U7 — ship |
+| **Current stage** | CLOSED — shipped `1b1ef16`, live-verified 2026-10-29 22:17 (+10 min) |
 | **Sign-off policy** | patch → architect proceeds (ladder); the user asked for it: "lets fix them properly and close them end to end" (2026-10-29) |
 | **Version target** | v0.7.0 → **v0.7.1** |
 | **Model roster** | architect only (diffs small enough to hold; no agents) |
@@ -952,4 +952,5 @@ committed a story change; the vertical exit is the bug's actual path.
 
 Docs: `meta.ts` 0.7.1 + feature line, CHANGELOG bullet, guide "v0.7.1 — follow-up fixes", `viewerCountLabel` JSDoc,
 review file FU-9 … FU-13 marked done, STATUS row, the platform reply folds 0.7.1 in (one re-add). Patch → no review
-file (ladder); this run section is the record. Shipped with the commit below; live poll appended.
+file (ladder); this run section is the record. `1b1ef16` pushed 22:07; live poll (180 s apart): 0.7.0 at 22:11 / 22:14,
+**22:17 `/r/story-viewer.json` stamped `0.7.1` with `hooks/use-layer-focus-return.ts`**. Run closed; FU-9 … FU-13 done.
