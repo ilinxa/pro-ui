@@ -899,6 +899,26 @@ function StoryViewerInner(props: StoryViewerInnerProps) {
     ],
   );
 
+  // 0.7.1 (FU-12) - a press released OFF the card before it became a drag (no pointer capture yet)
+  // never reaches `handlePointerEnd`: the armed swipe then survived, and a later hover of the same
+  // mouse (pointerId 1, no button pressed) could start a drag. Drop it on that release.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onRelease = (e: PointerEvent) => {
+      const swipe = swipeRef.current;
+      if (!swipe || swipe.pointerId !== e.pointerId) return;
+      const root = gestureRootRef.current;
+      if (root && e.target instanceof Node && root.contains(e.target)) return; // the card's own handler
+      swipeRef.current = null;
+    };
+    document.addEventListener("pointerup", onRelease, true);
+    document.addEventListener("pointercancel", onRelease, true);
+    return () => {
+      document.removeEventListener("pointerup", onRelease, true);
+      document.removeEventListener("pointercancel", onRelease, true);
+    };
+  }, [isOpen]);
+
   const handlePointerEnd = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       const swipe = swipeRef.current;

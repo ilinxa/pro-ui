@@ -5,6 +5,7 @@ import { Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { resolveLocale } from "../lib/relative-time";
+import { useLayerFocusReturn } from "../hooks/use-layer-focus-return";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type {
   ResolvedStoryViewer01Labels,
@@ -149,37 +150,30 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
     }
   }, [open, setOpen, seeded, onLoadViewers, status, didFetch, loadPage]);
 
-  // A tap outside the list dismisses it (no backdrop); focus returns to the
-  // opener on close. The chip carries `data-story-layer` so tapping it only
-  // toggles (via its click), never dismisses-then-reopens.
-  const openerRef = useRef<HTMLElement | null>(null);
+  // A tap outside the list dismisses it (no backdrop). The chip carries `data-story-layer` so
+  // tapping it only toggles (via its click), never dismisses-then-reopens.
   useEffect(() => {
-    if (open) {
-      const active = document.activeElement;
-      openerRef.current =
-        active instanceof HTMLElement && active !== document.body ? active : null;
-      const onDown = (e: PointerEvent) => {
-        const target = e.target;
-        if (target instanceof Element && target.closest('[data-story-layer="viewers"]')) return;
-        setOpen(false);
-      };
-      document.addEventListener("pointerdown", onDown);
-      return () => document.removeEventListener("pointerdown", onDown);
-    }
-    const opener = openerRef.current;
-    openerRef.current = null;
-    if (opener && opener.isConnected) {
-      const active = document.activeElement;
-      if (!active || active === document.body) opener.focus({ preventScroll: true });
-    }
-    return undefined;
+    if (!open) return undefined;
+    const onDown = (e: PointerEvent) => {
+      const target = e.target;
+      if (target instanceof Element && target.closest('[data-story-layer="viewers"]')) return;
+      setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
   }, [open, setOpen]);
+  // Focus returns to the opener on close (0.7.1: the shared layer hand-off, with the Safari /
+  // macOS Firefox last-pressed fallback).
+  const listRef = useRef<HTMLDivElement | null>(null);
+  useLayerFocusReturn(open, { layerRef: listRef });
 
   const timeStr = props.labels.formatTime(new Date(props.item.createdAt ?? props.story.createdAt));
   const formattedCount =
     countValue === null ? "" : new Intl.NumberFormat(resolveLocale(props.locale)).format(countValue);
-  // A withheld (`null`) count renders no number and reaches no accessible name.
-  const ariaLabel =
+  // 0.7.1 - the chip SHOWS its name (no `aria-label`): the visible text and the accessible name
+  // are one host-localized string, so axe `label-content-name-mismatch` / WCAG 2.5.3 hold. A
+  // withheld (`null`) count shows no number.
+  const chipText =
     countValue === null
       ? `${props.labels.viewersHeading} · ${timeStr}`
       : props.labels.viewerCountLabel(countValue, timeStr, formattedCount);
@@ -203,20 +197,18 @@ function OwnerOverlayInner(props: OwnerOverlayProps) {
             buttonVariants({ variant: "ghost", size: "sm" }),
             "h-11 text-media-overlay-foreground hover:bg-media-overlay-foreground/20 hover:text-media-overlay-foreground",
           )}
-          aria-label={ariaLabel}
           aria-expanded={open}
         >
-          <Eye className="me-2 h-4 w-4" />
-          {countValue === null ? null : <span className="font-semibold">{formattedCount}</span>}
-          <span className={cn("text-media-overlay-foreground/70", countValue !== null && "ms-2")}>
-            {countValue === null ? timeStr : `· ${timeStr}`}
+          <Eye aria-hidden="true" className="me-2 h-4 w-4" />
+          <span className={countValue === null ? "text-media-overlay-foreground/70" : "font-semibold"}>
+            {chipText}
           </span>
         </button>
       </div>
 
       {/* Viewers panel — bottom-anchored sheet that slides up. */}
       {open ? (
-        <div data-story-layer="viewers" className="absolute inset-x-0 bottom-0 z-40 max-h-[60%] overflow-hidden rounded-t-2xl bg-card text-foreground shadow-2xl">
+        <div ref={listRef} data-story-layer="viewers" className="absolute inset-x-0 bottom-0 z-40 max-h-[60%] overflow-hidden rounded-t-2xl bg-card text-foreground shadow-2xl">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="text-sm font-semibold">{props.labels.viewersHeading}</h3>
             <button

@@ -207,8 +207,8 @@ describe("3/4 - owner chip", () => {
   it("the chip time and its aria-label use item.createdAt over story.createdAt", () => {
     mountOwner();
     expect(chip().textContent).toContain("T-2026-02-02");
-    expect(chip().getAttribute("aria-label")).toContain("T-2026-02-02");
-    expect(chip().getAttribute("aria-label")).not.toContain("T-2026-01-01");
+    expect(chip().textContent).toContain("T-2026-02-02");
+    expect(chip().textContent).not.toContain("T-2026-01-01");
   });
 
   it("the chip bar spans with inset-x-0, not physical left/right", () => {

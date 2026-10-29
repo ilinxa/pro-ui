@@ -887,3 +887,69 @@ GATE 3: Pass with follow-ups (review file above). `c940bc5` pushed 21:06 under t
 poll (180 s apart): polls 1–4 (21:09–21:18) still 0.6.2; **poll 5 (21:21) `/r/story-viewer.json` stamped `0.7.0` with
 `parts/ambient-backdrop.tsx` and `lib/preload.ts`**; `/components/story-viewer` 200. Run closed; the reply to the platform
 is `.claude/report-back-2026-10-29-release-9.md` (the user sends it).
+
+# Run — 0.7.1 (the release-9 follow-ups FU-9 … FU-13)
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop (change class: **patch** — no public type added / removed; behaviour + a11y fixes) |
+| **Current stage** | U7 — ship |
+| **Sign-off policy** | patch → architect proceeds (ladder); the user asked for it: "lets fix them properly and close them end to end" (2026-10-29) |
+| **Version target** | v0.7.0 → **v0.7.1** |
+| **Model roster** | architect only (diffs small enough to hold; no agents) |
+
+## U0 / U1 — scope and decisions
+
+Source: review file `reviews/2026-10-29-v0.7.0-host-contract.md` → Follow-ups. All five pre-existing (live 0.6.2).
+
+| FU | Decision |
+|---|---|
+| FU-9 reopen on an empty list | On an open with nothing to seed, clear the cursor (once; guarded against a render loop). An empty cursor renders nothing and is never a removal candidate; the first stories seed it (the 0.7.0 pending seed key). |
+| FU-10 owner chip name | **The chip shows its label** — `labels.viewerCountLabel` becomes the visible text AND the name (no `aria-label`), the WCAG 2.5.3 way: one host-localized string. Rejected: an sr-only word inside the visible text (breaks the host's single localized string) and a longer `aria-label` (redundant reading). Visible change: "47 · 2h" → "47 views · 2h". Withheld count: "Viewers · 2h", muted. JSDoc updated. |
+| FU-11 kebab Safari focus | **One shared hook** `hooks/use-layer-focus-return.ts` (opener = focused element, else the control last pressed while closed; restore only when focus was lost — body / viewer dialog / inside the layer — and the opener is not `inert`; 3-frame re-check) — now used by the comments / share sheet, the actions menu AND the owner viewers list (which had the same gap). |
+| FU-12 armed swipe after an outside release | A document capture-phase `pointerup` / `pointercancel` listener (while open) drops an armed swipe whose pointer was released outside the gesture root; a release inside stays the card's own. |
+| FU-13 ghost video error | `onError` → `visibility: hidden`, as the ghost image. |
+
+## U2–U4
+
+- New `__tests__/fixes-0-7-1.test.tsx` (9). Falsified with `mutate-071.mjs` (revert one fix → run → restore → byte
+  compare): FU-9 1 red, FU-10 2, FU-11 3, FU-12 1, FU-13 1; every file restored. Three 0.6 tests read the chip's
+  `aria-label`; they now read its text (same assertions).
+- Story-viewer suite 22 files / 338 passed; tsc 0; eslint 0.
+- U4 (patch: architect self-check): the bottom sheet moved onto the shared hook with identical semantics (its A11 tests
+  green); the viewers list keeps its own outside-press dismiss; the FU-12 listener ignores releases inside the root,
+  so an active (captured) drag still ends in `handlePointerEnd`; FU-10 changes the chip's look — recorded in the guide.
+
+## U3 — battery (0.7.1)
+
+tsc 0 · lint 0 errors · meta-deps / whitelist / naming / control-chars / barrel / inert 0 · doc-budget 0 · `pnpm build` 0
+· tests 3 250 passed + 2 failed: both `registry-versions` (registry.json / public/r not regenerated) because
+**`validate:registry-json` failed: the new `hooks/use-layer-focus-return.ts` was not in `registry.json` files[]** (the
+roster lesson again, on an architect hand-edit). Added; then `validate:registry-json` 0 high, `registry:build` 0
+(story-viewer 381.3 / 390 KB), doc-drift 0, `registry-versions` 22 / 22.
+
+## U5 — browser (`E:/tmp/ilinxa-release-kit/browser-r9/fu-071.mjs`, production build, Chromium 1280 + 390)
+
+| FU | 0.7.1 (local) | live 0.7.0 (same script, `BASE=https://ui.ilinxa.com`) |
+|---|---|---|
+| FU-10 | chip `aria-label` none, text "47 views · May 3, 2026"; axe on the dialog `[]` (both widths) | `aria-label` "47 views · May 3, 2026" vs text "47· May 3, 2026"; axe `label-content-name-mismatch(1)` |
+| FU-12 | press → leave the card vertically → release below → hover across: 0 ghost cube faces mid-hover, cursor unchanged | 1 ghost face mid-hover (the cube follows a button-less hover) |
+| FU-11 | Chromium: actions menu Close → focus on "Story actions" (both widths) — the Safari path is unit-tested only (WebKit not runnable) | — |
+
+Zero console errors. A first FU-12 script left the card horizontally — that was a real 300 px drag, which correctly
+committed a story change; the vertical exit is the bug's actual path.
+
+## U5 — installs (0.7.1, `E:/tmp/ilinxa-release-kit/installs-r91.sh`, local `public/r`)
+
+| Run | Items | CLI | Result |
+|---|---|---|---|
+| A | story-viewer, story-viewer-fixtures | 4.18.0 | pass — `hooks/use-layer-focus-return.ts` landed, stamp `0.7.1`, consumer `tsc` 0 |
+| B | story-viewer-fixtures alone (brings the base) | 3.8.5 | pass — same, consumer `tsc` 0 |
+
+## U6 / U7
+
+Docs: `meta.ts` 0.7.1 + feature line, CHANGELOG bullet, guide "v0.7.1 — follow-up fixes", `viewerCountLabel` JSDoc,
+review file FU-9 … FU-13 marked done, STATUS row, the platform reply folds 0.7.1 in (one re-add). Patch → no review
+file (ladder); this run section is the record. Shipped with the commit below; live poll appended.

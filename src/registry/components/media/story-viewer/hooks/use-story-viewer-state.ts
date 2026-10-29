@@ -477,6 +477,13 @@ export function useStoryViewerState(
     if (seeded) {
       setCursorIds(seeded);
       cursorIds = seeded;
+    } else if (isOpen && (cursorIdsState.storyId !== "" || cursorIdsState.itemId !== "")) {
+      // 0.7.1 (FU-9) - opened on an empty list: drop the previous session's cursor, so its item is
+      // never rendered and its absence is never mistaken for a removal (no notice, no
+      // `onItemUnavailable`). The next render sees an empty cursor and does not repeat this.
+      const empty = { storyId: "", itemId: "" };
+      setCursorIds(empty);
+      cursorIds = empty;
     }
   }
 

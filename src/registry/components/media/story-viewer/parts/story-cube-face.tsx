@@ -40,6 +40,7 @@ export function StoryCubeFace({
   renderBadge,
 }: StoryCubeFaceProps) {
   // 0.7.0 - a ghost image that fails to load is hidden (no broken-image glyph on the swiping face).
+  // 0.7.1 (FU-13) - a ghost video too (some browsers draw an error box over a failed `<video>`).
   const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
   return (
     <>
@@ -76,6 +77,8 @@ export function StoryCubeFace({
             playsInline
             preload="metadata"
             className="h-full w-full object-cover"
+            style={brokenSrc === src ? { visibility: "hidden" } : undefined}
+            onError={() => setBrokenSrc(src)}
           />
         )}
       </div>

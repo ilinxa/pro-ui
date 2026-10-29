@@ -218,7 +218,7 @@ describe("SV17: viewers list paging", () => {
 });
 
 describe("viewerCount on Story and StoryItem", () => {
-  const chipLabel = () => chip().getAttribute("aria-label");
+  const chipLabel = () => chip().textContent;
   it("owner mode shows the current item's count; the story's is the fallback", async () => {
     mountOwner(
       [story("s1", [item("i1", { viewerCount: 5 }), item("i2")], { viewerCount: 40 })],
@@ -326,6 +326,6 @@ describe("viewer count follows `locale`", () => {
     mountOwner([story("s1", [item("i1", { viewerCount: 12345 })])], vi.fn(), { locale: "tr" });
     const expected = new Intl.NumberFormat("tr").format(12345);
     expect(chip().textContent).toContain(expected);
-    expect(chip().getAttribute("aria-label") ?? "").toContain(expected);
+    expect(chip().textContent ?? "").toContain(expected);
   });
 });

@@ -4104,6 +4104,11 @@
           "target": "components/story-viewer/hooks/use-long-press-pause.ts"
         },
         {
+          "path": "src/registry/components/media/story-viewer/hooks/use-layer-focus-return.ts",
+          "type": "registry:component",
+          "target": "components/story-viewer/hooks/use-layer-focus-return.ts"
+        },
+        {
           "path": "src/registry/components/media/story-viewer/parts/comments-panel.tsx",
           "type": "registry:component",
           "target": "components/story-viewer/parts/comments-panel.tsx"
@@ -4175,7 +4180,7 @@
         }
       ],
       "meta": {
-        "version": "0.7.0",
+        "version": "0.7.1",
         "status": "alpha"
       }
     },
@@ -4201,7 +4206,7 @@
         }
       ],
       "meta": {
-        "version": "0.7.0",
+        "version": "0.7.1",
         "status": "alpha"
       }
     },

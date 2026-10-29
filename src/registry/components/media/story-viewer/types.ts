@@ -623,8 +623,11 @@ export interface StoryViewerLabels {
   replyFailed?: string;
 
   // v0.2.0 — owner overlay
-  /** Function so hosts can pluralize / localize. Default: `${count} views · ${time}`. */
-  /** Owner chip name. `formatted` is `count` formatted for `locale` (0.6.0). */
+  /**
+   * The owner view-count chip's text — shown on the chip AND its accessible name (0.7.1; before, only
+   * the name, beside a bare number). A function so hosts can pluralize / localize; `formatted` is
+   * `count` formatted for `locale` (0.6.0). Default: `${formatted} views · ${time}`.
+   */
   viewerCountLabel?: (count: number, time: string, formatted?: string) => string;
   /** Default: "Viewers". */
   viewersHeading?: string;

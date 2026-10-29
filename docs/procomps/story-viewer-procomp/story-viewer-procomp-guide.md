@@ -24,6 +24,17 @@
 5. **Engagement / comments / share / cube are opt-in.** v0.1 surfaces stay the default. Engagement + DM + owner overlay activate when `viewerMode` is set; comments + share panels activate when their `renderXxxPanel` slot is wired; cube transitions activate automatically on multi-story navigation (suppress with `disableStoryTransition`).
 6. **Everything is pure CSS.** v0.4 ships the 3D cube + pointer-driven swipe without framer-motion — the project's motion-substrate adoption stays deferred. Item-to-item nav inside a story is still a hard cut (matches Instagram).
 
+## v0.7.1 — follow-up fixes
+
+No API change. The owner view-count chip SHOWS its label: `labels.viewerCountLabel(count, time, formatted)` (default
+"47 views · 2h ago") is now the chip's text and its accessible name — it used to be only the name, beside a bare
+number, which failed axe `label-content-name-mismatch`. A custom label is therefore visible: keep it short. A withheld
+count shows `labels.viewersHeading` and the time. The actions menu and the viewers list now return focus to the button
+that opened them on Safari / macOS Firefox too (the comments / share sheets already did): all four layers share one
+focus hand-off. Reopening on an empty `stories` list renders nothing of the previous session (and reports no removal);
+the first stories seed `initialStoryIndex` / `initialItemIndex`. A mouse press released outside the card no longer
+leaves a swipe armed, and a cube neighbour face whose video fails is hidden.
+
 ## v0.7.0 — host contract: backdrop, preload, media lifetime, view events
 
 Additive props, one handle method, and two behaviour changes (see "Migration 0.6 → 0.7" below).

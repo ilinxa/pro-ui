@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, memo, useEffect, useRef } from "react";
+import { Fragment, memo, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { wrapTabWithinLayer } from "../lib/focus-wrap";
+import { useLayerFocusReturn } from "../hooks/use-layer-focus-return";
 import type {
   ResolvedStoryViewer01Labels,
   StoryKebabMenuItem,
@@ -38,27 +39,19 @@ export interface KebabPanelProps {
  */
 function KebabPanelInner(props: KebabPanelProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const openerRef = useRef<HTMLElement | null>(null);
   const rendered = props.open && props.items.length > 0;
 
-  useEffect(() => {
-    if (rendered) {
-      const active = document.activeElement;
-      openerRef.current =
-        active instanceof HTMLElement && active !== document.body ? active : null;
+  // 0.7.1 (FU-11) - the shared layer hand-off: also finds the opener on browsers that do not focus
+  // a clicked button (Safari / macOS Firefox), so closing the menu no longer drops focus to the page.
+  useLayerFocusReturn(rendered, {
+    layerRef: menuRef,
+    onOpenFocus: () => {
       const first = menuRef.current?.querySelector<HTMLElement>(
         "[role=\"menuitem\"]:not(:disabled)",
       );
       (first ?? menuRef.current)?.focus({ preventScroll: true });
-      return;
-    }
-    const opener = openerRef.current;
-    openerRef.current = null;
-    if (opener && opener.isConnected) {
-      const active = document.activeElement;
-      if (!active || active === document.body) opener.focus({ preventScroll: true });
-    }
-  }, [rendered]);
+    },
+  });
 
   if (!props.open || props.items.length === 0) return null;
 
