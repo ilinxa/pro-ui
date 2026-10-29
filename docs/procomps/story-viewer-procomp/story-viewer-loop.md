@@ -709,7 +709,7 @@ pre-existing: Escape on the comments sheet leaves focus on `<body>` → FU-8, st
 | Field | Value |
 |---|---|
 | **Mode** | U-loop (change class: **minor** — additive props / handle method / type members; two behaviour changes listed under U1) |
-| **Current stage** | U7 — ship (GATE 3 Pass with follow-ups; battery, browser pass, installs and doc check done) |
+| **Current stage** | CLOSED — shipped `c940bc5`, live-verified 2026-10-29 21:21 (+15 min) |
 | **Sign-off policy** | U1 minor → **delegated by user** ("go and close it end to end", 2026-10-29). Not a breaking change to a composed component: no registry item depends on story-viewer (U0). |
 | **Version target** | v0.6.2 → **v0.7.0** |
 | **Model roster** | architect: main session · implementers: 2 × Sonnet 5 (slices M, N) · finders: 2 × fresh Sonnet 5 (code + browser) |
@@ -883,4 +883,7 @@ start-up timeouts, 0 failures among the rest).
 
 ## U7 — Ship
 
-GATE 3: Pass with follow-ups (review file above). Commit + push under the user's "close it end to end"; live poll below.
+GATE 3: Pass with follow-ups (review file above). `c940bc5` pushed 21:06 under the user's "close it end to end". Live
+poll (180 s apart): polls 1–4 (21:09–21:18) still 0.6.2; **poll 5 (21:21) `/r/story-viewer.json` stamped `0.7.0` with
+`parts/ambient-backdrop.tsx` and `lib/preload.ts`**; `/components/story-viewer` 200. Run closed; the reply to the platform
+is `.claude/report-back-2026-10-29-release-9.md` (the user sends it).
