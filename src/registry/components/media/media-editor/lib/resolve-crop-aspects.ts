@@ -1,4 +1,4 @@
-import type { AspectRatio, CropAspect } from "../types";
+import type { AspectRatio, CanvasAspect, CropAspect } from "../types";
 import { isValidCropAspect } from "./crop-aspect";
 
 const ALL_ASPECTS: readonly AspectRatio[] = [
@@ -15,7 +15,7 @@ const ALL_ASPECTS: readonly AspectRatio[] = [
 // value stays quiet.
 const warnedInvalid = new Set<string>();
 
-function deriveDefault(aspect: AspectRatio): CropAspect[] {
+function deriveDefault(aspect: CanvasAspect): CropAspect[] {
   if (aspect === "free") return [...ALL_ASPECTS];
   return [aspect];
 }
@@ -36,7 +36,7 @@ function deriveDefault(aspect: AspectRatio): CropAspect[] {
  *     entry is invalid the default derivation is used. An explicit empty array stays empty.
  */
 export function resolveCropAspects(
-  aspect: AspectRatio,
+  aspect: CanvasAspect,
   cropAspectsOverride: CropAspect[] | undefined,
 ): CropAspect[] {
   if (cropAspectsOverride === undefined) return deriveDefault(aspect);

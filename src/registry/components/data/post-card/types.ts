@@ -21,12 +21,16 @@ export type PostMediaItem =
       type: "image";
       url: string;
       alt?: string;
+      /** Shown under the slide's frame (media-carousel 0.4.0), clamped with a Show more toggle. */
+      caption?: string;
     }
   | {
       id: string;
       type: "video";
       url: string;
+      /** Names the video player (media-carousel 0.4.0). */
       alt?: string;
+      caption?: string;
       poster?: string;
     };
 
@@ -68,7 +72,7 @@ import type { ExpandableTextLabels } from "../expandable-text/types";
  */
 export interface PostMediaProps {
   /** Slide frame ratio. Default `"square"`. */
-  aspect?: "square" | "video" | "portrait" | "auto" | "natural-clamped";
+  aspect?: "square" | "video" | "portrait" | "auto" | "natural-clamped" | `${number}:${number}`;
   /** `natural-clamped` lower bound (width / height). */
   minRatio?: number;
   /** `natural-clamped` upper bound (width / height). */
@@ -91,9 +95,40 @@ export interface PostMediaProps {
     counter?: (position: number, total: number, format: (n: number) => string) => string;
     carouselRoleDescription?: string;
     slideRoleDescription?: string;
+    /** Default "Show more". The caption's expand toggle. */
+    captionShowMore?: string;
+    /** Default "Show less". The caption's collapse toggle. */
+    captionShowLess?: string;
+    /** Labels for every built-in video player (video-player's `VideoPlayerLabels`). */
+    video?: PostMediaVideoLabels;
   };
+  /** Lines a caption shows before its Show more toggle. Default 2. */
+  captionLines?: number;
+  /** Extra classes for each caption's text element. */
+  captionClassName?: string;
   className?: string;
   slideClassName?: string;
+}
+
+/** Structurally video-player's `VideoPlayerLabels` (inlined: cross-category type imports do not survive the rewriter). */
+export interface PostMediaVideoLabels {
+  play?: string;
+  pause?: string;
+  mute?: string;
+  unmute?: string;
+  videoLabel?: string;
+  seek?: string;
+  position?: (current: number, total: number, formatted: { current: string; total: string }) => string;
+  timeDisplay?: (current: string, total: string) => string;
+  durationBadge?: (total: number, formatted: string) => string;
+  fullscreen?: string;
+  exitFullscreen?: string;
+  captions?: string;
+  captionsMenu?: string;
+  captionsOff?: string;
+  buffering?: string;
+  error?: string;
+  retry?: string;
 }
 
 /** The engagement-bar options the card forwards (`engagementBarProps`). */

@@ -31,6 +31,12 @@ export interface FakeEmbla {
   scrollTo: ReturnType<typeof vi.fn>;
   scrollPrev: ReturnType<typeof vi.fn>;
   scrollNext: ReturnType<typeof vi.fn>;
+  reInit: ReturnType<typeof vi.fn>;
+  canScrollPrev: () => boolean;
+  canScrollNext: () => boolean;
+  internalEngine: () => { options: { loop: boolean } };
+  /** What Embla's engine really runs; `null` = whatever the component asked for. */
+  engineLoop: boolean | null;
   emit: (event: string) => void;
   /** A user drag that lands on snap `i` (fires "select" inside act). */
   swipe: (i: number) => void;
@@ -65,6 +71,13 @@ export function makeFakeEmbla(total = 5): FakeEmbla {
       api.snap = (api.snap + 1) % api.total;
       api.emit("select");
     }),
+    reInit: vi.fn(() => api.emit("reInit")),
+    engineLoop: null,
+    internalEngine: () => ({
+      options: { loop: api.engineLoop ?? embla.options[embla.options.length - 1]?.loop ?? false },
+    }),
+    canScrollPrev: () => api.internalEngine().options.loop || api.snap > 0,
+    canScrollNext: () => api.internalEngine().options.loop || api.snap < api.total - 1,
     emit: (event: string) => {
       for (const fn of [...(api.handlers[event] ?? [])]) fn();
     },

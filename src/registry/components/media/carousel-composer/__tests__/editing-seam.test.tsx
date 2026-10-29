@@ -210,7 +210,7 @@ describe("a custom Panel", () => {
     expect(screen.getByTestId("my-panel")).toBeInTheDocument();
     const props = seen[0];
     expect(Object.keys(props).sort()).toEqual(
-      ["aspect", "editorProps", "item", "labels", "onApply", "onCancel"].sort(),
+      ["aspect", "aspectRatio", "editorProps", "item", "labels", "onApply", "onCancel"].sort(),
     );
     expect(props.item.id).toBe("a");
     expect(props.editorProps).toEqual({ custom: 1 });

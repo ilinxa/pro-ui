@@ -2,6 +2,13 @@
 
 > **v0.3.0 (2026-10-26) supersedes parts of this document:** image editing is no longer built into the base — it is the opt-in feature item `carousel-composer-editing` (`features/editing/`, through the `editing` prop), and the base adds alt text, host-owned upload status, MIME / duration limits and a video poster. The change contract and its decisions are in [carousel-composer-loop.md](carousel-composer-loop.md) ("Run — Part 3" U1 and "Run — Part 3 release 6" U2); the current behaviour is in the [guide](carousel-composer-procomp-guide.md).
 
+> **Release 8 (2026-10-29) — v0.4.0 supersedes the aspect sections:** one shared aspect of any ratio (media-editor's
+> crop aspects, `"original"`, `"W:H"`), controlled `aspect` + `onAspectChange` / `defaultAspect`, an
+> `aspectOptions` switch on item 1, thumbs / preview / edit panel / edit export follow it, `export()` reports each
+> image's centred `crop`; `CarouselEditorPanelProps.aspect` widened (breaking for custom panels, user-approved).
+> Contract and findings: [`media-editor-loop.md` → "Run — release 8"](../media-editor-procomp/media-editor-loop.md); behaviour: the
+> [guide](carousel-composer-procomp-guide.md) §7.
+
 > Stage 1: what & why. **GATE 1 — ✅ SIGNED OFF (2026-06-04).** Proceeding to GATE 2 (plan).
 >
 > **Greenfield, but composition-first.** This procomp does NOT re-implement any media editing. It is a multi-item *orchestrator* that drives a **single shared** [`media-editor`](../media-editor-procomp/) instance — the *edit panel* — loaded with the selected item **one at a time** (never N concurrent editors). The decisive architectural call (see §"Why a new procomp") is: **media-editor stays single-item and is not touched** — so its other consumer (`story-composer`, Instagram-story = one media) is unaffected, and we add zero breaking risk to a shipped, shared procomp.

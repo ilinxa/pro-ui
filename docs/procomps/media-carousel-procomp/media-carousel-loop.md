@@ -230,3 +230,8 @@ If this breaks for a consumer, it breaks because: a host passed `aspect` to a ga
 (K7 — CHANGELOG + upgrade table say so); or a real touch device treats the neighbour tap / swipe differently from
 Chromium emulation (review R-02); or a host's custom `renderItem` video keeps playing off-screen because it reads
 only `isActive` (K1 — documented on the type and in the guide).
+
+
+# Run — release 8 (2026-10-29)
+
+Lead state doc: [`../media-editor-procomp/media-editor-loop.md`](../media-editor-procomp/media-editor-loop.md) → "Run — release 8". Contract, invariants, findings and evidence live there.

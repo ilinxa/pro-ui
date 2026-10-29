@@ -5,9 +5,11 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: same-category cross-procomp via relative + specific-file path.
@@ -17,6 +19,7 @@ import { useEmblaWithState } from "../hooks/use-embla-with-state";
 import { useFinePointer, useInView } from "../hooks/use-environment";
 import type { MediaRecovery } from "../hooks/use-media-recovery";
 import type { FrameStyle } from "../lib/aspect";
+import type { EmblaCarouselType } from "embla-carousel";
 import type {
   MediaCarouselDirection,
   MediaCarouselHandle,
@@ -27,6 +30,7 @@ import type {
 } from "../types";
 import { IndicatorDots } from "./indicator-dots";
 import { NavButtons } from "./nav-buttons";
+import { SlideCaption } from "./slide-caption";
 import { SlideRenderer } from "./slide-renderer";
 
 interface CarouselTrackProps {
@@ -40,6 +44,9 @@ interface CarouselTrackProps {
   showCounter: boolean;
   /** Explicit direction (`dir`, or the deprecated `rtl`); otherwise resolved after mount. */
   dir?: MediaCarouselDirection;
+  locale: string;
+  captionLines: number;
+  captionClassName?: string;
   formatNumber: (n: number) => string;
   index?: number;
   defaultIndex?: number;
@@ -63,10 +70,17 @@ interface SlideProps {
   inView: boolean;
   isFirst: boolean;
   isLast: boolean;
+  /** Embla's EFFECTIVE loop (it drops loop when the slides can't fill it). */
   loop: boolean;
   variant: MediaCarouselVariant;
   peekRatio: number;
   frame: FrameStyle;
+  locale: string;
+  captionLines: number;
+  captionClassName?: string;
+  /** Shows the counter chip inside this (active) slide's frame. */
+  counter?: string;
+  slideRef: (el: HTMLDivElement | null) => void;
   renderItem?: (item: MediaItem, ctx: RenderItemContext) => ReactNode;
   onDoubleTap?: (item: MediaItem, index: number) => void;
   /** Click on a peeking (inactive) neighbour. */
@@ -123,6 +137,11 @@ function Slide({
   variant,
   peekRatio,
   frame,
+  locale,
+  captionLines,
+  captionClassName,
+  counter,
+  slideRef,
   renderItem,
   onDoubleTap,
   onSelectNeighbour,
@@ -159,8 +178,30 @@ function Slide({
       recovery={recovery}
       onNaturalSize={onNaturalSize}
       slideClassName={slideClassName}
+      locale={locale}
+      videoLabels={labels.video}
     />
   );
+
+  // Inside the active frame (top-end), so it can never sit over a peeking neighbour.
+  const chip = counter ? (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute end-3 top-3 z-10 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground"
+    >
+      {counter}
+    </div>
+  ) : null;
+  // Under the frame, inside the slide group: read once with its slide.
+  const caption = item.caption ? (
+    <SlideCaption
+      caption={item.caption}
+      lines={captionLines}
+      className={captionClassName}
+      active={isActive}
+      labels={labels}
+    />
+  ) : null;
 
   const a11y = {
     role: "group",
@@ -179,8 +220,11 @@ function Slide({
     return (
       <div
         {...a11y}
-        className={cn("min-w-0 mx-1 flex-[0_0_85%]", !isActive && "cursor-pointer")}
+        ref={slideRef}
+        className={cn("min-w-0 mx-1", !isActive && "cursor-pointer")}
         style={{
+          // Slide width = the viewport minus a peek per side (85 % at the default 0.075).
+          flex: `0 0 ${Math.round((1 - 2 * peekRatio) * 1e4) / 100}%`,
           marginInlineStart: !loop && isFirst ? `${edgePeekPercent}%` : undefined,
           marginInlineEnd: !loop && isLast ? `${edgePeekPercent}%` : undefined,
         }}
@@ -189,25 +233,39 @@ function Slide({
         <div
           inert={!isActive}
           className={cn(
-            "overflow-hidden rounded-lg motion-safe:transition-all motion-safe:duration-300",
+            "relative overflow-hidden rounded-lg motion-safe:transition-all motion-safe:duration-300",
             isActive
               ? "scale-100 opacity-100"
               : "scale-95 opacity-60 blur-(--media-carousel-inactive-blur,1px)",
           )}
         >
           {content}
+          {chip}
         </div>
+        {caption}
       </div>
     );
   }
 
   // Linear: full-width slide, no peek, no scale.
   return (
-    <div {...a11y} className="min-w-0 flex-[0_0_100%]" onClick={handleClick}>
-      <div inert={!isActive}>{content}</div>
+    <div {...a11y} ref={slideRef} className="min-w-0 flex-[0_0_100%]" onClick={handleClick}>
+      <div inert={!isActive} className="relative">
+        {content}
+        {chip}
+      </div>
+      {caption}
     </div>
   );
 }
+
+/**
+ * Embla rebuilds itself with `loop: false` when the slides can't fill the loop (2 slides at 85 %):
+ * the engine's own options, not ours, say whether it really loops
+ * (node_modules/embla-carousel/esm/embla-carousel.esm.js:1528, createEngine).
+ */
+const readEngineLoop = (api: EmblaCarouselType | null, requested: boolean) =>
+  requested && (api ? api.internalEngine().options.loop : true);
 
 export function CarouselTrack({
   items,
@@ -219,6 +277,9 @@ export function CarouselTrack({
   showNavButtons,
   showCounter,
   dir: dirProp,
+  locale,
+  captionLines,
+  captionClassName,
   formatNumber,
   index: indexProp,
   defaultIndex,
@@ -300,6 +361,69 @@ export function CarouselTrack({
 
   const shownIndex = target ?? currentIndex;
 
+  // The loop Embla really runs (see readEngineLoop). Not looping => edge margins on the first /
+  // last slide, and Prev / Next stop at the ends.
+  const subscribeReInit = useCallback(
+    (onChange: () => void) => {
+      if (!api) return () => {};
+      api.on("reInit", onChange);
+      return () => {
+        api.off("reInit", onChange);
+      };
+    },
+    [api],
+  );
+  const effectiveLoop = useSyncExternalStore(
+    subscribeReInit,
+    () => readEngineLoop(api, loop),
+    () => loop,
+  );
+  // Embla measured the slides before the edge margins existed (loop true -> false) and keeps stale
+  // sizes once they go away (false -> true, e.g. 2 -> 4 items): re-init on any change of the
+  // effective loop after the first run. A re-init that lands on the same value stops here.
+  const lastLoop = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!api) return;
+    const prev = lastLoop.current;
+    lastLoop.current = effectiveLoop;
+    if (prev === null ? loop && !effectiveLoop : prev !== effectiveLoop) api.reInit();
+  }, [api, loop, effectiveLoop]);
+  const canPrev = effectiveLoop || (api ? api.canScrollPrev() : shownIndex > 0);
+  const canNext = effectiveLoop || (api ? api.canScrollNext() : shownIndex < total - 1);
+
+  // Captions: each slide has its own height; the viewport follows the active slide's, and the
+  // nav buttons / edge fades centre on the media frame (not frame + caption).
+  const hasCaptions = useMemo(() => items.some((it) => !!it.caption), [items]);
+  const slideEls = useRef<Array<HTMLDivElement | null>>([]);
+  const [heights, setHeights] = useState<{ slide: number; frame: number } | null>(null);
+  const activeId = items[shownIndex]?.id;
+  useLayoutEffect(() => {
+    // Drop refs of slides that no longer exist (a detached node would be observed otherwise).
+    slideEls.current.length = total;
+    if (!hasCaptions) return;
+    const slide = slideEls.current[shownIndex];
+    if (!slide) return;
+    const frameEl = slide.firstElementChild as HTMLElement | null;
+    const measure = () => {
+      const slideH = slide.offsetHeight;
+      if (slideH <= 0) return;
+      const frameH = frameEl?.offsetHeight || slideH;
+      setHeights((prev) =>
+        prev && prev.slide === slideH && prev.frame === frameH ? prev : { slide: slideH, frame: frameH },
+      );
+    };
+    // First paint: read before the browser paints. Without ResizeObserver this one-shot read per
+    // shown slide is all there is.
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(slide);
+    if (frameEl) ro.observe(frameEl);
+    return () => ro.disconnect();
+    // activeId: a replaced item at the same index is a new node, which must be observed.
+  }, [hasCaptions, shownIndex, activeId, total]);
+  const measured = hasCaptions ? heights : null;
+
   // Stable ref-mirror for the shown index — keeps imperative handle identity
   // stable across slide changes. Ref write inside passive useEffect.
   const currentIndexRef = useRef(shownIndex);
@@ -373,76 +497,97 @@ export function CarouselTrack({
         className,
       )}
       // Lift a video slide's control row above the indicator dots (video-player 0.3 has a full-width seek bar).
-      style={showIndicators ? DOTS_CLEARANCE : undefined}
+      // With captions the dots sit below the slides, not over the video.
+      style={showIndicators && !hasCaptions ? DOTS_CLEARANCE : undefined}
     >
-      <div className="overflow-hidden" ref={ref}>
-        <div className="flex">
-          {items.map((item, index) => (
-            <Slide
-              key={item.id}
-              item={item}
-              index={index}
-              total={total}
-              isActive={index === shownIndex}
-              inView={inView}
-              isFirst={index === 0}
-              isLast={index === total - 1}
-              loop={loop}
-              variant={variant}
-              peekRatio={peekRatio}
-              frame={frame}
-              renderItem={renderItem}
-              onDoubleTap={onDoubleTap}
-              onSelectNeighbour={selectNeighbour}
-              recovery={recovery}
-              onNaturalSize={index === 0 ? onNaturalSize : undefined}
-              labels={labels}
-              slideClassName={slideClassName}
-            />
-          ))}
+      {/* The media area's positioning box: without captions it is the whole carousel. */}
+      <div className="relative">
+        <div
+          className={cn("overflow-hidden", measured && "motion-safe:transition-[height] motion-safe:duration-300")}
+          style={measured ? { height: measured.slide } : undefined}
+          ref={ref}
+        >
+          <div className={cn("flex", hasCaptions && "items-start")}>
+            {items.map((item, index) => (
+              <Slide
+                key={item.id}
+                item={item}
+                index={index}
+                total={total}
+                isActive={index === shownIndex}
+                inView={inView}
+                isFirst={index === 0}
+                isLast={index === total - 1}
+                loop={effectiveLoop}
+                variant={variant}
+                peekRatio={peekRatio}
+                frame={frame}
+                locale={locale}
+                captionLines={captionLines}
+                captionClassName={captionClassName}
+                counter={
+                  showCounter && index === shownIndex
+                    ? labels.counter(shownIndex + 1, total, formatNumber)
+                    : undefined
+                }
+                slideRef={(el) => {
+                  slideEls.current[index] = el;
+                }}
+                renderItem={renderItem}
+                onDoubleTap={onDoubleTap}
+                onSelectNeighbour={selectNeighbour}
+                recovery={recovery}
+                onNaturalSize={index === 0 ? onNaturalSize : undefined}
+                labels={labels}
+                slideClassName={slideClassName}
+              />
+            ))}
+          </div>
         </div>
+
+        {showEdgeGradients ? (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 start-0 z-5 w-12 bg-linear-to-r rtl:bg-linear-to-l group-data-[dir=ltr]/media-carousel:bg-linear-to-r from-(--media-carousel-fade,var(--background)) to-transparent"
+              style={measured ? { height: measured.frame, bottom: "auto" } : undefined}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 end-0 z-5 w-12 bg-linear-to-l rtl:bg-linear-to-r group-data-[dir=ltr]/media-carousel:bg-linear-to-l from-(--media-carousel-fade,var(--background)) to-transparent"
+              style={measured ? { height: measured.frame, bottom: "auto" } : undefined}
+            />
+          </>
+        ) : null}
+
+        {navButtonsVisible && (
+          <NavButtons
+            scrollPrev={scrollPrev}
+            scrollNext={scrollNext}
+            labels={labels}
+            canPrev={canPrev}
+            canNext={canNext}
+            centerY={measured ? measured.frame / 2 : undefined}
+          />
+        )}
+
+        {showIndicators && !hasCaptions && (
+          <IndicatorDots
+            total={total}
+            currentIndex={shownIndex}
+            scrollTo={scrollTo}
+            labels={labels}
+          />
+        )}
       </div>
 
-      {showEdgeGradients ? (
-        <>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 start-0 z-5 w-12 bg-linear-to-r rtl:bg-linear-to-l group-data-[dir=ltr]/media-carousel:bg-linear-to-r from-(--media-carousel-fade,var(--background)) to-transparent"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 end-0 z-5 w-12 bg-linear-to-l rtl:bg-linear-to-r group-data-[dir=ltr]/media-carousel:bg-linear-to-l from-(--media-carousel-fade,var(--background)) to-transparent"
-          />
-        </>
-      ) : null}
-
-      {showCounter ? (
-        <div
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute top-3 z-10 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground",
-            // Gallery: inside the centred slide (85 % wide), not over the peeking neighbour.
-            variant === "gallery" ? "end-[calc(7.5%_+_0.75rem)]" : "end-3",
-          )}
-        >
-          {labels.counter(shownIndex + 1, total, formatNumber)}
-        </div>
-      ) : null}
-
-      {navButtonsVisible && (
-        <NavButtons
-          scrollPrev={scrollPrev}
-          scrollNext={scrollNext}
-          labels={labels}
-        />
-      )}
-
-      {showIndicators && (
+      {showIndicators && hasCaptions && (
         <IndicatorDots
           total={total}
           currentIndex={shownIndex}
           scrollTo={scrollTo}
           labels={labels}
+          inFlow
         />
       )}
     </div>

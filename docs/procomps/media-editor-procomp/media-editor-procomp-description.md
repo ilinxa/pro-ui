@@ -17,6 +17,12 @@
 > "partial use" principle is unchanged — every addition is opt-in or a fix. Contract, user decisions and invariants:
 > [`media-editor-loop.md` → "Run — 0.6.0"](./media-editor-loop.md).
 
+> **Release 8 (2026-10-29) — 0.7.0 addendum.** The canvas `aspect` takes any `"W:H"` (`CanvasAspect`, breaking
+> type, user-approved); crop aspects carry across photos (`defaultCropAspect`, `crop-set` `aspect` + `ratio`,
+> `getState().cropAspect`, a mounted editor follows a new `cropAspects`); text cards fit their card and export what
+> the preview shows. Contract, invariants I1–I6 and findings: [`media-editor-loop.md` → "Run — release 8"](./media-editor-loop.md);
+> behaviour: the [guide](./media-editor-procomp-guide.md).
+
 ## Problem
 
 Story-composer-01's editor surface (capture → on-canvas edit → export) is the most reusable thing in our media stack — and it's currently sealed inside one procomp. Every adjacent surface that needs media authoring is forced to choose between:

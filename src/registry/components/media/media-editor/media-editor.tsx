@@ -15,7 +15,7 @@ import { useCaptureExtensionOptional } from "./hooks/use-capture-extension";
 import { resolvePresentation } from "./lib/presentation-resolver";
 import { probeVideo } from "./lib/probe-video";
 import { focusOverlay, wrapTabWithinOverlay } from "./lib/overlay-focus";
-import { resolveEditorLabels } from "./lib/normalize-labels";
+import { normalizeEditorLabels, resolveEditorLabels } from "./lib/normalize-labels";
 import { formatNumber } from "./lib/format-number";
 import {
   renameBackgrounds,
@@ -32,7 +32,11 @@ import {
   MAX_OUTPUT_PIXELS,
   computeExportGeometry,
 } from "./lib/export-geometry";
-import { cropAspectToRatio } from "./lib/crop-aspect";
+import {
+  canvasAspectToRatio,
+  cropAspectToRatio,
+  isValidCanvasAspect,
+} from "./lib/crop-aspect";
 import { mapToFrame, remapForCrop } from "./lib/frame-map";
 import { compositeVideo } from "./lib/composite-video";
 import {
@@ -63,7 +67,7 @@ import {
   visibleImageCenter,
 } from "./lib/placement";
 import type {
-  AspectRatio,
+  CanvasAspect,
   ComposerMode,
   CropAspect,
   CropRect,
@@ -227,7 +231,20 @@ const MediaEditorImpl = React.forwardRef<
   // `cropAspects` is keyed by content (like `videoOutput.mimeTypes`) so an inline
   // array literal neither re-resolves every render nor re-fires the invalid-entry
   // dev warning; the resolved list is memoised once for both consumers below.
-  const aspect = props.aspect ?? "free";
+  const warnedRef = React.useRef<Set<string>>(new Set());
+  // 0.7.0: any `"W:H"` is a canvas aspect; an invalid value falls back to free (one dev warning).
+  const aspectProp = props.aspect ?? "free";
+  const aspectValid = isValidCanvasAspect(aspectProp);
+  const aspect: CanvasAspect = aspectValid ? aspectProp : "free";
+  const aspectPropText = String(aspectProp);
+  React.useEffect(() => {
+    if (aspectValid) return;
+    devWarnOnce(
+      warnedRef.current,
+      "invalid-aspect",
+      `media-editor: invalid aspect ${aspectPropText} - falling back to "free"`,
+    );
+  }, [aspectValid, aspectPropText]);
   const cropAspectsKey = props.cropAspects ? props.cropAspects.join("\n") : null;
   const declaredCropAspects = React.useMemo(
     () =>
@@ -242,7 +259,21 @@ const MediaEditorImpl = React.forwardRef<
     () => resolveCropAspects(aspect, declaredCropAspects),
     [aspect, declaredCropAspects],
   );
-  const initialCropAspect = resolvedCropAspects[0] ?? "free";
+  // Mount-time seed (like defaultMode): `defaultCropAspect` when it is on offer, else the first entry.
+  const wantedCropAspect = props.defaultCropAspect;
+  const defaultCropAspectOk =
+    wantedCropAspect !== undefined && resolvedCropAspects.includes(wantedCropAspect);
+  const defaultCropAspectBad = wantedCropAspect !== undefined && !defaultCropAspectOk;
+  React.useEffect(() => {
+    if (!defaultCropAspectBad) return;
+    devWarnOnce(
+      warnedRef.current,
+      "default-crop-aspect",
+      `media-editor: defaultCropAspect ${String(wantedCropAspect)} is not one of the crop aspects - using the first entry`,
+    );
+  }, [defaultCropAspectBad, wantedCropAspect]);
+  const preferredCropAspect = defaultCropAspectOk ? wantedCropAspect : undefined;
+  const initialCropAspect = preferredCropAspect ?? resolvedCropAspects[0] ?? "free";
 
   // `labels.presets` renames presets by id. Keyed by content so an inline
   // `labels={{ ... }}` literal does not rebuild the preset arrays every render
@@ -262,11 +293,11 @@ const MediaEditorImpl = React.forwardRef<
   const editor = useMediaEditorState({
     defaultMode,
     defaultCropAspect: initialCropAspect,
+    cropAspects: resolvedCropAspects,
+    preferredCropAspect: initialCropAspect,
     gradients: resolvedGradients,
     onDirtyChange: props.onDirtyChange,
   });
-
-  const warnedRef = React.useRef<Set<string>>(new Set());
 
   // ─── Modified flag (0.6.0) ──────────────────────────────────────────
   // "Content changed since the source loaded". The ref is the synchronous
@@ -368,6 +399,20 @@ const MediaEditorImpl = React.forwardRef<
     );
   }, [hasTrimLabels]);
   const { locale } = props;
+  // Chip name: the host's `labels.crop.aspect` when given, else `free` / `original`
+  // (host-customisable) or the ratio with locale digits.
+  const hostCropAspectName = React.useMemo(
+    () => normalizeEditorLabels(props.labels).cropAspectName,
+    [props.labels],
+  );
+  const cropAspectName = (a: CropAspect): string => {
+    const format = (n: number) =>
+      formatNumber(n, locale, { max: 4, grouping: false });
+    if (hostCropAspectName) return hostCropAspectName(a, format);
+    if (a === "free") return mergedLabels.cropAspectFree;
+    if (a === "original") return mergedLabels.cropAspectOriginal;
+    return mergedLabels.cropAspectName(a, format);
+  };
 
   // ─── Observability emitters (onModeChange / onEditAction) ──────────
   // Latest-callback refs so the emit effects below depend only on the state
@@ -1760,6 +1805,13 @@ const MediaEditorImpl = React.forwardRef<
                 : state.imageSrc) ?? null;
           }
         }
+        // The snapshot's crop aspect, when it is still on offer (0.7.0).
+        if (
+          state.cropAspect !== undefined &&
+          resolvedCropAspects.includes(state.cropAspect)
+        ) {
+          editor.setCropAspect(state.cropAspect);
+        }
         // A load is not a modification (unless the caller keeps the flag, e.g.
         // a mode round-trip); it supersedes any remap, crop Apply and pending
         // adjust gesture in flight. A round-trip of the editor's own state keeps
@@ -1920,6 +1972,7 @@ const MediaEditorImpl = React.forwardRef<
       flushAdjust,
       dropAdjust,
       bumpCommit,
+      resolvedCropAspects,
     ],
   );
 
@@ -2269,11 +2322,12 @@ const MediaEditorImpl = React.forwardRef<
                 // and a full surface (large) without breaking the ratio.
                 aspect === "free"
                 ? "w-full min-h-64 min-w-50 max-w-150 max-h-[70vh]"
-                : "w-full min-h-64 min-w-50 max-w-120 max-h-[70vh]",
+                : // A locked ratio must win over any min-height (1.91:1 on a narrow column).
+                  "w-full min-w-50 max-w-120 max-h-[70vh]",
           )}
           style={{
             aspectRatio:
-              aspect === "free" ? "16 / 9" : aspect.replace(":", " / "),
+              aspect === "free" ? "16 / 9" : placeholderRatioCss(aspect),
           }}
           data-canvas-placeholder=""
           data-stage={editor.state.stage}
@@ -2596,6 +2650,7 @@ const MediaEditorImpl = React.forwardRef<
                         <button
                           key={a}
                           type="button"
+                          aria-pressed={editor.cropAspect === a}
                           onClick={() => {
                             editor.setCropAspect(a);
                             editor.setCrop(null);
@@ -2607,11 +2662,7 @@ const MediaEditorImpl = React.forwardRef<
                               : "border border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {a === "free"
-                            ? mergedLabels.cropAspectFree
-                            : a === "original"
-                              ? mergedLabels.cropAspectOriginal
-                              : a}
+                          {cropAspectName(a)}
                         </button>
                       ))}
                     </div>
@@ -2740,6 +2791,8 @@ const MediaEditorImpl = React.forwardRef<
                         emitEditAction({
                           kind: "crop-set",
                           crop: { x: ix, y: iy, width: iw, height: ih },
+                          aspect: editor.cropAspect,
+                          ratio: cropAspectToRatio(editor.cropAspect, mediaRatio),
                         });
                       } catch {
                         if (!stale()) editor.setActiveTool(null);
@@ -2953,12 +3006,28 @@ function measureTextInput(el: HTMLTextAreaElement | null): {
   fontSizePx?: number;
   textBoxWidth?: number;
   direction?: "ltr" | "rtl";
+  textTopPx?: number;
+  lineHeightPx?: number;
 } {
   if (!el || typeof getComputedStyle === "undefined") return {};
   const cs = getComputedStyle(el);
-  const out: { fontSizePx?: number; textBoxWidth?: number; direction?: "ltr" | "rtl" } = {};
+  const out: {
+    fontSizePx?: number;
+    textBoxWidth?: number;
+    direction?: "ltr" | "rtl";
+    textTopPx?: number;
+    lineHeightPx?: number;
+  } = {};
   const fontSize = parseFloat(cs.fontSize);
   if (Number.isFinite(fontSize) && fontSize > 0) out.fontSizePx = fontSize;
+  // The card is the input's offset parent, so `offsetTop` is the input's top
+  // inside it (transform-proof); the first line starts below border + padding.
+  const lineHeight = parseFloat(cs.lineHeight);
+  if (Number.isFinite(lineHeight) && lineHeight > 0) out.lineHeightPx = lineHeight;
+  if (el.offsetHeight > 0) {
+    out.textTopPx =
+      el.offsetTop + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0);
+  }
   const padding =
     (parseFloat(cs.paddingInlineStart) || 0) + (parseFloat(cs.paddingInlineEnd) || 0);
   const box = el.clientWidth - padding;
@@ -2996,17 +3065,22 @@ function sameFrame(a: StateFrame, b: StateFrame): boolean {
 const FREE_ASPECT_FALLBACK = 16 / 9;
 
 /**
- * Convert an `AspectRatio` string ("9:16", "1:1", etc.) to a numeric ratio
+ * Convert a `CanvasAspect` string ("9:16", "1.91:1", etc.) to a numeric ratio
  * (width / height) for capture-time cropping. For `"free"`, returns
  * `FREE_ASPECT_FALLBACK` so the captured frame is cropped to the same shape
  * the canvas is displayed at (avoiding the "captured photo doesn't match
  * preview" mismatch the canvas-placeholder uses the same ratio).
  */
-function aspectAsRatio(aspect: AspectRatio): number {
-  if (aspect === "free") return FREE_ASPECT_FALLBACK;
-  const [w, h] = aspect.split(":").map(Number);
-  if (!w || !h) return FREE_ASPECT_FALLBACK;
-  return w / h;
+function aspectAsRatio(aspect: CanvasAspect): number {
+  return canvasAspectToRatio(aspect) ?? FREE_ASPECT_FALLBACK;
+}
+
+/** CSS `aspect-ratio` for a locked canvas, built from the parsed numbers ("1.91:1" → "1.91 / 1"). */
+function placeholderRatioCss(aspect: CanvasAspect): string {
+  const [w, h] = aspect.split(":");
+  const nw = Number(w);
+  const nh = Number(h);
+  return nw > 0 && nh > 0 ? `${nw} / ${nh}` : "1 / 1";
 }
 
 /**
@@ -3284,5 +3358,7 @@ export type {
   EditTool,
   MediaSource,
   AspectRatio,
+  CanvasAspect,
+  CropAspect,
   LoadStateOpts,
 } from "./types";

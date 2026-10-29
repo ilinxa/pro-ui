@@ -9,6 +9,7 @@ export type {
   CarouselComposerHandle,
   CarouselComposerLabels,
   CarouselAspectRatio,
+  CarouselCropRect,
   CarouselExportMeta,
   CarouselEditingExtension,
   CarouselEditorPanelProps,
@@ -44,6 +45,11 @@ export { RailThumb } from "./parts/rail-thumb";
 export type { RailThumbProps } from "./parts/rail-thumb";
 export { MainPreview } from "./parts/main-preview";
 export type { MainPreviewProps } from "./parts/main-preview";
+export { AspectSwitch } from "./parts/aspect-switch";
+export type { AspectSwitchProps } from "./parts/aspect-switch";
+
+// The centred crop of a W × H image at a width / height ratio (what `export()` reports as `crop`).
+export { centredCropRect } from "./lib/aspect";
 
 // Image editing is the opt-in `@ilinxa/carousel-composer-editing` item
 // (`features/editing/`). The base barrel never exports it, so the base installs

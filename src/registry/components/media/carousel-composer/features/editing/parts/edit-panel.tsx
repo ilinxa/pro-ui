@@ -14,7 +14,7 @@ import type {
   CarouselEditorPanelProps,
   MediaCarouselItem,
 } from "../../../types";
-import { aspectToCss } from "../../../lib/aspect";
+import { centredCropRect } from "../../../lib/aspect";
 
 /** The only `editorProps` keys forwarded to media-editor; the rest stay the panel's. */
 const FORWARDED_EDITOR_PROPS = [
@@ -60,6 +60,7 @@ function initialSourceFor(item: MediaCarouselItem): InitialSource {
 export function CarouselEditPanel({
   item,
   aspect,
+  aspectRatio,
   editorProps,
   labels,
   onApply,
@@ -113,9 +114,26 @@ export function CarouselEditPanel({
     setBusy(true);
     setFailed(false);
     try {
-      // Export only the photo's displayed area (no letterbox bars), at the
-      // photo's own resolution; metadata width / height are the blob's pixels.
-      const { blob, metadata } = await editor.exportImage({ region: "media" });
+      // Export only the photo's displayed area (no letterbox bars), at the photo's own
+      // resolution; metadata width / height are the blob's pixels. A shared aspect: an
+      // edited item must come back at it even when the crop tool was never used, so trim
+      // (centred) to the largest rect of that ratio inside the photo's own pixels, never
+      // upscaling. The photo's pixels are measured by a plain export first: an applied
+      // crop replaces the editor's photo with a smaller one, so the item's own
+      // width / height are not the pixels being exported.
+      const exportAt = (rect: { width: number; height: number }) =>
+        editor.exportImage({ region: "media", width: rect.width, height: rect.height });
+      let result;
+      if (aspectRatio == null) {
+        result = await editor.exportImage({ region: "media" });
+      } else {
+        result = await editor.exportImage({ region: "media" });
+        const rect = centredCropRect(result.metadata.width, result.metadata.height, aspectRatio);
+        if (rect.width !== result.metadata.width || rect.height !== result.metadata.height) {
+          result = await exportAt(rect);
+        }
+      }
+      const { blob, metadata } = result;
       const url = URL.createObjectURL(blob);
       onApply(item.id, {
         url,
@@ -140,10 +158,8 @@ export function CarouselEditPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <div
-        className="overflow-hidden rounded-lg border border-border"
-        style={{ aspectRatio: aspectToCss(aspect) }}
-      >
+      {/* No aspect-ratio or clip here: media-editor locks its own canvas to `aspect`. */}
+      <div className="rounded-lg border border-border">
         <MediaEditor
           ref={editorRef}
           enabledModes={[]}

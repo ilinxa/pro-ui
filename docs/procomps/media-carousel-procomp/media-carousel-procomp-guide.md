@@ -1,13 +1,13 @@
 # media-carousel — consumer guide
 
-> Stage 3: usage notes for hosts. Updated for v0.3.0 (consumer-contract hardening: aspect modes, labels, locale, direction, controlled index, media errors, in-view video pause).
+> Stage 3: usage notes for hosts. Updated for v0.4.0 (per-slide captions, any `"W:H"` aspect, video labels + locale, the two-item counter / loop fix). v0.3.0: consumer-contract hardening (aspect modes, labels, locale, direction, controlled index, media errors, in-view video pause).
 >
 > See [description](./media-carousel-procomp-description.md) for what & why; [plan](./media-carousel-procomp-plan.md) for how it's built.
 
 ## Visual notes (v0.1.1)
 
 - **Gallery variant** matches kasder's `PostMediaCarousel.tsx` exactly: focused slide centered + sharp; neighbors `scale-95 opacity-60 blur-[1px]` for the canonical Instagram peek-blur effect; soft `from-background to-transparent` gradients on the left + right edges (`w-12` each, `pointer-events-none`, `aria-hidden`) further soften peek edges.
-- **Loop bug fix:** edge padding (`first:ml` / `last:mr` peek) is now applied **only when `loop={false}`**. Under loop, Embla creates clones, and asymmetric padding on the source first/last broke the loop math (you'd hit a stuck state on first→last and last→first wrap). Symmetric-margin slides under loop work correctly across the entire wrap cycle.
+- **Loop bug fix:** edge padding (`first:ml` / `last:mr` peek) is now applied **only when Embla is not looping** (`loop={false}`, or — since 0.4.0 — when Embla drops the loop itself because the slides can't fill it). Under loop, Embla creates clones, and asymmetric padding on the source first/last broke the loop math (you'd hit a stuck state on first→last and last→first wrap). Symmetric-margin slides under loop work correctly across the entire wrap cycle.
 - **Embla config simplified.** v0.1's defensive `slidesToScroll: 1` + `skipSnaps: false` overrides were removed — they were interfering with loop defaults. `containScroll: "trimSnaps"` is only set for linear + no-loop now (under loop, Embla force-disables it anyway).
 - **No public API changes** — same `MediaCarouselProps` / handle / labels.
 
@@ -17,7 +17,11 @@
 pnpm dlx shadcn@latest add @ilinxa/media-carousel
 ```
 
-This auto-installs `@ilinxa/video-player` as a registry dependency (used by the built-in video item handler) — first explicit cross-folder dependency in the pro-ui registry.
+This auto-installs `@ilinxa/video-player` (the built-in video item handler) and, since 0.4.0, `@ilinxa/expandable-text` (captions) as registry dependencies — first explicit cross-folder dependency in the pro-ui registry.
+
+**CLI 3.x re-adds:** shadcn CLI 3.8.5 asks to overwrite `parts/slide-caption.tsx` (a file with a rewritten
+cross-category import) on every later add that brings media-carousel again — even when it is identical; without a TTY
+that question stops the whole add. Re-add with `--overwrite`, or use CLI 4.x (which does not ask).
 
 Optional fixtures (sample image + video sets):
 
@@ -50,7 +54,11 @@ variants and the single-item shortcut:
 <MediaCarousel items={photos} variant="linear" aspect="video" />     {/* 16:9 */}
 <MediaCarousel items={photos} variant="linear" aspect="portrait" />  {/* 3:4 */}
 <MediaCarousel items={photos} variant="linear" aspect="auto" />      {/* the media's own height */}
+<MediaCarousel items={post.media} variant="gallery" aspect="4:5" />  {/* any "W:H" (0.4.0): "4:5", "1.91:1" */}
 ```
+
+A `"W:H"` aspect takes finite positive numbers (the same strings media-editor and carousel-composer use); an invalid
+one falls back to square with one development warning.
 
 `aspect="natural-clamped"` uses the first item's own ratio, clamped to `[minRatio, maxRatio]` (width / height;
 defaults 4/5 and 1.91 — the usual feed limits): 3:4 → 4:5, 16:9 stays, 3:1 → 1.91:1. Every slide of a gallery uses
@@ -255,6 +263,38 @@ Since 0.3.1 (with video-player 0.3.0) a video slide has a seek bar: while indica
 pressing ← / → in it never moves the carousel, and a single tap on a video waits out the double-tap window when
 `onDoubleTap` is set.
 
+### 12b. Captions (0.4.0)
+
+```tsx
+const items = [
+  { id: "a", type: "image", url: "/p/a.jpg", alt: "A harbour at dusk", caption: "Kadıköy, first evening" },
+  { id: "b", type: "image", url: "/p/b.jpg", alt: "Two cups of tea" },             // no caption: no space taken
+] satisfies MediaItem[];
+
+<MediaCarousel
+  items={items}
+  variant="gallery"
+  captionLines={2}                                   // default 2, then a Show more toggle
+  labels={{ captionShowMore: "Devamı", captionShowLess: "Daha az" }}
+/>
+```
+
+- The caption renders under the media frame, **inside its slide** (outside the aspect box), clamped with
+  expandable-text, `dir="auto"`, `captionClassName` on its text. Single-item carousels and `renderItem` slides
+  show it too.
+- **Screen readers read it once**, with its slide (inactive slides stay hidden and inert). It is not the image's
+  `alt` — give `alt` for that; an image without `alt` is decorative (`alt=""`).
+- **Height:** the carousel takes the active slide's height (measured), so swiping to an item without a caption
+  shrinks it; with any caption in the set, the indicator dots sit below the slides instead of over the media, and
+  the nav buttons stay centred on the media frame.
+
+### 12c. Video labels and locale (0.4.0)
+
+`labels.video` (video-player's `VideoPlayerLabels`: play, pause, mute, seek, time text…) and `locale` reach every
+built-in video player; a video item's `alt` names its `<video>` (otherwise `labels.video.videoLabel`, default
+"Video"). Hoist `labels` to module scope or memoise it — a new `labels.video` object each render re-renders every
+player.
+
 ### 13. Nav buttons on mouse only, counter, look
 
 ```tsx
@@ -262,7 +302,7 @@ pressing ← / → in it never moves the carousel, and a single tap on a video w
   items={items}
   variant="gallery"
   showNavButtons="fine-pointer"   // only under (pointer: fine); resolved after mount
-  showCounter                     // "2/5" chip, aria-hidden (slides are already named)
+  showCounter                     // "2/5" chip inside the active slide's frame, aria-hidden (slides are already named)
   className="[--media-carousel-inactive-blur:0px]"   // the no-blur prototype look
 />
 ```
@@ -275,6 +315,21 @@ Set the CSS variables through `className` or on any wrapper (they inherit):
 
 In the gallery, clicking or tapping a peeking neighbour scrolls to it. Inactive slides stay out of the tab order and
 the accessibility tree; a click that ends a drag does not count.
+
+## Upgrading to 0.4.0
+
+Additive except these visible changes:
+
+| 0.3 | 0.4 |
+|---|---|
+| counter chip positioned on the carousel (over the peeking neighbour with two items) | inside the active slide's frame, moves with it |
+| edge peek only when `loop={false}` | whenever Embla is not looping — Embla drops the loop itself when the slides can't fill it (two items in a gallery), and the carousel now follows that |
+| Prev / Next clickable at the ends without a loop (did nothing) | `aria-disabled` at the ends (still focusable) |
+| slides always 85 % wide in a gallery (`peekRatio` only set the edge peek) | `1 − 2 × peekRatio` (85 % for the default 0.075; clamped to 0–0.45, a non-finite value → 0.075, one development warning) — slide width is an inline `flex-basis` now |
+| — | an inner wrapper holds the track, fades, buttons and dots: a `className` that sizes the root (`h-full`) no longer centres the buttons against it |
+| every video named "Video" in English | `alt` / `labels.video`, `locale` |
+
+Install `@ilinxa/media-carousel` again (it now also brings `@ilinxa/expandable-text`).
 
 ## Upgrading to 0.3.0
 
@@ -320,6 +375,8 @@ Sets the precedent for the rest of the social-posts arc: `comment-thread` import
 - **`onSlideChange` mount-sync silent** — `currentIndex` initializes correctly via `useSyncExternalStore`, but the user's callback only fires on real slide changes. Document this if you want to track initial slide views (do it once on mount yourself).
 - **Embla-mounted client-only** — SSR renders the slide track DOM but indicators show after hydration. Acceptable; matches kasder.
 - **Custom `renderItem` for video items** must wire `isActive && inView` themselves — the pause contract is built into the built-in handler, not free for custom ones.
+- **Two items in a gallery with `loop`** — Embla drops the loop after its first measure, so the slides shift once
+  (≈ 7.5 %) right after mount.
 - **`natural-clamped` without dimensions** changes the frame once, when the first item loads. A custom `renderItem` cannot report a natural size — give items `width` / `height`.
 
 ## Composition siblings
@@ -335,6 +392,5 @@ Sets the precedent for the rest of the social-posts arc: `comment-thread` import
 - `lazyVideoDistance?: number` (unmount videos > N slides from active for perf)
 - Auto-advance / slideshow mode (`autoPlayMs?: number`)
 - Thumbnail strip below the main carousel
-- Disabled state for nav buttons at boundaries (when `loop=false`)
 - `getEmblaApi()` substrate-leak escape hatch (only if real demand)
 - Vertical orientation (`orientation: "horizontal" | "vertical"`)

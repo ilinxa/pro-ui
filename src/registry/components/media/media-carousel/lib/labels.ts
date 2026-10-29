@@ -20,6 +20,10 @@ export function resolveLabels(labels: MediaCarouselLabels | undefined): Resolved
   }
   if (labels.slideRoleDescription !== undefined) out.slideRoleDescription = labels.slideRoleDescription;
 
+  if (labels.captionShowMore !== undefined) out.captionShowMore = labels.captionShowMore;
+  if (labels.captionShowLess !== undefined) out.captionShowLess = labels.captionShowLess;
+  if (labels.video !== undefined) out.video = labels.video;
+
   const goTo = labels.goToSlide;
   if (typeof goTo === "function") out.goToSlide = goTo;
   else if (typeof goTo === "string") out.goToSlide = (position) => `${goTo} ${position}`;

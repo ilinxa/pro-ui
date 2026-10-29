@@ -2377,6 +2377,47 @@ function LocaleTab({
   );
 }
 
+function AspectTab() {
+  const ref = React.useRef<CarouselComposerHandle>(null);
+  const [log, setLog] = React.useState<string[]>([]);
+  const [crops, setCrops] = React.useState<string[]>([]);
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        ref={ref}
+        defaultValue={dummyCarouselItems}
+        editing={carouselEditing}
+        defaultAspect="original"
+        aspectOptions={["original", "1:1", "4:5", "1.91:1"]}
+        onAspectChange={(a) => setLog((l) => [...l.slice(-2), a])}
+        editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          onClick={async () => {
+            const out = (await ref.current?.export()) ?? [];
+            setCrops(
+              out.map((it, i) =>
+                it.crop
+                  ? \`#\${i + 1} \${it.crop.width}x\${it.crop.height} @\${it.crop.x},\${it.crop.y}\`
+                  : \`#\${i + 1} no crop\`,
+              ),
+            );
+          }}
+        >
+          Export
+        </Button>
+      </div>
+      <Status>
+        Select item 1 to switch the shared aspect; every thumb, the preview and the editor follow.
+        onAspectChange: {log.length ? log.join(" → ") : "—"}
+        {crops.length ? \` · \${crops.join(" · ")}\` : ""}
+      </Status>
+    </div>
+  );
+}
+
 export default function CarouselComposerDemo() {
   const [tab, setTab] = React.useState("seeded");
   return (
@@ -2386,6 +2427,7 @@ export default function CarouselComposerDemo() {
         <TabsTrigger value="seeded">Seeded (re-edit)</TabsTrigger>
         <TabsTrigger value="controlled">Controlled + export</TabsTrigger>
         <TabsTrigger value="max">Max 3</TabsTrigger>
+        <TabsTrigger value="aspect">Aspect switch</TabsTrigger>
         <TabsTrigger value="status">Upload status</TabsTrigger>
         <TabsTrigger value="tr">Türkçe</TabsTrigger>
         <TabsTrigger value="ar">العربية (RTL)</TabsTrigger>
@@ -2402,6 +2444,9 @@ export default function CarouselComposerDemo() {
       </TabsContent>
       <TabsContent value="max" className="pt-4">
         <MaxTab />
+      </TabsContent>
+      <TabsContent value="aspect" className="pt-4">
+        <AspectTab />
       </TabsContent>
       <TabsContent value="status" className="pt-4">
         <StatusTab />
@@ -9985,11 +10030,13 @@ import {
   DUMMY_SINGLE_IMAGE,
   DUMMY_SINGLE_VIDEO,
   arLabels,
+  captionedItems,
   errorRefreshItems,
   mixedRatioItems,
   prototypeItems,
   refreshedImageUrl,
   trLabels,
+  twoItems,
   videoItems,
 } from "./dummy-data";
 import type { MediaCarouselHandle } from "./types";
@@ -10145,6 +10192,9 @@ export default function MediaCarouselDemo() {
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="error">Error refresh</TabsTrigger>
         <TabsTrigger value="video">Video</TabsTrigger>
+        <TabsTrigger value="captions">Captions</TabsTrigger>
+        <TabsTrigger value="two">Two items</TabsTrigger>
+        <TabsTrigger value="ratios">4:5 / 1.91:1</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="gallery" className="mt-6 space-y-3">
@@ -10309,6 +10359,33 @@ export default function MediaCarouselDemo() {
           — start one, then scroll the page.
         </p>
       </TabsContent>
+      <TabsContent value="captions" className="mt-6 space-y-3">
+        <MediaCarousel items={captionedItems} variant="gallery" aspect="4:5" showCounter />
+        <p className="text-xs text-muted-foreground">
+          <code>caption</code> sits under the frame, inside the slide: it is read once with its slide,
+          clamped to <code>captionLines</code> (2) with a Show more toggle. The middle item has no caption and
+          takes no space (the carousel height follows the active slide); the dots move below the slides
+          while any caption exists.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="two" className="mt-6 space-y-3">
+        <MediaCarousel items={twoItems} variant="gallery" showCounter />
+        <p className="text-xs text-muted-foreground">
+          Two items in a gallery: Embla cannot fill a loop with them, so the carousel is not looping
+          &mdash; the first and last slides get the edge margin and Prev / Next are disabled at the ends.
+          The counter chip sits inside the active frame, never over the neighbour.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="ratios" className="mt-6 space-y-6">
+        <MediaCarousel items={captionedItems} variant="linear" aspect="4:5" />
+        <MediaCarousel items={captionedItems} variant="linear" aspect="1.91:1" />
+        <p className="text-xs text-muted-foreground">
+          <code>aspect=&quot;4:5&quot;</code> and <code>aspect=&quot;1.91:1&quot;</code>: any{" "}
+          <code>&quot;W:H&quot;</code>, the same strings media-editor and carousel-composer use.
+        </p>
+      </TabsContent>
     </Tabs>
   );
 }
@@ -10352,7 +10429,7 @@ import type {
  *                  gallery intake fallback (pick file → edit → export) plus
  *                  the one dev console.warn.
  */
-type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture" | "rtl";
+type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture" | "rtl" | "crop-aspect";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "defaults", label: "Defaults" },
@@ -10362,6 +10439,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "dark", label: "Dark" },
   { value: "no-capture", label: "No-capture (base-alone)" },
   { value: "rtl", label: "RTL" },
+  { value: "crop-aspect", label: "Crop: carry an aspect" },
 ];
 
 export default function MediaEditorDemo() {
@@ -10397,11 +10475,46 @@ export default function MediaEditorDemo() {
         <EditOnlyDemo />
       ) : tab === "rtl" ? (
         <RtlDemo />
+      ) : tab === "crop-aspect" ? (
+        <CropAspectDemo />
       ) : tab === "dark" ? (
         <DarkDemo />
       ) : (
         <NoCaptureDemo />
       )}
+    </div>
+  );
+}
+
+// ─── Crop: carry an aspect (0.7.0) ───────────────────────────────────
+
+function CropAspectDemo() {
+  const [log, setLog] = React.useState<string[]>([]);
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        A <code>aspect=&quot;1.91:1&quot;</code> canvas, crop offered as 1.91:1 /
+        4:5 / 1:1 with <code>defaultCropAspect=&quot;4:5&quot;</code>. Open Crop:
+        it starts on 4:5; Apply logs the <code>crop-set</code> action with the
+        chosen <code>aspect</code> and its <code>ratio</code>.
+      </p>
+      <MediaEditor
+        presentation="inline"
+        enabledModes={[]}
+        enabledTools={["crop", "adjust"]}
+        initialSource={SAMPLE_HERO_INITIAL_SOURCE}
+        aspect="1.91:1"
+        cropAspects={["1.91:1", "4:5", "1:1"]}
+        defaultCropAspect="4:5"
+        onEditAction={(a) => {
+          if (a.kind === "crop-set") {
+            setLog((l) => [\`crop-set \${a.aspect} ratio=\${a.ratio ?? "free"}\`, ...l].slice(0, 6));
+          }
+        }}
+      />
+      <pre className="max-h-32 overflow-auto rounded-md border border-border bg-muted/30 p-2 text-xs">
+        {log.length ? log.join(" | ") : "(no crop applied yet)"}
+      </pre>
     </div>
   );
 }

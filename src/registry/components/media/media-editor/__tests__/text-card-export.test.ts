@@ -152,7 +152,7 @@ describe("exportTextCardBlob", () => {
   it("breaks over-long words and keeps explicit newlines", async () => {
     await exportTextCardBlob(opts({ textOnly: { text: "a".repeat(70) + "\nb", fontFamily: "x", textColor: "white", gradientId: "g" } }));
     const lines = named("fillText").map((c) => c[1] as string);
-    expect(lines).toEqual(["a".repeat(32), "a".repeat(32), "a".repeat(6), "b"]);
+    expect(lines).toEqual(["a".repeat(33), "a".repeat(33), "a".repeat(4), "b"]); // fallback wrap = width 400 - 64 = 336 px
   });
 
   it("sets font (weight 600, clamped size), text colour and the on-screen shadow", async () => {

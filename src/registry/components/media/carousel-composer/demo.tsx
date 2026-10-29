@@ -167,6 +167,47 @@ function LocaleTab({
   );
 }
 
+function AspectTab() {
+  const ref = React.useRef<CarouselComposerHandle>(null);
+  const [log, setLog] = React.useState<string[]>([]);
+  const [crops, setCrops] = React.useState<string[]>([]);
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        ref={ref}
+        defaultValue={dummyCarouselItems}
+        editing={carouselEditing}
+        defaultAspect="original"
+        aspectOptions={["original", "1:1", "4:5", "1.91:1"]}
+        onAspectChange={(a) => setLog((l) => [...l.slice(-2), a])}
+        editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          onClick={async () => {
+            const out = (await ref.current?.export()) ?? [];
+            setCrops(
+              out.map((it, i) =>
+                it.crop
+                  ? `#${i + 1} ${it.crop.width}x${it.crop.height} @${it.crop.x},${it.crop.y}`
+                  : `#${i + 1} no crop`,
+              ),
+            );
+          }}
+        >
+          Export
+        </Button>
+      </div>
+      <Status>
+        Select item 1 to switch the shared aspect; every thumb, the preview and the editor follow.
+        onAspectChange: {log.length ? log.join(" → ") : "—"}
+        {crops.length ? ` · ${crops.join(" · ")}` : ""}
+      </Status>
+    </div>
+  );
+}
+
 export default function CarouselComposerDemo() {
   const [tab, setTab] = React.useState("seeded");
   return (
@@ -176,6 +217,7 @@ export default function CarouselComposerDemo() {
         <TabsTrigger value="seeded">Seeded (re-edit)</TabsTrigger>
         <TabsTrigger value="controlled">Controlled + export</TabsTrigger>
         <TabsTrigger value="max">Max 3</TabsTrigger>
+        <TabsTrigger value="aspect">Aspect switch</TabsTrigger>
         <TabsTrigger value="status">Upload status</TabsTrigger>
         <TabsTrigger value="tr">Türkçe</TabsTrigger>
         <TabsTrigger value="ar">العربية (RTL)</TabsTrigger>
@@ -192,6 +234,9 @@ export default function CarouselComposerDemo() {
       </TabsContent>
       <TabsContent value="max" className="pt-4">
         <MaxTab />
+      </TabsContent>
+      <TabsContent value="aspect" className="pt-4">
+        <AspectTab />
       </TabsContent>
       <TabsContent value="status" className="pt-4">
         <StatusTab />

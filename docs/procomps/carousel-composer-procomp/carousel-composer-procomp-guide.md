@@ -1,10 +1,11 @@
 # `carousel-composer` — Pro-component Guide (Stage 3)
 
-> **Status:** shipped · **v0.3.1** · maturity `alpha` · category `media`
+> **Status:** shipped · **v0.4.0** · maturity `alpha` · category `media`
 > **Planning trio:** [description](carousel-composer-procomp-description.md) · [plan](carousel-composer-procomp-plan.md) · this guide
 > **Loop record:** [carousel-composer-loop.md](carousel-composer-loop.md) ("Run — Part 3 release 6")
 >
-> Rewritten 2026-10-26 for v0.3.0. Documented against source.
+> Rewritten 2026-10-26 for v0.3.0; §6, §7, §10, §11 and §13 updated 2026-10-29 for v0.4.0 (one shared aspect, any
+> ratio — "Run — release 8" in the media-editor loop record). Documented against source.
 
 ---
 
@@ -96,17 +97,21 @@ const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "ad
 - **`editorProps`** reaches the panel; the add-on's panel forwards only `enabledTools`, `stickers`,
   `fonts`, `colorPresets`, `filterPresets`, `labels`. Crop aspect, the source and the editor's modes
   stay the carousel's (§7).
-- **Your own editor:** `editing={{ Panel }}` — `Panel` receives `{ item, aspect, labels, editorProps,
-  onApply(id, patch), onCancel }` (`CarouselEditorPanelProps`). `onApply` is accepted only for the
+- **Your own editor:** `editing={{ Panel }}` — `Panel` receives `{ item, aspect, aspectRatio, labels, editorProps,
+  onApply(id, patch), onCancel }` (`CarouselEditorPanelProps`). `aspect` is a named ratio, `"free"` or `"W:H"` —
+  never `"original"`, which arrives resolved to item 1's pixels (`"4000:3000"`) — and `aspectRatio` is its width /
+  height (`null` for free). `onApply` is accepted only for the
   item being edited.
 - **The edit closes by itself** when its item leaves the list, when `editing` is removed, or when
   `canEditItem` turns false for it (`onEditCancel` fires).
 - **Focus:** the panel takes focus when it opens (unless your Panel moves focus inside it) and focus
   returns to the Edit button, or the selected thumb, when it closes.
 - **Done with no change keeps the item** (0.3.1): nothing is re-encoded and `onEditCancel` fires, as for Cancel.
-  After a change, the add-on exports only the photo's area (`region: "media"`) at the photo's own resolution (capped
-  at 4096 px), so no letterbox bars are baked in, and the item's `width` / `height` are the image's pixels. Needs
-  media-editor 0.6.0 (with an older vendored editor the add-on falls back to always re-exporting).
+  After a change, the add-on exports only the photo's area (`region: "media"`) at the photo's own resolution, so no
+  letterbox bars are baked in, and the item's `width` / `height` are the image's pixels. **0.4.0:** with a shared
+  ratio the result is then trimmed, centred, to the largest rect of that ratio inside its own pixels (never upscaled),
+  so an edited item comes back at the shared aspect even when the crop tool was not used. Needs media-editor 0.7.0
+  for `"W:H"` aspects (0.6.0 for the rest).
 - **Applying an edit clears the item's `status` / `progress` / `error`** — the edited media is not
   the file you uploaded; re-upload it from `onEditApply`.
 - **Typed edit fields:** the base keeps `item.editorState` opaque (`unknown`) and `item.exportMeta` as
@@ -115,14 +120,42 @@ const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "ad
 
 ## 7. The shared-aspect guarantee
 
-`aspect` is owned **here**, not by the embedded editor:
+`aspect` is owned **here**, not by the embedded editor. A carousel whose items crop to different shapes is a broken
+carousel, so the composer holds that dial and every frame follows it: the main preview, the rail thumbs (the shared ratio
+inside a 7.5 × 4 rem box: 4 rem tall, wide ratios shorter; at least 2 rem wide), the edit panel (media-editor's canvas `aspect` and its only crop aspect) and
+the edit's export.
 
 ```tsx
-aspect?: CarouselAspectRatio | "auto"   // default "auto" → derived from the first item's dimensions
+const [aspect, setAspect] = useState<CarouselAspectRatio>("4:5");
+
+<CarouselComposer
+  value={items}
+  onChange={setItems}
+  aspect={aspect}                                   // controlled (0.4.0)…
+  onAspectChange={setAspect}
+  aspectOptions={["original", "1:1", "4:5", "1.91:1"]}
+/>
+// …or uncontrolled: defaultAspect="4:5" (onAspectChange still reports)
 ```
 
-A carousel whose items crop to different shapes is a broken carousel, so the composer holds that dial
-and the editing panel passes it as the only crop aspect.
+| Value | Frame |
+|---|---|
+| `"9:16"`, `"1:1"`, `"16:9"`, `"4:5"`, any `"W:H"` (`"1.91:1"`) | that ratio (an invalid `"W:H"` → 1:1, one development warning) |
+| `"original"` | item 1's own ratio (1:1 until its size is known) |
+| `"auto"` (default) | the nearest of `aspectOptions` (their named / `"W:H"` entries; without options the four named ratios) to item 1's ratio, 1:1 until known — nearest by ratio, so a 4:3 photo snaps to 1:1 among the four |
+| `"free"` | 1:1 frames, each item keeps its own ratio, no trim, no `crop` |
+
+- **The switch** (`aspectOptions`, at least two distinct valid entries) shows on the main preview while item 1 is
+  selected and nothing is being edited — the first photo decides, as on Instagram. Its buttons are `aria-pressed`,
+  the group is named `labels.aspectSwitch`, each option `labels.aspectOption(aspect, format)`. A pick calls
+  `onAspectChange` (not for the option already selected). A controlled `aspect` without `onAspectChange` makes the
+  switch do nothing — one development warning.
+- **What you upload.** `handle.export()` gives each image of known size a `crop` — the centred rect of the shared
+  ratio in that item's media pixels (the whole image when it already has the ratio, as an edit does). Upload the
+  region, or crop server-side, to publish every item at the shared aspect. Videos, `"free"` and items of unknown size
+  get no `crop`. `centredCropRect(width, height, ratio)` is exported for your own uploads.
+- **After a switch** items edited earlier keep the aspect they were edited at (their pixels outside it were trimmed);
+  their `crop` is the centred crop of that image. Re-edit restores the original photo (`sourceBlob`).
 
 ## 8. Alt text, upload status, video
 
@@ -158,7 +191,8 @@ An open edit is **not** part of the value until applied:
 const ref = useRef<CarouselComposerHandle>(null);
 
 ref.current?.getItems();            // the latest items, synchronously (also inside your callbacks)
-await ref.current?.export();        // copy of the committed items (see §9)
+await ref.current?.export();        // copy of the committed items (see §9), images with `crop` (§7)
+ref.current?.getAspect();           // { aspect, ratio } as resolved now — "auto" / "original" resolved (0.4.0)
 await ref.current?.addFiles(files); // File[] | FileList — same path as the dropzone, current props
 ref.current?.removeItem(id);
 ref.current?.updateItem(id, patch); // status / progress / error / url / alt …; unknown id = no-op
@@ -173,10 +207,12 @@ Every visible and announced string is in `labels`; strings that carry a value ar
 (`dropzoneHint(max)`, `maxReached(max)`, `itemAria({ position, total, kind, alt, status })`,
 `itemsAdded(count)`, `altCounter(length, max)`, `uploadProgress(progress, { position, total })`,
 `removeItem({ position, total, kind })`, `uploadStatus(…)`,
-`durationLabel(formatted)`, `errors.*`, `drag.*`). `errors` and `drag` merge key by key; a key set to
+`durationLabel(formatted)`, `aspectOption(aspect, format)` (0.4.0), `errors.*`, `drag.*`). The 0.4.0 keys
+`aspectSwitch` / `aspectOption` are optional in `CarouselComposerLabels`, so a full 0.3 labels object still
+type-checks — and shows those two in English until you add them. `errors` and `drag` merge key by key; a key set to
 `undefined` keeps the default. `drag.instructions` replaces dnd-kit's built-in English keyboard
 instructions. Defaults: `defaultCarouselComposerLabels`. `locale` (default `"en"`) formats the
-duration digits; an invalid tag falls back to `"en"` (Arabic-Indic digits need a tag such as `"ar-EG"`).
+duration and aspect-option digits (no grouping: `"1920:1080"`); an invalid tag falls back to `"en"` (Arabic-Indic digits need a tag such as `"ar-EG"`).
 `dir` (default: read from the page after mount) mirrors the rail in RTL; pass it if your app switches direction
 without remounting. `remove` is deprecated in favour of `removeItem({ position, total, kind })` — a 0.2 `remove`
 translation still names the remove buttons until you add `removeItem`.
@@ -195,7 +231,19 @@ translation still names the remove buttons until you add `removeItem`.
 Rejections surface through `onValidationError` with a `MediaCarouselError` (`kind`, `message` from
 `labels.errors`, `file`) and in the component's alert.
 
-## 13. Migrating from 0.2
+## 13. Migrating from 0.3
+
+| 0.3 | 0.4.0 | What to do |
+|---|---|---|
+| `CarouselEditorPanelProps.aspect`: five values | named, `"free"` or `"W:H"` (never `"original"`), plus a required `aspectRatio` | **Breaking for your own `Panel` only:** handle `"W:H"` (or use `aspectRatio`); code that builds these props adds `aspectRatio` |
+| `CarouselAspectRatio` (and the deprecated `AspectRatio` alias): five values | media-editor's `CropAspect` values (`"original"`, `"W:H"`) | an exhaustive `switch` / `Record<CarouselAspectRatio, …>` handles the new values |
+| `aspect` was a fixed setting | controlled when set (`onAspectChange`), `defaultAspect` otherwise | nothing — a fixed `aspect` keeps working |
+| edited items came back at the photo's own ratio | trimmed to the shared aspect on Done | nothing; content-composer's post step gets trimmed edits too |
+| square rail thumbs | the shared ratio | check custom thumb styling |
+| `CarouselComposerHandle` | `+ getAspect()` | hand-written handle mocks add it |
+| add-on and base versions | the 0.4.0 add-on imports `centredCropRect` from the 0.4.0 base | **update both together** (`shadcn add` does not overwrite an installed base; registry dependencies don't pin versions) |
+
+## 13b. Migrating from 0.2
 
 | 0.2 | 0.3.0 | What to do |
 |---|---|---|
@@ -216,15 +264,16 @@ Rejections surface through `onValidationError` with a `MediaCarouselError` (`kin
 5. **Replacing an item's id** (a temporary id swapped for the server's) makes it a new item: its first
    status is not announced as a change.
 6. **content-composer's post step** wires the editing add-on but does not yet expose `acceptMime`,
-   `labels`, alt text or upload status (its re-design owns that).
+   `labels`, alt text, upload status, `aspectOptions` or the `crop` of unedited items (its re-design owns that).
+7. **The switch lives on item 1** — it hides when another item is selected or while editing.
 
 ## 15. Public exports
 
 `CarouselComposer` · `useCarouselState` · parts `MediaDropzone`, `PreviewRail`, `RailThumb`,
-`MainPreview` · values `defaultCarouselComposerLabels`, `DEFAULT_CAROUSEL_LABELS` (deprecated),
+`MainPreview`, `AspectSwitch` (0.4.0) · helper `centredCropRect` (0.4.0) · values `defaultCarouselComposerLabels`, `DEFAULT_CAROUSEL_LABELS` (deprecated),
 `PLATFORM_SAFE_MIME` · types `MediaCarouselItem`, `MediaCarouselItemPatch`, `MediaCarouselItemStatus`,
 `MediaKind`, `MediaCarouselSource`, `MediaCarouselError`, `MediaCarouselErrorKind`,
-`CarouselAspectRatio`, `CarouselExportMeta`, `CarouselEditingExtension`, `CarouselEditorPanelProps`,
+`CarouselAspectRatio`, `CarouselCropRect`, `CarouselExportMeta`, `CarouselEditingExtension`, `CarouselEditorPanelProps`,
 `ApplyEditPatch`, `CarouselComposerProps`, `CarouselComposerHandle`, `CarouselComposerLabels`,
 `CarouselComposerLabelsInput`, `CarouselComposerErrorLabels`, `CarouselComposerDragLabels`,
 `UseCarouselStateOptions`, `UseCarouselStateResult`, `CarouselStateCallbacks`, and each part's props

@@ -27,19 +27,75 @@ export interface TextCardExportOptions {
   textBoxWidth?: number;
   /** Text direction of the on-screen surface; sets `ctx.direction`. */
   direction?: "ltr" | "rtl";
+  /**
+   * Where the first text line starts: the on-screen input's top edge (plus its
+   * padding) in CSS px from the card's top. With it every line is drawn where
+   * the preview shows it; without it the wrapped block is centred on the card.
+   */
+  textTopPx?: number;
+  /** The live line height in CSS px. Default: font size x 1.2. */
+  lineHeightPx?: number;
 }
 
-// Layout constants mirror `parts/text-only-canvas.tsx`:
-//   container `px-8` (32px each side), textarea `w-full max-w-[20rem]`,
-//   `rows={3}`, font-size clamp(1.5rem, 7vw, 3rem), line-height 1.2,
-//   font-weight 600, text-shadow 0 2px 8px rgba(0,0,0,0.25), centred text.
-const PAD_X = 32;
-const MAX_TEXT_WIDTH = 320;
+// Fallback layout (no live element to measure) mirrors `parts/text-only-canvas.tsx`:
+//   wrap width min(cardWidth - 64, 640), font-size 7 % of the card width
+//   clamped 24..48 and stepped down (to 14) until the text fits the card minus
+//   88 px top and bottom, line-height 1.2, font-weight 600,
+//   text-shadow 0 2px 8px rgba(0,0,0,0.25), centred text.
+const SIDE_INSET = 64;
+const MAX_TEXT_WIDTH = 640;
 const MIN_FONT = 24;
 const MAX_FONT = 48;
+const FIT_FLOOR = 14;
+const FIT_RESERVE = 88;
 const LINE_HEIGHT = 1.2;
-const ROWS = 3;
 const FONT_WEIGHT = 600;
+
+/**
+ * Largest whole-px font size in `[floor, base]` for which `fits(px)` holds
+ * (binary search: `fits` is monotonic); `floor` when none does — beyond the floor the
+ * on-screen input scrolls (documented limit).
+ */
+export function fitFontSize(opts: {
+  base: number;
+  floor: number;
+  fits: (px: number) => boolean;
+}): number {
+  const { floor, fits } = opts;
+  const base = Math.max(floor, Math.floor(opts.base));
+  let lo = floor;
+  let hi = base;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (fits(mid)) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
+}
+
+/**
+ * Y of the first line's top edge. The live input position wins while the block
+ * stays inside the card; otherwise (or with no measurement) the block is
+ * centred so no line is lost.
+ */
+export function textBlockTop(opts: {
+  cardHeight: number;
+  lineCount: number;
+  lineHeight: number;
+  textTopPx?: number;
+}): number {
+  const { cardHeight, lineCount, lineHeight, textTopPx } = opts;
+  const block = lineCount * lineHeight;
+  if (
+    typeof textTopPx === "number" &&
+    Number.isFinite(textTopPx) &&
+    textTopPx >= 0 &&
+    textTopPx + block <= cardHeight + 0.5
+  ) {
+    return textTopPx;
+  }
+  return (cardHeight - block) / 2;
+}
 
 // ─── CSS resolution helpers ───────────────────────────────────────────
 
@@ -296,7 +352,8 @@ function wrapParagraph(
       line += ch;
     }
   }
-  lines.push(line.trimEnd());
+  // The last line keeps its trailing space: the textarea centres it too.
+  lines.push(line);
   return lines;
 }
 
@@ -315,9 +372,9 @@ function resolveFamily(textOnly: TextOnlyState, fonts: FontOption[]): string {
  * gradient) and the wrapped, centred text laid out like `TextOnlyCanvas`.
  * Waits for the font (`document.fonts.load`) before drawing.
  *
- * Layout note: the on-screen textarea is `rows={3}` and scrolls beyond that;
- * an export must not lose text, so more than three lines are laid out as one
- * block centred on the card instead.
+ * Layout note: the on-screen textarea grows with its text, so every line is
+ * drawn at the live position (`textTopPx` / `lineHeightPx`); a block that does
+ * not fit the card is centred instead so no line is lost.
  */
 export async function exportTextCardBlob(
   opts: TextCardExportOptions,
@@ -334,16 +391,19 @@ export async function exportTextCardBlob(
     fontSizePx,
     textBoxWidth,
     direction,
+    textTopPx,
+    lineHeightPx,
   } = opts;
 
   const family = resolveFamily(textOnly, fonts);
   // The live size wins; else the on-screen `7vw` is estimated from the card's
   // own width (the closest stand-in).
-  const fontSize =
+  const liveFont =
     typeof fontSizePx === "number" && Number.isFinite(fontSizePx) && fontSizePx > 0
       ? fontSizePx
-      : Math.round(Math.min(MAX_FONT, Math.max(MIN_FONT, width * 0.07)) * 100) / 100;
-  const font = `${FONT_WEIGHT} ${fontSize}px ${family}`;
+      : null;
+  const baseFont = Math.min(MAX_FONT, Math.max(MIN_FONT, width * 0.07));
+  const font = `${FONT_WEIGHT} ${liveFont ?? Math.round(baseFont * 100) / 100}px ${family}`;
 
   try {
     await document.fonts?.load(font, textOnly.text || undefined);
@@ -376,14 +436,35 @@ export async function exportTextCardBlob(
   const boxWidth =
     typeof textBoxWidth === "number" && Number.isFinite(textBoxWidth) && textBoxWidth > 0
       ? Math.max(1, Math.min(textBoxWidth, width))
-      : Math.max(1, Math.min(MAX_TEXT_WIDTH, width - PAD_X * 2));
-  const lineHeight = fontSize * LINE_HEIGHT;
-  const lines = textOnly.text
-    .split("\n")
-    .flatMap((p) => wrapParagraph(ctx, p, boxWidth));
-  const blockLines = Math.max(lines.length, ROWS);
-  const top = (height - blockLines * lineHeight) / 2;
-  // Fewer than 3 lines sit at the top of the 3-row textarea; more are centred.
+      : Math.max(1, Math.min(MAX_TEXT_WIDTH, width - SIDE_INSET));
+  const wrapAll = () =>
+    textOnly.text.split("\n").flatMap((p) => wrapParagraph(ctx, p, boxWidth));
+  let fontSize = liveFont;
+  if (fontSize === null) {
+    // No live element: step the font down like the preview does until the
+    // wrapped block fits the card minus the top / bottom reserve.
+    const available = Math.max(height - 2 * FIT_RESERVE, height * 0.4);
+    fontSize = fitFontSize({
+      base: baseFont,
+      floor: FIT_FLOOR,
+      fits: (px) => {
+        ctx.font = `${FONT_WEIGHT} ${px}px ${family}`;
+        return wrapAll().length * px * LINE_HEIGHT <= available;
+      },
+    });
+    ctx.font = `${FONT_WEIGHT} ${fontSize}px ${family}`;
+  }
+  const lineHeight =
+    typeof lineHeightPx === "number" && Number.isFinite(lineHeightPx) && lineHeightPx > 0
+      ? lineHeightPx
+      : fontSize * LINE_HEIGHT;
+  const lines = wrapAll();
+  const top = textBlockTop({
+    cardHeight: height,
+    lineCount: lines.length,
+    lineHeight,
+    textTopPx,
+  });
   lines.forEach((line, i) => {
     if (line === "") return;
     ctx.fillText(line, width / 2, top + (i + 0.5) * lineHeight);

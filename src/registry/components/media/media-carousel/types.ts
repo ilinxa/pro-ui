@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+// F-S1 lock: same-category cross-procomp via relative + specific-file path.
+import type { VideoPlayerLabels } from "../video-player/types";
 
 export type MediaCarouselVariant = "gallery" | "linear";
 
@@ -8,18 +10,29 @@ export type LinearAspect = "square" | "video" | "portrait" | "auto";
 /**
  * Slide frame ratio. `natural-clamped` = the first item's own ratio, clamped to
  * `[minRatio, maxRatio]` (width / height) — e.g. 3:4 → 4:5, 16:9 stays, 3:1 → 1.91:1.
+ * 0.4.0: also any `"W:H"` with finite positive numbers (`"4:5"`, `"1.91:1"`), the
+ * same strings media-editor and carousel-composer use. An invalid `"W:H"` falls back
+ * to `"square"` (one dev warning).
  */
-export type MediaCarouselAspect = LinearAspect | "natural-clamped";
+export type MediaCarouselAspect = LinearAspect | "natural-clamped" | `${number}:${number}`;
 
 export type MediaCarouselDirection = "ltr" | "rtl";
 
-/** Discriminated union — strict shape. */
+/**
+ * Discriminated union — strict shape.
+ *
+ * `caption` (0.4.0): short text shown under the slide's frame (outside the aspect box),
+ * clamped to `captionLines` with a Show more toggle, `dir="auto"`. It is part of its
+ * slide, so a screen reader reads it once, with that slide; it is not used as the
+ * image's `alt` (give `alt` for that). No caption = no space taken.
+ */
 export type MediaItem =
   | {
       id: string;
       type: "image";
       url: string;
       alt?: string;
+      caption?: string;
       /** Intrinsic size in px — reserves the frame before load and feeds `natural-clamped`. */
       width?: number;
       height?: number;
@@ -31,7 +44,9 @@ export type MediaItem =
       id: string;
       type: "video";
       url: string;
+      /** 0.4.0: names the built-in player's `<video>` (otherwise `labels.video.videoLabel`). */
       alt?: string;
+      caption?: string;
       poster?: string;
       /** Intrinsic size in px — feeds `natural-clamped` before the metadata loads. */
       width?: number;
@@ -77,6 +92,15 @@ export interface MediaCarouselLabels {
   carouselRoleDescription?: string;
   /** Default: "slide". `aria-roledescription` of each slide. */
   slideRoleDescription?: string;
+  /** 0.4.0. Default: "Show more". The caption's expand toggle. */
+  captionShowMore?: string;
+  /** 0.4.0. Default: "Show less". The caption's collapse toggle. */
+  captionShowLess?: string;
+  /**
+   * 0.4.0. Labels for every built-in video player (play, mute, seek…), merged over
+   * video-player's defaults. A video item's `alt` wins over `videoLabel`.
+   */
+  video?: VideoPlayerLabels;
 }
 
 /** Labels after merging over the defaults — every value present, value labels as functions. */
@@ -89,6 +113,10 @@ export interface ResolvedMediaCarouselLabels {
   counter: (position: number, total: number, format: (n: number) => string) => string;
   carouselRoleDescription: string;
   slideRoleDescription: string;
+  captionShowMore: string;
+  captionShowLess: string;
+  /** Passed through as given (video-player merges its own defaults). */
+  video?: VideoPlayerLabels;
 }
 
 export interface MediaCarouselProps {
@@ -98,7 +126,11 @@ export interface MediaCarouselProps {
   variant: MediaCarouselVariant;
 
   // ─── Per-variant config ──────────────────────────────────────────
-  /** Gallery only: peek ratio per side (e.g., 0.075 = 7.5%). Default: 0.075. */
+  /**
+   * Gallery only: peek ratio per side (e.g., 0.075 = 7.5%). Default: 0.075. 0.4.0: sets
+   * the slide width (`1 − 2 × peekRatio`) — before 0.4.0 slides were always 85 % wide. Clamped to
+   * 0–0.45; a non-finite value uses 0.075 (one dev warning).
+   */
   peekRatio?: number;
   /**
    * Slide frame ratio, for both variants and a single item. Default: "square".
@@ -129,8 +161,17 @@ export interface MediaCarouselProps {
   dir?: MediaCarouselDirection;
   /** @deprecated Use `dir="rtl"`. Ignored when `dir` is set. */
   rtl?: boolean;
-  /** BCP 47 locale for the counter numbers. Default: "en"; an invalid tag falls back to "en". */
+  /**
+   * BCP 47 locale for the counter numbers and (0.4.0) the built-in video players' time
+   * text. Default: "en"; an invalid tag falls back to "en".
+   */
   locale?: string;
+
+  // ─── Captions (0.4.0) ────────────────────────────────────────────
+  /** Lines a caption shows before its Show more toggle. Default: 2. */
+  captionLines?: number;
+  /** Extra classes for each caption's text element. */
+  captionClassName?: string;
 
   // ─── Controlled index (opt-in) ───────────────────────────────────
   /**
@@ -194,6 +235,8 @@ export const defaultMediaCarouselLabels: ResolvedMediaCarouselLabels = {
   counter: (position, total, format) => `${format(position)}/${format(total)}`,
   carouselRoleDescription: "carousel",
   slideRoleDescription: "slide",
+  captionShowMore: "Show more",
+  captionShowLess: "Show less",
 };
 
 /**

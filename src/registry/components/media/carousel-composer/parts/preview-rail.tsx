@@ -42,6 +42,8 @@ export interface PreviewRailProps {
     | "durationLabel"
   >;
   formatDuration: (seconds: number) => string;
+  /** Shared aspect as width / height (`null` = free). */
+  ratio?: number | null;
   onRetry?: (item: MediaCarouselItem) => void;
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
@@ -66,6 +68,7 @@ export function PreviewRail({
   maxItems,
   labels,
   formatDuration,
+  ratio,
   onRetry,
   onSelect,
   onRemove,
@@ -100,6 +103,7 @@ export function PreviewRail({
               disabled={disabled}
               labels={labels}
               formatDuration={formatDuration}
+              ratio={ratio}
               onSelect={onSelect}
               onRemove={onRemove}
               onRetry={onRetry}

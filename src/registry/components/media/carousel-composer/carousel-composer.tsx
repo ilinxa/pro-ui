@@ -23,6 +23,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { AlertCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
+  CarouselAspectRatio,
   CarouselComposerHandle,
   CarouselComposerProps,
   MediaCarouselItem,
@@ -31,8 +32,14 @@ import type {
 import { useCarouselState } from "./hooks/use-carousel-state";
 import { filesToItems } from "./lib/file-intake";
 import { clampSources } from "./lib/clamp-sources";
-import { aspectToCss, resolveAspect } from "./lib/aspect";
+import {
+  aspectToCss,
+  centredCropRect,
+  isValidAspect,
+  resolveAspect,
+} from "./lib/aspect";
 import { mergeLabels } from "./lib/labels";
+import { defaultCarouselComposerLabels } from "./types";
 import { formatDuration as defaultFormatDuration } from "./lib/format-duration";
 import { useWarnOnce } from "./hooks/use-warn-once";
 import { ItemStatus } from "./parts/item-status";
@@ -43,6 +50,9 @@ import { MainPreview } from "./parts/main-preview";
 import { useEditingExtension } from "./hooks/use-editing-extension";
 import { useDirection } from "./hooks/use-direction";
 import { EditFrame } from "./parts/edit-frame";
+import { AspectSwitch } from "./parts/aspect-switch";
+import { formatNumber as formatLocaleNumber } from "./lib/format-number";
+import { useControllableState } from "./hooks/use-controllable-state";
 
 /**
  * carousel-composer — a multi-item media composer (Instagram-feed-post
@@ -72,7 +82,10 @@ function CarouselComposerImpl(
     locale = "en",
     dir: dirProp,
     sources,
-    aspect = "auto",
+    aspect: aspectProp,
+    defaultAspect = "auto",
+    onAspectChange,
+    aspectOptions,
     editing: editingProp,
     canEditItem,
     editorProps,
@@ -276,10 +289,55 @@ function CarouselComposerImpl(
     (root.querySelector<HTMLElement>("[data-edit-button]") ?? thumb)?.focus();
   }, [isEditingNow, selectedIdNow]);
 
-  const resolvedAspect = useMemo(
-    () => resolveAspect(state.items, aspect),
-    [state.items, aspect],
+  // `onChange` is always defined: a fixed `aspect` with no switch is plain configuration,
+  // not a frozen control, so the helper's "controlled without handler" warning would mislead.
+  const [aspectSetting, setAspectSetting] = useControllableState<CarouselAspectRatio | "auto">({
+    value: aspectProp,
+    defaultValue: defaultAspect,
+    onChange: (next) => {
+      if (next !== "auto") onAspectChange?.(next);
+    },
+    componentName: "CarouselComposer",
+    valuePropName: "aspect",
+  });
+  const switchOptions = useMemo(() => {
+    const given = aspectOptions ?? [];
+    const valid = given.filter((o, i) => isValidAspect(o) && given.indexOf(o) === i);
+    return { valid, invalid: given.filter((o) => !isValidAspect(o)) };
+  }, [aspectOptions]);
+  const resolution = useMemo(
+    () => resolveAspect(state.items, aspectSetting, switchOptions.valid),
+    [state.items, aspectSetting, switchOptions.valid],
   );
+  const resolvedAspect = resolution.aspect;
+  const invalidAspectOptions = switchOptions.invalid.join(",");
+  useEffect(() => {
+    if (resolution.invalid) {
+      warnOnce(
+        `invalid-aspect:${String(aspectSetting)}`,
+        `[CarouselComposer] aspect "${String(aspectSetting)}" is not a ratio ("W:H" with positive numbers); using "1:1".`,
+      );
+    }
+  }, [resolution.invalid, aspectSetting, warnOnce]);
+  useEffect(() => {
+    if (invalidAspectOptions) {
+      warnOnce(
+        `invalid-aspect-options:${invalidAspectOptions}`,
+        `[CarouselComposer] aspectOptions entries dropped (not a ratio): ${invalidAspectOptions}`,
+      );
+    }
+  }, [invalidAspectOptions, warnOnce]);
+  const aspectSwitchFrozen =
+    aspectProp !== undefined && !onAspectChange && switchOptions.valid.length >= 2;
+  useEffect(() => {
+    if (aspectSwitchFrozen) {
+      warnOnce(
+        "aspect-switch-frozen",
+        "[CarouselComposer] `aspect` is controlled and `aspectOptions` is set, but there is no `onAspectChange`: picking an option does nothing. Pass `onAspectChange` and update `aspect`.",
+      );
+    }
+  }, [aspectSwitchFrozen, warnOnce]);
+  const resolvedRatio = resolution.ratio;
 
   const addFiles = async (files: File[] | FileList) => {
     setErrors([]);
@@ -409,7 +467,16 @@ function CarouselComposerImpl(
     ref,
     (): CarouselComposerHandle => ({
       getItems: () => getItems().map((it) => ({ ...it })),
-      export: async () => getItems().map((it) => ({ ...it })),
+      export: async () =>
+        getItems().map((it) => {
+          const copy = { ...it };
+          if (it.kind === "image" && resolvedRatio !== null && it.width && it.height) {
+            copy.crop = centredCropRect(it.width, it.height, resolvedRatio);
+          } else {
+            delete copy.crop;
+          }
+          return copy;
+        }),
       addFiles: (files) => addFilesRef.current(files),
       removeItem,
       updateItem,
@@ -422,8 +489,9 @@ function CarouselComposerImpl(
         openEditorState(id);
       },
       reset: resetItems,
+      getAspect: () => ({ aspect: resolvedAspect, ratio: resolvedRatio }),
     }),
-    [removeItem, updateItem, selectItem, openEditorState, resetItems, getItems, editing, warnOpenWithoutEditing],
+    [resolvedAspect, resolvedRatio, removeItem, updateItem, selectItem, openEditorState, resetItems, getItems, editing, warnOpenWithoutEditing],
   );
 
   const isEmpty = state.items.length === 0;
@@ -436,6 +504,13 @@ function CarouselComposerImpl(
     sel !== null &&
     sel.kind === "image" &&
     canEditItem?.(sel) !== false;
+  const showSwitch =
+    switchOptions.valid.length >= 2 && state.items[0] !== undefined && sel?.id === state.items[0].id;
+  const activeOption =
+    aspectSetting === "auto"
+      ? (switchOptions.valid.find((o) => o === resolvedAspect) ?? null)
+      : aspectSetting;
+  const formatNumber = (n: number) => formatLocaleNumber(n, locale);
   const canAddMore = uploadEnabled && state.items.length < maxItems;
 
   return (
@@ -457,6 +532,7 @@ function CarouselComposerImpl(
         <EditingPanel
           item={state.editingItem!}
           aspect={resolvedAspect}
+          aspectRatio={resolvedRatio}
           editorProps={editorProps}
           labels={{
             editDone: labels.editDone,
@@ -475,6 +551,23 @@ function CarouselComposerImpl(
           canEdit={canEdit}
           editingEnabled={editing !== undefined}
           labels={labels}
+          aspectSwitch={
+            showSwitch ? (
+              <AspectSwitch
+                options={switchOptions.valid}
+                active={activeOption}
+                groupLabel={labels.aspectSwitch ?? defaultCarouselComposerLabels.aspectSwitch!}
+                optionLabel={(a) =>
+                  (labels.aspectOption ?? defaultCarouselComposerLabels.aspectOption!)(a, formatNumber)
+                }
+                onPick={(next) => {
+                  // Re-picking the pressed option is not a change.
+                  if (aspectSetting !== "auto" && next === aspectSetting) return;
+                  setAspectSetting(next);
+                }}
+              />
+            ) : null
+          }
           onEdit={() =>
             state.selectedItem && state.openEditor(state.selectedItem.id)
           }
@@ -549,6 +642,7 @@ function CarouselComposerImpl(
             maxItems={maxItems}
             labels={labels}
             formatDuration={formatDuration}
+            ratio={resolvedRatio}
             onRetry={handleRetry}
             onSelect={state.select}
             onRemove={handleRemove}
@@ -582,6 +676,7 @@ export type {
   CarouselComposerHandle,
   CarouselComposerLabels,
   CarouselAspectRatio,
+  CarouselCropRect,
   CarouselExportMeta,
   CarouselEditingExtension,
   CarouselEditorPanelProps,

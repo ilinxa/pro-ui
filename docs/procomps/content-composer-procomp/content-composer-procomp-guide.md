@@ -162,7 +162,7 @@ step is a **`mediaCarouselSlot`** backed by carousel-composer: drop/browse
 N mixed photo+video, reorder them, and edit any photo through the carousel's
 editing add-on (`@ilinxa/carousel-composer-editing`, installed with content-composer since
 0.3.3 — carousel-composer 0.3.0 moved editing out of its base). Step navigation is **lossless within a session** — the shell caches
-the live carousel items (blobs included) across step unmounts.
+the live carousel items (blobs included) across step unmounts. With carousel-composer 0.4.0 an edited photo comes back trimmed (centred) to the carousel's shared aspect (`aspect`, default `"auto"` — item 1 snapped to the nearest of 9:16 / 4:5 / 1:1 / 16:9), while an unedited photo keeps its own pixels; the carousel's per-item `crop` is not part of this composer's payload yet, and `aspectOptions` is not exposed (both belong to the re-design).
 
 **Post authoring is fully live.** Only the publish path is deferred: the
 `post-content-item` adapter and the durable **multi-blob upload-at-publish** ship

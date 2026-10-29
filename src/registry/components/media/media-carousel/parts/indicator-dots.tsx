@@ -7,6 +7,8 @@ interface IndicatorDotsProps {
   currentIndex: number;
   scrollTo: (index: number) => void;
   labels: { goToSlide: (position: number) => string };
+  /** In normal flow below the slides (captions present) instead of overlaid on the media. */
+  inFlow?: boolean;
 }
 
 export function IndicatorDots({
@@ -14,9 +16,15 @@ export function IndicatorDots({
   currentIndex,
   scrollTo,
   labels,
+  inFlow = false,
 }: IndicatorDotsProps) {
   return (
-    <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+    <div
+      className={cn(
+        "flex gap-1.5",
+        inFlow ? "justify-center pt-2" : "absolute bottom-3 left-1/2 z-10 -translate-x-1/2",
+      )}
+    >
       {Array.from({ length: total }, (_, i) => {
         const isActive = i === currentIndex;
         return (

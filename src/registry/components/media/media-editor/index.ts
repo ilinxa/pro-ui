@@ -50,6 +50,7 @@ export type {
   // Aspect + tools
   AspectRatio,
   CropAspect,
+  CanvasAspect,
   StateFrame,
   EditTool,
   // Source intake

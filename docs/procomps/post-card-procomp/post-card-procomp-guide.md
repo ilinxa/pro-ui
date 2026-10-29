@@ -707,3 +707,17 @@ card reads the clock after mount and every minute. `formatRelativeTime` / `forma
   controlled — pass `commentThreadProps.onCommentsChange` to control the comments too.
 - Nested labels: `likersLabels`, `shareLabels`, `textLabels` (and the existing `engagementLabels`, `commentLabels`).
 - List variant meta: `listLikes` / `listComments` / `listShares` (`(count, formatted) => …`).
+
+# v0.8.0 — media captions and any aspect (2026-10-29)
+
+post-card follows media-carousel 0.4.0; the forwarding is through the existing `mediaProps` bag:
+
+- `PostMediaItem.caption` — shown under its slide, clamped (`mediaProps.captionLines`, default 2;
+  `mediaProps.captionClassName`), read once with its slide by screen readers; it is not the image's `alt`.
+- `mediaProps.aspect` takes any `"W:H"` (`"4:5"`, `"1.91:1"`) besides the named values and `"natural-clamped"`.
+- `mediaProps.labels.captionShowMore` / `captionShowLess`, and `mediaProps.labels.video` (`PostMediaVideoLabels`, the
+  same keys as video-player's labels) for every video in the carousel; a video item's `alt` names it. `locale` already
+  reaches the carousel.
+
+Re-add post-card with media-carousel (it now brings `@ilinxa/expandable-text`): `pnpm dlx shadcn@latest add
+@ilinxa/media-carousel @ilinxa/post-card --overwrite`.

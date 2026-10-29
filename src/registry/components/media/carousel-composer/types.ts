@@ -11,8 +11,30 @@ export type MediaKind = "image" | "video";
 /** `"library"` is accepted for forward compatibility and ignored: intake is upload-only. */
 export type MediaCarouselSource = "upload" | "library";
 
-/** The carousel's shared frame aspect — the same values as media-editor's `AspectRatio`. */
-export type CarouselAspectRatio = "9:16" | "1:1" | "16:9" | "4:5" | "free";
+/**
+ * The carousel's shared frame aspect — the same values as media-editor's
+ * `CropAspect` (0.4.0; was the five `AspectRatio` values): the named ratios,
+ * `"free"` (each item keeps its own ratio, no crop), `"original"` (item 1's own
+ * ratio, 1:1 until its size is known) and any `"W:H"` with finite positive
+ * numbers, e.g. `"1.91:1"`. An invalid `"W:H"` falls back to `"1:1"` (one dev
+ * warning).
+ */
+export type CarouselAspectRatio =
+  | "9:16"
+  | "1:1"
+  | "16:9"
+  | "4:5"
+  | "free"
+  | "original"
+  | `${number}:${number}`;
+
+/** A crop rectangle in an item's media pixels (its current `url`). */
+export interface CarouselCropRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 /** @deprecated Use `CarouselAspectRatio` (0.2 re-exported media-editor's `AspectRatio` from this file). */
 export type AspectRatio = CarouselAspectRatio;
 
@@ -102,6 +124,14 @@ export interface MediaCarouselItem {
   posterBlob?: Blob;
   /** Object URL of `posterBlob`, created and revoked by the carousel. */
   posterUrl?: string;
+  /**
+   * 0.4.0, filled by `handle.export()` only: the centred crop of this item's
+   * media (`width` × `height` pixels) at the shared aspect — the whole image
+   * when it already has that ratio (an edit exports at it). Absent for videos,
+   * for `"free"`, and while the item's size is unknown. Upload the region (or
+   * crop server-side) to publish every item at the shared aspect.
+   */
+  crop?: CarouselCropRect;
 }
 
 /** Fields a host may change through the handle's `updateItem`. */
@@ -199,6 +229,17 @@ export interface CarouselComposerLabels {
   }) => string;
   /** Accessible name of a video's duration badge, e.g. "Duration 0:45". */
   durationLabel: (formatted: string) => string;
+  /**
+   * 0.4.0. Accessible name of the aspect switch (`aspectOptions`). Optional so a
+   * full 0.3 labels object still type-checks; default "Aspect ratio".
+   */
+  aspectSwitch?: string;
+  /**
+   * 0.4.0. Name of one aspect option. `format` renders a number in `locale`.
+   * Default: "Original", "Free", otherwise the ratio with locale digits
+   * (`"1.91:1"`). Optional (see `aspectSwitch`).
+   */
+  aspectOption?: (aspect: CarouselAspectRatio, format: (n: number) => string) => string;
   errors: CarouselComposerErrorLabels;
 }
 
@@ -268,6 +309,13 @@ export const defaultCarouselComposerLabels: CarouselComposerLabels = {
     }
   },
   durationLabel: (formatted) => `Duration ${formatted}`,
+  aspectSwitch: "Aspect ratio",
+  aspectOption: (aspect, format) => {
+    if (aspect === "original") return "Original";
+    if (aspect === "free") return "Free";
+    const [w, h] = aspect.split(":");
+    return `${format(Number(w))}:${format(Number(h))}`;
+  },
   errors: {
     unsupportedType: ({ type }) => `Unsupported file type: ${type || "unknown"}`,
     kindNotAccepted: ({ kind }) =>
@@ -287,7 +335,15 @@ export const DEFAULT_CAROUSEL_LABELS = defaultCarouselComposerLabels;
 /** What the editing panel receives. A superset of a `renderEditor({ item, onApply, onCancel })` slot. */
 export interface CarouselEditorPanelProps {
   item: MediaCarouselItem;
-  aspect: CarouselAspectRatio;
+  /**
+   * The shared aspect, ready for media-editor's canvas `aspect` and
+   * `cropAspects`: a named ratio, `"free"`, or `"W:H"` (0.4.0 — `"original"`
+   * arrives resolved to item 1's ratio as `"W:H"`). Breaking in 0.4.0: a custom
+   * panel that switched over the five 0.3 values must handle `"W:H"`.
+   */
+  aspect: Exclude<CarouselAspectRatio, "original">;
+  /** `aspect` as width / height (0.4.0); `null` for `"free"`. */
+  aspectRatio: number | null;
   labels: Pick<CarouselComposerLabels, "editDone" | "editCancel" | "editSaving" | "editError">;
   /** `CarouselComposerProps.editorProps`, passed through untouched. */
   editorProps?: Readonly<Record<string, unknown>>;
@@ -330,8 +386,25 @@ export interface CarouselComposerProps {
   maxVideoSeconds?: number;
   /** Default `["upload"]`; `"library"` is ignored. */
   sources?: MediaCarouselSource[];
-  /** Default `"auto"`: derived from item 1's dimensions. */
+  /**
+   * The shared frame aspect of every item (preview, rail thumbs, edit, reported
+   * crop). `"auto"` = the nearest of `aspectOptions` (named / `"W:H"` entries;
+   * without options the four standard ratios) to item 1's ratio, 1:1 until it
+   * is known. 0.4.0: controlled when set — a pick in the aspect switch calls
+   * `onAspectChange` and waits for the new value.
+   */
   aspect?: CarouselAspectRatio | "auto";
+  /** 0.4.0. Starting aspect when `aspect` is not set. Default `"auto"`. */
+  defaultAspect?: CarouselAspectRatio | "auto";
+  /** 0.4.0. Fires when the user picks an option in the aspect switch. */
+  onAspectChange?: (aspect: CarouselAspectRatio) => void;
+  /**
+   * 0.4.0. Shows an aspect switch on the main preview while item 1 is selected
+   * and nothing is being edited (Instagram: the first photo decides). At least
+   * two valid entries; invalid ones are dropped (one dev warning). Without it
+   * there is no switch.
+   */
+  aspectOptions?: CarouselAspectRatio[];
 
   // editing (feature item)
   /** Image editing add-on. Without it there is no Edit button and `openEditor` does nothing (one dev warning). */
@@ -390,9 +463,15 @@ export interface CarouselComposerHandle {
   getItems: () => MediaCarouselItem[];
   /**
    * Resolves a copy of the COMMITTED ordered items (edits already flattened). An
-   * open, unapplied edit is not included — gate publish while editing.
+   * open, unapplied edit is not included — gate publish while editing. 0.4.0:
+   * each image of known size carries `crop` for the shared aspect.
    */
   export: () => Promise<MediaCarouselItem[]>;
+  /**
+   * 0.4.0. The shared aspect as resolved now (`"auto"` and `"original"` turned
+   * into a value) and its width / height (`null` for `"free"`).
+   */
+  getAspect: () => { aspect: CarouselAspectRatio; ratio: number | null };
   /** Same path as the dropzone, with the current props. Resolves once the files are read and added. */
   addFiles: (files: File[] | FileList) => Promise<void>;
   removeItem: (id: string) => void;

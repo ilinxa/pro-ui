@@ -165,6 +165,28 @@ import { mediaCapture } from "@/components/media-editor/features/capture"
       </section>
 
       <section>
+        <h3 className="mb-2 text-base font-semibold">Carrying a crop aspect</h3>
+        <p className="text-muted-foreground">
+          The canvas <code>aspect</code> takes any <code>&quot;W:H&quot;</code>{" "}
+          (<code>&quot;1.91:1&quot;</code>). In a multi-photo post, open the
+          next photo on the aspect the first one was cropped to:{" "}
+          <code>crop-set</code> carries the selected <code>aspect</code> and
+          its <code>ratio</code>, <code>getState().cropAspect</code> holds the
+          current pick, and <code>defaultCropAspect</code> opens Crop on it. A
+          mounted editor follows a new <code>cropAspects</code> list.
+        </p>
+        <pre className="mt-2 overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+          <code>{`<MediaEditor
+  key={photo.id}
+  cropAspects={["original", "1:1", "4:5", "1.91:1"]}
+  defaultCropAspect={aspect}
+  onEditAction={(a) => a.kind === "crop-set" && setAspect(a.aspect)}
+  labels={{ crop: { aspect: (a, f) => (a === "1.91:1" ? "Landscape" : a) } }}
+/>`}</code>
+        </pre>
+      </section>
+
+      <section>
         <h3 className="mb-2 text-base font-semibold">Export</h3>
         <p className="text-muted-foreground">
           Call the imperative handle from your publish flow. Each method

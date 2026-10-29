@@ -27,6 +27,7 @@ describe("CarouselEditPanel editorProps", () => {
       <CarouselEditPanel
         item={item}
         aspect="1:1"
+        aspectRatio={1}
         labels={labels}
         onApply={() => {}}
         onCancel={() => {}}

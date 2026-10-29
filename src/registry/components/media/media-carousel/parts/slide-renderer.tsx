@@ -1,12 +1,13 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 // F-S1 lock: same-category cross-procomp via relative + specific-file path.
 import { VideoPlayer } from "../../video-player/video-player";
 import type { MediaRecovery } from "../hooks/use-media-recovery";
 import type { FrameStyle } from "../lib/aspect";
+import type { VideoPlayerLabels } from "../../video-player/types";
 import type { MediaItem, RenderItemContext } from "../types";
 
 interface SlideRendererProps {
@@ -20,6 +21,10 @@ interface SlideRendererProps {
   /** Set when the root still needs this item's natural size (`natural-clamped`, no dimensions). */
   onNaturalSize?: (width: number, height: number) => void;
   slideClassName?: string;
+  /** BCP 47 locale for the built-in video player's time text. */
+  locale?: string;
+  /** `labels.video`, merged over the player defaults. */
+  videoLabels?: VideoPlayerLabels;
 }
 
 /**
@@ -40,11 +45,19 @@ export function SlideRenderer({
   recovery,
   onNaturalSize,
   slideClassName,
+  locale,
+  videoLabels,
 }: SlideRendererProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const src = recovery.urlFor(item);
   const reportError = recovery.onError;
+  // A video item's `alt` names its player and wins over `labels.video.videoLabel`.
+  const alt = item.type === "video" ? item.alt : undefined;
+  const playerLabels = useMemo<VideoPlayerLabels | undefined>(
+    () => (alt ? { ...videoLabels, videoLabel: alt } : videoLabels),
+    [videoLabels, alt],
+  );
 
   // An image that finished (or failed) before hydration — or was already loaded when it became
   // the first item — fires no event the handlers can see: read its state instead.
@@ -102,6 +115,8 @@ export function SlideRenderer({
       <VideoPlayer
         src={src}
         poster={item.poster}
+        locale={locale}
+        labels={playerLabels}
         isActive={ctx.isActive && ctx.inView}
         onDoubleTap={
           onDoubleTap ? () => onDoubleTap(item, ctx.index) : undefined

@@ -1,4 +1,5 @@
-import type { AspectRatio } from "../types";
+import type { AspectRatio, CanvasAspect } from "../types";
+import { canvasAspectToRatio } from "./crop-aspect";
 
 export interface DialogDims {
   /** CSS `aspect-ratio` value, e.g. `"9 / 16"`. */
@@ -28,6 +29,15 @@ const DIALOG_DIMS_FOR_ASPECT: Record<AspectRatio, DialogDims> = {
   free: { aspectRatio: "4 / 3", orientation: "landscape" },
 };
 
-export function dialogDimsForAspect(aspect: AspectRatio): DialogDims {
-  return DIALOG_DIMS_FOR_ASPECT[aspect];
+export function dialogDimsForAspect(aspect: CanvasAspect): DialogDims {
+  const named = DIALOG_DIMS_FOR_ASPECT[aspect as AspectRatio];
+  if (named) return named;
+  // Custom "W:H": the CSS ratio comes from the numbers, orientation from which side is longer.
+  const ratio = canvasAspectToRatio(aspect);
+  if (ratio === null) return DIALOG_DIMS_FOR_ASPECT.free;
+  const [w, h] = aspect.split(":");
+  return {
+    aspectRatio: `${Number(w)} / ${Number(h)}`,
+    orientation: ratio > 1 ? "landscape" : "portrait",
+  };
 }

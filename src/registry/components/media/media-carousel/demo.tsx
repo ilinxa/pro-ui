@@ -11,11 +11,13 @@ import {
   DUMMY_SINGLE_IMAGE,
   DUMMY_SINGLE_VIDEO,
   arLabels,
+  captionedItems,
   errorRefreshItems,
   mixedRatioItems,
   prototypeItems,
   refreshedImageUrl,
   trLabels,
+  twoItems,
   videoItems,
 } from "./dummy-data";
 import type { MediaCarouselHandle } from "./types";
@@ -171,6 +173,9 @@ export default function MediaCarouselDemo() {
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="error">Error refresh</TabsTrigger>
         <TabsTrigger value="video">Video</TabsTrigger>
+        <TabsTrigger value="captions">Captions</TabsTrigger>
+        <TabsTrigger value="two">Two items</TabsTrigger>
+        <TabsTrigger value="ratios">4:5 / 1.91:1</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="gallery" className="mt-6 space-y-3">
@@ -333,6 +338,33 @@ export default function MediaCarouselDemo() {
           Two videos (poster before play) and an image. Only the active slide&apos;s video can play,
           and the active video pauses when the carousel is scrolled out of view (below ~50 % visible)
           — start one, then scroll the page.
+        </p>
+      </TabsContent>
+      <TabsContent value="captions" className="mt-6 space-y-3">
+        <MediaCarousel items={captionedItems} variant="gallery" aspect="4:5" showCounter />
+        <p className="text-xs text-muted-foreground">
+          <code>caption</code> sits under the frame, inside the slide: it is read once with its slide,
+          clamped to <code>captionLines</code> (2) with a Show more toggle. The middle item has no caption and
+          takes no space (the carousel height follows the active slide); the dots move below the slides
+          while any caption exists.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="two" className="mt-6 space-y-3">
+        <MediaCarousel items={twoItems} variant="gallery" showCounter />
+        <p className="text-xs text-muted-foreground">
+          Two items in a gallery: Embla cannot fill a loop with them, so the carousel is not looping
+          &mdash; the first and last slides get the edge margin and Prev / Next are disabled at the ends.
+          The counter chip sits inside the active frame, never over the neighbour.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="ratios" className="mt-6 space-y-6">
+        <MediaCarousel items={captionedItems} variant="linear" aspect="4:5" />
+        <MediaCarousel items={captionedItems} variant="linear" aspect="1.91:1" />
+        <p className="text-xs text-muted-foreground">
+          <code>aspect=&quot;4:5&quot;</code> and <code>aspect=&quot;1.91:1&quot;</code>: any{" "}
+          <code>&quot;W:H&quot;</code>, the same strings media-editor and carousel-composer use.
         </p>
       </TabsContent>
     </Tabs>

@@ -7,6 +7,12 @@
 > wrapper around this; `content-composer`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
+> **v0.7.0 (2026-10-29, breaking type)** — the canvas `aspect` takes any `"W:H"` (`CanvasAspect`, also in the slot
+> context); `defaultCropAspect`; `crop-set` carries `aspect` + `ratio`; `getState()` / `loadState` carry `cropAspect`;
+> a mounted editor follows a new `cropAspects` list; chips are `aria-pressed` and named by `labels.crop.aspect`; text
+> cards show every line while editing at the size they export. See [Carrying a crop aspect](#carrying-a-crop-aspect)
+> and [Migration 0.6 → 0.7](#migration-06--07).
+>
 > **v0.6.0 (2026-10-26, breaking)** — `ExportMetadata.width` / `height` are the exported blob's pixels (they were
 > the on-screen size); crop frames fit the photo; export `region` / `width` / `height` / `maxEdge` /
 > `backgroundColor`; `isModified()`, `isSettled()` / `whenSettled()`; every content `EditAction` is emitted;
@@ -165,14 +171,50 @@ Disabling a tool removes its chip from the toolbar (and from the slot context's 
 | `"16:9"` | Landscape: CMS hero, video thumbnails |
 | `"4:5"` | Portrait: Instagram feed-portrait |
 | `"free"` (default) | No aspect lock; consumer-driven sizing |
+| `"W:H"` (0.7.0), e.g. `"1.91:1"` | Any other ratio — a feed's landscape post, a carousel's shared aspect |
 
-The aspect drives canvas dimensions, the default crop choice, and (in dialog mode) the modal size. Pass `cropAspects` to override the crop-tool aspect choices.
+The aspect drives canvas dimensions, the capture crop, the default crop choice (`[aspect]`), and (in dialog mode) the
+modal size — landscape when the ratio is above 1, portrait otherwise (`"free"` sizes as a 4:3 landscape). An invalid `"W:H"` falls back to `"free"` with
+one development warning. `"original"` is not a canvas aspect (the photo's ratio is unknown before it loads): resolve
+it yourself and pass `"W:H"`. Pass `cropAspects` to override the crop-tool aspect choices.
 
 `cropAspects` takes every value above plus `"original"` (the loaded photo's own ratio — the chip reads
 `labels.crop.original`) and any `"W:H"` string with positive numbers (`"3:2"`, `"1.91:1"`). Invalid entries are dropped
 with one development warning each. Crop frames — the default frame, every preset and every drag / resize — are laid
-out on and clamped to the **photo's displayed area**, so a `1:1` crop of a letterboxed photo is square. `aspect` itself
-stays one of the five values (it sizes the dialog).
+out on and clamped to the **photo's displayed area**, so a `1:1` crop of a letterboxed photo is square. With a single
+entry the crop tool shows no chip row (the one aspect is applied).
+
+### Carrying a crop aspect
+
+In a multi-photo post the first photo's aspect usually applies to the rest. The editor reports what was chosen and
+opens on it:
+
+```tsx
+const [aspect, setAspect] = useState<CropAspect>("4:5");
+
+<MediaEditor
+  key={photo.id}                       // one editor per photo — defaultCropAspect is read at mount
+  cropAspects={["original", "1:1", "4:5", "1.91:1"]}
+  defaultCropAspect={aspect}           // Crop opens on it, its frame laid out
+  onEditAction={(a) => {
+    if (a.kind === "crop-set") setAspect(a.aspect); // a.ratio: width / height ("original" resolved)
+  }}
+/>
+```
+
+- `crop-set` fires on **Apply** (not on a chip pick) with `{ crop, aspect, ratio }`; `ratio` is `null` for `"free"` and
+  the photo's own ratio for `"original"`.
+- `getState().cropAspect` is the current chip selection (also without Apply); `loadState` restores it when it is one
+  of the current `cropAspects`. Picking a chip changes the `getState()` snapshot (not `isModified()`); `reset()` keeps
+  the selection.
+- `defaultCropAspect` must be one of the resolved `cropAspects`, otherwise the first entry is used (one development
+  warning).
+- A mounted editor follows a new `cropAspects` list: when the selected aspect is no longer in it, the selection moves
+  to `defaultCropAspect` (if listed) or the first entry and any pending crop frame is cleared. (Before 0.7.0 a mounted
+  editor kept the list it was created with.)
+- Chip names: `labels.crop.aspect(aspect, format)` — default `labels.crop.free` / `labels.crop.original` for those two,
+  otherwise the ratio with locale digits and no grouping (`"1.91:1"`, `"١٫٩١:١"` in `ar-EG`). A host `crop.aspect`
+  names every chip, `"free"` and `"original"` included. Chips are `aria-pressed`.
 
 ## Initial source (CMS re-edit / draft restore)
 
@@ -324,6 +366,15 @@ resolution (not the screen copy), and selection handles never appear in an expor
 with its aspect kept (`width` wins), `maxEdge` capping the result. `exportImage()` and `export()` both reach it in text
 mode. Metadata carries `textOnly`.
 
+What you see is what is exported (0.7.0): the card is the reference box — the font (7 % of the card's width, 24–48 px)
+and the wrap width (the card width minus 4 rem, at most 40 rem) follow the card, not the viewport; the input grows with
+the text, and when the text is taller than the space between a top margin (up to 88 px) and the controls — the bar's
+real height, also with the background picker open — the font steps down until every line fits.
+The export reads the live font size, wrap width, line height and the text's top from the input and draws each line
+where the preview shows it. Limit: at 14 px the font stops shrinking and the input scrolls; the export still draws
+every line from the input's top, and only a block taller than the whole card is centred, cutting its first and last
+lines.
+
 **Waiting for the canvas.** A crop Apply, `loadState` or `initialSource` swaps the source asynchronously. `exportImage`
 waits until the new source is painted and the overlays have been moved onto it (`whenSettled`, 10 s timeout), and
 rejects — instead of exporting a blank or half-updated canvas — when the source failed to load. `isSettled()` reports
@@ -357,7 +408,7 @@ does not mount it — so `labels.trim.*` has no effect on `<MediaEditor>` (it de
 its English default (`DEFAULT_LABELS`, which is exactly what renders). Groups: `shell`, `capture` (with `cameraIdle`,
 `cameraDenied`, `modes`, `shutter`, `errors`), `toolbar`, `adjust`, `draw`, `text`, `color`, `crop`, `canvas`,
 `trim`, `discard`, `intake`, `empty`, `presets`. Templated strings are functions, e.g.
-`crop.aspectCount(count, formatted)`, `trim.seconds(seconds, formatted)`, `intake.fileTooLarge(sizeMb, maxMb,
+`crop.aspectCount(count, formatted)`, `crop.aspect(aspect, format)` (chip names, 0.7.0), `trim.seconds(seconds, formatted)`, `intake.fileTooLarge(sizeMb, maxMb,
 sizeFormatted, maxFormatted)`, `canvas.resizeHandle(corner)`, `color.swatch(color)`.
 
 ```tsx
@@ -419,8 +470,8 @@ Give it `z-40` or higher (editor chrome uses up to `z-30`).
   content change; `getIsDirty()` still means "has something loaded or edited". `loadState(state, { keepModified:
   true })` keeps the flag — for a round-trip of the editor's own state (`loadState({ ...getState(), mode })`).
 - `onEditAction` emits `text-add` / `text-update` / `text-remove`, `sticker-add` / `sticker-remove`, `draw-stroke`,
-  `filter-apply`, `adjust-change` (once a slider has been still for 250 ms, flushed by an export) and `crop-set` on
-  commit, besides `mode-change` / `tool-open` / `tool-close` / `reset`. Loading emits none; Back on a tool panel emits
+  `filter-apply`, `adjust-change` (once a slider has been still for 250 ms, flushed by an export) and `crop-set` (with
+  the selected `aspect` and its `ratio`, 0.7.0) on commit, besides `mode-change` / `tool-open` / `tool-close` / `reset`. Loading emits none; Back on a tool panel emits
   removes for what it discards.
 
 > ⚠️ **Not implemented.** These handle members dev-warn and do nothing (each carries `@notImplemented` in `types.ts`):
@@ -433,7 +484,7 @@ Give it `z-40` or higher (editor chrome uses up to `z-30`).
 
 Camera capture ships as a separate, opt-in registry item — `@ilinxa/media-editor-capture` — not bundled into the base install.
 
-**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **431.7 KB** at 0.6.0 (332.9 KB at 0.5.0, 282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
+**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **447.4 KB** at 0.7.0 (431.7 KB at 0.6.0, 332.9 KB at 0.5.0, 282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
 
 **Injection wiring.** Base owns the extension type + context (`hooks/use-capture-extension.ts`) and the optional `capture?: MediaCaptureExtension` prop; it never statically imports the feature package — the camera-shaped types it needs (`CapturedPhotoLike`, `MediaCaptureSurfaceProps`, …) are structurally duplicated in base rather than imported, so the base folder carries zero static dependency on `features/capture/`.
 
@@ -504,6 +555,18 @@ import them from `@/components/media-editor`. The historical contract snapshot
 | `cropAspects` type is `CropAspect[]` | Nothing — a wider type. |
 | Text overlays draw at their real `fontSize` (a canvas cannot read a `var(--font-…)` family, so they drew at 10 px) | Check text placed with older versions — it renders at the size it was given now. |
 
+## Migration 0.6 → 0.7
+
+| Change | What to do |
+|---|---|
+| **The canvas `aspect` and `EditorCtx.aspect` (your slots' context) are `CanvasAspect`** — any `"W:H"` besides the five `AspectRatio` values | A `switch` / `Record<AspectRatio, …>` over the slot context's `aspect` must handle `"W:H"` (parse it, or fall back). Passing one of the five values works as before. |
+| `EditAction` `crop-set` has required `aspect` and `ratio` | Readers: nothing. Code that **builds** a `crop-set` action (mocks, fixtures, a replayed log) adds both fields. |
+| `MediaEditorResolvedLabels` gains a required `cropAspectName` | Only if you hand-build a full resolved (flat) label set — e.g. a custom capture surface's `labels`: add it. Nested `labels` are unaffected. |
+| A mounted editor follows a new `cropAspects` list | Drop a `key` remount you added to work around the stale list (keep it if you want `defaultCropAspect` re-read per photo). |
+| Chips are named by `labels.crop.aspect` (default: the ratio in locale digits) | A custom `"W:H"` chip that showed the raw string now shows locale digits (`"1.91:1"` in English, unchanged). Pass `crop.aspect` for custom names. |
+| Text cards fit the card (font, wrap width, auto-grow, step-down) and the export follows the preview | A text story looks smaller on a desktop dialog than before (the font follows the card, not the viewport) and long text is no longer clipped to three lines. Re-check any screenshot test of the text card. |
+| `getState()` carries `cropAspect` | Persist it with the rest of the snapshot (optional — older snapshots load as before). |
+
 ## Footguns
 
 ### `enabledModes: []` AND no `initialSource`
@@ -551,9 +614,10 @@ history. The remaining gaps are narrow:
 - **Video editing** — no tool applies to a video draft (the chips are hidden); videos export as the original file. `VideoTrimBar` is exported but not mounted.
 - **Undo / redo** — not implemented (handle methods dev-warn; the editor binds no Ctrl/Cmd+Z). The exported `useHistory` hook works on its own and only claims the shortcut when its stack is non-empty.
 - **`undo` / `redo` actions** — never emitted (there is no undo stack); every other `EditAction` kind is.
-- **Text card preview** — the editing surface shows three lines and scrolls (the export draws every line), and its font
-  size follows the viewport width (`clamp(1.5rem, 7vw, 3rem)`), so the text's size relative to the card differs
-  between a phone and a desktop dialog; the export matches what is on screen.
+- **Very long text cards** — at the 14 px floor the input scrolls (the export draws every line); a block taller than
+  the whole card is centred and loses its first and last lines (see [Export](#export)).
+- **Dialog size for ratios just above 1** (`"5:4"`, `"4:3"`, `"free"`) — the dialog is width-driven for any ratio above
+  1 and its height cap can win on short viewports, so the canvas ratio drifts there.
 - **Moving a sticker** sets `isModified()` but has no `EditAction` kind (the union has no `sticker-update`).
 
 **Closed in v0.1.2:** `onModeChange` + `onEditAction` now emit; the

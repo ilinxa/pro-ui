@@ -15,6 +15,12 @@
 > implementation record (slices, fix waves, invariants I1–I8) is [`media-editor-loop.md` → "Run — 0.6.0"](./media-editor-loop.md);
 > the types in `types.ts` are the source of truth over the LOCKED sections below.
 
+> **Release 8 (2026-10-29) — 0.7.0 addendum.** The canvas `aspect` takes any `"W:H"` (`CanvasAspect`, breaking
+> type, user-approved); crop aspects carry across photos (`defaultCropAspect`, `crop-set` `aspect` + `ratio`,
+> `getState().cropAspect`, a mounted editor follows a new `cropAspects`); text cards fit their card and export what
+> the preview shows. Contract, invariants I1–I6 and findings: [`media-editor-loop.md` → "Run — release 8"](./media-editor-loop.md);
+> behaviour: the [guide](./media-editor-procomp-guide.md).
+
 ## Sealed-folder file map (LOCKED)
 
 ```

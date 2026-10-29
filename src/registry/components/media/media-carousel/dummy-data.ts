@@ -155,3 +155,31 @@ export const trLabels: MediaCarouselLabels = {
   carouselRoleDescription: "galeri",
   slideRoleDescription: "slayt",
 };
+
+/** Captioned items (0.4.0): two short, one without a caption, one long. */
+export const captionedItems: MediaItem[] = [
+  {
+    id: "cap1",
+    type: "image",
+    url: `${PX}/1738986/pexels-photo-1738986.jpeg${PX_Q}`,
+    alt: "Mountain at sunrise",
+    caption: "Sunrise from the ridge: the first light on the east face.",
+  },
+  {
+    id: "cap2",
+    type: "image",
+    url: `${PX}/2387873/pexels-photo-2387873.jpeg${PX_Q}`,
+    alt: "Forest path",
+  },
+  {
+    id: "cap3",
+    type: "image",
+    url: `${PX}/1366919/pexels-photo-1366919.jpeg${PX_Q}`,
+    alt: "City skyline at dusk",
+    caption:
+      "A longer caption that needs more than two lines: we walked the old harbour road at dusk, stopped for tea, and watched the skyline switch on one window at a time until the whole waterfront was lit. Tap Show more to read the rest.",
+  },
+];
+
+/** Two items: Embla drops the loop (they cannot fill it at 85 %). */
+export const twoItems: MediaItem[] = captionedItems.slice(0, 2).map((it) => ({ ...it }));

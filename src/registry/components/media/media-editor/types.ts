@@ -120,9 +120,18 @@ export type AspectRatio = "9:16" | "1:1" | "16:9" | "4:5" | "free";
 /**
  * A crop choice. Every `AspectRatio`, plus `"original"` (the loaded photo's own
  * ratio) and any `"W:H"` string with positive numbers (for example `"3:2"`).
- * Crop choices only — the editor canvas `aspect` stays an `AspectRatio`.
+ * Crop choices only — the editor canvas `aspect` takes a `CanvasAspect`.
  */
 export type CropAspect = AspectRatio | "original" | `${number}:${number}`;
+
+/**
+ * The editor canvas aspect (0.7.0): every `AspectRatio`, plus any `"W:H"` string
+ * with finite positive numbers (for example `"1.91:1"`). `"original"` is not a
+ * canvas aspect — the photo's ratio is unknown before it loads; resolve it
+ * yourself and pass `"W:H"`. An invalid value falls back to `"free"` (one dev
+ * warning).
+ */
+export type CanvasAspect = AspectRatio | `${number}:${number}`;
 
 export type EditTool =
   | "text"
@@ -261,6 +270,13 @@ export interface MediaEditorState {
    * (snapshots before 0.6.0): coordinates are used as they are.
    */
   frame?: StateFrame;
+  /**
+   * The crop aspect selected in the crop tool (0.7.0). `getState()` always
+   * fills it. `loadState` restores it when it is one of the editor's current
+   * crop aspects (otherwise the current selection stays). Absent in snapshots
+   * before 0.7.0.
+   */
+  cropAspect?: CropAspect;
 }
 
 // ─── Edit action (NEW — analytics + undo sync) ──────────────────────────
@@ -277,7 +293,17 @@ export type EditAction =
   | { kind: "draw-stroke"; stroke: DrawingStroke }
   | { kind: "filter-apply"; name: string | null }
   | { kind: "adjust-change"; patch: Partial<ImageAdjustments> }
-  | { kind: "crop-set"; crop: CropRect | null }
+  | {
+      kind: "crop-set";
+      crop: CropRect | null;
+      /** The crop aspect that was selected when the crop was applied (0.7.0). */
+      aspect: CropAspect;
+      /**
+       * `aspect` as width / height (0.7.0). `"original"` resolves to the photo's
+       * own ratio at apply time; `null` = free.
+       */
+      ratio: number | null;
+    }
   | { kind: "undo" }
   | { kind: "redo" }
   | { kind: "reset" };
@@ -391,7 +417,8 @@ export interface EditorCtx {
   activeTool: EditTool | null;
   enabledTools: EditTool[];
   enabledModes: ComposerMode[];
-  aspect: AspectRatio;
+  /** The canvas aspect after validation (0.7.0: may be a `"W:H"` string). */
+  aspect: CanvasAspect;
 }
 
 // ─── i18n labels ────────────────────────────────────────────────────────
@@ -470,6 +497,8 @@ export interface MediaEditorResolvedLabels {
   colorSwatch: (color: string) => string;
   cropAspectFree: string;
   cropAspectOriginal: string;
+  /** Chip name of one crop aspect (0.7.0); `format` renders a number in the editor's locale. */
+  cropAspectName: (aspect: CropAspect, format: (n: number) => string) => string;
   /** `formatted` is `count` through `Intl.NumberFormat(locale)`. */
   cropAspectCount: (count: number, formatted: string) => string;
   // canvas
@@ -602,6 +631,13 @@ export interface MediaEditorLabels {
     /** Chip name for the `"original"` crop aspect (the photo's own ratio). */
     original?: string;
     aspectCount?: (count: number, formatted: string) => string;
+    /**
+     * Chip name of one crop aspect (0.7.0). `format` renders a number in
+     * `locale`. Default: `free` / `original` above for those two, otherwise the
+     * ratio with locale digits (`"1.91:1"`). Return a custom name per aspect,
+     * for example `(a, f) => a === "1.91:1" ? "Landscape" : …`.
+     */
+    aspect?: (aspect: CropAspect, format: (n: number) => string) => string;
   };
   canvas?: {
     label?: string;
@@ -676,8 +712,11 @@ export interface MediaEditorProps {
   enabledTools?: EditTool[];
   /** Which source intake methods are offered. Default ["camera","upload"]. "library" deferred. */
   mediaSources?: MediaSource[];
-  /** Aspect lock for the editor canvas. Default "free" (Q-P1). */
-  aspect?: AspectRatio;
+  /**
+   * Aspect lock for the editor canvas. Default "free" (Q-P1). 0.7.0: also any
+   * `"W:H"` (see `CanvasAspect`); an invalid value falls back to "free".
+   */
+  aspect?: CanvasAspect;
 
   // === Initial source (skip capture surface) ===
   initialSource?: InitialSource;
@@ -756,8 +795,19 @@ export interface MediaEditorProps {
    * [aspect]; else all 5. Accepts `"original"` (the photo's own ratio) and
    * `"W:H"` strings; invalid entries are dropped with a dev warning. Crop
    * frames are laid out on, and clamped to, the photo's displayed area.
+   * 0.7.0: the editor follows a new list while mounted — when the selected
+   * aspect is no longer in it, the selection moves to `defaultCropAspect` (if
+   * listed) or the first entry.
    */
   cropAspects?: CropAspect[];
+  /**
+   * The crop aspect selected when the crop tool first opens (0.7.0), its frame
+   * laid out. Read at mount, like `defaultMode`. Must be one of the resolved
+   * `cropAspects`; otherwise the first entry is used (one dev warning).
+   * Its current value is also where the selection moves when a new
+   * `cropAspects` list drops the selected aspect. Default: the first entry.
+   */
+  defaultCropAspect?: CropAspect;
 
   // === Discard guard ===
   /** Default true. Dialog mode only — fires on Escape/backdrop click/programmatic close() when modified (see `isModified`) or when the media came from the camera or the file picker in this session (a capture is not re-loadable). Inline mode ignores (consumer owns navigation guarding via getIsDirty() handle). */
@@ -1021,6 +1071,12 @@ export const DEFAULT_LABELS: MediaEditorDefaultLabels = {
     free: "free",
     original: "original",
     aspectCount: (_count, formatted) => `(${formatted} crop aspects)`,
+    aspect: (aspect, format) => {
+      if (aspect === "free") return "free";
+      if (aspect === "original") return "original";
+      const [w, h] = aspect.split(":").map(Number);
+      return `${format(w)}:${format(h)}`;
+    },
   },
   canvas: {
     label: "Media editor canvas — arrow keys pan, +/- zoom, 0 resets",

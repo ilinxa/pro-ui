@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ImageIcon, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { MediaCarouselItem } from "../types";
@@ -13,6 +14,8 @@ export interface MainPreviewProps {
   /** True when the editing add-on is wired. Without it the preview shows no edit UI. */
   editingEnabled?: boolean;
   labels: { edit: string; videoNotEditable: string };
+  /** The aspect switch, shown over the top-start corner of the frame. */
+  aspectSwitch?: ReactNode;
   onEdit: () => void;
 }
 
@@ -29,6 +32,7 @@ export function MainPreview({
   canEdit,
   editingEnabled = false,
   labels,
+  aspectSwitch,
   onEdit,
 }: MainPreviewProps) {
   if (!item) {
@@ -70,6 +74,8 @@ export function MainPreview({
           className="size-full object-cover"
         />
       )}
+
+      {aspectSwitch ? <div className="absolute start-3 top-3">{aspectSwitch}</div> : null}
 
       {canEdit ? (
         <div className="absolute end-3 top-3">

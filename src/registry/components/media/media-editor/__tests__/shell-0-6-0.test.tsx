@@ -289,7 +289,7 @@ describe("isModified and edit actions (#5)", () => {
     act(() => h.props!.onCropChange({ x: 100, y: 50, width: 200, height: 150 }));
     fireEvent.click(screen.getByText(ENGLISH.apply));
     await vi.waitFor(() => expect(content(m.actions)).toHaveLength(1));
-    expect(content(m.actions)[0]).toEqual({ kind: "crop-set", crop: { x: 100, y: 50, width: 200, height: 150 } });
+    expect(content(m.actions)[0]).toEqual({ kind: "crop-set", crop: { x: 100, y: 50, width: 200, height: 150 }, aspect: "9:16", ratio: 9 / 16 });
     expect(m.ref.current!.isModified()).toBe(true);
   });
 

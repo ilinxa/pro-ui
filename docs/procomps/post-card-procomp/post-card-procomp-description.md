@@ -1,5 +1,9 @@
 # post-card — procomp description
 
+> **Release 8 (2026-10-29) — v0.8.0.** Follows media-carousel 0.4.0: `PostMediaItem.caption`, `"W:H"` in
+> `mediaProps.aspect`, caption + video labels through `mediaProps`. Record: [`media-editor-loop.md` → "Run — release
+> 8"](../media-editor-procomp/media-editor-loop.md); behaviour: the [guide](./post-card-procomp-guide.md) "v0.8.0".
+
 > Stage 1: what & why. **Tier-2 composite.**
 >
 > ### v0.1.1 patch (2026-05-03)

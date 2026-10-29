@@ -120,6 +120,21 @@ export function PostMedia({ post }: { post: Post }) {
 />`}</code>
       </pre>
 
+      <h3 className="mt-6 mb-2 text-base font-semibold">Captions and any aspect</h3>
+      <p className="text-muted-foreground">A <code>caption</code> on an item shows under its frame, inside its slide (read once with it), clamped to <code>captionLines</code> (default 2) with a Show more. The carousel takes the active slide&apos;s height, so an item without a caption takes no space. <code>aspect</code> also takes any <code>&quot;W:H&quot;</code>; <code>labels.video</code> and <code>locale</code> reach every video, and a video item&apos;s <code>alt</code> names it.</p>
+      <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
+        <code>{`<MediaCarousel
+  items={[
+    { id: "a", type: "image", url: "/a.jpg", alt: "Harbour at dusk", caption: "First evening" },
+    { id: "b", type: "video", url: "/b.mp4", alt: "Ferry crossing" },
+  ]}
+  variant="gallery"
+  aspect="4:5"
+  labels={{ captionShowMore: "Devamı", captionShowLess: "Daha az", video: { play: "Oynat" } }}
+  locale="tr"
+/>`}</code>
+      </pre>
+
       <h3 className="mt-6 mb-2 text-base font-semibold">Natural-clamped aspect + dimensions</h3>
       <p className="text-muted-foreground">Give image and video items their intrinsic <code>width</code> / <code>height</code> (plus optional <code>srcSet</code> / <code>sizes</code> on images). The frame is reserved before load, and <code>aspect=&quot;natural-clamped&quot;</code> uses the first item&apos;s ratio clamped to <code>[minRatio, maxRatio]</code> (default 4/5 to 1.91): 3:4 becomes 4:5, 16:9 stays, 3:1 becomes 1.91:1. Without dimensions the loaded natural size is used (one layout change). <code>aspect</code> applies to both variants and to a single item; in a gallery every slide shares the first item&apos;s frame. A video&apos;s <code>width</code> / <code>height</code> only feed the frame ratio.</p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">

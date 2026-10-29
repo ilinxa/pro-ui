@@ -702,3 +702,266 @@ capture 53.7, story-composer 75.2, carousel-composer 105.4, carousel-composer-ed
 `/r/media-editor-capture.json` 0.6.0, `/r/story-composer.json` 0.6.1, `/r/carousel-composer.json` and
 `/r/carousel-composer-editing.json` 0.3.1**; `/components/media-editor` 200. Retro in `.claude/improvement-log.md`.
 Follow-ups F-07 (content-composer), F-08 (text-card preview), F-09 (WebKit) in the review file. Run closed.
+
+# Run — release 8 (media-editor 0.7.0 + media-carousel 0.4.0 + carousel-composer 0.4.0 + post-card 0.8.0; platform request 2026-10-27, group 2)
+
+Lead state doc for release 8; `media-carousel-loop.md`, `carousel-composer-loop.md` and `post-card-loop.md` carry
+pointer sections.
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop. media-editor **breaking minor** (canvas `aspect` / slot-context `aspect` widened to `"W:H"`) · carousel-composer **breaking minor** (`CarouselEditorPanelProps.aspect` widened) · media-carousel **minor** (additive) · post-card **minor** (forwarding + its inline `PostMediaItem` copy follows) |
+| **Current stage** | U2 — implement (4 implementers) |
+| **Sign-off policy** | **delegated by user** for U1 and the push ("go ahead and start and finish release 8 … end to end", 2026-10-29). The two breaking widenings on composed components were put to the user separately (config: never delegated) — **approved 2026-10-29: "Yes, ship both"** (carousel-composer 0.4.0 + media-editor 0.7.0 with a migration note). |
+| **Version target** | media-editor 0.6.0 → **0.7.0** (capture item follows) · media-carousel 0.3.1 → **0.4.0** (the planned 0.3.2 patch for MC-2 folds into it — one re-vendor for the platform) · carousel-composer 0.3.1 → **0.4.0** (+ `carousel-composer-editing` follows) · post-card 0.7.0 → **0.8.0** |
+| **Model roster** | architect: main session · implementers: 4 × Sonnet 5 (A1 text card, A2 crop aspect + canvas aspect, B media-carousel + post-card, C carousel-composer + editing add-on) · finders: 2 × fresh Sonnet 5 (U4) + browser finder (U5) · doc verifier: fresh Sonnet 5 (U6) |
+| **Started / updated** | 2026-10-29 / 2026-10-29 |
+
+## U0 — Intake & impact
+
+**Scope** (ground truth `.claude/platform-request-verification-2026-10-28.md` §Group 2; request text
+`E:/tmp/social-ui-v2/PROUI_REQUEST_2026-10-27.md` §ME-1 / ME-2 / CC-1 / MC-1 / MC-2; MC-3 is ours, found at
+verification). **Inbox check:** `E:/tmp/social-ui-v2/` listed by date — newest is our own release-7b reply; the
+platform's `PROUI_REPLY_2026-10-28_VERIFIED.md` corrections for P-b are adopted below (single-entry `cropAspects` shows
+no chip; MC-1 must not put a focusable toggle inside `aria-hidden`; re-check 4:5 / 1.91:1 feed rendering).
+
+| Ask | Component | Folded in |
+|---|---|---|
+| ME-1 text card shows all lines at its export size (= our 0.6.0 F-08) | media-editor | export layout no longer assumes 3 rows |
+| ME-2 `defaultCropAspect`, aspect in `crop-set` + `getState()`, chip names, `aria-pressed` | media-editor | stale `cropAspects` after mount (verified, source) |
+| CC-1 shared aspect: any `CropAspect`, `aspectOptions` switch, every frame / edit / crop follows | carousel-composer (+ editing add-on) | square rail thumbs; edited-but-uncropped items exported at the photo's ratio; media-editor canvas `aspect` widened (would crash the dialog branch for `"W:H"`); media-carousel can't show 4:5 / 1.91:1 |
+| MC-1 per-slide caption | media-carousel, post-card | single-item + `renderItem` paths must render it |
+| MC-2 counter chip over the neighbour with 2 items | media-carousel | Embla's effective loop (edge margins, Prev/Next at the ends); `peekRatio` half-wired |
+| MC-3 video labels + locale | media-carousel, post-card | video `alt` names the player |
+
+**Not taken (owner + target unchanged):** media-editor C17 (`StoryComposerLabels` shim on the capture seam —
+breaking, not asked) · F-07 content-composer export path (content-composer re-design) · F-09 WebKit pass (platform) ·
+SC-1 uploader signal (story-composer / content-composer — not in release 8's plan; on request) · content-composer
+`aspectOptions` passthrough (re-design).
+
+**Blast radius**
+
+| Surface | Relation | What must hold |
+|---|---|---|
+| story-composer | mounts media-editor; translates `EditorCtx` → `ComposerCtx` | compiles unchanged (tsc after the type edits: 0 errors outside the 3 folders); its tests green |
+| content-composer | mounts media-editor (`media-substrate`) and carousel-composer + editing add-on (`media-carousel-substrate`, `aspect` typed by media-editor's `AspectRatio`) | narrower types still assign; its tests green; no change unless a test fails |
+| carousel-composer-editing | feature item, mounts media-editor with the carousel aspect | passes a `"W:H"` canvas aspect + `cropAspects=[aspect]`; Done exports at the shared aspect |
+| media-editor-capture | feature item | untouched; version follows the base |
+| post-card | composes media-carousel; inline copy `PostMediaItem` + its own `aspect` union | copy gains `caption`, union gains `"W:H"`, forwards caption / video labels; guard test keeps the copy equal |
+| media-carousel-01 / media-carousel-editor-01 / media-editor-01 | alias items | resolve |
+| fixtures items | install + consumer tsc | |
+| Docs | 4 guides (+ migration rows for the two breaking widenings), STATUS rows, component-versions, CHANGELOG, generated llms / README, `meta.ts` budgets | U6 |
+
+## U1 — Change contract (sign-off recorded above)
+
+**Public types written by the architect before U2** (search the files for "0.7.0" / "0.4.0"):
+`media-editor/types.ts` (`CanvasAspect`, `aspect`, `defaultCropAspect`, `cropAspects` re-sync note, `crop-set`
+`aspect` + `ratio`, `MediaEditorState.cropAspect`, `labels.crop.aspect`, `EditorCtx.aspect`) ·
+`media-carousel/types.ts` (`MediaCarouselAspect` + `"W:H"`, `MediaItem.caption`, `captionLines`, `captionClassName`,
+`labels.captionShowMore` / `captionShowLess` / `video`, `peekRatio` wired, `locale` reaches videos) ·
+`carousel-composer/types.ts` (`CarouselAspectRatio` = media-editor's `CropAspect`, `CarouselCropRect`, item `crop`
+from `export()`, `aspect` controlled + `defaultAspect` + `onAspectChange` + `aspectOptions`, `labels.aspectSwitch` /
+`aspectOption` (optional — the 7b lesson), panel `aspect` without `"original"` + `aspectRatio`, `handle.getAspect`).
+`tsc` after the edits: 8 errors, all inside the three folders (the work), none in dependents.
+
+**Architect decisions**
+- **One media-carousel release (0.4.0)**, not 0.3.2 then 0.4.0: the platform re-vendors once; MC-2 is a fix inside it.
+- **ME-1:** the card is the reference box. Font size and wrap width are container-relative (`cqi` on the card), the
+  textarea grows with its content (JS height from `scrollHeight`, no reliance on `field-sizing`), and when the text
+  is taller than the card the font steps down to a floor so every line stays visible. The export draws the lines
+  where the preview shows them (no `ROWS = 3` block). Beyond the floor the input scrolls — documented limit.
+- **ME-2:** `defaultCropAspect` is mount-time (like `defaultMode`); `cropAspects` changes are followed while mounted
+  (the stale-aspect fix); `crop-set` carries `aspect` and the resolved `ratio` (needed for `"original"`); chips get
+  `aria-pressed` and their names from `labels.crop.aspect(aspect, format)`.
+- **Canvas `aspect` takes `"W:H"`** (user-approved breaking widening): CSS ratio, capture crop ratio and dialog sizing
+  (orientation from the ratio) all read it; invalid → `"free"` + one dev warning. `"original"` stays crop-only.
+- **MC-1 caption lives inside its slide group, under the frame** (outside the `overflow-hidden` aspect box): read once
+  with its slide, inactive slides keep `aria-hidden` + `inert`, the image keeps `alt ?? ""` — no `aria-describedby`
+  (a visible described-by caption reads twice) and nothing focusable under `aria-hidden` (axe). expandable-text
+  (cross-category, `data/`) is a static `@/registry/…` import + `registryDependencies`. Layout: slides align to the
+  start and the viewport follows the active slide's height, so an item without a caption takes no space; when any
+  item has a caption the dots render in flow below the slides (never over a caption) and the nav buttons stay
+  centred on the media frame.
+- **MC-2:** the counter chip renders inside the active slide's frame (gallery and linear), so it can never sit over
+  a neighbour; edge margins and Prev / Next at the ends follow Embla's **effective** loop (Embla turns loop off when
+  the slides can't fill it); slide width = `1 − 2 × peekRatio`.
+- **CC-1:** `"auto"` snaps to the nearest of `aspectOptions` (else the four standard ratios); `"original"` = item 1's
+  ratio (1:1 until known) and reaches the edit panel as `"W:H"`; rail thumbs keep their height and take the shared
+  ratio; the editing add-on locks media-editor to the aspect (`aspect` + `cropAspects=[aspect]`) and **Done exports
+  at the shared aspect** (`region: "media"` with a width / height of that ratio inside the photo's own pixels — no
+  upscale), so an edited item no longer comes back at the photo's ratio. `export()` adds the centred `crop` per image.
+  The switch shows only while item 1 is selected and nothing is being edited. `"free"` keeps today's behaviour.
+- **post-card 0.8.0** follows media-carousel: copy gains `caption`, `aspect` gains `"W:H"`, forwards `captionLines`
+  and the new carousel labels through its existing media props.
+
+**Invariants**
+
+| # | Invariant (testable) | U4 | U5 |
+|---|---|---|---|
+| I1 | A 6-line text card shows 6 lines while editing at 390 px and 1440 px; the export's line breaks and positions match the preview (pixel-compared) incl. 1 line, a long unbroken word, RTL | | |
+| I2 | `defaultCropAspect="4:5"` opens Crop on 4:5 with its frame; Apply after picking 1:1 emits `crop-set` `{ aspect: "1:1", ratio: 1 }`; `"original"` reports the photo's ratio | | |
+| I3 | A mounted editor given a new `cropAspects` that drops the selected aspect selects the new default / first entry (no remount) | | |
+| I4 | `"1.91:1"` chip reads "1.91:1" (locale digits), custom names via `labels.crop.aspect`, chips `aria-pressed` | | |
+| I5 | Canvas `aspect="1.91:1"` renders a 1.91 frame inline and in the dialog branch (no crash); invalid → free + one warning | | |
+| I6 | `getState().cropAspect` round-trips through `loadState` | | |
+| I7 | Two captioned items: swiping changes the visible caption; each is read once (axe clean, no focusable in `aria-hidden`); an item without caption takes no space; single-item and `renderItem` paths render captions | | |
+| I8 | 2 items, gallery, loop: counter chip lies inside the active slide's box (browser layout); Prev / Next at the ends handled when Embla dropped the loop | | |
+| I9 | Video slides name the player from `alt` / `labels.video`, time text in `locale`; no English leaks with a Turkish labels object | | |
+| I10 | `aspect="4:5"` / `"1.91:1"` on media-carousel renders that frame | | |
+| I11 | carousel-composer `aspectOptions={["original","1:1","4:5","1.91:1"]}`: switching on item 1 reframes every thumb + the preview; the edit panel locks to it; an edited-but-uncropped item exports at the aspect; `export()` crop of an unedited item matches the aspect, centred | | |
+| I-reg | 0.6.0 / 0.3.1 / 0.7.0 suites green unchanged (except tests asserting the replaced behaviour, listed); dependents' suites green | | |
+| I-neg | carousel-composer base install has no media-editor file; media-carousel without captions renders as 0.3.1 (dots overlaid as before) | | |
+
+## U2 — Implement
+
+| # | Slice | Owner | Files | Status |
+|---|---|---|---|---|
+| A1 | ME-1 text card | Sonnet | `media-editor/parts/text-only-canvas.tsx`, `lib/text-card-export.ts`, in `media-editor.tsx` only `measureTextInput` + `exportText` | pending |
+| A2 | ME-2 + canvas `aspect` | Sonnet | rest of `media-editor` (not A1's), `lib/*aspect*`, `hooks/use-media-editor-state.ts`, `lib/normalize-labels.ts`, label defaults | pending |
+| B | MC-1/2/3 + `"W:H"` aspect; post-card follows | Sonnet | `media-carousel/**`, `data/post-card/**` (not meta / usage) | pending |
+| C | CC-1 | Sonnet | `carousel-composer/**` incl. `features/editing/` (not meta / usage) | pending |
+
+### U2 — results (2026-10-29)
+
+All four slices done; spot-checked by the coordinator (file:line read): A1 card `containerType: "size"` + `cqi` font /
+width + fit with a 14 px floor (`parts/text-only-canvas.tsx`), export placed from `textTopPx` / `lineHeightPx`
+(`lib/text-card-export.ts` `textBlockTop`, `measureTextInput`); A2 `isValidCanvasAspect`, `defaultCropAspect`,
+render-phase stale-list follow in `hooks/use-media-editor-state.ts`, `crop-set` `aspect` + `ratio`, chips
+`aria-pressed` + `cropAspectName` (A2 added the flat `MediaEditorResolvedLabels.cropAspectName` — accepted: the
+nested→flat table needs it); B caption part `parts/slide-caption.tsx`, Embla effective loop from
+`internalEngine().options.loop` (`embla-carousel.esm.js:1528,1628`), chip in the active frame, post-card copy +
+`PostMediaVideoLabels`; C `lib/aspect.ts` resolution + `centredCropRect`, `parts/aspect-switch.tsx`, thumbs, panel.
+**Coordinator fix during spot-check:** C's Done export sized a first edit from the item's own `width` / `height` — an
+applied crop had already replaced the editor's photo with a smaller one, so the export would upscale it (3× for a
+1000-px crop of a 4000-px photo). Now always measured by a plain `region: "media"` export first, then trimmed; the
+two tests that pinned the shortcut were rewritten, plus a small-crop regression test (6/6). New test files: 7 (A1 1,
+A2 1, B 4, C 2 — incl. post-card `forwarding-0-8-0`). Roster: `parts/slide-caption.tsx` and `parts/aspect-switch.tsx`
+added to `registry.json`; media-carousel gains `@ilinxa/expandable-text`.
+
+### U3 — battery run 1 (2026-10-29)
+
+tsc 0 · lint 0 errors / 11 warnings (contract: no new violations) · `registry:build` 0 · doc-budget 0 · tests **227
+files: 3129 passed / 6 skipped / 7 failed — all 7 are 5 s timeouts in unrelated files under host load** (6 `tests/*-gate`
+repo tests + one code-block test; re-run alone before the ship) · `pnpm build` 0. Artifacts vs budget: media-editor
+444.4 / 440, media-carousel 69.1 / 60, carousel-composer 117.7 / 115, -editing 11.3 / 11, post-card 191.9 / 200,
+capture 53.7 / 65 — budgets set at the final battery.
+
+### U4 — adversarial review (2 fresh finders on a frozen snapshot; architect verdicts)
+
+| # | Finding | Verdict | Fix |
+|---|---|---|---|
+| F1-1 ⚠️ | edit-panel wrapper (`overflow-hidden` + ratio) clips the editor's 400 px surface at wide ratios (1.91:1 on a phone ≈ 187 px) | CONFIRMED (pre-existing for 16:9, headline now) | FX-A A1: drop the wrapper ratio — the editor locks its own canvas |
+| F1-2 | controlled `aspect` + `aspectOptions` without `onAspectChange` → a switch that does nothing, silently | CONFIRMED (inert-surface class) | FX-A A2 dev warning |
+| F1-3 | unguarded `Intl.NumberFormat(locale)` (`"tr_TR"` throws) and grouped digits (`"1,920:1,080"`) | CONFIRMED | FX-A A3 |
+| F1-4 | thumbs clamp width → 9:16 / 21:9 thumbs off-ratio | CONFIRMED | FX-A A4 |
+| F1-5 | inline canvas `min-h-64` beats `aspect-ratio` for wide custom aspects; capture crop disagrees | CONFIRMED (pre-existing for 16:9) | FX-A A5 |
+| F1-6 | dialog orientation by `ratio > 1` only — 5:4 / 4:3 hit the height clamp | CONFIRMED, Low, pre-existing (`"free"` = 4:3 already) | follow-up FU-3 |
+| F1-7 | inline CSS ratio built from the raw string | CONFIRMED Low | FX-A A5 |
+| F1-8 | whitespace accepted by the composer, rejected by the editor | CONFIRMED | FX-A A8 |
+| F1-9 | content-composer: edited items now trimmed to the shared aspect, unedited not; `crop` never reaches its payload; `"auto"` 4:3 → 1:1 | CONFIRMED as behaviour change (intended by CC-1) | doc: content-composer guide + migration; payload → content-composer re-design |
+| F1-10 | items edited before a switch stay at the old aspect | CONFIRMED (by design — re-edit restores the source) | doc |
+| F1-11 | `getState()` identity changes on a chip pick; reset keeps `cropAspect` | CONFIRMED, accepted | doc |
+| F1-12 / 13 / 14 | `aspectOptions` not de-duplicated; re-pick fires `onAspectChange`; `centredCropRect` tolerance on tiny images | CONFIRMED Low | FX-A A12 / A13 / A14 |
+| F1-15 | add-on 0.4.0 on base 0.3.1 fails to compile (`centredCropRect`) | CONFIRMED (registry deps can't pin versions) | doc: update both |
+| F1-16 | new optional labels stay English with a full 0.3 labels object | CONFIRMED, by design (7b lesson) | doc |
+| F1-types | new required members: `crop-set` `aspect` / `ratio`, `MediaEditorResolvedLabels.cropAspectName`, `CarouselComposerHandle.getAspect`; `CarouselAspectRatio` / deprecated `AspectRatio` alias widened | CONFIRMED — only hosts that CONSTRUCT these (mocks, fixtures, hand-built resolved labels) | migration rows in both guides |
+| F2-1 | effective loop false → true never re-measures | CONFIRMED | FX-M M1 |
+| F2-2 | a focused Prev / Next that becomes `disabled` drops focus to `<body>` | CONFIRMED (introduced here) | FX-M M2 `aria-disabled` |
+| F2-3 | measured height stale after `items` change (detached node observed) | CONFIRMED | FX-M M3 |
+| F2-4 | first-paint shift; no-ResizeObserver path never measures | CONFIRMED | FX-M M4 |
+| F2-5 | `peekRatio` unclamped now that it is wired (0.5 → 0 % slides, NaN invalid) | CONFIRMED (introduced here) | FX-M M5 |
+| F2-6 | text card never re-fits after a late web-font load | CONFIRMED | FX-T T6 |
+| F2-7 | 176 px reserve < bottom bar with the gradient picker open | CONFIRMED | FX-T T7 |
+| F2-8 | empty card's placeholder cut to one row | CONFIRMED (introduced here) | FX-T T8 |
+| F2-9 | media-carousel `"W:H"` parser stricter than the editor's | CONFIRMED Low | FX-M M9 |
+| F2-10 | 0.3.1 DOM differences without captions (inner wrapper, chip in the slide, `aria`-disabled ends, inline flex basis, single-item wrapper) | CONFIRMED, accepted | doc (guide "Upgrading to 0.4.0") |
+| F2-11 | 2-item loop: slides jump ≈ 7.5 % after mount (margins land after Embla's first measure) | CONFIRMED Low | follow-up FU-4 |
+| F2-12 | export vs preview details: (a) trailing space trimmed, (f) stale fallback constants; (b–e) baseline / rounding / shadow / past-floor | (a)(f) CONFIRMED; (b–e) accepted, documented | FX-T T12a / T12f |
+| F2-13 | 1 px fit steps (≤ 34 reflows per keystroke) | CONFIRMED Low | FX-T T13 binary search |
+| F2-14 | inline `labels.video` object → new player labels identity per render | CONFIRMED Low | doc (memoise `labels`) |
+
+### U4 — fix wave (3 parallel implementers: FX-M media-carousel, FX-T text card, FX-A aspect pipeline)
+
+Every CONFIRMED row above fixed with a regression test (new files `media-carousel/__tests__/r8-fixes.test.tsx`,
+`media-editor/__tests__/text-card-0-7-0-fixes.test.tsx`, `carousel-composer/__tests__/aspect-pipeline-fixes.test.tsx`,
+`media-editor/__tests__/canvas-placeholder-aspect.test.tsx`). Falsified: FX-M 7 of 8 tests red on revert (the M9
+"accepts" test cannot go red — the old parser accepted a superset; the reject test covers it); FX-T 5 red on revert;
+FX-A ran only 5 of its rows red, so the coordinator falsified the other five with an assert-and-restore script
+(A1, A2, A3 grouping + guard, A4, A8: each 1–2 red, every file restored byte-identical). Behaviour changes recorded in
+the guides: nav buttons `aria-disabled` (not `disabled`) at the ends; `peekRatio` clamped 0–0.45; `" 4 : 5"` is no
+longer a valid ratio anywhere (one grammar in all three components, `".5:1"` valid). Battery run 2 caught a roster miss
+(FX-A's new `lib/format-number.ts`, `validate:registry-json` high) — added; tests 231 files / 3167 passed, 2 timeouts in
+repo-gate files that pass alone (44/44).
+
+### U5 — browser pass (fresh Sonnet, production build on :3200, Chromium 1280 × 900 + 390 × 844, light + dark)
+
+All 7 items reached (no WebKit on this machine — F-09 stays the platform's). Evidence:
+`E:/tmp/ilinxa-release-kit/browser-r8/`.
+
+| # | Finding | Verdict | Fix |
+|---|---|---|---|
+| W1 ⚠️ | text card in a small inline card with the gradient picker open: the input overlapped the bar (1280 inline card 598 × 336: 3 lines at 37 px reach 235 px vs bar top 208) — the `0.4 × cardH` floor ignored the bar and the input stayed centred on the whole card | CONFIRMED (FX-T's T7 was right for tall cards only) | coordinator: the bar's height is the bottom reserve, the top reserve is capped at 88 px, the input is centred in the space between (card padding); test "F1 (browser)" falsified (red without the padding line); T7 expectation moved to the new geometry (top capped) |
+| W2 🔹 | 40 lines at the 14 px floor: preview scrolls (≈ 31 visible), export draws 36 of 40 | DROPPED — the documented limit (guide "Export", Known gaps) | — |
+| W3 🔸 | content-composer Post: a mouse click on Back after Next does nothing once (blur validation shifts the layout) | DROPPED — pre-existing, already logged at release 6 (W6 / W7 → content-composer F-06, owner: re-design) | — |
+
+Passing (measured): text card preview = export line count and row positions for 1 / 3 / 6 / 12 lines, a wrapping
+paragraph, a long word and Arabic at 390 and 1280 (rows within 0.3 % of the card height); 25 px / 24 px fonts in the
+story dialog, nothing under the bar with the picker open there; placeholder fully visible; re-fit on resize. Crop:
+canvas 1.917 (1.91:1, inline at 390 and 1280), Crop opens on 4:5 (frame 0.796), chips "1.91:1" / "4:5" / "1:1"
+`aria-pressed`, `crop-set 1:1 ratio=1` by mouse, Enter and Space. Carousel: captions below the frame, height follows
+the active slide (998 uncaptioned / 1026 / 1070 / 1090 expanded), dots below, nav centred on the frame (dy ±0.1 px),
+no Tab stop in an inactive slide, axe clean ×4; two items: chip inside the active frame at every position, edge peek,
+`aria-disabled` ends keep focus; 4:5 → 0.800, 1.91:1 → 1.910; no 7.5 % shift observed. carousel-composer: switch only
+on item 1, thumbs exact (1.91:1 → 120 × 62.8, 4:5 → 51.2 × 64), no re-pick event, keyboard + focus ring; edit at
+1.91:1 on 390 fully visible (canvas 1.924), Done without crop → 1080 × 565, a small crop → no upscale; export crops
+centred (1080 × 565 @ 0,257; 864 × 1080 @ 108,0); axe clean on 8 tabs × 2 schemes × 2 viewports. post-card and
+content-composer unchanged except the intended trim of edited items (1600 × 1200 → 1200 × 1200 at 1:1). Console: 0
+errors / warnings / hydration messages on all six pages; no horizontal overflow at 390.
+
+W1 re-verified on a rebuilt production build (`browser-r8/inl2.mjs`, picker open, 0–8 lines): no overlap at 1280
+(inline card 598 × 336 — text bottom ≤ 200, bar top 208) or 390 (256 × 254 — bottom 118, bar top 126); on the 256-px
+card long text scrolls in the space left while the picker is open (closing it gives the room back) — the documented
+limit.
+
+### U3 — final battery (run 3, after the W1 fix)
+
+tsc 0 · lint 0 errors / 11 warnings · `registry:build` 0 (full chain: 133 stamped entries, 69 artifacts 0 high) ·
+doc-budget 0 · tests **231 / 231 files, 3170 passed, 6 skipped** · `pnpm build` 0. Artifacts / budgets (set from this
+run): media-editor 447.4 / 470, media-carousel 71.5 / 80, carousel-composer 121.1 / 135, -editing 11.3 / 13, post-card
+191.9 / 200, capture 53.7 / 65.
+
+### U6 — docs sync + pre-push doc verifier (fresh Sonnet, read-only)
+
+Docs written by the architect: 4 guides (+ content-composer note), description + plan notes on all four trios, 3
+`usage.tsx` sections, CHANGELOG (6 lines), `meta.ts` (versions, feature lines, budgets), barrel (`AspectSwitch`,
+`centredCropRect`), 4 review files (`reviews/2026-10-29-v0.7.0-release-8.md`, media-carousel / carousel-composer
+`v0.4.0-release-8`, post-card `v0.8.0-forwarding`), decision file, STATUS, reply draft. The verifier: **0 wrong claims,
+13 rows** — the reply's empty "How it was checked" (filled at ship); the reply under-stated the type breaks (now lists
+the new required members), said every image gets a `crop` (not for `"free"`) and that the "Video" leak is gone
+(only with `alt` / `labels.video`); the text-card limit wording (the export cuts only a block taller than the CARD; the
+top reserve); the thumb box; `peekRatio` fallback; the v0.1.1 loop note; the Install section missing expandable-text;
+a stale 431.7 KB; two JSDoc notes. All fixed (JSDoc → `registry:build` re-run 0, tsc 0).
+
+### U5 — installs (`pnpm test:install`, local `public/r` after the last `registry:build`)
+
+A first 11-run matrix timed out in the consumers' own `pnpm install` (600 s, ~50 packages linked — host load from
+another project's test runs; registry reachable in 0.36 s) and was stopped. Consolidated re-run, one consumer per run:
+
+| Run | Items | CLI | Result |
+|---|---|---|---|
+| A | media-editor, media-editor-capture, media-carousel, carousel-composer, carousel-composer-editing, post-card, content-composer | 4.18.0 | pass — all files land, stamps, consumer `tsc` 0 (13 component folders) |
+| B | media-editor-fixtures, media-carousel-fixtures, carousel-composer-editing, post-card-fixtures, story-composer | 3.8.5 | **post-card + fixtures did not land** → investigated below; after the re-add, consumer `tsc` 0, stamps `post-card 0.8.0`, `media-carousel 0.4.0`, `media-editor 0.7.0`, `carousel-composer 0.4.0` |
+| C | carousel-composer (base alone — negative path) | 3.8.5 | pass — only `carousel-composer/` lands (no media-editor), consumer `tsc` 0 |
+
+**Finding I-1 (CLI 3.8.5, pre-existing class, newly reached):** a re-add on CLI 3.8.5 asks to overwrite every
+already-installed file that has a rewritten **cross-category** import, although its content is identical (an
+`--overwrite` re-add leaves `slide-caption.tsx` byte-identical; 4.18.0 does not prompt — measured on consumer A for
+media-carousel and post-card re-adds). Proven pre-existing: post-card's `parts/variant-nodes.tsx` (imports
+media-carousel, shipped since 0.3) prompts the same way. media-carousel 0.4.0's `parts/slide-caption.tsx` (imports
+expandable-text) puts one such file into every install that already has media-carousel — e.g. adding post-card after
+media-carousel. Interactive: one extra "n". Non-interactive (closed stdin / CI) on 3.8.5: the whole add stops with exit
+0 and writes nothing (the known-flake row in `readiness.config.md`). Run B hit it with the harness's piped answers.
+Mitigation: documented (guide Install + the reply: re-add with `--overwrite`, or CLI 4.x); follow-up media-carousel
+F-03.

@@ -415,3 +415,8 @@ sweep PASS (Remove / Retry focus, alt limit, MP4 poster + badge, refusals, edit 
 ## U7 — Ship
 
 Commit `e8976ac`, pushed 15:33 under the user's Part 3 grant after the final consistency review. Live poll (180 s apart): 0.2.2 / — / 0.3.2 at +3 / +6 / +9 min, **all three new at +12 min** (carousel-composer 0.3.0, carousel-composer-editing 0.3.0, content-composer 0.3.3). Live artifacts: base 23 files, no tests, deps `button` / `input` / `scroll-area`, no import of media-editor (only comments mention it), `cssVars.theme` media-overlay + destructive-foreground; add-on 3 files under `features/editing/`, `import type` re-exports; content-composer depends on the add-on and passes `editing={carouselEditing}`; the alias description names the add-on. Decision `shipped`; retro in `.claude/improvement-log.md`; report-back `.claude/report-back-2026-10-26-carousel-composer-0-3-0.md` (to the user for the platform). **Next:** app-sidebar 0.6.0 (whenever convenient) and the media-editor patch when the platform's note arrives (it takes follow-up F-05).
+
+
+# Run — release 8 (2026-10-29)
+
+Lead state doc: [`../media-editor-procomp/media-editor-loop.md`](../media-editor-procomp/media-editor-loop.md) → "Run — release 8". Contract, invariants, findings and evidence live there.

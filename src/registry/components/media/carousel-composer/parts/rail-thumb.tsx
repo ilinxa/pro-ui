@@ -5,6 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { AlertCircle, Clock, Film, GripVertical, RotateCw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CarouselComposerLabels, MediaCarouselItem } from "../types";
+import { thumbHeightRem, thumbWidthRem } from "../lib/aspect";
 import { UploadProgress, clampProgress } from "./upload-progress";
 
 export interface RailThumbProps {
@@ -24,6 +25,8 @@ export interface RailThumbProps {
     | "retry"
     | "durationLabel"
   >;
+  /** Shared aspect as width / height (`null` = free, square). The thumb keeps its height. */
+  ratio?: number | null;
   /** Formats the duration badge of a video. */
   formatDuration: (seconds: number) => string;
   onSelect: (id: string) => void;
@@ -47,6 +50,7 @@ export function RailThumb({
   selected,
   disabled,
   labels,
+  ratio = 1,
   formatDuration,
   onSelect,
   onRemove,
@@ -83,8 +87,9 @@ export function RailThumb({
         aria-current={selected ? "true" : undefined}
         onClick={() => !disabled && onSelect(item.id)}
         disabled={disabled}
+        style={{ width: `${thumbWidthRem(ratio)}rem`, height: `${thumbHeightRem(ratio)}rem` }}
         className={cn(
-          "relative block size-16 overflow-hidden rounded-md border bg-muted outline-none transition focus-visible:ring-2 focus-visible:ring-ring",
+          "relative block overflow-hidden rounded-md border bg-muted outline-none transition focus-visible:ring-2 focus-visible:ring-ring",
           selected ? "border-ring ring-2 ring-ring" : "border-border",
           item.status === "pending" && "opacity-70",
         )}

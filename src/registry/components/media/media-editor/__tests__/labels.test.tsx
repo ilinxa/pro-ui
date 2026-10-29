@@ -171,7 +171,8 @@ describe("a full Turkish label set leaves no default English", () => {
         expect(screen.getAllByText("TR_apply").length).toBeGreaterThan(0);
       } else {
         expect(screen.getByText("TR_cancel")).toBeTruthy();
-        expect(screen.getByText("TR_cropAspectFree")).toBeTruthy();
+        // 0.7.0: a full label set names every chip through labels.crop.aspect
+        expect(screen.getAllByText("TR_cropAspectName").length).toBeGreaterThan(1);
       }
     }
     // text tool specifics

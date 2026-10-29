@@ -19,7 +19,7 @@ export const meta: ComponentMeta = {
     "Host-owned upload status — `status` / `progress` / `error` on the item, a progress indicator on thumb and preview, Retry via `onRetry`, polite announcements on status changes, handle `updateItem`",
     "Video poster frame (JPEG `posterBlob` at `posterAt`) and a duration badge (`formatDuration` / `locale`); the video itself is never re-encoded",
     "Image editing as an opt-in add-on (`editing` prop, `@ilinxa/carousel-composer-editing`) — no Edit button and no media-editor in the install without it; `canEditItem` decides per item",
-    "Shared aspect across the carousel (Instagram behaviour) — `aspect=\"auto\"` derives from item 1, overridable",
+    "Shared aspect across the carousel (Instagram behaviour) — any media-editor crop aspect (named, `\"original\"` = item 1's ratio, `\"W:H\"` such as `\"1.91:1\"`); `\"auto\"` snaps item 1 to the nearest option; controlled (`aspect` + `onAspectChange`) or `defaultAspect`; an `aspectOptions` switch on item 1; preview, rail thumbs and the edit panel follow it, an edit exports at it, and `export()` reports each image's centred `crop`",
     "Imperative handle — getItems / export / addFiles / removeItem / updateItem / select / openEditor / reset; pull-only export()",
     "Every string in `labels` (functions where a value varies); media-overlay tokens; logical (RTL-safe) layout",
     "Per-file type + size validation; maxItems cap (default 10, Instagram parity)",
@@ -36,15 +36,17 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.3.1",
+  version: "0.4.0",
   status: "alpha",
   // 0.3.0: 70 → 115 on the built size after both fix waves (105.3 KB; U1 estimated ~64).
   // The growth is the labels surface + JSDoc in types.ts, the alt / upload-status /
   // poster features and the review / browser fixes (focus hand-off, URL ownership, RTL); image editing
   // left for the feature item (~10 KB).
-  artifactBudgetKB: 115,
+  // 0.4.0: shared any-ratio aspect (resolution, switch part, guarded number format, crop
+  // rects, thumb box) + the fix wave: built 121.1 KB → 115 → 135.
+  artifactBudgetKB: 135,
   createdAt: "2026-06-05",
-  updatedAt: "2026-10-26",
+  updatedAt: "2026-10-29",
 
   author: { name: "ilinxa" },
 

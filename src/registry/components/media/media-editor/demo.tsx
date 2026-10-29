@@ -35,7 +35,7 @@ import type {
  *                  gallery intake fallback (pick file → edit → export) plus
  *                  the one dev console.warn.
  */
-type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture" | "rtl";
+type Tab = "defaults" | "news-hero" | "chat" | "edit-only" | "dark" | "no-capture" | "rtl" | "crop-aspect";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "defaults", label: "Defaults" },
@@ -45,6 +45,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "dark", label: "Dark" },
   { value: "no-capture", label: "No-capture (base-alone)" },
   { value: "rtl", label: "RTL" },
+  { value: "crop-aspect", label: "Crop: carry an aspect" },
 ];
 
 export default function MediaEditorDemo() {
@@ -80,11 +81,46 @@ export default function MediaEditorDemo() {
         <EditOnlyDemo />
       ) : tab === "rtl" ? (
         <RtlDemo />
+      ) : tab === "crop-aspect" ? (
+        <CropAspectDemo />
       ) : tab === "dark" ? (
         <DarkDemo />
       ) : (
         <NoCaptureDemo />
       )}
+    </div>
+  );
+}
+
+// ─── Crop: carry an aspect (0.7.0) ───────────────────────────────────
+
+function CropAspectDemo() {
+  const [log, setLog] = React.useState<string[]>([]);
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        A <code>aspect=&quot;1.91:1&quot;</code> canvas, crop offered as 1.91:1 /
+        4:5 / 1:1 with <code>defaultCropAspect=&quot;4:5&quot;</code>. Open Crop:
+        it starts on 4:5; Apply logs the <code>crop-set</code> action with the
+        chosen <code>aspect</code> and its <code>ratio</code>.
+      </p>
+      <MediaEditor
+        presentation="inline"
+        enabledModes={[]}
+        enabledTools={["crop", "adjust"]}
+        initialSource={SAMPLE_HERO_INITIAL_SOURCE}
+        aspect="1.91:1"
+        cropAspects={["1.91:1", "4:5", "1:1"]}
+        defaultCropAspect="4:5"
+        onEditAction={(a) => {
+          if (a.kind === "crop-set") {
+            setLog((l) => [`crop-set ${a.aspect} ratio=${a.ratio ?? "free"}`, ...l].slice(0, 6));
+          }
+        }}
+      />
+      <pre className="max-h-32 overflow-auto rounded-md border border-border bg-muted/30 p-2 text-xs">
+        {log.length ? log.join(" | ") : "(no crop applied yet)"}
+      </pre>
     </div>
   );
 }

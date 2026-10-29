@@ -6,9 +6,11 @@ import { useMediaRecovery } from "./hooks/use-media-recovery";
 import {
   DEFAULT_MAX_RATIO,
   DEFAULT_MIN_RATIO,
+  DEFAULT_PEEK_RATIO,
   clampRatio,
   declaredRatio,
   frameFor,
+  resolvePeekRatio,
 } from "./lib/aspect";
 import { resolveLabels, resolveLocale } from "./lib/labels";
 import { CarouselTrack } from "./parts/carousel-track";
@@ -21,7 +23,7 @@ interface MediaCarouselInnerProps extends MediaCarouselProps {
 function MediaCarouselInner({
   items,
   variant,
-  peekRatio = 0.075,
+  peekRatio: peekRatioProp = DEFAULT_PEEK_RATIO,
   aspect = "square",
   minRatio = DEFAULT_MIN_RATIO,
   maxRatio = DEFAULT_MAX_RATIO,
@@ -32,6 +34,8 @@ function MediaCarouselInner({
   dir: dirProp,
   rtl,
   locale: localeProp,
+  captionLines = 2,
+  captionClassName,
   index,
   onIndexChange,
   defaultIndex,
@@ -44,6 +48,7 @@ function MediaCarouselInner({
   slideClassName,
   ref,
 }: MediaCarouselInnerProps) {
+  const peekRatio = resolvePeekRatio(peekRatioProp);
   const labels = useMemo(() => resolveLabels(labelsProp), [labelsProp]);
   const locale = useMemo(() => resolveLocale(localeProp), [localeProp]);
   const formatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
@@ -89,6 +94,9 @@ function MediaCarouselInner({
         recovery={recovery}
         onNaturalSize={needsNatural ? onNaturalSize : undefined}
         dir={dir}
+        locale={locale}
+        captionLines={captionLines}
+        captionClassName={captionClassName}
         className={className}
         slideClassName={slideClassName}
       />
@@ -107,6 +115,9 @@ function MediaCarouselInner({
       showNavButtons={showNavButtons}
       showCounter={showCounter}
       dir={dir}
+      locale={locale}
+      captionLines={captionLines}
+      captionClassName={captionClassName}
       formatNumber={formatNumber}
       index={index}
       defaultIndex={defaultIndex}

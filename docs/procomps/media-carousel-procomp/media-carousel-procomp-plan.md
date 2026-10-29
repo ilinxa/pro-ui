@@ -1,5 +1,10 @@
 # media-carousel — procomp plan
 
+> **Release 8 (2026-10-29) — v0.4.0.** Per-slide `caption` (inside its slide, expandable-text, the carousel takes
+> the active slide's height), any `"W:H"` aspect, `labels.video` + `locale` for every video, and the fix for the
+> counter chip / Prev / Next when Embla drops the loop (`peekRatio` now sets the slide width). Contract and findings:
+> [`media-editor-loop.md` → "Run — release 8"](../media-editor-procomp/media-editor-loop.md); behaviour: the [guide](./media-carousel-procomp-guide.md).
+
 > Stage 2: how. The implementation contract.
 >
 > See [`media-carousel-procomp-description.md`](./media-carousel-procomp-description.md) for the what & why.

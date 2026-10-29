@@ -175,6 +175,8 @@ function reducer(state: MediaEditorState, action: Action): MediaEditorState {
       const next = { ...action.state };
       delete next.textOnly;
       delete next.frame;
+      // The crop aspect is working state: media-editor applies it (when still on offer).
+      delete next.cropAspect;
       return next;
     }
     case "transform":
@@ -192,6 +194,14 @@ export interface UseMediaEditorStateOptions {
   defaultMode?: ComposerMode;
   /** Any `CropAspect` (an `AspectRatio`, `"original"` or `"W:H"`). */
   defaultCropAspect?: CropAspect;
+  /**
+   * The crop aspects currently on offer (0.7.0). When this list changes by
+   * content and the selected aspect is no longer in it, the selection moves to
+   * `preferredCropAspect` (if listed) or the first entry, and a pending crop
+   * rect is cleared.
+   */
+  cropAspects?: readonly CropAspect[];
+  preferredCropAspect?: CropAspect;
   /**
    * Text-card backgrounds used to resolve `textOnly.gradientId` when the
    * snapshot syncs `textBackground`. Default: the built-in presets.
@@ -278,6 +288,24 @@ export function useMediaEditorState(
   );
   const [textOnly, setTextOnlyState] = useState<TextOnlyState>(INITIAL_TEXT_ONLY);
 
+  // Follow a changed `cropAspects` list: store the previous key in state and
+  // compare during render (the React-sanctioned derived reset, no effect).
+  const cropAspectsKey = opts.cropAspects ? opts.cropAspects.join(",") : null;
+  const [seenCropAspectsKey, setSeenCropAspectsKey] = useState(cropAspectsKey);
+  if (seenCropAspectsKey !== cropAspectsKey) {
+    setSeenCropAspectsKey(cropAspectsKey);
+    const list = opts.cropAspects;
+    if (list && list.length > 0 && !list.includes(cropAspect)) {
+      const next =
+        opts.preferredCropAspect !== undefined &&
+        list.includes(opts.preferredCropAspect)
+          ? opts.preferredCropAspect
+          : list[0]!;
+      setCropAspectState(next);
+      dispatch({ type: "set-crop", crop: null });
+    }
+  }
+
   // Revoke draft object URL on replacement / unmount. The revoke runs OUTSIDE
   // the setState updater — updaters must stay pure (React 19 StrictMode
   // double-invokes them). draftUrlRef mirrors the last committed URL, and
@@ -325,15 +353,16 @@ export function useMediaEditorState(
   // still sees the text card.
   const gradients = opts.gradients ?? DEFAULT_TEXT_GRADIENTS;
   const state = useMemo<MediaEditorState>(() => {
-    if (rawState.mode !== "text") return { ...rawState, textOnly };
+    if (rawState.mode !== "text") return { ...rawState, textOnly, cropAspect };
     return {
       ...rawState,
       textOnly,
+      cropAspect,
       textContent: textOnly.text,
       textBackground:
         gradients.find((g) => g.id === textOnly.gradientId) ?? null,
     };
-  }, [rawState, textOnly, gradients]);
+  }, [rawState, textOnly, cropAspect, gradients]);
 
   // Dirty derivation: any non-initial state counts as dirty. Includes draft
   // (capture-without-edit IS dirty per description §7) and text-only edits.

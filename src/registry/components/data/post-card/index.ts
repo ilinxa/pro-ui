@@ -74,6 +74,7 @@ export type {
   PostShareMenuProps,
   PostHeaderRenderHelpers,
   PostMediaProps,
+  PostMediaVideoLabels,
   PostReactions,
   ResolvedPostCardLabels,
 } from "./types";

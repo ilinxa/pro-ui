@@ -8,6 +8,7 @@ import { useDoubleTap } from "../../video-player/hooks/use-double-tap";
 import { useInView } from "../hooks/use-environment";
 import type { MediaRecovery } from "../hooks/use-media-recovery";
 import type { FrameStyle } from "../lib/aspect";
+import { SlideCaption } from "./slide-caption";
 import { SlideRenderer } from "./slide-renderer";
 import type {
   MediaItem,
@@ -25,6 +26,9 @@ interface SingleItemProps {
   onNaturalSize?: (width: number, height: number) => void;
   /** Explicit direction; written on the root so a `renderItem` follows it. */
   dir?: "ltr" | "rtl";
+  locale: string;
+  captionLines: number;
+  captionClassName?: string;
   className?: string;
   slideClassName?: string;
 }
@@ -46,6 +50,9 @@ export function SingleItem({
   recovery,
   onNaturalSize,
   dir,
+  locale,
+  captionLines,
+  captionClassName,
   className,
   slideClassName,
 }: SingleItemProps) {
@@ -63,21 +70,37 @@ export function SingleItem({
       ref={rootRef}
       role="group"
       dir={dir}
-      className={cn("relative overflow-hidden bg-muted", className)}
-      onClick={handleDoubleTap}
+      className={cn("relative", !item.caption && "overflow-hidden bg-muted", className)}
       aria-label={labels.carouselLabel}
     >
-      <SlideRenderer
-        item={item}
-        ctx={{ isActive: true, inView, index: 0 }}
-        renderItem={renderItem}
-        // Images are handled at wrapper level; don't double-fire.
-        onDoubleTap={isVideo ? onDoubleTap : undefined}
-        frame={frame}
-        recovery={recovery}
-        onNaturalSize={onNaturalSize}
-        slideClassName={slideClassName}
-      />
+      {/* With a caption, the clip + tint move to the frame so the caption sits outside them. */}
+      <div
+        className={item.caption ? "relative overflow-hidden rounded-[inherit] bg-muted" : undefined}
+        onClick={handleDoubleTap}
+      >
+        <SlideRenderer
+          item={item}
+          ctx={{ isActive: true, inView, index: 0 }}
+          renderItem={renderItem}
+          // Images are handled at wrapper level; don't double-fire.
+          onDoubleTap={isVideo ? onDoubleTap : undefined}
+          frame={frame}
+          recovery={recovery}
+          onNaturalSize={onNaturalSize}
+          slideClassName={slideClassName}
+          locale={locale}
+          videoLabels={labels.video}
+        />
+      </div>
+      {item.caption ? (
+        <SlideCaption
+          caption={item.caption}
+          lines={captionLines}
+          className={captionClassName}
+          active
+          labels={labels}
+        />
+      ) : null}
     </div>
   );
 }

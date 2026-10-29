@@ -1,4 +1,4 @@
-import type { AspectRatio, CropAspect } from "../types";
+import type { AspectRatio, CanvasAspect, CropAspect } from "../types";
 
 const NAMED: Record<AspectRatio, number | null> = {
   "9:16": 9 / 16,
@@ -53,4 +53,17 @@ export function cropAspectToRatio(
   }
   if (isNamed(aspect)) return NAMED[aspect];
   return parseCustom(aspect);
+}
+
+/**
+ * Validates the canvas `aspect` prop (0.7.0): a named `AspectRatio` or `"W:H"`
+ * with finite positive numbers. `"original"` and anything else is invalid.
+ */
+export function isValidCanvasAspect(value: unknown): value is CanvasAspect {
+  return value !== "original" && isValidCropAspect(value);
+}
+
+/** Width / height of a canvas aspect; `null` for `"free"`. */
+export function canvasAspectToRatio(aspect: CanvasAspect): number | null {
+  return cropAspectToRatio(aspect, null);
 }
