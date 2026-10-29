@@ -713,7 +713,7 @@ pointer sections.
 | Field | Value |
 |---|---|
 | **Mode** | U-loop. media-editor **breaking minor** (canvas `aspect` / slot-context `aspect` widened to `"W:H"`) · carousel-composer **breaking minor** (`CarouselEditorPanelProps.aspect` widened) · media-carousel **minor** (additive) · post-card **minor** (forwarding + its inline `PostMediaItem` copy follows) |
-| **Current stage** | U2 — implement (4 implementers) |
+| **Current stage** | CLOSED — shipped in `b3607dd`, live-verified 2026-10-29 16:45 (U7 below) |
 | **Sign-off policy** | **delegated by user** for U1 and the push ("go ahead and start and finish release 8 … end to end", 2026-10-29). The two breaking widenings on composed components were put to the user separately (config: never delegated) — **approved 2026-10-29: "Yes, ship both"** (carousel-composer 0.4.0 + media-editor 0.7.0 with a migration note). |
 | **Version target** | media-editor 0.6.0 → **0.7.0** (capture item follows) · media-carousel 0.3.1 → **0.4.0** (the planned 0.3.2 patch for MC-2 folds into it — one re-vendor for the platform) · carousel-composer 0.3.1 → **0.4.0** (+ `carousel-composer-editing` follows) · post-card 0.7.0 → **0.8.0** |
 | **Model roster** | architect: main session · implementers: 4 × Sonnet 5 (A1 text card, A2 crop aspect + canvas aspect, B media-carousel + post-card, C carousel-composer + editing add-on) · finders: 2 × fresh Sonnet 5 (U4) + browser finder (U5) · doc verifier: fresh Sonnet 5 (U6) |
@@ -965,3 +965,12 @@ media-carousel. Interactive: one extra "n". Non-interactive (closed stdin / CI) 
 0 and writes nothing (the known-flake row in `readiness.config.md`). Run B hit it with the harness's piped answers.
 Mitigation: documented (guide Install + the reply: re-add with `--overwrite`, or CLI 4.x); follow-up media-carousel
 F-03.
+
+### U7 — Ship (2026-10-29)
+
+`b3607dd` pushed 16:29. Live poll (160 s apart): polls 1–5 (16:32–16:43) still 0.3.1; **poll 6 (16:45) `/r/media-carousel.json`
+with `parts/slide-caption.tsx`**; then every item carries its stamp — `media-editor 0.7.0` (47 files), `media-editor-capture
+0.7.0`, `media-carousel 0.4.0` (15), `carousel-composer 0.4.0` (25, incl. `aspect-switch.tsx` / `format-number.ts`),
+`carousel-composer-editing 0.4.0`, `post-card 0.8.0`; `/components/{media-editor,media-carousel,carousel-composer,post-card}`
+200. GATE 3: Pass with follow-ups ×4 (reviews in each `reviews/` folder). Retro in `.claude/improvement-log.md`. Run
+closed; the reply to the platform is `.claude/report-back-2026-10-29-release-8.md` (the user sends it).
