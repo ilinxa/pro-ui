@@ -10,6 +10,12 @@ export const meta: ComponentMeta = {
   context:
     "Fifth ship in the social-posts-system arc. Since 0.4.0 the thread closes under the consumer contract: `comments` is read once at mount unless `onCommentsChange` is passed, which makes it controlled (pending operations show as an overlay over the prop; accepted changes are reported, not applied). Realtime via Subscribe<CommentDelta> is idempotent (id first, then `clientId`). Moderation (inline edit, tombstones, pin marker) is the opt-in feature item `comment-thread-moderation`, wired through the `moderation` prop; the base never imports it. Per-row engagement-bar is controlled by the thread state. No framer-motion, no textarea-autosize dep, no date-fns dep. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx.",
   features: [
+    "v0.6.0 — compound parts: `CommentThreadRoot` (all state, the handle) with `CommentThreadList`, `CommentThreadLoadMore`, `CommentThreadComposer`, `CommentThreadScrollArea` and `useCommentThread()`; `CommentThread` is now Root + List + LoadMore + Composer with the same layout. Hand-assemble a height-capped panel with the composer below the scroll, or a list with no composer (which leaves the composer code out)",
+    "v0.6.0 — `CommentThreadLoadMore mode=\"auto\"`: the next page loads as the button nears the visible edge of the enclosing scroll area (or `scrollRoot`, or the viewport), one request at a time, no automatic retry after a failure, a polite status, the button kept for keyboard users",
+    "v0.6.0 — `CommentThreadScrollArea`: a focusable, named scroll region (`labels.commentsRegion`), usable around any thread",
+    "v0.6.0 — `confirmDelete`: ask before a delete from the row's menu, with the `comment-thread-confirm-delete` add-on's dialog (`labels.deleteTitle` / `deleteBody(hasReplies)` / `deleteConfirm` / `deleteCancel`) or your own function; Cancel returns focus to the row's menu trigger, a confirmed delete to the neighbouring row; `helpers.onDelete` in every helper bag and `handle.deleteComment(id)` (no confirmation) delete through the built-in path",
+    "v0.6.0 — `size=\"touch\"`: every control (row engagement bars, Reply, the actions menu trigger, the author-name link, Show more, View replies, Load more, the composers' buttons) has a hit area of at least 44 × 44 px; `CommentComposer` takes `size` too",
+    "v0.6.0 — fixes: when the last page arrives and \"Load older comments\" goes away, focus moves to the first new comment also when a controlled host applies the page late; the \"(edited)\" suffix meets 4.5:1 contrast in light mode",
     "v0.5.0 — `renderContent(comment, { depth })`: your own links / mentions / hashtags inside the row's clamped body (Show more still works); the edit composer still edits the raw `content`",
     "v0.5.0 — labels reach every row: `labels.showMore` / `showLess`, and `labels.engagement` (all engagement-bar labels: comment, share, bookmark, view count, reaction picker); the thread's `like` / `unlike` win over `engagement.like` / `unlike`; avatar initials follow `locale`",
     "v0.5.0 — author links: `getAuthorHref(author, comment)` + `linkComponent`; the avatar link is hidden from assistive technology and the tab order, the name link is the one announced; name in `<bdi>`, `@handle` `dir=\"ltr\"`",
@@ -61,11 +67,11 @@ export const meta: ComponentMeta = {
     "expandable",
   ],
 
-  version: "0.5.0",
+  version: "0.6.0",
   status: "alpha",
   // 0.4.0: 75 KB was the U1 estimate; the built artifact is ~135 KB (~15 KB of it is JSDoc in
   // types.ts). Runtime cost of <CommentThread>, minified + gzip: 5.1 KB (0.3.2) → 11.6 KB.
-  artifactBudgetKB: 150,
+  artifactBudgetKB: 185,
   createdAt: "2026-05-02",
   updatedAt: "2026-10-28",
 

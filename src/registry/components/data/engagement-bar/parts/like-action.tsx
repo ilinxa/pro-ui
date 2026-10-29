@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   EngagementActionEvent,
+  EngagementBarSize,
   EngagementBarVariant,
   EngagementCount,
   ResolvedEngagementBarLabels,
 } from "../types";
-import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
+import { DISABLED_ACTION_CLASS, useActionName, touchTarget } from "../lib/action-name";
 
 interface LikeActionProps {
   variant: EngagementBarVariant;
@@ -18,7 +19,7 @@ interface LikeActionProps {
   count: EngagementCount;
   disabled?: boolean;
   /** The bar's toggle path (gating, handler, optimistic overlay). */
-  onToggle: () => void;
+  onToggle: (event?: EngagementActionEvent) => void;
   /** When provided, count becomes a separate clickable target (not rendered when withheld). */
   onCountClick?: (event: EngagementActionEvent) => void;
   /** Disclosure state of the panel the COUNT button opens (0.7.0). */
@@ -28,6 +29,7 @@ interface LikeActionProps {
   format: (n: number) => string;
   labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
+  size?: EngagementBarSize;
 }
 
 function LikeActionInner({
@@ -42,10 +44,11 @@ function LikeActionInner({
   format,
   labels,
   actionClassName,
+  size,
 }: LikeActionProps) {
-  const handleHeartClick = () => {
+  const handleHeartClick = (event: EngagementActionEvent) => {
     if (disabled) return;
-    onToggle();
+    onToggle(event);
   };
   const handleCountClick = (event: EngagementActionEvent) => {
     if (disabled) return;
@@ -88,6 +91,7 @@ function LikeActionInner({
           "rounded font-medium tabular-nums hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "motion-safe:transition-colors",
           textClass,
+          touchTarget(size, true),
           DISABLED_ACTION_CLASS,
         )}
       >
@@ -115,6 +119,7 @@ function LikeActionInner({
             className={cn(
               "h-auto px-2 py-1",
               liked && "text-destructive",
+              touchTarget(size),
               DISABLED_ACTION_CLASS,
             )}
           >
@@ -137,6 +142,7 @@ function LikeActionInner({
         className={cn(
           "flex h-auto flex-col items-center gap-0.5 px-2 py-1",
           liked && "text-destructive",
+          touchTarget(size),
           DISABLED_ACTION_CLASS,
           actionClassName,
         )}
@@ -146,6 +152,7 @@ function LikeActionInner({
         {hasCount ? (
           <span
             id={heartName.countId}
+            // Stacked sits on media overlays (story-viewer): the count keeps the button's colour.
             className="text-xs font-medium tabular-nums"
             aria-live="polite"
           >
@@ -173,13 +180,14 @@ function LikeActionInner({
           className={cn(
             "h-9 px-2 motion-safe:transition-colors",
             liked && "text-destructive",
+            touchTarget(size),
             DISABLED_ACTION_CLASS,
           )}
         >
           {heartIcon(iconSizeClass)}
           {heartLabelNode}
         </Button>
-        {countButton(cn("text-sm", liked ? "text-destructive" : "text-foreground"))}
+        {countButton("text-sm text-foreground")}
       </div>
     );
   }
@@ -197,6 +205,7 @@ function LikeActionInner({
         hasCount ? "gap-2 px-2" : "px-2",
         "motion-safe:transition-colors",
         liked && "text-destructive",
+        touchTarget(size),
         DISABLED_ACTION_CLASS,
         actionClassName,
       )}
@@ -206,7 +215,7 @@ function LikeActionInner({
       {hasCount ? (
         <span
           id={heartName.countId}
-          className="text-sm font-medium tabular-nums"
+          className={cn("text-sm font-medium tabular-nums", liked && "text-foreground")}
           aria-live="polite"
         >
           {format(count)}

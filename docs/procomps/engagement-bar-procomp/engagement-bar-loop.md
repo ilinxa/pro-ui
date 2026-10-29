@@ -308,3 +308,10 @@ U1 signed by the user ("A", 2026-10-28). Built, reviewed and shipped with releas
 ### U7 — Ship (release 7)
 
 Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Detail: comment-thread-loop.md "Run — release 7".
+
+# Run — 0.8.0 (release 7b, with comment-thread 0.6.0)
+
+Lead state doc: `docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7b". Scope for
+engagement-bar: EB-2 `tapAction` / `primaryKey` / `hoverOpenDelay`, EB-3 LikersStrip links / names / badge (+ FU-7), EB-4
+`size="touch"`, EB-6 ShareMenu header + send state, FU-1 `onToggle(next, event)`, FU-6 liked-count contrast. Sign-off
+delegated by the user for this run (recorded in the lead doc).

@@ -6,8 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { CommentThread } from "./comment-thread";
+import { CommentThreadRoot } from "./parts/comment-thread-root";
+import { CommentThreadList } from "./parts/comment-thread-list";
+import { CommentThreadLoadMore } from "./parts/comment-thread-load-more";
+import { CommentThreadComposer } from "./parts/comment-thread-composer";
+import { CommentThreadScrollArea } from "./parts/comment-thread-scroll-area";
 import { commentModeration } from "./features/moderation";
-import type { Comment, CommentThreadHandle } from "./types";
+import { commentDeleteConfirm } from "./features/confirm-delete";
+import type { Comment, CommentThreadHandle, CommentThreadSize } from "./types";
 import {
   DUMMY_CURSOR_FIRST_PAGE,
   DUMMY_FLAT_COMMENTS,
@@ -97,6 +103,64 @@ function PaginatedTab() {
         return generateOlderPage(page);
       }}
     />
+  );
+}
+
+/**
+ * 0.6.0 compound: a height-capped panel (the in-place comments panel under a feed card). The list
+ * scrolls in a focusable region and loads the next page as you near its end; the composer sits
+ * below the scroll, always visible; Delete asks first (the confirm-delete add-on).
+ */
+function PanelTab() {
+  const [size, setSize] = useState<CommentThreadSize>("default");
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-pressed={size === "touch"}
+          onClick={() => setSize((s) => (s === "touch" ? "default" : "touch"))}
+        >
+          Touch size (44 px)
+        </Button>
+      </div>
+      <Card className="max-w-xl gap-0 p-0">
+        <CommentThreadRoot
+          comments={DUMMY_LARGE_THREAD}
+          currentUser={DUMMY_VIEWER}
+          pageSize={10}
+          size={size}
+          confirmDelete={commentDeleteConfirm}
+          // The server's comment (a real id): your own comments can then be deleted (with a confirmation).
+          onAddComment={async (content, _parentId, options) => {
+            ConsoleSink({ tag: "add", payload: content });
+            await wait(300);
+            return {
+              id: `server-${options?.clientId ?? content}`,
+              author: DUMMY_VIEWER,
+              content,
+              createdAt: new Date(),
+              likes: 0,
+            } satisfies Comment;
+          }}
+          onDeleteComment={async (id) => {
+            ConsoleSink({ tag: "delete", payload: id });
+          }}
+          onLoadMore={async (page) => {
+            await wait(600);
+            return generateOlderPage(page);
+          }}
+          className="gap-0"
+        >
+          <CommentThreadScrollArea className="max-h-96 px-4 pt-4">
+            <CommentThreadList />
+            <CommentThreadLoadMore mode="auto" className="py-3" />
+          </CommentThreadScrollArea>
+          <CommentThreadComposer className="border-t border-border p-3" />
+        </CommentThreadRoot>
+      </Card>
+    </div>
   );
 }
 
@@ -396,6 +460,7 @@ export default function CommentThreadDemo() {
         <TabsTrigger value="depth2">Nested d2</TabsTrigger>
         <TabsTrigger value="depth3">Nested d3</TabsTrigger>
         <TabsTrigger value="paginated">Paginated</TabsTrigger>
+        <TabsTrigger value="panel">Panel (parts)</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="moderation">Moderation</TabsTrigger>
         <TabsTrigger value="rich">Rich &amp; links</TabsTrigger>
@@ -418,6 +483,9 @@ export default function CommentThreadDemo() {
       </TabsContent>
       <TabsContent value="paginated" className="mt-4">
         <PaginatedTab />
+      </TabsContent>
+      <TabsContent value="panel" className="mt-4">
+        <PanelTab />
       </TabsContent>
       <TabsContent value="controlled" className="mt-4">
         <ControlledTab />

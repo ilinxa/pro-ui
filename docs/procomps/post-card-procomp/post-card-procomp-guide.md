@@ -1,6 +1,6 @@
 # post-card — consumer guide
 
-> Stage 3: how to use it. Current for **v0.6.1** (0.6.1 adds panel disclosure state — see "Inline engagement panels"): read the "v0.6.0 — consumer contract" section at the end first; the
+> Stage 3: how to use it. Current for **v0.7.0** (0.7.0 forwards the engagement-bar 0.8.0 panel options and closes the two 0.6.1 disclosure limits — see "Inline engagement panels" and "Forwarding bags"): read the "v0.6.0 — consumer contract" section at the end first; the
 > earlier sections still hold unless that section says otherwise.
 >
 > See [`post-card-procomp-description.md`](./post-card-procomp-description.md) for what & why,
@@ -56,6 +56,17 @@ Firefox, which do not focus a clicked button. Two limits: the likers panel that 
 (`openLikersOnLike`) still takes the focused element as its opener (on Safari that is the card); and actions you build
 in the `engagementActions` slot carry no disclosure state — `defaultPostEngagementActions(...)` called from the slot
 omits its `inline` argument (`PostInlineDisclosure`).
+
+**0.7.0:** both limits are gone. The heart that auto-opens the likers panel is its opener (`PostHandlers.onLike`
+receives the click event as a third argument, from engagement-bar 0.8.0's `onToggle(next, event)`), and the
+`engagementActions` slot receives the inline disclosure as a fourth argument — pass it on as
+`defaultPostEngagementActions(post, handlers, variant, undefined, undefined, inline)`, or wire `expanded` /
+`controls` and its openers (`inline.likes`, `inline.comment`, `inline.share`, each taking the click event) into your
+own actions. The inline comments panel now scrolls in a focusable, named region (`commentLabels.commentsRegion`, else
+`labels.commentsHeading`), so keyboard users can scroll it; its height is still `inlineCommentsMaxHeight`.
+0.7.0 needs comment-thread 0.6.0 and engagement-bar 0.8.0 (installed with it). shadcn does not overwrite files you
+already have without asking: if you vendored older copies, re-add them together
+(`pnpm dlx shadcn@latest add @ilinxa/post-card @ilinxa/comment-thread @ilinxa/engagement-bar --overwrite`).
 
 ## Minimal feed (with all three panels enabled)
 
@@ -179,7 +190,7 @@ import { Wand2 } from "lucide-react";
 
 The `handlers` you receive in the `engagementActions` slot are **pre-wrapped** — calling `h.onLike(id, true)` calls your host's `onLike` and applies the change to the shown post (at once for a sync handler; as an overlay while a returned promise is in flight).
 
-`defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?, reactions?, inline?)` accepts optional trailing args (`onLikeCountClick` receives the click event since 0.6.1; `inline` is post-card's own `PostInlineDisclosure`). When the card is in inline mode it supplies its own `onLikeCountClick` to wire the count→panel toggle. Hosts overriding the slot get a no-op for that arg unless they explicitly opt in.
+`defaultPostEngagementActions(post, handlers, variant, onLikeCountClick?, reactions?, inline?)` accepts optional trailing args (`onLikeCountClick` receives the click event since 0.6.1; `inline` is post-card's own `PostInlineDisclosure`). When the card is in inline mode it supplies its own `onLikeCountClick` to wire the count→panel toggle. Since 0.7.0 the slot receives `inline` as its fourth argument; passed on, it wires the panels' disclosure state and (when `onLikeCountClick` is omitted) opens the likers panel from the count.
 
 ## Custom kebab actions (moderator surfaces)
 
@@ -681,7 +692,14 @@ card reads the clock after mount and every minute. `formatRelativeTime` / `forma
 ## Forwarding bags
 
 - `mediaProps` → every MediaCarousel (`aspect`, `onMediaError`, `showCounter`, `labels`, …).
-- `engagementBarProps` → every built-in EngagementBar (`formatCount`, `optimistic`, `likersPreview`, `trailing`, …).
+- `engagementBarProps` → every built-in EngagementBar (`formatCount`, `optimistic`, `likersPreview`, `trailing`, …;
+  0.7.0: `size` for 44 px targets, `hideZeroCounts`).
+- `reactions.tapAction` / `primaryKey` / `hoverOpenDelay` (0.7.0) pass to the reaction action: `tapAction: "primary"`
+  makes one tap react with the primary kind (see engagement-bar 0.8.0).
+- `likersStripProps` (0.7.0) → the inline likers panel: `getProfileHref` + `linkComponent` (each liker one link),
+  `nameDisplay`, `renderBadge`, `size`.
+- `shareMenuProps` (0.7.0) → the inline share panel: `header` (copy link, the system share sheet), `pendingIds` /
+  `sentIds` (per-person send state; with either set the panel stays open after a pick, so the row can show it), `size`.
 - `commentThreadProps` → the thread (inline panel and detail): `onCommentsChange`, `onLoadMoreCursor`, `nextCursor`,
   `hasMore`, `onLoadReplies`, `moderation` (the `comment-thread-moderation` add-on), `removedMode`, `onEditComment`,
   `extraActions`, `reactionKinds` / `onReactComment`, `onError`, … The card's own comment props (`onAddComment`,

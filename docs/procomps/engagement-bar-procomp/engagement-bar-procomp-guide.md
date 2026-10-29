@@ -1,6 +1,6 @@
 # engagement-bar — consumer guide
 
-> Stage 3: usage notes for hosts. Current for v0.7.0 (see the 0.7.0 / 0.6.x sections below). Updated for v0.5.0 — withheld counts, optimistic handlers, `disabled` / `hidden`, `trailing`, RTL, `locale`. Upgrading from 0.4.x: see [Upgrading to 0.5.0](#upgrading-to-050).
+> Stage 3: usage notes for hosts. Current for v0.8.0 (see the 0.8.0 / 0.7.0 / 0.6.x sections below). Updated for v0.5.0 — withheld counts, optimistic handlers, `disabled` / `hidden`, `trailing`, RTL, `locale`. Upgrading from 0.4.x: see [Upgrading to 0.5.0](#upgrading-to-050).
 >
 > See [description](./engagement-bar-procomp-description.md) for what & why; [plan](./engagement-bar-procomp-plan.md) for how it's built.
 
@@ -453,6 +453,105 @@ Put the bar under `dir="rtl"` (or pass `dir="rtl"`). The row mirrors through log
 
 `LikersStrip`: `likers` + `onLikersChange` is controlled; `likers` alone shows the prop on every render plus the pages the strip loaded itself (de-duplicated by `id`); `defaultLikers` is read once. A rejected `onLoadMore` leaves the list as it was. `heading`, `closeLabel` and `moreAriaLabelTemplate` still work as deprecated aliases of `labels`. `ShareMenu`: async search is latest-request-wins and falls back to the local filter on a rejection; the local filter lower-cases with `locale`.
 
+
+## 0.8.0 — one-tap reactions, touch size, linked likers, share send state
+
+Additive. Without the new props nothing changes, except that in the default and compact variants a liked count is
+now drawn in the foreground colour (the red read 4.44:1 on the light background; the heart stays red; the stacked
+variant keeps the button's colour because it sits on media). The three new `ShareMenuLabels` keys are optional, so a
+label object you typed yourself keeps compiling.
+
+### One tap = the primary reaction (`tapAction: "primary"`)
+
+```tsx
+<EngagementBar
+  actions={[
+    {
+      kind: "reaction",
+      kinds, // [{ key: "like", icon: <Heart />, label: "Like" }, …]
+      viewerReaction,
+      totalCount,
+      tapAction: "primary",
+      primaryKey: "like", // default: kinds[0].key
+      hoverOpenDelay: 500, // opt-in, mouse only
+      onSelect: setViewerReaction,
+    },
+  ]}
+/>
+```
+
+- A tap (click, Enter, Space) with no reaction set selects `primaryKey`; a tap with **any** reaction set clears it
+  (`clearOnTap` is ignored in this mode). The tap never opens the picker, so `onReactionPickerOpenChange` does not fire
+  for it.
+- The picker opens on a long-press (350 ms), on **ArrowUp**, the **ContextMenu** key or **Shift+F10** from the focused
+  trigger, and — with `hoverOpenDelay` — when a mouse rests on the trigger that long (touch and pen never hover-open).
+  A hover-opened picker stays open while the pointer is over the trigger or the picker, closes about 300 ms after it
+  leaves both, and closes on Escape. It leaves keyboard focus where it was (a hover is not a request to move focus);
+  the keyboard keys open it with focus inside. The trigger lists `aria-keyshortcuts="ArrowUp Shift+F10"`, and the
+  ContextMenu key / Shift+F10 do not also raise the browser's own menu.
+- With no reaction set the trigger shows the primary kind's icon and is named by its label ("Like"), not
+  `labels.react`. An unknown `primaryKey` falls back to `kinds[0]` with one development warning.
+- Use this instead of a `like` + `reaction` pair (two hearts).
+
+### 44 px targets (`size="touch"`)
+
+`size="touch"` on the bar gives every interactive element — each action, the split heart and the like / reaction count
+buttons, the reaction trigger, the picker's kinds and its Remove button — a hit area of at least 44 × 44 px, in every
+variant. Icons and text keep their size; the row gets taller. `LikersStrip` and `ShareMenu` take the same `size` (their
+Hide button, the "+N" pill, links, the search input and the rows). Through post-card: `engagementBarProps.size`,
+`likersStripProps.size`, `shareMenuProps.size`.
+
+### The toggle event (`onToggle(next, event)`)
+
+Like and bookmark `onToggle` receive the click event as a second argument when the change comes from the action's own
+button — `undefined` from the imperative handle. Take `event.currentTarget` as the opener of a panel the heart opens
+(Safari does not focus a clicked button). Read it inside the handler. One-argument handlers keep working. The reaction's
+`onSelect` gets no event: a pick is applied a microtask later, when `currentTarget` is already cleared.
+
+### LikersStrip — profile links, full names, badges
+
+```tsx
+<LikersStrip
+  totalCount={likes}
+  likers={likers}
+  getProfileHref={(p) => `/u/${p.username}`} // undefined = no link for that liker
+  linkComponent={Link} // default "a"; receives href
+  nameDisplay="full" // default "first"
+  renderBadge={(p) => reactionIconOf(p.id)} // decorative; your lookup
+/>
+```
+
+- With `getProfileHref`, a liker's avatar and name become **one** link (a tile is one target), named by the full name
+  (plus the `@username` when shown). Links and images are not draggable, and a drag that scrolls the strip never
+  activates the link it ends on; a plain click still navigates.
+- `nameDisplay="first"` shows the first word of the name (the split now ignores extra spaces); screen readers always
+  hear the full name. A blank name falls back to the username; initials take whole characters (an emoji or a
+  supplementary letter is not cut in half). Names are isolated with `<bdi>`, `@username` stays left-to-right.
+- `renderBadge` renders over the avatar's corner, `aria-hidden` — put any meaning into the name.
+- When the strip holds nothing focusable (no links, no "+N" pill), its scroller takes a tab stop and is named by
+  `labels.heading`, so keyboard users can scroll it.
+
+### ShareMenu — a header row and per-person send state
+
+```tsx
+<ShareMenu
+  users={recent}
+  onShareTo={(user) => send(user.id)} // mark it pending, then sent
+  header={<ShareBar targets={[{ kind: "copy" }, { kind: "native" }]} />} // the share-bar component
+  pendingIds={pending}
+  sentIds={sent}
+  labels={{ sending: "Gönderiliyor…", sent: "Gönderildi", sentTo: (n) => `${n} kişisine gönderildi` }}
+/>
+```
+
+- `header` renders above the search.
+- A row in `pendingIds` shows a spinner and `labels.sending`; a row in `sentIds` shows a check and `labels.sent`. Both
+  are `aria-disabled` (they stay focusable; a press does nothing), and the state text is part of the row's name.
+- A polite live region announces `labels.sentTo(name)` once for each id **added** to `sentIds` after mount (ids there at
+  mount are not announced; an id removed and added again is announced again). A person the menu never listed is
+  announced as `labels.sent`, never by id.
+- Through post-card, `shareMenuProps={{ header, pendingIds, sentIds }}`; with send state the card's share panel stays
+  open after a pick so the row can show it.
 
 ## 0.7.0 — disclosure state, the click event, `hideZeroCounts`
 

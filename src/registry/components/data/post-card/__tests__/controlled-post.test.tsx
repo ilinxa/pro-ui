@@ -88,7 +88,8 @@ describe("controlled post: like", () => {
     const onPostChange = vi.fn();
     const { rerender } = render(card({ onPostChange, onLike }));
     fireEvent.click(likeButton(screen));
-    expect(onLike).toHaveBeenCalledWith("p1", true);
+    // 0.7.0: a click also passes the click event as a third argument.
+    expect(onLike.mock.calls[0]!.slice(0, 2)).toEqual(["p1", true]);
     expect(onPostChange).toHaveBeenCalledTimes(1);
     expect(onPostChange.mock.calls[0]![1]).toEqual({ kind: "like", liked: true });
     expect(likeButton(screen)).toHaveAccessibleName("Like 10");

@@ -1,10 +1,11 @@
 # comment-thread — consumer guide
 
-> Stage 3: how to use it. Current for **v0.5.0** (+ the `comment-thread-moderation` add-on, versioned with it).
+> Stage 3: how to use it. Current for **v0.6.0** (+ the `comment-thread-moderation` and `comment-thread-confirm-delete` add-ons, versioned
+> with it).
 >
 > See [`comment-thread-procomp-description.md`](./comment-thread-procomp-description.md) for what & why,
 > [`comment-thread-procomp-plan.md`](./comment-thread-procomp-plan.md) for the original implementation contract, and
-> [`comment-thread-loop.md`](./comment-thread-loop.md) for the 0.4.0 change contract.
+> [`comment-thread-loop.md`](./comment-thread-loop.md) for the change contracts (0.4.0, 0.6.0).
 
 ## 30-second mental model
 
@@ -30,6 +31,8 @@ Four rules:
 pnpm dlx shadcn@latest add @ilinxa/comment-thread
 # optional: inline edit, tombstones, pinned marker
 pnpm dlx shadcn@latest add @ilinxa/comment-thread-moderation
+# optional: confirm before delete (adds shadcn's alert-dialog)
+pnpm dlx shadcn@latest add @ilinxa/comment-thread-confirm-delete
 # optional: the demo's sample data
 pnpm dlx shadcn@latest add @ilinxa/comment-thread-fixtures
 ```
@@ -37,8 +40,9 @@ pnpm dlx shadcn@latest add @ilinxa/comment-thread-fixtures
 The base pulls `expandable-text` and `engagement-bar` plus the shadcn primitives `avatar`, `button`, `dropdown-menu`,
 `textarea`. The moderation add-on pulls the base. No `react-textarea-autosize`, `date-fns` or `framer-motion`.
 
-Size: the base installs ~135 KB (much of it JSDoc in `types.ts`); `<CommentThread>` costs ~11.6 KB minified + gzip
-in your bundle (0.3.2: ~5 KB). The moderation add-on is ~6.6 KB.
+Size: the base installs ~177 KB (much of it JSDoc in `types.ts`); `<CommentThread>` costs ~13.7 KB minified + gzip
+in your bundle (a read-only `CommentThreadRoot` + `CommentThreadList` ~11.5 KB, the reply box loading on first use;
+0.3.2: ~5 KB). The moderation add-on is ~6.6 KB, the confirm-delete add-on ~5 KB.
 
 ## Minimal usage
 
@@ -178,7 +182,7 @@ Defaults: `canDelete` / `canEdit` = the viewer wrote it; `canReply` = signed in 
 renders disabled); `canReport` = the viewer did **not** write it (and `onReportComment` is wired); `canPin` / `canHide`
 = `false` — they gate nothing built in; read them in your own items. `extraActions` items are appended after the
 defaults; `commentActions` still takes the whole menu over (both receive `CommentActionHelpers`: `currentUser`,
-`isOwn`, `depth`, `permissions`, `isPending`). Menu items take `hidden`, `disabled`, `destructive`, `separatorBefore`;
+`isOwn`, `depth`, `permissions`, `isPending`, and since 0.6.0 `onDelete`). Menu items take `hidden`, `disabled`, `destructive`, `separatorBefore`;
 a menu whose items are all hidden is not rendered.
 
 ## Reactions per row
@@ -288,6 +292,7 @@ interface CommentThreadHandle {
   getCurrentComments(): Comment[];      // the shown tree (overlay applied)
   reset(next: Comment[]): void;         // controlled: reported
   dispatch(action: CommentLocalAction): void; // controlled: reported
+  deleteComment(commentId: string): void; // 0.6.0: the built-in delete path, without confirmDelete
 }
 ```
 
@@ -301,6 +306,109 @@ interface CommentThreadHandle {
   a post is in flight.
 - Failures are announced (`role="alert"`). The kebab shows on hover, focus-within and coarse pointers.
 - After an inline reply is sent or cancelled, focus returns to the comment's Reply button.
+
+## 0.6.0 — parts, auto-load, confirm before delete, touch size
+
+Additive. `<CommentThread>` renders exactly as in 0.5.0 (except the "(edited)" contrast fix below); everything new is
+opt-in. `CommentActionHelpers` gains a required `onDelete` — only a helpers object you build yourself (a test, a
+wrapper) needs updating. Needs engagement-bar 0.8.0 (installed with it).
+
+### Compose your own layout
+
+`CommentThread` is now `CommentThreadRoot` + `CommentThreadList` + `CommentThreadLoadMore` + `CommentThreadComposer`.
+Use the parts for layouts the assembly can't do — the in-place comments panel under a feed card, with a height-capped
+list that loads as you scroll and the write box always visible:
+
+```tsx
+import {
+  CommentThreadRoot,
+  CommentThreadScrollArea,
+  CommentThreadList,
+  CommentThreadLoadMore,
+  CommentThreadComposer,
+} from "@/components/comment-thread";
+
+<CommentThreadRoot comments={comments} onCommentsChange={…} currentUser={me} onLoadMoreCursor={…} hasMore={hasMore}
+  nextCursor={cursor} className="gap-0">
+  <CommentThreadScrollArea className="max-h-96 px-4">
+    <CommentThreadList />
+    <CommentThreadLoadMore mode="auto" />
+  </CommentThreadScrollArea>
+  <CommentThreadComposer className="border-t border-border p-3" />
+</CommentThreadRoot>
+```
+
+- **`CommentThreadRoot`** takes every `CommentThread` prop (and the `ref` handle) and holds all state; the parts read
+  it from context and throw if used outside it. Its `className` is the thread's root `<div>` (`flex flex-col gap-3`).
+- **`CommentThreadScrollArea`** — a `<div>` that scrolls vertically, is focusable (`tabIndex={0}`) and is a named
+  region (`aria-label`, else `labels.commentsRegion`, default "Comments"), so keyboard users can scroll it. It works
+  outside a root too (post-card wraps its whole inline thread in one).
+- **`CommentThreadLoadMore mode="auto"`** loads the next page when the button nears the visible edge of the enclosing
+  scroll area (else `scrollRoot`, else the viewport; `rootMargin` default `"0px 0px 200px 0px"`). One request at a
+  time; after a short page that leaves the button visible it loads again — once the page is in the list, so a
+  controlled host that applies it late is never asked twice for the same page; a page that adds no comments stops
+  auto-loading (the button still loads); a failed page is **not** retried automatically (the Retry button stays); the button stays for keyboard users; a polite status says
+  `labels.loadingMore` while loading. Default `mode="button"` is today's button.
+- **`CommentThreadComposer`** — the bottom composer (or the closed notice, `renderComposer`, `composerEmptyState`).
+  Its `className` styles only the bottom composer (`composerClassName` still reaches every inline reply box); with a
+  `className` it renders a wrapper `<div>`, without one it adds no element. Placed after the scroll area it needs no
+  `sticky`, so it never overlaps the last row.
+- Without a `CommentThreadComposer`, `handle.focusComposer()` does nothing and says so once in development.
+- **`useCommentThread()`** inside a root returns `{ comments, hasMore, loadingMore, loadMoreFailed, loadMore, closed,
+  currentUser, labels }` for your own parts (a count header, your own sentinel).
+- **A read-only list** — `CommentThreadRoot` + `CommentThreadList` with no composer part — leaves the composer code out
+  of the first load: the rows load the reply box the first time someone presses Reply. With the composer part
+  mounted, reply boxes open at once, as before.
+
+The request asked for `loadMoreMode` / `composerPlacement` / `maxHeight` props; the parts give the same result
+(`mode="auto"`, the composer after the scroll area, a `max-h-*` class on the scroll area) without three more props on
+the assembly.
+
+### Confirm before delete (`confirmDelete`)
+
+```tsx
+import { commentDeleteConfirm } from "@/components/comment-thread/features/confirm-delete";
+
+<CommentThread
+  confirmDelete={commentDeleteConfirm}
+  labels={{
+    deleteTitle: "Yorum silinsin mi?",
+    deleteBody: (hasReplies) => (hasReplies ? "Yanıtları da silinecek." : "Bu geri alınamaz."),
+    deleteConfirm: "Sil",
+    deleteCancel: "Vazgeç",
+  }}
+/>
+```
+
+- Install the add-on with `pnpm dlx shadcn@latest add @ilinxa/comment-thread-confirm-delete` (it adds shadcn's
+  `alert-dialog`; the base never imports it). Or pass your own function:
+  `confirmDelete={async ({ comment, hasReplies }) => myConfirm(…)}` — `true` deletes, `false` (or a rejection) keeps
+  the comment.
+- It covers deletes started from the row's menu: the built-in Delete item, and `helpers.onDelete` — now in every
+  helper bag (`commentActions`, `extraActions`, `engagementActions`, `renderNode`), so your own menu items get the
+  confirmation, `onDeleteComment`, optimistic removal, rollback and `onError` (unlike `handle.dispatch`).
+  `handle.deleteComment(id)` deletes through the same path **without** asking.
+- Cancel returns focus to the row's actions menu trigger; a confirmed delete moves it to the neighbouring row (or the
+  composer), as an unconfirmed delete does — also when the thread sits inside your own dialog or bottom sheet. One
+  request waits at a time: asking again for the same comment is ignored, a request for another comment supersedes it
+  (the earlier answer is ignored), and a request whose comment disappears (a realtime delete) is dropped. Your function
+  should settle; one that never does leaves only that comment waiting.
+  `hasReplies` is true when the comment has loaded replies or a `replyCount` above 0 (with the default `"prune"`
+  they go too).
+
+### Touch size (`size="touch"`)
+
+`size="touch"` gives every control — the rows' engagement bars, Reply, the actions menu trigger (always visible in
+this size), the author-name link, "Show more", "View replies", "Load more", the composers' Send / Cancel, the moderation add-on's edit box — a
+hit area of at least 44 × 44 px; the composer field is at least 44 px tall so Send sits inside it. `CommentComposer` takes `size` on its own too.
+
+### Fixes
+
+- When the last page arrives and "Load older comments" goes away, focus moves to the first new comment — now also when
+  a controlled host applies the page after the promise resolves (it used to give up), and never if you moved focus
+  elsewhere first. While more pages remain, focus stays on the button, as before.
+- The "(edited)" suffix uses the full muted-foreground colour (it was 80 %, 4.25–4.48:1 in light mode); every row
+  meta text now reads above 6.7:1 in both themes.
 
 ## 0.5.0 — rich bodies, labels everywhere, author links, closed threads
 

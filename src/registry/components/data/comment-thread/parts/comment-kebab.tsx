@@ -26,10 +26,12 @@ export interface CommentKebabProps {
   triggerRef?: (el: HTMLButtonElement | null) => void;
   /** Text direction of the menu. Default: read from the trigger's surroundings after mount. */
   dir?: "ltr" | "rtl";
+  /** `"touch"`: the trigger has a hit area of at least 44 × 44 px and is always visible. Default `"default"`. */
+  size?: "default" | "touch";
   className?: string;
 }
 
-function CommentKebabInner({ items, ariaLabel, triggerRef, dir: dirProp, className }: CommentKebabProps) {
+function CommentKebabInner({ items, ariaLabel, triggerRef, dir: dirProp, size = "default", className }: CommentKebabProps) {
   // The menu is portaled out of the thread, so it must carry the direction itself.
   const [triggerEl, setTriggerEl] = useState<HTMLButtonElement | null>(null);
   const elRef = useMemo(() => ({ current: triggerEl }), [triggerEl]);
@@ -50,12 +52,14 @@ function CommentKebabInner({ items, ariaLabel, triggerRef, dir: dirProp, classNa
   // Radix primitive. Inline button styling via `buttonVariants(…)` instead.
   const triggerClass = cn(
     buttonVariants({ variant: "ghost", size: "icon" }),
-    "h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100",
+    size === "touch"
+      ? "min-h-11 min-w-11"
+      : "h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100",
     className,
   );
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger ref={setTrigger} className={triggerClass} aria-label={ariaLabel}>
+      <DropdownMenuTrigger ref={setTrigger} data-comment-kebab="" className={triggerClass} aria-label={ariaLabel}>
         <MoreHorizontal className="h-3 w-3" />
       </DropdownMenuTrigger>
       {/* `align` stays "end": with `dir` on the content, the positioner (floating-ui) treats the menu as

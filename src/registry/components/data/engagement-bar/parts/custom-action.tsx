@@ -3,8 +3,13 @@
 import { memo, useEffect, useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EngagementActionEvent, EngagementBarVariant, EngagementCount } from "../types";
-import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
+import type {
+  EngagementActionEvent,
+  EngagementBarSize,
+  EngagementBarVariant,
+  EngagementCount,
+} from "../types";
+import { DISABLED_ACTION_CLASS, useActionName, touchTarget } from "../lib/action-name";
 
 interface CustomActionProps {
   variant: EngagementBarVariant;
@@ -21,6 +26,7 @@ interface CustomActionProps {
   controls?: string;
   format: (n: number) => string;
   actionClassName?: string;
+  size?: EngagementBarSize;
 }
 
 function CustomActionInner({
@@ -36,6 +42,7 @@ function CustomActionInner({
   controls,
   format,
   actionClassName,
+  size,
 }: CustomActionProps) {
   const hasCount = count !== null;
   const name = useActionName(hasCount);
@@ -74,6 +81,7 @@ function CustomActionInner({
             ? "gap-2 px-2"
             : "px-2",
         active && "text-primary",
+        touchTarget(size),
         DISABLED_ACTION_CLASS,
         actionClassName,
       )}

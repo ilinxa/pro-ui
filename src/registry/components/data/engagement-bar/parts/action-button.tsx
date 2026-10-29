@@ -4,6 +4,8 @@ import { memo } from "react";
 import type {
   EngagementAction,
   EngagementCount,
+  EngagementActionEvent,
+  EngagementBarSize,
   EngagementBarVariant,
   EngagementState,
   ResolvedEngagementBarLabels,
@@ -22,8 +24,8 @@ interface ActionButtonProps {
   variant: EngagementBarVariant;
   /** The bar's shown state (props + overlays). */
   state: EngagementState;
-  onToggleLike: () => void;
-  onToggleBookmark: () => void;
+  onToggleLike: (event?: EngagementActionEvent) => void;
+  onToggleBookmark: (event?: EngagementActionEvent) => void;
   onSelectReaction: (kind: string | null) => void;
   format: (n: number) => string;
   labels: ResolvedEngagementBarLabels;
@@ -31,6 +33,7 @@ interface ActionButtonProps {
   onReactionPickerOpenChange?: (open: boolean) => void;
   actionClassName?: string;
   hideZeroCounts?: boolean;
+  size?: EngagementBarSize;
 }
 
 /**
@@ -51,6 +54,7 @@ function ActionButtonInner({
   onReactionPickerOpenChange,
   actionClassName,
   hideZeroCounts = false,
+  size = "default",
 }: ActionButtonProps) {
   // `hideZeroCounts`: a count of exactly 0 is withheld (null) so no digit and no name part render.
   const shown = (n: EngagementCount): EngagementCount => (hideZeroCounts && n === 0 ? null : n);
@@ -69,6 +73,7 @@ function ActionButtonInner({
           format={format}
           labels={labels}
           actionClassName={actionClassName}
+          size={size}
         />
       );
     case "comment":
@@ -83,6 +88,7 @@ function ActionButtonInner({
           format={format}
           labels={labels}
           actionClassName={actionClassName}
+          size={size}
         />
       );
     case "share":
@@ -97,6 +103,7 @@ function ActionButtonInner({
           format={format}
           labels={labels}
           actionClassName={actionClassName}
+          size={size}
         />
       );
     case "bookmark":
@@ -108,6 +115,7 @@ function ActionButtonInner({
           onToggle={onToggleBookmark}
           labels={labels}
           actionClassName={actionClassName}
+          size={size}
         />
       );
     case "view-count":
@@ -139,6 +147,7 @@ function ActionButtonInner({
           controls={action.controls}
           format={format}
           actionClassName={actionClassName}
+          size={size}
         />
       );
     case "reaction":
@@ -154,6 +163,7 @@ function ActionButtonInner({
           onPickerOpenChange={onReactionPickerOpenChange}
           hideZeroCounts={hideZeroCounts}
           actionClassName={actionClassName}
+          size={size}
         />
       );
   }

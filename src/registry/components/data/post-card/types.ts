@@ -49,6 +49,7 @@ import type {
 } from "../comment-thread/types";
 import type {
   EngagementAction,
+  EngagementActionEvent,
   EngagementBarHandle,
   EngagementBarLabels,
   EngagementBarProps,
@@ -56,8 +57,8 @@ import type {
   EngagementLikerProfile,
   EngagementReactionKind,
 } from "../engagement-bar/types";
-import type { LikersStripLabels } from "../engagement-bar/parts/likers-strip";
-import type { ShareMenuLabels } from "../engagement-bar/parts/share-menu";
+import type { LikersStripLabels, LikersStripProps } from "../engagement-bar/parts/likers-strip";
+import type { ShareMenuLabels, ShareMenuProps } from "../engagement-bar/parts/share-menu";
 import type { ExpandableTextLabels } from "../expandable-text/types";
 
 /**
@@ -106,7 +107,46 @@ export type PostEngagementBarProps = Pick<
   | "onReactionPickerOpenChange"
   | "className"
   | "actionClassName"
+  | "size"
+  | "hideZeroCounts"
 >;
+
+/**
+ * The likers-strip options the card forwards to its inline likers panel (`likersStripProps`, 0.7.0):
+ * profile links, full names, a per-liker badge, touch size.
+ */
+export type PostLikersStripProps = Pick<
+  LikersStripProps,
+  "getProfileHref" | "linkComponent" | "nameDisplay" | "renderBadge" | "size"
+>;
+
+/**
+ * The share-menu options the card forwards to its inline share panel (`shareMenuProps`, 0.7.0): a
+ * header row (copy link, the system share sheet), per-person send state, touch size. With
+ * `pendingIds` or `sentIds` set the panel stays open after a pick, so the row can show its state.
+ */
+export type PostShareMenuProps = Pick<ShareMenuProps, "header" | "pendingIds" | "sentIds" | "size">;
+
+/**
+ * Disclosure wiring for post-card's inline panels (0.6.1). post-card passes it to its default
+ * actions in inline mode, and (0.7.0) as the fourth argument of the `engagementActions` slot so a
+ * host's own actions can carry `aria-expanded` and open the panels with the clicked button as the
+ * opener.
+ */
+export interface PostInlineDisclosure {
+  /** The inline panel that is open. */
+  open: "none" | "likes" | "comments" | "share";
+  /** The panels' element ids (`aria-controls` targets). */
+  ids: { likes: string; comments: string; share: string };
+  /** Share opens a panel (`shareSuggestions` is set); otherwise the share action carries no disclosure state. */
+  shareOpens: boolean;
+  /** 0.7.0. Toggles the likers panel, taking the clicked button as the opener. */
+  likes: (event: EngagementActionEvent) => void;
+  /** Toggles the comments panel, taking the clicked button as the opener. */
+  comment: (event: EngagementActionEvent) => void;
+  /** Toggles the share panel, taking the clicked button as the opener. */
+  share: (event: EngagementActionEvent) => void;
+}
 
 /**
  * Reactions for the post (`reactions` prop). With it, the default actions show a reaction picker
@@ -131,6 +171,16 @@ export interface PostReactions {
   defaultKind?: string;
   /** Tap with a reaction set clears it (`true`, default) or opens the picker (`false`). */
   clearOnTap?: boolean;
+  /**
+   * 0.7.0. `"primary"`: one tap sets `primaryKey` (default: the first of `kinds`), a tap while set
+   * clears it, and the picker opens on a long-press, ArrowUp / ContextMenu / Shift+F10 or (with
+   * `hoverOpenDelay`) a resting mouse. Passed to engagement-bar's reaction action.
+   */
+  tapAction?: "picker" | "primary";
+  /** 0.7.0. The kind a primary tap sets (`tapAction: "primary"`). */
+  primaryKey?: string;
+  /** 0.7.0. Opt-in: a mouse resting this many milliseconds on the trigger opens the picker. */
+  hoverOpenDelay?: number;
 }
 
 /** What changed, reported with the next post to `onPostChange` (controlled mode), once accepted. */
@@ -420,7 +470,15 @@ export interface Post {
  * return a promise: the change shows at once and a rejection rolls it back (`optimistic`).
  */
 export interface PostHandlers {
-  onLike?: (postId: string, nextLiked: boolean) => void | Promise<unknown>;
+  /**
+   * `event` (0.7.0) is the heart's click event when the like came from the card's own bar —
+   * `undefined` otherwise (a double-tap on the media, the imperative handle).
+   */
+  onLike?: (
+    postId: string,
+    nextLiked: boolean,
+    event?: EngagementActionEvent,
+  ) => void | Promise<unknown>;
   onComment?: (postId: string) => void;
   onShare?: (postId: string) => void;
   onBookmark?: (postId: string, nextBookmarked: boolean) => void | Promise<unknown>;
@@ -748,6 +806,10 @@ export interface PostCardProps extends PostHandlers, PostMutationHandlers {
   onShareSearch?: (query: string) => Promise<PostLikeUser[]>;
   /** Fired when the user picks a recipient from the share panel. */
   onShareTo?: (postId: string, recipient: PostLikeUser) => void;
+  /** 0.7.0. Forwarded to the inline likers panel (`LikersStrip`). */
+  likersStripProps?: PostLikersStripProps;
+  /** 0.7.0. Forwarded to the inline share panel (`ShareMenu`). */
+  shareMenuProps?: PostShareMenuProps;
   /** Max-height of the inline comments panel before scroll. Default `"24rem"` (~384px). */
   inlineCommentsMaxHeight?: string;
   /** Open one of the inline panels by default on mount (only when `engagementMode === "inline"`). */
@@ -762,10 +824,16 @@ export interface PostCardProps extends PostHandlers, PostMutationHandlers {
     media: MediaItem[],
     helpers: { onDoubleTap?: () => void },
   ) => ReactNode;
+  /**
+   * Replaces the default actions. In inline mode (0.7.0) the fourth argument is the inline
+   * disclosure: pass it to `defaultPostEngagementActions` (or wire `expanded` / `controls` and the
+   * openers yourself) so your actions report the open panel and return focus to the clicked button.
+   */
   engagementActions?: (
     post: Post,
     handlers: PostHandlers,
     variant: PostCardVariant,
+    inline?: PostInlineDisclosure,
   ) => EngagementAction[];
   renderEngagementBar?: (
     post: Post,

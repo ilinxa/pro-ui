@@ -103,7 +103,8 @@ for (const a of adapters) {
       const { container } = setup(a.controlled, handler);
       a.expectBase();
       await a.request(user, container);
-      expect(handler).toHaveBeenCalledWith(a.arg);
+      // 0.8.0: like / bookmark also receive the click event as a second argument.
+      expect(handler.mock.calls[0]![0]).toBe(a.arg);
       a.expectBase();
     });
 
@@ -112,7 +113,7 @@ for (const a of adapters) {
       const handler = vi.fn();
       const { container } = setup(a.uncontrolled, handler);
       await a.request(user, container);
-      expect(handler).toHaveBeenCalledWith(a.arg);
+      expect(handler.mock.calls[0]![0]).toBe(a.arg);
       a.expectChanged();
     });
 

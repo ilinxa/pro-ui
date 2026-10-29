@@ -1,10 +1,18 @@
-import type { ComponentType, ElementType, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ComponentType, ElementType, ReactNode } from "react";
 // F-S1 lock: same-category cross-procomp type import via a relative, specific-file path.
 import type {
   EngagementAction,
   EngagementBarLabels,
+  EngagementBarSize,
   EngagementReactionKind,
 } from "../engagement-bar/types";
+
+/**
+ * Hit-area size of the thread's controls (0.6.0). `"touch"` gives every control — the rows'
+ * engagement bars, Reply, the actions menu trigger, the author-name link, "Show more",
+ * "View replies", "Load more" and the composers' buttons — a hit area of at least 44 × 44 px. Same values as engagement-bar's `size`.
+ */
+export type CommentThreadSize = EngagementBarSize;
 
 export type CommentThreadVariant = "default" | "compact";
 
@@ -149,6 +157,13 @@ export interface CommentActionHelpers {
    * pending comment must not call your server: the built-in ones are disabled.
    */
   isPending: boolean;
+  /**
+   * 0.6.0. Deletes the comment through the same path as the built-in Delete item: the
+   * `confirmDelete` step (when set), then `onDeleteComment`, optimistic removal, rollback and
+   * `onError`. Use it from your own menu items instead of `handle.dispatch`, which skips all of
+   * that. Does nothing for a pending comment.
+   */
+  onDelete: () => void;
 }
 
 /** What `engagementActions` receives beside the comment. */
@@ -276,6 +291,22 @@ export interface CommentThreadLabels {
    * `engagement.unlike`; either one localizes the heart.
    */
   engagement?: EngagementBarLabels;
+
+  // ─── 0.6.0 ───
+  /** Name of `CommentThreadScrollArea` (a focusable scroll region). Default "Comments". */
+  commentsRegion?: string;
+  /** Title of the delete confirmation (`confirmDelete`). Default "Delete comment?". */
+  deleteTitle?: string;
+  /**
+   * Body of the delete confirmation. Receives whether the comment has replies, so the text can
+   * say they go too. Default: "This can't be undone." / "Its replies will be deleted too. This
+   * can't be undone.".
+   */
+  deleteBody?: (hasReplies: boolean) => string;
+  /** Confirm button of the delete confirmation. Default "Delete". */
+  deleteConfirm?: string;
+  /** Cancel button of the delete confirmation. Default "Cancel". */
+  deleteCancel?: string;
 }
 
 /** Fully-resolved labels (what parts receive). `engagement` stays optional. */
@@ -322,6 +353,14 @@ export const defaultCommentThreadLabels: ResolvedCommentThreadLabels = {
   showMore: "Show more",
   showLess: "Show less",
   closed: "Comments are turned off.",
+  commentsRegion: "Comments",
+  deleteTitle: "Delete comment?",
+  deleteBody: (hasReplies) =>
+    hasReplies
+      ? "Its replies will be deleted too. This can't be undone."
+      : "This can't be undone.",
+  deleteConfirm: "Delete",
+  deleteCancel: "Cancel",
 };
 
 /** @deprecated Use {@link defaultCommentThreadLabels}. */
@@ -416,6 +455,8 @@ export interface CommentEditComposerProps {
   minRows: number;
   maxRows: number;
   className?: string;
+  /** 0.6.0. The thread's `size`: Save and Cancel get a 44 px hit area in `"touch"`. Optional for older add-ons. */
+  size?: CommentThreadSize;
 }
 
 export interface CommentTombstoneProps {
@@ -599,6 +640,26 @@ export interface CommentThreadProps {
    * nothing (one development warning). Likes and menus are unchanged. Default `false`.
    */
   closed?: boolean;
+  /**
+   * 0.6.0. Ask before a delete started from the row's menu (the built-in Delete item, or
+   * `helpers.onDelete` from your own items or `renderNode`). Two forms:
+   * - the `comment-thread-confirm-delete` add-on, `confirmDelete={commentDeleteConfirm}`: a
+   *   built-in dialog worded by `labels.deleteTitle` / `deleteBody` / `deleteConfirm` /
+   *   `deleteCancel`;
+   * - your own function: return (or resolve) `true` to delete, `false` to keep the comment.
+   *
+   * Cancel returns focus to the row's actions menu trigger; a confirmed delete moves focus to the
+   * neighbouring row (or the composer), as an unconfirmed delete does. `handle.deleteComment`
+   * never asks. Omit for today's immediate delete.
+   *
+   * One request waits at a time: asking again for the same comment is ignored, a request for
+   * another comment supersedes it (the earlier answer is then ignored), and a request whose comment
+   * disappears is dropped. Your function should settle; one that never does leaves only that
+   * comment waiting.
+   */
+  confirmDelete?: CommentDeleteConfirm;
+  /** 0.6.0. Hit-area size of the thread's controls. Default `"default"`. */
+  size?: CommentThreadSize;
 
   labels?: CommentThreadLabels;
   /** BCP 47 locale for times and counts. Default `"en"`. */
@@ -625,6 +686,100 @@ export interface CommentThreadProps {
   nodeClassName?: string;
 }
 
+/** What a delete confirmation is asked about (0.6.0). */
+export interface CommentDeleteRequest {
+  comment: Comment;
+  /** The comment has replies (loaded, or counted by `replyCount`), which the delete removes too. */
+  hasReplies: boolean;
+}
+
+/** Props of the dialog a {@link CommentDeleteConfirmExtension} provides. */
+export interface CommentDeleteDialogProps {
+  /** The delete waiting for an answer; `null` while none is (the dialog is closed). */
+  request: CommentDeleteRequest | null;
+  labels: ResolvedCommentThreadLabels;
+  /** Answer the request: `true` deletes, `false` keeps the comment. Call it once per request. */
+  onResolve: (confirmed: boolean) => void;
+}
+
+/** The `comment-thread-confirm-delete` add-on's injection object (`commentDeleteConfirm`). */
+export interface CommentDeleteConfirmExtension {
+  /** Rendered by the thread at all times; open while `request` is not `null`. */
+  Dialog: ComponentType<CommentDeleteDialogProps>;
+}
+
+/** See {@link CommentThreadProps.confirmDelete}. */
+export type CommentDeleteConfirm =
+  | ((request: CommentDeleteRequest) => boolean | Promise<boolean>)
+  | CommentDeleteConfirmExtension;
+
+// ─── Compound parts (0.6.0) ──────────────────────────────────────────────────
+// `CommentThread` = `CommentThreadRoot` + `CommentThreadList` + `CommentThreadLoadMore` +
+// `CommentThreadComposer`. Hand-assemble the parts for other layouts (a height-capped panel with
+// the composer pinned below it, a list with no composer, …).
+
+/** Props of `CommentThreadRoot`: every `CommentThread` prop, plus the parts to render. */
+export interface CommentThreadRootProps extends CommentThreadProps {
+  children?: ReactNode;
+}
+
+export interface CommentThreadListProps {
+  className?: string;
+}
+
+export interface CommentThreadLoadMoreProps {
+  /**
+   * `"button"` (default): today's "Load older comments" button. `"auto"`: the next page also
+   * loads when the button nears the visible area of the scroll container — the enclosing
+   * `CommentThreadScrollArea`, else the `scrollRoot` prop, else the viewport. One request at a
+   * time; a failed page is not retried automatically (the Retry button stays); the button stays
+   * for keyboard users, and a polite status announces the load.
+   */
+  mode?: "button" | "auto";
+  /** Auto mode: how far before the visible edge the load starts. Default `"0px 0px 200px 0px"`. */
+  rootMargin?: string;
+  /**
+   * Auto mode: the scroll container to watch when the part is not inside a
+   * `CommentThreadScrollArea`. Default: the viewport.
+   */
+  scrollRoot?: Element | null;
+  className?: string;
+}
+
+export interface CommentThreadComposerProps {
+  /**
+   * Classes for the bottom composer only (`composerClassName` also reaches every inline reply
+   * composer). With a `className` the part renders a wrapper `<div>` around the composer (or the
+   * closed notice / `renderComposer` / `composerEmptyState` output) carrying it; without one it
+   * adds no element.
+   */
+  className?: string;
+}
+
+/**
+ * Props of `CommentThreadScrollArea`: a `<div>` that scrolls vertically, is focusable
+ * (`tabIndex={0}`) and is a named region (`role="region"`, named by `aria-label`, else
+ * `labels.commentsRegion` inside a thread, else "Comments"), so keyboard users can scroll it.
+ * Auto-mode `CommentThreadLoadMore` parts inside it watch it. Usable outside a thread too.
+ */
+export type CommentThreadScrollAreaProps = Omit<ComponentPropsWithoutRef<"div">, "role" | "tabIndex">;
+
+/** What `useCommentThread()` returns inside a `CommentThreadRoot` — for custom parts. */
+export interface CommentThreadState {
+  /** The top-level comments as shown (without the moderation add-on: visible ones only). */
+  comments: Comment[];
+  /** More top-level comments can be loaded. */
+  hasMore: boolean;
+  loadingMore: boolean;
+  /** The last page failed; `loadMore()` retries it. */
+  loadMoreFailed: boolean;
+  /** Load the next page (single-flight: a call while one is loading does nothing). */
+  loadMore: () => void;
+  closed: boolean;
+  currentUser?: CommentThreadCurrentUser;
+  labels: ResolvedCommentThreadLabels;
+}
+
 export interface CommentThreadHandle {
   /** Programmatically focus the bottom composer textarea. */
   focusComposer: () => void;
@@ -636,4 +791,10 @@ export interface CommentThreadHandle {
   reset: (next: Comment[]) => void;
   /** Drive the reducer directly (controlled mode: reported through `onCommentsChange`). */
   dispatch: (action: CommentLocalAction) => void;
+  /**
+   * 0.6.0. Delete a comment through the built-in path (`onDeleteComment`, optimistic removal,
+   * rollback, `onError`) — without the `confirmDelete` step. Does nothing for an unknown or
+   * pending id.
+   */
+  deleteComment: (commentId: string) => void;
 }

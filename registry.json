@@ -3343,7 +3343,7 @@
         }
       ],
       "meta": {
-        "version": "0.7.0",
+        "version": "0.8.0",
         "status": "alpha"
       }
     },
@@ -3369,7 +3369,7 @@
         }
       ],
       "meta": {
-        "version": "0.7.0",
+        "version": "0.8.0",
         "status": "alpha"
       }
     },
@@ -3504,10 +3504,45 @@
           "path": "src/registry/components/data/comment-thread/hooks/use-direction.ts",
           "type": "registry:component",
           "target": "components/comment-thread/hooks/use-direction.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/comment-thread-root.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/comment-thread-root.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/thread-root-context.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/thread-root-context.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/comment-thread-list.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/comment-thread-list.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/comment-thread-load-more.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/comment-thread-load-more.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/comment-thread-composer.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/comment-thread-composer.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/parts/comment-thread-scroll-area.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/parts/comment-thread-scroll-area.tsx"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/hooks/use-comment-thread.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/hooks/use-comment-thread.ts"
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3533,7 +3568,7 @@
         }
       ],
       "meta": {
-        "version": "0.5.0",
+        "version": "0.6.0",
         "status": "alpha"
       }
     },
@@ -3550,7 +3585,7 @@
       "meta": {
         "featureOf": "comment-thread",
         "budgetKB": 8,
-        "version": "0.5.0",
+        "version": "0.6.0",
         "status": "alpha"
       },
       "registryDependencies": [
@@ -3579,6 +3614,40 @@
           "path": "src/registry/components/data/comment-thread/features/moderation/parts/tombstone.tsx",
           "type": "registry:component",
           "target": "components/comment-thread/features/moderation/parts/tombstone.tsx"
+        }
+      ]
+    },
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "comment-thread-confirm-delete",
+      "type": "registry:block",
+      "title": "Comment Thread — Confirm Delete",
+      "description": "A confirmation dialog before a comment is deleted from its menu. Wire in via the confirmDelete prop.",
+      "author": "ilinxa",
+      "categories": [
+        "data"
+      ],
+      "meta": {
+        "featureOf": "comment-thread",
+        "budgetKB": 6,
+        "version": "0.6.0",
+        "status": "alpha"
+      },
+      "registryDependencies": [
+        "@ilinxa/comment-thread",
+        "alert-dialog",
+        "button"
+      ],
+      "files": [
+        {
+          "path": "src/registry/components/data/comment-thread/features/confirm-delete/index.ts",
+          "type": "registry:component",
+          "target": "components/comment-thread/features/confirm-delete/index.ts"
+        },
+        {
+          "path": "src/registry/components/data/comment-thread/features/confirm-delete/parts/delete-confirm-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/comment-thread/features/confirm-delete/parts/delete-confirm-dialog.tsx"
         }
       ]
     },
@@ -3744,7 +3813,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.1",
+        "version": "0.7.0",
         "status": "alpha"
       }
     },
@@ -3770,7 +3839,7 @@
         }
       ],
       "meta": {
-        "version": "0.6.1",
+        "version": "0.7.0",
         "status": "alpha"
       }
     },

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "comment-thread-confirm-delete",
+  "title": "Comment Thread — Confirm Delete",
+  "author": "ilinxa",
+  "description": "A confirmation dialog before a comment is deleted from its menu. Wire in via the confirmDelete prop.",
+  "registryDependencies": [
+    "@ilinxa/comment-thread",
+    "alert-dialog",
+    "button"
+  ],
+  "files": [
+    {
+      "path": "src/registry/components/data/comment-thread/features/confirm-delete/index.ts",
+      "content": "// comment-thread confirm-delete feature — a dialog that asks before a comment is deleted.\n//\n// Injected into the base with `confirmDelete={commentDeleteConfirm}` (CommentThreadProps). Ships as\n// its own registry item, `@ilinxa/comment-thread-confirm-delete`, which depends on\n// `@ilinxa/comment-thread`. The base never imports this folder.\n\nimport type { CommentDeleteConfirmExtension } from \"../../types\";\nimport { CommentDeleteConfirmDialog } from \"./parts/delete-confirm-dialog\";\n\n/** Pass straight through: `<CommentThread confirmDelete={commentDeleteConfirm} />`. */\nexport const commentDeleteConfirm: CommentDeleteConfirmExtension = {\n  Dialog: CommentDeleteConfirmDialog,\n};\n\nexport { CommentDeleteConfirmDialog } from \"./parts/delete-confirm-dialog\";\n\n// @ilinxa/comment-thread-confirm-delete 0.6.0\n",
+      "type": "registry:component",
+      "target": "components/comment-thread/features/confirm-delete/index.ts"
+    },
+    {
+      "path": "src/registry/components/data/comment-thread/features/confirm-delete/parts/delete-confirm-dialog.tsx",
+      "content": "\"use client\";\n\nimport { memo, useEffect, useRef, useState } from \"react\";\nimport {\n  AlertDialog,\n  AlertDialogCancel,\n  AlertDialogContent,\n  AlertDialogDescription,\n  AlertDialogFooter,\n  AlertDialogHeader,\n  AlertDialogTitle,\n} from \"@/components/ui/alert-dialog\";\nimport { Button } from \"@/components/ui/button\";\nimport type { CommentDeleteDialogProps, CommentDeleteRequest } from \"../../../types\";\n\n/**\n * The delete confirmation: an alert dialog that is open while `request` is not `null`.\n * Cancel and Escape keep the comment (`onResolve(false)`), Delete removes it (`onResolve(true)`);\n * each request is answered once.\n */\nfunction CommentDeleteConfirmDialogInner({ request, labels, onResolve }: CommentDeleteDialogProps) {\n  // The text stays through the close animation, after `request` is already `null`.\n  const [shown, setShown] = useState<CommentDeleteRequest | null>(request);\n  if (request && request !== shown) setShown(request);\n\n  // The request usually comes from a menu item: the menu closes and hands focus back to its\n  // trigger in the same tick, which would take focus from a dialog opened right then. Open a\n  // tick later.\n  const [armed, setArmed] = useState<CommentDeleteRequest | null>(null);\n  useEffect(() => {\n    if (!request) return;\n    const timer = setTimeout(() => setArmed(request), 0);\n    return () => clearTimeout(timer);\n  }, [request]);\n\n  const answered = useRef<CommentDeleteRequest | null>(null);\n  const resolve = (confirmed: boolean) => {\n    if (!request || answered.current === request) return;\n    answered.current = request;\n    onResolve(confirmed);\n  };\n\n  return (\n    <AlertDialog\n      open={request !== null && armed === request}\n      // Escape (and any dismissal that is not a button) arrives here; the buttons answer first.\n      onOpenChange={(next) => {\n        if (!next) resolve(false);\n      }}\n    >\n      {/* data-keyboard-ignore: a host with window-level arrow-key handling (story-viewer) stands down. */}\n      <AlertDialogContent data-keyboard-ignore=\"\">\n        <AlertDialogHeader>\n          <AlertDialogTitle>{labels.deleteTitle}</AlertDialogTitle>\n          <AlertDialogDescription>\n            {shown ? labels.deleteBody(shown.hasReplies) : null}\n          </AlertDialogDescription>\n        </AlertDialogHeader>\n        <AlertDialogFooter>\n          <AlertDialogCancel onClick={() => resolve(false)}>{labels.deleteCancel}</AlertDialogCancel>\n          {/* A plain shadcn Button: some styles' AlertDialogAction wraps a default Button with asChild,\n              whose classes win over a passed className (unreadable in dark mode). The dialog is\n              controlled, so the button needs no built-in close. */}\n          <Button type=\"button\" variant=\"destructive\" onClick={() => resolve(true)}>\n            {labels.deleteConfirm}\n          </Button>\n        </AlertDialogFooter>\n      </AlertDialogContent>\n    </AlertDialog>\n  );\n}\n\nexport const CommentDeleteConfirmDialog = memo(CommentDeleteConfirmDialogInner);\nCommentDeleteConfirmDialog.displayName = \"CommentDeleteConfirmDialog\";\n",
+      "type": "registry:component",
+      "target": "components/comment-thread/features/confirm-delete/parts/delete-confirm-dialog.tsx"
+    }
+  ],
+  "meta": {
+    "featureOf": "comment-thread",
+    "budgetKB": 6,
+    "version": "0.6.0",
+    "status": "alpha"
+  },
+  "categories": [
+    "data"
+  ],
+  "type": "registry:block"
+}

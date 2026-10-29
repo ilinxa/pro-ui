@@ -26,6 +26,24 @@ export type EngagementCount = number | null;
 export type EngagementHandler<T> = (next: T) => void | Promise<unknown>;
 
 /**
+ * The like / bookmark toggle handler (0.8.0): {@link EngagementHandler} plus the click event when
+ * the change comes from the action's own button. `event` is `undefined` when the imperative handle
+ * toggles. Read `event.currentTarget` inside the handler (React clears it afterwards) — e.g. to
+ * return focus to the heart when a panel it opened closes. One-argument handlers stay assignable.
+ */
+export type EngagementToggleHandler = (
+  next: boolean,
+  event?: EngagementActionEvent,
+) => void | Promise<unknown>;
+
+/**
+ * Size of the bar's interactive elements (0.8.0). `"touch"` gives every button of the bar —
+ * actions, the split heart and count buttons, the reaction trigger and its picker — a hit area of
+ * at least 44 × 44 px (WCAG 2.5.5), in every variant. The icons and text keep their size.
+ */
+export type EngagementBarSize = "default" | "touch";
+
+/**
  * Single reaction kind in the host-supplied catalog for the `reaction` action.
  *
  * One source of truth for icon + label + count — no parallel `counts` /
@@ -100,7 +118,8 @@ export type EngagementAction =
       count?: EngagementCount;
       /** Pass to control the like state (with `count`); omit for uncontrolled. */
       liked?: boolean;
-      onToggle?: EngagementHandler<boolean>;
+      /** 0.8.0: receives the click event as a second argument (see {@link EngagementToggleHandler}). */
+      onToggle?: EngagementToggleHandler;
       /**
        * Optional separate click target for the count number. When provided, the
        * like action splits into two clickable elements:
@@ -128,7 +147,8 @@ export type EngagementAction =
       kind: "bookmark";
       /** Pass to control the bookmark state; omit for uncontrolled. */
       bookmarked?: boolean;
-      onToggle?: EngagementHandler<boolean>;
+      /** 0.8.0: receives the click event as a second argument (see {@link EngagementToggleHandler}). */
+      onToggle?: EngagementToggleHandler;
     })
   | (Omit<EngagementActionBase, "disabled"> & {
       /** Display-only: no handler, so no `disabled` (use `hidden` to remove it). */
@@ -155,6 +175,7 @@ export type EngagementAction =
        * Multi-kind reaction action (FB / LinkedIn style). One per-content reaction
        * per viewer; choose from `kinds`. Picker opens on tap-when-null, on
        * tap-when-set if `clearOnTap === false`, or on long-press (350ms) always.
+       * With `tapAction: "primary"` a tap toggles the primary kind instead (0.8.0).
        *
        * Coexists freely with `kind: "like"` per Q-P3 lock — a single content item
        * MAY have both action types in the bar's `actions` array (hybrid UIs are
@@ -188,6 +209,29 @@ export type EngagementAction =
        * button is then the clear escape. Long-press always opens the picker regardless.
        */
       clearOnTap?: boolean;
+      /**
+       * 0.8.0. What a tap (click, Enter, Space) on the trigger does. `"picker"` (default): today's
+       * behaviour — see `clearOnTap`. `"primary"`: a tap with no reaction set selects
+       * `primaryKey`, a tap with any reaction set clears it (`clearOnTap` is ignored), and the
+       * picker opens on a long-press (350 ms), on ArrowUp, the ContextMenu key or Shift+F10
+       * from the focused trigger (listed in `aria-keyshortcuts="ArrowUp Shift+F10"`), or on hover after `hoverOpenDelay`. With no reaction set the
+       * trigger shows the primary kind's icon and is named by its label (not `labels.react`).
+       * A primary tap never opens the picker, so `onReactionPickerOpenChange` does not fire.
+       */
+      tapAction?: "picker" | "primary";
+      /**
+       * 0.8.0. The kind a primary tap selects (`tapAction: "primary"`). Must match a
+       * `kinds[].key`; default (and fallback for an unknown key, with a development warning):
+       * `kinds[0].key`. Ignored with `tapAction: "picker"`.
+       */
+      primaryKey?: string;
+      /**
+       * 0.8.0. Opt-in: a mouse pointer resting on the trigger this many milliseconds opens the
+       * picker (touch and pen never do). A picker opened by hover stays open while the pointer is
+       * over the trigger or the picker, closes shortly after it leaves both, and closes on
+       * Escape (WCAG 1.4.13). Omit for no hover opening. Works with either `tapAction`.
+       */
+      hoverOpenDelay?: number;
     } & EngagementCountDisclosure);
 
 export interface EngagementLikeUser {
@@ -308,6 +352,8 @@ export interface EngagementBarProps {
    * normally. Default `false` (`0` renders "0"; the reaction action already hides a zero total).
    */
   hideZeroCounts?: boolean;
+  /** 0.8.0. Hit-area size of every interactive element of the bar. Default `"default"`. */
+  size?: EngagementBarSize;
   /**
    * Applies when `onToggle` / `onSelect` returns a promise. Default `true`: the change shows at
    * once until the promise settles (controlled: or until the props change); a rejection rolls it

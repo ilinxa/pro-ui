@@ -692,3 +692,12 @@ Deferred to 0.7.0 (minor): SV-4 (8) hide failed media, (13) `left` at auto-close
 ## U7 — Ship (0.6.2, with release 7)
 
 Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Detail: comment-thread-loop.md "Run — release 7".
+
+# Release 7b — dependent check (no story-viewer change)
+
+story-viewer is byte-identical in release 7b. It composes engagement-bar 0.8.0 (inline action-type copy: a subset by
+design, guard `__tests__/engagement-types.test.ts` green) and comment-thread 0.6.0 (`CommentComposer` props + handle
+unchanged; only an optional `size` added). Re-checked: story-viewer tests green in the final battery; installs on CLI
+4.18.0 and 3.8.5 PASS (consumer tsc 0); browser — viewer, comments sheet, reply, close with no console errors. Found
+pre-existing: Escape on the comments sheet leaves focus on `<body>` → FU-8, story-viewer 0.7.0 (release 9). Record:
+`docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7b".

@@ -2758,8 +2758,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
 import { CommentThread } from "./comment-thread";
+import { CommentThreadRoot } from "./parts/comment-thread-root";
+import { CommentThreadList } from "./parts/comment-thread-list";
+import { CommentThreadLoadMore } from "./parts/comment-thread-load-more";
+import { CommentThreadComposer } from "./parts/comment-thread-composer";
+import { CommentThreadScrollArea } from "./parts/comment-thread-scroll-area";
 import { commentModeration } from "./features/moderation";
-import type { Comment, CommentThreadHandle } from "./types";
+import { commentDeleteConfirm } from "./features/confirm-delete";
+import type { Comment, CommentThreadHandle, CommentThreadSize } from "./types";
 import {
   DUMMY_CURSOR_FIRST_PAGE,
   DUMMY_FLAT_COMMENTS,
@@ -2849,6 +2855,64 @@ function PaginatedTab() {
         return generateOlderPage(page);
       }}
     />
+  );
+}
+
+/**
+ * 0.6.0 compound: a height-capped panel (the in-place comments panel under a feed card). The list
+ * scrolls in a focusable region and loads the next page as you near its end; the composer sits
+ * below the scroll, always visible; Delete asks first (the confirm-delete add-on).
+ */
+function PanelTab() {
+  const [size, setSize] = useState<CommentThreadSize>("default");
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-pressed={size === "touch"}
+          onClick={() => setSize((s) => (s === "touch" ? "default" : "touch"))}
+        >
+          Touch size (44 px)
+        </Button>
+      </div>
+      <Card className="max-w-xl gap-0 p-0">
+        <CommentThreadRoot
+          comments={DUMMY_LARGE_THREAD}
+          currentUser={DUMMY_VIEWER}
+          pageSize={10}
+          size={size}
+          confirmDelete={commentDeleteConfirm}
+          // The server's comment (a real id): your own comments can then be deleted (with a confirmation).
+          onAddComment={async (content, _parentId, options) => {
+            ConsoleSink({ tag: "add", payload: content });
+            await wait(300);
+            return {
+              id: \`server-\${options?.clientId ?? content}\`,
+              author: DUMMY_VIEWER,
+              content,
+              createdAt: new Date(),
+              likes: 0,
+            } satisfies Comment;
+          }}
+          onDeleteComment={async (id) => {
+            ConsoleSink({ tag: "delete", payload: id });
+          }}
+          onLoadMore={async (page) => {
+            await wait(600);
+            return generateOlderPage(page);
+          }}
+          className="gap-0"
+        >
+          <CommentThreadScrollArea className="max-h-96 px-4 pt-4">
+            <CommentThreadList />
+            <CommentThreadLoadMore mode="auto" className="py-3" />
+          </CommentThreadScrollArea>
+          <CommentThreadComposer className="border-t border-border p-3" />
+        </CommentThreadRoot>
+      </Card>
+    </div>
   );
 }
 
@@ -3148,6 +3212,7 @@ export default function CommentThreadDemo() {
         <TabsTrigger value="depth2">Nested d2</TabsTrigger>
         <TabsTrigger value="depth3">Nested d3</TabsTrigger>
         <TabsTrigger value="paginated">Paginated</TabsTrigger>
+        <TabsTrigger value="panel">Panel (parts)</TabsTrigger>
         <TabsTrigger value="controlled">Controlled</TabsTrigger>
         <TabsTrigger value="moderation">Moderation</TabsTrigger>
         <TabsTrigger value="rich">Rich &amp; links</TabsTrigger>
@@ -3170,6 +3235,9 @@ export default function CommentThreadDemo() {
       </TabsContent>
       <TabsContent value="paginated" className="mt-4">
         <PaginatedTab />
+      </TabsContent>
+      <TabsContent value="panel" className="mt-4">
+        <PanelTab />
       </TabsContent>
       <TabsContent value="controlled" className="mt-4">
         <ControlledTab />
@@ -4070,8 +4138,11 @@ import type {
   EngagementAction,
   EngagementActionEvent,
   EngagementBarHandle,
+  EngagementBarSize,
   EngagementReactionKind,
 } from "./types";
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 // Static avatar pile + "Liked by X and N others" caption.
 // Distinct from the v0.2.0 \`<LikersStrip>\` sub-export (which is the swipable
@@ -4965,6 +5036,99 @@ function LocaleDemo() {
   );
 }
 
+/**
+ * 0.8.0: one tap = the primary reaction (the picker on a long-press, ArrowUp or a resting mouse),
+ * 44 px touch targets, likers that link to their profile, and a share menu with a header row and
+ * per-person send state.
+ */
+function TouchPrimaryDemo() {
+  const [size, setSize] = useState<EngagementBarSize>("touch");
+  const [viewerReaction, setViewerReaction] = useState<string | null>(null);
+  const [pending, setPending] = useState<string[]>([]);
+  const [sent, setSent] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  const shareTo = (user: { id: string }) => {
+    setPending((p) => [...p, user.id]);
+    void wait(900).then(() => {
+      setPending((p) => p.filter((id) => id !== user.id));
+      setSent((s) => [...s, user.id]);
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-pressed={size === "touch"}
+          onClick={() => setSize((v) => (v === "touch" ? "default" : "touch"))}
+        >
+          Touch size (44 px)
+        </Button>
+      </div>
+      <div className="space-y-2">
+        <p className="text-sm text-muted-foreground">
+          Tap the heart to like, tap again to clear. Long-press, press ArrowUp, or rest the mouse on it
+          for the other kinds.
+        </p>
+        <EngagementBar
+          size={size}
+          actions={[
+            {
+              kind: "reaction",
+              kinds: REACTION_KINDS,
+              totalCount: REACTION_TOTAL_COUNT + (viewerReaction ? 1 : 0),
+              viewerReaction,
+              tapAction: "primary",
+              primaryKey: REACTION_KINDS[0]?.key,
+              hoverOpenDelay: 500,
+              onSelect: setViewerReaction,
+            },
+            { kind: "comment", count: 12 },
+            { kind: "share", count: 3 },
+            { kind: "bookmark" },
+          ]}
+        />
+      </div>
+      <div className="max-w-md space-y-2 rounded-lg border border-border p-3">
+        <LikersStrip
+          totalCount={DUMMY_LIKE_USERS.length + 40}
+          likers={DUMMY_LIKE_USERS}
+          onLoadMore={async () => []}
+          nameDisplay="full"
+          getProfileHref={(profile) => \`#profile-\${profile.id}\`}
+          renderBadge={() => (
+            <Heart className="h-3 w-3 fill-current text-destructive" aria-hidden="true" />
+          )}
+          size={size}
+        />
+      </div>
+      <div className="max-w-md rounded-lg border border-border p-3">
+        <ShareMenu
+          users={DUMMY_LIKE_USERS}
+          onShareTo={shareTo}
+          pendingIds={pending}
+          sentIds={sent}
+          size={size}
+          header={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCopied(true)}
+              className="w-full"
+            >
+              {copied ? "Link copied" : "Copy link"}
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function EngagementBarDemo() {
   return (
     <Tabs defaultValue="default">
@@ -4982,6 +5146,7 @@ export default function EngagementBarDemo() {
         <TabsTrigger value="controlled">Controlled + optimistic</TabsTrigger>
         <TabsTrigger value="gating">Gating + slot</TabsTrigger>
         <TabsTrigger value="locale">Locale</TabsTrigger>
+        <TabsTrigger value="touch">Touch &amp; primary tap</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-3">
@@ -5104,6 +5269,9 @@ export default function EngagementBarDemo() {
       </TabsContent>
       <TabsContent value="locale" className="mt-6">
         <LocaleDemo />
+      </TabsContent>
+      <TabsContent value="touch" className="mt-6">
+        <TouchPrimaryDemo />
       </TabsContent>
     </Tabs>
   );

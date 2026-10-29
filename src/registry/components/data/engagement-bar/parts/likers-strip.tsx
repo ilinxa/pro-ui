@@ -1,10 +1,19 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ElementType,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { EngagementLikerProfile } from "../types";
+import type { EngagementBarSize, EngagementLikerProfile } from "../types";
 import { resolveLocale } from "../lib/format-count";
 
 /** Pixels the mouse must move before a press becomes a drag (a smaller move is a click). */
@@ -28,7 +37,11 @@ function useDragScroll() {
     pointerId: null,
   });
 
+  // True from the end of a real drag until the click it produces (or the next press).
+  const justDraggedRef = useRef(false);
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    justDraggedRef.current = false;
     if (e.pointerType !== "mouse") return; // touch handled natively
     const el = scrollRef.current;
     if (!el) return;
@@ -77,6 +90,13 @@ function useDragScroll() {
     const wasDragging = s.dragging;
     s.dragging = false;
     const el = scrollRef.current;
+    if (wasDragging) {
+      justDraggedRef.current = true;
+      // The release click fires right after pointerup; if none does, don't eat a later one.
+      setTimeout(() => {
+        justDraggedRef.current = false;
+      }, 0);
+    }
     if (el && wasDragging) {
       el.style.cursor = "";
       try {
@@ -87,8 +107,17 @@ function useDragScroll() {
     }
   };
 
+  // Capture phase: a drag that ends over a link must not activate it.
+  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!justDraggedRef.current) return;
+    justDraggedRef.current = false;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return {
     scrollRef,
+    onClickCapture,
     onPointerDown,
     onPointerMove,
     onPointerUp: endDrag,
@@ -147,6 +176,27 @@ export interface LikersStripProps {
   /** @deprecated Use `labels.close`. */
   closeLabel?: string;
   className?: string;
+  /** 0.8.0. Link for a liker's tile. Returns `undefined` for no link. The avatar and name become one link (rendered with `linkComponent`), named by the profile's full name. */
+  getProfileHref?: (profile: EngagementLikerProfile) => string | undefined;
+  /** 0.8.0. Component for profile links (a router `Link`, for example). Receives `href`. Default `"a"`. */
+  linkComponent?: ElementType;
+  /** 0.8.0. `"first"` (default): the first word of the name; `"full"`: the whole name (truncated). Assistive technology always hears the full name. */
+  nameDisplay?: "first" | "full";
+  /** 0.8.0. Decorative node under / on the avatar (e.g. the kind someone reacted with). Rendered `aria-hidden`; put meaning into the name instead. */
+  renderBadge?: (profile: EngagementLikerProfile) => ReactNode;
+  /** 0.8.0. `"touch"`: the Hide button, the "+N" pill and each link are at least 44 × 44 px. Default `"default"`. */
+  size?: EngagementBarSize;
+}
+
+/** The name to show: a blank name falls back to the username, so a tile is never unnamed. */
+function nameOf(user: EngagementLikerProfile): string {
+  return user.name.trim() || user.username || "";
+}
+
+/** First non-empty word of a name; the whole (trimmed) name when there is none. */
+function firstName(name: string): string {
+  const trimmed = name.trim();
+  return trimmed.split(/\s+/).find((w) => w.length > 0) ?? trimmed;
 }
 
 function initials(name: string, locale: string): string {
@@ -154,7 +204,8 @@ function initials(name: string, locale: string): string {
     name
       .trim()
       .split(/\s+/)
-      .map((p) => p[0]?.toLocaleUpperCase(locale) ?? "")
+      // The first code point, not the first UTF-16 unit (an emoji or supplementary letter).
+      .map((p) => Array.from(p)[0]?.toLocaleUpperCase(locale) ?? "")
       .slice(0, 2)
       .join("") || "?"
   );
@@ -186,7 +237,13 @@ function LikersStripInner({
   onClose,
   closeLabel,
   className,
+  getProfileHref,
+  linkComponent: LinkComponent = "a",
+  nameDisplay = "first",
+  renderBadge,
+  size = "default",
 }: LikersStripProps) {
+  const touch = size === "touch";
   const locale = useMemo(() => resolveLocale(localeProp), [localeProp]);
   const controlled = likers !== undefined && onLikersChange !== undefined;
   // Likers this strip loaded itself (and the uncontrolled seed, read once).
@@ -237,11 +294,17 @@ function LikersStripInner({
   const pending = remaining !== null && remaining > 0 ? remaining : null;
   const {
     scrollRef,
+    onClickCapture,
     onPointerDown,
     onPointerMove,
     onPointerUp,
     onPointerCancel,
   } = useDragScroll();
+
+  // axe scrollable-region-focusable: a scroller with nothing focusable inside needs its own
+  // tab stop (and a name) so keyboard users can scroll it.
+  const hasFocusableChild =
+    pillVisible || (getProfileHref ? shown.some((u) => getProfileHref(u) !== undefined) : false);
 
   const handleLoadMore = useCallback(async () => {
     if (!onLoadMore || loadingRef.current) return;
@@ -283,7 +346,7 @@ function LikersStripInner({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-7 px-2 text-xs"
+            className={cn("h-7 px-2 text-xs", touch && "h-11 min-h-11 min-w-11")}
           >
             {labels.close}
           </Button>
@@ -291,6 +354,7 @@ function LikersStripInner({
       </div>
       <div
         ref={scrollRef}
+        onClickCapture={onClickCapture}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -298,29 +362,81 @@ function LikersStripInner({
         style={{ touchAction: "pan-x" }}
         className="flex cursor-grab select-none items-stretch gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]"
         role="list"
+        // A named, focusable list keeps list semantics valid (no wrapper needed: axe allows tabindex + name on role=list).
+        tabIndex={hasFocusableChild ? undefined : 0}
+        aria-label={hasFocusableChild ? undefined : labels.heading}
       >
-        {shown.map((user) => (
-          <div
-            key={user.id}
-            role="listitem"
-            className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20"
-          >
-            <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-              {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
+        {shown.map((user) => {
+          const href = getProfileHref?.(user);
+          const linked = href !== undefined;
+          const avatar = (
+            <Avatar
+              className="h-10 w-10 sm:h-12 sm:w-12"
+              aria-hidden={linked ? "true" : undefined}
+            >
+              {user.avatar ? <AvatarImage src={user.avatar} alt="" draggable={false} /> : null}
               <AvatarFallback>{initials(user.name, locale)}</AvatarFallback>
             </Avatar>
-            {/* Fixed-height name+username slot — keeps every column the same total height
-                so the strip looks symmetric regardless of which users have a username. */}
-            <div className="flex h-8 w-full flex-col justify-start text-center">
-              <span className="truncate text-xs font-medium leading-tight">
-                {user.name.split(" ")[0]}
-              </span>
-              <span className="truncate text-[10px] leading-tight text-muted-foreground">
-                {user.username ? `@${user.username}` : " "}
-              </span>
+          );
+          const body = (
+            <>
+              {renderBadge ? (
+                <span className="relative inline-flex">
+                  {avatar}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-0.5 -end-0.5"
+                  >
+                    {renderBadge(user)}
+                  </span>
+                </span>
+              ) : (
+                avatar
+              )}
+              {/* Fixed-height name+username slot — keeps every column the same total height
+                  so the strip looks symmetric regardless of which users have a username. */}
+              <div className="flex h-8 w-full flex-col justify-start text-center">
+                <span className="truncate text-xs font-medium leading-tight">
+                  {nameDisplay === "first" ? (
+                    <>
+                      <bdi aria-hidden="true">{firstName(nameOf(user))}</bdi>
+                      <span className="sr-only">
+                        <bdi>{nameOf(user)}</bdi>
+                      </span>
+                    </>
+                  ) : (
+                    <bdi>{nameOf(user)}</bdi>
+                  )}
+                </span>
+                <span className="truncate text-[10px] leading-tight text-muted-foreground">
+                  {user.username ? <bdi dir="ltr">{`@${user.username}`}</bdi> : " "}
+                </span>
+              </div>
+            </>
+          );
+          return (
+            <div
+              key={user.id}
+              role="listitem"
+              className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20"
+            >
+              {linked ? (
+                <LinkComponent
+                  href={href}
+                  draggable={false}
+                  className={cn(
+                    "flex w-full flex-col items-center gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    touch && "min-h-11 min-w-11",
+                  )}
+                >
+                  {body}
+                </LinkComponent>
+              ) : (
+                body
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         {pillVisible ? (
           <div role="listitem" className="flex w-16 shrink-0 flex-col items-center gap-1 sm:w-20">
             <Button
@@ -332,7 +448,10 @@ function LikersStripInner({
               disabled={isLoading}
               aria-busy={isLoading ? "true" : undefined}
               aria-label={pillAria}
-              className="h-11 w-11 shrink-0 rounded-full p-0 text-xs font-semibold sm:h-12 sm:w-12"
+              className={cn(
+                "h-11 w-11 shrink-0 rounded-full p-0 text-xs font-semibold sm:h-12 sm:w-12",
+                touch && "min-h-11 min-w-11",
+              )}
             >
               {pillText}
             </Button>

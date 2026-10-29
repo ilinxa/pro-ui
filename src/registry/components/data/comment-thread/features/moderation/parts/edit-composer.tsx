@@ -21,6 +21,7 @@ function CommentEditComposerInner({
   minRows,
   maxRows,
   className,
+  size,
 }: CommentEditComposerProps) {
   const composerLabels = useMemo(
     () => ({
@@ -65,6 +66,7 @@ function CommentEditComposerInner({
         maxRows={maxRows}
         labels={composerLabels}
         ariaLabel={labels.edit}
+        size={size}
         autoFocus
       />
     </div>

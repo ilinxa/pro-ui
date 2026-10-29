@@ -23,6 +23,7 @@ import type {
   PostCardLabels,
   PostCardVariant,
   PostHandlers,
+  PostInlineDisclosure,
   PostMutationHandlers,
   PostPermissionAction,
   PostPermissions,
@@ -34,23 +35,7 @@ import {
   resolvePostPermissions,
 } from "./permissions";
 
-/**
- * Disclosure wiring for post-card's inline panels (0.6.1). post-card passes it to its default
- * actions in inline mode; a host calling `defaultPostEngagementActions` from the
- * `engagementActions` slot omits it (its actions then carry no `aria-expanded`).
- */
-export interface PostInlineDisclosure {
-  /** The inline panel that is open. */
-  open: "none" | "likes" | "comments" | "share";
-  /** The panels' element ids (`aria-controls` targets). */
-  ids: { likes: string; comments: string; share: string };
-  /** Share opens a panel (`shareSuggestions` is set); otherwise the share action carries no disclosure state. */
-  shareOpens: boolean;
-  /** Toggles the comments panel, taking the clicked button as the opener. */
-  comment: (event: EngagementActionEvent) => void;
-  /** Toggles the share panel, taking the clicked button as the opener. */
-  share: (event: EngagementActionEvent) => void;
-}
+export type { PostInlineDisclosure } from "../types";
 
 export function defaultPostEngagementActions(
   post: Post,
@@ -71,6 +56,8 @@ export function defaultPostEngagementActions(
   /** Inline mode only: which panel is open, the panels' ids, and the event-aware openers. */
   inline?: PostInlineDisclosure,
 ): EngagementAction[] {
+  // A slot host passes `inline` but no count handler: the likers panel still opens from the count.
+  const likeCount = onLikeCountClick ?? inline?.likes;
   const likeD = inline ? { countExpanded: inline.open === "likes", countControls: inline.ids.likes } : null;
   const like: EngagementAction = reactions
     ? {
@@ -82,10 +69,13 @@ export function defaultPostEngagementActions(
         totalCount: reactions.totalCount,
         viewerReaction: reactions.viewerReaction,
         clearOnTap: reactions.clearOnTap,
+        tapAction: reactions.tapAction,
+        primaryKey: reactions.primaryKey,
+        hoverOpenDelay: reactions.hoverOpenDelay,
         onSelect: reactions.onReact
           ? (kind) => reactions.onReact!(post.id, kind)
           : undefined,
-        onCountClick: onLikeCountClick,
+        onCountClick: likeCount,
         ...likeD,
       }
     : {
@@ -93,11 +83,11 @@ export function defaultPostEngagementActions(
         count: post.likes,
         liked: post.isLiked ?? false,
         onToggle: handlers.onLike
-          ? (next) => {
-              handlers.onLike!(post.id, next);
+          ? (next, event) => {
+              handlers.onLike!(post.id, next, event);
             }
           : undefined,
-        onCountClick: onLikeCountClick,
+        onCountClick: likeCount,
         ...likeD,
       };
 

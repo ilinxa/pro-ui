@@ -4,12 +4,13 @@ import { memo, useCallback, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
+  EngagementBarSize,
   EngagementCount,
   EngagementReactionKind,
   ResolvedEngagementBarLabels,
 } from "../types";
 import { useDirection, type Direction } from "../hooks/use-direction";
-import { useActionName } from "../lib/action-name";
+import { touchTarget, useActionName } from "../lib/action-name";
 
 export interface ReactionPickerProps {
   /** Ordered kind catalog. Picker renders one button per kind in order. */
@@ -32,6 +33,8 @@ export interface ReactionPickerProps {
    * direction after mount. The picker usually renders in a portal — pass the host's direction.
    */
   dir?: Direction;
+  /** `"touch"`: every button gets a 44 x 44 px minimum hit area. */
+  size?: EngagementBarSize;
   className?: string;
 }
 
@@ -43,6 +46,7 @@ function KindButton({
   buttonRef,
   onSelect,
   onKeyDown,
+  size,
 }: {
   kind: EngagementReactionKind;
   count: EngagementCount;
@@ -51,6 +55,7 @@ function KindButton({
   buttonRef: (el: HTMLButtonElement | null) => void;
   onSelect: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
+  size?: EngagementBarSize;
 }) {
   const showCount = count !== null && count > 0;
   const name = useActionName(showCount);
@@ -67,6 +72,7 @@ function KindButton({
         "motion-safe:transition-transform motion-safe:hover:scale-125",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isSelected && "bg-accent",
+        touchTarget(size),
       )}
       style={kind.color ? { color: kind.color } : undefined}
     >
@@ -96,6 +102,7 @@ function ReactionPickerInner({
   labels,
   format = String,
   dir,
+  size,
   className,
 }: ReactionPickerProps) {
   const groupRef = useRef<HTMLDivElement | null>(null);
@@ -139,6 +146,7 @@ function ReactionPickerInner({
           }}
           onSelect={() => onSelect(kind.key)}
           onKeyDown={(e) => handleKeyDown(e, index)}
+          size={size}
         />
       ))}
       {showRemove ? (
@@ -154,6 +162,7 @@ function ReactionPickerInner({
             "flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground",
             "motion-safe:transition-colors hover:bg-destructive/10 hover:text-destructive",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            touchTarget(size),
           )}
         >
           <X aria-hidden="true" className="h-4 w-4" />

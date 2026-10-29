@@ -54,6 +54,7 @@ function EngagementBarInner({
   locale: localeProp = "en",
   formatCount,
   hideZeroCounts = false,
+  size = "default",
   optimistic = true,
   dir: dirProp,
   onReactionPickerOpenChange,
@@ -105,8 +106,8 @@ function EngagementBarInner({
   useImperativeHandle(
     ref,
     () => ({
-      triggerLike: toggleLike,
-      triggerBookmark: toggleBookmark,
+      triggerLike: () => toggleLike(),
+      triggerBookmark: () => toggleBookmark(),
       // Defense 1 per Q-PP-3 — microtask-deferred, same as a pick in the picker.
       triggerReaction: (kind: string | null) => {
         queueMicrotask(() => selectReaction(kind));
@@ -139,6 +140,7 @@ function EngagementBarInner({
       onReactionPickerOpenChange={onReactionPickerOpenChange}
       actionClassName={actionClassName}
       hideZeroCounts={hideZeroCounts}
+      size={size}
     />
   );
 

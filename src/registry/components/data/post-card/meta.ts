@@ -10,6 +10,9 @@ export const meta: ComponentMeta = {
   context:
     "Sixth ship in the 8-component social-posts-system arc. Third cross-folder import precedent in pro-ui (after media-carousel → video-player and comment-thread → expandable-text + engagement-bar) — declares all five Tier-1 social-posts siblings as registryDependencies; consumer install auto-pulls the family. Migration origin: kasder kas-social-front-v0 AdvancedPostCard.tsx (167 LOC) + PostEngagementPanel.tsx inline-panel UX. `post` is mount-only (a local mirror) unless `onPostChange` is passed (controlled since 0.6.0: the prop wins every render, like / bookmark / poll vote show as an overlay while their promise is in flight and are reported once accepted, rejections roll back); the engagement bar is controlled by the card; realtime engagementSubscribe deltas are applied (uncontrolled) or reported (controlled) and fire onSubscribeEngagementDelta. Inline panels (engagementMode default 'inline'): tap heart toggles like, tap count opens likers strip; tap comment toggles inline CommentThread (with composer); tap share opens searchable user list. `engagementMode='navigate'` deactivates panels for hosts that prefer page navigation. Heart-burst auto-wires when `post.media?.length > 0` AND (`onLike`, or `reactions.onReact` when `reactions` is set) AND `variant ∈ {feed, detail}` (disableHeartBurst opts out). `getHref` double-duty: overlay-link in non-detail variants + Copy-link kebab item. Detail variant embeds <CommentThread> always (ignores engagementMode) with auto-default + `renderCommentSection` slot for full takeover.",
   features: [
+    "v0.7.0 — `likersStripProps` (profile links, full names, badges, touch size) and `shareMenuProps` (a header row, per-person send state, touch size) forward to the inline panels; with send state the share panel stays open after a pick; `engagementBarProps` forwards `size` and `hideZeroCounts`; `reactions` takes `tapAction` / `primaryKey` / `hoverOpenDelay` for one-tap reactions",
+    "v0.7.0 — the likers panel a heart tap opens takes the heart as its opener (`onLike` / `PostHandlers.onLike` receive the click event as a third argument), and the `engagementActions` slot receives the inline disclosure as a fourth argument (`PostInlineDisclosure`, now with `likes`), so a host's own actions report the open panel and return focus on Safari",
+    "v0.7.0 — the inline comments panel scrolls in a focusable, named region (`commentLabels.commentsRegion`, else `labels.commentsHeading`), so keyboard users can scroll it",
     "v0.6.0 — controlled `post` + `onPostChange(next, change)`: the prop wins on every render; like / bookmark / poll vote show at once while their promise is in flight and are reported once accepted; a rejection rolls back (both modes); latest request wins; `optimistic`",
     "v0.6.0 — `reactions` (kinds, counts, viewer reaction, `onReact`, `defaultKind`) replaces the like with a reaction picker; double-tap applies the default reaction when none is set and bursts once",
     "v0.6.0 — header: `getAuthorHref` (avatar + name links), `subtitle`, `noticeSlot`, labelled kebab that survives `renderHeader(post, { kebab })`, `extraKebabActions` appended, `hidden` items, `permissions.disabled`",
@@ -75,9 +78,9 @@ export const meta: ComponentMeta = {
     "likers",
   ],
 
-  version: "0.6.1",
+  version: "0.7.0",
   status: "alpha",
-  artifactBudgetKB: 190,
+  artifactBudgetKB: 200,
   createdAt: "2026-05-02",
   updatedAt: "2026-10-28",
 

@@ -1298,3 +1298,12 @@ Manual (no test infra in pro-ui yet):
 ---
 
 **Plan signed off 2026-05-02.** R-Plan-1 through R-Plan-12 committed inline above. Implementation begins.
+
+## 0.6.0 — compound split (release 7b, 2026-10-28)
+
+From 0.6.0 the thread ships as a shadcn-style compound: `CommentThreadRoot` (all state, contexts, the handle),
+the parts `CommentThreadList` / `CommentThreadLoadMore` / `CommentThreadComposer`, the standalone
+`CommentThreadScrollArea` and `useCommentThread()`, and the assembly `CommentThread` (Root + List + LoadMore +
+Composer, unchanged layout). The tier inventory, invariants (I1–I8) and the CT-3 / CT-5 / CT-7 decisions are in
+[comment-thread-loop.md](comment-thread-loop.md) → "Run — release 7b" → U1. The delete confirmation ships as the
+`comment-thread-confirm-delete` add-on (`features/confirm-delete/`), injected like the moderation add-on.

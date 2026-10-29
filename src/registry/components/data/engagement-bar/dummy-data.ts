@@ -134,6 +134,9 @@ export const DUMMY_AR_SHARE_LABELS: ShareMenuLabels = {
   searchLabel: "بحث عن أشخاص",
   empty: "لا توجد نتائج.",
   close: "إخفاء",
+  sending: "جارٍ الإرسال…",
+  sent: "تم الإرسال",
+  sentTo: (name) => `تم الإرسال إلى ${name}`,
 };
 
 /** Three-kind reaction catalog with Arabic labels (icons via createElement — this is a .ts file). */

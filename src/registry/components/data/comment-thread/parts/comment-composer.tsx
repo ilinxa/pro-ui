@@ -55,6 +55,8 @@ export interface CommentComposerProps {
   avatarSlot?: ReactNode;
   /** Auto-focus on mount (use for inline reply composers). */
   autoFocus?: boolean;
+  /** 0.6.0. `"touch"`: Send and Cancel have a hit area of at least 44 × 44 px. Default `"default"`. */
+  size?: "default" | "touch";
   className?: string;
   /** Classes for the failure alert. */
   errorClassName?: string;
@@ -97,6 +99,7 @@ function CommentComposerInner({
   ariaLabel,
   avatarSlot,
   autoFocus = false,
+  size = "default",
   className,
   errorClassName,
   labels,
@@ -187,6 +190,7 @@ function CommentComposerInner({
   const sendLabel = labels?.composerSend ?? defaultCommentThreadLabels.composerSend;
   const cancelLabel = labels?.composerCancel ?? defaultCommentThreadLabels.composerCancel;
   const failedLabel = labels?.postFailed ?? defaultCommentThreadLabels.postFailed;
+  const touch = size === "touch";
   const sendBlocked = !value.trim() || isSubmitting || disabled;
 
   return (
@@ -219,7 +223,8 @@ function CommentComposerInner({
           aria-busy={isSubmitting}
           aria-invalid={hasError || undefined}
           aria-describedby={hasError ? errorId : undefined}
-          className="resize-none border-0 bg-muted/50 pe-10"
+          // Touch: at least 44 px tall so the absolutely placed 44 px Send (top-0) stays inside the field.
+          className={cn("resize-none border-0 bg-muted/50", touch ? "min-h-11 pe-12" : "pe-10")}
         />
         <Button
           type="button"
@@ -232,7 +237,10 @@ function CommentComposerInner({
           aria-disabled={sendBlocked || undefined}
           disabled={disabled}
           aria-label={sendLabel}
-          className="absolute end-1 top-1.5 h-7 w-7 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+          className={cn(
+            "absolute end-1 aria-disabled:pointer-events-none aria-disabled:opacity-50",
+            touch ? "top-0 min-h-11 min-w-11" : "top-1.5 h-7 w-7",
+          )}
         >
           <Send
             className={cn(
@@ -262,6 +270,7 @@ function CommentComposerInner({
             onCancel();
           }}
           disabled={isSubmitting}
+          className={touch ? "min-h-11 min-w-11" : undefined}
         >
           {cancelLabel}
         </Button>

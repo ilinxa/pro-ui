@@ -31,6 +31,8 @@ export type {
   EngagementActionEvent,
   EngagementCount,
   EngagementHandler,
+  EngagementToggleHandler,
+  EngagementBarSize,
   EngagementDelta,
   EngagementLikeUser,
   EngagementLikerProfile,

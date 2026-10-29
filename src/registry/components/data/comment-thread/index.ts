@@ -1,4 +1,10 @@
 export { CommentThread } from "./comment-thread";
+export { CommentThreadRoot } from "./parts/comment-thread-root";
+export { CommentThreadList } from "./parts/comment-thread-list";
+export { CommentThreadLoadMore } from "./parts/comment-thread-load-more";
+export { CommentThreadComposer } from "./parts/comment-thread-composer";
+export { CommentThreadScrollArea } from "./parts/comment-thread-scroll-area";
+export { useCommentThread } from "./hooks/use-comment-thread";
 
 export {
   CommentComposer,
@@ -34,6 +40,17 @@ export type {
   CommentThreadProps,
   CommentThreadHandle,
   CommentThreadVariant,
+  CommentThreadSize,
+  CommentThreadRootProps,
+  CommentThreadListProps,
+  CommentThreadLoadMoreProps,
+  CommentThreadComposerProps,
+  CommentThreadScrollAreaProps,
+  CommentThreadState,
+  CommentDeleteConfirm,
+  CommentDeleteConfirmExtension,
+  CommentDeleteDialogProps,
+  CommentDeleteRequest,
   CommentThreadLabels,
   ResolvedCommentThreadLabels,
   CommentThreadCurrentUser,

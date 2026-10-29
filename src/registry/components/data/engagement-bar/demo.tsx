@@ -50,8 +50,11 @@ import type {
   EngagementAction,
   EngagementActionEvent,
   EngagementBarHandle,
+  EngagementBarSize,
   EngagementReactionKind,
 } from "./types";
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 // Static avatar pile + "Liked by X and N others" caption.
 // Distinct from the v0.2.0 `<LikersStrip>` sub-export (which is the swipable
@@ -945,6 +948,99 @@ function LocaleDemo() {
   );
 }
 
+/**
+ * 0.8.0: one tap = the primary reaction (the picker on a long-press, ArrowUp or a resting mouse),
+ * 44 px touch targets, likers that link to their profile, and a share menu with a header row and
+ * per-person send state.
+ */
+function TouchPrimaryDemo() {
+  const [size, setSize] = useState<EngagementBarSize>("touch");
+  const [viewerReaction, setViewerReaction] = useState<string | null>(null);
+  const [pending, setPending] = useState<string[]>([]);
+  const [sent, setSent] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  const shareTo = (user: { id: string }) => {
+    setPending((p) => [...p, user.id]);
+    void wait(900).then(() => {
+      setPending((p) => p.filter((id) => id !== user.id));
+      setSent((s) => [...s, user.id]);
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-pressed={size === "touch"}
+          onClick={() => setSize((v) => (v === "touch" ? "default" : "touch"))}
+        >
+          Touch size (44 px)
+        </Button>
+      </div>
+      <div className="space-y-2">
+        <p className="text-sm text-muted-foreground">
+          Tap the heart to like, tap again to clear. Long-press, press ArrowUp, or rest the mouse on it
+          for the other kinds.
+        </p>
+        <EngagementBar
+          size={size}
+          actions={[
+            {
+              kind: "reaction",
+              kinds: REACTION_KINDS,
+              totalCount: REACTION_TOTAL_COUNT + (viewerReaction ? 1 : 0),
+              viewerReaction,
+              tapAction: "primary",
+              primaryKey: REACTION_KINDS[0]?.key,
+              hoverOpenDelay: 500,
+              onSelect: setViewerReaction,
+            },
+            { kind: "comment", count: 12 },
+            { kind: "share", count: 3 },
+            { kind: "bookmark" },
+          ]}
+        />
+      </div>
+      <div className="max-w-md space-y-2 rounded-lg border border-border p-3">
+        <LikersStrip
+          totalCount={DUMMY_LIKE_USERS.length + 40}
+          likers={DUMMY_LIKE_USERS}
+          onLoadMore={async () => []}
+          nameDisplay="full"
+          getProfileHref={(profile) => `#profile-${profile.id}`}
+          renderBadge={() => (
+            <Heart className="h-3 w-3 fill-current text-destructive" aria-hidden="true" />
+          )}
+          size={size}
+        />
+      </div>
+      <div className="max-w-md rounded-lg border border-border p-3">
+        <ShareMenu
+          users={DUMMY_LIKE_USERS}
+          onShareTo={shareTo}
+          pendingIds={pending}
+          sentIds={sent}
+          size={size}
+          header={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCopied(true)}
+              className="w-full"
+            >
+              {copied ? "Link copied" : "Copy link"}
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function EngagementBarDemo() {
   return (
     <Tabs defaultValue="default">
@@ -962,6 +1058,7 @@ export default function EngagementBarDemo() {
         <TabsTrigger value="controlled">Controlled + optimistic</TabsTrigger>
         <TabsTrigger value="gating">Gating + slot</TabsTrigger>
         <TabsTrigger value="locale">Locale</TabsTrigger>
+        <TabsTrigger value="touch">Touch &amp; primary tap</TabsTrigger>
       </SwipeTabsList>
 
       <TabsContent value="default" className="mt-6 space-y-3">
@@ -1084,6 +1181,9 @@ export default function EngagementBarDemo() {
       </TabsContent>
       <TabsContent value="locale" className="mt-6">
         <LocaleDemo />
+      </TabsContent>
+      <TabsContent value="touch" className="mt-6">
+        <TouchPrimaryDemo />
       </TabsContent>
     </Tabs>
   );

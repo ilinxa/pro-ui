@@ -19,6 +19,8 @@ export interface ViewRepliesLinkProps {
   /** Replies are loading: shows `loadingLabel`, marks the link busy, ignores clicks (focus stays). */
   loading?: boolean;
   loadingLabel?: string;
+  /** `"touch"`: a hit area of at least 44 × 44 px. Default `"default"`. */
+  size?: "default" | "touch";
   className?: string;
 }
 
@@ -31,6 +33,7 @@ export function ViewRepliesLink({
   onExpand,
   loading = false,
   loadingLabel,
+  size = "default",
   className,
 }: ViewRepliesLinkProps) {
   if (count <= 0) return null;
@@ -46,6 +49,7 @@ export function ViewRepliesLink({
       aria-disabled={loading || undefined}
       className={cn(
         "mt-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
+        size === "touch" && "inline-flex min-h-11 min-w-11 items-center justify-center",
         loading && "opacity-60",
         className,
       )}

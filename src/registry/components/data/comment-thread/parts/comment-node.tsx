@@ -1,6 +1,17 @@
 "use client";
 
-import { memo, useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  lazy,
+  memo,
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // F-S1 lock: same-category cross-procomp via relative + specific-file paths.
@@ -11,7 +22,6 @@ import type {
   EngagementBarLabels,
 } from "../../engagement-bar/types";
 import { CommentKebab } from "./comment-kebab";
-import { CommentComposer } from "./comment-composer";
 import { ViewRepliesLink } from "./view-replies-link";
 import { useThreadContext } from "./thread-context";
 import { toDate } from "../lib/format-time";
@@ -24,6 +34,12 @@ import type {
   CommentNodeHelpers,
   CommentTombstoneState,
 } from "../types";
+
+// CT-7: a thread without the composer part (a read-only list) loads the reply box on first use,
+// so the composer stays out of its bundle. With the part mounted, `ctx.replyComposer` renders at once.
+const LazyCommentComposer = lazy(() =>
+  import("./comment-composer").then((m) => ({ default: m.CommentComposer })),
+);
 
 export interface CommentNodeProps {
   comment: Comment;
@@ -58,6 +74,7 @@ function CommentNodeInner({
     renderViewReplies,
   } = ctx;
 
+  const touch = ctx.size === "touch";
   const baseId = useId();
   const authorId = `${baseId}-author`;
   const repliesId = `${baseId}-replies`;
@@ -114,13 +131,18 @@ function CommentNodeInner({
   );
   const isReplyOpen = ctx.replyParentId === comment.id;
 
+  const { like, requestDelete, report, openReply } = ctx;
+  const commentId = comment.id;
+  // A pending comment has a temporary id: deleting it does nothing (the built-in item is off too).
+  const onDelete = useCallback(() => {
+    if (!isPending) requestDelete(commentId);
+  }, [isPending, requestDelete, commentId]);
+
   const actionHelpers = useMemo<CommentActionHelpers>(
-    () => ({ currentUser, isOwn, depth, permissions, isPending }),
-    [currentUser, isOwn, depth, permissions, isPending],
+    () => ({ currentUser, isOwn, depth, permissions, isPending, onDelete }),
+    [currentUser, isOwn, depth, permissions, isPending, onDelete],
   );
 
-  const { like, remove, report, openReply } = ctx;
-  const commentId = comment.id;
   // Handlers handed to the `renderNode` slot — `onReply` receives a null trigger
   // (slot owners do their own focus-restoration if they care).
   const helpers = useMemo<CommentNodeHelpers>(
@@ -128,10 +150,9 @@ function CommentNodeInner({
       ...actionHelpers,
       onLike: (nextLiked: boolean) => like(commentId, nextLiked),
       onReply: () => openReply(commentId, null),
-      onDelete: () => remove(commentId),
       onReport: () => report(commentId),
     }),
-    [actionHelpers, like, openReply, remove, report, commentId],
+    [actionHelpers, like, openReply, report, commentId],
   );
 
   // The thread's own `like` / `unlike` win over `labels.engagement`'s (compatibility).
@@ -144,21 +165,25 @@ function CommentNodeInner({
     [labels.showMore, labels.showLess],
   );
 
+  const ReplyComposer = ctx.replyComposer ?? LazyCommentComposer;
   const replyComposer =
     isReplyOpen && currentUser && !ctx.closed ? (
-      <CommentComposer
-        currentUser={currentUser}
-        placeholder={labels.composerPlaceholder}
-        onSubmit={(content) => ctx.submitReply(content, comment.id)}
-        onCancel={ctx.cancelReply}
-        submitOnEnter={ctx.submitOnEnter}
-        minRows={ctx.composerMinRows}
-        maxRows={ctx.composerMaxRows}
-        className={ctx.composerClassName}
-        labels={labels}
-        ariaLabel={labels.replyTo(comment.author.name)}
-        autoFocus
-      />
+      <Suspense fallback={null}>
+        <ReplyComposer
+          currentUser={currentUser}
+          placeholder={labels.composerPlaceholder}
+          onSubmit={(content) => ctx.submitReply(content, comment.id)}
+          onCancel={ctx.cancelReply}
+          submitOnEnter={ctx.submitOnEnter}
+          minRows={ctx.composerMinRows}
+          maxRows={ctx.composerMaxRows}
+          className={ctx.composerClassName}
+          labels={labels}
+          ariaLabel={labels.replyTo(comment.author.name)}
+          size={ctx.size}
+          autoFocus
+        />
+      </Suspense>
     ) : null;
 
   // ─── Reply visibility logic ───────────────────────────────────────────────
@@ -181,6 +206,7 @@ function CommentNodeInner({
       <ViewRepliesLink
         count={hiddenCountLabel}
         label={labels.viewReplies(hiddenCountLabel)}
+        size={ctx.size}
         controlsId={repliesId}
         expanded={showReplies}
         onExpand={() => {
@@ -207,6 +233,7 @@ function CommentNodeInner({
         <ViewRepliesLink
           count={count}
           label={label}
+          size={ctx.size}
           controlsId={repliesId}
           expanded={showReplies}
           disclosure={!showReplies}
@@ -307,7 +334,7 @@ function CommentNodeInner({
     hasReport: ctx.hasReport,
     canEditAtAll: ctx.canEditAtAll,
     onEdit: () => setIsEditing(true),
-    onDelete: () => remove(comment.id),
+    onDelete,
     onReport: () => report(comment.id),
     commentActions: ctx.commentActions,
     extraActions: ctx.extraActions,
@@ -393,7 +420,10 @@ function CommentNodeInner({
               {authorHref ? (
                 <LinkComponent
                   href={authorHref}
-                  className="hover:underline focus-visible:underline focus-visible:outline-none"
+                  className={cn(
+                    "hover:underline focus-visible:underline focus-visible:outline-none",
+                    touch && "inline-flex min-h-11 min-w-11 items-center",
+                  )}
                 >
                   <bdi>{comment.author.name}</bdi>
                 </LinkComponent>
@@ -427,6 +457,7 @@ function CommentNodeInner({
               minRows={ctx.composerMinRows}
               maxRows={ctx.composerMaxRows}
               className="mt-1"
+              size={ctx.size}
             />
           ) : (
             <ExpandableText
@@ -436,6 +467,7 @@ function CommentNodeInner({
               maxLines={bodyMaxLines}
               labels={expandableLabels}
               contentClassName="text-sm mt-0.5"
+              toggleClassName={touch ? "inline-flex min-h-11 min-w-11 items-center justify-center" : undefined}
             >
               {ctx.renderContent ? ctx.renderContent(comment, { depth }) : undefined}
             </ExpandableText>
@@ -450,7 +482,7 @@ function CommentNodeInner({
             {comment.edited ? (
               <>
                 {" "}
-                <span className="text-muted-foreground/80">
+                <span>
                   {labels.editedSuffix}
                 </span>
               </>
@@ -463,13 +495,17 @@ function CommentNodeInner({
             locale={ctx.locale}
             formatCount={ctx.formatCount}
             dir={ctx.dir}
+            size={ctx.size}
           />
           {currentUser && permissions.canReply && !ctx.closed ? (
             <button
               type="button"
               onClick={(e) => openReply(comment.id, e.currentTarget)}
               disabled={isPending}
-              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+              className={cn(
+                "text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50",
+                touch && "inline-flex min-h-11 min-w-11 items-center justify-center",
+              )}
             >
               {labels.reply}
             </button>
@@ -487,6 +523,7 @@ function CommentNodeInner({
         ariaLabel={labels.kebabAriaLabel(comment.author.name)}
         triggerRef={setKebab}
         dir={ctx.dir}
+        size={ctx.size}
       />
     </article>
   );

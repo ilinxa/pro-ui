@@ -11,6 +11,7 @@ import {
 } from "react";
 import type {
   EngagementAction,
+  EngagementActionEvent,
   EngagementCount,
   EngagementDelta,
   EngagementLocalAction,
@@ -341,9 +342,9 @@ export interface UseEngagementStateResult {
   dispatch: React.Dispatch<EngagementLocalAction>;
   controlled: ControlledFlags;
   /** Toggle like through the full path (gating, handler, optimistic, rollback). */
-  toggleLike: () => void;
+  toggleLike: (event?: EngagementActionEvent) => void;
   /** Toggle bookmark through the full path. */
-  toggleBookmark: () => void;
+  toggleBookmark: (event?: EngagementActionEvent) => void;
   /** Select (string) or clear (`null`) the viewer's reaction through the full path. Same kind = no-op. */
   selectReaction: (kind: string | null) => void;
   /** Re-seed internal state from the actions and drop optimistic / delta overlays. */
@@ -568,7 +569,7 @@ export function useEngagementState(
     [clearPending],
   );
 
-  const toggleLike = useCallback(() => {
+  const toggleLike = useCallback((event?: EngagementActionEvent) => {
     const action = findAction(actionsRef.current, "like");
     if (!action || action.disabled || action.hidden) return;
     const shown = shownRef.current;
@@ -576,19 +577,19 @@ export function useEngagementState(
     run(
       "like",
       { liked: target, likeCount: step(shown.likeCount, target ? 1 : -1) },
-      () => action.onToggle?.(target),
+      () => (event ? action.onToggle?.(target, event) : action.onToggle?.(target)),
       () => dispatch({ kind: "like-set", liked: target, baseCount: shown.likeCount }),
     );
   }, [run]);
 
-  const toggleBookmark = useCallback(() => {
+  const toggleBookmark = useCallback((event?: EngagementActionEvent) => {
     const action = findAction(actionsRef.current, "bookmark");
     if (!action || action.disabled || action.hidden) return;
     const target = !shownRef.current.bookmarked;
     run(
       "bookmark",
       { bookmarked: target },
-      () => action.onToggle?.(target),
+      () => (event ? action.onToggle?.(target, event) : action.onToggle?.(target)),
       () => dispatch({ kind: "bookmark-set", bookmarked: target }),
     );
   }, [run]);

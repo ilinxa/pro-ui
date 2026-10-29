@@ -4,17 +4,23 @@ import { memo } from "react";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EngagementBarVariant, ResolvedEngagementBarLabels } from "../types";
-import { DISABLED_ACTION_CLASS } from "../lib/action-name";
+import type {
+  EngagementActionEvent,
+  EngagementBarSize,
+  EngagementBarVariant,
+  ResolvedEngagementBarLabels,
+} from "../types";
+import { DISABLED_ACTION_CLASS, touchTarget } from "../lib/action-name";
 
 interface BookmarkActionProps {
   variant: EngagementBarVariant;
   bookmarked: boolean;
   disabled?: boolean;
   /** The bar's toggle path (gating, handler, optimistic overlay). */
-  onToggle: () => void;
+  onToggle: (event?: EngagementActionEvent) => void;
   labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
+  size?: EngagementBarSize;
 }
 
 function BookmarkActionInner({
@@ -24,10 +30,11 @@ function BookmarkActionInner({
   onToggle,
   labels,
   actionClassName,
+  size,
 }: BookmarkActionProps) {
-  const handleClick = () => {
+  const handleClick = (event: EngagementActionEvent) => {
     if (disabled) return;
-    onToggle();
+    onToggle(event);
   };
 
   const ariaLabel = bookmarked ? labels.unbookmark : labels.bookmark;
@@ -47,6 +54,7 @@ function BookmarkActionInner({
         stacked
           ? "flex h-auto flex-col items-center gap-0.5 px-2 py-1"
           : "px-2 motion-safe:transition-colors",
+        touchTarget(size),
         DISABLED_ACTION_CLASS,
         actionClassName,
       )}

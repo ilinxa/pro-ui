@@ -24,7 +24,7 @@ import type {
 } from "../engagement-bar/types";
 import type { LikersStripLabels } from "../engagement-bar/parts/likers-strip";
 import type { ShareMenuLabels } from "../engagement-bar/parts/share-menu";
-import type { Post, PostCardProps, PostHandlers } from "./types";
+import type { Post, PostCardProps, PostHandlers, PostInlineDisclosure } from "./types";
 import {
   defaultPostEngagementActions,
   defaultPostKebabActions,
@@ -46,6 +46,7 @@ import { DetailVariant } from "./parts/detail-variant";
 import { LikersStrip } from "../engagement-bar/parts/likers-strip";
 import { ShareMenu } from "../engagement-bar/parts/share-menu";
 import { CommentThread } from "../comment-thread/comment-thread";
+import { CommentThreadScrollArea } from "../comment-thread/parts/comment-thread-scroll-area";
 
 /**
  * Stands in for `commentThread` when the host passes none. A module-level array keeps the
@@ -157,6 +158,8 @@ function PostCardInner(props: PostCardProps) {
     shareSuggestions,
     onShareSearch,
     onShareTo,
+    likersStripProps,
+    shareMenuProps,
     inlineCommentsMaxHeight = "24rem",
     defaultInlinePanel = "none",
     openLikersOnLike = true,
@@ -295,11 +298,13 @@ function PostCardInner(props: PostCardProps) {
 
   // ─── Wrapped handlers (R-Plan-2) — the post state first, then the host's handler ───
   const handleLike = useCallback(
-    (id: string, next: boolean) => {
-      stateLike(next, () => onLike?.(id, next));
-      // Inline mode: open likers panel on a fresh like (kasder UX).
+    (id: string, next: boolean, event?: EngagementActionEvent) => {
+      // The event only when there is one (a double-tap or the handle has none): no trailing undefined.
+      stateLike(next, () => (event ? onLike?.(id, next, event) : onLike?.(id, next)));
+      // Inline mode: open likers panel on a fresh like (kasder UX). The heart is the opener
+      // (`event.currentTarget`): Safari never focuses a clicked button (0.7.0).
       if (inlineModeActive && next && openLikersOnLike) {
-        openPanel("likes");
+        openPanel("likes", event);
       }
     },
     [stateLike, onLike, inlineModeActive, openLikersOnLike, openPanel],
@@ -384,26 +389,36 @@ function PostCardInner(props: PostCardProps) {
     togglePanel("likes", event);
   }, [inlineModeActive, togglePanel]);
 
+  // Inline mode: which panel is open and the event-aware openers — for the default actions and,
+  // since 0.7.0, the `engagementActions` slot (FU-2).
+  const postId = statefulPost.id;
+  const inlineDisclosure = useMemo<PostInlineDisclosure | undefined>(
+    () =>
+      inlineModeActive
+        ? {
+            open: activePanel,
+            ids: panelIds,
+            shareOpens: !!shareSuggestions,
+            likes: handleLikeCountClick,
+            comment: (e) => handleComment(postId, e),
+            share: (e) => handleShare(postId, e),
+          }
+        : undefined,
+    [inlineModeActive, activePanel, panelIds, shareSuggestions, handleLikeCountClick, handleComment, handleShare, postId],
+  );
+
   // ─── Engagement actions array (mirrored post + wrapped handlers) ───
   const engagementActionsArr = useMemo(
     () =>
       engagementActionsSlot
-        ? engagementActionsSlot(statefulPost, wrappedHandlers, variant)
+        ? engagementActionsSlot(statefulPost, wrappedHandlers, variant, inlineDisclosure)
         : defaultPostEngagementActions(
             statefulPost,
             wrappedHandlers,
             variant,
             inlineModeActive ? handleLikeCountClick : undefined,
             reactions,
-            inlineModeActive
-              ? {
-                  open: activePanel,
-                  ids: panelIds,
-                  shareOpens: !!shareSuggestions,
-                  comment: (e) => handleComment(statefulPost.id, e),
-                  share: (e) => handleShare(statefulPost.id, e),
-                }
-              : undefined,
+            inlineDisclosure,
           ),
     [
       engagementActionsSlot,
@@ -413,11 +428,7 @@ function PostCardInner(props: PostCardProps) {
       inlineModeActive,
       handleLikeCountClick,
       reactions,
-      activePanel,
-      panelIds,
-      shareSuggestions,
-      handleComment,
-      handleShare,
+      inlineDisclosure,
     ],
   );
 
@@ -732,6 +743,8 @@ function PostCardInner(props: PostCardProps) {
   ]);
 
   const comments = commentThread ?? EMPTY_COMMENTS;
+  // A host that reports send state keeps the share panel open after a pick.
+  const keepShareOpen = shareMenuProps?.pendingIds !== undefined || shareMenuProps?.sentIds !== undefined;
 
   // ─── Inline panel node (only built when inline mode + a panel is open) ───
   const inlinePanelNode = useMemo(() => {
@@ -755,6 +768,7 @@ function PostCardInner(props: PostCardProps) {
           locale={locale}
           formatCount={formatCount}
           onClose={closePanel}
+          {...likersStripProps}
         />
       );
     }
@@ -774,22 +788,25 @@ function PostCardInner(props: PostCardProps) {
           onSearch={onShareSearch}
           onShareTo={(user) => {
             onShareTo?.(statefulPost.id, user);
-            closePanel();
+            // With send state the row shows "Sending…" / "Sent": the panel stays open (0.7.0).
+            if (!keepShareOpen) closePanel();
           }}
           labels={shareLabels}
           locale={locale}
           onClose={closePanel}
+          {...shareMenuProps}
         />
       );
     }
     // comments
+    // A focusable, named region (0.7.0): keyboard users can scroll it (axe scrollable-region-focusable).
     return (
-      <div
+      <CommentThreadScrollArea
+        aria-label={labelsProp?.commentLabels?.commentsRegion ?? labels.commentsHeading}
         style={{ maxHeight: inlineCommentsMaxHeight }}
-        className="overflow-y-auto"
       >
         <CommentThread ref={threadRef} comments={comments} {...threadProps} />
-      </div>
+      </CommentThreadScrollArea>
     );
   }, [
     inlineModeActive,
@@ -808,6 +825,10 @@ function PostCardInner(props: PostCardProps) {
     shareSuggestions,
     onShareSearch,
     onShareTo,
+    likersStripProps,
+    shareMenuProps,
+    keepShareOpen,
+    labelsProp?.commentLabels?.commentsRegion,
     inlineCommentsMaxHeight,
     comments,
     threadProps,

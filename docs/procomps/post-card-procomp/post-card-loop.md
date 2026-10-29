@@ -289,3 +289,12 @@ fails the 3 Safari tests). Follow-ups: **FU-1** heart-tap likers panel still use
 ### U7 — Ship (release 7)
 
 Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Detail: comment-thread-loop.md "Run — release 7".
+
+# Run — 0.7.0 (release 7b, with engagement-bar 0.8.0 + comment-thread 0.6.0)
+
+Lead state doc: `docs/procomps/comment-thread-procomp/comment-thread-loop.md` → "Run — release 7b". Minor, additive:
+`likersStripProps` / `shareMenuProps` forwarding (share panel stays open with send state), `engagementBarProps.size` /
+`hideZeroCounts`, `reactions.tapAction` / `primaryKey` / `hoverOpenDelay`, the host `onLike` receives the click event
+(only when there is one), FU-1 (heart-tap opener) and FU-2 (slot gets `PostInlineDisclosure`, now with `likes`), the
+inline thread in a `CommentThreadScrollArea`. Test `__tests__/forwarding-0-7-0.test.tsx` (falsified). Review
+`reviews/2026-10-29-v0.7.0-forwarding.md` — Pass with follow-ups. Sign-off delegated by the user for this run.

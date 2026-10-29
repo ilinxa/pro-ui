@@ -555,3 +555,261 @@ inside `aria-hidden` ghosts idle / mid-drag), R6 (release outside resumes), R7 (
 ## U7 — Ship
 
 Commit `bc3089f`, pushed 19:51 UTC on the user's "Push" (2026-10-28). Live poll (180 s apart): Vercel pending and old artifacts at +3 / +6 / +9 min; **build success and all four new at +12 min** — `engagement-bar.json` serves `hideZeroCounts`, `comment-thread.json` `getAuthorHref`, `post-card.json` `PostInlineDisclosure`, `story-viewer.json` the last-pressed opener fallback. Decision `shipped`; reply to the platform `.claude/report-back-2026-10-28-request-verification.md` (to the user to send). **Next release:** 7b (engagement-bar 0.8.0 + comment-thread 0.6.0 compound split) — on the user's go.
+
+# Run — release 7b (engagement-bar 0.8.0 + comment-thread 0.6.0; platform request 2026-10-27, group 1 rest)
+
+Lead state doc for release 7b (as for releases 5 and 7); `engagement-bar-loop.md`, `post-card-loop.md` and
+`story-viewer-loop.md` carry pointer sections.
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop, change class **minor** (additive API) on engagement-bar and comment-thread; post-card **minor** (forwarding + FU-2 slot parameter); story-viewer / news-card re-smoke (patch only if a guard needs it) |
+| **Current stage** | U7 — every gate green (battery 3 + the post-doc-fix re-run), installs 10/10, browser re-verified, GATE 3 Pass with follow-ups ×3; shipping (push delegated) |
+| **Sign-off policy** | **delegated by user** ("Go and finish them end to end and properly", 2026-10-28, after release 7 went live) — U1 sign-off and the push are the architect's for this run. No breaking change to a composed component is in scope (that would still go to the user). |
+| **Version target** | engagement-bar 0.7.0 → **0.8.0** · comment-thread 0.5.0 → **0.6.0** · comment-thread-moderation 0.5.0 → follows base · NEW `comment-thread-confirm-delete` 0.6.0 · post-card 0.6.1 → **0.7.0** |
+| **Model roster** | architect: main session · implementers: 4 × Sonnet (A1 bar actions, A2 likers / share panels, B1 compound root + parts, B2 rows + confirm add-on) · finders: 2 × fresh Sonnet (U4) |
+| **Started / updated** | 2026-10-28 / 2026-10-28 |
+
+## U0 — Intake & impact
+
+**Scope** (ground truth: `.claude/platform-request-verification-2026-10-28.md` §Group 1; request text
+`E:/tmp/social-ui-v2/PROUI_REQUEST_2026-10-27.md` §EB-2 / EB-3 / EB-4 / EB-6 / CT-3 / CT-5 / CT-7):
+
+| Ask | Component | Owed follow-ups folded in |
+|---|---|---|
+| EB-2 tap = primary kind (`tapAction`, `primaryKey`, `hoverOpenDelay`, ArrowUp / ContextMenu) | engagement-bar | — |
+| EB-3 likers links + full names + badge | engagement-bar `LikersStrip` | FU-7 scroller keyboard-reachable |
+| EB-4 44 px targets (`size="touch"`), count buttons included | engagement-bar, comment-thread | — |
+| EB-6 share header + per-person send state | engagement-bar `ShareMenu` | — |
+| CT-3 panel presentation (auto-load, pinned composer, capped list) | comment-thread compound split | F-02 load-more focus with a late controlled page |
+| CT-5 confirm before delete + `helpers.onDelete` + `handle.deleteComment` | comment-thread + new add-on | — |
+| CT-7 smaller base for the plain thread | comment-thread compound split | (F-01 of the 0.4.0 review) |
+| — | engagement-bar | FU-1 `onToggle(next, event)` · FU-6 liked-count contrast |
+| — | comment-thread | FU-6 timestamp contrast |
+| — | post-card | FU-1 heart-tap opener · FU-2 slot disclosure · EB-3 / EB-4 / EB-6 forwarding · unnamed scroll region around the inline thread |
+
+**Inbox check (lesson of release 7):** `E:/tmp/social-ui-v2/` listed by date at intake. New since the request:
+`PROUI_REPLY_2026-10-28_ACK.md` and `_VERIFIED.md` (the platform's record of our interim replies) — no new asks; one
+detail adopted: their measured heights (~28 px actions, ~20 px count buttons) → EB-4 must cover count buttons.
+
+**Not taken (owner + target unchanged):** FU-3 / FU-4 / FU-5 → story-viewer 0.7.0 (release 9) · 0.4.0-review F-03 (reply
+to a pending comment is blocked, not queued) → on request · F-04 `labels.signInPrompt` → next breaking minor.
+
+**Blast radius**
+
+| Surface | Relation | What must hold |
+|---|---|---|
+| post-card | composes both; imports `CommentThread` from `comment-thread/comment-thread.tsx`, `LikersStrip` / `ShareMenu` + their label types from `engagement-bar/parts/*` | import paths + exports unchanged; its tests green; it gains forwarding (0.7.0) |
+| story-viewer | imports `CommentComposer` / `CommentComposerHandle` from `comment-thread/parts/comment-composer`; inline copy of engagement action types (guard `__tests__/engagement-types.test.ts`) | composer props + handle unchanged (only an optional `size` added); guard green |
+| news-card | `CommentMenuItem` type | unchanged |
+| comment-thread-moderation | feature item injected via `moderation` | still renders edit / tombstone / pinned through the new root |
+| comment-thread-confirm-delete | NEW feature item (`features/confirm-delete/`), alert-dialog | base never imports it |
+| engagement-bar-fixtures / comment-thread-fixtures | fixtures items | install + consumer tsc |
+| `comment-thread-01` / `engagement-bar-01` | alias items | resolve |
+| Docs | guides, STATUS rows, component-versions, CHANGELOG, generated llms / README | updated at U6 |
+
+## U1 — Change contract (sign-off: delegated, recorded above)
+
+**Architect decisions**
+- **CT-3 is the compound split** (user decision "2. b", 2026-10-28), not the three props the request named
+  (`loadMoreMode`, `composerPlacement`, `maxHeight`). Mapping: `loadMoreMode="auto"` →
+  `<CommentThreadLoadMore mode="auto" />`; `composerPlacement="sticky-end"` → `<CommentThreadComposer />` placed after
+  a `<CommentThreadScrollArea>` (outside the scroll, so no `sticky`, no overlap, no `scroll-padding`); `maxHeight` →
+  a class on the scroll area. Reply composers stay inline. The assembly `<CommentThread>` keeps today's layout.
+- **Compound tier inventory** (compound rule, GATE 2): Tier B `CommentThreadRoot` (all state, both contexts, the
+  handle, focus tracking, the delete confirmation) · Tier B parts `CommentThreadList`, `CommentThreadLoadMore`
+  (`mode`, `rootMargin`, `scrollRoot`), `CommentThreadComposer` (owns the `CommentComposer` import and the
+  `renderComposer` slot state) · `CommentThreadScrollArea` (focusable named region, usable outside a root) ·
+  `useCommentThread()` for custom parts · Tier C `CommentComposer` (already standalone) · Tier A `CommentThread` = Root +
+  List + LoadMore + Composer, no logic of its own. Flat exports only. Tree-shaking story (CT-7): the root does not
+  import the composer, so a Root + List thread drops the composer, the autosize hook and the load-more code —
+  measured at U3 against the 0.5.0 baseline (`comment-thread.tsx` min 34 307 B / gzip 12 188 B, rolldown, engagement-bar
+  and expandable-text external).
+- **CT-5**: `confirmDelete` takes either the add-on's extension (`commentDeleteConfirm`, an alert-dialog the root
+  renders) or the host's own `(request) => boolean | Promise<boolean>`. The dialog's words are thread labels
+  (`deleteTitle`, `deleteBody(hasReplies)`, `deleteConfirm`, `deleteCancel`) — the moderation add-on's labels set the
+  precedent. The base gains no dependency. `helpers.onDelete` (all helper bags) goes through the confirmation;
+  `handle.deleteComment` never asks. Focus: cancel → the row's menu trigger; confirm → the neighbouring row.
+- **EB-2**: `tapAction: "primary"` always clears on a tap (`clearOnTap` ignored); the picker opens by long-press,
+  ArrowUp / ContextMenu / Shift+F10, or opt-in mouse hover (`hoverOpenDelay`, WCAG 1.4.13: hoverable, dismissible,
+  persistent). A primary tap never reports `onReactionPickerOpenChange`.
+- **EB-3**: one link per liker tile (avatar + name, named by the full name). This differs from comment-thread / post-card
+  rows (two links) on purpose: a tile is one target, a row has separate avatar and name. The badge is
+  `renderBadge(profile)` (decorative, `aria-hidden`), not a data field.
+- **EB-6**: `pendingIds` / `sentIds` + labels, not a `renderPersonAction` slot (it would nest a control inside the row
+  button).
+- **FU-1**: like / bookmark `onToggle(next, event)` only. The reaction pick is microtask-deferred, so its
+  `currentTarget` would be null; it gets no event.
+- **post-card 0.7.0**: `likersStripProps` / `shareMenuProps` forwarding bags; the share panel stays open after a pick
+  when the host passes send state; the `engagementActions` slot gets the inline disclosure (FU-2); the heart-tap likers
+  panel takes the heart as its opener (FU-1); the inline thread's scroll container becomes a `CommentThreadScrollArea`.
+
+**Invariants**
+
+| # | Invariant | Kind |
+|---|---|---|
+| I1 | `<CommentThread>` with 0.5.0 props renders the 0.5.0 DOM (the whole 0.5.0 suite green, unchanged) | regression |
+| I2 | `size` omitted / `"default"`, `tapAction` omitted, no new LikersStrip / ShareMenu props → markup unchanged | regression |
+| I3 | `CommentComposer` props + handle unchanged for story-viewer (only optional `size` added) | regression (dependent) |
+| I4 | post-card's import paths resolve; `CommentThread` still exported from `comment-thread.tsx` | regression (dependent) |
+| I5 | the moderation add-on works through `CommentThreadRoot` | regression (feature item) |
+| I6 | the comment-thread base adds no registry dependency (alert-dialog only in the add-on item) | new |
+| I7 | every interactive element of a `size="touch"` bar / thread is ≥ 44 × 44 px in a real browser | new |
+| I8 | a Root + List thread is measurably smaller than the assembly (CT-7) | new |
+
+## U2 — Implement
+
+| Slice | Owner | Files |
+|---|---|---|
+| A1 bar actions: EB-2, EB-4 bar, FU-1, FU-6 | Sonnet | `engagement-bar.tsx`, `hooks/use-engagement-state.ts`, `parts/*-action.tsx`, `parts/action-button.tsx`, `parts/reaction-picker.tsx` |
+| A2 panels: EB-3 + FU-7, EB-6, EB-4 panels | Sonnet | `parts/likers-strip.tsx`, `parts/share-menu.tsx` |
+| B1 compound: CT-3, CT-7, CT-5 root, F-02 | Sonnet | `comment-thread.tsx`, `index.ts`, new `parts/comment-thread-*.tsx`, `hooks/use-comment-thread.ts` |
+| B2 rows: CT-5 rows + add-on, EB-4 rows, FU-6 | Sonnet | `parts/comment-node.tsx`, `comment-kebab.tsx`, `comment-composer.tsx`, `view-replies-link.tsx`, `lib/menu-items.ts`, `features/confirm-delete/` |
+| C dependents + docs surfaces | architect | post-card, demos, meta, registry.json, guides, CHANGELOG |
+
+Public types were written by the architect before the agents started (`engagement-bar/types.ts`,
+`comment-thread/types.ts`, `comment-thread/parts/thread-context.ts`).
+
+### U2 — result
+
+All four slices landed (each with a new test file whose tests were shown red without the change and green with it):
+A1 38 tests, A2 18, B1 30, B2 18. Coordinator integration after the wave:
+
+- ShareMenu's always-mounted announcer collided with the empty state (both `role="status"` — 5 existing tests red):
+  the announcer is now a plain `aria-live="polite"` region; `sentTo` (a function label) broke the label merge's typing
+  (same cast as LikersStrip); the Arabic fixtures gained the three new labels.
+- FU-1 changed `controlled-optimistic.test.tsx`'s two `toHaveBeenCalledWith(arg)` assertions (like / bookmark now also
+  pass the event) — updated to check the first argument.
+- **CT-7, measured** (rolldown, min + gzip, engagement-bar / expandable-text external; baseline 0.5.0 assembly
+  34 307 / 12 188 B): B1's split alone left a Root + List thread at 12 852 B — the rows statically imported the composer
+  for their reply box. Fixed by the compound itself: `CommentThreadComposer` registers its statically imported composer
+  with the root (`registerReplyComposer`), and rows without one load it lazily (`React.lazy`, the media-library
+  local-boundary precedent, F-cross-15 fix-on-touch). Result: assembly 39 088 / **13 720 B** (+1.53 KB — the parts, the
+  delete confirmation, F-02); Root + List first load 32 676 / **11 485 B** (−0.70 KB vs 0.5.0; the reply box loads on
+  first use); full panel 13 875 B. CT-7 is **partly met**: the read-only preview is smaller than 0.5.0, the full assembly
+  is not. Tests: `lazy-reply-0-6-0.test.tsx` (assembly opens the reply box in the same render; Root + List loads it) —
+  red with the registration reverted.
+- The moderation edit composer takes the thread's `size` (B2 parked it: `CommentEditComposerProps.size` added,
+  optional).
+- post-card 0.7.0 (architect): forwarding bags, FU-1 opener, FU-2 slot argument, `CommentThreadScrollArea` around the
+  inline thread; `forwarding-0-7-0.test.tsx` (FU-1 red with the event dropped).
+
+### U3 — battery 1 (before U4)
+
+tsc 0 · lint **1** (validate-contract: the scroll area's hard-coded "Comments" fallback) · barrel **1**
+(`PostInlineDisclosure` re-exported through `lib/defaults`) · registry:build **1** (stopped at the barrel) ·
+doc-drift **1** (llms.txt / README not regenerated because of it) · the rest 0. Tests and build were stopped (U4 fixes
+were coming). All four failures fixed (contract literal → `defaultCommentThreadLabels.commentsRegion`; barrel → export
+from `./types`).
+
+### U4 — adversarial review
+
+Two fresh Sonnet finders on a frozen snapshot (`E:/tmp/ilinxa-release-kit/snap-r7b/`), read-only, no test runs.
+A: engagement-bar + dependents. B: comment-thread compound + the add-on.
+
+| # | Finding | Verdict | Fix / evidence |
+|---|---|---|---|
+| A1 | ⚠️ post-card's host `onLike` never received the event its type advertises (only the slot's handlers did) | CONFIRMED (inert surface) | `onLike?.(id, next, event)`; test "third argument is the click event" (red without) |
+| A2 | Hover-opened picker takes focus (WCAG 3.2.1) | CONFIRMED | focus handed back two frames after a hover open (no Radix-only API); test (red without) |
+| A3 | The primary-tap guard relied on the host `onClick` running before the trigger's own toggle (Base UI may not) | CONFIRMED (robustness) | flag set in `onClickCapture`; `primary-tap-order-0-8-0.test.tsx` mocks a toggle-first trigger (red without) |
+| A4 | FU-6 forced `text-foreground` on the stacked liked count — near-black on story-viewer's dark overlay | CONFIRMED (regression) | stacked keeps the button colour; test (red without) |
+| A5 | ShareMenu never re-announced a re-sent person; read a raw id for an unknown one | CONFIRMED | announced set pruned to current ids; unknown → `labels.sent`; 2 tests (red without) |
+| A6 | Primary-mode picker keys undiscoverable | CONFIRMED (Low) | `aria-keyshortcuts="ArrowUp Shift+F10"`; test |
+| A7 | Blank name → unnamed tile; initials cut a surrogate pair | CONFIRMED (Low) | username fallback; first code point (both panels); 2 tests |
+| A8 | ContextMenu key's native menu over the picker | PLAUSIBLE → fixed | one-shot `contextmenu` swallow after the key; test |
+| A9 | Primary mode with empty `kinds` does nothing | DROPPED — degenerate input; picker mode is equally empty |
+| A10 | Hover-open then click closes the picker | DROPPED — the trigger's normal toggle |
+| A11 | story-viewer's inline type copy lacks 0.8.0 fields; post-card `reactions` can't reach EB-2 | (a) DROPPED — a subset by design, the guard still passes · (b) CONFIRMED | `PostReactions.tapAction` / `primaryKey` / `hoverOpenDelay`; test |
+| A12 / B14 | registry.json `meta.version` stale | DROPPED — snapshot timing; `registry:build` syncs it |
+| A13 | Scroll area always a tab stop | DROPPED — documented trade-off (axe needs it when it scrolls) |
+| B1 | ⚠️ Delete focus hand-off never ran inside a host dialog / sheet (story-viewer, a modal card) | CONFIRMED | only an open dialog that does not contain the thread blocks it; test + guard test |
+| B2 | Cancel focused the first reply's kebab | CONFIRMED | the row's own kebab; test |
+| B3 | "Show more" under 44 px in touch size; Send overhung the field | CONFIRMED | `toggleClassName` touch target; touch field `min-h-11`; test |
+| B4 | Add-on `variant="destructive"` is a consumer-tsc error on alert-dialogs without `variant` | CONFIRMED | `buttonVariants({ variant: "destructive" })`; `button` added to the item's dependencies |
+| B5 | Stale load-more hand-off could yank focus on a later realtime insert | CONFIRMED | hand-off remembers ids; dropped 1 s after an empty last page; test |
+| B6 | Focus moved outside the thread was pulled back | CONFIRMED | hand-off only from body / the button / inside the thread; test + guard |
+| B7 | Auto-load re-requested the same page with a late controlled host; empty pages looped | CONFIRMED | one auto load per shown-count; an empty page stops auto mode; 2 tests |
+| B8 | Dialog opening as the menu closes | browser check (U5) |
+| B9 | A never-settling `confirmDelete` blocked every delete | CONFIRMED | another comment supersedes; vanished comment drops; JSDoc "should settle"; 3 tests |
+| B10 | A late `true` after unmount removed / armed timers | CONFIRMED (Low) | mounted guard; test |
+| B11 | Arrow keys advanced a story under the dialog | CONFIRMED (Low) | `data-keyboard-ignore` on the dialog content; test |
+| B12 | Scroll-area ref churn; English fallback literal | CONFIRMED (Low) | `useCallback` ref, memoised context, label constant; test |
+| B13 | `CommentActionHelpers.onDelete` is a new required field | DROPPED — the thread builds these bags; hosts receive them |
+| B15 | `focusComposer()` silent without a composer part; two composer parts clobbered the registration | CONFIRMED | dev warning; handle list + ref-counted reply registration; 2 tests |
+
+Falsification: engagement-bar / post-card fixes reverted together → 14 tests red (the blank-name test passed — it was
+tightened and re-falsified); comment-thread fixes reverted together → 14 red, 3 guard tests green as intended.
+
+### U3 — battery 2 (after the U4 fix waves)
+
+tsc **1** (one `TS7030` from the last fix wave, fixed during the run) · lint, all validators, registry:build,
+doc-drift, doc-budget 0 · tests 214 / 218 files — 6 tests: 4 post-card (the host `onLike` got a trailing `undefined`
+without an event → now passed only when there is one; one assertion updated for the new click event) and two 5 s
+timeouts under host load (`contract-gate`, code-block R1 — both green re-run alone) · build 0. Artifact sizes over
+budget (gate fails only above 1.2×): comment-thread 176.7 / 150, engagement-bar 144.9 / 125, post-card 190.3 / 190 —
+the new parts and their JSDoc; budgets raised to 185 / 150 / 200.
+
+### U5 — runtime (browser)
+
+Fresh Sonnet browser finder on `next start -p 3200` (production build), Chromium 1280 and 390, light and dark
+(WebKit not installed for Playwright 1.62.1). Brief: `E:/tmp/ilinxa-release-kit/briefs/brief-r7b-browser.md`;
+scripts and screenshots `E:/tmp/ilinxa-release-kit/browser-r7b/`.
+
+| # | Finding | Verdict | Fix |
+|---|---|---|---|
+| W1 | 🚫 A primary tap opened the picker (mouse, touch, Enter) | CONFIRMED — **caused by U4 fix A3**: a browser runs a microtask checkpoint between React's capture and bubble listeners, so the capture-phase flag (cleared in a microtask) was gone before the trigger toggled; jsdom's `fireEvent` has no checkpoint, so every test passed | the flag is cleared in a task (`setTimeout 0`), after the whole click; `primary-tap-checkpoint-0-8-0.test.tsx` mocks a trigger that toggles after a microtask (red with the microtask clear) |
+| W2 | ⚠️ A hover-opened picker closed 114 ms later | CONFIRMED — handing focus back read as "focus outside" to the popover | that one close request is ignored; hover test asserts the picker is still open (red without) |
+| W3 | ⚠️ After Cancel / Escape / Delete focus fell to `<body>` | CONFIRMED — the hand-off focused its target while the dialog animated closed; the dialog's focus scope then moved focus on unmount | the hand-off waits until the dialog left the DOM, plus one tick; 2 tests with a dialog that lingers closed and blurs on unmount (red without) |
+| W4 | ⚠️ Dark-mode Delete button 1.46:1 | CONFIRMED — this style's `AlertDialogAction` wraps a default `Button` with `asChild`; Slot concatenates classes without tailwind-merge, so `text-primary-foreground` won | a plain shadcn `Button variant="destructive"` (every style has the variant; the dialog is controlled); test asserts no default-variant classes (red without) |
+| W5 | The demo's own comments stayed pending (Delete unreachable) | CONFIRMED (demo) | Panel tab's `onAddComment` returns the server comment |
+| W6 | Focus stays on "Load older comments" after a page | DROPPED — 0.5.0 behaviour while more pages remain; the guide / CHANGELOG / meta overpromised and were corrected ("when the last page arrives") |
+| W7 | Story-viewer liked count turns red | DROPPED — the stacked count keeps the button's colour (finder A4's fix); the brief's wording was wrong |
+| W8 | Demo buttons under 44 px | DROPPED — demo controls, not the component |
+| W9 | Story-viewer: Escape on the comments sheet leaves focus on `<body>` | pre-existing (story-viewer untouched this release) → follow-up FU-8, story-viewer 0.7.0 |
+| W10 | No "+N" pill in the demo | CONFIRMED (demo) | the Touch tab's LikersStrip gets `onLoadMore` |
+
+Passing (finder evidence): every bar / LikersStrip / ShareMenu control ≥ 44 × 44 at 1280 and 390 (Love 72×44, picker
+kinds 44×48, Remove 44×44, rows 430×48, liker links 80×84); touch off restores the old sizes; long-press, ArrowUp,
+Shift+F10, `aria-keyshortcuts`; liker links + drag that never navigates; ShareMenu Sending → Sent + announcement;
+Panel: region named "Comments", composer below the scroll at every position, auto-load one page per approach (10 → 20
+→ 30 → 40, no runaway in 3 × 3 s idle), 27 / 37 touch controls all ≥ 44; Delete dialog opens with focus inside and
+leaves the page clickable; other comment-thread tabs, post-card (region, Safari-like heart → likers → Hide returns
+focus to "Unlike"), story-viewer flows; no horizontal overflow at 390 on 59 tabs; **zero console errors / warnings /
+hydration messages** on all four pages. Axe clean on both new tabs, light and dark, except W4.
+
+**Re-verify after the fixes** (rebuilt production server, `browser-r7b/reverify-u5.mjs` → `reverify-u5.json`): W1 — a
+mouse click and Enter toggle the reaction with no picker at 1280 and 390, ArrowUp opens it with focus inside, Escape
+returns focus to the trigger; W2 — the hover-opened picker stays open at 0.7 / 1.0 / 1.5 s with focus on the other
+control, and closes when the mouse leaves; W3 — Cancel and Escape (keyboard path) land on that row's actions trigger,
+Delete on the neighbouring row, `pointer-events: auto`, at 1280 and 390, light and dark; W4 — axe `color-contrast` on
+the dark dialog: none. No console messages.
+
+### U5 — installs
+
+Real `shadcn add` from the local `public/r` (in-process server, `pnpm test:install`; script
+`E:/tmp/ilinxa-release-kit/installs-r7b.sh`), each with consumer `tsc --noEmit` 0:
+
+| Run | Items | CLI | Result |
+|---|---|---|---|
+| a | `engagement-bar` | 4.18.0 | consumer `pnpm install` timed out at 600 s (infra, before the add) → **a2 PASS** |
+| b | `comment-thread` + `-moderation` + `-confirm-delete` | 4.18.0 | PASS (both feature folders installed) |
+| c | `comment-thread` + `-confirm-delete` | 3.8.5 | PASS (the dialog uses `Button variant="destructive"`) |
+| d | `comment-thread-fixtures` | 3.8.5 | PASS |
+| e | `post-card` | 3.8.5 | PASS (pulls comment-thread, engagement-bar, expandable-text, media-carousel, video-player) |
+| f | `post-card-fixtures` | 4.18.0 | PASS |
+| g / h | `story-viewer` | 4.18.0 / 3.8.5 | PASS / PASS |
+| i | `news-card` | 4.18.0 | PASS |
+| j | `engagement-bar-fixtures` | 3.8.5 | PASS |
+
+### U6 — final battery (battery 3, after every fix)
+
+tsc 0 · lint 0 errors (11 pre-existing warnings) · meta-deps, default-registry-whitelist, registry-json, naming,
+no-control-chars, barrel (strict), inert-surfaces (strict) 0 · registry:build 0 (artifacts: engagement-bar
+145.5 / 150, comment-thread 176.9 / 185, post-card 190.5 / 200, story-viewer 330.8 / 340, news-card 181.8 / 210,
+comment-thread-confirm-delete 5.0 / 6, comment-thread-moderation 6.6 / 8 KB) · doc-drift 0 · doc-budget 0 · tests
+(`NODE_ENV=production`, `--no-file-parallelism`) **219 / 219 files, 3 037 passed, 6 skipped** · `pnpm build` 0.
+GATE 3: `engagement-bar-procomp/reviews/2026-10-29-v0.8.0-release-7b.md`,
+`comment-thread-procomp/reviews/2026-10-29-v0.6.0-release-7b.md`, `post-card-procomp/reviews/2026-10-29-v0.7.0-forwarding.md`
+— all **Pass with follow-ups**.

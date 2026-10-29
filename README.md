@@ -139,7 +139,7 @@ Diff against your local modifications (use `--dry-run` first if unsure), merge, 
 | `blackboard` | data | Chalkboard-style team notes board — handwritten ink notes with pens, widths, pins, @mentions, auto-save, and lazy histo… |
 | `card-tree` | data | JSON-driven recursive card tree with a full structural editor — drag and drop, multi-select, permissions, search, valid… |
 | `card-tree-node` | data | Card-tree renderer for flow canvas nodes — read-only viewer, a consumer-owned edit dialog pattern, and a typed port edi… |
-| `comment-thread` | data | Recursive comment thread with composer, optimistic add, like, and delete, inline expansion past max depth, and realtime…<br>↳ optional slice: `comment-thread-moderation` — Inline edit, tombstones and a pinned marker for Comment Thread. |
+| `comment-thread` | data | Recursive comment thread with composer, optimistic add, like, and delete, inline expansion past max depth, and realtime…<br>↳ optional slice: `comment-thread-confirm-delete` — A confirmation dialog before a comment is deleted from its menu.<br>↳ optional slice: `comment-thread-moderation` — Inline edit, tombstones and a pinned marker for Comment Thread. |
 | `data-table` | data | A typed, composable table primitive with column accessors and per-cell rendering. |
 | `engagement-bar` | data | Social action row — like, comment, share, bookmark, custom actions, and a multi-reaction picker with realtime counts an… |
 | `event-calendar` | data | Editable event calendar with month, week, day, and agenda views — multi-day spans, drag and resize editing, clipboard s…<br>↳ optional slice: `event-calendar-editing` — Drag-and-resize editing, quick-compose creation, keyboard mutations, cross-surface clipboard, and permission-gated acti… |

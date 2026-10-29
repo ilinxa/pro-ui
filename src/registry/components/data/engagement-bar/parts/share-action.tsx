@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   EngagementActionEvent,
+  EngagementBarSize,
   EngagementBarVariant,
   EngagementCount,
   ResolvedEngagementBarLabels,
 } from "../types";
-import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
+import { DISABLED_ACTION_CLASS, useActionName, touchTarget } from "../lib/action-name";
 
 interface ShareActionProps {
   variant: EngagementBarVariant;
@@ -24,6 +25,7 @@ interface ShareActionProps {
   format: (n: number) => string;
   labels: ResolvedEngagementBarLabels;
   actionClassName?: string;
+  size?: EngagementBarSize;
 }
 
 function ShareActionInner({
@@ -36,6 +38,7 @@ function ShareActionInner({
   format,
   labels,
   actionClassName,
+  size,
 }: ShareActionProps) {
   const hasCount = count !== null;
   const name = useActionName(hasCount);
@@ -62,6 +65,7 @@ function ShareActionInner({
           : hasCount
             ? "gap-2 px-2"
             : "px-2",
+        touchTarget(size),
         DISABLED_ACTION_CLASS,
         actionClassName,
       )}

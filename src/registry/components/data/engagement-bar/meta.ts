@@ -10,6 +10,11 @@ export const meta: ComponentMeta = {
   context:
     "Highest-leverage primitive in the social-posts-system arc. Three variants: default (post body), compact (news/event card retrofits), stacked (TikTok/Reels overlay). Per-action controlled vs uncontrolled mode (controlled props win per-render). subscribe contract is the same Subscribe<EngagementDelta> shape comment-thread will use. Heart-burst is a sibling RSC-compatible sub-export — retrofit consumers that don't import it pay zero animation cost. Migration origin: kasder kas-social-front-v0 PostEngagementPanel.tsx (468 LOC); we extract only the action-row concern, decomposing comments → comment-thread (next ship) and likers carousel → likersPreview slot. Fourth ship in the 8-component social-posts-system arc.",
   features: [
+    "v0.8.0 — reaction `tapAction: \"primary\"` (+ `primaryKey`): one tap sets the primary kind, a tap while set clears it, and the picker opens on a long-press, ArrowUp / ContextMenu / Shift+F10, or (opt-in `hoverOpenDelay`) a resting mouse; the idle trigger shows the primary kind's icon and name; a primary tap never reports `onReactionPickerOpenChange`",
+    "v0.8.0 — `size=\"touch\"`: every interactive element of the bar (actions, the split heart and count buttons, the reaction trigger and its picker) has a hit area of at least 44 × 44 px in every variant",
+    "v0.8.0 — LikersStrip: `getProfileHref` + `linkComponent` (avatar + name become one link named by the full name; a drag never activates it), `nameDisplay: \"first\" | \"full\"` (the first-name split is fixed and screen readers always hear the full name), `renderBadge`, `<bdi>` names, `size`; the scroller is keyboard-reachable when it holds nothing focusable",
+    "v0.8.0 — ShareMenu: `header` slot above the search (copy link, the system share sheet), per-person send state (`pendingIds` / `sentIds`, `labels.sending` / `sent` / `sentTo(name)` with a polite announcement), `<bdi>` names, `size`",
+    "v0.8.0 — like / bookmark `onToggle(next, event)`: the click event comes with a change from the action's own button (`undefined` from the handle), so a host can take the heart as the opener of a panel it opens; in the default and compact variants the liked count is drawn in the foreground colour (the red read 4.44:1 on the light background; the stacked variant keeps the button's colour, it sits on media), the heart stays red",
     "v0.7.0 — disclosure state + event-passing handlers: `onClick` / `onCountClick` receive the click event (use `event.currentTarget` to return focus to the opener); `expanded` + `controls` on comment / share / custom (and `countExpanded` + `countControls` on the like / reaction count button) render `aria-expanded`, with `aria-controls` only while open; bar prop `hideZeroCounts` renders a count of 0 as no digit and no count in the accessible name",
     "v0.6.1 — LikersStrip: a mouse click on the \"+N\" pill loads more again (the drag-to-scroll captured the pointer on press, so the click went to the strip); the pill shows the full compact count (\"+379\", \"+1.2K\") instead of capping at \"+99\", so its visible text is part of its accessible name",
     "Discriminated actions[] — like / comment / share / bookmark / view-count / custom / reaction — order preserved",
@@ -59,9 +64,9 @@ export const meta: ComponentMeta = {
     "reactions",
   ],
 
-  version: "0.7.0",
+  version: "0.8.0",
   status: "alpha",
-  artifactBudgetKB: 125,
+  artifactBudgetKB: 150,
   createdAt: "2026-05-02",
   updatedAt: "2026-10-28",
 

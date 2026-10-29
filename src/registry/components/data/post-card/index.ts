@@ -28,7 +28,7 @@ export {
   defaultPostEngagementActions,
   defaultPostKebabActions,
 } from "./lib/defaults";
-export type { PostInlineDisclosure } from "./lib/defaults";
+export type { PostInlineDisclosure } from "./types";
 
 export type {
   Post,
@@ -70,6 +70,8 @@ export type {
   PostChange,
   PostCardNestedLabelKeys,
   PostEngagementBarProps,
+  PostLikersStripProps,
+  PostShareMenuProps,
   PostHeaderRenderHelpers,
   PostMediaProps,
   PostReactions,

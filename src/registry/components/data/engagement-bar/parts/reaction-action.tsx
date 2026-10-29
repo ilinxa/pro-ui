@@ -11,16 +11,27 @@ import { cn } from "@/lib/utils";
 import type {
   EngagementAction,
   EngagementActionEvent,
+  EngagementBarSize,
   EngagementBarVariant,
   EngagementState,
   ResolvedEngagementBarLabels,
 } from "../types";
 import type { Direction } from "../hooks/use-direction";
-import { DISABLED_ACTION_CLASS, useActionName } from "../lib/action-name";
+import { DISABLED_ACTION_CLASS, touchTarget, useActionName } from "../lib/action-name";
 import { ReactionPicker } from "./reaction-picker";
 
 const LONG_PRESS_MS = 350;
 const POINTER_MOVE_TOLERANCE_SQ = 100; // (10px)^2
+// A hover-opened picker closes this long after the pointer leaves both trigger and picker.
+const HOVER_CLOSE_GRACE_MS = 300;
+
+type TimerRef = { current: ReturnType<typeof setTimeout> | null };
+function clearTimer(ref: TimerRef) {
+  if (ref.current !== null) {
+    clearTimeout(ref.current);
+    ref.current = null;
+  }
+}
 
 type ReactionActionData = Extract<EngagementAction, { kind: "reaction" }>;
 
@@ -43,6 +54,8 @@ export interface ReactionActionProps {
   actionClassName?: string;
   /** Bar-level `hideZeroCounts`: a total of exactly 0 renders no count. */
   hideZeroCounts?: boolean;
+  /** Bar-level `size`: `"touch"` gives the trigger and count button a 44 x 44 px hit area. */
+  size?: EngagementBarSize;
 }
 
 function ReactionActionInner({
@@ -56,6 +69,7 @@ function ReactionActionInner({
   onPickerOpenChange,
   actionClassName,
   hideZeroCounts = false,
+  size,
 }: ReactionActionProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -81,6 +95,51 @@ function ReactionActionInner({
     [],
   );
   const disabled = !!action.disabled;
+
+  // tapAction "primary" (0.8.0): the primary kind is `primaryKey`, else the first kind.
+  const tapPrimary = action.tapAction === "primary";
+  const hoverOpenDelay = action.hoverOpenDelay;
+  const primaryKind = action.kinds.find((k) => k.key === action.primaryKey) ?? action.kinds[0];
+  const primaryKeyUnknown =
+    tapPrimary &&
+    action.primaryKey !== undefined &&
+    !action.kinds.some((k) => k.key === action.primaryKey);
+  const warnedPrimaryRef = useRef(false);
+  useEffect(() => {
+    if (!primaryKeyUnknown || warnedPrimaryRef.current || process.env.NODE_ENV === "production") return;
+    warnedPrimaryRef.current = true;
+    console.warn(
+      `[EngagementBar] reaction primaryKey "${action.primaryKey}" matches no kinds[].key; using "${action.kinds[0]?.key}".`,
+    );
+  }, [primaryKeyUnknown, action.primaryKey, action.kinds]);
+
+  // Hover opening: timers + whether the CURRENT open came from hover (only those close on leave).
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverOpenedRef = useRef(false);
+  const pickerOpenRef = useRef(false);
+  // A primary tap must not open the picker: the trigger still toggles on that same click, so its
+  // open request is ignored for the duration of the click. The flag is set in the capture phase,
+  // before any bubble `onClick` — Radix runs ours first, Base UI may run its own toggle first.
+  const ignoreOpenRef = useRef(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  // Handing focus back after a hover open reads as "focus outside" to the popover, which then asks
+  // to close: that one request is ignored.
+  const handingBackRef = useRef(false);
+  useEffect(() => {
+    pickerOpenRef.current = pickerOpen;
+    if (!pickerOpen) {
+      hoverOpenedRef.current = false;
+      clearTimer(closeTimer);
+    }
+  }, [pickerOpen]);
+  useEffect(
+    () => () => {
+      clearTimer(hoverTimer);
+      clearTimer(closeTimer);
+    },
+    [],
+  );
 
   // Long-press detection refs.
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,6 +191,7 @@ function ReactionActionInner({
         longPressTimer.current = null;
         if (disabledRef.current) return;
         longPressFired.current = true;
+        hoverOpenedRef.current = false;
         setPickerOpen(true);
       }, LONG_PRESS_MS);
     },
@@ -158,10 +218,26 @@ function ReactionActionInner({
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      if (open && disabled) return;
+      if (open && (disabled || ignoreOpenRef.current)) return;
+      if (!open && handingBackRef.current) return;
       setPickerOpen(open);
     },
     [disabled],
+  );
+
+  const handleClickCapture = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!tapPrimary || disabled) return;
+      // The click that ends a long-press keeps the picker it opened.
+      if (longPressFired.current && e.detail !== 0) return;
+      ignoreOpenRef.current = true;
+      // Cleared after the whole click has been dispatched (a task, not a microtask): a browser runs
+      // microtasks between React's capture and bubble listeners, before the trigger's own toggle.
+      setTimeout(() => {
+        ignoreOpenRef.current = false;
+      }, 0);
+    },
+    [tapPrimary, disabled],
   );
 
   const handleIconClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -187,6 +263,18 @@ function ReactionActionInner({
       return;
     }
     cancelLongPress();
+    hoverOpenedRef.current = false;
+    clearTimer(hoverTimer);
+
+    if (tapPrimary) {
+      // A tap toggles the primary kind through the same microtask-deferred path as a pick (the
+      // trigger's own open request was already blocked in the capture phase).
+      const next = state.viewerReaction === null ? primaryKind?.key : null;
+      queueMicrotask(() => {
+        if (next !== undefined) onSelect(next);
+      });
+      return;
+    }
 
     const viewer = state.viewerReaction;
     const clearOnTap = action.clearOnTap ?? true;
@@ -206,7 +294,94 @@ function ReactionActionInner({
     }
     // Else: Radix's PopoverTrigger toggle handles opening the picker. We
     // don't call setPickerOpen here.
-  }, [disabled, cancelLongPress, state.viewerReaction, action.clearOnTap, onSelect]);
+  }, [
+    disabled,
+    cancelLongPress,
+    state.viewerReaction,
+    action.clearOnTap,
+    onSelect,
+    tapPrimary,
+    primaryKind?.key,
+  ]);
+
+  const scheduleHoverClose = useCallback(() => {
+    if (!hoverOpenedRef.current) return;
+    clearTimer(closeTimer);
+    closeTimer.current = setTimeout(() => {
+      closeTimer.current = null;
+      hoverOpenedRef.current = false;
+      setPickerOpen(false);
+    }, HOVER_CLOSE_GRACE_MS);
+  }, []);
+
+  const handlePointerEnter = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (hoverOpenDelay === undefined || disabled || e.pointerType !== "mouse") return;
+      clearTimer(closeTimer);
+      if (pickerOpenRef.current || hoverTimer.current !== null) return;
+      hoverTimer.current = setTimeout(() => {
+        hoverTimer.current = null;
+        if (disabledRef.current || pickerOpenRef.current) return;
+        hoverOpenedRef.current = true;
+        // The picker takes focus when it opens; a hover is not a request to move focus, so hand it
+        // back (no Radix-only onOpenAutoFocus — F-cross-13). Two frames: after the content mounted
+        // and focused itself.
+        const before = document.activeElement;
+        setPickerOpen(true);
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const active = document.activeElement;
+            if (!active || !contentRef.current?.contains(active)) return;
+            handingBackRef.current = true;
+            if (before instanceof HTMLElement && before !== document.body && before.isConnected) {
+              before.focus({ preventScroll: true });
+            } else if (active instanceof HTMLElement) {
+              active.blur();
+            }
+            setTimeout(() => {
+              handingBackRef.current = false;
+            }, 0);
+          }),
+        );
+      }, Math.max(0, hoverOpenDelay));
+    },
+    [hoverOpenDelay, disabled],
+  );
+
+  const handlePointerLeave = useCallback(
+    (e: React.PointerEvent<HTMLElement>) => {
+      if (e.pointerType !== "mouse") return;
+      clearTimer(hoverTimer);
+      scheduleHoverClose();
+    },
+    [scheduleHoverClose],
+  );
+
+  const handleContentPointerEnter = useCallback((e: React.PointerEvent<HTMLElement>) => {
+    if (e.pointerType === "mouse") clearTimer(closeTimer);
+  }, []);
+
+  // Primary mode: the keyboard reaches the picker without a tap (Enter / Space are the tap).
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (!tapPrimary || disabled) return;
+      const opensPicker =
+        e.key === "ArrowUp" || e.key === "ContextMenu" || (e.shiftKey && e.key === "F10");
+      if (!opensPicker) return;
+      e.preventDefault();
+      if (e.key !== "ArrowUp") {
+        // The ContextMenu key / Shift+F10 also fire a native `contextmenu` (on keyup on Windows),
+        // which would open the browser menu over the picker.
+        const swallow = (event: Event) => event.preventDefault();
+        window.addEventListener("contextmenu", swallow, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener("contextmenu", swallow, { capture: true }), 1000);
+      }
+      hoverOpenedRef.current = false;
+      clearTimer(hoverTimer);
+      setPickerOpen(true);
+    },
+    [tapPrimary, disabled],
+  );
 
   const handlePick = useCallback(
     (kind: string | null) => {
@@ -223,7 +398,9 @@ function ReactionActionInner({
   // Resolve display values per Q-PP-5.
   const currentKind = action.kinds.find((k) => k.key === state.viewerReaction);
   const displayColor = currentKind?.color;
-  const triggerLabel = currentKind?.label ?? labels.react;
+  // Idle, primary mode: the trigger shows (and is named by) the primary kind.
+  const idleKind = tapPrimary ? primaryKind : undefined;
+  const triggerLabel = currentKind?.label ?? idleKind?.label ?? labels.react;
 
   // Q-PP-5 visibility rule — count hides when withheld, or when total is 0 AND viewer is null.
   const totalCount = state.reactionTotalCount;
@@ -237,8 +414,13 @@ function ReactionActionInner({
 
   const iconSizeClass = variant === "compact" ? "h-4 w-4" : "h-5 w-5";
 
-  // Icon node — viewer's current kind icon when set, neutral Smile otherwise.
-  const iconNode = currentKind ? (
+  // Icon node: the viewer's kind icon when set, the primary kind's when idle in primary mode,
+  // neutral Smile otherwise.
+  const iconNode = idleKind && !currentKind ? (
+    <span aria-hidden="true" className={cn("flex items-center justify-center", iconSizeClass)}>
+      {idleKind.icon}
+    </span>
+  ) : currentKind ? (
     <span
       aria-hidden="true"
       className={cn("flex items-center justify-center", iconSizeClass)}
@@ -265,6 +447,7 @@ function ReactionActionInner({
         className={cn(
           "rounded text-sm font-medium tabular-nums text-foreground motion-safe:transition-colors",
           "hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          touchTarget(size, true),
           DISABLED_ACTION_CLASS,
         )}
       >
@@ -291,6 +474,12 @@ function ReactionActionInner({
         onPointerUp={cancelLongPress}
         onPointerCancel={handlePointerCancel}
         onContextMenu={handleContextMenu}
+        onKeyDown={handleKeyDown}
+        // Primary mode: the keys that reach the picker without a tap.
+        aria-keyshortcuts={tapPrimary ? "ArrowUp Shift+F10" : undefined}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        onClickCapture={handleClickCapture}
         onClick={handleIconClick}
         className={cn(
           "inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium motion-safe:transition-colors",
@@ -298,6 +487,7 @@ function ReactionActionInner({
           // Pan + pinch stay available, so a swipe that starts here scrolls the page (EB5).
           "select-none touch-manipulation [-webkit-touch-callout:none]",
           state.viewerReaction !== null && "text-foreground",
+          touchTarget(size),
           DISABLED_ACTION_CLASS,
           // E10 — non-split mode merges actionClassName into the trigger button.
           !splitCount && actionClassName,
@@ -318,10 +508,13 @@ function ReactionActionInner({
         ) : null}
       </PopoverTrigger>
       <PopoverContent
+        ref={contentRef}
         className="w-auto"
         align="start"
         dir={dir}
         aria-label={labels.reactionPickerLabel}
+        onPointerEnter={handleContentPointerEnter}
+        onPointerLeave={handlePointerLeave}
       >
         <ReactionPicker
           kinds={action.kinds}
@@ -331,6 +524,7 @@ function ReactionActionInner({
           labels={labels}
           format={format}
           dir={dir}
+          size={size}
         />
       </PopoverContent>
     </Popover>
