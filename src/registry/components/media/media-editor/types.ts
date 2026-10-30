@@ -254,6 +254,12 @@ export interface MediaEditorState {
   drawingStrokes: DrawingStroke[];
   filter: string | null;
   adjustments: ImageAdjustments;
+  /**
+   * The pending crop frame: set only while the crop tool is open, `null`
+   * otherwise. Apply burns it into the photo; leaving the tool any other way
+   * (Cancel, another tool, a new source) discards it. `loadState` keeps a
+   * snapshot's frame only while the crop tool is open.
+   */
   crop: CropRect | null;
   /**
    * Full text-card content (text, font, colour, background). `getState()`
@@ -317,11 +323,13 @@ export interface ExportImageOpts {
   quality?: number;
   /**
    * What to export.
-   * - `"stage"` (default): the whole canvas, or the crop frame while one is
-   *   set. Areas the photo does not cover are transparent (JPEG encodes them
-   *   black) unless `backgroundColor` / `canvasBackground` fills them.
+   * - `"stage"` (default): the whole canvas, or the crop frame while the crop
+   *   tool is open. Areas the photo does not cover are transparent (JPEG
+   *   encodes them black) unless `backgroundColor` / `canvasBackground` fills
+   *   them.
    * - `"media"`: only the photo's displayed area (intersected with the crop
-   *   frame while one is set) — no letterbox. Overlays outside it are cut.
+   *   frame while the crop tool is open) — no letterbox. Overlays outside it
+   *   are cut.
    *
    * Text cards export the whole card: `region` and `backgroundColor` do not
    * apply, and the size options scale the card with its aspect kept (`width`

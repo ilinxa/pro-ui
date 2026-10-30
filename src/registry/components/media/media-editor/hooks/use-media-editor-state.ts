@@ -160,7 +160,7 @@ function reducer(state: MediaEditorState, action: Action): MediaEditorState {
         adjustments: { ...state.adjustments, ...action.adjustments },
       };
     case "set-crop":
-      return { ...state, crop: action.crop };
+      return state.crop === action.crop ? state : { ...state, crop: action.crop };
     case "clear-layer":
       if (action.layer === "drawing") {
         return { ...state, drawingStrokes: [] };
@@ -325,8 +325,13 @@ export function useMediaEditorState(
     };
   }, []);
 
+  // The crop frame is pending: it exists only while the crop tool shows it.
+  // Nothing draws it once the tool closes, yet an export would still trim to
+  // it, so every way out except Apply (which burns it in first) discards it.
+  // Same update as the tool change: no render sees a closed tool with a frame.
   const setActiveTool = useCallback((tool: EditTool | null) => {
     setActiveToolState(tool);
+    if (tool !== "crop") dispatch({ type: "set-crop", crop: null });
   }, []);
   const setTrim = useCallback((next: TrimRange | null) => {
     setTrimState(next);
@@ -445,7 +450,11 @@ export function useMediaEditorState(
     setCrop: (crop) => dispatch({ type: "set-crop", crop }),
     clearLayer: (layer) => dispatch({ type: "clear-layer", layer }),
     loadState: (s) => {
-      dispatch({ type: "load-state", state: s });
+      // A snapshot's frame survives only into an open crop tool (see setActiveTool).
+      dispatch({
+        type: "load-state",
+        state: activeTool === "crop" ? s : { ...s, crop: null },
+      });
       if (s.textOnly) {
         setTextOnlyState(s.textOnly);
       } else if (

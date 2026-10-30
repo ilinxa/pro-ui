@@ -115,7 +115,7 @@
 | `carousel-composer` | Carousel Composer | 0.5.0 | alpha | 2026-10-30 |
 | `content-composer` | Content Composer | 0.3.3 | alpha | 2026-10-24 |
 | `media-carousel` | Media Carousel | 0.4.0 | alpha | 2026-10-29 |
-| `media-editor` | Media Editor | 0.8.0 | alpha | 2026-10-30 |
+| `media-editor` | Media Editor | 0.8.1 | alpha | 2026-10-30 |
 | `media-library` | Media Library | 0.2.3 | alpha | 2026-10-24 |
 | `pdf-viewer` | PDF Viewer | 0.1.7 | alpha | 2026-10-24 |
 | `story-composer` | Story Composer | 0.6.1 | alpha | 2026-10-25 |

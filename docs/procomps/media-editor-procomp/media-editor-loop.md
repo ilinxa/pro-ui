@@ -1266,3 +1266,87 @@ Base UI is not installed in this repo (`node_modules/@base-ui*` absent) — the 
 `hooks/use-slider-thumb-label.ts`; `/components/media-editor` 200. GATE 3: Pass with follow-ups ×2. Retro in
 `.claude/improvement-log.md`; decision `.claude/decisions/2026-10-30-release-10-fixed-aspect-stage.md`. Run closed; the
 reply to the platform is `.claude/report-back-2026-10-30-release-10.md` (the user sends it).
+
+---
+
+# Run — 0.8.1 (leaving the crop tool; platform note 2026-10-30)
+
+Request: `E:/tmp/social-ui-v2/PROUI_REQUEST_2026-10-30_CROP_PENDING.md`. Decision:
+`.claude/decisions/2026-10-31-media-editor-crop-exit-and-platform-closures.md`. Evidence:
+`E:/tmp/ilinxa-release-kit/r0831/`.
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop, **patch** (no signature change; `loadState` and the public hook's `setActiveTool` tighten a defective state). Ladder asks a self-check; 1 fresh finder added, given the least-sure decisions |
+| **Current stage** | U6 done, U7 waiting for the user's go: **not committed, not pushed** |
+| **Sign-off** | U1 patch: architect proceeds, recorded here. Push: not authorised this run |
+| **Version target** | media-editor 0.8.0 → **0.8.1** (`media-editor-capture` follows); no dependent bump |
+| **Started / updated** | 2026-10-30 / 2026-10-31 |
+
+## U0 — Intake (source-validated)
+
+| Claim | Verdict | Evidence |
+|---|---|---|
+| Tool chip leaves the rectangle set, stage uncropped, export trims | **TRUE** | Chip called `setActiveTool` only; the frame stayed in `state.crop` and `exportImage` passes it to `computeExportGeometry`. Reproduced on live 0.8.0 |
+| Reachable only from the chip row | **WIDER** | 3 failed-Apply exits + the `catch` closed the tool and kept the frame; `loadState` could restore a hidden frame; a source swap kept the old photo's frame; on a video source the frame also drove `exportVideo` |
+| Not reported | **NEW** | Cancel during an Apply encode: the photo still changed afterwards |
+
+Blast radius: story-composer (mode round trip keeps the frame, the tool stays open), content-composer `media-substrate` and
+carousel `edit-panel` (a restored snapshot loses a never-applied frame, see F5), `media-editor-capture` (version follows).
+
+## U1 — Contract
+
+`state.crop` exists only while the crop tool is open. Apply burns it in; every other way out discards it. Discard over
+commit because the frame is auto-created at 80 % and Apply cannot be undone. An export with the tool open still trims to
+the visible frame (unchanged, documented).
+
+## U2 — Implement
+
+`setActiveTool` clears the frame for any tool but `"crop"` in the same update (`set-crop` is a no-op when unchanged);
+`loadState` drops a frame unless the tool is open; Cancel bumps the source epoch; chips are ignored only while the crop
+tool is open with an Apply in flight; a new `initialSource` closes the open tool. Regression tests first:
+`__tests__/crop-leave-0-8-1.test.tsx` was **16 red of 23** before the fix; removing the hook's clear re-fails 12.
+
+## U4 — Adversarial review (1 fresh Sonnet finder)
+
+| Row | Verdict | Outcome |
+|---|---|---|
+| F1 chips dead after Cancel until the stale Apply ends | CONFIRMED, new | Guard narrowed to an open crop tool; test added |
+| F2 a hung encode locks the chips | CLOSED by F1 | Cancel closes the tool, so the chips work |
+| F3 frame laid out on the old photo after a swap | CONFIRMED, mostly old | A new source closes the tool |
+| F4 tool stuck on a video keeps a frame via `loadState` | CONFIRMED, old | Same root cause, same fix |
+| F5 Done with Crop open: the re-edit shows the whole photo | Not a defect | The hidden-frame behaviour being removed; documented in the guide and CHANGELOG |
+| F6 a host's cached handle reads a stale tool | DROPPED | Every cached-handle read is stale; the worst outcome is a fresh frame |
+
+Coordinator: the F3 / F4 fix made `cropActive && !isVideoEdit` and a `mode === "photo"` check in `loadState` unreachable;
+both removed. The gate battery then caught a test stub missing `clearRect`: an unhandled error that would have failed
+`test:run`, and with it the deploy.
+
+## U3 — Gate battery
+
+`…/r0831/exit.txt`: tsc 0 · lint 0 errors (11 warnings) · meta-deps 0 · registry:build 0 · doc-drift 0 · doc-budget 0 ·
+build 0. Tests (`NODE_ENV=production`, thread pool): 229 files, 2 946 passed, 6 skipped, then 15 errors "Failed to start
+threads worker" (host flake, no assertion failed). Those 15 run alone, serially: **15 / 15, 419 passed, exit 0**.
+**244 / 244 files, 3 365 passed.**
+
+## U5 — Browser replay (host Playwright, Chromium, 390 × 844, photo with a red band on every edge; `…/r0831/replay.mjs`)
+
+Live 0.8.0 **5 / 12** (`crop` set after leaving; exports 173 × 307 and 270 × 480, band gone). Production build 0.8.1
+**12 / 12** (`crop` null; stage export 512 × 508 and media export 800 × 600 keep the band on all four sides; Apply
+270 × 480; Crop re-opens with a frame after each of the 4 other tools; 0 console errors). Run on the inline Edit-only
+demo: no demo exposes `getState` / export in a fixed-aspect dialog, so that exact surface is covered by unit tests on
+the same state path. Not run: WebKit, touch, a Base UI consumer.
+
+## U5 — Install (kept consumer `E:/tmp/ilinxa-it-r10e/cli-3.8.5`, local `public/` server)
+
+`shadcn@3.8.5 add @ilinxa/media-editor @ilinxa/media-editor-capture @ilinxa/story-composer @ilinxa/content-composer
+--overwrite`: exit 0 (a first run hit a 280 s limit in the consumer's own dependency step and counts for nothing); the
+fix is in the installed hook; **consumer tsc exit 0, 0 errors**. CLI 4.18.0 and a fresh consumer not run.
+
+## U6 — Docs
+
+Guide "Leaving the crop tool", CHANGELOG (+ capture), `meta.ts`, STATUS, `types.ts` JSDoc, component-versions, built
+artifacts. F-02 in `reviews/2026-10-30-v0.8.0-release-10.md` updated: Base UI half closed from `@base-ui/react` 1.4.1
+source, WebKit half stays with the platform. Patch: no review file required.

@@ -7,6 +7,9 @@
 > wrapper around this; `content-composer`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
+> **v0.8.1 (2026-10-31)** — leaving the crop tool applies or discards, never neither; `state.crop` exists only while
+> the tool is open. See [Leaving the crop tool](#leaving-the-crop-tool).
+>
 > **v0.8.0 (2026-10-30)** — a fixed `aspect` fixes the stage (the largest box of the ratio, letterboxed, on every
 > viewport); a fixed-aspect dialog runs the stage edge to edge on a dark surface; `contentClassName`;
 > `dismissOnOutsidePress`; icon tool chips that go icon-only when narrow; named slider thumbs. See [`aspect`](#aspect)
@@ -229,6 +232,28 @@ const [aspect, setAspect] = useState<CropAspect>("4:5");
 - Chip names: `labels.crop.aspect(aspect, format)` — default `labels.crop.free` / `labels.crop.original` for those two,
   otherwise the ratio with locale digits and no grouping (`"1.91:1"`, `"١٫٩١:١"` in `ar-EG`). A host `crop.aspect`
   names every chip, `"free"` and `"original"` included. Chips are `aria-pressed`.
+
+### Leaving the crop tool
+
+`state.crop` is a **pending** frame: it exists only while the crop tool is open. Crop creates one on opening, at 80 %
+of the photo, so a frame says nothing about what the user wants until they press Apply.
+
+| Way out | Result |
+|---|---|
+| Apply | The frame is burned into the photo, `crop-set` fires, `crop` is `null` |
+| Cancel, or another tool chip | Discarded: the whole photo stays, no `crop-set`, `isModified()` unchanged |
+| An Apply that fails (the image will not load or encode) | Discarded |
+| A new `initialSource` | Discarded, and whichever tool is open closes |
+| `loadState` with the tool closed | The snapshot's `crop` is dropped; with the tool open it is kept |
+
+- Chips discard rather than apply because an Apply cannot be undone: a user who only opened Crop would lose the
+  edges of the photo.
+- While an Apply is encoding, Cancel wins (the photo is not replaced) and tool chips are ignored until it lands.
+- An export **while the tool is open** trims to the frame on screen. If Done must never do that, read
+  `activeTool` from a slot and hold Done while it is `"crop"`. A snapshot taken at that moment keeps the frame, but
+  re-opening it shows the whole photo: the frame was never applied, so a later export of that snapshot is uncropped.
+- You no longer need to guard against a closed tool holding a frame: `getState().crop` is `null` whenever no crop tool
+  is open.
 
 ## Initial source (CMS re-edit / draft restore)
 

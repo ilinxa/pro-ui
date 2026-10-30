@@ -346,7 +346,7 @@ const MediaEditorImpl = React.forwardRef<
   const clearModified = React.useCallback(() => setModifiedFlag(false), [setModifiedFlag]);
   /** The media came from the camera / file picker in this session (not re-loadable). */
   const capturedRef = React.useRef(false);
-  /** Bumped by every source load / reset: a stale crop Apply compares it and gives up. */
+  /** Bumped by every source load / reset / crop Cancel: a stale crop Apply compares it and gives up. */
   const sourceEpochRef = React.useRef(0);
   /** Crop Applies in flight (encoding the cropped image). */
   const applyInFlightRef = React.useRef(0);
@@ -689,6 +689,9 @@ const MediaEditorImpl = React.forwardRef<
       sourceLoadingRef.current = false;
       bumpCommit();
       setSourceError(null);
+      // A new picture closes the open tool: a pending crop frame and a tool's
+      // Back snapshot both belong to the old one.
+      editor.setActiveTool(null);
       editor.setMode(result.loaded.mode);
       if (result.loaded.mode === "photo") {
         editor.setImageSrc(result.loaded.objectUrl);
@@ -2927,7 +2930,8 @@ const MediaEditorImpl = React.forwardRef<
                   <button
                     type="button"
                     onClick={() => {
-                      editor.setCrop(null);
+                      // An Apply still encoding must not land after a Cancel.
+                      sourceEpochRef.current += 1;
                       editor.setActiveTool(null);
                     }}
                     className="rounded border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -2959,7 +2963,12 @@ const MediaEditorImpl = React.forwardRef<
                     <button
                       key={tool}
                       type="button"
-                      onClick={() => editor.setActiveTool(tool)}
+                      onClick={() => {
+                        // Apply is encoding: it closes the tool when it lands
+                        // (after a Cancel the tool is closed and it gives up).
+                        if (applyInFlightRef.current > 0 && editor.activeTool === "crop") return;
+                        editor.setActiveTool(tool);
+                      }}
                       title={toolLabel}
                       className={cn(
                         "relative inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors",

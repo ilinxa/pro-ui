@@ -7713,7 +7713,7 @@
         }
       ],
       "meta": {
-        "version": "0.8.0",
+        "version": "0.8.1",
         "status": "alpha"
       }
     },
@@ -7739,7 +7739,7 @@
         }
       ],
       "meta": {
-        "version": "0.8.0",
+        "version": "0.8.1",
         "status": "alpha"
       }
     },
@@ -7756,7 +7756,7 @@
       "meta": {
         "featureOf": "media-editor",
         "budgetKB": 65,
-        "version": "0.8.0",
+        "version": "0.8.1",
         "status": "alpha"
       },
       "registryDependencies": [
