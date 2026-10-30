@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, type ComponentProps } from "react";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { useSliderThumbLabel } from "../hooks/use-slider-thumb-label";
 import { formatNumber } from "../lib/format-number";
 import type { ImageAdjustments, MediaEditorResolvedLabels } from "../types";
 
@@ -21,6 +22,15 @@ interface SliderConfig {
   min: number;
   max: number;
   step: number;
+}
+
+/** Slider whose thumb (the focusable role="slider") carries the name. */
+function NamedSlider({
+  label,
+  ...props
+}: { label: string } & Omit<ComponentProps<typeof Slider>, "aria-label" | "ref">) {
+  const ref = useSliderThumbLabel(label);
+  return <Slider ref={ref} aria-label={label} {...props} />;
 }
 
 export function ToolAdjustSliders({
@@ -83,14 +93,14 @@ export function ToolAdjustSliders({
               {formatValue(value[cfg.key], cfg.key, locale)}
             </span>
           </div>
-          <Slider
+          <NamedSlider
+            label={cfg.label}
             value={[value[cfg.key]]}
             min={cfg.min}
             max={cfg.max}
             step={cfg.step}
             // Radix emits number[]; Base UI number | readonly number[] (F-cross-13)
             onValueChange={(v) => update(cfg.key, typeof v === "number" ? v : (v[0] ?? 0))}
-            aria-label={cfg.label}
           />
         </div>
       ))}

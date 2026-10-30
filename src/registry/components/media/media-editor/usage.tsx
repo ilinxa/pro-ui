@@ -37,6 +37,8 @@ export function Example() {
         isOpen={open}
         onClose={() => setOpen(false)}
         enabledModes={["photo", "video"]}
+        dismissOnOutsidePress={false}  // a backdrop tap does not close it; Escape still does
+        contentClassName="bg-card"     // optional: recolour the letterbox (dark by default)
       />
     </>
   )

@@ -40,6 +40,8 @@ export interface PreviewRailProps {
     | "uploadFailed"
     | "retry"
     | "durationLabel"
+    | "moveEarlier"
+    | "moveLater"
   >;
   formatDuration: (seconds: number) => string;
   /** Shared aspect as width / height (`null` = free). */
@@ -48,6 +50,8 @@ export interface PreviewRailProps {
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
   onFiles: (files: File[] | FileList) => void;
+  reorderButtons?: boolean;
+  onMove?: (id: string, delta: number) => void;
   /** Resolved text direction. Radix ScrollArea needs it explicitly. */
   dir?: "ltr" | "rtl";
 }
@@ -73,6 +77,8 @@ export function PreviewRail({
   onSelect,
   onRemove,
   onFiles,
+  reorderButtons,
+  onMove,
   dir,
 }: PreviewRailProps) {
   return (
@@ -107,6 +113,8 @@ export function PreviewRail({
               onSelect={onSelect}
               onRemove={onRemove}
               onRetry={onRetry}
+              reorderButtons={reorderButtons}
+              onMove={onMove}
             />
           ))}
         </SortableContext>

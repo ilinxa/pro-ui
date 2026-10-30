@@ -1,11 +1,12 @@
 # `carousel-composer` — Pro-component Guide (Stage 3)
 
-> **Status:** shipped · **v0.4.0** · maturity `alpha` · category `media`
+> **Status:** shipped · **v0.5.0** · maturity `alpha` · category `media`
 > **Planning trio:** [description](carousel-composer-procomp-description.md) · [plan](carousel-composer-procomp-plan.md) · this guide
 > **Loop record:** [carousel-composer-loop.md](carousel-composer-loop.md) ("Run — Part 3 release 6")
 >
 > Rewritten 2026-10-26 for v0.3.0; §6, §7, §10, §11 and §13 updated 2026-10-29 for v0.4.0 (one shared aspect, any
-> ratio — "Run — release 8" in the media-editor loop record). Documented against source.
+> ratio — "Run — release 8" in the media-editor loop record); §7, §8, §10, §11, §13 and the new §7b updated 2026-10-30 for
+> v0.5.0 (pan, alt for videos, non-drag reorder, Escape guard — "Run — release 10"). Documented against source.
 
 ---
 
@@ -98,7 +99,7 @@ const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "ad
   `fonts`, `colorPresets`, `filterPresets`, `labels`. Crop aspect, the source and the editor's modes
   stay the carousel's (§7).
 - **Your own editor:** `editing={{ Panel }}` — `Panel` receives `{ item, aspect, aspectRatio, labels, editorProps,
-  onApply(id, patch), onCancel }` (`CarouselEditorPanelProps`). `aspect` is a named ratio, `"free"` or `"W:H"` —
+  onApply(id, patch), onCancel, onBusyChange? }` (`CarouselEditorPanelProps`; `onBusyChange` 0.5.0, see §9). `aspect` is a named ratio, `"free"` or `"W:H"` —
   never `"original"`, which arrives resolved to item 1's pixels (`"4000:3000"`) — and `aspectRatio` is its width /
   height (`null` for free). `onApply` is accepted only for the
   item being edited.
@@ -150,17 +151,44 @@ const [aspect, setAspect] = useState<CarouselAspectRatio>("4:5");
   the group is named `labels.aspectSwitch`, each option `labels.aspectOption(aspect, format)`. A pick calls
   `onAspectChange` (not for the option already selected). A controlled `aspect` without `onAspectChange` makes the
   switch do nothing — one development warning.
-- **What you upload.** `handle.export()` gives each image of known size a `crop` — the centred rect of the shared
-  ratio in that item's media pixels (the whole image when it already has the ratio, as an edit does). Upload the
-  region, or crop server-side, to publish every item at the shared aspect. Videos, `"free"` and items of unknown size
-  get no `crop`. `centredCropRect(width, height, ratio)` is exported for your own uploads.
+- **What you upload.** `handle.export()` gives each image of known size a `crop` — the rect of the shared ratio in
+  that item's media pixels, centred unless the author panned it (§7b), the whole image when it already has the ratio
+  (as an edit does). Upload the region, or crop server-side, to publish every item at the shared aspect. Videos,
+  `"free"` and items of unknown size get no `crop`. `centredCropRect(width, height, ratio)` is exported for your own
+  uploads.
 - **After a switch** items edited earlier keep the aspect they were edited at (their pixels outside it were trimmed);
   their `crop` is the centred crop of that image. Re-edit restores the original photo (`sourceBlob`).
 
+## 7b. Pan inside the frame (0.5.0)
+
+`enablePan` lets the author drag a photo inside the shared frame (Instagram): every photo after the first is no
+longer stuck at its centre.
+
+```tsx
+<CarouselComposer value={items} onChange={setItems} aspect="1:1" enablePan
+  onCropOffsetChange={(id, offset) => saveFraming(id, offset)} />
+```
+
+- **What moves:** the item's `cropOffset` `{ x, y }` — a focal point from 0 to 1 over the image's own pixels (`x` 0 =
+  left edge; images are not mirrored in RTL), 0.5 = centred (the default). Only the axis the image overflows on matters.
+- **Who follows it:** the main preview and the rail thumb (`object-position`) and `export()`'s `crop` — one formula,
+  so what the author sees is what you upload. An edit made after a pan keeps the framing (the edit panel trims at it)
+  and then clears `cropOffset` (the new image already has the ratio).
+- **Gestures:** pointer drag on the preview (buttons on it — aspect switch, Edit — still click), arrow keys on the
+  focused preview (5 %, Shift 20 %), named by `labels.panHint`. Only images whose ratio differs from the frame pan;
+  videos, `"free"` and items of unknown size don't. On touch the preview takes only the overflow axis
+  (`touch-pan-y` for a wide photo), so the page still scrolls the other way.
+- **Kept / cleared:** an upload that swaps the item's `url` for the uploaded one keeps the offset; an `updateItem`
+  that changes `width` / `height` (a different image) clears it unless the same patch sets it.
+- **Controlled hosts:** the dragged position stays on screen until your `value` carries it; a host that never
+  accepts the change keeps showing the dragged position (there is no reject signal). No zoom.
+
 ## 8. Alt text, upload status, video
 
-- **Alt text** (`enableAltText`, `maxAltLength` default 200): a labelled field under the selected
-  image; typing updates `item.alt` through `onChange`. Every `<img>` uses `alt ?? fileName ?? ""`.
+- **Alt text** (`enableAltText`, `maxAltLength` default 200): a labelled field and counter under the selected item;
+  typing updates `item.alt` through `onChange`. `true` / `"images"`: images only; `"all"` (0.5.0): videos too, with
+  `labels.altPlaceholderVideo`; a function `(item) => boolean` decides per item. Every `<img>` uses
+  `alt ?? fileName ?? ""`; the preview `<video>` is named by its `alt`.
 - **Upload status** is yours: set `status` (`"pending" | "uploading" | "uploaded" | "error"`),
   `progress` (0–1) and `error` on the item — in `value` (controlled) or with
   `ref.current.updateItem(id, patch)`. The thumb and the preview show a progress indicator, an error
@@ -182,8 +210,20 @@ An open edit is **not** part of the value until applied:
 - applying flattens the edit into the item and fires `onChange` + `onEditApply`;
 - `handle.export()` resolves a copy of the **committed** ordered items only.
 
-> ⚠️ **Gate publish while an edit is open.** Track `onEditOpen` / `onEditApply` / `onEditCancel` and
-> disable your submit button between open and apply.
+> ⚠️ **Gate publish while an edit is open.** Track `onEditOpen` / `onEditApply` / `onEditCancel` (or
+> `onEditingChange(editing)`, 0.5.0) and disable your submit button between open and apply.
+
+**Escape and a host dialog (0.5.0).** A panel reports work in progress with `onBusyChange(busy)` (the shipped editing
+add-on reports its photo load and its Done save). While a panel is busy the carousel swallows Escape at window capture,
+before Radix or Base UI see it, so a dialog around the carousel does not close mid-preparation. A custom panel calls
+`onBusyChange(true)` / `(false)` around its own async work; unmounting clears it. When nothing is busy Escape behaves
+as before — gate your dialog's close on `onEditingChange` if you want it to stay open during any edit.
+
+**Reorder without drag (0.5.0).** `reorderButtons` adds a "move earlier / move later" pair to each rail thumb, shown while
+the thumb is hovered or one of the pair has focus (Tab reaches it) (`labels.moveEarlier` / `moveLater({ position, total })`, logical — earlier is towards item 1 in any
+direction), announced with `labels.moved(position, total)`. Focus stays on the button; at the ends it is
+`aria-disabled`. Each move fires `onReorder` and `onMove(id, delta)`; `handle.moveItem(id, delta)` does the same
+without UI (clamped; ignored while an edit is open) — the testable path.
 
 ## 10. Imperative handle
 
@@ -195,7 +235,8 @@ await ref.current?.export();        // copy of the committed items (see §9), im
 ref.current?.getAspect();           // { aspect, ratio } as resolved now — "auto" / "original" resolved (0.4.0)
 await ref.current?.addFiles(files); // File[] | FileList — same path as the dropzone, current props
 ref.current?.removeItem(id);
-ref.current?.updateItem(id, patch); // status / progress / error / url / alt …; unknown id = no-op
+ref.current?.moveItem(id, delta);   // −1 earlier / +1 later, clamped; fires onReorder + onMove (0.5.0)
+ref.current?.updateItem(id, patch); // status / progress / error / url / alt / cropOffset …; unknown id = no-op
 ref.current?.select(id);            // null clears selection
 ref.current?.openEditor(id);        // needs `editing`; videos and refused items are ignored (dev-warn)
 ref.current?.reset();               // revokes owned URLs and clears
@@ -209,7 +250,8 @@ Every visible and announced string is in `labels`; strings that carry a value ar
 `removeItem({ position, total, kind })`, `uploadStatus(…)`,
 `durationLabel(formatted)`, `aspectOption(aspect, format)` (0.4.0), `errors.*`, `drag.*`). The 0.4.0 keys
 `aspectSwitch` / `aspectOption` are optional in `CarouselComposerLabels`, so a full 0.3 labels object still
-type-checks — and shows those two in English until you add them. `errors` and `drag` merge key by key; a key set to
+type-checks — and shows those two in English until you add them. The 0.5.0 keys `altPlaceholderVideo`, `panHint`,
+`moveEarlier`, `moveLater` and `moved` are optional the same way. `errors` and `drag` merge key by key; a key set to
 `undefined` keeps the default. `drag.instructions` replaces dnd-kit's built-in English keyboard
 instructions. Defaults: `defaultCarouselComposerLabels`. `locale` (default `"en"`) formats the
 duration and aspect-option digits (no grouping: `"1920:1080"`); an invalid tag falls back to `"en"` (Arabic-Indic digits need a tag such as `"ar-EG"`).
@@ -231,7 +273,19 @@ translation still names the remove buttons until you add `removeItem`.
 Rejections surface through `onValidationError` with a `MediaCarouselError` (`kind`, `message` from
 `labels.errors`, `file`) and in the component's alert.
 
-## 13. Migrating from 0.3
+## 13. Migrating from 0.4
+
+Nothing breaks: every 0.5.0 surface is optional and the defaults behave as 0.4.0.
+
+| 0.4 | 0.5.0 | What to do |
+|---|---|---|
+| `enableAltText: boolean` | `boolean \| "images" \| "all" \| (item) => boolean` | nothing; `"all"` to describe videos |
+| `crop` always centred | follows `cropOffset` (only when `enablePan` or the host sets it) | upload `crop` as before |
+| `CarouselEditorPanelProps` | `+ onBusyChange?` | a custom panel may report busy; code that builds these props needs nothing |
+| `CarouselComposerHandle` | `+ moveItem()` | hand-written handle mocks add it |
+| add-on and base versions | the 0.5.0 add-on calls `onBusyChange` and `offsetCropRect` from the 0.5.0 base | **update both together** |
+
+## 13a. Migrating from 0.3
 
 | 0.3 | 0.4.0 | What to do |
 |---|---|---|
@@ -273,7 +327,7 @@ Rejections surface through `onValidationError` with a `MediaCarouselError` (`kin
 `MainPreview`, `AspectSwitch` (0.4.0) · helper `centredCropRect` (0.4.0) · values `defaultCarouselComposerLabels`, `DEFAULT_CAROUSEL_LABELS` (deprecated),
 `PLATFORM_SAFE_MIME` · types `MediaCarouselItem`, `MediaCarouselItemPatch`, `MediaCarouselItemStatus`,
 `MediaKind`, `MediaCarouselSource`, `MediaCarouselError`, `MediaCarouselErrorKind`,
-`CarouselAspectRatio`, `CarouselCropRect`, `CarouselExportMeta`, `CarouselEditingExtension`, `CarouselEditorPanelProps`,
+`CarouselAspectRatio`, `CarouselCropRect`, `CarouselCropOffset`, `CarouselExportMeta`, `CarouselEditingExtension`, `CarouselEditorPanelProps`,
 `ApplyEditPatch`, `CarouselComposerProps`, `CarouselComposerHandle`, `CarouselComposerLabels`,
 `CarouselComposerLabelsInput`, `CarouselComposerErrorLabels`, `CarouselComposerDragLabels`,
 `UseCarouselStateOptions`, `UseCarouselStateResult`, `CarouselStateCallbacks`, and each part's props

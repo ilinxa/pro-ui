@@ -110,7 +110,11 @@ export interface MediaCarouselItem {
   height?: number;
   fileName?: string;
 
-  /** Alt text (images). Edited in the preview when `enableAltText` is set. */
+  /**
+   * Alt text. Edited in the preview when `enableAltText` lets this item be
+   * described (images by default; 0.5.0: videos too with `"all"`), and the
+   * preview's image or video is named by it.
+   */
   alt?: string;
   /** Upload state, set by the host (controlled `value`, or the handle's `updateItem`). */
   status?: MediaCarouselItemStatus;
@@ -132,6 +136,27 @@ export interface MediaCarouselItem {
    * crop server-side) to publish every item at the shared aspect.
    */
   crop?: CarouselCropRect;
+  /**
+   * 0.5.0. Where the shared frame sits on an image whose ratio differs from the
+   * shared aspect: a focal point from 0 to 1 on each axis (`0.5` = centred, the
+   * default). Only the axis the image overflows on has an effect. Set by
+   * dragging the preview when `enablePan` is on (or by the host); the preview,
+   * the rail thumb and `export()`'s `crop` all follow it. Kept when only `url`
+   * changes (an upload swapping a local URL for the uploaded one); cleared when
+   * the image itself changes — an applied edit (which bakes this framing into
+   * the new image) or an `updateItem` patch that changes `width` / `height`.
+   */
+  cropOffset?: CarouselCropOffset;
+}
+
+/**
+ * 0.5.0. A focal point inside an image, each axis from 0 to 1 of the image's own
+ * pixels: `x` 0 = its left edge, 1 = its right edge (an image is never mirrored,
+ * so this does not flip in RTL); `y` 0 = top, 1 = bottom.
+ */
+export interface CarouselCropOffset {
+  x: number;
+  y: number;
 }
 
 /** Fields a host may change through the handle's `updateItem`. */
@@ -240,6 +265,27 @@ export interface CarouselComposerLabels {
    * (`"1.91:1"`). Optional (see `aspectSwitch`).
    */
   aspectOption?: (aspect: CarouselAspectRatio, format: (n: number) => string) => string;
+  /**
+   * 0.5.0. Placeholder of the alt field for a video (`enableAltText="all"`).
+   * Optional (see `aspectSwitch`); default "Describe this video for people who
+   * can't see it".
+   */
+  altPlaceholderVideo?: string;
+  /**
+   * 0.5.0. Accessible name of the pannable preview (`enablePan`), read with its
+   * keyboard hint. Optional; default "Reposition photo. Drag, or use the arrow
+   * keys."
+   */
+  panHint?: string;
+  /**
+   * 0.5.0. Names of the non-drag reorder buttons (`reorderButtons`). `position`
+   * is 1-based. Logical, not physical: "earlier" is towards item 1 in any
+   * direction. Optional; defaults "Move item N earlier" / "Move item N later".
+   */
+  moveEarlier?: (info: { position: number; total: number }) => string;
+  moveLater?: (info: { position: number; total: number }) => string;
+  /** 0.5.0. Announced after a button move. Optional; default "Item moved to position N of M." */
+  moved?: (position: number, total: number) => string;
   errors: CarouselComposerErrorLabels;
 }
 
@@ -316,6 +362,11 @@ export const defaultCarouselComposerLabels: CarouselComposerLabels = {
     const [w, h] = aspect.split(":");
     return `${format(Number(w))}:${format(Number(h))}`;
   },
+  altPlaceholderVideo: "Describe this video for people who can't see it",
+  panHint: "Reposition photo. Drag, or use the arrow keys.",
+  moveEarlier: ({ position }) => `Move item ${position} earlier`,
+  moveLater: ({ position }) => `Move item ${position} later`,
+  moved: (position, total) => `Item moved to position ${position} of ${total}.`,
   errors: {
     unsupportedType: ({ type }) => `Unsupported file type: ${type || "unknown"}`,
     kindNotAccepted: ({ kind }) =>
@@ -350,6 +401,14 @@ export interface CarouselEditorPanelProps {
   /** Commit an edit: replaces the item's `url` / `blob` and stores the edit fields. */
   onApply: (id: string, patch: ApplyEditPatch) => void;
   onCancel: () => void;
+  /**
+   * 0.5.0. Report that the panel is preparing or saving (loading its source,
+   * encoding an export). While a panel reports busy the carousel swallows
+   * Escape before any dialog sees it, so a host dialog around the carousel does
+   * not close mid-preparation. Report `false` when done; unmounting clears it.
+   * The shipped editing panel reports its load and its Done export.
+   */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 /**
@@ -405,6 +464,25 @@ export interface CarouselComposerProps {
    * there is no switch.
    */
   aspectOptions?: CarouselAspectRatio[];
+  /**
+   * 0.5.0. Lets the author drag an image inside the shared frame (Instagram):
+   * pointer drag or arrow keys on the main preview move the item's
+   * `cropOffset`. Images whose ratio differs from the shared aspect only; no
+   * zoom. Default false (every image centred, as before).
+   */
+  enablePan?: boolean;
+  /** 0.5.0. Fires when a pan gesture (or arrow key) settles on a new `cropOffset`. */
+  onCropOffsetChange?: (id: string, offset: CarouselCropOffset) => void;
+
+  // reorder
+  /**
+   * 0.5.0. Adds a "move earlier / move later" button pair to each rail thumb —
+   * shown while the thumb is hovered or one of the pair has focus (Tab reaches
+   * it), so the rail at rest looks as
+   * before — as a keyboard, pointer, assistive-technology and test path that
+   * needs no drag or layout. Default false.
+   */
+  reorderButtons?: boolean;
 
   // editing (feature item)
   /** Image editing add-on. Without it there is no Edit button and `openEditor` does nothing (one dev warning). */
@@ -419,8 +497,12 @@ export interface CarouselComposerProps {
   editorProps?: Readonly<Record<string, unknown>>;
 
   // alt text
-  /** Show an alt-text field for the selected image. Default false. */
-  enableAltText?: boolean;
+  /**
+   * Show an alt-text field (with its counter) for the selected item. Default
+   * false. `true` / `"images"`: images only. 0.5.0: `"all"` describes videos
+   * too; a function decides per item.
+   */
+  enableAltText?: boolean | "images" | "all" | ((item: MediaCarouselItem) => boolean);
   /** Default 200. */
   maxAltLength?: number;
 
@@ -451,7 +533,19 @@ export interface CarouselComposerProps {
   onItemAdd?: (item: MediaCarouselItem) => void;
   onItemRemove?: (id: string) => void;
   onReorder?: (items: MediaCarouselItem[]) => void;
+  /**
+   * 0.5.0. Fires for a one-step move (the `reorderButtons` pair or
+   * `handle.moveItem`): `delta` is the change in position (−1 earlier, +1 later),
+   * after the move. `onReorder` fires too.
+   */
+  onMove?: (id: string, delta: number) => void;
   onSelect?: (id: string | null) => void;
+  /**
+   * 0.5.0. Fires `true` when an edit panel opens and `false` when it closes.
+   * Use it to keep a host dialog open while editing (the carousel already
+   * swallows Escape while a panel reports busy).
+   */
+  onEditingChange?: (editing: boolean) => void;
   onEditOpen?: (id: string) => void;
   onEditApply?: (item: MediaCarouselItem) => void;
   onEditCancel?: (id: string) => void;
@@ -475,6 +569,12 @@ export interface CarouselComposerHandle {
   /** Same path as the dropzone, with the current props. Resolves once the files are read and added. */
   addFiles: (files: File[] | FileList) => Promise<void>;
   removeItem: (id: string) => void;
+  /**
+   * 0.5.0. Move an item by `delta` positions (negative = earlier), clamped to
+   * the list. Same path as the `reorderButtons` pair: fires `onReorder` and
+   * `onMove`; ignored while an edit is open.
+   */
+  moveItem: (id: string, delta: number) => void;
   /** Patch an item (upload `status` / `progress` / `error`, the uploaded `url`, `alt`…). */
   updateItem: (id: string, patch: MediaCarouselItemPatch) => void;
   select: (id: string | null) => void;

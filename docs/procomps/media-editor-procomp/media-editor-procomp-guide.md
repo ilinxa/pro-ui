@@ -7,6 +7,11 @@
 > wrapper around this; `content-composer`, `chat-panel`, and CMS hero
 > editors are downstream consumers.
 >
+> **v0.8.0 (2026-10-30)** — a fixed `aspect` fixes the stage (the largest box of the ratio, letterboxed, on every
+> viewport); a fixed-aspect dialog runs the stage edge to edge on a dark surface; `contentClassName`;
+> `dismissOnOutsidePress`; icon tool chips that go icon-only when narrow; named slider thumbs. See [`aspect`](#aspect)
+> and [Migration 0.7 → 0.8](#migration-07--08).
+>
 > **v0.7.0 (2026-10-29, breaking type)** — the canvas `aspect` takes any `"W:H"` (`CanvasAspect`, also in the slot
 > context); `defaultCropAspect`; `crop-set` carries `aspect` + `ratio`; `getState()` / `loadState` carry `cropAspect`;
 > a mounted editor follows a new `cropAspects` list; chips are `aria-pressed` and named by `labels.crop.aspect`; text
@@ -178,6 +183,15 @@ modal size — landscape when the ratio is above 1, portrait otherwise (`"free"`
 one development warning. `"original"` is not a canvas aspect (the photo's ratio is unknown before it loads): resolve
 it yourself and pass `"W:H"`. Pass `cropAspects` to override the crop-tool aspect choices.
 
+**A fixed aspect fixes the stage (0.8.0).** With any aspect but `"free"`, the on-screen stage is the largest box of
+that ratio that fits the space the editor has, centred, with the letterbox around it (outside the stage) — on every
+viewport, in both presentations, and while the crop panel takes room. The Konva stage takes the ratio to the pixel
+(both sides within 1 px of the box, never larger), so an `exportImage({ region: "stage" })` is that ratio and a
+`{ width, height }` export of the same ratio trims nothing. In a phone-fullscreen 9:16 dialog the stage is
+390 × 693 on a 390 × 844 screen, with dark bands above and below; in the desktop dialog (already 9:16) it fills the
+dialog edge to edge. Inline, the canvas is width-driven — `min(100%, 30rem, 70vh × W/H)` — so a short window
+shrinks it instead of breaking the ratio.
+
 `cropAspects` takes every value above plus `"original"` (the loaded photo's own ratio — the chip reads
 `labels.crop.original`) and any `"W:H"` string with positive numbers (`"3:2"`, `"1.91:1"`). Invalid entries are dropped
 with one development warning each. Crop frames — the default frame, every preset and every drag / resize — are laid
@@ -261,7 +275,24 @@ re-loaded). An untouched `initialSource` or `loadState` closes without asking.
 
 **Dialog content classes.** `dialogClassName` is merged last onto the dialog's content element. Its grid tracks are
 `minmax(0, 1fr)`, so the crop panel (which sits in flow) can no longer push crop Apply / Cancel or Done out of the
-dialog.
+dialog. Keep the dialog's height definite: with a fixed aspect the canvas region is a size container, so a class that
+makes the height `auto` (or an in-flow top / bottom bar taller than the dialog) leaves it 0 high — the editor warns
+once in development.
+
+**Edge to edge (0.8.0).** A fixed-aspect dialog draws no padding or border around the stage. Your `renderTopBar` /
+`renderBottomToolbar` row, when it sits in flow, now meets the dialog edge — give it its own padding (the editor's
+own Back arrow, mode pill and tool scrim are positioned over the stage and need nothing). The letterbox is the
+editor's root surface and defaults to the canvas's black; the surface carries the `dark` class, so everything inside
+it — the editor's chrome, your `renderTopBar` / `renderBottomToolbar` and `overlay` — renders with your dark-theme
+tokens whatever the page theme (dialogs it opens, such as the discard confirm, keep the page theme).
+
+**Root surface classes.** `contentClassName` is merged last onto the editor's root (`data-slot="media-editor"`) in
+both presentations: `p-0 border-0 shadow-none` drops the inline card chrome, `bg-…` colours the letterbox.
+
+**Backdrop presses.** `dismissOnOutsidePress={false}` (dialog only) makes a press on the backdrop do nothing — a story
+editor should not close because a thumb missed the 9:16 box. Escape, `handle.close()` and your own close control
+still close (a dirty editor still asks first). It works with Radix and Base UI dialogs: a reason passed to
+`onOpenChange` (Base UI) decides; otherwise the editor records where the press started.
 
 **Canvas background.** `canvasBackground` (any CSS colour, `var(--token)` too) is shown behind the photo and is the
 default fill of image exports, so what you see is what is exported. Without it the canvas is black on screen and an
@@ -280,7 +311,7 @@ Desktop dialog sizing is viewport-relative and aspect-locked, with a min/max **c
 
 **`overlay`** — `overlay?: ReactNode` is rendered as the last child of the editor surface, above the editor content. In dialog presentation it is inside the dialog content, so buttons in it stay clickable despite the modal (a sibling rendered next to `<MediaEditor>` would sit outside the dialog and be blocked). Position it with `absolute inset-0` (the surface is `relative`) and give it `z-40` or higher — the mode pill and Back button sit at `z-30`, the edit toolbars at `z-20` — plus `rounded-[inherit]` so it follows the inline surface's corners. `story-composer` uses it for its publishing overlay (requires media-editor >= 0.4.0).
 
-Mobile breakpoint is always fullscreen (`h-[100dvh] w-screen`). The canvas fills the dialog edge-to-edge and the bottom edit tools **overlay** it (see [Capture vs edit chrome](#capture-vs-edit-chrome)). Use `presentation="inline"` if you need custom sizing — inline is width-driven with `min-h` / `max-h` bounds, so it stays responsive between a small chat embed and a full surface.
+Mobile breakpoint is always fullscreen (`h-[100dvh] w-screen`). With `"free"` the canvas fills the dialog; with a fixed aspect it is the fitted, letterboxed stage described under [`aspect`](#aspect). The bottom edit tools **overlay** it (see [Capture vs edit chrome](#capture-vs-edit-chrome)); on a narrow editor the tool chips turn icon-only (each keeps its name for assistive technology and as a tooltip). Use `presentation="inline"` if you need custom sizing — inline is width-driven, so it stays responsive between a small chat embed and a full surface.
 
 ## Capture vs edit chrome
 
@@ -484,7 +515,7 @@ Give it `z-40` or higher (editor chrome uses up to `z-30`).
 
 Camera capture ships as a separate, opt-in registry item — `@ilinxa/media-editor-capture` — not bundled into the base install.
 
-**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **447.4 KB** at 0.7.0 (431.7 KB at 0.6.0, 332.9 KB at 0.5.0, 282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
+**Base vs feature.** `@ilinxa/media-editor` ships the file/gallery intake surface, the edit canvas + all six tools, and export — verified artifact **468.0 KB** at 0.8.0 (447.4 KB at 0.7.0, 431.7 KB at 0.6.0, 332.9 KB at 0.5.0, 282.0 KB at the split). `@ilinxa/media-editor-capture` adds `getUserMedia`/`MediaRecorder` capture, the permission-state flow, the shutter control, and the multi-instance dev-warn guard — **8 files, 53.7 KB** at 0.5.0. At the split, the two together replaced the single 315 KB artifact. `validateGalleryFile` (generic file-type/size check) stayed in base — it's file-intake, not a camera concern — so base-alone file/gallery intake is fully usable without the feature. **No npm deps moved**: `konva` / `react-konva` stay in base (every consumer needs the canvas); the feature's only dep, `lucide-react`, was already a base dep too. What changed instead is a lazy boundary — the konva edit canvas now mounts via `React.lazy(() => import("./parts/lazy-editor-canvas"))` (`parts/lazy-editor-canvas.tsx` wraps `EditorCanvas`), so the konva chunk defers off the editor's initial paint (capture-stage-only or text-only-mode instances never pay for it up front).
 
 **Injection wiring.** Base owns the extension type + context (`hooks/use-capture-extension.ts`) and the optional `capture?: MediaCaptureExtension` prop; it never statically imports the feature package — the camera-shaped types it needs (`CapturedPhotoLike`, `MediaCaptureSurfaceProps`, …) are structurally duplicated in base rather than imported, so the base folder carries zero static dependency on `features/capture/`.
 
@@ -567,6 +598,19 @@ import them from `@/components/media-editor`. The historical contract snapshot
 | Text cards fit the card (font, wrap width, auto-grow, step-down) and the export follows the preview | A text story looks smaller on a desktop dialog than before (the font follows the card, not the viewport) and long text is no longer clipped to three lines. Re-check any screenshot test of the text card. |
 | `getState()` carries `cropAspect` | Persist it with the rest of the snapshot (optional — older snapshots load as before). |
 
+## Migration 0.7 → 0.8
+
+No type changes; the layout of a **fixed** aspect changed (`"free"` is as before).
+
+| Change | What to do |
+|---|---|
+| The stage is the fitted box of the aspect (letterboxed), not the leftover space | Drop export workarounds that centre-trim or pad a stage export to your ratio — `region: "stage"` is the ratio now. A host that read the stage size expecting it to fill a phone screen gets the fitted size. |
+| A fixed-aspect dialog has no padding / border around the stage | Give an in-flow `renderTopBar` / `renderBottomToolbar` row its own padding. Remove a `dialogClassName` you used to size the box to the ratio to counter the old padding (keep one that sizes the dialog itself). |
+| A fixed-aspect dialog is a dark surface (black letterbox, `dark` class on the editor root) | Pass `contentClassName="bg-…"` for another letterbox colour. Your `renderTopBar` / `overlay` content renders with dark-theme tokens there — check it in a light page. |
+| Inline: the canvas width is `min(100%, 30rem, 70vh × W/H)` (was full width with a 70vh height cap that broke the ratio) | On a short window the inline canvas is narrower than before. |
+| Tool chips carry icons and go icon-only on a narrow editor | Screenshot tests of the tool row change. Chip names are unchanged. |
+| New `contentClassName`, `dismissOnOutsidePress` | Optional. |
+
 ## Footguns
 
 ### `enabledModes: []` AND no `initialSource`
@@ -580,6 +624,12 @@ Editor has nothing to capture and nothing to edit. Runtime renders a "No source 
 ### Dialog mode without `isOpen`/`onClose`
 
 `console.error` once per instance. Dialog stays closed. Fix: wire both props from your parent's state.
+
+### A fixed-aspect dialog with an `auto` height
+
+The canvas region is a size container: if `dialogClassName` / `contentClassName` (or an in-flow bar taller than the
+dialog) leaves it without a definite height, the stage is 0 high and nothing shows. One development warning
+(`canvas-region-collapsed`) names it. Keep the dialog's height definite.
 
 ## Style hooks
 

@@ -14,7 +14,7 @@ import type {
   CarouselEditorPanelProps,
   MediaCarouselItem,
 } from "../../../types";
-import { centredCropRect } from "../../../lib/aspect";
+import { centredCropRect, offsetCropRect } from "../../../lib/aspect";
 
 /** The only `editorProps` keys forwarded to media-editor; the rest stay the panel's. */
 const FORWARDED_EDITOR_PROPS = [
@@ -44,6 +44,29 @@ function initialSourceFor(item: MediaCarouselItem): InitialSource {
     : { kind: "url", url: item.url, mode };
 }
 
+/** Cuts `rect` out of an encoded image; `null` when this environment cannot draw it. */
+async function cropBlob(
+  blob: Blob,
+  rect: { x: number; y: number; width: number; height: number },
+  mimeType: string | undefined,
+): Promise<Blob | null> {
+  try {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height);
+    bitmap.close?.();
+    return await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, mimeType || blob.type || "image/jpeg", 0.92),
+    );
+  } catch {
+    return null;
+  }
+}
+
 /**
  * The single, shared edit panel. Mounts ONE `media-editor` in edit-only mode
  * (`enabledModes={[]}` → no capture chrome / no photo-video tabs) for the
@@ -65,26 +88,50 @@ export function CarouselEditPanel({
   labels,
   onApply,
   onCancel,
+  onBusyChange,
 }: CarouselEditorPanelProps) {
   const editorRef = useRef<MediaEditorHandle | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-
-  const seedSource = item.editorState ? undefined : initialSourceFor(item);
-
-  // Restore prior editable layers for a re-edit (mount-only — `item` is fixed
-  // for this instance because the parent keys it by `item.id`). The snapshot's
-  // imageSrc is a DEAD object URL (revoked when the previous edit's editor
-  // unmounted) — pass the persisted source blob so loadState re-mints a live
-  // one instead of opening on a black canvas (review 1.3).
+  // True until media-editor shows the source (initialSource load / loadState). Escape is
+  // swallowed by the carousel while this or the Done export is in flight.
+  const [loading, setLoading] = useState(true);
+  // ONE mount effect, in this order: a re-edit starts `loadState` first, THEN waits for the
+  // editor to settle — otherwise "settled" could resolve before the load began and Escape
+  // would stop being guarded while it loads. A first edit loads `initialSource` on mount.
+  // `item` is fixed for this instance (the parent keys it by `item.id`).
   useEffect(() => {
-    if (item.editorState && editorRef.current) {
-      editorRef.current.loadState(item.editorState as MediaEditorState, {
+    const editor = editorRef.current;
+    if (item.editorState && editor) {
+      // The snapshot's imageSrc is a DEAD object URL (revoked when the previous edit's
+      // editor unmounted) — pass the persisted source blob so loadState re-mints a live
+      // one instead of opening on a black canvas (review 1.3).
+      editor.loadState(item.editorState as MediaEditorState, {
         sourceBlob: item.sourceBlob ?? null,
       });
     }
+    if (!editor || typeof editor.whenSettled !== "function") {
+      setLoading(false);
+      return;
+    }
+    let alive = true;
+    editor
+      .whenSettled()
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const reportedBusy = loading || busy;
+  useEffect(() => {
+    onBusyChange?.(reportedBusy);
+  }, [reportedBusy, onBusyChange]);
+
+  const seedSource = item.editorState ? undefined : initialSourceFor(item);
 
   const isEditable = item.kind === "image";
   useEffect(() => {
@@ -111,6 +158,9 @@ export function CarouselEditPanel({
       onCancel();
       return;
     }
+    // Synchronously, before the (main-thread-heavy) export: the host's Escape guard must
+    // already be armed for a key pressed in this same task, not after the effect below.
+    onBusyChange?.(true);
     setBusy(true);
     setFailed(false);
     try {
@@ -128,9 +178,24 @@ export function CarouselEditPanel({
         result = await editor.exportImage({ region: "media" });
       } else {
         result = await editor.exportImage({ region: "media" });
-        const rect = centredCropRect(result.metadata.width, result.metadata.height, aspectRatio);
+        // The author's pan framing survives the trim (applyEdit then drops the offset).
+        const rect = offsetCropRect(
+          result.metadata.width,
+          result.metadata.height,
+          aspectRatio,
+          item.cropOffset,
+        );
         if (rect.width !== result.metadata.width || rect.height !== result.metadata.height) {
-          result = await exportAt(rect);
+          const centred = centredCropRect(result.metadata.width, result.metadata.height, aspectRatio);
+          // The editor's export only trims centred; an off-centre window is cut from the
+          // full export. Without a canvas the centred trim is the fallback.
+          const cut =
+            rect.x !== centred.x || rect.y !== centred.y
+              ? await cropBlob(result.blob, rect, result.metadata.mimeType)
+              : null;
+          result = cut
+            ? { blob: cut, metadata: { ...result.metadata, width: rect.width, height: rect.height } }
+            : await exportAt(rect);
         }
       }
       const { blob, metadata } = result;

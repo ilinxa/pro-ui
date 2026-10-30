@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ColorSwatchPicker } from "./color-swatch-picker";
+import { useSliderThumbLabel } from "../hooks/use-slider-thumb-label";
 import { formatNumber } from "../lib/format-number";
 import type {
   FontOption,
@@ -43,6 +44,7 @@ export function ToolTextInput({
   className,
 }: ToolTextInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const sizeRef = useSliderThumbLabel(labels.textFontSize);
 
   // Autofocus when a new overlay is selected.
   useEffect(() => {
@@ -150,6 +152,7 @@ export function ToolTextInput({
           {labels.textFontSize}
         </span>
         <Slider
+          ref={sizeRef}
           value={[overlay.fontSize]}
           min={MIN_FONT_SIZE}
           max={MAX_FONT_SIZE}

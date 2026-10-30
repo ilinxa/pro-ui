@@ -2,10 +2,11 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AlertCircle, Clock, Film, GripVertical, RotateCw, X } from "lucide-react";
+import { AlertCircle, ChevronLeft, ChevronRight, Clock, Film, GripVertical, RotateCw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { defaultCarouselComposerLabels } from "../types";
 import type { CarouselComposerLabels, MediaCarouselItem } from "../types";
-import { thumbHeightRem, thumbWidthRem } from "../lib/aspect";
+import { clampOffset, thumbHeightRem, thumbWidthRem } from "../lib/aspect";
 import { UploadProgress, clampProgress } from "./upload-progress";
 
 export interface RailThumbProps {
@@ -24,6 +25,8 @@ export interface RailThumbProps {
     | "uploadFailed"
     | "retry"
     | "durationLabel"
+    | "moveEarlier"
+    | "moveLater"
   >;
   /** Shared aspect as width / height (`null` = free, square). The thumb keeps its height. */
   ratio?: number | null;
@@ -33,6 +36,10 @@ export interface RailThumbProps {
   onRemove: (id: string) => void;
   /** Shows a Retry on an errored thumb (the selected item's Retry is under the preview). */
   onRetry?: (item: MediaCarouselItem) => void;
+  /** `reorderButtons`: render the move earlier / later pair. */
+  reorderButtons?: boolean;
+  /** One-step move; `delta` is -1 (earlier) or 1 (later). */
+  onMove?: (id: string, delta: number) => void;
 }
 
 /**
@@ -55,6 +62,8 @@ export function RailThumb({
   onSelect,
   onRemove,
   onRetry,
+  reorderButtons = false,
+  onMove,
 }: RailThumbProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id, disabled });
@@ -126,6 +135,13 @@ export function RailThumb({
           <img
             src={item.url}
             alt={item.alt ?? item.fileName ?? ""}
+            style={
+              item.cropOffset
+                ? {
+                    objectPosition: `${clampOffset(item.cropOffset.x) * 100}% ${clampOffset(item.cropOffset.y) * 100}%`,
+                  }
+                : undefined
+            }
             className="size-full object-cover"
           />
         )}
@@ -195,6 +211,57 @@ export function RailThumb({
           >
             <GripVertical className="size-4" aria-hidden />
           </button>
+          {reorderButtons ? (
+            <div
+              data-thumb-move-pair=""
+              className={cn(
+                "pointer-events-none absolute flex opacity-0 transition-opacity",
+                "group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100",
+                // Geometry (rem = 16px). Remove is size-6 at -top-1.5 / -end-1.5, so it covers
+                // y -6..18 of the thumb; the grip is size-6 at bottom-0.5 / start-0.5, so it
+                // covers y (H-26)..(H-2). A narrow thumb (9:16 = 36 px wide, 64 px tall) has no
+                // room beside either, so the pair sits in the 20 px band between them
+                // (top-5 .. 36 px; two size-4 buttons = 32 px wide, centred, no wider than themselves). A wider thumb (>= 5 rem)
+                // has room on the bottom row right of the grip (start-[1.875rem]).
+                thumbWidthRem(ratio) >= 5
+                  ? "bottom-0.5 start-[1.875rem] gap-0.5"
+                  : "inset-x-0 top-5 mx-auto w-fit",
+              )}
+            >
+              {(["earlier", "later"] as const).map((which) => {
+                const delta = which === "earlier" ? -1 : 1;
+                const atEnd = which === "earlier" ? index === 0 : index === total - 1;
+                const name = (
+                  (which === "earlier" ? labels.moveEarlier : labels.moveLater) ??
+                  (which === "earlier"
+                    ? defaultCarouselComposerLabels.moveEarlier
+                    : defaultCarouselComposerLabels.moveLater)!
+                )({ position: index + 1, total });
+                const Icon = which === "earlier" ? ChevronLeft : ChevronRight;
+                return (
+                  <button
+                    key={which}
+                    type="button"
+                    aria-label={name}
+                    // Not `disabled`: a focused button that disables itself drops focus to <body>.
+                    aria-disabled={atEnd || undefined}
+                    data-thumb-move={which}
+                    data-thumb-id={item.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!atEnd) onMove?.(item.id, delta);
+                    }}
+                    className={cn(
+                      "grid place-items-center rounded bg-media-overlay text-media-overlay-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-disabled:opacity-50",
+                      thumbWidthRem(ratio) >= 5 ? "size-5" : "size-4",
+                    )}
+                  >
+                    <Icon className="size-3 rtl:rotate-180" aria-hidden />
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
           <button
             type="button"
             aria-label={labels.removeItem({ position: index + 1, total, kind: item.kind })}

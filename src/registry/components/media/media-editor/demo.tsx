@@ -176,8 +176,22 @@ function NewsHeroDemo() {
 function ChatDemo() {
   const editorRef = React.useRef<MediaEditorHandle>(null);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [dismissOnOutsidePress, setDismissOnOutsidePress] = React.useState(true);
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        0.8.0: a fixed aspect fits the stage (letterboxed on any viewport) and
+        runs edge to edge in the dialog; untick the box below to make a backdrop
+        press do nothing (Escape and the host close button still work).
+      </p>
+      <label className="flex items-center gap-2 text-xs">
+        <input
+          type="checkbox"
+          checked={dismissOnOutsidePress}
+          onChange={(e) => setDismissOnOutsidePress(e.target.checked)}
+        />
+        <code>dismissOnOutsidePress</code>
+      </label>
       <p className="text-xs text-muted-foreground">
         DM-style: tap <em>Open</em> to launch a 9:16 dialog editor for
         capture + edit + send. <code>enabledModes</code> excludes{" "}
@@ -195,6 +209,16 @@ function ChatDemo() {
         ref={editorRef}
         aspect="9:16"
         presentation="dialog"
+        dismissOnOutsidePress={dismissOnOutsidePress}
+        renderTopBar={() => (
+          <button
+            type="button"
+            className="self-end rounded-md bg-background/80 px-2 py-1 text-xs"
+            onClick={() => editorRef.current?.close()}
+          >
+            Close
+          </button>
+        )}
         enabledModes={["photo", "video"]}
         capture={mediaCapture}
         isOpen={isOpen}

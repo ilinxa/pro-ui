@@ -59,8 +59,10 @@ const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "ad
         Every item shares the carousel&apos;s aspect — the preview, the rail
         thumbs, the edit panel and an edit&apos;s export follow it.{" "}
         <code>aspectOptions</code> shows a switch while item 1 is selected;{" "}
-        <code>export()</code> gives each image the centred <code>crop</code>{" "}
-        for the aspect, so every item can be uploaded at it.
+        <code>enablePan</code> lets the author drag a photo inside the frame
+        (its <code>cropOffset</code>); <code>export()</code> gives each image
+        the <code>crop</code> for the aspect — centred unless panned — so every
+        item can be uploaded at it.
       </p>
       <pre className="overflow-x-auto rounded-md border border-border bg-muted p-4 font-mono text-xs">
         <code>{`<CarouselComposer
@@ -69,10 +71,15 @@ const editorProps: CarouselEditorProps = { enabledTools: ["crop", "filters", "ad
   aspect={aspect}                 // "original" | "1:1" | "4:5" | "1.91:1" | any "W:H" | "auto" | "free"
   onAspectChange={setAspect}
   aspectOptions={["original", "1:1", "4:5", "1.91:1"]}
+  enablePan                       // drag / arrow keys move the item's cropOffset
+  enableAltText="all"             // videos get a description too
+  reorderButtons                  // move earlier / later, shown on hover or focus
+  onEditingChange={setEditing}    // keep your dialog open while editing
   editing={carouselEditing}
 />
 
-const items = await ref.current.export(); // each image: crop = { x, y, width, height }`}</code>
+const items = await ref.current.export(); // each image: crop = { x, y, width, height }
+ref.current.moveItem(id, 1);              // the same move without UI`}</code>
       </pre>
 
       <h3 className="mb-2 mt-6 text-base font-semibold">Upload status</h3>

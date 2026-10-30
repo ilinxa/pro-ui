@@ -105,6 +105,11 @@ export interface EditorCanvasProps {
   /** Accessible names. Default: the English defaults. */
   labels?: CanvasLabels;
   className?: string;
+  /**
+   * Fixed stage ratio (width / height) — set by the shell for a fixed canvas
+   * `aspect` so the stage takes it exactly (0.8.0). Internal.
+   */
+  stageRatio?: number | null;
 }
 
 type CanvasLabels = Pick<
@@ -158,10 +163,11 @@ export function EditorCanvas({
   onImageError,
   labels = DEFAULT_CANVAS_LABELS,
   className,
+  stageRatio,
 }: EditorCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
-  const stageSize = useKonvaStageSize(containerRef);
+  const stageSize = useKonvaStageSize(containerRef, stageRatio);
   // Destructure the selection hook result to locals up front. `transformerRef`
   // is a ref-typed field; reading it as `selection.transformerRef` makes the
   // React Compiler's aliasing analysis treat the whole result object as a ref

@@ -2,7 +2,17 @@
 
 import * as React from "react";
 import type Konva from "konva";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Crop as CropIcon,
+  Loader2,
+  Pencil,
+  SlidersHorizontal,
+  Smile,
+  Sparkles,
+  Type as TypeIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -24,6 +34,7 @@ import {
   renameStickerSets,
 } from "./lib/preset-names";
 import { dialogDimsForAspect } from "./lib/dialog-size-for-aspect";
+import { classifyCloseReason } from "./lib/close-reason";
 import { resolveCropAspects } from "./lib/resolve-crop-aspects";
 import { loadInitialSource } from "./lib/initial-source-loader";
 import { renderPhoto } from "./lib/export-blob";
@@ -2065,6 +2076,47 @@ const MediaEditorImpl = React.forwardRef<
   const dialogOpen = resolved === "dialog" && (props.isOpen ?? false);
   const dialogContentRef = React.useRef<HTMLDivElement | null>(null);
   const openerRef = React.useRef<HTMLElement | null>(null);
+  // ME-4 (0.8.0): with `dismissOnOutsidePress={false}` a close request that
+  // carries no reason (Radix) is classified by this record of where the current
+  // press started. Window capture runs before any dialog dismiss layer; the
+  // record outlives pointerdown -> click (touch outside-presses are deferred
+  // to the click) and is cleared just after that click, or by the next press / Escape.
+  const noOutsideDismiss = props.dismissOnOutsidePress === false;
+  const pressStartedOutsideRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!dialogOpen || !noOutsideDismiss) return;
+    let clearTimer: ReturnType<typeof setTimeout> | undefined;
+    const onPointerDown = (e: PointerEvent) => {
+      clearTimeout(clearTimer);
+      const content = dialogContentRef.current;
+      pressStartedOutsideRef.current =
+        content !== null && !(e.target instanceof Node && content.contains(e.target));
+    };
+    const onClick = () => {
+      clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => {
+        pressStartedOutsideRef.current = false;
+      }, 0);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Escape only: a touch backdrop tap defers Radix's dismissal to the click,
+      // and an unrelated key (external keyboard) in between must not forget it.
+      if (e.key !== "Escape") return;
+      clearTimeout(clearTimer);
+      pressStartedOutsideRef.current = false;
+    };
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("click", onClick, true);
+    // keydown-ok: no key is acted on - Escape only clears the press record
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => {
+      clearTimeout(clearTimer);
+      pressStartedOutsideRef.current = false;
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("click", onClick, true);
+      window.removeEventListener("keydown", onKeyDown, true);
+    };
+  }, [dialogOpen, noOutsideDismiss]);
   // Read at unmount: inline hands focus back only when it was inside the editor.
   const inlinePresentationRef = React.useRef(resolved === "inline");
   React.useEffect(() => {
@@ -2215,6 +2267,37 @@ const MediaEditorImpl = React.forwardRef<
     [editor, modified, enabledTools, enabledModes, aspect],
   );
 
+  // ─── Fixed-aspect layout (0.8.0) ────────────────────────────────────
+  // A fixed canvas aspect makes the canvas box the largest box of that ratio
+  // that fits; in dialog presentation it also runs edge to edge.
+  const fixedRatio = fixedCanvasRatio(aspect);
+  const edgeToEdge = fixedRatio !== null && resolved === "dialog";
+  // Dev-only: a fixed-aspect dialog whose canvas region measures 0 high has no
+  // room for the box (callback ref: the dialog content mounts after this render).
+  const canvasRegionRef = React.useCallback(
+    (el: HTMLDivElement | null) => {
+      if (!el || !edgeToEdge || process.env.NODE_ENV === "production") return;
+      if (typeof ResizeObserver === "undefined") return;
+      const observer = new ResizeObserver((entries) => {
+        const entry = entries[entries.length - 1];
+        if (!entry) return;
+        const box = Array.isArray(entry.contentBoxSize)
+          ? entry.contentBoxSize[0]
+          : entry.contentBoxSize;
+        const blockSize = box ? box.blockSize : entry.contentRect.height;
+        if (blockSize !== 0) return;
+        devWarnOnce(
+          warnedRef.current,
+          "canvas-region-collapsed",
+          "media-editor: the fixed-aspect canvas region measures 0 high, so the canvas box collapses. Likely causes: a host class gave the dialog an auto height (the dialog must keep a definite height), or an in-flow bar (renderTopBar / renderBottomToolbar) is taller than the dialog.",
+        );
+      });
+      observer.observe(el);
+      return () => observer.disconnect();
+    },
+    [edgeToEdge],
+  );
+
   // ─── Render — inner surface (shared by inline + dialog branches) ──
 
   const inner = (
@@ -2224,12 +2307,23 @@ const MediaEditorImpl = React.forwardRef<
         // `relative` anchors the floating top-center control (mode pill / Back)
         // and the consumer's renderTopBar (X / Publish) to the SAME box so they
         // share one row instead of stacking.
-        "relative flex h-full w-full min-h-0 min-w-0 flex-col gap-3 p-4",
+        "relative flex h-full w-full min-h-0 min-w-0 flex-col gap-3",
+        // Fixed-aspect dialog: the stage runs edge to edge, so no padding.
+        !edgeToEdge && "p-4",
+        // Fixed-aspect dialog: the letterbox bands are the root's own surface;
+        // match the canvas's default (black) so media-dark chrome stays legible.
+        // Before contentClassName, so a host `bg-*` wins.
+        // The black letterbox is a dark surface in either page theme: `dark`
+        // redefines every token for the subtree (chrome, crop panel, host bars).
+        // The discard confirm portals out of it and keeps the page theme.
+        edgeToEdge && "dark bg-black text-foreground",
         // Inline-only: gets its own card chrome. In dialog mode, DialogContent
         // provides the chrome and we go edge-to-edge inside it.
         resolved === "inline" &&
           "rounded-2xl border border-border bg-card text-card-foreground shadow-sm min-h-[400px]",
+        props.contentClassName,
       )}
+      style={edgeToEdge ? { colorScheme: "dark" } : undefined}
       data-slot="media-editor"
       data-mode={editor.state.mode ?? "none"}
       data-stage={editor.state.stage}
@@ -2306,28 +2400,50 @@ const MediaEditorImpl = React.forwardRef<
           min-h-0 lets this flex-1 region shrink below the aspect-locked card's
           intrinsic height so the bottom tool row keeps its space instead of
           being pushed past the dialog's clipped (overflow-hidden) bottom edge. */}
-      <div className="relative flex flex-1 min-h-0 items-center justify-center">
+      <div
+        ref={canvasRegionRef}
+        className={cn(
+          "relative flex flex-1 min-h-0 items-center justify-center",
+          // Fixed-aspect dialog: a size container, so the box below can take
+          // the largest ratio-exact size that fits (the letterbox is this region).
+          fixedRatio !== null && resolved === "dialog" && "[container-type:size]",
+        )}
+      >
         <div
           className={cn(
-            "flex flex-col items-stretch justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-border/60 bg-muted/30 text-center text-xs text-muted-foreground",
-            // Fixed aspect ratio, sized to fill the frame (no side letterbox).
-            resolved === "dialog"
-              ? // Dialog: fill the region edge-to-edge. The dialog itself is
-                // aspect-locked, so the canvas fills full width + height and the
-                // bottom controls OVERLAY the canvas (like the camera shutter)
-                // rather than taking flow space — so nothing shifts or crops.
-                "h-full w-full max-h-full max-w-full"
-              : // Inline has no guaranteed definite height, so drive by WIDTH
-                // with min/max bounds — responsive between a chat-embed (small)
-                // and a full surface (large) without breaking the ratio.
-                aspect === "free"
-                ? "w-full min-h-64 min-w-50 max-w-150 max-h-[70vh]"
-                : // A locked ratio must win over any min-height (1.91:1 on a narrow column).
-                  "w-full min-w-50 max-w-120 max-h-[70vh]",
+            "flex flex-col items-stretch justify-center gap-2 overflow-hidden bg-muted/30 text-center text-xs text-muted-foreground",
+            // A fixed ratio has NO layout-taking border (a border-box
+            // aspect-ratio would skew it); the dialog is edge to edge, inline
+            // keeps a space-free inset ring.
+            fixedRatio === null
+              ? "rounded-xl border border-dashed border-border/60"
+              : resolved === "inline" && "rounded-xl ring-1 ring-inset ring-border/60",
+            fixedRatio === null
+              ? resolved === "dialog"
+                ? // Free dialog: fill the region edge-to-edge. The dialog itself
+                  // is aspect-locked, so the canvas fills full width + height and
+                  // the bottom controls OVERLAY the canvas (like the camera
+                  // shutter) rather than taking flow space.
+                  "h-full w-full max-h-full max-w-full"
+                : // Inline free: drive by WIDTH with min/max bounds — responsive
+                  // between a chat-embed and a full surface.
+                  "w-full min-h-64 min-w-50 max-w-150 max-h-[70vh]"
+              : resolved === "inline"
+                ? // Fixed inline: width-driven only, so the 70vh cap enters the
+                  // width (70vh * W/H) and can never break the ratio. The
+                  // min-width cannot either (height follows the width).
+                  "min-w-50"
+                : undefined,
           )}
           style={{
             aspectRatio:
               aspect === "free" ? "16 / 9" : placeholderRatioCss(aspect),
+            width:
+              fixedRatio === null
+                ? undefined
+                : resolved === "dialog"
+                  ? `min(100cqw, calc(100cqh * ${fixedRatio}))`
+                  : `min(100%, 30rem, calc(70vh * ${fixedRatio}))`,
           }}
           data-canvas-placeholder=""
           data-stage={editor.state.stage}
@@ -2445,6 +2561,7 @@ const MediaEditorImpl = React.forwardRef<
                 onImageError={handleImageError}
                 background={props.canvasBackground}
                 className="h-full w-full"
+                stageRatio={fixedRatio}
               />
             </React.Suspense>
           ) : editor.state.stage === "capture" &&
@@ -2550,7 +2667,9 @@ const MediaEditorImpl = React.forwardRef<
       {showEditCanvas && !(isVideoEdit && visibleTools.length === 0) ? (
         <div
           className={cn(
-            "flex flex-col items-stretch gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] *:pointer-events-auto",
+            // `@container`: the chip row below switches to icon-only chips by
+            // THIS box's width (the dialog / inline surface), not the viewport.
+            "@container flex flex-col items-stretch gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] *:pointer-events-auto",
             editor.activeTool === "crop"
               ? "relative pt-2"
               : "pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-media-overlay to-transparent pt-10",
@@ -2833,24 +2952,38 @@ const MediaEditorImpl = React.forwardRef<
                 aria-orientation="horizontal"
                 className="mx-auto flex w-max items-center gap-1 p-1"
               >
-                {visibleTools.map((tool) => (
-                  <button
-                    key={tool}
-                    type="button"
-                    onClick={() => editor.setActiveTool(tool)}
-                    className={cn(
-                      "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                      editor.activeTool === tool
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                    data-tool={tool}
-                  >
-                    {toolChipLabel(tool, mergedLabels)}
-                  </button>
-                ))}
+                {visibleTools.map((tool) => {
+                  const ToolIcon = TOOL_ICONS[tool];
+                  const toolLabel = toolChipLabel(tool, mergedLabels);
+                  return (
+                    <button
+                      key={tool}
+                      type="button"
+                      onClick={() => editor.setActiveTool(tool)}
+                      title={toolLabel}
+                      className={cn(
+                        "relative inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                        // Narrow strip (< 31rem = 496 px of container): icon-only
+                        // chips, a bigger tap target. Six labelled chips are ~480 px
+                        // (24 px padding + 14 px icon + 4 px gap + 24-46 px label,
+                        // 5 x 4 px gaps); the icon-only row is ~260 px and, with the
+                        // crop-aspect count hidden, fits a 344 px dialog (320 px).
+                        "@max-[31rem]:py-2",
+                        editor.activeTool === tool
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                      data-tool={tool}
+                    >
+                      <ToolIcon className="size-3.5 shrink-0" aria-hidden="true" />
+                      {/* Visually hidden (not removed) below the threshold, so
+                          the chip keeps its accessible name. */}
+                      <span className="@max-[31rem]:sr-only">{toolLabel}</span>
+                    </button>
+                  );
+                })}
                 {visibleTools.includes("crop") && resolvedCropAspects.length > 1 ? (
-                  <span className="ms-2 shrink-0 self-center text-[10px] text-muted-foreground" dir="auto">
+                  <span className="ms-2 shrink-0 self-center text-[10px] text-muted-foreground @max-[31rem]:sr-only" dir="auto">
                     {mergedLabels.cropAspectCount(
                       resolvedCropAspects.length,
                       formatNumber(resolvedCropAspects.length, locale),
@@ -2915,13 +3048,23 @@ const MediaEditorImpl = React.forwardRef<
   return (
     <Dialog
       open={props.isOpen ?? false}
-      onOpenChange={(open) => {
+      onOpenChange={(open, ...closeDetails: unknown[]) => {
         // While a consumer overlay is mounted it owns interaction: Escape, a
         // backdrop press or the dialog's own close request must not reach
         // requestClose() (discard confirm over the overlay / closing the host
         // mid-upload). Gated here, not via Radix-only props, so it holds for
         // Base UI dialogs too.
-        if (!open && !overlayActive) requestClose();
+        if (open || overlayActive) return;
+        // `dismissOnOutsidePress={false}`: a backdrop press does nothing; Escape
+        // and every other close request still go through. An explicit reason
+        // (Base UI) wins; otherwise the pointer record decides.
+        if (noOutsideDismiss) {
+          const reason = classifyCloseReason(closeDetails);
+          const outside =
+            reason === null ? pressStartedOutsideRef.current : reason === "outside";
+          if (outside) return;
+        }
+        requestClose();
       }}
     >
       <DialogContent
@@ -2933,6 +3076,8 @@ const MediaEditorImpl = React.forwardRef<
           // dir-ok: Dialog centring (left:50% + -translate-x-1/2) must stay physical in any direction; the gate cannot see it through the ! prefix
           "!fixed !inset-0 !top-0 !left-0 !translate-x-0 !translate-y-0",
           "!max-w-none gap-0 overflow-hidden p-0",
+          // Fixed aspect: the stage is edge to edge, so no border takes space.
+          edgeToEdge && "border-0",
           "h-[100dvh] w-screen !rounded-none",
           // Desktop: restore viewport-centered positioning. !inset-auto cancels
           // the mobile !inset-0 so top/left:50% can land.
@@ -3073,6 +3218,12 @@ const FREE_ASPECT_FALLBACK = 16 / 9;
  */
 function aspectAsRatio(aspect: CanvasAspect): number {
   return canvasAspectToRatio(aspect) ?? FREE_ASPECT_FALLBACK;
+}
+
+/** Width / height of a fixed canvas aspect (6 decimals, for CSS maths); `null` for "free". */
+function fixedCanvasRatio(aspect: CanvasAspect): number | null {
+  const ratio = canvasAspectToRatio(aspect);
+  return ratio === null ? null : Math.round(ratio * 1e6) / 1e6;
 }
 
 /** CSS `aspect-ratio` for a locked canvas, built from the parsed numbers ("1.91:1" → "1.91 / 1"). */
@@ -3248,6 +3399,15 @@ function ToolPanelFrame({
     </div>
   );
 }
+
+const TOOL_ICONS: Record<EditTool, LucideIcon> = {
+  text: TypeIcon,
+  draw: Pencil,
+  stickers: Smile,
+  filters: Sparkles,
+  adjust: SlidersHorizontal,
+  crop: CropIcon,
+};
 
 /** Chip label for an edit tool — routed through the labels prop (i18n). */
 function toolChipLabel(

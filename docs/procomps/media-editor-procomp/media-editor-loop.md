@@ -974,3 +974,286 @@ with `parts/slide-caption.tsx`**; then every item carries its stamp — `media-e
 `carousel-composer-editing 0.4.0`, `post-card 0.8.0`; `/components/{media-editor,media-carousel,carousel-composer,post-card}`
 200. GATE 3: Pass with follow-ups ×4 (reviews in each `reviews/` folder). Retro in `.claude/improvement-log.md`. Run
 closed; the reply to the platform is `.claude/report-back-2026-10-29-release-8.md` (the user sends it).
+
+# Run — release 10 (media-editor 0.8.0 + carousel-composer 0.5.0; platform request 2026-10-30)
+
+Lead state doc for release 10; `carousel-composer-loop.md` carries a pointer section. Request text:
+`E:/tmp/social-ui-v2/PROUI_REQUEST_2026-10-30_MEDIA_EDITOR.md` (checked by the platform against media-editor 0.7.0).
+
+## Status
+
+| Field | Value |
+|---|---|
+| **Mode** | U-loop. media-editor **minor with a layout behaviour change** (fixed-aspect stage fit + edge-to-edge dialog; 2 additive props) · carousel-composer **minor** (additive: alt for videos, pan, Escape guard, non-drag reorder) |
+| **Current stage** | U7 — ship (GATE 3: Pass with follow-ups ×2 — `reviews/2026-10-30-v0.8.0-release-10.md`, carousel-composer `reviews/2026-10-30-v0.5.0-release-10.md`) |
+| **Sign-off policy** | U1 minor → user. The media-editor layout change lands on a component three others compose (story-composer, content-composer, carousel-composer-editing) → never delegated; asked explicitly. **Signed off by the user 2026-10-30:** the fit + edge-to-edge is the DEFAULT for a fixed aspect (not opt-in); run **end to end incl. push** (same as releases 8 / 9). |
+| **Version target** | media-editor 0.7.0 → **0.8.0** (`media-editor-capture` follows) · carousel-composer 0.4.0 → **0.5.0** (`carousel-composer-editing` follows). story-composer / content-composer: no bump unless a test or a forwarded prop changes |
+| **Model roster** | architect: main session · implementers: 2 × Sonnet 5 (ME, CC) · finders: 2 × fresh Sonnet 5 (U4) + browser finder (U5) · doc verifier: fresh Sonnet 5 (U6) |
+| **Started / updated** | 2026-10-30 / 2026-10-30 |
+
+## U0 — Intake & impact (source-validated 2026-10-30)
+
+Inbox check: `E:/tmp/social-ui-v2/` listed by date — the request (02:06) is the newest platform file; nothing older is
+unread since release 9.
+
+| Ask | Verdict | Evidence / reach |
+|---|---|---|
+| 1 fixed aspect fixes the stage | **TRUE, wider** | Dialog: the canvas box is `h-full w-full` (`media-editor.tsx:2319`), so its inline `aspect-ratio` is ignored and the Konva stage = the leftover box (`use-konva-stage-size.ts` measures it). Phones: `h-[100dvh] w-screen` → stage = viewport minus chrome. **Not reported:** inline has the same defect — `w-full … max-h-[70vh]` (`:2326`) breaks the ratio whenever the height clamp engages (9:16 at 480 px wide on a ≤ 1 080 px-tall window); this is the box carousel-composer-editing exports from. Also entering Crop drops the controls into flow (`:2555`) — today that shrinks the region and changes the stage ratio mid-edit. |
+| 2 edge to edge | **TRUE** | 34 px = root `p-4` ×2 (`:2227`) + canvas box `border` ×2 (`:2312`). Our preset's DialogContent uses `ring-1` (no layout); a consumer preset with `border` adds 2 px more. `dialogClassName` reaches DialogContent only. The box's `border` also breaks the ratio by itself (border-box `aspect-ratio`). |
+| 3 `dismissOnOutsidePress` | **TRUE** | `onOpenChange` (`:2918`) maps every close request to `requestClose()`; Escape and backdrop are indistinguishable there; the only guard is `overlay`, which blocks both. |
+| opt. themable frame | covered | by the new `contentClassName` (root surface) + existing `dialogClassName`; the letterbox is the root's background |
+| opt. tool strip at 344 px | **PARTLY** | `ChipRowScroller` (`:3159`) already scrolls with an edge-fade cue; chips are text-only, so a 344 px strip hides 2–3 tools behind a scroll |
+| 4 alt for videos | **TRUE, wider** | `parts/alt-field.tsx:19` returns null for non-images. **Not reported:** the preview `<video>` has no accessible name (`main-preview.tsx:94-108`); default `altPlaceholder` says "this image" (`types.ts:293`). Storage is already kind-agnostic. |
+| 5 pan in the shared frame | **TRUE** | `crop` is derived at `export()` only, always centred (`carousel-composer.tsx:470-479`, `lib/aspect.ts:129-139`); preview + rail are `object-cover` centred. A pan needs stored state; rail thumbs must follow; edit-apply bakes the crop so the pan must clear there. No pointer handlers on the preview today (dnd is rail-only). |
+| 6 Escape while a panel prepares | **TRUE (mechanism differs)** | The base has no key handling at all. Radix (`useEscapeKeydown`, document capture) and Base UI both act before React handlers, so a `stopPropagation` in the panel cannot help — only a window-capture native listener precedes them. The base cannot see a custom panel's "preparing" — it needs a signal. |
+| 7 reorder without drag | **PARTLY** | dnd-kit keyboard reorder exists + announced (`carousel-composer.tsx:416-446`), but needs measured rects (untestable in jsdom) and there is no one-press control, no `handle` method. Direction must be logical (rail mirrors in RTL). |
+
+**Blast radius**
+
+| Surface | Relation | What must hold |
+|---|---|---|
+| story-composer | mounts media-editor in a 9:16 dialog; forwards `renderTopBar` / `renderBottomToolbar` / `overlay` | compiles; its suites green; its dialog now renders edge to edge (intended — this is the platform's surface); the overlay still covers the whole surface |
+| content-composer | mounts media-editor inline (`media-substrate`) + carousel-composer + editing add-on | inline chrome unchanged by default; carousel props unchanged; suites green |
+| carousel-composer-editing | mounts media-editor inline with the shared aspect; Done exports from the stage | the inline ratio fix applies (stage = exact aspect); reports busy to the base (ask 6); clears pan on Apply (ask 5) |
+| media-editor-capture | feature item | camera preview fills the fitted box; version follows |
+| fixtures + alias items | install + consumer tsc | |
+| Docs | 2 guides (layout-change migration rows), STATUS rows, component-versions, CHANGELOG, generated llms / README, `meta.ts` budgets | U6 |
+
+## U1 — Change contract (signed off 2026-10-30)
+
+**media-editor 0.8.0**
+- **ME-1 fixed-aspect fit (asks 1).** When `aspect` is not `"free"`, the canvas box is the largest box of that ratio
+  inside the canvas region, centred; the letterbox is the region (outside the stage). Dialog: the region is a size
+  container and the box is `width: min(100cqw, 100cqh × W/H)` + `aspect-ratio`. Inline: width-driven
+  `width: min(100%, 30rem, 70vh × W/H)` so the 70vh cap can no longer break the ratio. The capture surface and the
+  text card live in the same box, so they follow. The stage derives its height from its width and the ratio
+  (one rounding, not two). Crop mode keeps the ratio (the box shrinks, the stage re-fits; overlays stay on the photo).
+  `"free"` unchanged.
+- **ME-2 edge to edge (ask 2).** Fixed aspect + dialog presentation: no root padding / gap around the canvas region,
+  no box border / rounding, `border-0` on the dialog content (the dialog's own rounding + ring stay). In-flow rows
+  (crop panel, consumer `renderTopBar` / `renderBottomToolbar`) keep their own spacing. Inline keeps its card chrome.
+- **ME-3 `contentClassName?: string`** — classes for the editor's root surface (`data-slot="media-editor"`), both
+  presentations, merged last (so `p-0 border-0 bg-black` works inline too, and themes the letterbox / frame).
+- **ME-4 `dismissOnOutsidePress?: boolean`** (default `true`; dialog only, no effect inline). `false`: a backdrop
+  press does nothing; Escape, `handle.close()` and the host's close keep working; the overlay guard is unchanged.
+  Classification without Radix-only props: Base UI's `onOpenChange(open, details)` reason when present, else a
+  window-capture `pointerdown` record (outside the content element) held until that press's `click` has passed.
+- **ME-5 tool strip (optional ask).** Chips gain icons; below a container width the labels become visually hidden
+  (icon-only, `aria-label` + `title` carry the name). No new prop.
+
+**carousel-composer 0.5.0** (all additive, defaults reproduce 0.4.0)
+- **CC-4 `enableAltText?: boolean | "images" | "all" | ((item) => boolean)`** — `true` = `"images"`. Same field and
+  counter; optional `labels.altPlaceholderVideo`; the preview `<video>` gets its name from `alt`.
+- **CC-5 `enablePan?: boolean`** (images only; pan, no zoom — zoom changes the crop size and is a separate step).
+  Item gains `cropOffset?: { x: number; y: number }` (0..1 focal point on the overflow axis; 0.5 = today's centre).
+  Preview and rail use the same `object-position`; `export()` `crop` uses the same maths (one rounding rule).
+  Pointer drag + arrow keys on a focusable, labelled preview; `touch-action: none` only while pan is enabled and the
+  photo overflows; overlay buttons excluded. Cleared on edit-apply and on a `url` change. `onCropOffsetChange?`.
+- **CC-6 Escape guard.** Panel props gain `onBusyChange?(busy)`; the shipped editing panel reports its load and Done
+  export. While a panel is busy the base swallows Escape at window capture (so no host dialog closes);
+  `onEditingChange?(editing)` lets a host gate its own dialog as media-editor's overlay does.
+- **CC-7 non-drag reorder.** `reorderButtons?: boolean` renders a visually hidden "move earlier / move later" pair per
+  thumb (visible on focus; logical direction, so correct in RTL), announced via `labels.moved(position, total)`;
+  `onMove?(id, delta)`; `handle.moveItem(id, delta)`. Hidden while editing, like the drag handle.
+
+**Not taken:** pan zoom (`cropScale`, a later step) · content-composer forwarding `crop` / `cropOffset` / alt (the
+re-design) · media-editor C17 (breaking, not asked).
+
+**Invariants**
+
+| # | Invariant (testable) | U4 | U5 |
+|---|---|---|---|
+| I1 | `aspect="9:16"` dialog: stage ratio within 1 px of 9:16 at 1440 × 900, 390 × 844 and 344 × 740; stage export `region: "stage"` is 9:16 to the rounding | | |
+| I2 | Same in the inline branch at a 480 px-wide host on a 700 px-tall window (the old clamp case) and in the carousel edit panel | | |
+| I3 | Entering / leaving Crop keeps the ratio; a text overlay stays on the same photo point | | |
+| I4 | Fixed-aspect dialog: stage = dialog box (no padding / border) when nothing else is in flow; `"free"` and inline layouts unchanged (layout snapshot) | | |
+| I5 | `dismissOnOutsidePress={false}`: backdrop mouse AND touch press keep it open; Escape opens the discard confirm when dirty / closes when clean; a host button calling `handle.close()` works; Radix and Base UI | | |
+| I6 | `contentClassName` reaches the root in both presentations and wins over the defaults | | |
+| I7 | 344 px dialog: every tool reachable without horizontal scroll; each chip named | | |
+| I8 | `enableAltText="all"`: a video shows the field + counter with the video placeholder; the preview video is named by its alt; predicate form honoured | | |
+| I9 | `enablePan`: dragging item 2 moves preview + its rail thumb identically; `export()` crop matches the shown region (pixel-compared); edit-apply clears the offset; keyboard pan works; overlay buttons still click | | |
+| I10 | Escape during the shipped panel's load / Done export does not close a host dialog (Radix + Base UI); Escape when idle behaves as 0.4.0 | | |
+| I11 | `reorderButtons`: move earlier / later reorders, fires `onReorder` + `onMove`, announces, keeps focus, is correct in RTL; `handle.moveItem` same without UI | | |
+| I-reg | 0.7.0 / 0.4.0 suites green (tests asserting the replaced layout listed); story-composer, content-composer, editing suites green | | |
+| I-neg | base carousel-composer install still has no media-editor file; media-editor base without capture renders the fitted box | | |
+
+## U2 — Implement (started 2026-10-30)
+
+Public types written by the architect first (`media-editor/types.ts`: `aspect` JSDoc, `contentClassName`,
+`dismissOnOutsidePress`; `carousel-composer/types.ts`: every "0.5.0" member, `CarouselCropOffset` exported from the
+barrel). `tsc` after the type edits: **1 error**, `carousel-composer.tsx(468)` handle missing `moveItem` — the work;
+none in dependents. Brief: `E:/tmp/ilinxa-release-kit/briefs/brief-r10-common.md`.
+
+| # | Slice | Owner | Files | Status |
+|---|---|---|---|---|
+| ME | ME-1…ME-5 + demo + tests | Sonnet | `media-editor/**` (not types / meta / usage) | **done** — media-editor suite 29 files / 394 passed + 1 skipped; 3 new test files (26 tests); falsified in one batch (12 red → green after byte-exact restore); tsc 0, eslint 0, inert-surfaces 64/64. New file `lib/close-reason.ts` → added to `registry.json` (roster 0 high). Coordinator spot-check: close classifier + press record (cleared by keydown before any dismiss layer) and the fit maths read OK. Open for U4 / U5: `stageSizeFor` can make the stage ≤ 1 px taller than its box; the 31rem icon-only threshold is estimated, not measured; I3 (overlay position across Crop) has no test — browser pass. Demo: "Chat" tab gains the dismiss toggle + host Close |
+| CC | CC-4…CC-7 + editing panel busy + demo + tests | Sonnet | `carousel-composer/**` incl. `features/editing/` (not types / meta / usage) | **done** — 1 new test file (19 tests), `editing-seam` key list +`onBusyChange`; falsified (6 + 2 reverts red → green); carousel + content-composer 18 files / 169 passed; tsc 0, eslint 0; no new shipped file. Coordinator spot-check: one crop maths for display + export (0.5 = 0.4.0 byte-for-byte), window-capture Escape guard only while busy, render-phase busy reset, add-on waits on media-editor's `whenSettled()`. Open for U5: focus after a button move (jsdom can't falsify it) |
+
+Coordinator: `meta.ts` (versions 0.8.0 / 0.5.0, features), `CHANGELOG.md` (media-editor, -capture, carousel-composer,
+-editing), `registry.json` (+ `lib/close-reason.ts`).
+
+## U3 — Gate battery
+
+- Run 1 (`E:/tmp/ilinxa-release-kit/logs/battery-r10-1`): tsc 0 · lint **1** (`validate-contract` keydown at
+  `carousel-composer.tsx:601` — the CC-6 window-capture listener) · registry:build 1 (same gate, so the version sync
+  never ran) · doc-budget 0 · tests 1 (3 failed, all cascade: contract-gate + 2 registry-versions; 236 / 238 files,
+  3 294 passed) · build 0.
+- Fix: `keydown-ok:` escape on the listener with its reason (it must run at window capture, before the dialog's
+  document-level Escape; `use-global-keydown` cannot). Run 2 (`…/battery-r10-2`): lint 0 (0 errors, **11** warnings —
+  below the 13 baseline) · registry:build 0 (registry-json 0 high, inert 0, barrel 0, artifact-size 0 high:
+  carousel-composer **142.9 KB vs 135** budget — set after the last fix wave; media-editor 456.5 / 470) · the two
+  cascade test files 56 / 56. tsc, build unchanged since run 1 (no source change but a comment).
+
+## U4 — Adversarial review (2 fresh Sonnet finders on the frozen snapshot `E:/tmp/ilinxa-release-kit/snap-r10`)
+
+**Finder B — carousel-composer** (9 rows; architect verdicts)
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| B1 | ⚠️ | `updateItem` clears `cropOffset` on ANY `url` change — an upload (`{ url: remote, status }`, same image) silently drops the author's pan; controlled `value` keeps it (inconsistent). The test pinned the bug. | **CONFIRMED** — the U1 contract was wrong. Clear only when the image changes: an edit apply, or a patch that changes `width` / `height`. Types JSDoc + test follow |
+| B2 | 🔸 | The edit panel's Done trims with `centredCropRect` (ignores `cropOffset`), then `applyEdit` deletes the offset — an edit loses the author's framing | **CONFIRMED** — trim with `offsetCropRect(…, item.cropOffset)` |
+| B3 | 🔸 | Re-edit path: the `whenSettled()` effect runs before the `loadState` effect, so "settled" can resolve before the load starts → not busy while loading | **CONFIRMED** (ordering) — start `whenSettled` after `loadState`, one effect; re-edit test |
+| B4 | 🔸 | Move pair (`start-0.5 top-0.5`, 2 × `size-5`) overlaps the remove button on narrow thumbs (9:16 ≈ 2.25rem, 4:5 ≈ 3.2rem) | **CONFIRMED** — relayout; browser measures at 9:16 |
+| B5 | 🔸 | `touch-none` on the whole pannable preview blocks vertical page scroll on phones | **CONFIRMED** — `touch-pan-y` when only x overflows, `touch-pan-x` when only y |
+| B6 | 🔸 | New labels missing from the TR / AR demo bundles in `dummy-data.ts` | **CONFIRMED** (demo / fixtures data) — add them |
+| B7 | 🔸 | Move pair is `pointer-events-none opacity-0` until focus-within → mouse / touch can't reach it; JSDoc + meta claim "touch-assistive" | **CONFIRMED** — reveal on thumb hover too; JSDoc says keyboard + assistive tech + tests |
+| B8 | 🔹 | `moveFocusRef` stays set when a controlled host rejects / echoes late → a later unrelated items change steals focus | **CONFIRMED** — clear the ref on the next effect run and after one frame |
+| B9 | 🔹 | Pan edges: (a) late-echo snap-back (live cleared on pointerup), (b) arrow steps from a stale offset, (c) no `onLostPointerCapture`, (d) second pointerdown overwrites the drag, (e)–(h) minor | **(a)(b)(c)(d) CONFIRMED** — keep the live offset until the committed value matches (or the item changes), step from the live value, cancel on lost capture, ignore a second pointer; (e)–(h) **DROPPED** (sub-pixel / unreachable: `"free"` is never pannable) |
+| B-x | 🔹 | A throwing `enableAltText` predicate crashes render | **DROPPED** — host code; same as every other host callback in the component |
+
+**Finder A — media-editor + dependents** (7 rows; architect verdicts)
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| A1 | 🔸 | `stageSizeFor` rounds the width and derives the height: the error scales by 1/R (9:16: stage 0.8 px taller or 1.2 px shorter than the box; 1:3 ≈ 2 px) — I1 says "within 1 px" | **CONFIRMED** — round the LONGER side, derive the shorter from it, clamp each side to the rounded measured size |
+| A2 | 🔸 | The size-container region has no intrinsic size: a host class that makes the dialog height `auto` (or an in-flow bar taller than the dialog) collapses the box to 0 — 0.7.0 still rendered | **CONFIRMED** (host-triggered) — dev-warn once when a fixed-aspect dialog region measures 0 |
+| A3 | 🔸 | Phone fullscreen 9:16: the ~75 px letterbox bands show the light dialog background behind chrome built for dark media (back arrow, story-composer's top bar, bottom scrim) | **CONFIRMED** — a fixed-aspect dialog defaults its root (the letterbox) to the canvas's dark default; `contentClassName` overrides. Visual check at U5 |
+| A4 | 🔹 | Two ME-4 tests are vacuous (`handle.close()` bypasses `onOpenChange`; a press inside never closes) | **CONFIRMED** — rewrite to drive the close through `onOpenChange` after a press with no click / after a portaled-child press |
+| A5 | 🔹 | Icon-only threshold ignores the crop-aspect count span (~50–60 px); I7 at 344 px is marginal; icon chips ~38 × 30 px | **CONFIRMED** — hide the count span in the narrow state; browser measures the threshold |
+| A6 | 🔹 | Touch backdrop: a keydown between the touch pointerdown and Radix's deferred click clears the record → the deferred dismissal closes the editor | **CONFIRMED** — only Escape clears the record |
+| A7 | 🔹 | (a) inline inset ring hidden under the canvas, (b) stray `relative` on chips, (c) orphaned JSDoc at the threshold, (d) no container-query units before Safari 16 | **(b)(c) CONFIRMED** (tidy) · **(a)(d) DROPPED** (cosmetic on the empty state only; container-query units are in every browser this library targets — Next 16 / React 19) |
+
+### U3 — battery after the fix wave (host under heavy load from other projects' tsc / vitest / eslint jobs)
+
+- Run 3 (`…/battery-r10-3`): tsc 0 (643 s) · lint 0 · registry:build 0 (artifact sizes: carousel-composer 146.7 /
+  135, carousel-composer-editing 14.2 / 13, media-editor 465.9 / 470 — budgets set at the final battery) · doc-budget
+  0 · tests: **partial** (196 / ~241 files ran; 11 failures, all 5 s timeouts) · build **1** — Turbopack PostCSS worker
+  "timeout while receiving message … deadline has elapsed" (load, not code).
+- Run 4 (`…/battery-r10-4`, build then serial tests): **build 0** (2 125 s) · tests 215 files passed, 6 failed (11
+  tests, all timeouts) + 20 workers never started. Every missing / failed file re-run alone (`rerun.log`, `one.out`
+  with `--testTimeout=120000`, `threads4.log` on the thread pool): all pass except two load-bound cases —
+  `tests/registry-deps-gate.test.ts` (the validator took 310 s inside the test; the same validator is green inside
+  `registry:build`, run 3) and code-block `component-soft-failure` (its own fixed 30 s timeout; 142 s of imports;
+  code-block is not in this diff). No assertion failure anywhere.
+
+### U4 fix wave (2 parallel Sonnet implementers; every row falsified red → green, byte-exact restore)
+
+- **media-editor (A1–A6):** `stageSizeFor` fits the largest ratio box, rounds the longer side, derives + clamps
+  (9:16 / 1:3 / 3:1 / 16:9 / 1:1 / 1.91:1 within 1 px, never larger — coordinator read the function); collapsed-region
+  dev warn (`canvas-region-collapsed`); fixed-aspect dialog root `bg-black` (the canvas's own default is `#000`,
+  `editor-canvas.tsx:137`; `bg-media-overlay` is a translucent scrim) before `contentClassName`; the two vacuous tests
+  replaced (stubbed reason-less `onOpenChange` + record lifetime, new `dismiss-record-lifetime-0-8-0.test.tsx`); count
+  span `sr-only` in the narrow state; only Escape clears the press record. A7b kept: the chips' `relative` anchors
+  their `sr-only` labels. Tests changed: `fixed-aspect` `stageSizeFor` cases (height-limited box), `tokens.test.ts`
+  `bg-black` allowlist 2 → 3. media-editor + story-composer: 38 files / 489 passed + 1 skipped; tsc 0; eslint 0;
+  contract 0.
+- **carousel-composer (B1–B9a–d):** url-only `updateItem` keeps `cropOffset` (size change clears); Done trims with
+  `offsetCropRect` — an off-centre window is cut from the full `region: "media"` export by a local `cropBlob`
+  (`createImageBitmap` + canvas, same MIME, 0.92), centred / no-canvas falls back to the editor's own trim
+  (coordinator read it; cost: a second encode for an off-centre cut — accepted); re-edit `loadState` then
+  `whenSettled` in one effect; move pair relaid (narrow thumbs < 5rem: between remove and grip; wide: bottom row
+  beside the grip) and shown on `group-hover` / `focus-within`; `touch-pan-y` / `touch-pan-x` by overflow axis;
+  TR / AR bundles complete (+ `aspectSwitch` / `aspectOption`, missing since 0.4.0) with a coverage test; focus-restore
+  ref keyed to the target index + cleared after a frame; pending pan kept until the host echoes, arrows step from it,
+  lost capture cancels, a second pointer ignored. Tests changed: the B1 test (was pinning the bug), the keyboard test's
+  `touch-none`. carousel + content-composer 19 files / 181 passed; tsc 0; eslint 0; contract 0. **Parked:** a
+  controlled host that never accepts a pan keeps showing the dragged offset (no reject signal); `exportMeta` overlay
+  coordinates are not re-based after an off-centre cut (`editorState` unaffected).
+
+## U5 — browser pass (fresh Sonnet, production build `next start -p 3200`, Chromium, `E:/tmp/ilinxa-release-kit/browser-r10/`)
+
+**Observed PASS:** I1 — Chat 9:16 dialog box 375.75 × 668 / stage 376 × 668 at 1440 (10 px side bands: the demo's 36 px
+in-flow host bar), phone 390 × 844 box 390 × 693.33 / stage 390 × 693, 344 × 740 box 344 × 611.55 / stage 344 × 612;
+root `rgb(0,0,0)`, padding 0, borders 0, light + dark; story-composer stage = its dialog exactly (396 × 704, gap 0).
+I2 — inline 16:9 / 1.91:1 within 1 px at 1280 × 900, 1280 × 560, 390, 344; no horizontal overflow. I3 — Crop keeps
+0.5625 and the text overlay keeps its photo point (0.162,0.146 → 0.163,0.148); Cancel pixel-identical. I4 — free
+inline unchanged (16 px padding, 1 px dashed, 600 × 337.5). I5 — `dismissOnOutsidePress={false}` mouse + touch
+backdrop stays open; Escape closes clean / confirms dirty; host Close works; default closes. I7 — 344 / 390 / 1280:
+six icon chips 38 × 30, scroller 256 = 256 (no scroll), names intact. I8 — video alt field + counter + placeholder,
+`<video aria-label>`, thumb name, axe 0. I9 — pan drag / clamp / arrows 5 % + Shift 20 %, thumb follows on commit,
+buttons don't pan, `touch-action` pan-y / pan-x, page scrolls 185 px on a vertical swipe, `export()` crops match
+(471,0 / 0,371). I10 — Escape during load and on re-edit keeps the dialog. I11 — hover reveal + click, no overlaps
+(narrow layout), focus kept, announcement, `aria-disabled` end, RTL (simulated). I12 — 0 console errors / hydration
+warnings across 4 pages (32 tabs), axe 0 on every demo panel, focus returns in media-editor + story-composer.
+
+| # | Sev | Finding | Verdict |
+|---|---|---|---|
+| F-1 | ⚠️ | carousel Escape guard: Done → Escape at once closes the host dialog every time — Done's export blocks the main thread (~940 ms, 387 KB JPEG), the queued keydown is delivered after the panel unmounted (guard gone); the guard also arms only after a state → effect chain (a same-task synthetic Escape was not swallowed) | **CONFIRMED** — arm the guard synchronously (a ref the panel's `onBusyChange` sets, a listener installed for the whole edit), the shipped panel reports busy BEFORE it starts the export, and swallow an Escape whose `timeStamp` precedes the end of the busy period (listener kept briefly after busy / unmount) |
+| F-2 | 🔹 | Pan: ArrowLeft on a tall item (no x overflow) changes `x` 50 → 45 % (stored offset + `onCropOffsetChange` move with no visible effect) | **CONFIRMED** (B9b regressed the no-overflow guard) — ignore + don't prevent an arrow on an axis without overflow |
+| F-3 | 🔸 | Light theme: axe `color-contrast` on the inactive mode pill (1.71 : 1), the capture placeholder (1.21 : 1) and the crop panel (2.22 : 1) — light-theme chrome on the new black letterbox (A3) | **CONFIRMED, caused by A3** — the edge-to-edge surface takes the dark colour scheme (`dark` class on the root → every token in the subtree is the dark theme), so all chrome is dark-on-dark-correct in either page theme |
+| F-4 | 🔹 | axe `aria-input-field-name`: the Text tool's size slider thumb has no name | **CONFIRMED** (pre-existing, cheap) — name it with `labels.text.fontSize` |
+| F-5 | 🔹 | stage up to +0.45 px past the fractional box | **DROPPED** — within the contract (clamped to the rounded box; ≤ 1 px) |
+| F-6 | 🔹 | tap sizes: icon chips 38 × 30, reorder pair 16 × 16 | **Follow-up** (spacing-exempt under WCAG 2.5.8: no other target within the 24 px circle — measured no overlaps); reply note |
+| F-7 | 🔹 | carousel "Escape guard" demo dialog: no Radix trigger → focus to `body` on close + a missing-Description warning (content-composer demo the same) | **CONFIRMED** for the carousel demo (fix the demo wiring); content-composer demo parked (not in this release) |
+| F-8 | 🔹 | Chat demo stage not edge to edge vertically (in-flow host bar) | **DROPPED** — the documented in-flow-row behaviour; story-composer (absolute bar) is exact |
+
+**Fix wave 2 — carousel (F-1, F-2, F-7 + demo reach):** busy is a ref set synchronously by the panel's
+`onBusyChange`; the window-capture listener lives for the whole edit plus a 1 s grace (`ESCAPE_GRACE_MS`) and swallows
+an Escape while busy or whose `timeStamp` precedes the end of the busy period (the edit closing ends it); the add-on
+reports busy synchronously at the start of Done. F-2 was float noise (`~1e-14` overflow on the fitted axis) — < 0.5 px
+now counts as no overflow. Demo: Escape-guard dialog with a trigger + description; Pan tab gains the editing add-on;
+Reorder tab gains 9:16 and `dir="rtl"` toggles. New `release-10-fix-wave-2.test.tsx` (9; 5 red with the reverts,
+byte-exact restore, green); the unmount-removal test now advances past the grace. carousel + content-composer 20 files
+/ 190 passed (thread pool — the forks pool would not start under load); tsc 0; eslint 0; contract 0. Coordinator read
+the guard.
+
+**Fix wave 2 — media-editor (F-3, F-4):** edge-to-edge root `dark bg-black text-foreground` + `color-scheme: dark`
+(before `contentClassName`); the discard confirm portals out and keeps the page theme; `overlay` is inside (dark —
+documented). F-4 was wider: all three slider kinds (text size, brush, every adjust slider) — shadcn `Slider` puts
+`aria-label` on the root, the focusable `role="slider"` is the thumb; new `hooks/use-slider-thumb-label.ts` labels the
+thumbs (Radix + Base UI; coordinator read it; added to `registry.json`). New `release-10-fix-wave-2-0-8-0.test.tsx` (6; 4
+red with the reverts, byte-exact restore, green). media-editor + story-composer 39 files / 495 passed + 1 skipped
+(thread pool); tsc 0; eslint 0; contract 0.
+
+### U5 — browser re-verify after fix wave 2 (fresh Sonnet, final build; `…/browser-r10/reverify/`) — 7 / 7 PASS
+
+F-1: Done after a real edit (blocking 460–700 ms export, 387 KB JPEG) → Escape at once: dialog stays open **10 / 10**;
+same-task synthetic Escape swallowed; Escape after Edit (loading) stays open; Escape ~2 s after Done / when idle
+closes (0.4.0 behaviour). Done on an UNMODIFIED edit exports nothing and is not busy — Escape closes there (expected).
+F-7: focus back on the trigger 10 / 10, no Radix warning. F-2: arrows ignored + not prevented on the axis without
+overflow, both item shapes. F-3: axe 0 violations (any rule) on the Chat dialog at capture / photo / Crop / Text, 1280
++ 390, light + dark, and story-composer; root `dark` + `color-scheme: dark` + black; inactive pill 7.25 : 1; the
+discard confirm is outside the root and keeps the page theme. F-4: every slider named (Size, Brush size, Brightness,
+Contrast, Saturation, Blur), persists across value changes and tool switches; axe `aria-input-field-name` 0 / 12.
+Newly reached: pan → Edit → Done keeps the framing (wide panned right → the right half; tall panned down → the bottom);
+9:16 rail at 1280 + 344 — thumb 36 × 64, pair / remove / grip no overlaps in any state, hover-click reorders, focus
+kept, `aria-disabled` end; native `dir="rtl"` — item 1 rightmost, earlier / later logical, chevrons rotated,
+announcements. Regression: Chat 390 stage 390 × 693, dismiss cases, pan drag + clamp, 0 console errors / hydration
+warnings on four pages (48 tabs). Not run: WebKit, a Base UI consumer, touch (unchanged since the first pass).
+
+### U3 — final battery (run 5 + the final test run; the host still loaded by other projects)
+
+Run 5 (`…/battery-r10-5`): tsc 0 · lint 0 · registry:build 0 · doc-budget 0 · build 0 (3 035 s) · tests partial (45
+workers never started; 10 timeouts; no assertion failure). After the budgets / doc fixes: registry:build 0 (budgets:
+media-editor 468.0 / 490, carousel-composer 147.8 / 155, editing 14.5 / 16, capture 53.7 / 65 — 0 high). **Final full
+test run** (`…/final-r10/tests.log`, `NODE_ENV=production`, thread pool, serial, 120 s timeout): **239 / 239 files,
+3 319 passed, 0 failed**; the 4 files whose worker did not start, run alone: 4 / 4, 21 passed. **243 / 243 files green.**
+
+### U5 — installs (`pnpm test:install`, local `public/r` after the last `registry:build`)
+
+The harness's fresh consumers time out in their own BASELINE `pnpm install` (before anything of ours is added — pnpm
+linking from the store at ~1 package / 10 s on this host; seen idle at 13 % CPU too): a / b / c / d / f exit 1 at 600 s
+with no component added (twice for a). **e — `story-composer` @ CLI 3.8.5: PASS**, exit 0, consumer tsc 0 (pulls
+media-editor 0.8.0). Kept-consumer path (release-8 precedent): consumer e (`E:/tmp/ilinxa-it-r10e/cli-3.8.5`), `@ilinxa`
+pointed at a local server of `public/` → `shadcn@3.8.5 add @ilinxa/media-editor @ilinxa/media-editor-capture
+@ilinxa/carousel-composer @ilinxa/carousel-composer-editing --overwrite` exit 0 (new `lib/close-reason.ts`,
+`hooks/use-slider-thumb-label.ts`, `features/editing/`, `features/capture/` landed) → **consumer tsc 0**. Negative path
+(base carousel-composer brings no media-editor): the `install-graph` test (green in the final run). CLI 4.18.0 not
+re-run on a fresh consumer (the baseline install) — the platform re-adds on their own toolchain.
+
+Not run (no demo reaches them): stage export, `contentClassName`, pan → Edit → Done (unit-tested, B2), reorder at a
+9:16 aspect, native RTL rail (the demo wraps in `dir=ltr`; `useDirection` reads at mount), WebKit. Fix wave 2 adds a
+pan + editing tab and a 9:16 option to the reorder tab so the re-verify can reach them.
+
+Base UI is not installed in this repo (`node_modules/@base-ui*` absent) — the reason strings are checked against the known enum by reading; the platform's Base UI version is the real test (reply note).
+

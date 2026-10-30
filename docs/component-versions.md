@@ -3,7 +3,7 @@
 # Component Versions
 
 > Generated snapshot — pure data view derived from every `meta.ts` under `src/registry/components/`. **Do not hand-edit** — regenerate with `pnpm build:component-versions`.
-> Snapshot marker: **2026-10-29** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
+> Snapshot marker: **2026-10-30** (max `updatedAt` across all component meta.ts files — not wall-clock; keeps this file byte-stable across reruns on unchanged inputs).
 
 ## Summary
 
@@ -112,10 +112,10 @@
 
 | Slug | Name | Version | Status | Updated |
 |---|---|---|---|---|
-| `carousel-composer` | Carousel Composer | 0.4.0 | alpha | 2026-10-29 |
+| `carousel-composer` | Carousel Composer | 0.5.0 | alpha | 2026-10-30 |
 | `content-composer` | Content Composer | 0.3.3 | alpha | 2026-10-24 |
 | `media-carousel` | Media Carousel | 0.4.0 | alpha | 2026-10-29 |
-| `media-editor` | Media Editor | 0.7.0 | alpha | 2026-10-29 |
+| `media-editor` | Media Editor | 0.8.0 | alpha | 2026-10-30 |
 | `media-library` | Media Library | 0.2.3 | alpha | 2026-10-24 |
 | `pdf-viewer` | PDF Viewer | 0.1.7 | alpha | 2026-10-24 |
 | `story-composer` | Story Composer | 0.6.1 | alpha | 2026-10-25 |

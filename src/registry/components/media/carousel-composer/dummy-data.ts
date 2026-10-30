@@ -44,6 +44,27 @@ export const dummyCarouselItems: MediaCarouselItem[] = [
   },
 ];
 
+/** Mixed-ratio photos (wide, tall, square) so a fixed shared aspect has something to pan. */
+export const dummyPanItems: MediaCarouselItem[] = [
+  {
+    id: "pan-1",
+    kind: "image",
+    url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&h=800&fit=crop",
+    width: 1600,
+    height: 800,
+    fileName: "wide.jpg",
+  },
+  {
+    id: "pan-2",
+    kind: "image",
+    url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=1400&fit=crop",
+    width: 800,
+    height: 1400,
+    fileName: "tall.jpg",
+  },
+  { ...dummyCarouselItems[3], id: "pan-3" },
+];
+
 /** Host-owned upload state: item 1 is uploading at 40 %, item 2 failed. */
 export const dummyStatusItems: MediaCarouselItem[] = [
   { ...dummyCarouselItems[0], id: "status-1", status: "uploading", progress: 0.4 },
@@ -110,6 +131,18 @@ export const turkishLabels: CarouselComposerLabelsInput = {
     }
   },
   durationLabel: (formatted) => `Süre ${formatted}`,
+  aspectSwitch: "En boy oranı",
+  aspectOption: (aspect, format) => {
+    if (aspect === "original") return "Orijinal";
+    if (aspect === "free") return "Serbest";
+    const [w, h] = aspect.split(":");
+    return `${format(Number(w))}:${format(Number(h))}`;
+  },
+  altPlaceholderVideo: "Görmeyen kişiler için bu videoyu açıklayın",
+  panHint: "Fotoğrafı yeniden konumlandırın. Sürükleyin veya ok tuşlarını kullanın.",
+  moveEarlier: ({ position }) => `${position}. öğeyi öne taşı`,
+  moveLater: ({ position }) => `${position}. öğeyi arkaya taşı`,
+  moved: (position, total) => `Öğe ${total} içinde ${position}. konuma taşındı.`,
   errors: {
     unsupportedType: ({ type }) => `Desteklenmeyen dosya türü: ${type || "bilinmiyor"}`,
     kindNotAccepted: ({ kind }) =>
@@ -180,6 +213,18 @@ export const arabicLabels: CarouselComposerLabelsInput = {
     }
   },
   durationLabel: (formatted) => `المدة ${formatted}`,
+  aspectSwitch: "نسبة العرض إلى الارتفاع",
+  aspectOption: (aspect, format) => {
+    if (aspect === "original") return "الأصلية";
+    if (aspect === "free") return "حرة";
+    const [w, h] = aspect.split(":");
+    return `${format(Number(w))}:${format(Number(h))}`;
+  },
+  altPlaceholderVideo: "صف هذا الفيديو لمن لا يستطيعون رؤيته",
+  panHint: "أعد وضع الصورة. اسحبها أو استخدم مفاتيح الأسهم.",
+  moveEarlier: ({ position }) => `نقل العنصر ${position} إلى موضع أسبق`,
+  moveLater: ({ position }) => `نقل العنصر ${position} إلى موضع أبعد`,
+  moved: (position, total) => `نُقل العنصر إلى الموضع ${position} من ${total}.`,
   errors: {
     unsupportedType: ({ type }) => `نوع ملف غير مدعوم: ${type || "غير معروف"}`,
     kindNotAccepted: ({ kind }) =>

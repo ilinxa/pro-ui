@@ -26,6 +26,7 @@ import type {
   CarouselAspectRatio,
   CarouselComposerHandle,
   CarouselComposerProps,
+  CarouselCropOffset,
   MediaCarouselItem,
   MediaCarouselItemStatus,
 } from "./types";
@@ -34,7 +35,7 @@ import { filesToItems } from "./lib/file-intake";
 import { clampSources } from "./lib/clamp-sources";
 import {
   aspectToCss,
-  centredCropRect,
+  offsetCropRect,
   isValidAspect,
   resolveAspect,
 } from "./lib/aspect";
@@ -53,6 +54,9 @@ import { EditFrame } from "./parts/edit-frame";
 import { AspectSwitch } from "./parts/aspect-switch";
 import { formatNumber as formatLocaleNumber } from "./lib/format-number";
 import { useControllableState } from "./hooks/use-controllable-state";
+
+/** How long the Escape guard outlives an edit (see the effect that installs it). */
+const ESCAPE_GRACE_MS = 1000;
 
 /**
  * carousel-composer — a multi-item media composer (Instagram-feed-post
@@ -95,7 +99,12 @@ function CarouselComposerImpl(
     onItemAdd,
     onItemRemove,
     onReorder,
+    onMove,
     onSelect,
+    enablePan = false,
+    onCropOffsetChange,
+    reorderButtons = false,
+    onEditingChange,
     onEditOpen,
     onEditApply,
     onEditCancel,
@@ -116,6 +125,15 @@ function CarouselComposerImpl(
       ),
     );
   }, [legacyKeyList, warnOnce]);
+  // Which items may be described: resolved once, here.
+  const altEnabledFor = (it: MediaCarouselItem): boolean =>
+    typeof enableAltText === "function"
+      ? enableAltText(it)
+      : enableAltText === "all"
+        ? true
+        : enableAltText === true || enableAltText === "images"
+          ? it.kind === "image"
+          : false;
   const maxAltLength = Math.max(1, maxAltLengthProp ?? 200);
   const formatDuration = useMemo(
     () => formatDurationProp ?? ((s: number) => defaultFormatDuration(s, locale)),
@@ -413,6 +431,64 @@ function CarouselComposerImpl(
     setErrors([]);
   };
 
+  // Non-drag reorder: the same path as a drop (`state.reorder`), one step at a time.
+  const moveFocusRef = useRef<{ id: string; which: string; to: number } | null>(null);
+  const { editingId: editingIdForMove } = state;
+  const moveBy = useCallback(
+    (id: string, delta: number, which?: string) => {
+      if (editingIdForMove !== null || delta === 0 || !Number.isFinite(delta)) return;
+      const list = state.getItems();
+      const from = list.findIndex((it) => it.id === id);
+      if (from < 0) return;
+      const to = Math.min(list.length - 1, Math.max(0, from + Math.trunc(delta)));
+      if (to === from) return;
+      if (which) {
+        const pending = { id, which, to };
+        moveFocusRef.current = pending;
+        // A host that never echoes the move must not leave this armed for a later change.
+        const drop = () => {
+          if (moveFocusRef.current === pending) moveFocusRef.current = null;
+        };
+        if (typeof requestAnimationFrame === "function") requestAnimationFrame(drop);
+        else setTimeout(drop, 0);
+      }
+      state.reorder(arrayMove(list, from, to));
+      onMove?.(id, to - from);
+      if (which) {
+        say((labels.moved ?? defaultCarouselComposerLabels.moved!)(to + 1, list.length));
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editingIdForMove, state.getItems, state.reorder, onMove, say, labels],
+  );
+  // A moved thumb is re-inserted by the browser, which can drop focus: put it back on the
+  // same button (an end-of-list button stays focusable because it is aria-disabled).
+  useEffect(() => {
+    const target = moveFocusRef.current;
+    if (!target) return;
+    // Consume the request on this run either way; only a list that really shows the moved
+    // item at its new index may take focus (a controlled host may reject or echo late).
+    moveFocusRef.current = null;
+    if (state.items[target.to]?.id !== target.id) return;
+    const el = Array.from(
+      rootRef.current?.querySelectorAll<HTMLElement>("[data-thumb-move]") ?? [],
+    ).find(
+      (b) =>
+        b.getAttribute("data-thumb-id") === target.id &&
+        b.getAttribute("data-thumb-move") === target.which,
+    );
+    if (el && document.activeElement !== el) el.focus();
+  }, [state.items]);
+
+  const { updateItem: updateItemState } = state;
+  const handlePanCommit = useCallback(
+    (id: string, offset: CarouselCropOffset) => {
+      updateItemState(id, { cropOffset: offset });
+      onCropOffsetChange?.(id, offset);
+    },
+    [updateItemState, onCropOffsetChange],
+  );
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, {
@@ -471,7 +547,7 @@ function CarouselComposerImpl(
         getItems().map((it) => {
           const copy = { ...it };
           if (it.kind === "image" && resolvedRatio !== null && it.width && it.height) {
-            copy.crop = centredCropRect(it.width, it.height, resolvedRatio);
+            copy.crop = offsetCropRect(it.width, it.height, resolvedRatio, it.cropOffset);
           } else {
             delete copy.crop;
           }
@@ -479,6 +555,7 @@ function CarouselComposerImpl(
         }),
       addFiles: (files) => addFilesRef.current(files),
       removeItem,
+      moveItem: (id, delta) => moveBy(id, delta),
       updateItem,
       select: selectItem,
       openEditor: (id: string) => {
@@ -491,13 +568,65 @@ function CarouselComposerImpl(
       reset: resetItems,
       getAspect: () => ({ aspect: resolvedAspect, ratio: resolvedRatio }),
     }),
-    [resolvedAspect, resolvedRatio, removeItem, updateItem, selectItem, openEditorState, resetItems, getItems, editing, warnOpenWithoutEditing],
+    [resolvedAspect, resolvedRatio, removeItem, updateItem, selectItem, openEditorState, resetItems, getItems, editing, warnOpenWithoutEditing, moveBy],
   );
 
   const isEmpty = state.items.length === 0;
   const isEditing =
     editing !== undefined && state.editingId !== null && state.editingItem !== null;
   const EditingPanel = editing?.Panel;
+
+  // onEditingChange: true on open, false on close; never a false without a true.
+  const editingReported = useRef(false);
+  const onEditingChangeRef = useRef(onEditingChange);
+  useEffect(() => {
+    onEditingChangeRef.current = onEditingChange;
+  });
+  useEffect(() => {
+    if (isEditing === editingReported.current) return;
+    editingReported.current = isEditing;
+    onEditingChangeRef.current?.(isEditing);
+  }, [isEditing]);
+  useEffect(
+    () => () => {
+      if (!editingReported.current) return;
+      editingReported.current = false;
+      onEditingChangeRef.current?.(false);
+    },
+    [],
+  );
+
+  // Escape guard: while the panel reports busy, Escape is swallowed at window capture
+  // (before Radix / Base UI see it at the document), so no host dialog closes mid-prepare.
+  // Busy lives in a ref (set synchronously by the panel's onBusyChange), not state: a same-task
+  // Escape must already see it. `busyEndRef` is when the last busy period ended (performance.now()
+  // clock = event.timeStamp's): a main-thread-blocking export queues the Escape, which is then
+  // delivered AFTER busy went false / the panel unmounted — its timeStamp still says "while busy".
+  const busyRef = useRef(false);
+  const busyEndRef = useRef(-1);
+  const setPanelBusy = useCallback((busy: boolean) => {
+    if (busyRef.current && !busy) busyEndRef.current = performance.now();
+    busyRef.current = busy;
+  }, []);
+  useEffect(() => {
+    if (!isEditing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.isComposing) return;
+      if (!busyRef.current && e.timeStamp > busyEndRef.current) return;
+      e.stopPropagation();
+      e.preventDefault();
+    };
+    // keydown-ok: must run at window capture, before the dialog's document-level Escape handling; only Escape, and it acts only while a panel is busy (or was when the key was pressed)
+    window.addEventListener("keydown", onKey, true);
+    return () => {
+      // Busy never outlives its edit.
+      setPanelBusy(false);
+      // Keep the listener a moment past the close: a keydown queued behind the blocking export
+      // is delivered in the next task(s). 1 s is far longer than that and shorter than any
+      // deliberate second Escape.
+      window.setTimeout(() => window.removeEventListener("keydown", onKey, true), ESCAPE_GRACE_MS);
+    };
+  }, [isEditing, setPanelBusy]);
   const sel = state.selectedItem;
   const canEdit =
     editing !== undefined &&
@@ -540,6 +669,7 @@ function CarouselComposerImpl(
             editSaving: labels.editSaving,
             editError: labels.editError,
           }}
+          onBusyChange={setPanelBusy}
           onApply={state.applyEdit}
           onCancel={state.cancelEdit}
         />
@@ -551,6 +681,15 @@ function CarouselComposerImpl(
           canEdit={canEdit}
           editingEnabled={editing !== undefined}
           labels={labels}
+          ratio={resolvedRatio}
+          pan={
+            enablePan
+              ? {
+                  label: labels.panHint ?? defaultCarouselComposerLabels.panHint!,
+                  onCommit: handlePanCommit,
+                }
+              : undefined
+          }
           aspectSwitch={
             showSwitch ? (
               <AspectSwitch
@@ -583,7 +722,7 @@ function CarouselComposerImpl(
             total={state.items.length}
             onRetry={handleRetry}
           />
-          {enableAltText ? (
+          {state.selectedItem && altEnabledFor(state.selectedItem) ? (
             <AltField
               item={state.selectedItem}
               maxLength={maxAltLength}
@@ -647,6 +786,11 @@ function CarouselComposerImpl(
             onSelect={state.select}
             onRemove={handleRemove}
             onFiles={addFiles}
+            reorderButtons={reorderButtons}
+            onMove={(id, delta) => {
+              const which = delta < 0 ? "earlier" : "later";
+              moveBy(id, delta, which);
+            }}
             dir={dir}
           />
         </DndContext>

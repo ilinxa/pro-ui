@@ -302,6 +302,8 @@ export function useCarouselState(
         width: patch.width ?? prev.width,
         height: patch.height ?? prev.height,
       };
+      // The edit bakes the frame into the image: a pan offset no longer applies.
+      delete updated.cropOffset;
       delete updated.status;
       delete updated.progress;
       delete updated.error;
@@ -319,6 +321,15 @@ export function useCarouselState(
       const idx = cur.findIndex((it) => it.id === id);
       if (idx < 0) return;
       const updated: MediaCarouselItem = { ...cur[idx], ...patch };
+      // A different image (new pixel size) has its own frame: the old pan offset does not
+      // carry over. A url-only patch (an upload of the same image) keeps it.
+      const prevItem = cur[idx];
+      const sizeChanged =
+        (patch.width !== undefined && patch.width !== prevItem.width) ||
+        (patch.height !== undefined && patch.height !== prevItem.height);
+      if (sizeChanged && !("cropOffset" in patch)) {
+        delete updated.cropOffset;
+      }
       // A new blob: URL from the host is the host's to revoke; the old owned one
       // is released by the orphan effect once it leaves `items`.
       setItems(cur.map((it, i) => (i === idx ? updated : it)));

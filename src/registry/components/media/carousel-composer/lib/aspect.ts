@@ -127,6 +127,26 @@ export function thumbHeightRem(ratio: number | null): number {
  * in integer pixels. The full rectangle when the ratio already matches within rounding.
  */
 export function centredCropRect(width: number, height: number, ratio: number): CarouselCropRect {
+  return offsetCropRect(width, height, ratio);
+}
+
+/** A cropOffset axis clamped to [0, 1]; missing / non-finite = centred. */
+export function clampOffset(n: number | undefined): number {
+  if (typeof n !== "number" || !Number.isFinite(n)) return 0.5;
+  return Math.min(1, Math.max(0, n));
+}
+
+/**
+ * The same rectangle as `centredCropRect`, positioned by a focal point (`ox` / `oy`
+ * from 0 to 1 over the overflow; 0.5 = centred). The ONE maths for the shown region
+ * (`object-position`) and `export()`'s `crop`.
+ */
+export function offsetCropRect(
+  width: number,
+  height: number,
+  ratio: number,
+  offset?: { x: number; y: number },
+): CarouselCropRect {
   const full: CarouselCropRect = { x: 0, y: 0, width, height };
   if (!(width > 0) || !(height > 0) || !(ratio > 0) || !Number.isFinite(ratio)) return full;
   // Relative error, so a tiny image (2 x 1 at ratio 1) is not read as "already matching".
@@ -135,5 +155,7 @@ export function centredCropRect(width: number, height: number, ratio: number): C
   let h = height;
   if (width / height > ratio) w = Math.min(width, Math.max(1, Math.round(height * ratio)));
   else h = Math.min(height, Math.max(1, Math.round(width / ratio)));
-  return { x: Math.floor((width - w) / 2), y: Math.floor((height - h) / 2), width: w, height: h };
+  const ox = clampOffset(offset?.x);
+  const oy = clampOffset(offset?.y);
+  return { x: Math.floor((width - w) * ox), y: Math.floor((height - h) * oy), width: w, height: h };
 }

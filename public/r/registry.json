@@ -7502,6 +7502,11 @@
           "target": "components/media-editor/hooks/use-konva-stage-size.ts"
         },
         {
+          "path": "src/registry/components/media/media-editor/hooks/use-slider-thumb-label.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/hooks/use-slider-thumb-label.ts"
+        },
+        {
           "path": "src/registry/components/media/media-editor/hooks/use-media-editor-state.ts",
           "type": "registry:component",
           "target": "components/media-editor/hooks/use-media-editor-state.ts"
@@ -7687,6 +7692,11 @@
           "target": "components/media-editor/lib/crop-aspect.ts"
         },
         {
+          "path": "src/registry/components/media/media-editor/lib/close-reason.ts",
+          "type": "registry:component",
+          "target": "components/media-editor/lib/close-reason.ts"
+        },
+        {
           "path": "src/registry/components/media/media-editor/lib/export-geometry.ts",
           "type": "registry:component",
           "target": "components/media-editor/lib/export-geometry.ts"
@@ -7703,7 +7713,7 @@
         }
       ],
       "meta": {
-        "version": "0.7.0",
+        "version": "0.8.0",
         "status": "alpha"
       }
     },
@@ -7729,7 +7739,7 @@
         }
       ],
       "meta": {
-        "version": "0.7.0",
+        "version": "0.8.0",
         "status": "alpha"
       }
     },
@@ -7746,7 +7756,7 @@
       "meta": {
         "featureOf": "media-editor",
         "budgetKB": 65,
-        "version": "0.7.0",
+        "version": "0.8.0",
         "status": "alpha"
       },
       "registryDependencies": [
@@ -8188,7 +8198,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.0",
+        "version": "0.5.0",
         "status": "alpha"
       },
       "cssVars": {
@@ -8221,7 +8231,7 @@
         }
       ],
       "meta": {
-        "version": "0.4.0",
+        "version": "0.5.0",
         "status": "alpha"
       }
     },
@@ -8237,8 +8247,8 @@
       ],
       "meta": {
         "featureOf": "carousel-composer",
-        "budgetKB": 13,
-        "version": "0.4.0",
+        "budgetKB": 16,
+        "version": "0.5.0",
         "status": "alpha"
       },
       "registryDependencies": [

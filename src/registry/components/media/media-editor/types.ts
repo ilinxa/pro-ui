@@ -715,6 +715,13 @@ export interface MediaEditorProps {
   /**
    * Aspect lock for the editor canvas. Default "free" (Q-P1). 0.7.0: also any
    * `"W:H"` (see `CanvasAspect`); an invalid value falls back to "free".
+   *
+   * A fixed aspect fixes the on-screen stage (0.8.0): the canvas is the largest
+   * box of that ratio that fits the available area, centred, with the
+   * letterbox outside it — on every viewport, in both presentations, and while
+   * the crop panel takes space. A `region: "stage"` export is therefore that
+   * ratio. In dialog presentation the stage also runs edge to edge (no padding
+   * or border around it).
    */
   aspect?: CanvasAspect;
 
@@ -734,6 +741,25 @@ export interface MediaEditorProps {
    * merged after the editor's own.
    */
   dialogClassName?: string;
+  /**
+   * Extra classes for the editor's root surface (`data-slot="media-editor"`),
+   * in both presentations, merged after the editor's own — e.g. `p-0 border-0`
+   * to drop the inline card chrome, or a background that colours the letterbox
+   * around a fixed-aspect stage. In a fixed-aspect dialog the surface is a dark
+   * surface: the letterbox defaults to the canvas's black and the editor's
+   * chrome inside it (and your `renderTopBar` / `overlay`) uses the dark
+   * colour scheme whatever the page theme; pass a `bg-*` class here to change
+   * the letterbox colour.
+   */
+  contentClassName?: string;
+  /**
+   * Whether a press on the dialog's backdrop asks to close the editor (dialog
+   * presentation only; no effect inline). Default `true`. With `false` a
+   * backdrop press does nothing, while Escape, `handle.close()` and the host's
+   * own close control keep working (a dirty editor still shows the discard
+   * confirm).
+   */
+  dismissOnOutsidePress?: boolean;
   /**
    * CSS colour shown behind the photo on the canvas. When set, image exports
    * are filled with it too (an export's `backgroundColor` still wins), so the

@@ -2213,7 +2213,14 @@ export default function CardTreeNodeDemo() {
 import * as React from "react";
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeTabsList } from "@/components/site/swipe-tabs-list";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { CarouselComposer } from "./carousel-composer";
 import type {
   CarouselComposerHandle,
@@ -2225,6 +2232,7 @@ import { carouselEditing } from "./features/editing";
 import {
   arabicLabels,
   dummyCarouselItems,
+  dummyPanItems,
   dummyStatusItems,
   turkishLabels,
 } from "./dummy-data";
@@ -2351,6 +2359,122 @@ function StatusTab() {
   );
 }
 
+function AltVideoTab() {
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer defaultValue={dummyCarouselItems} enableAltText="all" />
+      <Status>
+        enableAltText=&quot;all&quot;: select the video (item 3) and describe it; the preview video is named by that text.
+      </Status>
+    </div>
+  );
+}
+
+function PanTab() {
+  const ref = React.useRef<CarouselComposerHandle>(null);
+  const [log, setLog] = React.useState("—");
+  const [crops, setCrops] = React.useState<string[]>([]);
+  return (
+    <div className="mx-auto max-w-md">
+      <CarouselComposer
+        ref={ref}
+        defaultValue={dummyPanItems}
+        defaultAspect="1:1"
+        aspectOptions={["1:1", "4:5", "1.91:1"]}
+        enablePan
+        editing={carouselEditing}
+        editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
+        onCropOffsetChange={(id, o) => setLog(\`\${id} → \${o.x.toFixed(2)}, \${o.y.toFixed(2)}\`)}
+      />
+      <div className="mt-3">
+        <Button
+          size="sm"
+          onClick={async () => {
+            const out = (await ref.current?.export()) ?? [];
+            setCrops(
+              out.map((it, i) =>
+                it.crop ? \`#\${i + 1} \${it.crop.width}x\${it.crop.height} @\${it.crop.x},\${it.crop.y}\` : \`#\${i + 1} no crop\`,
+              ),
+            );
+          }}
+        >
+          Export
+        </Button>
+      </div>
+      <Status>
+        Drag the wide or tall photo inside the frame, or focus it and use the arrow keys (Shift = 20 %). The rail
+        thumb follows. Pan, then Edit and Done: the framing survives the edit and the offset clears. onCropOffsetChange: {log}
+        {crops.length ? \` · \${crops.join(" · ")}\` : ""}
+      </Status>
+    </div>
+  );
+}
+
+function ReorderTab() {
+  const ref = React.useRef<CarouselComposerHandle>(null);
+  const [log, setLog] = React.useState("—");
+  // The narrowest thumb (9:16) and a native RTL mount; the rail reads direction at mount, so
+  // either switch remounts the composer.
+  const [narrow, setNarrow] = React.useState(false);
+  const [rtl, setRtl] = React.useState(false);
+  return (
+    <div className="mx-auto max-w-md" dir={rtl ? "rtl" : undefined}>
+      <CarouselComposer
+        key={\`\${narrow}-\${rtl}\`}
+        ref={ref}
+        defaultValue={dummyCarouselItems}
+        defaultAspect={narrow ? "9:16" : undefined}
+        aspectOptions={narrow ? ["9:16"] : undefined}
+        reorderButtons
+        onMove={(id, d) => setLog(\`\${id} \${d > 0 ? "+" : ""}\${d}\`)}
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" onClick={() => ref.current?.moveItem("seed-1", 1)}>
+          handle.moveItem(seed-1, +1)
+        </Button>
+        <Button size="sm" variant="outline" aria-pressed={narrow} onClick={() => setNarrow((v) => !v)}>
+          Shared aspect 9:16
+        </Button>
+        <Button size="sm" variant="outline" aria-pressed={rtl} onClick={() => setRtl((v) => !v)}>
+          Mount under dir=rtl
+        </Button>
+      </div>
+      <Status>
+        Tab to a thumb: a move earlier / later pair appears on focus (logical direction, works in RTL). onMove: {log}
+      </Status>
+    </div>
+  );
+}
+
+function EscapeTab() {
+  const [open, setOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState(false);
+  return (
+    <div className="mx-auto max-w-md">
+      <Dialog open={open} onOpenChange={setOpen}>
+        {/* A real trigger: closing returns focus to it instead of <body>. */}
+        <DialogTrigger className={buttonVariants({ size: "sm" })}>
+          Open carousel in a dialog
+        </DialogTrigger>
+        <DialogContent className="max-w-lg">
+          <DialogTitle>Post media</DialogTitle>
+          <DialogDescription>Add, reorder and edit the media for this post.</DialogDescription>
+          <CarouselComposer
+            defaultValue={dummyCarouselItems.slice(0, 2)}
+            editing={carouselEditing}
+            onEditingChange={setEditing}
+            editorProps={{ enabledTools: ["crop", "filters", "adjust"] }}
+          />
+        </DialogContent>
+      </Dialog>
+      <Status>
+        Press Edit, then Escape while the editor loads or Done is exporting: the dialog stays open. When idle,
+        Escape closes it as before. Editing now: {String(editing)}.
+      </Status>
+    </div>
+  );
+}
+
 function LocaleTab({
   dir,
   locale,
@@ -2429,6 +2553,10 @@ export default function CarouselComposerDemo() {
         <TabsTrigger value="max">Max 3</TabsTrigger>
         <TabsTrigger value="aspect">Aspect switch</TabsTrigger>
         <TabsTrigger value="status">Upload status</TabsTrigger>
+        <TabsTrigger value="alt-video">Alt for videos</TabsTrigger>
+        <TabsTrigger value="pan">Pan</TabsTrigger>
+        <TabsTrigger value="reorder">Reorder buttons</TabsTrigger>
+        <TabsTrigger value="escape">Escape guard</TabsTrigger>
         <TabsTrigger value="tr">Türkçe</TabsTrigger>
         <TabsTrigger value="ar">العربية (RTL)</TabsTrigger>
       </SwipeTabsList>
@@ -2450,6 +2578,18 @@ export default function CarouselComposerDemo() {
       </TabsContent>
       <TabsContent value="status" className="pt-4">
         <StatusTab />
+      </TabsContent>
+      <TabsContent value="alt-video" className="pt-4">
+        <AltVideoTab />
+      </TabsContent>
+      <TabsContent value="pan" className="pt-4">
+        <PanTab />
+      </TabsContent>
+      <TabsContent value="reorder" className="pt-4">
+        <ReorderTab />
+      </TabsContent>
+      <TabsContent value="escape" className="pt-4">
+        <EscapeTab />
       </TabsContent>
       <TabsContent value="tr" className="pt-4">
         <LocaleTab dir="ltr" locale="tr" labels={turkishLabels} note="Turkish labels and tr-locale formatting. Turkish writes digits the same way as English, so the video length still reads 1:15." />
@@ -10570,8 +10710,22 @@ function NewsHeroDemo() {
 function ChatDemo() {
   const editorRef = React.useRef<MediaEditorHandle>(null);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [dismissOnOutsidePress, setDismissOnOutsidePress] = React.useState(true);
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        0.8.0: a fixed aspect fits the stage (letterboxed on any viewport) and
+        runs edge to edge in the dialog; untick the box below to make a backdrop
+        press do nothing (Escape and the host close button still work).
+      </p>
+      <label className="flex items-center gap-2 text-xs">
+        <input
+          type="checkbox"
+          checked={dismissOnOutsidePress}
+          onChange={(e) => setDismissOnOutsidePress(e.target.checked)}
+        />
+        <code>dismissOnOutsidePress</code>
+      </label>
       <p className="text-xs text-muted-foreground">
         DM-style: tap <em>Open</em> to launch a 9:16 dialog editor for
         capture + edit + send. <code>enabledModes</code> excludes{" "}
@@ -10589,6 +10743,16 @@ function ChatDemo() {
         ref={editorRef}
         aspect="9:16"
         presentation="dialog"
+        dismissOnOutsidePress={dismissOnOutsidePress}
+        renderTopBar={() => (
+          <button
+            type="button"
+            className="self-end rounded-md bg-background/80 px-2 py-1 text-xs"
+            onClick={() => editorRef.current?.close()}
+          >
+            Close
+          </button>
+        )}
         enabledModes={["photo", "video"]}
         capture={mediaCapture}
         isOpen={isOpen}

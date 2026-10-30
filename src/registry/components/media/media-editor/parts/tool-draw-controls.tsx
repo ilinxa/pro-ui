@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ColorSwatchPicker } from "./color-swatch-picker";
+import { useSliderThumbLabel } from "../hooks/use-slider-thumb-label";
 import { formatNumber } from "../lib/format-number";
 import type { MediaEditorResolvedLabels } from "../types";
 
@@ -37,6 +38,7 @@ export function ToolDrawControls({
   onModeChange,
   className,
 }: ToolDrawControlsProps) {
+  const sizeRef = useSliderThumbLabel(labels.drawBrush);
   return (
     <div
       className={cn(
@@ -103,6 +105,7 @@ export function ToolDrawControls({
           {labels.drawBrush}
         </span>
         <Slider
+          ref={sizeRef}
           value={[brushSize]}
           min={MIN_BRUSH}
           max={MAX_BRUSH}

@@ -10,6 +10,7 @@ export type {
   CarouselComposerLabels,
   CarouselAspectRatio,
   CarouselCropRect,
+  CarouselCropOffset,
   CarouselExportMeta,
   CarouselEditingExtension,
   CarouselEditorPanelProps,

@@ -10,6 +10,7 @@ export const meta: ComponentMeta = {
   context:
     "The reusable Konva-based editor lifted out of story-composer v0.1.5. Four orthogonal capability dials (enabledModes, enabledTools, mediaSources, aspect) plus initialSource intake and inline/dialog presentation let consumers pull as little or as much editor surface as their context needs. The chrome follows an Instagram model: mode tabs appear only in the capture stage and are replaced by a back-to-capture arrow once a draft exists; bottom edit tools overlay a full-bleed canvas; the canvas drag-pans with a single pointer (plus 2-finger / wheel / keyboard zoom). Story-composer-01 v0.2.0 is a thin wrapper around this. content-composer, chat-panel attachments, and CMS hero editors are downstream consumers.",
   features: [
+    "v0.8.0 — a fixed `aspect` fixes the stage: the canvas is the largest box of that ratio that fits, centred, with the letterbox outside it, on every viewport and in both presentations (inline no longer loses the ratio to its height cap; Crop keeps it), so a `region: \"stage\"` export is that ratio. A fixed-aspect dialog runs the stage edge to edge (no padding or border around it). `contentClassName` styles the editor's root surface (inline chrome, letterbox colour); `dismissOnOutsidePress={false}` ignores backdrop presses while Escape and `handle.close()` still close (works with Radix and Base UI dialogs). Tool chips carry icons and turn icon-only on a narrow editor",
     "v0.7.0 — **breaking (type):** the canvas `aspect` (and the slot context's `aspect`) takes any `\"W:H\"` (`CanvasAspect`), sizing the inline canvas, the capture crop and the dialog from it; an invalid value falls back to `\"free\"`. `defaultCropAspect` opens Crop on an aspect; `crop-set` carries `aspect` and the resolved `ratio`; `getState()` / `loadState` carry `cropAspect`; a mounted editor follows a new `cropAspects` list; chips are `aria-pressed` and named by `labels.crop.aspect(aspect, format)` (locale digits). Text cards show every line while editing at the size they export: font and wrap width follow the card, the input grows with the text and the font steps down to fit, and the export draws the lines where the preview shows them",
     "v0.6.0 — **breaking:** `ExportMetadata.width` / `height` are the exported blob's pixels for photo and text exports (they were the on-screen size). Crop frames and presets fit the photo, not the canvas; `cropAspects` takes `\"original\"` and `\"W:H\"`. Export options `region` (`\"media\"` = the photo only, no letterbox), `width` / `height` / `maxEdge`, `backgroundColor`; `canvasBackground` prop. `handle.isModified()` (the discard confirm uses it), `isSettled()` / `whenSettled()` (exports wait for a source swap and never come out blank), every content `EditAction` emitted on commit. Snapshots carry `textOnly` and `frame`, so text cards restore and overlays stay on the picture across sizes and crops. Text cards are drawn with Canvas 2D. Fixed: the picture stayed small in a corner after the canvas resized (crop close, rotate); the crop panel pushed Apply / Done out of the dialog (`dialogClassName` added); focus is returned when the editor unmounts; the tool chips show an overflow fade",
     "v0.5.0 — **breaking:** every user-visible string is a label — `labels` is the nested `MediaEditorLabels` tree with every group and key optional (templated strings are functions), `labels.presets` names the built-in backgrounds / fonts / stickers / filters, `locale` formats the numbers; the `@internal` `StoryComposerLabels` shim is gone (parts and `MediaCaptureSurfaceProps.labels` take the public `MediaEditorResolvedLabels`; `editorLabelsFromFlat` converts flat labels); `labels.empty.*` now renders and `labels.publish` is removed. `acceptMediaTypes` drives both file pickers and the validator; `videoOutput.mimeTypes` restricts re-encoding and recording (video mode hidden + one `onValidationError` when none can be recorded); a passed-through video keeps its own MIME type; video drafts show no tool chips. Media chrome uses `--media-overlay` / `--media-overlay-foreground` and the recording / warning colours use `--destructive` / `--warning`. While `overlay` renders something the editor body is `inert`, focus moves into the overlay and Tab wraps inside it, and the dialog ignores its own close requests. A passed-through video reports its real size and duration. Video hiding applies only when recording is reachable (camera + capture wired). The exported `useHistory` claims Ctrl/Cmd+Z only when there is something to undo (and Ctrl+Y redoes)",
@@ -43,7 +44,7 @@ export const meta: ComponentMeta = {
     "editor",
   ],
 
-  version: "0.7.0",
+  version: "0.8.0",
   status: "alpha",
   heavy: true,
   // Reduced from 365 (pre-P3) — capture's ~1,284 LOC left the base folder;
@@ -62,9 +63,11 @@ export const meta: ComponentMeta = {
   // final battery (release-6 retro) → 345 → 440.
   // 0.7.0: W:H canvas aspect, crop-aspect carry + stale-list follow, text-card fit (cqi,
   // auto-grow, step-down, live export placement) and its fix wave: built 447.0 KB → 440 → 470.
-  artifactBudgetKB: 470,
+  // 0.8.0: fixed-aspect fit + edge to edge, close-reason classifier, icon chips, collapsed-region
+  // warn, named slider thumbs: built 468.0 KB → 470 → 490.
+  artifactBudgetKB: 490,
   createdAt: "2026-06-02",
-  updatedAt: "2026-10-29",
+  updatedAt: "2026-10-30",
 
   author: { name: "ilinxa" },
 

@@ -77,10 +77,11 @@ describe("media chrome colours are tokens", () => {
     expect(hits(/(?<![\w-])(?:[\w:[\]&>-]*:)?bg-media-overlay\/\d+/g)).toEqual([]);
   });
 
-  it("keeps bg-black only as the opaque stage behind the live camera preview", () => {
+  it("keeps bg-black only as an opaque stage: behind the live camera preview and the fixed-aspect dialog letterbox", () => {
     expect(hits(/(?<![\w-/])(?:[\w:[\]&>-]*:)?bg-black(?![\w/-])/g)).toEqual([
       expect.stringMatching(/^features\/capture\/parts\/editor-camera\.tsx:\d+ bg-black$/),
       expect.stringMatching(/^features\/capture\/parts\/editor-camera\.tsx:\d+ bg-black$/),
+      expect.stringMatching(/^media-editor\.tsx:\d+ bg-black$/),
     ]);
   });
 

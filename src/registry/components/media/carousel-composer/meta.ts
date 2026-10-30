@@ -15,12 +15,15 @@ export const meta: ComponentMeta = {
     "Ordered MediaCarouselItem model — add / remove / reorder / select; controlled `value` wins every render",
     "Reorderable thumbnail rail (@dnd-kit horizontal sortable) with pointer + keyboard reorder, a dedicated drag handle and labelled drag announcements",
     "Main preview of the selected item (image cover-fit; video on a media-overlay mat)",
-    "Per-image alt text (`enableAltText`, `maxAltLength`), carried on the item through onChange",
+    "Alt text (`enableAltText`, `maxAltLength`) — images by default; `\"all\"` or a per-item function describes videos too (the preview video is named by it); carried on the item through onChange",
+    "Pan inside the shared frame (`enablePan`) — drag or arrow keys move an image's `cropOffset`; preview, rail thumb and `export()`'s `crop` follow it (`onCropOffsetChange`)",
+    "Non-drag reorder (`reorderButtons`) — a move earlier / later pair per thumb (shown on thumb hover or when focused, logical in RTL, announced), `onMove`, handle `moveItem`",
+    "Escape guard — while an edit panel reports busy (`onBusyChange`; the add-on reports its load and save) Escape never reaches a host dialog; `onEditingChange` lets a host gate its own dialog",
     "Host-owned upload status — `status` / `progress` / `error` on the item, a progress indicator on thumb and preview, Retry via `onRetry`, polite announcements on status changes, handle `updateItem`",
     "Video poster frame (JPEG `posterBlob` at `posterAt`) and a duration badge (`formatDuration` / `locale`); the video itself is never re-encoded",
     "Image editing as an opt-in add-on (`editing` prop, `@ilinxa/carousel-composer-editing`) — no Edit button and no media-editor in the install without it; `canEditItem` decides per item",
     "Shared aspect across the carousel (Instagram behaviour) — any media-editor crop aspect (named, `\"original\"` = item 1's ratio, `\"W:H\"` such as `\"1.91:1\"`); `\"auto\"` snaps item 1 to the nearest option; controlled (`aspect` + `onAspectChange`) or `defaultAspect`; an `aspectOptions` switch on item 1; preview, rail thumbs and the edit panel follow it, an edit exports at it, and `export()` reports each image's centred `crop`",
-    "Imperative handle — getItems / export / addFiles / removeItem / updateItem / select / openEditor / reset; pull-only export()",
+    "Imperative handle — getItems / export / addFiles / removeItem / moveItem / updateItem / select / openEditor / reset; pull-only export()",
     "Every string in `labels` (functions where a value varies); media-overlay tokens; logical (RTL-safe) layout",
     "Per-file type + size validation; maxItems cap (default 10, Instagram parity)",
     "Object-URL lifecycle managed (items and posters revoked on remove / replace / reset / unmount)",
@@ -36,7 +39,7 @@ export const meta: ComponentMeta = {
     "instagram",
   ],
 
-  version: "0.4.0",
+  version: "0.5.0",
   status: "alpha",
   // 0.3.0: 70 → 115 on the built size after both fix waves (105.3 KB; U1 estimated ~64).
   // The growth is the labels surface + JSDoc in types.ts, the alt / upload-status /
@@ -44,9 +47,11 @@ export const meta: ComponentMeta = {
   // left for the feature item (~10 KB).
   // 0.4.0: shared any-ratio aspect (resolution, switch part, guarded number format, crop
   // rects, thumb box) + the fix wave: built 121.1 KB → 115 → 135.
-  artifactBudgetKB: 135,
+  // 0.5.0: alt for videos, pan (pending offset, pointer capture, keys), Escape guard, reorder
+  // buttons + two review / browser fix waves: built 147.8 KB → 135 → 155.
+  artifactBudgetKB: 155,
   createdAt: "2026-06-05",
-  updatedAt: "2026-10-29",
+  updatedAt: "2026-10-30",
 
   author: { name: "ilinxa" },
 

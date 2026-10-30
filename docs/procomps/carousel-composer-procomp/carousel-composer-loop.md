@@ -420,3 +420,8 @@ Commit `e8976ac`, pushed 15:33 under the user's Part 3 grant after the final con
 # Run — release 8 (2026-10-29)
 
 Lead state doc: [`../media-editor-procomp/media-editor-loop.md`](../media-editor-procomp/media-editor-loop.md) → "Run — release 8". Contract, invariants, findings and evidence live there.
+
+
+# Run — release 10 (2026-10-30)
+
+Lead state doc: [`../media-editor-procomp/media-editor-loop.md`](../media-editor-procomp/media-editor-loop.md) → "Run — release 10". carousel-composer 0.4.0 → 0.5.0 (CC-4 alt for videos, CC-5 pan, CC-6 Escape guard, CC-7 non-drag reorder; all additive). Contract, invariants, findings and evidence live there.
