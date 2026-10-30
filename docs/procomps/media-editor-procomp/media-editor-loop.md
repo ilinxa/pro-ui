@@ -985,7 +985,7 @@ Lead state doc for release 10; `carousel-composer-loop.md` carries a pointer sec
 | Field | Value |
 |---|---|
 | **Mode** | U-loop. media-editor **minor with a layout behaviour change** (fixed-aspect stage fit + edge-to-edge dialog; 2 additive props) · carousel-composer **minor** (additive: alt for videos, pan, Escape guard, non-drag reorder) |
-| **Current stage** | U7 — ship (GATE 3: Pass with follow-ups ×2 — `reviews/2026-10-30-v0.8.0-release-10.md`, carousel-composer `reviews/2026-10-30-v0.5.0-release-10.md`) |
+| **Current stage** | CLOSED — shipped in `182e038`, live-verified 2026-10-30 13:10 (U7 below). GATE 3: Pass with follow-ups ×2 (`reviews/2026-10-30-v0.8.0-release-10.md`, carousel-composer `reviews/2026-10-30-v0.5.0-release-10.md`) |
 | **Sign-off policy** | U1 minor → user. The media-editor layout change lands on a component three others compose (story-composer, content-composer, carousel-composer-editing) → never delegated; asked explicitly. **Signed off by the user 2026-10-30:** the fit + edge-to-edge is the DEFAULT for a fixed aspect (not opt-in); run **end to end incl. push** (same as releases 8 / 9). |
 | **Version target** | media-editor 0.7.0 → **0.8.0** (`media-editor-capture` follows) · carousel-composer 0.4.0 → **0.5.0** (`carousel-composer-editing` follows). story-composer / content-composer: no bump unless a test or a forwarded prop changes |
 | **Model roster** | architect: main session · implementers: 2 × Sonnet 5 (ME, CC) · finders: 2 × fresh Sonnet 5 (U4) + browser finder (U5) · doc verifier: fresh Sonnet 5 (U6) |
@@ -1257,3 +1257,12 @@ pan + editing tab and a 9:16 option to the reorder tab so the re-verify can reac
 
 Base UI is not installed in this repo (`node_modules/@base-ui*` absent) — the reason strings are checked against the known enum by reading; the platform's Base UI version is the real test (reply note).
 
+
+### U7 — Ship (2026-10-30)
+
+`182e038` pushed 12:48. Live poll (160 s apart): polls 1–7 (12:51–13:07) still 0.7.0 / 0.4.0; **poll 8 (13:10)
+`/r/media-editor.json` 0.8.0 and `/r/carousel-composer.json` 0.5.0**; `carousel-composer-editing` 0.5.0,
+`media-editor-capture` 0.8.0; the media-editor artifact carries `lib/close-reason.ts` and
+`hooks/use-slider-thumb-label.ts`; `/components/media-editor` 200. GATE 3: Pass with follow-ups ×2. Retro in
+`.claude/improvement-log.md`; decision `.claude/decisions/2026-10-30-release-10-fixed-aspect-stage.md`. Run closed; the
+reply to the platform is `.claude/report-back-2026-10-30-release-10.md` (the user sends it).
