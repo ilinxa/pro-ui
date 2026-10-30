@@ -1280,8 +1280,8 @@ Request: `E:/tmp/social-ui-v2/PROUI_REQUEST_2026-10-30_CROP_PENDING.md`. Decisio
 | Field | Value |
 |---|---|
 | **Mode** | U-loop, **patch** (no signature change; `loadState` and the public hook's `setActiveTool` tighten a defective state). Ladder asks a self-check; 1 fresh finder added, given the least-sure decisions |
-| **Current stage** | U6 done, U7 waiting for the user's go: **not committed, not pushed** |
-| **Sign-off** | U1 patch: architect proceeds, recorded here. Push: not authorised this run |
+| **Current stage** | CLOSED: shipped in `a2d3b31`, live-verified 2026-10-31 01:56 (U7 below) |
+| **Sign-off** | U1 patch: architect proceeds, recorded here. Push: the user, 2026-10-31 ("push if they are ready") |
 | **Version target** | media-editor 0.8.0 → **0.8.1** (`media-editor-capture` follows); no dependent bump |
 | **Started / updated** | 2026-10-30 / 2026-10-31 |
 
@@ -1350,3 +1350,12 @@ fix is in the installed hook; **consumer tsc exit 0, 0 errors**. CLI 4.18.0 and 
 Guide "Leaving the crop tool", CHANGELOG (+ capture), `meta.ts`, STATUS, `types.ts` JSDoc, component-versions, built
 artifacts. F-02 in `reviews/2026-10-30-v0.8.0-release-10.md` updated: Base UI half closed from `@base-ui/react` 1.4.1
 source, WebKit half stays with the platform. Patch: no review file required.
+
+## U7 — Ship (2026-10-31)
+
+Pre-push: master level with origin, 15 paths as intended, `sync-registry-versions --check` 0, the built artifact carries
+the final source and no test files, lint 0 errors, tsc 0, repo tier 194 / 11 files. `a2d3b31` pushed 01:39. Live poll
+(160 s apart): polls 1-5 (01:42-01:53) still 0.8.0, commit status pending; **poll 6 (01:56) `/r/media-editor.json` 0.8.1,
+commit status success**; `media-editor-capture` 0.8.1; the fix is in the served hook; `/components/media-editor` 200.
+**Replay against production: 12 / 12** (5 / 12 before the push). Retro in `.claude/improvement-log.md`. Run closed; the
+reply to the platform is `.claude/report-back-2026-10-31-media-editor-0-8-1.md` (the user sends it).
